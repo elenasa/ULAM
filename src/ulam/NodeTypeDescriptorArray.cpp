@@ -110,8 +110,7 @@ namespace MFM {
     else
       {
 	setNodeType(it); //now that we have Hzy; could be Nav
-	if(it == Hzy)
-	  m_state.setGoAgain();
+	if(it == Hzy) m_state.setGoAgain();
       }
     return getNodeType();
   } //checkAndLabelType

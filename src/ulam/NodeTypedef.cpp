@@ -178,10 +178,8 @@ namespace MFM {
 	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
       } // got typedef symbol
-
     setNodeType(it);
-    if(it == Hzy)
-      m_state.setGoAgain(); //since not error; unlike vardecl
+    if(it == Hzy) m_state.setGoAgain(); //since not error; unlike vardecl
     return getNodeType();
   } //checkAndLabelType
 

@@ -171,8 +171,7 @@ namespace MFM {
       newType = Hzy;
 
     setNodeType(newType);
-    if(newType == Hzy)
-      m_state.setGoAgain(); //since not error
+    if(newType == Hzy) m_state.setGoAgain(); //since not error
     Node::setStoreIntoAble(TBOOL_FALSE);
 
     if((newType != Nav) && isAConstant() && m_node->isReadyConstant())

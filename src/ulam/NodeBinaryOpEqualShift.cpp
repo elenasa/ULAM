@@ -91,9 +91,7 @@ namespace MFM {
 	  }
       } //complete
 
-    if(getNodeType() == Hzy)
-      m_state.setGoAgain();
-
+    if(getNodeType() == Hzy) m_state.setGoAgain();
     return getNodeType();
   } //checkandlabeltype
 

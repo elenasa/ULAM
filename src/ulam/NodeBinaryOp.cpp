@@ -208,8 +208,7 @@ namespace MFM {
       }
 
     setNodeType(newType); //might have changed to Nav?
-    if(newType == Hzy)
-      m_state.setGoAgain();
+    if(newType == Hzy) m_state.setGoAgain();
 
     //before constant folding; if needed (e.g. Remainder, Divide)
     castThyselfToResultType(rightType, leftType, newType);

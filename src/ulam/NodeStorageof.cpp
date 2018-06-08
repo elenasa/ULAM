@@ -221,11 +221,9 @@ namespace MFM {
 	  nuti = UAtom;
 	}
     }
-
-  setNodeType(nuti);
-  if(nuti == Hzy)
-    m_state.setGoAgain(); //since not error
-  return nuti;
+    setNodeType(nuti);
+    if(nuti == Hzy) m_state.setGoAgain(); //since not error
+    return nuti;
   } //checkAndLabelType
 
   EvalStatus NodeStorageof::eval()

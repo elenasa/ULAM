@@ -414,8 +414,7 @@ namespace MFM {
       it = checkUsedBeforeDeclared();
 
     setNodeType(it);
-    if(it == Hzy)
-      m_state.setGoAgain();
+    if(it == Hzy) m_state.setGoAgain();
     return it;
   } //checkAndLabelType
 

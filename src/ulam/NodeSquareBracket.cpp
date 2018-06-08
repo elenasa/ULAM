@@ -357,11 +357,8 @@ namespace MFM {
 	else
 	  m_state.abortShouldntGetHere();
       }
-
     setNodeType(newType);
-    if(newType == Hzy)
-      m_state.setGoAgain(); //covers non-error(debug) messages for incompletes
-
+    if(newType == Hzy) m_state.setGoAgain(); //covers non-error(debug) messages for incompletes
     return newType;
   } //checkAndLabelType
 

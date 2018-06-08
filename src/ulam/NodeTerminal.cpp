@@ -194,9 +194,7 @@ namespace MFM {
 	UTI newType = m_state.makeUlamType(newkey, m_etyp, UC_NOTACLASS);
 	setNodeType(newType);
       }
-
-    if(getNodeType() == Hzy)
-      m_state.setGoAgain();
+    if(getNodeType() == Hzy) m_state.setGoAgain();
     return getNodeType();
   } //checkAndLabelType
 

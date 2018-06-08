@@ -686,10 +686,7 @@ namespace MFM {
 	vit = Nav; //err msg by checkReferenceCompatibility
 	setNodeType(Nav); //failed
       }
-
-    if(vit == Hzy)
-      m_state.setGoAgain(); //since not error
-
+    if(vit == Hzy) m_state.setGoAgain(); //since not error
     return vit; //in case of surgery don't call getNodeType();
   } //checkAndLabelType
 

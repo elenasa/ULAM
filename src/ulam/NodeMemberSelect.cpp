@@ -126,8 +126,7 @@ namespace MFM {
 	      nuti = Hzy; //avoid clobbering Nav
 	  }
 	setNodeType(nuti);
-	if(nuti == Hzy)
-	  m_state.setGoAgain();
+	if(nuti == Hzy) m_state.setGoAgain();
 	return getNodeType();
       } //done
 

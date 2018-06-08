@@ -553,9 +553,7 @@ namespace MFM {
 	    //else t41192
 	  }
       }
-
-    if(getNodeType() == Hzy)
-      m_state.setGoAgain();
+    if(getNodeType() == Hzy) m_state.setGoAgain();
     return getNodeType();
   } //checkAndLabelType
 

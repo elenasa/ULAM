@@ -108,10 +108,8 @@ namespace MFM {
 	    it = Hzy;
 	  }
       }
-
     setNodeType(it);
-    if(it == Hzy)
-      m_state.setGoAgain(); //since not error
+    if(it == Hzy) m_state.setGoAgain(); //since not error
     return getNodeType();
   } //checkAndLabelType
 

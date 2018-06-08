@@ -456,8 +456,7 @@ namespace MFM {
 		setSuperBlockPointer(NULL); //force to try again!! avoid inf loop
 		setNodeType(Hzy); //t41150
 		m_state.setGoAgain();
-		if(brtnhzy)
-		  return Hzy; //short-circuit holders and stubs (e.g. t41010, t3831, t3889)
+		if(brtnhzy) return Hzy; //short-circuit holders and stubs (e.g. t41010, t3831, t3889)
 		//o.w. continue..
 	      }
 
