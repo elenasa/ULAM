@@ -49,7 +49,7 @@
 
 <CLASS_ARRAY_INIT_LIST := <CLASS_INIT> | <CLASS_INIT> + ',' + <CLASS_ARRAY_INIT_LIST>
 <CLASS_INIT> := '{' + <DM_INIT_LIST> + '}'
-<DM_INIT_LIST> := <DM_LIST> | <DM_LIST> + ',' + <DM_INIT_LIST>
+<DM_INIT_LIST> := 0 | <DM_INIT> | <DM_INIT> + ',' + <DM_INIT_LIST>
 <DM_INIT> := '.' + <IDENT> + '=' + ( <CONSTANT_EXPRESSION>
 	  | '{' + ( 0 | <CONSTANT_EXPR_LIST> ) + '}' | <CLASS_INIT>
 	  | '{' + ( 0 | <CLASS_ARRAY_INIT_LIST> ) + '}' )

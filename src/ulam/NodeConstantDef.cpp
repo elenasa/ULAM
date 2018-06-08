@@ -923,57 +923,53 @@ namespace MFM {
 
   bool NodeConstantDef::buildDefaultValueForClassConstantDefs()
   {
-    bool rtnok = true;
     UTI nuti = getNodeType();
     assert(m_state.okUTItoContinue(nuti) && m_state.isComplete(nuti));
 
-    if(m_state.isAClass(nuti)) //t41198
+    if(!m_state.isAClass(nuti)) //t41198
+      return true;
+
+    if(isReadyConstant())
+      return true;
+
+    bool rtnok = false;
+    BV8K bvtmp;
+    if(!m_nodeExpr)
       {
-	if(!isReadyConstant())
+	//no node expression, use default value
+	if((rtnok = m_state.getDefaultClassValue(nuti, bvtmp))) //uses scalar uti
 	  {
-	    if(m_state.tryToPackAClass(nuti) == TBOOL_TRUE) //uses scalar uti
-	      {
-		BV8K bvtmp;
-		if(m_nodeExpr)
-		  {
-		    if(m_nodeExpr->isAConstantClass())
-		      {
-			if((rtnok = m_nodeExpr->getConstantValue(bvtmp)))
-			  m_constSymbol->setValue(bvtmp);
-		      }
-		    else if(m_nodeExpr->isAList())
-		      {
-			if(m_state.getDefaultClassValue(nuti, bvtmp)) //uses scalar uti
-			  {
-			    if(!((NodeList *) m_nodeExpr)->isEmptyList())
-			      {
-				BV8K bvmask;
-				if(((NodeListClassInit *) m_nodeExpr)->initDataMembersConstantValue(bvtmp,bvmask))
-				  m_constSymbol->setValue(bvtmp);
-				else
-				  rtnok = false;
-			      }
-			    else
-			      m_constSymbol->setValue(bvtmp); //empty list uses default
-			  }
-			else rtnok = false;
-		      }
-		    else
-		      m_state.abortShouldntGetHere();
-		  }
-		else
-		  {
-		    //no node expression
-		    if((rtnok = m_state.getDefaultClassValue(nuti, bvtmp))) //uses scalar uti
-		      m_constSymbol->setValue(bvtmp);
-		    else
-		      rtnok = false;
-		  }
-	      } //packed
-	    else
-	      rtnok = false;
+	    m_constSymbol->setValue(bvtmp);
 	  }
+	return rtnok;
       }
+
+    //here, has nodeExpr, isn't ready, and is a class..
+    if(m_nodeExpr->isAConstantClass())
+      {
+	if((rtnok = m_nodeExpr->getConstantValue(bvtmp)))
+	  m_constSymbol->setValue(bvtmp);
+      }
+    else if(m_nodeExpr->isAList())
+      {
+	if(m_state.getDefaultClassValue(nuti, bvtmp)) //uses scalar uti
+	  {
+	    if(!((NodeList *) m_nodeExpr)->isEmptyList())
+	      {
+		BV8K bvmask;
+		if((rtnok = ((NodeListClassInit *) m_nodeExpr)->initDataMembersConstantValue(bvtmp,bvmask))) //passes along default value
+		  m_constSymbol->setValue(bvtmp);
+	      }
+	    else
+	      {
+		m_constSymbol->setValue(bvtmp); //empty list uses default
+		rtnok = true;
+	      }
+	  } // else no default, perhaps not ready
+      }
+    else
+      m_state.abortShouldntGetHere(); //why am i here?
+
     return rtnok;
   } //buildDefaultValueForClassConstantDefs
 

@@ -838,7 +838,6 @@ namespace MFM {
     //what if coslen is zero?
     u32 cospos = 0;
     ULAMCLASSTYPE cosclass = cosut->getUlamClassType();
-    //ULAMTYPE cosetyp = cosut->getUlamTypeEnum();
     bool cosIsTheConstantClass = (cos == ncsym);
 
     if(cosIsTheConstantClass) //cos is the constant class
@@ -932,12 +931,8 @@ namespace MFM {
     UlamType * scalarlut = m_state.getUlamTypeByIndex(scalarluti);
     u32 itemlen = scalarlut->getSizeofUlamType(); //atom-based for elements
     TMPSTORAGE slstor = scalarlut->getTmpStorageTypeForTmpVar();
-    //ULAMCLASSTYPE sclasstype = scalarlut->getUlamClassType();
     s32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
-
     UTI cosuti = cos->getUlamTypeIdx();
-    //UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
-    //ULAMTYPE cosetyp = cosut->getUlamTypeEnum();
     u32 cospos = 0;
     bool cosIsTheConstantClass = (cos == ncsym);
 
@@ -1643,7 +1638,6 @@ namespace MFM {
 
     UTI cosuti = cos->getUlamTypeIdx();
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
-    //ULAMTYPE cosetyp = cosut->getUlamTypeEnum();
 
     // write out auto ref constuctor
     s32 tmpVarNum2 = m_state.getNextTmpVarNumber();

@@ -1423,7 +1423,6 @@ namespace MFM {
     if(!isComplete(cuti)) return TBOOL_HAZY;
 
     TBOOL rtntb = TBOOL_TRUE;
-    //if(cut->getBitSize() > 0)
     if(cut->getSizeofUlamType() > 0)
       {
 	UTI scalarcuti = getUlamTypeAsScalar(cuti);
@@ -1450,7 +1449,10 @@ namespace MFM {
 	SymbolClass * csym = NULL;
 	AssertBool isDefined = alreadyDefinedSymbolClass(scalarcuti, csym);
 	assert(isDefined);
-	rtnb = csym->getDefaultValue(dvref); //pass along ref
+	if(csym->packBitsForClassVariableDataMembers() == TBOOL_TRUE) //might as well see
+	  rtnb = csym->getDefaultValue(dvref); //pass along ref
+	else
+	  rtnb = false; //really not ready
       }
     return rtnb;
   } //getDefaultClassValue

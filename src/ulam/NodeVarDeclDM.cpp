@@ -375,7 +375,6 @@ namespace MFM {
 		  }
 	      }
 	  }
-
 	//insure constant value fits in its declared type,
 	//done in NodeVarDecl c&l: safeToCastTo(nuti)
       } //finished init expr node
@@ -385,7 +384,6 @@ namespace MFM {
 	if(!checkDataMemberSizeConstraints())
 	  setNodeType(Nav); //err msgs, compiler counts;
       }
-
     return getNodeType();
   } //checkAndLabelType
 
@@ -479,6 +477,7 @@ namespace MFM {
 
   void NodeVarDeclDM::setInitExpr(Node * node)
   {
+    //called during parsing
     NodeVarDecl::setInitExpr(node);
     if(m_varSymbol)
       m_varSymbol->setHasInitValue();
@@ -711,7 +710,6 @@ namespace MFM {
 	//else continue
       }
 
-    bool aok = false; //init as not ready
     UTI nuti = getNodeType(); //same as symbol uti, unless prior error
     assert(nuti == vuti);
 
@@ -727,15 +725,22 @@ namespace MFM {
     if(cut->getUlamClassType() == UC_ELEMENT)
       pos += ATOMFIRSTSTATEBITPOS; //atom-based (ulam-4 TypeField known at compile-time)
 
+    bool aok = false; //init as not ready
     ULAMTYPE etyp = nut->getUlamTypeEnum();
     if(etyp == Class) //thisClass contains a different class
       {
-	if(hasInitExpr())
+	if(!hasInitExpr())
+	  {
+	    //no node expression -- will use default class value (t41232)
+	    aok = true;
+	  }
+	else
 	  {
 	    BV8K dmdv; //copies default BV
 	    if(m_varSymbol->isInitValueReady())
 	      {
-		aok = true; //NodeVarDecl tries to build initialized constant during c&l (ulam-4)
+		//NodeVarDecl tries to build initialized constants during c&l (ulam-4)
+		aok = true;
 	      }
 	    else if(m_nodeInitExpr->isAConstantClass())
 	      {
@@ -757,18 +762,11 @@ namespace MFM {
 			m_varSymbol->setInitValue(dmdv); //t41167,8 t41185(handles arrays)
 			aok = true; //no init expression, just the default (t3143)
 		      }
-		  }
-		//else not ok
+		  } //else default value not ok
 	      }
 	    else
 	      m_state.abortShouldntGetHere();
-	  }
-	else //no node expression -- use default class value (t41232)
-	  {
-	    //	    if((aok = m_state.getDefaultClassValue(nuti, dmdv))) //uses scalar uti
-	    //  m_varSymbol->setInitValue(dmdv);
-	    aok = true;
-	  }
+	  } //has init expr
 
 	if(aok)
 	  {
@@ -780,8 +778,8 @@ namespace MFM {
       }
     else if(etyp == UAtom) //this Transient contains an empty atom (t3802)
       {
-	BV8K bvatom; //copies default EMPTY Element with Type (ulam-4)
-	UTI emptyuti = m_state.getEmptyElementUTI();
+	BV8K bvatom; //copy default EMPTY Element with Type (ulam-4)
+	UTI emptyuti = m_state.getEmptyElementUTI(); //first class seen by compiler
 	AssertBool gotDefault = m_state.getDefaultClassValue(emptyuti, bvatom);
 	assert(gotDefault);
 

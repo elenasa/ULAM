@@ -176,6 +176,7 @@ namespace MFM {
 
   void NodeVarDecl::setInitExpr(Node * node)
   {
+    //called during parsing
     assert(node);
     m_nodeInitExpr = node;
     m_nodeInitExpr->updateLineage(getNodeNo()); //for unknown subtrees
@@ -215,7 +216,7 @@ namespace MFM {
 	      {
 		BV8K bvclass;
 		if(!m_state.getDefaultClassValue(nuti, bvclass))
-		  return false; //possibly not ready
+		  return false; //possibly not ready, tries to pack
 
 		UTI scalaruti = m_state.getUlamTypeAsScalar(nuti);
 		UlamType * scalarut = m_state.getUlamTypeByIndex(scalaruti);
@@ -246,32 +247,26 @@ namespace MFM {
     // ulam-4 since Strings and Element Types are now known at compile-time,
     // c-99 constant class initialization can be done in one fell swoop!
     // (instead of per DM at genCode/runtime);
-    bool rtnok = true;
     UTI nuti = getNodeType();
     assert(m_state.okUTItoContinue(nuti) && m_state.isComplete(nuti));
     assert(m_nodeInitExpr);
 
-    if(m_state.tryToPackAClass(nuti) == TBOOL_TRUE) //uses scalar uti
+    bool rtnok = false;
+    BV8K bvclass;
+    if(m_state.getDefaultClassValue(nuti, bvclass)) //uses scalar uti, checks packed
       {
-	BV8K bvclass;
-	if(m_state.getDefaultClassValue(nuti, bvclass)) //uses scalar uti
+	if(!((NodeList *) m_nodeInitExpr)->isEmptyList())
 	  {
-	    if(!((NodeList *) m_nodeInitExpr)->isEmptyList())
-	      {
-		BV8K bvmask;
-		if(((NodeListClassInit *) m_nodeInitExpr)->initDataMembersConstantValue(bvclass,bvmask))
-		  m_varSymbol->setInitValue(bvclass);
-		else
-		  rtnok = false;
-	      }
-	    else
-	      m_varSymbol->setInitValue(bvclass); //empty list uses default
+	    BV8K bvmask;
+	    if((rtnok = ((NodeListClassInit *) m_nodeInitExpr)->initDataMembersConstantValue(bvclass,bvmask)))
+	      m_varSymbol->setInitValue(bvclass);
 	  }
 	else
-	  rtnok = false; //default value not ready (t41182)
-      }
-    else
-      rtnok = false; //not packed yet
+	  {
+	    m_varSymbol->setInitValue(bvclass); //empty list uses default
+	    rtnok = true;
+	  }
+      } //else default value not ready (t41182)
     return rtnok;
   } //buildDefaultValueForClassConstantInitialization
 
