@@ -221,16 +221,15 @@ namespace MFM {
     // error messages appended to output are compared to answer
     if(C.compileFiles(fm, filesToCompile, outfm, output) == 0)
       {
-	//also available in NodeBlockClass::eval
-	//#define SKIP_EVAL
-#ifndef SKIP_EVAL
-	if(C.testProgram(output) == 0)
-	  {
-	    C.printPostFix(output);
-	  }
-	else
-	  output->write("Unrecoverable Program Test FAILURE.\n");
-#endif
+	//SKIP_EVAL also available in NodeBlockClass::eval
+	if(!SkipEval()) {
+	  if(C.testProgram(output) == 0)
+	    {
+	      C.printPostFix(output);
+	    }
+	  else
+	    output->write("Unrecoverable Program Test FAILURE.\n");
+	}
       }
 
     delete outfm;

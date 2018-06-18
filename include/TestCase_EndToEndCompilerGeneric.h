@@ -57,21 +57,6 @@ namespace MFM{
     virtual bool GetTestResults(FileManager * fm, std::string startstr, File * output);
 
   protected:
-
-    virtual std::string GetAnswerKey() ;
-
-  private:
-
-    enum { START, IN_FILE, ANSWER } m_state;
-
-    std::string m_currentLine;
-    s32 getInput(u32 index) {
-      if (index >= m_currentLine.length()) return -1;
-      return m_currentLine.at(index);
-    }
-
-    std::string m_testName;
-
     struct InputFile {
       std::string m_fileName;
       std::ostringstream m_contents;
@@ -90,7 +75,24 @@ namespace MFM{
         m_contents << in.m_contents.str();
       }
     };
+
     std::vector<InputFile> m_inputFiles;
+
+    virtual std::string GetAnswerKey() ;
+
+    virtual inline bool SkipEval() { return false; }
+
+  private:
+
+    enum { START, IN_FILE, ANSWER } m_state;
+
+    std::string m_currentLine;
+    s32 getInput(u32 index) {
+      if (index >= m_currentLine.length()) return -1;
+      return m_currentLine.at(index);
+    }
+
+    std::string m_testName;
 
     std::string m_startFileName;
 

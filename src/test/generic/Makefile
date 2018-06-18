@@ -35,6 +35,11 @@ gen: $(TGEN_DIR)
 	cp $(SPIKE_DIR)/native/makefile $(TGEN_DIR)/.
 	make -C $(TGEN_DIR)
 
+perf: $(TGEN_DIR)
+	cp $(SPIKE_DIR)/native/*.tcc $(TGEN_DIR)/include/.
+	cp $(SPIKE_DIR)/native/makefile-perf $(TGEN_DIR)/makefile
+	make -C $(TGEN_DIR)
+
 initdirs:	FORCE
 	mkdir -p $(TGEN_DIR)/include
 	mkdir -p $(TGEN_DIR)/src

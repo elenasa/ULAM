@@ -1291,7 +1291,7 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("unsigned int totalnanos = MFM::TestSingleElementPerformance<MFM::OurEventConfigAll>(loops);"); GCNL;
     m_state.indent(fp);
-    fp->write("std::cerr << totalnanos/loops << \" nsec\" << std::endl;"); GCNL;
+    fp->write("std::cerr << totalnanos/loops << \",\" << loops << std::endl;"); GCNL; //comma-delimited (no labels)
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
     fp->write("}\n");
