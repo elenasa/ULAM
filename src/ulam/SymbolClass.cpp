@@ -1086,6 +1086,14 @@ namespace MFM {
 	fp->write(".h\""); GCNL;
       }
 
+    fp->write("\n");
+    m_state.indent(fp);
+    fp->write("#ifndef NSEC_PER_SEC\n");
+    m_state.indent(fp);
+    fp->write("#define NSEC_PER_SEC 1000000000\n");
+    m_state.indent(fp);
+    fp->write("#endif //NSEC_PER_SEC "); GCNL;
+
     //namespace MFM
     fp->write("\n");
     m_state.indent(fp);
@@ -1102,7 +1110,7 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("typedef EventConfig<OurSiteAll,4> OurEventConfigAll;"); GCNL;
     m_state.indent(fp);
-    fp->write("typedef SizedTile<OurEventConfigAll, 20, 101> OurTestTile;"); GCNL;
+    fp->write("typedef SizedTile<OurEventConfigAll, 20, 101> OurTestTile;"); GCNL; //TODO update for staggered tiles: ..,40,20,101>
     m_state.indent(fp);
     fp->write("typedef ElementTypeNumberMap<OurEventConfigAll> OurEventTypeNumberMapAll;"); GCNL;
     fp->write("\n");
@@ -1117,6 +1125,38 @@ namespace MFM {
     fp->write("typedef UlamContextEvent<OurEventConfigAll> OurUlamContext;"); GCNL;
     fp->write("\n");
 
+    // TEST TILE SETUP
+    m_state.indent(fp);
+    fp->write("template<class EC>\n");
+    m_state.indent(fp);
+    fp->write("void TestTileSetup(OurTestTile& tile)\n");
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+
+    m_state.indent(fp);
+    fp->write("OurEventTypeNumberMapAll etnm;"); GCNL;
+
+    m_state.indent(fp);
+    fp->write("Ue_10105Empty10<EC>::THE_INSTANCE.AllocateEmptyType();"); GCNL;
+    m_state.indent(fp);
+    fp->write("tile.ReplaceEmptyElement(Ue_10105Empty10<EC>::THE_INSTANCE);"); GCNL;
+
+    //registers localsfilescope "classes" for string index corrections (e.g. t3952)
+    m_state.generateTestInstancesForLocalsFilescopes(fp);
+
+    //eventually ends up at SC::generateTestInstance()
+    m_state.m_programDefST.generateTestInstancesForTableOfClasses(fp);
+
+    m_state.indent(fp);
+    fp->write("return;"); GCNL;
+
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("} //TestTileSetup \n\n");
+
+    //run test once only:
     m_state.indent(fp);
     fp->write("template<class EC>\n");
     m_state.indent(fp);
@@ -1127,40 +1167,109 @@ namespace MFM {
     m_state.m_currentIndentLevel++;
 
     m_state.indent(fp);
-    fp->write("OurEventTypeNumberMapAll etnm;"); GCNL;
-    m_state.indent(fp);
     fp->write("OurTestTile tile;"); GCNL;
-
     m_state.indent(fp);
-    fp->write("Ue_10105Empty10<EC>::THE_INSTANCE.AllocateEmptyType();"); GCNL;
-    m_state.indent(fp);
-    fp->write("tile.ReplaceEmptyElement(Ue_10105Empty10<EC>::THE_INSTANCE);"); GCNL;
+    fp->write("TestTileSetup<EC>(tile);"); GCNL;
 
     m_state.indent(fp);
     fp->write("OurUlamContext uc(tile.GetElementTable());"); GCNL;
     m_state.indent(fp);
-    fp->write("const u32 TILE_SIDE = tile.TILE_SIDE;"); GCNL;
+    fp->write("const u32 TILE_WIDTH = tile.TILE_SIDE;"); GCNL; //TODO update for staggered tiles
     m_state.indent(fp);
-    fp->write("SPoint center(TILE_SIDE/2, TILE_SIDE/2);  // Hitting no caches, for starters;\n");
+    fp->write("const u32 TILE_HEIGHT = tile.TILE_SIDE;"); GCNL; //TODO update for staggered tiles
+    m_state.indent(fp);
+    fp->write("SPoint center(TILE_WIDTH/2, TILE_HEIGHT/2);  // Hitting no caches, for starters;\n");
     m_state.indent(fp);
     fp->write("uc.SetTile(tile);"); GCNL;
 
-    //registers localsfilescope "classes" for string index corrections (e.g. t3952)
-    m_state.generateTestInstancesForLocalsFilescopes(fp);
-
     //eventually ends up at SC::generateTestInstance()
-    m_state.m_programDefST.generateTestInstancesForTableOfClasses(fp);
+    m_state.m_programDefST.generateTestInstancesRunForTableOfClasses(fp);
 
+    m_state.indent(fp);
+    fp->write("return 0;"); GCNL;
+
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("} //TestSingleElement\n\n");
+
+    //run test performance in loop, return time in ms:
+    m_state.indent(fp);
+    fp->write("template<class EC>\n");
+    m_state.indent(fp);
+    fp->write("int TestSingleElementPerformance(unsigned int loops)\n");
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+
+    m_state.indent(fp);
+    fp->write("OurTestTile tile;"); GCNL;
+    m_state.indent(fp);
+    fp->write("TestTileSetup<EC>(tile);"); GCNL;
+
+    m_state.indent(fp);
+    fp->write("OurUlamContext uc(tile.GetElementTable());"); GCNL;
+    m_state.indent(fp);
+    fp->write("const u32 TILE_WIDTH = tile.TILE_SIDE;"); GCNL; //TODO update for staggered tiles
+    m_state.indent(fp);
+    fp->write("const u32 TILE_HEIGHT = tile.TILE_SIDE;"); GCNL; //TODO update for staggered tiles
+    m_state.indent(fp);
+    fp->write("SPoint center(TILE_WIDTH/2, TILE_HEIGHT/2);  // Hitting no caches, for starters;\n");
+    m_state.indent(fp);
+    fp->write("uc.SetTile(tile);"); GCNL;
+
+    m_state.indent(fp);
+    fp->write("timespec startts;\n");
+    m_state.indent(fp);
+    fp->write("if(clock_gettime(CLOCK_REALTIME, &startts)) abort();"); GCNL;
+
+    m_state.indent(fp);
+    fp->write("while(loops-- > 0)");
+    //eventually ends up at SC::generateTestInstance()
+    m_state.m_programDefST.generateTestInstancesRunForTableOfClasses(fp);
+
+    m_state.indent(fp);
+    fp->write("timespec endts;\n");
+    m_state.indent(fp);
+    fp->write("if(clock_gettime(CLOCK_REALTIME, &endts)) abort();"); GCNL;
+
+    m_state.indent(fp);
+    fp->write("long deltasecs = (endts.tv_sec - startts.tv_sec);\n");
+
+    m_state.indent(fp);
+    fp->write("if(deltasecs < 0) abort();\n");
+    m_state.indent(fp);
+    fp->write("if(deltasecs > 2)\n"); //more than 2 seconds, and nsec won't fit in 64-bits
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+    m_state.indent(fp);
+    fp->write("std::cerr << loops << \" is too many loops\" << std::endl;\n");
+    m_state.indent(fp);
+    fp->write("abort();\n");
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
     fp->write("}\n");
 
+    m_state.indent(fp);
+    fp->write("long elapsedns = NSEC_PER_SEC * deltasecs + (endts.tv_nsec - startts.tv_nsec);"); GCNL;
+
+    m_state.indent(fp);
+    fp->write("return elapsedns;"); GCNL;
+
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
-    fp->write("} //MFM\n");
+    fp->write("} //TestSingleElementPerformance\n");
 
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("} //MFM\n\n");
+
+    //////////////////////////////////////////////
     //MAIN STARTS HERE !!!
     GCNL;
+
     m_state.indent(fp);
     fp->write("int main(int argc, const char** argv)\n");
 
@@ -1170,8 +1279,33 @@ namespace MFM {
     m_state.m_currentIndentLevel++;
 
     m_state.indent(fp);
-    fp->write("return ");
-    fp->write("MFM::TestSingleElement<MFM::OurEventConfigAll>();"); GCNL;
+    fp->write("if(argc > 1)\n");
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+    m_state.indent(fp);
+    fp->write("unsigned int loops = atoi(argv[1]);\n");
+    m_state.indent(fp);
+    fp->write("loops = (loops == 0 ? 1 : loops);\n");
+    m_state.indent(fp);
+    fp->write("unsigned int totalnanos = MFM::TestSingleElementPerformance<MFM::OurEventConfigAll>(loops);"); GCNL;
+    m_state.indent(fp);
+    fp->write("std::cerr << totalnanos/loops << \" nsec\" << std::endl;"); GCNL;
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("}\n");
+
+    m_state.indent(fp);
+    fp->write("else\n");
+
+    m_state.m_currentIndentLevel++;
+    m_state.indent(fp);
+    fp->write("MFM::TestSingleElement<MFM::OurEventConfigAll>();"); GCNL; //old way
+    m_state.m_currentIndentLevel--;
+
+    m_state.indent(fp);
+    fp->write("return 0;\n");
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);

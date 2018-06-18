@@ -107,6 +107,7 @@ namespace MFM{
     void generateForwardDefsForTableOfClasses(File * fp);
 
     void generateTestInstancesForTableOfClasses(File * fp);
+    void generateTestInstancesRunForTableOfClasses(File * fp);
 
     u32 defineRegistrationNumberForTableOfClasses(); //ulam-4
 

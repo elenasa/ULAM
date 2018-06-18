@@ -8,8 +8,11 @@ MFM_PLATFORM_INCL:=$(MFM_ROOT_DIR)/src/platform-linux/include
 MFM_BUILD_CORE:=$(MFM_ROOT_DIR)/build/core
 MFM_BUILD_PLATFORM:=$(MFM_ROOT_DIR)/build/platform-linux
 
-CFLAGS:= -g -pthread -ansi -pedantic
+CFLAGS:= -pthread -ansi -pedantic
 CFLAGS+= -Wall
+# Optimization-99 instead of gdb flag for performance testing
+#CFLAGS+= -g
+CFLAGS+= -O99
 #CFLAGS+= -Werror
 #CFLAGS+= -Wunused-variable
 default: all

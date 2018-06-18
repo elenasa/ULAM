@@ -3069,11 +3069,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write(".Uf_4test(");
     fp->write("uc, ur);"); GCNL;
 
-    m_state.indent(fp);
-    fp->write("//std::cerr << rtn.read() << std::endl;\n");//useful to return result of test?
-    m_state.indent(fp);
-    fp->write("//return rtn.read();\n"); //was useful to return result of test
-
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
     fp->write("}\n");
