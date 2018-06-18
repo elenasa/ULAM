@@ -159,7 +159,7 @@ sub main
 
 	    my $log = "/tmp/t" . $testnum . "-testlog.txt";
 	    my $errlog = "/tmp/t" . $testnum . "-testerrlog.txt";
-	    my $perflog = "/tmp/t" . $testnum . "-testperflog.txt";
+	    my $perflog = "/tmp/t" . $testnum . "-testnewperflog.txt";
 
 	    # useful System Quark:
 	    #`cp $TESTDIR/$SRC_DIR/t3207_test_compiler_quarksystem_inside_a_quark.cpp $TESTDIR/.`;
