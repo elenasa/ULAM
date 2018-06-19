@@ -57,6 +57,8 @@ namespace MFM{
 
     virtual inline bool SkipEval() { return true; }
 
+    //virtual void AddShareUlamFilesToCompile(std::vector<std::string> * ftcvecptr);
+
   private:
 
   };

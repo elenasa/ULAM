@@ -29,14 +29,15 @@ $(BUILD_DIR)/libtests.a: $(OBJS)
 $(BUILD_DIR)/%.o: %.cpp $(HDRS) $(ALLDEP) | $(BUILD_DIR)
 	g++ -c $(CFLAGS) ${DEFINES} $(INCLUDES) $< -o $@
 
-gen: $(TGEN_DIR)
+gen: FORCE
 #	cp $(SHARE_DIR)/tcc/*.tcc $(TGEN_DIR)/include/.
 	cp $(SPIKE_DIR)/native/*.tcc $(TGEN_DIR)/include/.
 	cp $(SPIKE_DIR)/native/makefile $(TGEN_DIR)/.
 	make -C $(TGEN_DIR)
 
-perf: $(TGEN_DIR)
-	cp $(SPIKE_DIR)/native/*.tcc $(TGEN_DIR)/include/.
+perf: FORCE
+#	cp $(SPIKE_DIR)/native/*.tcc $(TGEN_DIR)/include/.
+	cp $(SHARE_DIR)/tcc/stdlib/*_native.tcc $(TGEN_DIR)/include/.
 	cp $(SPIKE_DIR)/native/makefile-perf $(TGEN_DIR)/makefile
 	make -C $(TGEN_DIR)
 

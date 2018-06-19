@@ -62,7 +62,8 @@ if (scalar(@ARGV) > 0) {
 	$SRC_DIR = "safe" if ($1 eq 'S'); # default
 	$SRC_DIR = "error" if ($1 eq 'E');
 	$SRC_DIR = "fail" if ($1 eq 'F');
-	$SRC_DIR = "safe" if ($1 eq 'P'); #maybe 'perf' in future?
+#	$SRC_DIR = "safe" if ($1 eq 'P'); #maybe 'perf' in future?
+	$SRC_DIR = "perf" if ($1 eq 'P'); #'perf' uses share, not spike natives
     }
 
     if( $ARGV[0] =~ /P/ ){
@@ -143,10 +144,8 @@ sub main
 
     `make -C $TESTDIR initdirs`; #before test
 
-    foreach $f (sort @files)
-    {
-	if ($f =~ /t(\d+).*\.test$/ )
-	{
+    foreach $f (sort @files) {
+	if ($f =~ /t(\d+).*\.test$/ ) {
 	    my $testnum = $1;
 	    (int($testnum) == int($lasttestnum)) && next;
 	    #print "$f, $lasttestnum, $testnum\n";
@@ -166,8 +165,7 @@ sub main
 
 	    `make -C $TESTDIR clean`; #before test
 
-	    if($EXEC_TEST_VALGRIND)
-	    {
+	    if($EXEC_TEST_VALGRIND) {
 		# one at a time, results in testerrlog
 		# grep for:
                 # All heap blocks were freed -- no leaks are possible
@@ -190,17 +188,30 @@ sub main
 		}
 	    } elsif($EXEC_TEST_PERFORMANCE) {
 		# clears output/err log files; drops any output
-		`./bin/culamtestperf $f 1>/dev/null 2>$errlog`;
-                ## compile and run generated code without eval;
-		## timing into perf log
-		`make -C $TESTDIR perf`;
-		`$TESTBIN/main $PERF_LOOP 1>/dev/null 2>$perflog`;
+		`./bin/culamtestperf $f 1>$log 2>$errlog`;
 
-		++$testsPassed; # always
-		print "got timing for t$testnum\n"; #progress..
+                my $status = $?;
+                if ($status != 0) {
+                    ++$testsFailed;
+                    print "FAILED culamtestperf: $testnum\n";
+                } else {
+		    ## compile and run generated code without eval;
+		    ## timing into perf log
+		    `make -C $TESTDIR perf`;
+
+		    $status = $?;
+		    if ($status != 0) {
+			++$testsFailed;
+			print "FAILED: $testnum\n";
+		    } else {
+			## append or not to append??
+			`$TESTBIN/main $PERF_LOOP 1>/dev/null 2>>$perflog`;
+			++$testsPassed;
+			print "got timing for t$testnum\n"; #progress..
+		    }
+		}
 	    } else {
-		if($SRC_DIR =~ /error/)
-		{
+		if($SRC_DIR =~ /error/) {
 		    `./bin/culamtest $f 1> $log`;  ##outputs errlog to stderr
 		} else {
 		    `./bin/culamtest $f 1> $log 2> $errlog`;
@@ -213,18 +224,16 @@ sub main
                     ++$testsFailed;
                     print "FAILED: $testnum\n";
                 }
-
                 ## compile and run generated code
 		if($TESTGENCODE) {
 		    `make -C $TESTDIR gen`;
 		    `$TESTBIN/main 1>> $log 2>> $errlog`;
 		}
 	    }
+
 	    $TESTGENCODE && print "done with t$testnum\n";
 	    $N++;
-	}
-	else
-	{
+	} else {
 	    print "no match for <$f>\n";
 	}
     } # end for loop

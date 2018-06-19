@@ -1,0 +1,130 @@
+## -*- mode:ulam -*-
+#=t41280_test_compiler_performance_dreg_res_wall
+#!
+Exit status: 0
+##
+## DReg: cannot handle model parameters...changed them to constants
+##
+#>A.ulam
+  ulam 3;
+element A {
+  Int test() {
+    Termite tim;
+    Int i = 1; //1000;
+    while(i-- > 0)
+    {
+      tim.behave();
+    }
+    return 0;
+  }
+}
+
+#:Termite.ulam
+ulam 1;
+/**
+   Sort base atom (types) into piles.
+   \symbol Te
+   \color #ff0
+   \symmetries normal
+ */
+element Termite
+{
+  typedef AtomUtils.Type Type;
+  typedef Unary(3) State;
+  typedef Unsigned(3) Direction;
+
+  EventWindow ew;
+  SiteUtils su;
+  AtomUtils au;
+  Random random;
+
+  Type m_heldType;
+  Direction m_dir;
+
+  constant State cFIND_CHIP = 0;
+  constant State cMOVE_CHIP = cFIND_CHIP + 1;
+  constant State cDROP_CHIP = cMOVE_CHIP + 1;
+  State m_state;
+
+  /**
+     Turning odds.  With smaller values the termite turns more
+     frequently.
+
+     \range 1..100
+   */
+  //parameter Unsigned pTURN_ODDS = 10;
+constant Unsigned pTURN_ODDS = 10;
+
+  Void behave()
+  {
+    Type baseType = au.getValidType(su.getBase());
+    Type emptyType = au.getEmptyType();
+
+    if (m_state == cFIND_CHIP) {    // I'm looking for a chip
+
+      if (baseType != emptyType) {  // If I'm over something non-empty
+
+        m_heldType = baseType;               // Remember its type..
+        su.setBase(au.new((Int) emptyType)); // ..then erase it
+
+        m_state = cMOVE_CHIP;       // Now I'm moving a chip
+      }
+
+    } else if (m_state == cMOVE_CHIP) {  // I'm moving a chip
+
+      if (baseType == m_heldType)        // If I'm over another of the same type..
+        m_state = cDROP_CHIP;            // .. prepare to drop my chip
+
+    } else if (m_state == cDROP_CHIP) {  // I'm looking to drop my chip
+
+      if (baseType == emptyType) {       // If I'm over an empty spot..
+
+        su.setBase(au.new((Int) m_heldType));   // ..fill it with the type I'm carrying..
+        m_heldType = emptyType;                 // (remember I'm not carrying anything)
+
+        m_state = cFIND_CHIP;            // Now I'm looking for a chip again
+
+      } else if (baseType != m_heldType) { // If we're over something different than our chip..
+
+        m_state = cMOVE_CHIP;              // ..then don't be dropping our chip around here.
+
+      }
+    }
+
+    if (!ew.isLive(m_dir + 1u) || random.oneIn(pTURN_ODDS))
+      m_dir = (Direction) random.bits(m_dir.sizeof);
+
+    ew.swap(0u, m_dir + 1u);
+  }
+
+  ColorUtils cu;
+  typedef ColorUtils.ARGB ARGB;
+  ARGB getColor(Unsigned selector)
+  {
+    ARGB ret = cu.color(0xffffff00U); // yellow - looking for 1st chip
+    if (m_state == cMOVE_CHIP)
+      ret = cu.color(0xffff0000U); // red - looking for 2nd chip
+    else if (m_state == cDROP_CHIP)
+      ret = cu.color(0xff0000ffU); // blue - looking for empty
+    return ret;
+  }
+}
+
+
+#:QC.ulam
+  ulam 1;
+/* just some passive elements to serve as 'wood chips' in the base
+   layer */
+quark QC(Unsigned col) {
+  ColorUtils cu;
+  ARGB getColor(Unsigned selector) { return cu.color(col); }
+  Void behave() { }
+}
+element Red :    QC(0xdd3333) { }
+element Green :  QC(0x33dd33) { }
+element Blue :   QC(0x3333dd) { }
+element Yellow : QC(0xdddd33) { }
+element Purple : QC(0xdd33dd) { }
+element Cyan :   QC(0x33dddd) { }
+
+#.
