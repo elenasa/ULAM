@@ -1,0 +1,52 @@
+## -*- mode:ulam -*-
+#=t41279_test_compiler_performance_res_wall
+#!
+Exit status: 0
+#>A.ulam
+  ulam 3;
+element A {
+  Int test() {
+    Res res;
+    Wall wally;
+    Int i = 1000;
+    while(i-- > 0)
+    {
+      res.behave();
+      wally.behave();
+    }
+    return 0;
+  }
+}
+
+#:Res.ulam
+  ulam 2;
+/**
+   Generic resource
+   \symbol R
+   \color #60662e
+   \symmetries all
+   \radius 1
+   \version 3
+*/
+use EventWindow;
+element Res {
+  EventWindow ew;
+  Void behave() {
+    if (ew[1] is Empty)
+      ew.swap(0,1);
+  }
+}
+
+#:Wall.ulam
+  ulam 1;
+/** Wall.  A thing that doesn't want to move or be moved
+    \symbol W
+    \color #fff
+    \symmetries normal
+    \diffusability 0
+    \radius 0
+    \version 2
+*/
+element Wall { Void behave() { } }
+
+#.
