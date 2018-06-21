@@ -78,6 +78,7 @@ namespace MFM{
 
     std::vector<InputFile> m_inputFiles;
     std::vector<std::string> m_stdlibUlamFiles;
+    std::vector<std::string> m_coreUlamFiles;
 
     virtual std::string GetAnswerKey() ;
 
@@ -109,8 +110,9 @@ namespace MFM{
 
     void die(std::string msg) ;
 
+    void addShareUlamFilesToFileManager(FileManagerString & fms) ;
     void addStdlibUlamFiles(FileManagerString & fms) ;
-
+    void addCoreUlamFiles(FileManagerString & fms) ;
   };
 
 }

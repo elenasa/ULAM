@@ -18,35 +18,4 @@ element A {
   }
 }
 
-#:Res.ulam
-  ulam 2;
-/**
-   Generic resource
-   \symbol R
-   \color #60662e
-   \symmetries all
-   \radius 1
-   \version 3
-*/
-use EventWindow;
-element Res {
-  EventWindow ew;
-  Void behave() {
-    if (ew[1] is Empty)
-      ew.swap(0,1);
-  }
-}
-
-#:Wall.ulam
-  ulam 1;
-/** Wall.  A thing that doesn't want to move or be moved
-    \symbol W
-    \color #fff
-    \symmetries normal
-    \diffusability 0
-    \radius 0
-    \version 2
-*/
-element Wall { Void behave() { } }
-
 #.
