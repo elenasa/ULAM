@@ -17,6 +17,7 @@ quark DebugUtils {
   constant Bits cPRINT_MEMBER_ARRAYS =   0x00000100; //< Print array values individually
   constant Bits cPRINT_RECURSE_QUARKS =  0x00000200; //< Print quarks recursively
   constant Bits cPRINT_INDENTED_LINES =  0x00000400; //< Add newlines and indents
+  constant Bits cPRINT_MEMBER_ASCII =    0x00000800; //< Add ASCII data member values if printable
 
   constant Bits cPRINT_NOTHING = Unsigned.minof;
   constant Bits cPRINT_HEX_ATOM = cPRINT_SYMBOL|cPRINT_ATOM_BODY;
@@ -24,10 +25,17 @@ quark DebugUtils {
   constant Bits cPRINT_MEMBERS = cPRINT_SYMBOL|cPRINT_MEMBER_NAMES|cPRINT_MEMBER_VALUES;
   constant Bits cPRINT_QUARK_MEMBERS = cPRINT_MEMBERS|cPRINT_RECURSE_QUARKS;
   constant Bits cPRINT_ALL_MEMBERS = cPRINT_SYMBOL|cPRINT_MEMBER_VALUES|cPRINT_RECURSE_QUARKS|cPRINT_MEMBER_ARRAYS;
+  constant Bits cPRINT_MOST_THINGS = 
+    cPRINT_SYMBOL|cPRINT_FULL_NAME|cPRINT_ATOM_BODY|
+    cPRINT_MEMBER_NAMES|cPRINT_MEMBER_VALUES|
+    cPRINT_INDENTED_LINES|cPRINT_RECURSE_QUARKS|
+    cPRINT_MEMBER_ARRAYS;
   constant Bits cPRINT_EVERYTHING = Unsigned.maxof;
 
   Void print(Atom arg) { print(arg, cPRINT_MEMBERS); }
   Void print(Atom a, Bits flags) native;
+
+  Void print(UrSelf& a) native;
 
   Bool hasEventWindow() native;
 
