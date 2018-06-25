@@ -55,20 +55,16 @@ namespace MFM{
   Ui_Uq_r10109210ByteStream10<EC> Uq_10109210ByteStream10<EC>::Uf_6printf(const UlamContext<EC>& uc, UlamRef<EC>& ur, Ui_Ut_102321s<EC>& Uv_3fmt, ...) const
   {
     const u32 writeByteFuncIdx = Uq_10109210ByteStream10<EC>::VTABLE_IDX_Uf_919writeByte1110181u;
-    VfuncPtr writeByte = ur.GetEffectiveSelf()->getVTableEntry(writeByteFuncIdx); 
+    VfuncPtr writeByte = ur.GetEffectiveSelf()->getVTableEntry(writeByteFuncIdx);
     Uq_10109210ByteStream10<EC>::Uf_919writeByte1110181u writeByteFunc
       = (Uq_10109210ByteStream10<EC>::Uf_919writeByte1110181u) writeByte;
 
     _UlamByteSinkWrapper<EC> ubsw(uc,ur, writeByteFunc);
     Ui_Uq_r10109210ByteStream10<EC> self(ur, 0u, ur.GetEffectiveSelf());
 
-    u32 strval = Uv_3fmt.read();
-    const u8 * p = 
-      uc
-      .GetUlamClassRegistry()
-      .GetUlamClassByIndex(Ui_Ut_102321s<EC>::getRegNum(strval))
-      ->GetString(Ui_Ut_102321s<EC>::getStrIdx(strval));
-    
+    const u32 strval = Uv_3fmt.read();
+    const u8 * p = GetStringPointerFromGlobalStringPool(strval);
+
     va_list ap;
     va_start(ap, Uv_3fmt);
     u32 ch;
@@ -132,26 +128,22 @@ namespace MFM{
             ubsw.Print(val,Format::BYTE);
           }
           continue;
-            
+
         case 's':
           {
             if (!asprim) FAIL(ILLEGAL_ARGUMENT);
 
             if (asprim->GetPrimType() != UlamTypeInfoPrimitive::STRING) FAIL(ILLEGAL_ARGUMENT);
-            u32 combinedIdx = ((Ui_Ut_102321s<EC> *) arg)->read();
 
-            const UlamClass<EC> * ucp = uc.GetUlamClassRegistry().GetUlamClassByIndex(Ui_Ut_102321s<EC>::getRegNum(combinedIdx));
-            if (!ucp) FAIL(ILLEGAL_STATE);
-
-            u32 strIdx = Ui_Ut_102321s<EC>::getStrIdx(combinedIdx);
-            const u8 * str = ucp->GetString(strIdx);
+            const u32 strIdx = ((Ui_Ut_102321s<EC> *) arg)->read();
+            const u8 * str = GetStringPointerFromGlobalStringPool(strIdx);
             if (!str) FAIL(ILLEGAL_STATE);
-            u32 strlen = ucp->GetStringLength(strIdx);
+            u32 strlen = GetStringLengthFromGlobalStringPool(strIdx);
 
             ubsw.Print(str, strlen);
           }
           continue;
-            
+
         default:
           FAIL(INCOMPLETE_CODE);
         }
@@ -163,4 +155,3 @@ namespace MFM{
   } // Uf_6printf
 
 } //MFM
-
