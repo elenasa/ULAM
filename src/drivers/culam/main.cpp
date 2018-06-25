@@ -13,7 +13,8 @@ static const char * progname;
 static void doVersion()
 {
   fprintf(stdout,"culam-%d.%d.%d %08x%06x\n",
-          1,0,0,BUILD_DATE,BUILD_TIME);
+          ULAM_VERSION_MAJOR,ULAM_VERSION_MINOR,ULAM_VERSION_REV,
+          BUILD_DATE,BUILD_TIME);
   exit(0);
 }
 
