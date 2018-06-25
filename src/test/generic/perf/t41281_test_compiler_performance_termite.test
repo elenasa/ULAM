@@ -3,23 +3,10 @@
 #!
 Exit status: 0
 ##
-## DReg: cannot handle model parameters...changed them to constants
+## Termite: cannot handle model parameters...changed them to constants
+## test() method only indicates where to call behave for performance test
 ##
-#>A.ulam
-  ulam 3;
-element A {
-  Int test() {
-    Termite tim;
-    Int i = 1; //1000;
-    while(i-- > 0)
-    {
-      tim.behave();
-    }
-    return 0;
-  }
-}
-
-#:Termite.ulam
+#>Termite.ulam
 ulam 1;
 /**
    Sort base atom (types) into piles.
@@ -107,6 +94,10 @@ constant Unsigned pTURN_ODDS = 10;
     else if (m_state == cDROP_CHIP)
       ret = cu.color(0xff0000ffU); // blue - looking for empty
     return ret;
+  }
+
+  Int test() {
+    return 0;
   }
 }
 

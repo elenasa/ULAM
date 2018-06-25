@@ -943,6 +943,8 @@ namespace MFM {
 	return;
       }
 
+    UTI suti = getUlamTypeIdx();
+
     m_state.m_currentIndentLevel = 0;
 
     m_state.indent(fp);
@@ -1108,7 +1110,10 @@ namespace MFM {
     fp->write("SPoint center(TILE_WIDTH/2, TILE_HEIGHT/2);  // Hitting no caches, for starters;\n");
     m_state.indent(fp);
     fp->write("uc.SetTile(tile);"); GCNL;
+    m_state.indent(fp);
+    fp->write("TestEventWindow ew(tile);"); GCNL;
 
+    fp->write("\n");
     m_state.indent(fp);
     fp->write("timespec startts;\n");
     m_state.indent(fp);
@@ -1117,7 +1122,24 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("while(loops-- > 0)");
     //eventually ends up at SC::generateTestInstance()
-    m_state.m_programDefST.generateTestInstancesRunForTableOfClasses(fp);
+    //m_state.m_programDefST.generateTestInstancesRunForTableOfClasses(fp);
+    m_state.indent(fp);
+    fp->write("{\n");
+    m_state.m_currentIndentLevel++;
+
+    m_state.indent(fp);
+    fp->write("OurAtomAll atom = "); //OurAtomAll
+    fp->write(m_state.getTheInstanceMangledNameByIndex(suti).c_str());
+    fp->write(".GetDefaultAtom();"); GCNL;
+    m_state.indent(fp);
+    fp->write("tile.PlaceAtom(atom, center);"); GCNL;
+
+    m_state.indent(fp);
+    fp->write("ew.TryForceEventAt(center);"); GCNL;
+
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("}\n");
 
     m_state.indent(fp);
     fp->write("timespec endts;\n");
