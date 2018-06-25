@@ -14,7 +14,8 @@ CFLAGS+= -Wall
 #CFLAGS+= -g
 CFLAGS+= -O99
 #CFLAGS+= -Werror
-#CFLAGS+= -Wunused-variable
+CFLAGS+= -Wno-unused-variable -Wno-unused-but-set-variable
+
 default: all
 
 all:

@@ -4,26 +4,9 @@
 Exit status: 0
 ##
 ## DReg: cannot handle model parameters...changed them to constants
+## test() method only indicates where to call behave for performance test
 ##
-#>A.ulam
-  ulam 3;
-element A {
-  Int test() {
-    Res res;
-    DReg dreg;
-    Wall wally;
-    Int i = 1; //1000;
-    while(i-- > 0)
-    {
-      res.behave();
-      dreg.behave();
-      wally.behave();
-    }
-    return 0;
-  }
-}
-
-#:DReg.ulam
+#>DReg.ulam
   ulam 3;
 /**
    Dynamic Regulator.  A parameterized version of the empty space
@@ -96,6 +79,10 @@ element DReg {
       ew[1] = empty;
       ew.swap(0,1);
     }
+  }
+
+  Int test(){
+    return 0;
   }
 }
 

@@ -3,22 +3,9 @@
 #!
 Exit status: 0
 ##
-## DReg: cannot handle model parameters...changed them to constants
+## SPLATControl: cannot handle model parameters...changed them to constants
+## test() method only indicates where to call behave for performance test
 ##
-#>A.ulam
-  ulam 3;
-element A {
-  Int test() {
-    Seed seed;
-    Int i = 1; //1000;
-    while(i-- > 0)
-    {
-      seed.behave();
-    }
-    return 0;
-  }
-}
-
 #:CC.ulam
 //ALTERATION IS FUTILE: THIS FILE AUTOMATICALLY GENERATED FROM CC.splat
 //CREATED "Fri Jun 15 17:10:50 2018 GMT" BY ../SPLATv1116/splattr FOR ackley
@@ -2498,7 +2485,7 @@ quark QMembrane : SPLATInstance {
 
 //END QMembrane.ulam
 
-#:Seed.ulam
+#>Seed.ulam
 //ALTERATION IS FUTILE: THIS FILE AUTOMATICALLY GENERATED FROM Seed.splat
 //CREATED "Fri Jun 15 17:10:50 2018 GMT" BY ../SPLATv1116/splattr FOR ackley
 //BEGIN Seed.ulam (in ./.splatgen)
@@ -2586,6 +2573,9 @@ element Seed : SPLATInstance {
     return false;   // We got nothing
   }
 
+  Int test(){
+    return 0;
+  }
 } // element Seed
 
 //END Seed.ulam
