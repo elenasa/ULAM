@@ -624,11 +624,12 @@ namespace MFM {
 	  }
 	it++;
       } //while for typedefs only
+  } //generateTestInstancesForTableOfClasses
 
-    fp->write("\n");
-
-    it = m_idToSymbolPtr.begin();
-    s32 idcounter = 1;
+//test for the current compileThisId, with test method
+  void SymbolTableOfClasses::generateTestInstancesRunForTableOfClasses(File * fp)
+  {
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;
@@ -637,13 +638,8 @@ namespace MFM {
 	if(sym->getId() == m_state.getCompileThisId() && ((SymbolClass * ) sym)->getUlamClass() == UC_ELEMENT)
 	  ((SymbolClassName *) sym)->generateTestInstanceForClassInstances(fp, RUNTEST);
 	it++;
-	idcounter++;
       } //while to run this test
-
-    fp->write("\n");
-    m_state.indent(fp);
-    fp->write("return 0;"); GCNL;
-  } //generateTestInstancesForTableOfClasses
+  } //generateTestInstancesRunForTableOfClasses
 
   void SymbolTableOfClasses::genCodeForTableOfClasses(FileManager * fm)
   {

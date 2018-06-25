@@ -1,0 +1,21 @@
+## -*- mode:ulam -*-
+#=t41279_test_compiler_performance_res_wall
+#!
+Exit status: 0
+#>A.ulam
+  ulam 3;
+element A {
+  Int test() {
+    Res res;
+    Wall wally;
+    Int i = 1000;
+    while(i-- > 0)
+    {
+      res.behave();
+      wally.behave();
+    }
+    return 0;
+  }
+}
+
+#.
