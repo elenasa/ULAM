@@ -1112,6 +1112,12 @@ namespace MFM {
     fp->write("uc.SetTile(tile);"); GCNL;
     m_state.indent(fp);
     fp->write("TestEventWindow ew(tile);"); GCNL;
+    m_state.indent(fp);
+    fp->write("OurAtomAll atom = "); //OurAtomAll
+    fp->write(m_state.getTheInstanceMangledNameByIndex(suti).c_str());
+    fp->write(".GetDefaultAtom();"); GCNL;
+    m_state.indent(fp);
+    fp->write("tile.PlaceAtom(atom, center);"); GCNL;
 
     fp->write("\n");
     m_state.indent(fp);
@@ -1128,14 +1134,7 @@ namespace MFM {
     m_state.m_currentIndentLevel++;
 
     m_state.indent(fp);
-    fp->write("OurAtomAll atom = "); //OurAtomAll
-    fp->write(m_state.getTheInstanceMangledNameByIndex(suti).c_str());
-    fp->write(".GetDefaultAtom();"); GCNL;
-    m_state.indent(fp);
-    fp->write("tile.PlaceAtom(atom, center);"); GCNL;
-
-    m_state.indent(fp);
-    fp->write("ew.TryForceEventAt(center);"); GCNL;
+    fp->write("ew.TryEventAtForProfiling(center);"); GCNL;
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
