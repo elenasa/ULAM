@@ -1096,6 +1096,8 @@ namespace MFM {
     m_state.m_currentIndentLevel++;
 
     m_state.indent(fp);
+    fp->write("LOG.SetByteSink(STDERR);"); GCNL;
+    m_state.indent(fp);
     fp->write("OurTestTile tile;"); GCNL;
     m_state.indent(fp);
     fp->write("TestTileSetup<EC>(tile);"); GCNL;
@@ -1134,7 +1136,7 @@ namespace MFM {
     m_state.m_currentIndentLevel++;
 
     m_state.indent(fp);
-    fp->write("ew.TryEventAtForProfiling(center);"); GCNL;
+    fp->write("if(!ew.TryEventAtForProfiling(center)) abort();"); GCNL;
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
