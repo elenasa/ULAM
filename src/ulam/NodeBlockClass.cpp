@@ -1886,16 +1886,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("<EC>");
     fp->write("::");
     fp->write(cut->getUlamTypeMangledName().c_str());
-
-    std::string namestr = cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state);
-    std::string namestrlong = removePunct(cut->getUlamTypeMangledName());
-
-    fp->write("() : UlamQuark<EC>(MFM_UUID_FOR(\"");
-    fp->write(namestrlong.c_str());
-    fp->write("\", 0))\n");
-
-    //genCodeConstantArrayInitialization(fp); t41198 constants now static
-
+    fp->write("() : UlamQuark<EC>()\n"); //no UUID for quarks
     m_state.indent(fp);
     fp->write("{ }\n\n");
 
@@ -1927,16 +1918,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("<EC>");
     fp->write("::");
     fp->write(cut->getUlamTypeMangledName().c_str());
-
-    std::string namestr = cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state);
-    std::string namestrlong = removePunct(cut->getUlamTypeMangledName());
-
-    fp->write("() : UlamTransient<EC");
-    fp->write(">(MFM_UUID_FOR(\"");
-    fp->write(namestrlong.c_str());
-    fp->write("\", 0))\n");
-
-    //genCodeConstantArrayInitialization(fp);
+    fp->write("() : UlamTransient<EC>()\n"); //no UUID for transients
 
     m_state.indent(fp);
     fp->write("{ }\n\n");
