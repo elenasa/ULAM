@@ -2180,7 +2180,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     if(declOnly)
       {
 	m_state.indent(fp);
-	fp->write("virtual u32 GetType() const;"); GCNL;
+	fp->write("virtual u32 GetTypeFromThisElement() const;"); GCNL;
 	fp->write("\n");
 	return;
       }
@@ -2194,7 +2194,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     //include the mangled class::
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
     fp->write(cut->getUlamTypeMangledName().c_str());
-    fp->write("<EC>::GetType( ) const\n");
+    fp->write("<EC>::GetTypeFromThisElement( ) const\n");
     m_state.indent(fp);
     fp->write("{\n");
 
@@ -2206,7 +2206,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.m_currentIndentLevel--;
 
     m_state.indent(fp);
-    fp->write("} //GetType\n\n");
+    fp->write("} //GetTypeFromThisElement\n\n");
   } //genCodeBuiltInFunctionGetElementType
 
   void NodeBlockClass::genCodeBuiltInFunctionBuildDefaultAtom(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
@@ -2590,7 +2590,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     m_state.m_currentIndentLevel++;
     m_state.indent(fp);
-    fp->write("return (THE_INSTANCE.ELEMENT_TYPE == targ.GetType());"); GCNL;
+    fp->write("return (ELEMENT_TYPE == targ.GetType());"); GCNL;
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
