@@ -1067,6 +1067,8 @@ namespace MFM {
     fp->write("#include \"P3Atom.h\"\n");
     m_state.indent(fp);
     fp->write("#include \"SizedTile.h\"\n");
+    m_state.indent(fp);
+    fp->write("#include \"DebugTools.h\"\n"); //for LOG
     fp->write("\n");
 
     m_state.indent(fp);
