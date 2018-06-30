@@ -1100,6 +1100,8 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("LOG.SetByteSink(STDERR);"); GCNL;
     m_state.indent(fp);
+    fp->write("LOG.SetLevel(LOG.MESSAGE);"); GCNL;
+    m_state.indent(fp);
     fp->write("OurTestTile tile;"); GCNL;
     m_state.indent(fp);
     fp->write("TestTileSetup<EC>(tile);"); GCNL;
@@ -1115,7 +1117,7 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("uc.SetTile(tile);"); GCNL;
     m_state.indent(fp);
-    fp->write("TestEventWindow ew(tile);"); GCNL;
+    fp->write("TestEventWindow & ew = tile.GetEventWindow();"); GCNL;
     m_state.indent(fp);
     fp->write("OurAtomAll atom = "); //OurAtomAll
     fp->write(m_state.getTheInstanceMangledNameByIndex(suti).c_str());
