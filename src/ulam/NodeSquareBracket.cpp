@@ -918,17 +918,21 @@ namespace MFM {
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
     s32 arraysize = lut->getArraySize();
     assert(!lut->isScalar());
-    m_state.indentUlamCode(fp);
-    fp->write("if(");
-    fp->write(offset.getTmpVarAsString(m_state).c_str());
-    fp->write(" >= ");
-    fp->write_decimal(arraysize);
-    fp->write(")"); GCNL;
 
-    m_state.m_currentIndentLevel++;
-    m_state.indentUlamCode(fp);
-    fp->write("FAIL(ARRAY_INDEX_OUT_OF_BOUNDS);"); GCNL;
-    m_state.m_currentIndentLevel--;
+    if(!m_nodeRight->isAConstant()) //Wed Jul 11 18:02:46 2018
+      {
+	m_state.indentUlamCode(fp);
+	fp->write("if(");
+	fp->write(offset.getTmpVarAsString(m_state).c_str());
+	fp->write(" >= ");
+	fp->write_decimal(arraysize);
+	fp->write(")"); GCNL;
+
+	m_state.m_currentIndentLevel++;
+	m_state.indentUlamCode(fp);
+	fp->write("FAIL(ARRAY_INDEX_OUT_OF_BOUNDS);"); GCNL;
+	m_state.m_currentIndentLevel--;
+      }
 
     //save autoref into a tmpvar symbol
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
