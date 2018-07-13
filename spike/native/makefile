@@ -12,7 +12,9 @@ CFLAGS:= -g -pthread -ansi -pedantic
 CFLAGS+= -Wall
 #CFLAGS+= -Werror
 CFLAGS+= -Wno-unused-variable -Wno-unused-but-set-variable
-#CFLAGS+= -Winline --param inline-unit-growth=1000 --param large-function-growth=50000
+#CFLAGS+= -Winline
+CFLAGS+= --param inline-unit-growth=1000 --param large-function-growth=50000
+CFLAGS+= -Wextra -Wno-unused-parameter -Wno-ignored-qualifiers
 
 default: all
 
