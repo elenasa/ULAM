@@ -494,7 +494,7 @@ namespace MFM {
     fp->write(mangledName.c_str());
     fp->write("(const ");
     fp->write(mangledName.c_str());
-    fp->write("<EC> & arg) { ");
+    fp->write("<EC> & arg) : AtomBitStorage<EC>() { ");
     fp->write("this->m_stg = arg.m_stg; }"); GCNL;
 
     //constructor for constants (t41230); MFM Element Type not in place yet
