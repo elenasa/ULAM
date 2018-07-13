@@ -1307,11 +1307,11 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	  }
 
 	assert(UlamType::compare(superblock->getNodeType(), superuti, m_state) == UTIC_SAME);
-	u32 superoffset = m_state.getTotalBitSize(superuti);
-	if(superoffset < 0)
+	if(!m_state.isComplete(superuti))
 	  {
 	    return TBOOL_HAZY;
 	  }
+	u32 superoffset = m_state.getTotalBitSize(superuti);
 	reloffset += superoffset;
       }
 

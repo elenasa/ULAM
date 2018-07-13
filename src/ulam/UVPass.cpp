@@ -61,7 +61,7 @@ namespace MFM {
 
   void UVPass::setPassPos(u32 pos)
   {
-    assert((pos <= getPassLen()) && pos >= 0);
+    assert((pos <= getPassLen()));
     m_posInStorage = pos;
     return;
   }
@@ -69,7 +69,7 @@ namespace MFM {
   void UVPass::setPassPosForElementType(u32 pos, CompilerState& state)
   {
     //t3968 element dm in transient can have pos > 96
-    assert(((this->getPassLen() + ATOMFIRSTSTATEBITPOS) <= BITSPERATOM) && pos >= 0);
+    assert(((this->getPassLen() + ATOMFIRSTSTATEBITPOS) <= BITSPERATOM));
     assert(state.getUlamTypeByIndex(this->getPassTargetType())->getUlamClassType() == UC_ELEMENT); //sanity
     m_posInStorage = pos + ATOMFIRSTSTATEBITPOS;
     return;
@@ -77,16 +77,12 @@ namespace MFM {
 
   u32 UVPass::getPassPos() const
   {
-    u32 pos = m_posInStorage;
-    assert(pos >= 0); //data member pos may go beyonds its own length
-    return pos;
+    return m_posInStorage; //data member pos may go beyonds its own length
   }
 
   u32 UVPass::getPassLen() const
   {
-    u32 len = m_bitlenInStorage;
-    assert(len >= 0);
-    return len;
+    return m_bitlenInStorage;
   }
 
   UTI UVPass::getPassTargetType() const

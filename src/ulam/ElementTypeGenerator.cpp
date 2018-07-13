@@ -29,7 +29,6 @@ namespace MFM {
 
   ELE_TYPE ElementTypeGenerator::getNextType()
   {
-    assert(m_next >= 0);
     assert(m_next < m_maxNumberOfTypes);
     return m_sequentialTypeMap[m_next++];
   }
@@ -37,7 +36,6 @@ namespace MFM {
   ELE_TYPE ElementTypeGenerator::makeNextType()
   {
     //incremental version
-    assert(m_next >= 0);
     assert(m_next < m_maxNumberOfTypes);
     ELE_TYPE type = makeAType();
     m_sequentialTypeMap[m_next] = type;

@@ -73,7 +73,7 @@ namespace MFM {
   bool UEventWindow::isValidSite(u32 index, Coord& c)
   {
     bool rtnB = false;
-    if(index >= 0 && index < MAXWIDTH * MAXWIDTH)
+    if(index < MAXWIDTH * MAXWIDTH)
       {
 	c = Coord::convertIndexToCoord(index);
 	rtnB = isValidSite(c);

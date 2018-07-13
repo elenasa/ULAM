@@ -4205,7 +4205,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
 	textOfLines->insert(textOfLines->end(), linenum - textOfLines->size(), blankid);
       }
-    assert((linenum >= 0) && (linenum <= textOfLines->size()));
+    assert((linenum <= textOfLines->size()));
     textOfLines->push_back(textid);
 
     m_locOfNextLineText = loc; //during parsing here (see NodeStatements)
