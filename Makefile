@@ -99,6 +99,7 @@ export DEFINES
 export CFLAGS
 CFLAGS+=-g2 -ansi -Wall -pedantic -Werror -Wformat
 #CFLAGS+=-DNDEBUG
+#CFLAGS+= -Winline --param inline-unit-growth=1000 --param large-function-growth=50000
 
 # Libs from top level
 export LIBS

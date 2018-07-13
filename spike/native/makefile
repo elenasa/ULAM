@@ -12,11 +12,13 @@ CFLAGS:= -g -pthread -ansi -pedantic
 CFLAGS+= -Wall
 #CFLAGS+= -Werror
 CFLAGS+= -Wno-unused-variable -Wno-unused-but-set-variable
+#CFLAGS+= -Winline --param inline-unit-growth=1000 --param large-function-growth=50000
+
 default: all
 
 all:
 	g++ -c $(CFLAGS) -D MFM_BUILD_DATE=1 -D MFM_BUILD_TIME=2 -I include -I $(MFM_INCLUDES) -I $(MFM_PLATFORM_INCL) ./src/*.cpp
-# mfmcore intentionally linked twice!
+# mfmcore intentionally linked twice
 	g++ -L $(MFM_BUILD_CORE) -L $(MFM_BUILD_SIM) -L $(MFM_BUILD_PLATFORM) ./*.o -l mfmcore -l mfmsim -l mfmplatform-linux -l mfmcore -pthread -o main
 #	valgrind ./main
 
