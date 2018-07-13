@@ -190,7 +190,7 @@ namespace MFM {
 	if(stgcosut->isReference()) //not isAltRefType
 	  {
 	    fp->write(", 0u, "); //t3655
-	    fp->write(stgcos->getMangledName().c_str()); //stg
+	    fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str()); //VG
 	    fp->write(".GetEffectiveSelf()"); //Sat Jun 18 17:30:20 2016
 	  }
 	else
@@ -208,7 +208,7 @@ namespace MFM {
 	fp->write(", 0u, ");
 	if(stgcosut->isReference()) //not isAltRefType
 	  {
-	    fp->write(stgcos->getMangledName().c_str()); //stg
+	    fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str()); //VG:t3826 ALT_AS
 	    fp->write(".GetEffectiveSelf()"); //t3824
 	  }
 	else
@@ -225,8 +225,8 @@ namespace MFM {
 	fp->write(", 0u, ");
 	if(stgcosut->isReference()) //not isAltRefType
 	  {
-	    fp->write(stgcos->getMangledName().c_str()); //stg
-	    fp->write(".GetEffectiveSelf()"); //tt3829
+	    fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str()); //VG: t3827,8,9 ALT_AS
+	    fp->write(".GetEffectiveSelf()");
 	  }
 	else
 	  {
