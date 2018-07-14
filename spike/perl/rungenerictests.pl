@@ -42,6 +42,7 @@ my $TESTDIR =  "$ULAM_ROOT/src/test/generic";
 my $TESTBIN =  "$ULAM_ROOT/src/test/bin";
 my $EXEC_TEST_VALGRIND = 0;  #=1 produces uncomparable log files (grep for "leaked" in them).
 my $EXEC_TEST_PERFORMANCE = 0;
+my $EXEC_PTEST_VALGRIND = 0;  #=1 produces uncomparable log files (grep for "leaked" in them).
 my $PERF_LOOP = 1;
 my $SRC_DIR = "safe";
 #my $SRC_DIR = "error"; # comment out Node::countNavNodes second line of message for comparison.
@@ -68,20 +69,25 @@ if (scalar(@ARGV) > 0) {
 
     if( $ARGV[0] =~ /P/ ){
 	$EXEC_TEST_PERFORMANCE = 1;
-	if( $ARGV[0] =~ /P([0-9]+)/ ){
+	if( $ARGV[0] =~ /P([0-9])/ ){
 	    $PERF_LOOP = $1;
 	} # else default is 1 time thru loop
+	elsif( $ARGV[0] =~ /V/ ){
+	    $EXEC_PTEST_VALGRIND = 1;
+	    $PERF_LOOP = 1;
+	    print "Valgrind Performance main\n";
+	}
 	print "$PERF_LOOP times around main loop\n";
     } else {
 	# performance test distinct from other tests
 	if( $ARGV[0] =~ /G/ ){
 	    $TESTGENCODE = 1; #default faster mode
 	}
-
 	if( $ARGV[0] =~ /V/ ){
 	    $EXEC_TEST_VALGRIND = 1; #default faster mode
 	}
     }
+
 
     if( $ARGV[0] =~ /^-s/ ) {
 	$needRebuild = 0;
@@ -184,7 +190,12 @@ sub main
                 ## compile and run generated code
 		if($TESTGENCODE){
 		    `make -C $TESTDIR gen`;
-		    `$TESTBIN/main 1>> $log 2>> $errlog`;
+		    if($EXEC_TEST_VALGRIND) {
+			`valgrind $TESTBIN/main 1>> $log 2>> $errlog`;
+		    }
+		    else {
+			`$TESTBIN/main 1>> $log 2>> $errlog`;
+		    }
 		}
 	    } elsif($EXEC_TEST_PERFORMANCE) {
 		# clears output/err log files; drops any output
@@ -204,10 +215,15 @@ sub main
 			++$testsFailed;
 			print "FAILED: $testnum\n";
 		    } else {
-			## append or not to append??
-			`$TESTBIN/main $PERF_LOOP 1>/dev/null 2>>$perflog`;
-			++$testsPassed;
-			print "got timing for t$testnum\n"; #progress..
+			if($EXEC_PTEST_VALGRIND) {
+			    `valgrind $TESTBIN/main $PERF_LOOP 1>/dev/null 2>>$perflog`;
+			    ++$testsPassed;
+			} else {
+			    ## append or not to append??
+			    `$TESTBIN/main $PERF_LOOP 1>/dev/null 2>>$perflog`;
+			    ++$testsPassed;
+			    print "got timing for t$testnum\n"; #progress..
+			}
 		    }
 		}
 	    } else {
@@ -227,7 +243,11 @@ sub main
                 ## compile and run generated code
 		if($TESTGENCODE) {
 		    `make -C $TESTDIR gen`;
-		    `$TESTBIN/main 1>> $log 2>> $errlog`;
+		    if($EXEC_TEST_VALGRIND) {
+			`valgrind $TESTBIN/main 1>> $log 2>> $errlog`;
+		    } else {
+			`$TESTBIN/main 1>> $log 2>> $errlog`;
+		    }
 		}
 	    }
 
