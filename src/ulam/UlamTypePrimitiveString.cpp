@@ -355,7 +355,7 @@ namespace MFM {
     fp->write(mangledName.c_str());
     fp->write("(const ");
     fp->write(mangledName.c_str()); //u32
-    fp->write("& other) { ");
+    fp->write("& other) : BVS() { "); //-Wextra
     fp->write("this->write");
     fp->write("(other.");
     fp->write("read");
