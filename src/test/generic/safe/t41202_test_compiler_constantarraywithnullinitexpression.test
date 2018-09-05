@@ -1,0 +1,41 @@
+## -*- mode:ulam -*-
+#=t41202_test_compiler_constantarraywithnullinitexpression
+##
+## gen output (+ assert)
+##  Unsigned Arg: 0
+##
+#!
+Exit status: 0
+Ue_P { Bool(1) b(false);  Int(32) test() {  System s;  Int(32) i = by 3 [];  s ( by 3 [] )print . s ( by 3 [] 0 cast == )assert . i return } }
+Uq_System { <NOMAIN> }
+##
+## informed by t41201; grammar change to allow default array values
+##
+#>P.ulam
+  ulam 3;
+local constant Int by[4] = { };
+element P {
+  Bool b;
+  Int test() {
+    System s;
+
+    Int i = by[3];
+    s.print(by[3]);
+    s.assert(by[3] == 0);
+    return i;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+
+#.

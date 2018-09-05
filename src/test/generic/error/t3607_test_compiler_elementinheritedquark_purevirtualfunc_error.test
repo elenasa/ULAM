@@ -1,7 +1,5 @@
 ## -*- mode:ulam -*-
 #=t3607_test_compiler_elementinheritedquark_purevirtualfunc_error
-##
-##
 #!
 ./Foo.ulam:5:3: ERROR: Instance of Abstract Class QSubBase1 used with variable symbol name 'm1'.
 ./QSubBase1.ulam:3:7: NOTE: Pure: Int(32) vfunc().

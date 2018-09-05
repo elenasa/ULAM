@@ -47,6 +47,7 @@ namespace MFM{
     NNO nno = getNodeNo();
     for(u32 i = 0; i < m_nodes.size(); i++)
       {
+	assert(m_nodes[i]);
 	m_nodes[i]->updateLineage(nno); //wrong! was pno
       }
     Node::setYourParentNo(pno); //missing
@@ -87,6 +88,7 @@ namespace MFM{
     bool rtnb = false;
     for(u32 i = 0; i < m_nodes.size(); i++)
       {
+	assert(m_nodes[i]);
 	if(m_nodes[i]->findNodeNo(n, foundNode))
 	  {
 	    rtnb = true;
@@ -99,19 +101,26 @@ namespace MFM{
   void NodeList::checkAbstractInstanceErrors()
   {
     for(u32 i = 0; i < m_nodes.size(); i++)
-      m_nodes[i]->checkAbstractInstanceErrors();
+      {
+	assert(m_nodes[i]);
+	m_nodes[i]->checkAbstractInstanceErrors();
+      }
   }
 
   void NodeList::resetNodeLocations(Locator loc)
   {
     for(u32 i = 0; i < m_nodes.size(); i++)
-      m_nodes[i]->resetNodeLocations(loc);
+      {
+	assert(m_nodes[i]);
+	m_nodes[i]->resetNodeLocations(loc);
+      }
   }
 
   void NodeList::printPostfix(File * fp)
   {
     for(u32 i = 0; i < m_nodes.size(); i++)
       {
+	assert(m_nodes[i]);
 	m_nodes[i]->printPostfix(fp);
       }
   } //printPostfix
@@ -121,6 +130,7 @@ namespace MFM{
     fp->write("(");
     for(u32 i = 0; i < m_nodes.size(); i++)
       {
+	assert(m_nodes[i]);
 	if(i > 0)
 	  fp->write(", ");
 
@@ -141,11 +151,17 @@ namespace MFM{
     return nodeName(__PRETTY_FUNCTION__);
   }
 
+  FORECAST NodeList::safeToCastTo(UTI newType)
+  {
+    return CAST_BAD;
+  }
+
   UTI NodeList::checkAndLabelType()
   {
     UTI rtnuti = Void;
     for(u32 i = 0; i < m_nodes.size(); i++)
       {
+	assert(m_nodes[i]);
 	UTI puti = m_nodes[i]->checkAndLabelType();
 	if(puti == Nav)
 	  {
@@ -156,13 +172,22 @@ namespace MFM{
 	  }
 	else if((rtnuti != Nav) && !m_state.isComplete(puti))
 	  {
+	    std::ostringstream msg;
+	    msg << "Argument " << i + 1 << " is incomplete";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    rtnuti = Hzy; // all or none
-	    m_state.setGoAgain(); //since no error msg
+	    m_state.setGoAgain();
 	  }
       }
     setNodeType(rtnuti);
+    //if(rtnuti == Hzy) m_state.setGoAgain(); //since no error msg
     return rtnuti;
   } //checkAndLabelType
+
+  bool NodeList::foldArrayInitExpression()
+  {
+    return true;
+  }
 
   void NodeList::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
   {
@@ -174,6 +199,7 @@ namespace MFM{
     for(s32 i = m_nodes.size() - 1; i >= 0; i--)
       {
 	u32 max1 = 0;
+	assert(m_nodes[i]);
 	m_nodes[i]->calcMaxDepth(max1, nomaxdepth, negrun); //side effects func def param (NodeVarDecl)
 	negrun += max1;
       }
@@ -183,6 +209,7 @@ namespace MFM{
   {
     for(u32 i = 0; i < m_nodes.size(); i++)
       {
+	assert(m_nodes[i]);
 	m_nodes[i]->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
       }
     Node::countNavHzyNoutiNodes(ncnt, hcnt, nocnt); //NodeList counts!
@@ -192,6 +219,7 @@ namespace MFM{
   {
     for(u32 i = 0; i < m_nodes.size(); i++)
       {
+	assert(m_nodes[i]);
 	m_nodes[i]->printUnresolvedLocalVariables(fid);
       }
   } //printUnresolvedLocalVariables
@@ -211,12 +239,14 @@ namespace MFM{
   EvalStatus NodeList::eval(u32 n)
   {
     assert(n < m_nodes.size());
+    assert(m_nodes[n]);
     return m_nodes[n]->eval();
   }
 
   EvalStatus NodeList::evalToStoreInto(u32 n)
   {
     assert(n < m_nodes.size());
+    assert(m_nodes[n]);
     return m_nodes[n]->evalToStoreInto();
   }
 
@@ -230,11 +260,18 @@ namespace MFM{
     return m_nodes.size();
   }
 
+  bool NodeList::isEmptyList() const
+  {
+    assert(m_nodes.size() > 0); //not NodeListEmpty, right?
+    return m_nodes.empty(); //size==0
+  }
+
   u32 NodeList::getTotalSlotsNeeded()
   {
     u32 nslots = 0;
     for(u32 i = 0; i < m_nodes.size(); i++)
       {
+	assert(m_nodes[i]);
 	nslots += m_state.slotsNeeded(m_nodes[i]->getNodeType());
       }
     return nslots;
@@ -249,18 +286,31 @@ namespace MFM{
   UTI NodeList::getNodeType(u32 n)
   {
     assert(n < m_nodes.size());
+    assert(m_nodes[n]);
     return m_nodes[n]->getNodeType();
+  }
+
+  bool NodeList::isAConstant()
+  {
+    bool rtnc = true;
+    for(u32 i = 0; i < m_nodes.size(); i++)
+      {
+	rtnc &= isAConstant(i); //t41202 (empty constant array init)
+      }
+    return rtnc;
   }
 
   bool NodeList::isAConstant(u32 n)
   {
     assert(n < m_nodes.size());
+    assert(m_nodes[n]);
     return m_nodes[n]->isAConstant();
   }
 
   bool NodeList::isFunctionCall(u32 n)
   {
     assert(n < m_nodes.size());
+    assert(m_nodes[n]);
     return m_nodes[n]->isFunctionCall();
   }
 
@@ -272,18 +322,23 @@ namespace MFM{
   void NodeList::genCode(File * fp, UVPass& uvpass)
   {
     for(u32 i = 0; i < m_nodes.size(); i++)
-      m_nodes[i]->genCode(fp, uvpass);
+      {
+	assert(m_nodes[i]);
+	m_nodes[i]->genCode(fp, uvpass);
+      }
   }
 
   void NodeList::genCode(File * fp, UVPass& uvpass, u32 n)
   {
     assert(n < m_nodes.size());
+    assert(m_nodes[n]);
     m_nodes[n]->genCode(fp, uvpass);
   }
 
   void NodeList::genCodeToStoreInto(File * fp, UVPass& uvpass, u32 n)
   {
     assert(n < m_nodes.size());
+    assert(m_nodes[n]);
     m_nodes[n]->genCodeToStoreInto(fp, uvpass);
   }
 
@@ -291,21 +346,37 @@ namespace MFM{
   {
     for(u32 i = 0; i < m_nodes.size(); i++)
       {
+	assert(m_nodes[i]);
 	m_nodes[i]->genCodeConstantArrayInitialization(fp);
       }
   }
 
-  void NodeList::generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly)
+  void NodeList::generateBuiltinConstantClassOrArrayInitializationFunction(File * fp, bool declOnly)
   {
     for(u32 i = 0; i < m_nodes.size(); i++)
       {
-	m_nodes[i]->generateBuiltinConstantArrayInitializationFunction(fp, declOnly);
+	assert(m_nodes[i]);
+	m_nodes[i]->generateBuiltinConstantClassOrArrayInitializationFunction(fp, declOnly);
       }
   }
 
-  bool NodeList::initDataMembersConstantValue(BV8K& bvref)
+  bool NodeList::initDataMembersConstantValue(BV8K& bvref, BV8K& bvmask)
   {
-    m_state.abortShouldntGetHere(); //only for NodeListClassInit
-    return false; //for compiler
+    m_state.abortShouldntGetHere();
+    return false;
   }
+
+
+  bool NodeList::buildArrayValueInitialization(BV8K& bvtmp)
+  {
+    m_state.abortShouldntGetHere();
+    return false;
+  }
+
+  bool NodeList::buildClassArrayValueInitialization(BV8K& bvtmp)
+  {
+    m_state.abortShouldntGetHere();
+    return false;
+  }
+
 } //MFM

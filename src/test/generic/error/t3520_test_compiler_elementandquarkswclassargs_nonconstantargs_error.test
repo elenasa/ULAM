@@ -4,6 +4,7 @@
 ./Foo.ulam:9:11: ERROR: Constant value expression for class argument: firstRange, is not a constant.
 ./Foo.ulam:9:14: ERROR: Constant value expression for class argument: lastRange, is not a constant.
 ./Foo.ulam:10:11: ERROR: Constant value expression for 'firstRange' is not representable as Unsigned(3).
+./Foo.ulam:10:11: ERROR: Problem in NodeConstantDef for type: Unsigned(3), used with symbol name 'firstRange', after folding attempt.
 ./Foo.ulam:10:27: ERROR: Constant value expression for class argument: lastRange, is not a constant.
 Unrecoverable Program Type Label FAILURE.
 ##

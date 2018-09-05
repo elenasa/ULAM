@@ -242,8 +242,8 @@ namespace MFM{
     NodeTypeDescriptor * parseTypeDescriptor(TypeArgs& typeargs, bool isaclass = false, bool delAfterDotFails = false); //helper
     NodeTypeDescriptor * parseTypeDescriptor(TypeArgs& typeargs, UTI& castUTI, bool isaclassarg, bool delAfterDotFails);
 
-    UTI parseClassArguments(Token& typeTok, bool& isaclass);
-    void parseRestOfClassArguments(SymbolClass * csym, SymbolClassNameTemplate * ctsym, u32& parmIdx);
+    UTI parseClassArguments(TypeArgs& typeargs, bool& isaclass);
+    void parseRestOfClassArguments(SymbolClass * csym, SymbolClassNameTemplate * ctsym, u32& parmIdx, TypeArgs & typeargs);
 
     /** helper for parsing type; returns bitsize, or UNKNOWNSIZE and node with constant expression */
     NodeTypeBitsize * parseTypeBitsize(TypeArgs& args);
@@ -348,11 +348,11 @@ namespace MFM{
      */
     Node * parseFactor(bool localbase = false);
 
-    Node * parseFactorStartingWithAType(const Token& tTok, bool allowrefcast);
+    Node * parseFactorStartingWithAType(const Token& tTok, bool allowrefcast, bool allowcasts);
 
     Node * parseRestOfFactor(Node * leftNode);
 
-    Node * parseRestOfCastOrExpression(bool allowRefCasts);
+    Node * parseRestOfCastOrExpression(bool allowRefCasts, bool allowCasts);
 
     Node * parseRestOfTerm(Node * leftNode);
 
@@ -372,9 +372,21 @@ namespace MFM{
 
     Node * parseRestOfAssignExpr(Node * leftNode);
 
+    /** mini recursive ascent parser: for Factor value that starts with a Type yet is not a cast */
+    Node * wrapFactor(Node * leftNode);
+    Node * wrapTerm(Node * leftNode);
+    Node * wrapShiftExpression(Node * leftNode);
+    Node * wrapCompareExpression(Node * leftNode);
+    Node * wrapEqExpression(Node * leftNode);
+    Node * wrapBitExpression(Node * leftNode);
+    Node * wrapLogicalExpression(Node * leftNode);
+    Node * wrapExpression(Node * leftNode);
+    Node * wrapAssignExpr(Node * leftNode);
+
+
     bool parseRestOfDecls(TypeArgs& args, UTI passuti);
     bool parseRestOfDeclInitialization(TypeArgs& args, const Token& identTok, NodeVarDecl * dNode);
-    bool parseRestOfRefInitialization(const Token& identTok, NodeVarDecl * dNode);
+    bool parseRestOfRefInitialization(const Token& identTok, ALT reftype, NodeVarDecl * dNode);
 
     Node * parseArrayOrClassInitialization(u32 identId);
     Node * parseArrayInitialization(u32 identId, Locator loc);
@@ -466,7 +478,12 @@ namespace MFM{
     /**
        helper method to save subtrees for unknown UTIs
     */
-    void linkOrFreeConstantExpressionArraysize(UTI auti, TypeArgs args, NodeSquareBracket * ceForArraySize, NodeTypeDescriptor *& nodetyperef); //keeper
+    void linkOrFreeConstantExpressionArraysize(UTI auti, const TypeArgs& args, NodeSquareBracket * ceForArraySize, NodeTypeDescriptor *& nodetyperef); //keeper
+
+    /**
+       helper method to sync NodeTypeDescr type with Symbol type (invariant)
+    */
+    void syncTypeDescriptorWithSymbolType(UTI auti, const TypeArgs& args, NodeTypeDescriptor * nodetyperef);
 
     /** helper, gets CLOSE_PAREN for <FACTOR>, CLOSE_SQUARE rest of LVal */
     bool getExpectedToken(TokenType eTokType, Token & myTok, bool quietly = false);

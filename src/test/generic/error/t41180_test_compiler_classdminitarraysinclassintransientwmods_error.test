@@ -2,7 +2,7 @@
 #=t41180_test_compiler_classdminitarraysinclassintranisentwmods_error
 ##
 #!
-./R.ulam:4:51: ERROR: Invalid initialization of class type QBar with symbol name 'm_bar'.
+./R.ulam:4:51: ERROR: Invalid initialization of scalar type QBar with symbol name 'm_bar'.
 ./R.ulam:4:48: ERROR: Class Init Argument 1 has a problem for variable m_foo, type QFoo.
 ./R.ulam:4:40: ERROR: Initialization value expression for class data member: m_foo, is invalid.
 ./R.ulam:4:11: ERROR: Class Init Argument 2 has a problem for variable m_a, type A.

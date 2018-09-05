@@ -1,0 +1,44 @@
+## -*- mode:ulam -*-
+#=t41205_test_compiler_dmarrayinitnull_unpacked
+##
+## gen output: (+ asserts)
+##  Unsigned Arg: 70
+##  Bool(3) Arg: 0x7 (true)
+##
+#!
+Exit status: 0
+Ue_A { Bool(1) b(true);  Bits(1) c[70](0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0);  System s();  Int(32) test() {  s ( 70u )print . s ( true )assert . c 10 [] 1u cast = b c 10 [] 1u cast == = s ( b cast )print . s ( b )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+##
+## informed by t3775, except null initialization of array c
+##
+#>A.ulam
+  ulam 2;
+element A {
+  Bool b;
+  Bits(1) c[70] = { }; //all zeros
+
+  System s;
+  Int test() {
+    s.print(c.sizeof);
+    s.assert(c.sizeof == 70);
+    c[10] = 0x1;
+    b = (c[10] == 0x1);
+    s.print(b);
+    s.assert(b);
+    return 0;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

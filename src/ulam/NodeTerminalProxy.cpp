@@ -12,7 +12,7 @@ namespace MFM {
     // memberType is corrected for sizeof during c&l
   }
 
-  NodeTerminalProxy::NodeTerminalProxy(const NodeTerminalProxy& ref) : NodeTerminal(ref), m_nodeOf(NULL), m_uti(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_uti)), m_funcTok(ref.m_funcTok), m_ready(ref.m_ready), m_nodeTypeDesc(NULL)
+  NodeTerminalProxy::NodeTerminalProxy(const NodeTerminalProxy& ref) : NodeTerminal(ref), m_nodeOf(NULL), m_uti(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_uti,ref.getNodeLocation())), m_funcTok(ref.m_funcTok), m_ready(ref.m_ready), m_nodeTypeDesc(NULL)
   {
     if(ref.m_nodeTypeDesc)
       m_nodeTypeDesc = (NodeTypeDescriptor *) ref.m_nodeTypeDesc->instantiate();
@@ -123,7 +123,6 @@ namespace MFM {
   {
     //when minmaxsizeof a selected member; and for clones,
     //when m_uti is a String, we must c&l m_nodeOf to find its symbol (t3960)
-    //if(!m_state.okUTItoContinue(m_uti) && m_nodeOf)
     if((!m_state.okUTItoContinue(m_uti) || (UlamType::compareForString(m_uti, m_state) == UTIC_SAME)) && m_nodeOf)
       {
 	UTI ofuti = m_nodeOf->checkAndLabelType();
@@ -133,7 +132,7 @@ namespace MFM {
 	    msg << "Determined type for member '";
 	    msg << m_nodeOf->getName();
 	    msg << "' Proxy, as type: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(ofuti).c_str();
+	    msg << m_state.getUlamTypeNameByIndex(ofuti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	    m_uti = ofuti;
 	  }
@@ -172,9 +171,9 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Substituting Mapped UTI" << mappedUTI;
-	    msg << ", " << m_state.getUlamTypeNameBriefByIndex(mappedUTI).c_str();
+	    msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
 	    msg << " for incomplete Proxy type: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(m_uti).c_str();
+	    msg << m_state.getUlamTypeNameByIndex(m_uti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	    m_uti = mappedUTI;
 	  }
@@ -322,63 +321,61 @@ namespace MFM {
   EvalStatus NodeTerminalProxy::eval()
   {
     UTI nuti = getNodeType();
-    if(nuti == Nav)
-      return ERROR;
+    if(nuti == Nav) return evalErrorReturn();
 
-    if(nuti == Hzy)
-      return NOTREADY;
+    if(nuti == Hzy) return evalStatusReturnNoEpilog(NOTREADY);
+
+    if(!m_state.isComplete(m_uti)) return evalStatusReturnNoEpilog(NOTREADY);
 
     EvalStatus evs = NORMAL; //init ok
     evalNodeProlog(0); //new current frame pointer
 
-    if(!m_state.isComplete(m_uti))
-      evs = NOTREADY;
-    else
+    if((m_funcTok.m_type == TOK_KW_LENGTHOF))
       {
-	if((m_funcTok.m_type == TOK_KW_LENGTHOF))
+	if(m_nodeOf && (UlamType::compareForString(m_nodeOf->getNodeType(), m_state) == UTIC_SAME))
 	  {
-	    if(m_nodeOf && (UlamType::compareForString(m_nodeOf->getNodeType(), m_state) == UTIC_SAME))
-	      {
-		//String or String array item (t3933, t3949, t3984)
-		evalNodeProlog(0); //new current frame pointer
-		makeRoomForSlots(1); //upool index is a constant expression
-		evs = m_nodeOf->eval();
-		if(evs == NORMAL)
-		  {
-		    UlamValue stringUV = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);
-		    u32 ustringidx = stringUV.getImmediateData(m_state);
-		    if(!m_state.isValidUserStringIndex(ustringidx))
-		      evs = ERROR;
-		    else
-		      m_constant.uval = m_state.getUserStringLength(ustringidx); //reset here!!
-		  }
-		//else
-		evalNodeEpilog();
-	      }
-	    else if(m_state.isClassACustomArray(m_uti))
-	      {
-		std::ostringstream msg;
-		msg << "Custom Array '" << m_funcTok.getTokenString() << "' proxy requires "; //lengthof
-		msg << m_state.m_pool.getDataAsString(m_state.getCustomArrayLengthofFunctionNameId()).c_str();
-		msg << " function; Unsupported for eval";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-		evs = UNEVALUABLE;
-		m_state.abortShouldntGetHere(); //replaced with func call when provided, o.w. parse err
-	      }
-	  }
-
-	if(evs == NORMAL)
-	  {
-	    UlamValue rtnUV;
-	    evs = NodeTerminal::makeTerminalValue(rtnUV);
-
-	    //copy result UV to stack, -1 relative to current frame pointer
+	    //String or String array item (t3933, t3949, t3984)
+	    evalNodeProlog(0); //new current frame pointer
+	    makeRoomForSlots(1); //upool index is a constant expression
+	    evs = m_nodeOf->eval();
 	    if(evs == NORMAL)
-	      Node::assignReturnValueToStack(rtnUV);
+	      {
+		UlamValue stringUV = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);
+		u32 ustringidx = stringUV.getImmediateData(m_state);
+		if(m_state.isValidUserStringIndex(ustringidx))
+		  m_constant.uval = m_state.getUserStringLength(ustringidx); //reset here!!
+		else
+		  evs = ERROR;
+	      }
+	    //else
+	    evalNodeEpilog(); //second epilog
+	  }
+	else if(m_state.isClassACustomArray(m_uti))
+	  {
+	    std::ostringstream msg;
+	    msg << "Custom Array '" << m_funcTok.getTokenString() << "' proxy requires "; //lengthof
+	    msg << m_state.m_pool.getDataAsString(m_state.getCustomArrayLengthofFunctionNameId()).c_str();
+	    msg << " function; Unsupported for eval";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    evs = UNEVALUABLE;
+	    m_state.abortShouldntGetHere(); //replaced with func call when provided, o.w. parse err
 	  }
       }
+
+    if(evs == NORMAL)
+      {
+	UlamValue rtnUV;
+	evs = NodeTerminal::makeTerminalValue(rtnUV);
+
+	//copy result UV to stack, -1 relative to current frame pointer
+	if(evs == NORMAL)
+	  Node::assignReturnValueToStack(rtnUV);
+      }
+
+    if(evs != NORMAL) return evalStatusReturn(evs);
+
     evalNodeEpilog();
-    return evs;
+    return NORMAL;
   } //eval
 
   void NodeTerminalProxy::genCode(File * fp, UVPass& uvpass)
@@ -417,7 +414,7 @@ namespace MFM {
     UVPass ofpass;
     m_nodeOf->genCode(fp, ofpass);
 
-    TMPSTORAGE ofstor = ofpass.getPassStorage();
+    //TMPSTORAGE ofstor = ofpass.getPassStorage();
 
     s32 tmpVarNum = m_state.getNextTmpVarNumber();
     m_state.indentUlamCode(fp);
@@ -425,35 +422,13 @@ namespace MFM {
     fp->write(m_state.getUlamTypeByIndex(nuti)->getTmpStorageTypeAsString().c_str()); //u32
     fp->write(" ");
     fp->write(m_state.getTmpVarAsString(ASCII, tmpVarNum, TMPREGISTER).c_str());
+    fp->write(" = ");
+    fp->write(m_state.getGetStringLengthFunctionName());
+    fp->write("(");
+    fp->write(ofpass.getTmpVarAsString(m_state).c_str());
+    fp->write(");");
+    GCNL; //t3949
 
-    if((ofstor == TMPBITVAL) || (ofstor == TMPAUTOREF))
-      {
-	fp->write(" = uc.GetUlamClassRegistry().GetUlamClassByIndex(");
-	fp->write(ofpass.getTmpVarAsString(m_state).c_str());
-	fp->write(".getRegistrationNumber())->");
-	fp->write(m_state.getClassGetStringFunctionName(m_state.getCompileThisIdx()));
-	fp->write("Length(");
-	fp->write(ofpass.getTmpVarAsString(m_state).c_str());
-	fp->write(".getStringIndex());");
-	GCNL; //t3949
-      }
-    else
-      {
-	const std::string stringmangledName = m_state.getUlamTypeByIndex(String)->getLocalStorageTypeAsString();
-
-	fp->write(" = uc.GetUlamClassRegistry().GetUlamClassByIndex(");
-	fp->write(stringmangledName.c_str());
-	fp->write("::getRegNum(");
-	fp->write(ofpass.getTmpVarAsString(m_state).c_str());
-	fp->write("))->");
-	fp->write(m_state.getClassGetStringFunctionName(m_state.getCompileThisIdx()));
-	fp->write("Length(");
-	fp->write(stringmangledName.c_str());
-	fp->write("::getStrIdx(");
-	fp->write(ofpass.getTmpVarAsString(m_state).c_str());
-	fp->write("));");
-	GCNL;
-      }
     uvpass = UVPass::makePass(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //POS 0 rightjustified (atom-based).
 
     m_state.clearCurrentObjSymbolsForCodeGen();
@@ -585,34 +560,26 @@ namespace MFM {
 	msg << "' while compiling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	if(m_state.okUTItoContinue(m_uti) || (m_uti == Hzy))
-	  {
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //error/t3298
-	    m_state.setGoAgain(); //since not error; maybe no nodetypedesc
-	  }
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //error/t3298
 	else
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	//rtnb = false; don't want to stop after parsing.
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    rtnb = false; //don't want to stop after parsing.???
+	  }
       }
     else
       {
 	//depending on the of-func, update our constant
 	if(!setConstantValue(m_funcTok))
 	  {
-	    std::ostringstream msg;
-	    msg << "Proxy Type: " << m_state.getUlamTypeNameBriefByIndex(m_uti).c_str();
-	    msg << " constant value for its <";
-	    msg << m_funcTok.getTokenString();
-	    msg << "> is still incomplete and unknown while compiling class: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	    MSG(&m_funcTok, msg.str().c_str(), WAIT);
-	    m_state.setGoAgain(); //since not error
-	    rtnb = false;
+	    //err msg output already!
+	    rtnb = false; //turns into a nav! error/t3937,t3938,t41066
 	  }
 	else
 	  {
 	    std::ostringstream msg;
 	    msg << "Yippee! Proxy Type: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(m_uti).c_str();
+	    msg << m_state.getUlamTypeNameByIndex(m_uti).c_str();
 	    msg << " (UTI" << getNodeType() << ") is KNOWN (=" << m_constant.uval;
 	    msg << ") while compiling class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();

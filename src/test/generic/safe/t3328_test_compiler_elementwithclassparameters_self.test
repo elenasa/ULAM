@@ -21,6 +21,7 @@ element R{
   Int test() {
     Atom a;
     S(1,2) s12;
+
     s12.b2 = s12.func();
     s.print(s12.b2);
     s12.b1 = s12.func(a);
@@ -37,8 +38,10 @@ element S(Int x, Int y){
   }
   Bool func(Atom d) {
     return (d is S(x,y)); //is Self also ok
-  }
+   }
 }
+
+
 ##      // simple case: OK!  "Bool(x+y) b1, b2;" works!!
 ##      //bool rtn1 = fms->add("S.ulam"," ulam 1;\n element S(Int x, Int y){\nBool sp;\n Bool(x+y) b1, b2;\n Int test() {\nS(1,2) s;\n/*Atom a;\n a = self;\n self = a;\n*/ return 0;\n }\n }\n");
 ##

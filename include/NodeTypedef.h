@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeTypedef.h - Basic Node handling Typedefs for ULAM
  *
- * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2017 Ackleyshack LLC.
+ * Copyright (C) 2014-2018 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2018 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeTypedef.h - Basic Node handling Typedefs for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2017 All rights reserved.
+  \date (C) 2014-2018 All rights reserved.
   \gpl
 */
 
@@ -72,11 +72,7 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
-    NNO getBlockNo();
-
-    NodeBlock * getBlock();
-
-    virtual void packBitsInOrderOfDeclaration(u32& offset);
+    virtual TBOOL packBitsInOrderOfDeclaration(u32& offset);
 
     virtual void printUnresolvedVariableDataMembers();
 
@@ -86,9 +82,7 @@ namespace MFM{
 
     virtual bool buildDefaultValue(u32 wlen, BV8K& dvref);
 
-    virtual void genCodeDefaultValueStringRegistrationNumber(File * fp, u32 startpos);
-
-    virtual void genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos);
+    virtual bool buildDefaultValueForClassConstantDefs();
 
     virtual EvalStatus eval();
 
@@ -96,9 +90,11 @@ namespace MFM{
 
     virtual void genCodeConstantArrayInitialization(File * fp);
 
-    virtual void generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly);
+    virtual void generateBuiltinConstantClassOrArrayInitializationFunction(File * fp, bool declOnly);
 
     virtual void cloneAndAppendNode(std::vector<Node *> & cloneVec);
+
+    virtual void generateTestInstance(File * fp, bool runtest);
 
     virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount);
 
@@ -111,7 +107,13 @@ namespace MFM{
     SymbolTypedef * m_typedefSymbol;
     u32 m_tdid; //to instantiate
     NNO m_currBlockNo;
+    NodeBlock * m_currBlockPtr;
     NodeTypeDescriptor * m_nodeTypeDesc; //can be NULL
+
+    NNO getBlockNo();
+    void setBlock(NodeBlock * ptr);
+    NodeBlock * getBlock();
+
   };
 
 }

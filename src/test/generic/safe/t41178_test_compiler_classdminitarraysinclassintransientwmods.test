@@ -11,11 +11,11 @@
 ##
 #!
 Exit status: -11
-Ue_A { Bool(1) b(false);  QFoo m_foo( QBar m_bar( Unary(3) r[5](3u,2u,0u,0u,0u);  Bool(1) sp(true); ); );  QBar m_bar( Unary(3) r[5](0u,3u,2u,2u,2u);  Bool(1) sp(true); );  Int(32) test() {  System s;  R mytr ={.m_b = true, };  Unary(3) chkr0 = mytr m_a . m_foo . m_bar . r 0 [] .;  s ( chkr0 )print . s ( chkr0 cast 2 == )assert . s ( mytr m_a . m_bar . r 0 [] . )print . s ( mytr m_a . m_bar . r 0 [] . cast 0 cast == )assert . Unary(3) chkr3 = mytr m_a . m_bar . r 3 [] .;  s ( chkr3 )print . s ( mytr m_a . m_bar . r 3 [] . )print . s ( mytr m_a . m_bar . r 3 [] . cast 2 == )assert . s ( mytr m_a . m_bar . sp . cast )print . s ( mytr m_a . m_bar . sp . )assert . s ( mytr m_b . cast )print . s ( mytr m_b . )assert . 0 cast return } }
+Ue_A { Bool(1) b(false);  QFoo m_foo( QBar m_bar( Unary(3) r[5](3u,2u,0u,0u,0u);  Bool(1) sp(true); ); );  QBar m_bar( Unary(3) r[5](0u,3u,2u,2u,2u);  Bool(1) sp(true); );  Int(32) test() {  System s;  R mytr = { .m_b = true };  Unary(3) chkr0 = mytr m_a . m_foo . m_bar . r 0 [] .;  s ( chkr0 )print . s ( chkr0 cast 2 == )assert . s ( mytr m_a . m_bar . r 0 [] . )print . s ( mytr m_a . m_bar . r 0 [] . cast 0 cast == )assert . Unary(3) chkr3 = mytr m_a . m_bar . r 3 [] .;  s ( chkr3 )print . s ( mytr m_a . m_bar . r 3 [] . )print . s ( mytr m_a . m_bar . r 3 [] . cast 2 == )assert . s ( mytr m_a . m_bar . sp . cast )print . s ( mytr m_a . m_bar . sp . )assert . s ( mytr m_b . cast )print . s ( mytr m_b . )assert . 0 cast return } }
 Uq_QFoo { QBar m_bar( Bool(1) sp(false);  Unary(3) r[5]( { 1u }); );  <NOMAIN> }
 Uq_QBar { Bool(1) sp(false);  Unary(3) r[5]( { 1u });  <NOMAIN> }
 Uq_System { <NOMAIN> }
-Un_R { Bool(1) m_b(false);  A m_a( Bool(1) b(false);  QFoo m_foo( QBar m_bar( Bool(1) sp(false);  Unary(3) r[5]( { 1u }); ); );  QBar m_bar( Bool(1) sp(false);  Unary(3) r[5]( { 1u }); ); );  <NOMAIN> }
+Un_R { Bool(1) m_b(false);  A m_a( { .m_bar = { .r = { 0 cast, 2 cast } }, .m_foo = { .m_bar = { .r = { 2 cast, 1 cast, 0 cast } } } });  <NOMAIN> }
 ##
 ## informed by 3rd test of C-99 class instance initialization
 ## t41169 within a transient (see t41175 & t41176), plus changes to default data member A, and transient dm

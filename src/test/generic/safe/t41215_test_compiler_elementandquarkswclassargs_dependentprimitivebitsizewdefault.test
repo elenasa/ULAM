@@ -1,0 +1,50 @@
+## -*- mode:ulam -*-
+#=t41215_test_compiler_elementandquarkswclassargs_dependentprimitivebitsizewdefault
+##
+##  gen output (+ assert)
+##      Unsigned Arg: 2
+##
+#!
+Exit status: 2
+Ue_P { Unsigned(8) m_sz(2u);  Int(32) test() {  System s;  Q(2u,3) goodq;  m_sz 2u cast = s ( m_sz cast )print . s ( m_sz 2u cast == )assert . m_sz cast return } }
+Uq_System { <NOMAIN> }
+Uq_Q(Unsigned(UNKNOWN) s, Int(32) b = 3) { typedef Unsigned(UNKNOWN) Foo;  Unsigned(UNKNOWN) f(notready);  <NOMAIN> }
+##
+## informed by t41211; except with 'use Q;' and with one default
+##
+#>P.ulam
+  ulam 1;
+use System;
+//use Q; //the big reveal. yippee!!
+element P {
+  Unsigned(8) m_sz;
+  Int test() {
+    System s;
+    Q(2u) goodq;
+    m_sz = goodq.sizeof;
+    s.print(m_sz);
+    s.assert(m_sz == 2u);
+    return m_sz;
+  }
+}
+
+#:Q.ulam
+  ulam 1;
+quark Q(Unsigned(b) s, Int b = 3) {
+  typedef Unsigned(s) Foo;
+  Foo f;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

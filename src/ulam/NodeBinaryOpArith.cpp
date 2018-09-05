@@ -98,7 +98,6 @@ namespace MFM {
 	    UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Int"), newbs);
 	    newType = m_state.makeUlamType(newkey, Int, UC_NOTACLASS);
 	  }
-
 	checkSafeToCastTo(getNodeType(), newType); //Nav, Hzy, or nochange; outputs error msg
       } //both scalars
     return newType;

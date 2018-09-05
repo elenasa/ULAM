@@ -91,7 +91,6 @@ namespace MFM{
 
     virtual bool setConstantValue(const Token& tok);
 
-    bool fitsInBits(UTI fituti);
     bool fitsInBits32(UTI fituti);
     bool fitsInBits64(UTI fituti);
 
@@ -106,6 +105,8 @@ namespace MFM{
   protected:
     virtual EvalStatus makeTerminalValue(UlamValue& uvarg); //used by eval only
     virtual void makeTerminalPassForCodeGen(UVPass& uvpass);
+
+    bool fitsInBits(UTI fituti);
 
     union {
       s64 sval;

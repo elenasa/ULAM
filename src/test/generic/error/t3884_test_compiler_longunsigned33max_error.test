@@ -13,7 +13,7 @@ Unrecoverable Program Type Label FAILURE.
 local typedef Unsigned(33) WEIRDOG[5];
 element A {
   Bool b1, b2, b3;
-  constant WEIRDOG rtn3 = {0x123456789u, 0}; //try as DataMEMBER
+  constant WEIRDOG rtn3 = {0x123456789u, 0u}; //try as DataMEMBER
   Int test() {
     System s;
     s.print(rtn3[0]);

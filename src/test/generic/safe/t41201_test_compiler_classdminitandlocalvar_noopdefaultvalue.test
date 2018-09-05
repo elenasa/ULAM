@@ -1,0 +1,86 @@
+## -*- mode:ulam -*-
+#=t41201_test_compiler_classdminitandlocalvar_noopdefaultvalue
+##
+## gen output: (+ interleaved asserts)
+## Unary(3) Arg: 0x1
+## Unary(3) Arg: 0x1
+## Bool(3) Arg: 0x0 (false)
+## Unary(3) Arg: 0x1
+## Unary(3) Arg: 0x1
+## Bool(3) Arg: 0x0 (false)
+##
+#!
+Exit status: 0
+Ue_A { Bool(1) b(false);  QBar m_bar( Unary(3) r(1u);  Bool(1) sp(false); );  Int(32) test() {  SystemU3 su3;  QBar bar = { };  Unary(3) chkr = m_bar r .;  su3 ( chkr )print . su3 ( m_bar r . )print . su3 ( m_bar r . cast 1 cast == )assert . su3 ( m_bar sp . cast )print . su3 ( m_bar sp . ! )assert . Unary(3) chkl = bar r .;  su3 ( chkl )print . su3 ( bar r . )print . su3 ( bar r . cast 1 cast == )assert . su3 ( bar sp . cast )print . su3 ( bar sp . ! )assert . 0 cast return } }
+Uq_QBar { Bool(1) sp(false);  Unary(3) r( 1u);  <NOMAIN> }
+Uq_SystemU3 : System { :<> <NOMAIN> }
+Uq_QStr { String(32) m_str( "hello world");  <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## informed by t41167, and t41171
+## except initializations are empty
+##
+#>A.ulam
+  ulam 3;
+local constant String c_str = "foo";
+element A {
+  Bool b;
+  QBar m_bar = { }; //may be empty
+
+ Int test() {
+   SystemU3 su3;
+
+   QBar bar = { }; //may be empty
+
+   Unary(3) chkr = m_bar.r;
+   su3.print(chkr);
+   su3.print(m_bar.r);
+   su3.assert(m_bar.r == 1);
+
+   su3.print(m_bar.sp);
+   su3.assert(!m_bar.sp);
+
+
+   Unary(3) chkl = bar.r;
+   su3.print(chkl);
+   su3.print(bar.r);
+   su3.assert(bar.r == 1);
+
+   su3.print(bar.sp);
+   su3.assert(!bar.sp);
+
+   return 0;
+ }
+}
+
+#:QBar.ulam
+  ulam 3;
+quark QBar {
+  Bool sp;
+  Unary(3) r = 1;
+}
+
+#:QStr.ulam
+  ulam 3;
+quark QStr {
+  String m_str = "hello world";
+}
+
+#:SystemU3.ulam
+  ulam 3;
+quark SystemU3 : System {
+  Void print(String s) native;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

@@ -8,7 +8,7 @@ namespace MFM{
 
   NodeListClassInit::NodeListClassInit(UTI cuti, u32 classvarid, CompilerState & state) : NodeList(state), m_classUTI(cuti), m_classvarId(classvarid) { }
 
-  NodeListClassInit::NodeListClassInit(const NodeListClassInit & ref) : NodeList(ref), m_classUTI(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_classUTI)), m_classvarId(ref.m_classvarId) { }
+  NodeListClassInit::NodeListClassInit(const NodeListClassInit & ref) : NodeList(ref), m_classUTI(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_classUTI,ref.getNodeLocation())), m_classvarId(ref.m_classvarId) { }
 
   NodeListClassInit::~NodeListClassInit() { }
 
@@ -19,14 +19,14 @@ namespace MFM{
 
   void NodeListClassInit::printPostfix(File * fp)
   {
-    fp->write("{");
+    fp->write(" { ");
     for(u32 i = 0; i < m_nodes.size(); i++)
       {
 	if(i > 0)
 	  fp->write(", ");
 	m_nodes[i]->printPostfix(fp);
       }
-    fp->write("}");
+    fp->write(" }");
   } //printPostfix
 
   void NodeListClassInit::print(File * fp)
@@ -71,6 +71,12 @@ namespace MFM{
       {
 	m_classUTI = cuti; //reset
       }
+    else if(!m_state.isScalar(m_classUTI))
+      {
+	UTI scalaruti = m_state.getUlamTypeAsScalar(m_classUTI);
+	assert(UlamType::compare(scalaruti, cuti, m_state) == UTIC_SAME);
+	m_classUTI = cuti; //t41185
+      }
     for(u32 i = 0; i < m_nodes.size(); i++)
       {
 	m_nodes[i]->resetOfClassType(cuti); //each a NodeInitDM
@@ -90,6 +96,8 @@ namespace MFM{
       return rtnuti; //t41167,t41169
 
     UTI nuti = m_classUTI; //initially of-class-uti
+    if(!m_state.isScalar(nuti))
+      nuti = m_state.getUlamTypeAsScalar(nuti); //t41185
 
     if(!m_state.isComplete(nuti) || m_state.isAnonymousClass(nuti))
       {
@@ -116,18 +124,19 @@ namespace MFM{
 	    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //t41170
 	    Node::setNodeType(Hzy);
+	    m_state.setGoAgain(); //missing
 	    return Hzy;
 	  }
       }
 
     assert(m_state.okUTItoContinue(nuti) && m_state.isComplete(nuti));
-    for(u32 i = 0; i < m_nodes.size(); i++)
-      ((NodeInitDM *) m_nodes[i])->resetOfClassType(nuti); //t41169
+    setClassType(nuti);
 
     rtnuti = nuti; //if all goes well..
 
     for(u32 i = 0; i < m_nodes.size(); i++)
       {
+	assert(m_nodes[i]);
 	UTI puti = m_nodes[i]->checkAndLabelType();
 	if(puti == Nav)
 	  {
@@ -140,13 +149,18 @@ namespace MFM{
 	  }
 	else if((rtnuti != Nav) && !m_state.isComplete(puti))
 	  {
+	    std::ostringstream msg;
+	    msg << "Class Init Argument " << i + 1 << " is incomplete";
+	    msg << " for variable " << m_state.m_pool.getDataAsString(m_classvarId).c_str();
+	    msg << ", type " << m_state.getUlamTypeNameBriefByIndex(m_classUTI).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    rtnuti = Hzy; // all or none
-	    m_state.setGoAgain(); //since no error msg
+	    m_state.setGoAgain();
 	  }
 	//else rtnuti remains == m_classUTI
       }
-
     setNodeType(rtnuti);
+    //    if(rtnuti == Hzy) m_state.setGoAgain(); //since no error msg
     return rtnuti;
   } //checkAndLabelType
 
@@ -178,6 +192,9 @@ namespace MFM{
   {
     for(u32 i = 0; i < m_nodes.size(); i++)
       ((NodeInitDM *) m_nodes[i])->foldConstantExpression();
+
+    m_state.tryToPackAClass(m_classUTI); //t41198 here?
+
     return Node::getNodeType();
   }
 
@@ -191,7 +208,7 @@ namespace MFM{
     //save before wipe out with each init dm; for local vars (o.w. empty)
     std::vector<Symbol *> saveCOSVector = m_state.m_currentObjSymbolsForCodeGen;
 
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write("{\n");
 
     m_state.m_currentIndentLevel++;
@@ -204,7 +221,7 @@ namespace MFM{
 
     m_state.m_currentIndentLevel--;
 
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write("}\n");
   }
 
@@ -224,18 +241,20 @@ namespace MFM{
     m_state.abortShouldntGetHere();
   }
 
-  void NodeListClassInit::generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly)
+  void NodeListClassInit::generateBuiltinConstantClassOrArrayInitializationFunction(File * fp, bool declOnly)
   {
     m_state.abortShouldntGetHere();
   }
 
-  bool NodeListClassInit::initDataMembersConstantValue(BV8K& bvref)
+  bool NodeListClassInit::initDataMembersConstantValue(BV8K& bvref, BV8K& bvmask)
   {
-    //bvref contains default value at pos 0 of our m_forClassUTI.
+    //bvref contains default value at pos 0 (adjusted for elements!) of our m_forClassUTI.
     bool rtnok = true;
     for(u32 i = 0; i < m_nodes.size(); i++)
       {
-	rtnok &= ((NodeInitDM *) m_nodes[i])->buildDefaultValue(0, bvref); //first arg dummy
+	rtnok &= ((NodeInitDM *) m_nodes[i])->initDataMemberConstantValue(bvref, bvmask);
+	if(!rtnok)
+	  break;
       }
     return rtnok;
   }

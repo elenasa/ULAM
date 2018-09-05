@@ -68,6 +68,13 @@ namespace MFM {
       return write(str.c_str());
     }
 
+  s32 File::write_hexadecimal(const u32 data)
+  {
+    char tmp[32+5];
+    sprintf(tmp,"0x%x",data);
+    return write(tmp);
+  }
+
   s32 File::write_tagged_end(const char * filename, s32 lineno)
   {
     s32 r = 0;

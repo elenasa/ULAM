@@ -5,7 +5,7 @@ namespace MFM {
 
   SymbolTypedef::SymbolTypedef(const Token& id, UTI utype, UTI scalaruti, CompilerState & state) : Symbol(id, utype, state), m_scalarUTI(scalaruti) {}
 
-  SymbolTypedef::SymbolTypedef(const SymbolTypedef& sref) : Symbol(sref), m_scalarUTI(m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_scalarUTI)) {}
+  SymbolTypedef::SymbolTypedef(const SymbolTypedef& sref) : Symbol(sref), m_scalarUTI(m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_scalarUTI,sref.getLoc())) {}
 
   SymbolTypedef::SymbolTypedef(const SymbolTypedef& sref, bool keeptype) : Symbol(sref, keeptype), m_scalarUTI(sref.m_scalarUTI) {}
 
@@ -52,11 +52,11 @@ namespace MFM {
     if(tut->getUlamTypeEnum() != Class)
       {
       fp->write(tkey.getUlamKeyTypeSignatureNameAndBitSize(&m_state).c_str());
-      if(tut->isReference())
+      if(tut->isAltRefType())
 	fp->write(" &"); //an array of refs as written, should be ref to an array.
       }
     else
-      fp->write(tut->getUlamTypeNameBrief().c_str());
+      fp->write(tut->getUlamTypeClassNameBrief(tuti).c_str());
 
     fp->write(" ");
     fp->write(m_state.m_pool.getDataAsString(getId()).c_str());

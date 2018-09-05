@@ -37,21 +37,15 @@ namespace MFM {
   {
     assert(m_nodeCondition && m_nodeBody);
     UTI nuti = getNodeType();
-    if(nuti == Nav)
-      return ERROR;
+    if(nuti == Nav) return evalErrorReturn();
 
-    if(nuti == Hzy)
-      return NOTREADY;
+    if(nuti == Hzy) return evalStatusReturnNoEpilog(NOTREADY);
 
     evalNodeProlog(0); //new current frame pointer
 
     makeRoomForNodeType(nuti);
     EvalStatus evs = m_nodeCondition->eval();
-    if(evs != NORMAL)
-      {
-	evalNodeEpilog();
-	return evs;
-      }
+    if(evs != NORMAL) return evalStatusReturn(evs);
 
     UlamValue cuv = m_state.m_nodeEvalStack.popArg();
 
@@ -62,10 +56,8 @@ namespace MFM {
 	if(evs == BREAK)
 	  break; //use C to break out of this loop
 	else if((evs == RETURN) || (evs == ERROR) || (evs == UNEVALUABLE))
-	  {
-	    evalNodeEpilog();
-	    return evs;
-	  }
+	  return evalStatusReturn(evs);
+
 	assert((evs == NORMAL) || (evs == CONTINUE));
 
 	//continue continues as normal
@@ -74,11 +66,7 @@ namespace MFM {
 	makeRoomForNodeType(nuti);
 
 	evs = m_nodeCondition->eval();
-	if(evs != NORMAL)
-	  {
-	    evalNodeEpilog();
-	    return evs;
-	  }
+	if(evs != NORMAL) return evalStatusReturn(evs);
 
 	cuv = m_state.m_nodeEvalStack.popArg();
       } //end while

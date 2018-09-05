@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeTypeDescriptor.h - Basic Node Type descriptor for ULAM
  *
- * Copyright (C) 2015-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2017 Ackleyshack LLC.
+ * Copyright (C) 2015-2018 The Regents of the University of New Mexico.
+ * Copyright (C) 2015-2018 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeTypeDescriptor.h - Basic Node Type descriptor for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2017 All rights reserved.
+  \date (C) 2015-2018 All rights reserved.
   \gpl
 */
 
@@ -51,6 +51,8 @@ namespace MFM{
     NodeTypeDescriptor(const Token& typetoken, UTI auti, CompilerState & state, ALT refarg, UTI referencedUTIarg);
 
     NodeTypeDescriptor(const NodeTypeDescriptor& ref);
+
+    NodeTypeDescriptor(const NodeTypeDescriptor& ref, bool keepType);
 
     virtual ~NodeTypeDescriptor();
 
@@ -74,6 +76,8 @@ namespace MFM{
 
     UTI givenUTI();
 
+    void resetGivenUTI(UTI guti);
+
     UTI getReferencedUTI();
 
     ALT getReferenceType();
@@ -81,6 +85,10 @@ namespace MFM{
     void setReferenceType(ALT refarg, UTI referencedUTI);
 
     virtual void setReferenceType(ALT refarg, UTI referencedUTI, UTI refUTI);
+
+    UTI getContextForPendingArgType();
+
+    void setContextForPendingArgType(UTI context);
 
     virtual UTI checkAndLabelType();
 
@@ -94,6 +102,7 @@ namespace MFM{
     Token m_typeTok;
     UTI m_uti;
     bool m_ready;
+    UTI m_contextForPendingArgType;
 
   private:
     NodeTypeBitsize * m_unknownBitsizeSubtree;

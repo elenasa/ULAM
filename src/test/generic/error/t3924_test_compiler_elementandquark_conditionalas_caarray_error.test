@@ -3,6 +3,8 @@
 #!
 ./Res.ulam:10:14: ERROR: Invalid lefthand type of conditional operator 'as'; suggest a reference variable.
 ./Res.ulam:12:18: ERROR: Invalid Type: Cell& used with [].
+./Res.ulam:12:22: ERROR: Member selected is incomplete class: erroneous, check and label fails this time around.
+./Res.ulam:12:14: ERROR: Assignment is invalid; LHS: Bool(1); RHS: erroneous.
 Unrecoverable Program Type Label FAILURE.
 ##
 ##      //informed by t3923

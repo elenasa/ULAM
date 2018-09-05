@@ -47,9 +47,9 @@ namespace MFM {
   {
     bool brtn = true;
     assert(m_state.getUlamTypeByIndex(typidx) == this);
-    UTI valtypidx = val.getUlamValueTypeIdx();
+    UTI valtypidx = val.getUlamValueTypeIdx(); //from type
 
-    if(UlamType::safeCast(valtypidx) != CAST_CLEAR) //bad|hazy
+    if(UlamTypePrimitive::safeCast(valtypidx) != CAST_CLEAR) //bad|hazy
       return false;
 
     u32 wordsize = getTotalWordSize();
@@ -174,24 +174,24 @@ namespace MFM {
 
   FORECAST UlamTypePrimitiveUnary::safeCast(UTI typidx)
   {
-    FORECAST scr = UlamType::safeCast(typidx);
+    FORECAST scr = UlamTypePrimitive::safeCast(typidx);
     if(scr != CAST_CLEAR)
       return scr;
 
     bool brtn = true;
-    UlamType * vut = m_state.getUlamTypeByIndex(typidx);
-    s32 valbitsize = vut->getBitSize();
+    UlamType * fmut = m_state.getUlamTypeByIndex(typidx);
+    s32 valbitsize = fmut->getBitSize();
     s32 bitsize = getBitSize();
-    ULAMTYPE valtypEnum = vut->getUlamTypeEnum();
+    ULAMTYPE valtypEnum = fmut->getUlamTypeEnum();
     switch(valtypEnum)
       {
       case Unsigned:
 	{
-	  u32 vwordsize = vut->getTotalWordSize();
+	  u32 vwordsize = fmut->getTotalWordSize();
 	  if(vwordsize <= MAXBITSPERINT)
-	    brtn = ((u32) bitsize >= (u32) vut->getMax());
+	    brtn = ((u32) bitsize >= (u32) fmut->getMax());
 	  else
-	    brtn = ((u64) bitsize >= vut->getMax());
+	    brtn = ((u64) bitsize >= fmut->getMax());
 	}
 	break;
       case Unary:

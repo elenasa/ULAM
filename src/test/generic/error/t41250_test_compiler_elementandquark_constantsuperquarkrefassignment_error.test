@@ -1,0 +1,39 @@
+## -*- mode:ulam -*-
+#=t41250_test_compiler_elementandquark_constantsuperquarkrefassignment_error
+#!
+./Foo.ulam:7:16: ERROR: Unmodifiable lefthand side of assignment expression <.>, type: Bool(1); may be a constant function parameter.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by t41249, except r is a constant ref (and not writeable)
+##
+#>Foo.ulam
+  ulam 3;
+element Foo : Bar {
+  Int test() {
+    System s;
+    Foo g;
+    constant Bar& r = g;
+    r.val_b[1] = true; //not writeable!
+    s.assert(g.val_b[1]);
+    return (Int) (g.val_b[1]);
+  }
+}
+
+#:Bar.ulam
+  ulam 1;
+quark Bar {
+  Bool val_b[3];
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

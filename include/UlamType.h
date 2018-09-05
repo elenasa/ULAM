@@ -62,7 +62,11 @@ namespace MFM{
 
     virtual const std::string getUlamTypeNameBrief();
 
+    virtual const std::string getUlamTypeClassNameBrief(UTI cuti);
+
     virtual const std::string getUlamTypeNameOnly();
+
+    u32 getUlamTypeNameId();
 
     UlamKeyTypeSignature getUlamKeyTypeSignature();
 
@@ -149,6 +153,8 @@ namespace MFM{
     ALT getReferenceType();
 
     bool isReference();
+
+    bool isAltRefType();
 
     virtual bool isHolder();
 

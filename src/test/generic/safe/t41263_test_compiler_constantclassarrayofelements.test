@@ -1,0 +1,80 @@
+## -*- mode:ulam -*-
+#=t41263_test_compiler_constantclassarrayofelements
+##
+## gen output: (+ interleaved asserts)
+##  Unsigned Arg: 2
+##  Unsigned Arg: 4
+##  Unsigned Arg: 99
+##  Unsigned Arg: 99
+##  Unsigned Arg: 99
+##
+#!
+Exit status: 0
+Ue_KeyExprRep { Int(32) test() {  System s;  KeyExprNode m_key = keyexpr_x13 0 [];  s ( m_key m_rightIndex . cast )print . s ( m_key m_rightIndex . 2u cast == )assert . s ( keyexpr_x13 1 [] m_rightIndex . cast )print . s ( keyexpr_x13 1 [] m_rightIndex . 4u cast == )assert . KeyExprNode mykeyexpr_x13[5] = keyexpr_x13;  s ( mykeyexpr_x13 2 [] m_keyCode . cast )print . s ( mykeyexpr_x13 2 [] m_keyCode . keyexpr_x13 2 [] m_keyCode . == )assert . constant KeyExprNode cmykeyexpr_x13 = keyexpr_x13;  s ( cmykeyexpr_x13 2 [] m_keyCode . cast )print . s ( cmykeyexpr_x13 2 [] m_keyCode . keyexpr_x13 2 [] m_keyCode . == )assert . constant KeyExprNode mykeyexpritem = keyexpr_x13 2 [];  s ( cmykeyexpr_x13 2 [] m_keyCode . cast )print . s ( cmykeyexpr_x13 2 [] m_keyCode . keyexpr_x13 2 [] m_keyCode . == )assert . 0 cast return } }
+Ue_KeyExprNode { typedef Unsigned(8) Byte;  Unsigned(8) m_leftIndex(0);  Unsigned(8) m_rightIndex(0);  Unsigned(8) m_keyCode(0);  Unsigned(8) m_op(0);  <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## informed by Dave 3/18/18 ish, and t41261: except array of elements instead of quarks constant class array not implemented yet.
+##
+##
+#>KeyExprRep.ulam
+  ulam 3;
+use KeyExprNode; ////without use ./KeyExprNode.ulam:9:0: ERROR: Invalid size (-2) to set for primitive type: 0Holder.
+local constant KeyExprNode keyexpr_x13[] = {
+  { .m_leftIndex = 1, .m_rightIndex = 2, .m_keyCode = 0, .m_op = '|' }, // [0]
+  { .m_leftIndex = 3, .m_rightIndex = 4, .m_keyCode = 0, .m_op = '&' }, // [1]
+  { .m_leftIndex = 0, .m_rightIndex = 0, .m_keyCode = 'c', .m_op = 0 }, // [2]
+  { .m_leftIndex = 0, .m_rightIndex = 0, .m_keyCode = 'a', .m_op = 0 }, // [3]
+  { .m_leftIndex = 0, .m_rightIndex = 0, .m_keyCode = 'b', .m_op = 0 }, // [4] , EXTRA COMMA at the end??? no difference
+};
+element KeyExprRep {
+  Int test() {
+    System s;
+
+    KeyExprNode m_key = keyexpr_x13[0];
+    s.print(m_key.m_rightIndex);
+    s.assert(m_key.m_rightIndex==2u);
+
+    s.print(keyexpr_x13[1].m_rightIndex);
+    s.assert(keyexpr_x13[1].m_rightIndex==4u); //reads constant class array item
+
+    //read entire constant class array
+    KeyExprNode mykeyexpr_x13[5] = keyexpr_x13;
+    s.print(mykeyexpr_x13[2].m_keyCode);
+    s.assert(mykeyexpr_x13[2].m_keyCode==keyexpr_x13[2].m_keyCode); //reads constant class array item
+
+    //read entire constant class array into another constant
+    constant KeyExprNode cmykeyexpr_x13[5] = keyexpr_x13;
+    s.print(cmykeyexpr_x13[2].m_keyCode);
+    s.assert(cmykeyexpr_x13[2].m_keyCode==keyexpr_x13[2].m_keyCode); //reads constant class array item
+
+    //read a constant class array item into another constant
+    constant KeyExprNode mykeyexpritem = keyexpr_x13[2];
+    s.print(cmykeyexpr_x13[2].m_keyCode);
+    s.assert(cmykeyexpr_x13[2].m_keyCode==keyexpr_x13[2].m_keyCode); //reads constant class array item
+    return 0;
+  }
+}
+
+#:KeyExprNode.ulam
+  ulam 3;
+element KeyExprNode {
+  typedef Unsigned(8) Byte;
+  Byte m_leftIndex;  // for [,|&~]
+  Byte m_rightIndex; // for [,|&]
+  Byte m_keyCode;    // [a-zA-Z.@_?] or 0
+  Byte m_op;         // [,|&~] or 0
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <assert.h>
+#include "NodeConstantClass.h"
 #include "NodeListArrayInitialization.h"
 #include "NodeListClassInit.h"
 #include "NodeTerminal.h"
@@ -38,7 +39,7 @@ namespace MFM{
     for(u32 i = 0; i < m_nodes.size(); i++)
       {
 	if(i > 0)
-	  fp->write(",");
+	  fp->write(","); //no space after
 	m_nodes[i]->printPostfix(fp);
       }
     fp->write(" }");
@@ -49,7 +50,7 @@ namespace MFM{
     bool rtnc = true;
     for(u32 i = 0; i < m_nodes.size(); i++)
       {
-	rtnc |= m_nodes[i]->isAConstant();
+	rtnc &= m_nodes[i]->isAConstant(); ////yikes! (was |=) all or none (t41185)
       }
     return rtnc;
   }
@@ -75,7 +76,7 @@ namespace MFM{
 	UTI scalaruti = m_state.getUlamTypeAsScalar(uti);
 	for(u32 i = 0; i < m_nodes.size(); i++)
 	  {
-	    if(m_nodes[i]->isClassInit())
+	    if(m_nodes[i]->isClassInit() || m_nodes[i]->isAConstantClass())
 	      m_nodes[i]->setClassType(scalaruti);
 	    else
 	      {
@@ -132,7 +133,6 @@ namespace MFM{
 	    else
 	      {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-		m_state.setGoAgain();
 	      }
 	    rtnuti = puti;
 	  }
@@ -154,6 +154,7 @@ namespace MFM{
 	  }
       }
     setNodeType(rtnuti);
+    if(rtnuti == Hzy) m_state.setGoAgain();
     return rtnuti;
   } //checkAndLabelType
 
@@ -162,7 +163,7 @@ namespace MFM{
     bool rtnok = true;
     for(u32 i = 0; i < m_nodes.size(); i++)
       {
-	rtnok |= foldInitExpression(i);
+	rtnok &= foldInitExpression(i); //yikes! (was |=) (t41185) all or none
 	if(!rtnok)
 	  break;
       }
@@ -203,9 +204,9 @@ namespace MFM{
 	      msg << "Invalid";
 	    else
 	      msg << "Use explicit cast";
-	    msg << " to return ";
+	    msg << " to use ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(foldeduti).c_str();
-	    msg << " as ";
+	    msg << " array item " << n + 1 << " as ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(scalaruti).c_str();
 	    if(scr == CAST_BAD)
 	      {
@@ -226,12 +227,16 @@ namespace MFM{
   FORECAST NodeListArrayInitialization::safeToCastTo(UTI newType)
   {
     UTI nuti = Node::getNodeType();
+    u32 n = m_nodes.size();
+    if(n==0)
+      return CAST_CLEAR; //t41201, but not Void to non-Void.
+
     if(nuti == Void)
       return CAST_HAZY;
 
     UTI newscalaruti = m_state.getUlamTypeAsScalar(newType);
     FORECAST scr = CAST_CLEAR;
-    for(u32 i = 0; i < m_nodes.size(); i++)
+    for(u32 i = 0; i < n; i++)
       {
 	scr = m_nodes[i]->safeToCastTo(newscalaruti);
 	if(scr != CAST_CLEAR)
@@ -265,9 +270,15 @@ namespace MFM{
 
     bool rtnok = true;
     u32 n = m_nodes.size();
+
+    //if(isEmptyList()) return true; //noop, t41201
+
+    if(m_state.isAClass(nuti))
+      return buildClassArrayValueInitialization(bvtmp); //t41185
+
     for(u32 i = 0; i < n; i++)
       {
-	rtnok |= buildArrayItemInitialValue(i, i, bvtmp);
+	rtnok &= buildArrayItemInitialValue(i, i, bvtmp); //yikes! (was |=) (t41185) all or none
 	if(!rtnok)
 	  break;
       }
@@ -278,12 +289,15 @@ namespace MFM{
 	s32 arraysize = nut->getArraySize();
 	assert(arraysize >= 0); //t3847
 
-	u32 itemlen = nut->getBitSize();
-	u64 lastvalue = bvtmp.ReadLong((n - 1) *  itemlen, itemlen);
-	//propagate last value for any remaining items not initialized
-	for(s32 i = n; i < arraysize; i++)
+	if(n < (u32) arraysize)
 	  {
-	    bvtmp.WriteLong(i * itemlen, itemlen, lastvalue);
+	    u32 itemlen = nut->getBitSize();
+	    u64 lastvalue = bvtmp.ReadLong((n - 1) *  itemlen, itemlen);
+	    //propagate last value for any remaining items not initialized
+	    for(s32 i = n; i < arraysize; i++)
+	      {
+		bvtmp.WriteLong(i * itemlen, itemlen, lastvalue);
+	      }
 	  }
       }
     return rtnok;
@@ -332,28 +346,40 @@ namespace MFM{
 	return false;
       }
 
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    s32 arraysize = nut->getArraySize();
+    assert(arraysize >= 0); //t3847
+
     bool rtnok = true;
     u32 n = m_nodes.size();
     for(u32 i = 0; i < n; i++)
       {
-	rtnok |= buildClassArrayItemInitialValue(i, i, bvtmp);
+	rtnok &= buildClassArrayItemInitialValue(i, i, bvtmp); //yikes! (was |=) (t41185) all or none
 	if(!rtnok)
 	  break;
       }
 
+    //fill in default class if nothing provided for a non-empty array
+    if((n == 0) && (arraysize > 0))
+      {
+	rtnok = m_state.getDefaultClassValue(nuti, bvtmp); //uses scalar uti
+	n = 1; //ready to fall thru and propagate as needed
+      }
+
     if(rtnok)
       {
-	UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-	s32 arraysize = nut->getArraySize();
-	assert(arraysize >= 0); //t3847
-
-	u32 itemlen = nut->getBitSize();
-	BV8K lastbv;
-	bvtmp.CopyBV((n - 1) *  itemlen, 0, itemlen, lastbv); //frompos, topos, len, destBV
 	//propagate last value for any remaining items not initialized
-	for(s32 i = n; i < arraysize; i++)
+	if(n < (u32) arraysize)
 	  {
-	    lastbv.CopyBV(0, i * itemlen, itemlen, bvtmp);
+	    UTI scalaruti = m_state.getUlamTypeAsScalar(nuti);
+	    u32 itemlen = m_state.getUlamTypeByIndex(scalaruti)->getSizeofUlamType();
+
+	    BV8K lastbv;
+	    bvtmp.CopyBV((n - 1) *  itemlen, 0, itemlen, lastbv); //frompos, topos, len, destBV
+	    for(s32 i = n; i < arraysize; i++)
+	      {
+		lastbv.CopyBV(0, i * itemlen, itemlen, bvtmp);
+	      }
 	  }
       }
     return rtnok;
@@ -361,21 +387,38 @@ namespace MFM{
 
   bool NodeListArrayInitialization::buildClassArrayItemInitialValue(u32 n, u32 pos, BV8K& bvtmp)
   {
+    assert((m_nodes.size() > n) && (m_nodes[n] != NULL));
+    bool rtnb = false;
     UTI nuti = Node::getNodeType();
-    u32 itemlen = m_state.getBitSize(nuti);
+    UTI scalaruti = m_state.getUlamTypeAsScalar(nuti);
+    UlamType * scalarut = m_state.getUlamTypeByIndex(scalaruti);
+    u32 itemlen = scalarut->getSizeofUlamType();
+    u32 adjust = 0; //(classtype == UC_ELEMENT ? ATOMFIRSTSTATEBITPOS : 0);
 
     BV8K bvclass;
-    //note: starts with default in case of String data members; (pos arg unused)
-    if(m_state.getDefaultClassValue(nuti, bvclass)) //uses scalar uti
+    bvtmp.CopyBV(pos * itemlen + adjust, 0, itemlen - adjust, bvclass); //zero-based item
+    if(m_nodes[n]->isAConstantClass())
       {
-	AssertBool gotVal = ((NodeListClassInit *) m_nodes[n])->initDataMembersConstantValue(bvclass); //at pos 0
-	assert(gotVal);
-	bvclass.CopyBV(0, n * itemlen, itemlen, bvtmp);	//frompos, topos, len, destBV
+	BV8K bvmask;
+	if(((NodeConstantClass *) m_nodes[n])->initDataMembersConstantValue(bvclass, bvmask)) //at pos 0
+	  {
+	    bvclass.CopyBV(0, pos * itemlen + adjust, itemlen - adjust, bvtmp); //frompos, topos, len, destBV
+	    rtnb = true;
+	  }
+      }
+    else if(m_nodes[n]->isClassInit())
+      {
+	BV8K bvmask;
+	if(((NodeListClassInit *) m_nodes[n])->initDataMembersConstantValue(bvclass, bvmask)) //at pos 0
+	  {
+	    bvclass.CopyBV(0, pos * itemlen + adjust, itemlen - adjust, bvtmp); //frompos, topos, len, destBV
+	    rtnb = true;
+	  }
       }
     else
-      return false;
+      m_state.abortShouldntGetHere();
 
-    return true;
+    return rtnb;
   } //buildClassArrayItemInitialValue
 
   void NodeListArrayInitialization::genCode(File * fp, UVPass& uvpass)
@@ -392,98 +435,21 @@ namespace MFM{
     // as tmpvar in uvpass
     // need parent (NodeVarDecl/NodeConstantDef) to get initialized value (BV8K)
     NNO pno = Node::getYourParentNo();
-    Node * parentNode = m_state.findNodeNoInThisClass(pno); //also checks localsfilescope
+    Node * parentNode = m_state.findNodeNoInThisClassOrLocalsScope(pno); //also checks localsfilescope
     assert(parentNode);
 
     SymbolWithValue * vsym = NULL;
     AssertBool gotSymbol = parentNode->getSymbolPtr((Symbol *&) vsym);
     assert(gotSymbol);
 
-    bool aok = true;
     BV8K dval;
-    if(vsym->isReady())
-      {
-	AssertBool gotValue = vsym->getValue(dval);
-	assert(gotValue);
-      }
-    else if(vsym->hasInitValue())
-      {
-	AssertBool gotInitVal = vsym->getInitValue(dval);
-	assert(gotInitVal);
-      }
-    else
-      aok = false;
-
+    AssertBool aok = vsym->getValueReadyToPrint(dval);
     assert(aok);
 
     bool isString = (nut->getUlamTypeEnum() == String);
     s32 tmpvarnum = m_state.getNextTmpVarNumber();
     TMPSTORAGE nstor = nut->getTmpStorageTypeForTmpVar();
     u32 nwords = nut->getTotalNumberOfWords();
-
-    //generate code to replace uti in string index with runtime registration number (t3974)
-    if(isString && !vsym->isDataMember())
-      {
-	u32 uvals[ARRAY_LEN8K];
-	dval.ToArray(uvals); //the magic! (32-bit ints)
-
-	UTI cuti = m_state.getCompileThisIdx();
-	const std::string stringmangledName = m_state.getUlamTypeByIndex(String)->getLocalStorageTypeAsString();
-
-	m_state.indentUlamCode(fp); //non-const
-	fp->write("static bool ");
-	fp->write(m_state.getInitDoneVarAsString(tmpvarnum).c_str());
-	fp->write(";\n");
-
-	m_state.indentUlamCode(fp); //non-const
-	fp->write("static u32 ");
-	fp->write(m_state.getTmpVarAsString(nuti, tmpvarnum, nstor).c_str());
-	fp->write("[");
-	fp->write_decimal_unsigned(nwords); // proper length == [nwords]
-	fp->write("];\n");
-
-	m_state.indentUlamCode(fp); //non-const
-	fp->write("if(!");
-	fp->write(m_state.getInitDoneVarAsString(tmpvarnum).c_str());
-	fp->write(")\n");
-	m_state.indentUlamCode(fp); //non-const
-	fp->write("{\n");
-
-	m_state.m_currentIndentLevel++;
-
-	m_state.indentUlamCode(fp);
-	fp->write(m_state.getInitDoneVarAsString(tmpvarnum).c_str());
-	fp->write(" = true;\n");
-
-	m_state.indentUlamCode(fp);
-	fp->write("static const u32 Uh_6regnum = ");
-	fp->write(m_state.getTheInstanceMangledNameByIndex(cuti).c_str());
-	fp->write(".GetRegistrationNumber();"); GCNL;
-
-	//exact size bitvector as 32-bit array, regardless of itemwordsize (e.g. String test t3973 )
-	for(u32 w = 0; w < nwords; w++)
-	  {
-	    m_state.indentUlamCode(fp); //non-const
-	    fp->write(m_state.getTmpVarAsString(nuti, tmpvarnum, nstor).c_str());
-	    fp->write("[");
-	    fp->write_decimal_unsigned(w); // proper length == [nwords]
-	    fp->write("] = ");
-
-	    fp->write(stringmangledName.c_str());
-	    fp->write("::makeCombinedIdx(Uh_6regnum, ");
-	    fp->write_decimal_unsigned(uvals[w] & STRINGIDXMASK);
-	    fp->write("); //");
-	    fp->write(m_state.getDataAsFormattedUserString(uvals[w]).c_str()); //as comment
-	    fp->write("\n");
-	  }
-
-	m_state.m_currentIndentLevel--;
-	m_state.indentUlamCode(fp); //non-const
-	fp->write("}"); GCNL;
-
-	uvpass = UVPass::makePass(tmpvarnum, nstor, nuti, m_state.determinePackable(nuti), m_state, 0, vsym->getId());
-	return;
-      } //done local string
 
     //static constant array of u32's from BV8K, of proper length:
     //similar to CS::genCodeClassDefaultConstantArray,
@@ -506,13 +472,10 @@ namespace MFM{
 
 	for(u32 w = 0; w < nwords; w++)
 	  {
-	    std::ostringstream dhex;
-	      dhex << "0x" << std::hex << uvals[w];
-
 	    if(w > 0)
 	      fp->write(", ");
 
-	    fp->write(dhex.str().c_str());
+	    fp->write_hexadecimal(uvals[w]);
 	  }
 	fp->write(" };"); GCNL;
       }
@@ -530,8 +493,7 @@ namespace MFM{
 	if(nwords <= 1) //32
 	  {
 	    //right justify single u32 (t3974)
-	    dhex << "0x" << std::hex << dval.Read(0u, len); //uvals[0]
-	    fp->write(dhex.str().c_str());
+	    fp->write_hexadecimal(dval.Read(0u, len));
 	    fp->write(";"); GCNL;
 
 	  }
@@ -566,7 +528,7 @@ namespace MFM{
 	// read each item value from within its uvpass (t41170)
 	s32 tmpVarNum4 = m_state.getNextTmpVarNumber();
 
-	m_state.indent(fp);
+	m_state.indentUlamCode(fp);
 	fp->write("const ");
 	fp->write(nut->getArrayItemTmpStorageTypeAsString().c_str());
 	fp->write(" ");
@@ -584,7 +546,7 @@ namespace MFM{
 
 
 	s32 tmpVarNum = m_state.getNextTmpVarNumber();
-	m_state.indent(fp);
+	m_state.indentUlamCode(fp);
 	fp->write(scalarut->getLocalStorageTypeAsString().c_str());
 	fp->write(" ");
 	fp->write(m_state.getTmpVarAsString(scalaruti, tmpVarNum, scalarcstor).c_str());
@@ -625,7 +587,7 @@ namespace MFM{
       m_nodes[useitem]->genCode(fp, uvpass2);
 
     //uvpass has the tmp var of the default immediate class array
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //immediate class storage
     fp->write(".writeArrayItem("); //e.g. writeArrayItem
     fp->write(uvpass2.getTmpVarAsString(m_state).c_str()); //tmp storage, read?
@@ -641,6 +603,54 @@ namespace MFM{
     fp->write_decimal_unsigned(n); //index (zero-based)
     fp->write("]");
     GCNL;
+  }
+
+  bool NodeListArrayInitialization::initDataMembersConstantValue(BV8K& bvref, BV8K& bvmask)
+  {
+    //build up if an array of class inits (t41185)
+    UTI nuti = Node::getNodeType();
+    UTI scalaruti = m_state.getUlamTypeAsScalar(nuti);
+
+    u32 n = m_nodes.size();
+    assert(n > 0);
+    assert(m_nodes[0]->isClassInit()); //what if class constant?
+    u32 itemlen = m_state.getUlamTypeByIndex(scalaruti)->getSizeofUlamType(); //atom-based for element as data member
+
+    bool rtnok = true;
+    for(u32 i = 0; i < n; i++)
+      {
+	BV8K bvtmp;
+	BV8K bvmask;
+	rtnok &= ((NodeListClassInit *) m_nodes[i])->initDataMembersConstantValue(bvtmp, bvmask);
+	if(rtnok)
+	  {
+	    bvtmp.CopyBV(0, i * itemlen, itemlen, bvref); //fm pos, to pos, len, dest (t41185)
+	    bvmask.SetBits(i * itemlen, itemlen); //startpos, len
+	  }
+	  else
+	  break;
+      }
+
+    if(rtnok)
+      {
+	s32 sarraysize = m_state.getArraySize(nuti);
+	assert(sarraysize >= 0);
+	u32 arraysize = (u32) sarraysize;
+	if(n < arraysize)
+	  {
+	    BV8K lastbv;
+	    bvref.CopyBV((n - 1) * itemlen, 0, itemlen, lastbv); //get last array item value from bvref
+
+	    //repeat last one..
+	    for(u32 j=n; j < arraysize; j++)
+	      {
+		lastbv.CopyBV(0, j * itemlen, itemlen, bvref);
+		bvmask.SetBits(j * itemlen, itemlen); //startpos, len
+	      }
+	  }
+      }
+
+    return rtnok;
   }
 
 } //MFM

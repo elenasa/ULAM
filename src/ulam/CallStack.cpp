@@ -85,7 +85,7 @@ namespace MFM {
 
   void CallStack::storeUlamValueInSlot(UlamValue uv, s32 slot)
   {
-    assert((m_currentFrame + slot < m_frames.size()) && (m_currentFrame + slot >= 0));
+    assert((m_currentFrame + slot < m_frames.size()));
     m_frames[m_currentFrame + slot] = uv;
   }
 
@@ -102,7 +102,7 @@ namespace MFM {
   UlamValue CallStack::loadUlamValueSingleFromSlot(s32 slot)
   {
     //no recursing, single whether Ptr or not.
-    assert((m_currentFrame + slot < m_frames.size()) && (m_currentFrame + slot >= 0));
+    assert((m_currentFrame + slot < m_frames.size()));
     return m_frames[m_currentFrame + slot];
   }
 

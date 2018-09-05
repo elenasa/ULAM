@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * Constants.h Useful common constants for ULAM
  *
- * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2017 Ackleyshack LLC.
+ * Copyright (C) 2014-2018 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2018 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file Constants.h Useful common constants for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2017 All rights reserved.
+  \date (C) 2014-2018 All rights reserved.
   \gpl
 */
 
@@ -78,15 +78,25 @@ namespace MFM {
 #define MAX_FILENAME_LENGTH (255 - 8)
 #endif //MAX_FILENAME_LENGTH
 
+#ifndef ELE_TYPE
+#define ELE_TYPE u16
+#endif
+
   enum ULAMCLASSTYPE { UC_UNSEEN, UC_QUARK, UC_ELEMENT, UC_TRANSIENT, UC_NOTACLASS, UC_LOCALSFILESCOPE, UC_ATOM, UC_ERROR};
 
-  enum SYMBOLTYPEFLAG { STF_NEEDSATYPE = -2, STF_FUNCPARAMETER = -1, STF_DATAMEMBER = 0,  STF_FUNCLOCALVAR = 1, STF_FUNCARGUMENT = 2, STF_CLASSINHERITANCE = 3, STF_FUNCLOCALREF = 4 };
+  // see TABLE_SIZE in MFM UlamClassRegistry.h for max registry number.
+  enum { UNINITTED_REGISTRY_NUMBER = U32_MAX, MAX_REGISTRY_NUMBER = 1000 };
+
+  // see TABLE_SIZE in MFM Element.h for max element type (reserved for empty element).
+  enum { UNDEFINED_ELEMENT_TYPE = 0, EMPTY_ELEMENT_TYPE = U16_MAX, MAX_ELEMENT_TYPE = U16_MAX, ELEMENT_TYPE_BITS = 16 };
+
+  enum SYMBOLTYPEFLAG { STF_NEEDSATYPE = -2, STF_FUNCPARAMETER = -1, STF_DATAMEMBER = 0,  STF_FUNCLOCALVAR = 1, STF_FUNCARGUMENT = 2, STF_CLASSINHERITANCE = 3, STF_CLASSPARAMETER = 4, STF_FUNCLOCALREF = 5, STF_FUNCLOCALCONSTREF = 6 };
 
   enum ULAMTYPECOMPARERESULTS { UTIC_DONTKNOW = -1, UTIC_NOTSAME = 0, UTIC_SAME = 1, UTIC_MUSTBESAME = 2};
 
   enum FORECAST { CAST_BAD = 0, CAST_CLEAR, CAST_HAZY};
 
-  enum ALT { ALT_NOT = 0, ALT_AS, ALT_REF, ALT_ARRAYITEM}; //autolocaltype
+  enum ALT { ALT_NOT = 0, ALT_AS, ALT_REF, ALT_ARRAYITEM, ALT_CONSTREF}; //autolocaltype
 
   enum STORAGE { IMMEDIATE = 0, EVENTWINDOW, STACK, EVALRETURN, UNPACKEDSTRUCT, CNSTSTACK};
 
@@ -124,6 +134,10 @@ namespace MFM {
 #define ARRAY_LEN8K (MAXBITSPERTRANSIENT / MAXBITSPERINT)
 #endif //ARRAY_LEN8K
 
+#ifndef UNRELIABLEPOS
+#define UNRELIABLEPOS (9999)
+#endif //UNRELIABLEPOS
+
 #ifndef MAXBITSPERINT
 #define MAXBITSPERINT (32)
 #endif //MAXBITSPERINT
@@ -145,15 +159,15 @@ namespace MFM {
 #endif //MAXBITSPERASCIIBYTE
 
 #ifndef REGNUMBITS
-#define REGNUMBITS (16)
+#define REGNUMBITS (0)
 #endif //REGNUMBITS
 
 #ifndef STRINGIDXBITS
-#define STRINGIDXBITS (16)
+#define STRINGIDXBITS (32)
 #endif //STRINGIDXBITS
 
 #ifndef STRINGIDXMASK
-#define STRINGIDXMASK ((1 << STRINGIDXBITS) - 1)
+#define STRINGIDXMASK (U32_MAX)
 #endif //STRINGIDXMASK
 
 #ifndef UNKNOWNSIZE
@@ -180,6 +194,7 @@ namespace MFM {
 #ifndef EMPTYSYMBOLTABLE
 #define EMPTYSYMBOLTABLE (-11)
 #endif //EMPTYSYMBOLTABLE
+
 
 
 #ifndef ULAMTYPE_DEFAULTBITSIZE

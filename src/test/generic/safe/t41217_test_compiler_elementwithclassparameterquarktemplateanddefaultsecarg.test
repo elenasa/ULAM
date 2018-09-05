@@ -1,0 +1,60 @@
+## -*- mode:ulam -*-
+#=t41217_test_compiler_elementwithclassparameterquarktemplateanddefaultsecarg
+##
+##  gen output: (+ interleaved asserts)
+##   Int(4) : 7
+##   Int(4) : 3
+##
+## FAILED: ILLEGAL_ARGUMENT
+#!
+Exit status: 3
+Ue_T { Int(32) test() {  System sys;  constant Q(false) cqf = { .i = 3 };  S(0x18,false) sf;  sys ( sf 3 . )print . sys ( sf 3 . 3 cast == )assert . sys ( sf v . b . cast )print . sys ( sf v . b . ! )assert . sf 3 . cast return } }
+Uq_System { <NOMAIN> }
+Uq_Q(Bool(1) flag) { Bool(1) b(notready);  Int(4) i(0);  <NOMAIN> }
+Uq_S(Q(flag) v, Bool(1) bp = false) { constant Int(4) csi = v i .;  <NOMAIN> }
+##
+##    //informed by t41214 (new parameter order w a default)
+##
+#>T.ulam
+ ulam 3;
+//use S; //asserts in NodeIdent::eval (without use S); o.w. fails with use S; IRRELEVANT!
+element T{
+  Int test(){
+    System sys;
+
+    constant Q(false) cqf = { .i = 3};
+    S(cqf) sf;
+    sys.print(sf.csi);
+    sys.assert(sf.csi == 3);
+    sys.print(sf.v.b);
+    sys.assert(!sf.v.b); //false
+
+    return sf.csi; //3
+  }
+}
+
+#:S.ulam
+  ulam 3;
+quark S(Q(bp) v, Bool bp = false){
+  constant Int(4) csi = v.i; //we're all constants here, right?
+}
+
+#:Q.ulam
+  ulam 1;
+quark Q(Bool flag){
+  Bool b = flag;
+  Int(4) i;
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

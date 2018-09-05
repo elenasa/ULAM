@@ -47,9 +47,9 @@ namespace MFM {
   {
     bool brtn = true;
     assert(m_state.getUlamTypeByIndex(typidx) == this);
-    UTI valtypidx = val.getUlamValueTypeIdx();
+    UTI valtypidx = val.getUlamValueTypeIdx(); //from type
 
-    if(UlamType::safeCast(valtypidx) != CAST_CLEAR) //bad|hazy
+    if(UlamTypePrimitive::safeCast(valtypidx) != CAST_CLEAR) //bad|hazy
       return false;
 
     u32 wordsize = getTotalWordSize();
@@ -179,49 +179,49 @@ namespace MFM {
 
   FORECAST UlamTypePrimitiveInt::safeCast(UTI typidx)
   {
-    FORECAST scr = UlamType::safeCast(typidx);
+    FORECAST scr = UlamTypePrimitive::safeCast(typidx);
     if(scr != CAST_CLEAR)
       return scr;
 
-    bool brtn = true;
-    UlamType * vut = m_state.getUlamTypeByIndex(typidx);
-    s32 valbitsize = m_state.getBitSize(typidx);
-    s32 bitsize = getBitSize();
+    bool aok = true;
+    UlamType * fmut = m_state.getUlamTypeByIndex(typidx);
+    s32 fmbitsize = m_state.getBitSize(typidx);
+    s32 tobitsize = getBitSize();
 
-    ULAMTYPE valtypEnum = vut->getUlamTypeEnum();
-    switch(valtypEnum)
+    ULAMTYPE fmtypEnum = fmut->getUlamTypeEnum();
+    switch(fmtypEnum)
       {
       case Int:
-	brtn = (bitsize >= valbitsize);
+	aok = (tobitsize >= fmbitsize);
 	break;
       case Unsigned:
-	brtn = (bitsize > valbitsize);
+	aok = (tobitsize > fmbitsize);
 	break;
       case Unary:
-	brtn = (bitsize > (s32) _getLogBase2(valbitsize) + 1);
+	aok = (tobitsize > (s32) _getLogBase2(fmbitsize) + 1);
 	break;
       case Bool:
       case Bits:
       case Void:
       case UAtom:
       case String:
-	brtn = false;
+	aok = false;
 	break;
       case Class:
 	{
 	  //must be Quark! treat as Int if it has a toInt method
-	  if(vut->isNumericType())
-	    brtn = (bitsize >= MAXBITSPERINT);
+	  if(fmut->isNumericType())
+	    aok = (tobitsize >= MAXBITSPERINT);
 	  else
-	    brtn = false; //t41131 called by matching args (no error msg please)
+	    aok = false; //t41131 called by matching args (no error msg please)
 	}
 	break;
       default:
 	m_state.abortUndefinedUlamType();
 	//std::cerr << "UlamTypePrimitiveInt (cast) error! Value Type was: " << valtypidx << std::endl;
-	brtn = false;
+	aok = false;
       };
-    return brtn ? CAST_CLEAR : CAST_BAD;
+    return aok ? CAST_CLEAR : CAST_BAD;
   } //safeCast
 
   void UlamTypePrimitiveInt::getDataAsString(const u32 data, char * valstr, char prefix)

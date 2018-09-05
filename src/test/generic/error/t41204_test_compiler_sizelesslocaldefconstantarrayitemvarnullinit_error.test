@@ -1,0 +1,72 @@
+## -*- mode:ulam -*-
+#=t41204_test_compiler_sizelesslocaldefconstantarrayitemvarnullinit_error
+#!
+./Q.ulam:2:7: ERROR: Incomplete NodeConstantArray for type: Int(32)[UNKNOWN], used with constant symbol name 'by'.
+./Q.ulam:2:7: ERROR: Constant value expression for: b, is not ready, still hazy while compiling class: P.
+./Q.ulam:2:7: ERROR: Incomplete Terminal Proxy for type: V(a).
+./Q.ulam:2:37: ERROR: Incomplete descriptor for type: V(a) (UTI 38).
+./Q.ulam:2:7: ERROR: Proxy Type: V(a) is still incomplete and unknown for its 'sizeof' while compiling class: Q(b,s).
+./Q.ulam:2:7: ERROR: Constant value expression for 's', is not yet ready while compiling class: Q(b,s).
+./Q.ulam:2:7: ERROR: Incomplete NodeConstantDef for type: Unsigned(32), used with symbol name 's', after folding.
+./Q.ulam:2:39: ERROR: Not ready constant for type: Int(32), used with constant symbol name 'b'.
+./Q.ulam:2:39: ERROR: Constant value expression for: a, is not ready, still hazy while compiling class: Q(b,s).
+./P.ulam:7:5: ERROR: Incomplete descriptor for type: Q(b,s) (UTI 34).
+./P.ulam:7:5: ERROR: Incomplete Variable Decl for type: Q(b,s), used with variable symbol name 'w'.
+./P.ulam:8:13: ERROR: Incomplete identifier for type: Q(b,s), used with list symbol name 'w'.
+./P.ulam:8:15: ERROR: Undetermined type for missing member 'w' Proxy.
+./P.ulam:8:7: ERROR: Argument 1 is incomplete.
+./P.ulam:9:10: ERROR: Incomplete identifier for type: Q(b,s), used with list symbol name 'w'.
+./P.ulam:9:12: ERROR: Undetermined type for missing member 'w' Proxy.
+./P.ulam:11:18: ERROR: Incomplete identifier for type: Q(b,s), used with list symbol name 'w'.
+./P.ulam:11:20: ERROR: Undetermined type for missing member 'w' Proxy.
+./P.ulam:11:13: ERROR: Cannot cast a nonready type.
+./P.ulam:11:5: ERROR: Function return type is still unresolved: unresolved.
+./P.ulam:2:16: ERROR: Incomplete NodeConstantDef for type: Int(32)[UNKNOWN], used with symbol name 'by'.
+./P.ulam:2:16: ERROR: Incomplete NodeConstantDef for type: unresolved, used with symbol name 'by', after folding.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by t41203, array without initialization or size (last 2 errors output).
+##
+#>P.ulam
+  ulam 3;
+local constant Int by[] = { }; //ERROR
+element P {
+  Bool b;
+  Int test() {
+    System s;
+    Q(by[2]*3) w;
+    s.print(w.sizeof);
+    b = (w.sizeof == 3);
+    s.assert(b);
+    return (Int) w.sizeof;
+  }
+}
+
+#:Q.ulam
+  ulam 3;
+quark Q(Int b = by[2], Unsigned s = V(b).sizeof) {
+  typedef Unsigned(s) Foo;
+  Foo f;
+}
+local constant Int by[] = {1, 2, 3, 4};
+
+#:V.ulam
+  ulam 1;
+quark V(Int a) {
+  Unsigned(a) vfoo;
+}
+
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

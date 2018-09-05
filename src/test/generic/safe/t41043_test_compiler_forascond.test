@@ -18,8 +18,8 @@ element EWE{
     for(; a as EWE; i++) { //WORKS without parens
     //for(; (a as EWE); i++) { //Invalid for condition. Parser l3661
     //for(;(i < 4); i++) { //WORKS
-    //for(; (i < 4) && (a as EWE); i++) { //Invalid for condition.
-    //for(; i < 4 && a as EWE; i++) { //Invalid statement (possible missing semi-colon)
+    //for(; (i < 4) && (a as EWE); i++) { //As-Conditional is not a valid form
+    //for(; i < 4 && a as EWE; i++) { //As-Conditional is not a valid form
       if(i < 4)
       {
 	a.foomethod();

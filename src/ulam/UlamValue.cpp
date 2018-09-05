@@ -135,7 +135,7 @@ namespace MFM {
   UlamValue UlamValue::makePtr(u32 slot, STORAGE storage, UTI targetType, PACKFIT packed, CompilerState& state, u32 pos, u32 id)
   {
     UlamValue rtnUV = UlamValue::makePtr(slot,storage,targetType,packed,state,pos);
-    assert(id >= U16_MIN && id <= U16_MAX);
+    assert(id <= U16_MAX);
     rtnUV.setPtrNameId(id);
     return rtnUV;
   } //makePtr
@@ -144,7 +144,7 @@ namespace MFM {
   {
     UlamValue rtnUV; //static method
     rtnUV.m_uv.m_ptrValue.m_utypeIdx = Ptr;
-    assert((s16) slot <= S16_MAX && (s16) slot >= S16_MIN);
+    assert((s32) slot <= S16_MAX);
     rtnUV.m_uv.m_ptrValue.m_slotIndex = (s16) slot;
 
     //NOTE: 'len' of a packed-array,
@@ -169,7 +169,7 @@ namespace MFM {
 	else
 	  {
 	    u32 basepos = BITSPERATOM - len;
-	    assert(basepos <= U8_MAX && basepos >= U8_MIN);
+	    assert(basepos <= U8_MAX);
 	    rtnUV.m_uv.m_ptrValue.m_posInAtom = basepos; //base position
 	  }
       }
@@ -339,7 +339,7 @@ namespace MFM {
   void UlamValue::setPtrPos(u32 pos)
   {
     assert(isPtr());
-    assert(pos <= BITSPERATOM && pos >= 0);
+    assert(pos <= BITSPERATOM);
     m_uv.m_ptrValue.m_posInAtom = pos;
     return;
   } //setPtrPos
@@ -350,7 +350,7 @@ namespace MFM {
     u32 pos = m_uv.m_ptrValue.m_posInAtom;
     // this will blow up the smaller BITVECTORS used in code gen for immmediates.
     //assert(pos <= BITSPERATOM && pos >= ATOMFIRSTSTATEBITPOS);
-    assert(pos <= BITSPERATOM && pos >= 0);
+    assert(pos <= BITSPERATOM);
     return pos;
   } //getPtrPos
 
@@ -397,7 +397,7 @@ namespace MFM {
     if(WritePacked((PACKFIT) m_uv.m_ptrValue.m_packed))
       {
 	m_uv.m_ptrValue.m_posInAtom += (m_uv.m_ptrValue.m_bitlenInAtom * offset);
-	rtnb = (m_uv.m_ptrValue.m_posInAtom < BITSPERATOM && m_uv.m_ptrValue.m_posInAtom >= 0);
+	rtnb = (m_uv.m_ptrValue.m_posInAtom < BITSPERATOM);
       }
     else
       {
@@ -412,13 +412,13 @@ namespace MFM {
 	      case STACK:
 		{
 		  u32 absidx = state.m_funcCallStack.getAbsoluteStackIndexOfSlot(m_uv.m_ptrValue.m_slotIndex);
-		  rtnb = ((absidx >=0) && (absidx < state.m_funcCallStack.getAbsoluteTopOfStackIndexOfNextSlot()));
+		  rtnb = ((absidx < state.m_funcCallStack.getAbsoluteTopOfStackIndexOfNextSlot()));
 		}
 		break;
 	      case EVALRETURN:
 		{
 		  u32 absidx = state.m_nodeEvalStack.getAbsoluteStackIndexOfSlot(m_uv.m_ptrValue.m_slotIndex);
-		  rtnb = ((absidx >=0) && (absidx < state.m_nodeEvalStack.getAbsoluteTopOfStackIndexOfNextSlot()));
+		  rtnb = ((absidx < state.m_nodeEvalStack.getAbsoluteTopOfStackIndexOfNextSlot()));
 		}
 		break;
 	      case EVENTWINDOW:

@@ -71,14 +71,9 @@ namespace MFM {
     return true;
   }
 
-  void NodeModelParameterDef::genCodeDefaultValueStringRegistrationNumber(File * fp, u32 startpos)
+  bool NodeModelParameterDef::buildDefaultValueForClassConstantDefs()
   {
-    return;
-  }
-
-  void NodeModelParameterDef::genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos)
-  {
-    return;
+    return true;
   }
 
   void NodeModelParameterDef::checkForSymbol()

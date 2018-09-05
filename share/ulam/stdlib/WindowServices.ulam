@@ -159,6 +159,7 @@ element WindowServices {
     return chosenIndex[slot];
   }
 
+  /*
   Int test() {
     Int count = 0;
     Int n0 = 0;
@@ -197,4 +198,5 @@ element WindowServices {
 
     return 0;
   }
+  */
 }

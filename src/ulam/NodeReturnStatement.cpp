@@ -114,7 +114,8 @@ namespace MFM {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    nodeType = Nav;
 	  }
-	else if(UlamType::compareForArgumentMatching(nodeType, rtnType, m_state) != UTIC_SAME)
+	//else if(UlamType::compareForArgumentMatching(nodeType, rtnType, m_state) != UTIC_SAME)
+	else if(UlamType::compareForAssignment(nodeType, rtnType, m_state) != UTIC_SAME)
 	  {
 	    if(UlamType::compare(rtnType, Void, m_state) == UTIC_NOTSAME)
 	      {
@@ -167,7 +168,65 @@ namespace MFM {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		nodeType = Nav; //missing?
 	      }
-	  } // not the same
+	  }
+	else
+	  {
+	    //only ALT in key differs (cannot parse a Constant return type)
+	    if(m_state.isAltRefType(rtnType) && m_state.isAltRefType(nodeType))
+	      {
+		if(m_state.isConstantRefType(nodeType))
+		  {
+		    std::ostringstream msg;
+		    msg << "Returning incompatible (reference) types: ";
+		    msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
+		    msg << " as non-constant ";
+		    msg << m_state.getUlamTypeNameBriefByIndex(rtnType).c_str();
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    nodeType = Nav;  //t41196
+		  }
+		//else both must be ALT_REF
+	      }
+	    else if(m_state.isAltRefType(rtnType) && !m_state.isConstantRefType(rtnType) && m_node->isAConstant())
+	      {
+		std::ostringstream msg;
+		msg << "Returning a constant as a non-constant reference type: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(rtnType).c_str();
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		nodeType = Nav;  //t3965
+	      }
+	    else if(m_state.isAltRefType(rtnType) || m_state.isAltRefType(nodeType))
+	      {
+		//one is a ref, the other ain't (already know not both so || okay)
+		FORECAST scr = m_node->safeToCastTo(rtnType);
+		if(scr == CAST_CLEAR)
+		  {
+		    if(!Node::makeCastingNode(m_node, rtnType, m_node))
+		      nodeType = Nav; //no casting node
+		    else
+		      nodeType = m_node->getNodeType(); //casted
+		  }
+		else
+		  {
+		    std::ostringstream msg;
+		    msg << "Use explicit cast";
+		    msg << " to return ";
+		    msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
+		    msg << " as ";
+		    msg << m_state.getUlamTypeNameBriefByIndex(rtnType).c_str();
+		    if(scr == CAST_BAD)
+		      {
+			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+			nodeType = Nav;
+		      }
+		    else
+		      {
+			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+			nodeType = Hzy;
+		      }
+		  }
+	      }
+	    //else ???
+	  }
       } //both complete
 
     if((nodeType != Nav) && !m_state.isComplete(nodeType))
@@ -176,16 +235,14 @@ namespace MFM {
 	msg << "Function return type is still unresolved: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	nodeType = Hzy; //needed?
+	nodeType = Hzy;
       }
 
     //check later against defined function return type
     m_state.m_currentFunctionReturnNodes.push_back(this);
 
-    if(nodeType == Hzy)
-      m_state.setGoAgain();
-
     setNodeType(nodeType); //return take type of their node
+    if(nodeType == Hzy) m_state.setGoAgain();
     return nodeType;
   } //checkAndLabelType
 
@@ -203,14 +260,11 @@ namespace MFM {
     if(m_state.getReferenceType(nuti) == ALT_REF)
       return evalToStoreInto();
 
-    if(nuti == Nav)
-      return ERROR;
+    if(nuti == Nav) return evalErrorReturn();
 
-    if(nuti == Hzy)
-      return NOTREADY;
+    if(nuti == Hzy) return evalStatusReturnNoEpilog(NOTREADY);
 
-    if(!m_node)
-      return RETURN;
+    if(!m_node) return evalStatusReturnNoEpilog(RETURN);
 
     evalNodeProlog(0);
     makeRoomForNodeType(nuti);
@@ -220,8 +274,7 @@ namespace MFM {
     if(evs != NORMAL)
       {
 	assert((evs != CONTINUE) && (evs != BREAK));
-	evalNodeEpilog();
-	return evs;
+	return evalStatusReturn(evs);
       }
 
     if(Node::returnValueOnStackNeededForEval(nuti))
@@ -246,14 +299,11 @@ namespace MFM {
   EvalStatus NodeReturnStatement::evalToStoreInto()
   {
     UTI nuti = getNodeType();
-    if(nuti == Nav)
-      return ERROR;
+    if(nuti == Nav) return evalErrorReturn();
 
-    if(nuti == Hzy)
-      return NOTREADY;
+    if(nuti == Hzy) return evalStatusReturnNoEpilog(NOTREADY);
 
-    if(!m_node)
-      return RETURN;
+    if(!m_node) return evalStatusReturnNoEpilog(RETURN);
 
     assert(m_state.getReferenceType(nuti) == ALT_REF);
 
@@ -265,8 +315,7 @@ namespace MFM {
     if(evs != NORMAL)
       {
 	assert((evs != CONTINUE) && (evs != BREAK));
-	evalNodeEpilog();
-	return evs;
+	return evalStatusReturn(evs);
       }
 
     //should always return value as ptr to stack.
@@ -274,10 +323,7 @@ namespace MFM {
     assert(rtnUV.isPtr());
 
     if(m_state.isLocalUnreturnableReferenceForEval(rtnUV))
-      {
-	evalNodeEpilog();
-	return ERROR;
-      }
+      return evalStatusReturn(ERROR);
 
     Node::assignReturnValuePtrToStack(rtnUV, STACK);
 
@@ -375,7 +421,7 @@ namespace MFM {
 	    m_state.indentUlamCode(fp);
 	    fp->write("if(_IsLocal((void *) &");
 	    fp->write(cossym->getMangledName().c_str());
-	    if(m_state.isReference(cosuti))
+	    if(m_state.isAltRefType(cosuti))
 	      fp->write(".GetStorage()");
 	    fp->write("))"); GCNL;
 
