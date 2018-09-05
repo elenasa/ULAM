@@ -375,7 +375,6 @@ namespace MFM {
 		  }
 	      }
 	  }
-
 	//insure constant value fits in its declared type,
 	//done in NodeVarDecl c&l: safeToCastTo(nuti)
       } //finished init expr node
@@ -385,7 +384,6 @@ namespace MFM {
 	if(!checkDataMemberSizeConstraints())
 	  setNodeType(Nav); //err msgs, compiler counts;
       }
-
     return getNodeType();
   } //checkAndLabelType
 
@@ -479,6 +477,7 @@ namespace MFM {
 
   void NodeVarDeclDM::setInitExpr(Node * node)
   {
+    //called during parsing
     NodeVarDecl::setInitExpr(node);
     if(m_varSymbol)
       m_varSymbol->setHasInitValue();
@@ -695,104 +694,117 @@ namespace MFM {
   {
     assert(m_varSymbol);
     assert(m_varSymbol->isDataMember());
+    UTI vuti = m_varSymbol->getUlamTypeIdx();
+    UTI cuti = m_state.getCompileThisIdx();
 
     if(!m_varSymbol->isPosOffsetReliable())
       {
-	UTI vuti = m_varSymbol->getUlamTypeIdx();
 	if(m_state.isAClass(vuti))
-	  {
-	    m_state.tryToPackAClass(vuti);
-	    if(!m_varSymbol->isPosOffsetReliable())
-	      return false;
-	    //else continue
-	  }
-	else
-	  return false; //not a class
+	  m_state.tryToPackAClass(vuti);
+
+	if(!m_varSymbol->isPosOffsetReliable())
+	  m_state.tryToPackAClass(cuti); //t41262
+
+	if(!m_varSymbol->isPosOffsetReliable())
+	  return false;
+	//else continue
       }
 
-    bool aok = false; //init as not ready
     UTI nuti = getNodeType(); //same as symbol uti, unless prior error
-    assert(nuti == m_varSymbol->getUlamTypeIdx());
+    assert(nuti == vuti);
 
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-
-    UTI cuti = m_state.getCompileThisIdx();
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
 
     u32 pos = m_varSymbol->getPosOffset();
-    s32 bitsize = nut->getBitSize();
+    u32 len = nut->getSizeofUlamType();
 
-    if(bitsize == 0)
+    if(len == 0)
       return true; //no size to initialize (e.g. System)
 
     if(cut->getUlamClassType() == UC_ELEMENT)
-      pos += ATOMFIRSTSTATEBITPOS; //atom-based (TypeField determined at runtime)
+      pos += ATOMFIRSTSTATEBITPOS; //atom-based (ulam-4 TypeField known at compile-time)
 
-    if(nut->getUlamClassType() == UC_ELEMENT)
-      bitsize = BITSPERATOM; //atom-based data member
-
+    bool aok = false; //init as not ready
     ULAMTYPE etyp = nut->getUlamTypeEnum();
     if(etyp == Class) //thisClass contains a different class
       {
-	u32 dmwlen = nut->getTotalWordSize();
-	if(dmwlen > 0)
+	if(!hasInitExpr())
 	  {
-	    assert(dmwlen <= wlen);
-	    BV8K dmdv; //copies default BV
-
-	    s32 arraysize = nut->getArraySize();
-	    arraysize = ((arraysize == NONARRAYSIZE) ? 1 : arraysize); //could be 0
-
-	    if(m_state.getDefaultClassValue(nuti, dmdv)) //uses scalar uti
-	      {
-		if(hasInitExpr())
-		  {
-		    BV8K bvmask;
-		    if((aok = m_nodeInitExpr->initDataMembersConstantValue(dmdv, bvmask)))
-		      m_varSymbol->setInitValue(dmdv); //t41167,8  t41185
-		  }
-		else
-		  aok = true;
-
-		//updates dvref in place at position 'pos'
-		if(aok)
-		  dmdv.CopyBV(0, pos, nut->getSizeofUlamType(), dvref); //both scalar and arrays (t41185, t41267)
-	      }
-	    //else not ok
+	    //no node expression -- will use default class value (t41232)
+	    aok = true;
 	  }
 	else
-	  aok = true; //zero len
+	  {
+	    BV8K dmdv; //copies default BV
+	    if(m_varSymbol->isInitValueReady())
+	      {
+		//NodeVarDecl tries to build initialized constants during c&l (ulam-4)
+		aok = true;
+	      }
+	    else if(m_nodeInitExpr->isAConstantClass())
+	      {
+		if((aok = m_nodeInitExpr->getConstantValue(dmdv)))
+		  m_varSymbol->setInitValue(dmdv); //t41229
+	      }
+	    else if(m_nodeInitExpr->isAList())
+	      {
+		if(m_state.getDefaultClassValue(nuti, dmdv)) //uses scalar uti
+		  {
+		    if(!((NodeList *) m_nodeInitExpr)->isEmptyList())
+		      {
+			BV8K bvmask;
+			if((aok = m_nodeInitExpr->initDataMembersConstantValue(dmdv, bvmask)))
+			  m_varSymbol->setInitValue(dmdv); //t41167,8 t41185(handles arrays)
+		      }
+		    else
+		      {
+			m_varSymbol->setInitValue(dmdv); //t41167,8 t41185(handles arrays)
+			aok = true; //no init expression, just the default (t3143)
+		      }
+		  } //else default value not ok
+	      }
+	    else
+	      m_state.abortShouldntGetHere();
+	  } //has init expr
 
 	if(aok)
-	  foldDefaultClass(); //init value for m_varSymbol t3512
+	  {
+	    foldDefaultClass(); //init value for m_varSymbol (if not already done), handles arrays t3512
+	    BV8K bvarr;
+	    m_varSymbol->getInitValue(bvarr);
+	    bvarr.CopyBV(0, pos, len, dvref); //both scalar and arrays (t41185, t41267, t3818)
+	  }
+      }
+    else if(etyp == UAtom) //this Transient contains an empty atom (t3802)
+      {
+	BV8K bvatom; //copy default EMPTY Element with Type (ulam-4)
+	UTI emptyuti = m_state.getEmptyElementUTI(); //first class seen by compiler
+	AssertBool gotDefault = m_state.getDefaultClassValue(emptyuti, bvatom);
+	assert(gotDefault);
+
+	s32 arraysize = nut->getArraySize();
+	arraysize = ((arraysize == NONARRAYSIZE) ? 1 : arraysize); //could be 0
+
+	BV8K darrval;
+	m_state.getDefaultAsArray(BITSPERATOM, arraysize, 0, bvatom, darrval);
+
+	m_varSymbol->setInitValue(darrval); //t3818
+
+	//updates dvref in place at position 'pos'
+	darrval.CopyBV(0, pos, len, dvref); //both scalar and arrays
+	aok = true;
       }
     else if(hasInitExpr())
       {
-	//primitive (not a class!)
+	//primitive (neither a class, nor an atom!)
 	//arrays may be initialized now
-	//isn't this redundant??? Mon Dec 19 11:33:26 2016
-	if(m_state.isScalar(nuti))
+	assert(m_varSymbol->hasInitValue());
+	BV8K dval; //copies default BV
+	if(m_varSymbol->getInitValue(dval))
 	  {
-	    u64 val = 0;
-	    if(m_varSymbol->getInitValue(val))
-	      {
-		s32 classsize = m_state.getBitSize(m_state.getCompileThisIdx());
-		u64 packedval = 0;
-		m_state.getDefaultAsPackedArray(classsize, bitsize, 1, pos, (u64) val, packedval);
-		dvref.WriteLong(pos, bitsize, packedval);
-		aok = true;
-	      }
-	  }
-	else
-	  {
-	    assert(m_varSymbol->hasInitValue());
-	    BV8K dval; //copies default BV
-	    if(m_varSymbol->getInitValue(dval))
-	      {
-		u32 len = nut->getTotalBitSize();
-		dval.CopyBV(0u, pos, len, dvref); //frompos, topos, len, destBV
-		aok = true;
-	      }
+	    dval.CopyBV(0u, pos, len, dvref); //frompos, topos, len, destBV
+	    aok = true; //e.g. t3512
 	  }
       }
     else
@@ -806,273 +818,6 @@ namespace MFM {
     return true;
   }
 
-  void NodeVarDeclDM::genCodeDefaultValueOrTmpVarStringRegistrationNumber(File * fp, u32 startpos, const UVPass * const uvpassptr, const BV8K * const bv8kptr)
-  {
-    assert(m_varSymbol);
-    assert(m_varSymbol->isDataMember());
-
-    bool inDefault = (uvpassptr == NULL);
-
-    UTI nuti = getNodeType(); //same as symbol uti, unless prior error
-    assert(nuti == m_varSymbol->getUlamTypeIdx());
-    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    u32 bits = nut->getBitSize();
-    if(bits == 0)
-      return;
-
-    ULAMTYPE etyp = nut->getUlamTypeEnum();
-    u32 pos = m_varSymbol->getPosOffset();
-    u32 arraysize = nut->isScalar() ? 1 : nut->getArraySize();
-
-    if(etyp == String)
-      {
-	UTI regid = m_state.getCompileThisIdx();
-	BV8K tmpbv8k;
-
-	if(hasInitExpr())
-	  {
-	    AssertBool gotValue = ((SymbolWithValue *) m_varSymbol)->getInitValue(tmpbv8k);
-	    assert(gotValue);
-	  }
-
-	//generate code to replace uti in string index with runtime registration number
-	// remove myRegNum static variable for more general way (Sun Jan 21 10:11:24 2018)
-	for(u32 i = 0; i < arraysize; i++)
-	  {
-	    if(inDefault)
-	      {
-		if(hasInitExpr())
-		  regid = (UTI) tmpbv8k.Read(0 + i * (REGNUMBITS + STRINGIDXBITS), REGNUMBITS);
-		//else use class compiling, the default (t3958, t3984)
-	      }
-	    else
-	      {
-		assert(bv8kptr);
-		regid = (UTI) bv8kptr->Read(startpos + pos + i * (REGNUMBITS + STRINGIDXBITS), REGNUMBITS); //t41274
-	      }
-	    assert(regid > 0);
-
-	    if(inDefault)
-	      {
-		m_state.indent(fp);
-		fp->write("initBV");
-	      }
-	    else
-	      {
-		m_state.indentUlamCode(fp);
-		fp->write(uvpassptr->getTmpVarAsString(m_state).c_str());
-		UTI passuti = uvpassptr->getPassTargetType();
-		if(m_state.getUlamTypeByIndex(passuti)->getUlamClassType() == UC_ELEMENT)
-		  fp->write(".GetBits()");
-	      }
-	    fp->write(".Write(");
-	    fp->write_decimal_unsigned(pos + startpos);
-	    fp->write("u + ");
-	    fp->write_decimal_unsigned(i * (REGNUMBITS + STRINGIDXBITS));
-	    fp->write("u, ");
-	    fp->write_decimal_unsigned(REGNUMBITS);
-	    fp->write("u, ");
-	    fp->write(m_state.getTheInstanceMangledNameByIndex(regid).c_str());
-	    fp->write(".GetRegistrationNumber()); //");
-	    fp->write(m_varSymbol->getMangledName().c_str()); //comment
-	    if(!nut->isScalar())
-	      {
-		fp->write("[");
-		fp->write_decimal_unsigned(i);
-		fp->write("]");
-	      }
-	    GCNL;
-	  } //for loop
-      }
-    else if(etyp == Class)
-      {
-	ULAMCLASSTYPE classtype = nut->getUlamClassType();
-	if(inDefault)
-	  {
-	    //initializes a data member;
-	    //for constant classes in tmp var, this has been done already (t41232)
-	    u32 totbitsize = nut->getSizeofUlamType();
-
-	    s32 tmpVarNum = m_state.getNextTmpVarNumber();
-	    TMPSTORAGE cstor = nut->getTmpStorageTypeForTmpVar();
-	    s32 tmpVarNum2 = m_state.getNextTmpVarNumber();
-
-	    m_state.indent(fp);
-	    if(!hasInitExpr())
-	      fp->write("const ");
-	    fp->write(nut->getLocalStorageTypeAsString().c_str());
-	    fp->write(" ");
-	    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, cstor).c_str());
-	    fp->write(";"); GCNL;
-
-
-	    if(hasInitExpr())
-	      {
-		UVPass uvpass = UVPass::makePass(tmpVarNum, cstor, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //default class data member as immediate
-		m_nodeInitExpr->genCode(fp, uvpass);  //update initialized values before read (t41167)
-		if(m_nodeInitExpr->isAConstantClass())
-		  {
-		    m_state.indent(fp);
-		    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, cstor).c_str());
-		    fp->write(".write("); //missing write? t41229
-		    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
-		    fp->write(");"); GCNL;
-		  }
-		//else redundant (t41199)
-	      }
-
-	    m_state.indent(fp);
-	    fp->write("const ");
-	    fp->write(nut->getTmpStorageTypeAsString().c_str());
-	    fp->write(" ");
-	    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum2, cstor).c_str());
-	    fp->write("(");
-	    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, cstor).c_str());
-	    fp->write(".read());"); GCNL;
-
-	    m_state.indent(fp);
-	    fp->write("initBV");
-	    fp->write(".");
-	    if((classtype == UC_ELEMENT) && nut->isScalar())
-	      fp->write("WriteBV"); //t3968 don't want WriteAtom
-	    else
-	      fp->write(nut->writeMethodForCodeGen().c_str());//Write(");
-	    fp->write("(");
-	    fp->write_decimal_unsigned(pos + startpos);
-	    fp->write("u, ");
-	    if((classtype == UC_QUARK) && (totbitsize <= BITSPERATOM))
-	      {
-		fp->write_decimal_unsigned(totbitsize); //entire array (t3776, t3969)
-		fp->write(", ");
-	      }
-	    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum2, cstor).c_str());
-	    if((classtype == UC_ELEMENT) && nut->isScalar())
-	      fp->write(".GetBits()"); //T into BV
-	    fp->write("); //");
-	    fp->write(m_varSymbol->getMangledName().c_str()); //comment
-	    GCNL;
-	    fp->write("\n");
-	  } //inDefault
-	else
-	  {
-	    SymbolClass * csym = NULL;
-	    AssertBool isDef = m_state.alreadyDefinedSymbolClass(nuti, csym);
-	    assert(isDef);
-	    NodeBlockClass * cblock = csym->getClassBlockNode();
-	    assert(cblock);
-	    if(classtype == UC_TRANSIENT)
-	      cblock->genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(fp, pos + startpos, uvpassptr); //? test
-	    cblock->genCodeDefaultValueOrTmpVarStringRegistrationNumber(fp, pos + startpos, uvpassptr, bv8kptr); //t41268
-	  }
-      } //a class
-  } //genCodeDefaultValueOrTmpVarStringRegistrationNumber
-
-  void NodeVarDeclDM::genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(File * fp, u32 startpos, const UVPass * const uvpassptr)
-  {
-    assert(m_varSymbol);
-    bool inDefault = (uvpassptr == NULL);
-
-    UTI nuti = getNodeType();
-    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    ULAMCLASSTYPE nclasstype = nut->getUlamClassType();
-    if(nclasstype == UC_ELEMENT)
-      {
-	s32 arraysize = nut->getArraySize();
-	arraysize = ((arraysize == NONARRAYSIZE) ? 1 : arraysize); //allow zero
-
-	m_state.indent(fp);
-	fp->write("{\n"); //limit scope of 'dam'
-	m_state.m_currentIndentLevel++;
-
-	m_state.indent(fp);
-	fp->write("AtomBitStorage<EC> gda(");
-	fp->write(m_state.getTheInstanceMangledNameByIndex(nuti).c_str());
-	fp->write(".GetDefaultAtom());"); GCNL;
-
-	m_state.indent(fp);
-	fp->write("u32 typefield = gda.Read(0u, T::ATOM_FIRST_STATE_BIT);"); GCNL; //can't use GetType");
-
-	for(s32 i = 0; i < arraysize; i++) //e.g. t3714 (array of element dm); t3735
-	  {
-	    if(inDefault)
-	      {
-		m_state.indent(fp);
-		fp->write("initBV");
-	      }
-	    else
-	      {
-		m_state.indentUlamCode(fp);
-		fp->write(uvpassptr->getTmpVarAsString(m_state).c_str());
-	      }
-	    fp->write(".Write(");
-	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset() + startpos);
-	    fp->write("u + ");
-	    fp->write_decimal_unsigned(i * BITSPERATOM);
-	    fp->write("u, T::ATOM_FIRST_STATE_BIT, typefield);"); GCNL;
-	  }
-
-	m_state.m_currentIndentLevel--;
-	m_state.indent(fp);
-	fp->write("}\n");
-      }
-    else if(nclasstype == UC_TRANSIENT)
-      {
-	s32 arraysize = nut->getArraySize();
-	arraysize = (arraysize <= 0 ? 1 : arraysize);
-
-	u32 len = nut->getBitSize(); //item
-	//any transient data members that may have element data members
-	SymbolClass * csym = NULL;
-	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(nuti, csym);
-	assert(isDefined);
-
-	NodeBlockClass * cblock = csym->getClassBlockNode();
-	assert(cblock);
-
-	for(s32 i = 0; i < arraysize; i++)
-	  cblock->genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(fp, m_varSymbol->getPosOffset() + startpos + i * len, uvpassptr); //e.g. t3715
-      }
-    else if(m_state.isAtom(nuti))
-      {
-	s32 arraysize = nut->getArraySize();
-	arraysize = (arraysize <= 0 ? 1 : arraysize);
-
-	m_state.indent(fp);
-	fp->write("{\n"); //limit scope of 'dam'
-	m_state.m_currentIndentLevel++;
-
-	m_state.indent(fp);
-	fp->write("AtomBitStorage<EC> gda(");
-	fp->write("Element_Empty<EC>::THE_INSTANCE.GetDefaultAtom());"); GCNL;
-
-	m_state.indent(fp);
-	fp->write("u32 typefield = gda.Read(0u, T::ATOM_FIRST_STATE_BIT);"); GCNL; //can't use GetType");
-
-	for(s32 i = 0; i < arraysize; i++)
-	  {
-	    if(inDefault)
-	      {
-		m_state.indent(fp);
-		fp->write("initBV");
-	      }
-	    else
-	      {
-		m_state.indentUlamCode(fp);
-		fp->write(uvpassptr->getTmpVarAsString(m_state).c_str());
-	      }
-	    fp->write(".Write(");
-	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset() + startpos);
-	    fp->write("u + ");
-	    fp->write_decimal_unsigned(i * BITSPERATOM);
-	    fp->write("u, T::ATOM_FIRST_STATE_BIT, typefield);"); GCNL;
-	  }
-
-	m_state.m_currentIndentLevel--;
-	m_state.indent(fp);
-	fp->write("}\n");
-      }
-  } //genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar
-
   void NodeVarDeclDM::foldDefaultClass()
   {
     if(m_varSymbol->isInitValueReady())
@@ -1083,19 +828,19 @@ namespace MFM {
     assert(m_state.okUTItoContinue(nuti));
     assert(m_state.isComplete(nuti));
 
-    u32 bitsize = nut->getBitSize();
+    UTI scalaruti = m_state.getUlamTypeAsScalar(nuti);
+    UlamType * scalarut = m_state.getUlamTypeByIndex(scalaruti);
+    u32 bitsize = scalarut->getSizeofUlamType(); //was BitSize (t41185)
     s32 arraysize = nut->getArraySize();
 
     BV8K bvtmp;
-    AssertBool gotDefault = m_state.getDefaultClassValue(nuti, bvtmp);
+    AssertBool gotDefault = m_state.getDefaultClassValue(nuti, bvtmp); //uses scalar
     assert(gotDefault); //maybe zeros
 
     BV8K bvarr;
     arraysize = arraysize > 0 ? arraysize : 1;
     m_state.getDefaultAsArray(bitsize, arraysize, 0u, bvtmp, bvarr);
 
-    //(in this order) i thought this was for primitives only?
-    m_varSymbol->setHasInitValue();
     m_varSymbol->setInitValue(bvarr); //t3512
   } //foldDefaultClass
 
@@ -1249,6 +994,7 @@ namespace MFM {
 	fp->write("typedef UlamRefFixed");
 	fp->write("<EC, "); //BITSPERATOM
 
+	u32 len = nut->getSizeofUlamType();
 	if(nut->getUlamClassType() == UC_ELEMENT) //t3714, t3779 Mob.h Up_Um_2sp
 	  {
 	    //elements only data members in transients
@@ -1256,10 +1002,7 @@ namespace MFM {
 	    s32 arraysize = nut->getArraySize();
 	    arraysize = ((arraysize == NONARRAYSIZE) ? 1 : arraysize); //Mon Jul  4 14:11:41 2016
 	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset());
-	    if(nut->getBitSize() > 0)
-	      fp->write("u, BPA * "); //atom-based
-	    else
-	      fp->write("u, 0u * "); //empty atom //t3400
+	    fp->write("u, BPA * "); //atom-based
 	    fp->write_decimal(arraysize); //include arraysize
 	    fp->write("u> ");
 	  }
@@ -1267,7 +1010,7 @@ namespace MFM {
 	  {
 	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset());
 	    fp->write("u, ");
-	    fp->write_decimal(nut->getTotalBitSize()); //include arraysize
+	    fp->write_decimal(len); //include arraysize
 	    fp->write("u> ");
 	  }
 	fp->write(m_varSymbol->getMangledName().c_str());

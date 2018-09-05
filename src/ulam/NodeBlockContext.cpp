@@ -26,16 +26,6 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-  StringPoolUser& NodeBlockContext::getUserStringPoolRef()
-  {
-    return m_upool;
-  }
-
-  void NodeBlockContext::setUserStringPoolRef(const StringPoolUser& spref)
-  {
-    m_upool = spref;
-  }
-
   bool NodeBlockContext::hasStringDataMembers()
   {
     return m_ST.hasUlamTypeSymbolsInTable(String); //btw, does not check superclasses!!!

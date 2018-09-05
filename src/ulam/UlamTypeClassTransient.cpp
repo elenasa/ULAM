@@ -510,7 +510,7 @@ namespace MFM {
     fp->write(mangledName.c_str());
     fp->write("(const ");
     fp->write(mangledName.c_str());
-    fp->write("<EC> & arg) { ");
+    fp->write("<EC> & arg) : BVS() { ");
     fp->write("write(arg.read()); }"); GCNL;
 
     //constructor from ref of same type

@@ -242,8 +242,7 @@ namespace MFM {
     m_state.m_currentFunctionReturnNodes.push_back(this);
 
     setNodeType(nodeType); //return take type of their node
-    if(nodeType == Hzy)
-      m_state.setGoAgain();
+    if(nodeType == Hzy) m_state.setGoAgain();
     return nodeType;
   } //checkAndLabelType
 

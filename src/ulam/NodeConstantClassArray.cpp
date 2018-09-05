@@ -163,8 +163,7 @@ namespace MFM {
     setNodeType(it);
     Node::setStoreIntoAble(TBOOL_FALSE);
 
-    if(it == Hzy)
-      m_state.setGoAgain();
+    if(it == Hzy) m_state.setGoAgain();
     return it;
   } //checkAndLabelType
 

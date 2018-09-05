@@ -149,13 +149,18 @@ namespace MFM{
 	  }
 	else if((rtnuti != Nav) && !m_state.isComplete(puti))
 	  {
+	    std::ostringstream msg;
+	    msg << "Class Init Argument " << i + 1 << " is incomplete";
+	    msg << " for variable " << m_state.m_pool.getDataAsString(m_classvarId).c_str();
+	    msg << ", type " << m_state.getUlamTypeNameBriefByIndex(m_classUTI).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    rtnuti = Hzy; // all or none
+	    m_state.setGoAgain();
 	  }
 	//else rtnuti remains == m_classUTI
       }
     setNodeType(rtnuti);
-    if(rtnuti == Hzy)
-      m_state.setGoAgain(); //since no error msg
+    //    if(rtnuti == Hzy) m_state.setGoAgain(); //since no error msg
     return rtnuti;
   } //checkAndLabelType
 

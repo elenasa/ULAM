@@ -178,10 +178,8 @@ namespace MFM {
 	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
       } // got typedef symbol
-
     setNodeType(it);
-    if(it == Hzy)
-      m_state.setGoAgain(); //since not error; unlike vardecl
+    if(it == Hzy) m_state.setGoAgain(); //since not error; unlike vardecl
     return getNodeType();
   } //checkAndLabelType
 
@@ -295,16 +293,6 @@ namespace MFM {
   bool NodeTypedef::buildDefaultValueForClassConstantDefs()
   {
     return true; //pass on
-  }
-
-  void NodeTypedef::genCodeDefaultValueOrTmpVarStringRegistrationNumber(File * fp, u32 startpos, const UVPass * const uvpassptr, const BV8K * const bv8kptr)
-  {
-    return; //pass on
-  }
-
-  void NodeTypedef::genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(File * fp, u32 startpos, const UVPass * const uvpassptr)
-  {
-    return;
   }
 
   EvalStatus NodeTypedef::eval()

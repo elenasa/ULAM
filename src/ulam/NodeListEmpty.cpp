@@ -153,12 +153,7 @@ namespace MFM{
     //fill in default class if nothing provided for a non-empty array
     if((arraysize > 0))
       {
-	rtnok = m_state.getDefaultClassValue(nuti, bvtmp); //uses scalar uti
-	if(!rtnok)
-	  {
-	    if(m_state.tryToPackAClass(nuti) == TBOOL_TRUE) //uses scalar uti
-	      rtnok = m_state.getDefaultClassValue(nuti, bvtmp); //try again, uses scalar uti
-	  }
+	rtnok = m_state.getDefaultClassValue(nuti, bvtmp); //uses scalar uti, tries to pack
 	n = 1; //ready to fall thru and propagate as needed
       }
 
@@ -178,6 +173,5 @@ namespace MFM{
       }
     return rtnok;
   } //buildClassArrayValueInitialization
-
 
 } //MFM

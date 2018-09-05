@@ -4,9 +4,9 @@
 
 namespace MFM {
 
-  NodeBlockLocals::NodeBlockLocals(NodeBlock * prevBlockNode, CompilerState & state): NodeBlockContext(prevBlockNode, state) {}
+  NodeBlockLocals::NodeBlockLocals(NodeBlock * prevBlockNode, CompilerState & state): NodeBlockContext(prevBlockNode, state), m_registryNumberLocalsSafe(UNINITTED_REGISTRY_NUMBER) {}
 
-  NodeBlockLocals::NodeBlockLocals(const NodeBlockLocals& ref) : NodeBlockContext(ref) {}
+  NodeBlockLocals::NodeBlockLocals(const NodeBlockLocals& ref) : NodeBlockContext(ref), m_registryNumberLocalsSafe(UNINITTED_REGISTRY_NUMBER) {}
 
   NodeBlockLocals::~NodeBlockLocals() {}
 
@@ -116,5 +116,34 @@ namespace MFM {
     fp->write("}\n");
     return;
   } //generateTestInstance
+
+  bool NodeBlockLocals::assignRegistrationNumberToLocalsBlock(u32 n)
+  {
+    if (n == UNINITTED_REGISTRY_NUMBER)
+      {
+	std::ostringstream msg;
+	msg << "Attempting to assign invalid Registry Number to Locals FileScope";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	return false;
+      }
+
+    if (m_registryNumberLocalsSafe != UNINITTED_REGISTRY_NUMBER)
+      {
+	std::ostringstream msg;
+	msg << "Attempting to assign duplicate Registry Number " << n;
+	msg << " to Locals FileScope " << m_registryNumberLocalsSafe;
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	return false;
+      }
+
+    m_registryNumberLocalsSafe = n;
+    return true;
+  } //assignRegistryNumberToLocalsBlock
+
+  u32 NodeBlockLocals::getRegistrationNumberForLocalsBlock() const
+  {
+    assert(m_registryNumberLocalsSafe != UNINITTED_REGISTRY_NUMBER);
+    return m_registryNumberLocalsSafe;
+  }
 
 } //end MFM

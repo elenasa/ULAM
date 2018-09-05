@@ -84,10 +84,6 @@ namespace MFM{
 
     virtual bool buildDefaultValueForClassConstantDefs();
 
-    virtual void genCodeDefaultValueOrTmpVarStringRegistrationNumber(File * fp, u32 startpos, const UVPass * const uvpassptr, const BV8K * const bv8kptr);
-
-    virtual void genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(File * fp, u32 startpos, const UVPass * const uvpassptr);
-
     virtual EvalStatus eval();
 
     virtual void setNextNode(NodeStatements * s);

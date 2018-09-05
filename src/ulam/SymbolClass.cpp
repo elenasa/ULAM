@@ -5,12 +5,13 @@
 #include "SymbolClass.h"
 #include "SymbolClassName.h"
 #include "Resolver.h"
+#include "Parity2D_4x4.h"
 
 namespace MFM {
 
-  SymbolClass::SymbolClass(const Token& id, UTI utype, NodeBlockClass * classblock, SymbolClassNameTemplate * parent, CompilerState& state) : Symbol(id, utype, state), m_resolver(NULL), m_classBlock(classblock), m_parentTemplate(parent), m_quarkunion(false), m_stub(true), /*m_defaultValue(NULL),*/ m_isreadyDefaultValue(false) /* default */, m_superClass(Nouti), m_bitsPacked(false) {}
+  SymbolClass::SymbolClass(const Token& id, UTI utype, NodeBlockClass * classblock, SymbolClassNameTemplate * parent, CompilerState& state) : Symbol(id, utype, state), m_resolver(NULL), m_classBlock(classblock), m_parentTemplate(parent), m_quarkunion(false), m_stub(true), /*m_defaultValue(NULL),*/ m_isreadyDefaultValue(false) /* default */, m_superClass(Nouti), m_bitsPacked(false), m_registryNumber(UNINITTED_REGISTRY_NUMBER), m_elementType(UNDEFINED_ELEMENT_TYPE) {}
 
-  SymbolClass::SymbolClass(const SymbolClass& sref) : Symbol(sref), m_resolver(NULL), m_parentTemplate(sref.m_parentTemplate), m_quarkunion(sref.m_quarkunion), m_stub(sref.m_stub), /*m_defaultValue(NULL),*/ m_isreadyDefaultValue(false), m_superClass(m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_superClass,sref.getLoc())), m_bitsPacked(false)
+  SymbolClass::SymbolClass(const SymbolClass& sref) : Symbol(sref), m_resolver(NULL), m_parentTemplate(sref.m_parentTemplate), m_quarkunion(sref.m_quarkunion), m_stub(sref.m_stub), /*m_defaultValue(NULL),*/ m_isreadyDefaultValue(false), m_superClass(m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_superClass,sref.getLoc())), m_bitsPacked(false), m_registryNumber(UNINITTED_REGISTRY_NUMBER), m_elementType(UNDEFINED_ELEMENT_TYPE)
   {
     if(sref.m_classBlock)
       {
@@ -291,24 +292,29 @@ namespace MFM {
 	return false; //t3875
       }
 
-    u32 wordlen = sut->getTotalWordSize();
-    if(wordlen == 0)
+    u32 usizeof = sut->getSizeofUlamType(); //t3802
+    if(usizeof == 0)
       {
  	m_isreadyDefaultValue = true;
 	dvref = m_defaultValue;
-	return true; //short-circuit, no data members
+	return true; //short-circuit, no data members, nor an element
+      }
+
+    if(sut->getUlamClassType() == UC_ELEMENT)
+      {
+	//prepended before going to class block tp build the rest..
+	ELE_TYPE type = getElementType();  //t3173, t3206
+	dvref.Write(0,ATOMFIRSTSTATEBITPOS, Parity2D_4x4::Add2DParity(type));
       }
 
     NodeBlockClass * classblock = getClassBlockNode();
     assert(classblock);
     m_state.pushClassContext(suti, classblock, classblock, false, NULL); //missing?
 
-    m_isreadyDefaultValue = classblock->buildDefaultValue(wordlen, m_defaultValue);
+    if((m_isreadyDefaultValue = classblock->buildDefaultValue(usizeof, dvref)))
+      m_defaultValue = dvref;
 
     m_state.popClassContext();
-
-    dvref = m_defaultValue;
-
     return m_isreadyDefaultValue;
   } //getDefaultValue
 
@@ -325,7 +331,7 @@ namespace MFM {
     m_state.popClassContext();
 
     return true;
-  } //buildClassConstantDefaultValues
+  } //buildClassConstantDefaultValues (unused?)
 
   TBOOL SymbolClass::packBitsForClassVariableDataMembers()
   {
@@ -639,8 +645,105 @@ namespace MFM {
   } //hasMappedUTI
 
   /////////////////////////////////////////////////////////////////////////////////
-  // from NodeProgram
+  // from compileFiles in Compiler.cpp
   /////////////////////////////////////////////////////////////////////////////////
+  bool SymbolClass::assignRegistryNumber(u32 n)
+  {
+    if (n == UNINITTED_REGISTRY_NUMBER)
+      {
+	std::ostringstream msg;
+	msg << "Attempting to assign invalid Registry Number";
+	MSG(Symbol::getTokPtr(), msg.str().c_str(), ERR);
+	return false;
+      }
+
+    if (m_registryNumber != UNINITTED_REGISTRY_NUMBER)
+      {
+	std::ostringstream msg;
+	msg << "Attempting to assign duplicate Registry Number " << n;
+	msg << " to " << m_registryNumber;
+	MSG(Symbol::getTokPtr(), msg.str().c_str(), ERR);
+	return false;
+      }
+
+    if(n >= MAX_REGISTRY_NUMBER)
+      {
+	std::ostringstream msg;
+	msg << "Attempting to assign TOO MANY Registry Numbers " << n;
+	msg << "; max table size is " << MAX_REGISTRY_NUMBER;
+	MSG(Symbol::getTokPtr(), msg.str().c_str(), ERR);
+	return false;
+      }
+
+    m_registryNumber = n;
+    return true;
+  } //assignRegistryNumber
+
+  bool SymbolClass::assignElementType(ELE_TYPE n)
+  {
+    if (n == UNDEFINED_ELEMENT_TYPE)
+      {
+	std::ostringstream msg;
+	msg << "Attempting to assign undefined Element Type";
+	MSG(Symbol::getTokPtr(), msg.str().c_str(), ERR);
+	return false;
+      }
+
+    if (m_elementType != UNDEFINED_ELEMENT_TYPE)
+      {
+	std::ostringstream msg;
+	msg << "Attempting to assign duplicate Element Type " << n;
+	msg << " to " << m_elementType;
+	MSG(Symbol::getTokPtr(), msg.str().c_str(), ERR);
+	return false;
+      }
+
+    if(n >= MAX_ELEMENT_TYPE)
+      {
+	std::ostringstream msg;
+	msg << "Attempting to assign TOO MANY Element Types " << n;
+	msg << "; max table size is " << MAX_ELEMENT_TYPE + 1;
+	MSG(Symbol::getTokPtr(), msg.str().c_str(), ERR);
+	return false;
+      }
+
+    m_elementType = n;
+    return true;
+  } //assignElementType
+
+  bool SymbolClass::assignEmptyElementType()
+  {
+    if (m_elementType != UNDEFINED_ELEMENT_TYPE)
+      {
+	std::ostringstream msg;
+	msg << "Attempting to assign duplicate Empty Element Types";
+	MSG(Symbol::getTokPtr(), msg.str().c_str(), ERR);
+	return false;
+      }
+    m_elementType = EMPTY_ELEMENT_TYPE;
+    return true;
+  } //assignEmptyElementType
+
+  ELE_TYPE SymbolClass::getElementType()
+  {
+    if(m_elementType == UNDEFINED_ELEMENT_TYPE)
+      {
+	if(m_state.isEmptyElement(getUlamTypeIdx()))
+	  assignEmptyElementType(); //t3802
+	else
+	  {
+	    ELE_TYPE type = m_state.getNextElementType();
+	    assignElementType(type);
+	  }
+      }
+    return m_elementType;
+  }
+
+  u32 SymbolClass::getRegistryNumber() const
+  {
+    assert(m_registryNumber != UNINITTED_REGISTRY_NUMBER);
+    return m_registryNumber;
+  }
 
   void SymbolClass::generateCode(FileManager * fm)
   {
@@ -846,6 +949,7 @@ namespace MFM {
   void SymbolClass::genEndifForHeaderFile(File * fp)
   {
     UlamType * cut = m_state.getUlamTypeByIndex(getUlamTypeIdx());
+    m_state.indent(fp);
     fp->write("#endif //");
     fp->write(cut->getUlamTypeMangledName().c_str());
     fp->write("_H\n");
@@ -856,6 +960,12 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("#include \"UlamDefs.h\"");
     fp->write("\n");
+
+    //global user string pool (ulam-4)
+    m_state.indent(fp);
+    fp->write("#include \"");
+    fp->write(m_state.getFileNameForUserStringPoolHeader().c_str());
+    fp->write("\"\n");
 
     //using the _Types.h file
     m_state.indent(fp);
@@ -943,6 +1053,8 @@ namespace MFM {
 	return;
       }
 
+    UTI suti = getUlamTypeIdx();
+
     m_state.m_currentIndentLevel = 0;
 
     m_state.indent(fp);
@@ -955,6 +1067,8 @@ namespace MFM {
     fp->write("#include \"P3Atom.h\"\n");
     m_state.indent(fp);
     fp->write("#include \"SizedTile.h\"\n");
+    m_state.indent(fp);
+    fp->write("#include \"DebugTools.h\"\n"); //for LOG
     fp->write("\n");
 
     m_state.indent(fp);
@@ -976,6 +1090,14 @@ namespace MFM {
 	fp->write(".h\""); GCNL;
       }
 
+    fp->write("\n");
+    m_state.indent(fp);
+    fp->write("#ifndef NSEC_PER_SEC\n");
+    m_state.indent(fp);
+    fp->write("#define NSEC_PER_SEC 1000000000\n");
+    m_state.indent(fp);
+    fp->write("#endif //NSEC_PER_SEC "); GCNL;
+
     //namespace MFM
     fp->write("\n");
     m_state.indent(fp);
@@ -992,7 +1114,7 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("typedef EventConfig<OurSiteAll,4> OurEventConfigAll;"); GCNL;
     m_state.indent(fp);
-    fp->write("typedef SizedTile<OurEventConfigAll, 20, 101> OurTestTile;"); GCNL;
+    fp->write("typedef SizedTile<OurEventConfigAll, 20, 101> OurTestTile;"); GCNL; //TODO update for staggered tiles: ..,40,20,101>
     m_state.indent(fp);
     fp->write("typedef ElementTypeNumberMap<OurEventConfigAll> OurEventTypeNumberMapAll;"); GCNL;
     fp->write("\n");
@@ -1007,6 +1129,38 @@ namespace MFM {
     fp->write("typedef UlamContextEvent<OurEventConfigAll> OurUlamContext;"); GCNL;
     fp->write("\n");
 
+    // TEST TILE SETUP
+    m_state.indent(fp);
+    fp->write("template<class EC>\n");
+    m_state.indent(fp);
+    fp->write("void TestTileSetup(OurTestTile& tile)\n");
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+
+    m_state.indent(fp);
+    fp->write("OurEventTypeNumberMapAll etnm;"); GCNL;
+
+    m_state.indent(fp);
+    fp->write("Ue_10105Empty10<EC>::THE_INSTANCE.AllocateEmptyType();"); GCNL;
+    m_state.indent(fp);
+    fp->write("tile.ReplaceEmptyElement(Ue_10105Empty10<EC>::THE_INSTANCE);"); GCNL;
+
+    //registers localsfilescope "classes" for string index corrections (e.g. t3952)
+    m_state.generateTestInstancesForLocalsFilescopes(fp);
+
+    //eventually ends up at SC::generateTestInstance()
+    m_state.m_programDefST.generateTestInstancesForTableOfClasses(fp);
+
+    m_state.indent(fp);
+    fp->write("return;"); GCNL;
+
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("} //TestTileSetup \n\n");
+
+    //run test once only:
     m_state.indent(fp);
     fp->write("template<class EC>\n");
     m_state.indent(fp);
@@ -1017,40 +1171,132 @@ namespace MFM {
     m_state.m_currentIndentLevel++;
 
     m_state.indent(fp);
-    fp->write("OurEventTypeNumberMapAll etnm;"); GCNL;
-    m_state.indent(fp);
     fp->write("OurTestTile tile;"); GCNL;
-
     m_state.indent(fp);
-    fp->write("Ue_10105Empty10<EC>::THE_INSTANCE.AllocateEmptyType();"); GCNL;
-    m_state.indent(fp);
-    fp->write("tile.ReplaceEmptyElement(Ue_10105Empty10<EC>::THE_INSTANCE);"); GCNL;
+    fp->write("TestTileSetup<EC>(tile);"); GCNL;
 
     m_state.indent(fp);
     fp->write("OurUlamContext uc(tile.GetElementTable());"); GCNL;
     m_state.indent(fp);
-    fp->write("const u32 TILE_SIDE = tile.TILE_SIDE;"); GCNL;
+    fp->write("const u32 TILE_WIDTH = tile.TILE_SIDE;"); GCNL; //TODO update for staggered tiles
     m_state.indent(fp);
-    fp->write("SPoint center(TILE_SIDE/2, TILE_SIDE/2);  // Hitting no caches, for starters;\n");
+    fp->write("const u32 TILE_HEIGHT = tile.TILE_SIDE;"); GCNL; //TODO update for staggered tiles
+    m_state.indent(fp);
+    fp->write("SPoint center(TILE_WIDTH/2, TILE_HEIGHT/2);  // Hitting no caches, for starters;\n");
     m_state.indent(fp);
     fp->write("uc.SetTile(tile);"); GCNL;
 
-    //registers localsfilescope "classes" for string index corrections (e.g. t3952)
-    m_state.generateTestInstancesForLocalsFilescopes(fp);
-
     //eventually ends up at SC::generateTestInstance()
-    m_state.m_programDefST.generateTestInstancesForTableOfClasses(fp);
+    m_state.m_programDefST.generateTestInstancesRunForTableOfClasses(fp);
+
+    m_state.indent(fp);
+    fp->write("return 0;"); GCNL;
+
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("} //TestSingleElement\n\n");
+
+    //run test performance in loop, return time in ms:
+    m_state.indent(fp);
+    fp->write("template<class EC>\n");
+    m_state.indent(fp);
+    fp->write("int TestSingleElementPerformance(unsigned int loops)\n");
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+
+    m_state.indent(fp);
+    fp->write("LOG.SetByteSink(STDERR);"); GCNL;
+    m_state.indent(fp);
+    fp->write("LOG.SetLevel(LOG.MESSAGE);"); GCNL;
+    m_state.indent(fp);
+    fp->write("OurTestTile tile;"); GCNL;
+    m_state.indent(fp);
+    fp->write("TestTileSetup<EC>(tile);"); GCNL;
+
+    m_state.indent(fp);
+    fp->write("OurUlamContext uc(tile.GetElementTable());"); GCNL;
+    m_state.indent(fp);
+    fp->write("const u32 TILE_WIDTH = tile.TILE_SIDE;"); GCNL; //TODO update for staggered tiles
+    m_state.indent(fp);
+    fp->write("const u32 TILE_HEIGHT = tile.TILE_SIDE;"); GCNL; //TODO update for staggered tiles
+    m_state.indent(fp);
+    fp->write("SPoint center(TILE_WIDTH/2, TILE_HEIGHT/2);  // Hitting no caches, for starters;\n");
+    m_state.indent(fp);
+    fp->write("uc.SetTile(tile);"); GCNL;
+    m_state.indent(fp);
+    fp->write("TestEventWindow & ew = tile.GetEventWindow();"); GCNL;
+    m_state.indent(fp);
+    fp->write("OurAtomAll atom = "); //OurAtomAll
+    fp->write(m_state.getTheInstanceMangledNameByIndex(suti).c_str());
+    fp->write(".GetDefaultAtom();"); GCNL;
+    m_state.indent(fp);
+    fp->write("tile.PlaceAtom(atom, center);"); GCNL;
+
+    fp->write("\n");
+    m_state.indent(fp);
+    fp->write("timespec startts;\n");
+    m_state.indent(fp);
+    fp->write("if(clock_gettime(CLOCK_REALTIME, &startts)) abort();"); GCNL;
+
+    m_state.indent(fp);
+    fp->write("while(loops-- > 0)");
+    //eventually ends up at SC::generateTestInstance()
+    //m_state.m_programDefST.generateTestInstancesRunForTableOfClasses(fp);
+    m_state.indent(fp);
+    fp->write("{\n");
+    m_state.m_currentIndentLevel++;
+
+    m_state.indent(fp);
+    fp->write("if(!ew.TryEventAtForProfiling(center)) abort();"); GCNL;
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
     fp->write("}\n");
 
+    m_state.indent(fp);
+    fp->write("timespec endts;\n");
+    m_state.indent(fp);
+    fp->write("if(clock_gettime(CLOCK_REALTIME, &endts)) abort();"); GCNL;
+
+    m_state.indent(fp);
+    fp->write("long deltasecs = (endts.tv_sec - startts.tv_sec);\n");
+
+    m_state.indent(fp);
+    fp->write("if(deltasecs < 0) abort();\n");
+    m_state.indent(fp);
+    fp->write("if(deltasecs > 2)\n"); //more than 2 seconds, and nsec won't fit in 64-bits
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+    m_state.indent(fp);
+    fp->write("std::cerr << loops << \" is too many loops\" << std::endl;\n");
+    m_state.indent(fp);
+    fp->write("abort();\n");
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
-    fp->write("} //MFM\n");
+    fp->write("}\n");
 
+    m_state.indent(fp);
+    fp->write("long elapsedns = NSEC_PER_SEC * deltasecs + (endts.tv_nsec - startts.tv_nsec);"); GCNL;
+
+    m_state.indent(fp);
+    fp->write("return elapsedns;"); GCNL;
+
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("} //TestSingleElementPerformance\n");
+
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("} //MFM\n\n");
+
+    //////////////////////////////////////////////
     //MAIN STARTS HERE !!!
     GCNL;
+
     m_state.indent(fp);
     fp->write("int main(int argc, const char** argv)\n");
 
@@ -1060,8 +1306,33 @@ namespace MFM {
     m_state.m_currentIndentLevel++;
 
     m_state.indent(fp);
-    fp->write("return ");
-    fp->write("MFM::TestSingleElement<MFM::OurEventConfigAll>();"); GCNL;
+    fp->write("if(argc > 1)\n");
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+    m_state.indent(fp);
+    fp->write("unsigned int loops = atoi(argv[1]);\n");
+    m_state.indent(fp);
+    fp->write("loops = (loops == 0 ? 1 : loops);\n");
+    m_state.indent(fp);
+    fp->write("unsigned int totalnanos = MFM::TestSingleElementPerformance<MFM::OurEventConfigAll>(loops);"); GCNL;
+    m_state.indent(fp);
+    fp->write("std::cerr << totalnanos/loops << \",\" << loops << std::endl;"); GCNL; //comma-delimited (no labels)
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("}\n");
+
+    m_state.indent(fp);
+    fp->write("else\n");
+
+    m_state.m_currentIndentLevel++;
+    m_state.indent(fp);
+    fp->write("MFM::TestSingleElement<MFM::OurEventConfigAll>();"); GCNL; //old way
+    m_state.m_currentIndentLevel--;
+
+    m_state.indent(fp);
+    fp->write("return 0;\n");
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
@@ -1195,19 +1466,4 @@ namespace MFM {
       }
     return false;
   }
-
-  StringPoolUser& SymbolClass::getUserStringPoolRef()
-  {
-    NodeBlockClass * classblock = getClassBlockNode();
-    assert(classblock);
-    return classblock->getUserStringPoolRef();
-  }
-
-  void SymbolClass::setUserStringPoolRef(const StringPoolUser& spref)
-  {
-    NodeBlockClass * classblock = getClassBlockNode();
-    assert(classblock);
-    return classblock->setUserStringPoolRef(spref);
-  }
-
 } //end MFM

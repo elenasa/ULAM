@@ -912,7 +912,7 @@ my %ulamFilePaths;    # { ulamfilebasename.ulam => "path/to/that/file", .. }
 #  %ulamFileToDoxInfo is:
 # { ulamfilepath1 =>
 #    { classcname1 => {
-#       "CLASS" => clsinfo, 
+#       "CLASS" => clsinfo,
 #       "FUNCTION" => { ulamsig1 => scmt, ulamgsig2 => scmt, .. }
 #       "DATA" -> { .. }
 #       .. }
@@ -922,7 +922,7 @@ my %ulamFilePaths;    # { ulamfilebasename.ulam => "path/to/that/file", .. }
 #    .. }
 #   ulamfilepath2 => ..
 # }
-my %ulamFileToDoxInfo; 
+my %ulamFileToDoxInfo;
 
 my %testableClasses;
 my %ulamFileToClassCNames;
@@ -1113,6 +1113,10 @@ sub storeUlamTarget {
 sub runUlamCompilations
 {
     pISC("## Compile ulam files: ".join(", ",@ulamFiles));
+
+    push @cppFilesFromUlam, "GlobalStringPool.cpp";
+    push @objectFilesFromUlamCpps, "$ULAM_WORK_DIR/build/GlobalStringPool.o";
+
     my $culam = getTool($ulamcTool);
     my @args;
     push @args, "-g"
@@ -1165,7 +1169,7 @@ sub runUlamCompilations
                     $uname = deHexEscape($uname);
                     print STDERR "$pathloc WARNING: Int parameters currently unsupported.  '$uname' ignored.\n";
                     next;
-                } 
+                }
 
                 # Stash it for later sorting and merging with possible scmt
                 push @{$modelParmInfoMap{$ename}}, $rec;
@@ -1216,7 +1220,7 @@ sub runUlamCompilations
                     if (!defined($ulamFileToDoxInfo{$path}->{$cname})) {
                         $ulamFileToDoxInfo{$path}->{$cname} = {};
                     }
-                    $ulamFileToDoxInfo{$path}->{$cname}->{"CLASS"} = 
+                    $ulamFileToDoxInfo{$path}->{$cname}->{"CLASS"} =
                         {size=>$size,
                          test=>$testflag,
                          classtype=>$classtype,
@@ -2082,14 +2086,14 @@ run:	$(MFZ)
 $(MFZ):	$(ULAM_FILES) $(ARGS_TXT_FILES) Makefile
 	$(ULAM) $(UFLAGS) $(ULAM_FILES) $(INC_FILES) $(ARGS_TXT_FILES) $(MFZ)
 
-clean:	
+clean:
 	rm -f *~
 	rm -rf .gen
 
 realclean: clean
 	rm -f $(MFZ)
 
-ishtar:	
+ishtar:
 	@make clean
 	@make >ISH-BUILD-STDOUT.txt 2>ISH-BUILD-STDERR.txt || true
 	@cd ..;tar cvzf $(ISHNAME).tgz $(THIS_DIR) --transform s/^$(THIS_DIR)/$(ISHNAME)/
@@ -2149,7 +2153,7 @@ sub printPseudocodeForDoxygen {
             }
         }
     }
-    
+
     for my $cn (@{$ulamFileToClassCNames{$uf}}) {
         my $ufile = $classCNameToUlamFile{$cn};
         my $uname = $classCNameToUlamName{$cn};

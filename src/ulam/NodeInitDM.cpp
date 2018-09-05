@@ -326,8 +326,7 @@ namespace MFM {
 	      }
 	  }
       }
-    if(getNodeType() == Hzy)
-      m_state.setGoAgain();
+    if(getNodeType() == Hzy) m_state.setGoAgain();
     return getNodeType();
   } //checkAndLabelType
 
@@ -463,6 +462,8 @@ namespace MFM {
     if(m_state.isAClass(nuti) && !m_constSymbol->isInitValueReady())
       {
 	BV8K bvclass;
+	bvref.CopyBV(pos, 0, len, bvclass); //uses any pre-initialized value
+
 	//like NodeVarDeclDM buildDefaultValue for a class
 	if(!m_nodeExpr)
 	  {
@@ -470,7 +471,7 @@ namespace MFM {
 	  }
 	else if(!m_state.isScalar(nuti))
 	  {
-	    rtnok = (((NodeListArrayInitialization *) m_nodeExpr)->buildClassArrayValueInitialization(bvclass)); //at pos 0 (t41170), BUT adjusted for elements (t41263)!!!
+	    rtnok = (((NodeListArrayInitialization *) m_nodeExpr)->buildClassArrayValueInitialization(bvclass)); //at pos 0 (t41170), BUT adjusted for elements (t41263), uses and pre-init(t41179)
 	  }
 	else if(m_nodeExpr->isAConstantClass())
 	  {
@@ -478,20 +479,21 @@ namespace MFM {
 	  }
 	else
 	  {
-	    if(m_state.getDefaultClassValue(nuti, bvclass)) //uses scalar uti
-	      {
-		BV8K bvtmpmask;
-		rtnok = ((NodeListClassInit *) m_nodeExpr)->initDataMembersConstantValue(bvclass, bvtmpmask); //at pos 0, adjusted for elements!
-	      }
+	    BV8K bvtmpmask;
+	    rtnok = ((NodeListClassInit *) m_nodeExpr)->initDataMembersConstantValue(bvclass, bvtmpmask); //at pos 0, adjusted for elements! uses any pre-initialization (t41176,7,8)
 	  }
-
 	if(!rtnok)
 	  return false;
 
 	m_constSymbol->setInitValue(bvclass); //for consistency
       } //class, fall thru..
 
-    ULAMCLASSTYPE nclasstype = nut->getUlamClassType();
+    if(!m_constSymbol->isInitValueReady())
+      {
+	BV8K bvtmp;
+	bvref.CopyBV(pos, 0, len, bvtmp); //uses any pre-initialized value
+	m_constSymbol->setInitValue(bvtmp); //for consistency (t41206)
+      }
 
     if(len <= MAXBITSPERINT)
       {
@@ -507,14 +509,6 @@ namespace MFM {
 	assert(gotVal);
 	bvref.WriteLong(pos, len, value);
       }
-    else if((nclasstype == UC_ELEMENT) && m_state.isScalar(nuti))
-      {
-	//copy state bits in position for atom-based element (t41232)
-	BV8K bvel;
-	AssertBool gotVal = m_constSymbol->getInitValue(bvel);
-	assert(gotVal);
-	bvel.CopyBV(0, pos, MAXSTATEBITS, bvref); //srcpos, dstpos, len, dest
-      }
     else
       {
 	BV8K val8k;
@@ -524,21 +518,8 @@ namespace MFM {
       }
 
     bvmask.SetBits(pos, len); //t3451, t41232
-
     return true; //pass on
   } //buildDataMemberConstantValue
-
-  void NodeInitDM::genCodeDefaultValueOrTmpVarStringRegistrationNumber(File * fp, u32 startpos, const UVPass * const uvpassptr, const BV8K * const bv8kptr)
-  {
-    m_state.abortNotImplementedYet(); //???
-    return; //pass on
-  }
-
-  void NodeInitDM::genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(File * fp, u32 startpos, const UVPass * const uvpassptr)
-  {
-    m_state.abortNotImplementedYet(); //???
-    return;
-  }
 
   void NodeInitDM::fixPendingArgumentNode()
   {

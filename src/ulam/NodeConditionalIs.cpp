@@ -128,8 +128,7 @@ namespace MFM {
       }
 
     setNodeType(newType);
-    if(newType == Hzy)
-      m_state.setGoAgain();
+    if(newType == Hzy) m_state.setGoAgain();
     Node::setStoreIntoAble(TBOOL_FALSE);
     return getNodeType();
   } //checkAndLabelType

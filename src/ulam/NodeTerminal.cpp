@@ -33,35 +33,7 @@ namespace MFM {
     //uptocaller to set node location.
   }
 
-  NodeTerminal::NodeTerminal(const NodeTerminal& ref) : Node(ref), m_etyp(ref.m_etyp), m_constant(ref.m_constant)
-  {
-    //clone of template if here (e.g. t3962, t3981, t3982)
-    if(m_etyp == String)
-      {
-	UTI cuti = m_state.getCompileThisIdx();
-	StringPoolUser& classupool = m_state.getUPoolRefForClass(cuti);
-	u32 regid = m_constant.uval >> STRINGIDXBITS;
-	if((regid != 0) && m_state.isALocalsFileScope(regid))
-	  {
-	    return; //t3981
-	  }
-	std::string str;
-	if(regid == 0)
-	  {
-	    str = m_state.m_tokenupool.getDataAsString(m_constant.uval & STRINGIDXMASK);
-	  }
-	else if(m_state.isAClass(regid))
-	  {
-	    StringPoolUser& stringupool = m_state.getUPoolRefForClass(regid);
-	    str = stringupool.getDataAsString(m_constant.uval & STRINGIDXMASK); //t3982
-	  }
-	else //e.g. locals filescope short-circuited, no change
-	  m_state.abortShouldntGetHere();
-
-	u32 newclassstringidx = classupool.getIndexForDataString(str);
-	m_constant.uval = (cuti << STRINGIDXBITS) | (newclassstringidx & STRINGIDXMASK); //combined index
-      }
-  }
+  NodeTerminal::NodeTerminal(const NodeTerminal& ref) : Node(ref), m_etyp(ref.m_etyp), m_constant(ref.m_constant) { }
 
   NodeTerminal::~NodeTerminal(){}
 
@@ -222,9 +194,7 @@ namespace MFM {
 	UTI newType = m_state.makeUlamType(newkey, m_etyp, UC_NOTACLASS);
 	setNodeType(newType);
       }
-
-    if(getNodeType() == Hzy)
-      m_state.setGoAgain();
+    if(getNodeType() == Hzy) m_state.setGoAgain();
     return getNodeType();
   } //checkAndLabelType
 
@@ -676,17 +646,13 @@ namespace MFM {
 
     if(UlamType::compareForString(nuti, m_state) == UTIC_SAME)
       {
-	UTI cuti = (m_constant.uval >> STRINGIDXBITS);
 	u32 sidx = (m_constant.uval & STRINGIDXMASK);
-	assert((cuti > 0) && (sidx > 0));
+	assert((sidx > 0));
 	//String, String array or array item (t3929, t3950)
-	fp->write(m_state.getUlamTypeByIndex(String)->getLocalStorageTypeAsString().c_str());
-	fp->write("::makeCombinedIdx(");
-	fp->write(m_state.getTheInstanceMangledNameByIndex(cuti).c_str());
-	fp->write(".GetRegistrationNumber(), ");
 	fp->write_decimal_unsigned(sidx);
-	fp->write("u); //user string pool index for ");
+	fp->write("u; //user string pool index for ");
       }
+
     fp->write(getName());
     fp->write(";"); GCNL;
 
@@ -756,18 +722,9 @@ namespace MFM {
 	break;
       case TOK_DQUOTED_STRING:
 	{
-	  UTI cuti = m_state.getCompileThisIdx();
-	  if(m_state.isClassATemplate(cuti))
-	    {
-	      m_constant.uval = tok.m_dataindex; //not done
-	    }
-	  else
-	    {
-	      StringPoolUser& classupool = m_state.getUPoolRefForClass(cuti);
-	      u32 classstringidx = classupool.getIndexForDataString(m_state.m_tokenupool.getDataAsString(tok.m_dataindex));
-	      m_constant.uval = (cuti << STRINGIDXBITS) | (classstringidx & STRINGIDXMASK); //combined index
-	      rtnok = true;
-	    }
+	  u32 stringidx = m_state.m_upool.getIndexForDataString(m_state.m_tokenupool.getDataAsString(tok.m_dataindex));
+	  m_constant.uval = stringidx; //global user string pool (ulam-4)
+	  rtnok = true;
 	}
 	break;
       default:

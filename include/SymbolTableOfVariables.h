@@ -32,8 +32,6 @@
   \date (C) 2014-2018 All rights reserved.
   \gpl
 */
-
-
 #ifndef SYMBOLTABLEOFVARIABLES_H
 #define SYMBOLTABLEOFVARIABLES_H
 
@@ -55,6 +53,8 @@ namespace MFM{
     bool hasUlamTypeSymbolsInTable(ULAMTYPE etyparg);
 
     bool hasADataMemberStringInitValueInClass(UTI cuti);
+
+    u32 fixAllStringSymbolsInTable(); //returns number of strings fixed
 
     u32 findTypedefSymbolNameIdByTypeInTable(UTI type);
 

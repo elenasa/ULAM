@@ -7,7 +7,7 @@
 ##
 #!
 Exit status: 16
-Ue_A { constant String(32)[4] cStrArr = { 0x1c0001, 0x1c0006, 0x1c000b, 0x1c000b };  Int(32) m_total(16);  Int(32) test() {  SystemU3 su3;  su3 ( cStrArr 3 [] )print . { Int(32) i = 0 cast;  i 4u cast < cond { m_total 5u cast += } _1: i 1 ++ while } su3 ( m_total )print . su3 ( m_total 16 cast == )assert . m_total return } }
+Ue_A { constant String(32)[4] cStrArr = { 0x1, 0x6, 0xb, 0xb };  Int(32) m_total(16);  Int(32) test() {  SystemU3 su3;  su3 ( cStrArr 3 [] )print . { Int(32) i = 0 cast;  i 4u cast < cond { m_total 5u cast += } _1: i 1 ++ while } su3 ( m_total )print . su3 ( m_total 16 cast == )assert . m_total return } }
 Uq_SystemU3 : System { :<> <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

@@ -346,12 +346,17 @@ namespace MFM {
   void SymbolClassName::buildClassConstantDefaultValuesForClassInstances()
   {
     SymbolClass::buildClassConstantDefaultValues(); //this instance
-  } //buildClassConstantDefaultValuesForClassInstances
+  } // (unused?)
 
   void SymbolClassName::testForClassInstances(File * fp)
   {
     SymbolClass::testThisClass(fp);
   } //testForClassInstances
+
+  void SymbolClassName::assignRegistrationNumberForClassInstances(u32& count)
+  {
+    SymbolClass::assignRegistryNumber(count++);
+  } //assignRegistrationNumberForClassInstances
 
   void SymbolClassName::generateCodeForClassInstances(FileManager * fm)
   {

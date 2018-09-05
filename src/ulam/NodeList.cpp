@@ -171,11 +171,16 @@ namespace MFM{
 	    rtnuti = Nav;
 	  }
 	else if((rtnuti != Nav) && !m_state.isComplete(puti))
-	  rtnuti = Hzy; // all or none
+	  {
+	    std::ostringstream msg;
+	    msg << "Argument " << i + 1 << " is incomplete";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	    rtnuti = Hzy; // all or none
+	    m_state.setGoAgain();
+	  }
       }
     setNodeType(rtnuti);
-    if(rtnuti == Hzy)
-      m_state.setGoAgain(); //since no error msg
+    //if(rtnuti == Hzy) m_state.setGoAgain(); //since no error msg
     return rtnuti;
   } //checkAndLabelType
 

@@ -7,10 +7,6 @@
 #include "SymbolVariableDataMember.h"
 #include "CompilerState.h"
 #include "NodeBlockClass.h"
-//#include "MapDataMemberDesc.h"
-//#include "MapParameterDesc.h"
-//#include "MapConstantDesc.h"
-//#include "MapTypedefDesc.h"
 
 namespace MFM {
 
@@ -64,44 +60,6 @@ namespace MFM {
       }
     return rtnb;
   } //hasUlamTypeSymbolsInTable
-
-  //called by NodeBlockContext (e.g. String (scalar or array))
-  bool SymbolTableOfVariables::hasADataMemberStringInitValueInClass(UTI cuti)
-  {
-    bool rtnb = false;
-    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
-    while(it != m_idToSymbolPtr.end())
-      {
-	Symbol * sym = it->second;
-	assert(sym);
-	if(!sym->isTypedef()) //t3948
-	  {
-	    UTI suti = sym->getUlamTypeIdx();
-	    UlamType * sut = m_state.getUlamTypeByIndex(suti);
-	    if(sut->getUlamTypeEnum() == String)
-	      {
-		u32 arraysize = sut->isScalar() ? 1 : sut->getArraySize();
-		BV8K tmpbv8k;
-		AssertBool gotValue = ((SymbolWithValue *) sym)->getInitValue(tmpbv8k);
-		assert(gotValue);
-
-		for(u32 i = 0; i < arraysize; i++)
-		  {
-		    UTI regid = (UTI) tmpbv8k.Read(0 + i * (REGNUMBITS + STRINGIDXBITS), REGNUMBITS);
-		    assert(regid > 0);
-
-		    if(regid == cuti)
-		      {
-			rtnb = true; //got one!
-			break;
-		      }
-		  }
-	      } //string
-	  } //not typedef
-	it++;
-      } //while next data member symbol
-    return rtnb;
-  } //hasADataMemberStringInitValueInClass (unused)
 
   u32 SymbolTableOfVariables::findTypedefSymbolNameIdByTypeInTable(UTI type)
   {

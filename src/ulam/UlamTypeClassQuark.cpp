@@ -550,7 +550,7 @@ namespace MFM {
     fp->write(mangledName.c_str());
     fp->write("(const ");
     fp->write(mangledName.c_str());
-    fp->write("<EC> & arg) { ");
+    fp->write("<EC> & arg) : BVS() { "); //Wextra
     fp->write("write(arg.");
     fp->write("read()); }"); GCNL;
 

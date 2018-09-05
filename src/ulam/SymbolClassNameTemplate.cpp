@@ -981,7 +981,7 @@ namespace MFM {
 	classNode->setSuperBlockPointer(NULL); //clear in case of stubs
 
 	//copy any constant strings from the stub
-	clone->setUserStringPoolRef(csym->getUserStringPoolRef()); //t3962
+	//clone->setUserStringPoolRef(csym->getUserStringPoolRef()); //t3962
 
 	//copy any context, where stub used
 	if(csym->getContextForPendingArgValues() == csym->getUlamTypeIdx())
@@ -1678,7 +1678,7 @@ namespace MFM {
 	  }
 	it++;
       }
-  } //buildClassConstantDefaultValuesForClassInstances
+  } //buildClassConstantDefaultValuesForClassInstances (unused?)
 
   void SymbolClassNameTemplate::testForClassInstances(File * fp)
   {
@@ -1691,6 +1691,29 @@ namespace MFM {
 	it++;
       }
   } //testForClassInstances
+
+  void SymbolClassNameTemplate::assignRegistrationNumberForClassInstances(u32& count)
+  {
+    std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
+    while(it != m_scalarClassArgStringsToSymbolPtr.end())
+      {
+	SymbolClass * csym = it->second;
+	assert(!csym->isStub());
+	UTI suti = csym->getUlamTypeIdx();
+	if(m_state.isComplete(suti))
+	  {
+	    csym->assignRegistryNumber(count++); //this instance
+	  }
+	else
+	  {
+	    std::ostringstream msg;
+	    msg << "Class Instance '" << m_state.getUlamTypeNameByIndex(suti).c_str();
+	    msg << "' is incomplete; Registry Number will not be assigned";
+	    MSG(Symbol::getTokPtr(), msg.str().c_str(), DEBUG);
+	  }
+	it++;
+      }
+  } //assignRegistrationNumberForClassInstances
 
   void SymbolClassNameTemplate::generateCodeForClassInstances(FileManager * fm)
   {

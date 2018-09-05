@@ -155,9 +155,7 @@ namespace MFM {
     m_nodeBody->checkAndLabelType(); //side-effect
 
     setNodeType(newType); //stays the same
-    if(newType == Hzy)
-	m_state.setGoAgain();
-
+    if(newType == Hzy) m_state.setGoAgain();
     Node::setStoreIntoAble(TBOOL_FALSE);
     return getNodeType();
   } //checkAndLabelType

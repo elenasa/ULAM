@@ -233,8 +233,7 @@ namespace MFM {
       }
 
     setNodeType(newType);
-    if(newType == Hzy)
-      m_state.setGoAgain();
+    if(newType == Hzy) m_state.setGoAgain();
     return newType;
   } //checkAndLabelType
 

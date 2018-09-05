@@ -6,6 +6,7 @@
 ## Unary(3) Arg: 0x1
 ## Bool(3) Arg: 0x7 (true)
 ## Bool(3) Arg: 0x7 (false)
+## Unsigned Arg: 9
 ## Unary(3) Arg: 0x0
 ## Unary(3) Arg: 0x0
 ## Unary(3) Arg: 0x2
@@ -92,7 +93,7 @@ transient R {
   ulam 3;
 quark QFoo {
   //QBar m_bartwo[2];
-  QBar m_bartwo[2] = { {.r = { 0, 1, 2 } , .sp = true } , { .sp = false, .r = {3} }};
+  QBar m_bartwo[2] = { {.r = { 0, 1, 2 } , .sp = true } , { .sp = false, .r = {3} }}; //0x82db7fff
 }
 
 #:QBar.ulam
@@ -100,7 +101,7 @@ quark QFoo {
 quark QBar {
   //Bool sp; //default value set incorrectly before bits packed.
   Bool sp = true;
-  Unary(3) r[5] = {1};
+  Unary(3) r[5] = {1}; //0x9249
 }
 
 #:System.ulam

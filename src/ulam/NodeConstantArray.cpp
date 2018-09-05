@@ -148,8 +148,6 @@ namespace MFM {
     if(!isReadyConstant())
       {
 	it = Hzy;
-	//setNodeType(Hzy); //missing
-	//m_state.setGoAgain();
 	if(!stubcopy)
 	  m_constSymbol = NULL; //lookup again too! (e.g. inherited template instances)
       }
@@ -157,8 +155,7 @@ namespace MFM {
     setNodeType(it);
     Node::setStoreIntoAble(TBOOL_FALSE);
 
-    if(it == Hzy)
-      m_state.setGoAgain();
+    if(it == Hzy) m_state.setGoAgain();
     return it;
   } //checkAndLabelType
 

@@ -14,6 +14,7 @@
 ./P.ulam:7:5: ERROR: Incomplete Variable Decl for type: Q(b,s), used with variable symbol name 'w'.
 ./P.ulam:8:13: ERROR: Incomplete identifier for type: Q(b,s), used with list symbol name 'w'.
 ./P.ulam:8:15: ERROR: Undetermined type for missing member 'w' Proxy.
+./P.ulam:8:7: ERROR: Argument 1 is incomplete.
 ./P.ulam:9:10: ERROR: Incomplete identifier for type: Q(b,s), used with list symbol name 'w'.
 ./P.ulam:9:12: ERROR: Undetermined type for missing member 'w' Proxy.
 ./P.ulam:11:18: ERROR: Incomplete identifier for type: Q(b,s), used with list symbol name 'w'.

@@ -154,8 +154,7 @@ namespace MFM{
 	  }
       }
     setNodeType(rtnuti);
-    if(rtnuti == Hzy)
-      m_state.setGoAgain();
+    if(rtnuti == Hzy) m_state.setGoAgain();
     return rtnuti;
   } //checkAndLabelType
 
@@ -272,8 +271,7 @@ namespace MFM{
     bool rtnok = true;
     u32 n = m_nodes.size();
 
-    //    if(isEmptyList())
-    //  return true; //noop, t41201
+    //if(isEmptyList()) return true; //noop, t41201
 
     if(m_state.isAClass(nuti))
       return buildClassArrayValueInitialization(bvtmp); //t41185
@@ -364,14 +362,7 @@ namespace MFM{
     //fill in default class if nothing provided for a non-empty array
     if((n == 0) && (arraysize > 0))
       {
-	if(nut->getUlamClassType() == UC_ELEMENT)
-	  {
-	    BV8K bvd;
-	    rtnok = m_state.getDefaultClassValue(nuti, bvd); //uses scalar uti
-	    bvd.CopyBV(0, ATOMFIRSTSTATEBITPOS, MAXSTATEBITS, bvtmp);
-	  }
-	else
-	  rtnok = m_state.getDefaultClassValue(nuti, bvtmp); //uses scalar uti
+	rtnok = m_state.getDefaultClassValue(nuti, bvtmp); //uses scalar uti
 	n = 1; //ready to fall thru and propagate as needed
       }
 
@@ -405,6 +396,7 @@ namespace MFM{
     u32 adjust = 0; //(classtype == UC_ELEMENT ? ATOMFIRSTSTATEBITPOS : 0);
 
     BV8K bvclass;
+    bvtmp.CopyBV(pos * itemlen + adjust, 0, itemlen - adjust, bvclass); //zero-based item
     if(m_nodes[n]->isAConstantClass())
       {
 	BV8K bvmask;
@@ -416,15 +408,11 @@ namespace MFM{
       }
     else if(m_nodes[n]->isClassInit())
       {
-	//note: starts with default in case of String data members; (pos arg unused)
-	if(m_state.getDefaultClassValue(nuti, bvclass)) //uses scalar uti
+	BV8K bvmask;
+	if(((NodeListClassInit *) m_nodes[n])->initDataMembersConstantValue(bvclass, bvmask)) //at pos 0
 	  {
-	    BV8K bvmask;
-	    if(((NodeListClassInit *) m_nodes[n])->initDataMembersConstantValue(bvclass, bvmask)) //at pos 0
-	      {
-		bvclass.CopyBV(0, pos * itemlen + adjust, itemlen - adjust, bvtmp); //frompos, topos, len, destBV
-		rtnb = true;
-	      }
+	    bvclass.CopyBV(0, pos * itemlen + adjust, itemlen - adjust, bvtmp); //frompos, topos, len, destBV
+	    rtnb = true;
 	  }
       }
     else
@@ -463,69 +451,6 @@ namespace MFM{
     TMPSTORAGE nstor = nut->getTmpStorageTypeForTmpVar();
     u32 nwords = nut->getTotalNumberOfWords();
 
-    //generate code to replace uti in string index with runtime registration number (t3974)
-    if(isString && !vsym->isDataMember())
-      {
-	u32 uvals[ARRAY_LEN8K];
-	dval.ToArray(uvals); //the magic! (32-bit ints)
-
-	UTI cuti = m_state.getCompileThisIdx();
-
-	m_state.indentUlamCode(fp); //non-const
-	fp->write("static bool ");
-	fp->write(m_state.getInitDoneVarAsString(tmpvarnum).c_str());
-	fp->write(";\n");
-
-	m_state.indentUlamCode(fp); //non-const
-	fp->write("static u32 ");
-	fp->write(m_state.getTmpVarAsString(nuti, tmpvarnum, nstor).c_str());
-	fp->write("[");
-	fp->write_decimal_unsigned(nwords); // proper length == [nwords]
-	fp->write("];\n");
-
-	m_state.indentUlamCode(fp); //non-const
-	fp->write("if(!");
-	fp->write(m_state.getInitDoneVarAsString(tmpvarnum).c_str());
-	fp->write(")\n");
-	m_state.indentUlamCode(fp); //non-const
-	fp->write("{\n");
-
-	m_state.m_currentIndentLevel++;
-
-	m_state.indentUlamCode(fp);
-	fp->write(m_state.getInitDoneVarAsString(tmpvarnum).c_str());
-	fp->write(" = true;\n");
-
-	m_state.indentUlamCode(fp);
-	fp->write("static const u32 Uh_6regnum = ");
-	fp->write(m_state.getTheInstanceMangledNameByIndex(cuti).c_str());
-	fp->write(".GetRegistrationNumber();"); GCNL;
-
-	//exact size bitvector as 32-bit array, regardless of itemwordsize (e.g. String test t3973 )
-	for(u32 w = 0; w < nwords; w++)
-	  {
-	    m_state.indentUlamCode(fp); //non-const
-	    fp->write(m_state.getTmpVarAsString(nuti, tmpvarnum, nstor).c_str());
-	    fp->write("[");
-	    fp->write_decimal_unsigned(w); // proper length == [nwords]
-	    fp->write("] = ");
-
-	    fp->write(m_state.getStringMangledName().c_str());
-	    fp->write("::makeCombinedIdx(Uh_6regnum, ");
-	    fp->write_decimal_unsigned(uvals[w] & STRINGIDXMASK);
-	    fp->write("); //");
-	    fp->write(m_state.getDataAsFormattedUserString(uvals[w]).c_str()); //as comment
-	    fp->write("\n");
-	  }
-
-	m_state.m_currentIndentLevel--;
-	m_state.indentUlamCode(fp); //non-const
-	fp->write("}"); GCNL;
-
-	uvpass = UVPass::makePass(tmpvarnum, nstor, nuti, m_state.determinePackable(nuti), m_state, 0, vsym->getId());
-	return;
-      } //done local string
-
     //static constant array of u32's from BV8K, of proper length:
     //similar to CS::genCodeClassDefaultConstantArray,
     // except indentUlamCode, to a tmpvar, and no BitVector.
@@ -547,13 +472,10 @@ namespace MFM{
 
 	for(u32 w = 0; w < nwords; w++)
 	  {
-	    std::ostringstream dhex;
-	      dhex << "0x" << std::hex << uvals[w];
-
 	    if(w > 0)
 	      fp->write(", ");
 
-	    fp->write(dhex.str().c_str());
+	    fp->write_hexadecimal(uvals[w]);
 	  }
 	fp->write(" };"); GCNL;
       }
@@ -571,8 +493,7 @@ namespace MFM{
 	if(nwords <= 1) //32
 	  {
 	    //right justify single u32 (t3974)
-	    dhex << "0x" << std::hex << dval.Read(0u, len); //uvals[0]
-	    fp->write(dhex.str().c_str());
+	    fp->write_hexadecimal(dval.Read(0u, len));
 	    fp->write(";"); GCNL;
 
 	  }

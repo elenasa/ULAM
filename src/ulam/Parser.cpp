@@ -303,6 +303,7 @@ namespace MFM {
 	{
 	  AssertBool isReplaced = m_state.replaceUlamTypeForUpdatedClassType(cut->getUlamKeyTypeSignature(), Class, UC_ELEMENT, cut->isCustomArray());
 	  assert(isReplaced);
+	  m_state.isEmptyElement(cuti); //t3802
 	  break;
 	}
       case TOK_KW_QUARK:
@@ -1671,7 +1672,7 @@ namespace MFM {
 	return NULL; //stop this maddness
       }
 
-    UTI huti = whichtrue ? Bool : m_state.makeUlamTypeHolder();
+    UTI huti = whichtrue ? (UTI) Bool : m_state.makeUlamTypeHolder();
 
     std::string swtypedefname = m_state.getSwitchTypedefNameAsString(switchnum);
     Token swtypeTok(TOK_IDENTIFIER, swTok.m_locator, m_state.m_pool.getIndexForDataString(swtypedefname));
@@ -5083,7 +5084,7 @@ Node * Parser::wrapFactor(Node * leftNode)
 
     assert(isConstr || nodetype);
     //internal constructor return type is void
-    UTI rtnuti = isConstr ? Void : nodetype->givenUTI();
+    UTI rtnuti = isConstr ? (UTI) Void : nodetype->givenUTI();
 
     SymbolFunction * fsymptr = new SymbolFunction(identTok, rtnuti, m_state);
     fsymptr->setStructuredComment(); //also clears

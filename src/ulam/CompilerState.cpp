@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <iostream>
+#include <errno.h>
 #include "ClassContext.h"
 #include "CompilerState.h"
 #include "NodeBlockClass.h"
@@ -78,13 +79,19 @@ namespace MFM {
   static const char * IS_MANGLED_FUNC_NAME_FOR_ATOM = "UlamClass<EC>::IsMethod"; //Uf_2is
 
   static const char * GETCLASSLENGTH_FUNCNAME = "GetClassLength";
-  static const char * GETSTRING_FUNCNAME = "GetString";
+  static const char * GETCLASSREGISTRATIONNUMBER_FUNCNAME = "GetRegistrationNumber";
+
+  static const char * GETSTRING_FUNCNAME = "GetStringPointerFromGlobalStringPool";
+  static const char * GETSTRINGLENGTH_FUNCNAME = "GetStringLengthFromGlobalStringPool";
+
   static const char * BUILD_DEFAULT_ATOM_FUNCNAME = "BuildDefaultAtom";
   static const char * BUILD_DEFAULT_QUARK_FUNCNAME = "getDefaultQuark";
   static const char * BUILD_DEFAULT_TRANSIENT_FUNCNAME = "getDefaultTransient";
 
-  static const char * USERSTRINGPOOL_MANGLEDNAME = "UserStringPool";
-  static const char * USERSTRINGPOOL_SIZEDEFINENAME = "USERSTRINGPOOLSIZE";
+  static const char * USERSTRINGPOOL_MANGLEDNAME = "Ug_globalStringPoolData";
+  static const char * USERSTRINGPOOL_SIZEDEFINENAME = "Ug_globalStringPoolSize";
+  static const char * USERSTRINGPOOL_FILENAME = "GlobalStringPool"; //also used by ulam.tmpl
+
 
   static const char * CModeForHeaderFiles = "/**                                      -*- mode:C++ -*- */\n\n";
 
@@ -113,7 +120,7 @@ namespace MFM {
     "*/\n\n";
 
   //use of this in the initialization list seems to be okay;
-  CompilerState::CompilerState(): m_linesForDebug(false), m_programDefST(*this), m_parsingLocalDef(false), m_parsingVariableSymbolTypeFlag(STF_NEEDSATYPE), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_pendingArgStubContext(0), m_pendingArgTypeStubContext(0), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0), m_urSelfUTI(Nouti), m_emptyUTI(Nouti)
+  CompilerState::CompilerState(): m_linesForDebug(false), m_programDefST(*this), m_parsingLocalDef(false), m_parsingVariableSymbolTypeFlag(STF_NEEDSATYPE), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_pendingArgStubContext(0), m_pendingArgTypeStubContext(0), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0), m_urSelfUTI(Nouti), m_emptyElementUTI(Nouti), m_registeredUlamClassCount(0)
   {
     m_err.init(this, debugOn, infoOn, noteOn, warnOn, waitOn, NULL);
     Token::initTokenMap(*this);
@@ -187,7 +194,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
         msg << "File name <" << startstr << "> doesn't end with '.ulam'";
-	MSG2("",msg.str().c_str() , ERR);
+	MSG2("", msg.str().c_str() , ERR);
 	return false;
       }
 
@@ -554,7 +561,7 @@ namespace MFM {
 	NodeBlockContext * contextblock = getContextBlock();
 	if(contextblock->hasUlamType(suti))
 	  rtnb = true;
-	else if(isEmpty(suti))
+	else if(isEmptyElement(suti))
 	  rtnb = true;
 	else
 	  {
@@ -1416,7 +1423,7 @@ namespace MFM {
     if(!isComplete(cuti)) return TBOOL_HAZY;
 
     TBOOL rtntb = TBOOL_TRUE;
-    if(cut->getBitSize() > 0)
+    if(cut->getSizeofUlamType() > 0)
       {
 	UTI scalarcuti = getUlamTypeAsScalar(cuti);
 	SymbolClass * csym = NULL;
@@ -1435,13 +1442,17 @@ namespace MFM {
     assert(cut->getUlamTypeEnum() == Class);
 
     bool rtnb = true;
-    if(cut->getBitSize() > 0)
+    //zero-size elements have their Element Types (ulam-4) e.g. Empty (t3802)
+    if(cut->getSizeofUlamType() > 0)
       {
 	UTI scalarcuti = getUlamTypeAsScalar(cuti);
 	SymbolClass * csym = NULL;
 	AssertBool isDefined = alreadyDefinedSymbolClass(scalarcuti, csym);
 	assert(isDefined);
-	rtnb = csym->getDefaultValue(dvref); //pass along ref
+	if(csym->packBitsForClassVariableDataMembers() == TBOOL_TRUE) //might as well see
+	  rtnb = csym->getDefaultValue(dvref); //pass along ref
+	else
+	  rtnb = false; //really not ready
       }
     return rtnb;
   } //getDefaultClassValue
@@ -1492,15 +1503,6 @@ namespace MFM {
 
     indent(fp);
     fp->write("initBV.FromArray(vales);"); GCNL; //t3776
-
-    if(!isThisLocalsFileScope()) //t3972,73
-      {
-	//static variable 'myRegNum' efficiency not worth it. Tue Jan 16 17:47:22 2018
-	//class data members may have strings (t3948)
-	indent(fp);
-	fp->write("//correct runtime regnum for strings; data member inits\n");
-	getCurrentBlock()->genCodeDefaultValueOrTmpVarStringRegistrationNumber(fp, 0, NULL, NULL);
-      }
 
     m_currentIndentLevel--;
 
@@ -2618,10 +2620,28 @@ namespace MFM {
     return (!goAgain() && (m_err.getErrorCount() + m_err.getWarningCount() == 0));
   } //checkAndLabelPassForLocals
 
+  void CompilerState::defineRegistrationNumberForUlamClasses()
+  {
+    m_registeredUlamClassCount = m_programDefST.defineRegistrationNumberForTableOfClasses();
+    defineRegistrationNumberForLocals(); //updates m_registeredUlamClassCount
+  }
+
+  void CompilerState::defineRegistrationNumberForLocals()
+  {
+    std::map<u32, NodeBlockLocals *>::iterator it;
+    for(it = m_localsPerFilePath.begin(); it != m_localsPerFilePath.end(); it++)
+      {
+	NodeBlockLocals * localsblock = it->second;
+	assert(localsblock);
+	localsblock->assignRegistrationNumberToLocalsBlock(m_registeredUlamClassCount++);
+      }
+  }
+
   void CompilerState::generateCodeForUlamClasses(FileManager * fm)
   {
     m_programDefST.genCodeForTableOfClasses(fm);
     generateUlamClassForLocals(fm);
+    generateGlobalUserStringPool(fm); //ulam-4
   }
 
   void CompilerState::generateUlamClassForLocals(FileManager * fm)
@@ -2645,6 +2665,12 @@ namespace MFM {
 	AssertBool isReplaced = replaceUlamTypeForUpdatedClassType(cut->getUlamKeyTypeSignature(), Class, UC_LOCALSFILESCOPE, false);
 	assert(isReplaced);
 
+	{
+	  //use pre-assigned registration number in tmp class (ulam-4)
+	  u32 tmpLocalsRegNum = localsblock->getRegistrationNumberForLocalsBlock(); //modified, so..
+	  cnsym->assignRegistrationNumberForClassInstances(tmpLocalsRegNum); //..minor scope
+	}
+
 	//populate with NodeConstantDefs clones (ptr to same symbol),
 	// and NodeTypedef clones for gencode purposes;
 	std::vector<Node*> fmLocals;
@@ -2664,7 +2690,7 @@ namespace MFM {
 	  }
 	fmLocals.clear(); //done with vector of clones
 
-	classblock->setUserStringPoolRef(localsblock->getUserStringPoolRef()); //?
+	//classblock->setUserStringPoolRef(localsblock->getUserStringPoolRef()); //?
 
 	localsblock->copyUlamTypeKeys(classblock);
 
@@ -2675,6 +2701,197 @@ namespace MFM {
 	assert(isGone);
       } //next filescope locals
   } //generateUlamClassForLocals
+
+  void CompilerState::generateGlobalUserStringPool(FileManager * fm)
+  {
+    // this header
+    {
+      File * fp = fm->open(getFileNameForUserStringPoolHeader(WSUBDIR).c_str(), WRITE);
+      if(!fp)
+	{
+	  std::ostringstream msg;
+	  msg << "System failure: " << strerror(errno) << " to write <";
+	  msg << getFileNameForUserStringPoolHeader(WSUBDIR).c_str() << ">";
+	  MSG2(" ", msg.str().c_str(), ERR);
+	  return;
+	}
+
+      //preamble
+      m_currentIndentLevel = 0;
+      genCModeForHeaderFile(fp);
+      fp->write("/***********************         DO NOT EDIT        ******************************\n");
+      fp->write("*\n");
+      fp->write("* ");
+      fp->write(getFileNameForUserStringPoolHeader().c_str());
+      fp->write(" - ");
+      fp->write(" header for ULAM"); GCNL;
+
+      genCopyrightAndLicenseForUlamHeader(fp);
+
+      //ifndef for header
+      fp->write("#ifndef ");
+      fp->write(USERSTRINGPOOL_FILENAME);
+      fp->write("_H\n");
+
+      fp->write("#define ");
+      fp->write(USERSTRINGPOOL_FILENAME);
+      fp->write("_H\n\n");
+
+      //header includes
+      fp->write("#include \"Fail.h\"");
+      fp->write("\n");
+
+      //code
+      fp->write("\nnamespace MFM{\n\n");
+
+      genCodeBuiltInFunctionGetString(fp, true);
+      genCodeBuiltInFunctionGetStringLength(fp, true);
+
+      fp->write("} //MFM\n\n");
+
+      //endif for header
+      fp->write("#endif //");
+      fp->write(USERSTRINGPOOL_FILENAME);
+      fp->write("_H\n");
+
+      delete fp; //close
+    }
+
+    // "table" .cpp includes .h
+    {
+      File * fp = fm->open(getFileNameForUserStringPoolCPP(WSUBDIR).c_str(), WRITE);
+      if(!fp)
+	{
+	  std::ostringstream msg;
+	  msg << "System failure: " << strerror(errno) << " to write <";
+	  msg << getFileNameForUserStringPoolCPP(WSUBDIR).c_str() << ">";
+	  MSG2(" ", msg.str().c_str(), ERR);
+	  return;
+	}
+
+      m_currentIndentLevel = 0;
+
+      // include .h in the .cpp
+      indent(fp);
+      fp->write("#include \"");
+      fp->write(getFileNameForUserStringPoolHeader().c_str());
+      fp->write("\"");
+      fp->write("\n");
+
+      fp->write("\nnamespace MFM{\n\n");
+
+      genCodeBuiltInFunctionGetString(fp, false);
+
+      fp->write("} //MFM\n\n");
+
+      delete fp; //close
+    }
+  } //generateGlobalUserStringPool
+
+  void CompilerState::genCodeBuiltInFunctionGetString(File * fp, bool declOnly)
+  {
+    //GLOBAL (ulam-4: no longer class specific) UserStringPool
+    if(declOnly)
+      {
+	m_currentIndentLevel++;
+
+	indent(fp);
+	fp->write("const unsigned int ");
+	fp->write(getDefineNameForUserStringPoolSize());
+	fp->write(" = ");
+	fp->write_decimal_unsigned(m_upool.getUserStringPoolSize());
+	fp->write(" + 1;"); GCNL;
+
+	indent(fp);
+	fp->write("extern const unsigned char ");
+	fp->write(getMangledNameForUserStringPool());
+	fp->write("[");
+	fp->write(getDefineNameForUserStringPoolSize());
+	fp->write("];"); GCNL;
+	fp->write("\n");
+
+	indent(fp);
+	fp->write("inline const "); //inline important so function body can be in the .h
+	fp->write("unsigned char * ");
+	fp->write(getGetStringFunctionName());
+	fp->write("(unsigned int sidx)\n");
+	indent(fp);
+	fp->write("{\n");
+
+	m_currentIndentLevel++;
+
+	indent(fp);
+	fp->write("if(sidx == 0) ");
+	fp->write("FAIL(UNINITIALIZED_VALUE);"); GCNL;
+
+	indent(fp);
+	fp->write("if(sidx >= ");
+	fp->write(getDefineNameForUserStringPoolSize());
+	fp->write(") ");
+	fp->write("FAIL(ARRAY_INDEX_OUT_OF_BOUNDS);"); GCNL;
+
+	indent(fp);
+	fp->write("return &");
+	fp->write(getMangledNameForUserStringPool());
+	fp->write("[sidx + 1];"); GCNL;
+
+	m_currentIndentLevel--;
+
+	indent(fp);
+	fp->write("} //"); //comment..
+	fp->write(getGetStringFunctionName());
+	fp->write("\n\n");
+
+	m_currentIndentLevel--;
+	return;
+      }
+
+    //inside the .cpp
+    //the user string pool table definition
+    m_upool.generateUserStringPoolEntries(fp, this);
+
+  } //genCodeBuiltInFunctionGetString
+
+  void CompilerState::genCodeBuiltInFunctionGetStringLength(File * fp, bool declOnly)
+  {
+    //GLOBAL (ulam-4: no longer class specific) UserStringPool
+    if(declOnly)
+      {
+	m_currentIndentLevel++;
+
+	indent(fp);
+	fp->write("inline unsigned int ");
+	fp->write(getGetStringLengthFunctionName());
+	fp->write("(unsigned int sidx)"); GCNL;
+	indent(fp);
+	fp->write("{\n");
+
+	m_currentIndentLevel++;
+
+	indent(fp);
+	fp->write("if(sidx == 0) ");
+	fp->write("FAIL(UNINITIALIZED_VALUE);"); GCNL; // fail/t3934
+
+	indent(fp);
+	fp->write("if(sidx >= ");
+	fp->write(getDefineNameForUserStringPoolSize());
+	fp->write(") ");
+	fp->write("FAIL(ARRAY_INDEX_OUT_OF_BOUNDS);"); GCNL;
+
+	indent(fp);
+	fp->write("return ");
+	fp->write(getMangledNameForUserStringPool());
+	fp->write("[sidx];"); GCNL;
+
+	m_currentIndentLevel--;
+	indent(fp);
+	fp->write("} //"); //commment..
+	fp->write(getGetStringLengthFunctionName());
+	fp->write("\n\n");
+	m_currentIndentLevel--;
+	return;
+      }
+  } //genCodeBuiltInFunctionGetStringLength
 
   bool CompilerState::countNavHzyNoutiNodesPass()
   {
@@ -2707,7 +2924,7 @@ namespace MFM {
     if(hzycount > 0)
       {
 	//doesn't include incomplete stubs: if(a is S(x,y))
-	//assert(m_state.goAgain()); //sanity check; ran out of iterations
+	//assert(goAgain()); //sanity check; ran out of iterations
 
 	std::ostringstream msg;
 	msg << hzycount << " Nodes with unresolved types detected after type labeling";
@@ -3024,7 +3241,6 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
   bool CompilerState::findSymbolInAClass(u32 id, UTI inClassUTI, Symbol *& rtnsymptr, bool& isHazy)
   {
-    //    assert(!isAnonymousClass(inClassUTI) && isASeenClass(inClassUTI));
     assert(isASeenClass(inClassUTI));
     bool rtnOK = false;
     SymbolClass * csym = NULL;
@@ -3088,62 +3304,49 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     return tok.getTokenStringFromPool(this);
   }
 
-  StringPoolUser& CompilerState::getUPoolRefForClass(UTI cuti)
-  {
-    assert(isScalar(cuti));
-    if(isALocalsFileScope(cuti) && !isAClass(cuti))
-      return getUPoolRefForLocalsFilescope(cuti); //not the temporary class (t3883, t3858)
-
-    SymbolClass * csym = NULL;
-    AssertBool isDefClass = alreadyDefinedSymbolClass(cuti, csym);
-    assert(isDefClass);
-    return csym->getUserStringPoolRef();
-  }
-
-  StringPoolUser& CompilerState::getUPoolRefForLocalsFilescope(UTI luti)
-  {
-    assert(isScalar(luti));
-    assert(isALocalsFileScope(luti));
-    NodeBlockLocals * localsblock = getLocalsScopeBlockByIndex(luti);
-    assert(localsblock);
-    return localsblock->getUserStringPoolRef();
-  }
-
   const std::string & CompilerState::getDataAsFormattedUserString(u32 combinedidx)
   {
-    UTI cuti = (combinedidx >> STRINGIDXBITS);
+    //UTI cuti = (combinedidx >> STRINGIDXBITS);
     u32 sidx = (combinedidx & STRINGIDXMASK);
-    assert(cuti > 0 && sidx > 0); // error/t3987
-    StringPoolUser& classupool = getUPoolRefForClass(cuti);
-    return classupool.getDataAsFormattedString(sidx, this);
+    //assert(cuti > 0 && sidx > 0); // error/t3987
+    assert(sidx > 0); // error/t3987
+    //StringPoolUser& classupool = getUPoolRefForClass(cuti);
+    //return classupool.getDataAsFormattedString(sidx, this);
+    return m_upool.getDataAsFormattedString(sidx, this);
   }
 
   const std::string & CompilerState::getDataAsUnFormattedUserString(u32 combinedidx)
   {
-    UTI cuti = (combinedidx >> STRINGIDXBITS);
+    //UTI cuti = (combinedidx >> STRINGIDXBITS);
     u32 sidx = (combinedidx & STRINGIDXMASK);
-    assert(cuti > 0 && sidx > 0); // t3959
-    StringPoolUser& classupool = getUPoolRefForClass(cuti);
-    return classupool.getDataAsString(sidx);
+    //assert(cuti > 0 && sidx > 0); // t3959
+    assert(sidx > 0); // t3959
+    //StringPoolUser& classupool = getUPoolRefForClass(cuti);
+    //return classupool.getDataAsString(sidx);
+    return m_upool.getDataAsString(sidx);
   }
 
   bool CompilerState::isValidUserStringIndex(u32 combinedidx)
   {
-    UTI cuti = (combinedidx >> STRINGIDXBITS);
+    //UTI cuti = (combinedidx >> STRINGIDXBITS);
     u32 sidx = (combinedidx & STRINGIDXMASK);
-    if(cuti == 0 || sidx == 0)
+    //if(cuti == 0 || sidx == 0)
+    if(sidx == 0)
       return false;
-    StringPoolUser& classupool = getUPoolRefForClass(cuti);
-    return (sidx < classupool.getUserStringPoolSize());
+    //StringPoolUser& classupool = getUPoolRefForClass(cuti);
+    //return (sidx < classupool.getUserStringPoolSize());
+    return (sidx < m_upool.getUserStringPoolSize());
   }
 
   u32 CompilerState::getUserStringLength(u32 combinedidx)
   {
-    UTI cuti = (combinedidx >> STRINGIDXBITS);
+    //UTI cuti = (combinedidx >> STRINGIDXBITS);
     u32 sidx = (combinedidx & STRINGIDXMASK);
-    assert(cuti > 0 && sidx > 0);
-    StringPoolUser& classupool = getUPoolRefForClass(cuti);
-    return classupool.getStringLength(sidx);
+    //assert(cuti > 0 && sidx > 0);
+    assert(sidx > 0);
+    //StringPoolUser& classupool = getUPoolRefForClass(cuti);
+    //return classupool.getStringLength(sidx);
+    return m_upool.getStringLength(sidx);
   }
 
   std::string CompilerState::getDataAsStringMangled(u32 dataindex)
@@ -3367,10 +3570,20 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     return GETCLASSLENGTH_FUNCNAME;
   }
 
-  const char * CompilerState::getClassGetStringFunctionName(UTI ltype)
+  const char * CompilerState::getClassRegistrationNumberFunctionName(UTI ltype)
   {
     assert(okUTItoContinue(ltype));
+    return GETCLASSREGISTRATIONNUMBER_FUNCNAME;
+  }
+
+  const char * CompilerState::getGetStringFunctionName()
+  {
     return GETSTRING_FUNCNAME;
+  }
+
+  const char * CompilerState::getGetStringLengthFunctionName()
+  {
+    return GETSTRINGLENGTH_FUNCNAME;
   }
 
   const char * CompilerState::getBuildDefaultAtomFunctionName(UTI ltype)
@@ -3521,12 +3734,32 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   const char * CompilerState::getMangledNameForUserStringPool()
   {
     return USERSTRINGPOOL_MANGLEDNAME;
-  } //getMangledNameForUserStringPool
+  }
 
   const char * CompilerState::getDefineNameForUserStringPoolSize()
   {
     return USERSTRINGPOOL_SIZEDEFINENAME;
-  } //getDefineNameForUserStringPoolSize
+  }
+
+  std::string CompilerState::getFileNameForUserStringPoolHeader(bool wSubDir)
+  {
+    std::ostringstream f;
+    if(wSubDir)
+      f << "include/";
+
+    f << USERSTRINGPOOL_FILENAME << ".h";
+    return f.str();
+  } //getFileNameForUserStringPoolHeader
+
+  std::string CompilerState::getFileNameForUserStringPoolCPP(bool wSubDir)
+  {
+    std::ostringstream f;
+    if(wSubDir)
+      f << "src/";
+
+    f << USERSTRINGPOOL_FILENAME << ".cpp";
+    return f.str();
+  } //getFileNameForUserStringPoolCPP
 
   ULAMCLASSTYPE CompilerState::getUlamClassForThisClass()
   {
@@ -3826,11 +4059,13 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
   UlamValue CompilerState::getByteOfUserStringForEval(u32 usrStr, u32 offsetInt)
   {
-    UTI cuti = (usrStr >> STRINGIDXBITS);
+    //UTI cuti = (usrStr >> STRINGIDXBITS);
     u32 sidx = (usrStr & STRINGIDXMASK);
-    assert((cuti > 0) && (sidx > 0));
-    StringPoolUser& classupool = getUPoolRefForClass(cuti);
-    u8 c = classupool.getByteOf(sidx, offsetInt);
+    //assert((cuti > 0) && (sidx > 0));
+    assert((sidx > 0));
+    //StringPoolUser& classupool = getUPoolRefForClass(cuti);
+    //u8 c = classupool.getByteOf(sidx, offsetInt);
+    u8 c = m_upool.getByteOf(sidx, offsetInt);
     return UlamValue::makeImmediate(ASCII, c, *this);
   }
 
@@ -3970,7 +4205,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
 	textOfLines->insert(textOfLines->end(), linenum - textOfLines->size(), blankid);
       }
-    assert((linenum >= 0) && (linenum <= textOfLines->size()));
+    assert((linenum <= textOfLines->size()));
     textOfLines->push_back(textid);
 
     m_locOfNextLineText = loc; //during parsing here (see NodeStatements)
@@ -4509,6 +4744,49 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     return rtnNode;
   } //findNodeNoInAncestorsLocalsScope
 
+  u32 CompilerState::getRegistrationNumberForClassOrLocalsScope(UTI cuti)
+  {
+    if(isAClass(cuti))
+      return getAClassRegistrationNumber(cuti);
+    else if(isALocalsFileScope(cuti))
+      return getALocalsScopeRegistrationNumber(cuti);
+    else
+      abortShouldntGetHere();
+    return 0;
+  }
+
+  u32 CompilerState::getAClassRegistrationNumber(UTI cuti)
+  {
+    assert(isAClass(cuti));
+    SymbolClass * csym = NULL;
+    AssertBool isDefined = alreadyDefinedSymbolClass(cuti, csym);
+    assert(isDefined);
+    return csym->getRegistryNumber();
+  }
+
+  u32 CompilerState::getALocalsScopeRegistrationNumber(UTI luti)
+  {
+    assert(isALocalsFileScope(luti));
+    NodeBlockLocals * rtnLocals = getLocalsScopeBlockByIndex(luti);
+    if(rtnLocals)
+      return rtnLocals->getRegistrationNumberForLocalsBlock();
+    return 0; //not found
+  }
+
+  ELE_TYPE CompilerState::getAClassElementType(UTI cuti)
+  {
+    assert(isASeenElement(cuti));
+    SymbolClass * csym = NULL;
+    AssertBool isDefined = alreadyDefinedSymbolClass(cuti, csym);
+    assert(isDefined);
+    return csym->getElementType();
+  }
+
+  ELE_TYPE CompilerState::getNextElementType()
+  {
+    return m_elementTypeGenerator.makeNextType();
+  }
+
   NodeBlockClass * CompilerState::getAClassBlock(UTI cuti)
   {
     assert(!isALocalsFileScope(cuti));
@@ -4773,6 +5051,13 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     return ((classtype == UC_ELEMENT) || (classtype == UC_QUARK) || (classtype == UC_TRANSIENT));
   }
 
+  bool CompilerState::isASeenElement(UTI cuti)
+  {
+    //includes refs, and arrays!!! NOT UNSEEN!
+    ULAMCLASSTYPE classtype = getUlamTypeByIndex(cuti)->getUlamClassType();
+    return (classtype == UC_ELEMENT);
+  }
+
   bool CompilerState::isAnonymousClass(UTI cuti)
   {
     assert(okUTItoContinue(cuti));
@@ -4809,22 +5094,28 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     return (cuti == m_urSelfUTI); //no compare
   } //isUrSelf
 
-  void CompilerState::saveEmptyUTI(UTI uti)
+  void CompilerState::saveEmptyElementUTI(UTI uti)
   {
-    m_emptyUTI = uti;
+    m_emptyElementUTI = uti;
   }
 
-  bool CompilerState::isEmpty(UTI cuti)
+  bool CompilerState::isEmptyElement(UTI cuti)
   {
-    if(m_emptyUTI == Nouti)
+    if(m_emptyElementUTI == Nouti)
       {
 	if(getUlamTypeNameIdByIndex(cuti) == m_pool.getIndexForDataString("Empty"))
-	  saveEmptyUTI(cuti);
+	  saveEmptyElementUTI(cuti);
 	else
 	  return false;
       }
-    return (cuti == m_emptyUTI); //no compare
-  } //isEmpty
+    return (cuti == m_emptyElementUTI); //no compare
+  } //isEmptyElement
+
+  UTI CompilerState::getEmptyElementUTI()
+  {
+    assert(m_emptyElementUTI != Nouti);
+    return m_emptyElementUTI;
+  }
 
   bool CompilerState::okUTItoContinue(UTI uti)
   {

@@ -37,8 +37,7 @@ namespace MFM {
 
     UTI newType = calcNodeType(leftType, rightType); //Bits, or Nav error
     setNodeType(newType);
-    if(newType == Hzy)
-      m_state.setGoAgain();
+    if(newType == Hzy) m_state.setGoAgain();
 
     Node::setStoreIntoAble(TBOOL_FALSE);
 

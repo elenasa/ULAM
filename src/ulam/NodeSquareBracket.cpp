@@ -357,11 +357,8 @@ namespace MFM {
 	else
 	  m_state.abortShouldntGetHere();
       }
-
     setNodeType(newType);
-    if(newType == Hzy)
-      m_state.setGoAgain(); //covers non-error(debug) messages for incompletes
-
+    if(newType == Hzy) m_state.setGoAgain(); //covers non-error(debug) messages for incompletes
     return newType;
   } //checkAndLabelType
 
@@ -886,30 +883,8 @@ namespace MFM {
       }
     else if(Node::isCurrentObjectsContainingAConstantClass() >= 0)
       {
-#if 0
-	//efficiency, for constant indexes of arrays in constant classes
-	// doesn't help much with fixing Element Types or Strings!!
-	if(m_nodeRight->isAConstant())
-	  {
-	    s32 rindex;
-	    UTI rt;
-	    if(getArraysizeInBracket(rindex,rt)) //t41198
-	      {
-		assert((rindex >= 0) && (rindex < m_state.getArraySize(leftType))); //catchable during c&l
-		UVPass luvpass = uvpass; //t3615 passes along if rhs of memberselect
-		m_nodeLeft->genCodeToStoreInto(fp, luvpass);
-		Node::genCodeReadArrayItemFromAConstantClassIntoATmpVarWithConstantIndex(fp, luvpass, rindex);
-		uvpass = luvpass;
-	      }
-	    else
-	      m_state.abortShouldntGetHere(); //error, msg? UNKNOWN?
-	  }
-	else
-#endif
-	  {
-	    genCodeToStoreInto(fp, uvpass); //t41198
-	    m_state.clearCurrentObjSymbolsForCodeGen();
-	  }
+	genCodeToStoreInto(fp, uvpass); //t41198
+	m_state.clearCurrentObjSymbolsForCodeGen();
 	return;
       }
     //else continue..
@@ -943,17 +918,21 @@ namespace MFM {
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
     s32 arraysize = lut->getArraySize();
     assert(!lut->isScalar());
-    m_state.indentUlamCode(fp);
-    fp->write("if(");
-    fp->write(offset.getTmpVarAsString(m_state).c_str());
-    fp->write(" >= ");
-    fp->write_decimal(arraysize);
-    fp->write(")"); GCNL;
 
-    m_state.m_currentIndentLevel++;
-    m_state.indentUlamCode(fp);
-    fp->write("FAIL(ARRAY_INDEX_OUT_OF_BOUNDS);"); GCNL;
-    m_state.m_currentIndentLevel--;
+    if(!m_nodeRight->isAConstant()) //Wed Jul 11 18:02:46 2018
+      {
+	m_state.indentUlamCode(fp);
+	fp->write("if(");
+	fp->write(offset.getTmpVarAsString(m_state).c_str());
+	fp->write(" >= ");
+	fp->write_decimal(arraysize);
+	fp->write(")"); GCNL;
+
+	m_state.m_currentIndentLevel++;
+	m_state.indentUlamCode(fp);
+	fp->write("FAIL(ARRAY_INDEX_OUT_OF_BOUNDS);"); GCNL;
+	m_state.m_currentIndentLevel--;
+      }
 
     //save autoref into a tmpvar symbol
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
@@ -1010,62 +989,16 @@ namespace MFM {
     UVPass luvpass = uvpass; //passes along if rhs of memberselect
     m_nodeLeft->genCode(fp, luvpass);
 
-    TMPSTORAGE lstor = luvpass.getPassStorage();
-
     //runtime check to avoid accessing beyond array (t3932)
     s32 tmpVarNum2 = m_state.getNextTmpVarNumber();
     m_state.indentUlamCode(fp);
     fp->write("const u32 ");
     fp->write(m_state.getTmpVarAsString(Unsigned, tmpVarNum2, TMPREGISTER).c_str());
-    if((lstor == TMPBITVAL) || (lstor == TMPAUTOREF))
-      {
-	fp->write(" = uc.GetUlamClassRegistry().GetUlamClassByIndex(");
-	fp->write(luvpass.getTmpVarAsString(m_state).c_str());
-	fp->write(".getRegistrationNumber())->");
-	fp->write(m_state.getClassGetStringFunctionName(m_state.getCompileThisIdx()));
-	fp->write("Length(");
-	fp->write(luvpass.getTmpVarAsString(m_state).c_str());
-	fp->write(".getStringIndex());"); GCNL;
-      }
-    else
-      {
-	if(!Node::isCurrentObjectALocalVariableOrArgument())
-	  {
-	    fp->write(" = uc.GetUlamClassRegistry().GetUlamClassByIndex(");
-	    fp->write(m_state.getStringMangledName().c_str());
-	    fp->write("::getRegNum(");
-	    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
-	    fp->write("))->");
-	    fp->write(m_state.getClassGetStringFunctionName(m_state.getCompileThisIdx()));
-	    fp->write("Length(");
-	    fp->write(m_state.getStringMangledName().c_str());
-	    fp->write("::getStrIdx(");
-	    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
-	    fp->write("));"); GCNL;
-	  }
-	else
-	  {
-	    //local variable string (e.g. t3974)
-	    assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
-	    Symbol * cossym = m_state.m_currentObjSymbolsForCodeGen.back();
-
-	    BV8K tmpbv8k;
-	    AssertBool gotValue = ((SymbolWithValue *) cossym)->getValue(tmpbv8k);
-	    assert(gotValue);
-
-	    UTI cuti = tmpbv8k.Read(0, 16u);
-	    assert(cuti > 0);
-
-	    fp->write(m_state.getTheInstanceMangledNameByIndex(cuti).c_str());
-	    fp->write("))->");
-	    fp->write(m_state.getClassGetStringFunctionName(m_state.getCompileThisIdx()));
-	    fp->write("Length(");
-	    fp->write(m_state.getStringMangledName().c_str());
-	    fp->write("::getStrIdx(");
-	    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
-	    fp->write("));"); GCNL;
-	  }
-      }
+    fp->write(" = ");
+    fp->write(m_state.getGetStringLengthFunctionName());
+    fp->write("(");
+    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
+    fp->write(");"); GCNL;
 
     m_state.indentUlamCode(fp);
     fp->write("if(");
@@ -1079,69 +1012,18 @@ namespace MFM {
     fp->write("FAIL(ARRAY_INDEX_OUT_OF_BOUNDS);"); GCNL;
     m_state.m_currentIndentLevel--;
 
-
     //get the ascii byte in a tmp var
     s32 tmpVarNum = m_state.getNextTmpVarNumber();
     m_state.indentUlamCode(fp);
     fp->write("const unsigned char ");
     fp->write(m_state.getTmpVarAsString(ASCII, tmpVarNum, TMPREGISTER).c_str());
-
-    if((lstor == TMPBITVAL) || (lstor == TMPAUTOREF))
-      {
-	fp->write(" = *(uc.GetUlamClassRegistry().GetUlamClassByIndex(");
-	fp->write(luvpass.getTmpVarAsString(m_state).c_str());
-	fp->write(".getRegistrationNumber())->");
-	fp->write(m_state.getClassGetStringFunctionName(m_state.getCompileThisIdx()));
-	fp->write("(");
-	fp->write(luvpass.getTmpVarAsString(m_state).c_str());
-	fp->write(".getStringIndex()) + ");
-	fp->write(offset.getTmpVarAsString(m_state).c_str()); //INDEX of byte
-	fp->write(");"); GCNL; //t3945
-      }
-    else
-      {
-	if(!Node::isCurrentObjectALocalVariableOrArgument())
-	  {
-	    fp->write(" = *(uc.GetUlamClassRegistry().GetUlamClassByIndex(");
-	    fp->write(m_state.getStringMangledName().c_str());
-	    fp->write("::getRegNum(");
-	    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
-	    fp->write("))->");
-	    fp->write(m_state.getClassGetStringFunctionName(m_state.getCompileThisIdx()));
-	    fp->write("(");
-	    fp->write(m_state.getStringMangledName().c_str());
-	    fp->write("::getStrIdx(");
-	    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
-	    fp->write(")) + ");
-	    fp->write(offset.getTmpVarAsString(m_state).c_str()); //INDEX of byte
-	    fp->write(");"); GCNL;
-	  }
-	else
-	  {
-	    //local variable string (e.g. t3974)
-	    assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
-	    Symbol * cossym = m_state.m_currentObjSymbolsForCodeGen.back();
-
-	    BV8K tmpbv8k;
-	    AssertBool gotValue = ((SymbolWithValue *) cossym)->getValue(tmpbv8k);
-	    assert(gotValue);
-
-	    UTI cuti = tmpbv8k.Read(0, 16u);
-	    assert(cuti > 0);
-
-	    fp->write(" = *(");
-	    fp->write(m_state.getTheInstanceMangledNameByIndex(cuti).c_str());
-	    fp->write("))->");
-	    fp->write(m_state.getClassGetStringFunctionName(m_state.getCompileThisIdx()));
-	    fp->write("(");
-	    fp->write(m_state.getStringMangledName().c_str());
-	    fp->write("::getStrIdx(");
-	    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
-	    fp->write(")) + ");
-	    fp->write(offset.getTmpVarAsString(m_state).c_str()); //INDEX of byte
-	    fp->write(");"); GCNL;
-	  }
-      }
+    fp->write(" = *(");
+    fp->write(m_state.getGetStringFunctionName());
+    fp->write("(");
+    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
+    fp->write(") + ");
+    fp->write(offset.getTmpVarAsString(m_state).c_str()); //INDEX of byte
+    fp->write(");"); GCNL; //t3945
 
     uvpass = UVPass::makePass(tmpVarNum, TMPREGISTER, ASCII, m_state.determinePackable(ASCII), m_state, 0, 0); //POS 0 rightjustified (atom-based).
 

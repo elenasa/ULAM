@@ -553,9 +553,7 @@ namespace MFM {
 	    //else t41192
 	  }
       }
-
-    if(getNodeType() == Hzy)
-      m_state.setGoAgain();
+    if(getNodeType() == Hzy) m_state.setGoAgain();
     return getNodeType();
   } //checkAndLabelType
 
@@ -728,6 +726,7 @@ namespace MFM {
 	    else
 	      rtnuti = uti;  //t41216
 
+	    //ulam-4 we can't wait for batch-style Element-Type assignment (e.g. t41230)
 	    //tries to pack bits if complete
 	    if(buildDefaultValueForClassConstantDefs())
 	      {
@@ -839,27 +838,6 @@ namespace MFM {
     ULAMTYPE etyp = m_state.getUlamTypeByIndex(uti)->getUlamTypeEnum();
     if(etyp == Int)
       newnode = new NodeTerminal((s64) newconst, uti, m_state);
-    else if(etyp == String)
-      {
-	UTI reguti = newconst >> STRINGIDXBITS;
-	UTI cuti = m_state.getCompileThisIdx();
-	UTI stubuti = m_state.m_pendingArgStubContext;
-	UTI newreguti = reguti;
-	if(reguti != cuti)
-	  newreguti = cuti;
-	if((stubuti != Nouti) && (stubuti != reguti))
-	  newreguti = stubuti;
-	if(newreguti != reguti)
-	  {
-	    //copy the constant string into this class' user string pool (from its context)
-	    // (e.g. t3959, t3960,1,2,7, t3981, t3986, t41005, t41006))
-	    std::string formattedstring = m_state.getDataAsUnFormattedUserString(newconst);
-	    StringPoolUser& classupool = m_state.getUPoolRefForClass(newreguti);
-	    u32 classstringidx = classupool.getIndexForDataString(formattedstring);
-	    newconst = (newreguti << STRINGIDXBITS) | (classstringidx & STRINGIDXMASK); //combined index
-	  }
-	newnode = new NodeTerminal(newconst, uti, m_state);
-      }
     else
       newnode = new NodeTerminal(newconst, uti, m_state);
     newnode->setNodeLocation(getNodeLocation());
@@ -902,8 +880,23 @@ namespace MFM {
     else if(m_nodeExpr->isAList())
       {
 	if(((NodeList *) m_nodeExpr)->foldArrayInitExpression())
-	  if(((NodeList *) m_nodeExpr)->buildArrayValueInitialization(bvtmp))
-	    brtn = true;
+	  {
+	    if(m_state.isAClass(nuti))
+	      {
+		BV8K bvclass;
+		if(!m_state.getDefaultClassValue(nuti, bvclass))
+		  return false; //possibly not ready (t41271,2,3)
+
+		UTI scalaruti = m_state.getUlamTypeAsScalar(nuti);
+		UlamType * scalarut = m_state.getUlamTypeByIndex(scalaruti);
+		UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+
+		m_state.getDefaultAsArray(scalarut->getSizeofUlamType(), nut->getArraySize(), 0, bvclass, bvtmp); //t41179
+	      }
+
+	    if(((NodeList *) m_nodeExpr)->buildArrayValueInitialization(bvtmp))
+	      brtn = true;
+	  }
 	//else no good (error/t41181)
       }
     else
@@ -918,7 +911,6 @@ namespace MFM {
 	else
 	  m_constSymbol->setValue(bvtmp); //isReady now! (e.g. ClassArgument, ModelParameter)
       }
-
     return brtn;
   } //foldArrayInitExpression
 
@@ -931,171 +923,55 @@ namespace MFM {
 
   bool NodeConstantDef::buildDefaultValueForClassConstantDefs()
   {
-    bool rtnok = true;
     UTI nuti = getNodeType();
     assert(m_state.okUTItoContinue(nuti) && m_state.isComplete(nuti));
 
-    if(m_state.isAClass(nuti)) //t41198
+    if(!m_state.isAClass(nuti)) //t41198
+      return true;
+
+    if(isReadyConstant())
+      return true;
+
+    bool rtnok = false;
+    BV8K bvtmp;
+    if(!m_nodeExpr)
       {
-	if(!isReadyConstant())
+	//no node expression, use default value
+	if((rtnok = m_state.getDefaultClassValue(nuti, bvtmp))) //uses scalar uti
 	  {
-	    if(m_state.tryToPackAClass(nuti) == TBOOL_TRUE) //uses scalar uti
-	      {
-		BV8K bvtmp;
-		if(m_nodeExpr)
-		  {
-		    if(m_nodeExpr->isAConstantClass())
-		      {
-			rtnok = m_nodeExpr->getConstantValue(bvtmp);
-			m_constSymbol->setValue(bvtmp);
-		      }
-		    else if(m_nodeExpr->isAList())
-		      {
-			if(m_state.getDefaultClassValue(nuti, bvtmp)) //uses scalar uti
-			  {
-			    if(!((NodeList *) m_nodeExpr)->isEmptyList())
-			      {
-				BV8K bvmask;
-				if(((NodeListClassInit *) m_nodeExpr)->initDataMembersConstantValue(bvtmp,bvmask))
-				  m_constSymbol->setValue(bvtmp);
-				else
-				  rtnok = false;
-			      }
-			    else
-			      m_constSymbol->setValue(bvtmp); //empty list uses default
-			  }
-			else rtnok = false;
-		      }
-		    else
-		      m_state.abortShouldntGetHere();
-		  }
-		else
-		  {
-		    //no node expression
-		    if((rtnok = m_state.getDefaultClassValue(nuti, bvtmp))) //uses scalar uti
-		      m_constSymbol->setValue(bvtmp);
-		    else
-		      rtnok = false;
-		  }
-	      } //packed
-	    else
-	      rtnok = false;
+	    m_constSymbol->setValue(bvtmp);
 	  }
+	return rtnok;
       }
+
+    //here, has nodeExpr, isn't ready, and is a class..
+    if(m_nodeExpr->isAConstantClass())
+      {
+	if((rtnok = m_nodeExpr->getConstantValue(bvtmp)))
+	  m_constSymbol->setValue(bvtmp);
+      }
+    else if(m_nodeExpr->isAList())
+      {
+	if(m_state.getDefaultClassValue(nuti, bvtmp)) //uses scalar uti
+	  {
+	    if(!((NodeList *) m_nodeExpr)->isEmptyList())
+	      {
+		BV8K bvmask;
+		if((rtnok = ((NodeListClassInit *) m_nodeExpr)->initDataMembersConstantValue(bvtmp,bvmask))) //passes along default value
+		  m_constSymbol->setValue(bvtmp);
+	      }
+	    else
+	      {
+		m_constSymbol->setValue(bvtmp); //empty list uses default
+		rtnok = true;
+	      }
+	  } // else no default, perhaps not ready
+      }
+    else
+      m_state.abortShouldntGetHere(); //why am i here?
+
     return rtnok;
   } //buildDefaultValueForClassConstantDefs
-
-  void NodeConstantDef::genCodeDefaultValueOrTmpVarStringRegistrationNumber(File * fp, u32 startpos, const UVPass * const uvpassptr, const BV8K * const bv8kptr)
-  {
-    return; //pass on
-  }
-
-  void NodeConstantDef::genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(File * fp, u32 startpos, const UVPass * const uvpassptr)
-  {
-    assert(m_constSymbol);
-    bool inDefault = (uvpassptr == NULL);
-
-    UTI nuti = getNodeType();
-    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    ULAMCLASSTYPE nclasstype = nut->getUlamClassType();
-    if(nclasstype == UC_ELEMENT)
-      {
-	s32 arraysize = nut->getArraySize();
-	arraysize = ((arraysize == NONARRAYSIZE) ? 1 : arraysize); //allow zero
-
-	m_state.indent(fp);
-	fp->write("{\n"); //limit scope of 'dam'
-	m_state.m_currentIndentLevel++;
-
-	m_state.indent(fp);
-	fp->write("AtomBitStorage<EC> gda(");
-	fp->write(m_state.getTheInstanceMangledNameByIndex(nuti).c_str());
-	fp->write(".GetDefaultAtom());"); GCNL;
-
-	m_state.indent(fp);
-	fp->write("u32 typefield = gda.Read(0u, T::ATOM_FIRST_STATE_BIT);"); GCNL; //can't use GetType");
-
-	for(s32 i = 0; i < arraysize; i++) //e.g. t3714 (array of element dm); t3735
-	  {
-	    if(inDefault)
-	      {
-		m_state.indent(fp);
-		fp->write("initBV");
-	      }
-	    else
-	      {
-		m_state.indentUlamCode(fp);
-		fp->write(uvpassptr->getTmpVarAsString(m_state).c_str());
-	      }
-	    fp->write(".Write(");
-	    fp->write_decimal_unsigned(m_constSymbol->getPosOffset() + startpos);
-	    fp->write("u + ");
-	    fp->write_decimal_unsigned(i * BITSPERATOM);
-	    fp->write("u, T::ATOM_FIRST_STATE_BIT, typefield);"); GCNL;
-	  }
-
-	m_state.m_currentIndentLevel--;
-	m_state.indent(fp);
-	fp->write("}\n");
-      }
-    else if(nclasstype == UC_TRANSIENT)
-      {
-	s32 arraysize = nut->getArraySize();
-	arraysize = (arraysize <= 0 ? 1 : arraysize);
-
-	u32 len = nut->getBitSize(); //item
-	//any transient data members that may have element data members
-	SymbolClass * csym = NULL;
-	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(nuti, csym);
-	assert(isDefined);
-
-	NodeBlockClass * cblock = csym->getClassBlockNode();
-	assert(cblock);
-
-	for(s32 i = 0; i < arraysize; i++)
-	  cblock->genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(fp, m_constSymbol->getPosOffset() + startpos + i * len, uvpassptr);
-      }
-    else if(m_state.isAtom(nuti))
-      {
-	s32 arraysize = nut->getArraySize();
-	arraysize = (arraysize <= 0 ? 1 : arraysize);
-
-	m_state.indent(fp);
-	fp->write("{\n"); //limit scope of 'dam'
-	m_state.m_currentIndentLevel++;
-
-	m_state.indent(fp);
-	fp->write("AtomBitStorage<EC> gda(");
-	fp->write("Element_Empty<EC>::THE_INSTANCE.GetDefaultAtom());"); GCNL;
-
-	m_state.indent(fp);
-	fp->write("u32 typefield = gda.Read(0u, T::ATOM_FIRST_STATE_BIT);"); GCNL; //can't use GetType");
-
-	for(s32 i = 0; i < arraysize; i++)
-	  {
-	    if(inDefault)
-	      {
-		m_state.indent(fp);
-		fp->write("initBV");
-	      }
-	    else
-	      {
-		m_state.indentUlamCode(fp);
-		fp->write(uvpassptr->getTmpVarAsString(m_state).c_str());
-	      }
-	    fp->write(".Write(");
-	    fp->write_decimal_unsigned(m_constSymbol->getPosOffset() + startpos);
-	    fp->write("u + ");
-	    fp->write_decimal_unsigned(i * BITSPERATOM);
-	    fp->write("u, T::ATOM_FIRST_STATE_BIT, typefield);"); GCNL;
-	  }
-
-	m_state.m_currentIndentLevel--;
-	m_state.indent(fp);
-	fp->write("}\n");
-      }
-    return;
-  } //genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar
 
   void NodeConstantDef::fixPendingArgumentNode()
   {
@@ -1429,7 +1305,7 @@ namespace MFM {
       {
 	if(m_constSymbol->isLocalsFilescopeDef() ||  m_constSymbol->isDataMember())
 	  {
-	    u32 arraysize = nut->getArraySize();
+	    //u32 arraysize = nut->getArraySize();
 
 	    //as a "data member", locals filescope, or class arguement:
 	    // initialized in no-arg constructor (non-const)
@@ -1437,14 +1313,6 @@ namespace MFM {
 	    fp->write("static ");
 	    fp->write(nut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
 	    fp->write(" ");
-	    fp->write(m_constSymbol->getMangledName().c_str());
-	    fp->write(";"); GCNL;
-
-	    //fix once
-	    m_state.indentUlamCode(fp);
-	    fp->write("BitVector<");
-	    fp->write_decimal_unsigned(arraysize);
-	    fp->write("> _isFixed");
 	    fp->write(m_constSymbol->getMangledName().c_str());
 	    fp->write(";"); GCNL;
 	  }
@@ -1483,7 +1351,7 @@ namespace MFM {
 	    fp->write(");"); GCNL;
 	    m_state.clearCurrentObjSymbolsForCodeGen();
 	  }
-      }
+      } //end constant arrays
     else if(etyp == String)
       {
 	u32 sval;
@@ -1492,9 +1360,7 @@ namespace MFM {
 	//output comment for scalar constant value
 	m_state.indentUlamCode(fp);
 	fp->write("//");
-	std::ostringstream ostream;
-	ostream << " 0x" << std::hex << sval;
-	fp->write(ostream.str().c_str());
+	fp->write_hexadecimal(sval);
 	fp->write(" -> ");
 	m_constSymbol->printPostfixValue(fp);
 	GCNL;
@@ -1507,7 +1373,7 @@ namespace MFM {
 
 	if(m_constSymbol->isLocalsFilescopeDef() ||  m_constSymbol->isDataMember() || m_constSymbol->isClassArgument())
 	  {
-	    //defined in .tcc, only declared in .h as static
+	    //defined in .tcc, only declared in .h as static (a "classic" GOTCHA!!)
 	    m_state.indentUlamCode(fp);
 	    fp->write("static ");
 	    fp->write(nut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
@@ -1519,19 +1385,10 @@ namespace MFM {
 	    fp->write("//");
 	    fp->write(estr.c_str());
 	    GCNL;
-
-	    //fix once, scalar constant class
-	    if(!m_constSymbol->isClassArgument())
-	      {
-		m_state.indentUlamCode(fp);
-		fp->write("BitVector<1> _isFixed");
-		fp->write(m_constSymbol->getMangledName().c_str());
-		fp->write(";"); GCNL;
-	      }
 	  }
 	else
 	  {
-	    //immediate named constant in a function (t41232)
+	    //an immediate, named constant in a function (t41232)
 	    u32 len = nut->getSizeofUlamType();
 	    m_state.indentUlamCode(fp);
 	    fp->write("const u32 _init");
@@ -1551,16 +1408,6 @@ namespace MFM {
 	    fp->write("); // tmp for constant ");
 	    fp->write(getName()); //comment
 	    GCNL;
-
-	    m_state.m_currentObjSymbolsForCodeGen.push_back(m_constSymbol);
-	    UVPass tmpuvpass;
-	    Node::genCodeReadFromAConstantClassIntoATmpVar(fp, tmpuvpass);
-
-	    m_state.indentUlamCode(fp);
-	    fp->write(m_constSymbol->getMangledName().c_str());
-	    fp->write(".write(");
-	    fp->write(tmpuvpass.getTmpVarAsString(m_state).c_str());
-	    fp->write(");"); GCNL;
 	  }
       } //else do nothing
     return; //done
@@ -1620,25 +1467,6 @@ namespace MFM {
 	fp->write(m_constSymbol->getMangledName().c_str());
 	fp->write("();"); GCNL;
 	fp->write("\n");
-
-	//declare methods to check/set fix once for arrays and/or class constants
-	if((m_constSymbol->isLocalsFilescopeDef() ||  m_constSymbol->isDataMember()))
-	  {
-	    m_state.indent(fp);
-	    fp->write("bool _isFixedMethodFor");
-	    fp->write(m_constSymbol->getMangledName().c_str());
-	    fp->write("(const u32 pos = 0, const u32 len = ");
-	    fp->write_decimal(arraysize);
-	    fp->write(");"); GCNL;
-
-	    m_state.indent(fp);
-	    fp->write("void _isFixedSetMethodFor");
-	    fp->write(m_constSymbol->getMangledName().c_str());
-	    fp->write("(const u32 pos = 0, const u32 len = ");
-	    fp->write_decimal(arraysize);
-	    fp->write(");"); GCNL;
-	    fp->write("\n");
-	  }
 	return;
       }
 
@@ -1722,88 +1550,6 @@ namespace MFM {
     fp->write("()); //Def constant ");
     fp->write(getName()); GCNL;
     fp->write("\n");
-
-    //fix once constant class or array
-    if((m_constSymbol->isLocalsFilescopeDef() ||  m_constSymbol->isDataMember()))
-      {
-	m_state.indent(fp);
-	fp->write("template<class EC>\n");
-	m_state.indent(fp);
-	fp->write("bool MFM::");
-	fp->write(cut->getUlamTypeMangledName().c_str());
-	fp->write("<EC>::");
-	fp->write("_isFixedMethodFor");
-	fp->write(m_constSymbol->getMangledName().c_str());
-	fp->write("(const u32 pos, const u32 len)\n");
-	m_state.indent(fp);
-	fp->write("{\n");
-
-	m_state.m_currentIndentLevel++;
-
-	m_state.indent(fp);
-	fp->write("for(u32 i = pos; i < pos + len; i++)\n");
-	m_state.indent(fp);
-	fp->write("{\n");
-
-	m_state.m_currentIndentLevel++;
-
-	m_state.indent(fp);
-	fp->write("if(");
-	fp->write(m_state.getTheInstanceMangledNameByIndex(cuti).c_str());
-	fp->write("._isFixed");
-	fp->write(m_constSymbol->getMangledName().c_str());
-	fp->write(".Read(i, 1) == 0)\n");
-
-	m_state.m_currentIndentLevel++;
-	m_state.indent(fp);
-	fp->write("return false; //done\n");
-	m_state.m_currentIndentLevel--;
-
-	m_state.m_currentIndentLevel--;
-
-	m_state.indent(fp);
-	fp->write("} //loop\n");
-
-	m_state.indent(fp);
-	fp->write("return true;\n");
-
-	m_state.m_currentIndentLevel--;
-
-	m_state.indent(fp);
-	fp->write("} // _isFixedMethodFor");
-	fp->write(m_constSymbol->getMangledName().c_str()); GCNL;
-	fp->write("\n");
-
-	//set method
-	m_state.indent(fp);
-	fp->write("template<class EC>\n");
-	m_state.indent(fp);
-	fp->write("void MFM::");
-	fp->write(cut->getUlamTypeMangledName().c_str());
-	fp->write("<EC>::");
-	fp->write("_isFixedSetMethodFor");
-	fp->write(m_constSymbol->getMangledName().c_str());
-	fp->write("(const u32 pos, const u32 len)\n");
-	m_state.indent(fp);
-	fp->write("{\n");
-
-	m_state.m_currentIndentLevel++;
-
-	m_state.indent(fp);
-	fp->write("for(u32 i = pos; i < pos + len; i++) ");
-
-	fp->write(m_state.getTheInstanceMangledNameByIndex(cuti).c_str());
-	fp->write("._isFixed");
-	fp->write(m_constSymbol->getMangledName().c_str());
-	fp->write(".Write(i, 1, 1);\n");
-
-	m_state.m_currentIndentLevel--;
-
-	m_state.indent(fp);
-	fp->write("} // _isFixedSetMethodFor");
-	fp->write(m_constSymbol->getMangledName().c_str()); GCNL;
-	fp->write("\n");
-      }
   } //generateBuiltinConstantClassOrArrayInitializationFunction
 
   void NodeConstantDef::cloneAndAppendNode(std::vector<Node *> & cloneVec)

@@ -103,6 +103,8 @@ namespace MFM{
 
     StringPoolUser m_tokenupool; //for double quoted strings Tokens only
 
+    StringPoolUser m_upool; //for double quoted strings only (global ulam-4)
+
     // map key is the prefix id in the Locator; value is a vector of
     // stringpool id's indexed by line into the original ulam source
     // code; built by SourceStream during parsing; used for
@@ -166,7 +168,7 @@ namespace MFM{
     NNO m_nextNodeNumber; //used to identify blocks in clone classes with unknown subtrees
 
     UTI m_urSelfUTI; //original ancestor of all classes
-    UTI m_emptyUTI; //the Empty class
+    UTI m_emptyElementUTI; //the Empty element class
 
     CompilerState();
     ~CompilerState();
@@ -357,10 +359,17 @@ namespace MFM{
     void updateLineageAndFirstCheckAndLabelPass();
     void updateLineageAndFirstCheckAndLabelPassForLocals();
     bool checkAndLabelPassForLocals();
+    void defineRegistrationNumberForUlamClasses(); //ulam-4
+    void defineRegistrationNumberForLocals(); //ulam-4
+    //void defineElementTypesForUlamClasses();
+
     void generateCodeForUlamClasses(FileManager * fm);
     void generateUlamClassForLocals(FileManager * fm);
-    StringPoolUser & getUPoolRefForClass(UTI cuti);
-    StringPoolUser& getUPoolRefForLocalsFilescope(UTI luti);
+
+    void generateGlobalUserStringPool(FileManager * fm);
+    void genCodeBuiltInFunctionGetString(File * fp, bool declOnly);
+    void genCodeBuiltInFunctionGetStringLength(File * fp, bool declOnly);
+
     const std::string & getDataAsFormattedUserString(u32 combinedidx);
     const std::string & getDataAsUnFormattedUserString(u32 combinedidx);
     bool isValidUserStringIndex(u32 combinedidx);
@@ -396,7 +405,9 @@ namespace MFM{
     const char * getIsMangledFunctionName(UTI ltype);
     const char * getAsMangledFunctionName(UTI ltype, UTI rtype);
     const char * getClassLengthFunctionName(UTI ltype);
-    const char * getClassGetStringFunctionName(UTI ltype);
+    const char * getClassRegistrationNumberFunctionName(UTI ltype);
+    const char * getGetStringFunctionName();
+    const char * getGetStringLengthFunctionName();
     const char * getBuildDefaultAtomFunctionName(UTI ltype);
     const char * getDefaultQuarkFunctionName();
 
@@ -415,6 +426,8 @@ namespace MFM{
     const std::string getStringMangledName();
     const char * getMangledNameForUserStringPool();
     const char * getDefineNameForUserStringPoolSize();
+    std::string getFileNameForUserStringPoolHeader(bool wSubDir = false);
+    std::string getFileNameForUserStringPoolCPP(bool wSubDir = false);
 
     ULAMCLASSTYPE getUlamClassForThisClass();
     UTI getUlamTypeForThisClass();
@@ -518,6 +531,12 @@ namespace MFM{
     Node * findNodeNoInALocalsScope(Locator loc, NNO n);
     Node * findNodeNoInAncestorsLocalsScope(NNO n, UTI cuti);
 
+    u32 getRegistrationNumberForClassOrLocalsScope(UTI cuti); //ulam-4
+    u32 getAClassRegistrationNumber(UTI cuti); //ulam-4
+    u32 getALocalsScopeRegistrationNumber(UTI cuti); //ulam-4
+    ELE_TYPE getAClassElementType(UTI cuti); //ulam-4
+    ELE_TYPE getNextElementType(); //ulam-4 incrementally
+
     NodeBlockClass * getAClassBlock(UTI cuti);
     NNO getAClassBlockNo(UTI cuti);
 
@@ -576,11 +595,13 @@ namespace MFM{
     bool isALocalsFileScope(UTI uti);
     bool isAClass(UTI uti);
     bool isASeenClass(UTI cuti);
+    bool isASeenElement(UTI cuti);
     bool isAnonymousClass(UTI cuti);
     void saveUrSelf(UTI uti);
     bool isUrSelf(UTI cuti);
-    void saveEmptyUTI(UTI uti);
-    bool isEmpty(UTI cuti);
+    void saveEmptyElementUTI(UTI uti);
+    bool isEmptyElement(UTI cuti);
+    UTI getEmptyElementUTI();
     bool okUTItoContinue(UTI uti);
     bool neitherNAVokUTItoContinue(UTI uti1, UTI uti2); //false if either is Nav
     bool checkHasHazyKin(NodeBlock * block);
@@ -597,7 +618,8 @@ namespace MFM{
 
   private:
     ClassContextStack m_classContextStack; // the current subject of this compilation
-
+    u32 m_registeredUlamClassCount; //borrowed from UlamClass in MFM
+    ElementTypeGenerator m_elementTypeGenerator; //ulam-4 increment version
 
   };
 }

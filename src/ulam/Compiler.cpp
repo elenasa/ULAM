@@ -111,23 +111,35 @@ namespace MFM {
       {
 	//across ALL parsed files
 	perrs = checkAndTypeLabelProgram(errput);
-	if(perrs == 0)
-	  {
-	    m_state.generateCodeForUlamClasses(outfm);
-	    perrs = m_state.m_err.getErrorCount();
-
-	    if(perrs > 0)
-	      {
-		std::ostringstream msg;
-		errput->write("Unrecoverable Program GenCode FAILURE.\n");
-	      }
-	  }
-	else
+	if(perrs > 0)
 	  {
 	    std::ostringstream msg;
 	    errput->write("Unrecoverable Program Type Label FAILURE.\n");
 	  }
       }
+
+    if(!perrs)
+      {
+	m_state.defineRegistrationNumberForUlamClasses(); //ulam-4
+	perrs = m_state.m_err.getErrorCount();
+	if(perrs > 0)
+	  {
+	    std::ostringstream msg;
+	    errput->write("Unrecoverable Registry Number Assignment FAILURE.\n");
+	  }
+      }
+
+    if(!perrs)
+      {
+	m_state.generateCodeForUlamClasses(outfm);
+	perrs = m_state.m_err.getErrorCount();
+	if(perrs > 0)
+	  {
+	    std::ostringstream msg;
+	    errput->write("Unrecoverable Program GenCode FAILURE.\n");
+	  }
+      }
+
     delete P;
     delete PP;
     delete Lex;
@@ -311,41 +323,6 @@ namespace MFM {
 	// determine all class default values:
 	if(!errCnt) m_state.m_programDefST.buildDefaultValuesFromTableOfClasses();
 	errCnt = m_state.m_err.getErrorCount(); //latest count
-
-#if 0
-	//resolving loop again to fix up late constant class values
-	// dependent on building class default values(i.e. constant
-	// classes), might take more than a couple times around..
-	u32 infcounter3 = 0;
-	if(errCnt == 0)
-	  {
-	    sumbrtn = false;
-	    m_state.m_err.revertToWaitMode();
-	  }
-	else
-	  sumbrtn = true;
-
-	while(!sumbrtn)
-	  {
-	    // resolve unknowns and size classes; sets "current" m_currentClassSymbol in CS
-	    m_state.m_err.clearCounts(); //warnings and errors
-	    sumbrtn = resolvingLoop();
-	    errCnt = m_state.m_err.getErrorCount();
-	    if((++infcounter3 > MAX_ITERATIONS) || (errCnt > 0))
-	      {
-		std::ostringstream msg;
-		msg << errCnt << " Errors found during resolving loop --- ";
-		msg << "possible INCOMPLETE (or Template) class detected --- ";
-		msg << "after " << infcounter3 << " iterations";
-		MSG("", msg.str().c_str(), DEBUG);
-		//note: not an error because template uses with deferred args remain unresolved; however,
-		// context reveals if stub was needed by a template and not included.
-		break;
-	      }
-	    else if(infcounter3 == MAX_ITERATIONS) //last time
-	      m_state.m_err.changeWaitToErrMode();
-	  } //while
-#endif
       }
 
     errCnt = m_state.m_err.getErrorCount(); //latest count

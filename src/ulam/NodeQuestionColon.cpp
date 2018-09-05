@@ -284,8 +284,7 @@ namespace MFM {
       }
 
     setNodeType(newType);  //stays the same
-    if(newType == Hzy)
-      m_state.setGoAgain();
+    if(newType == Hzy) m_state.setGoAgain();
 
     Node::setStoreIntoAble(isAConstant() ? TBOOL_FALSE : TBOOL_TRUE);
 
