@@ -1114,7 +1114,7 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("typedef EventConfig<OurSiteAll,4> OurEventConfigAll;"); GCNL;
     m_state.indent(fp);
-    fp->write("typedef SizedTile<OurEventConfigAll, 20, 101> OurTestTile;"); GCNL; //TODO update for staggered tiles: ..,40,20,101>
+    fp->write("typedef SizedTile<OurEventConfigAll, 40, 20, 101> OurTestTile;"); GCNL;
     m_state.indent(fp);
     fp->write("typedef ElementTypeNumberMap<OurEventConfigAll> OurEventTypeNumberMapAll;"); GCNL;
     fp->write("\n");
@@ -1178,9 +1178,9 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("OurUlamContext uc(tile.GetElementTable());"); GCNL;
     m_state.indent(fp);
-    fp->write("const u32 TILE_WIDTH = tile.TILE_SIDE;"); GCNL; //TODO update for staggered tiles
+    fp->write("const u32 TILE_WIDTH = tile.TILE_WIDTH;"); GCNL;
     m_state.indent(fp);
-    fp->write("const u32 TILE_HEIGHT = tile.TILE_SIDE;"); GCNL; //TODO update for staggered tiles
+    fp->write("const u32 TILE_HEIGHT = tile.TILE_HEIGHT;"); GCNL;
     m_state.indent(fp);
     fp->write("SPoint center(TILE_WIDTH/2, TILE_HEIGHT/2);  // Hitting no caches, for starters;\n");
     m_state.indent(fp);
