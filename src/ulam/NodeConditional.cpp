@@ -5,7 +5,11 @@
 
 namespace MFM {
 
-  NodeConditional::NodeConditional(Node * leftNode, NodeTypeDescriptor * classType, CompilerState & state): Node(state), m_nodeLeft(leftNode), m_nodeTypeDesc(classType) {}
+  NodeConditional::NodeConditional(Node * leftNode, NodeTypeDescriptor * classType, CompilerState & state): Node(state), m_nodeLeft(leftNode), m_nodeTypeDesc(classType)
+  {
+    assert(m_nodeLeft);
+    assert(m_nodeTypeDesc);
+  }
 
   NodeConditional::NodeConditional(const NodeConditional& ref) : Node(ref)
   {

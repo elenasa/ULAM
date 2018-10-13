@@ -2,12 +2,10 @@
 #=t41192_test_compiler_element_initconstantreflocalvar_error
 ##
 #!
-./Foo.ulam:7:14: ERROR: Invalid named constant Reference Type 'Bool'.
-./Foo.ulam:8:5: ERROR: Invalid Statement (possible missing semicolon).
-Unrecoverable Program Parse FAILURE: <Foo.ulam>
+./Foo.ulam:8:10: ERROR: Unmodifiable lefthand side of assignment expression <bref>, type: constant Bool(3)&; may be a constant function parameter.
+Unrecoverable Program Type Label FAILURE.
 ##
-## informed by t41187, testing new feature, the constant function parameter
-## name constant cannot be a reference type.
+## informed by t41187, and t41234 testing new feature, the named constant ref
 ##
 #>Foo.ulam
   ulam 3;
@@ -17,6 +15,7 @@ element Foo {
 
   Int test() {
     constant Bool(3) & bref = m_b; //or true
+    bref = true; //ERROR
     return 0;
   }
 }

@@ -3,7 +3,8 @@
 #!
 ./D.ulam:12:11: ERROR: Undefined function <times> has already been declared as a variable at: ..
 ./D.ulam:11:11: ERROR: .. this location.
-./D.ulam:12:18: ERROR: Invalid Statement (possible missing semicolon).
+./D.ulam:12:9: ERROR: Right operand of binary = is missing; Assignment deleted.
+./D.ulam:12:17: ERROR: Invalid Statement (possible missing semicolon).
 Unrecoverable Program Parse FAILURE: <D.ulam>
 #>D.ulam
   ulam 1;

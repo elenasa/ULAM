@@ -44,10 +44,6 @@ namespace MFM {
     UlamType * fmut = m_state.getUlamTypeByIndex(typidx);
     if( fmut == this)
       return CAST_CLEAR; //same class, quark or element
-
-    if((fmut->getReferenceType()==ALT_CONSTREF) && (getReferenceType()==ALT_REF))
-      return CAST_BAD; //bad cast from const ref to non-const ref
-
     UTI fmderef = m_state.getUlamTypeAsDeref(typidx); //e.g. ALT_ARRAYITEM
     u32 cuti = m_key.getUlamKeyTypeSignatureClassInstanceIdx(); //our scalar "new"
     if(m_state.isClassASubclassOf(fmderef, cuti))
@@ -91,19 +87,15 @@ namespace MFM {
 	  return CAST_BAD;
 	else if(m_state.isAtom(typidx))
 	  return CAST_CLEAR;
-
-	if((fmut->getReferenceType()==ALT_CONSTREF) && (getReferenceType()==ALT_REF))
-	  return CAST_BAD; //bad cast from const ref to non-const ref
-
 	//check when casting from class to class
-	bool isfmref = fmut->isReference();
+	bool isfmref = fmut->isAltRefType();
 	UTI fmderef = m_state.getUlamTypeAsDeref(typidx);
 	u32 cuti = m_key.getUlamKeyTypeSignatureClassInstanceIdx(); //our scalar as nonref "new"
 	if(m_state.isClassASubclassOf(cuti, fmderef))
 	  {
 	    //even though it may fail at runtime:
 	    //(down)casting fm super to sub..only if fm-ref && to-ref
-	    if(!isfmref || !isReference())
+	    if(!isfmref || !isAltRefType())
 	      scr = CAST_BAD; //t3756, t3757
 	  }
 	else if(m_state.isClassASubclassOf(fmderef, cuti))
@@ -119,8 +111,11 @@ namespace MFM {
 
   const char * UlamTypeClass::getUlamTypeAsSingleLowercaseLetter()
   {
-    m_state.abortShouldntGetHere(); //UC_UNSEEN
-    return UlamType::getUlamTypeEnumCodeChar(getUlamTypeEnum());
+   if(getUlamClassType() == UC_UNSEEN)
+      {
+	m_state.abortShouldntGetHere(); //UC_UNSEEN
+      }
+   return UlamType::getUlamTypeEnumCodeChar(getUlamTypeEnum());
   }
 
   const std::string UlamTypeClass::getUlamTypeMangledType()
@@ -130,7 +125,7 @@ namespace MFM {
     s32 bitsize = getBitSize();
     s32 arraysize = getArraySize();
 
-    if(isReference())
+    if(isReference()) //not isAltRefType
       mangled << "r";
 
     if(arraysize > 0)
@@ -145,7 +140,7 @@ namespace MFM {
     else
       mangled << 10;
 
-    mangled << m_state.getDataAsStringMangled(m_key.getUlamKeyTypeSignatureNameId()).c_str();
+    mangled << m_state.getDataAsStringMangled(getUlamTypeNameId()).c_str();
     //without types and values of args!!
     return mangled.str();
   } //getUlamTypeMangledType
@@ -156,7 +151,7 @@ namespace MFM {
     mangledclassname << UlamType::getUlamTypeMangledName(); //includes Uprefix
 
     //or numberOfParameters followed by each digi-encoded: mangled type and value
-    u32 id = m_key.getUlamKeyTypeSignatureNameId();
+    u32 id = getUlamTypeNameId();
     UTI cuti =  m_key.getUlamKeyTypeSignatureClassInstanceIdx();
     SymbolClassName * cnsym = (SymbolClassName *) m_state.m_programDefST.getSymbolPtr(id);
     mangledclassname << cnsym->formatAnInstancesArgValuesAsAString(cuti);
@@ -171,17 +166,42 @@ namespace MFM {
 
   const std::string UlamTypeClass::getUlamTypeNameBrief()
   {
-    std::ostringstream namestr;
+    u32 cuti = m_key.getUlamKeyTypeSignatureClassInstanceIdx();
+    //except for UlamType::checkArrayCast error message (e.g. t3668, t3814)
+    return getUlamTypeClassNameBrief(cuti); //when we don't know the uti (ok for non templated)
+  } //getUlamTypeNameBrief
 
+  const std::string UlamTypeClass::getUlamTypeClassNameBrief(UTI cuti)
+  {
+    //note: any "[arraysize]" comes with variable name, not class type (like C decl).
+    bool isref = (getReferenceType() != ALT_NOT);
+    UTI kuti = m_key.getUlamKeyTypeSignatureClassInstanceIdx();
+    UTI uti = isref ? kuti : cuti;
+
+#if 0
+    //for DEBUGG ONLY!!
+    UTI aliasuti;
+    if(m_state.findaUTIAlias(cuti, aliasuti))
+      {
+	//when array or ref, the kuti is the scalar/deref uti, the aliasuti is same as cuti;
+	//stubs get here via printPostfix on template classes;
+	assert(isref || !isScalar() || m_state.isClassAStub(cuti) || (aliasuti == kuti)); //sanity:t3363(stub),t3757,t3806 (stub),3814 (array)
+      }
+    else
+      {
+	assert(isref || !isScalar() || !isComplete() || (cuti == kuti)); //debug:t3862,t41209,t3143,t3327
+      }
+#endif
+
+    std::ostringstream namestr;
     namestr << m_key.getUlamKeyTypeSignatureName(&m_state).c_str();
 
-    u32 id = m_key.getUlamKeyTypeSignatureNameId();
-    u32 cuti = m_key.getUlamKeyTypeSignatureClassInstanceIdx();
+    u32 id = getUlamTypeNameId();
     SymbolClassName * cnsym = (SymbolClassName *) m_state.m_programDefST.getSymbolPtr(id);
     if(cnsym && cnsym->isClassTemplate())
-      namestr << ((SymbolClassNameTemplate *) cnsym)->formatAnInstancesArgValuesAsCommaDelimitedString(cuti).c_str();
+      namestr << ((SymbolClassNameTemplate *) cnsym)->formatAnInstancesArgValuesAsCommaDelimitedString(uti).c_str();
 
-    //note: any "[arraysize]" comes with variable name, not class type (like C decl).
+     //note: any "[arraysize]" comes with variable name, not class type (like C decl).
     if(getReferenceType() != ALT_NOT)
       namestr << "&";
     return namestr.str();
@@ -266,7 +286,7 @@ namespace MFM {
 
   const std::string UlamTypeClass::getUlamTypeImmediateMangledName()
   {
-    if(needsImmediateType() || isReference())
+    if(needsImmediateType() || isAltRefType())
       {
 	return UlamType::getUlamTypeImmediateMangledName();
       }
@@ -275,9 +295,9 @@ namespace MFM {
 
   const std::string UlamTypeClass::getUlamTypeImmediateAutoMangledName()
   {
-    assert(needsImmediateType() || isReference());
+    assert(needsImmediateType() || isAltRefType());
 
-    if(isReference())
+    if(isAltRefType())
       {
 	m_state.abortShouldntGetHere(); //use ImmediateMangledName
 	return getUlamTypeImmediateMangledName();

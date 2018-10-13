@@ -1,0 +1,45 @@
+## -*- mode:ulam -*-
+#=t41249_test_compiler_elementandquark_constantsuperquarkref
+##
+## gen code: (1 assert)
+##
+#!
+Exit status: 1
+Ue_Foo : Bar { :< Bool(1) val_b[3](false,false,false); > Int(32) test() {  System s;  Foo g;  g val_b 1 [] . true = constant Bar& r = g cast;  s ( r val_b 1 [] . )assert . r val_b 1 [] . cast return } }
+Uq_Bar { Bool(1) val_b[3](false,false,false);  <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## informed by t3617, except r is a constant ref (and not writeable)
+##
+#>Foo.ulam
+  ulam 3;
+element Foo : Bar {
+  Int test() {
+    System s;
+    Foo g;
+    g.val_b[1] = true;
+
+    constant Bar& r = g;
+    s.assert(r.val_b[1]);
+    return (Int) (r.val_b[1]);
+  }
+}
+
+#:Bar.ulam
+  ulam 1;
+quark Bar {
+  Bool val_b[3];
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

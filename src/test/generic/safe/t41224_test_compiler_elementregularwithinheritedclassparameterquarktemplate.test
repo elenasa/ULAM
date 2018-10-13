@@ -1,0 +1,70 @@
+## -*- mode:ulam -*-
+#=t41224_test_compiler_elementregularwithinheritedclassparameterquarktemplate
+##
+##  gen output: (+ interleaved asserts)
+##   Int(4) : 2
+##   true
+##   Int(4) : 3
+##   false
+##
+## FAILED: ILLEGAL_ARGUMENT
+#!
+Exit status: 7
+Ue_T { Int(32) test() {  System sys;  E e;  sys ( e 7 . )print . sys ( e 7 . 7 == )assert . sys ( e v . b . cast )print . sys ( e v . b . )assert . e 7 . cast return } }
+Uq_System { <NOMAIN> }
+Ue_E : S(0xb8,true) { /* empty class block */ }
+Uq_S(Q(flag) v, Bool(1) bp) { constant Int(4) csi = v i .;  <NOMAIN> }
+Uq_Q(Bool(1) flag) { Bool(1) b(notready);  Int(4) i(0);  <NOMAIN> }
+##
+##    //informed by t41223, except E is regular
+##
+#>T.ulam
+ ulam 3;
+//use S; //NOT IRRELEVENT?
+element T{
+  Int test(){
+    System sys;
+
+
+    E e;
+
+    sys.print(e.csi);
+    sys.assert(e.csi == 7);
+    sys.print(e.v.b);
+    sys.assert(e.v.b); //true
+    return e.csi;
+  }
+}
+
+#:S.ulam
+  ulam 3;
+quark S(Q(bp) v, Bool bp) {
+  constant Int(4) csi = v.i;
+}
+
+#:Q.ulam
+  ulam 1;
+quark Q(Bool flag){
+  Bool b = flag;
+  Int(4) i;
+}
+
+
+#:E.ulam
+  ulam 3;
+local constant Q(true) cqt = { .i = 7 };
+element E : S(cqt, true) { }
+
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

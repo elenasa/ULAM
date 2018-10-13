@@ -2,14 +2,14 @@
 #=t41181_test_compiler_classdminitarraysinclassintranisentwmods_error
 ##
 #!
-./A.ulam:4:33: ERROR: Use explicit cast to return Int(4) as Unary(3).
+./A.ulam:4:33: ERROR: Use explicit cast to use Int(4) array item 3 as Unary(3).
 ./A.ulam:5:19: ERROR: Initialization value expression for class data member: r, array/scalar mismatch.
 ./A.ulam:5:16: ERROR: Class Init Argument 1 has a problem for variable m_bar, type QBar.
 ./A.ulam:5:3: ERROR: Initial value expression for: m_bar, initialization is invalid.
 ./A.ulam:10:16: ERROR: Constant value expression for 'm_b' is not representable as Bool(1).
 ./A.ulam:10:13: ERROR: Class Init Argument 1 has a problem for variable mytr, type R.
 ./A.ulam:10:4: ERROR: Initial value expression for: mytr, initialization is invalid.
-./R.ulam:4:51: ERROR: Invalid initialization of class type QBar with symbol name 'm_bar'.
+./R.ulam:4:51: ERROR: Invalid initialization of scalar type QBar with symbol name 'm_bar'.
 ./R.ulam:4:48: ERROR: Class Init Argument 1 has a problem for variable m_foo, type QFoo.
 ./R.ulam:4:40: ERROR: Initialization value expression for class data member: m_foo, is invalid.
 ./R.ulam:4:11: ERROR: Class Init Argument 2 has a problem for variable m_a, type A.

@@ -2,10 +2,10 @@
 #=t3532_test_compiler_elementinheritances_nonlocaluse
 ##
 ## gen output (assert if fails)
-## <blank>
+##   Int Arg: 77
 #!
 Exit status: 77
-Ue_Foo : Soo { :< :< Bool(3) cb(true); > Unsigned(3) us(4u); > Bool(7) sp(false);  Int(32) a(73);  Int(32) test() {  System s;  { cb cond us cast a +b return if } s ( false )assert . 0 cast return } }
+Ue_Foo : Soo { :< :< Bool(3) cb(true); > Unsigned(3) us(4u); > Bool(7) sp(false);  Int(32) a(73);  Int(32) test() {  System s;  { cb cond { s ( us cast a +b )print . s ( us cast a +b 77 cast == )assert . us cast a +b return } if } s ( false )assert . 0 cast return } }
 Uq_Soo : Coo { :< Bool(3) cb( true); > Unsigned(3) us( 4u);  <NOMAIN> }
 Uq_Coo { Bool(3) cb( true);  <NOMAIN> }
 Uq_System { <NOMAIN> }
@@ -23,7 +23,11 @@ element Foo : Soo {
   Int test() {
     System s;
     if(cb)
+    {
+      s.print(us + a);
+      s.assert((us + a) == 77);
       return us + a;
+    }
     s.assert(false);
     return 0;
   }

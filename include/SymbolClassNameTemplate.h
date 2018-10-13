@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * SymbolClassNameTemplate.h -  Class Symbol "Template" for ULAM
  *
- * Copyright (C) 2015-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2017 Ackleyshack LLC.
+ * Copyright (C) 2015-2018 The Regents of the University of New Mexico.
+ * Copyright (C) 2015-2018 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file SymbolClassNameTemplate.h -  Class Symbol "Template" for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2017 All rights reserved.
+  \date (C) 2015-2018 All rights reserved.
   \gpl
 */
 
@@ -74,12 +74,14 @@ namespace MFM{
     bool pendingClassArgumentsForStubClassInstance(UTI instance);
 
     SymbolClass * makeAStubClassInstance(const Token& typeTok, UTI cuti); //to hold class args, and cUTI
-    void copyAStubClassInstance(UTI instance, UTI newuti, UTI context);
+    SymbolClass * copyAStubClassInstance(UTI instance, UTI newuti, UTI argvaluecontext, UTI argtypecontext, Locator newloc);
+
+    bool checkTemplateAncestorBeforeAStubInstantiation(SymbolClass * stubcsym); //or private?
 
     void mergeClassInstancesFromTEMP();
 
     /** replaces temporary class argument names, updates the ST, and the class type */
-    void fixAnyClassInstances();
+    void fixAnyUnseenClassInstances();
     void fixAClassStubsDefaultArgs(SymbolClass * stubcsym, u32 defaultstartidx);
 
     bool statusNonreadyClassArgumentsInStubClassInstances();
@@ -116,7 +118,11 @@ namespace MFM{
 
     virtual void buildDefaultValueForClassInstances();
 
+    virtual void buildClassConstantDefaultValuesForClassInstances();
+
     virtual void testForClassInstances(File * fp);
+
+    virtual void assignRegistrationNumberForClassInstances(u32& count);
 
     virtual void generateCodeForClassInstances(FileManager * fm);
 
@@ -139,7 +145,7 @@ namespace MFM{
     std::map<std::string, SymbolClass* > m_scalarClassArgStringsToSymbolPtr; //merged set
     std::map<UTI, std::map<UTI,UTI> > m_mapOfTemplateUTIToInstanceUTIPerClassInstance;
 
-    bool checkTemplateAncestorBeforeAStubInstantiation(SymbolClass * stubcsym);
+    //    bool checkTemplateAncestorBeforeAStubInstantiation(SymbolClass * stubcsym);
     bool takeAnInstancesArgValues(SymbolClass * fm, SymbolClass * to);
     bool copyAnInstancesArgValues(SymbolClass * fm, SymbolClass * to);
     void cloneAnInstancesUTImap(SymbolClass * fm, SymbolClass * to);

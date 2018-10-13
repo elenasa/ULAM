@@ -1,0 +1,39 @@
+## -*- mode:ulam -*-
+#=t41265_test_compiler_constantclassarray_error
+#!
+./KeyExprNode.ulam:9:0: ERROR: Invalid size (-2) to set for primitive type: 0Holder.
+Unrecoverable Program Type Label FAILURE.
+##
+## ish, informed by Dave 3/18/18 and t41261: must see the Type of constant array first
+##  //without use ./KeyExprNode.ulam:9:0: ERROR: Invalid size (-2) to set for primitive type: 0Holder.
+##  constants and local variables must be declared before used, unlike data members.
+##
+#>KeyExprRep.ulam
+  ulam 3;
+//use KeyExprNode;
+local constant KeyExprNode keyexpr_x13[] = {
+   { .m_leftIndex = 1, .m_rightIndex = 2, .m_keyCode = 0, .m_op = '|' }, // [0]
+   { .m_leftIndex = 3, .m_rightIndex = 4, .m_keyCode = 0, .m_op = '&' }, // [1]
+   { .m_leftIndex = 0, .m_rightIndex = 0, .m_keyCode = 'c', .m_op = 0 }, // [2]
+   { .m_leftIndex = 0, .m_rightIndex = 0, .m_keyCode = 'a', .m_op = 0 }, // [3]
+   { .m_leftIndex = 0, .m_rightIndex = 0, .m_keyCode = 'b', .m_op = 0 }, // [4] , EXTRA COMMA at the end??? no difference
+ };
+element KeyExprRep {
+  KeyExprNode m_key;
+  Int test() {
+    m_key = keyexpr_x13[0]; //displayed in eval output
+    return 0;
+  }
+}
+
+#:KeyExprNode.ulam
+  ulam 3;
+quark KeyExprNode {
+  typedef Unsigned(8) Byte;
+  Byte m_leftIndex;  // for [,|&~]
+  Byte m_rightIndex; // for [,|&]
+  Byte m_keyCode;    // [a-zA-Z.@_?] or 0
+  Byte m_op;         // [,|&~] or 0
+}
+
+#.

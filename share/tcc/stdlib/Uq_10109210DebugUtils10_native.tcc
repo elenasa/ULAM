@@ -48,13 +48,8 @@ namespace MFM{
   template<class EC>
   void Uq_10109210DebugUtils10<EC>::Uf_5print(const UlamContext<EC> & uc, UlamRef<EC>& ur, Ui_Ut_102321s<EC>& Uv_3arg) const //native
   {
-    u32 strval = Uv_3arg.read();
-    const u8 * p = 
-      uc
-      .GetUlamClassRegistry()
-      .GetUlamClassByIndex(Ui_Ut_102321s<EC>::getRegNum(strval))
-      ->GetString(Ui_Ut_102321s<EC>::getStrIdx(strval));
-    LOG.Message("print: %S", p);
+    const u32 strval = Uv_3arg.read();
+    LOG.Message("print: %S", GetStringPointerFromGlobalStringPool(strval));
   }
 
   template<class EC>
@@ -184,7 +179,7 @@ namespace MFM{
   void Uq_10109210DebugUtils10<EC>::Uf_5print(const UlamContext<EC>& uc, UlamRef<EC>& ur, Ui_Uq_r10106UrSelf10<EC>& Ur_1a) const
   {
     OString4096 buff;
-    DebugPrint<EC>(uc, Ur_1a, buff);  
+    DebugPrint<EC>(uc, Ur_1a, buff);
     buff.Printf("\n");
     if (buff.GetLength() > 0)
       LOG.Message("%s",buff.GetZString());

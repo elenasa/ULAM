@@ -2,6 +2,7 @@
 #=t3403_test_compiler_namedconstant_error
 #!
 ./A.ulam:7:10: ERROR: Constant value expression for 'cOW' is not representable as Int(3).
+./A.ulam:7:10: ERROR: Problem in NodeConstantDef for type: Int(3), used with symbol name 'cOW', after folding attempt.
 Unrecoverable Program Type Label FAILURE.
 ##
 ##      //informed by 3324, except constant type is 3-bits only

@@ -1,9 +1,9 @@
 ## -*- mode:ulam -*-
 #=t3298_test_compiler_sizeofclass_error
 #!
-./Fu.ulam:4:3: ERROR: Incomplete descriptor for type: Int(UNKNOWN).
+./Fu.ulam:4:3: ERROR: Incomplete descriptor for type: Int(UNKNOWN) (UTI 29).
 ./Fu.ulam:4:10: ERROR: Incomplete Terminal Proxy for type: Fu.
-./Fu.ulam:4:7: ERROR: Incomplete descriptor for type: Fu.
+./Fu.ulam:4:7: ERROR: Incomplete descriptor for type: Fu (UTI 28).
 ./Fu.ulam:4:10: ERROR: Proxy Type: Fu is still incomplete and unknown for its 'sizeof' while compiling class: Fu.
 ./Fu.ulam:4:3: ERROR: Type Bitsize specifier for base type: Int, is not a ready constant expression.
 ./Fu.ulam:4:3: ERROR: Incomplete Variable Decl for type: Int(UNKNOWN), used with variable symbol name 'u'.

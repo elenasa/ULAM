@@ -5,7 +5,7 @@
 
 namespace MFM {
 
-  NodeTypedef::NodeTypedef(SymbolTypedef * sym, NodeTypeDescriptor * nodetype, CompilerState & state) : Node(state), m_typedefSymbol(sym), m_tdid(0), m_currBlockNo(0), m_nodeTypeDesc(nodetype)
+  NodeTypedef::NodeTypedef(SymbolTypedef * sym, NodeTypeDescriptor * nodetype, CompilerState & state) : Node(state), m_typedefSymbol(sym), m_tdid(0), m_currBlockNo(0), m_currBlockPtr(NULL), m_nodeTypeDesc(nodetype)
   {
     if(sym)
       {
@@ -14,7 +14,7 @@ namespace MFM {
       }
   }
 
-  NodeTypedef::NodeTypedef(const NodeTypedef& ref) : Node(ref), m_typedefSymbol(NULL), m_tdid(ref.m_tdid), m_currBlockNo(ref.m_currBlockNo), m_nodeTypeDesc(NULL)
+  NodeTypedef::NodeTypedef(const NodeTypedef& ref) : Node(ref), m_typedefSymbol(NULL), m_tdid(ref.m_tdid), m_currBlockNo(ref.m_currBlockNo), m_currBlockPtr(NULL), m_nodeTypeDesc(NULL)
   {
     if(ref.m_nodeTypeDesc)
       m_nodeTypeDesc = (NodeTypeDescriptor *) ref.m_nodeTypeDesc->instantiate();
@@ -63,11 +63,11 @@ namespace MFM {
     if(tut->getUlamTypeEnum() != Class)
       {
 	fp->write(tkey.getUlamKeyTypeSignatureNameAndBitSize(&m_state).c_str());
-	if(tut->isReference())
+	if(tut->isAltRefType())
 	  fp->write(" &"); //an array of refs as written, should be ref to an array.
       }
     else
-      fp->write(tut->getUlamTypeNameBrief().c_str());
+      fp->write(tut->getUlamTypeClassNameBrief(tuti).c_str());
 
     fp->write(" ");
     fp->write(getName());
@@ -93,8 +93,6 @@ namespace MFM {
 
   const char * NodeTypedef::getName()
   {
-    //same as m_typedefSymbol->getUlamType()->getUlamTypeNameBrief()); //short type name
-    //return m_state.m_pool.getDataAsString(m_typedefSymbol->getId()).c_str();
     return m_state.m_pool.getDataAsString(m_tdid).c_str(); //safer
   }
 
@@ -130,7 +128,7 @@ namespace MFM {
 	      {
 		std::ostringstream msg;
 		msg << "Incomplete Typedef for class type: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+		msg << m_state.getUlamTypeNameByIndex(it).c_str();
 		msg << ", used with variable symbol name <" << getName() << ">";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	      }
@@ -150,10 +148,10 @@ namespace MFM {
 	      {
 		std::ostringstream msg;
 		msg << "REPLACING Symbol UTI" << it;
-		msg << ", " << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+		msg << ", " << m_state.getUlamTypeNameByIndex(it).c_str();
 		msg << " used with typedef symbol name '" << getName();
 		msg << "' with node type descriptor type: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(duti).c_str();
+		msg << m_state.getUlamTypeNameByIndex(duti).c_str();
 		msg << " UTI" << duti << " while labeling class: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
@@ -168,19 +166,20 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Incomplete Typedef for type: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+	    msg << m_state.getUlamTypeNameByIndex(it).c_str();
+	    msg << " (UTI " << it << ")";
 	    msg << ", used with typedef symbol name '" << getName() << "'";
 	    if(m_state.okUTItoContinue(it) || (it == Hzy))
 	      {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-		m_state.setGoAgain(); //since not error; unlike vardecl
+		it = Hzy; //t3862
 	      }
 	    else
 	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
       } // got typedef symbol
-
     setNodeType(it);
+    if(it == Hzy) m_state.setGoAgain(); //since not error; unlike vardecl
     return getNodeType();
   } //checkAndLabelType
 
@@ -188,6 +187,8 @@ namespace MFM {
   {
     //in case of a cloned unknown
     NodeBlock * currBlock = getBlock();
+    setBlock(currBlock);
+
     m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
 
     Symbol * asymptr = NULL;
@@ -224,17 +225,26 @@ namespace MFM {
     return m_currBlockNo;
   }
 
+  void NodeTypedef::setBlock(NodeBlock * ptr)
+  {
+    m_currBlockPtr = ptr;
+  }
+
   NodeBlock * NodeTypedef::getBlock()
   {
     assert(m_currBlockNo);
-    NodeBlock * currBlock = (NodeBlock *) m_state.findNodeNoInThisClass(m_currBlockNo);
+    if(m_currBlockPtr)
+      return m_currBlockPtr;
+
+    NodeBlock * currBlock = (NodeBlock *) m_state.findNodeNoInThisClassOrLocalsScope(m_currBlockNo);
     assert(currBlock);
     return currBlock;
   } //getBlock
 
-  void NodeTypedef::packBitsInOrderOfDeclaration(u32& offset)
+  TBOOL NodeTypedef::packBitsInOrderOfDeclaration(u32& offset)
   {
     //do nothing, but override
+    return TBOOL_TRUE;
   }
 
   void NodeTypedef::printUnresolvedVariableDataMembers()
@@ -245,8 +255,8 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Unresolved type <";
-	msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-	msg << "> used with typedef symbol name '" << getName() << "'";
+	msg << m_state.getUlamTypeNameByIndex(it).c_str() << "> (UTI ";
+	msg << it << ") used with typedef symbol name '" << getName() << "'";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(Nav); //compiler counts
       } //not complete
@@ -260,8 +270,8 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Unresolved type <";
-	msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-	msg << "> used with typedef symbol name '" << getName() << "'";
+	msg << m_state.getUlamTypeNameByIndex(it).c_str() << "> (UTI ";
+	msg << it << ") used with typedef symbol name '" << getName() << "'";
 	msg << " in function: " << m_state.m_pool.getDataAsString(fid);
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(Nav); //compiler counts
@@ -280,14 +290,9 @@ namespace MFM {
     return true; //pass on
   }
 
-  void NodeTypedef::genCodeDefaultValueStringRegistrationNumber(File * fp, u32 startpos)
+  bool NodeTypedef::buildDefaultValueForClassConstantDefs()
   {
-    return; //pass on
-  }
-
-  void NodeTypedef::genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos)
-  {
-    return;
+    return true; //pass on
   }
 
   EvalStatus NodeTypedef::eval()
@@ -325,7 +330,7 @@ namespace MFM {
   void NodeTypedef::genCodeConstantArrayInitialization(File * fp)
   {}
 
-  void NodeTypedef::generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly)
+  void NodeTypedef::generateBuiltinConstantClassOrArrayInitializationFunction(File * fp, bool declOnly)
   {}
 
   void NodeTypedef::cloneAndAppendNode(std::vector<Node *> & cloneVec)

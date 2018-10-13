@@ -72,11 +72,15 @@ namespace MFM{
 
     virtual bool hasASymbolReferenceConstant();
 
+    virtual bool isAConstant();
+
     virtual const std::string methodNameForCodeGen();
 
     virtual FORECAST safeToCastTo(UTI newType);
 
     virtual UTI checkAndLabelType();
+
+    virtual bool getConstantValue(BV8K& bval);
 
     virtual bool trimToTheElement(Node ** fromleftnode, Node *& rtnnodeptr);
 
@@ -112,6 +116,7 @@ namespace MFM{
 
     void setStoreIntoAbleAndReferenceAble();
 
+    bool getConstantMemberValue(BV8K& bvmsel);
   };
 
 } //MFM

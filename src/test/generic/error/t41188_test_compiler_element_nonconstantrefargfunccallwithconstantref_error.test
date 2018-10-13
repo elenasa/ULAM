@@ -2,8 +2,8 @@
 #=t41188_test_compiler_element_nonconstantrefargfunccallwithconstantref_error
 ##
 #!
-./Foo.ulam:20:5: ERROR: Invalid argument 1 to function <nocheck>; Cannot be used as a reference parameter.
-./Foo.ulam:21:14: ERROR: Cannot explicitly cast incompatible (reference) types: constant Bool(3)& as non-constant Bool(3)&.
+./Foo.ulam:20:5: ERROR: (1) <nocheck> has no defined function with 1 matching argument type: constant Bool(3)&, and cannot be called.
+./Foo.ulam:21:14: ERROR: Cannot explicitly cast constant Bool(3)& to type: Bool(3)&.
 ./Foo.ulam:21:5: ERROR: Argument 1 has a problem.
 Unrecoverable Program Type Label FAILURE.
 ##

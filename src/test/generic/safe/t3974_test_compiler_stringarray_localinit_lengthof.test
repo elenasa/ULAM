@@ -12,7 +12,7 @@
 ##
 #!
 Exit status: 0
-Ue_A { Bool(1) b(true);  constant String(32)[2] cstrarr = { 0x1c0001, 0x1c000b };  constant String(32) cstr = "please";  Int(32) test() {  SystemU3 su3;  String(32) sarr[2] = { "fool", "bar" };  Bool(3) bun[2] = { false, true };  su3 ( bun 1 [] )print . su3 ( bun 1 [] cast )assert . Unsigned(8) asc = sarr 1 [] 2 [];  b asc 114u == = su3 ( sarr 1 [] )print . su3 ( b )assert . Unsigned(32) len = 4u;  su3 ( len )print . su3 ( len 4u cast == )assert . sarr 0 [] "foo" = len 3u = su3 ( len )print . su3 ( len 3u cast == )assert . String(32) bling = "bling";  sarr 0 [] bling = len 5u = su3 ( len )print . su3 ( len 5u cast == )assert . sarr 0 [] "please" = len 6u = su3 ( len )print . su3 ( len 6u cast == )assert . sarr 0 [] cstrarr 0 [] = len 8u = su3 ( len )print . su3 ( len 8u cast == )assert . 0 cast return } }
+Ue_A { Bool(1) b(true);  constant String(32)[2] cstrarr = { 0x1, 0xb };  constant String(32) cstr = "please";  Int(32) test() {  SystemU3 su3;  String(32) sarr[2] = { "fool", "bar" };  Bool(3) bun[2] = { false, true };  su3 ( bun 1 [] )print . su3 ( bun 1 [] cast )assert . Unsigned(8) asc = sarr 1 [] 2 [];  b asc 114u == = su3 ( sarr 1 [] )print . su3 ( b )assert . Unsigned(32) len = 4u;  su3 ( len )print . su3 ( len 4u cast == )assert . sarr 0 [] "foo" = len 3u = su3 ( len )print . su3 ( len 3u cast == )assert . String(32) bling = "bling";  sarr 0 [] bling = len 5u = su3 ( len )print . su3 ( len 5u cast == )assert . sarr 0 [] "please" = len 6u = su3 ( len )print . su3 ( len 6u cast == )assert . sarr 0 [] cstrarr 0 [] = len 8u = su3 ( len )print . su3 ( len 8u cast == )assert . 0 cast return } }
 Uq_SystemU3 : System { :<> <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

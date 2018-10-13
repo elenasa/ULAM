@@ -1,0 +1,34 @@
+## -*- mode:ulam -*-
+#=t41237_test_compiler_elementconstant_funccallrefarg_error
+#!
+./R.ulam:10:13: ERROR: (1) <func> has no defined function with 1 matching argument type: T, and cannot be called.
+./R.ulam:10:5: ERROR: Initial value expression for: i, initialization is invalid.
+Unrecoverable Program Type Label FAILURE.
+##
+##    //informed by t41236, except func call with constant T as ref arg
+##
+#>T.ulam
+ ulam 3;
+
+element T {
+  Bool m_sp;
+  Int m_i;
+}
+
+
+#:R.ulam
+  ulam 3;
+local constant T cet = { .m_sp = true, .m_i = 99 };
+element R{
+  Int func(T& trefarg) {
+    trefarg.m_i = 4;
+    return trefarg.m_i;
+  }
+
+  Int test(){
+    Int i = func(cet);
+    return i;
+  }
+}
+
+#.

@@ -7,10 +7,6 @@
 #include "SymbolVariableDataMember.h"
 #include "CompilerState.h"
 #include "NodeBlockClass.h"
-//#include "MapDataMemberDesc.h"
-//#include "MapParameterDesc.h"
-//#include "MapConstantDesc.h"
-//#include "MapTypedefDesc.h"
 
 namespace MFM {
 
@@ -62,44 +58,6 @@ namespace MFM {
 	  }
 	it++;
       }
-    return rtnb;
-  } //hasUlamTypeSymbolsInTable
-
-  //called by NodeBlockContext (e.g. String (scalar or array))
-  bool SymbolTableOfVariables::hasADataMemberStringInitValueInClass(UTI cuti)
-  {
-    bool rtnb = false;
-    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
-    while(it != m_idToSymbolPtr.end())
-      {
-	Symbol * sym = it->second;
-	assert(sym);
-	if(!sym->isTypedef()) //t3948
-	  {
-	    UTI suti = sym->getUlamTypeIdx();
-	    UlamType * sut = m_state.getUlamTypeByIndex(suti);
-	    if(sut->getUlamTypeEnum() == String)
-	      {
-		u32 arraysize = sut->isScalar() ? 1 : sut->getArraySize();
-		BV8K tmpbv8k;
-		AssertBool gotValue = ((SymbolWithValue *) sym)->getInitValue(tmpbv8k);
-		assert(gotValue);
-
-		for(u32 i = 0; i < arraysize; i++)
-		  {
-		    UTI regid = (UTI) tmpbv8k.Read(0 + i * (REGNUMBITS + STRINGIDXBITS), REGNUMBITS);
-		    assert(regid > 0);
-
-		    if(regid == cuti)
-		      {
-			rtnb = true; //got one!
-			break;
-		      }
-		  }
-	      } //string
-	  } //not typedef
-	it++;
-      } //while next data member symbol
     return rtnb;
   } //hasUlamTypeSymbolsInTable
 
@@ -188,14 +146,18 @@ namespace MFM {
 	  m_state.setBitSize(suti, symsize); //symsize does not include arrays
 
 	UlamType * sut = m_state.getUlamTypeByIndex(suti); //no sooner!
-	if((cclasstype == UC_TRANSIENT) && (sut->getUlamClassType() == UC_ELEMENT))
+	s32 arraysize = sut->getArraySize();
+	arraysize = ((arraysize == NONARRAYSIZE) ? 1 : arraysize); //Mon Jul  4 14:14:44 2016
+	if(arraysize == UNKNOWNSIZE)
 	  {
-	    s32 arraysize = sut->getArraySize();
-	    arraysize = ((arraysize == NONARRAYSIZE) ? 1 : arraysize); //Mon Jul  4 14:14:44 2016
+	    totalsizes = UNKNOWNSIZE; //Thu Feb  8 16:06:18 2018 (t3504)
+	  }
+	else if((cclasstype == UC_TRANSIENT) && (sut->getUlamClassType() == UC_ELEMENT))
+	  {
 	    totalsizes += (BITSPERATOM * arraysize); //atom-based element regardless of its bitsize(t3879)
 	  }
 	else
-	  totalsizes += sut->getTotalBitSize(); //covers up any unknown sizes; includes arrays
+	  totalsizes += sut->getTotalBitSize(); //covers up any unknown sizes; includes arrays (t3504)
 
 	it++;
       } //while
@@ -305,6 +267,7 @@ namespace MFM {
 	if(sym->isDataMember() && variableSymbolWithCountableSize(sym) && !m_state.isClassAQuarkUnion(suti))
 	  {
 	    s32 len = sut->getTotalBitSize(); //include arrays (e.g. t3512)
+	    assert(sym->isPosOffsetReliable());
 	    u32 pos = sym->getPosOffset();
 
 	    //updates the UV at offset with the default of sym;
@@ -422,14 +385,16 @@ namespace MFM {
     UlamType * argut = m_state.getUlamTypeByIndex(arguti);
     s32 totbitsize = argut->getBitSize(); // why not total bit size? findNodeNoInThisClass fails (e.g. t3144, etc)
     ULAMCLASSTYPE argclasstype = argut->getUlamClassType();
+    s32 argarraysize = argut->getArraySize();
     if(argclasstype == UC_NOTACLASS) //includes Atom type
       {
+	if(argarraysize == UNKNOWNSIZE)
+	  return UNKNOWNSIZE; //Thu Feb  8 16:09:50 2018
 	return totbitsize; //arrays handled by caller, just bits here
       }
     //else element size adjusted for Transents by getTotalVariableSymbolsBitSize, after bitsize is set.
 
     //not a primitive (class), array
-    s32 argarraysize = argut->getArraySize();
     if(argarraysize >= 0)
       {
 	if(totbitsize >= 0)

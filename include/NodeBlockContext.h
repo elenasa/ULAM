@@ -33,7 +33,6 @@
   \gpl
 */
 
-
 #ifndef NODEBLOCKCONTEXT_H
 #define NODEBLOCKCONTEXT_H
 
@@ -61,10 +60,9 @@ namespace MFM{
 
     virtual bool isAClassBlock() = 0;
 
-    virtual StringPoolUser& getUserStringPoolRef();
-    virtual void setUserStringPoolRef(const StringPoolUser& spref); //for instantiated templates
+    virtual bool hasStringDataMembers();
 
-    bool hasStringDataMembers();
+    bool classConstantsReady();
 
     virtual void addTargetDescriptionToInfoMap(TargetMap& classtargets, u32 scid) = 0;
     virtual void addMemberDescriptionsToInfoMap(ClassMemberMap& classmembers) = 0;
@@ -79,7 +77,7 @@ namespace MFM{
     void genUlamTypeImmediateDefinitions(File * fp);
 
   protected:
-    StringPoolUser m_upool; //for double quoted strings only
+    bool m_classConstantsReady;
 
   private:
 

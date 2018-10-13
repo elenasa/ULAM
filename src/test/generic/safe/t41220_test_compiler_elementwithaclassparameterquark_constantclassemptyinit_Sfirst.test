@@ -1,0 +1,69 @@
+## -*- mode:ulam -*-
+#=t41220_test_compiler_elementwithaclassparameterquark_constantclassemptyinit_Sfirst
+##
+##  gen output: (+ interleaved asserts)
+##      Int(4) Arg: 0x3
+##      Bool(3) Arg: 0x7 (true)
+##      Int(4) Arg: 0x3
+##      Bool(3) Arg: 0x7 (true)
+##
+## ILLEGAL_ARGUMENT
+#!
+Exit status: 3
+Ue_T { Int(32) test() {  System sys;  constant Q cqt = { };  sys ( cqt i . )print . sys ( cqt i . 3 cast == )assert . sys ( cqt b . cast )print . sys ( cqt b . )assert . S(0x98) s;  sys ( s 3 . )print . sys ( s 3 . 3 cast == )assert . sys ( s v . b . cast )print . sys ( s v . b . )assert . s 3 . cast return } }
+Uq_S(Q v) { constant Int(4) csi = v i .;  <NOMAIN> }
+Uq_Q { Bool(1) b( true);  Int(4) i( 3);  <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+##    //informed by t41216 (simplified S one parameter, and Q has none); empty cqt initialization; S first, here.
+##
+#>T.ulam
+ ulam 3;
+use S;
+element T{
+  Int test(){
+    System sys;
+
+    constant Q cqt = { }; //{ .i = 7};
+
+    sys.print(cqt.i);
+    sys.assert(cqt.i == 3);
+    sys.print(cqt.b);
+    sys.assert(cqt.b); //true
+
+    S(cqt) s;
+
+    sys.print(s.csi);
+    sys.assert(s.csi == 3);
+    sys.print(s.v.b);
+    sys.assert(s.v.b); //true
+
+    return s.csi; //3
+  }
+}
+
+#:S.ulam
+  ulam 3;
+quark S(Q v){
+  constant Int(4) csi = v.i; //we're all constants here, right?
+}
+
+#:Q.ulam
+  ulam 1;
+quark Q{
+  Bool b = true; //flag;
+  Int(4) i = 3;
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

@@ -4,7 +4,7 @@
 
 namespace MFM {
 
-  Resolver::Resolver(UTI instance, CompilerState& state) : m_state(state), m_classUTI(instance), m_classContextUTIForPendingArgs(m_state.getCompileThisIdx()) /*default*/ {}
+  Resolver::Resolver(UTI instance, CompilerState& state) : m_state(state), m_classUTI(instance), m_classContextUTIForPendingArgValues(m_state.getCompileThisIdx()), m_classContextUTIForPendingArgTypes(instance) /*default*/ {}
 
   Resolver::~Resolver()
   {
@@ -85,7 +85,22 @@ namespace MFM {
     return rtnb;
   } //hasUnknownTypeToken
 
-  bool Resolver::statusUnknownType(UTI huti)
+  bool Resolver::getUnknownTypeToken(UTI huti, Token & tok)
+  {
+    bool rtnb = false;
+    if(m_unknownTypeTokens.empty())
+      return false;
+
+    std::map<UTI, Token>::iterator mit = m_unknownTypeTokens.find(huti);
+    if(mit != m_unknownTypeTokens.end())
+      {
+	tok = mit->second;
+	rtnb = true;
+      }
+    return rtnb;
+  }
+
+  bool Resolver::statusUnknownType(UTI huti, SymbolClass * csym)
   {
     bool aok = false; //not found
     // context already set by caller
@@ -94,10 +109,13 @@ namespace MFM {
       {
 	Token tok = mit->second;
 	UTI huti = mit->first;
+
 	//check if still Hzy; true if resolved
-	aok = checkUnknownTypeToResolve(huti, tok);
-	if(aok)
+	if((aok = checkUnknownTypeToResolve(huti, tok)))
 	  removeKnownTypeToken(huti);
+	else if(csym && (aok = checkUnknownTypeAsClassArgument(huti, tok, csym)))
+	  removeKnownTypeToken(huti); //t41216
+	//else
       }
     return aok;
   } //statusUnknownType
@@ -106,78 +124,126 @@ namespace MFM {
   {
     bool aok = false;
     ULAMTYPE etyp = m_state.getBaseTypeFromToken(tok);
-    if((etyp != Hzy) && (etyp != Holder))
+    if((etyp == Hzy) || (etyp == Holder))
+      return false;
+
+    UTI kuti = Nav;
+    if(etyp == Class)
       {
-	UTI kuti = Nav;
-	if(etyp == Class)
+	SymbolClassName * cnsym = NULL; //no way a template or stub
+	if(!m_state.alreadyDefinedSymbolClassName(tok.m_dataindex, cnsym))
 	  {
-	    SymbolClassName * cnsym = NULL; //no way a template or stub
-	    if(!m_state.alreadyDefinedSymbolClassName(tok.m_dataindex, cnsym))
+	    SymbolClass * csym = NULL;
+	    if(m_state.alreadyDefinedSymbolClassAsHolder(huti, csym))
 	      {
-		SymbolClass * csym = NULL;
-		if(m_state.alreadyDefinedSymbolClassAsHolder(huti, csym))
-		  {
-		    aok = false; //still a holder
-		  }
-		else if(m_state.alreadyDefinedSymbolClass(huti, csym))
-		  {
-		    u32 cid = csym->getId();
-		    AssertBool isDefined = m_state.alreadyDefinedSymbolClassName(cid, cnsym);
-		    assert(isDefined);
-		    aok = m_state.isHolder(cnsym->getUlamTypeIdx()) ? false : true;
-		  }
-		//else
+		aok = false; //still a holder
 	      }
+	    else if(m_state.alreadyDefinedSymbolClass(huti, csym))
+	      {
+		u32 cid = csym->getId();
+		AssertBool isDefined = m_state.alreadyDefinedSymbolClassName(cid, cnsym);
+		assert(isDefined);
+		aok = m_state.isHolder(cnsym->getUlamTypeIdx()) ? false : true;
+	      }
+	    //else
+	  }
+	else
+	  {
+	    UTI cuti = cnsym->getUlamTypeIdx();
+	    if(m_state.getUlamTypeByIndex(cuti)->getUlamClassType() == UC_UNSEEN)
+	      aok = false; //still unseen
 	    else
-	      {
-		UTI cuti = cnsym->getUlamTypeIdx();
-		if(m_state.getUlamTypeByIndex(cuti)->getUlamClassType() == UC_UNSEEN)
-		  aok = false; //still unseen
-		else
-		  aok = true; //not missing, seen!
-	      }
-
-	    if(aok)
-	      {
-		assert(cnsym);
-		if(cnsym->isClassTemplate())
-		  {
-		    SymbolClass * csym = NULL;
-		    if(m_state.alreadyDefinedSymbolClass(huti, csym))
-		      kuti = csym->getUlamTypeIdx(); //perhaps an alias
-		    else
-		      {
-			std::ostringstream msg;
-			msg << "Class with parameters seen with the same name: ";
-			msg << m_state.m_pool.getDataAsString(cnsym->getId()).c_str();
-			MSG(m_state.getFullLocationAsString(tok.m_locator).c_str(), msg.str().c_str(), ERR); //No corresponding Nav Node for this ERR (e.g. error/t3644)
-			//aok = false; continue so no more than one error for same problem
-			kuti = cnsym->getUlamTypeIdx();
-		      }
-		  }
-		else
-		  kuti = cnsym->getUlamTypeIdx();
-	      }
-	  } //end class type
-	//else
-
-	if(!aok)
-	  {
-	    //a typedef (e.g. t3379, 3381)
-	    UTI tmpscalar = Nouti;
-	    if(m_state.getUlamTypeByTypedefName(tok.m_dataindex, kuti, tmpscalar))
-	      if(!m_state.isHolder(kuti))
-		aok = true;
+	      aok = true; //not missing, seen!
 	  }
 
 	if(aok)
 	  {
-	    assert(!m_state.isHolder(kuti));
-	    m_state.cleanupExistingHolder(huti, kuti);
+	    assert(cnsym);
+	    if(cnsym->isClassTemplate())
+	      {
+		SymbolClass * csym = NULL;
+		if(m_state.alreadyDefinedSymbolClass(huti, csym))
+		  kuti = csym->getUlamTypeIdx(); //perhaps an alias
+		else
+		  {
+		    std::ostringstream msg;
+		    msg << "Class with parameters seen with the same name: ";
+		    msg << m_state.m_pool.getDataAsString(cnsym->getId()).c_str();
+		    MSG(m_state.getFullLocationAsString(tok.m_locator).c_str(), msg.str().c_str(), ERR); //No corresponding Nav Node for this ERR (e.g. error/t3644)
+		    //aok = false; continue so no more than one error for same problem
+		    kuti = cnsym->getUlamTypeIdx();
+		  }
+	      }
+	    else
+	      kuti = cnsym->getUlamTypeIdx();
 	  }
+      } //end class type
+	//else
+
+    if(!aok)
+      {
+	//a typedef (e.g. t3379, 3381)
+	UTI tmpscalar = Nouti;
+	if(m_state.getUlamTypeByTypedefName(tok.m_dataindex, kuti, tmpscalar))
+	  if(!m_state.isHolder(kuti))
+	    aok = true;
+      }
+
+    if(aok)
+      {
+	assert(!m_state.isHolder(kuti));
+	m_state.cleanupExistingHolder(huti, kuti);
       }
     return aok;
   } //checkUnknownTypeToResolve
+
+  bool Resolver::checkUnknownTypeAsClassArgument(UTI huti, const Token& tok, SymbolClass * csym)
+  {
+    assert(csym);
+    if(!(csym->isStub() && (tok.m_type == TOK_IDENTIFIER)))
+      return false;
+
+    bool aok = false;
+    //i.e. not a type tok, so perhaps a class argument (t41216)
+    // let's see if the template has a clue regarding its type "family"
+    SymbolClassNameTemplate * templateparent = csym->getParentClassTemplate();
+    assert(templateparent);
+    UTI tuti = templateparent->getUlamTypeIdx();
+    if(!m_state.isASeenClass(tuti))
+      return false;
+
+    NodeBlockClass * templateclassblock = templateparent->getClassBlockNode();
+    assert(templateclassblock);
+    m_state.pushClassContext(tuti, templateclassblock, templateclassblock, false, NULL);
+
+    Symbol * argSym = NULL;
+    bool hazykin = false;
+    if(m_state.alreadyDefinedSymbol(tok.m_dataindex, argSym, hazykin))
+      {
+	m_state.popClassContext(); //restore before another check call
+
+	UTI auti = argSym->getUlamTypeIdx();
+	if(!m_state.isHolder(auti))
+	  {
+	    Token argtok;
+	    UlamType * aut = m_state.getUlamTypeByIndex(auti);
+	    if(m_state.isAClass(auti))
+	      {
+		u32 aid = aut->getUlamTypeNameId();
+		argtok.init(TOK_IDENTIFIER, tok.m_locator, aid);
+	      }
+	    else
+	      {
+		std::string aname = aut->getUlamTypeNameOnly();
+		argtok.init(Token::getTokenTypeFromString(aname.c_str()), tok.m_locator, 0);
+	      }
+	    aok = checkUnknownTypeToResolve(huti, argtok);
+	  }
+      }
+    else
+      m_state.popClassContext(); //restore
+    return aok;
+  } //checkUnknownTypeAsClassArgument
 
   bool Resolver::statusAnyUnknownTypeNames()
   {
@@ -281,23 +347,11 @@ namespace MFM {
   bool Resolver::constantFoldNonreadyClassArgs(SymbolClass * stubcsym)
   {
     bool rtnb = true;
-    UTI context = getContextForPendingArgs();
-    if(m_state.isAClass(context))
-      {
-	SymbolClass * contextSym = NULL;
-	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(context, contextSym);
-	assert(isDefined);
-	NodeBlockClass * contextclassblock = contextSym->getClassBlockNode();
-	m_state.pushClassContext(context, contextclassblock, contextclassblock, false, NULL);
-      }
-    else
-      {
-	NodeBlockLocals * locals = m_state.getLocalsScopeBlockByIndex(context);
-	assert(locals);
-	m_state.pushClassContext(context, locals, locals, false, NULL);
-      }
+    UTI context = getContextForPendingArgValues();
+    m_state.pushClassOrLocalContextAndDontUseMemberBlock(context);
 
     m_state.m_pendingArgStubContext = m_classUTI; //set for folding surgery
+    m_state.m_pendingArgTypeStubContext = getContextForPendingArgTypes(); //set for resolving types
 
     bool defaultval = false;
     bool pushedtemplate = false;
@@ -313,7 +367,7 @@ namespace MFM {
 	NodeConstantDef * ceNode = *vit;
 	if(ceNode)
 	  {
-	    ceNode->fixPendingArgumentNode(); //possibly renames if arg unseen tmp name.
+	    //ceNode->fixPendingArgumentNode(); //possibly renames if arg unseen tmp name.
 	    defaultval = ceNode->hasDefaultSymbolValue();
 
 	    //OMG! if this was a default value for class arg, t3891,
@@ -351,6 +405,7 @@ namespace MFM {
       }
 
     m_state.m_pendingArgStubContext = Nouti; //clear flag
+    m_state.m_pendingArgTypeStubContext = Nouti; //clear flag
     m_state.popClassContext(); //restore previous context
 
     //clean up, replace vector with vector of those still unresolved
@@ -375,14 +430,24 @@ namespace MFM {
     return !m_nonreadyClassArgSubtrees.empty();
   } //pendingClassArgumentsForClassInstance
 
-  void Resolver::setContextForPendingArgs(UTI context)
+  void Resolver::setContextForPendingArgValues(UTI context)
   {
-    m_classContextUTIForPendingArgs = context;
+    m_classContextUTIForPendingArgValues = context;
   }
 
-  UTI Resolver::getContextForPendingArgs()
+  UTI Resolver::getContextForPendingArgValues()
   {
-    return m_classContextUTIForPendingArgs;
+    return m_classContextUTIForPendingArgValues;
+  }
+
+  void Resolver::setContextForPendingArgTypes(UTI context)
+  {
+    m_classContextUTIForPendingArgTypes = context;
+  }
+
+  UTI Resolver::getContextForPendingArgTypes()
+  {
+    return m_classContextUTIForPendingArgTypes;
   }
 
   bool Resolver::mapUTItoUTI(UTI fmuti, UTI touti)

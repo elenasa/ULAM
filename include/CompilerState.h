@@ -103,6 +103,8 @@ namespace MFM{
 
     StringPoolUser m_tokenupool; //for double quoted strings Tokens only
 
+    StringPoolUser m_upool; //for double quoted strings only (global ulam-4)
+
     // map key is the prefix id in the Locator; value is a vector of
     // stringpool id's indexed by line into the original ulam source
     // code; built by SourceStream during parsing; used for
@@ -136,7 +138,8 @@ namespace MFM{
     CallStack m_constantStack;    //for constant arrays (non-function variables); CNSTSTACK
 
     bool m_goAgainResolveLoop; //true means a node has a type that's not ready
-    UTI m_pendingArgStubContext; //non-Nav helps find parentNode in case of surgery
+    UTI m_pendingArgStubContext; //non-Nouti helps find parentNode in case of surgery
+    UTI m_pendingArgTypeStubContext; //non-Nouti helps find parentNode in case of surgery
 
     ErrorMessageHandler m_err;
 
@@ -165,7 +168,7 @@ namespace MFM{
     NNO m_nextNodeNumber; //used to identify blocks in clone classes with unknown subtrees
 
     UTI m_urSelfUTI; //original ancestor of all classes
-    UTI m_emptyUTI; //the Empty class
+    UTI m_emptyElementUTI; //the Empty element class
 
     CompilerState();
     ~CompilerState();
@@ -191,6 +194,7 @@ namespace MFM{
     void addCompleteUlamTypeToThisContextSet(UTI uti);
     void addCompleteUlamTypeToContextBlockSet(UTI uti, NodeBlockContext * contextblock);
     bool isOtherClassInThisContext(UTI suti);
+    bool isAStringDataMemberInClass(UTI cuti);
     bool isDefined(UlamKeyTypeSignature key, UlamType *& foundUT);
     bool anyDefinedUTI(UlamKeyTypeSignature key, UTI& foundUTI);
     UlamType * createUlamType(UlamKeyTypeSignature key, ULAMTYPE utype, ULAMCLASSTYPE classtype);
@@ -199,10 +203,12 @@ namespace MFM{
     bool deleteUlamKeyTypeSignature(UlamKeyTypeSignature key, UTI utarg);
     bool replaceUlamTypeForUpdatedClassType(UlamKeyTypeSignature key, ULAMTYPE etype, ULAMCLASSTYPE classtype, bool isCArray);
     bool mappedIncompleteUTI(UTI cuti, UTI auti, UTI& mappedUTI);
-    UTI mapIncompleteUTIForCurrentClassInstance(UTI suti);
+    UTI mapIncompleteUTIForCurrentClassInstance(UTI suti, Locator loc);
+    UTI mapIncompleteUTIForAClassInstance(UTI cuti, UTI suti, Locator loc);
     void mapTypesInCurrentClass(UTI fm, UTI to);
 
     UlamKeyTypeSignature getUlamKeyTypeSignatureByIndex(UTI typidx);
+    u32 getUlamTypeNameIdByIndex(UTI typidx);
     UlamType * getUlamTypeByIndex(UTI uti);
     const std::string getUlamTypeNameBriefByIndex(UTI uti);
     const std::string getUlamTypeNameByIndex(UTI uti);
@@ -234,6 +240,7 @@ namespace MFM{
     bool getPackedDefaultClass(UTI auti, u64& dpkref);
     void getDefaultAsPackedArray(UTI auti, u64 dval, u64& darrval);
     void getDefaultAsPackedArray(u32 len, u32 bitsize, u32 arraysize, u32 pos, u64 dval, u64& darrval);
+    TBOOL tryToPackAClass(UTI cuti);
     bool getDefaultClassValue(UTI cuti, BV8K& dvref);
     void getDefaultAsArray(u32 bitsize, u32 arraysize, u32 tpos, const BV8K& dval, BV8K& darrval);
     bool genCodeClassDefaultConstantArray(File * fp, u32 len, BV8K& dval);
@@ -270,6 +277,7 @@ namespace MFM{
     s32 slotsNeeded(UTI uti);
     bool isClassATemplate(UTI cuti);
     UTI isClassASubclass(UTI cuti); //returns super UTI, or Nav if no inheritance
+    bool findClassAncestorWithMatchingNameid(UTI cuti, u32 nameid, UTI& superp);
     void resetClassSuperclass(UTI cuti, UTI superuti);
     bool isClassASubclassOf(UTI cuti, UTI superp);
     bool isClassAStub(UTI cuti);
@@ -310,8 +318,14 @@ namespace MFM{
     /** return true and the SymbolClassName pointer in 2nd arg if found; */
     bool alreadyDefinedSymbolClassName(u32 dataindex, SymbolClassName * & symptr);
 
+    /** return true and the SymbolClassName pointer in 2nd arg if found; uses key nameid of first arg */
+    bool alreadyDefinedSymbolClassNameByUTI(UTI suti, SymbolClassName * & symptr); //helper
+
     /** return true and the SymbolClassNameTemplate pointer in 2nd arg if found AND is a template; */
     bool alreadyDefinedSymbolClassNameTemplate(u32 dataindex, SymbolClassNameTemplate * & symptr);
+
+    /** return true and the SymbolClassNameTemplate pointer in 2nd arg for stubuti; uses key nameid of first arg */
+    bool alreadyDefinedSymbolClassNameTemplateByUTI(UTI stubuti, SymbolClassNameTemplate * & symptr); //helper
 
     /** return true and the SymbolClass pointer in 2nd arg if uti found; */
     bool alreadyDefinedSymbolClass(UTI uti, SymbolClass * & symptr);
@@ -324,14 +338,16 @@ namespace MFM{
     void addUnknownTypeTokenToThisClassResolver(const Token& tok, UTI huti);
     Token removeKnownTypeTokenFromThisClassResolver(UTI huti);
     bool hasUnknownTypeInThisClassResolver(UTI huti);
+    bool statusUnknownTypeInAClassResolver(UTI acuti, UTI huti);
     bool statusUnknownTypeInThisClassResolver(UTI huti);
+    bool statusUnknownClassTypeInThisLocalsScope(const Token& tok, UTI huti, UTI& rtnuti);
 
     /** creates temporary class type for dataindex, returns the new Symbol pointer in 2nd arg; */
     bool removeIncompleteClassSymbolFromProgramTable(u32 id); //helper
     bool removeIncompleteClassSymbolFromProgramTable(const Token& nTok);
     bool addIncompleteClassSymbolToProgramTable(const Token& cTok, SymbolClassName * & symptr);
     bool addIncompleteTemplateClassSymbolToProgramTable(const Token& cTok, SymbolClassNameTemplate * & symptr);
-    UTI addStubCopyToAncestorClassTemplate(UTI stubTypeToCopy,  UTI context);
+    UTI addStubCopyToAncestorClassTemplate(UTI stubTypeToCopy, UTI argvaluecontext, UTI argtypecontext, Locator stubloc);
 
     void resetUnseenClass(SymbolClassName * cnsym, const Token& identTok);
     bool getUnseenClassFilenames(std::vector<std::string>& unseenFiles);
@@ -343,10 +359,17 @@ namespace MFM{
     void updateLineageAndFirstCheckAndLabelPass();
     void updateLineageAndFirstCheckAndLabelPassForLocals();
     bool checkAndLabelPassForLocals();
+    void defineRegistrationNumberForUlamClasses(); //ulam-4
+    void defineRegistrationNumberForLocals(); //ulam-4
+    //void defineElementTypesForUlamClasses();
+
     void generateCodeForUlamClasses(FileManager * fm);
     void generateUlamClassForLocals(FileManager * fm);
-    StringPoolUser & getUPoolRefForClass(UTI cuti);
-    StringPoolUser& getUPoolRefForLocalsFilescope(UTI luti);
+
+    void generateGlobalUserStringPool(FileManager * fm);
+    void genCodeBuiltInFunctionGetString(File * fp, bool declOnly);
+    void genCodeBuiltInFunctionGetStringLength(File * fp, bool declOnly);
+
     const std::string & getDataAsFormattedUserString(u32 combinedidx);
     const std::string & getDataAsUnFormattedUserString(u32 combinedidx);
     bool isValidUserStringIndex(u32 combinedidx);
@@ -382,7 +405,9 @@ namespace MFM{
     const char * getIsMangledFunctionName(UTI ltype);
     const char * getAsMangledFunctionName(UTI ltype, UTI rtype);
     const char * getClassLengthFunctionName(UTI ltype);
-    const char * getClassGetStringFunctionName(UTI ltype);
+    const char * getClassRegistrationNumberFunctionName(UTI ltype);
+    const char * getGetStringFunctionName();
+    const char * getGetStringLengthFunctionName();
     const char * getBuildDefaultAtomFunctionName(UTI ltype);
     const char * getDefaultQuarkFunctionName();
 
@@ -398,8 +423,11 @@ namespace MFM{
     u32 getMangledClassNameIdForUlamLocalsFilescope(UTI locuti);
     u32 getClassNameIdForUlamLocalsFilescope(UTI locuti);
 
+    const std::string getStringMangledName();
     const char * getMangledNameForUserStringPool();
     const char * getDefineNameForUserStringPoolSize();
+    std::string getFileNameForUserStringPoolHeader(bool wSubDir = false);
+    std::string getFileNameForUserStringPoolCPP(bool wSubDir = false);
 
     ULAMCLASSTYPE getUlamClassForThisClass();
     UTI getUlamTypeForThisClass();
@@ -469,6 +497,8 @@ namespace MFM{
 
     /** for conditional h/as-magic */
     void saveIdentTokenForConditionalAs(const Token& iTok, const Token& cTok);
+    void saveIdentTokenForPendingConditionalAs(const Token& iTok);
+    void confirmParsingConditionalAs(const Token& cTok);
 
     /** class or model parameter structured comment for MFM */
     void saveStructuredCommentToken(const Token& scTok);
@@ -490,13 +520,22 @@ namespace MFM{
     /** to identify each node */
     NNO getNextNodeNo();
 
-    Node * findNodeNoInThisClass(NNO n);
+    Node * findNodeNoInThisClassOrLocalsScope(NNO n);
+    Node * findNodeNoInAncestorsClassOrLocalsScope(NNO n, UTI cuti);
     Node * findNodeNoInThisClassForParent(NNO n);
     Node * findNodeNoInThisClassStubFirst(NNO n);
     Node * findNodeNoInAClass(NNO n, UTI cuti);
+    Node * findNodeNoInAClassOrLocalsScope(NNO n, UTI cuti);
     UTI findAClassByNodeNo(NNO n);
     NodeBlockLocals * findALocalsScopeByNodeNo(NNO n);
     Node * findNodeNoInALocalsScope(Locator loc, NNO n);
+    Node * findNodeNoInAncestorsLocalsScope(NNO n, UTI cuti);
+
+    u32 getRegistrationNumberForClassOrLocalsScope(UTI cuti); //ulam-4
+    u32 getAClassRegistrationNumber(UTI cuti); //ulam-4
+    u32 getALocalsScopeRegistrationNumber(UTI cuti); //ulam-4
+    ELE_TYPE getAClassElementType(UTI cuti); //ulam-4
+    ELE_TYPE getNextElementType(); //ulam-4 incrementally
 
     NodeBlockClass * getAClassBlock(UTI cuti);
     NNO getAClassBlockNo(UTI cuti);
@@ -534,6 +573,10 @@ namespace MFM{
 
     void pushClassContextUsingMemberClassBlock(NodeBlockClass * memberblock);
 
+    void pushClassOrLocalContextAndDontUseMemberBlock(UTI context);
+
+    void pushClassOrLocalCurrentBlock(UTI context);
+
     std::string getClassContextAsStringForDebugging();
 
     /** flag to resolving loop to go again for non-ready types (i.e. Navs) */
@@ -552,11 +595,13 @@ namespace MFM{
     bool isALocalsFileScope(UTI uti);
     bool isAClass(UTI uti);
     bool isASeenClass(UTI cuti);
+    bool isASeenElement(UTI cuti);
     bool isAnonymousClass(UTI cuti);
     void saveUrSelf(UTI uti);
     bool isUrSelf(UTI cuti);
-    void saveEmptyUTI(UTI uti);
-    bool isEmpty(UTI cuti);
+    void saveEmptyElementUTI(UTI uti);
+    bool isEmptyElement(UTI cuti);
+    UTI getEmptyElementUTI();
     bool okUTItoContinue(UTI uti);
     bool neitherNAVokUTItoContinue(UTI uti1, UTI uti2); //false if either is Nav
     bool checkHasHazyKin(NodeBlock * block);
@@ -573,7 +618,8 @@ namespace MFM{
 
   private:
     ClassContextStack m_classContextStack; // the current subject of this compilation
-
+    u32 m_registeredUlamClassCount; //borrowed from UlamClass in MFM
+    ElementTypeGenerator m_elementTypeGenerator; //ulam-4 increment version
 
   };
 }

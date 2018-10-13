@@ -82,7 +82,9 @@ namespace MFM{
 
     const Token& getToken() const;
 
-    bool isAConstant();
+    virtual bool isAConstant();
+
+    virtual void setClassType(UTI cuti); //noop
 
     virtual FORECAST safeToCastTo(UTI newType);
 
@@ -114,10 +116,14 @@ namespace MFM{
     Token m_token;
     SymbolVariable * m_varSymbol;
     NNO m_currBlockNo;
+    NodeBlock * m_currBlockPtr;
 
     void setBlockNo(NNO n);
     NNO getBlockNo() const;
+    void setBlock(NodeBlock * ptr);
     NodeBlock * getBlock();
+
+    UTI checkUsedBeforeDeclared();
 
     SymbolVariable *  makeSymbol(UTI auti, ALT reftype, const TypeArgs& args);
     bool checkVariableTypedefSizes(TypeArgs& args, UTI auti);

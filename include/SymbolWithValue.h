@@ -54,17 +54,17 @@ namespace MFM{
     virtual Symbol * clone() = 0;
     virtual Symbol * cloneKeepsType() = 0;
 
-    virtual u32 getPosOffset();
-
-    virtual bool isPosOffsetReliable();
-
     virtual bool isConstant() = 0;
 
     bool isClassParameter();
     void setClassParameterFlag();
 
     bool isClassArgument();
-    void setClassArgumentFlag();
+    UTI getClassArgumentOfClassInstance();
+    void setClassArgumentFlag(UTI cuti);
+
+    virtual u32 getPosOffset();
+    virtual bool isPosOffsetReliable();
 
     virtual bool isReady();
 
@@ -75,6 +75,10 @@ namespace MFM{
     void setValue(const BV8K& val);
     bool getArrayItemValue(u32 item, u32& rtnitem);
     bool getArrayItemValue(u32 item, u64& rtnitem);
+
+    bool getValueReadyToPrint(u32 & uv); //helper
+    bool getValueReadyToPrint(u64 & dv); //helper
+    bool getValueReadyToPrint(BV8K & bv); //helper
 
     bool hasInitValue();
     bool getInitValue(u32& val);
@@ -96,13 +100,24 @@ namespace MFM{
 
     virtual void printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype) = 0;
 
+    bool getValueAsHexString(std::string& vstr);
     bool getArrayValueAsString(std::string& vstr);
     bool getScalarValueAsString(std::string& vstr);
+
+    bool getClassValueAsHexString(std::string& rtnstr); //scalar and array
 
     //static: return false if all zeros, o.w. true; rtnstr updated
     static bool getLexValueAsString(u32 ntotbits, const BV8K& bval, std::string& rtnstr);
     //static: return false if all zeros, o.w. true; rtnstr updated
     static bool getHexValueAsString(u32 ntotbits, const BV8K& bval, std::string& rtnstr);
+
+    static bool convertValueToAPrettyString(u64 varg, UTI tuti, std::string& vstr, CompilerState & state);
+
+    static bool convertValueToANonPrettyString(u64 varg, UTI tuti, std::string& vstr, CompilerState & state);
+
+    static bool convertValueToALexString(u64 varg, UTI tuti, std::string& vstr, CompilerState & state);
+
+    static bool isValueAllZeros(u32 startbit, u32 ntotbits, const BV8K& bval);
 
     void changeConstantId(u32 fmid, u32 toid); //for premature class instances
 
@@ -117,15 +132,12 @@ namespace MFM{
     bool m_hasInitVal;
     bool m_isReadyInitVal;
     bool m_classParameter; //constant has default but no value, look at instance
-    bool m_classArgument; //constant has value but no default, look at template parameter
-
+    UTI m_classArgument; //constant has value but no default, look at template parameter
+                         //UTI of its class instance for its name when a class or arrray type
     BV8K m_constantValue;
     BV8K m_initialValue;
 
     NNO m_declnno;
-
-    bool convertValueToAPrettyString(u64 varg, std::string& vstr);
-    bool convertValueToALexString(u64 varg, std::string& vstr);
 
     void printPostfixValueScalar(File * fp);
     void printPostfixValueArray(File * fp);

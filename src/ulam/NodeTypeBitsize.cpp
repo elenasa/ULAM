@@ -80,7 +80,6 @@ namespace MFM {
 	if(m_state.okUTItoContinue(it) || (it == Hzy))
 	  {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //t3787
-	    m_state.setGoAgain(); //since not error
 	    it = Hzy;
 	  }
 	else
@@ -109,8 +108,8 @@ namespace MFM {
 	    it = Hzy;
 	  }
       }
-
     setNodeType(it);
+    if(it == Hzy) m_state.setGoAgain(); //since not error
     return getNodeType();
   } //checkAndLabelType
 

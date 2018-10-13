@@ -34,7 +34,7 @@ namespace MFM {
       {
 	UTI vuti = m_nodeOf->getNodeType();
 	bool isself = m_nodeOf->hasASymbolSelf();
-	bool isaref = m_state.isReference(vuti);
+	bool isaref = m_state.isReference(vuti); //t3706, t41046 (not isAltRefType)
 	UTI oftype = NodeStorageof::getOfType();
 	UlamType * ofut = m_state.getUlamTypeByIndex(oftype);
 	assert(isself || UlamType::compare(m_state.getUlamTypeAsDeref(vuti), oftype, m_state) == UTIC_SAME); //sanity (e.g. t3905, t3701)

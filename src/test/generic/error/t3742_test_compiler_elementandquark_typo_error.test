@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3742_test_compiler_elementandquark_typo_error
 #!
-./Eltypo.ulam:13:19: ERROR: Incomplete descriptor for type: ElTypo.
+./Eltypo.ulam:13:19: ERROR: Incomplete descriptor for type: ElTypo (UTI 48).
 ./Eltypo.ulam:13:19: ERROR: UNSEEN Class and incomplete descriptor for type: 'ElTypo'.
 ./Eltypo.ulam:13:16: ERROR: Righthand type of conditional operator 'is': unresolved, is still incomplete.
 ./Eltypo.ulam:13:19: ERROR: UNSEEN class type <ElTypo> was never defined in <ElTypo.ulam>.

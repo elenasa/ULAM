@@ -1,0 +1,21 @@
+## -*- mode:ulam -*-
+#=t41255_test_compiler_element_constantrefprimitive_namedconstantdifferentsizecast_error
+#!
+./Foo.ulam:5:31: ERROR: Casts not allowed in this context.
+./Foo.ulam:5:19: ERROR: Initial value of reference 'ciref' is missing.
+./Foo.ulam:5:33: ERROR: Invalid Statement (possible missing semicolon).
+Unrecoverable Program Parse FAILURE: <Foo.ulam>
+##
+## informed by t41254, okay to assign named constant, but not a terminal, to a constant ref of same size
+##
+#>Foo.ulam
+  ulam 3;
+local constant Int(4) ci = 7;
+element Foo {
+  Int test() {
+    constant Int& ciref = (Int) ci; //error, uncastable
+    return ciref;
+  }
+}
+
+#.

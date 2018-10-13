@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeConstantArray.h - Node handling Named Constant arrays for ULAM
  *
- * Copyright (C) 2016-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2016-2017 Ackleyshack LLC.
+ * Copyright (C) 2016-2018 The Regents of the University of New Mexico.
+ * Copyright (C) 2016-2018 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeConstantArray.h - Node handling Named Constant arrays for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2016-2017 All rights reserved.
+  \date (C) 2016-2018 All rights reserved.
   \gpl
 */
 
@@ -81,7 +81,7 @@ namespace MFM{
 
     virtual bool assignClassArgValueInStubCopy();
 
-    bool getArrayValue(BV8K& bvtmp);
+    virtual bool getConstantValue(BV8K& bval);
 
     virtual EvalStatus eval();
 
@@ -101,14 +101,19 @@ namespace MFM{
 
   private:
     NNO m_currBlockNo;
+    NodeBlock * m_currBlockPtr; //could be NULL
 
     void setBlockNo(NNO n);
     NNO getBlockNo() const;
     NodeBlock * getBlock();
+    void setBlock(NodeBlock * ptr);
+
+    UTI checkUsedBeforeDeclared();
 
     UlamValue makeUlamValuePtr();
     void makeUVPassForCodeGen(UVPass& uvpass);
 
+    bool getArrayValue(BV8K& bvtmp);
   };
 
 }

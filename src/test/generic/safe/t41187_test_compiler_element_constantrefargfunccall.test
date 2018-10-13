@@ -18,6 +18,10 @@ element Foo {
   System s;
   Int(4) m_i;
   Bool(3) m_b;
+  Void check2(constant Bool(3)& bok) {
+    m_b = bok;
+    return;
+  }
   Bool(3) check(constant Bool(3)& bok) {
     Bool(3) b = bok; //should be allowed
     if (m_i < 7)
@@ -25,6 +29,7 @@ element Foo {
     else
       b = false;
     //bok = b; //not allowed (see t41186)
+    check2(bok); //should be allowed
     return b;
   }
   Int test() {
