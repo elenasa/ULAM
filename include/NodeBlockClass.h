@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeBlockClass.h - Basic Node for handling Classes for ULAM
  *
- * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2017 Ackleyshack LLC.
+ * Copyright (C) 2014-2018 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2018 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeBlockClass.h - Basic Node for handling Classes for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2017 All rights reserved.
+  \date (C) 2014-2018 All rights reserved.
   \gpl
 */
 
@@ -97,6 +97,8 @@ namespace MFM{
 
     bool isSuperClassLinkReady(UTI cuti);
 
+    virtual bool hasStringDataMembers();
+
     virtual UTI checkAndLabelType();
 
     bool checkParameterNodeTypes();
@@ -131,9 +133,7 @@ namespace MFM{
 
     virtual bool buildDefaultValue(u32 wlen, BV8K& dvref); //starts here, called by SymbolClass
 
-    virtual void genCodeDefaultValueStringRegistrationNumber(File * fp, u32 startpos);
-
-    virtual void genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos);
+    virtual bool buildDefaultValueForClassConstantDefs();
 
     u32 checkDuplicateFunctions();
 
@@ -168,7 +168,7 @@ namespace MFM{
 
     void updatePrevBlockPtrOfFuncSymbolsInTable();
 
-    void packBitsForVariableDataMembers();
+    TBOOL packBitsForVariableDataMembers();
 
     virtual void printUnresolvedVariableDataMembers();
 
@@ -190,11 +190,7 @@ namespace MFM{
 
     virtual void genCodeConstantArrayInitialization(File * fp);
 
-    virtual void generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly);
-
-    void genCodeBuiltInFunctionGetString(File * fp, bool declOnly);
-
-    void genCodeBuiltInFunctionGetStringLength(File * fp, bool declOnly);
+    virtual void generateBuiltinConstantClassOrArrayInitializationFunction(File * fp, bool declOnly);
 
     void initElementDefaultsForEval(UlamValue& uv, UTI cuti);
 
@@ -217,7 +213,11 @@ namespace MFM{
 
     NodeBlockClass * m_superBlockNode;
 
+    bool m_buildingDefaultValueInProgress;
+    bool m_bitPackingInProgress;
     bool m_isEmpty; //replaces separate node
+    bool m_registeredForTestInstance;
+
     UTI m_templateClassParentUTI;
     NodeList * m_nodeParameterList; //constants
     NodeList * m_nodeArgumentList;  //template instance
@@ -245,6 +245,8 @@ namespace MFM{
     void genCodeBuiltInFunctionIsRelatedInstance(File * fp);
 
     void genCodeBuiltInFunctionGetClassLength(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
+    void genCodeBuiltInFunctionGetClassRegistrationNumber(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
+    void genCodeBuiltInFunctionGetElementType(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
     void genCodeBuiltInFunctionBuildDefaultAtom(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
     bool genCodeBuiltInFunctionBuildingDefaultDataMembers(File * fp);
     void genCodeBuiltInFunctionBuildDefaultQuark(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
@@ -262,6 +264,8 @@ namespace MFM{
     void generateUlamClassGetMangledName(File * fp, bool declOnly);
 
     std::string removePunct(std::string str);
+
+    void generateTestInstanceRun(File * fp);
   };
 
 }

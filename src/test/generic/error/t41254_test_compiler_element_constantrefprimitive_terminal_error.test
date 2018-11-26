@@ -1,0 +1,20 @@
+## -*- mode:ulam -*-
+#=t41254_test_compiler_element_constantrefprimitive_terminal_error
+#!
+./Foo.ulam:6:14: ERROR: Reference variable ciref's type constant Int(4)&, and its initial value type Int(4), are incompatible.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by t41242, okay to assign named constant, but not a terminal, to a constant ref of same size
+##
+#>Foo.ulam
+  ulam 3;
+local constant Int(4) ci = 7;
+element Foo {
+  Int test() {
+    constant Int(4)& ciref2 = ci; //did not fail
+    constant Int(4)& ciref = 7;
+    return ciref;
+  }
+}
+
+#.

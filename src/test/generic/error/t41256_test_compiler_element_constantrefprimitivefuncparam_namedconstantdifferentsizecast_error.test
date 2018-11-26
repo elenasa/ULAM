@@ -1,0 +1,31 @@
+## -*- mode:ulam -*-
+#=t41256_test_compiler_element_constantrefprimitivefuncparam_namedconstantdifferentsizecast_error
+#!
+./Foo.ulam:16:5: ERROR: (1) <func> has no defined function with 1 matching argument type: Int(32), and cannot be called.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by t41255, named constant argument to  constant ref function parameter
+##
+#>Foo.ulam
+  ulam 3;
+local constant Int(4) ci = 7;
+element Foo {
+
+  Void func(constant Int& ciarg)
+  {
+    Int i = ciarg;
+  }
+
+  Void func4(constant Int(4)& ciarg)
+  {
+    Int i = ciarg;
+  }
+
+  Int test() {
+    func((Int) ci);
+    func4(ci); //ok
+    return 0;
+  }
+}
+
+#.

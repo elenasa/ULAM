@@ -59,6 +59,8 @@ namespace MFM{
 
     virtual const std::string methodNameForCodeGen();
 
+    virtual bool asConditionalNode();
+
     virtual UTI checkAndLabelType();
 
     virtual EvalStatus eval();

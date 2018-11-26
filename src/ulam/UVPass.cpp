@@ -34,7 +34,7 @@ namespace MFM {
     return rtnUV;
   } //makePass
 
-  PACKFIT UVPass::isTargetPacked()
+  PACKFIT UVPass::isTargetPacked() const
   {
     return (PACKFIT) m_packed;
   }
@@ -44,7 +44,7 @@ namespace MFM {
     m_storagetype = s;
   }
 
-  TMPSTORAGE UVPass::getPassStorage()
+  TMPSTORAGE UVPass::getPassStorage() const
   {
     return (TMPSTORAGE) m_storagetype;
   }
@@ -54,14 +54,14 @@ namespace MFM {
     m_varNum = s;
   }
 
-  s32 UVPass::getPassVarNum()
+  s32 UVPass::getPassVarNum() const
   {
     return m_varNum;
   }
 
   void UVPass::setPassPos(u32 pos)
   {
-    assert((pos <= getPassLen()) && pos >= 0);
+    assert((pos <= getPassLen()));
     m_posInStorage = pos;
     return;
   }
@@ -69,29 +69,23 @@ namespace MFM {
   void UVPass::setPassPosForElementType(u32 pos, CompilerState& state)
   {
     //t3968 element dm in transient can have pos > 96
-    //assert(((pos + ATOMFIRSTSTATEBITPOS) < BITSPERATOM) && pos >= 0);
-    assert(((this->getPassLen() + ATOMFIRSTSTATEBITPOS) <= BITSPERATOM) && pos >= 0);
+    assert(((this->getPassLen() + ATOMFIRSTSTATEBITPOS) <= BITSPERATOM));
     assert(state.getUlamTypeByIndex(this->getPassTargetType())->getUlamClassType() == UC_ELEMENT); //sanity
     m_posInStorage = pos + ATOMFIRSTSTATEBITPOS;
     return;
   }
 
-  u32 UVPass::getPassPos()
+  u32 UVPass::getPassPos() const
   {
-    u32 pos = m_posInStorage;
-    //assert(pos <= getPassLen() && pos >= 0);
-    assert(pos >= 0); //data member pos may go beyonds its own length
-    return pos;
+    return m_posInStorage; //data member pos may go beyonds its own length
   }
 
-  u32 UVPass::getPassLen()
+  u32 UVPass::getPassLen() const
   {
-    u32 len = m_bitlenInStorage;
-    assert(len >= 0);
-    return len;
+    return m_bitlenInStorage;
   }
 
-  UTI UVPass::getPassTargetType()
+  UTI UVPass::getPassTargetType() const
   {
     return m_targetType;
   }
@@ -101,7 +95,7 @@ namespace MFM {
     m_targetType = type;
   }
 
-  u32 UVPass::getPassNameId()
+  u32 UVPass::getPassNameId() const
   {
     return m_nameid;
   }
@@ -111,7 +105,7 @@ namespace MFM {
     m_nameid = id;
   }
 
-  const std::string UVPass::getTmpVarAsString(CompilerState & state)
+  const std::string UVPass::getTmpVarAsString(CompilerState & state) const
   {
     return state.getTmpVarAsString(getPassTargetType(), getPassVarNum(), getPassStorage());
   }

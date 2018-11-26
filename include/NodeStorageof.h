@@ -95,11 +95,6 @@ namespace MFM{
 
     UTI m_oftype;
     NodeTypeDescriptor * m_nodeTypeDesc;
-    NNO m_currBlockNo;
-
-    NNO getBlockNo() const;
-
-    NodeBlock * getBlock();
   };
 
 }

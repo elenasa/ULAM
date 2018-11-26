@@ -206,7 +206,9 @@ namespace MFM {
 	    u32 numParams = funcSymbol->getNumberOfParameters();
 	    for(u32 i = 0; i < numParams; i++)
 	      {
-		if(m_state.isReference(funcSymbol->getParameterType(i)))
+		Symbol * psym = funcSymbol->getParameterSymbolPtr(i);
+		assert(psym && psym->isFunctionParameter()); //sanity
+		if(m_state.isAltRefType(psym->getUlamTypeIdx()))
 		  {
 		    TBOOL argreferable = argNodes[i]->getReferenceAble();
 		    if(argreferable != TBOOL_TRUE)
@@ -220,11 +222,12 @@ namespace MFM {
 			    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 			    numHazyFound++;
 			  }
-			else
+			else if(!((SymbolVariableStack *) psym)->isConstantFunctionParameter())
 			  {
 			    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-			    numErrorsFound++;
+			    numErrorsFound++; //t41189
 			  }
+			//else non-referenceable arg with const ref parameter, ok
 		      }
 		  }
 	      }
@@ -315,6 +318,7 @@ namespace MFM {
 	      for(u32 i = numParams; i < numargs; i++)
 		  {
 		    UTI auti = argNodes[i]->getNodeType();
+		    ALT alti = m_state.getReferenceType(auti);
 		    if(argNodes[i]->isAConstant())
 		      {
 			Node * argCast = NULL;
@@ -325,7 +329,7 @@ namespace MFM {
 			m_argumentNodes->exchangeKids(argNodes[i], argCast, i);
 			argsWithCast++;
 		      }
-		    else if(m_state.getReferenceType(auti) == ALT_ARRAYITEM)
+		    else if(alti == ALT_ARRAYITEM)
 		      {
 			//array item (ALT_ARRAYITEM) is okay, with a cast to its scalar (t3250)
 			//don't use makeCastingNode, since UTIC_SAME short-circuits; req'd cast
@@ -334,10 +338,12 @@ namespace MFM {
 			m_argumentNodes->exchangeKids(argNodes[i], argCast, i);
 			argsWithCast++;
 		      }
-		    else if(m_state.getReferenceType(auti) == ALT_REF)
+		    else if((alti == ALT_REF) || (alti == ALT_CONSTREF))
 		      {
 			//ref not allowed since doesn't share base class w non-refs (t41099)
 			std::ostringstream msg;
+			if(alti == ALT_CONSTREF)
+			  msg << "Constant ";
 			msg << "Reference Vararg: " ;
 			msg << "arg_" << i + 1;
 			msg << " to function <";
@@ -393,7 +399,7 @@ namespace MFM {
 
     if(m_state.okUTItoContinue(it))
       {
-	bool isref = m_state.isReference(it);
+	bool isref = m_state.isAltRefType(it);
 	if(m_state.isAClass(it) || isref)
 	  setStoreIntoAble(TBOOL_TRUE); //t3912 (class); t41085,t41077 (constructors)
 
@@ -447,11 +453,9 @@ namespace MFM {
   EvalStatus NodeFunctionCall::eval()
   {
     UTI nuti = getNodeType();
-    if(nuti == Nav)
-      return ERROR;
+    if(nuti == Nav) return evalErrorReturn();
 
-    if(nuti == Hzy)
-      return NOTREADY;
+    if(nuti == Hzy) return evalStatusReturnNoEpilog(NOTREADY);
 
     assert(m_funcSymbol);
 
@@ -468,18 +472,10 @@ namespace MFM {
     evalNodeProlog(0); //new current frame pointer on node eval stack
 
     EvalStatus argevs = evalArgumentsInReverseOrder(argsPushed);
-    if(argevs != NORMAL)
-      {
-	evalNodeEpilog();
-	return argevs;
-      }
+    if(argevs != NORMAL) return Node::evalStatusReturn(argevs);
 
     EvalStatus hiddenevs = evalHiddenArguments(argsPushed, func);
-    if(hiddenevs != NORMAL)
-      {
-	evalNodeEpilog();
-	return hiddenevs;
-      }
+    if(hiddenevs != NORMAL) return Node::evalStatusReturn(hiddenevs);
 
     m_state.m_currentSelfPtr = m_state.m_currentObjPtr; // set for subsequent func calls ****
     //********************************************
@@ -488,13 +484,12 @@ namespace MFM {
     EvalStatus evs = func->eval(); //NodeBlockFunctionDefinition..
     if(evs != NORMAL)
       {
-	assert(evs != RETURN);
+	assert(evs != RETURN); //t3896
 	//drops all the args and return slots on callstack
 	m_state.m_funcCallStack.popArgs(argsPushed+rtnslots);
 	m_state.m_currentObjPtr = saveCurrentObjectPtr; //restore current object ptr *******
 	m_state.m_currentSelfPtr = saveSelfPtr; //restore previous self *****
-	evalNodeEpilog();
-	return evs;
+	return Node::evalStatusReturn(evs);
       }
     //*
     //**********************************************
@@ -531,18 +526,19 @@ namespace MFM {
 
     m_state.m_currentObjPtr = saveCurrentObjectPtr; //restore current object ptr *****
     m_state.m_currentSelfPtr = saveSelfPtr; //restore previous self      *************
+
+    if(evs != NORMAL) return evalStatusReturn(evs);
+
     evalNodeEpilog(); //clears out the node eval stack
-    return evs;
+    return NORMAL;
   } //eval
 
   EvalStatus NodeFunctionCall::evalToStoreInto()
   {
     UTI nuti = getNodeType();
-    if(nuti == Nav)
-      return ERROR;
+    if(nuti == Nav) return evalErrorReturn();
 
-    if(nuti == Hzy)
-      return NOTREADY;
+    if(nuti == Hzy) return evalStatusReturnNoEpilog(NOTREADY);
 
     std::ostringstream msg;
     msg << "Eval of function calls as lefthand values is not currently supported.";
@@ -554,7 +550,7 @@ namespace MFM {
     if((getStoreIntoAble() != TBOOL_TRUE) && !isAConstructorFunctionCall())
       {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	return ERROR;
+	return evalErrorReturn();
       }
 
     MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
@@ -562,7 +558,7 @@ namespace MFM {
     // that belongs in m_currentObjPtr, but where to store the ans?
     // use the hidden 'uc' slot (under the return value)
 
-    assert(m_state.isAClass(nuti) || m_state.isReference(nuti) || isAConstructorFunctionCall()); //sanity?
+    assert(m_state.isAClass(nuti) || m_state.isAltRefType(nuti) || isAConstructorFunctionCall()); //sanity?
 
     assert(m_funcSymbol);
     NodeBlockFunctionDefinition * func = m_funcSymbol->getFunctionNode();
@@ -578,18 +574,10 @@ namespace MFM {
     evalNodeProlog(0); //new current frame pointer on node eval stack
 
     EvalStatus argevs = evalArgumentsInReverseOrder(argsPushed);
-    if(argevs != NORMAL)
-      {
-	evalNodeEpilog();
-	return argevs;
-      }
+    if(argevs != NORMAL) return Node::evalStatusReturn(argevs);
 
     EvalStatus hiddenevs = evalHiddenArguments(argsPushed, func);
-    if(hiddenevs != NORMAL)
-      {
-	evalNodeEpilog();
-	return hiddenevs;
-      }
+    if(hiddenevs != NORMAL) return Node::evalStatusReturn(hiddenevs);
 
     m_state.m_currentSelfPtr = m_state.m_currentObjPtr; // set for subsequent func calls ****
     //********************************************
@@ -598,13 +586,12 @@ namespace MFM {
     EvalStatus evs = func->evalToStoreInto(); //NodeBlockFunctionDefinition..
     if(evs != NORMAL)
       {
-	assert(evs != RETURN);
+	assert(evs != RETURN); //t3896
 	//drops all the args and return slots on callstack
 	m_state.m_funcCallStack.popArgs(argsPushed+rtnslots);
 	m_state.m_currentObjPtr = saveCurrentObjectPtr; //restore current object ptr *******
 	m_state.m_currentSelfPtr = saveSelfPtr; //restore previous self *****
-	evalNodeEpilog();
-	return evs;
+	return Node::evalStatusReturn(evs);
       }
     //*
     //**********************************************
@@ -637,6 +624,9 @@ namespace MFM {
 
     m_state.m_currentObjPtr = saveCurrentObjectPtr; //restore current object ptr *****
     m_state.m_currentSelfPtr = saveSelfPtr; //restore previous self      *************
+
+    if(evs != NORMAL) Node::evalStatusReturn(evs);
+
     evalNodeEpilog(); //clears out the node eval stack
     return NORMAL;
   } //evalToStoreInto
@@ -667,21 +657,19 @@ namespace MFM {
 	u32 slots = makeRoomForNodeType(argType); //for eval return
 
 	UTI paramType = m_funcSymbol->getParameterType(i);
-	UlamType * put = m_state.getUlamTypeByIndex(paramType);
-	ALT paramreftype = put->getReferenceType();
-	if(paramreftype == ALT_REF)
+	bool useparamreftype = m_state.isAltRefType(paramType);
+	if(useparamreftype)
 	  evs = m_argumentNodes->evalToStoreInto(i);
 	else
 	  evs = m_argumentNodes->eval(i);
 
-	if(evs != NORMAL)
-	  return evs; //quit!
+	if(evs != NORMAL) return evalStatusReturnNoEpilog(evs); //quit!
 
 	// transfer to call stack
 	if(slots==1)
 	  {
 	    UlamValue auv = m_state.m_nodeEvalStack.popArg();
-	    if((paramreftype == ALT_REF) && (auv.getPtrStorage() == STACK))
+	    if((useparamreftype) && (auv.getPtrStorage() == STACK))
 	      {
 		assert(m_state.isPtr(auv.getUlamValueTypeIdx()));
 		if(!auv.isPtrAbs()) //do that conversion here
@@ -736,7 +724,7 @@ namespace MFM {
       {
 	if(!getVirtualFunctionForEval(atomPtr, func))
 	  {
-	    return ERROR;
+	    return evalErrorReturn();
 	  }
       } //end virtual function
 
@@ -801,7 +789,7 @@ namespace MFM {
 	      {
 		atomPtr.setPtrTargetType(((SymbolVariableStack *) asym)->getAutoStorageTypeForEval());
 	      }
-	    else if(autolocaltype == ALT_REF)
+	    else if((autolocaltype == ALT_REF) || (autolocaltype == ALT_CONSTREF))
 	      {
 		if(!asym->isSuper())
 		  //unlike alt_as, alt_ref can be a primitive or a class
@@ -823,6 +811,7 @@ namespace MFM {
     //is the virtual class uti the same as what we already have?
     NNO funcstnno = m_funcSymbol->getBlockNoOfST();
     UTI funcclassuti = m_state.findAClassByNodeNo(funcstnno);
+    assert(funcclassuti != Nouti); //sanity
     if(funcclassuti != vtcuti)
       {
 	SymbolClass * vtcsym = NULL;
@@ -979,7 +968,8 @@ namespace MFM {
     if(nuti != Void)
       {
 	u32 pos = 0; //POS 0 leftjustified;
-	bool isref = (nut->getReferenceType() == ALT_REF); //t3946
+	//bool isref = (nut->getReferenceType() == ALT_REF); //t3946
+	bool isref = m_state.isAltRefType(nuti); //t3946, t41188
 	if(!isref && (nut->getUlamClassType() == UC_NOTACLASS)) //includes atom too
 	  {
 	    u32 wordsize = nut->getTotalWordSize();
@@ -1289,7 +1279,7 @@ namespace MFM {
     UTI vuti = uvpass.getPassTargetType();
 
     //vuti may not be a ref (e.g. t3668, a QW that was deref'd by [].)
-    bool isaref = m_state.isReference(vuti);
+    bool isaref = m_state.isAltRefType(vuti);
 
     //use possible dereference type for mangled name
     UTI derefuti = m_state.getUlamTypeAsDeref(vuti);

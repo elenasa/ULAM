@@ -4,7 +4,9 @@
 ##
 ##      // try as named constants
 ##      // without explicit cast of (a+b) we get error:
+##
 ./A.ulam:6:11: ERROR: Constant value expression for 'c' is not representable as Unary(3).
+./A.ulam:6:11: ERROR: Problem in NodeConstantDef for type: Unary(3), used with symbol name 'c', after folding attempt.
 Unrecoverable Program Type Label FAILURE.
 #>A.ulam
 use System;

@@ -66,9 +66,10 @@ namespace MFM {
     return getNodeType();
   } //checkAndLabelType
 
-  void NodeVarRefAs::packBitsInOrderOfDeclaration(u32& offset)
+  TBOOL NodeVarRefAs::packBitsInOrderOfDeclaration(u32& offset)
   {
     m_state.abortShouldntGetHere(); //refs can't be data members
+    return TBOOL_FALSE;
   } //packBitsInOrderOfDeclaration
 
   void NodeVarRefAs::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
@@ -87,11 +88,9 @@ namespace MFM {
     assert(m_varSymbol);
 
     UTI nuti = getNodeType();
-    if(nuti == Nav)
-      return ERROR;
+    if(nuti == Nav) return evalErrorReturn();
 
-    if(nuti == Hzy)
-      return NOTREADY;
+    if(nuti == Hzy) return evalStatusReturnNoEpilog(NOTREADY);
 
     assert(m_varSymbol->getUlamTypeIdx() == nuti);
     assert(!m_state.isAtom(nuti)); //rhs type of conditional as/has can't be an atom
@@ -188,10 +187,10 @@ namespace MFM {
       }
     else if((stgclasstype == UC_ELEMENT))
       {
-	if(stgcosut->isReference())
+	if(stgcosut->isReference()) //not isAltRefType
 	  {
 	    fp->write(", 0u, "); //t3655
-	    fp->write(stgcos->getMangledName().c_str()); //stg
+	    fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str()); //VG
 	    fp->write(".GetEffectiveSelf()"); //Sat Jun 18 17:30:20 2016
 	  }
 	else
@@ -207,9 +206,9 @@ namespace MFM {
       {
 	// transient can be another transient or a quark, not an element
 	fp->write(", 0u, ");
-	if(stgcosut->isReference())
+	if(stgcosut->isReference()) //not isAltRefType
 	  {
-	    fp->write(stgcos->getMangledName().c_str()); //stg
+	    fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str()); //VG:t3826 ALT_AS
 	    fp->write(".GetEffectiveSelf()"); //t3824
 	  }
 	else
@@ -224,10 +223,10 @@ namespace MFM {
       {
 	// quark can be another quark, not an element, nor transient
 	fp->write(", 0u, ");
-	if(stgcosut->isReference())
+	if(stgcosut->isReference()) //not isAltRefType
 	  {
-	    fp->write(stgcos->getMangledName().c_str()); //stg
-	    fp->write(".GetEffectiveSelf()"); //tt3829
+	    fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str()); //VG: t3827,8,9 ALT_AS
+	    fp->write(".GetEffectiveSelf()");
 	  }
 	else
 	  {
@@ -240,7 +239,7 @@ namespace MFM {
     else
       m_state.abortUndefinedUlamClassType(); //WHAT THEN???
 
-    if(!stgcosut->isReference())
+    if(!stgcosut->isReference()) //not isAltRefType
       fp->write(", uc"); //t3249
 
     fp->write("); //shadows lhs of 'as'"); GCNL;

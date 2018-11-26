@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeBlockContext.h - Basic handling of Contexts for ULAM
  *
- * Copyright (C) 2016-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2016-2017 Ackleyshack LLC.
+ * Copyright (C) 2016-2018 The Regents of the University of New Mexico.
+ * Copyright (C) 2016-2018 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,10 +29,9 @@
   \file NodeBlockContext.h - Basic handling of Contexts for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2016-2017 All rights reserved.
+  \date (C) 2016-2018 All rights reserved.
   \gpl
 */
-
 
 #ifndef NODEBLOCKCONTEXT_H
 #define NODEBLOCKCONTEXT_H
@@ -61,10 +60,9 @@ namespace MFM{
 
     virtual bool isAClassBlock() = 0;
 
-    virtual StringPoolUser& getUserStringPoolRef();
-    virtual void setUserStringPoolRef(const StringPoolUser& spref); //for instantiated templates
+    virtual bool hasStringDataMembers();
 
-    bool hasStringDataMembers();
+    bool classConstantsReady();
 
     virtual void addTargetDescriptionToInfoMap(TargetMap& classtargets, u32 scid) = 0;
     virtual void addMemberDescriptionsToInfoMap(ClassMemberMap& classmembers) = 0;
@@ -79,7 +77,7 @@ namespace MFM{
     void genUlamTypeImmediateDefinitions(File * fp);
 
   protected:
-    StringPoolUser m_upool; //for double quoted strings only
+    bool m_classConstantsReady;
 
   private:
 

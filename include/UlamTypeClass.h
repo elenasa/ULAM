@@ -74,6 +74,8 @@ namespace MFM{
 
     virtual const std::string getUlamTypeNameBrief();
 
+    virtual const std::string getUlamTypeClassNameBrief(UTI cuti);
+
     virtual void getDataAsString(const u32 data, char * valstr, char prefix);
 
     virtual void getDataLongAsString(const u64 data, char * valstr, char prefix);

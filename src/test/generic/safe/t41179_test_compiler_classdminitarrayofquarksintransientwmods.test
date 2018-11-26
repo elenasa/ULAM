@@ -1,0 +1,101 @@
+## -*- mode:ulam -*-
+#=t41179_test_compiler_classdminitarrayofquarksintransientwmods
+##
+## gen output: (+ interleaved asserts)
+## Bool(3) Arg: 0x7 (true)
+## Bool(3) Arg: 0x7 (true)
+## Unary(3) Arg: 0x2
+## Unary(3) Arg: 0x2
+## Unary(3) Arg: 0x3
+## Unary(3) Arg: 0x3
+## Unary(3) Arg: 0x0
+## Unary(3) Arg: 0x0
+## Unary(3) Arg: 0x3
+## Unary(3) Arg: 0x3
+##
+#!
+Exit status: -11
+Ue_A { Bool(1) b(false);  QFoo m_foo( QBar m_bartwo[2]( Unary(3) r[5](3u,2u,0u,0u,0u);  Bool(1) sp(true);  Unary(3) r[5](0u,3u,2u,2u,2u);  Bool(1) sp(true); ); );  Int(32) test() {  System s;  R mytr = { .m_b = true };  s ( mytr m_a . m_foo . m_bartwo 0 [] . sp . cast )print . s ( mytr m_a . m_foo . m_bartwo 0 [] . sp . )assert . s ( mytr m_a . m_foo . m_bartwo 1 [] . sp . cast )print . s ( mytr m_a . m_foo . m_bartwo 1 [] . sp . )assert . Unary(3) chkr0 = mytr m_a . m_foo . m_bartwo 0 [] . r 0 [] .;  s ( chkr0 )print . s ( mytr m_a . m_foo . m_bartwo 0 [] . r 0 [] . )print . s ( mytr m_a . m_foo . m_bartwo 0 [] . r 0 [] . cast 2 == )assert . Unary(3) chkr3 = mytr m_a . m_foo . m_bartwo 0 [] . r 3 [] .;  s ( chkr3 )print . s ( mytr m_a . m_foo . m_bartwo 0 [] . r 3 [] . )print . s ( mytr m_a . m_foo . m_bartwo 0 [] . r 3 [] . cast 3 == )assert . Unary(3) chkr11 = mytr m_a . m_foo . m_bartwo 1 [] . r 1 [] .;  s ( chkr11 )print . s ( mytr m_a . m_foo . m_bartwo 1 [] . r 1 [] . )print . s ( mytr m_a . m_foo . m_bartwo 1 [] . r 1 [] . cast 0 cast == )assert . Unary(3) chkr13 = mytr m_a . m_foo . m_bartwo 1 [] . r 3 [] .;  s ( chkr13 )print . s ( mytr m_a . m_foo . m_bartwo 1 [] . r 3 [] . )print . s ( mytr m_a . m_foo . m_bartwo 1 [] . r 3 [] . cast 3 == )assert . 0 cast return } }
+Uq_QFoo { QBar m_bartwo[2]( Bool(1) sp(false);  Unary(3) r[5]( { 1u }); ), ( Bool(1) sp(false);  Unary(3) r[5]( { 1u }); );  <NOMAIN> }
+Uq_System { <NOMAIN> }
+Un_R { Bool(1) m_b(false);  A m_a( { .m_foo = { .m_bartwo = { { .r = { 2 cast, 0 cast, 3 cast } } } } });  <NOMAIN> }
+Uq_QBar { Bool(1) sp(false);  Unary(3) r[5]( { 1u });  <NOMAIN> }
+##
+## informed by 4th test of C-99 class instance initialization
+## t41170 within a transient (see t41175 & t41176), plus changes to default data member A, and transient dm
+## note: when one item of .m_bartwo is modified by R, the second item (automatically) gets the same new value
+##
+#>A.ulam
+  ulam 3;
+element A {
+  Bool b;
+  QFoo m_foo = { .m_bartwo = { {.r = {3, 2, 0}, .sp = true }, {.sp = true, .r = {0, 3, 2} } } }; //may be in different order than declared in class
+
+ Int test() {
+   System s;
+
+   R mytr = { .m_b = true };
+
+   s.print(mytr.m_a.m_foo.m_bartwo[0].sp);
+   s.assert(mytr.m_a.m_foo.m_bartwo[0].sp);
+
+   s.print(mytr.m_a.m_foo.m_bartwo[1].sp);
+   s.assert(mytr.m_a.m_foo.m_bartwo[1].sp);
+
+
+   Unary(3) chkr0 = mytr.m_a.m_foo.m_bartwo[0].r[0];
+   s.print(chkr0);
+   s.print(mytr.m_a.m_foo.m_bartwo[0].r[0]); //modified by R
+   s.assert(mytr.m_a.m_foo.m_bartwo[0].r[0] == 2);
+
+   Unary(3) chkr3 = mytr.m_a.m_foo.m_bartwo[0].r[3];
+   s.print(chkr3);
+   s.print(mytr.m_a.m_foo.m_bartwo[0].r[3]); //modified by R
+   s.assert(mytr.m_a.m_foo.m_bartwo[0].r[3] == 3); //continued with last value
+
+   Unary(3) chkr11 = mytr.m_a.m_foo.m_bartwo[1].r[1];
+   s.print(chkr11);
+   s.print(mytr.m_a.m_foo.m_bartwo[1].r[1]); //modified by R, continued with first value
+   s.assert(mytr.m_a.m_foo.m_bartwo[1].r[1] == 0);
+
+   Unary(3) chkr13 = mytr.m_a.m_foo.m_bartwo[1].r[3];
+   s.print(chkr13);
+   s.print(mytr.m_a.m_foo.m_bartwo[1].r[3]); //modified by R, continued with first value
+   s.assert(mytr.m_a.m_foo.m_bartwo[1].r[3] == 3); //continued with last value
+
+   return 0;
+ }
+}
+
+#:R.ulam
+  ulam 3;
+transient R {
+  Bool m_b;
+  A m_a = {.m_foo = { .m_bartwo = { {.r = {2, 0, 3 } } } } };
+}
+
+#:QFoo.ulam
+  ulam 3;
+quark QFoo {
+  QBar m_bartwo[2];
+}
+
+#:QBar.ulam
+  ulam 3;
+quark QBar {
+  Bool sp;
+  Unary(3) r[5] = {1};
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

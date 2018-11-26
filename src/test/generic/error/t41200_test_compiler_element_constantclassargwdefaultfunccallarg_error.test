@@ -1,0 +1,78 @@
+## -*- mode:ulam -*-
+#=t41200_test_compiler_element_constantclassargwdefaultfunccallarg_error
+##
+##  gen output: (+ interleaved asserts)
+##      Bool(3) Arg: 0x7 (true)
+##      Unary(3) Arg: 0x2
+##      Bool(3) Arg: 0x7 (true)
+##      Unary(3) Arg: 0x3
+##      Bool(3) Arg: 0x0 (false)
+#!
+./Foo.ulam:7:30: ERROR: Default values for function parameters is currently not supported.
+./Foo.ulam:7:32: ERROR: Expected 'A Type' Token!! got Token <{> instead.
+./Foo.ulam:7:33: ERROR: Unexpected input!! Token <.> after function declaration.
+./Foo.ulam:3:1: ERROR: Empty/Incomplete Class Definition 'Foo'; Possible missing ending curly brace.
+./Foo.ulam:7:34: ERROR: Invalid Class Type <mun>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+./Foo.ulam:3:9: ERROR: Invalid Type: Foo.
+ ERROR: No parse tree for This Class: Foo.
+Unrecoverable Program Parse FAILURE: <Foo.ulam>
+./Foo.ulam:7:38: ERROR: Invalid Class Type <=>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+Unrecoverable Program Parse FAILURE: <QW.ulam>
+##
+## informed by t41199, and t3990 currently unsupported
+##
+#>Foo.ulam
+  ulam 2;
+use System;
+element Foo {
+  System s;
+  Int(4) m_i;
+  QW m_q = { .mun = 2u };
+  Bool check(constant QW qok = {.mun = 1u } ) {
+    if (qok.mun < 3u)
+      return true;
+    return false;
+  }
+
+  Int test() {
+    Bool bd = check(); //default func arg
+    s.print(bd);
+    s.assert(bd);
+
+    Foo f; //local storage
+    QW & qref = f.m_q; //what does gencode look like?
+    Bool b = check(qref);
+    s.print(f.m_q.mun); //should be =2
+    s.assert(f.m_q.mun == 0x2);
+    s.print(b);
+    s.assert(b);
+
+    QW qw; //default vvalue
+    Bool bqw = check(qw);
+    s.print(qw.mun); //should be =3 default
+    s.assert(qw.mun == 0x3);
+    s.print(bqw);
+    s.assert(!bqw);
+
+    return f.m_q.mun; //==2
+  }
+}
+
+#:QW.ulam
+  ulam 2;
+quark QW {
+  Unary(3) mun = 0x3;
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

@@ -60,7 +60,8 @@ namespace MFM
     void addUnknownTypeToken(const Token& tok, UTI huti);
     Token removeKnownTypeToken(UTI huti);
     bool hasUnknownTypeToken(UTI huti);
-    bool statusUnknownType(UTI huti);
+    bool getUnknownTypeToken(UTI huti, Token & tok);
+    bool statusUnknownType(UTI huti, SymbolClass * csym);
     bool statusAnyUnknownTypeNames(); //should be resolved after parsingxb
     u32 reportAnyUnknownTypeNames();
 
@@ -70,8 +71,10 @@ namespace MFM
     bool statusNonreadyClassArguments(SymbolClass * stubcsym);
     void linkConstantExpressionForPendingArg(NodeConstantDef * ceNode);
     bool pendingClassArgumentsForClassInstance();
-    void setContextForPendingArgs(UTI context);
-    UTI getContextForPendingArgs();
+    void setContextForPendingArgValues(UTI context);
+    UTI getContextForPendingArgValues();
+    void setContextForPendingArgTypes(UTI context);
+    UTI getContextForPendingArgTypes();
 
     bool mapUTItoUTI(UTI fmuti, UTI touti);
     bool findMappedUTI(UTI auti, UTI& mappedUTI);
@@ -88,7 +91,8 @@ namespace MFM
 
     CompilerState& m_state;
     UTI m_classUTI;
-    UTI m_classContextUTIForPendingArgs; //used to evaluate pending class args in context
+    UTI m_classContextUTIForPendingArgValues; //used to evaluate pending class arg values in use-context
+    UTI m_classContextUTIForPendingArgTypes; //used to evaluate pending class arg types in stub context
 
     bool constantFoldNonreadyClassArgs(SymbolClass * stubcsym);
 
@@ -97,6 +101,7 @@ namespace MFM
     void clearLeftoverUnknownTypeTokens();
 
     bool checkUnknownTypeToResolve(UTI huti, const Token& tok);
+    bool checkUnknownTypeAsClassArgument(UTI huti, const Token& tok, SymbolClass * csym);
   };
 
 }

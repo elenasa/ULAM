@@ -1,0 +1,81 @@
+## -*- mode:ulam -*-
+#=t41223_test_compiler_elementtemplatewithinheritedclassparameterquarktemplate
+##
+##  gen output: (+ interleaved asserts)
+##   Int(4) : 7
+##   true
+##   Int(4) : 7
+##   true
+##
+## FAILED: ILLEGAL_ARGUMENT
+#!
+Exit status: 7
+Ue_T { Int(32) test() {  System sys;  E(true) et;  sys ( et 7 . )print . sys ( et 7 . 7 == )assert . sys ( et v . b . cast )print . sys ( et v . b . )assert . E(false) ef;  sys ( ef 7 . )print . sys ( ef 7 . 7 == )assert . sys ( ef v . b . cast )print . sys ( ef v . b . )assert . et 7 . cast return } }
+Uq_System { <NOMAIN> }
+Ue_E(Bool(1) p) : S(v,bp) { /* empty class block */ }
+Uq_S(Q(flag) v, Bool(1) bp) { constant Int(4) csi = v i .;  <NOMAIN> }
+Uq_Q(Bool(1) flag) { Bool(1) b(notready);  Int(4) i(0);  <NOMAIN> }
+##
+##    //informed by t41221, except S has two class params, and NO inheritance!
+##   //also, like t41224, except E is regular there.
+##
+#>T.ulam
+ ulam 3;
+//use S; //NOT RELEVENT
+element T{
+  Int test(){
+    System sys;
+
+    E(true) et;
+
+    sys.print(et.csi);
+    sys.assert(et.csi == 7);
+    sys.print(et.v.b);
+    sys.assert(et.v.b); //true
+
+
+    //second test just to make sure
+    E(false) ef;
+    sys.print(ef.csi);
+    sys.assert(ef.csi == 7);
+    sys.print(ef.v.b);
+    sys.assert(ef.v.b); //true
+
+    return et.csi; //2
+  }
+}
+
+#:S.ulam
+  ulam 3;
+//quark S(Q(bp) v, Bool bp) : Q(bp) { //bug??? see t41228
+quark S(Q(bp) v, Bool bp) {
+  constant Int(4) csi = v.i;
+}
+
+#:Q.ulam
+  ulam 1;
+quark Q(Bool flag){
+  Bool b = flag;
+  Int(4) i;
+}
+
+
+#:E.ulam
+  ulam 3;
+local constant Q(true) cqt = { .i = 7 };
+//element E(Bool bp) : S(cqt, bp) { } //the goal!! (see t41226)
+element E(Bool p) : S(cqt, true) { }
+
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

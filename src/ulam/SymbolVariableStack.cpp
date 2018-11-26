@@ -3,13 +3,13 @@
 
 namespace MFM {
 
-  SymbolVariableStack::SymbolVariableStack(const Token& id, UTI utype, CompilerState& state) : SymbolVariable(id, utype, state), m_stackFrameSlotIndex(0), m_autoStgTypeForEval(Nouti) {}
+  SymbolVariableStack::SymbolVariableStack(const Token& id, UTI utype, CompilerState& state) : SymbolVariable(id, utype, state), m_stackFrameSlotIndex(0), m_autoStgTypeForEval(Nouti), m_isFunctionParameter(false), m_isConstantFunctionParameter(false) {}
 
-  SymbolVariableStack::SymbolVariableStack(const Token& id, UTI utype, s32 slot, CompilerState& state) : SymbolVariable(id, utype, state), m_stackFrameSlotIndex(slot), m_autoStgTypeForEval(Nouti) {}
+  SymbolVariableStack::SymbolVariableStack(const Token& id, UTI utype, s32 slot, CompilerState& state) : SymbolVariable(id, utype, state), m_stackFrameSlotIndex(slot), m_autoStgTypeForEval(Nouti), m_isFunctionParameter(false), m_isConstantFunctionParameter(false) {}
 
-  SymbolVariableStack::SymbolVariableStack(const SymbolVariableStack& sref) : SymbolVariable(sref), m_stackFrameSlotIndex(sref.m_stackFrameSlotIndex), m_autoStgTypeForEval(sref.m_autoStgTypeForEval) {}
+  SymbolVariableStack::SymbolVariableStack(const SymbolVariableStack& sref) : SymbolVariable(sref), m_stackFrameSlotIndex(sref.m_stackFrameSlotIndex), m_autoStgTypeForEval(sref.m_autoStgTypeForEval), m_isFunctionParameter(sref.m_isFunctionParameter), m_isConstantFunctionParameter(sref.m_isConstantFunctionParameter) {}
 
-  SymbolVariableStack::SymbolVariableStack(const SymbolVariableStack& sref, bool keepType) : SymbolVariable(sref, keepType), m_stackFrameSlotIndex(sref.m_stackFrameSlotIndex), m_autoStgTypeForEval(sref.m_autoStgTypeForEval) {}
+  SymbolVariableStack::SymbolVariableStack(const SymbolVariableStack& sref, bool keepType) : SymbolVariable(sref, keepType), m_stackFrameSlotIndex(sref.m_stackFrameSlotIndex), m_autoStgTypeForEval(sref.m_autoStgTypeForEval), m_isFunctionParameter(sref.m_isFunctionParameter), m_isConstantFunctionParameter(sref.m_isConstantFunctionParameter) {}
 
   SymbolVariableStack::~SymbolVariableStack() {}
 
@@ -82,6 +82,28 @@ namespace MFM {
   {
     return m_autoStgTypeForEval;
   }
+
+  bool SymbolVariableStack::isFunctionParameter()
+  {
+    return m_isFunctionParameter;
+  }
+
+  void SymbolVariableStack::setFunctionParameter()
+  {
+    m_isFunctionParameter = true;
+  }
+
+  bool SymbolVariableStack::isConstantFunctionParameter()
+  {
+    assert(isFunctionParameter());
+    return m_isConstantFunctionParameter;
+  }
+
+  void SymbolVariableStack::setConstantFunctionParameter()
+  {
+    m_isConstantFunctionParameter = true;
+  }
+
 
 
 } //end MFM

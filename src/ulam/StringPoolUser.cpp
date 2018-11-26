@@ -102,12 +102,14 @@ namespace MFM {
 
     //note: not using C++ String because that uses malloc;
     // double quoted strings next to each other get merged;
+    state->m_currentIndentLevel++;
+
     state->indent(fp);
-    fp->write("static unsigned char ");
+    fp->write("const unsigned char ");
     fp->write(state->getMangledNameForUserStringPool());
     fp->write("[");
     fp->write(state->getDefineNameForUserStringPoolSize());
-    fp->write(" + 1] = \n");
+    fp->write("] = \n");
 
     state->m_currentIndentLevel++;
 
@@ -126,6 +128,9 @@ namespace MFM {
     state->indent(fp);
     fp->write(";"); GCNL;
     fp->write("\n");
+
+    state->m_currentIndentLevel--;
+
     return;
   } //generateUserStringPoolEntries
 

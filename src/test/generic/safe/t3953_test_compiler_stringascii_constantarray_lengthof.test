@@ -5,7 +5,7 @@
 ##
 #!
 Exit status: 0
-Ue_A { constant String(32)[5] strarr = { 0x1c0001, 0x1c0006, 0x1c000b, 0x1c0015, 0x1c001e };  Bool(1) b1(true);  Bool(1) b2(true);  Unsigned(8) asc1(98u);  Unsigned(8) asc2(114u);  Int(32) test() {  System s;  String(32) str = strarr 0 [];  Int(32) slen = 3u cast;  s ( slen 3u cast == )assert . asc1 str 0 [] = b1 asc1 98u == = s ( b1 )assert . asc2 str slen 1 cast -b [] = b2 asc2 114u == = s ( b2 )assert . 0 cast return } }
+Ue_A { constant String(32)[5] strarr = { 0x1, 0x6, 0xb, 0x15, 0x1e };  Bool(1) b1(true);  Bool(1) b2(true);  Unsigned(8) asc1(98u);  Unsigned(8) asc2(114u);  Int(32) test() {  System s;  String(32) str = strarr 0 [];  Int(32) slen = 3u cast;  s ( slen 3u cast == )assert . asc1 str 0 [] = b1 asc1 98u == = s ( b1 )assert . asc2 str slen 1 cast -b [] = b2 asc2 114u == = s ( b2 )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t3951, t3930

@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeBinaryOpEqual.h -  Basic Node for handling Operator Equal for ULAM
  *
- * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2017 Ackleyshack LLC.
+ * Copyright (C) 2014-2018 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2018 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeBinaryOpEqual.h - Basic Node for handling Operator Equal for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2017 All rights reserved.
+  \date (C) 2014-2018 All rights reserved.
   \gpl
 */
 
@@ -80,7 +80,7 @@ namespace MFM{
     virtual void appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len); //stub
     virtual UTI calcNodeType(UTI lt, UTI rt);  //stub
     virtual bool checkSafeToCastTo(UTI fromType, UTI& newType);
-    TBOOL checkStoreIntoAble();
+    virtual TBOOL checkStoreIntoAble();
     bool checkNotUnpackedArray();
 
   private:

@@ -139,21 +139,15 @@ namespace MFM {
     assert(m_nodeCondition && m_nodeBody);
 
     UTI nuti = getNodeType();
-    if(nuti == Nav)
-      return ERROR;
+    if(nuti == Nav) return evalErrorReturn();
 
-    if(nuti == Hzy)
-      return NOTREADY;
+    if(nuti == Hzy) return evalStatusReturnNoEpilog(NOTREADY);
 
     evalNodeProlog(0); //new current frame pointer
 
     makeRoomForNodeType(nuti);
     EvalStatus evs = m_nodeCondition->eval();
-    if(evs != NORMAL) //what if RETURN
-      {
-	evalNodeEpilog();
-	return evs;
-      }
+    if(evs != NORMAL) return evalStatusReturn(evs); //what if RETURN
 
     UlamValue cuv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);
     if((bool) cuv.getImmediateData(m_state) == false)
@@ -177,8 +171,10 @@ namespace MFM {
     //also copy result UV to stack, -1 relative to current frame pointer
     Node::assignReturnValueToStack(cuv); //skip this for a break statement ???
 
+    if(evs != NORMAL) return evalStatusReturn(evs);
+
     evalNodeEpilog();
-    return evs;
+    return NORMAL;
   } //eval
 
   void NodeControlIf::genCode(File * fp, UVPass& uvpass)

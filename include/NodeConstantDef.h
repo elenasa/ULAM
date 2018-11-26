@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeConstantDef.h - Node handling Constant Definition for ULAM
  *
- * Copyright (C) 2015-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2017 Ackleyshack LLC.
+ * Copyright (C) 2015-2018 The Regents of the University of New Mexico.
+ * Copyright (C) 2015-2018 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeConstantDef.h - Node handling Constant Definition for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2017 All rights reserved.
+  \date (C) 2015-2018 All rights reserved.
   \gpl
 */
 
@@ -77,45 +77,49 @@ namespace MFM{
 
     virtual bool getSymbolPtr(Symbol *& symptrref);
 
-    void setSymbolPtr(SymbolWithValue * cvsymptr);
+    virtual void setSymbolPtr(SymbolWithValue * cvsymptr);
 
-    u32 getSymbolId();
+    virtual u32 getSymbolId();
 
-    bool getNodeTypeDescriptorPtr(NodeTypeDescriptor *& nodetypedescref);
+    virtual bool getNodeTypeDescriptorPtr(NodeTypeDescriptor *& nodetypedescref);
 
-    bool hasDefaultSymbolValue();
+    bool setNodeTypeDescriptor(NodeTypeDescriptor * nodetypedesc);
+
+    virtual bool hasDefaultSymbolValue();
 
     virtual UTI checkAndLabelType();
 
     virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
 
-    NNO getBlockNo();
+    virtual NNO getBlockNo();
 
-    void setBlockNo(NNO n);
+    virtual void setBlockNo(NNO n);
 
-    NodeBlock * getBlock();
+    virtual NodeBlock * getBlock();
 
-    void setConstantExpr(Node * node);
+    virtual void setConstantExpr(Node * node);
 
-    bool hasConstantExpr();
+    virtual bool hasConstantExpr();
 
-    UTI foldConstantExpression();
+    virtual bool isReadyConstant();
 
-    bool foldArrayInitExpression();
+    virtual UTI foldConstantExpression();
+
+    virtual bool foldArrayInitExpression();
 
     virtual bool buildDefaultValue(u32 wlen, BV8K& dvref);
 
-    virtual void genCodeDefaultValueStringRegistrationNumber(File * fp, u32 startpos);
+    virtual bool buildDefaultValueForClassConstantDefs();
 
-    virtual void genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos);
-
-    void fixPendingArgumentNode();
+    virtual void fixPendingArgumentNode();
 
     virtual bool assignClassArgValueInStubCopy();
 
+    bool cloneTypeDescriptorForPendingArgumentNode(NodeConstantDef * templateparamdef);
+
     virtual EvalStatus eval();
 
-    virtual void packBitsInOrderOfDeclaration(u32& offset);
+    virtual TBOOL packBitsInOrderOfDeclaration(u32& offset);
 
     virtual void printUnresolvedVariableDataMembers();
 
@@ -125,9 +129,11 @@ namespace MFM{
 
     virtual void genCodeConstantArrayInitialization(File * fp);
 
-    virtual void generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly);
+    virtual void generateBuiltinConstantClassOrArrayInitializationFunction(File * fp, bool declOnly);
 
     virtual void cloneAndAppendNode(std::vector<Node *> & cloneVec);
+
+    virtual void generateTestInstance(File * fp, bool runtest);
 
     virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount);
 
@@ -141,10 +147,16 @@ namespace MFM{
 
     virtual void checkForSymbol();
 
+    virtual bool isDataMemberInit();
+
   private:
     NNO m_currBlockNo;
+    NodeBlock * m_currBlockPtr;
+
+    void setBlock(NodeBlock * ptr);
 
     void setupStackWithPrimitiveForEval(u32 slots);
+    void setupStackWithConstantClassForEval(u32 slots);
     void assignConstantSlotIndex(u32& cslotidx);
 
   };

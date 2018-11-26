@@ -1,0 +1,63 @@
+## -*- mode:ulam -*-
+#=t41239_test_compiler_elementconstant_funccallconstantarg
+##
+## gen output: (+ interleaved asserts)
+##     Int Arg: 99
+##     Int Arg: 99
+##
+#!
+Exit status: 99
+Ue_T { Bool(1) m_sp(false);  Int(32) m_i(0);  <NOMAIN> }
+Ue_R { Int(32) m_ri(99);  Int(32) test() {  System sys;  T t = cet;  Int(32) it = ( t )func;  sys ( it )print . sys ( it 99 cast == )assert . Int(32) i = ( cet )func;  sys ( i )print . sys ( i 99 cast == )assert . m_ri return } }
+Uq_System { <NOMAIN> }
+##
+##    //informed by t41238, except func call parameter isn't a constant ref
+##
+#>T.ulam
+ ulam 3;
+
+element T {
+  Bool m_sp;
+  Int m_i;
+}
+
+
+#:R.ulam
+  ulam 3;
+local constant T cet = { .m_sp = true, .m_i = 99 };
+element R{
+  Int m_ri;
+
+  Int func(constant T targ) {
+    m_ri = targ.m_i;
+    return m_ri;
+  }
+
+  Int test(){
+    System sys;
+
+    T t = cet; //see gen code
+    Int it = func(t);
+    sys.print(it);
+    sys.assert(it == 99);
+
+    Int i = func(cet);
+    sys.print(i);
+    sys.assert(i == 99);
+
+    return m_ri;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

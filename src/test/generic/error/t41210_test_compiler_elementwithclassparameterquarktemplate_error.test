@@ -1,0 +1,37 @@
+## -*- mode:ulam -*-
+#=t41210_test_compiler_elementwithclassparameterquarktemplate_error
+#!
+./T.ulam:5:13: ERROR: Class argument 'v' not satisfied by expression type: Q(true).
+./T.ulam:8:12: ERROR: Class argument 'v' not satisfied by expression type: Q(false).
+Unrecoverable Program Type Label FAILURE.
+##
+##    //informed by t41209
+##
+#>T.ulam
+ ulam 3;
+element T{
+  Int test(){
+    constant Q(true) cq = { .i = 7};
+    S(false,cq) st; //THIS SHOULDN'T WORK since cq is a Q(true), not a Q(false)!
+
+    constant Q(false) cqf = { .i = 3};
+    S(true,cqf) sf;
+
+    return st.csi; //7
+  }
+}
+
+#:S.ulam
+  ulam 3;
+quark S(Bool bp, Q(bp) v){
+  constant Int(4) csi = v.i; //we're all constants here, right?
+}
+
+#:Q.ulam
+  ulam 1;
+quark Q(Bool flag){
+  Bool b = flag;
+  Int(4) i;
+}
+
+#.

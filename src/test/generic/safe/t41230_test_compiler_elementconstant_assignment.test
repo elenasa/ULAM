@@ -1,0 +1,58 @@
+## -*- mode:ulam -*-
+#=t41230_test_compiler_elementconstant_assignment
+##
+##  gen output: (+ 2 asserts)
+##   Int Arg: 99
+##
+#!
+Exit status: 96
+Ue_T { Bool(1) m_sp(false);  Int(32) m_i(0);  <NOMAIN> }
+Ue_R { Bool(1) m_rb(true);  Int(32) m_ri(99);  Int(32) test() {  System sys;  T est = cet;  m_rb est m_sp . = sys ( m_rb )assert . m_ri est m_i . = sys ( m_ri )print . sys ( m_ri 99 cast == )assert . 96u cast return } }
+Uq_System { <NOMAIN> }
+##
+##    //informed by Dave ish (3/3/18), and t41229 class assignment in T with constant element
+##
+#>T.ulam
+ ulam 3;
+
+element T {
+  Bool m_sp;
+  Int m_i;
+}
+
+
+#:R.ulam
+  ulam 3;
+local constant T cet = { .m_sp = true, .m_i = 99 };
+
+element R{
+  Bool m_rb;
+  Int m_ri;
+
+  Int test(){
+    System sys;
+
+    T est = cet;
+
+    m_rb = est.m_sp;
+    sys.assert(m_rb);
+    m_ri = est.m_i;
+    sys.print(m_ri);
+    sys.assert(m_ri == 99);
+
+    return est.sizeof;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

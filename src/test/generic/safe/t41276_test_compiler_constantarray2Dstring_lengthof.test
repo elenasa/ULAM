@@ -1,0 +1,59 @@
+## -*- mode:ulam -*-
+#=t41276_test_compiler_constantarray2Dstring_lengthof
+##
+## gen output: (+ 2 interleaved asserts)
+## String(7) Arg: "bar"
+## Unsigned Arg: 3
+## Unsigned Arg: 2
+##
+#!
+Exit status: 0
+Ue_Eltypo { Bool(1) b1(true);  Bool(1) b2(true);  String(32) m_sarr[2]("mama","bar");  Int(32) test() {  SystemU3 s;  m_sarr c_sarr = Unsigned(32) len1 = 3u;  s ( c_sarr 1 [] )print . s ( len1 )print . b1 len1 3u cast == = s ( b1 )assert . Unsigned(32) len2 = 2u;  s ( len2 )print . b2 len2 2u cast == = s ( b2 )assert . 0 cast return } }
+Uq_SystemU3 : System { :<> <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## Informed by t3949 except constant array; how many times isFixed?
+##
+#>Eltypo.ulam
+  ulam 3;
+local  typedef String SArr[2];
+local constant SArr c_sarr = { "mama", "bar" };
+element Eltypo {
+  Bool b1, b2;
+  SArr m_sarr;
+  Int test(){
+    SystemU3 s;
+    m_sarr = c_sarr;
+
+    Unsigned len1 = c_sarr[1].lengthof; //3 letters
+    s.print(c_sarr[1]); //bar
+    s.print(len1);
+    b1 = (len1 == 3u);
+    s.assert(b1);
+
+    Unsigned len2 = c_sarr.lengthof; //two items
+    s.print(len2);
+    b2 = (len2 == 2u);
+    s.assert(b2);
+    return 0;
+  }
+}
+
+#:SystemU3.ulam
+  ulam 3;
+quark SystemU3 : System {
+  Void print(String s) native;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

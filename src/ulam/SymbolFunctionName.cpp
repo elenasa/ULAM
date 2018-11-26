@@ -207,7 +207,7 @@ namespace MFM {
   {
     Symbol * fnsym = NULL;
     UTI cuti = m_state.findAClassByNodeNo(getBlockNoOfST());
-    assert(cuti != Nav);
+    assert(cuti != Nouti);
     UTI supercuti = m_state.isClassASubclass(cuti);
     if(supercuti != Nouti)
       {

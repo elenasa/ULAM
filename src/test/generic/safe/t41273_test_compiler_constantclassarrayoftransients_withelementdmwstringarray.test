@@ -1,0 +1,107 @@
+## -*- mode:ulam -*-
+#=t41273_test_compiler_constantclassarrayoftransients_withelementdmwstringarray
+##
+## gen output: (+ interleaved asserts)
+##  String(7) Arg: "let"
+##  String(7) Arg: "let"
+##  String(7) Arg: "let"
+##  String(7) Arg: "let"
+##  String(1) Arg: "reunion"
+##
+## Big transients unevaluable
+#!
+Exit status: -11
+Ue_KeyExprRep { Int(32) test() {  SystemU3 s;  Int(32) var = 1 cast;  String(32) mystrv = keyexpr_x13 4 [] m_elfoo . estr var [] .;  s ( mystrv )print . s ( mystrv 0 [] 108u == )assert . String(32) mystr1 = keyexpr_x13 4 [] m_elfoo . estr 1 [] .;  s ( mystr1 )print . s ( mystr1 0 [] 108u == )assert . constant Elfoo celfood = { };  String(32) mystrcd = celfood estr 1 [] .;  s ( mystrcd )print . s ( mystrcd 0 [] 108u == )assert . constant Elfoo celfoo = keyexpr_x13 4 [] m_elfoo .;  String(32) mystrc = celfoo estr 1 [] .;  s ( mystrc )print . s ( mystrc 0 [] 108u == )assert . constant String(32) c_reunion = "reunion";  s ( "reunion" )print . s ( true )assert . 0 cast return } }
+Ue_Elfoo { Bool(1) esp( true);  String(32) estr[2]( { "melt", "let" });  constant String(32) c_str = "reunion";  <NOMAIN> }
+Un_KeyExprNode { typedef Unsigned(8) Byte;  Unsigned(8) m_leftIndex(0);  Unsigned(8) m_rightIndex(0);  Unsigned(8) m_keyCode(0);  Unsigned(8) m_op(0);  Elfoo m_elfoo( celfoo);  <NOMAIN> }
+Uq_SystemU3 : System { :<> <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## informed by t41267: except element data member has array of 2 strings, accessed 4 ways;
+## plus, a constant member_select (m_reunion)
+##
+#>KeyExprRep.ulam
+  ulam 3;
+use Elfoo;
+use KeyExprNode; ////without use ./KeyExprNode.ulam:9:0: ERROR: Invalid size (-2) to set for primitive type: 0Holder.
+local constant KeyExprNode keyexpr_x13[] = {
+  { .m_leftIndex = 1, .m_rightIndex = 2, .m_keyCode = 0, .m_op = '|' }, // [0]
+  { .m_leftIndex = 3, .m_rightIndex = 4, .m_keyCode = 0, .m_op = '&' }, // [1]
+  { .m_leftIndex = 0, .m_rightIndex = 0, .m_keyCode = 'c', .m_op = 0 }, // [2]
+  { .m_leftIndex = 0, .m_rightIndex = 0, .m_keyCode = 'a', .m_op = 0 }, // [3]
+  { .m_leftIndex = 0, .m_rightIndex = 0, .m_keyCode = 'b', .m_op = 0 }, // [4] , EXTRA COMMA at the end??? no difference
+};
+element KeyExprRep {
+  Int test() {
+    SystemU3 s;
+
+    //element data member of constant class array of transients, with String array data member
+    Int var = 1;
+    String mystrv = keyexpr_x13[4].m_elfoo.estr[var];
+    s.print(mystrv);
+    s.assert(mystrv[0] == 'l');
+
+    // and a constant index
+    String mystr1 = keyexpr_x13[4].m_elfoo.estr[1];
+    s.print(mystr1);
+    s.assert(mystr1[0] == 'l');
+
+    //was ILLEGAL_ARGUMENT
+    constant Elfoo celfood = { };
+    String mystrcd = celfood.estr[1];
+    s.print(mystrcd);
+    s.assert(mystrcd[0] == 'l');
+
+    //was abort shouldn't get here?
+    constant Elfoo celfoo = keyexpr_x13[4].m_elfoo; //{ };
+    String mystrc = celfoo.estr[1];
+    s.print(mystrc);
+    s.assert(mystrc[0] == 'l');
+
+    //constant member select
+    constant String c_reunion = celfoo.c_str;
+    s.print(c_reunion); //reunion
+    s.assert(c_reunion.lengthof == 7u);
+
+    return 0;
+  }
+}
+
+#:KeyExprNode.ulam
+  ulam 3;
+local constant Elfoo celfoo = { };
+transient KeyExprNode {
+  typedef Unsigned(8) Byte;
+  Byte m_leftIndex;  // for [,|&~]
+  Byte m_rightIndex; // for [,|&]
+  Byte m_keyCode;    // [a-zA-Z.@_?] or 0
+  Byte m_op;         // [,|&~] or 0
+  Elfoo m_elfoo = celfoo;
+}
+
+#:Elfoo.ulam
+  ulam 3;
+element Elfoo {
+  Bool esp = true;
+  String estr[2] = { "melt", "let" };
+  constant String c_str = "reunion";
+}
+
+#:SystemU3.ulam
+  ulam 3;
+quark SystemU3 : System {
+  Void print(String s) native;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

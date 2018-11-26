@@ -1,0 +1,78 @@
+## -*- mode:ulam -*-
+#=t41221_test_compiler_elementwithclassparameterquarktemplate_inheritnace
+##
+##  gen output: (+ interleaved asserts)
+##   Int(4) : 2
+##   true
+##   Int(4) : 2
+##   true
+##
+#!
+Exit status: 2
+Ue_T { Int(32) test() {  System sys;  E(true) et;  sys ( et 2 . )print . sys ( et 2 . 2 cast == )assert . sys ( et b . cast )print . sys ( et b . )assert . E(false) ef;  sys ( ef 2 . )print . sys ( ef 2 . 2 cast == )assert . sys ( ef b . cast )print . sys ( ef b . )assert . et 2 . cast return } }
+Uq_System { <NOMAIN> }
+Ue_E(Bool(1) bp) : S(bp) { /* empty class block */ }
+Uq_S(Bool(1) bp) : Q(flag) { :< Bool(1) b(notready);  Int(4) i(0); > constant Int(UNKNOWN) csi = bp ?  CONSTANT? :  CONSTANT?;  <NOMAIN> }
+Uq_Q(Bool(1) flag) { Bool(1) b(notready);  Int(4) i(0);  <NOMAIN> }
+##
+##    //informed by t41209, except using double inheritance; and a local constant in S (bugger)
+##    Incredibly, caught ish in printPostfix with constant in template.
+##
+#>T.ulam
+ ulam 3;
+//use S; //NOT IRRELEVENT, see t41222
+element T{
+  Int test(){
+    System sys;
+
+    E(true) et;
+
+    sys.print(et.csi);
+    sys.assert(et.csi == 2);
+    sys.print(et.b);
+    sys.assert(et.b); //true
+
+
+    //second test just to make sure
+    E(false) ef;
+    sys.print(ef.csi);
+    sys.assert(ef.csi == 2);
+    sys.print(ef.b);
+    sys.assert(ef.b); //true
+
+    return et.csi; //2
+  }
+}
+
+#:S.ulam
+  ulam 3;
+local constant Bool cbl = true;
+quark S(Bool bp) : Q(cbl) {
+  constant Int(4) csi = (bp ? 2 : 3); // = i not all constants anymore; also caught ish with merely =2!
+}
+
+#:Q.ulam
+  ulam 1;
+quark Q(Bool flag){
+  Bool b = flag;
+  Int(4) i;
+}
+
+
+#:E.ulam
+  ulam 3;
+element E(Bool bp) : S(true) { }
+
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

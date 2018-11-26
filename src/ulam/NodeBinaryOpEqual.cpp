@@ -60,7 +60,6 @@ namespace MFM {
 	if(scr == CAST_HAZY)
 	  {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	    m_state.setGoAgain();
 	    newType = Hzy;
 	  }
 	else
@@ -191,7 +190,6 @@ namespace MFM {
 	    if(hazyArg)
 	      {
 		newType = Hzy;
-		m_state.setGoAgain();
 	      }
 	    else if(newnode)
 	      {
@@ -235,6 +233,7 @@ namespace MFM {
       }
 
     setNodeType(newType);
+    if(newType == Hzy) m_state.setGoAgain();
     return newType;
   } //checkAndLabelType
 
@@ -321,8 +320,12 @@ namespace MFM {
       {
 	UTI lt = m_nodeLeft->getNodeType();
 	std::ostringstream msg;
-	msg << "Invalid lefthand side of equals <" << m_nodeLeft->getName();
+	msg << "Unmodifiable lefthand side of assignment expression <" << m_nodeLeft->getName();
 	msg << ">, type: " << m_state.getUlamTypeNameBriefByIndex(lt).c_str();
+	if(m_nodeLeft->isFunctionCall())
+	  msg << "; may be a function call";
+	else if(m_nodeLeft->hasASymbolReference() && m_nodeLeft->hasASymbolReferenceConstant())
+	  msg << "; may be a constant function parameter";
 	if(lstor == TBOOL_HAZY)
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	else
@@ -376,59 +379,43 @@ namespace MFM {
     assert(m_nodeLeft && m_nodeRight);
 
     UTI nuti = getNodeType();
-    if(nuti == Nav)
-      return ERROR;
+    if(nuti == Nav) return evalErrorReturn();
 
-    if(nuti == Hzy)
-      return NOTREADY;
+    if(nuti == Hzy) return evalStatusReturnNoEpilog(NOTREADY);
 
     evalNodeProlog(0); //new current frame pointer on node eval stack
 
     makeRoomForSlots(1); //always 1 slot for ptr
 
     EvalStatus evs = m_nodeLeft->evalToStoreInto();
-    if(evs != NORMAL)
-      {
-	evalNodeEpilog();
-	return evs;
-      }
+    if(evs != NORMAL) return evalStatusReturn(evs);
 
     u32 slot = makeRoomForNodeType(nuti);
     evs = m_nodeRight->eval(); //a Node Function Call here
-    if(evs != NORMAL)
-      {
-	evalNodeEpilog();
-	return evs;
-      }
+    if(evs != NORMAL) return evalStatusReturn(evs);
 
     //assigns rhs to lhs UV pointer (handles arrays);
     //also copy result UV to stack, -1 relative to current frame pointer
     if(slot)
       if(!doBinaryOperation(1, 2, slot))
-	evs = ERROR;
+	return evalStatusReturn(ERROR);
 
     evalNodeEpilog();
-    return evs;
+    return NORMAL;
   } //eval
 
   EvalStatus NodeBinaryOpEqual::evalToStoreInto()
   {
     UTI nuti = getNodeType();
-    if(nuti == Nav)
-      return ERROR;
+    if(nuti == Nav) return evalErrorReturn();
 
-    if(nuti == Hzy)
-      return NOTREADY;
+    if(nuti == Hzy) return evalStatusReturnNoEpilog(NOTREADY);
 
     evalNodeProlog(0);
 
     makeRoomForSlots(1); //always 1 slot for ptr
     EvalStatus evs = m_nodeLeft->evalToStoreInto();
-    if(evs != NORMAL)
-      {
-	evalNodeEpilog();
-	return evs;
-      }
+    if(evs != NORMAL) return evalStatusReturn(evs);
 
     UlamValue luvPtr = UlamValue::makePtr(1, EVALRETURN, nuti, m_state.determinePackable(nuti), m_state); //positive to current frame pointer
 

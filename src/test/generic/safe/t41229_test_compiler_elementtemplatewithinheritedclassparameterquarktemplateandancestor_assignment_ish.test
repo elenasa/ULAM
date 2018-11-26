@@ -1,0 +1,61 @@
+## -*- mode:ulam -*-
+#=t41229_test_compiler_elementtemplatewithinheritedclassparameterquarktemplateandancestor_assignment_ish
+##
+##  gen output: (+ interleaved asserts)
+##   true
+##
+## FAILED: ILLEGAL_ARGUMENT
+#!
+Exit status: 96
+Ue_Test : T(true,0x8) { /* empty class block */ }
+Uq_Q(Bool(1) b) { Bool(1) m_b(notready);  <NOMAIN> }
+Uq_T(Bool(1) bp, Q(b) bq) { Bool(1) m_test_bp(notready);  Q(b) m_q(notready);  <NOMAIN> }
+Ue_R { Bool(1) m_rb(true);  Int(32) test() {  System sys;  Test est;  m_rb est m_q . 1u . = sys ( m_rb )assert . 96u cast return } }
+Uq_System { <NOMAIN> }
+##
+##    //informed by Dave ish (3/3/18), class assignment in T
+##
+#>Test.ulam
+ ulam 3;
+quark Q (Bool b) {
+  Bool m_b = b;
+}
+
+quark T(Bool bp, Q(bp) bq) {
+  Bool m_test_bp = bp;
+  Q(bp) m_q = bq;
+}
+
+local constant Q(true) cqt = {};
+
+element Test : T(true, cqt) {
+}
+
+
+#:R.ulam
+  ulam 3;
+element R{
+  Bool m_rb;
+
+  Int test(){
+    System sys;
+
+    Test est;
+    m_rb = est.m_q.b;
+    sys.assert(m_rb);
+    return est.sizeof;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

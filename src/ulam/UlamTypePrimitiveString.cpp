@@ -62,9 +62,9 @@ namespace MFM {
   {
     bool brtn = true;
     assert(m_state.getUlamTypeByIndex(typidx) == this);
-    UTI valtypidx = val.getUlamValueTypeIdx();
+    UTI valtypidx = val.getUlamValueTypeIdx(); //from type
 
-    if(UlamType::safeCast(valtypidx) != CAST_CLEAR) //bad|hazy
+    if(UlamTypePrimitive::safeCast(valtypidx) != CAST_CLEAR) //bad|hazy
       return false;
 
     u32 wordsize = getTotalWordSize();
@@ -129,13 +129,13 @@ namespace MFM {
 
   FORECAST UlamTypePrimitiveString::safeCast(UTI typidx)
   {
-    FORECAST scr = UlamType::safeCast(typidx);
+    FORECAST scr = UlamTypePrimitive::safeCast(typidx);
     if(scr != CAST_CLEAR)
       return scr;
 
     bool brtn = true;
-    UlamType * vut = m_state.getUlamTypeByIndex(typidx);
-    ULAMTYPE valtypEnum = vut->getUlamTypeEnum();
+    UlamType * fmut = m_state.getUlamTypeByIndex(typidx);
+    ULAMTYPE valtypEnum = fmut->getUlamTypeEnum();
     switch(valtypEnum)
       {
       case String:
@@ -228,53 +228,11 @@ namespace MFM {
   void UlamTypePrimitiveString::genUlamTypeAutoReadDefinitionForC(File * fp)
   {
     UlamTypePrimitive::genUlamTypeAutoReadDefinitionForC(fp);
-
-    //access regnum and string index, separately
-    if(isScalar())
-      {
-	m_state.indent(fp);
-	fp->write("const ");
-	fp->write(getTmpStorageTypeAsString().c_str()); //u32 or u64
-	fp->write(" getRegistrationNumber");
-	fp->write("() const { return UlamRef<EC>(*this, 0u, ");
-	fp->write_decimal_unsigned(REGNUMBITS);
-	fp->write("u, NULL, UlamRef<EC>::PRIMITIVE).Read(); }"); GCNL; //done
-
-	m_state.indent(fp);
-	fp->write("const ");
-	fp->write(getTmpStorageTypeAsString().c_str()); //u32 or u64
-	fp->write(" getStringIndex");
-	fp->write("() const { return UlamRef<EC>(*this, ");
-	fp->write_decimal_unsigned(REGNUMBITS);
-	fp->write("u, ");
-	fp->write_decimal_unsigned(STRINGIDXBITS);
-	fp->write("u, NULL, UlamRef<EC>::PRIMITIVE).Read(); }"); GCNL; //done
-	fp->write("\n");
-      }
   }
 
   void UlamTypePrimitiveString::genUlamTypeAutoWriteDefinitionForC(File * fp)
   {
     UlamTypePrimitive::genUlamTypeAutoWriteDefinitionForC(fp);
-
-    //access regnum and string index, separately
-    if(isScalar())
-      {
-	m_state.indent(fp);
-	fp->write("void setRegistrationNumber");
-	fp->write("(u32 regnum) { UlamRef<EC>(*this, 0u, ");
-	fp->write_decimal_unsigned(REGNUMBITS);
-	fp->write("u, NULL, UlamRef<EC>::PRIMITIVE).Write(regnum); }"); GCNL; //done
-
-	m_state.indent(fp);
-	fp->write("void setStringIndex");
-	fp->write("(u32 sidx) { UlamRef<EC>(*this, ");
-	fp->write_decimal_unsigned(REGNUMBITS);
-	fp->write("u, ");
-	fp->write_decimal_unsigned(STRINGIDXBITS);
-	fp->write("u, NULL, UlamRef<EC>::PRIMITIVE).Write(sidx); }"); GCNL; //done
-	fp->write("\n");
-      }
   }
 
   //generates immediates with local storage; registration class num and string index
@@ -342,29 +300,6 @@ namespace MFM {
     fp->write("typedef BitVectorBitStorage<EC, BV> BVS;"); GCNL;
     fp->write("\n");
 
-    if(isScalar())
-      {
-	m_state.indent(fp);
-	fp->write("enum { REG_NUM_BITS = ");
-	fp->write_decimal_unsigned(REGNUMBITS);
-	fp->write(", STR_IDX_BITS = ");
-	fp->write_decimal_unsigned(STRINGIDXBITS);
-	fp->write(", STR_IDX_MASK = ");
-	fp->write_decimal_unsigned(STRINGIDXMASK);
-	fp->write("};"); GCNL;
-
-	//helper methods
-	m_state.indent(fp);
-	fp->write("static u32 getRegNum(u32 combinedidx) { return (combinedidx >> REG_NUM_BITS); }");
-	GCNL;
-	m_state.indent(fp);
-	fp->write("static u32 getStrIdx(u32 combinedidx) { return (combinedidx & STR_IDX_MASK); }");
-	GCNL;
-	m_state.indent(fp);
-	fp->write("static u32 makeCombinedIdx(u32 regnum, u32 stridx) { return ((regnum << REG_NUM_BITS) | (stridx & STR_IDX_MASK)); }");
-	GCNL;
-      }
-
     //put read/write methods before constructrtors that may use them.
     //read BV method
     genUlamTypeReadDefinitionForC(fp);
@@ -384,10 +319,11 @@ namespace MFM {
 	fp->write(mangledName.c_str());
 	fp->write("(");
 	fp->write(getTmpStorageTypeAsString().c_str()); //u32
-	fp->write(" regnum, ");
-	fp->write(getTmpStorageTypeAsString().c_str()); //u32
+	//fp->write(" regnum, ");
+	//fp->write(getTmpStorageTypeAsString().c_str()); //u32
 	fp->write(" sidx) { ");
-	fp->write("setRegistrationNumber(regnum); setStringIndex(sidx); }"); GCNL;
+	//fp->write("setRegistrationNumber(regnum); setStringIndex(sidx); }"); GCNL;
+	fp->write("setStringIndex(sidx); }"); GCNL;
       }
     else
       {
@@ -399,6 +335,19 @@ namespace MFM {
 	fp->write(" d[");
 	fp->write_decimal_unsigned(UlamType::getTotalNumberOfWords());
 	fp->write("]) : BVS(d) { }"); GCNL;
+
+	//array initialization constructor here from BV for constant array (t41277)
+	m_state.indent(fp);
+	fp->write(mangledName.c_str());
+	fp->write("(const BVS& bvsarg) : BVS(bvsarg) { }"); GCNL;
+
+	//array initialization constructor here from u64 for constant array[2] (t41277)
+	if((len > MAXBITSPERINT) && (len <= MAXBITSPERLONG))
+	  {
+	    m_state.indent(fp);
+	    fp->write(mangledName.c_str());
+	    fp->write("(const u64 dl) { u32 d0=(u32)(dl>>32u); BVS::Write(0,32,d0); u32 d1=(u32)dl; BVS::Write(32,32,d1);}"); GCNL;
+	  }
       }
 
     //copy constructor here (return by value)
@@ -406,7 +355,7 @@ namespace MFM {
     fp->write(mangledName.c_str());
     fp->write("(const ");
     fp->write(mangledName.c_str()); //u32
-    fp->write("& other) { ");
+    fp->write("& other) : BVS() { "); //-Wextra
     fp->write("this->write");
     fp->write("(other.");
     fp->write("read");
@@ -444,17 +393,9 @@ namespace MFM {
   {
     UlamTypePrimitive::genUlamTypeReadDefinitionForC(fp);
 
-    //access regnum and string index, separately
+    //access string index; regnum gone (ulam-4)
     if(isScalar())
       {
-	m_state.indent(fp);
-	fp->write("const ");
-	fp->write(getTmpStorageTypeAsString().c_str()); //u32 or u64
-	fp->write(" getRegistrationNumber");
-	fp->write("() const { return BVS::Read(0u, ");
-	fp->write_decimal_unsigned(REGNUMBITS);
-	fp->write("u); }"); GCNL; //done
-
 	m_state.indent(fp);
 	fp->write("const ");
 	fp->write(getTmpStorageTypeAsString().c_str()); //u32 or u64
@@ -472,15 +413,9 @@ namespace MFM {
   {
     UlamTypePrimitive::genUlamTypeWriteDefinitionForC(fp);
 
-    //access regnum and string index, separately
+    //access string index; regnum gone (ulam-4)
     if(isScalar())
       {
-	m_state.indent(fp);
-	fp->write("void setRegistrationNumber");
-	fp->write("(u32 regnum) { BVS::Write(0u, ");
-	fp->write_decimal_unsigned(REGNUMBITS);
-	fp->write("u, regnum); }"); GCNL; //done
-
 	m_state.indent(fp);
 	fp->write("void setStringIndex");
 	fp->write("(u32 sidx) { BVS::Write(");

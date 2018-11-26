@@ -111,23 +111,35 @@ namespace MFM {
       {
 	//across ALL parsed files
 	perrs = checkAndTypeLabelProgram(errput);
-	if(perrs == 0)
-	  {
-	    m_state.generateCodeForUlamClasses(outfm);
-	    perrs = m_state.m_err.getErrorCount();
-
-	    if(perrs > 0)
-	      {
-		std::ostringstream msg;
-		errput->write("Unrecoverable Program GenCode FAILURE.\n");
-	      }
-	  }
-	else
+	if(perrs > 0)
 	  {
 	    std::ostringstream msg;
 	    errput->write("Unrecoverable Program Type Label FAILURE.\n");
 	  }
       }
+
+    if(!perrs)
+      {
+	m_state.defineRegistrationNumberForUlamClasses(); //ulam-4
+	perrs = m_state.m_err.getErrorCount();
+	if(perrs > 0)
+	  {
+	    std::ostringstream msg;
+	    errput->write("Unrecoverable Registry Number Assignment FAILURE.\n");
+	  }
+      }
+
+    if(!perrs)
+      {
+	m_state.generateCodeForUlamClasses(outfm);
+	perrs = m_state.m_err.getErrorCount();
+	if(perrs > 0)
+	  {
+	    std::ostringstream msg;
+	    errput->write("Unrecoverable Program GenCode FAILURE.\n");
+	  }
+      }
+
     delete P;
     delete PP;
     delete Lex;
@@ -245,19 +257,9 @@ namespace MFM {
 	    // context reveals if stub was needed by a template and not included.
 	    break;
 	  }
-	else if(infcounter == MAX_ITERATIONS) //last time
+	else if(infcounter == MAX_ITERATIONS) //last time (t3875)
 	  m_state.m_err.changeWaitToErrMode();
       } //while
-
-#if 0
-    //redundant thanks to WAIT msg mode..
-    if(infcounter > MAX_ITERATIONS)
-      {
-	m_state.m_programDefST.printUnresolvedVariablesForTableOfClasses();
-	errCnt = m_state.m_err.getErrorCount();
-	m_state.clearGoAgain(); //all Hzy types converted to Navs
-      }
-#endif
 
     if(!errCnt)
       {
@@ -320,6 +322,7 @@ namespace MFM {
 
 	// determine all class default values:
 	if(!errCnt) m_state.m_programDefST.buildDefaultValuesFromTableOfClasses();
+	errCnt = m_state.m_err.getErrorCount(); //latest count
       }
 
     errCnt = m_state.m_err.getErrorCount(); //latest count
