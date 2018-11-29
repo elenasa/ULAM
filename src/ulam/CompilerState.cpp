@@ -124,7 +124,7 @@ namespace MFM {
   {
     m_err.init(this, debugOn, infoOn, noteOn, warnOn, waitOn, NULL);
     Token::initTokenMap(*this);
-    m_constantStack.addFrameSlots(1); //initialize for incremental update
+    //m_constantStack.addFrameSlots(1); //initialize for incremental update; init instead.
   }
 
   CompilerState::~CompilerState()
