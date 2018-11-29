@@ -6591,6 +6591,7 @@ Node * Parser::wrapFactor(Node * leftNode)
     //initialize call stack with 'Int' UlamType pointer
     m_state.m_funcCallStack.init(Int);
     m_state.m_nodeEvalStack.init(Int);
+    m_state.m_constantStack.init(Int); //ulam-4 32-bit platform
   } //initPrimitiveUlamTypes
 
 } //end MFM
