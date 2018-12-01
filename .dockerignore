@@ -1,0 +1,10 @@
+debian/**
+doc/**
+docker/**
+.dockerignore
+.git/**
+.gitignore
+grep
+README.md
+share/**
+spike/**
