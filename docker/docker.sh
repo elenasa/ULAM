@@ -22,16 +22,16 @@ function WITH_DEFAULT {
 WITH_DEFAULT OS "$(uname)"
 
 case "$OS" in
-  Linux) source .docker-linux.sh;;
-  Darwin) source .docker-macos.sh;;
+  Linux) source $SCRIPT_DIR/.docker-linux.sh;;
+  Darwin) source $SCRIPT_DIR/.docker-macos.sh;;
   *) (>&2 echo -e "${RED}Unknown Operating System $OS, defaulting to Linux.${NC}");
-     source .docker-linux.sh;;
+     source $SCRIPT_DIR/.docker-linux.sh;;
 esac
 
 # Build the base container which installs MFM and ULAM and adds them to the
 # system path
 function build {
-  docker build -f Dockerfile -t ulam:latest "$SCRIPT_DIR/../"
+  docker build -f $SCRIPT_DIR/Dockerfile -t ulam:latest "$SCRIPT_DIR/../"
 }
 
 function build_local {
@@ -45,6 +45,7 @@ function build_local {
   echo "FROM ulam:latest" > "$SCRIPT_DIR/.tmp/Dockerfile.local"
   echo "RUN useradd -ms /bin/bash $USER -u $UID" >> "$SCRIPT_DIR/.tmp/Dockerfile.local"
   echo "USER $USER" >> "$SCRIPT_DIR/.tmp/Dockerfile.local"
+  echo "ENV USER=$USER" >> "$SCRIPT_DIR/.tmp/Dockerfile.local"
   echo "WORKDIR /home/$USER" >> "$SCRIPT_DIR/.tmp/Dockerfile.local"
 
   # Build your personal container

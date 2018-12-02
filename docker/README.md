@@ -31,6 +31,16 @@ If all goes well, you should see a shell prompt with the containers build hash (
 * Launch ULAM: `$ ulam`
 * Exit the container: `$ exit`
 
+### Start a new ULAM project
+
+```bash
+mfzmake keygen $USER  # create $USER signing key for mfz files
+mfzmake default $USER # set the default signing user to $USER
+mkdir ~/MyElement/ && cd ~/MyElement/
+ulam -i               # ulam starter code: code/MyElement.ulam
+make run              # make the project and run the simulator
+```
+
 ## Configuration
 The `docker.sh` script comes with a very mild number of options. To see them, run `bash docker.sh`.
 
@@ -55,4 +65,4 @@ This container has been tested on Windows 10 using [VcXsrv](https://sourceforge.
 
 ### Running on Mac OS X
 
-Although not tested, it is suspected that forwarding X11 on Mac should be relatively straight forward. If anyone has success, please feel free to update this section of the README.
+This was tested on Mac OS 10+ using [XQuartz](https://www.xquartz.org/). After installation, be sure to open XQuartz.app and verify under Settings > Privacy that you have enabled both "Allow connections from network clients" and "Authenticate connections" and restart XQuartz. You do not need to set `X11_PATH` if using the default `DISPLAY=host.docker.internal:0`.
