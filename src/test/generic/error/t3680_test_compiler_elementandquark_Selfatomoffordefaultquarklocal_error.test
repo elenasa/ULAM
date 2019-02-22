@@ -2,6 +2,7 @@
 #=t3680_test_compiler_elementandquark_Selfatomoffordefaultquarklocal_error
 #!
 ./QW.ulam:6:25: ERROR: Unsupported request: 'atomof' of Type <QW>.
+./QW.ulam:10:29: ERROR: Unexpected token <;>; expected ')'.
 ./QW.ulam:6:10: ERROR: Initial value of 'me' is missing.
 Unrecoverable Program Parse FAILURE: <A.ulam>
 ##
