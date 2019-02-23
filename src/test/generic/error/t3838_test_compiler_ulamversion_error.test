@@ -1,14 +1,14 @@
 ## -*- mode:ulam -*-
 #=t3838_test_compiler_ulamversion_error
 #!
-./Foo.ulam:1:1: ERROR: Declared source version 4, exceeds the current compiler version 3.
+./Foo.ulam:1:1: ERROR: Declared source version 5, exceeds the current compiler version 4.
 Unrecoverable Program Parse FAILURE: <Foo.ulam>
 ##
 ##      // invalid ulam version (note '1a' is fine, just no floats!)
 ##      //informed by 3487
 ##
 #>Foo.ulam
-ulam 4;
+ulam 5;
 element Foo{
   Int test() {
     return 0;

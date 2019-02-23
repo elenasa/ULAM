@@ -1,0 +1,59 @@
+## -*- mode:ulam -*-
+#=t41279_test_compiler_maxofexpression_questioncolon
+#!
+Exit status: 0
+Ue_Foo { Unsigned(6) mGradVal(63u);  Int(32) test() {  System s;  Unsigned(32) ans = ( )func;  s ( ans 1u cast == )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+##
+## ISH informed by Dave splat InnerMembrane code 2/22/19.
+## question colon NOT the cause of the problem; Ascent parsing incomplete for wrap methods:
+## A paren preceeding a Type.maxof term, then continuing without an immediate closing paren.
+##
+#>Foo.ulam
+  ulam 4;
+local constant Unsigned cGRADIENT_BITS = 6;
+local typedef Unsigned(cGRADIENT_BITS) GradVal;
+local constant Unsigned cmGradVal = GradVal.maxof;
+element Foo
+{
+  GradVal mGradVal = GradVal.maxof;
+  Int test() {
+    System s;
+
+    Unsigned ans = func();
+    s.assert(ans == 1u);
+    return 0;
+  }
+
+  Unsigned func() {
+    return (GradVal.maxof*GradVal.maxof-mGradVal*mGradVal) ? 0u : 1u ;
+    //DRILL DOWN:
+    //    return GradVal.maxof*GradVal.maxof-mGradVal*mGradVal ? 1u : 0u ;  //WORKS without parens!!
+    //return ((GradVal.maxof*GradVal.maxof)-mGradVal*mGradVal)  ? 1u : 0u ; //WORKS
+    //return (GradVal.maxof*GradVal.maxof-mGradVal*mGradVal); //not ?: problem!!
+    //return (1u*GradVal.maxof-0u); //WORKS not ?: problem!!
+    //return (GradVal.maxof*1u-0u); //maxof first with parens no good
+    //return (GradVal.maxof*1u*0u); //same level of recursion also no good LOOK HERE!!
+
+    //return (GradVal.maxof*1u); //maxof first with parens, single express, WORKS
+    //return (GradVal.maxof-1u); //maxof first with parens, single express, WORKS
+    //return (1*GradVal.maxof-1u); //maxof second WORKS
+    //    return ((GradVal.maxof*1)-1u); //maxof first with extra parens WORKS
+    //return (mGradVal*mGradVal - GradVal.maxof*GradVal.maxof); //variable first with one set parens WORKS
+    //return (GradVal.maxof-mGradVal*1u); //maxof first with parens, single express, WORKS
+    //return (cmGradVal*cmGradVal-mGradVal*mGradVal) ? 1u : 0u; //WORKS with constant for typedef.maxof
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

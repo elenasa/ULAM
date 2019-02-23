@@ -3814,7 +3814,7 @@ namespace MFM {
 	  bool allowrefcast = (m_state.m_parsingVariableSymbolTypeFlag == STF_FUNCARGUMENT) || (m_state.m_parsingVariableSymbolTypeFlag == STF_FUNCLOCALREF); //t3862, t41067
 	  bool allowcasts = m_state.m_parsingVariableSymbolTypeFlag == STF_FUNCLOCALCONSTREF ? false : true;
 	  rtnNode = parseRestOfCastOrExpression(allowrefcast, allowcasts);
-	  rtnNode = parseRestOfFactor(rtnNode); //t41057?
+	  rtnNode = parseRestOfFactor(rtnNode); //t41057, t41259
 	}
 	break;
       case TOK_MINUS:
@@ -4007,15 +4007,14 @@ namespace MFM {
 
     if(isacast)
       {
-	//rtnNode = wrapFactor(rtnNode); //t41055
-	return rtnNode; //no close paren
+	return rtnNode; //no close paren, no wrapFactor  t41055
       }
 
     if(rtnNode)
       {
-	//not a cast. min/max/sizeof a Type
-	rtnNode = wrapFactor(rtnNode); //t3232, ascent-parse
-	rtnNode = parseRestOfAssignExpr(rtnNode); //t3232
+	//not a cast. Is min/max/sizeof a Type
+	rtnNode = wrapFactor(rtnNode); //t3232,t41279 ascent-parse
+	//rtnNode = parseRestOfAssignExpr(rtnNode); //t3232, t41279?
       }
     else
       {
@@ -4024,11 +4023,18 @@ namespace MFM {
 	//will parse rest of assign expr before close paren
       }
 
-    if(!getExpectedToken(TOK_CLOSE_PAREN))
+    Token pTok;
+    if(!getExpectedToken(TOK_CLOSE_PAREN, pTok, QUIETLY))
       {
-	delete rtnNode;
-	rtnNode = NULL;
-      }
+	    std::ostringstream msg;
+	    msg << "Unexpected token <" << m_state.getTokenDataAsString(pTok).c_str();
+	    msg << ">; expected '";
+	    msg << Token::getTokenAsStringFromPool(TOK_CLOSE_PAREN, &m_state).c_str();
+	    msg << "'";
+	    MSG(&pTok, msg.str().c_str(), ERR);
+	    delete rtnNode;
+	    rtnNode = NULL;
+      } //t41279
     return rtnNode;
   } //parseRestOfCastOrExpression
 
@@ -4353,6 +4359,7 @@ Node * Parser::wrapFactor(Node * leftNode)
 	{
 	  unreadToken();
 	  rtnNode = makeTermNode(leftNode);
+	  rtnNode = wrapTerm(rtnNode); //before close paren, any more.. t41279
 	  break;
 	}
       case TOK_ERROR_LOWLEVEL:
@@ -4379,6 +4386,7 @@ Node * Parser::wrapFactor(Node * leftNode)
       case TOK_MINUS:
 	unreadToken();
 	rtnNode = makeShiftExpressionNode(leftNode);
+	rtnNode = wrapShiftExpression(rtnNode); //before close paren, any more.. t41279
 	break;
       case TOK_ERROR_LOWLEVEL:
 	rtnNode = wrapShiftExpression(leftNode); //redo
@@ -4404,6 +4412,7 @@ Node * Parser::wrapFactor(Node * leftNode)
       case TOK_SHIFT_RIGHT:
 	unreadToken();
 	rtnNode = makeCompareExpressionNode(leftNode);
+	rtnNode = wrapCompareExpression(rtnNode); //before close paren, any more.. t41279
 	break;
       case TOK_ERROR_LOWLEVEL:
 	rtnNode = wrapCompareExpression(leftNode); //redo
@@ -4431,6 +4440,7 @@ Node * Parser::wrapFactor(Node * leftNode)
       case TOK_GREATER_EQUAL:
 	unreadToken();
 	rtnNode = makeEqExpressionNode(leftNode);
+	rtnNode = wrapEqExpression(rtnNode); //before close paren, any more.. t41279
 	break;
       case TOK_ERROR_LOWLEVEL:
 	rtnNode = wrapEqExpression(leftNode); //redo
@@ -4456,6 +4466,7 @@ Node * Parser::wrapFactor(Node * leftNode)
       case TOK_NOT_EQUAL:
 	unreadToken();
 	rtnNode = makeBitExpressionNode(leftNode);
+	rtnNode = wrapBitExpression(rtnNode); //before close paren, any more.. t41279
 	break;
       case TOK_ERROR_LOWLEVEL:
 	rtnNode = wrapBitExpression(leftNode); //redo
@@ -4482,6 +4493,7 @@ Node * Parser::wrapFactor(Node * leftNode)
       case TOK_HAT:
 	unreadToken();
 	rtnNode = makeLogicalExpressionNode(leftNode);
+	rtnNode = wrapLogicalExpression(rtnNode); //before close paren, any more.. t41279
 	break;
       case TOK_ERROR_LOWLEVEL:
 	rtnNode = wrapLogicalExpression(leftNode); //redo
@@ -4509,6 +4521,7 @@ Node * Parser::wrapFactor(Node * leftNode)
       case TOK_PIPE_PIPE:
 	unreadToken();
 	rtnNode = makeExpressionNode(leftNode);
+	rtnNode = wrapExpression(rtnNode); //before close paren, any more.. t41279
 	break;
       case TOK_QUESTION:
 	unreadToken();
@@ -4549,6 +4562,7 @@ Node * Parser::wrapFactor(Node * leftNode)
       case TOK_MINUS_MINUS: //t3903
 	unreadToken();
 	rtnNode = makeAssignExprNode(leftNode);
+	rtnNode = wrapAssignExpr(rtnNode); //before close paren, any more.. t41279
 	break;
       case TOK_ERROR_LOWLEVEL:
 	rtnNode = wrapAssignExpr(leftNode); //redo
