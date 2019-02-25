@@ -1,0 +1,83 @@
+## -*- mode:ulam -*-
+#=t41281_test_compiler_nestedquestioncolon_comparisonop_error
+#!
+./Foo.ulam:26:67: ERROR: Use a comparison operation to convert Unsigned(3) to Bool(1) for '?:'.
+Unrecoverable Program Type Label FAILURE.
+##
+## ISH informed by Dave splat QMembrane code 2/24/19, t41280
+##
+## The parens around the first ?: expr makes it the condition to the next
+## one. Can its result be safely cast to a Bool (i.e. 1-bit unsigned), or
+## does it require a comparison operator? BUG discovered in
+## NodeQuestionColon used NodeBinaryOp::checkSafeToCastTo instead of Node.
+##
+#>Foo.ulam
+  ulam 4;
+element Foo
+{
+  Int test() {
+    System s;
+    EReg ereg;
+    Unsigned ans = vote(ereg);
+    s.assert(ans == 0u);
+
+
+    Unsigned ans1 = voteNoParen(0u);
+    s.assert(ans1 == 1u);
+    Unsigned ans2 = voteNoParen(2u);
+    s.assert(ans2 == 3u);
+
+    Unsigned ans3 = voteWParen(0u);
+    s.assert(ans3 == 1u);
+    Unsigned ans4 = voteWParen(2u);
+    s.assert(ans4 == 0u);
+
+    return 0;
+  }
+
+  Unsigned vote(Atom & curatom) {
+    // why no comparison operator? 1-bit safely casts to Bool.
+    return ((curatom is EReg || curatom is QMembrane) ? 0u : 4u ) ? 1u : 0u;
+  }
+
+
+  Unsigned voteNoParen(Unsigned x)
+  {
+    //third term is last ?:
+    // which is "constant" (always false), so we're left with ++x.
+    return x > 1u ? 3u : 0u ? 0u : ++x;
+  }
+
+  Unsigned voteWParen(Unsigned x)
+  {
+    //now that the conditional ?: expression is no longer a "constant",
+    //we must use a comparison operator here.
+    return (x > 1u ? 3u : 0u) > 0u ? 0u : ++x; //ASSERTED
+  }
+
+}
+
+#:QMembrane.ulam
+  ulam 4;
+quark QMembrane {
+  Bool bq;
+}
+
+#:EReg.ulam
+  ulam 4;
+element EReg {
+  Int mer;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

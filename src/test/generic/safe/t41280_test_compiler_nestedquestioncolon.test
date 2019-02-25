@@ -44,8 +44,8 @@ element Foo
   }
 
   Unsigned vote(Atom & curatom) {
-    // why no comparison operator?
-    return ((curatom is EReg || curatom is QMembrane) ? 0u : 4u ) ? 1u : 0u;
+    // why no comparison operator? 1-bit safely casts to Bool.
+    return ((curatom is EReg || curatom is QMembrane) ? 0u : (Unsigned(1)) 4u ) ? 1u : 0u;
   }
 
 
@@ -60,7 +60,7 @@ element Foo
   {
     //now that the conditional ?: expression is no longer a "constant",
     //we must use a comparison operator here.
-    return (x > 1u ? 3u : 0u) > 0u ? 0u : ++x; //ASSERTED
+    return (x > 1u ? 1u : 0u) ? 0u : ++x; //ASSERTED
   }
 
 }

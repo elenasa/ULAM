@@ -23,7 +23,7 @@ element Foo : Qbar
     s.assert(sp);
     Bool notsp = sp ? false : true; //local
     s.assert(!notsp);
-    Int i = sp ? Qbar.sizeof : m_q;
+    Int i = sp ? (Int) Qbar.sizeof : m_q;
     s.print(i);
     s.assert(i == 4);
 

@@ -226,7 +226,7 @@ namespace MFM {
 	ULAMTYPE ctypEnum = cut->getUlamTypeEnum();
 	if(ctypEnum != Bool)
 	  {
-	    if(NodeBinaryOp::checkSafeToCastTo(condType, newcondtype))
+	    if(Node::checkSafeToCastTo(condType, newcondtype))
 	      {
 		if(!Node::makeCastingNode(m_nodeCondition, Bool, m_nodeCondition))
 		  newcondtype = Nav;
@@ -267,7 +267,7 @@ namespace MFM {
       {
 	if(UlamType::compareForMakingCastingNode(trueType, newType, m_state) == UTIC_NOTSAME)
 	  {
-	    if(NodeBinaryOp::checkSafeToCastTo(trueType, newType)) //Nav, Hzy or no change; outputs error msg
+	    if(Node::checkSafeToCastTo(trueType, newType)) //Nav, Hzy or no change; outputs error msg
 	      {
 		if(!Node::makeCastingNode(m_nodeLeft, newType, m_nodeLeft, false))
 		  newType = Nav;
@@ -275,7 +275,7 @@ namespace MFM {
 	  }
 	if(m_state.okUTItoContinue(newType) && (UlamType::compareForMakingCastingNode(falseType, newType, m_state) == UTIC_NOTSAME))
 	  {
-	    if(NodeBinaryOp::checkSafeToCastTo(falseType, newType)) //Nav, Hzy or no change; outputs error msg
+	    if(Node::checkSafeToCastTo(falseType, newType)) //Nav, Hzy or no change; outputs error msg
 	      {
 		if(!Node::makeCastingNode(m_nodeRight, newType, m_nodeRight, false))
 		  newType = Nav;
