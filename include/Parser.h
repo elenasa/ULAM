@@ -285,8 +285,6 @@ namespace MFM{
 
     Node * parseRestOfMemberSelectExpr(Node * classInstanceNode);
 
-    Node * parseRestOfQuestionColonExpr(Node * condNode);
-
     Node * parseMinMaxSizeofType(Node * memberNode, UTI utype, NodeTypeDescriptor * nodetype);
     /**
        <FUNC_CALL> := <IDENT> + '(' + <ARGS> + ')'
@@ -444,6 +442,11 @@ namespace MFM{
        helper method to make assigment nodes
     */
     NodeBinaryOpEqual * makeAssignExprNode(Node * leftNode);
+
+    /**
+       helper methods to make ternary expression node
+    */
+    Node * makeQuestionColonNode(Node * condNode);
 
     /**
        helper methods to make binary expression nodes

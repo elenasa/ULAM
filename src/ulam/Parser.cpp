@@ -3511,52 +3511,6 @@ namespace MFM {
     return rtnNode;
   } //parseRestOfMemberSelectExpr
 
-  Node * Parser::parseRestOfQuestionColonExpr(Node * condNode)
-  {
-    Token pTok;
-    if(!getExpectedToken(TOK_QUESTION, pTok, QUIETLY))
-      {
-	m_state.abortShouldntGetHere();
-	delete condNode;
-	return NULL;
-      }
-
-    Node * trueNode = parseExpression();
-    if(!trueNode)
-      {
-	std::ostringstream msg;
-	msg << "Incomplete true expression; question-colon-control";
-	MSG(&pTok, msg.str().c_str(), ERR);
-	delete condNode;
-	return NULL; //stop this maddness
-      }
-
-    if(!getExpectedToken(TOK_COLON))
-      {
-	delete condNode;
-	delete trueNode;
-	return NULL;
-      }
-
-    Node * falseNode = parseExpression();
-    if(!falseNode)
-      {
-	std::ostringstream msg;
-	msg << "Incomplete false expression; question-colon-control";
-	MSG(&pTok, msg.str().c_str(), ERR);
-	delete condNode;
-	delete trueNode;
-	return NULL; //stop this maddness
-      }
-
-
-    NodeQuestionColon * rtnNode = new NodeQuestionColon(condNode, trueNode, falseNode, m_state);
-    assert(rtnNode);
-    rtnNode->setNodeLocation(pTok.m_locator);
-
-    return rtnNode;
-  } //parseRestOfQuestionColonExpr
-
   Node * Parser::parseMinMaxSizeofType(Node * memberNode, UTI utype, NodeTypeDescriptor * nodetype)
   {
     Node * rtnNode = NULL;
@@ -4014,11 +3968,11 @@ namespace MFM {
       {
 	//not a cast. Is min/max/sizeof a Type
 	rtnNode = wrapFactor(rtnNode); //t3232,t41279 ascent-parse
-	//rtnNode = parseRestOfAssignExpr(rtnNode); //t3232, t41279?
       }
     else
       {
-	//not a cast or min/max/sizeof of named constant
+	//not a cast or min/max/sizeof of named constant;
+	//e.g. question colon (t41280);
 	rtnNode = parseAssignExpr(); //grammar says assign_expr
 	//will parse rest of assign expr before close paren
       }
@@ -4214,7 +4168,7 @@ namespace MFM {
 	break;
       case TOK_QUESTION:
 	unreadToken();
-	rtnNode = parseRestOfQuestionColonExpr(leftNode); //t41063,5,7,9,t41071,2,3 (not restOfAssignExpr)
+	rtnNode = makeQuestionColonNode(leftNode); //t41063,5,7,9,t41071,2,3 (not restOfAssignExpr)
 	break;
       case TOK_ERROR_LOWLEVEL:
 	rtnNode = parseRestOfExpression(leftNode); //redo
@@ -4525,7 +4479,7 @@ Node * Parser::wrapFactor(Node * leftNode)
 	break;
       case TOK_QUESTION:
 	unreadToken();
-	rtnNode = parseRestOfQuestionColonExpr(leftNode); //?test
+	rtnNode = makeQuestionColonNode(leftNode); //t41280
 	break;
       case TOK_ERROR_LOWLEVEL:
 	rtnNode = wrapExpression(leftNode); //redo
@@ -5983,6 +5937,52 @@ Node * Parser::wrapFactor(Node * leftNode)
       }
     return rtnNode;
   } //makeAssignExprNode
+
+  Node * Parser::makeQuestionColonNode(Node * condNode)
+  {
+    Token pTok;
+    if(!getExpectedToken(TOK_QUESTION, pTok, QUIETLY))
+      {
+	m_state.abortShouldntGetHere();
+	delete condNode;
+	return NULL;
+      }
+
+    Node * trueNode = parseExpression();
+    if(!trueNode)
+      {
+	std::ostringstream msg;
+	msg << "Incomplete true expression; question-colon-control";
+	MSG(&pTok, msg.str().c_str(), ERR);
+	delete condNode;
+	return NULL; //stop this maddness
+      }
+
+    if(!getExpectedToken(TOK_COLON))
+      {
+	delete condNode;
+	delete trueNode;
+	return NULL;
+      }
+
+    Node * falseNode = parseExpression();
+    if(!falseNode)
+      {
+	std::ostringstream msg;
+	msg << "Incomplete false expression; question-colon-control";
+	MSG(&pTok, msg.str().c_str(), ERR);
+	delete condNode;
+	delete trueNode;
+	return NULL; //stop this maddness
+      }
+
+
+    NodeQuestionColon * rtnNode = new NodeQuestionColon(condNode, trueNode, falseNode, m_state);
+    assert(rtnNode);
+    rtnNode->setNodeLocation(pTok.m_locator);
+
+    return rtnNode;
+  } //makeQuestionColonNode
 
   NodeBinaryOp * Parser::makeExpressionNode(Node * leftNode)
   {

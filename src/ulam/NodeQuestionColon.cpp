@@ -122,7 +122,7 @@ namespace MFM {
 
   bool NodeQuestionColon::isAConstant()
   {
-    return m_nodeLeft->isAConstant() || m_nodeRight->isAConstant();
+    return m_nodeCondition->isAConstant(); //t41280
   }
 
   UTI NodeQuestionColon::calcNodeType(UTI lt, UTI rt)
@@ -288,7 +288,7 @@ namespace MFM {
 
     Node::setStoreIntoAble(isAConstant() ? TBOOL_FALSE : TBOOL_TRUE);
 
-    if(m_state.okUTItoContinue(newType) && m_nodeCondition->isAConstant())
+    if(m_state.okUTItoContinue(newType) && this->isAConstant())
       {
 	return constantFold();
       }
@@ -318,11 +318,7 @@ namespace MFM {
 
   UTI NodeQuestionColon::constantFold()
   {
-    if(!m_nodeCondition->isAConstant())
-      return Nav; //t41059
-
-    //if(!m_nodeCondition->isReadyConstant())
-    //  return Hzy;
+    assert(isAConstant()); //t41059, t41280
 
     bool condbool = false;
 
@@ -378,7 +374,7 @@ namespace MFM {
 
     delete this; //suicide is painless..
 
-    return newnode->getNodeType(); //already known
+    return newnode->checkAndLabelType();
   } //constantFold
 
   EvalStatus NodeQuestionColon::eval()
