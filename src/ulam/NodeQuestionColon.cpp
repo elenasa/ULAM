@@ -122,7 +122,7 @@ namespace MFM {
 
   bool NodeQuestionColon::isAConstant()
   {
-    return m_nodeLeft->isAConstant() || m_nodeRight->isAConstant();
+    return m_nodeCondition->isAConstant(); //t41280
   }
 
   UTI NodeQuestionColon::calcNodeType(UTI lt, UTI rt)
@@ -226,7 +226,7 @@ namespace MFM {
 	ULAMTYPE ctypEnum = cut->getUlamTypeEnum();
 	if(ctypEnum != Bool)
 	  {
-	    if(NodeBinaryOp::checkSafeToCastTo(condType, newcondtype))
+	    if(Node::checkSafeToCastTo(condType, newcondtype))
 	      {
 		if(!Node::makeCastingNode(m_nodeCondition, Bool, m_nodeCondition))
 		  newcondtype = Nav;
@@ -267,7 +267,7 @@ namespace MFM {
       {
 	if(UlamType::compareForMakingCastingNode(trueType, newType, m_state) == UTIC_NOTSAME)
 	  {
-	    if(NodeBinaryOp::checkSafeToCastTo(trueType, newType)) //Nav, Hzy or no change; outputs error msg
+	    if(Node::checkSafeToCastTo(trueType, newType)) //Nav, Hzy or no change; outputs error msg
 	      {
 		if(!Node::makeCastingNode(m_nodeLeft, newType, m_nodeLeft, false))
 		  newType = Nav;
@@ -275,7 +275,7 @@ namespace MFM {
 	  }
 	if(m_state.okUTItoContinue(newType) && (UlamType::compareForMakingCastingNode(falseType, newType, m_state) == UTIC_NOTSAME))
 	  {
-	    if(NodeBinaryOp::checkSafeToCastTo(falseType, newType)) //Nav, Hzy or no change; outputs error msg
+	    if(Node::checkSafeToCastTo(falseType, newType)) //Nav, Hzy or no change; outputs error msg
 	      {
 		if(!Node::makeCastingNode(m_nodeRight, newType, m_nodeRight, false))
 		  newType = Nav;
@@ -288,7 +288,7 @@ namespace MFM {
 
     Node::setStoreIntoAble(isAConstant() ? TBOOL_FALSE : TBOOL_TRUE);
 
-    if(m_state.okUTItoContinue(newType) && m_nodeCondition->isAConstant())
+    if(m_state.okUTItoContinue(newType) && this->isAConstant())
       {
 	return constantFold();
       }
@@ -318,11 +318,7 @@ namespace MFM {
 
   UTI NodeQuestionColon::constantFold()
   {
-    if(!m_nodeCondition->isAConstant())
-      return Nav; //t41059
-
-    //if(!m_nodeCondition->isReadyConstant())
-    //  return Hzy;
+    assert(isAConstant()); //t41059, t41280
 
     bool condbool = false;
 
@@ -378,7 +374,7 @@ namespace MFM {
 
     delete this; //suicide is painless..
 
-    return newnode->getNodeType(); //already known
+    return newnode->checkAndLabelType();
   } //constantFold
 
   EvalStatus NodeQuestionColon::eval()

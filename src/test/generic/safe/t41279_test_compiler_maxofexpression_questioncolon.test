@@ -6,8 +6,10 @@ Ue_Foo { Unsigned(6) mGradVal(63u);  Int(32) test() {  System s;  Unsigned(32) a
 Uq_System { <NOMAIN> }
 ##
 ## ISH informed by Dave splat InnerMembrane code 2/22/19.
-## question colon NOT the cause of the problem; Ascent parsing incomplete for wrap methods:
-## A paren preceeding a Type.maxof term, then continuing without an immediate closing paren.
+## question colon NOT the cause of the problem; Ascent parsing incomplete
+## for wrap methods:
+## A paren preceeding a Type.maxof term, then continuing without an
+## immediate closing paren.
 ##
 #>Foo.ulam
   ulam 4;
@@ -26,7 +28,9 @@ element Foo
   }
 
   Unsigned func() {
-    return (GradVal.maxof*GradVal.maxof-mGradVal*mGradVal) ? 0u : 1u ;
+    //Fix to safeCast check now requires comparison op for condition.
+    return (GradVal.maxof*GradVal.maxof-mGradVal*mGradVal) > 0 ? 0u : 1u ;
+
     //DRILL DOWN:
     //    return GradVal.maxof*GradVal.maxof-mGradVal*mGradVal ? 1u : 0u ;  //WORKS without parens!!
     //return ((GradVal.maxof*GradVal.maxof)-mGradVal*mGradVal)  ? 1u : 0u ; //WORKS

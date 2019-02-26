@@ -1,7 +1,8 @@
 ## -*- mode:ulam -*-
 #=t41066_test_compiler_elementlengthof_vardeclinit_questioncolon_error
 #!
-./Foo.ulam:10:22: ERROR: Proxy Type 'lengthof' is not supported for scalar: Foo.
+./Foo.ulam:10:28: ERROR: Proxy Type 'lengthof' is not supported for scalar: Foo.
+./Foo.ulam:10:19: ERROR: Cannot cast erroneous type.
 ./Foo.ulam:10:5: ERROR: Initial value expression for: i, initialization is invalid.
 ./Foo.ulam:13:18: ERROR: Proxy Type 'lengthof' is not supported for scalar: Foo.
 ./Foo.ulam:13:27: ERROR: Cannot cast erroneous type.
@@ -19,7 +20,7 @@ element Foo : Qbar
     s.assert(sp);
     Bool notsp = sp ? false : true; //local
     s.assert(!notsp);
-    Int i = sp ? Foo.lengthof : m_q;
+    Int i = sp ? (Int) Foo.lengthof : m_q;
     s.print(i);
     s.assert(i == 4); //m_q saturates
     Qbar j = Foo.lengthof > 1 ? func(i) : (Qbar) self;

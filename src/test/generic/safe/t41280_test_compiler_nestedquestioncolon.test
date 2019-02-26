@@ -1,0 +1,91 @@
+## -*- mode:ulam -*-
+#=t41280_test_compiler_nestedquestioncolon
+##
+## gen output: 5 asserts
+#!
+Exit status: 0
+Ue_Foo { Int(32) test() {  System s;  EReg ereg;  Unsigned(32) ans = ( ereg cast )vote;  s ( ans 0u cast == )assert . Unsigned(32) ans1 = ( 0u cast )voteNoParen;  s ( ans1 1u cast == )assert . Unsigned(32) ans2 = ( 2u cast )voteNoParen;  s ( ans2 3u cast == )assert . Unsigned(32) ans3 = ( 0u cast )voteWParen;  s ( ans3 1u cast == )assert . Unsigned(32) ans4 = ( 2u cast )voteWParen;  s ( ans4 0u cast == )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+Ue_EReg { Int(32) mer(0);  <NOMAIN> }
+Uq_QMembrane { Bool(1) bq(false);  <NOMAIN> }
+##
+## ISH informed by Dave splat QMembrane code 2/24/19.
+##
+## The parens around the first ?: expr triggered an eval stack assertion
+## during constant-folding of the return statement; the ?: as a condition
+## was not a constant, even though its right/left nodes were (THE BUG!);
+## the max depth had yet to be calculated, so the stack was still zero,
+## and t.f. unevalable;
+## Without the parens, the first term was a binary op, which requires
+## both terms to be constant to be considered for constant-folding.
+##
+#>Foo.ulam
+  ulam 4;
+element Foo
+{
+  Int test() {
+    System s;
+    EReg ereg;
+    Unsigned ans = vote(ereg);
+    s.assert(ans == 0u);
+
+
+    Unsigned ans1 = voteNoParen(0u);
+    s.assert(ans1 == 1u);
+    Unsigned ans2 = voteNoParen(2u);
+    s.assert(ans2 == 3u);
+
+    Unsigned ans3 = voteWParen(0u);
+    s.assert(ans3 == 1u);
+    Unsigned ans4 = voteWParen(2u);
+    s.assert(ans4 == 0u);
+
+    return 0;
+  }
+
+  Unsigned vote(Atom & curatom) {
+    // why no comparison operator? 1-bit safely casts to Bool.
+    return ((curatom is EReg || curatom is QMembrane) ? 0u : (Unsigned(1)) 4u ) ? 1u : 0u;
+  }
+
+
+  Unsigned voteNoParen(Unsigned x)
+  {
+    //third term is last ?:
+    // which is "constant" (always false), so we're left with ++x.
+    return x > 1u ? 3u : 0u ? 0u : ++x;
+  }
+
+  Unsigned voteWParen(Unsigned x)
+  {
+    //now that the conditional ?: expression is no longer a "constant",
+    //we must use a comparison operator here.
+    return (x > 1u ? 1u : 0u) ? 0u : ++x; //ASSERTED
+  }
+
+}
+
+#:QMembrane.ulam
+  ulam 4;
+quark QMembrane {
+  Bool bq;
+}
+
+#:EReg.ulam
+  ulam 4;
+element EReg {
+  Int mer;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.
