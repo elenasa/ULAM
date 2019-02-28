@@ -310,9 +310,8 @@ namespace MFM {
 	  }
 	else if(asymptr->isModelParameter())
 	  {
-	    //temporarily, before surgery
+	    //temporarily, before surgery t41282
 	    m_constSymbol = (SymbolConstantValue *) asymptr;
-	    return;
 	  }
 	else
 	  {
