@@ -426,7 +426,12 @@ namespace MFM {
     if(m_currBlockPtr)
       return m_currBlockPtr;
 
-    NodeBlock * currBlock = (NodeBlock *) m_state.findNodeNoInThisClassOrLocalsScope(m_currBlockNo); //t3328, t3329, t3330, t3332 (not using StubFirst version)
+    NodeBlock * currBlock = NULL;
+    if(m_nodeTypeDesc)
+      currBlock = (NodeBlock *) m_state.findNodeNoInAClassOrLocalsScope(m_currBlockNo, m_nodeTypeDesc->getNodeType()); //t41284,5
+    else
+      currBlock = (NodeBlock *) m_state.findNodeNoInThisClassOrLocalsScope(m_currBlockNo); //t3328, t3329, t3330, t3332 (not using StubFirst version)
+
     if(!currBlock)
       {
 	UTI anotherclassuti = m_state.findAClassByNodeNo(m_currBlockNo);

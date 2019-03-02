@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeBlockLocals.h - Node for handling Local Defs for ULAM
  *
- * Copyright (C) 2014-2018 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2018 Ackleyshack LLC.
+ * Copyright (C) 2014-2019 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2019 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeBlockLocals.h - Node for handling Local Defs for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2018 All rights reserved.
+  \date (C) 2014-2019 All rights reserved.
   \gpl
 */
 
@@ -53,6 +53,8 @@ namespace MFM{
     virtual ~NodeBlockLocals();
 
     virtual Node * instantiate();
+
+    virtual void updateLineage(NNO pno);
 
     virtual void printPostfix(File * fp);
 

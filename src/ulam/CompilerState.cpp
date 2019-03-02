@@ -4677,6 +4677,12 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   {
     Node * rtnNode = NULL;
 
+    if(isALocalsFileScope(cuti))
+      {
+	rtnNode = findNodeNoInALocalsScope(cuti, n);
+	return rtnNode;
+      }
+
     SymbolClassName * cnsym = NULL;
     AssertBool isDefined = alreadyDefinedSymbolClassNameByUTI(cuti, cnsym);
     assert(isDefined);
@@ -4717,6 +4723,15 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   {
     Node * rtnNode = NULL;
     NodeBlockLocals * localsblock = getLocalsScopeBlock(loc);
+    if(localsblock)
+      localsblock->findNodeNo(n, rtnNode);
+    return rtnNode;
+  }
+
+  Node * CompilerState::findNodeNoInALocalsScope(UTI luti, NNO n)
+  {
+    Node * rtnNode = NULL;
+    NodeBlockLocals * localsblock = getLocalsScopeBlockByIndex(luti);
     if(localsblock)
       localsblock->findNodeNo(n, rtnNode);
     return rtnNode;

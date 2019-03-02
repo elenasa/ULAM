@@ -15,6 +15,16 @@ namespace MFM {
     return new NodeBlockLocals(*this);
   }
 
+  void NodeBlockLocals::updateLineage(NNO pno)
+  {
+    assert(getPreviousBlockPointer() == NULL);
+
+    setYourParentNo(pno);
+    //has no m_node
+    if(m_nodeNext)
+      m_nodeNext->updateLineage(getNodeNo());
+  } //updateLineage
+
   void NodeBlockLocals::printPostfix(File * fp)
   {
     fp->write(" locals: ");
@@ -44,7 +54,8 @@ namespace MFM {
 
     //possibly empty (e.g. error/t3875)
     if(m_nodeNext)
-      NodeBlock::checkAndLabelType();
+      //NodeBlock::checkAndLabelType();
+      m_nodeNext->checkAndLabelType();
     setNodeType(savnuti);
     return savnuti;
   }

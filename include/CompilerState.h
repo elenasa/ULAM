@@ -2,8 +2,8 @@
 /**                                        -*- mode:C++ -*-
  * CompilerState.h - Global Compiler State for ULAM
  *
- * Copyright (C) 2014-2018 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2018 Ackleyshack LLC.
+ * Copyright (C) 2014-2019 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2019 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -30,7 +30,7 @@
   \file CompilerState.h - Global Compiler State for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2018 All rights reserved.
+  \date (C) 2014-2019 All rights reserved.
   \gpl
 */
 
@@ -529,6 +529,7 @@ namespace MFM{
     UTI findAClassByNodeNo(NNO n);
     NodeBlockLocals * findALocalsScopeByNodeNo(NNO n);
     Node * findNodeNoInALocalsScope(Locator loc, NNO n);
+    Node * findNodeNoInALocalsScope(UTI luti, NNO n);
     Node * findNodeNoInAncestorsLocalsScope(NNO n, UTI cuti);
 
     u32 getRegistrationNumberForClassOrLocalsScope(UTI cuti); //ulam-4
