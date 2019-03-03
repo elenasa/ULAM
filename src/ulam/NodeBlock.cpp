@@ -28,9 +28,7 @@ namespace MFM {
   void NodeBlock::updateLineage(NNO pno)
   {
     if(getPreviousBlockPointer() == NULL)
-      {
-	setPreviousBlockPointer(m_state.getCurrentBlock());
-      }
+      setPreviousBlockPointer(m_state.getCurrentBlock()); //t41283, not for filescope locals
     else
       assert(getPreviousBlockPointer() == m_state.getCurrentBlock());
 
@@ -126,6 +124,7 @@ namespace MFM {
   {
     assert(m_nodeNext);
     //especially important for template instances (prev ptr nullified on instantiation)
+    //and extremely important to skip for filescope locals (only one per file) e.g. t41283;
     if(getPreviousBlockPointer() == NULL)
       setPreviousBlockPointer(m_state.getCurrentBlock());
     else
@@ -205,6 +204,7 @@ namespace MFM {
 
   void NodeBlock::setPreviousBlockPointer(NodeBlock * b)
   {
+    assert(b != this); //invariant (t41283)
     m_prevBlockNode = b;
   }
 
