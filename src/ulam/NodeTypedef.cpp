@@ -91,6 +91,11 @@ namespace MFM {
     return; //bypass
   }
 
+  void NodeTypedef::genTypeAndNameEntryAsComment(File * fp, s32 totalsize, u32& accumsize)
+  {
+    return; //bypass
+  }
+
   const char * NodeTypedef::getName()
   {
     return m_state.m_pool.getDataAsString(m_tdid).c_str(); //safer

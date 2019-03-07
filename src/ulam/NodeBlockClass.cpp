@@ -1418,6 +1418,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     //output any externs, outside of class decl
     genCodeExtern(fp, declOnly);
 
+    //output a chart of data members with name, length, and position
+    genCodeDataMemberChartAsComment(fp, cuti);
+
     m_state.m_currentIndentLevel = 0;
     fp->write("} //MFM\n\n");
     //leave class' endif to caller
@@ -1432,6 +1435,70 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     fp->write("\n");
   } //genCodeExtern
+
+  void NodeBlockClass::genCodeDataMemberChartAsComment(File * fp, UTI cuti)
+  {
+    u32 accumsize = 0;
+    UlamType * cut = m_state.getUlamTypeByIndex(cuti);
+    s32 totalsize = cut->getTotalBitSize();
+
+    m_state.indent(fp);
+    fp->write("/*__________________________________________________\n");
+    m_state.indent(fp);
+    fp->write("| COMPONENTS of ");
+    fp->write(cut->getUlamTypeClassNameBrief(cuti).c_str());
+    fp->write(" (");
+    fp->write_decimal(totalsize);
+    fp->write(" bits total) are: \n");
+    m_state.indent(fp);
+    fp->write("| \n"); //blank
+
+    m_state.indent(fp);
+    fp->write("| Pos\t| Bits\t| Name\t| Type\n");
+
+    UTI superuti = m_state.isClassASubclass(cuti);
+    //skip UrSelf to avoid extensive changes to all test answers
+    if(m_state.okUTItoContinue(superuti) && !m_state.isUrSelf(superuti))
+      {
+	NodeBlockClass * superblock = getSuperBlockPointer();
+	if(!isSuperClassLinkReady(cuti))
+	  {
+	    //use SCN instead of SC in case of stub (use template's classblock)
+	    SymbolClassName * supercnsym = NULL;
+	    AssertBool isDefined = m_state.alreadyDefinedSymbolClassNameByUTI(superuti, supercnsym);
+	    assert(isDefined);
+	    superblock = supercnsym->getClassBlockNode();
+	  }
+	assert(superblock);
+	superblock->genClassTypeAndNameEntryAsComment(fp, superuti, totalsize, accumsize); //no recursion
+      }
+
+    if(m_nodeNext)
+      m_nodeNext->genTypeAndNameEntryAsComment(fp, totalsize, accumsize); //datamember vardecls
+
+    m_state.indent(fp);
+    fp->write("|___________________________________________________\n");
+    m_state.indent(fp);
+    fp->write("*/\n"); //end of comment
+  } //genClassDataMemberChartAsComment
+
+  void NodeBlockClass::genClassTypeAndNameEntryAsComment(File * fp, UTI nuti, s32 totalsize, u32& accumsize)
+  {
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    s32 nsize = nut->getTotalBitSize();
+
+    // "// | Position\t| Bitsize\t| Name\t| Type"
+    m_state.indent(fp);
+    fp->write("| ");
+    fp->write_decimal_unsigned(accumsize); //at
+    fp->write("\t| ");
+    fp->write_decimal(nsize); // of totalsize
+    fp->write("\t| super\t| "); //name
+    fp->write(nut->getUlamTypeClassNameBrief(nuti).c_str());
+    fp->write("\n");
+
+    accumsize += nsize;
+  } //genClassTypeAndNameEntryAsComment
 
   void NodeBlockClass::genCodeHeaderQuark(File * fp)
   {
