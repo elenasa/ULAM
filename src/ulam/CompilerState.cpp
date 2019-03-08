@@ -1632,10 +1632,9 @@ namespace MFM {
     UlamType * ut = getUlamTypeByIndex(utiArg);
     if(!ut->isComplete())
       {
-	ULAMCLASSTYPE classtype = ut->getUlamClassType();
-	if(classtype != UC_NOTACLASS)
+	if(ut->getUlamTypeEnum() == Class)
 	  {
-	    assert(classtype == UC_UNSEEN);
+	    assert(ut->getUlamClassType() == UC_UNSEEN);
 	    replaceUlamTypeForUpdatedClassType(ut->getUlamKeyTypeSignature(), Class, derefut->getUlamClassType(), derefut->isCustomArray()); //e.g. error/t3763
 	  }
 	else
@@ -1866,7 +1865,7 @@ namespace MFM {
   bool CompilerState::setSizesOfNonClassAndArrays(UTI utiArg, s32 bitsize, s32 arraysize)
   {
     UlamType * ut = getUlamTypeByIndex(utiArg);
-    assert((ut->getUlamClassType() == UC_NOTACLASS) || !ut->isScalar());
+    assert((ut->getUlamTypeEnum() != Class) || !ut->isScalar());
 
     if(ut->isComplete())
       return true;  //nothing to do
@@ -5134,7 +5133,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
   bool CompilerState::okUTItoContinue(UTI uti)
   {
-    return ((uti != Nav) && (uti != Hzy) && (uti != Nouti));
+    return ((uti != Nav) && (uti != Hzy) && (uti != Nouti) && !isStillHazy(uti));
   }
 
   bool CompilerState::neitherNAVokUTItoContinue(UTI uti1, UTI uti2)
@@ -5147,6 +5146,11 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     assert(block);
     UTI buti = block->getNodeType();
     return (block->isAClassBlock() && (isClassAStub(buti) || ((isClassASubclass(buti) != Nouti) && !((NodeBlockClass *) block)->isSuperClassLinkReady(buti))));
+  }
+
+  bool CompilerState::isStillHazy(UTI uti)
+  {
+    return (getUlamTypeByIndex(uti)->getUlamTypeEnum() == Hzy);
   }
 
 } //end MFM

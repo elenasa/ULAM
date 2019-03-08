@@ -1303,7 +1303,7 @@ namespace MFM {
     args.m_bitsize = tdut->getBitSize(); //ok to use typedef bitsize
 
     // constants can't be classes either
-    if(tdut->getUlamClassType() != UC_NOTACLASS)
+    if(tdut->getUlamTypeEnum() == Class)
       {
 	std::ostringstream msg;
 	msg << "Named Constant '";

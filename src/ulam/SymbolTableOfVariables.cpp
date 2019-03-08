@@ -384,9 +384,9 @@ namespace MFM {
 
     UlamType * argut = m_state.getUlamTypeByIndex(arguti);
     s32 totbitsize = argut->getBitSize(); // why not total bit size? findNodeNoInThisClass fails (e.g. t3144, etc)
-    ULAMCLASSTYPE argclasstype = argut->getUlamClassType();
+    //    ULAMCLASSTYPE argclasstype = argut->getUlamClassType(); Hzy fails t41288
     s32 argarraysize = argut->getArraySize();
-    if(argclasstype == UC_NOTACLASS) //includes Atom type
+    if(!m_state.isAClass(arguti)) //includes Atom type, Hzy arrays
       {
 	if(argarraysize == UNKNOWNSIZE)
 	  return UNKNOWNSIZE; //Thu Feb  8 16:09:50 2018
