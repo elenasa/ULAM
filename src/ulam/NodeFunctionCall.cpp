@@ -113,7 +113,7 @@ namespace MFM {
 	    argNodes.push_back(m_argumentNodes->getNodePtr(i));
 	    if(argtype == Nav)
 	      navArgs++;
-	    else if(argtype == Hzy)
+	    else if((argtype == Hzy) || m_state.isStillHazy(argtype))
 	      hzyArgs++;
 	    else if(argtype == Nouti)
 	      noutiArgs++;

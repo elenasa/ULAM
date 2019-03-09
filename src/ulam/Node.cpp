@@ -423,7 +423,8 @@ namespace MFM {
 	//msg << " [" << prettyNodeName().c_str() << "] ";  //ugly!
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
       }
-    else if((nuti == Hzy) || m_state.isHolder(nuti))
+    //else if((nuti == Hzy) || m_state.isHolder(nuti))
+    else if(m_state.isStillHazy(nuti) || m_state.isHolder(nuti))
       {
 	hcnt += 1;
 	std::ostringstream msg;
@@ -2158,7 +2159,8 @@ namespace MFM {
 	return false; //short-circuit
       }
 
-    if(nuti == Hzy)
+    //    if(nuti == Hzy)
+    if(m_state.isStillHazy(nuti))
       {
 	std::ostringstream msg;
 	msg << "Cannot make casting node for type: " ;

@@ -212,7 +212,7 @@ namespace MFM {
       {
 	if(it == Nav)
 	  errCount++;
-	if(it == Hzy)
+	if((it == Hzy) || m_state.isStillHazy(it))
 	  hazyCount++;
 	assert(it != Nouti);
       }
@@ -231,7 +231,7 @@ namespace MFM {
 	    errCount++;
 	  }
 
-	if(eit == Hzy)
+	if(m_state.isStillHazy(eit))
 	  {
 	    std::ostringstream msg;
 	    msg << "Storage expression for: ";

@@ -77,7 +77,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Type Bitsize specifier, within (), is not ready";
-	if(m_state.okUTItoContinue(it) || (it == Hzy))
+	if(m_state.okUTItoContinue(it) || m_state.isStillHazy(it))
 	  {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //t3787
 	    it = Hzy;

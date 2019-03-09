@@ -53,7 +53,7 @@ namespace MFM {
 	msg << "'; must be a scalar";
 	if(!m_state.isHolder(luti))
 	  msg << ", not " << lut->getUlamTypeNameBrief().c_str() << " array";
-	if(lclasstype == UC_UNSEEN || luti == Hzy)
+	if((lclasstype == UC_UNSEEN) || m_state.isStillHazy(luti))
 	  {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    newType = Hzy;
@@ -74,7 +74,7 @@ namespace MFM {
 	msg << "'; must be an atom or a class";
 	if(!m_state.isHolder(luti))
 	  msg << ", not type: " << lut->getUlamTypeNameBrief().c_str();
-	if((lclasstype == UC_UNSEEN) || (luti == Hzy))
+	if((lclasstype == UC_UNSEEN) || m_state.isStillHazy(luti))
 	  {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    newType = Hzy;

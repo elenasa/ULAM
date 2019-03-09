@@ -477,7 +477,7 @@ namespace MFM {
 	msg << "Incomplete Variable Decl for type: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(vit).c_str();
 	msg << ", used with variable symbol name '" << getName() << "'";
-	if(m_state.okUTItoContinue(vit) || (vit == Hzy))
+	if(m_state.okUTItoContinue(vit) || m_state.isStillHazy(vit))
 	  {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    vit = Hzy; //t41201, error/t41165
@@ -502,7 +502,7 @@ namespace MFM {
 	    return Nav; //short-circuit
 	  }
 
-	if(eit == Hzy)
+	if(m_state.isStillHazy(eit))
 	  {
 	    std::ostringstream msg;
 	    msg << "Initial value expression for: ";

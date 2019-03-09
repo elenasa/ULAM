@@ -174,7 +174,7 @@ namespace MFM {
 	    msg << m_state.getUlamTypeNameByIndex(it).c_str();
 	    msg << " (UTI " << it << ")";
 	    msg << ", used with typedef symbol name '" << getName() << "'";
-	    if(m_state.okUTItoContinue(it) || (it == Hzy))
+	    if(m_state.okUTItoContinue(it) || m_state.isStillHazy(it)) //t41288
 	      {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 		it = Hzy; //t3862

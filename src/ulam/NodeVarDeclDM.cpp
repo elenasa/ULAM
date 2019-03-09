@@ -375,7 +375,7 @@ namespace MFM {
 	    return Nav; //short-circuit
 	  }
 
-	if(it == Hzy)
+	if(m_state.isStillHazy(it))
 	  {
 	    std::ostringstream msg;
 	    msg << "Constant value expression for data member: ";

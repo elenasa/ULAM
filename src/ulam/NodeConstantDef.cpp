@@ -266,7 +266,7 @@ namespace MFM {
 	msg << "Incomplete " << prettyNodeName().c_str() << " for type: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
 	msg << ", used with symbol name '" << getName() << "'";
-	if(m_state.okUTItoContinue(suti) || (suti == Hzy))
+	if(m_state.okUTItoContinue(suti) || m_state.isStillHazy(suti)) //41288?
 	  {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    suti = Hzy; //since not error; wait to goagain until not Nav
@@ -317,7 +317,7 @@ namespace MFM {
 	    return Nav; //short-circuit
 	  }
 
-	if(nuti == Hzy)
+	if(m_state.isStillHazy(nuti))
 	  {
 	    UTI cuti = m_state.getCompileThisIdx();
 	    std::ostringstream msg;
@@ -535,7 +535,7 @@ namespace MFM {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    setNodeType(Nav);
 	  }
-	else if(foldrtn == Hzy)
+	else if(m_state.isStillHazy(foldrtn))
 	  {
 	    std::ostringstream msg;
 	    msg << "Incomplete " << prettyNodeName().c_str() << " for type: ";
@@ -543,7 +543,6 @@ namespace MFM {
 	    msg << ", used with symbol name '" << getName() << "', after folding";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    setNodeType(Hzy);
-	    m_state.setGoAgain();
 	  }
 	else //if(!m_state.isAClass(foldrtn)) //t41198
 	  {
@@ -553,7 +552,6 @@ namespace MFM {
 		msg << "Constant symbol '" << getName() << "' is not ready";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 		setNodeType(Hzy);
-		m_state.setGoAgain();
 	      }
 	    //else t41192
 	  }
