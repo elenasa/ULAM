@@ -129,7 +129,9 @@ namespace MFM {
 
   void NodeVarDeclDM::noteTypeAndName(s32 totalsize, u32& accumsize)
   {
-    UTI nuti = getNodeType();
+    assert(m_varSymbol);
+    UTI nuti = m_varSymbol->getUlamTypeIdx(); //t41286, node type for class DMs maybe Hzy still.
+
     UlamKeyTypeSignature vkey = m_state.getUlamKeyTypeSignatureByIndex(nuti);
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     s32 nsize = nut->getTotalBitSize();
@@ -158,6 +160,47 @@ namespace MFM {
     MSG(getNodeLocationAsString().c_str(), note.str().c_str(), NOTE);
     accumsize += nsize;
   } //noteTypeAndName
+
+  void NodeVarDeclDM::genTypeAndNameEntryAsComment(File * fp, s32 totalsize, u32& accumsize)
+  {
+    assert(m_varSymbol);
+    UTI nuti = m_varSymbol->getUlamTypeIdx(); //t41286, node type for class DMs maybe Hzy still.
+
+    UlamKeyTypeSignature vkey = m_state.getUlamKeyTypeSignatureByIndex(nuti);
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    s32 nsize = nut->getTotalBitSize();
+
+    // "| Position\t| Bitsize\t| Name\t| Type\t| "
+    m_state.indent(fp);
+    fp->write("| ");
+    fp->write_decimal_unsigned(accumsize); //at
+    fp->write("\t| ");
+    fp->write_decimal(nsize); // of totalsize
+    fp->write("\t| "); //name
+    fp->write(getName());
+    s32 arraysize = nut->getArraySize();
+    if(arraysize > NONARRAYSIZE)
+      {
+	fp->write("[");
+	fp->write_decimal(arraysize);
+	fp->write("]");
+      }
+    else if(arraysize == UNKNOWNSIZE)
+      {
+	fp->write("[UNKNOWN]");
+      }
+
+    fp->write("\t| "); //type
+    //like NodeVarDecl::printNameAndType
+    if(nut->getUlamTypeEnum() != Class)
+      fp->write(vkey.getUlamKeyTypeSignatureNameAndBitSize(&m_state).c_str());
+    else
+      fp->write(nut->getUlamTypeClassNameBrief(nuti).c_str());;
+
+    fp->write("\n"); //end
+
+    accumsize += nsize;
+  } //genTypeAndNameEntryAsComment
 
   const char * NodeVarDeclDM::getName()
   {

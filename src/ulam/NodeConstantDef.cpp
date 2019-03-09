@@ -111,6 +111,11 @@ namespace MFM {
     return; //bypass
   }
 
+  void NodeConstantDef::genTypeAndNameEntryAsComment(File * fp, s32 totalsize, u32& accumsize)
+  {
+    return; //bypass
+  }
+
   const char * NodeConstantDef::getName()
   {
     if(m_constSymbol)

@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeBlockClass.h - Basic Node for handling Classes for ULAM
  *
- * Copyright (C) 2014-2018 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2018 Ackleyshack LLC.
+ * Copyright (C) 2014-2019 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2019 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeBlockClass.h - Basic Node for handling Classes for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2018 All rights reserved.
+  \date (C) 2014-2019 All rights reserved.
   \gpl
 */
 
@@ -229,6 +229,9 @@ namespace MFM{
     void genCodeHeaderElement(File * fp);
     void genCodeHeaderTransient(File * fp);
     void genCodeHeaderLocalsFilescope(File * fp);
+
+    void genCodeDataMemberChartAsComment(File * fp, UTI cuti); //at end of header
+    void genClassTypeAndNameEntryAsComment(File * fp, UTI nuti, s32 totalsize, u32& accumsize); //for superclass
 
     void genThisUlamSuperClassAsAHeaderComment(File * fp);
 

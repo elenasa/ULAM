@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeVarDeclDM.h -  Data Member Variable Declarations for ULAM
  *
- * Copyright (C) 2015-2018 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2018 Ackleyshack LLC.
+ * Copyright (C) 2015-2019 The Regents of the University of New Mexico.
+ * Copyright (C) 2015-2019 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeVarDeclDM.h -  Data Member Variable Declarations for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2018 All rights reserved.
+  \date (C) 2015-2019 All rights reserved.
   \gpl
 */
 
@@ -60,6 +60,8 @@ namespace MFM{
     virtual void printPostfix(File * f);
 
     virtual void noteTypeAndName(s32 totalsize, u32& accumsize);
+
+    virtual void genTypeAndNameEntryAsComment(File * fp, s32 totalsize, u32& accumsize);
 
     virtual const char * getName();
 

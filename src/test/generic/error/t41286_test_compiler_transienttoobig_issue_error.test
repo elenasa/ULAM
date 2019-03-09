@@ -1,0 +1,187 @@
+## -*- mode:ulam -*-
+#=t41286_test_compiler_transienttoobig_issue_error
+#!
+./SPLATInstance.ulam:64:0: ERROR: Trying to exceed allotted bit size (8192) for transient SPLATRuleSet with 17061 bits.
+./SPLATRuleSet.ulam:2:11: NOTE: Components of SPLATRuleSet are..
+./SPLATInstance.ulam:2:7: NOTE: (1 of 17061 bits, at 0) from superclass: SPLATInstance.
+./SPLATRuleSet.ulam:4:3: NOTE: (0 of 17061 bits, at 1) SPLATControl splatControl.
+./SPLATRuleSet.ulam:7:3: NOTE: (3316 of 17061 bits, at 1) SPLATKeyStateSelf m_keyStateSelf.
+./SPLATRuleSet.ulam:8:3: NOTE: (3316 of 17061 bits, at 3317) SPLATKeyStateEmpty m_keyStateEmpty.
+./SPLATRuleSet.ulam:9:3: NOTE: (3316 of 17061 bits, at 6633) SPLATKeyStateAny m_keyStateAny.
+./SPLATRuleSet.ulam:10:3: NOTE: (3316 of 17061 bits, at 9949) SPLATKeyStateOccupied m_keyStateOccupied.
+./SPLATRuleSet.ulam:11:3: NOTE: (3316 of 17061 bits, at 13265) SPLATKeyStateInvalid m_keyStateInvalid.
+./SPLATRuleSet.ulam:15:3: NOTE: (320 of 17061 bits, at 16581) Int(32) m_scratchVars[10].
+./SPLATRuleSet.ulam:19:3: NOTE: (64 of 17061 bits, at 16901) Bits(64) m_givenTrueForNode.
+./SPLATRuleSet.ulam:2:11: ERROR: CLASS (regular) 'SPLATRuleSet' SIZED 17061 FAILED.
+./SPLATRuleSet.ulam:22:11: ERROR: Subclass 'SPLATRuleSet_13QMembrane' inherits from illegal 'SPLATRuleSet'.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by Dave 3/6/19, t41013 (Unhelpful 0Hzy type shown for class data members sometimes).
+##
+#>R.ulam
+  ulam 4;
+element R {
+  Int test()
+  {
+    SPLATRuleSet_13QMembrane mQM;
+    return 0;
+  }
+}
+
+#:SPLATRuleSet.ulam
+  ulam 4;
+transient SPLATRuleSet : SPLATInstance {
+  // Access to parameters
+  SPLATControl splatControl;
+
+  // Predefined key states
+  SPLATKeyStateSelf m_keyStateSelf;         // For code @
+  SPLATKeyStateEmpty m_keyStateEmpty;       // For code _
+  SPLATKeyStateAny m_keyStateAny;           // For code .
+  SPLATKeyStateOccupied m_keyStateOccupied; // For code ?
+  SPLATKeyStateInvalid m_keyStateInvalid;   // For unused codes
+
+  // Scratch vars 0..9
+  typedef Int ScratchVar;
+  ScratchVar m_scratchVars[10];
+
+  /* Support for marking keyexpr nodes as known given true */
+  typedef Bits(64) BitMap64;
+  BitMap64 m_givenTrueForNode;
+}
+
+transient SPLATRuleSet_13QMembrane : SPLATRuleSet {
+  SPLATKeyState_13QMembrane_Dot key_Dot;
+  SPLATKeyState_13QMembrane_At key_At;
+  SPLATKeyState_13QMembrane_Underline key_Underline;
+  SPLATKeyState_13QMembrane_a key_a;
+  SPLATKeyState_13QMembrane_b key_b;
+  SPLATKeyState_13QMembrane_c key_c;
+  SPLATKeyState_13QMembrane_d key_d;
+  SPLATKeyState_13QMembrane_e key_e;
+  SPLATKeyState_13QMembrane_f key_f;
+  SPLATKeyState_13QMembrane_i key_i;
+  SPLATKeyState_13QMembrane_n key_n;
+  SPLATKeyState_13QMembrane_o key_o;
+  SPLATKeyState_13QMembrane_q key_q;
+  SPLATKeyState_13QMembrane_r key_r;
+  SPLATKeyState_13QMembrane_x key_x;
+  SPLATKeyState_13QMembrane_z key_z;
+}
+
+transient SPLATKeyState_13QMembrane_Dot : SPLATKeyStateAny {
+}
+
+transient SPLATKeyState_13QMembrane_At : SPLATKeyStateSelf {
+}
+
+transient SPLATKeyState_13QMembrane_Underline : SPLATKeyStateEmpty {
+}
+
+transient SPLATKeyState_13QMembrane_a : SPLATKeyState {
+}
+
+transient SPLATKeyState_13QMembrane_b : SPLATKeyState {
+}
+
+transient  SPLATKeyState_13QMembrane_c : SPLATKeyState {
+}
+
+transient  SPLATKeyState_13QMembrane_d : SPLATKeyState {
+}
+
+transient  SPLATKeyState_13QMembrane_e : SPLATKeyState {
+}
+
+transient  SPLATKeyState_13QMembrane_f : SPLATKeyState {
+}
+
+transient  SPLATKeyState_13QMembrane_i : SPLATKeyState {
+}
+
+transient  SPLATKeyState_13QMembrane_n : SPLATKeyState {
+}
+
+transient  SPLATKeyState_13QMembrane_o : SPLATKeyState {
+}
+
+transient  SPLATKeyState_13QMembrane_q : SPLATKeyState {
+}
+
+transient  SPLATKeyState_13QMembrane_r : SPLATKeyState {
+}
+
+transient  SPLATKeyState_13QMembrane_x : SPLATKeyState {
+}
+
+transient  SPLATKeyState_13QMembrane_z : SPLATKeyState {
+}
+
+
+
+#:SPLATInstance.ulam
+  ulam 4;
+quark SPLATInstance {
+  Bool m_space;
+}
+
+/** '@' allows only a centered singleton */
+transient SPLATKeyStateSelf : SPLATKeyState {
+}
+
+/** '_' abandons the rule unless site is live and empty */
+transient SPLATKeyStateEmpty : SPLATKeyState {
+}
+
+/** '.' allows anything in a live or non-live site, and doesn't change anything */
+transient SPLATKeyStateAny : SPLATKeyState {
+}
+
+/** '?' allows any non-empty site and doesn't change anything */
+transient SPLATKeyStateOccupied : SPLATKeyState {
+}
+
+/** invalid has no key code and fails at everything */
+transient SPLATKeyStateInvalid : SPLATKeyState {
+}
+
+transient SPLATKeyState { // a Key is an ASCII used in LHS and/or RHS of a SPLAT rule
+
+  /// Provide the standard names for the standard utilities
+  //EventWindow ew;
+  //Random random;
+  //DebugUtils du;
+  Int toobig[100];
+
+  /// And one of our own
+  SPLATControl splatControl;
+
+  typedef Unsigned(16) Votes;
+  //  typedef EventWindow.SiteNum SN;
+  //constant SN cUNSET_SN = SN.maxof;
+
+  Bool m_haveGiven; //< given_ has already been called since beginSiteEval
+  Bool m_givenValue;//< the value of the last given_ call
+  Bool m_haveVote; //< vote_ has already been called since beginSiteEval
+  Votes m_voteValue; //< the value of the last vote_ call
+  Bool m_haveChange; //< change_ has already been called since reset_
+}
+
+element SPLATControl {
+  /** Print rules as they are considered */
+  constant Bool cPRINT_RULES = false;
+
+  /** Print keyset after given_ */
+  constant Bool cPRINT_GIVEN = false;
+
+  /** Print keyset after vote_ */
+  constant Bool cPRINT_VOTE = false;
+
+  /** Print ew[$cursn] before change_ */
+  constant Bool cPRINT_CHANGE_PRE = false;
+
+  /** Print ew[$cursn] after change_ */
+  constant Bool cPRINT_CHANGE_POST = false;
+}
+
+#.

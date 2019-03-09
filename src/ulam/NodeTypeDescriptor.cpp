@@ -468,8 +468,8 @@ namespace MFM {
       {
 	if(!m_state.okUTItoContinue(nuti))
 	  {
-	    //use given UTI, not the not-ok nuti here..
-	    assert(m_state.okUTItoContinue(givenUTI()) || (getReferenceType() != ALT_NOT));
+	    //use given UTI, not the not-ok nuti here.. (t41288)
+	    //assert(m_state.okUTItoContinue(givenUTI()) || (getReferenceType() != ALT_NOT));
 	    if(m_state.okUTItoContinue(givenUTI()))
 	      {
 		UlamType * nut = m_state.getUlamTypeByIndex(givenUTI());
@@ -479,7 +479,7 @@ namespace MFM {
 		nuti = m_state.makeUlamType(m_typeTok, ULAMTYPE_DEFAULTBITSIZE[etyp], arraysize, Nouti);
 		rtnb = true;
 	      }
-	    else
+	    else if(getReferenceType() != ALT_NOT)
 	      {
 		ALT altd = getReferenceType();
 		//must be a reference type; use type token to make one!
@@ -491,6 +491,10 @@ namespace MFM {
 		    nuti = m_state.makeUlamType(m_typeTok, ULAMTYPE_DEFAULTBITSIZE[etyp], NONARRAYSIZE, Nouti, altd, UC_NOTACLASS);
 		    rtnb = true; //t3689, t3696, t3760, t3792. t3793
 		  }
+	      }
+	    else
+	      {
+		nuti = Hzy; //t41288
 	      }
 	  }
 	else if(!(rtnb = m_state.isComplete(nuti)))

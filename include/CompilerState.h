@@ -606,6 +606,7 @@ namespace MFM{
     bool okUTItoContinue(UTI uti);
     bool neitherNAVokUTItoContinue(UTI uti1, UTI uti2); //false if either is Nav
     bool checkHasHazyKin(NodeBlock * block);
+    bool isStillHazy(UTI uti);
 
     inline void abortGreaterThanMaxBitsPerLong() { assert(0); }
     inline void abortUndefinedUlamType() { assert(0); }

@@ -91,6 +91,11 @@ namespace MFM {
     m_state.abortShouldntGetHere(); //NodeVarDeclDM does work; NodeConstantDef, NodeTypedef bypass
   }
 
+  void Node::genTypeAndNameEntryAsComment(File * fp, s32 totalsize, u32& accumsize)
+  {
+    m_state.abortShouldntGetHere(); //NodeVarDeclDM does work; NodeConstantDef, NodeTypedef bypass
+  }
+
   const std::string Node::nodeName(const std::string& prettyFunction)
   {
     size_t colons = prettyFunction.find("::");

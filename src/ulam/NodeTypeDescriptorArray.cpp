@@ -283,7 +283,7 @@ namespace MFM {
 	assert(scut->isScalar());
 	//create corresponding array type, keep givenUTI (=auti) just change the key
 	UlamKeyTypeSignature newkey(scut->getUlamTypeNameId(), aut->getBitSize(), aut->getArraySize(), scuti, aut->getReferenceType());
-	ULAMCLASSTYPE aclasstype = aut->getUlamClassType();
+	ULAMCLASSTYPE aclasstype = scut->getUlamClassType(); //t41287
 	m_state.makeUlamTypeFromHolder(newkey, scut->getUlamTypeEnum(), auti, aclasstype);
 
 	std::ostringstream msg;

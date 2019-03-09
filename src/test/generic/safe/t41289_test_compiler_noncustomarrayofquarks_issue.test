@@ -1,0 +1,88 @@
+## -*- mode:ulam -*-
+#=t41289_test_compiler_noncustomarrayofquarks_issue
+##
+## gen output: 2 asserts
+##
+#!
+Exit status: 0
+Ue_Foo { Int(32) test() {  System s;  C2D xy = xy ( 1 cast 2 cast )Self .;  Other pair;  pair m_arr 0 [] . xy = s ( pair m_arr 0 [] . m_width . 1 cast == )assert . Custom custom;  custom ( 0 cast )aref . xy = s ( custom ( 0 cast )aref . m_width . 1 cast == )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+Uq_C2D { Int(4) m_width(0);  Int(4) m_height(0);  <NOMAIN> }
+Uq_Other { typedef C2D C2D2[2];  C2D m_arr[2]( Int(4) m_width(0);  Int(4) m_height(0); ), ( Int(4) m_width(0);  Int(4) m_height(0); );  <NOMAIN> }
+Uq_Custom { typedef C2D C2D2[2];  C2D m_arr[2]( Int(4) m_width(0);  Int(4) m_height(0); ), ( Int(4) m_width(0);  Int(4) m_height(0); );  <NOMAIN> }
+##
+## Ish reported by Dave 3/7/19; informed by t41287, t41288
+## An array of classes needs to be a custom array, or accessed directly;
+##
+#>Foo.ulam
+  ulam 4;
+element Foo {
+  Int test() {
+    System s;
+    C2D xy(1,2);
+
+    Other pair; //works
+    pair.m_arr[0] = xy;
+    s.assert(pair.m_arr[0].m_width == 1);
+
+    Custom custom;
+    custom[0] = xy;
+    s.assert(custom[0].m_width == 1);
+    return 0;
+  }
+}
+
+#:Other.ulam
+  ulam 4;
+//use C2D;
+quark Other{
+  typedef C2D C2D2[2];
+  C2D2 m_arr;
+}
+
+#:Custom.ulam
+  ulam 4;
+//use C2D;
+quark Custom{
+  typedef C2D C2D2[2];
+  C2D2 m_arr;
+  C2D& aref(Int a)
+  {
+    //if(a > 1) Fail();
+    return m_arr[a];
+  }
+}
+
+#:C2D.ulam
+  ulam 1;
+quark C2D {
+  Int(4) m_width;
+  Int(4) m_height;
+  Self(Int x, Int y) {
+    m_width = (Int(4)) x;
+    m_height = (Int(4)) y;
+    return;
+  }
+  Void init() {
+    m_width = (Int(4)) 9;
+    m_height = 4;
+    return; /* event window overload */
+  }
+  Int getIndex(Int a, Int b){
+    return ((m_height-b) * m_width + (m_height-a));
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+
+#.

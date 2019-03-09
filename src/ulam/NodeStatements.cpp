@@ -117,6 +117,15 @@ namespace MFM {
       m_nodeNext->noteTypeAndName(totalsize, accumsize);
   }
 
+  void NodeStatements::genTypeAndNameEntryAsComment(File * fp, s32 totalsize, u32& accumsize)
+  {
+    assert(m_node);    //e.g. bad decl
+    m_node->genTypeAndNameEntryAsComment(fp, totalsize, accumsize);
+
+    if(m_nodeNext)
+      m_nodeNext->genTypeAndNameEntryAsComment(fp, totalsize, accumsize);
+  }
+
   const char * NodeStatements::getName()
   {
     return "Stmts"; //?

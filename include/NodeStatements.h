@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeStatements.h - Node linking Statements for ULAM
  *
- * Copyright (C) 2014-2018 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2018 Ackleyshack LLC.
+ * Copyright (C) 2014-2019 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2019 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeStatements.h - Node linking Statements for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2018 All rights reserved.
+  \date (C) 2014-2019 All rights reserved.
   \gpl
 */
 
@@ -67,6 +67,8 @@ namespace MFM{
     virtual void printPostfix(File * fp);
 
     virtual void noteTypeAndName(s32 totalsize, u32& accumsize);
+
+    virtual void genTypeAndNameEntryAsComment(File * fp, s32 totalsize, u32& accumsize);
 
     virtual bool isAConstant();
 
