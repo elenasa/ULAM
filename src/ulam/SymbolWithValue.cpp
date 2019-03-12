@@ -683,10 +683,9 @@ namespace MFM {
 	break;
       case String:
 	{
-	  std::string fstr = state.getDataAsUnFormattedUserString((u32) varg);
-	  u32 flen = fstr.length() - 1; //exclude null terminator
-	  for(u32 i = 0; i < flen; i++)
-	    ostr << std::hex << std::setfill('0') << std::setw(2) << (u32) fstr[i];
+	  // Human readable strings:
+	  // t3959,60,61,62,67, t3981,82,86, t41005,6,7,12,68,83, error/t41013
+	  ostr << state.getDataAsFormattedUserString((u32) varg);
 	}
 	break;
       default:
