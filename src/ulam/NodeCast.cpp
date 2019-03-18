@@ -1281,7 +1281,9 @@ namespace MFM {
 	    fp->write(stgcos->getMangledName().c_str()); //reference
 	    fp->write(", ");
 	  }
-	fp->write("0u, "); //offset of decendent is always 0
+	fp->write_decimal_unsigned(uvpass.getPassPos());
+	fp->write("u, "); //offset of decendent is always 0; except when data member (t41292)
+
 	fp->write_decimal_unsigned(tobe->getTotalBitSize()); //len
 	fp->write("u, ");
 
@@ -1640,7 +1642,7 @@ namespace MFM {
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
     s32 tmpVarNum = uvpass.getPassVarNum();
 
-    assert(m_state.isClassASubclassOf(vuti, tobeType) || m_state.isClassASubclassOf(tobeType, vuti) || (m_state.isARefTypeOfUlamType(tobeType, vuti) == UTIC_SAME)); //vuti is subclass of tobeType (or ref tobe), or visa versa (t3757); reftypeof same ?: (t41069)
+    assert(m_state.isClassASubclassOf(vuti, tobeType) || m_state.isClassASubclassOf(tobeType, vuti) || (m_state.isARefTypeOfUlamType(tobeType, vuti) == UTIC_SAME)); //vuti is subclass of tobeType (or ref tobe), or visa versa (t3757); reftypeof same ?: (t41069); or DM same type as ancestor (t41292)
 
     // "downcast" might not be true; compare to be sure the quark is-related to quark
     if(m_state.isClassASubclassOf(tobeType, vuti)) //super (vuti) -> sub (tobe)
@@ -1674,27 +1676,42 @@ namespace MFM {
 
 	assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
 	Symbol * stgcos = NULL;
+	Symbol * cos = NULL;
 	stgcos = m_state.m_currentObjSymbolsForCodeGen[0]; //ref can't be a dm
+	cos = m_state.m_currentObjSymbolsForCodeGen.back();
 	UTI stgcosuti = stgcos->getUlamTypeIdx();
+	UTI cosuti = cos->getUlamTypeIdx();
 
 	m_state.indentUlamCode(fp);
 	fp->write(tobe->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
 	fp->write(" ");
 	fp->write(m_state.getTmpVarAsString(tobeType, tmpVarSuper, TMPBITVAL).c_str());
 	fp->write("(");
-	if(stgcos->isDataMember())
-	  {
-	    fp->write_decimal(stgcos->getPosOffset()); //t41141
-	    fp->write("u");
-	  }
+
+	if(!Node::isCurrentObjectALocalVariableOrArgument())
+	  fp->write(m_state.getHiddenArgName()); //dta member, same ur (t41141)
 	else
 	  fp->write(stgcos->getMangledName().c_str()); //a ref or stg
-	if(!m_state.isAltRefType(stgcosuti))
+
+	if(!m_state.isAltRefType(stgcosuti) || stgcos->isSelf())
 	  {
-	    fp->write(", 0u, ");
-	    fp->write("&"); //e.g. quark-sub to quark-super-ref (t3758)
-	    fp->write(m_state.getTheInstanceMangledNameByIndex(stgcosuti).c_str());
-	    fp->write(", uc");
+	    fp->write(", ");
+	    if(cos->isDataMember())
+	      {
+		if(needAdjustToStateBits(stgcosuti))
+		  fp->write("T::ATOM_FIRST_STATE_BIT + "); //t41292 self cases;
+		fp->write_decimal(cos->getPosOffset()); //t41141, t41292
+		fp->write("u, &");
+		fp->write(m_state.getTheInstanceMangledNameByIndex(cosuti).c_str()); //t41292
+	      }
+	    else
+	      {
+		fp->write("0u, &"); //e.g. quark-sub to quark-super-ref (t3758)
+		fp->write(m_state.getTheInstanceMangledNameByIndex(stgcosuti).c_str()); //t41292
+	      }
+
+	    if(Node::isCurrentObjectALocalVariableOrArgument())
+	      fp->write(", uc"); //t41141, t41292
 	  }
 	fp->write(");"); GCNL;
 	uvpass = UVPass::makePass(tmpVarSuper, TMPBITVAL, tobeType, m_state.determinePackable(tobeType), m_state, 0, 0); //POS 0 rightjustified;
