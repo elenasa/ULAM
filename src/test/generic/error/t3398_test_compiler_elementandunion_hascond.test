@@ -11,6 +11,7 @@
 ##Uq_Typo(Int(32) a) { Unsigned(UNKNOWN) u(unknown);  Int(UNKNOWN) i(unknown);  <NOMAIN> }
 ##Uq_System { <NOMAIN> }
 ./Eltypo.ulam:9:13: ERROR: DEPRECATED keyword <has>.
+./Eltypo.ulam:9:15: ERROR: Unexpected token <TOK_TYPE_IDENTIFIER>; Expected ).
 ./Eltypo.ulam:9:22: ERROR: Name of variable <)>: Identifier must begin with a lower-case letter.
 ./Eltypo.ulam:9:22: ERROR: Invalid Statement (possible missing semicolon).
 ./Eltypo.ulam:4:1: ERROR: Empty/Incomplete Class Definition 'Eltypo'; Possible missing ending curly brace.

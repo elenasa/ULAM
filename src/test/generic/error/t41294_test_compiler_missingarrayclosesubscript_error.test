@@ -1,0 +1,19 @@
+## -*- mode:ulam -*-
+#=t41294_test_compiler_missingarrayclosesubscript_error
+#!
+./A.ulam:5:11: ERROR: Unexpected token <TOK_EQUAL>; Expected ].
+./A.ulam:5:11: ERROR: Invalid Statement (possible missing semicolon).
+Unrecoverable Program Parse FAILURE: <A.ulam>
+##
+#>A.ulam
+element A {
+ typedef Int(32) BigSite[10];
+ Int test(){
+   BigSite site;
+   site[i = i;
+
+   return site.sizeof;
+   }
+ }
+
+#.
