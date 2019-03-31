@@ -10,7 +10,6 @@ Uq_System { <NOMAIN> }
 ##
 #>Test.ulam
   ulam 2;
-use System;
 element Test : System {
 
   Int test() {

@@ -1,0 +1,54 @@
+## -*- mode:ulam -*-
+#=t41296_test_compiler_elementinheritedquark_purevirtualfunc_error
+#!
+./Foo.ulam:2:9: ERROR: Element 'Foo' is abstract due to these pure functions..
+./Foo.ulam:2:9: NOTE: Pure: Int(32) vfunc().
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by t3607; tests for abstract elements, not necessarily used.
+##
+#:QMemBase.ulam
+  ulam 2;
+quark QMemBase {
+  Int(3) bmem;
+  Int func() {
+    return vfunc();
+  }
+  virtual Int vfunc(); //pure
+}
+
+#:QSubBase1.ulam
+  ulam 2;
+quark QSubBase1 : QMemBase
+{
+  //virtual Int vfunc() {
+  //  bmem = 1;
+  //  return 3;
+  // }
+}
+
+#:QSubBase2.ulam
+  ulam 2;
+quark QSubBase2 : QMemBase {
+  virtual Int vfunc() {
+    bmem = 2;
+    return 4;
+  }
+}
+
+#:Foo.ulam
+  ulam 4;
+element Foo : QSubBase1 {
+  QSubBase2 m2;
+}
+
+#>Test.ulam
+  ulam 2;
+element Test {
+  Int test() {
+    //Foo f; //instance not required to catch regular abstract element
+    return 0;
+  }
+}
+
+#.

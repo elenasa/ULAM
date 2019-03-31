@@ -93,9 +93,9 @@ namespace MFM {
 	if(csym->isAbstract())
 	  {
 	    std::ostringstream msg;
-	    msg << "Instance of Abstract Class ";
+	    msg << "'" << getName() << "' is type ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-	    msg << " used with variable symbol name '" << getName() << "'";
+	    msg << ", which is abstract due to these pure functions."; //dot dot
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    setNodeType(Nav);
 

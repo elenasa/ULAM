@@ -28,7 +28,6 @@ quark QMemBase {
 
 #:QSubBase1.ulam
   ulam 2;
-use QMemBase;
 quark QSubBase1 : QMemBase
 {
   virtual Int vfunc() {
@@ -39,7 +38,6 @@ quark QSubBase1 : QMemBase
 
 #:QSubBase2.ulam
   ulam 2;
-use QMemBase;
 quark QSubBase2 : QMemBase {
   virtual Int vfunc() {
     bmem = 2;
@@ -49,8 +47,6 @@ quark QSubBase2 : QMemBase {
 
 #:Foo.ulam
   ulam 2;
-use QSubBase1;
-use QSubBase2;
 element Foo {
   QSubBase1 m1;
   QSubBase2 m2;
@@ -58,8 +54,6 @@ element Foo {
 
 #>Test.ulam
   ulam 2;
-use Foo;
-use System;
 element Test : System {
   Bool brtn[4];
   Int test() {
