@@ -1,0 +1,100 @@
+## -*- mode:ulam -*-
+#=t41300_test_compiler_constantclasswish_error
+#!
+./QFoo.ulam:5:21: ERROR: Missing '=' after named constant definition 'c_qbar'.
+./QFoo.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'QFoo'; Possible missing ending curly brace.
+./QFoo.ulam:5:21: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+./QFoo.ulam:2:7: ERROR: Invalid Type: QFoo.
+ ERROR: No parse tree for This Class: QFoo.
+Unrecoverable Program Parse FAILURE: <QFoo.ulam>
+./QFoo.ulam:6:1: ERROR: Invalid Class Type <}>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+Unrecoverable Program Parse FAILURE: <System.ulam>
+##
+## a WISH for a constant class, takes no space; no func calls though.
+## error without initialization; informed by t41198, t41298
+##
+#>Foo.ulam
+  ulam 3;
+element Foo {
+  Bool b, b1, b2, b3;
+
+  Int test() {
+    System s;
+
+    Unsigned foosz = QFoo.sizeof;
+    s.print(foosz);
+    s.assert(foosz==0u); //named constants take no space
+
+    QFoo qfoo; //not necessary!
+
+    //bool
+    b = qfoo.c_qbar.sp;
+    s.print(qfoo.c_qbar.sp);
+    s.assert(qfoo.c_qbar.sp);
+
+    //non-array works; type preceeding the named constant class
+    Int(4) fr1 = QFoo.c_qbar.iou;
+    b1 = QFoo.c_qbar.iou == 7;
+    s.print(fr1);
+    s.assert(b1);
+
+    //array item w constant index:
+    Unary(3) fr2 = qfoo.c_qbar.r[1];
+    b2 = qfoo.c_qbar.r[1] == 2u;
+    s.print(fr2);
+    s.assert(b2);
+
+    //array item w variable index:
+    Int i = 4;
+    Unary(3) fr3 = QFoo.c_qbar.r[i];
+    b3 = QFoo.c_qbar.r[i] == 0u;
+    s.print(fr3);
+    s.assert(b3);
+
+    return 0;
+  }
+}
+
+#:QBar.ulam
+  ulam 3;
+quark QBar {
+  Bool sp;
+  Unary(3) r[5] = {1};
+  Int(4) iou = 7;
+}
+
+#:QFoo.ulam
+  ulam 3;
+quark QFoo {
+  //constant QBar c_qbar = { .r = {3, 2, 0}, .sp = true };
+  typedef QBar QB;
+  constant QB c_qbar;
+}
+
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.
+
+
+/*
+./QFoo.ulam:3:17: ERROR: Named Constant 'c_qbar' cannot be based on a class type: QBar.
+./QFoo.ulam:3:17: ERROR: Invalid constant definition of type <QBar> and name <c_qbar>.
+./QFoo.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'QFoo'; Possible missing ending curly brace.
+./QFoo.ulam:3:56: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+./QFoo.ulam:2:7: ERROR: Invalid Type: QFoo.
+ ERROR: No parse tree for This Class: QFoo.
+Unrecoverable Program Parse FAILURE: <QFoo.ulam>
+./QFoo.ulam:4:1: ERROR: Invalid Class Type <}>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+Unrecoverable Program Parse FAILURE: <System.ulam>
+
+*/

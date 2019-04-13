@@ -1302,17 +1302,9 @@ namespace MFM {
       }
     args.m_bitsize = tdut->getBitSize(); //ok to use typedef bitsize
 
-    // constants can't be classes either
-    if(tdut->getUlamTypeEnum() == Class)
-      {
-	std::ostringstream msg;
-	msg << "Named Constant '";
-	msg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str();
-	msg << "' cannot be a class type: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(tduti).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	rtnb = false;
-      }
+    // as of ulam-4, classes may be constants; (t41298,9 t41300,1)
+    //assert(tdut->getUlamTypeEnum() != Class); //testing only
+
     return rtnb;
   } //checkConstantTypedefSizes
 

@@ -1674,7 +1674,13 @@ namespace MFM {
 	  }
 	//else (t41052, case 3)
 
-	assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
+	if(m_state.m_currentObjSymbolsForCodeGen.empty()) //t41301 (e.g. implicit safe cast of explicit cast)
+	  {
+	    assert(m_state.isAltRefType(uvpass.getPassTargetType())); //hence no symbol in stack, ref->ref
+	    uvpass.setPassTargetType(tobeType); //minimal casting
+	    return; //done
+	  }
+
 	Symbol * stgcos = NULL;
 	Symbol * cos = NULL;
 	stgcos = m_state.m_currentObjSymbolsForCodeGen[0]; //ref can't be a dm
@@ -1718,7 +1724,7 @@ namespace MFM {
       }
     else
       {
-	//e.g. a quark var here would be ok if a superclass
+	//e.g. a quark var here would be ok if a superclass (o.w. runtime failure)
 	m_state.indentUlamCode(fp);
 	fp->write("const ");
 	fp->write(tobe->getTmpStorageTypeAsString().c_str()); //u32
@@ -1820,7 +1826,7 @@ namespace MFM {
     ULAMTYPE nodetypEnum = nodeut->getUlamTypeEnum();
 
     //requires toInt
-    if(m_state.getUlamTypeByIndex(nodeType)->getUlamClassType() == UC_QUARK)
+    if(nodeut->getUlamClassType() == UC_QUARK)
       {
 	if(tobe->isNumericType())
 	  {
