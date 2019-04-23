@@ -559,7 +559,7 @@ namespace MFM {
 	msg << m_funcTok.getTokenString();
 	msg << "' while compiling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	if(m_state.okUTItoContinue(m_uti) || (m_uti == Hzy))
+	if(m_state.okUTItoContinue(m_uti) || m_state.isStillHazy(m_uti))
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //error/t3298
 	else
 	  {

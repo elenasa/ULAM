@@ -1,0 +1,118 @@
+## -*- mode:ulam -*-
+#=t41292_test_compiler_refcastdm_alsoancestor_issue
+##
+## gen output: (interleaved asserts)
+##   Unsigned Arg: 0
+##   Unsigned Arg: 0
+##   Unsigned Arg: 0
+##   Unsigned Arg: 1
+##   Unsigned Arg: 1
+##   Unsigned Arg: 1
+##   + 2 asserts         (is P)
+##   Unsigned Arg: 0     #self case
+##   Unsigned Arg: 1     #self case
+##   + assert            (is P)
+##   Unsigned Arg: 0     #self case 2
+##   Unsigned Arg: 1     #self case 2
+##   + assert            (is P)
+##
+#!
+Exit status: 0
+Ue_Foo2 : P { :< :< Unsigned(1) m(0u); >> P mDataQ( :< Unsigned(1) m(1u); >);  P mDataQ2( :< Unsigned(1) m(1u); >);  Int(32) test() {  System s;  Foo2 foo;  Q& qr = foo mDataQ . cast;  Q& qrok = foo mDataQ2 . cast;  s ( qrok m . cast )print . s ( qrok m . cast 0 == )assert . s ( qr m . cast )print . s ( qr m . cast 0 == )assert . s ( foo mDataQ . m . cast )print . s ( foo mDataQ . m . cast 0 == )assert . foo mDataQ . m . 1u = foo mDataQ2 . m . 1u = s ( foo mDataQ . m . cast )print . s ( foo mDataQ . m . 1u == )assert . s ( qrok m . cast )print . s ( qrok m . 1u == )assert . s ( qr m . cast )print . s ( qr m . 1u == )assert . s ( qr P is )assert . s ( qrok P is )assert . Q& qrs = self mDataQ . cast;  s ( self mDataQ . m . cast )print . s ( self mDataQ . m . cast 0 == )assert . qrs m . 1u = s ( self mDataQ . m . cast )print . s ( self mDataQ . m . 1u == )assert . s ( qrs P is )assert . Q& qrns = mDataQ2 cast;  s ( mDataQ2 m . cast )print . s ( mDataQ2 m . cast 0 == )assert . qrns m . 1u = s ( mDataQ2 m . cast )print . s ( mDataQ2 m . 1u == )assert . s ( qrns P is )assert . 0 cast return } }
+Uq_P : Q { /* empty class block */ }
+Uq_System { <NOMAIN> }
+Uq_Q { Unsigned(1) m(0);  <NOMAIN> }
+##
+## ISH informed by Dave splat code 3/17/19 (St Patty Day); see also t41141.
+## All about the descendent quark cast as ref, generated code, when quark is also a data member.
+## Start bit not adjusted properly.
+##
+##
+#>Foo2.ulam
+  ulam 4;
+element Foo2 : P
+{
+  P mDataQ;
+  P mDataQ2;
+
+  Int test() {
+    System s;
+    Foo2 foo;
+
+    Q& qr = (Q&) foo.mDataQ; //fails: self.mDataQ.m gets set below
+    Q& qrok = foo.mDataQ2; //works: self.mDataQ.m gets set below
+
+    s.print(qrok.m);
+    s.assert(qrok.m == 0);
+
+    s.print(qr.m);
+    s.assert(qr.m == 0);
+
+    s.print(foo.mDataQ.m);
+    s.assert(foo.mDataQ.m == 0);
+
+    foo.mDataQ.m = 1u;    // should set qr.m
+    foo.mDataQ2.m = 1u;    // should set qrok.m
+
+    s.print(foo.mDataQ.m);
+    s.assert(foo.mDataQ.m == 1u);
+
+    s.print(qrok.m);
+    s.assert(qrok.m == 1u);
+
+    s.print(qr.m);
+    s.assert(qr.m == 1u);
+
+    s.assert(qr is P);
+    s.assert(qrok is P);
+
+    //case: using self keyword
+
+    Q& qrs = (Q&) self.mDataQ; //fails: self.mDataQ.m gets set below
+    s.print(self.mDataQ.m);
+    s.assert(self.mDataQ.m == 0);
+
+    qrs.m = 1u;    // should set self.mDataQ.m
+
+    s.print(self.mDataQ.m);
+    s.assert(self.mDataQ.m == 1u);
+    s.assert(qrs is P);
+
+    //case: implied self, no keyword
+
+    Q& qrns = (Q&) mDataQ2; //fails: self.mDataQ.m gets set below
+    s.print(mDataQ2.m);
+    s.assert(mDataQ2.m == 0);
+
+    qrns.m = 1u;    // should set self.mDataQ.m
+
+    s.print(mDataQ2.m);
+    s.assert(mDataQ2.m == 1u);
+    s.assert(qrns is P);
+
+    return 0;
+  }
+}
+
+#:P.ulam
+  ulam 4;
+quark P : Q { }
+
+#:Q.ulam
+  ulam 4;
+quark Q {
+  Unsigned(1) m;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

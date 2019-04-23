@@ -378,6 +378,8 @@ namespace MFM {
   {
     if(huti == newuti) return; //short-circuit (e.g. t3378) don't use compare; maybe Hzy etyp
 
+    assert(isHolder(huti) || !isComplete(huti)); //t41288, t41287; incomplete: t3378, t3380
+
     UlamType * newut = getUlamTypeByIndex(newuti);
     UlamKeyTypeSignature newkey = newut->getUlamKeyTypeSignature();
     ULAMTYPE newetyp = newut->getUlamTypeEnum();
@@ -2190,15 +2192,14 @@ namespace MFM {
     bool rtnb = false;
     UlamType * ut = getUlamTypeByIndex(uti);
 
-    UTI scalarUTI = uti;
-    if(!ut->isScalar())
-      scalarUTI = getUlamTypeAsScalar(uti); //ALT_ARRAYITEM ?
-
-    scalarUTI = getUlamTypeAsDeref(scalarUTI); //and deref
-
     SymbolClassName * cnsym = NULL;
     if(alreadyDefinedSymbolClassNameByUTI(uti, cnsym))
       {
+	UTI scalarUTI = uti;
+	if(!ut->isScalar())
+	  scalarUTI = getUlamTypeAsScalar(uti); //ALT_ARRAYITEM ?
+	scalarUTI = getUlamTypeAsDeref(scalarUTI); //and deref
+
 	//not a regular class, and not the template, so dig deeper for the stub
 	if((cnsym->getUlamTypeIdx() != scalarUTI) && cnsym->isClassTemplate())
 	  {

@@ -1466,4 +1466,22 @@ namespace MFM {
       }
     return false;
   }
+
+  bool SymbolClass::checkAbstractClassError()
+  {
+    bool aok = true;
+    if((getUlamClass() == UC_ELEMENT) && isAbstract())
+      {
+	UTI suti = getUlamTypeIdx();
+	std::ostringstream msg;
+	msg << "Element '";
+	msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
+	msg << "' is abstract due to these pure functions."; //dot dot
+	MSG(m_state.getFullLocationAsString(getLoc()).c_str(), msg.str().c_str(), ERR);
+	notePureFunctionSignatures();
+	aok = false; //t41296,7
+      }
+    return aok;
+  } //checkAbstractClassError
+
 } //end MFM

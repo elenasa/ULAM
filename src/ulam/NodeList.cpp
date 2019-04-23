@@ -180,7 +180,6 @@ namespace MFM{
 	  }
       }
     setNodeType(rtnuti);
-    //if(rtnuti == Hzy) m_state.setGoAgain(); //since no error msg
     return rtnuti;
   } //checkAndLabelType
 

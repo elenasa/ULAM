@@ -456,6 +456,7 @@ namespace MFM {
     //append data members to class block's tree
     while(parseDataMember());
 
+    //quietly, message later, e.g. 3130
     if(!getExpectedToken(TOK_CLOSE_CURLY))
       {
 	delete rtnNode;
@@ -1329,7 +1330,8 @@ namespace MFM {
 	return NULL; //stop this maddness
       }
 
-    if(!getExpectedToken(TOK_CLOSE_PAREN))
+    Token tmpTok; //not quietly t41293; fix effects t3247, t3371, t3398, t3603
+    if(!getExpectedToken(TOK_CLOSE_PAREN, tmpTok))
       {
 	delete condNode;
 	m_state.popClassContext(); //the pop
@@ -1396,7 +1398,8 @@ namespace MFM {
 	return NULL; //stop this maddness
       }
 
-    if(!getExpectedToken(TOK_CLOSE_PAREN))
+    Token tmpTok; //not quietly, like t41293
+    if(!getExpectedToken(TOK_CLOSE_PAREN, tmpTok))
       {
 	delete condNode;
 	m_state.popClassContext(); //the pop
@@ -1535,7 +1538,8 @@ namespace MFM {
 	    return NULL; //stop this maddness
 	  }
 
-	if(!getExpectedToken(TOK_CLOSE_PAREN))
+	Token tmpTok; //non quietly like t41293
+	if(!getExpectedToken(TOK_CLOSE_PAREN, tmpTok))
 	  {
 	    m_state.popClassContext(); //the pop
 	    delete rtnNode;
@@ -1645,7 +1649,7 @@ namespace MFM {
     bool whichtrue = (qTok.m_type == TOK_CLOSE_PAREN);
 
     Node * condNode = parseAssignExpr(); //no 'as' (t41044)
-    //if(!condNode)
+
     if(!condNode && !whichtrue)
       {
 	std::ostringstream msg;
@@ -1656,7 +1660,8 @@ namespace MFM {
 	return NULL; //stop this maddness
       }
 
-    if(!getExpectedToken(TOK_CLOSE_PAREN))
+    Token tmpTok; //non quietly, like t41293
+    if(!getExpectedToken(TOK_CLOSE_PAREN, tmpTok))
       {
 	delete condNode;
 	m_state.popClassContext(); //the pop
@@ -1664,7 +1669,7 @@ namespace MFM {
 	return NULL; //stop this maddness
       }
 
-    if(!getExpectedToken(TOK_OPEN_CURLY))
+    if(!getExpectedToken(TOK_OPEN_CURLY, tmpTok))
       {
 	delete condNode;
 	m_state.popClassContext(); //the pop
@@ -1835,7 +1840,8 @@ namespace MFM {
 
 	if(m_state.m_parsingConditionalAs)
 	  {
-	    if(!getExpectedToken(TOK_COLON))
+	    Token tmpTok; //non quietly, like t41293
+	    if(!getExpectedToken(TOK_COLON, tmpTok))
 	      {
 		delete rightNode;
 		delete caseCond;
@@ -1908,7 +1914,8 @@ namespace MFM {
 	  }
       }
 
-    if(!getExpectedToken(TOK_COLON))
+    Token tmpTok; //non quietly, t41295
+    if(!getExpectedToken(TOK_COLON, tmpTok))
       {
 	delete casecondition;
 	delete caseCond;
@@ -2012,7 +2019,8 @@ namespace MFM {
 	if(!getExpectedToken(TOK_CLOSE_CURLY))
 	  {
 	    parseStatements(); //more statements, appended
-	    getExpectedToken(TOK_CLOSE_CURLY);
+	    Token tmpTok; //non quietly, like t41293
+	    getExpectedToken(TOK_CLOSE_CURLY, tmpTok);
 	  }
 	//else
       }
@@ -3065,7 +3073,8 @@ namespace MFM {
 	      }
 	  }
 
-	if(!getExpectedToken(TOK_CLOSE_PAREN))
+	Token tmpTok; //non quietly, like t41293
+	if(!getExpectedToken(TOK_CLOSE_PAREN, tmpTok))
 	  {
 	    delete rtnNode;
 	    rtnNode = NULL;
@@ -4208,7 +4217,8 @@ namespace MFM {
     assert(rtnNode);
     rtnNode->setNodeLocation(pTok.m_locator);
 
-    if(!getExpectedToken(TOK_CLOSE_SQUARE))
+    Token tmpTok; //non quietly, t41294
+    if(!getExpectedToken(TOK_CLOSE_SQUARE, tmpTok))
       {
 	delete rtnNode; //also deletes leftNode
 	rtnNode = NULL;
@@ -5958,7 +5968,8 @@ Node * Parser::wrapFactor(Node * leftNode)
 	return NULL; //stop this maddness
       }
 
-    if(!getExpectedToken(TOK_COLON))
+    Token tmpTok; //non quietly, like t41293
+    if(!getExpectedToken(TOK_COLON, tmpTok))
       {
 	delete condNode;
 	delete trueNode;

@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t41133_test_compiler_elementandquark_overloadfunccallabstractnonrefarg_error
 #!
-./Fail.ulam:7:13: ERROR: Instance of Abstract Class ByteSource used with variable symbol name 'bs'.
+./Fail.ulam:7:13: ERROR: 'bs' is type ByteSource, which is abstract due to these pure functions..
 ./ByteSource.ulam:2:7: NOTE: Pure: Int(32) readByte().
 Unrecoverable Program Type Label FAILURE.
 ##

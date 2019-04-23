@@ -167,6 +167,11 @@ namespace MFM {
 
   void SymbolClassName::checkAbstractInstanceErrorsForClassInstances()
   {
+    //Regular Elements can't be Abstract, since NO subclass can
+    //possibly handle PURE Virtual methods later (t41296); Templates
+    //not checked, just their instances (t41297);
+    SymbolClass::checkAbstractClassError(); //outputs error
+
     NodeBlockClass * classNode = getClassBlockNode();
     assert(classNode);
     m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);

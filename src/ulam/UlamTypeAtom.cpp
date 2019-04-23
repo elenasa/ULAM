@@ -722,13 +722,12 @@ namespace MFM {
     fp->write("write(d);");
     fp->write(" }"); GCNL;
 
-    // assignment constructor
+    // assignment constructor (e.g. t3709)
     m_state.indent(fp);
     fp->write(mangledName.c_str());
     fp->write("(const ");
     fp->write(mangledName.c_str());
-    fp->write("<EC> & arg) { ");
-    fp->write("this->m_stg = arg.m_stg; }"); GCNL;
+    fp->write("<EC> & arg) : BVS(arg.m_stg) { }"); GCNL;
 
     //assignment constructor, atom arg, for convenience
     m_state.indent(fp);

@@ -127,6 +127,9 @@ namespace MFM {
     if((etyp == Hzy) || (etyp == Holder))
       return false;
 
+    if(m_state.isComplete(huti))
+      return true; //short-circuit, known (t41287,8)
+
     UTI kuti = Nav;
     if(etyp == Class)
       {
@@ -140,10 +143,13 @@ namespace MFM {
 	      }
 	    else if(m_state.alreadyDefinedSymbolClass(huti, csym))
 	      {
+		//e.g. t41287,8  array typedef finds its scalar class;
+		// careful not to clobber the array UTI with cleanup.
 		u32 cid = csym->getId();
 		AssertBool isDefined = m_state.alreadyDefinedSymbolClassName(cid, cnsym);
 		assert(isDefined);
 		aok = m_state.isHolder(cnsym->getUlamTypeIdx()) ? false : true;
+		aok &= m_state.isScalar(huti);
 	      }
 	    //else
 	  }

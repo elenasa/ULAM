@@ -167,6 +167,7 @@ namespace MFM{
     struct VTEntry getVTableEntry(u32 idx);
 
     bool isAbstract();
+    bool checkAbstractClassError();
 
   protected:
     Resolver * m_resolver;

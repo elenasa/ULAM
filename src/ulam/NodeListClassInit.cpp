@@ -160,7 +160,6 @@ namespace MFM{
 	//else rtnuti remains == m_classUTI
       }
     setNodeType(rtnuti);
-    //    if(rtnuti == Hzy) m_state.setGoAgain(); //since no error msg
     return rtnuti;
   } //checkAndLabelType
 

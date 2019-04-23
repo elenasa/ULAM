@@ -115,7 +115,7 @@ namespace MFM{
   {
     //the size of the list may be less than the array size
     UTI rtnuti = Node::getNodeType(); //init to Void; //ok
-    if(rtnuti == Hzy)
+    if(m_state.isStillHazy(rtnuti))
       rtnuti = Void; //resets
 
     if(!m_state.okUTItoContinue(rtnuti))
