@@ -43,6 +43,7 @@
 #include "NodeBlockContext.h"
 #include "Constants.h"
 #include <string.h>
+
 namespace MFM{
 
 class ClassContext

@@ -230,8 +230,10 @@ namespace MFM {
 
 	Symbol * asymptr = NULL;
 	bool hazyKin = false;
-	// must capture symbol ptr even if part of incomplete chain to do any necessary surgery (e.g. stub class args t3526, t3525)
-	if(m_state.alreadyDefinedSymbol(m_token.m_dataindex, asymptr, hazyKin))
+	bool hazyVars =false;
+	// must capture symbol ptr even if part of incomplete chain to do any necessary surgery (e.g. stub class args t3526, t3525, inherited dm t3408), wait if hazyKin (t3572);
+	//if(m_state.alreadyDefinedSymbol(m_token.m_dataindex, asymptr, hazyKin))
+	if((m_state.alreadyDefinedSymbol(m_token.m_dataindex, asymptr, hazyVars) || m_state.alreadyDefinedSymbolByAncestorOf(cuti, m_token.m_dataindex, asymptr, hazyKin)) && !hazyKin)
 	  {
 	    if(!asymptr->isFunction() && !asymptr->isTypedef() && !asymptr->isConstant() && !asymptr->isModelParameter())
 	      {

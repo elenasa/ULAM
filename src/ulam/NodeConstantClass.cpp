@@ -118,7 +118,7 @@ namespace MFM {
     if(!stubcopy && m_constSymbol == NULL)
       checkForSymbol();
     else
-      stubcopy = m_state.hasClassAStub(m_state.getCompileThisIdx()); //includes ancestors
+      stubcopy = m_state.hasClassAStubInHierarchy(m_state.getCompileThisIdx()); //includes ancestors
 
     if(m_constSymbol)
       {

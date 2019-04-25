@@ -39,9 +39,10 @@
 
 #include <string>
 #include <string.h>
-#include <vector>
 #include <map>
 #include <set>
+#include <vector>
+#include <queue>
 #include "itype.h"
 #include "CallStack.h"
 #include "Constants.h"
@@ -70,6 +71,7 @@
 #include "TypeArgs.h"
 #include "UlamType.h"
 #include "UlamUtil.h"
+#include "FunctionSignatureTable.h"
 
 
 namespace MFM{
@@ -276,12 +278,13 @@ namespace MFM{
     u32 getTotalWordSize(UTI utArg);
     s32 slotsNeeded(UTI uti);
     bool isClassATemplate(UTI cuti);
-    UTI isClassASubclass(UTI cuti); //returns super UTI, or Nav if no inheritance
+    bool isClassASubclass(UTI cuti); //fromerly returned super UTI, or Nav if no inheritance
     bool findClassAncestorWithMatchingNameid(UTI cuti, u32 nameid, UTI& superp);
     void resetClassSuperclass(UTI cuti, UTI superuti);
     bool isClassASubclassOf(UTI cuti, UTI superp);
+    void resetABaseClassType(UTI cuti, UTI olduti, UTI newuti);
     bool isClassAStub(UTI cuti);
-    bool hasClassAStub(UTI cuti);
+    bool hasClassAStubInHierarchy(UTI cuti);
     bool isClassAQuarkUnion(UTI cuti);
     bool isClassACustomArray(UTI cuti);
     UTI getAClassCustomArrayType(UTI cuti);
@@ -294,15 +297,27 @@ namespace MFM{
     /** return true and the Symbol pointer in 2nd arg if found;
 	search SymbolTables LIFO order; o.w. return false
     */
-    bool alreadyDefinedSymbolByAncestor(u32 dataindex, Symbol *& symptr, bool& hasHazyKin);
+    bool alreadyDefinedSymbolByAncestorOf(UTI cuti, u32 dataindex, Symbol *& symptr, bool& hasHazyKin);
+    bool alreadyDefinedSymbolByAClassOrAncestor(UTI cuti, u32 dataindex, Symbol *& symptr, bool& hasHazyKin);
     bool alreadyDefinedSymbol(u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
     bool isDataMemberIdInClassScope(u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
     bool isIdInLocalFileScope(u32 id, Symbol *& symptr);
 
     bool isFuncIdInClassScope(u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
     bool isFuncIdInClassScopeNNO(NNO cnno, u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
-    bool isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
-    bool findMatchingFunctionInAncestor(UTI cuti, u32 fid, std::vector<UTI> typeVec, SymbolFunction*& fsymref, UTI& foundInAncestor);
+    bool isFuncIdInAClassScopeOrAncestor(UTI cuti, u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
+
+    bool findMatchingFunctionStrictlyByTypesInClassScope(u32 fid, std::vector<UTI> typeVec, SymbolFunction*& fsymref);
+    bool findMatchingFunctionStrictlyByTypesInAClassScopeOrAncestor(UTI cuti, u32 fid, std::vector<UTI> typeVec, SymbolFunction*& fsymref, UTI& foundInAncestor);
+    bool findMatchingFunctionStrictlyByTypesInAncestorOf(UTI cuti, u32 fid, std::vector<UTI> typeVec, SymbolFunction*& fsymref, UTI& foundInAncestor);
+
+    u32 findMatchingFunctionInClassScope(u32 fid, std::vector<Node *> nodeArgs, SymbolFunction*& fsymref, bool& hasHazyArgs);
+    bool findMatchingFunctionInAClassScopeOrAncestor(UTI cuti, u32 fid, std::vector<Node *> nodeArgs, SymbolFunction*& fsymref, bool& hasHazyArgs, UTI& foundInAncestor);
+
+    u32 findMatchingFunctionWithSafeCastsInClassScope(u32 fid, std::vector<Node *> nodeArgs, SymbolFunction*& fsymref, bool& hasHazyArgs, FSTable & fstable);
+    u32 findMatchingFunctionWithSafeCastsInAClassScopeOrAncestor(UTI cuti, u32 fid, std::vector<Node *> argNodes, SymbolFunction*& fsymref, bool& hasHazyArgs, UTI& foundInAncestor);
+    void noteAmbiguousFunctionSignaturesInAClassHierarchy(UTI cuti, u32 fid, std::vector<Node *> argNodes, u32 matchingFuncCount); //helper
+
 
     bool isIdInCurrentScope(u32 id, Symbol *& asymptr);
     void addSymbolToCurrentScope(Symbol * symptr); //ownership goes to the block
@@ -314,6 +329,9 @@ namespace MFM{
 
     /** does a member class search for id */
     bool findSymbolInAClass(u32 id, UTI inClassUTI, Symbol *& rtnsymptr, bool& isHazy);
+
+    /** does breadth-first search for ancestor in a base class (ulam-5) */
+    bool findNearestBaseClassToAnAncestor(UTI cuti, UTI auti, UTI& foundInBase);
 
     /** return true and the SymbolClassName pointer in 2nd arg if found; */
     bool alreadyDefinedSymbolClassName(u32 dataindex, SymbolClassName * & symptr);

@@ -9,10 +9,20 @@
 
 namespace MFM {
 
-  SymbolClass::SymbolClass(const Token& id, UTI utype, NodeBlockClass * classblock, SymbolClassNameTemplate * parent, CompilerState& state) : Symbol(id, utype, state), m_resolver(NULL), m_classBlock(classblock), m_parentTemplate(parent), m_quarkunion(false), m_stub(true), /*m_defaultValue(NULL),*/ m_isreadyDefaultValue(false) /* default */, m_superClass(Nouti), m_bitsPacked(false), m_registryNumber(UNINITTED_REGISTRY_NUMBER), m_elementType(UNDEFINED_ELEMENT_TYPE) {}
-
-  SymbolClass::SymbolClass(const SymbolClass& sref) : Symbol(sref), m_resolver(NULL), m_parentTemplate(sref.m_parentTemplate), m_quarkunion(sref.m_quarkunion), m_stub(sref.m_stub), /*m_defaultValue(NULL),*/ m_isreadyDefaultValue(false), m_superClass(m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_superClass,sref.getLoc())), m_bitsPacked(false), m_registryNumber(UNINITTED_REGISTRY_NUMBER), m_elementType(UNDEFINED_ELEMENT_TYPE)
+  SymbolClass::SymbolClass(const Token& id, UTI utype, NodeBlockClass * classblock, SymbolClassNameTemplate * parent, CompilerState& state) : Symbol(id, utype, state), m_resolver(NULL), m_classBlock(classblock), m_parentTemplate(parent), m_quarkunion(false), m_stub(true), /*m_defaultValue(NULL),*/ m_isreadyDefaultValue(false) /* default */, m_bitsPacked(false), m_registryNumber(UNINITTED_REGISTRY_NUMBER), m_elementType(UNDEFINED_ELEMENT_TYPE), m_vtableinitialized(false)
   {
+    appendBaseClass(Nouti);
+  }
+
+  SymbolClass::SymbolClass(const SymbolClass& sref) : Symbol(sref), m_resolver(NULL), m_parentTemplate(sref.m_parentTemplate), m_quarkunion(sref.m_quarkunion), m_stub(sref.m_stub), /*m_defaultValue(NULL),*/ m_isreadyDefaultValue(false), m_bitsPacked(false), m_registryNumber(UNINITTED_REGISTRY_NUMBER), m_elementType(UNDEFINED_ELEMENT_TYPE), m_vtableinitialized(false)
+  {
+    for(u32 i = 0; i < sref.m_bases.size(); i++)
+      {
+	appendBaseClass(m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_bases[i],sref.getLoc()));
+	if(sref.getBaseClassRelativePosition(i) >= 0) //t3326
+	  setBaseClassRelativePosition(i, (u32) sref.getBaseClassRelativePosition(i));
+      }
+
     if(sref.m_classBlock)
       {
 	m_classBlock = (NodeBlockClass * ) sref.m_classBlock->instantiate(); //note: wasn't correct uti during cloning
@@ -35,6 +45,8 @@ namespace MFM {
 	delete m_resolver;
 	m_resolver = NULL;
       }
+
+    m_bases.clear();
   }
 
   Symbol * SymbolClass::clone()
@@ -80,12 +92,67 @@ namespace MFM {
 
   void SymbolClass::setSuperClass(UTI superclass)
   {
-    m_superClass = superclass;
+    m_bases[0] = superclass;
   }
 
   UTI SymbolClass::getSuperClass()
   {
-    return m_superClass; //Nouti is none, not a subclass.
+    return m_bases[0]; //Nouti is none, not a subclass.
+  }
+
+  void SymbolClass::appendBaseClass(UTI baseclass)
+  {
+    m_bases.push_back(baseclass);
+    m_basespos.push_back(UNKNOWNSIZE); //pos unknown
+  }
+
+  u32 SymbolClass::getBaseClassCount()
+  {
+    u32 numbases = m_bases.size();
+    assert(numbases >= 1);
+    return numbases - 1; //excluding super class
+  }
+
+  UTI SymbolClass::getBaseClass(u32 item)
+  {
+    assert(item < m_bases.size());
+    return m_bases[item];
+  }
+
+  s32 SymbolClass::isABaseClassItem(UTI buti)
+  {
+    s32 index = -1; //negative is not found
+    for(u32 i = 0; i < m_bases.size(); i++)
+      {
+	if(m_bases[i] != Nouti) //super optional (t3102)
+	  {
+	    if(UlamType::compare(m_bases[i], buti, m_state) == UTIC_SAME)
+	      {
+		index = i;
+		break;
+	      }
+	  }
+      }
+    return index; //includes super
+  } //isABaseClassItem
+
+  void SymbolClass::updateBaseClass(UTI oldclasstype, u32 item, UTI newbaseclass)
+  {
+    assert(item < m_bases.size());
+    assert(m_bases[item] == oldclasstype);
+    m_bases[item] = newbaseclass;
+  }
+
+  s32 SymbolClass::getBaseClassRelativePosition(u32 item) const
+  {
+    assert(item < m_basespos.size());
+    return m_basespos[item];
+  }
+
+  void SymbolClass::setBaseClassRelativePosition(u32 item, u32 pos)
+  {
+    assert(item < m_basespos.size());
+    m_basespos[item] = (s32) pos;
   }
 
   const std::string SymbolClass::getMangledPrefix()
@@ -1368,22 +1435,36 @@ namespace MFM {
   {
     if(initialmax == UNKNOWNSIZE) return; //nothing to initialize
     assert(initialmax >= 0);
-    if((u32) initialmax == m_vtable.size()) return; //not first time here
+    //if((u32) initialmax == m_vtable.size()) return; //not first time here
+    if(m_vtableinitialized) return; //been here before
 
-    if(getSuperClass() != Nouti)
+    u32 basesmaxes = 0;
+    // get ancestors accumulated max index (no recursion)
+    u32 basecount = getBaseClassCount() + 1; //include super
+    for(u32 i = 0; i < basecount; i++)
       {
-	SymbolClass * csym = NULL;
-	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(getSuperClass(), csym);
-	assert(isDefined);
-	//copy superclass' VTable
-	for(s32 i = 0; i < initialmax; i++)
+	UTI baseuti = getBaseClass(i);
+	SymbolClass * basecsym = NULL;
+	if(m_state.alreadyDefinedSymbolClass(baseuti, basecsym))
 	  {
-	    struct VTEntry ve = csym->getVTableEntry(i);
-	    m_vtable.push_back(ve);
+	    s32 vtsize = basecsym->getVTableSize();
+	    assert(vtsize >= 0);
+	    m_basesVTstart.push_back(basesmaxes);
+
+	    //copy baseclass' VTable
+	    for(s32 i = 0; i < vtsize; i++)
+	      {
+		struct VTEntry ve = basecsym->getVTableEntry(i);
+		m_vtable.push_back(ve);
+		basesmaxes++;
+	      }
 	  }
-      }
-    //else empty.
-    assert(m_vtable.size() == (u32) initialmax);
+	//else empty
+      } //end for
+
+    assert(m_vtable.size() == (u32) initialmax); //t3639
+    assert(basesmaxes == (u32) initialmax);
+    m_vtableinitialized = true;
   } //initVTable
 
   void SymbolClass::updateVTable(u32 idx, SymbolFunction * fsym, UTI kinuti, bool isPure)
@@ -1404,9 +1485,30 @@ namespace MFM {
       }
   }//updateVTable
 
+  s32 SymbolClass::getVTableSize()
+  {
+    if(m_vtableinitialized)
+      return m_vtable.size();
+    return UNKNOWNSIZE;
+  }
+
   VT& SymbolClass::getVTableRef()
   {
     return m_vtable;
+  }
+
+  u32 SymbolClass::getVTstartindexForBaseClass(UTI baseuti)
+  {
+    s32 baseitem = isABaseClassItem(baseuti);
+    if(baseitem < 0) //not found
+      {
+	UTI foundInBase = Nouti;
+	bool fndit = m_state.findNearestBaseClassToAnAncestor(getUlamTypeIdx(), baseuti, foundInBase);
+	assert(fndit);
+	baseitem = isABaseClassItem(foundInBase);
+      }
+    assert((u32) baseitem < m_basesVTstart.size());
+    return m_basesVTstart[baseitem];
   }
 
   bool SymbolClass::isPureVTableEntry(u32 idx)

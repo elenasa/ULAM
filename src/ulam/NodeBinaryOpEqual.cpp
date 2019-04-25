@@ -260,23 +260,25 @@ namespace MFM {
     identTok.init(TOK_IDENTIFIER, getNodeLocation(), opolId);
 
     //may need to fall back to default struct equal when the same class (t41119), or ref (t41120)
-    SymbolClass * csym = NULL;
-    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(leftType, csym);
-    assert(isDefined);
 
-    NodeBlockClass * memberClassNode = csym->getClassBlockNode();
-    assert(memberClassNode);  //e.g. forgot the closing brace on quark definition
+    //SymbolClass * csym = NULL;
+    //AssertBool isDefined = m_state.alreadyDefinedSymbolClass(leftType, csym);
+    //assert(isDefined);
 
-    assert(m_state.okUTItoContinue(memberClassNode->getNodeType()));
+    //NodeBlockClass * memberClassNode = csym->getClassBlockNode();
+    //assert(memberClassNode);  //e.g. forgot the closing brace on quark definition
+
+    //assert(m_state.okUTItoContinue(memberClassNode->getNodeType()));
 
     //set up compiler state to use the member class block for symbol searches
-    m_state.pushClassContextUsingMemberClassBlock(memberClassNode);
+    //m_state.pushClassContextUsingMemberClassBlock(memberClassNode);
 
     Node * rtnNode = NULL;
     Symbol * fnsymptr = NULL;
     bool hazyKin = false;
 
-    if(m_state.isFuncIdInClassScope(opolId, fnsymptr, hazyKin) && !hazyKin)
+    //if(m_state.isFuncIdInClassScope(opolId, fnsymptr, hazyKin) && !hazyKin)
+    if(m_state.isFuncIdInAClassScopeOrAncestor(leftType, opolId, fnsymptr, hazyKin) && !hazyKin)
       {
 	// still need to pinpoint the SymbolFunction; ok to look for safe casts (t41120).
 	std::vector<Node *> argNodes;
@@ -284,11 +286,18 @@ namespace MFM {
 
 	SymbolFunction * funcSymbol = NULL;
 	bool tmphazyargs = false;
-	u32 numFuncs = ((SymbolFunctionName *) fnsymptr)->findMatchingFunctionWithSafeCasts(argNodes, funcSymbol, tmphazyargs);
+	UTI foundInAncestor = Nouti;
+	//u32 numFuncs = ((SymbolFunctionName *) fnsymptr)->findMatchingFunctionWithSafeCastsInAClassScopeOrAncestors(argNodes, funcSymbol, tmphazyargs);
+	//bool foundmatch =
+	u32 numFuncs = m_state.findMatchingFunctionWithSafeCastsInAClassScopeOrAncestor(leftType, opolId, argNodes, funcSymbol, tmphazyargs, foundInAncestor);
+
 	if(tmphazyargs)
 	  hazyArg = true;
-	if(!hazyArg && numFuncs >= 1)
+	//if(!hazyArg && (foundInAncestor == Nav)) //numFuncs >= 1)
+	//if(foundInAncestor != Nouti) //numFuncs >= 1)
+	if(numFuncs >= 1)
 	  {
+	    //assert(!foundmatch);
 	    // ambiguous (>1) overload will produce an error later
 	    //fill in func symbol during type labeling;
 	    NodeFunctionCall * fcallNode = new NodeFunctionCall(identTok, NULL, m_state);
@@ -307,7 +316,7 @@ namespace MFM {
       hazyArg = hazyKin;
 
     //clear up compiler state to no longer use the member class block for symbol searches
-    m_state.popClassContext();
+    //m_state.popClassContext();
 
     //redo check and type labeling done by caller!!
     return rtnNode; //replace right node with new branch

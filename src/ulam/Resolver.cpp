@@ -140,6 +140,21 @@ namespace MFM {
 	    if(m_state.alreadyDefinedSymbolClassAsHolder(huti, csym))
 	      {
 		aok = false; //still a holder
+		UTI mappedUTI;
+		if(m_state.findaUTIAlias(huti, mappedUTI))
+		  {
+		    if(m_state.alreadyDefinedSymbolClass(mappedUTI, csym))
+		      {
+			u32 cid = csym->getId();
+			AssertBool isDefined = m_state.alreadyDefinedSymbolClassName(cid, cnsym);
+			assert(isDefined);
+			//aok = m_state.isHolder(cnsym->getUlamTypeIdx()) ? false : true;
+			//aok &= m_state.isScalar(mappedUTI);
+			//if(aok) huti = mappedUTI; //wipe out holder type (t3806)
+		      }
+
+		    kuti = mappedUTI; //t3862
+		  }
 	      }
 	    else if(m_state.alreadyDefinedSymbolClass(huti, csym))
 	      {
@@ -191,8 +206,7 @@ namespace MFM {
 	//a typedef (e.g. t3379, 3381)
 	UTI tmpscalar = Nouti;
 	if(m_state.getUlamTypeByTypedefName(tok.m_dataindex, kuti, tmpscalar))
-	  if(!m_state.isHolder(kuti))
-	    aok = true;
+	  aok = !m_state.isHolder(kuti);
       }
 
     if(aok)

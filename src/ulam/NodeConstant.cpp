@@ -217,7 +217,7 @@ namespace MFM {
       }
     else
       {
-	stubcopy = m_state.hasClassAStub(m_state.getCompileThisIdx()); //includes ancestors
+	stubcopy = m_state.hasClassAStubInHierarchy(m_state.getCompileThisIdx()); //includes ancestors
       }
 
     if(m_constSymbol)
@@ -294,15 +294,26 @@ namespace MFM {
 
   void NodeConstant::checkForSymbol()
   {
+    UTI cuti = m_state.getCompileThisIdx(); //for error messages
+
     //in case of a cloned unknown
     NodeBlock * currBlock = getBlock();
     setBlock(currBlock);
 
+	if(m_state.useMemberBlock())
+	  {
+	    m_state.pushCurrentBlock(currBlock); //e.g. memberselect needed for already defined
+	    cuti = m_state.getCurrentMemberClassBlock()->getNodeType();
+	  }
+	else
     m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
 
     Symbol * asymptr = NULL;
     bool hazyKin = false;
-    if(m_state.alreadyDefinedSymbol(m_token.m_dataindex, asymptr, hazyKin))
+    bool morehazyKin = false;
+    //if(m_state.alreadyDefinedSymbol(m_token.m_dataindex, asymptr, hazyKin))
+    //    if((m_state.alreadyDefinedSymbol(m_token.m_dataindex, asymptr, hazyKin) && !hazyKin) || (m_state.alreadyDefinedSymbolByAncestorOf(cuti, m_token.m_dataindex, asymptr, morehazyKin) && !morehazyKin))
+    if(m_state.alreadyDefinedSymbol(m_token.m_dataindex, asymptr, hazyKin) || m_state.alreadyDefinedSymbolByAncestorOf(cuti, m_token.m_dataindex, asymptr, morehazyKin))
       {
 	if(asymptr->isConstant())
 	  {
@@ -328,7 +339,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Named Constant <" << m_state.getTokenDataAsString(m_token).c_str();
 	msg << "> is not defined, or was used before declared in a function";
-	if(!hazyKin)
+	if(!hazyKin || !morehazyKin)
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	else
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);

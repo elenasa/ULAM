@@ -7,7 +7,7 @@
 Exit status: 96
 Ue_Foo { System s();  Bool(1) first(false);  Soo(1,2u) su( :< Bool(1) cb(true);  constant Int(32) a = 1;  typedef Unsigned(3) U3; > constant Int(32) a = 1;  constant Unsigned(32) b = 2u;  Unsigned(3) us(4u); );  Int(32) test() {  Foo f;  { f su . cb . cond { s ( f su . cb . cast )print . s ( f su . cb . )assert . 96u cast return } if } 0 cast return } }
 Uq_System { <NOMAIN> }
-Uq_Soo(Int(32) a, Unsigned(32) b) : Coo(a) { :< typedef Unsigned(3) U3;  Bool(UNKNOWN) cb(notready); > 0Holder(UNKNOWN) us(unknown);  <NOMAIN> }
+Uq_Soo(Int(32) a, Unsigned(32) b) : Coo(a) { :< typedef Unsigned(3) U3;  Bool(UNKNOWN) cb(notready); > Unsigned(UNKNOWN) us(notready);  <NOMAIN> }
 Uq_Coo(Int(32) a) { typedef Unsigned(3) U3;  Bool(UNKNOWN) cb(notready);  <NOMAIN> }
 ##
 ## quark inheritance, templated with typedef

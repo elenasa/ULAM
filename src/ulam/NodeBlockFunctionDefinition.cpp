@@ -287,7 +287,10 @@ namespace MFM {
   void NodeBlockFunctionDefinition::makeSuperSymbol(s32 slot)
   {
     UTI cuti = m_state.getCompileThisIdx();
-    UTI superuti = m_state.isClassASubclass(cuti);
+    SymbolClass * csym = NULL;
+    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cuti, csym);
+    assert(isDefined);
+    UTI superuti = csym->getSuperClass();
     SymbolVariableStack * supersym = NULL;
     u32 superid = m_state.m_pool.getIndexForDataString("super");
     if(!NodeBlock::isIdInScope(superid, (Symbol *&) supersym))

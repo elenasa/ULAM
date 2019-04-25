@@ -198,6 +198,67 @@ namespace MFM {
     return false;
   } //getSuperClassForClassInstance
 
+  void SymbolClassNameTemplate::appendBaseClassForClassInstance(UTI baseclass, UTI instance)
+  {
+    SymbolClass * csym = NULL;
+    if(findClassInstanceByUTI(instance, csym))
+      csym->appendBaseClass(baseclass); //Nouti is none, not a subclass.
+    else if(instance == getUlamTypeIdx())
+      SymbolClass::appendBaseClass(baseclass); //instance is template definition
+    else
+      m_state.abortShouldntGetHere(); //not found???
+  }
+
+  u32 SymbolClassNameTemplate::getBaseClassCountForClassInstance(UTI instance)
+  {
+    u32 count = 0;
+    SymbolClass * csym = NULL;
+    if(findClassInstanceByUTI(instance, csym))
+      count = csym->getBaseClassCount(); //Nouti is none, not a subclass.
+    else if(instance == getUlamTypeIdx())
+      count = SymbolClass::getBaseClassCount(); //instance is template definition
+    else
+      m_state.abortShouldntGetHere(); //not found???
+
+    return count;
+  }
+
+  UTI SymbolClassNameTemplate::getBaseClassForClassInstance(UTI instance, u32 item)
+  {
+    UTI baseuti;
+    SymbolClass * csym = NULL;
+    if(findClassInstanceByUTI(instance, csym))
+      baseuti = csym->getBaseClass(item); //Nouti is none, not a subclass.
+    else if(instance == getUlamTypeIdx())
+      SymbolClass::getBaseClass(item); //instance is template definition
+    else
+      m_state.abortShouldntGetHere(); //not found???
+    return baseuti;
+  }
+
+  bool SymbolClassNameTemplate::updateBaseClassforClassInstance(UTI instance, UTI oldbase, UTI newbaseuti)
+  {
+    bool aok = false;
+    s32 item = -1;
+    SymbolClass * csym = NULL;
+    if(findClassInstanceByUTI(instance, csym))
+      item = csym->isABaseClassItem(oldbase); //Nouti is none, not a subclass.
+    else if(instance == getUlamTypeIdx())
+      item = SymbolClass::isABaseClassItem(oldbase); //instance is template definition
+    else
+      m_state.abortShouldntGetHere(); //not found???
+
+    if(item > 0) //excludes super
+      {
+	if(csym != NULL)
+	  csym->updateBaseClass(oldbase, item, newbaseuti);
+	else
+	  SymbolClass::updateBaseClass(oldbase, item, newbaseuti);
+	aok = true;
+      }
+    return aok;
+  } //updateBaseClassforClassInstance
+
   // (does not include template as an instance!)
   bool SymbolClassNameTemplate::findClassInstanceByUTI(UTI uti, SymbolClass * & symptrref)
   {
@@ -339,7 +400,7 @@ namespace MFM {
 
     newblockclass->setNodeType(newuti);
     newblockclass->resetNodeNo(templateclassblock->getNodeNo()); //keep NNO consistent (new)
-    newblockclass->setSuperBlockPointer(NULL); //wait for c&l when no longer a stub
+    //    newblockclass->setSuperBlockPointer(NULL); //wait for c&l when no longer a stub
 
     Token stubTok(TOK_IDENTIFIER,csym->getLoc(), getId());
 
@@ -571,7 +632,7 @@ namespace MFM {
 
 	// class instance's prev classblock is linked to its template's when stub is made.
 	// later, during c&l if a subclass, the super ptr gets the classblock of superclass
-	cblock->setSuperBlockPointer(NULL); //wait for c&l when no longer a stub
+	cblock->initBaseClassBlockList(); //wait for c&l when no longer a stub
 	it++;
       } //while any more stubs
   } //fixAnyUnseenClassInstances
@@ -641,15 +702,22 @@ namespace MFM {
 	m_state.pushClassContext(cuti, classNode, classNode, false, NULL);
 
 	//pending args could depend on constants in ancestors (t3887)
-	UTI superuti = csym->getSuperClass();
-	if(m_state.okUTItoContinue(superuti) && !classNode->isSuperClassLinkReady(cuti))
+	//ulam-5 supports multiple base classes; superclass optional
+	u32 basecount = csym->getBaseClassCount() + 1; //include super
+	u32 i = 0;
+	while(i < basecount)
 	  {
-	    SymbolClass * supercsym = NULL;
-	    if(m_state.alreadyDefinedSymbolClass(superuti, supercsym) && !supercsym->isStub())
+	    UTI baseuti = csym->getBaseClass(i);
+	    if(m_state.okUTItoContinue(baseuti) && !classNode->isBaseClassLinkReady(cuti,i))
 	      {
-		classNode->setSuperBlockPointer(supercsym->getClassBlockNode());
+		SymbolClass * basecsym = NULL;
+		if(m_state.alreadyDefinedSymbolClass(baseuti, basecsym) && !basecsym->isStub())
+		  {
+		    classNode->setBaseClassBlockPointer(basecsym->getClassBlockNode(),i);
+		  }
 	      }
-	  }
+	    i++;
+	  } //end while
 
 	aok &= csym->statusNonreadyClassArguments(); //could bypass if fully instantiated
 
@@ -659,14 +727,14 @@ namespace MFM {
     return aok;
   } //statusNonreadyClassArgumentsInStubClassInstances
 
-  std::string SymbolClassNameTemplate::formatAnInstancesArgValuesAsAString(UTI instance)
+  std::string SymbolClassNameTemplate::formatAnInstancesArgValuesAsAString(UTI instance, bool dereftypes)
   {
     std::ostringstream args;
 
     UlamType * cut = m_state.getUlamTypeByIndex(instance);
     bool isARef = cut->isAltRefType();
-    if(isARef)
-      args << "r";
+    if(isARef && !dereftypes)
+      args << "r"; //default is false for 2nd arg
 
     u32 numParams = getNumberOfParameters();
     args << ToLeximitedNumber(numParams);
@@ -701,6 +769,9 @@ namespace MFM {
 	    AssertBool isDefined = m_state.alreadyDefinedSymbol(psym->getId(), asym, hazyKin);
 	    assert(isDefined);
 	    UTI auti = asym->getUlamTypeIdx();
+	    if(dereftypes)
+	      auti = m_state.getUlamTypeAsDeref(auti);
+
 	    UlamType * aut = m_state.getUlamTypeByIndex(auti);
 
 	    //append 'instance's arg (mangled) type; little 'c' for a class type parameter (t41209)
@@ -978,7 +1049,7 @@ namespace MFM {
 	classNode->updatePrevBlockPtrOfFuncSymbolsInTable();
 
 	//set super block pointer to this class block during c&l
-	classNode->setSuperBlockPointer(NULL); //clear in case of stubs
+	classNode->initBaseClassBlockList(); //clear in case of stubs
 
 	//copy any constant strings from the stub
 	//clone->setUserStringPoolRef(csym->getUserStringPoolRef()); //t3962
@@ -1157,7 +1228,7 @@ namespace MFM {
 	  {
 	    m_state.pushClassContext(csym->getUlamTypeIdx(), classNode, classNode, false, NULL);
 
-	    classNode->checkDuplicateFunctions(); //do each instance
+	    classNode->checkDuplicateFunctionsInClassAndAncestors(); //do each instance
 	    m_state.popClassContext(); //restore
 	  }
 	else

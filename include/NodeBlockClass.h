@@ -91,11 +91,17 @@ namespace MFM{
 
     virtual bool isAClassBlock();
 
-    NodeBlockClass * getSuperBlockPointer();
 
-    void setSuperBlockPointer(NodeBlockClass *);
+    void clearBaseClassBlockList();
 
-    bool isSuperClassLinkReady(UTI cuti);
+    void initBaseClassBlockList();
+
+    void setBaseClassBlockPointer(NodeBlockClass *, u32 item);
+
+    NodeBlockClass * getBaseClassBlockPointer(u32 item);
+
+    bool isBaseClassLinkReady(UTI cuti, u32 item);
+
 
     virtual bool hasStringDataMembers();
 
@@ -135,9 +141,15 @@ namespace MFM{
 
     virtual bool buildDefaultValueForClassConstantDefs();
 
-    u32 checkDuplicateFunctions();
+    void checkDuplicateFunctionsInClassAndAncestors();
 
-    void checkMatchingFunctionsInAncestors(std::map<std::string, UTI>& mangledFunctionMap, u32& probcount);
+    u32 checkDuplicateFunctions(FSTable& mangledFunctionMap, u32& probcount);
+
+    //void checkMatchingFunctionsInClassAndAncestors(FSTable& mangledFunctionMap, u32& probcount);
+
+    //void checkMatchingFunctions(FSTable& mangledFunctionMap, u32& probcount);
+
+    void checkMatchingFunctions();
 
     void calcMaxDepthOfFunctions();
 
@@ -211,7 +223,7 @@ namespace MFM{
 
   private:
 
-    NodeBlockClass * m_superBlockNode;
+    std::vector<NodeBlockClass *> m_nodeBaseClassBlockList; // NodeBlockClass * m_superBlockNode;
 
     bool m_buildingDefaultValueInProgress;
     bool m_bitPackingInProgress;
@@ -222,6 +234,7 @@ namespace MFM{
     NodeList * m_nodeParameterList; //constants
     NodeList * m_nodeArgumentList;  //template instance
 
+    UTI checkMultipleInheritances();
     void checkTestFunctionReturnType();
     void checkCustomArrayLengthofFunctionReturnType();
 

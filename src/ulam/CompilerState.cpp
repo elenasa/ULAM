@@ -554,7 +554,7 @@ namespace MFM {
 
   bool CompilerState::isOtherClassInThisContext(UTI suti)
   {
-    //true only if used by this class, or is its superclass
+    //true only if used by this class, or is its base class
     bool rtnb = false;
     UTI cuti = getCompileThisIdx();
 
@@ -565,21 +565,15 @@ namespace MFM {
 	  rtnb = true;
 	else if(isEmptyElement(suti))
 	  rtnb = true;
-	else
+	else if(isClassASubclass(cuti))
 	  {
-	    UTI superclass = isClassASubclass(cuti);
-	    if(superclass == Nouti)
+	    rtnb = isClassASubclassOf(cuti, suti); //t3640, t3605
+	  }
+	else //special case, since here, superclass is Nouti
+	  {
+	    if(isUrSelf(suti))
 	      {
-		if(isUrSelf(suti))
-		  rtnb = true;
-	      }
-	    else //t3640, t3605
-	      {
-		assert(okUTItoContinue(superclass));
-		if(isClassASubclassOf(cuti, suti))
-		  rtnb = true;
-		//else if(contextblock->searchHasAnyUlamTypeASubclassOf(suti))
-		// rtnb = true; //extended search done last
+		rtnb = true;
 	      }
 	  }
       }
@@ -847,24 +841,28 @@ namespace MFM {
 	//else?
       } //not a holder
 
-    //recursively check ancestors, for mapped uti's
-    UTI superuti = isClassASubclass(cuti);
-    if(okUTItoContinue(superuti))
+    //recursively check ancestors, for mapped uti
+    if(isClassASubclass(cuti))
       {
-	SymbolClassName * supcsym = NULL;
-	AssertBool isDefined = alreadyDefinedSymbolClassNameByUTI(superuti, supcsym);
-	assert(isDefined);
+	bool kinhadit = false;
+	u32 basecount = csym->getBaseClassCount() + 1; //include super
+	u32 i = 0;
+	while(!kinhadit && (i < basecount))
+	  {
+	    UTI baseuti = csym->getBaseClass(i);
+	    SymbolClassName * basecsym = NULL;
+	    if(alreadyDefinedSymbolClassNameByUTI(baseuti, basecsym))
+	      {
+		pushClassContext(baseuti, basecsym->getClassBlockNode(), basecsym->getClassBlockNode(), false, NULL);
+		kinhadit = mappedIncompleteUTI(baseuti, auti, mappedUTI);
 
-	pushClassContext(superuti, supcsym->getClassBlockNode(), supcsym->getClassBlockNode(), false, NULL);
-	bool kinhadit = mappedIncompleteUTI(superuti, auti, mappedUTI);
-
-	popClassContext(); //restore
-
-	if(kinhadit)
-	  return true;
+		popClassContext(); //restore
+	      }
+	    i++;
+	  } //end while
+	return kinhadit;
       }
-
-    return false; //for compiler
+    return false;
   } //mappedIncompleteUTI
 
   //called by Symbol's copy constructor with ref's 'incomplete' uti;
@@ -1171,8 +1169,13 @@ namespace MFM {
     //e.g. KEYWORDS have no m_dataindex (=0); short-circuit
     if(nameIdx == 0) return false;
 
+    UTI cuti = getCompileThisIdx(); //t3555 and ancestors; t3126 within funcdef
+    if(useMemberBlock())
+      cuti = getCurrentMemberClassBlock()->getNodeType();
+
     //searched back through all block's ST for idx
-    if(alreadyDefinedSymbol(nameIdx, asymptr, hazyKin))
+    //if(alreadyDefinedSymbol(nameIdx, asymptr, hazyKin))
+    if(alreadyDefinedSymbol(nameIdx, asymptr, hazyKin) || alreadyDefinedSymbolByAncestorOf(cuti, nameIdx, asymptr, hazyKin))
       {
 	if(asymptr->isTypedef())
 	  {
@@ -2001,19 +2004,24 @@ namespace MFM {
     return csym->isClassTemplate(cuti);
   } //isClassATemplate
 
-  UTI CompilerState::isClassASubclass(UTI cuti)
+  //FORMERLY RETURNED SUPERCLASS uti, Nouti or Hzy.
+  bool CompilerState::isClassASubclass(UTI cuti)
   {
+    u32 count = 0;
     UTI subuti = getUlamTypeAsDeref(getUlamTypeAsScalar(cuti)); //in case of array
 
     SymbolClass * csym = NULL;
     if(alreadyDefinedSymbolClass(subuti, csym))
       {
-	SymbolClassName * cnsym = NULL;
-	AssertBool isDefined = alreadyDefinedSymbolClassName(csym->getId(), cnsym);
-	assert(isDefined);
-	return cnsym->getSuperClassForClassInstance(subuti); //returns super UTI, or Nouti if no inheritance, Hzy if UNSEEN
+	//SymbolClassName * cnsym = NULL;
+	//AssertBool isDefined = alreadyDefinedSymbolClassName(csym->getId(), cnsym);
+	//assert(isDefined);
+	//return cnsym->getSuperClassForClassInstance(subuti); //returns super UTI, or Nouti if no inheritance, Hzy if UNSEEN
+	count = csym->getBaseClassCount();
+	if(csym->getSuperClass() != Nouti)
+	  count++; //Hzy if UNSEEN counts here
       }
-    return Nouti; //even for non-classes
+    return (count > 0);
   } //isClassASubclass
 
   void CompilerState::resetClassSuperclass(UTI cuti, UTI superuti)
@@ -2023,58 +2031,81 @@ namespace MFM {
     SymbolClass * csym = NULL;
     if(alreadyDefinedSymbolClass(subuti, csym))
       {
-	SymbolClassName * cnsym = NULL;
-	AssertBool isDefined = alreadyDefinedSymbolClassName(csym->getId(), cnsym);
-	assert(isDefined);
-	cnsym->setSuperClassForClassInstance(superuti, cuti);
+	//SymbolClassName * cnsym = NULL;
+	//AssertBool isDefined = alreadyDefinedSymbolClassName(csym->getId(), cnsym);
+	//assert(isDefined);
+	//cnsym->setSuperClassForClassInstance(superuti, cuti);
+	csym->setSuperClass(superuti);
       }
   } //resetClassSuperclass
 
-  //return true if the second arg is a superclass of the first arg.
-  // i.e. cuti is a subclass of superp. recurses the family tree.
-  bool CompilerState::isClassASubclassOf(UTI cuti, UTI superp)
+  //return true if the second arg is a base class of the first arg.
+  // i.e. cuti is a subclass of base. recurses the family tree.
+  bool CompilerState::isClassASubclassOf(UTI cuti, UTI basep)
   {
-    UTI derefsuperp = getUlamTypeAsDeref(superp);
     bool rtnb = false;
+    UTI derefbasep = getUlamTypeAsDeref(basep);
     UTI prevuti = getUlamTypeAsDeref(cuti); //init for the loop
-    while(!rtnb && (prevuti != Nouti))
+
+    SymbolClass * csym = NULL;
+    if(alreadyDefinedSymbolClass(cuti, csym))
       {
-	cuti = prevuti;
-	SymbolClass * csym = NULL;
-	if(alreadyDefinedSymbolClass(cuti, csym))
+	rtnb = (csym->isABaseClassItem(derefbasep) >= 0); //t3281
+	u32 basecount = csym->getBaseClassCount() + 1; //include super
+	u32 i = 0;
+	while(!rtnb && (i < basecount))
 	  {
-	    SymbolClassName * cnsym = NULL;
-	    AssertBool isDefined = alreadyDefinedSymbolClassName(csym->getId(), cnsym);
-	    assert(isDefined);
-	    prevuti = cnsym->getSuperClassForClassInstance(cuti); //returns super UTI, or Nouti if no inheritance
-	    rtnb = (prevuti != Nouti) && (UlamType::compare(derefsuperp, prevuti, *this) == UTIC_SAME); //compare (don't compare if Nouti)
-	  }
-	else
-	  prevuti = Nouti; //avoid inf loop
-      } //end while
+	    prevuti = csym->getBaseClass(i);
+	    rtnb = isClassASubclassOf(prevuti, derefbasep); //recurse
+	    i++;
+	  } //end while
+      }
     return rtnb; //even for non-classes
   } //isClassASubclassOf
 
-  //return true if a superclass of the first arg starts with id.
-  // i.e. cuti is a subclass of superp. recurses the family tree.
-  bool CompilerState::findClassAncestorWithMatchingNameid(UTI cuti, u32 nameid, UTI& superp)
+  //return true if a baseclass of the first arg starts with id.
+  // i.e. cuti is a subclass of basep. recurses the family tree.
+  bool CompilerState::findClassAncestorWithMatchingNameid(UTI cuti, u32 nameid, UTI& basep)
   {
-    bool rtnb = false;
-    UTI prevuti = getUlamTypeAsDeref(cuti); //init for the loop
-    while(!rtnb && (prevuti != Nouti))
+    //base case:
+    if(getUlamTypeByIndex(cuti)->getUlamTypeNameId() == nameid)
       {
-	cuti = prevuti;
-	if(getUlamTypeByIndex(cuti)->getUlamTypeNameId() == nameid)
+	basep = cuti;
+	return true;
+      }
+
+    bool rtnb = false; //init for the loop
+    SymbolClass * csym = NULL;
+    if(alreadyDefinedSymbolClass(getUlamTypeAsDeref(cuti), csym))
+      {
+	u32 basecount = csym->getBaseClassCount() + 1; //include super
+	u32 i = 0;
+	while(!rtnb && (i < basecount))
 	  {
-	    superp = cuti;
-	    rtnb = true;
-	    break;
-	  }
-	else
-	  prevuti = isClassASubclass(cuti);// ends w UrSelf who has no superclass
-      } //end while
+	    UTI prevuti = csym->getBaseClass(i);
+	    rtnb = findClassAncestorWithMatchingNameid(prevuti, nameid, basep); //recurse
+	    i++;
+	  } //end while
+      }
     return rtnb;
   } //findClassAncestorWithMatchingNameid
+
+  void CompilerState::resetABaseClassType(UTI cuti, UTI olduti, UTI newuti)
+  {
+    UTI subuti = getUlamTypeAsDeref(getUlamTypeAsScalar(cuti)); //in case of array
+
+    SymbolClass * csym = NULL;
+    if(alreadyDefinedSymbolClass(subuti, csym))
+      {
+	//SymbolClassName * cnsym = NULL;
+	//AssertBool isDefined = alreadyDefinedSymbolClassName(csym->getId(), cnsym);
+	//assert(isDefined);
+	//cnsym->updateBaseClassForClassInstance(cuti, olduti, newuti);
+	s32 item = csym->isABaseClassItem(olduti);
+	if(item >= 0)
+	  csym->updateBaseClass(olduti, (u32) item, newuti);
+      }
+  } //resetABaseClassType
 
   bool CompilerState::isClassAStub(UTI cuti)
   {
@@ -2085,18 +2116,26 @@ namespace MFM {
     return false; //even for non-classes
   } //isClassAStub
 
-  bool CompilerState::hasClassAStub(UTI cuti)
+  bool CompilerState::hasClassAStubInHierarchy(UTI cuti)
   {
     bool rtnb = false;
-    UTI prevuti = cuti; //init for the loop
 
-    while(!rtnb && (prevuti != Nouti))
+    SymbolClass * csym = NULL;
+    if(alreadyDefinedSymbolClass(cuti, csym))
       {
-	rtnb = isClassAStub(prevuti);
-	prevuti = isClassASubclass(prevuti);
+	u32 basecount = csym->getBaseClassCount() + 1; //include super
+	rtnb = csym->isStub();
+
+	u32 i = 0;
+	while(!rtnb && (i < basecount))
+	  {
+	    UTI prevuti = csym->getBaseClass(i);
+	    rtnb = hasClassAStubInHierarchy(prevuti); //depth-first search
+	    i++;
+	  }
       }
     return rtnb; //even for non-classes
-  } //hasClassAStub
+  } //hasClassAStubInHierarchy
 
   bool CompilerState::isClassAQuarkUnion(UTI cuti)
   {
@@ -2158,6 +2197,9 @@ namespace MFM {
 
   bool CompilerState::alreadyDefinedSymbolClassNameByUTI(UTI suti, SymbolClassName * & symptr)
   {
+    if(!okUTItoContinue(suti))
+      return false;
+
     //gets name id from suti key
     return alreadyDefinedSymbolClassName(getUlamTypeNameIdByIndex(suti), symptr);
   } //helper
@@ -2182,6 +2224,9 @@ namespace MFM {
 
   bool CompilerState::alreadyDefinedSymbolClassNameTemplateByUTI(UTI suti, SymbolClassNameTemplate * & symptr)
   {
+    if(!okUTItoContinue(suti))
+      return false;
+
     return alreadyDefinedSymbolClassNameTemplate(getUlamTypeNameIdByIndex(suti), symptr);
   } //helper
 
@@ -2963,37 +3008,102 @@ namespace MFM {
     return;
   } //countNavNodesForLocals
 
-  bool CompilerState::alreadyDefinedSymbolByAncestor(u32 dataindex, Symbol *& symptr, bool& hasHazyKin)
+  bool CompilerState::alreadyDefinedSymbolByAncestorOf(UTI cuti, u32 dataindex, Symbol *& symptr, bool& hasHazyKin)
   {
-    //maybe in current class as a holder, which doesn't progress the search (just the opposite, stops it!).
-    //recursively check ancestors, for defined name (and not a Holder)
-    UTI cuti = getCompileThisIdx();
-    UTI superuti = isClassASubclass(cuti);
-    if(okUTItoContinue(superuti))
+    std::set<UTI> seenset;
+    std::queue<UTI> basesqueue;
+    std::pair<std::set<UTI>::iterator,bool> ret;
+
+    //recursively check ancestors (breadth-first), for defined name (and not a Holder)
+    SymbolClass * csym = NULL;
+    if(alreadyDefinedSymbolClass(cuti, csym))
       {
-	SymbolClass * supcsym = NULL;
-	AssertBool isDefined = alreadyDefinedSymbolClass(superuti, supcsym);
-	assert(isDefined);
-
-	pushClassContext(superuti, supcsym->getClassBlockNode(), supcsym->getClassBlockNode(), false, NULL);
-
-	bool tmphzykin = false;
-	bool kinhadit = alreadyDefinedSymbol(dataindex, symptr, tmphzykin);
-
-	if(!kinhadit || (isHolder(symptr->getUlamTypeIdx())))
-	  {
-	    if(!alreadyDefinedSymbolByAncestor(dataindex, symptr, hasHazyKin))
-	      {
-		popClassContext(); //restore, if false on recursion
-		return false;
-	      }
-	  }
-	popClassContext(); //restore, after
-	hasHazyKin = tmphzykin;
-	return kinhadit;
+	u32 basecount = csym->getBaseClassCount() + 1; //include super
+	for(u32 i = 0; i < basecount; i++)
+	  basesqueue.push(csym->getBaseClass(i)); //extends queue with next level of base UTIs
       }
-    return false;
-  } //alreadyDefinedSymbolByAncestor
+
+    bool kinhadit = false;
+    while(!kinhadit && !basesqueue.empty())
+      {
+	UTI baseuti = basesqueue.front();
+	basesqueue.pop(); //remove from front of queue
+	ret = seenset.insert(baseuti);
+	if (ret.second==false)
+	  continue; //already seen, try next one..
+
+	SymbolClass * basecsym = NULL;
+	if(alreadyDefinedSymbolClass(baseuti, basecsym))
+	  {
+	    NodeBlockClass * basecblock = basecsym->getClassBlockNode();
+	    pushClassContext(baseuti, basecblock, basecblock, false, NULL);
+	    bool tmphzykin = false;
+	    kinhadit = alreadyDefinedSymbol(dataindex, symptr, tmphzykin);
+
+	    popClassContext(); //restore
+
+	    if(!kinhadit)
+	      {
+		u32 basecount = basecsym->getBaseClassCount() + 1; //include super
+		for(u32 i = 0; i < basecount; i++)
+		  basesqueue.push(basecsym->getBaseClass(i)); //extends queue with next level of base UTIs
+	      }
+	    else
+	      hasHazyKin = tmphzykin;
+	  }
+	else if(baseuti == Hzy)
+	  {
+	    hasHazyKin = true; //like t3641
+	  }
+      } //end while
+    return kinhadit;
+  } //alreadyDefinedSymbolByAncestorOf
+
+  bool CompilerState::alreadyDefinedSymbolByAClassOrAncestor(UTI cuti, u32 dataindex, Symbol *& symptr, bool& hasHazyKin)
+  {
+    std::set<UTI> seenset;
+    std::queue<UTI> basesqueue;
+    std::pair<std::set<UTI>::iterator,bool> ret;
+
+    //recursively check class and ancestors (breadth-first), for defined name (and not a Holder)
+
+    bool kinhadit = false;
+    basesqueue.push(cuti); //init
+
+    while(!kinhadit && !basesqueue.empty())
+      {
+	UTI baseuti = basesqueue.front();
+	basesqueue.pop(); //remove from front of queue
+	ret = seenset.insert(baseuti);
+	if (ret.second==false)
+	  continue; //already seen, try next one..
+
+	SymbolClass * basecsym = NULL;
+	if(alreadyDefinedSymbolClass(baseuti, basecsym))
+	  {
+	    NodeBlockClass * basecblock = basecsym->getClassBlockNode();
+	    pushClassContext(baseuti, basecblock, basecblock, false, NULL);
+	    bool tmphzykin = false;
+	    kinhadit = alreadyDefinedSymbol(dataindex, symptr, tmphzykin);
+
+	    popClassContext(); //restore
+
+	    if(!kinhadit)
+	      {
+		u32 basecount = basecsym->getBaseClassCount() + 1; //include super
+		for(u32 i = 0; i < basecount; i++)
+		  basesqueue.push(basecsym->getBaseClass(i)); //extends queue with next level of base UTIs
+	      }
+	    else
+	      hasHazyKin = tmphzykin;
+	  }
+	else if(baseuti == Hzy)
+	  {
+	    hasHazyKin = true; //like t3641
+	  }
+      } //end while
+    return kinhadit;
+  } //alreadyDefinedSymbolByAClassOrAncestor
 
   bool CompilerState::alreadyDefinedSymbol(u32 dataindex, Symbol * & symptr, bool& hasHazyKin)
   {
@@ -3032,7 +3142,7 @@ namespace MFM {
     bool brtn = false;
     //assert(!hasHazyKin); might come from alreadyDefinedSymbol now, and have a hazy chain.
 
-    //start with the current class block and look up family tree
+    //start with the current class block (and look up family tree???)
     //until the 'variable id' is found.
     NodeBlockContext * cblock = getContextBlock();
 
@@ -3044,10 +3154,11 @@ namespace MFM {
       {
 	brtn = cblock->isIdInScope(dataindex,symptr); //returns symbol
 	hasHazyKin |= checkHasHazyKin(cblock); //self is stub
-	cblock = cblock->isAClassBlock() ? ((NodeBlockClass *) cblock)->getSuperBlockPointer() : NULL; //inheritance chain
+	//cblock = cblock->isAClassBlock() ? ((NodeBlockClass *) cblock)->getSuperBlockPointer() : NULL; //inheritance chain
+	cblock = (NodeBlockContext *) (cblock->getPreviousBlockPointer()); //traverse the chain, including templates (not ancestors; see alreadyDefinedSymbolByAncestorOf)
       }
 
-    //search current class file scope only (not ancestors')
+    //search current class's local file scope only (not ancestors')
     if(!brtn)
       brtn = isIdInLocalFileScope(dataindex, symptr); //local constant or typedef
 
@@ -3101,7 +3212,7 @@ namespace MFM {
     bool brtn = false;
     //assert(!hasHazyKin); might come from alreadyDefinedSymbol now, and have a hazy chain.
 
-    //start with the current class block and look up family tree
+    //start with the current class block, not family tree (see isFuncIdInAClassScopeOrAncestor)
     //until the 'variable id' is found.
     NodeBlockContext * cblock = getContextBlock();
 
@@ -3116,7 +3227,8 @@ namespace MFM {
       {
 	brtn = ((NodeBlockClass *) cblock)->isFuncIdInScope(dataindex,symptr); //returns symbol
 	hasHazyKin |= checkHasHazyKin(cblock); //self is stub
-	cblock = ((NodeBlockClass *) cblock)->getSuperBlockPointer(); //inheritance chain
+	//cblock = ((NodeBlockClass *) cblock)->getSuperBlockPointer(); //inheritance chain
+	cblock = (NodeBlockContext *) (cblock->getPreviousBlockPointer()); //traverse the chain, including templates (not ancestors; see alreadyDefinedSymbolByAncestorOf)
       }
     return brtn;
   } //isFuncIdInClassScope
@@ -3126,60 +3238,426 @@ namespace MFM {
     UTI cuti = findAClassByNodeNo(cnno); //class of cnno
     assert(okUTItoContinue(cuti));
     assert(!hasHazyKin);
-    return isFuncIdInAClassScope(cuti, dataindex, symptr, hasHazyKin);
+    return isFuncIdInAClassScopeOrAncestor(cuti, dataindex, symptr, hasHazyKin);
   } //isFuncIdInClassScopeNNO
 
-bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & symptr, bool& hasHazyKin)
+  bool CompilerState::isFuncIdInAClassScopeOrAncestor(UTI cuti, u32 dataindex, Symbol * & symptr, bool& hasHazyKin)
   {
+    bool rtnb = false;
+
+    std::set<UTI> seenset;
+    std::queue<UTI> basesqueue;
+    std::pair<std::set<UTI>::iterator,bool> ret;
+
+    basesqueue.push(cuti); //init
+
+    while(!rtnb && !basesqueue.empty())
+      {
+	UTI baseuti = basesqueue.front();
+	basesqueue.pop(); //remove from front of queue
+	ret = seenset.insert(baseuti);
+	if (ret.second==false)
+	  continue; //already seen, try next one..
+
+	SymbolClass * basecsym = NULL;
+	if(alreadyDefinedSymbolClass(baseuti, basecsym))
+	  {
+	    NodeBlockClass * basecblock = basecsym->getClassBlockNode();
+	    assert(basecblock);
+	    pushClassContextUsingMemberClassBlock(basecblock);
+
+	    bool tmphazykin = false;
+	    Symbol * fnSym = NULL;
+	    if((rtnb = isFuncIdInClassScope(dataindex, fnSym, tmphazykin))) //not ancestor
+	      {
+		hasHazyKin = tmphazykin;
+	      }
+	    else
+	      {
+		u32 basecount = basecsym->getBaseClassCount() + 1; //include super
+		for(u32 i = 0; i < basecount; i++)
+		  basesqueue.push(basecsym->getBaseClass(i)); //extends queue w next level of bases
+	      }
+
+	    popClassContext(); //didn't forget!!
+	  }
+	else if(baseuti == Hzy)
+	  {
+	    hasHazyKin = true; //t3641
+	  }
+      } //end while
+    return rtnb;
+  } //isFuncIdInAClassScopeOrAncestor
+
+  bool CompilerState::findMatchingFunctionStrictlyByTypesInClassScope(u32 fid, std::vector<UTI> typeVec, SymbolFunction*& fsymref)
+  {
+    bool rtnb = false;
+
+    //start with the current class block, not hierarchy
+    NodeBlockContext * cblock = getContextBlock();
+
+    //substitute another selected class block to search for function
+    if(useMemberBlock())
+      cblock = getCurrentMemberClassBlock();
+
+    assert(cblock);
+
+    Symbol * fnSym = NULL;
+    if(((NodeBlockClass *) cblock)->isFuncIdInScope(fid, fnSym)) //dont check ancestor
+      {
+	bool tmphazyargs = false;
+	rtnb = (((SymbolFunctionName *) fnSym)->findMatchingFunctionStrictlyByTypes(typeVec, fsymref, tmphazyargs) == 1); //exact
+	assert(!tmphazyargs);
+      }
+
+    return rtnb;
+  } //findMatchingFunctionStrictlyByTypesInClassScope
+
+  bool CompilerState::findMatchingFunctionStrictlyByTypesInAClassScopeOrAncestor(UTI cuti, u32 fid, std::vector<UTI> typeVec, SymbolFunction*& fsymref, UTI& foundInAncestor)
+  {
+    bool rtnb = false;
+
+    std::set<UTI> seenset;
+    std::queue<UTI> basesqueue;
+    std::pair<std::set<UTI>::iterator,bool> ret;
+
+    basesqueue.push(cuti);
+
+    while(!rtnb && !basesqueue.empty())
+      {
+	UTI baseuti = basesqueue.front();
+	basesqueue.pop(); //remove from front of queue
+	ret = seenset.insert(baseuti);
+	if (ret.second==false)
+	  continue; //already seen, try next one..
+
+	SymbolClass * basecsym = NULL;
+	if(alreadyDefinedSymbolClass(baseuti, basecsym))
+	  {
+	    NodeBlockClass * basecblock = basecsym->getClassBlockNode();
+	    assert(basecblock);
+	    pushClassContextUsingMemberClassBlock(basecblock);
+
+	    rtnb = findMatchingFunctionStrictlyByTypesInClassScope(fid, typeVec, fsymref);
+
+	    popClassContext(); //didn't forget!!
+
+	    if(rtnb)
+	      foundInAncestor = baseuti;
+	    else
+	      {
+		u32 basecount = basecsym->getBaseClassCount() + 1; //include super
+		for(u32 i = 0; i < basecount; i++)
+		  basesqueue.push(basecsym->getBaseClass(i)); //extends queue with next level of base UTIs
+	      }
+	  }
+      } //end while
+
+    if(!rtnb)
+      foundInAncestor = Nouti;
+
+    return rtnb;
+  } //findMatchingFunctionStrictlyByTypesInAClassScopeOrAncestor
+
+  bool CompilerState::findMatchingFunctionStrictlyByTypesInAncestorOf(UTI cuti, u32 fid, std::vector<UTI> typeVec, SymbolFunction*& fsymref, UTI& foundInAncestor)
+  {
+    bool rtnb = false;
+
+    std::set<UTI> seenset;
+    std::queue<UTI> basesqueue;
+    std::pair<std::set<UTI>::iterator,bool> ret;
+
+    //don't look in cuti, just base classes (breadth-first)
     SymbolClass * csym = NULL;
     AssertBool isDefined = alreadyDefinedSymbolClass(cuti, csym);
     assert(isDefined);
-    NodeBlockClass * cblock = csym->getClassBlockNode();
-    assert(cblock);
-    pushClassContext(cuti, cblock, cblock, false, NULL);
 
-    bool rtnb = isFuncIdInClassScope(dataindex, symptr, hasHazyKin);
-    popClassContext(); //don't forget!!
-    return rtnb;
-  } //isFuncIdInAClassScope
+    u32 basecount = csym->getBaseClassCount() + 1; //include super
+    for(u32 i = 0; i < basecount; i++)
+      basesqueue.push(csym->getBaseClass(i)); //init queue with first level of base UTIs
 
-  bool CompilerState::findMatchingFunctionInAncestor(UTI cuti, u32 fid, std::vector<UTI> typeVec, SymbolFunction*& fsymref, UTI& foundInAncestor)
-  {
-    bool rtnb = false;
-    UTI superuti = isClassASubclass(cuti);
-    while(!rtnb)
+    while(!rtnb && !basesqueue.empty())
       {
-	if((superuti != Nouti) && (superuti != Hzy))
+	UTI baseuti = basesqueue.front();
+	basesqueue.pop(); //remove from front of queue
+	ret = seenset.insert(baseuti);
+	if (ret.second==false)
+	  continue; //already seen, try next one..
+
+	SymbolClass * basecsym = NULL;
+	if(alreadyDefinedSymbolClass(baseuti, basecsym))
 	  {
-	    SymbolClass * supercsym = NULL;
-	    AssertBool isDefined = alreadyDefinedSymbolClass(superuti, supercsym);
-	    assert(isDefined);
-	    NodeBlockClass * cblock = supercsym->getClassBlockNode();
-	    assert(cblock);
-	    pushClassContextUsingMemberClassBlock(cblock);
+	    NodeBlockClass * basecblock = basecsym->getClassBlockNode();
+	    assert(basecblock);
+	    pushClassContextUsingMemberClassBlock(basecblock);
+
+	    rtnb = findMatchingFunctionStrictlyByTypesInClassScope(fid, typeVec, fsymref);
+
+	    popClassContext(); //didn't forget!!
+
+	    if(rtnb)
+	      foundInAncestor = baseuti;
+	    else
+	      {
+		u32 basecount = basecsym->getBaseClassCount() + 1; //include super
+		for(u32 i = 0; i < basecount; i++)
+		  basesqueue.push(basecsym->getBaseClass(i)); //extends queue with next level of base UTIs
+	      }
+	  }
+      } //end while
+
+    if(!rtnb)
+      foundInAncestor = Nouti;
+
+    return rtnb;
+  } //findMatchingFunctionStrictlyByTypesInAncestorOf
+
+  u32 CompilerState::findMatchingFunctionInClassScope(u32 fid, std::vector<Node *> nodeArgs, SymbolFunction*& fsymref, bool& hasHazyArgs)
+  {
+    u32 matches = 0;
+
+    //start with the current class block, not hierarchy
+    NodeBlockContext * cblock = getContextBlock();
+
+    //substitute another selected class block to search for function
+    if(useMemberBlock())
+      cblock = getCurrentMemberClassBlock();
+
+    assert(cblock);
+
+    Symbol * fnSym = NULL;
+    if(((NodeBlockClass *) cblock)->isFuncIdInScope(fid, fnSym)) //dont check ancestor
+      {
+	matches = ((SymbolFunctionName *) fnSym)->findMatchingFunction(nodeArgs, fsymref, hasHazyArgs); //exact
+	if(hasHazyArgs)
+	  matches = 0;
+      }
+
+    return matches;
+  } //findMatchingFunctionInClassScope
+
+  bool CompilerState::findMatchingFunctionInAClassScopeOrAncestor(UTI cuti, u32 fid, std::vector<Node *> nodeArgs, SymbolFunction*& fsymref, bool& hasHazyArgs,  UTI& foundInAncestor)
+  {
+    //uses argument nodes, not just vector of arg types
+    bool exactlyone = false; //true if exact match found
+    u32 matchingFuncCount = 0; //U32_MAX;
+
+    std::set<UTI> seenset;
+    std::queue<UTI> basesqueue;
+    std::pair<std::set<UTI>::iterator,bool> ret;
+
+    //can't assume class context already pushed
+
+    //In C++, exact matches in a subclass overrides any possible exact matches in base classes;
+    // otherwise ambiguous function compilation error. SO, we need to check our "concrete" class, cuti,
+    // first, and separately.
+
+    basesqueue.push(cuti);
+
+    while(!exactlyone && !basesqueue.empty())
+      {
+	UTI baseuti = basesqueue.front();
+	basesqueue.pop(); //remove from front of queue
+	ret = seenset.insert(baseuti);
+	if (ret.second==false)
+	  continue; //already seen, try next one..
+
+	SymbolClass * basecsym = NULL;
+	if(alreadyDefinedSymbolClass(baseuti, basecsym))
+	  {
+	    NodeBlockClass * basecblock = basecsym->getClassBlockNode();
+	    assert(basecblock);
+	    pushClassContextUsingMemberClassBlock(basecblock);
+
+	    bool tmphazyargs = false;
+	    SymbolFunction * tmpfsym = NULL; //e.g. t3357
+	    u32 matches = findMatchingFunctionInClassScope(fid, nodeArgs, tmpfsym, tmphazyargs); //exact
+	    matchingFuncCount += matches;
+	    hasHazyArgs |= tmphazyargs; //t3484
+
+	    if(matches == 1)
+	      {
+		foundInAncestor = baseuti;
+		fsymref = tmpfsym;
+		//exactlyone = (baseuti == cuti); //first one is cuti, let's go with that..
+		exactlyone = basesqueue.empty(); //only one level inheritance, let's go with that..(t3600)
+		//otherwise still could be ambiguous amongst the base classes
+		//assert(!hasHazyArgs); t3395
+	      }
+
+	    popClassContext(); //didn't forget!!
+
+	    if(!exactlyone) //not found
+	      {
+		u32 basecount = basecsym->getBaseClassCount() + 1; //include super
+		for(u32 i = 0; i < basecount; i++)
+		  basesqueue.push(basecsym->getBaseClass(i)); //extends queue with next level of base UTIs
+	      }
+	  }
+	else if(baseuti == Hzy)
+	  {
+	    hasHazyArgs = true; //like t3641
+	  }
+      } //end while
+
+    if(matchingFuncCount == 0)
+      foundInAncestor = Nouti; //none found
+    else if(matchingFuncCount > 1)
+      {
+	fsymref = NULL;
+	foundInAncestor = Nav; //more than one, ambiguous
+	exactlyone = false;
+      }
+    else //exactly one exact match found in a base class
+      {
+	assert(matchingFuncCount == 1);
+	exactlyone = true;
+      }
+
+    return exactlyone;
+  } //findMatchingFunctionInAClassScopeOrAncestor
+
+  u32 CompilerState::findMatchingFunctionWithSafeCastsInClassScope(u32 fid, std::vector<Node *> nodeArgs, SymbolFunction*& fsymref, bool& hasHazyArgs, FSTable & fstable)
+  {
+    u32 safematches = 0;
+
+    //start with the current class block, not hierarchy
+    NodeBlockContext * cblock = getContextBlock();
+
+    //substitute another selected class block to search for function
+    if(useMemberBlock())
+      cblock = getCurrentMemberClassBlock();
+
+    assert(cblock);
+
+    Symbol * fnSym = NULL;
+    if(((NodeBlockClass *) cblock)->isFuncIdInScope(fid, fnSym)) //dont check ancestor
+      {
+	safematches = ((SymbolFunctionName *) fnSym)->findMatchingFunctionWithSafeCasts(nodeArgs, fsymref, hasHazyArgs, fstable);
+      }
+
+    return safematches;
+  } //findMatchingFunctionWithSafeCastsInClassScope
+
+  u32 CompilerState::findMatchingFunctionWithSafeCastsInAClassScopeOrAncestor(UTI cuti, u32 fid, std::vector<Node *> argNodes, SymbolFunction*& fsymref, bool& hasHazyArgs, UTI& foundInAncestor)
+  {
+    //traverse hierarchy for exact match, first in subclass, then in rest of base classes
+    if(findMatchingFunctionInAClassScopeOrAncestor(cuti, fid, argNodes, fsymref, hasHazyArgs, foundInAncestor))
+      return 1;
+
+    bool rtnb = false;
+    u32 matchingFuncCount = 0;
+
+    FSTable FST; //starts here!!
+
+    std::set<UTI> seenset;
+    std::queue<UTI> basesqueue;
+    std::pair<std::set<UTI>::iterator,bool> ret;
+
+    basesqueue.push(cuti);
+
+    while(!rtnb && !basesqueue.empty())
+      {
+	UTI baseuti = basesqueue.front();
+	basesqueue.pop(); //remove from front of queue
+	ret = seenset.insert(baseuti);
+	if (ret.second==false)
+	  continue; //already seen, try next one..
+
+	SymbolClass * basecsym = NULL;
+	if(alreadyDefinedSymbolClass(baseuti, basecsym))
+	  {
+	    NodeBlockClass * basecblock = basecsym->getClassBlockNode();
+	    assert(basecblock);
+	    pushClassContextUsingMemberClassBlock(basecblock);
+
+	    bool tmphazyargs = false;
+	    SymbolFunction * tmpfsym = NULL; //e.g. t3357
+	    u32 safematches = findMatchingFunctionWithSafeCastsInClassScope(fid, argNodes, tmpfsym, tmphazyargs, FST);
+
+	    matchingFuncCount += safematches; //ALL, not just minimum (t41119)
+	    hasHazyArgs |= tmphazyargs; //(like t3483)
+
+	    if(safematches == 1) //found one, and only one, here first!!
+	      {
+		foundInAncestor = baseuti;
+		fsymref = tmpfsym;
+		//rtnb = (baseuti == cuti); //first one is cuti, let's go with that..(e.g. t3562)
+		rtnb = basesqueue.empty(); //only one level inheritance, let's go with that..
+		//assert(!hasHazyArgs); //t3484
+	      }
+
+	    popClassContext(); //didn't forget!!
+
+	    //find all
+	    u32 basecount = basecsym->getBaseClassCount() + 1; //include a super
+	    for(u32 i = 0; i < basecount; i++)
+	      basesqueue.push(basecsym->getBaseClass(i)); //extends queue with next level of base UTIs
+	  }
+	else if(baseuti == Hzy)
+	  {
+	    hasHazyArgs = true; //like t3641
+	  }
+      } //end while
+
+    if(matchingFuncCount == 0) //U32_MAX)
+      foundInAncestor = Nouti; //none found
+    else if(matchingFuncCount > 1)
+      {
+	rtnb = false;
+	foundInAncestor = Nav; //more than one, ambiguous
+	//if(noteAmbiguousMatches)
+	//  noteAmbiguousFunctionSignaturesInAClassHierarchy(cuti, fid, argNodes, matchingFuncCount);
+      }
+    else
+      {
+	assert(matchingFuncCount == 1);
+	rtnb = true;
+      }
+
+      FST.clear();
+      return matchingFuncCount; //rtnb;
+  } //findMatchingFunctionWithSafeCastsInAClassScopeOrAncestor
+
+  void CompilerState::noteAmbiguousFunctionSignaturesInAClassHierarchy(UTI cuti, u32 fid, std::vector<Node *> argNodes, u32 matchingFuncCount)
+  {
+    std::set<UTI> seenset;
+    std::queue<UTI> basesqueue;
+    std::pair<std::set<UTI>::iterator,bool> ret;
+
+    u32 count = 0;
+    basesqueue.push(cuti);
+
+    while(!basesqueue.empty())
+      {
+	UTI baseuti = basesqueue.front();
+	basesqueue.pop(); //remove from front of queue
+	ret = seenset.insert(baseuti);
+	if (ret.second==false)
+	  continue; //already seen, try next one..
+
+	SymbolClass * basecsym = NULL;
+	if(alreadyDefinedSymbolClass(baseuti, basecsym))
+	  {
+	    NodeBlockClass * basecblock = basecsym->getClassBlockNode();
+	    assert(basecblock);
+	    pushClassContextUsingMemberClassBlock(basecblock);
 
 	    Symbol * fnSym = NULL;
-	    if(cblock->isFuncIdInScope(fid, fnSym)) //dont check ancestor
-	      {
-		bool tmphazyargs = false;
-		rtnb = (((SymbolFunctionName *) fnSym)->findMatchingFunctionStrictlyByTypes(typeVec, fsymref, tmphazyargs) == 1); //exact
-		assert(!tmphazyargs);
-	      }
-	    if(rtnb)
-	      foundInAncestor = superuti;
-	    else
-	      superuti = isClassASubclass(superuti);
+	    if(basecblock->isFuncIdInScope(fid, fnSym))
+	      count += ((SymbolFunctionName *) fnSym)->noteAmbiguousFunctionSignatures(argNodes, count, matchingFuncCount);
 
-	    popClassContext(); //don't forget!!
+	    popClassContext(); //didn't forget!!
+
+	    // check them all..
+	    u32 basecount = basecsym->getBaseClassCount() + 1; //include a super
+	    for(u32 i = 0; i < basecount; i++)
+	      basesqueue.push(basecsym->getBaseClass(i)); //extends queue with next level of base UTIs
 	  }
-	else
-	  {
-	    foundInAncestor = Nav;
-	    break;
-	  }
-      } //while
-    return rtnb;
-  } //findMatchingFunctionInAncestor
+      } //end while
+    assert(count == matchingFuncCount); //sanity
+    return;
+  } //noteAmbiguousFunctionSignaturesInClassHierarchy
 
   bool CompilerState::isIdInCurrentScope(u32 id, Symbol *& asymptr)
   {
@@ -3243,21 +3721,74 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   {
     assert(isASeenClass(inClassUTI));
     bool rtnOK = false;
-    SymbolClass * csym = NULL;
-    AssertBool isDefined = alreadyDefinedSymbolClass(inClassUTI, csym);
-    assert(isDefined);
 
-    NodeBlockClass * cblock = csym->getClassBlockNode();
-    assert(cblock);
+    //SymbolClass * csym = NULL;
+    //AssertBool isDefined = alreadyDefinedSymbolClass(inClassUTI, csym);
+    //assert(isDefined);
 
-    pushClassContextUsingMemberClassBlock(cblock);
+    //NodeBlockClass * cblock = csym->getClassBlockNode();
+    //assert(cblock);
 
-    rtnOK = alreadyDefinedSymbol(id, rtnsymptr, isHazy);
+    //pushClassContextUsingMemberClassBlock(cblock);
 
-    popClassContext(); //restore
+    rtnOK = alreadyDefinedSymbolByAClassOrAncestor(inClassUTI, id, rtnsymptr, isHazy); //e.g. t41182
+
+    //rtnOK = alreadyDefinedSymbol(id, rtnsymptr, isHazy); //not ancestors
+
+    //popClassContext(); //restore
 
     return rtnOK;
   } //findSymbolInAClass
+
+  bool CompilerState::findNearestBaseClassToAnAncestor(UTI cuti, UTI auti, UTI& foundInBase)
+  {
+    bool rtnb = false;
+
+    std::set<UTI> seenset;
+    std::queue< std::pair<UTI,UTI> > basesqueue;
+    std::pair<std::set<UTI>::iterator,bool> ret;
+
+    basesqueue.push( std::pair<UTI, UTI> (cuti, Nouti)); //init
+
+    while(!rtnb && !basesqueue.empty())
+      {
+	std::pair<UTI,UTI> base = basesqueue.front();
+	UTI baseuti = base.first;
+	UTI basehead = base.second;
+	basesqueue.pop(); //remove from front of queue
+	ret = seenset.insert(baseuti);
+	if (ret.second==false)
+	  continue; //already seen, try next one..
+
+	SymbolClass * basecsym = NULL;
+	if(alreadyDefinedSymbolClass(baseuti, basecsym))
+	  {
+	    s32 baseitem = basecsym->isABaseClassItem(auti);
+	    rtnb = (baseitem >= 0);
+	  }
+
+	if(rtnb)
+	  {
+	    foundInBase = basehead;
+	  }
+	else
+	  {
+	    u32 basecount = basecsym->getBaseClassCount() + 1; //include super
+	    for(u32 i = 0; i < basecount; i++)
+	      {
+		UTI baseuti = basecsym->getBaseClass(i);
+		if(basehead == Nouti) basehead = baseuti; //t3600
+		//extends queue with next level of base UTIs
+		basesqueue.push(std::pair<UTI,UTI> (baseuti, basehead));
+	      }
+	  }
+      } //end while
+
+    if(!rtnb)
+      foundInBase = Nouti;
+
+    return rtnb;
+  } //findNearestBaseClassToAnAncestor
 
   //Token to location as string:
   const std::string CompilerState::getTokenLocationAsString(const Token * tok)
@@ -4111,20 +4642,10 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   {
     assert(isScalar(cuti));
     bool rtnb = false;
-    SymbolClass * csym = NULL;
-    if(alreadyDefinedSymbolClass(cuti, csym))
-      {
-	NodeBlockClass * cblock = csym->getClassBlockNode();
-	pushClassContextUsingMemberClassBlock(cblock);
-
-	bool hazykin = false;
-	Symbol * fsym = NULL;
-	isFuncIdInClassScope(getCustomArrayGetFunctionNameId(), fsym, hazykin);
-
-	popClassContext();
-
-	rtnb = (fsym && isReference(((SymbolFunctionName *) fsym)->getCustomArrayReturnType()));
-      }
+    bool hazykin = false;
+    Symbol * fsym = NULL;
+    if(isFuncIdInAClassScopeOrAncestor(cuti, getCustomArrayGetFunctionNameId(), fsym, hazykin))
+      rtnb = isReference(((SymbolFunctionName *) fsym)->getCustomArrayReturnType());
     return rtnb;
   } //classCustomArraySetable
 
@@ -4594,22 +5115,28 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   Node * CompilerState::findNodeNoInAncestorsClassOrLocalsScope(NNO n, UTI cuti)
   {
     Node * rtnNode = NULL;
-    UTI superuti = isClassASubclass(cuti);
-    if(okUTItoContinue(superuti))
+    SymbolClass * csym = NULL;
+    if(alreadyDefinedSymbolClass(cuti, csym))
       {
-	SymbolClassName * supcnsym = NULL;
-	AssertBool isDefined = alreadyDefinedSymbolClassNameByUTI(superuti, supcnsym);
-	assert(isDefined);
-	rtnNode = supcnsym->findNodeNoInAClassInstance(superuti, n); //includes complete ancestors
-	//local def, using (possible) template's local scope
-	if(!rtnNode)
-	  rtnNode = findNodeNoInALocalsScope(supcnsym->getLoc(), n);
+	u32 basecount = csym->getBaseClassCount() + 1; //include super
 
-	if(!rtnNode)
+	u32 i = 0;
+	while((rtnNode == NULL) && (i < basecount))
 	  {
-	    if(isClassASubclass(superuti))
-	      rtnNode = findNodeNoInAncestorsClassOrLocalsScope(n, superuti); //recurse
-	  }
+	    UTI baseuti = csym->getBaseClass(i);
+	    SymbolClassName * basecnsym = NULL;
+	    if(alreadyDefinedSymbolClassNameByUTI(baseuti, basecnsym))
+	      {
+		rtnNode = basecnsym->findNodeNoInAClassInstance(baseuti, n); //includes complete ancestors
+		//local def, using (possible) template's local scope
+		if(rtnNode == NULL)
+		  rtnNode = findNodeNoInALocalsScope(basecnsym->getLoc(), n);
+
+		if(rtnNode == NULL)
+		  rtnNode = findNodeNoInAncestorsClassOrLocalsScope(n, baseuti); //recurse
+	      }
+	    i++;
+	  } //end while
       }
     return rtnNode;
   } //findNodeNoInAncestorsClassOrLocalsScope
@@ -5145,8 +5672,28 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   bool CompilerState::checkHasHazyKin(NodeBlock * block)
   {
     assert(block);
+    bool rtnb = block->isAClassBlock(); //t3172
     UTI buti = block->getNodeType();
-    return (block->isAClassBlock() && (isClassAStub(buti) || ((isClassASubclass(buti) != Nouti) && !((NodeBlockClass *) block)->isSuperClassLinkReady(buti))));
+    if(rtnb && !isClassAStub(buti))
+      {
+	bool hasHazyKin = false;
+	SymbolClass * csym = NULL;
+	if(alreadyDefinedSymbolClass(buti, csym))
+	  {
+	    u32 basecount = csym->getBaseClassCount() + 1; //include super
+	    u32 i = 0;
+	    while(!hasHazyKin && (i < basecount))
+	      {
+		UTI baseuti = csym->getBaseClass(i);
+		if(baseuti != Nouti) //super is optional
+		  hasHazyKin = !((NodeBlockClass *) block)->isBaseClassLinkReady(buti,i);
+		i++;
+	      } //end while
+	  }
+	rtnb = hasHazyKin;
+      }
+    return rtnb; //true if isaclass, AND either isastub, OR has hazykin (ie a baseclasslink notready)
+    //return (block->isAClassBlock() && (isClassAStub(buti) || ((isClassASubclass(buti) != Nouti) && !((NodeBlockClass *) block)->isSuperClassLinkReady(buti))));
   }
 
   bool CompilerState::isStillHazy(UTI uti)

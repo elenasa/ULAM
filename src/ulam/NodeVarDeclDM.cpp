@@ -311,42 +311,36 @@ namespace MFM {
 	return Nav; //short-circuit
       }
 
-    //don't allow a subclass to shadow a superclass datamember
-    UTI superuti = m_state.isClassASubclass(cuti);
-    if(superuti != Nouti) //has ancestor
+    //don't allow a subclass to shadow a base class datamember
+    Symbol * varSymbolOfSameName = NULL;
+    bool hazyKin = false;
+    if(m_state.alreadyDefinedSymbolByAncestorOf(cuti, m_vid, varSymbolOfSameName, hazyKin))
       {
-	//is a subclass' DM..
-	//check for shadowed superclass DM of same name
-	NodeBlockClass * superclassblock = m_state.getAClassBlock(superuti);
-	assert(superclassblock);
-	m_state.pushClassContextUsingMemberClassBlock(superclassblock);
+	std::ostringstream msg;
+	msg << "Data member '";
+	msg << m_state.m_pool.getDataAsString(m_vid).c_str();
+	msg << "' is shadowing an ancestor";
 
-	Symbol * varSymbolOfSameName = NULL;
-	bool hazyKin = false;
-	if(m_state.alreadyDefinedSymbol(m_vid, varSymbolOfSameName, hazyKin))
-	  {
-	    std::ostringstream msg;
-	    msg << "Data member '";
-	    msg << m_state.m_pool.getDataAsString(m_vid).c_str();
-	    msg << "' is shadowing an ancestor";
-	    if(hazyKin)
-	      {
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-		setNodeType(Hzy);
-		m_state.setGoAgain();
-		m_state.popClassContext();
-		return Hzy; //short-circuit
-	      }
-	    else
-	      {
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		setNodeType(Nav);
-		m_state.popClassContext();
-		return Nav; //short-circuit
-	      }
-	  }
-	m_state.popClassContext();
-      } //end subclass error checking
+      UTI ancestor = varSymbolOfSameName->getDataMemberClass();
+      if(m_state.okUTItoContinue(ancestor))
+	msg << ": " << m_state.getUlamTypeNameBriefByIndex(ancestor).c_str();
+
+      if(hazyKin)
+	{
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	  setNodeType(Hzy);
+	  m_state.setGoAgain();
+	  return Hzy; //short-circuit
+	}
+      else
+	{
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	  setNodeType(Nav);
+	  return Nav; //short-circuit
+	}
+    }
+    //else continue...
+
 
     //NodeVarDecl handles array initialization for both locals & dm
     // since initial expressions must be constant for both (unlike local scalars)

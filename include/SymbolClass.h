@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * SymbolClass.h -  Basic handling of Class Symbols for ULAM
  *
- * Copyright (C) 2014-2018 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2018 Ackleyshack LLC.
+ * Copyright (C) 2014-2019 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2019 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file SymbolClass.h -  Basic handling of Class Symbols for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2018 All rights reserved.
+  \date (C) 2014-2019 All rights reserved.
   \gpl
 */
 
@@ -45,8 +45,9 @@
 #include "StringPoolUser.h"
 #include "TargetMap.h"
 #include "MapClassMemberDesc.h"
-#include "VirtualTable.h"
+#include "VirtualTable.h" /* VT */
 #include "BitVector.h"
+#include <vector>
 
 namespace MFM{
 
@@ -69,6 +70,14 @@ namespace MFM{
 
     void setSuperClass(UTI superclass);
     UTI getSuperClass();
+
+    void appendBaseClass(UTI baseclass);
+    u32 getBaseClassCount();
+    UTI getBaseClass(u32 item);
+    s32 isABaseClassItem(UTI puti);
+    void updateBaseClass(UTI oldclasstype, u32 item, UTI newbaseclass);
+    s32 getBaseClassRelativePosition(u32 item) const;
+    void setBaseClassRelativePosition(u32 item, u32 pos);
 
     void setClassBlockNode(NodeBlockClass * node);
 
@@ -158,7 +167,9 @@ namespace MFM{
 
     void initVTable(s32 initialmax);
     void updateVTable(u32 idx, SymbolFunction * fsym, UTI kinuti, bool isPure);
+    s32 getVTableSize();
     VT& getVTableRef();
+    u32 getVTstartindexForBaseClass(UTI baseuti);
     bool isPureVTableEntry(u32 idx);
     UTI getClassForVTableEntry(u32 idx);
     void notePureFunctionSignatures();
@@ -181,11 +192,14 @@ namespace MFM{
     bool m_stub;
     BV8K m_defaultValue; //BitVector
     bool m_isreadyDefaultValue;
-    UTI m_superClass; //single inheritance
     bool m_bitsPacked;
     u32 m_registryNumber; //ulam-4
 
     ELE_TYPE m_elementType; //ulam-4
+
+    std::vector<UTI> m_bases;
+    std::vector<s32> m_basespos; //UNKNOWN < 0
+    std::vector<u32> m_basesVTstart;
 
     void assignClassArgValuesInStubCopy();
 
@@ -201,7 +215,7 @@ namespace MFM{
     static std::string firstletterTolowercase(const std::string s);
 
     VT m_vtable;
-
+    bool m_vtableinitialized;
   };
 
 }

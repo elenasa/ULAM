@@ -420,7 +420,7 @@ namespace MFM {
 	    setupSuperClassHelper(supercsym, cnsym);
 	    //reset super block pointer since it will change if temporary (e.g. t3874)
 	    if(supercsym->isStub() || m_state.isHolder(superuti) || (supercsym->getUlamClass() == UC_UNSEEN))
-	      rtnNode->setSuperBlockPointer(NULL); //wait for c&l
+	      rtnNode->setBaseClassBlockPointer(NULL,0); //wait for c&l
 	  }
       }
     else
@@ -431,6 +431,16 @@ namespace MFM {
 	//earliest ancestor when none designated; for all classes except UrSelf,
 	if(!m_state.isUrSelf(cnsym->getUlamTypeIdx()))
 	  setupSuperClassHelper(cnsym);
+      }
+
+    //ulam5 offers inheritance from multiple classes; superclass optional.
+    Token rTok;
+    getNextToken(rTok);
+    unreadToken();
+
+    if(rTok.m_type == TOK_PLUS)
+      {
+	parseMultipleClassInheritances(cnsym);
       }
 
     if(!getExpectedToken(TOK_OPEN_CURLY, pTok))
@@ -499,7 +509,7 @@ namespace MFM {
     //set super class' block after any parameters parsed;
     // (separate from previous block which might be pointing to template in case of a stub)
     //classblock->setSuperBlockPointer(NULL); //wait for c&l
-    classblock->setSuperBlockPointer(superclassblock);
+    classblock->setBaseClassBlockPointer(superclassblock, 0);
 
     if(superclassblock)
       {
@@ -523,8 +533,12 @@ namespace MFM {
 	  {
 	    assert(symtypedef->getId() == superid);
 	    UTI stuti = symtypedef->getUlamTypeIdx();
-	    if(stuti != superuti)
-	      m_state.updateUTIAliasForced(stuti, superuti); //t3808, t3806, t3807
+	    if(stuti != superuti) //t3808, t3806, t3807
+	      {
+		m_state.updateUTIAliasForced(stuti, superuti);
+		cnsym->setSuperClass(superuti);
+		symtypedef->resetUlamType(superuti);
+	      }
 	  }
       }
     else
@@ -749,6 +763,80 @@ namespace MFM {
       }
     return rtninherits;
   } //parseRestOfClassInheritance
+
+  bool Parser::parseMultipleClassInheritances(SymbolClassName * cnsym)
+  {
+    bool rtninherits = false;
+    assert(cnsym);
+
+    //ulam5 offers inheritance of multiple classes
+    Token rTok;
+    getNextToken(rTok);
+
+    while(rTok.m_type == TOK_PLUS)
+      {
+	rtninherits = parseRestOfMultiClassInheritance(cnsym);
+	getNextToken(rTok);
+      }
+
+    unreadToken();
+    return rtninherits;
+  } //parseMultipleClassInheritances
+
+  bool Parser::parseRestOfMultiClassInheritance(SymbolClassName * cnsym)
+  {
+    bool rtninherits = false;
+    assert(cnsym);
+    //inheritance
+    Token iTok;
+    getNextToken(iTok);
+    if(iTok.m_type == TOK_TYPE_IDENTIFIER)
+      {
+	TypeArgs typeargs;
+	typeargs.init(iTok);
+
+	m_state.m_parsingVariableSymbolTypeFlag = STF_CLASSINHERITANCE;
+
+	bool isaclass = true;
+	UTI baseuti = parseClassArguments(typeargs, isaclass);
+	if(baseuti != Nav)
+	  {
+	    u32 baseid = m_state.getUlamTypeNameIdByIndex(baseuti);
+
+	    UTI instance = cnsym->getUlamTypeIdx();
+	    u32 instanceid = m_state.getUlamTypeNameIdByIndex(instance);
+
+	    if(baseid == instanceid)
+	      {
+		std::ostringstream msg;
+		msg << "Class Definition '";
+		msg << m_state.getUlamTypeNameBriefByIndex(instance).c_str(); //t3900, t3901
+		msg << "'; Provides an invalid Class '";
+		msg << m_state.getTokenDataAsString(iTok).c_str() << "'";
+		MSG(&iTok, msg.str().c_str(), ERR);
+	      }
+	    else
+	      {
+		cnsym->appendBaseClassForClassInstance(baseuti, instance); //set here!!
+		SymbolClass * basecsym = NULL;
+		AssertBool isDefined = m_state.alreadyDefinedSymbolClass(baseuti, basecsym);
+		assert(isDefined);
+		rtninherits = true;
+	      }
+	  }
+	m_state.m_parsingVariableSymbolTypeFlag = STF_NEEDSATYPE; //reset
+      }
+    else
+      {
+	std::ostringstream msg;
+	msg << "Class Definition '";
+	msg << m_state.getUlamTypeNameBriefByIndex(cnsym->getUlamTypeIdx()).c_str(); //t3786
+	msg << "'; Provides an invalid Class identifier '";
+	msg << m_state.getTokenDataAsString(iTok).c_str() << "'";
+	MSG(&iTok, msg.str().c_str(), ERR);
+      }
+    return rtninherits;
+  } //parseRestOfMultiClassInheritance
 
   bool Parser::parseLocalDef()
   {

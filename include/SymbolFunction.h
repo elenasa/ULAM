@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * SymbolFunction.h -  Function Symbol handling for ULAM
  *
- * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2017 Ackleyshack LLC.
+ * Copyright (C) 2014-2019 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2019 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file SymbolFunction.h -  Function Symbol handling for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2017   All rights reserved.
+  \date (C) 2014-2019   All rights reserved.
   \gpl
 */
 
@@ -41,6 +41,7 @@
 #include "Symbol.h"
 #include "UlamTypeClass.h"
 #include "Node.h"
+#include "FunctionSignatureTable.h"
 
 namespace MFM{
 
@@ -73,7 +74,7 @@ namespace MFM{
     virtual const std::string getMangledPrefix();
 
     const std::string getFunctionNameWithTypes();
-    const std::string getMangledNameWithTypes();
+    const std::string getMangledNameWithTypes(bool dereftypes = false);
     const std::string getMangledNameWithUTIparameters();
 
     bool checkParameterTypes();
@@ -81,6 +82,8 @@ namespace MFM{
     bool matchingTypesStrictly(std::vector<Node *> argNodes, bool& hasHazyArgs);
     bool matchingTypesStrictly(std::vector<UTI> argTypes, bool& hasHazyArgs);
     bool matchingTypes(std::vector<Node *> argNodes, bool& hasHazyArgs, u32& numUTmatch);
+
+    bool checkFunctionSignatureTable(FSTable & fst);
 
     u32 isNativeFunctionDeclaration();
 
@@ -122,6 +125,7 @@ namespace MFM{
     bool m_definedinaQuark;
     void generateFunctionDeclarationVirtualTypedef(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
 
+    void initFSEntry(FSEntry& entry);
   };
 
 }

@@ -87,6 +87,127 @@ namespace MFM {
     return getNodeType();
   } //checkAndLabelType
 
+
+  bool NodeTypeDescriptorSelect::resolveType(UTI& rtnuti)
+  {
+    bool rtnb = false;
+    if(isReadyType())
+      {
+	rtnuti = getNodeType();
+	return true;
+      }
+
+    // we are in a "chain" of type selects..
+    assert(m_nodeSelect);
+
+    UTI seluti = m_nodeSelect->checkAndLabelType();
+    if(m_nodeSelect->isReadyType())
+      {
+	UlamType * selut = m_state.getUlamTypeByIndex(seluti);
+	ULAMTYPE seletyp = selut->getUlamTypeEnum();
+	if(seletyp == Class)
+	  {
+	    // find our id in the "selected" class, must be a typedef (t3267)
+	    Symbol * asymptr = NULL;
+	    bool hazyKin = false;
+	    if(m_state.alreadyDefinedSymbolByAClassOrAncestor(seluti, m_typeTok.m_dataindex, asymptr, hazyKin) && !hazyKin)
+	      {
+		if(asymptr->isTypedef())
+		  {
+		    UTI auti = asymptr->getUlamTypeIdx();
+		    if(m_state.isComplete(auti))
+		      {
+			rtnuti = auti; //should be mapped already, if necessary
+			rtnb = true;
+		      }
+		    else //t3862
+		      {
+			UTI mappedUTI;
+			if(m_state.mappedIncompleteUTI(seluti, auti, mappedUTI))
+			  {
+			    std::ostringstream msg;
+			    msg << "Substituting Mapped UTI" << mappedUTI << ", ";
+			    msg << m_state.getUlamTypeNameBriefByIndex(mappedUTI).c_str();
+			    msg << " for incomplete descriptor type: '";
+			    msg << m_state.getUlamTypeNameByIndex(auti).c_str();
+			    msg << "' UTI" << auti << " while labeling class: ";
+			    msg << m_state.getUlamTypeNameBriefByIndex(seluti).c_str();
+			    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+			    rtnuti = mappedUTI;
+			    rtnb = true;
+			  }
+			else
+			  rtnuti = Hzy;
+		      }
+
+		    if(rtnb)
+		      {
+			if(m_state.hasUnknownTypeInThisClassResolver(auti))
+			  {
+			    m_state.removeKnownTypeTokenFromThisClassResolver(auti);
+			    m_state.cleanupExistingHolder(auti, rtnuti);
+			  }
+			else if(m_state.isHolder(rtnuti))
+			  {
+			    rtnuti = Hzy; //not so fast!!
+			    rtnb = false;
+			  }
+		      }
+		  }
+		else
+		  {
+		    //error id is not a typedef
+		    std::ostringstream msg;
+		    msg << "Not a typedef <" << m_state.getTokenDataAsString(m_typeTok).c_str();
+		    msg << "> in another class, " ;;
+		    msg << m_state.getUlamTypeNameBriefByIndex(seluti).c_str();
+		    msg <<" while compiling: ";
+		    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+		    rtnuti = Nav; //?
+		  }
+	      }
+	    else
+	      {
+		//error! id not found
+		std::ostringstream msg;
+		msg << "Undefined Typedef <" << m_state.getTokenDataAsString(m_typeTok).c_str();
+		msg << "> in another class, " ;;
+		msg << m_state.getUlamTypeNameByIndex(seluti).c_str();
+		msg <<" while compiling: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+		if(!hazyKin)
+		  {
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //new
+		    rtnuti = Nav;
+		  }
+		else
+		  {
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		    rtnuti = Hzy;
+		  }
+	      }
+	  }
+	else
+	  {
+	    //error has to be a class
+	    std::ostringstream msg;
+	    msg << "Type selected by <" << m_state.getTokenDataAsString(m_typeTok).c_str();
+	    msg << "> is NOT another class, " ;
+	    msg << m_state.getUlamTypeNameBriefByIndex(seluti).c_str();
+	    msg << ", rather a " << UlamType::getUlamTypeEnumAsString(seletyp) << " type,";
+	    msg <<" while compiling: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    rtnuti = Nav;
+	  }
+      }
+    else
+      rtnuti = Hzy; //else select not ready, so neither are we!!
+    return rtnb;
+  } //resolveType
+
+#if 0
   bool NodeTypeDescriptorSelect::resolveType(UTI& rtnuti)
   {
     bool rtnb = false;
@@ -152,7 +273,7 @@ namespace MFM {
 				//error id is not a typedef
 				std::ostringstream msg;
 				msg << "Not a typedef <" << m_state.getTokenDataAsString(m_typeTok).c_str();
-				msg << "> in another class ancester, " ;;
+				msg << "> in another class ancestor, " ;;
 				msg << m_state.getUlamTypeNameBriefByIndex(seluti).c_str();
 				msg <<" while compiling: ";
 				msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
@@ -235,6 +356,7 @@ namespace MFM {
       rtnuti = Hzy; //else select not ready, so neither are we!!
     return rtnb;
   } //resolveType
+#endif
 
   void NodeTypeDescriptorSelect::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
   {

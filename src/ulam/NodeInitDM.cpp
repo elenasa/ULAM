@@ -357,7 +357,8 @@ namespace MFM {
 
     Symbol * asymptr = NULL;
     bool hazyKin = false;
-    if(m_state.findSymbolInAClass(m_cid, m_ofClassUTI, asymptr, hazyKin))
+    if(m_state.findSymbolInAClass(m_cid, m_ofClassUTI, asymptr, hazyKin)) //searches hierarchy (e.g. t41182)
+    //if(m_state.alreadyDefinedSymbolByAClassOrAncestor(m_ofClassUTI, m_cid, asymptr, hazyKin))
       {
 	assert(asymptr);
 	UTI auti = asymptr->getUlamTypeIdx();

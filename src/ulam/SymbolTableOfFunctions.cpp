@@ -45,7 +45,7 @@ namespace MFM {
   } //addClassMemberFunctionDescriptionsToMap
 
   //convert UTI to mangled strings to insure overload uniqueness
-  void SymbolTableOfFunctions::checkTableOfFunctions(std::map<std::string, UTI>& mangledFunctionMap, u32& probcount)
+  void SymbolTableOfFunctions::checkTableOfFunctions(FSTable& mangledFunctionMap, u32& probcount)
   {
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
     while(it != m_idToSymbolPtr.end())
@@ -60,7 +60,7 @@ namespace MFM {
     return;
   } //checkTableOfFunctions
 
-  void SymbolTableOfFunctions::checkTableOfFunctionsInAncestor(std::map<std::string, UTI>& mangledFunctionMap, u32& probcount)
+  void SymbolTableOfFunctions::checkTableOfFunctionsSignatureReturnTypes(FSTable& mangledFunctionMap, u32& probcount)
   {
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
     while(it != m_idToSymbolPtr.end())
@@ -68,12 +68,12 @@ namespace MFM {
 	Symbol * sym = it->second;
 	if(sym->isFunction())
 	  {
-	    ((SymbolFunctionName *) sym)->checkFunctionNamesInAncestor(mangledFunctionMap, probcount);
+	    ((SymbolFunctionName *) sym)->checkFunctionSignatureReturnTypes(mangledFunctionMap, probcount);
 	  }
 	it++;
       }
     return;
-  } //checkTableOfFunctionsInAncestor
+  } //checkTableOfFunctionsSignatureReturnTypes
 
   void SymbolTableOfFunctions::linkToParentNodesAcrossTableOfFunctions(NodeBlockClass * p)
   {
@@ -180,19 +180,49 @@ namespace MFM {
   void SymbolTableOfFunctions::calcMaxIndexForVirtualTableOfFunctions(s32& maxidx)
   {
     UTI cuti = m_state.getCompileThisIdx();
-    UTI superuti = m_state.isClassASubclass(cuti);
+    u32 accummaxes = 0;
+    bool uninitbases = false;
 
-    if(m_idToSymbolPtr.empty() && (superuti == Nouti))
-      {
-	assert(maxidx <= 0);
-    	maxidx = 0; //use zero when empty
-      }
+    std::set<UTI> seenset;
+    std::queue<UTI> basesqueue;
+    std::pair<std::set<UTI>::iterator,bool> ret;
 
     //initialize this classes VTable to super classes' VTable, or empty
     // some entries may be modified; or table may expand
     SymbolClass * csym = NULL;
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cuti, csym);
     assert(isDefined);
+
+    // get ancestors accumulated max index (no recursion)
+    u32 basecount = csym->getBaseClassCount() + 1; //include super
+    for(u32 i = 0; i < basecount; i++)
+      {
+	UTI baseuti = csym->getBaseClass(i);
+	SymbolClass * basecsym = NULL;
+	if(m_state.alreadyDefinedSymbolClass(baseuti, basecsym))
+	  {
+	    s32 mymax = basecsym->getVTableSize();
+	    if(mymax == UNKNOWNSIZE)
+	      uninitbases = true;
+	    else
+	      accummaxes += mymax;
+	  }
+      } //end for
+
+    if(uninitbases)
+      {
+	maxidx = UNKNOWNSIZE;
+	return;
+      }
+
+    if(m_idToSymbolPtr.empty() && (accummaxes == 0))
+      {
+	assert(maxidx <= 0);
+    	maxidx = 0; //use zero when empty
+      }
+    else
+      maxidx = accummaxes;
+
     csym->initVTable(maxidx);
 
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();

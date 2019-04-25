@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * SymbolFunctionName.h -  Function Symbol Name handling for ULAM
  *
- * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2017 Ackleyshack LLC.
+ * Copyright (C) 2014-2019 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2019 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file SymbolFunctionName.h -  Function Symbol Name handling for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2017   All rights reserved.
+  \date (C) 2014-2019   All rights reserved.
   \gpl
 */
 
@@ -75,11 +75,12 @@ namespace MFM{
 
     u32 findMatchingFunction(std::vector<Node*> argNodes, SymbolFunction *& funcSymbol, bool& hasHazyArgs);
 
-    u32 findMatchingFunctionWithSafeCasts(std::vector<Node*> argNodes, SymbolFunction *& funcSymbol, bool& hasHazyArgs);
+    u32 findMatchingFunctionWithSafeCasts(std::vector<Node*> argNodes, SymbolFunction *& funcSymbol, bool& hasHazyArgs, FSTable& fstableref);
 
-    u32 findMatchingFunctionWithSafeCastsInAncestors(std::vector<Node*> argNodes, SymbolFunction *& funcSymbol, bool& hasHazyArgs);
+    //u32 findMatchingFunctionWithSafeCastsInAncestors(std::vector<Node*> argNodes, SymbolFunction *& funcSymbol, bool& hasHazyArgs);
+    //u32 findMatchingFunctionWithSafeCastsInAClassScopeOrAncestors(UTI cuti, std::vector<Node*> argNodes, SymbolFunction *& funcSymbol, bool& hasHazyArgs);
 
-    void noteAmbiguousFunctionSignatures(std::vector<Node *> argNodes, u32 numMatchesFound);
+    u32 noteAmbiguousFunctionSignatures(std::vector<Node *> argNodes, u32 counter, u32 numMatchesFound);
 
     u32 getDepthSumOfFunctions();
 
@@ -91,9 +92,10 @@ namespace MFM{
 
     void checkAbstractInstanceErrorsInFunctions();
 
-    void checkFunctionNames(std::map<std::string, UTI>& mangledFunctionMap, u32& probcount);
+    void checkFunctionNames(FSTable& mangledFunctionMap, u32& probcount);
 
-    void checkFunctionNamesInAncestor(std::map<std::string, UTI>& mangledFunctionMap, u32& probcount);
+    void checkFunctionSignatureReturnTypes(FSTable& mangledFunctionMap, u32& probcount);
+    //void checkFunctionNamesInAncestor(std::map<std::string, UTI>& mangledFunctionMap, u32& probcount);
 
     u32 checkCustomArrayGetFunctions(UTI& rtnType);
 
@@ -126,7 +128,7 @@ namespace MFM{
     std::map<std::string, SymbolFunction *> m_mangledFunctionNames; //mangled func name -> symbol function ptr
 
     bool isDefined(std::string mangledFName, SymbolFunction * & foundSym);
-    bool checkForDuplicateFunctionSignature(std::map<std::string, UTI>& mangledFunctionMap, u32& probcount, SymbolFunction * fsym);
+    bool checkForDuplicateFunctionSignature(FSTable& mangledFunctionMap, u32& probcount, SymbolFunction * fsym);
   };
 
 }

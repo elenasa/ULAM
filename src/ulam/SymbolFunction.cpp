@@ -146,7 +146,7 @@ namespace MFM {
   } //getFunctionNameWithTypes
 
   //supports overloading functions with SymbolFunctionName
-  const std::string SymbolFunction::getMangledNameWithTypes()
+  const std::string SymbolFunction::getMangledNameWithTypes(bool dereftypes)
   {
     std::ostringstream mangled;
     mangled << Symbol::getMangledName(); //e.g. Uf_14name, with lexNumbers
@@ -162,9 +162,11 @@ namespace MFM {
       {
 	Symbol * sym = m_parameterSymbols[i];
 	UTI suti = sym->getUlamTypeIdx();
+	if(dereftypes)
+	  suti = m_state.getUlamTypeAsDeref(suti);
 	UlamType * sut = m_state.getUlamTypeByIndex(suti);
 
-	// dropping Uprefix:
+	// dropping Uprefix; references have "r";
 	mangled << sut->getUlamTypeMangledType().c_str();
 
 	//append args' types and values or '10' is none
@@ -174,7 +176,7 @@ namespace MFM {
 
 	    SymbolClassName * cnsym = (SymbolClassName *) m_state.m_programDefST.getSymbolPtr(keyOfArgType.getUlamKeyTypeSignatureNameId());
 	    assert(cnsym);
-	    mangled << cnsym->formatAnInstancesArgValuesAsAString(suti);
+	    mangled << cnsym->formatAnInstancesArgValuesAsAString(suti, dereftypes);
 	  }
       }
     return mangled.str();
@@ -231,9 +233,12 @@ namespace MFM {
 	if(!m_state.okUTItoContinue(puti) || !m_state.isComplete(puti))
 	  hasHazyArgs = true;
 	UTI auti = argTypes[i];
-	if(UlamType::compareForArgumentMatching(puti, auti, m_state) != UTIC_SAME)
+	ULAMTYPECOMPARERESULTS utic = UlamType::compareForArgumentMatching(puti, auti, m_state);
+	if( utic != UTIC_SAME)
 	  {
 	    rtnBool = false;
+	    if(utic == UTIC_DONTKNOW)
+	      hasHazyArgs = true;
 	    break;
 	  }
       } //next param
@@ -335,6 +340,68 @@ namespace MFM {
       } //next param
     return rtnBool;
   } //matchingTypes
+
+  bool SymbolFunction::checkFunctionSignatureTable(FSTable & fst)
+  {
+    bool dupfound = false;
+    UTI futi = getUlamTypeIdx();
+    std::string fskey = getMangledNameWithTypes();
+    if(fst.empty())
+      {
+	//add new entry
+	FSEntry myfsentry;
+	initFSEntry(myfsentry);
+	fst.insert(std::pair<std::string, FSEntry> (fskey, myfsentry));
+	return false; //short-circuit to avoid invalid values
+      }
+
+    FSTable::iterator it = fst.find(fskey);
+    if(it != fst.end())
+      {
+	//found matching entry
+	FSEntry & fsentry = it->second;
+	if(!fsentry.m_isVirtual)
+	  {
+	    fsentry.m_hasProblem = true; //??
+	    fsentry.m_matchesFound++;
+	    dupfound = true;
+	  }
+	//else skip if virtual, ok
+	//check return types too?
+	if(UlamType::compare(fsentry.m_rtnType, futi, m_state) == UTIC_NOTSAME) //NEVER LEGAL!
+	  fsentry.m_hasProblem = true;
+      }
+    else
+      {
+	//what if reference type arg? gcc says same signature. ???
+	std::string dereffskey = getMangledNameWithTypes(true);
+	FSTable::iterator it2 = fst.find(dereffskey);
+
+	if(it2 != fst.end())
+	  {
+	    //found matching entry, references wild  (t41132)
+	    FSEntry & fsentry2 = it2->second;
+	    if(!fsentry2.m_isVirtual)
+	      {
+		fsentry2.m_hasProblem = true; //??
+		fsentry2.m_matchesFound++;
+		dupfound = true;
+	      }
+	    //else skip if virtual, ok
+	    //check return types too?
+	    if(UlamType::compare(fsentry2.m_rtnType, futi, m_state) == UTIC_NOTSAME) //NEVER LEGAL!
+	      fsentry2.m_hasProblem = true;
+	  }
+	else
+	  {
+	    //add new entry
+	    FSEntry myfsentry;
+	    initFSEntry(myfsentry);
+	    fst.insert(std::pair<std::string, FSEntry> (fskey, myfsentry));
+	  }
+      }
+    return dupfound;
+  } //checkFunctionSignatureTable
 
   u32 SymbolFunction::isNativeFunctionDeclaration()
   {
@@ -610,5 +677,14 @@ namespace MFM {
 
     return sig.str();
   } //generateUlamFunctionSignature
+
+  void SymbolFunction::initFSEntry(FSEntry& entry)
+  {
+    entry.m_rtnType = getUlamTypeIdx();
+    entry.m_ofClassUTI = getDataMemberClass();
+    entry.m_isVirtual = isVirtualFunction();
+    entry.m_hasProblem = false;
+    entry.m_matchesFound = 1;
+  }
 
 } //end MFM

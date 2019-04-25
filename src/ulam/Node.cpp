@@ -2674,7 +2674,7 @@ namespace MFM {
 
     Symbol * fnsymptr = NULL;
     bool hazyKin = false;
-    AssertBool isDefinedFunc = m_state.isFuncIdInAClassScope(cosuti, m_state.getCustomArrayGetFunctionNameId(),fnsymptr, hazyKin); //searches class of cos
+    AssertBool isDefinedFunc = m_state.isFuncIdInAClassScopeOrAncestor(cosuti, m_state.getCustomArrayGetFunctionNameId(),fnsymptr, hazyKin); //searches class of cos, and hierarchy
     assert(isDefinedFunc);
     assert(!hazyKin);
 
@@ -3024,7 +3024,7 @@ namespace MFM {
 
     Symbol * fnsymptr = NULL;
     bool hazyKin = false;
-    AssertBool isDefinedFunc = m_state.isFuncIdInAClassScope(cosuti, m_state.getCustomArrayGetFunctionNameId(),fnsymptr, hazyKin); //searches class of cos
+    AssertBool isDefinedFunc = m_state.isFuncIdInAClassScopeOrAncestor(cosuti, m_state.getCustomArrayGetFunctionNameId(),fnsymptr, hazyKin); //searches class of cos, and hierarchy
     assert(isDefinedFunc);
     assert(!hazyKin);
 
