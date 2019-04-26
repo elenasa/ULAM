@@ -148,9 +148,6 @@ namespace MFM {
 			u32 cid = csym->getId();
 			AssertBool isDefined = m_state.alreadyDefinedSymbolClassName(cid, cnsym);
 			assert(isDefined);
-			//aok = m_state.isHolder(cnsym->getUlamTypeIdx()) ? false : true;
-			//aok &= m_state.isScalar(mappedUTI);
-			//if(aok) huti = mappedUTI; //wipe out holder type (t3806)
 		      }
 
 		    kuti = mappedUTI; //t3862

@@ -95,7 +95,6 @@ namespace MFM{
     void checkFunctionNames(FSTable& mangledFunctionMap, u32& probcount);
 
     void checkFunctionSignatureReturnTypes(FSTable& mangledFunctionMap, u32& probcount);
-    //void checkFunctionNamesInAncestor(std::map<std::string, UTI>& mangledFunctionMap, u32& probcount);
 
     u32 checkCustomArrayGetFunctions(UTI& rtnType);
 

@@ -1435,7 +1435,6 @@ namespace MFM {
   {
     if(initialmax == UNKNOWNSIZE) return; //nothing to initialize
     assert(initialmax >= 0);
-    //if((u32) initialmax == m_vtable.size()) return; //not first time here
     if(m_vtableinitialized) return; //been here before
 
     u32 basesmaxes = 0;

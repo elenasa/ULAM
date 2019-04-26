@@ -101,22 +101,9 @@ namespace MFM {
     //may need to negate the opposite comparison, if this one isn't defined (t41109)
     UTI luti = m_nodeLeft->getNodeType();
 
-    //SymbolClass * csym = NULL;
-    //AssertBool isDefined = m_state.alreadyDefinedSymbolClass(luti, csym);
-    //assert(isDefined);
-
-    //NodeBlockClass * memberClassNode = csym->getClassBlockNode();
-    //assert(memberClassNode);  //e.g. forgot the closing brace on quark definition
-
-    //assert(m_state.okUTItoContinue(memberClassNode->getNodeType()));
-
-   //set up compiler state to use the member class block for symbol searches
-    //m_state.pushClassContextUsingMemberClassBlock(memberClassNode);
-
     Symbol * fnsymptr = NULL;
     bool hazyKin = false; //unused
     bool useInverseOp = false;
-    //if(!m_state.isFuncIdInClassScope(opolId, fnsymptr, hazyKin))
     if(!m_state.isFuncIdInAClassScopeOrAncestor(luti, opolId, fnsymptr, hazyKin))
       {
 	//try inverse!
@@ -129,7 +116,7 @@ namespace MFM {
 	opolId = Token::getOperatorOverloadFullNameId(opTok, &m_state);
 	assert(opolId != 0);
 	hazyKin = false;
-	//if(!m_state.isFuncIdInClassScope(opolId, fnsymptr, hazyKin))
+
 	if(!m_state.isFuncIdInAClassScopeOrAncestor(luti, opolId, fnsymptr, hazyKin))
 	  {
 	    std::ostringstream msg;
@@ -138,7 +125,6 @@ namespace MFM {
 	    msg << "> are not supported as operand for class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    //m_state.popClassContext(); (oops, was missing!)
 	    return NULL;
 	  }
 	else //continue with a bang
@@ -153,9 +139,6 @@ namespace MFM {
 	  }
       }
     //else continue without a bang
-
-    //clear up compiler state to no longer use the member class block for symbol searches
-    //m_state.popClassContext();
 
     identTok.init(TOK_IDENTIFIER, getNodeLocation(), opolId);
 

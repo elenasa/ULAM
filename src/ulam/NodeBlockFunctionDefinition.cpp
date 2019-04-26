@@ -241,7 +241,7 @@ namespace MFM {
     u32 selfid = m_state.m_pool.getIndexForDataString("self");
     Symbol * selfsym = NULL;
     bool hazyKin = false; //return is always false?
-    AssertBool isDefined = m_state.alreadyDefinedSymbol(selfid, selfsym, hazyKin) && !hazyKin;
+    AssertBool isDefined = m_state.alreadyDefinedSymbolHere(selfid, selfsym, hazyKin) && !hazyKin;
     assert(isDefined);
     s32 newslot = -2 - m_state.slotsNeeded(getNodeType()); //2nd hidden arg
     ((SymbolVariable *) selfsym)->setStackFrameSlotIndex(newslot);

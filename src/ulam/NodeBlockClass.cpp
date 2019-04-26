@@ -989,60 +989,10 @@ void NodeBlockClass::checkTestFunctionReturnType()
       {
 	//first check own table for duplicate function definitions
 	//populate map, updates probcount, output errors
-	//checkMatchingFunctionsInClassAndAncestors(mangledFunctionMapWithReturnType, probcount);
-	//checkMatchingFunctions(mangledFunctionMapWithReturnType, probcount); //t41302
-	m_functionST.checkTableOfFunctionsSignatureReturnTypes(mangledFunctionMap, probcount); //populate map, update probcount, output errors
+	m_functionST.checkTableOfFunctionsSignatureReturnTypes(mangledFunctionMap, probcount);
       }
     return probcount;
   } //checkDuplicateFunctions
-
-#if 0
-  void NodeBlockClass::checkMatchingFunctionsInClassAndAncestors(FSTable& mangledFunctionMap, u32& probcount)
-  {
-    // check all the function names for matches, okay if return type the same (regardless if virtual)
-    if(!isEmpty())
-      {
-	std::set<UTI> seenset;
-	std::queue<UTI> basesqueue;
-	std::pair<std::set<UTI>::iterator,bool> ret;
-
-	UTI nuti = getNodeType();
-	basesqueue.push(nuti); //init
-
-	while(!basesqueue.empty())
-	  {
-	    UTI baseuti = basesqueue.front();
-	    basesqueue.pop(); //remove from front of queue
-	    ret = seenset.insert(baseuti);
-	    if (ret.second==false)
-	      continue; //already seen, try next one..
-
-	    SymbolClass * basecsym = NULL;
-	    if(m_state.alreadyDefinedSymbolClass(baseuti, basecsym))
-	      {
-		NodeBlockClass * basecblock = basecsym->getClassBlockNode();
-		assert(basecblock);
-
-		//m_state.pushClassContext(baseuti, basecblock, basecblock, false, NULL);
-		basecblock->checkMatchingFunctions(mangledFunctionMap, probcount);
-
-		//m_state.popClassContext(); //restore
-
-		u32 basecount = basecsym->getBaseClassCount() + 1; //include a super
-		for(u32 i = 0; i < basecount; i++)
-		  basesqueue.push(basecsym->getBaseClass(i)); //extends queue with next level of base UTIs
-	      }
-	  } //end while
-      }
-  } //checkMatchingFunctionsInClassAndAncestors
-
-  //void NodeBlockClass::checkMatchingFunctions(std::map<std::string, UTI>& mangledFunctionMap, u32& probcount)
-  void NodeBlockClass::checkMatchingFunctions(FSTable& mangledFunctionMap, u32& probcount)
-  {
-    //checkTableOfFunctionsInAncestor is without error message
-    m_functionST.checkTableOfFunctions(mangledFunctionMap, probcount); //populate map, update probcount, output errors
-  }
-#endif
 
   void NodeBlockClass::checkMatchingFunctions()
   {
@@ -1055,7 +1005,8 @@ void NodeBlockClass::checkTestFunctionReturnType()
 
 	//checkTableOfFunctionsInAncestor is without error message
 	//In this class, not ancestors..tricky as to what's allowed per c++.
-	m_functionST.checkTableOfFunctions(mangledFunctionMap, probcount); //populate map, update probcount, output errors
+	//populate map, update probcount, output errors
+	m_functionST.checkTableOfFunctions(mangledFunctionMap, probcount);
 	mangledFunctionMap.clear();
       }
   } //checkMatchingFunctions

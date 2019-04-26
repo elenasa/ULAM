@@ -297,9 +297,16 @@ namespace MFM{
     /** return true and the Symbol pointer in 2nd arg if found;
 	search SymbolTables LIFO order; o.w. return false
     */
+    bool alreadyDefinedSymbol(u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
     bool alreadyDefinedSymbolByAncestorOf(UTI cuti, u32 dataindex, Symbol *& symptr, bool& hasHazyKin);
     bool alreadyDefinedSymbolByAClassOrAncestor(UTI cuti, u32 dataindex, Symbol *& symptr, bool& hasHazyKin);
-    bool alreadyDefinedSymbol(u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
+
+    /** searches linked blocks (e.g. within a function), then data
+	members of current class (including local filescope), and
+	finally, other function names; as of ulam-5 ancestors are not
+	included (see alreadyDefinedSymbol).
+    */
+    bool alreadyDefinedSymbolHere(u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
     bool isDataMemberIdInClassScope(u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
     bool isIdInLocalFileScope(u32 id, Symbol *& symptr);
 
@@ -326,9 +333,6 @@ namespace MFM{
     void replaceSymbolInCurrentScope(u32 oldid, Symbol * symptr); //same symbol, new id
     void replaceSymbolInCurrentScope(Symbol * oldsym, Symbol * newsym); //same id, new symbol
     bool takeSymbolFromCurrentScope(u32 id, Symbol *& rtnsymptr); //ownership to the caller
-
-    /** does a member class search for id */
-    bool findSymbolInAClass(u32 id, UTI inClassUTI, Symbol *& rtnsymptr, bool& isHazy);
 
     /** does breadth-first search for ancestor in a base class (ulam-5) */
     bool findNearestBaseClassToAnAncestor(UTI cuti, UTI auti, UTI& foundInBase);

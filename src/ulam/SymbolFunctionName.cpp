@@ -159,8 +159,7 @@ namespace MFM {
       {
 	// give priority to safe matches that have same ULAMTYPEs too
 	// e.g. Unsigned(3) arg would safely cast to Int(4), Int(5), and Unsigned param;
-	//      this is ambiguous! but only one is the same Enum; so let's
-	//      call it the winner.
+	// this is ambiguous! but only one is the same Enum; so let's call it the winner.
 	SymbolFunction * funcSymbolMatchingUTArgs = NULL;
 	u32 numFuncsWithAllSameUTArgs = 0;
 	u32 numArgs = argNodes.size();
@@ -196,45 +195,8 @@ namespace MFM {
 	      }
 	  }
       } //2nd try
-
-    //3rd try: check any super class, unless hazyargs (causes inf loop)
-    //if(!hasHazyArgs && matchingFuncCount == 0)
-    //return findMatchingFunctionWithSafeCastsInAncestors(argNodes, funcSymbol, hasHazyArgs);
-
     return matchingFuncCount;
   } //findMatchingFunctionWithSafeCasts
-
-#if 0
-  u32 SymbolFunctionName::findMatchingFunctionWithSafeCastsInAncestors(std::vector<Node *> argNodes, SymbolFunction *& funcSymbol, bool& hasHazyArgs)
-  {
-    Symbol * fnsym = NULL;
-    UTI cuti = m_state.findAClassByNodeNo(getBlockNoOfST());
-    assert(cuti != Nouti);
-    //    UTI supercuti = m_state.isClassASubclass(cuti);
-    //if(supercuti != Nouti){
-
-    if(m_state.isFuncIdInAClassScopeOrAncestor(cuti, getId(), fnsym, hasHazyArgs) && !hasHazyArgs)
-      return ((SymbolFunctionName *) fnsym)->findMatchingFunctionWithSafeCasts(argNodes, funcSymbol, hasHazyArgs); //recurse ancestors
-
-    return 0;
-  } //findMatchingFunctionWithSafeCastsInAncestors
-#endif
-
-#if 0
-  u32 SymbolFunctionName::findMatchingFunctionWithSafeCastsInAClassScopeOrAncestors(UTI cuti, std::vector<Node *> argNodes, SymbolFunction *& funcSymbol, bool& hasHazyArgs)
-  {
-    Symbol * fnsym = NULL;
-    //UTI cuti = m_state.findAClassByNodeNo(getBlockNoOfST());
-    //assert(cuti != Nouti);
-    //    UTI supercuti = m_state.isClassASubclass(cuti);
-    //if(supercuti != Nouti){
-
-    if(m_state.isFuncIdInAClassScopeOrAncestor(cuti, getId(), fnsym, hasHazyArgs) && !hasHazyArgs)
-      return ((SymbolFunctionName *) fnsym)->findMatchingFunctionWithSafeCasts(argNodes, funcSymbol, hasHazyArgs); //recurse ancestors
-
-    return 0;
-  } //findMatchingFunctionWithSafeCastsInAClassScopeOrAncestors
-#endif
 
   u32 SymbolFunctionName::noteAmbiguousFunctionSignatures(std::vector<Node *> argNodes, u32 counter, u32 numMatchesFound)
   {
@@ -457,22 +419,6 @@ namespace MFM {
     return;
   } //checkFunctionNames
 
-#if 0
-  void SymbolFunctionName::checkFunctionNamesInAncestor(std::map<std::string, UTI>& mangledFunctionMap, u32& probcount)
-  {
-    std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
-    while(it != m_mangledFunctionNames.end())
-      {
-	SymbolFunction * fsym = it->second;
-	assert(fsym);
-	//only a problem if same signature but different return types; virtual or not.
-	checkForDuplicateFunctionSignature(mangledFunctionMap, probcount, fsym);
-	++it;
-      }
-    return;
-  } //checkFunctionNamesInAncestors
-#endif
-
   void SymbolFunctionName::checkFunctionSignatureReturnTypes(FSTable& mangledFunctionMap, u32& probcount)
   {
     std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
@@ -516,11 +462,6 @@ namespace MFM {
 	    func->setNodeType(Nav); //compiler counts
 	    probcount++;
 	    fsentry.m_hasProblem = true;
-	    //same key, won't insert!!
-	    //mangledFunctionMap.insert(std::pair<std::string, UTI> (fmangled, futi));
-	    //FSEntry myfsentry = fsentry; //default struct assignment
-	    //fsentry.m_rtnType = futi;
-	    //mangledFunctionMap.insert(std::pair<std::string, FSEntry> (fmangled, myfsentry));
 	  }
 	//else already in map, dup
       }

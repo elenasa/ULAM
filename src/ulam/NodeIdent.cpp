@@ -223,17 +223,17 @@ namespace MFM {
 	if(m_state.useMemberBlock())
 	  {
 	    m_state.pushCurrentBlock(currBlock); //e.g. memberselect needed for already defined
-	    cuti = m_state.getCurrentMemberClassBlock()->getNodeType();
+	    NodeBlockClass * memberblock = m_state.getCurrentMemberClassBlock();
+	    assert(memberblock);
+	    cuti = memberblock->getNodeType();
 	  }
 	else
 	  m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
 
 	Symbol * asymptr = NULL;
 	bool hazyKin = false;
-	bool hazyVars =false;
-	// must capture symbol ptr even if part of incomplete chain to do any necessary surgery (e.g. stub class args t3526, t3525, inherited dm t3408), wait if hazyKin (t3572);
-	//if(m_state.alreadyDefinedSymbol(m_token.m_dataindex, asymptr, hazyKin))
-	if((m_state.alreadyDefinedSymbol(m_token.m_dataindex, asymptr, hazyVars) || m_state.alreadyDefinedSymbolByAncestorOf(cuti, m_token.m_dataindex, asymptr, hazyKin)) && !hazyKin)
+	// must capture symbol ptr even if part of incomplete chain to do any necessary surgery (e.g. stub class args t3526, t3525, inherited dm t3408), wait if hazyKin (t3572)?;
+	if(m_state.alreadyDefinedSymbol(m_token.m_dataindex, asymptr, hazyKin))
 	  {
 	    if(!asymptr->isFunction() && !asymptr->isTypedef() && !asymptr->isConstant() && !asymptr->isModelParameter())
 	      {
@@ -318,7 +318,6 @@ namespace MFM {
 	    m_state.popClassContext(); //restore
 	  }
       } //lookup symbol done
-    //else if(m_varSymbol->isConstant())
     else if(m_varSymbol->isConstant() && !m_state.isConstantRefType(m_varSymbol->getUlamTypeIdx()))
       {
 	UTI vuti = m_varSymbol->getUlamTypeIdx();
@@ -585,7 +584,6 @@ namespace MFM {
 
     //the first reason for ALT_CONSTREF when called from evalArgumentsInReverseOrder
     // allow constant classes (t41198)
-    //if((stor != TBOOL_TRUE) && (alt != ALT_CONSTREF) && (etyp != Class)) //i.e. an MP
     if((stor != TBOOL_TRUE) && !m_state.isConstantRefType(nuti)) //i.e. an MP
       {
 	if(m_varSymbol->isDataMember() || !((SymbolVariableStack *) m_varSymbol)->isConstantFunctionParameter())

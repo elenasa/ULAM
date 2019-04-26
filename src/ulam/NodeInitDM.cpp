@@ -357,8 +357,7 @@ namespace MFM {
 
     Symbol * asymptr = NULL;
     bool hazyKin = false;
-    if(m_state.findSymbolInAClass(m_cid, m_ofClassUTI, asymptr, hazyKin)) //searches hierarchy (e.g. t41182)
-    //if(m_state.alreadyDefinedSymbolByAClassOrAncestor(m_ofClassUTI, m_cid, asymptr, hazyKin))
+    if(m_state.alreadyDefinedSymbolByAClassOrAncestor(m_ofClassUTI, m_cid, asymptr, hazyKin)) //(e.g. t41182)
       {
 	assert(asymptr);
 	UTI auti = asymptr->getUlamTypeIdx();
@@ -431,7 +430,7 @@ namespace MFM {
     //need updated POS for genCode after c&l
     Symbol * symptr = NULL;
     bool hazyKin = false;
-    AssertBool gotIt = m_state.findSymbolInAClass(m_cid, m_ofClassUTI, symptr, hazyKin);
+    AssertBool gotIt = m_state.alreadyDefinedSymbolByAClassOrAncestor(m_ofClassUTI, m_cid, symptr, hazyKin);
     assert(gotIt);
 
     if(!symptr->isPosOffsetReliable())
@@ -613,7 +612,7 @@ namespace MFM {
 	//refresh 'pos' when a local variable (t41172)
 	Symbol * asymptr = NULL;
 	bool hazyKin = false;
-	AssertBool isDef = m_state.findSymbolInAClass(m_cid, m_ofClassUTI, asymptr, hazyKin);
+	AssertBool isDef = m_state.alreadyDefinedSymbolByAClassOrAncestor(m_ofClassUTI, m_cid, asymptr, hazyKin);
 	assert(isDef);
 	pos = asymptr->getPosOffset();
 	m_posOfDM = pos; //no adjust for elements here (t41230, t41184)

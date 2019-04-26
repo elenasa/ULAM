@@ -86,7 +86,7 @@ namespace MFM {
 
     Symbol * asymptr = NULL;
     bool hazyKin = false;
-    if(m_state.alreadyDefinedSymbol(m_cid, asymptr, hazyKin) && !hazyKin)
+    if(m_state.alreadyDefinedSymbolHere(m_cid, asymptr, hazyKin) && !hazyKin)
       {
 	if(asymptr->isModelParameter())
 	  {

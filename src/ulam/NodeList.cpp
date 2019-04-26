@@ -254,14 +254,6 @@ namespace MFM{
     m_nodes.push_back(argNode);
   }
 
-  void NodeList::replaceNodeInList(Node * newNode, u32 item)
-  {
-    assert(item < getNumberOfNodes());
-    //Node * oldNode = m_nodes[item]; //could be NULL
-    //delete oldNode; not owned by list!
-    m_nodes[item] = newNode;
-  }
-
   u32 NodeList::getNumberOfNodes() const
   {
     return m_nodes.size();

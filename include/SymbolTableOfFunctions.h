@@ -58,7 +58,6 @@ namespace MFM{
 
     void checkTableOfFunctions(FSTable& mangledFunctionMap, u32& probcount);
 
-//void checkTableOfFunctionsInAncestor(std::map<std::string, UTI>& mangledFunctionMap, u32& probcount);
     void checkTableOfFunctionsSignatureReturnTypes(FSTable& mangledFunctionMap, u32& probcount);
 
     void linkToParentNodesAcrossTableOfFunctions(NodeBlockClass * p);

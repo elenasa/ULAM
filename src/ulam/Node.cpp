@@ -3284,7 +3284,7 @@ namespace MFM {
 	u32 selfid = m_state.m_pool.getIndexForDataString("self");
 	Symbol * selfsym = NULL;
 	bool hazykin = false; //unused
-	AssertBool gotSelf = m_state.alreadyDefinedSymbol(selfid, selfsym, hazykin);
+	AssertBool gotSelf = m_state.alreadyDefinedSymbolHere(selfid, selfsym, hazykin);
 	assert(gotSelf);
 	stgcosref = cosref = selfsym; //t41065, foofunc();
       }

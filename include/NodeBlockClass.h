@@ -145,10 +145,6 @@ namespace MFM{
 
     u32 checkDuplicateFunctions(FSTable& mangledFunctionMap, u32& probcount);
 
-    //void checkMatchingFunctionsInClassAndAncestors(FSTable& mangledFunctionMap, u32& probcount);
-
-    //void checkMatchingFunctions(FSTable& mangledFunctionMap, u32& probcount);
-
     void checkMatchingFunctions();
 
     void calcMaxDepthOfFunctions();

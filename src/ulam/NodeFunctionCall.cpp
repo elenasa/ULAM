@@ -102,9 +102,12 @@ namespace MFM {
 
     UTI cuti = m_state.getCompileThisIdx();
     if(m_state.useMemberBlock())
-      cuti = m_state.getCurrentMemberClassBlock()->getNodeType();
+      {
+	NodeBlockClass * memberblock = m_state.getCurrentMemberClassBlock();
+	assert(memberblock);
+	cuti = memberblock->getNodeType();
+      }
 
-    //if(m_state.isFuncIdInClassScope(m_functionNameTok.m_dataindex, fnsymptr, hazyKin) && !hazyKin)
     if(m_state.isFuncIdInAClassScopeOrAncestor(cuti, m_functionNameTok.m_dataindex, fnsymptr, hazyKin) && !hazyKin)
       {
         //use member block doesn't apply to arguments; no change to current block
@@ -148,67 +151,65 @@ namespace MFM {
 	// exact match if possible; o.w. allow safe casts to find matches
 	bool hasHazyArgs = false;
 	UTI foundInAncestor = Nouti;
-	//u32 numFuncs = ((SymbolFunctionName *) fnsymptr)->findMatchingFunctionWithSafeCasts(argNodes, funcSymbol, hasHazyArgs);
 	u32 numFuncs = m_state.findMatchingFunctionWithSafeCastsInAClassScopeOrAncestor(cuti, m_functionNameTok.m_dataindex, argNodes, funcSymbol, hasHazyArgs, foundInAncestor);
-	if(numFuncs != 1)
+	if(numFuncs == 0)
 	  {
-	    if(foundInAncestor == Nouti) //numFuncs == 0)
+	    assert(foundInAncestor == Nouti); //sanity
+	    std::ostringstream msg;
+	    msg << "(1) <" << m_state.getTokenDataAsString(m_functionNameTok).c_str();
+	    msg << "> has no defined function with " << numargs;
+	    msg << " matching argument type";
+	    if(numargs != 1)
+	      msg << "s";
+	    msg << ": ";
+	    for(u32 i = 0; i < argNodes.size(); i++)
 	      {
-		std::ostringstream msg;
-		msg << "(1) <" << m_state.getTokenDataAsString(m_functionNameTok).c_str();
-		msg << "> has no defined function with " << numargs;
-		msg << " matching argument type";
-		if(numargs != 1)
-		  msg << "s";
-		msg << ": ";
-		for(u32 i = 0; i < argNodes.size(); i++)
-		  {
-		    UTI auti = argNodes[i]->getNodeType();
-		    msg << m_state.getUlamTypeNameBriefByIndex(auti).c_str() << ", ";
-		  }
-		msg << "and cannot be called";
-		if(hasHazyArgs)
-		  {
-		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-		    numHazyFound++;
-		  }
-		else
-		  {
-		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		    numErrorsFound++;
-		  }
+		UTI auti = argNodes[i]->getNodeType();
+		msg << m_state.getUlamTypeNameBriefByIndex(auti).c_str() << ", ";
 	      }
-	    else if(foundInAncestor == Nav) //numFuncs > 1)
+	    msg << "and cannot be called";
+	    if(hasHazyArgs)
 	      {
-		std::ostringstream msg;
-		msg << "Ambiguous matches (" << numFuncs << ") of function <";
-		msg << m_state.getTokenDataAsString(m_functionNameTok).c_str();
-		msg << "> called with " << numargs << " argument type";
-		if(numargs != 1)
-		  msg << "s";
-		msg << ": ";
-		for(u32 i = 0; i < argNodes.size(); i++)
-		  {
-		    UTI auti = argNodes[i]->getNodeType();
-		    msg << m_state.getUlamTypeNameBriefByIndex(auti).c_str() << ", ";
-		  }
-		msg << "explicit casting is required";
-		if(hasHazyArgs)
-		  {
-		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-		    numHazyFound++;
-		  }
-		else
-		  {
-		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //t3479
-		    numErrorsFound++;
-		    //((SymbolFunctionName *) fnsymptr)->noteAmbiguousFunctionSignatures(argNodes, 0, numFuncs);
-		    m_state.noteAmbiguousFunctionSignaturesInAClassHierarchy(cuti, m_functionNameTok.m_dataindex, argNodes, numFuncs);
-		  }
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+		numHazyFound++;
+	      }
+	    else
+	      {
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		numErrorsFound++;
 	      }
 	  }
-	else //==1
+	else if(numFuncs > 1)
 	  {
+	    assert(foundInAncestor == Nav); //sanity
+	    std::ostringstream msg;
+	    msg << "Ambiguous matches (" << numFuncs << ") of function <";
+	    msg << m_state.getTokenDataAsString(m_functionNameTok).c_str();
+	    msg << "> called with " << numargs << " argument type";
+	    if(numargs != 1)
+	      msg << "s";
+	    msg << ": ";
+	    for(u32 i = 0; i < argNodes.size(); i++)
+	      {
+		UTI auti = argNodes[i]->getNodeType();
+		msg << m_state.getUlamTypeNameBriefByIndex(auti).c_str() << ", ";
+	      }
+	    msg << "explicit casting is required";
+	    if(hasHazyArgs)
+	      {
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+		numHazyFound++;
+	      }
+	    else
+	      {
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //t3479
+		numErrorsFound++;
+		m_state.noteAmbiguousFunctionSignaturesInAClassHierarchy(cuti, m_functionNameTok.m_dataindex, argNodes, numFuncs);
+	      }
+	  }
+	else
+	  {
+	    assert(numFuncs==1); //sanity
 	    if(hasHazyArgs)
 	      numHazyFound++; //wait to cast
 

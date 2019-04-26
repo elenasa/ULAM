@@ -96,8 +96,6 @@ namespace MFM{
 
     virtual void addNodeToList(Node * argNode);
 
-    virtual void replaceNodeInList(Node * newNode, u32 item);
-
     u32 getNumberOfNodes() const;
 
     virtual bool isEmptyList() const;
