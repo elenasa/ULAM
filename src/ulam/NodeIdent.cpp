@@ -233,15 +233,29 @@ namespace MFM {
 	Symbol * asymptr = NULL;
 	bool hazyKin = false;
 	// must capture symbol ptr even if part of incomplete chain to do any necessary surgery (e.g. stub class args t3526, t3525, inherited dm t3408), wait if hazyKin (t3572)?;
+	//if(m_state.alreadyDefinedSymbol(m_token.m_dataindex, asymptr, hazyKin) && !hazyKin)
 	if(m_state.alreadyDefinedSymbol(m_token.m_dataindex, asymptr, hazyKin))
 	  {
 	    if(!asymptr->isFunction() && !asymptr->isTypedef() && !asymptr->isConstant() && !asymptr->isModelParameter())
 	      {
-		setSymbolPtr((SymbolVariable *) asymptr);
-		//assert(asymptr->getBlockNoOfST() == m_currBlockNo); not necessarily true
-		// e.g. var used before defined, and then is a data member outside current func block.
-		setBlockNo(asymptr->getBlockNoOfST()); //refined
-		setBlock(currBlock);
+		//check hazyiness after no determined surgery required
+		if(!hazyKin)
+		  {
+		    setSymbolPtr((SymbolVariable *) asymptr);
+		    //assert(asymptr->getBlockNoOfST() == m_currBlockNo); not necessarily true
+		    // e.g. var used before defined, and then is a data member outside current func block.
+		    setBlockNo(asymptr->getBlockNoOfST()); //refined
+		    setBlock(currBlock);
+		  }
+		else
+		  {
+		    std::ostringstream msg;
+		    msg << "Identifier <" << m_state.getTokenDataAsString(m_token).c_str();
+		    msg << "> was used while still undeclared";
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+		    it = Hzy; //t3572, t3597, t41183, and ulamexports QBox
+		    errCnt++;
+		  }
 	      }
 	    else if(asymptr->isConstant())
 	      {

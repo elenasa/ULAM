@@ -81,7 +81,7 @@ namespace MFM{
     SymbolClass * makeAStubClassInstance(const Token& typeTok, UTI cuti); //to hold class args, and cUTI
     SymbolClass * copyAStubClassInstance(UTI instance, UTI newuti, UTI argvaluecontext, UTI argtypecontext, Locator newloc);
 
-    bool checkTemplateAncestorBeforeAStubInstantiation(SymbolClass * stubcsym); //or private?
+    bool checkTemplateAncestorsBeforeAStubInstantiation(SymbolClass * stubcsym); //or private?
 
     void mergeClassInstancesFromTEMP();
 
@@ -150,10 +150,10 @@ namespace MFM{
     std::map<std::string, SymbolClass* > m_scalarClassArgStringsToSymbolPtr; //merged set
     std::map<UTI, std::map<UTI,UTI> > m_mapOfTemplateUTIToInstanceUTIPerClassInstance;
 
-    //    bool checkTemplateAncestorBeforeAStubInstantiation(SymbolClass * stubcsym);
     bool takeAnInstancesArgValues(SymbolClass * fm, SymbolClass * to);
     bool copyAnInstancesArgValues(SymbolClass * fm, SymbolClass * to);
     void cloneAnInstancesUTImap(SymbolClass * fm, SymbolClass * to);
+    void initBaseClassListForAStubClassInstance(SymbolClass * & newclassinstance);
 
     bool checkSFINAE(SymbolClass * sym);
 

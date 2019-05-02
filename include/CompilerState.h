@@ -280,7 +280,7 @@ namespace MFM{
     bool isClassATemplate(UTI cuti);
     bool isClassASubclass(UTI cuti); //fromerly returned super UTI, or Nav if no inheritance
     bool findClassAncestorWithMatchingNameid(UTI cuti, u32 nameid, UTI& superp);
-    void resetClassSuperclass(UTI cuti, UTI superuti);
+
     bool isClassASubclassOf(UTI cuti, UTI superp);
     void resetABaseClassType(UTI cuti, UTI olduti, UTI newuti);
     bool isClassAStub(UTI cuti);
@@ -293,6 +293,8 @@ namespace MFM{
     u32 getAClassCustomArrayIndexType(UTI cuti, Node * rnode, UTI& idxuti, bool& hasHazyArgs);
 
     bool hasAClassCustomArrayLengthof(UTI cuti);
+
+    bool hasCustomArrayInAClassOrAncestor(UTI cuti);
 
     /** return true and the Symbol pointer in 2nd arg if found;
 	search SymbolTables LIFO order; o.w. return false

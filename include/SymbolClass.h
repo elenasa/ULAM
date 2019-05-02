@@ -68,14 +68,15 @@ namespace MFM{
 
     virtual bool isClassTemplate(UTI cuti);
 
-    void setSuperClass(UTI superclass);
-    UTI getSuperClass();
+    //void setSuperClass(UTI superclass);
+    //UTI getSuperClass();
 
-    void appendBaseClass(UTI baseclass);
     u32 getBaseClassCount();
     UTI getBaseClass(u32 item);
     s32 isABaseClassItem(UTI puti);
+    void appendBaseClass(UTI baseclass);
     void updateBaseClass(UTI oldclasstype, u32 item, UTI newbaseclass);
+    void setBaseClass(UTI baseclass, u32 item);
     s32 getBaseClassRelativePosition(u32 item) const;
     void setBaseClassRelativePosition(u32 item, u32 pos);
 
@@ -97,7 +98,7 @@ namespace MFM{
 
     void unsetStub();
 
-    bool isCustomArray(); //by ulamtypeclass
+    //bool isCustomArray(); //by ulamtypeclass
 
     UTI getCustomArrayType(); //by function return type
 
@@ -202,6 +203,8 @@ namespace MFM{
     std::vector<u32> m_basesVTstart;
 
     void assignClassArgValuesInStubCopy();
+
+    bool resolveHasMappedUTI(UTI auti, UTI& mappedUTI);
 
     void generateHeaderPreamble(File * fp);
     void genIfndefForHeaderFile(File * fp);

@@ -426,7 +426,7 @@ namespace MFM {
     else
       {
 	unreadToken();
-	cnsym->setSuperClass(Nouti); //clear
+	cnsym->setBaseClass(Nouti, 0); //clear
 
 	//earliest ancestor when none designated; for all classes except UrSelf,
 	if(!m_state.isUrSelf(cnsym->getUlamTypeIdx()))
@@ -498,7 +498,7 @@ namespace MFM {
     assert(supercsym);
     UTI superuti = supercsym->getUlamTypeIdx();
     assert(cnsym);
-    cnsym->setSuperClass(superuti);
+    cnsym->setBaseClass(superuti, 0);
 
     NodeBlockClass * classblock = cnsym->getClassBlockNode();
     assert(classblock); //rtnNode in caller
@@ -536,7 +536,7 @@ namespace MFM {
 	    if(stuti != superuti) //t3808, t3806, t3807
 	      {
 		m_state.updateUTIAliasForced(stuti, superuti);
-		cnsym->setSuperClass(superuti);
+		cnsym->setBaseClass(superuti, 0);
 		symtypedef->resetUlamType(superuti);
 	      }
 	  }

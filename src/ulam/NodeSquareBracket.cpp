@@ -105,7 +105,7 @@ namespace MFM {
 
 	if(lut->isScalar())
 	  {
-	    m_isCustomArray = m_state.isClassACustomArray(leftType);
+	    m_isCustomArray = m_state.isClassACustomArray(leftType); //e.g. t3653
 
 	    if(lut->isHolder())
 	      {

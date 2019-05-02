@@ -290,7 +290,7 @@ namespace MFM {
     SymbolClass * csym = NULL;
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cuti, csym);
     assert(isDefined);
-    UTI superuti = csym->getSuperClass();
+    UTI superuti = csym->getBaseClass(0);
     SymbolVariableStack * supersym = NULL;
     u32 superid = m_state.m_pool.getIndexForDataString("super");
     if(!NodeBlock::isIdInScope(superid, (Symbol *&) supersym))

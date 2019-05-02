@@ -586,7 +586,7 @@ UTI NodeBlockClass::checkMultipleInheritances()
 		  setBaseClassBlockPointer(NULL, i); //force to try again!! avoid inf loop
 		  m_state.resetABaseClassType(nuti, baseuti, mappedUTI);
 		  baseuti = mappedUTI;
-		  brtnhzy = true;
+		  brtnhzy |= true;
 		}
 	    }
 
@@ -595,7 +595,6 @@ UTI NodeBlockClass::checkMultipleInheritances()
 	    {
 	      if(!m_state.isComplete(baseuti))
 		{
-		  brtnhzy = true;
 		  std::ostringstream msg;
 		  msg << "Subclass '";
 		  msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
@@ -605,7 +604,8 @@ UTI NodeBlockClass::checkMultipleInheritances()
 		    {
 		      msg << m_state.getUlamTypeNameBriefByIndex(baseuti).c_str();
 
-		      msg << "', a class with pending arguments";
+		      msg << "', a class with pending arguments or ancestors";
+		      brtnhzy |= true;
 		    }
 		  else if(m_state.isHolder(baseuti))
 		    {
@@ -621,12 +621,13 @@ UTI NodeBlockClass::checkMultipleInheritances()
 			  msg << m_state.getUlamTypeNameBriefByIndex(baseuti).c_str();
 			  msg << "', a holder class";
 			}
+		      brtnhzy |= true;
 		    }
 		  else
 		    {
 		      msg << m_state.getUlamTypeNameBriefByIndex(baseuti).c_str();
 		      msg << "', an incomplete class";
-		      brtnhzy = false; //t3889, t3831
+		      brtnhzy |= false; //t3889, t3831, t3674
 		    }
 
 		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
@@ -638,7 +639,7 @@ UTI NodeBlockClass::checkMultipleInheritances()
       i++;
     } //end while
 
-  if(brtnhzy)
+  if(brtnhzy) //any base class is hazy..
     {
       setNodeType(Hzy); //t41150
       m_state.setGoAgain();
@@ -1084,45 +1085,6 @@ void NodeBlockClass::checkTestFunctionReturnType()
       }
     return locuti;
   }
-
-  bool NodeBlockClass::hasCustomArray()
-  {
-    bool hasCA = false;
-    // custom array flag set at parse time
-    UTI cuti = getNodeType();
-    UlamType * cut = m_state.getUlamTypeByIndex(cuti);
-    hasCA = ((UlamTypeClass *) cut)->isCustomArray();
-
-    if(hasCA)
-      return true;
-
-    //ulam-5 supports multiple base classes; superclass optional
-    SymbolClass * csym = NULL;
-    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cuti, csym);
-    assert(isDefined);
-
-    u32 basecount = csym->getBaseClassCount() + 1; //include super
-    u32 i = 0;
-    while(!hasCA && (i < basecount))
-      {
-	UTI baseuti = csym->getBaseClass(i);
-	if(m_state.okUTItoContinue(baseuti))
-	  {
-	    NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
-	    if(!basecblock) //might be during resolving loop, not set yet
-	      {
-		SymbolClass * basecsym = NULL;
-		AssertBool isDefined = m_state.alreadyDefinedSymbolClass(baseuti, basecsym);
-		assert(isDefined);
-		basecblock = basecsym->getClassBlockNode();
-		assert(basecblock);
-	      }
-	    hasCA |= basecblock->hasCustomArray();
-	  }
-	i++;
-      } //end while
-    return hasCA;
-  } //hasCustomArray
 
 void NodeBlockClass::checkCustomArrayTypeFunctions()
   {
@@ -1913,7 +1875,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cuti, csym);
     assert(isDefined);
 
-    UTI superuti = csym->getSuperClass();
+    UTI superuti = csym->getBaseClass(0);
     //skip UrSelf to avoid extensive changes to all test answers
     if(m_state.okUTItoContinue(superuti) && !m_state.isUrSelf(superuti))
       {

@@ -54,12 +54,12 @@ namespace MFM {
   {
     assert(instance == getUlamTypeIdx());
     assert(instance != superclass);
-    SymbolClass::setSuperClass(superclass);
+    SymbolClass::setBaseClass(superclass, 0);
   }
 
   UTI SymbolClassName::getSuperClassForClassInstance(UTI instance)
   {
-    return SymbolClass::getSuperClass(); //Nouti is none, not a subclass.
+    return SymbolClass::getBaseClass(0); //Nouti is none, Hzy a stub.
   }
 
   void SymbolClassName::appendBaseClassForClassInstance(UTI baseclass, UTI instance)
