@@ -68,9 +68,6 @@ namespace MFM{
 
     virtual bool isClassTemplate(UTI cuti);
 
-    //void setSuperClass(UTI superclass);
-    //UTI getSuperClass();
-
     u32 getBaseClassCount();
     UTI getBaseClass(u32 item);
     s32 isABaseClassItem(UTI puti);
@@ -97,8 +94,6 @@ namespace MFM{
     bool isStub();
 
     void unsetStub();
-
-    //bool isCustomArray(); //by ulamtypeclass
 
     UTI getCustomArrayType(); //by function return type
 

@@ -2008,8 +2008,8 @@ namespace MFM {
     SymbolClass * csym = NULL;
     if(alreadyDefinedSymbolClass(subuti, csym))
       {
-	count = csym->getBaseClassCount();
-	if(csym->getBaseClass(0) != Nouti)
+	count = csym->getBaseClassCount(); //added bases
+	if(csym->getBaseClass(0) != Nouti) //super optional
 	  count++; //Hzy if UNSEEN counts here
       }
     return (count > 0);
@@ -2019,51 +2019,80 @@ namespace MFM {
   // i.e. cuti is a subclass of base. recurses the family tree.
   bool CompilerState::isClassASubclassOf(UTI cuti, UTI basep)
   {
-    bool rtnb = false;
+    bool hasbase = false;
     UTI derefbasep = getUlamTypeAsDeref(basep);
-    UTI prevuti = getUlamTypeAsDeref(cuti); //init for the loop
+    UTI subcuti = getUlamTypeAsDeref(cuti); //init for the loop
 
-    SymbolClass * csym = NULL;
-    if(alreadyDefinedSymbolClass(cuti, csym))
+    std::set<UTI> seenset;
+    std::queue<UTI> basesqueue;
+    std::pair<std::set<UTI>::iterator,bool> ret;
+
+    basesqueue.push(subcuti); //init
+
+    //ulam-5 supports multiple base classes; superclass optional;
+    while(!hasbase && !basesqueue.empty())
       {
-	rtnb = (csym->isABaseClassItem(derefbasep) >= 0); //t3281
-	u32 basecount = csym->getBaseClassCount() + 1; //include super
-	u32 i = 0;
-	while(!rtnb && (i < basecount))
+	UTI baseuti = basesqueue.front();
+	basesqueue.pop(); //remove from front of queue
+	ret = seenset.insert(baseuti);
+	if (ret.second==false)
+	  continue; //already seen, try next one..
+
+	SymbolClass * basecsym = NULL;
+	if(alreadyDefinedSymbolClass(baseuti, basecsym))
 	  {
-	    prevuti = csym->getBaseClass(i);
-	    rtnb = isClassASubclassOf(prevuti, derefbasep); //recurse
-	    i++;
-	  } //end while
-      }
-    return rtnb; //even for non-classes
+	    hasbase = (basecsym->isABaseClassItem(derefbasep) >= 0); //t3281
+
+	    if(!hasbase)
+	      {
+		u32 basecount = basecsym->getBaseClassCount() + 1; //include super
+		for(u32 i = 0; i < basecount; i++)
+		  basesqueue.push(basecsym->getBaseClass(i)); //extends queue w next level base UTIs
+	      }
+	  }
+      } //end while
+    return hasbase; //even for non-classes
   } //isClassASubclassOf
 
   //return true if a baseclass of the first arg starts with id.
   // i.e. cuti is a subclass of basep. recurses the family tree.
-  bool CompilerState::findClassAncestorWithMatchingNameid(UTI cuti, u32 nameid, UTI& basep)
+  u32 CompilerState::findClassAncestorWithMatchingNameid(UTI cuti, u32 nameid, UTI& basep)
   {
-    //base case:
-    if(getUlamTypeByIndex(cuti)->getUlamTypeNameId() == nameid)
-      {
-	basep = cuti;
-	return true;
-      }
+    u32 countids = 0;
+    UTI subcuti = getUlamTypeAsDeref(cuti); //init for the loop
 
-    bool rtnb = false; //init for the loop
-    SymbolClass * csym = NULL;
-    if(alreadyDefinedSymbolClass(getUlamTypeAsDeref(cuti), csym))
+    std::set<UTI> seenset;
+    std::queue<UTI> basesqueue;
+    std::pair<std::set<UTI>::iterator,bool> ret;
+
+    basesqueue.push(subcuti); //init
+
+    //ulam-5 supports multiple base classes; superclass optional;
+    while(!basesqueue.empty())
       {
-	u32 basecount = csym->getBaseClassCount() + 1; //include super
-	u32 i = 0;
-	while(!rtnb && (i < basecount))
+	UTI baseuti = basesqueue.front();
+	basesqueue.pop(); //remove from front of queue
+	ret = seenset.insert(baseuti);
+	if (ret.second==false)
+	  continue; //already seen, try next one..
+
+	SymbolClass * basecsym = NULL;
+	if(alreadyDefinedSymbolClass(baseuti, basecsym))
 	  {
-	    UTI prevuti = csym->getBaseClass(i);
-	    rtnb = findClassAncestorWithMatchingNameid(prevuti, nameid, basep); //recurse
-	    i++;
-	  } //end while
-      }
-    return rtnb;
+	    if(getUlamTypeByIndex(baseuti)->getUlamTypeNameId() == nameid)
+	      {
+		basep = baseuti;
+		countids++;
+	      }
+
+	    //search all
+	    u32 basecount = basecsym->getBaseClassCount() + 1; //include super
+	    for(u32 i = 0; i < basecount; i++)
+	      basesqueue.push(basecsym->getBaseClass(i)); //extends queue w next level base UTIs
+	  }
+      } //end while
+
+    return countids;
   } //findClassAncestorWithMatchingNameid
 
   void CompilerState::resetABaseClassType(UTI cuti, UTI olduti, UTI newuti)
@@ -3039,13 +3068,12 @@ namespace MFM {
 
     bool found = alreadyDefinedSymbolHere(dataindex, symptr, tmphazykin);
     if(found)
-    //if(found || tmphazykin)
       hasHazyKin = tmphazykin;
     else
       {
 	bool tmphazys = false;
 	UTI cuti = getCompileThisIdx();
-#if 1
+
 	if(useMemberBlock()) //(t3555 and ancestors; t3126 within funcdef)
 	  {
 	    NodeBlockClass* memberblock = getCurrentMemberClassBlock();
@@ -3058,7 +3086,7 @@ namespace MFM {
 	      }
 	  }
 	assert(okUTItoContinue(cuti));
-#endif
+
 	found = alreadyDefinedSymbolByAncestorOf(cuti, dataindex, symptr, tmphazys);
 	hasHazyKin = tmphazykin || tmphazys;
       }

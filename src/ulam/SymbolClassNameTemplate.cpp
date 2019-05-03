@@ -723,14 +723,12 @@ namespace MFM {
 	    if(m_state.okUTItoContinue(baseuti) && !classNode->isBaseClassLinkReady(cuti,i))
 	      {
 		SymbolClass * basecsym = NULL;
-		//if(m_state.alreadyDefinedSymbolClass(baseuti, basecsym) && !basecsym->isStub())
 		if(m_state.alreadyDefinedSymbolClass(baseuti, basecsym))
 		  {
 		    if(!basecsym->isStub())
 		      classNode->setBaseClassBlockPointer(basecsym->getClassBlockNode(),i);
 		    else
 		      aok = false;
-		      //aok &= basecsym->statusNonreadyClassArguments(); //only if a stub (ulamexports)
 		  }
 	      }
 	    i++;

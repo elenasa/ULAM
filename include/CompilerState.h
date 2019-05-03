@@ -279,7 +279,7 @@ namespace MFM{
     s32 slotsNeeded(UTI uti);
     bool isClassATemplate(UTI cuti);
     bool isClassASubclass(UTI cuti); //fromerly returned super UTI, or Nav if no inheritance
-    bool findClassAncestorWithMatchingNameid(UTI cuti, u32 nameid, UTI& superp);
+    u32 findClassAncestorWithMatchingNameid(UTI cuti, u32 nameid, UTI& superp);
 
     bool isClassASubclassOf(UTI cuti, UTI superp);
     void resetABaseClassType(UTI cuti, UTI olduti, UTI newuti);

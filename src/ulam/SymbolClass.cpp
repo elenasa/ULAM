@@ -90,28 +90,8 @@ namespace MFM {
     return false;
   }
 
-#if 0
-  void SymbolClass::setSuperClass(UTI superclass)
-  {
-    m_bases[0] = superclass;
-  }
-
-  UTI SymbolClass::getSuperClass()
-  {
-    return m_bases[0]; //Nouti is none, not a subclass.
-  }
-#endif
-
   u32 SymbolClass::getBaseClassCount()
   {
-#if 0
-    if(isStub())
-      {
-	SymbolClass * myparent = (SymbolClass *) getParentClassTemplate();
-	assert(myparent);
-	return myparent->getBaseClassCount();
-      }
-#endif
     u32 numbases = m_bases.size();
     assert(numbases >= 1);
     return numbases - 1; //excluding super class
@@ -119,14 +99,6 @@ namespace MFM {
 
   UTI SymbolClass::getBaseClass(u32 item)
   {
-#if 0
-    if(isStub())
-      {
-	SymbolClass * myparent = (SymbolClass *) getParentClassTemplate();
-	assert(myparent);
-	return myparent->getBaseClass(item);
-      }
-#endif
     assert(item < m_bases.size());
     return m_bases[item];
   }
@@ -220,19 +192,8 @@ namespace MFM {
     m_stub = false;
   }
 
-#if 0
-  bool SymbolClass::isCustomArray()
-  {
-    //NodeBlockClass * classNode = getClassBlockNode(); //instance
-    //assert(classNode);
-    //return classNode->hasCustomArray(); //checks any super classes
-    return m_state.hasCustomArrayInAClassOrAncestor(getUlamTypeIdx()); //checks any base classes
-  }
-#endif
-
   UTI SymbolClass::getCustomArrayType()
   {
-    //assert(isCustomArray());
     NodeBlockClass * classNode = getClassBlockNode(); //instance
     assert(classNode);
     return classNode->getCustomArrayTypeFromGetFunction(); //returns canonical type
@@ -240,7 +201,6 @@ namespace MFM {
 
   u32 SymbolClass::getCustomArrayIndexTypeFor(Node * rnode, UTI& idxuti, bool& hasHazyArgs)
   {
-    //assert(isCustomArray());
     NodeBlockClass * classNode = getClassBlockNode(); //instance
     assert(classNode);
     //returns number of matching types; updates last two args.
@@ -249,7 +209,6 @@ namespace MFM {
 
   bool SymbolClass::hasCustomArrayLengthof()
   {
-    //assert(isCustomArray());
     NodeBlockClass * classNode = getClassBlockNode(); //instance
     assert(classNode);
     return classNode->hasCustomArrayLengthofFunction();
@@ -733,11 +692,6 @@ namespace MFM {
   bool SymbolClass::hasMappedUTI(UTI auti, UTI& mappedUTI)
   {
     bool rtnb = false;
-    //if(m_resolver)
-    //  rtnb = m_resolver->findMappedUTI(auti, mappedUTI);
-
-    //if(rtnb)
-    //  return true;
 
     std::set<UTI> seenset;
     std::queue<UTI> basesqueue;
@@ -768,32 +722,6 @@ namespace MFM {
 	      }
 	  }
       } //end while
-
-#if 0
-    //UTI superuti = getSuperClass();
-    //if(superuti == auti)
-    if(isABaseClassItem(auti) >= 0)
-      {
-	mappedUTI = auti;
-	rtnb = true;
-      }
-    //    else if(!rtnb && (superuti != Nouti) && (superuti != Hzy))
-    else if(!rtnb)
-      {
-	//search each of the bases classes for a mapping (ulam-5)
-	u32 basecount = getBaseClassCount() + 1; //include super
-	for(u32 i = 0; i < basecount; i++)
-	  {
-	    UTI baseuti = getBaseClass(i);
-	    SymbolClass * basecsym = NULL;
-	    if(m_state.alreadyDefinedSymbolClass(baseuti, basecsym))
-	      rtnb = (basecsym->hasMappedUTI(auti, mappedUTI));
-	    if(rtnb)
-	      break;
-	  }
-      }
-#endif
-
     return rtnb;
   } //hasMappedUTI
 

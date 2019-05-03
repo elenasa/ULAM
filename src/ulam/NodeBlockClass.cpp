@@ -967,16 +967,13 @@ void NodeBlockClass::checkTestFunctionReturnType()
 		NodeBlockClass * basecblock = basecsym->getClassBlockNode();
 		assert(basecblock);
 
-		//m_state.pushClassContext(baseuti, basecblock, basecblock, false, NULL);
 		basecblock->checkMatchingFunctions(); //t3297
 
 		basecblock->checkDuplicateFunctions(mangledFunctionMapWithReturnType, probcount);
 
-		//m_state.popClassContext(); //restore
-
 		u32 basecount = basecsym->getBaseClassCount() + 1; //include a super
 		for(u32 i = 0; i < basecount; i++)
-		  basesqueue.push(basecsym->getBaseClass(i)); //extends queue with next level of base UTIs
+		  basesqueue.push(basecsym->getBaseClass(i)); //extends queue w next level of base UTIs
 	      }
 	  } //end while
       }

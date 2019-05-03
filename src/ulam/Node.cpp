@@ -3077,9 +3077,12 @@ namespace MFM {
 	    UTI stgType = namedconstantstg->getUlamTypeIdx();
 	    u32 nameid = m_state.getUlamTypeByIndex(whosclassarg)->getUlamTypeNameId();
 	    UTI stgsuper = Nouti;
-	    if(m_state.findClassAncestorWithMatchingNameid(stgType, nameid, stgsuper))
+	    u32 matchingids = m_state.findClassAncestorWithMatchingNameid(stgType, nameid, stgsuper);
+	    if(matchingids == 1)
 	      fp->write(m_state.getUlamTypeByIndex(stgsuper)->getUlamTypeMangledName().c_str());
-	    else
+	    else if(matchingids > 1) //too many?
+	      m_state.abortShouldntGetHere();
+	    else //no match
 	      m_state.abortShouldntGetHere();
 	  }
 	else
@@ -3152,9 +3155,12 @@ namespace MFM {
 	    UTI stgType = namedconstantstg->getUlamTypeIdx();
 	    u32 nameid = m_state.getUlamTypeByIndex(whosclassarg)->getUlamTypeNameId();
 	    UTI stgsuper = Nouti;
-	    if(m_state.findClassAncestorWithMatchingNameid(stgType, nameid, stgsuper))
+	    u32 matchingids = m_state.findClassAncestorWithMatchingNameid(stgType, nameid, stgsuper);
+	    if(matchingids == 1)
 	      fp->write(m_state.getUlamTypeByIndex(stgsuper)->getUlamTypeMangledName().c_str());
-	    else
+	    else if(matchingids > 1) //too many
+	      m_state.abortShouldntGetHere();
+	    else //no match
 	      m_state.abortShouldntGetHere();
 	  }
 	else
