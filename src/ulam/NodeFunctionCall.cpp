@@ -1145,7 +1145,7 @@ namespace MFM {
 
     m_state.indentUlamCode(fp);
     fp->write("VfuncPtr "); //legitimize this tmp label TODO
-    fp->write(m_state.getVFuncPtrTmpNumAsString(tvfpnum).c_str());
+    fp->write(m_state.getVFuncPtrTmpNumAsString(tvfpnum).c_str()); //Uf_tvfpNNN
     fp->write(" = ");
 
     //requires runtime lookup for virtual function pointer

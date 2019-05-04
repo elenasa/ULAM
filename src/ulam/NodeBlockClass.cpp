@@ -438,8 +438,9 @@ namespace MFM {
 
   NodeBlockClass * NodeBlockClass::getBaseClassBlockPointer(u32 item)
   {
-    assert(item < m_nodeBaseClassBlockList.size()); //sanity
-    return m_nodeBaseClassBlockList[item];
+    if(item < m_nodeBaseClassBlockList.size())
+      return m_nodeBaseClassBlockList[item];
+    return NULL;
   }
 
   void NodeBlockClass::setBaseClassBlockPointer(NodeBlockClass * classblock, u32 item)

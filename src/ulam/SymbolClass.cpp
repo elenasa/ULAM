@@ -1461,10 +1461,29 @@ namespace MFM {
 
     u32 basesmaxes = 0;
     // get ancestors accumulated max index (no recursion)
-    u32 basecount = getBaseClassCount() + 1; //include super
-    for(u32 i = 0; i < basecount; i++)
+
+    std::set<UTI> seenset;
+    std::queue<UTI> basesqueue;
+    std::pair<std::set<UTI>::iterator,bool> ret;
+
+    UTI cuti = getUlamTypeIdx();
+    SymbolClass * csym = NULL;
+    if(m_state.alreadyDefinedSymbolClass(cuti, csym))
       {
-	UTI baseuti = getBaseClass(i);
+	u32 basecount = csym->getBaseClassCount() + 1; //include super
+	for(u32 i = 0; i < basecount; i++)
+	  basesqueue.push(csym->getBaseClass(i)); //extends queue with next level of base UTIs
+      }
+
+    //ulam-5 supports multiple base classes; superclass optional;
+    while(!basesqueue.empty())
+      {
+	UTI baseuti = basesqueue.front();
+	basesqueue.pop(); //remove from front of queue
+	ret = seenset.insert(baseuti);
+	if (ret.second==false)
+	  continue; //already seen, try next one..t41303
+
 	SymbolClass * basecsym = NULL;
 	if(m_state.alreadyDefinedSymbolClass(baseuti, basecsym))
 	  {
@@ -1480,8 +1499,7 @@ namespace MFM {
 		basesmaxes++;
 	      }
 	  }
-	//else empty
-      } //end for
+      } //end while
 
     assert(m_vtable.size() == (u32) initialmax); //t3639
     assert(basesmaxes == (u32) initialmax);
