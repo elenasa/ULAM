@@ -153,7 +153,7 @@ namespace MFM {
 	    setNodeType(duti);
 	    return duti;
 	  }
-	assert(m_state.getUlamTypeByIndex(duti)->getUlamTypeEnum() == Class);
+	//assert(m_state.getUlamTypeByIndex(duti)->getUlamTypeEnum() == Class); why a class? t41306
       }
 
     setupBlockNo(); //in case zero, may use nodetypedesc
@@ -321,8 +321,20 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg <<"(1) ";
 	    msg << "<" << m_state.getTokenDataAsString(m_token).c_str();
-	    msg << "> is not a constant, and cannot be used as one with a class type: ";
-	    msg << getBlock()->getName(); //t41148
+	    msg << "> is not a constant, and cannot be used as one with ";
+	    if(m_nodeTypeDesc && m_state.isAClass(m_nodeTypeDesc->getNodeType()))
+	      {
+		msg << "a class type: "; //t41148
+		msg << m_state.m_pool.getDataAsString(m_nodeTypeDesc->getTypeNameId()).c_str();
+	      }
+	    else
+	      {
+		msg << "type: "; //t41306
+		if(m_nodeTypeDesc)
+		  msg << m_state.m_pool.getDataAsString(m_nodeTypeDesc->getTypeNameId()).c_str();
+		else
+		  msg << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str();
+	      }
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
       }
@@ -373,6 +385,7 @@ namespace MFM {
   //borrowed from NodeIdent
   void NodeConstant::setupBlockNo()
   {
+    bool needsapop = false;
     //define before used, start search with current block
     if(m_currBlockNo == 0)
       {
@@ -380,17 +393,23 @@ namespace MFM {
 	  {
 	    UTI duti = m_nodeTypeDesc->getNodeType();
 	    assert(m_state.okUTItoContinue(duti));
-	    assert(m_state.isAClass(duti)); //t3796, t3861,2,5,8..
-	    SymbolClass * acsym = NULL;
-	    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(duti, acsym);
-	    assert(isDefined);
 
-	    NodeBlockClass * memberClassNode = acsym->getClassBlockNode();
-	    assert(memberClassNode); //e.g. forgot the closing brace on quark def once; or UNSEEN
+	    //assert(m_state.isAClass(duti)); //t3796, t3861,2,5,8..
+	    if(m_state.isAClass(duti)) //t3796, t3861,2,5,8..
+	      {
+		SymbolClass * acsym = NULL;
+		AssertBool isDefined = m_state.alreadyDefinedSymbolClass(duti, acsym);
+		assert(isDefined);
 
-	    //set up compiler state to use the member class block for symbol searches
-	    m_state.pushClassContextUsingMemberClassBlock(memberClassNode);
+		NodeBlockClass * memberClassNode = acsym->getClassBlockNode();
+		assert(memberClassNode); //e.g. forgot the closing brace on quark def once; or UNSEEN
+
+		//set up compiler state to use the member class block for symbol searches
+		m_state.pushClassContextUsingMemberClassBlock(memberClassNode);
+		needsapop = true;
+	      }
 	  }
+
 
 	if(m_state.useMemberBlock())
 	  {
@@ -401,7 +420,7 @@ namespace MFM {
 	else
 	  setBlockNo(m_state.getCurrentBlockNo());
 
-	if(m_nodeTypeDesc)
+	if(needsapop)
 	  m_state.popClassContext(); //restore
       }
   } //setupBlockNo
@@ -430,8 +449,8 @@ namespace MFM {
       return m_currBlockPtr;
 
     NodeBlock * currBlock = NULL;
-    if(m_nodeTypeDesc)
-      currBlock = (NodeBlock *) m_state.findNodeNoInAClassOrLocalsScope(m_currBlockNo, m_nodeTypeDesc->getNodeType()); //t41284,5
+    if(m_nodeTypeDesc && m_state.isAClass(m_nodeTypeDesc->getNodeType()))
+      currBlock = (NodeBlock *) m_state.findNodeNoInAClassOrLocalsScope(m_currBlockNo, m_nodeTypeDesc->getNodeType()); //t41284,5; t41306
     else
       currBlock = (NodeBlock *) m_state.findNodeNoInThisClassOrLocalsScope(m_currBlockNo); //t3328, t3329, t3330, t3332 (not using StubFirst version)
 
