@@ -3,7 +3,8 @@
 ##
 #!
 ./E2.ulam:3:43: ERROR: Virtual function <Uf_5afunc11102321i> is pure; cannot be called.
-Unrecoverable Program GenCode FAILURE.
+Exit status: -1
+Unrecoverable Program Test FAILURE.
 ##
 ## informed by t3609
 ##

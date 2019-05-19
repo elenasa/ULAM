@@ -288,7 +288,7 @@ namespace MFM {
 	    assert(basecblock);
 	    fp->write(" +<");
 	    basecblock->printPostfixDataMembersParseTree(fp, baseuti);
-	    fp->write(m_state.getUlamTypeNameBriefByIndex(baseuti).c_str());  //e.g. +Foo(a), an instance of
+	    //fp->write(m_state.getUlamTypeNameBriefByIndex(baseuti).c_str());  //e.g. +Foo(a), an instance of
 	    fp->write(">");
 	    i++;
 	  } //end while
@@ -1025,6 +1025,8 @@ void NodeBlockClass::checkTestFunctionReturnType()
     if(maxidx != UNKNOWNSIZE)
       return; //short-circuit, re-called if any subclass is waiting on a super
 
+    u32 basesnotready = 0;
+    // quick check that all first-level base classes have completed their own vtables before continuing;
     //ulam-5 supports multiple base classes; superclass optional
     SymbolClass * csym = NULL;
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(nuti, csym);
@@ -1038,28 +1040,33 @@ void NodeBlockClass::checkTestFunctionReturnType()
 	if(baseuti != Nouti)
 	  {
 	    NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
-	    if(basecblock)
+	    assert(basecblock);
+
+	    s32 basesmaxidx = basecblock->getVirtualMethodMaxIdx();
+	    if(basesmaxidx < 0)
 	      {
-		maxidx = basecblock->getVirtualMethodMaxIdx();
-		if(maxidx < 0)
-		  {
-		    std::ostringstream msg;
-		    msg << "Subclass '";
-		    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-		    msg << "' inherits from '";
-		    msg << m_state.getUlamTypeNameBriefByIndex(baseuti).c_str();
-		    msg << "', a class whose max index for virtual functions is still unknown";
-		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-		    //return;
-		  }
+		std::ostringstream msg;
+		msg << "Subclass '";
+		msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+		msg << "' inherits from '";
+		msg << m_state.getUlamTypeNameBriefByIndex(baseuti).c_str();
+		msg << "', a class whose max index for virtual functions is still unknown";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+		basesnotready++;
+		//return;
 	      }
 	  }
 	i++;
       } //end while
 
-    // for all the virtual function names, calculate their index in the VM Table
-    m_functionST.calcMaxIndexForVirtualTableOfFunctions(maxidx);
-    setVirtualMethodMaxIdx(maxidx);
+    if(basesnotready == 0)
+      {
+	// for all the virtual function names, calculate their index in the VM Table
+	// adds up each base classes vowned indexes, entire ancestory tree, for maxidx
+	m_functionST.calcMaxIndexForVirtualTableOfFunctions(maxidx);
+
+	setVirtualMethodMaxIdx(maxidx);
+      }
   } //calcMaxIndexOfVirtualFunctions
 
   s32 NodeBlockClass::getVirtualMethodMaxIdx()
@@ -2508,6 +2515,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     genCodeBuiltInFunctionBuildDefaultAtom(fp, declOnly, classtype);
 
+    genCodeBuiltInVirtualTableStartOffsetHelper(fp, declOnly, classtype);
+
     genCodeBuiltInVirtualTable(fp, declOnly, classtype);
 
     // 'is' quark related for both class types; overloads is-Method with THE_INSTANCE arg
@@ -2699,7 +2708,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.m_currentIndentLevel--;
 
     m_state.indent(fp);
-    fp->write("} //getRegistrationNumber\n\n");
+    fp->write("} //GetRegistrationNumber\n\n");
   } //genCodeBuiltInFunctionGetClassRegistrationNumber
 
   void NodeBlockClass::genCodeBuiltInFunctionGetElementType(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
@@ -2976,27 +2985,36 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     if(maxidx == 0)
       return;
 
+
     if(declOnly)
       {
+	u32 vowned = csym->getOrigVTableSize();
+	u32 vownstart = csym->getVTstartoffsetForBaseClass(cuti);
 	//enum for method indexes; see UlamElement.h for first two.
 	m_state.indent(fp);
-	fp->write("enum VTABLE_IDX {\n");
+	fp->write("enum VOWNED_IDX {\n");
 	m_state.m_currentIndentLevel++;
-	for(s32 i = 0; i < maxidx; i++)
+	for(u32 i = 0; i < vowned; i++)
 	  {
 	    m_state.indent(fp);
-	    fp->write("VTABLE_IDX_");
-	    fp->write(csym->getMangledFunctionNameWithTypesForVTableEntry(i).c_str());
+	    fp->write("VOWNED_IDX_");
+	    fp->write(csym->getMangledFunctionNameWithTypesForVTableEntry(i + vownstart).c_str());
 	    if(i == 0)
 	      fp->write(" = 0");
 	    fp->write(",\n");
 	  }
 	m_state.indent(fp);
-	fp->write("VTABLE_IDX_MAX\n");
+	fp->write("VOWNED_IDX_COUNT\n");
+
 	m_state.m_currentIndentLevel--;
 	m_state.indent(fp);
 	fp->write("};"); GCNL;
 	fp->write("\n");
+
+	m_state.indent(fp);
+	fp->write("enum { VTABLE_IDX_MAX = ");
+	fp->write_decimal_unsigned(maxidx);
+	fp->write(" };\n");
 
 	m_state.indent(fp);
 	fp->write("static ");
@@ -3086,6 +3104,105 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.indent(fp);
     fp->write("}\n\n");
   }//genCodeBuiltInVirtualTable
+
+  void NodeBlockClass::genCodeBuiltInVirtualTableStartOffsetHelper(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
+  {
+    if(classtype == UC_LOCALSFILESCOPE)
+      return;
+
+    //VTable applies to all classes
+    UTI cuti = m_state.getCompileThisIdx();
+    UlamType * cut = m_state.getUlamTypeByIndex(cuti);
+
+    SymbolClass * csym = NULL;
+    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cuti, csym);
+    assert(isDefined);
+
+    s32 maxidx = getVirtualMethodMaxIdx();
+    assert(maxidx >= 0);
+
+    if(maxidx == 0)
+      return;
+
+    if(declOnly)
+      {
+	m_state.indent(fp);
+	fp->write("static ");
+	fp->write("u16 m_vtablestartoffsets[");
+	fp->write("UlamClassRegistry<EC>::TABLE_SIZE");
+	fp->write("];"); GCNL;
+
+	//VTable accessor method
+	m_state.indent(fp);
+	fp->write("virtual u32 GetVTStartOffsetForClassByRegNum(u32 rn) const;"); GCNL;
+	fp->write("\n");
+	return;
+      } //done w h-file
+
+    std::map<u32, u32> mapbyregnum;
+    u32 mapsize = csym->convertVTstartoffsetmap(mapbyregnum);
+    assert(mapsize > 0);
+
+    //The VT Start Index table Definition:
+    m_state.indent(fp);
+    fp->write("template<class EC>\n"); //same for elements and quarks
+
+    m_state.indent(fp);
+    fp->write("u16 ");
+
+    //include the mangled class::
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write("<EC>::"); //same for elements and quarks
+    fp->write("m_vtablestartoffsets[");
+    fp->write("UlamClassRegistry<EC>::TABLE_SIZE");
+    fp->write("] = {\n");
+
+    m_state.m_currentIndentLevel++;
+    m_state.indent(fp);
+    //generate each VT entry:
+    for(u32 i = 0; i < MAX_REGISTRY_NUMBER; i++)
+      {
+	if(i > 0)
+	  fp->write(", ");
+
+	std::map<u32,u32>::iterator it = mapbyregnum.find(i);
+	if(it != mapbyregnum.end())
+	  fp->write_decimal_unsigned(it->second);
+	else
+	  fp->write_decimal_unsigned(0);
+      } //next vt start idx entry
+
+    fp->write("\n");
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("}; //VTABLE Start Offsets by Class RegNum Definition"); GCNL;
+    fp->write("\n");
+
+    //VTable accessor method
+    m_state.indent(fp);
+    fp->write("template<class EC>\n"); //same for elements and quarks
+
+    m_state.indent(fp);
+    fp->write("u32 ");
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write("<EC>::"); //same for elements and quarks
+    fp->write("GetVTStartOffsetForClassByRegNum(u32 rn) const\n");
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+
+    m_state.indent(fp);
+    fp->write("if(rn >= ");
+    fp->write("UlamClassRegistry<EC>::TABLE_SIZE");
+    fp->write(") FAIL(ARRAY_INDEX_OUT_OF_BOUNDS);"); GCNL;
+
+    m_state.indent(fp);
+    fp->write("return m_vtablestartoffsets[rn];"); GCNL;
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("}\n\n");
+  }//genCodeBuiltInVirtualTableStartOffsetHelper
 
   void NodeBlockClass::generateInternalIsMethodForElement(File * fp, bool declOnly)
   {

@@ -277,7 +277,7 @@ namespace MFM {
     UTI cuti = m_state.getCompileThisIdx();
     u32 fid = getId();
 
-    //initialize this classes VTable to super classes' VTable, or empty
+    //initialize this classes VTable to super classes' orig VTable, or empty
     // some entries may be modified; or table may expand
     SymbolClass * csym = NULL;
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cuti, csym);
@@ -290,23 +290,19 @@ namespace MFM {
 
 	//possibly us, or a great-ancestor that has first decl of this func
 	UTI kinuti; // ref to find, Nav if not found
+	UTI origuti; // class first declared
 	s32 vidx = UNKNOWNSIZE; //virtual index
 	bool overriding = false;
 
 	//search for virtual function w exact name/type in superclass
 	// if found, this function must also be virtual
 	std::vector<UTI> pTypes;
-	u32 numparams = fsym->getNumberOfParameters();
-	for(u32 j = 0; j < numparams; j++)
-	  {
-	    Symbol * psym = fsym->getParameterSymbolPtr(j);
-	    assert(psym);
-	    pTypes.push_back(psym->getUlamTypeIdx());
-	  }
+	fsym->getVectorOfParameterTypes(pTypes);
 
 	SymbolFunction * basefsym = NULL;
+	SymbolFunction * origfsym = NULL;
 	//might belong to a great-ancestor (can't tell from isFuncIdInAClassScope())
-	if(m_state.findMatchingFunctionStrictlyByTypesInAncestorOf(cuti, fid, pTypes, basefsym, kinuti))
+	if(m_state.findMatchingVirtualFunctionStrictlyByTypesInAncestorOf(cuti, fid, pTypes, fsym->isVirtualFunction(), basefsym, kinuti, origfsym, origuti))
 	  {
 	    if(basefsym->isVirtualFunction())
 	      {
@@ -318,13 +314,15 @@ namespace MFM {
 		    msg << m_state.m_pool.getDataAsString(fid).c_str();
 		    msg << "> has a VIRTUAL ancestor in class: ";
 		    msg << m_state.getUlamTypeNameBriefByIndex(kinuti).c_str();
+		    msg << " while compiling ";
+		    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+		    msg << "; treated as virtual";
 		    MSG(fsym->getTokPtr(), msg.str().c_str(), DEBUG); //was WARN (e.g. behave())
 
-		    fsym->setVirtualFunction(); //fix
+		    fsym->setVirtualFunction(); //fix quietly (e.g. t3880)
 		    assert(maxidx != UNKNOWNSIZE); //o.w. wouldn't be here yet
 		  }
-		vidx = basefsym->getVirtualMethodIdx(); //not sure this will work with multi???
-		vidx += csym->getVTstartindexForBaseClass(kinuti); //try this!!
+		vidx = origfsym->getVirtualMethodIdx(); //is vowned vidx
 		kinuti = cuti; //overriding
 		overriding = true; //t41096, t41097
 	      }
@@ -341,11 +339,16 @@ namespace MFM {
 		    MSG(fsym->getTokPtr(), msg.str().c_str(), WARN);
 		    //probably upsets compiler assert...need a Nav node?
 		    kinuti = cuti;
+		    origuti = cuti; //t3746
+		    m_state.abortShouldntGetHere();
 		  }
 	      }
 	  }
 	else
-	  kinuti = cuti; //new entry, this class
+	  {
+	    kinuti = cuti; //new entry, this class
+	    origuti = cuti;
+	  }
 	//end ancestor check
 
 	if(fsym->isVirtualFunction())
@@ -357,8 +360,10 @@ namespace MFM {
 		maxidx = vidx + 1;
 	      }
 	    //else use ancestor index; maxidx stays same; is an override
-	    fsym->setVirtualMethodIdx(vidx);
-	    csym->updateVTable(vidx, fsym, kinuti, fsym->isPureVirtualFunction());
+	    fsym->setVirtualMethodIdx(vidx); //vowned in origuti
+	    fsym->setVirtualMethodOriginatingClassUTI(origuti);
+
+	    csym->updateVTable(vidx, fsym, kinuti, origuti, fsym->isPureVirtualFunction());
 
 	    //check overriding virtual function when flag set by programmer(t41096,97,98)
 	    if(fsym->getInsureVirtualOverrideFunction() && !overriding)

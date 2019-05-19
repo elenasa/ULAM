@@ -786,6 +786,8 @@ namespace MFM {
   {
     bool rtnok = true; //false if error, o.w. rtnfunc is good (changed or not)
     u32 vtidx = m_funcSymbol->getVirtualMethodIdx();
+    UTI vownuti = m_funcSymbol->getVirtualMethodOriginatingClassUTI();
+
     u32 atomid = atomPtr.getPtrNameId();
     if(atomid != 0)
       {
@@ -817,7 +819,10 @@ namespace MFM {
     SymbolClass * vcsym = NULL;
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cuti, vcsym);
     assert(isDefined);
-    UTI vtcuti = vcsym->getClassForVTableEntry(vtidx);
+
+    u32 coffset = vcsym->getVTstartoffsetForBaseClass(vownuti);
+    assert(coffset<UNRELIABLEPOS);
+    UTI vtcuti = vcsym->getClassForVTableEntry(vtidx + coffset); //t41304
 
     //is the virtual class uti the same as what we already have?
     NNO funcstnno = m_funcSymbol->getBlockNoOfST();
@@ -841,13 +846,7 @@ namespace MFM {
 
 	//find this func in the virtual class; get its func def.
 	std::vector<UTI> pTypes;
-	u32 numparams = m_funcSymbol->getNumberOfParameters();
-	for(u32 j = 0; j < numparams; j++)
-	  {
-	    Symbol * psym = m_funcSymbol->getParameterSymbolPtr(j);
-	    assert(psym);
-	    pTypes.push_back(psym->getUlamTypeIdx());
-	  }
+	m_funcSymbol->getVectorOfParameterTypes(pTypes);
 
 	SymbolFunction * funcSymbol = NULL;
 	bool tmphazyargs = false;
@@ -1142,13 +1141,56 @@ namespace MFM {
       cos = m_state.getCurrentSelfSymbolForCodeGen(); //'self'
 
     UTI cosuti = cos->getUlamTypeIdx();
+    UTI decosuti = m_state.getUlamTypeAsDeref(cosuti); // t3758?
 
+    // (ulam-5) requires runtime lookup for start index into virtual table,
+    // using registration number of orig class (both known at compile time)
+    UTI vownuti = m_funcSymbol->getVirtualMethodOriginatingClassUTI();
+    u32 vownregnum = m_state.getAClassRegistrationNumber(vownuti);
+
+    s32 tmpvtstartidx = m_state.getNextTmpVarNumber();
+    m_state.indentUlamCode(fp);
+    fp->write("u32 ");
+    fp->write(m_state.getTmpVarAsString(Unsigned, tmpvtstartidx, TMPREGISTER).c_str());
+    fp->write(" = ");
+
+    if(cos->isSelf() || cosSize == 0)
+      {
+	fp->write(m_state.getHiddenArgName()); //ur
+	fp->write(".GetEffectiveSelf()->GetVTStartOffsetForClassByRegNum(");
+      }
+    else if(cos->isSuper())
+      {
+	fp->write(m_state.getTheInstanceMangledNameByIndex(decosuti).c_str());
+	fp->write(".GetVTStartOffsetForClassByRegNum(");
+      }
+    else if(urtmpnum > 0)
+      {
+	fp->write(m_state.getUlamRefTmpVarAsString(urtmpnum).c_str());
+	fp->write(".GetEffectiveSelf()->GetVTStartOffsetForClassByRegNum(");
+      }
+    else if(cos->getAutoLocalType() == ALT_AS)
+      {
+	m_state.abortShouldntGetHere();
+	fp->write(m_state.getHiddenArgName()); //ur, should use urtmpnum!!
+	fp->write(".GetEffectiveSelf()->GetVTStartOffsetForClassByRegNum(");
+      }
+    else
+      {
+	//unless local or dm, known at compile time!
+	fp->write(m_state.getTheInstanceMangledNameByIndex(decosuti).c_str());
+	fp->write(".GetVTStartOffsetForClassByRegNum(");
+      }
+    fp->write_decimal_unsigned(vownregnum);
+    fp->write(");"); GCNL; //reading into a tmp var
+
+
+    //requires runtime lookup for virtual function pointer
     m_state.indentUlamCode(fp);
     fp->write("VfuncPtr "); //legitimize this tmp label TODO
     fp->write(m_state.getVFuncPtrTmpNumAsString(tvfpnum).c_str()); //Uf_tvfpNNN
     fp->write(" = ");
 
-    //requires runtime lookup for virtual function pointer
     if(cos->isSelf() || cosSize == 0)
       {
 	fp->write(m_state.getHiddenArgName()); //ur
@@ -1177,14 +1219,18 @@ namespace MFM {
 	fp->write(".getVTableEntry(");
       }
 
-    //VT_IDX enum is the same regardless of effective self (e.g. t3600)
-    UTI decosuti = m_state.getUlamTypeAsDeref(cosuti); // t3758
-    UlamType * decosut = m_state.getUlamTypeByIndex(decosuti);
+    //VOWNED_IDX enum is the same regardless of effective self (e.g. t3600)
+    // belongs to originating class; subclass knows offset in VT (ulam-5)
+    //UTI decosuti = m_state.getUlamTypeAsDeref(cosuti); // t3758
+    //UlamType * decosut = m_state.getUlamTypeByIndex(decosuti);
 
-    fp->write(decosut->getUlamTypeMangledName().c_str());
-    fp->write("<EC>::"); //any class
-    fp->write("VTABLE_IDX_"); //== m_funcSymbol->getVirtualMethodIdx()
+    UlamType * vownut = m_state.getUlamTypeByIndex(vownuti);
+    fp->write(vownut->getUlamTypeMangledName().c_str());
+    fp->write("<EC>::"); //orignating class
+    fp->write("VOWNED_IDX_"); //== m_funcSymbol->getVirtualMethodIdx()
     fp->write(m_funcSymbol->getMangledNameWithTypes().c_str());
+    fp->write(" + ");
+    fp->write(m_state.getTmpVarAsString(Unsigned, tmpvtstartidx, TMPREGISTER).c_str());
     fp->write(");"); GCNL; //reading into a separate VfuncPtr tmp var
   } //genCodeVirtualFunctionCallVTableEntry
 
@@ -1193,6 +1239,7 @@ namespace MFM {
     assert(m_funcSymbol);
     //requires runtime lookup for virtual function pointer
     u32 vfidx = m_funcSymbol->getVirtualMethodIdx();
+    UTI vownuti = m_funcSymbol->getVirtualMethodOriginatingClassUTI();
 
     //need typedef typename for this vfunc, any vtable of any owner of this vfunc
     u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
@@ -1208,7 +1255,9 @@ namespace MFM {
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cosuti, csym);
     assert(isDefined);
 
-    UTI cvfuti = csym->getClassForVTableEntry(vfidx);
+    u32 coffset = csym->getVTstartoffsetForBaseClass(vownuti);
+    assert(coffset<UNRELIABLEPOS);
+    UTI cvfuti = csym->getClassForVTableEntry(vfidx + coffset); //t41304
     UlamType * cvfut = m_state.getUlamTypeByIndex(cvfuti);
 
     // check that we are not trying to call a pure virtual function: t41158, t41160, t41094, safe t41161

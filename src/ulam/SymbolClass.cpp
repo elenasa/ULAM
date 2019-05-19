@@ -1460,8 +1460,8 @@ namespace MFM {
     if(m_vtableinitialized) return; //been here before
 
     u32 basesmaxes = 0;
-    // get ancestors accumulated max index (no recursion)
 
+    // get each ancestors' originating virtual function max index (entire tree, no dups)
     std::set<UTI> seenset;
     std::queue<UTI> basesqueue;
     std::pair<std::set<UTI>::iterator,bool> ret;
@@ -1487,40 +1487,74 @@ namespace MFM {
 	SymbolClass * basecsym = NULL;
 	if(m_state.alreadyDefinedSymbolClass(baseuti, basecsym))
 	  {
-	    s32 vtsize = basecsym->getVTableSize();
-	    assert(vtsize >= 0);
-	    m_basesVTstart.push_back(basesmaxes);
+	    s32 vtsize = basecsym->getOrigVTableSize();
+	    assert(vtsize >= 0); //caller made sure none unknown size
 
-	    //copy baseclass' VTable
+	    m_basesVTstart.insert(std::pair<UTI,u32>(baseuti, basesmaxes));
+
+	    //copy baseclass' originating VTable entries
 	    for(s32 i = 0; i < vtsize; i++)
 	      {
-		struct VTEntry ve = basecsym->getVTableEntry(i);
-		m_vtable.push_back(ve);
+		struct VTEntry ve = basecsym->getOrigVTableEntry(i);
+
+		std::vector<UTI> pTypes;
+		ve.m_funcPtr->getVectorOfParameterTypes(pTypes);
+
+		// in case a virtual func is overridden by a subclass of baseuti in cuti's ancestory,
+		// especially when not in cuti (e.g. t3600)
+		SymbolFunction * tmpfsym = NULL;
+		UTI foundInAncestor = Nouti;
+		if(m_state.findMatchingVirtualFunctionStrictlyByTypesInAncestorOf(cuti, ve.m_funcPtr->getId(), pTypes, tmpfsym, foundInAncestor) && (foundInAncestor != baseuti) && m_state.isClassASubclassOf(foundInAncestor,baseuti))
+		  {
+		    ve.m_ofClassUTI = foundInAncestor;
+		    ve.m_funcPtr = tmpfsym;
+		    ve.m_isPure = tmpfsym->isPureVirtualFunction();
+		  }
+
+		m_vtable.push_back(ve); //not updateVTable
 		basesmaxes++;
 	      }
+
+	    // check all bases
+	    u32 basecount = basecsym->getBaseClassCount() + 1; //include super
+	    for(u32 i = 0; i < basecount; i++)
+	      basesqueue.push(basecsym->getBaseClass(i)); //extends queue with next level of base UTIs
 	  }
       } //end while
 
     assert(m_vtable.size() == (u32) initialmax); //t3639
     assert(basesmaxes == (u32) initialmax);
+
+    m_basesVTstart.insert(std::pair<UTI,u32>(cuti, basesmaxes)); //start of our originating virtual funcs
     m_vtableinitialized = true;
   } //initVTable
 
-  void SymbolClass::updateVTable(u32 idx, SymbolFunction * fsym, UTI kinuti, bool isPure)
+  void SymbolClass::updateVTable(u32 vidx, SymbolFunction * fsym, UTI kinuti, UTI origuti, bool isPure)
   {
+    assert(m_state.okUTItoContinue(origuti));
+    u32 startoffset = getVTstartoffsetForBaseClass(origuti);
+    assert((startoffset < UNRELIABLEPOS));
+    u32 idx = startoffset + vidx;
     if(idx < m_vtable.size())
       {
 	m_vtable[idx].m_funcPtr = fsym;
 	m_vtable[idx].m_ofClassUTI = kinuti;
+	assert(m_vtable[idx].m_origClassUTI == origuti);
+	assert(m_vtable[idx].m_origvidx == vidx);
 	m_vtable[idx].m_isPure = isPure;
       }
     else
       {
+	assert(m_vtable.size() == idx); //sanity check, appends at next idx
+	assert(m_vownedVT.size() == vidx); //sanity check, again
 	struct VTEntry ve;
 	ve.m_funcPtr = fsym;
 	ve.m_ofClassUTI = kinuti;
+	ve.m_origClassUTI = origuti;
+	ve.m_origvidx = vidx;
 	ve.m_isPure = isPure;
 	m_vtable.push_back(ve);
+	m_vownedVT.push_back(ve);
       }
   }//updateVTable
 
@@ -1531,23 +1565,51 @@ namespace MFM {
     return UNKNOWNSIZE;
   }
 
+  s32 SymbolClass::getOrigVTableSize()
+  {
+    if(m_vtableinitialized)
+      return m_vownedVT.size();
+    return UNKNOWNSIZE;
+  }
+
   VT& SymbolClass::getVTableRef()
   {
     return m_vtable;
   }
 
-  u32 SymbolClass::getVTstartindexForBaseClass(UTI baseuti)
+  u32 SymbolClass::convertVTstartoffsetmap(std::map<u32, u32> & mapbyrnref)
   {
-    s32 baseitem = isABaseClassItem(baseuti);
-    if(baseitem < 0) //not found
+    u32 count = 0;
+    std::map<UTI, u32>::iterator it;
+    for(it = m_basesVTstart.begin(); it != m_basesVTstart.end(); it++)
       {
-	UTI foundInBase = Nouti;
-	bool fndit = m_state.findNearestBaseClassToAnAncestor(getUlamTypeIdx(), baseuti, foundInBase);
-	assert(fndit);
-	baseitem = isABaseClassItem(foundInBase);
+	UTI nextuti = it->first;
+	u32 startoffset = it->second;
+	u32 regnum = m_state.getAClassRegistrationNumber(nextuti);
+	std::pair<std::map<u32,u32>::iterator, bool> reti;
+	reti = mapbyrnref.insert(std::pair<u32,u32>(regnum,startoffset));
+	bool notdupi = reti.second; //false if already existed, i.e. not added
+	assert(notdupi);  //sanity
+	count++;
       }
-    assert((u32) baseitem < m_basesVTstart.size());
-    return m_basesVTstart[baseitem];
+    assert(count == m_basesVTstart.size()); //sanity
+    assert(count == mapbyrnref.size()); //sanity
+    return count;
+  } //convertVTstartoffsetmap
+
+  u32 SymbolClass::getVTstartoffsetForBaseClass(UTI baseuti)
+  {
+    u32 startoffset = UNRELIABLEPOS;
+    std::map<UTI, u32>::iterator it = m_basesVTstart.find(baseuti);
+    if(it != m_basesVTstart.end())
+      startoffset = it->second;
+    return startoffset;
+  }
+
+  u32 SymbolClass::getVTableIndexForOriginatingClass(u32 idx)
+  {
+    assert(idx < m_vtable.size());
+    return m_vtable[idx].m_origvidx;
   }
 
   bool SymbolClass::isPureVTableEntry(u32 idx)
@@ -1560,6 +1622,12 @@ namespace MFM {
   {
     assert(idx < m_vtable.size());
     return m_vtable[idx].m_ofClassUTI;
+  }
+
+  UTI SymbolClass::getOriginatingClassForVTableEntry(u32 idx)
+  {
+    assert(idx < m_vtable.size());
+    return m_vtable[idx].m_origClassUTI;
   }
 
   void SymbolClass::notePureFunctionSignatures()
@@ -1595,6 +1663,12 @@ namespace MFM {
   {
     assert(idx < m_vtable.size());
     return m_vtable[idx];
+  }
+
+  struct VTEntry SymbolClass::getOrigVTableEntry(u32 idx)
+  {
+    assert(idx < m_vownedVT.size());
+    return m_vownedVT[idx];
   }
 
   bool SymbolClass::isAbstract()

@@ -3396,61 +3396,17 @@ namespace MFM {
     return rtnb;
   } //findMatchingFunctionStrictlyByTypesInClassScope
 
-  bool CompilerState::findMatchingFunctionStrictlyByTypesInAClassScopeOrAncestor(UTI cuti, u32 fid, std::vector<UTI> typeVec, SymbolFunction*& fsymref, UTI& foundInAncestor)
+  bool CompilerState::findMatchingVirtualFunctionStrictlyByTypesInAncestorOf(UTI cuti, u32 fid, std::vector<UTI> typeVec, SymbolFunction*& fsymref, UTI& foundInAncestor)
   {
     bool rtnb = false;
+    UTI foundinbase = Nouti;
 
     std::set<UTI> seenset;
     std::queue<UTI> basesqueue;
     std::pair<std::set<UTI>::iterator,bool> ret;
 
-    basesqueue.push(cuti);
-
-    while(!rtnb && !basesqueue.empty())
-      {
-	UTI baseuti = basesqueue.front();
-	basesqueue.pop(); //remove from front of queue
-	ret = seenset.insert(baseuti);
-	if (ret.second==false)
-	  continue; //already seen, try next one..
-
-	SymbolClass * basecsym = NULL;
-	if(alreadyDefinedSymbolClass(baseuti, basecsym))
-	  {
-	    NodeBlockClass * basecblock = basecsym->getClassBlockNode();
-	    assert(basecblock);
-	    pushClassContextUsingMemberClassBlock(basecblock);
-
-	    rtnb = findMatchingFunctionStrictlyByTypesInClassScope(fid, typeVec, fsymref);
-
-	    popClassContext(); //didn't forget!!
-
-	    if(rtnb)
-	      foundInAncestor = baseuti;
-	    else
-	      {
-		u32 basecount = basecsym->getBaseClassCount() + 1; //include super
-		for(u32 i = 0; i < basecount; i++)
-		  basesqueue.push(basecsym->getBaseClass(i)); //extends queue with next level of base UTIs
-	      }
-	  }
-      } //end while
-
-    if(!rtnb)
-      foundInAncestor = Nouti;
-
-    return rtnb;
-  } //findMatchingFunctionStrictlyByTypesInAClassScopeOrAncestor
-
-  bool CompilerState::findMatchingFunctionStrictlyByTypesInAncestorOf(UTI cuti, u32 fid, std::vector<UTI> typeVec, SymbolFunction*& fsymref, UTI& foundInAncestor)
-  {
-    bool rtnb = false;
-
-    std::set<UTI> seenset;
-    std::queue<UTI> basesqueue;
-    std::pair<std::set<UTI>::iterator,bool> ret;
-
-    //don't look in cuti, just base classes (breadth-first)
+    //called again while initializing vtable, looking for overrides in subclasses;
+    //don't look in cuti (yet), just base classes (breadth-first)
     SymbolClass * csym = NULL;
     AssertBool isDefined = alreadyDefinedSymbolClass(cuti, csym);
     assert(isDefined);
@@ -3474,26 +3430,204 @@ namespace MFM {
 	    assert(basecblock);
 	    pushClassContextUsingMemberClassBlock(basecblock);
 
-	    rtnb = findMatchingFunctionStrictlyByTypesInClassScope(fid, typeVec, fsymref);
+	    SymbolFunction * tmpfsym = NULL; //repeated use
+	    bool gotmatch = findMatchingFunctionStrictlyByTypesInClassScope(fid, typeVec, tmpfsym);
 
 	    popClassContext(); //didn't forget!!
 
-	    if(rtnb)
-	      foundInAncestor = baseuti;
-	    else
+	    gotmatch = gotmatch && tmpfsym->isVirtualFunction();
+
+	    if(gotmatch) // && (foundinbase != Nav))
 	      {
-		u32 basecount = basecsym->getBaseClassCount() + 1; //include super
-		for(u32 i = 0; i < basecount; i++)
-		  basesqueue.push(basecsym->getBaseClass(i)); //extends queue with next level of base UTIs
+		if(foundinbase == Nouti)
+		  {
+		    foundinbase = baseuti;
+		    fsymref = tmpfsym;
+		  }
+		else if(isClassASubclassOf(baseuti, foundinbase))
+		  {
+		    foundinbase = baseuti; //baseuti is subclass of foundinbase (e.g. UrSelf), switch
+		    fsymref = tmpfsym;
+		  }
+		else if(!isClassASubclassOf(foundinbase, baseuti))
+		  {
+		    std::ostringstream msg;
+		    msg << "Virtual function: "  << m_pool.getDataAsString(fsymref->getId()).c_str();
+		    msg << "(";
+		    for (u32 i = 0; i < typeVec.size(); i++)
+		      {
+			if(i > 0)
+			  msg << ", ";
+			msg << getUlamTypeNameBriefByIndex(typeVec[i]).c_str();
+		      }
+		    msg << ") has conflicting declarations in multiple base classes, ";
+		    msg << getUlamTypeNameBriefByIndex(foundinbase).c_str();
+		    msg << " and ";
+		    msg << getUlamTypeNameBriefByIndex(baseuti).c_str();
+		    msg << " while compiling ";
+		    msg << getUlamTypeNameBriefByIndex(cuti).c_str();
+		    MSG2(tmpfsym->getTokPtr(), msg.str().c_str(), WARN);
+		    foundInAncestor = Nav; //WARNING
+		    fsymref = NULL;
+		  }
 	      }
+
+	    //check all bases for errors
+	    u32 basecount = basecsym->getBaseClassCount() + 1; //include super
+	    for(u32 i = 0; i < basecount; i++)
+	      basesqueue.push(basecsym->getBaseClass(i)); //extends queue with next level of base UTIs
 	  }
       } //end while
 
-    if(!rtnb)
-      foundInAncestor = Nouti;
-
+    rtnb = okUTItoContinue(foundinbase); //neither Nav, nor Nouti
+    foundInAncestor = foundinbase;
     return rtnb;
-  } //findMatchingFunctionStrictlyByTypesInAncestorOf
+  } //findMatchingVirtualFunctionStrictlyByTypesInAncestorOf
+
+  bool CompilerState::findMatchingVirtualFunctionStrictlyByTypesInAncestorOf(UTI cuti, u32 fid, std::vector<UTI> typeVec, bool virtualInSub, SymbolFunction*& fsymref, UTI& foundInAncestor, SymbolFunction*& origfsymref, UTI& firstInAncestor)
+  {
+    bool rtnb = false;
+    UTI foundinbase = Nouti;
+    UTI foundOriginator = Nouti;
+
+    std::set<UTI> seenset;
+    std::queue<UTI> basesqueue;
+    std::pair<std::set<UTI>::iterator,bool> ret;
+
+    //don't look in cuti, just base classes (breadth-first)
+    SymbolClass * csym = NULL;
+    AssertBool isDefined = alreadyDefinedSymbolClass(cuti, csym);
+    assert(isDefined);
+
+    u32 basecount = csym->getBaseClassCount() + 1; //include super
+    for(u32 i = 0; i < basecount; i++)
+      basesqueue.push(csym->getBaseClass(i)); //init queue with first level of base UTIs
+
+    while(!basesqueue.empty() && (foundinbase != Nav) && (foundOriginator != Nav))
+      {
+	UTI baseuti = basesqueue.front();
+	basesqueue.pop(); //remove from front of queue
+	ret = seenset.insert(baseuti);
+	if (ret.second==false)
+	  continue; //already seen, try next one..
+
+	SymbolClass * basecsym = NULL;
+	if(alreadyDefinedSymbolClass(baseuti, basecsym))
+	  {
+	    NodeBlockClass * basecblock = basecsym->getClassBlockNode();
+	    assert(basecblock);
+	    pushClassContextUsingMemberClassBlock(basecblock);
+
+	    SymbolFunction * tmpfsym = NULL; //repeated use (t3562, t3608, t3748)
+	    bool gotmatch = findMatchingFunctionStrictlyByTypesInClassScope(fid, typeVec, tmpfsym);
+
+	    popClassContext(); //didn't forget!!
+
+	    if(gotmatch) // && (foundinbase != Nav))
+	      {
+		if(!tmpfsym->isVirtualFunction())
+		  {
+		    if(virtualInSub)
+		      {
+			//c++, quietly fails
+			std::ostringstream msg;
+			msg << "Virtual overloaded function <";
+			msg << m_pool.getDataAsString(fid).c_str();
+			msg << "> has a NON-VIRTUAL ancestor in class: ";
+			msg << getUlamTypeNameBriefByIndex(baseuti).c_str();
+			msg << " while compiling ";
+			msg << getUlamTypeNameBriefByIndex(cuti).c_str();
+			MSG2(tmpfsym->getTokPtr(), msg.str().c_str(), WARN);
+		      }
+		  }
+		else
+		  {
+		    //check for more specificity, and earlier first definition (vown)
+		    if(foundinbase == Nouti)
+		      {
+			foundinbase = baseuti;
+			fsymref = tmpfsym;
+		      }
+		    else if(isClassASubclassOf(baseuti, foundinbase))
+		      {
+			foundinbase = baseuti; //baseuti is subclass of foundinbase (e.g. UrSelf), switch
+			fsymref = tmpfsym;
+		      }
+		    else if(!isClassASubclassOf(foundinbase, baseuti))
+		      {
+			std::ostringstream msg;
+			msg << "Virtual function: "  << m_pool.getDataAsString(fsymref->getId()).c_str();
+			msg << "(";
+			for (u32 i = 0; i < typeVec.size(); i++)
+			  {
+			    if(i > 0)
+			      msg << ", ";
+			    msg << getUlamTypeNameBriefByIndex(typeVec[i]).c_str();
+			  }
+			msg << ") has conflicting declarations in multiple base classes, ";
+			msg << getUlamTypeNameBriefByIndex(foundinbase).c_str();
+			msg << " and ";
+			msg << getUlamTypeNameBriefByIndex(baseuti).c_str();
+			msg << " while compiling ";
+			msg << getUlamTypeNameBriefByIndex(cuti).c_str();
+			if(virtualInSub)
+			  MSG2(tmpfsym->getTokPtr(), msg.str().c_str(), ERR); //was WARN
+			else
+			  MSG2(tmpfsym->getTokPtr(), msg.str().c_str(), WARN); //was WARN
+			foundInAncestor = Nav; //WARNING
+			fsymref = NULL;
+		      }
+
+		    // for vowned classes, func must be virtual (t3746)
+		    if(foundOriginator == Nouti)
+		      {
+			foundOriginator = baseuti;
+			origfsymref = tmpfsym;
+		      }
+		    else if(isClassASubclassOf(foundOriginator, baseuti))
+		      {
+			foundOriginator = baseuti; //foundOriginator is a subclass of baseuti (e.g. UrSelf)
+			origfsymref = tmpfsym; //switch ok (e.g. 3600)
+		      }
+		    else if(!isClassASubclassOf(baseuti, foundOriginator))
+		      {
+			std::ostringstream msg;
+			msg << "Virtual function: "  << m_pool.getDataAsString(fsymref->getId()).c_str();
+			msg << "(";
+			for (u32 i = 0; i < typeVec.size(); i++)
+			  {
+			    if(i > 0)
+			      msg << ", ";
+			    msg << getUlamTypeNameBriefByIndex(typeVec[i]).c_str();
+			  }
+			msg << ") has conflicting Original declarations in multiple base classes, ";
+			msg << getUlamTypeNameBriefByIndex(baseuti).c_str();
+			msg << " and ";
+			msg << getUlamTypeNameBriefByIndex(foundOriginator).c_str();
+			msg << " while compiling ";
+			msg << getUlamTypeNameBriefByIndex(cuti).c_str();
+			if(virtualInSub)
+			  MSG2(tmpfsym->getTokPtr(), msg.str().c_str(), ERR);
+			else
+			  MSG2(tmpfsym->getTokPtr(), msg.str().c_str(), WARN);
+			foundOriginator = Nav; //WARNING
+			origfsymref = NULL;
+		      }
+		  }
+	      } //gotmatch
+
+	    // check all bases for errors, and originator
+	    u32 basecount = basecsym->getBaseClassCount() + 1; //include super
+	    for(u32 i = 0; i < basecount; i++)
+	      basesqueue.push(basecsym->getBaseClass(i)); //extends queue with next level of base UTIs
+	  }
+      } //end while
+
+    rtnb = okUTItoContinue(foundinbase) && okUTItoContinue(foundOriginator); //neither Nav, nor Nouti
+    foundInAncestor = foundinbase;
+    firstInAncestor = foundOriginator;
+    return rtnb;
+  } //findMatchingVirtualFunctionStrictlyByTypesInAncestorOf
 
   u32 CompilerState::findMatchingFunctionInClassScope(u32 fid, std::vector<Node *> nodeArgs, SymbolFunction*& fsymref, bool& hasHazyArgs)
   {

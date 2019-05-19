@@ -6,12 +6,12 @@
 
 namespace MFM {
 
-  SymbolFunction::SymbolFunction(const Token& id, UTI typetoreturn, CompilerState& state ) : Symbol(id,typetoreturn,state), m_functionNode(NULL), m_hasVariableArgs(false), m_isVirtual(false), m_pureVirtual(false), m_insureVirtualOverride(false), m_isConstructor(false), m_definedinaQuark(false)
+  SymbolFunction::SymbolFunction(const Token& id, UTI typetoreturn, CompilerState& state ) : Symbol(id,typetoreturn,state), m_functionNode(NULL), m_hasVariableArgs(false), m_isVirtual(false), m_pureVirtual(false), m_insureVirtualOverride(false), m_virtualIdx(9999), m_virtualOrigUTI(Nouti), m_isConstructor(false), m_definedinaQuark(false)
   {
     setDataMemberClass(m_state.getCompileThisIdx()); // by definition all function definitions are data members
   }
 
-  SymbolFunction::SymbolFunction(const SymbolFunction& sref) : Symbol(sref), m_hasVariableArgs(sref.m_hasVariableArgs), m_isVirtual(sref.m_isVirtual), m_pureVirtual(sref.m_pureVirtual), m_insureVirtualOverride(sref.m_insureVirtualOverride), m_isConstructor(sref.m_isConstructor), m_definedinaQuark(sref.m_definedinaQuark)
+  SymbolFunction::SymbolFunction(const SymbolFunction& sref) : Symbol(sref), m_hasVariableArgs(sref.m_hasVariableArgs), m_isVirtual(sref.m_isVirtual), m_pureVirtual(sref.m_pureVirtual), m_insureVirtualOverride(sref.m_insureVirtualOverride), m_virtualIdx(sref.m_virtualIdx), m_virtualOrigUTI(m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_virtualOrigUTI, sref.getLoc())), m_isConstructor(sref.m_isConstructor), m_definedinaQuark(sref.m_definedinaQuark)
   {
     //parameters belong to functiondefinition block's ST; do not clone them again here!
     if(sref.m_functionNode)
@@ -65,6 +65,18 @@ namespace MFM {
   u32 SymbolFunction::getNumberOfParameters()
   {
     return m_parameterSymbols.size();
+  }
+
+  void SymbolFunction::getVectorOfParameterTypes(std::vector<UTI>& pTypesref)
+  {
+    u32 numparams = getNumberOfParameters();
+    for(u32 j = 0; j < numparams; j++)
+      {
+	Symbol * psym = getParameterSymbolPtr(j);
+	assert(psym);
+	pTypesref.push_back(psym->getUlamTypeIdx());
+      }
+    assert(pTypesref.size() == numparams);
   }
 
   u32 SymbolFunction::getTotalParameterSlots()
@@ -452,6 +464,19 @@ namespace MFM {
   {
     assert(isVirtualFunction());
     m_virtualIdx = idx;
+  }
+
+  u32 SymbolFunction::getVirtualMethodOriginatingClassUTI()
+  {
+    assert(isVirtualFunction());
+    return m_virtualOrigUTI;
+  }
+
+  void SymbolFunction::setVirtualMethodOriginatingClassUTI(UTI uti)
+  {
+    assert(isVirtualFunction());
+    assert(m_virtualOrigUTI == Nouti);
+    m_virtualOrigUTI = uti;
   }
 
   bool SymbolFunction::isConstructorFunction()

@@ -59,6 +59,7 @@ namespace MFM{
 
     void addParameterSymbol(Symbol * argSym);
     u32 getNumberOfParameters();
+    void getVectorOfParameterTypes(std::vector<UTI>& pTypesref);
     u32 getTotalParameterSlots();
 
     Symbol * getParameterSymbolPtr(u32 n);
@@ -99,6 +100,9 @@ namespace MFM{
     u32 getVirtualMethodIdx();
     void setVirtualMethodIdx(u32 idx);
 
+    u32 getVirtualMethodOriginatingClassUTI();
+    void setVirtualMethodOriginatingClassUTI(UTI uti);
+
     bool isConstructorFunction();
     void setConstructorFunction();
 
@@ -121,6 +125,7 @@ namespace MFM{
     bool m_pureVirtual; //overloaded funcs may have different pure virtual status
     bool m_insureVirtualOverride;
     u32 m_virtualIdx;
+    UTI m_virtualOrigUTI;
     bool m_isConstructor;
     bool m_definedinaQuark;
     void generateFunctionDeclarationVirtualTypedef(File * fp, bool declOnly, ULAMCLASSTYPE classtype);

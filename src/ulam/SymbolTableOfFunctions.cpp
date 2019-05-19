@@ -193,27 +193,41 @@ namespace MFM {
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cuti, csym);
     assert(isDefined);
 
-    // get ancestors accumulated max index (no recursion)
+    // get ancestors accumulated max index of originating virtual funcs (entire tree)
     u32 basecount = csym->getBaseClassCount() + 1; //include super
     for(u32 i = 0; i < basecount; i++)
+      basesqueue.push(csym->getBaseClass(i)); //extends queue with next level of base UTIs
+
+    while(!basesqueue.empty())
       {
-	UTI baseuti = csym->getBaseClass(i);
+	UTI baseuti = basesqueue.front();
+	basesqueue.pop(); //remove from front of queue
+	ret = seenset.insert(baseuti);
+	if (ret.second==false)
+	  continue; //already seen, try next one..
+
 	SymbolClass * basecsym = NULL;
 	if(m_state.alreadyDefinedSymbolClass(baseuti, basecsym))
 	  {
-	    s32 mymax = basecsym->getVTableSize();
+	    s32 mymax = basecsym->getOrigVTableSize(); //originating only
+
 	    if(mymax == UNKNOWNSIZE)
 	      uninitbases = true;
 	    else
 	      accummaxes += mymax;
-	  }
-      } //end for
 
-    if(uninitbases)
-      {
-	maxidx = UNKNOWNSIZE;
-	return;
-      }
+	    if(uninitbases)
+	      {
+		maxidx = UNKNOWNSIZE;
+		return; //short-circuit
+	      }
+
+	    // check all bases
+	    u32 basecount = basecsym->getBaseClassCount() + 1; //include super
+	    for(u32 i = 0; i < basecount; i++)
+	      basesqueue.push(basecsym->getBaseClass(i)); //extends queue with next level of base UTIs
+	  }
+      } //end while
 
     if(m_idToSymbolPtr.empty() && (accummaxes == 0))
       {
@@ -221,18 +235,23 @@ namespace MFM {
     	maxidx = 0; //use zero when empty
       }
     else
-      maxidx = accummaxes;
+      {
+	maxidx = accummaxes;
+      }
 
     csym->initVTable(maxidx);
 
+    s32 vownedcount = 0;
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;
 	assert(sym && sym->isFunction());
-	((SymbolFunctionName *) sym)->calcMaxIndexOfVirtualFunctions(maxidx);
+	((SymbolFunctionName *) sym)->calcMaxIndexOfVirtualFunctions(vownedcount);
 	it++;
       }
+
+    maxidx += vownedcount;
     return;
   } //calcMaxIndexForVirtualTableOfFunctions
 

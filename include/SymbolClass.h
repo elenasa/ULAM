@@ -162,16 +162,21 @@ namespace MFM{
     void addClassMemberDescriptionsMapEntry(ClassMemberMap& classmembers);
 
     void initVTable(s32 initialmax);
-    void updateVTable(u32 idx, SymbolFunction * fsym, UTI kinuti, bool isPure);
+    void updateVTable(u32 idx, SymbolFunction * fsym, UTI kinuti, UTI origuti, bool isPure);
     s32 getVTableSize();
+    s32 getOrigVTableSize();
     VT& getVTableRef();
-    u32 getVTstartindexForBaseClass(UTI baseuti);
+    u32 convertVTstartoffsetmap(std::map<u32, u32> & mapbyrnref); //returns count
+    u32 getVTstartoffsetForBaseClass(UTI baseuti);
+    u32 getVTableIndexForOriginatingClass(u32 idx);
     bool isPureVTableEntry(u32 idx);
     UTI getClassForVTableEntry(u32 idx);
+    UTI getOriginatingClassForVTableEntry(u32 idx);
     void notePureFunctionSignatures();
     std::string getMangledFunctionNameForVTableEntry(u32 idx);
     std::string getMangledFunctionNameWithTypesForVTableEntry(u32 idx);
     struct VTEntry getVTableEntry(u32 idx);
+    struct VTEntry getOrigVTableEntry(u32 idx);
 
     bool isAbstract();
     bool checkAbstractClassError();
@@ -195,7 +200,7 @@ namespace MFM{
 
     std::vector<UTI> m_bases;
     std::vector<s32> m_basespos; //UNKNOWN < 0
-    std::vector<u32> m_basesVTstart;
+    //    std::vector<u32> m_basesVTstart;
 
     void assignClassArgValuesInStubCopy();
 
@@ -213,6 +218,9 @@ namespace MFM{
     static std::string firstletterTolowercase(const std::string s);
 
     VT m_vtable;
+    std::map<UTI, u32> m_basesVTstart;
+    VT m_vownedVT;
+
     bool m_vtableinitialized;
   };
 
