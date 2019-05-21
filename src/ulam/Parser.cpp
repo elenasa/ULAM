@@ -53,6 +53,7 @@
 #include "NodeLabel.h"
 #include "NodeListEmpty.h"
 #include "NodeMemberSelect.h"
+#include "NodeMemberSelectByBaseClassType.h"
 #include "NodeMemberSelectOnConstructorCall.h"
 #include "NodeModelParameter.h"
 #include "NodeQuestionColon.h"
@@ -2745,7 +2746,10 @@ namespace MFM {
 		typeNode = NULL;
 	      }
 	    else
-	      getNextToken(dTok); //?
+	      {
+		getNextToken(dTok); //?
+		typeargs.m_ateadot = true; //t41307
+	      }
 	  }
 	else
 	  {
@@ -3567,10 +3571,12 @@ namespace MFM {
     Node * rtnNode = classInstanceNode; //first one
     Token pTok;
 
-    //use loop rather than recursion to get a left-justified tree;
+    bool ateadot = false;
+    //use loop rather than recursion to get a left-associated tree;
     // needed to support, for example: a.b.c.atomof (t3905)
-    while(getExpectedToken(TOK_DOT, pTok, QUIETLY)) //if not, quietly unreads
+    while(getExpectedToken(TOK_DOT, pTok, QUIETLY) || ateadot) //if not, quietly unreads
       {
+	ateadot = false; //reset
 	Token iTok;
 	getNextToken(iTok);
 	if(iTok.m_type == TOK_IDENTIFIER)
@@ -3595,6 +3601,23 @@ namespace MFM {
 	    //clear up compiler state to no longer use the member class block
 	    // for symbol searches (e.g. t3262)
 	    m_state.popClassContext(); //restore
+	  }
+	else if(iTok.m_type == TOK_TYPE_IDENTIFIER)
+	  {
+	    unreadToken();
+	    //ulam-5 select base class virtual function (t41307)
+	    //just the top level as a basic uti (no selects, or arrays)
+	    TypeArgs typeargs;
+	    NodeTypeDescriptor * nextmembertypeNode = parseTypeDescriptor(typeargs, true); //isaclass
+	    assert(nextmembertypeNode);
+
+	    NodeMemberSelect * ms = new NodeMemberSelectByBaseClassType(rtnNode, nextmembertypeNode, m_state);
+	    assert(ms);
+	    ms->setNodeLocation(iTok.m_locator);
+	    rtnNode = ms;
+
+	    //we've lost the DOT, looking for a typedef from another class.
+	    ateadot = typeargs.m_ateadot;
 	  }
 	else
 	  {

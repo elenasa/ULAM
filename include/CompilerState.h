@@ -282,7 +282,10 @@ namespace MFM{
     u32 findClassAncestorWithMatchingNameid(UTI cuti, u32 nameid, UTI& superp);
 
     bool isClassASubclassOf(UTI cuti, UTI superp);
+    bool isBaseClassADirectAncestorOf(UTI cuti, UTI basep);
     void resetABaseClassType(UTI cuti, UTI olduti, UTI newuti);
+    bool getABaseClassRelativePositionInAClass(UTI cuti, UTI baseuti, u32& relposref);
+
     bool isClassAStub(UTI cuti);
     bool hasClassAStubInHierarchy(UTI cuti);
     bool isClassAQuarkUnion(UTI cuti);

@@ -2054,6 +2054,19 @@ namespace MFM {
     return hasbase; //even for non-classes
   } //isClassASubclassOf
 
+  //return true if the second arg is a base class of the first arg.
+  // i.e. cuti is a subclass of base. recurses the family tree.
+  bool CompilerState::isBaseClassADirectAncestorOf(UTI cuti, UTI basep)
+  {
+    bool hasbase = false;
+    SymbolClass * csym = NULL;
+    if(alreadyDefinedSymbolClass(cuti, csym))
+      {
+	hasbase = (csym->isABaseClassItem(basep) >= 0); //t41308
+      }
+    return hasbase; //even for non-classes
+  } //isBaseClassADirectAncestorOf
+
   //return true if a baseclass of the first arg starts with id.
   // i.e. cuti is a subclass of basep. recurses the family tree.
   u32 CompilerState::findClassAncestorWithMatchingNameid(UTI cuti, u32 nameid, UTI& basep)
@@ -2107,6 +2120,26 @@ namespace MFM {
 	  csym->updateBaseClass(olduti, (u32) item, newuti);
       }
   } //resetABaseClassType
+
+  bool CompilerState::getABaseClassRelativePositionInAClass(UTI cuti, UTI baseuti, u32& relposref)
+  {
+    bool rtnok = false;
+    SymbolClass * csym = NULL;
+    if(alreadyDefinedSymbolClass(cuti, csym))
+      {
+	s32 item = csym->isABaseClassItem(baseuti);
+	if(item >= 0)
+	  {
+	    s32 pos = csym->getBaseClassRelativePosition(item);
+	    if(pos >= 0)
+	      {
+		relposref = pos;
+		rtnok = true;
+	      }
+	  }
+      }
+    return rtnok;
+  }
 
   bool CompilerState::isClassAStub(UTI cuti)
   {
@@ -3354,6 +3387,7 @@ namespace MFM {
 	    if((rtnb = isFuncIdInClassScope(dataindex, fnSym, tmphazykin))) //not ancestor
 	      {
 		hasHazyKin = tmphazykin;
+		symptr = fnSym;
 	      }
 	    else
 	      {
@@ -3452,7 +3486,7 @@ namespace MFM {
 		else if(!isClassASubclassOf(foundinbase, baseuti))
 		  {
 		    std::ostringstream msg;
-		    msg << "Virtual function: "  << m_pool.getDataAsString(fsymref->getId()).c_str();
+		    msg << "Virtual function: "  << m_pool.getDataAsString(tmpfsym->getId()).c_str();
 		    msg << "(";
 		    for (u32 i = 0; i < typeVec.size(); i++)
 		      {
@@ -3556,7 +3590,7 @@ namespace MFM {
 		    else if(!isClassASubclassOf(foundinbase, baseuti))
 		      {
 			std::ostringstream msg;
-			msg << "Virtual function: "  << m_pool.getDataAsString(fsymref->getId()).c_str();
+			msg << "Virtual function: "  << m_pool.getDataAsString(tmpfsym->getId()).c_str();
 			msg << "(";
 			for (u32 i = 0; i < typeVec.size(); i++)
 			  {
@@ -3592,7 +3626,7 @@ namespace MFM {
 		    else if(!isClassASubclassOf(baseuti, foundOriginator))
 		      {
 			std::ostringstream msg;
-			msg << "Virtual function: "  << m_pool.getDataAsString(fsymref->getId()).c_str();
+			msg << "Virtual function: "  << m_pool.getDataAsString(tmpfsym->getId()).c_str();
 			msg << "(";
 			for (u32 i = 0; i < typeVec.size(); i++)
 			  {
