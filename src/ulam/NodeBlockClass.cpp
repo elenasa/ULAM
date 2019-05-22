@@ -1894,7 +1894,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	    superblock = supercnsym->getClassBlockNode();
 	  }
 	assert(superblock);
-	superblock->genClassTypeAndNameEntryAsComment(fp, superuti, totalsize, accumsize); //no recursion
+	superblock->genClassTypeAndNameEntryAsComment(fp, superuti, totalsize, accumsize, 0); //no recursion
       }
 
     u32 basecount = csym->getBaseClassCount() + 1; //include super
@@ -1913,7 +1913,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	    basecblock = basecnsym->getClassBlockNode();
 	  }
 	assert(basecblock);
-	basecblock->genClassTypeAndNameEntryAsComment(fp, baseuti, totalsize, accumsize); //no recursion
+	basecblock->genClassTypeAndNameEntryAsComment(fp, baseuti, totalsize, accumsize, i); //no recursion
 	i++;
       } //end while
 
@@ -1926,7 +1926,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("*/\n"); //end of comment
   } //genClassDataMemberChartAsComment
 
-  void NodeBlockClass::genClassTypeAndNameEntryAsComment(File * fp, UTI nuti, s32 totalsize, u32& accumsize)
+  void NodeBlockClass::genClassTypeAndNameEntryAsComment(File * fp, UTI nuti, s32 totalsize, u32& accumsize, u32 baseitem)
   {
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     s32 nsize = nut->getTotalBitSize();
@@ -1937,7 +1937,10 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write_decimal_unsigned(accumsize); //at
     fp->write("\t| ");
     fp->write_decimal(nsize); // of totalsize
-    fp->write("\t| super\t| "); //name
+    if(baseitem == 0)
+      fp->write("\t| super\t| "); //name
+    else
+      fp->write("\t| base\t| "); //name
     fp->write(nut->getUlamTypeClassNameBrief(nuti).c_str());
     fp->write("\n");
 
@@ -1958,7 +1961,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write(cut->getUlamTypeMangledName().c_str());
     fp->write(" : public UlamQuark<EC>");
 
-    genThisUlamSuperClassAsAHeaderComment(fp);
+    genThisUlamBaseClassAsAHeaderComment(fp);
 
     fp->write("\n");
 
@@ -2034,7 +2037,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write(cut->getUlamTypeMangledName().c_str());
     fp->write(" : public UlamElement<EC>"); //was DefaultElement
 
-    genThisUlamSuperClassAsAHeaderComment(fp);
+    genThisUlamBaseClassAsAHeaderComment(fp);
 
     m_state.indent(fp);
     fp->write("{\n");
@@ -2115,7 +2118,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write(cut->getUlamTypeMangledName().c_str());
     fp->write(" : public UlamTransient<EC> ");
 
-    genThisUlamSuperClassAsAHeaderComment(fp);
+    genThisUlamBaseClassAsAHeaderComment(fp);
 
     m_state.indent(fp);
     fp->write("{\n");
@@ -2182,7 +2185,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write(cut->getUlamTypeMangledName().c_str());
     fp->write(" : public UlamClass<EC> ");
 
-    genThisUlamSuperClassAsAHeaderComment(fp);
+    //genThisUlamBaseClassAsAHeaderComment(fp);
 
     m_state.indent(fp);
     fp->write("{\n");
@@ -2228,7 +2231,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     // in case a function has one as a return value and/or parameter.
   } //genCodeHeaderLocalsFilescope
 
-  void NodeBlockClass::genThisUlamSuperClassAsAHeaderComment(File * fp)
+  void NodeBlockClass::genThisUlamBaseClassAsAHeaderComment(File * fp)
   {
     UTI cuti = m_state.getCompileThisIdx(); //getContextBlock?
     SymbolClass * csym = NULL;
@@ -2245,12 +2248,16 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	if(baseuti != Nouti)
 	  {
 	    fp->write(" /*, ");
+	    if(i==0)
+	      fp->write(":");
+	    else
+	      fp->write("+");
 	    fp->write(m_state.getUlamTypeByIndex(baseuti)->getUlamTypeMangledName().c_str());
 	    fp->write(" */");
 	  }
 	i++;
       } //end while
-  } //genThisUlamSuperClassAsAHeaderComment
+  } //genThisUlamBaseClassAsAHeaderComment
 
   void NodeBlockClass::genShortNameParameterTypesExtractedForHeaderFile(File * fp)
   {

@@ -1,12 +1,20 @@
 ## -*- mode:ulam -*-
-#=t41308_test_compiler_elementandquark_multibases_virtualfuncsselect_error
-#!
-./Foo.ulam:14:15: ERROR: Selected Base Class Type QBase1 is not a direct ancestor of E4 and cannot be used in this context.
-./Foo.ulam:14:22: ERROR: Member selected is incomplete class: erroneous, check and label fails this time around.
-./Foo.ulam:14:10: ERROR: Assignment is invalid; LHS: Int(32); RHS: erroneous.
-Unrecoverable Program Type Label FAILURE.
+#=t41308_test_compiler_elementandquark_multibases_virtualfuncsselect
 ##
-##       informed by t41307; requiring direct ancestor (see also t41308)
+## gen output: (interleaved asserts)
+##   Int Arg: 212
+##   Int Arg: 110
+##
+#!
+Exit status: 0
+Ue_Foo +System { +<> Int(32) m_c4(212);  Int(32) m_a4(110);  Int(32) test() {  E4 e4;  m_c4 e4 QBase2 . ( )vfuncc . = ( m_c4 )print ( m_c4 212 cast == )assert m_a4 e4 QBase1 . ( )vfunca . = ( m_a4 )print ( m_a4 110 cast == )assert 0 cast return } }
+Uq_System { <NOMAIN> }
+Ue_E4 : QBase3 +QBase2 { :< +< Bool(1) m_b1(false); > Bool(1) m_b3(false); > +< Bool(1) m_b2(false); > <NOMAIN> }
+Uq_QBase2 { Bool(1) m_b2(false);  <NOMAIN> }
+Uq_QBase1 { Bool(1) m_b1(false);  <NOMAIN> }
+Uq_QBase3 +QBase1 { +< Bool(1) m_b1(false); > Bool(1) m_b3(false);  <NOMAIN> }
+##
+##       informed by t41307; formerly requiring direct ancestor
 ##
 #>Foo.ulam
   ulam 4;

@@ -240,9 +240,9 @@ namespace MFM{
     void genCodeHeaderLocalsFilescope(File * fp);
 
     void genCodeDataMemberChartAsComment(File * fp, UTI cuti); //at end of header
-    void genClassTypeAndNameEntryAsComment(File * fp, UTI nuti, s32 totalsize, u32& accumsize); //for superclass
+    void genClassTypeAndNameEntryAsComment(File * fp, UTI nuti, s32 totalsize, u32& accumsize, u32 baseitem); //for base classes
 
-    void genThisUlamSuperClassAsAHeaderComment(File * fp);
+    void genThisUlamBaseClassAsAHeaderComment(File * fp);
 
     void genShortNameParameterTypesExtractedForHeaderFile(File * fp);
 

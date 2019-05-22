@@ -2121,25 +2121,67 @@ namespace MFM {
       }
   } //resetABaseClassType
 
-  bool CompilerState::getABaseClassRelativePositionInAClass(UTI cuti, UTI baseuti, u32& relposref)
+  bool CompilerState::getABaseClassRelativePositionInAClass(UTI cuti, UTI basep, u32& relposref)
   {
-    bool rtnok = false;
-    SymbolClass * csym = NULL;
-    if(alreadyDefinedSymbolClass(cuti, csym))
+    s32 accumpos = 0;
+    bool hasbase = false;
+
+    std::set<UTI> seenset;
+    std::queue<UTI> basesqueue;
+    std::pair<std::set<UTI>::iterator,bool> ret;
+
+    basesqueue.push(cuti); //init
+
+    //ulam-5 supports multiple base classes; superclass optional;
+    while(!basesqueue.empty() && !hasbase)
       {
-	s32 item = csym->isABaseClassItem(baseuti);
-	if(item >= 0)
+	UTI baseuti = basesqueue.front();
+	basesqueue.pop(); //remove from front of queue
+	ret = seenset.insert(baseuti);
+	if (ret.second==false)
+	  continue; //already seen, try next one..
+
+	SymbolClass * basecsym = NULL;
+	if(alreadyDefinedSymbolClass(baseuti, basecsym))
 	  {
-	    s32 pos = csym->getBaseClassRelativePosition(item);
-	    if(pos >= 0)
+	    UTI foundinbase;
+	    hasbase = findNearestBaseClassToAnAncestor(baseuti, basep, foundinbase);
+	    if(hasbase)
 	      {
-		relposref = pos;
-		rtnok = true;
+
+		SymbolClass * foundbasecsym = NULL;
+		AssertBool isDefined = alreadyDefinedSymbolClass(foundinbase, foundbasecsym);
+		assert(isDefined);
+
+		s32 foundbaseitem = foundbasecsym->isABaseClassItem(basep); //direct
+		if(foundbaseitem >= 0)
+		  {
+		    s32 pos = foundbasecsym->getBaseClassRelativePosition(foundbaseitem);
+		    assert(pos >= 0);
+
+		    accumpos += pos; //more specific position within nextbase
+		  }
+		else
+		  {
+		    u32 basecount = foundbasecsym->getBaseClassCount() + 1; //include super
+		    for(u32 i = 0; i < basecount; i++)
+		      basesqueue.push(foundbasecsym->getBaseClass(i)); //extends queue w next level base UTIs
+		    //nextbase = foundinbase; //drilling down
+		  }
+	      }
+	    else
+	      {
+		//search all
+		u32 basecount = basecsym->getBaseClassCount() + 1; //include super
+		for(u32 i = 0; i < basecount; i++)
+		  basesqueue.push(basecsym->getBaseClass(i)); //extends queue w next level base UTIs
 	      }
 	  }
-      }
-    return rtnok;
-  }
+      } //end while
+
+    relposref = accumpos;
+    return hasbase; //even for non-classes
+  } //getABaseClassRelativePositionInAClass
 
   bool CompilerState::isClassAStub(UTI cuti)
   {
@@ -3988,21 +4030,22 @@ namespace MFM {
 	  {
 	    s32 baseitem = basecsym->isABaseClassItem(auti);
 	    rtnb = (baseitem >= 0);
-	  }
 
-	if(rtnb)
-	  {
-	    foundInBase = basehead;
-	  }
-	else
-	  {
-	    u32 basecount = basecsym->getBaseClassCount() + 1; //include super
-	    for(u32 i = 0; i < basecount; i++)
+	    if(rtnb)
 	      {
-		UTI baseuti = basecsym->getBaseClass(i);
-		if(basehead == Nouti) basehead = baseuti; //t3600
-		//extends queue with next level of base UTIs
-		basesqueue.push(std::pair<UTI,UTI> (baseuti, basehead));
+		if(basehead == Nouti) basehead = baseuti;
+		foundInBase = basehead;
+	      }
+	    else
+	      {
+		u32 basecount = basecsym->getBaseClassCount() + 1; //include super
+		for(u32 i = 0; i < basecount; i++)
+		  {
+		    UTI baseuti = basecsym->getBaseClass(i);
+		    if(basehead == Nouti) basehead = baseuti; //t3600
+		    //extends queue with next level of base UTIs
+		    basesqueue.push(std::pair<UTI,UTI> (baseuti, basehead));
+		  }
 	      }
 	  }
       } //end while

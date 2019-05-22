@@ -58,7 +58,8 @@ namespace MFM {
     if(m_state.okUTItoContinue(nuti))
       {
 	UTI luti = m_nodeLeft->getNodeType();
-	if(m_state.okUTItoContinue(luti) && !m_state.isBaseClassADirectAncestorOf(luti,nuti))
+	//	if(m_state.okUTItoContinue(luti) && !m_state.isBaseClassADirectAncestorOf(luti,nuti))
+	if(m_state.okUTItoContinue(luti) && !m_state.isClassASubclassOf(luti,nuti))
 	  {
 	    std::ostringstream msg;
 	    msg << "Selected Base Class Type ";
@@ -294,6 +295,7 @@ namespace MFM {
     m_nodeLeft->genCodeToStoreInto(fp, luvpass); //uvpass contains the member selected, or cos obj symbol?
 
     uvpass = luvpass;
+
     //build tmpvar symbol for virtual function ur (t41307)
     makeUVPassForCodeGen(uvpass);
 
@@ -315,15 +317,20 @@ namespace MFM {
       m_state.abortShouldntGetHere();
 
     //continue on to build tmpvarsymbol and coordinating uvpass
-    uvpass.setPassPos(subpos+basepos);
+    u32 newpos = subpos+basepos;
+    uvpass.setPassPos(newpos);
+    Node::adjustUVPassForElements(uvpass);
+    newpos = uvpass.getPassPos(); //update
+
     uvpass.setPassTargetType(basetype);
 
     s32 tmpturnum = m_state.getNextTmpVarNumber();
     std::string tmpvarname = m_state.getUlamRefTmpVarAsString(tmpturnum);
     Token tidTok(TOK_IDENTIFIER, Node::getNodeLocation(), m_state.m_pool.getIndexForDataString(tmpvarname));
 
-    m_tmpvarSymbol = new SymbolTmpVar(tidTok, basetype, subpos + basepos, m_state);
+    m_tmpvarSymbol = new SymbolTmpVar(tidTok, basetype, newpos, m_state);
     assert(m_tmpvarSymbol);
+    m_tmpvarSymbol->setBaseClassRef();
 
     uvpass.setPassVarNum(tmpturnum);
     uvpass.setPassNameId(tidTok.m_dataindex);

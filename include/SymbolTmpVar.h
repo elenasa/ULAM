@@ -68,11 +68,16 @@ namespace MFM{
 
     bool divinedByConstantClass();
 
+    void setBaseClassRef();
+
+    bool isBaseClassRef();
+
   protected:
 
   private:
     u32 m_posOffsetCopy; //array item of data member
     bool m_divinedByConstantClass;
+    bool m_baseclassref; //ulam-5
   };
 
 }

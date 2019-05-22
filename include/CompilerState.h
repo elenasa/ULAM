@@ -284,7 +284,7 @@ namespace MFM{
     bool isClassASubclassOf(UTI cuti, UTI superp);
     bool isBaseClassADirectAncestorOf(UTI cuti, UTI basep);
     void resetABaseClassType(UTI cuti, UTI olduti, UTI newuti);
-    bool getABaseClassRelativePositionInAClass(UTI cuti, UTI baseuti, u32& relposref);
+    bool getABaseClassRelativePositionInAClass(UTI cuti, UTI basep, u32& relposref);
 
     bool isClassAStub(UTI cuti);
     bool hasClassAStubInHierarchy(UTI cuti);
