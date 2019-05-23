@@ -2,7 +2,7 @@
 
 namespace MFM {
 
-  TypeArgs::TypeArgs() : m_bitsize(UNKNOWNSIZE), m_arraysize(NONARRAYSIZE), m_classInstanceIdx(Nouti), m_anothertduti(Nouti), m_declListOrTypedefScalarType(Nouti), m_assignOK(true), m_isStmt(true), m_declRef(ALT_NOT), m_referencedUTI(Nouti), m_hasConstantTypeModifier(false), m_ateadot(false) {}
+  TypeArgs::TypeArgs() : m_bitsize(UNKNOWNSIZE), m_arraysize(NONARRAYSIZE), m_classInstanceIdx(Nouti), m_anothertduti(Nouti), m_declListOrTypedefScalarType(Nouti), m_assignOK(true), m_isStmt(true), m_declRef(ALT_NOT), m_referencedUTI(Nouti), m_hasConstantTypeModifier(false), m_forMemberSelect(false) {}
 
   TypeArgs::TypeArgs(const TypeArgs& tref) :
     m_typeTok(tref.m_typeTok),
@@ -16,7 +16,7 @@ namespace MFM {
     m_declRef(tref.m_declRef),
     m_referencedUTI(tref.m_referencedUTI),
     m_hasConstantTypeModifier(tref.m_hasConstantTypeModifier),
-    m_ateadot(tref.m_ateadot)
+    m_forMemberSelect(tref.m_forMemberSelect)
   {}
 
   TypeArgs::~TypeArgs() {}
@@ -39,7 +39,7 @@ namespace MFM {
     m_declRef = tref.m_declRef;
     m_referencedUTI = tref.m_referencedUTI;
     m_hasConstantTypeModifier = tref.m_hasConstantTypeModifier;
-    m_ateadot = tref.m_ateadot;
+    m_forMemberSelect = tref.m_forMemberSelect;
     return *this;
   }
 

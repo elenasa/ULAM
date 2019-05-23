@@ -66,6 +66,13 @@ namespace MFM {
     return;
   }
 
+  void UVPass::setPassPosForced(u32 pos)
+  {
+    //assert((pos <= getPassLen()));
+    m_posInStorage = pos;
+    return;
+  }
+
   void UVPass::setPassPosForElementType(u32 pos, CompilerState& state)
   {
     //t3968 element dm in transient can have pos > 96

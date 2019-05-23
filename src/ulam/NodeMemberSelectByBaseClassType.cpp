@@ -318,8 +318,12 @@ namespace MFM {
 
     //continue on to build tmpvarsymbol and coordinating uvpass
     u32 newpos = subpos+basepos;
-    uvpass.setPassPos(newpos);
+
+    assert(basepos < uvpass.getPassLen());
+    uvpass.setPassPosForced(newpos); //t41310
+
     Node::adjustUVPassForElements(uvpass);
+
     newpos = uvpass.getPassPos(); //update
 
     uvpass.setPassTargetType(basetype);

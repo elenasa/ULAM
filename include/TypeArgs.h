@@ -55,7 +55,7 @@ namespace MFM{
     ALT m_declRef;
     UTI m_referencedUTI;
     bool m_hasConstantTypeModifier;
-    bool m_ateadot;
+    bool m_forMemberSelect;
 
     TypeArgs();
     TypeArgs(const TypeArgs& tref);

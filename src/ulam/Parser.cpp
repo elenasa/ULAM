@@ -2733,6 +2733,9 @@ namespace MFM {
 	  typeNode->linkConstantExpressionBitsize(bitsizeNode); //tfr ownership
       }
 
+    if(typeargs.m_forMemberSelect)
+      return typeNode; //t41310
+
     Token dTok;
     getNextToken(dTok);
     if(dTok.m_type == TOK_DOT)
@@ -2748,7 +2751,6 @@ namespace MFM {
 	    else
 	      {
 		getNextToken(dTok); //?
-		typeargs.m_ateadot = true; //t41307
 	      }
 	  }
 	else
@@ -3571,12 +3573,10 @@ namespace MFM {
     Node * rtnNode = classInstanceNode; //first one
     Token pTok;
 
-    bool ateadot = false;
     //use loop rather than recursion to get a left-associated tree;
     // needed to support, for example: a.b.c.atomof (t3905)
-    while(getExpectedToken(TOK_DOT, pTok, QUIETLY) || ateadot) //if not, quietly unreads
+    while(getExpectedToken(TOK_DOT, pTok, QUIETLY)) //if not, quietly unreads
       {
-	ateadot = false; //reset
 	Token iTok;
 	getNextToken(iTok);
 	if(iTok.m_type == TOK_IDENTIFIER)
@@ -3608,6 +3608,7 @@ namespace MFM {
 	    //ulam-5 select base class virtual function (t41307)
 	    //just the top level as a basic uti (no selects, or arrays)
 	    TypeArgs typeargs;
+	    typeargs.m_forMemberSelect = true;
 	    NodeTypeDescriptor * nextmembertypeNode = parseTypeDescriptor(typeargs, true); //isaclass
 	    assert(nextmembertypeNode);
 
@@ -3615,9 +3616,6 @@ namespace MFM {
 	    assert(ms);
 	    ms->setNodeLocation(iTok.m_locator);
 	    rtnNode = ms;
-
-	    //we've lost the DOT, looking for a typedef from another class.
-	    ateadot = typeargs.m_ateadot;
 	  }
 	else
 	  {

@@ -1,16 +1,16 @@
 ## -*- mode:ulam -*-
 #=t41310_test_compiler_elementandquark_multibases_virtualfuncsselectwdatamembers
 ##
-## gen output: (interleaved asserts, double asserts for last two cases )
-## Int Arg: 212
-## Int Arg: 310
-## Int Arg: 110
+## gen output: (w interleaved asserts )
+## Int Arg: 212 (+ 1 assert)
+## Int Arg: 110 (+ 4 asserts)
+## Int Arg: 110 (+ 2 asserts)
 ##
 #!
 Exit status: 0
-Ue_Foo +System { +<> Int(32) m_c4(212);  Int(32) m_a4(110);  Int(32) test() {  E4 e4;  m_c4 e4 QBase2 . ( )vfuncc . = ( m_c4 )print ( m_c4 212 cast == )assert m_a4 e4 QBase3 . ( )vfunca . = ( m_a4 )print ( m_a4 310 cast == )assert ( e4 m_b3 . )assert m_a4 e4 QBase1 . ( )vfunca . = ( m_a4 )print ( m_a4 110 cast == )assert ( e4 QBase1 . m_b1 . )assert 0 cast return } }
+Ue_Foo +System { +<> Int(32) m_c4(212);  Int(32) m_a4(110);  Int(32) test() {  E4 e4;  m_c4 e4 QBase2 . ( )vfuncc . = ( m_c4 )print ( m_c4 212 cast == )assert m_a4 e4 QBase3 . QBase1 . ( )vfunca . = ( m_a4 )print ( m_a4 110 cast == )assert ( e4 m_b1 . )assert ( e4 QBase3 . QBase1 . m_b1 . )assert ( e4 QBase1 . m_b1 . ! )assert Int(32) a4 = e4 QBase1 . ( )vfunca .;  ( a4 )print ( a4 110 cast == )assert ( e4 QBase1 . m_b1 . )assert 0 cast return } }
 Uq_System { <NOMAIN> }
-Ue_E4 : QBase3 +QBase2 { :< +< Bool(1) m_b1(false); > Bool(1) m_b3(false); > +< Bool(1) m_b2(false); > <NOMAIN> }
+Ue_E4 : QBase3 +QBase2 +QBase1 { :< +< Bool(1) m_b1(false); > Bool(1) m_b3(false); > +< Bool(1) m_b2(false); > +< Bool(1) m_b1(false); > <NOMAIN> }
 Uq_QBase2 { Bool(1) m_b2(false);  <NOMAIN> }
 Uq_QBase3 +QBase1 { +< Bool(1) m_b1(false); > Bool(1) m_b3(false);  <NOMAIN> }
 Uq_QBase1 { Bool(1) m_b1(false);  <NOMAIN> }
@@ -32,14 +32,16 @@ element Foo +System {
     print(m_c4);
     assert(m_c4==212);
 
-    m_a4 = e4.QBase3.vfunca(); //310
-    print(m_a4);
-    assert(m_a4==310);
-    assert(e4.m_b3);
-
-    m_a4 = e4.QBase1.vfunca(); //110
+    m_a4 = e4.QBase3.QBase1.vfunca(); //110
     print(m_a4);
     assert(m_a4==110);
+    assert(e4.m_b1);
+    assert(e4.QBase3.QBase1.m_b1); //equivalent dm
+    assert(!e4.QBase1.m_b1); //unchanged yet
+
+    Int a4 = e4.QBase1.vfunca(); //110
+    print(a4);
+    assert(a4==110);
 
     assert(e4.QBase1.m_b1);
 
@@ -50,8 +52,8 @@ element Foo +System {
 
 #:E4.ulam
   ulam 4;
-//element E4 : QBase3 +QBase2 +QBase1 {
-element E4 : QBase3 +QBase2 {
+element E4 : QBase3 +QBase2 +QBase1 {
+//element E4 : QBase3 +QBase2 {
   virtual Int vfuncc() { return 412; }
   virtual Int vfunca() { return 410; }
   virtual Void behave() { }
