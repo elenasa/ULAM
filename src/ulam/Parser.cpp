@@ -2684,9 +2684,10 @@ namespace MFM {
 	    m_state.makeAnonymousClassFromHolder(huti, pTok.m_locator); //don't need cnsym here
 	  }
 
-	//not sure what to do with the UTI? could be a declref type; both args are refs!
-	//	UTI cuti = parseClassArguments(pTok, maybeAClassType);
+	//what to do with the UTI? could be a declref type; both args are refs!
 	UTI cuti = parseClassArguments(typeargs, maybeAClassType);
+	//if(!m_state.okUTItoContinue(cuti)) return NULL; (continue, for better error messages..)
+
 	if(maybeAClassType)
 	  {
 	    if(m_state.isAltRefType(cuti)) //e.g. refofSelf, ref to array of classes
@@ -2734,7 +2735,7 @@ namespace MFM {
       }
 
     if(typeargs.m_forMemberSelect)
-      return typeNode; //t41310
+     return typeNode; //t41310
 
     Token dTok;
     getNextToken(dTok);
@@ -2750,12 +2751,14 @@ namespace MFM {
 	      }
 	    else
 	      {
+		typeargs.m_ateadot = true;
 		getNextToken(dTok); //?
 	      }
 	  }
 	else
 	  {
 	    castUTI = typeargs.m_anothertduti;
+	    typeargs.m_ateadot = true; //?
 	    getNextToken(dTok);
 	  }
       }
@@ -3573,10 +3576,15 @@ namespace MFM {
     Node * rtnNode = classInstanceNode; //first one
     Token pTok;
 
+    TypeArgs typeargs;
+    typeargs.m_forMemberSelect = true;
+
+    bool ateadot = false;
     //use loop rather than recursion to get a left-associated tree;
     // needed to support, for example: a.b.c.atomof (t3905)
-    while(getExpectedToken(TOK_DOT, pTok, QUIETLY)) //if not, quietly unreads
+    while(getExpectedToken(TOK_DOT, pTok, QUIETLY) || ateadot) //if not, quietly unreads
       {
+	ateadot = false; //reset
 	Token iTok;
 	getNextToken(iTok);
 	if(iTok.m_type == TOK_IDENTIFIER)
@@ -3605,10 +3613,23 @@ namespace MFM {
 	else if(iTok.m_type == TOK_TYPE_IDENTIFIER)
 	  {
 	    unreadToken();
-	    //ulam-5 select base class virtual function (t41307)
-	    //just the top level as a basic uti (no selects, or arrays)
-	    TypeArgs typeargs;
-	    typeargs.m_forMemberSelect = true;
+#if 0
+	    bool dopushpop = (typeargs.m_classInstanceIdx != Nouti);
+	    dopushpop = false; //how important is this???
+	    if(dopushpop)
+	      {
+		UTI prevbase = typeargs.m_classInstanceIdx;
+		SymbolClass * csym = NULL;
+		if(m_state.alreadyDefinedSymbolClass(prevbase, csym))
+		  {
+		    NodeBlockClass * memberClassBlock = csym->getClassBlockNode();
+		    m_state.pushClassContextUsingMemberClassBlock(memberClassBlock);
+		  }
+		else
+		  dopushpop = false;
+	      }
+#endif
+
 	    NodeTypeDescriptor * nextmembertypeNode = parseTypeDescriptor(typeargs, true); //isaclass
 	    assert(nextmembertypeNode);
 
@@ -3616,6 +3637,16 @@ namespace MFM {
 	    assert(ms);
 	    ms->setNodeLocation(iTok.m_locator);
 	    rtnNode = ms;
+
+#if 0
+	    //clear up compiler state to no longer use the member class block
+	    // for symbol searches
+	    if(dopushpop)
+	      m_state.popClassContext(); //restore
+#endif
+	    //we've lost the DOT, looking for a typedef from another class.
+	    ateadot = typeargs.m_ateadot;
+	    typeargs.m_classInstanceIdx = nextmembertypeNode->givenUTI();
 	  }
 	else
 	  {

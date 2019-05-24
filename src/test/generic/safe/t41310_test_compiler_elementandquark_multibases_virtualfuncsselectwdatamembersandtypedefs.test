@@ -1,5 +1,5 @@
 ## -*- mode:ulam -*-
-#=t41310_test_compiler_elementandquark_multibases_virtualfuncsselectwdatamembers
+#=t41310_test_compiler_elementandquark_multibases_virtualfuncsselectwdatamembersandtypedefs
 ##
 ## gen output: (w interleaved asserts )
 ## Int Arg: 212 (+ 1 assert)
@@ -8,18 +8,19 @@
 ##
 #!
 Exit status: 0
-Ue_Foo +System { +<> Int(32) m_c4(212);  Int(32) m_a4(110);  Int(32) test() {  E4 e4;  m_c4 e4 QBase2 . ( )vfuncc . = ( m_c4 )print ( m_c4 212 cast == )assert m_a4 e4 QBase3 . QBase1 . ( )vfunca . = ( m_a4 )print ( m_a4 110 cast == )assert ( e4 m_b1 . )assert ( e4 QBase3 . QBase1 . m_b1 . )assert ( e4 QBase1 . m_b1 . ! )assert Int(32) a4 = e4 QBase1 . ( )vfunca .;  ( a4 )print ( a4 110 cast == )assert ( e4 QBase1 . m_b1 . )assert 0 cast return } }
+Ue_Foo +System { +<> Int(32) m_c4(212);  Int(32) m_a4(110);  Int(32) test() {  E4 e4;  typedef QBase2 QB2;  m_c4 e4 QB2 . ( )vfuncc . = ( m_c4 )print ( m_c4 212 cast == )assert typedef QBase1 QB1;  m_a4 e4 QBase3 . QB1 . ( )vfunca . = ( m_a4 )print ( m_a4 110 cast == )assert ( e4 m_b1 . )assert ( e4 QBase3 . QBase1 . m_b1 . )assert ( e4 QBase1 . m_b1 . ! )assert Int(32) a4 = e4 QBase1 . ( )vfunca .;  ( a4 )print ( a4 110 cast == )assert ( e4 QBase1 . m_b1 . )assert 0 cast return } }
 Uq_System { <NOMAIN> }
-Ue_E4 : QBase3 +QBase2 +QBase1 { :< +< Bool(1) m_b1(false); > Bool(1) m_b3(false); > +< Bool(1) m_b2(false); > +< Bool(1) m_b1(false); > <NOMAIN> }
-Uq_QBase2 { Bool(1) m_b2(false);  <NOMAIN> }
-Uq_QBase3 +QBase1 { +< Bool(1) m_b1(false); > Bool(1) m_b3(false);  <NOMAIN> }
+Ue_E4 : QBase3 +QBase2 +QBase1 { :< :< Bool(1) m_b1(false); > Bool(1) m_b3(false); > +< Bool(1) m_b2(false); > +< Bool(1) m_b1(false); > typedef QBase2 QB2;  <NOMAIN> }
+Uq_QBase3 : QBase1 { :< Bool(1) m_b1(false); > Bool(1) m_b3(false);  <NOMAIN> }
 Uq_QBase1 { Bool(1) m_b1(false);  <NOMAIN> }
+Uq_QBase2 { Bool(1) m_b2(false);  <NOMAIN> }
 ##
 ##       informed by t41309; here we want to pick a base class' 'override instead,
-##       and change its data member (but which one?)
+##       and change its data member (but which one?); using typedefs
 ##
 #>Foo.ulam
   ulam 4;
+//use QBase1;
 element Foo +System {
   Int m_c4;
   Int m_a4;
@@ -28,11 +29,13 @@ element Foo +System {
   {
     E4 e4;
 
-    m_c4 = e4.QBase2.vfuncc(); //212
+    typedef E4.QB2 QB2;
+    m_c4 = e4.QB2.vfuncc(); //212
     print(m_c4);
     assert(m_c4==212);
 
-    m_a4 = e4.QBase3.QBase1.vfunca(); //110
+    typedef QBase3.Super QB1;
+    m_a4 = e4.QBase3.QB1.vfunca(); //110
     print(m_a4);
     assert(m_a4==110);
     assert(e4.m_b1);
@@ -57,6 +60,7 @@ element E4 : QBase3 +QBase2 +QBase1 {
   virtual Int vfuncc() { return 412; }
   virtual Int vfunca() { return 410; }
   virtual Void behave() { }
+  typedef QBase2 QB2;
 }
 
 #:QBase1.ulam
@@ -79,7 +83,7 @@ quark QBase2 {
 
 #:QBase3.ulam
   ulam 4;
-quark QBase3 +QBase1 {
+quark QBase3 : QBase1 {
   Bool m_b3;
   virtual Int vfuncb() { return 311; }
   virtual Int vfunca() { m_b3 = true; return 310; }

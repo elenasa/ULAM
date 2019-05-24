@@ -782,7 +782,15 @@ namespace MFM {
 	  } //a typedef already there
 	return brtn; //already there, and updated
       }
-    //    else
+    else
+      {
+	//regardless of scope, protected names:
+	if(m_token.m_dataindex == m_state.m_pool.getIndexForDataString("Self"))
+	  return false;
+
+	if(m_token.m_dataindex == m_state.m_pool.getIndexForDataString("Super"))
+	  return false;
+      }
 
     SymbolClassName * prematureclass = NULL;
     bool isUnseenClass = false;
