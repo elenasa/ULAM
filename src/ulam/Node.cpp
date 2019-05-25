@@ -2727,7 +2727,7 @@ namespace MFM {
 	  hiddenarg2 << m_state.getHiddenArgName(); //same ur
 	else if(stgcos->isSelf() && (stgcos == cos)) //t3831, t3274, t3275
 	  hiddenarg2 << m_state.getHiddenArgName(); //same ur
-	else
+	else //also true for super, i think (t41311)
 	  {
 	    sameur = false;
 	    hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvar).c_str() << "(";
@@ -3345,6 +3345,11 @@ namespace MFM {
 	if(!m_state.isAtom(stgcosuti))
 	  return false; //self, not atom
 	//else true
+      }
+
+    if(m_state.m_currentObjSymbolsForCodeGen[0]->isSuper())
+      {
+	return false; //t41311
       }
 
     return true; //including references

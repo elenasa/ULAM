@@ -2023,6 +2023,9 @@ namespace MFM {
     UTI derefbasep = getUlamTypeAsDeref(basep);
     UTI subcuti = getUlamTypeAsDeref(cuti); //init for the loop
 
+    if(subcuti==derefbasep)
+      return false; //t41312, all gen code
+
     std::set<UTI> seenset;
     std::queue<UTI> basesqueue;
     std::pair<std::set<UTI>::iterator,bool> ret;
@@ -3545,6 +3548,7 @@ namespace MFM {
 		    MSG2(tmpfsym->getTokPtr(), msg.str().c_str(), WARN);
 		    foundInAncestor = Nav; //WARNING
 		    fsymref = NULL;
+		    return false; //t41312
 		  }
 	      }
 

@@ -1,3 +1,4 @@
+#include <stack>
 #include <sstream>
 #include <string.h>
 #include <errno.h>
@@ -128,6 +129,7 @@ namespace MFM {
 
   void SymbolClass::updateBaseClass(UTI oldclasstype, u32 item, UTI newbaseclass)
   {
+    assert(!m_state.isUrSelf(getUlamTypeIdx()));
     assert(item < m_bases.size());
     assert(m_bases[item] == oldclasstype);
     m_bases[item] = newbaseclass;
@@ -137,7 +139,8 @@ namespace MFM {
   {
     if(item == 0)
       {
-	updateBaseClass(m_bases[0], 0, baseclass); //initialized
+	if(!m_state.isUrSelf(getUlamTypeIdx()))
+	   updateBaseClass(m_bases[0], 0, baseclass); //initialized
       }
     else if(item == m_bases.size())
       {
@@ -1461,9 +1464,13 @@ namespace MFM {
 
     u32 basesmaxes = 0;
 
-    // get each ancestors' originating virtual function max index (entire tree, no dups)
+    // get each ancestors' originating virtual function max index,
+    // (entire tree, no dups) in depth-first order (stack instead of
+    // queue) to insure a subclass without vowned vfuncs starts at
+    // same offset as its base (t41312).
+
     std::set<UTI> seenset;
-    std::queue<UTI> basesqueue;
+    std::stack<UTI> basesstack;
     std::pair<std::set<UTI>::iterator,bool> ret;
 
     UTI cuti = getUlamTypeIdx();
@@ -1472,14 +1479,14 @@ namespace MFM {
       {
 	u32 basecount = csym->getBaseClassCount() + 1; //include super
 	for(u32 i = 0; i < basecount; i++)
-	  basesqueue.push(csym->getBaseClass(i)); //extends queue with next level of base UTIs
+	  basesstack.push(csym->getBaseClass(i)); //extends queue with next level of base UTIs
       }
 
     //ulam-5 supports multiple base classes; superclass optional;
-    while(!basesqueue.empty())
+    while(!basesstack.empty())
       {
-	UTI baseuti = basesqueue.front();
-	basesqueue.pop(); //remove from front of queue
+	UTI baseuti = basesstack.top();
+	basesstack.pop(); //remove from top of stack
 	ret = seenset.insert(baseuti);
 	if (ret.second==false)
 	  continue; //already seen, try next one..t41303
@@ -1498,6 +1505,7 @@ namespace MFM {
 		struct VTEntry ve = basecsym->getOrigVTableEntry(i);
 
 		std::vector<UTI> pTypes;
+		assert(ve.m_funcPtr);
 		ve.m_funcPtr->getVectorOfParameterTypes(pTypes);
 
 		// in case a virtual func is overridden by a subclass of baseuti in cuti's ancestory,
@@ -1506,6 +1514,7 @@ namespace MFM {
 		UTI foundInAncestor = Nouti;
 		if(m_state.findMatchingVirtualFunctionStrictlyByTypesInAncestorOf(cuti, ve.m_funcPtr->getId(), pTypes, tmpfsym, foundInAncestor) && (foundInAncestor != baseuti) && m_state.isClassASubclassOf(foundInAncestor,baseuti))
 		  {
+		    assert(tmpfsym);
 		    ve.m_ofClassUTI = foundInAncestor;
 		    ve.m_funcPtr = tmpfsym;
 		    ve.m_isPure = tmpfsym->isPureVirtualFunction();
@@ -1518,7 +1527,7 @@ namespace MFM {
 	    // check all bases
 	    u32 basecount = basecsym->getBaseClassCount() + 1; //include super
 	    for(u32 i = 0; i < basecount; i++)
-	      basesqueue.push(basecsym->getBaseClass(i)); //extends queue with next level of base UTIs
+	      basesstack.push(basecsym->getBaseClass(i)); //extends queue with next level of base UTIs
 	  }
       } //end while
 

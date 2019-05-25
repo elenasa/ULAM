@@ -737,7 +737,7 @@ namespace MFM {
 	  {
 	    return evalErrorReturn();
 	  }
-      } //end virtual function
+      } //end virtual function call
 
     //adjust index if on the STACK, not for Event Window site (t3114, and 160+ more tests);
     // convert to ABSOLUTE PTR for isLocal check (t3942,6,7,8).
@@ -876,8 +876,8 @@ namespace MFM {
 	else if(funcSymbol->isPureVirtualFunction())
 	  {
 	    std::ostringstream msg;
-	    msg << "Virtual function <" << funcSymbol->getMangledNameWithTypes().c_str();
-	    msg << "> is pure; cannot be called";
+	    msg << "(1) Virtual function <" << funcSymbol->getMangledNameWithTypes().c_str();
+	    msg << "> is pure; cannot be called for eval";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    rtnok = false;
 	  }
@@ -892,10 +892,10 @@ namespace MFM {
 	if(m_funcSymbol->isPureVirtualFunction())
 	  {
 	    std::ostringstream msg;
-	    msg << "Virtual function <" << m_funcSymbol->getMangledNameWithTypes().c_str();
-	    msg << "> is pure; cannot be called";
+	    msg << "(2) Virtual function <" << m_funcSymbol->getMangledNameWithTypes().c_str();
+	    msg << "> is pure; cannot be called for eval";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    rtnok = false; //t41094
+	    rtnok = false; //t41094, t41158, t41160, t41313
 	  }
       }
     //else no change to rtnfunc
@@ -1262,7 +1262,8 @@ namespace MFM {
 
     // check that we are not trying to call a pure virtual function: t41158, t41160, t41094, safe t41161
     // limit to 'super' special case: t3606, t3608, t3774, t3779, t3788, t3794, t3795, t3967, t41131
-    if(cos->isSuper())
+    //if(cos->isSuper()) //multiple bases possible (ulam-5)
+    if(m_state.getUlamTypeAsDeref(cosuti) != cvfuti) //multiple bases possible (ulam-5)
       {
 	SymbolClass * cvfsym = NULL;
 	AssertBool iscvfDefined = m_state.alreadyDefinedSymbolClass(cvfuti, cvfsym);

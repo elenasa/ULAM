@@ -2784,7 +2784,6 @@ namespace MFM {
     return typeNode;
   } //parseTypeDescriptor
 
-  //  UTI Parser::parseClassArguments(Token& typeTok, bool& isaclass)
   UTI Parser::parseClassArguments(TypeArgs& typeargs, bool& isaclass)
   {
     Token pTok;
