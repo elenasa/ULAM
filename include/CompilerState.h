@@ -625,6 +625,7 @@ namespace MFM{
     bool isASeenClass(UTI cuti);
     bool isASeenElement(UTI cuti);
     bool isAnonymousClass(UTI cuti);
+    UTI getUrSelf();
     void saveUrSelf(UTI uti);
     bool isUrSelf(UTI cuti);
     void saveEmptyElementUTI(UTI uti);

@@ -1182,8 +1182,10 @@ namespace MFM {
 	fp->write(".GetVTStartOffsetForClassByRegNum(");
       }
     fp->write_decimal_unsigned(vownregnum);
-    fp->write(");"); GCNL; //reading into a tmp var
-
+    fp->write("); // ");  //reading into a tmp var
+    fp->write(m_state.getUlamTypeNameBriefByIndex(vownuti).c_str());
+    fp->write(" regnum=");
+    fp->write_decimal_unsigned(vownregnum); GCNL;
 
     //requires runtime lookup for virtual function pointer
     m_state.indentUlamCode(fp);

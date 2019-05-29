@@ -5880,6 +5880,11 @@ namespace MFM {
     return(!isARootUTI(cuti) || isHolder(cuti));
   }
 
+  UTI CompilerState::getUrSelf()
+  {
+    return m_urSelfUTI;
+  }
+
   void CompilerState::saveUrSelf(UTI uti)
   {
     m_urSelfUTI = uti;

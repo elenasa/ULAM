@@ -254,7 +254,7 @@ namespace MFM{
     void generateCodeForBuiltInClassFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
 
     void genCodeBuiltInFunctionIsMethodRelatedInstance(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
-    void genCodeBuiltInFunctionIsRelatedInstance(File * fp);
+    void genCodeBuiltInFunctionIsRelatedInstance(File * fp, std::set<UTI>& basesset);
 
     void genCodeBuiltInFunctionGetClassLength(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
     void genCodeBuiltInFunctionGetClassRegistrationNumber(File * fp, bool declOnly, ULAMCLASSTYPE classtype);

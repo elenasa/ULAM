@@ -2586,7 +2586,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     m_state.m_currentIndentLevel++;
 
-    genCodeBuiltInFunctionIsRelatedInstance(fp);
+    std::set<UTI> setofbases;
+    genCodeBuiltInFunctionIsRelatedInstance(fp, setofbases);
 
     fp->write("\n");
     m_state.indent(fp);
@@ -2598,7 +2599,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("} //is-related\n\n");
   } //genCodeBuiltInFunctionIsMethodRelatedInstance
 
-  void NodeBlockClass::genCodeBuiltInFunctionIsRelatedInstance(File * fp)
+  void NodeBlockClass::genCodeBuiltInFunctionIsRelatedInstance(File * fp, std::set<UTI>& basesset)
   {
     UTI nuti = getNodeType();
 
@@ -2618,15 +2619,19 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	    //then include any of its relatives:
 	    NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
 	    assert(basecblock);
-	    basecblock->genCodeBuiltInFunctionIsRelatedInstance(fp);
+	    basecblock->genCodeBuiltInFunctionIsRelatedInstance(fp, basesset);
 	  }
 	i++;
       } //end while
 
-    m_state.indent(fp);
-    fp->write("if(cptrarg == &");
-    fp->write(m_state.getTheInstanceMangledNameByIndex(nuti).c_str());
-    fp->write(") return(true); //inherited class, or self (last)"); GCNL;
+    std::pair<std::set<UTI>::iterator,bool> ret = basesset.insert(nuti);
+    if (ret.second)
+      {
+	m_state.indent(fp);
+	fp->write("if(cptrarg == &");
+	fp->write(m_state.getTheInstanceMangledNameByIndex(nuti).c_str());
+	fp->write(") return(true); //inherited class, or self"); GCNL;
+      }
   } //genCodeBuiltInFunctionIsRelatedInstance
 
   void NodeBlockClass::genCodeBuiltInFunctionGetClassLength(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
