@@ -2751,14 +2751,12 @@ namespace MFM {
 	      }
 	    else
 	      {
-		typeargs.m_ateadot = true;
 		getNextToken(dTok); //?
 	      }
 	  }
 	else
 	  {
 	    castUTI = typeargs.m_anothertduti;
-	    typeargs.m_ateadot = true; //?
 	    getNextToken(dTok);
 	  }
       }
@@ -3578,12 +3576,10 @@ namespace MFM {
     TypeArgs typeargs;
     typeargs.m_forMemberSelect = true;
 
-    bool ateadot = false;
     //use loop rather than recursion to get a left-associated tree;
     // needed to support, for example: a.b.c.atomof (t3905)
-    while(getExpectedToken(TOK_DOT, pTok, QUIETLY) || ateadot) //if not, quietly unreads
+    while(getExpectedToken(TOK_DOT, pTok, QUIETLY)) //if not, quietly unreads
       {
-	ateadot = false; //reset
 	Token iTok;
 	getNextToken(iTok);
 	if(iTok.m_type == TOK_IDENTIFIER)
@@ -3612,22 +3608,6 @@ namespace MFM {
 	else if(iTok.m_type == TOK_TYPE_IDENTIFIER)
 	  {
 	    unreadToken();
-#if 0
-	    bool dopushpop = (typeargs.m_classInstanceIdx != Nouti);
-	    dopushpop = false; //how important is this???
-	    if(dopushpop)
-	      {
-		UTI prevbase = typeargs.m_classInstanceIdx;
-		SymbolClass * csym = NULL;
-		if(m_state.alreadyDefinedSymbolClass(prevbase, csym))
-		  {
-		    NodeBlockClass * memberClassBlock = csym->getClassBlockNode();
-		    m_state.pushClassContextUsingMemberClassBlock(memberClassBlock);
-		  }
-		else
-		  dopushpop = false;
-	      }
-#endif
 
 	    NodeTypeDescriptor * nextmembertypeNode = parseTypeDescriptor(typeargs, true); //isaclass
 	    assert(nextmembertypeNode);
@@ -3636,16 +3616,6 @@ namespace MFM {
 	    assert(ms);
 	    ms->setNodeLocation(iTok.m_locator);
 	    rtnNode = ms;
-
-#if 0
-	    //clear up compiler state to no longer use the member class block
-	    // for symbol searches
-	    if(dopushpop)
-	      m_state.popClassContext(); //restore
-#endif
-	    //we've lost the DOT, looking for a typedef from another class.
-	    ateadot = typeargs.m_ateadot;
-	    typeargs.m_classInstanceIdx = nextmembertypeNode->givenUTI();
 	  }
 	else
 	  {

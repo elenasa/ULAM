@@ -256,12 +256,11 @@ namespace MFM {
 	s32 base = 0; //1 for frame ptr (was 0)
 	//add size of parameters (+ 1 for hidden) and return size
 	base += m_state.slotsNeeded(fsym->getUlamTypeIdx()); //return type
-	//base += 1; //hidden arg is a symbol, not a node (uc not needed)
-	base += 2; //hidden arg is a symbol, not a node (uc needed ?)
+	base += 2; //hidden arg is a symbol, not a node (uc needed?)
 	base += fsym->getTotalParameterSlots();
 	func->calcMaxDepth(depth, maxdepth, base);
 	maxdepth += 1; //hidden, (frame ptr at zero implicit) (was += 1)
-	maxdepth += base; //??? forgotten?
+	maxdepth += base; //forgotten?
 	func->setMaxDepth(maxdepth);
 	++it;
       }

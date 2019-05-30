@@ -696,33 +696,22 @@ namespace MFM {
   {
     bool rtnb = false;
 
-    std::set<UTI> seenset;
-    std::queue<UTI> basesqueue;
-    std::pair<std::set<UTI>::iterator,bool> ret;
+    BaseclassWalker walker;
 
     //recursively check class and ancestors (breadth-first), for auti
     UTI cuti = getUlamTypeIdx();
-    basesqueue.push(cuti); //init
+    walker.init(cuti);
 
-    while(!rtnb && !basesqueue.empty())
+    UTI baseuti = Nouti;
+    while(!rtnb && walker.getNextBase(baseuti))
       {
-	UTI baseuti = basesqueue.front();
-	basesqueue.pop(); //remove from front of queue
-	ret = seenset.insert(baseuti);
-	if (ret.second==false)
-	  continue; //already seen, try next one..
-
 	SymbolClass * basecsym = NULL;
 	if(m_state.alreadyDefinedSymbolClass(baseuti, basecsym))
 	  {
 	    rtnb = basecsym->resolveHasMappedUTI(auti, mappedUTI);
 
 	    if(!rtnb)
-	      {
-		u32 basecount = basecsym->getBaseClassCount() + 1; //include super
-		for(u32 i = 0; i < basecount; i++)
-		  basesqueue.push(basecsym->getBaseClass(i)); //extends queue with next level of base UTIs
-	      }
+	      walker.addAncestorsOf(basecsym);
 	  }
       } //end while
     return rtnb;
@@ -1465,32 +1454,18 @@ namespace MFM {
     u32 basesmaxes = 0;
 
     // get each ancestors' originating virtual function max index,
-    // (entire tree, no dups) in depth-first order (stack instead of
-    // queue) to insure a subclass without vowned vfuncs starts at
-    // same offset as its base (t41312).
-
-    std::set<UTI> seenset;
-    std::stack<UTI> basesstack;
-    std::pair<std::set<UTI>::iterator,bool> ret;
+    // (entire tree, no dups) (t41312, t41303).
+    BaseclassWalker walker;
 
     UTI cuti = getUlamTypeIdx();
     SymbolClass * csym = NULL;
     if(m_state.alreadyDefinedSymbolClass(cuti, csym))
-      {
-	u32 basecount = csym->getBaseClassCount() + 1; //include super
-	for(u32 i = 0; i < basecount; i++)
-	  basesstack.push(csym->getBaseClass(i)); //extends queue with next level of base UTIs
-      }
+      walker.addAncestorsOf(csym);
 
     //ulam-5 supports multiple base classes; superclass optional;
-    while(!basesstack.empty())
+    UTI baseuti;
+    while(walker.getNextBase(baseuti))
       {
-	UTI baseuti = basesstack.top();
-	basesstack.pop(); //remove from top of stack
-	ret = seenset.insert(baseuti);
-	if (ret.second==false)
-	  continue; //already seen, try next one..t41303
-
 	SymbolClass * basecsym = NULL;
 	if(m_state.alreadyDefinedSymbolClass(baseuti, basecsym))
 	  {
@@ -1524,10 +1499,7 @@ namespace MFM {
 		basesmaxes++;
 	      }
 
-	    // check all bases
-	    u32 basecount = basecsym->getBaseClassCount() + 1; //include super
-	    for(u32 i = 0; i < basecount; i++)
-	      basesstack.push(basecsym->getBaseClass(i)); //extends queue with next level of base UTIs
+	    walker.addAncestorsOf(basecsym); // check all bases
 	  }
       } //end while
 

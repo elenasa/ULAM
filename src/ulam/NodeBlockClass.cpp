@@ -947,21 +947,13 @@ void NodeBlockClass::checkTestFunctionReturnType()
     // check all functions with matching args for the same return type (regardless if virtual)
     if(!isEmpty())
       {
-	std::set<UTI> seenset;
-	std::queue<UTI> basesqueue;
-	std::pair<std::set<UTI>::iterator,bool> ret;
-
 	UTI nuti = getNodeType();
-	basesqueue.push(nuti); //init
+	BaseclassWalker walker;
+	walker.init(nuti);
 
-	while(!basesqueue.empty())
+	UTI baseuti = Nouti;
+	while(walker.getNextBase(baseuti))
 	  {
-	    UTI baseuti = basesqueue.front();
-	    basesqueue.pop(); //remove from front of queue
-	    ret = seenset.insert(baseuti);
-	    if (ret.second==false)
-	      continue; //already seen, try next one..
-
 	    SymbolClass * basecsym = NULL;
 	    if(m_state.alreadyDefinedSymbolClass(baseuti, basecsym))
 	      {
@@ -972,9 +964,7 @@ void NodeBlockClass::checkTestFunctionReturnType()
 
 		basecblock->checkDuplicateFunctions(mangledFunctionMapWithReturnType, probcount);
 
-		u32 basecount = basecsym->getBaseClassCount() + 1; //include a super
-		for(u32 i = 0; i < basecount; i++)
-		  basesqueue.push(basecsym->getBaseClass(i)); //extends queue w next level of base UTIs
+		walker.addAncestorsOf(basecsym);
 	      }
 	  } //end while
       }

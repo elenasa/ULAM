@@ -423,7 +423,6 @@ namespace MFM {
 	//msg << " [" << prettyNodeName().c_str() << "] ";  //ugly!
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
       }
-    //else if((nuti == Hzy) || m_state.isHolder(nuti))
     else if(m_state.isStillHazy(nuti) || m_state.isHolder(nuti))
       {
 	hcnt += 1;

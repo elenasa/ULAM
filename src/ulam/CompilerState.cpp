@@ -2026,32 +2026,21 @@ namespace MFM {
     if(subcuti==derefbasep)
       return false; //t41312, all gen code
 
-    std::set<UTI> seenset;
-    std::queue<UTI> basesqueue;
-    std::pair<std::set<UTI>::iterator,bool> ret;
+    BaseclassWalker walker;
 
-    basesqueue.push(subcuti); //init
+    walker.init(subcuti);
 
+    UTI baseuti = Nouti;
     //ulam-5 supports multiple base classes; superclass optional;
-    while(!hasbase && !basesqueue.empty())
+    while(!hasbase && walker.getNextBase(baseuti))
       {
-	UTI baseuti = basesqueue.front();
-	basesqueue.pop(); //remove from front of queue
-	ret = seenset.insert(baseuti);
-	if (ret.second==false)
-	  continue; //already seen, try next one..
-
 	SymbolClass * basecsym = NULL;
 	if(alreadyDefinedSymbolClass(baseuti, basecsym))
 	  {
 	    hasbase = (basecsym->isABaseClassItem(derefbasep) >= 0); //t3281
 
 	    if(!hasbase)
-	      {
-		u32 basecount = basecsym->getBaseClassCount() + 1; //include super
-		for(u32 i = 0; i < basecount; i++)
-		  basesqueue.push(basecsym->getBaseClass(i)); //extends queue w next level base UTIs
-	      }
+	      walker.addAncestorsOf(basecsym);
 	  }
       } //end while
     return hasbase; //even for non-classes
@@ -2077,21 +2066,14 @@ namespace MFM {
     u32 countids = 0;
     UTI subcuti = getUlamTypeAsDeref(cuti); //init for the loop
 
-    std::set<UTI> seenset;
-    std::queue<UTI> basesqueue;
-    std::pair<std::set<UTI>::iterator,bool> ret;
+    BaseclassWalker walker;
 
-    basesqueue.push(subcuti); //init
+    walker.init(subcuti);
 
+    UTI baseuti = Nouti;
     //ulam-5 supports multiple base classes; superclass optional;
-    while(!basesqueue.empty())
+    while(walker.getNextBase(baseuti))
       {
-	UTI baseuti = basesqueue.front();
-	basesqueue.pop(); //remove from front of queue
-	ret = seenset.insert(baseuti);
-	if (ret.second==false)
-	  continue; //already seen, try next one..
-
 	SymbolClass * basecsym = NULL;
 	if(alreadyDefinedSymbolClass(baseuti, basecsym))
 	  {
@@ -2102,9 +2084,7 @@ namespace MFM {
 	      }
 
 	    //search all
-	    u32 basecount = basecsym->getBaseClassCount() + 1; //include super
-	    for(u32 i = 0; i < basecount; i++)
-	      basesqueue.push(basecsym->getBaseClass(i)); //extends queue w next level base UTIs
+	    walker.addAncestorsOf(basecsym);
 	  }
       } //end while
 
@@ -2129,21 +2109,14 @@ namespace MFM {
     s32 accumpos = 0;
     bool hasbase = false;
 
-    std::set<UTI> seenset;
-    std::queue<UTI> basesqueue;
-    std::pair<std::set<UTI>::iterator,bool> ret;
+    BaseclassWalker walker;
 
-    basesqueue.push(cuti); //init
+    walker.init(cuti);
 
+    UTI baseuti = Nouti;
     //ulam-5 supports multiple base classes; superclass optional;
-    while(!basesqueue.empty() && !hasbase)
+    while(walker.getNextBase(baseuti) && !hasbase)
       {
-	UTI baseuti = basesqueue.front();
-	basesqueue.pop(); //remove from front of queue
-	ret = seenset.insert(baseuti);
-	if (ret.second==false)
-	  continue; //already seen, try next one..
-
 	SymbolClass * basecsym = NULL;
 	if(alreadyDefinedSymbolClass(baseuti, basecsym))
 	  {
@@ -2151,7 +2124,6 @@ namespace MFM {
 	    hasbase = findNearestBaseClassToAnAncestor(baseuti, basep, foundinbase);
 	    if(hasbase)
 	      {
-
 		SymbolClass * foundbasecsym = NULL;
 		AssertBool isDefined = alreadyDefinedSymbolClass(foundinbase, foundbasecsym);
 		assert(isDefined);
@@ -2165,20 +2137,10 @@ namespace MFM {
 		    accumpos += pos; //more specific position within nextbase
 		  }
 		else
-		  {
-		    u32 basecount = foundbasecsym->getBaseClassCount() + 1; //include super
-		    for(u32 i = 0; i < basecount; i++)
-		      basesqueue.push(foundbasecsym->getBaseClass(i)); //extends queue w next level base UTIs
-		    //nextbase = foundinbase; //drilling down
-		  }
+		  walker.addAncestorsOf(foundbasecsym);
 	      }
 	    else
-	      {
-		//search all
-		u32 basecount = basecsym->getBaseClassCount() + 1; //include super
-		for(u32 i = 0; i < basecount; i++)
-		  basesqueue.push(basecsym->getBaseClass(i)); //extends queue w next level base UTIs
-	      }
+	      walker.addAncestorsOf(basecsym); //search all
 	  }
       } //end while
 
@@ -2199,32 +2161,20 @@ namespace MFM {
   {
     bool hasstub = false;
 
-    std::set<UTI> seenset;
-    std::queue<UTI> basesqueue;
-    std::pair<std::set<UTI>::iterator,bool> ret;
+    BaseclassWalker walker;
+    walker.init(cuti);
 
-    basesqueue.push(cuti); //init
-
+    UTI baseuti = Nouti;
     //ulam-5 supports multiple base classes; superclass optional;
-    while(!hasstub && !basesqueue.empty())
+    while(!hasstub && walker.getNextBase(baseuti))
       {
-	UTI baseuti = basesqueue.front();
-	basesqueue.pop(); //remove from front of queue
-	ret = seenset.insert(baseuti);
-	if (ret.second==false)
-	  continue; //already seen, try next one..
-
 	SymbolClass * basecsym = NULL;
 	if(alreadyDefinedSymbolClass(baseuti, basecsym))
 	  {
 	    hasstub = basecsym->isStub();
 
 	    if(!hasstub)
-	      {
-		u32 basecount = basecsym->getBaseClassCount() + 1; //include super
-		for(u32 i = 0; i < basecount; i++)
-		  basesqueue.push(basecsym->getBaseClass(i)); //extends queue w next level base UTIs
-	      }
+	      walker.addAncestorsOf(basecsym);
 	  }
       } //end while
     return hasstub; //even for non-classes
@@ -2286,21 +2236,14 @@ namespace MFM {
   {
     bool hasCA = false;
     // custom array flag set at parse time
-    std::set<UTI> seenset;
-    std::queue<UTI> basesqueue;
-    std::pair<std::set<UTI>::iterator,bool> ret;
 
-    basesqueue.push(cuti); //init
+    BaseclassWalker walker;
+    walker.init(cuti);
 
+    UTI baseuti = Nouti;
     //ulam-5 supports multiple base classes; superclass optional;
-    while(!hasCA && !basesqueue.empty())
+    while(!hasCA && walker.getNextBase(baseuti))
       {
-	UTI baseuti = basesqueue.front();
-	basesqueue.pop(); //remove from front of queue
-	ret = seenset.insert(baseuti);
-	if (ret.second==false)
-	  continue; //already seen, try next one..
-
 	if(okUTItoContinue(baseuti))
 	  {
 	    UlamType * baseut = getUlamTypeByIndex(baseuti);
@@ -2310,11 +2253,7 @@ namespace MFM {
 	      {
 		SymbolClass * basecsym = NULL;
 		if(alreadyDefinedSymbolClass(baseuti, basecsym))
-		  {
-		    u32 basecount = basecsym->getBaseClassCount() + 1; //include super
-		    for(u32 i = 0; i < basecount; i++)
-		      basesqueue.push(basecsym->getBaseClass(i)); //extends queue w next level base UTIs
-		  }
+		    walker.addAncestorsOf(basecsym);
 	      } //else hasCA
 	  } //not ok
       } //end while
@@ -3173,28 +3112,17 @@ namespace MFM {
 
   bool CompilerState::alreadyDefinedSymbolByAncestorOf(UTI cuti, u32 dataindex, Symbol *& symptr, bool& hasHazyKin)
   {
-    std::set<UTI> seenset;
-    std::queue<UTI> basesqueue;
-    std::pair<std::set<UTI>::iterator,bool> ret;
+    BaseclassWalker walker;
 
     //recursively check ancestors (breadth-first), for defined name (and not a Holder? t41298,9)
     SymbolClass * csym = NULL;
     if(alreadyDefinedSymbolClass(cuti, csym))
-      {
-	u32 basecount = csym->getBaseClassCount() + 1; //include super
-	for(u32 i = 0; i < basecount; i++)
-	  basesqueue.push(csym->getBaseClass(i)); //extends queue with next level of base UTIs
-      }
+      walker.addAncestorsOf(csym);
 
     bool kinhadit = false;
-    while(!kinhadit && !basesqueue.empty())
+    UTI baseuti = Nouti;
+    while(!kinhadit && walker.getNextBase(baseuti))
       {
-	UTI baseuti = basesqueue.front();
-	basesqueue.pop(); //remove from front of queue
-	ret = seenset.insert(baseuti);
-	if (ret.second==false)
-	  continue; //already seen, try next one..
-
 	SymbolClass * basecsym = NULL;
 	if(alreadyDefinedSymbolClass(baseuti, basecsym))
 	  {
@@ -3206,11 +3134,7 @@ namespace MFM {
 	    popClassContext(); //restore
 
 	    if(!kinhadit)
-	      {
-		u32 basecount = basecsym->getBaseClassCount() + 1; //include super
-		for(u32 i = 0; i < basecount; i++)
-		  basesqueue.push(basecsym->getBaseClass(i)); //extends queue with next level of base UTIs
-	      }
+	      walker.addAncestorsOf(basecsym);
 	    else
 	      hasHazyKin = tmphzykin;
 	  }
@@ -3218,29 +3142,22 @@ namespace MFM {
 	  {
 	    hasHazyKin = true; //like t3641
 	  }
+	//else
       } //end while
     return kinhadit;
   } //alreadyDefinedSymbolByAncestorOf
 
   bool CompilerState::alreadyDefinedSymbolByAClassOrAncestor(UTI cuti, u32 dataindex, Symbol *& symptr, bool& hasHazyKin)
   {
-    std::set<UTI> seenset;
-    std::queue<UTI> basesqueue;
-    std::pair<std::set<UTI>::iterator,bool> ret;
+    BaseclassWalker walker;
+    walker.init(cuti);
 
     //recursively check class and ancestors (breadth-first), for defined name (and not a Holder?)
 
     bool kinhadit = false;
-    basesqueue.push(cuti); //init
-
-    while(!kinhadit && !basesqueue.empty())
+    UTI baseuti = Nouti;
+    while(!kinhadit && walker.getNextBase(baseuti))
       {
-	UTI baseuti = basesqueue.front();
-	basesqueue.pop(); //remove from front of queue
-	ret = seenset.insert(baseuti);
-	if (ret.second==false)
-	  continue; //already seen, try next one..
-
 	SymbolClass * basecsym = NULL;
 	if(alreadyDefinedSymbolClass(baseuti, basecsym))
 	  {
@@ -3252,11 +3169,7 @@ namespace MFM {
 	    popClassContext(); //restore
 
 	    if(!kinhadit)
-	      {
-		u32 basecount = basecsym->getBaseClassCount() + 1; //include super
-		for(u32 i = 0; i < basecount; i++)
-		  basesqueue.push(basecsym->getBaseClass(i)); //extends queue with next level of base UTIs
-	      }
+	      walker.addAncestorsOf(basecsym);
 	    else
 	      hasHazyKin = tmphzykin;
 	  }
@@ -3264,6 +3177,7 @@ namespace MFM {
 	  {
 	    hasHazyKin = true; //like t3641
 	  }
+	//else
       } //end while
     return kinhadit;
   } //alreadyDefinedSymbolByAClassOrAncestor
@@ -3406,20 +3320,12 @@ namespace MFM {
   {
     bool rtnb = false;
 
-    std::set<UTI> seenset;
-    std::queue<UTI> basesqueue;
-    std::pair<std::set<UTI>::iterator,bool> ret;
+    BaseclassWalker walker;
+    walker.init(cuti);
 
-    basesqueue.push(cuti); //init
-
-    while(!rtnb && !basesqueue.empty())
+    UTI baseuti = Nouti;
+    while(!rtnb && walker.getNextBase(baseuti))
       {
-	UTI baseuti = basesqueue.front();
-	basesqueue.pop(); //remove from front of queue
-	ret = seenset.insert(baseuti);
-	if (ret.second==false)
-	  continue; //already seen, try next one..
-
 	SymbolClass * basecsym = NULL;
 	if(alreadyDefinedSymbolClass(baseuti, basecsym))
 	  {
@@ -3435,11 +3341,7 @@ namespace MFM {
 		symptr = fnSym;
 	      }
 	    else
-	      {
-		u32 basecount = basecsym->getBaseClassCount() + 1; //include super
-		for(u32 i = 0; i < basecount; i++)
-		  basesqueue.push(basecsym->getBaseClass(i)); //extends queue w next level of bases
-	      }
+	      walker.addAncestorsOf(basecsym);
 
 	    popClassContext(); //didn't forget!!
 	  }
@@ -3447,6 +3349,7 @@ namespace MFM {
 	  {
 	    hasHazyKin = true; //t3641
 	  }
+	//else
       } //end while
     return rtnb;
   } //isFuncIdInAClassScopeOrAncestor
@@ -3480,9 +3383,7 @@ namespace MFM {
     bool rtnb = false;
     UTI foundinbase = Nouti;
 
-    std::set<UTI> seenset;
-    std::queue<UTI> basesqueue;
-    std::pair<std::set<UTI>::iterator,bool> ret;
+    BaseclassWalker walker;
 
     //called again while initializing vtable, looking for overrides in subclasses;
     //don't look in cuti (yet), just base classes (breadth-first)
@@ -3490,18 +3391,11 @@ namespace MFM {
     AssertBool isDefined = alreadyDefinedSymbolClass(cuti, csym);
     assert(isDefined);
 
-    u32 basecount = csym->getBaseClassCount() + 1; //include super
-    for(u32 i = 0; i < basecount; i++)
-      basesqueue.push(csym->getBaseClass(i)); //init queue with first level of base UTIs
+    walker.addAncestorsOf(csym);
 
-    while(!rtnb && !basesqueue.empty())
+    UTI baseuti = Nouti;
+    while(!rtnb && walker.getNextBase(baseuti))
       {
-	UTI baseuti = basesqueue.front();
-	basesqueue.pop(); //remove from front of queue
-	ret = seenset.insert(baseuti);
-	if (ret.second==false)
-	  continue; //already seen, try next one..
-
 	SymbolClass * basecsym = NULL;
 	if(alreadyDefinedSymbolClass(baseuti, basecsym))
 	  {
@@ -3551,11 +3445,7 @@ namespace MFM {
 		    return false; //t41312
 		  }
 	      }
-
-	    //check all bases for errors
-	    u32 basecount = basecsym->getBaseClassCount() + 1; //include super
-	    for(u32 i = 0; i < basecount; i++)
-	      basesqueue.push(basecsym->getBaseClass(i)); //extends queue with next level of base UTIs
+	    walker.addAncestorsOf(basecsym); //check all bases for errors
 	  }
       } //end while
 
@@ -3570,27 +3460,18 @@ namespace MFM {
     UTI foundinbase = Nouti;
     UTI foundOriginator = Nouti;
 
-    std::set<UTI> seenset;
-    std::queue<UTI> basesqueue;
-    std::pair<std::set<UTI>::iterator,bool> ret;
+    BaseclassWalker walker;
 
     //don't look in cuti, just base classes (breadth-first)
     SymbolClass * csym = NULL;
     AssertBool isDefined = alreadyDefinedSymbolClass(cuti, csym);
     assert(isDefined);
 
-    u32 basecount = csym->getBaseClassCount() + 1; //include super
-    for(u32 i = 0; i < basecount; i++)
-      basesqueue.push(csym->getBaseClass(i)); //init queue with first level of base UTIs
+    walker.addAncestorsOf(csym);
 
-    while(!basesqueue.empty() && (foundinbase != Nav) && (foundOriginator != Nav))
+    UTI baseuti = Nouti;
+    while(walker.getNextBase(baseuti) && (foundinbase != Nav) && (foundOriginator != Nav))
       {
-	UTI baseuti = basesqueue.front();
-	basesqueue.pop(); //remove from front of queue
-	ret = seenset.insert(baseuti);
-	if (ret.second==false)
-	  continue; //already seen, try next one..
-
 	SymbolClass * basecsym = NULL;
 	if(alreadyDefinedSymbolClass(baseuti, basecsym))
 	  {
@@ -3609,7 +3490,7 @@ namespace MFM {
 		  {
 		    if(virtualInSub)
 		      {
-			//c++, quietly fails
+			//c++, quietly supports it.
 			std::ostringstream msg;
 			msg << "Virtual overloaded function <";
 			msg << m_pool.getDataAsString(fid).c_str();
@@ -3696,10 +3577,7 @@ namespace MFM {
 		  }
 	      } //gotmatch
 
-	    // check all bases for errors, and originator
-	    u32 basecount = basecsym->getBaseClassCount() + 1; //include super
-	    for(u32 i = 0; i < basecount; i++)
-	      basesqueue.push(basecsym->getBaseClass(i)); //extends queue with next level of base UTIs
+	    walker.addAncestorsOf(basecsym); // check all bases for errors, and originator
 	  }
       } //end while
 
@@ -3739,25 +3617,16 @@ namespace MFM {
     bool exactlyone = false; //true if exact match found
     u32 matchingFuncCount = 0; //U32_MAX;
 
-    std::set<UTI> seenset;
-    std::queue<UTI> basesqueue;
-    std::pair<std::set<UTI>::iterator,bool> ret;
-
+    BaseclassWalker walker;
+    walker.init(cuti);
     //can't assume class context already pushed
 
     //Like in C++, exact matches in a subclass overrides any possible exact matches in base classes;
     // otherwise, use base class with exact match, assuming no ambiguity among others.
 
-    basesqueue.push(cuti);
-
-    while(!exactlyone && !basesqueue.empty())
+    UTI baseuti = Nouti;
+    while(!exactlyone && walker.getNextBase(baseuti))
       {
-	UTI baseuti = basesqueue.front();
-	basesqueue.pop(); //remove from front of queue
-	ret = seenset.insert(baseuti);
-	if (ret.second==false)
-	  continue; //already seen, try next one..
-
 	SymbolClass * basecsym = NULL;
 	if(alreadyDefinedSymbolClass(baseuti, basecsym))
 	  {
@@ -3775,7 +3644,7 @@ namespace MFM {
 	      {
 		foundInAncestor = baseuti;
 		fsymref = tmpfsym;
-		exactlyone = basesqueue.empty(); //only one level inheritance, let's go with that..(t3600)
+		exactlyone = walker.isDone(); //only one level inheritance, let's go with that..(t3600)
 		//otherwise still could be ambiguous amongst the base classes
 		//assert(!hasHazyArgs); t3395
 	      }
@@ -3783,11 +3652,7 @@ namespace MFM {
 	    popClassContext(); //didn't forget!!
 
 	    if(!exactlyone) //not found
-	      {
-		u32 basecount = basecsym->getBaseClassCount() + 1; //include super
-		for(u32 i = 0; i < basecount; i++)
-		  basesqueue.push(basecsym->getBaseClass(i)); //extends queue with next level of base UTIs
-	      }
+	      walker.addAncestorsOf(basecsym);
 	  }
 	else if(baseuti == Hzy)
 	  {
@@ -3845,20 +3710,12 @@ namespace MFM {
 
     FSTable FST; //starts here!!
 
-    std::set<UTI> seenset;
-    std::queue<UTI> basesqueue;
-    std::pair<std::set<UTI>::iterator,bool> ret;
+    BaseclassWalker walker;
+    walker.init(cuti);
 
-    basesqueue.push(cuti);
-
-    while(!rtnb && !basesqueue.empty())
+    UTI baseuti = Nouti;
+    while(!rtnb && walker.getNextBase(baseuti))
       {
-	UTI baseuti = basesqueue.front();
-	basesqueue.pop(); //remove from front of queue
-	ret = seenset.insert(baseuti);
-	if (ret.second==false)
-	  continue; //already seen, try next one..
-
 	SymbolClass * basecsym = NULL;
 	if(alreadyDefinedSymbolClass(baseuti, basecsym))
 	  {
@@ -3877,21 +3734,19 @@ namespace MFM {
 	      {
 		foundInAncestor = baseuti;
 		fsymref = tmpfsym;
-		rtnb = basesqueue.empty(); //only one level inheritance, let's go with that..
+		rtnb = walker.isDone(); //only one level inheritance, let's go with that..
 		//assert(!hasHazyArgs); //t3484
 	      }
 
 	    popClassContext(); //didn't forget!!
 
-	    //find all
-	    u32 basecount = basecsym->getBaseClassCount() + 1; //include a super
-	    for(u32 i = 0; i < basecount; i++)
-	      basesqueue.push(basecsym->getBaseClass(i)); //extends queue with next level of base UTIs
+	    walker.addAncestorsOf(basecsym); //find all
 	  }
 	else if(baseuti == Hzy)
 	  {
 	    hasHazyArgs = true; //like t3641
 	  }
+	//else
       } //end while
 
     if(matchingFuncCount == 0) //U32_MAX)
@@ -3913,21 +3768,13 @@ namespace MFM {
 
   void CompilerState::noteAmbiguousFunctionSignaturesInAClassHierarchy(UTI cuti, u32 fid, std::vector<Node *> argNodes, u32 matchingFuncCount)
   {
-    std::set<UTI> seenset;
-    std::queue<UTI> basesqueue;
-    std::pair<std::set<UTI>::iterator,bool> ret;
+    BaseclassWalker walker;
+    walker.init(cuti);
 
     u32 count = 0;
-    basesqueue.push(cuti);
-
-    while(!basesqueue.empty())
+    UTI baseuti = Nouti;
+    while(walker.getNextBase(baseuti))
       {
-	UTI baseuti = basesqueue.front();
-	basesqueue.pop(); //remove from front of queue
-	ret = seenset.insert(baseuti);
-	if (ret.second==false)
-	  continue; //already seen, try next one..
-
 	SymbolClass * basecsym = NULL;
 	if(alreadyDefinedSymbolClass(baseuti, basecsym))
 	  {
@@ -3941,10 +3788,7 @@ namespace MFM {
 
 	    popClassContext(); //didn't forget!!
 
-	    // check them all..
-	    u32 basecount = basecsym->getBaseClassCount() + 1; //include a super
-	    for(u32 i = 0; i < basecount; i++)
-	      basesqueue.push(basecsym->getBaseClass(i)); //extends queue with next level of base UTIs
+	    walker.addAncestorsOf(basecsym); // check them all..
 	  }
       } //end while
     assert(count == matchingFuncCount); //sanity
@@ -5878,11 +5722,6 @@ namespace MFM {
     assert(isAClass(cuti));
     // anonymous classes have their UTI number as their nameid. (t3808)
     return(!isARootUTI(cuti) || isHolder(cuti));
-  }
-
-  UTI CompilerState::getUrSelf()
-  {
-    return m_urSelfUTI;
   }
 
   void CompilerState::saveUrSelf(UTI uti)

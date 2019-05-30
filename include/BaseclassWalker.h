@@ -1,9 +1,8 @@
-/* -*- c++ -*- */
 /**                                        -*- mode:C++ -*-
- * TypeArgs.h - Type Arguments for ULAM
+ * BaseclassWalker.h - Traverse a family tree for ULAM
  *
- * Copyright (C) 2015-2019 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2019 Ackleyshack LLC.
+ * Copyright (C) 2019 The Regents of the University of New Mexico.
+ * Copyright (C) 2019 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,45 +26,45 @@
  */
 
 /**
-  \file TypeArgs.h - Type Arguments for ULAM
-  \author Elena S. Ackley.
+  \file BaseclassWalker.h -  Traverse a family tree for ULAM
+  \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2019 All rights reserved.
+  \date (C) 2019 All rights reserved.
   \gpl
 */
 
-#ifndef TYPEARGS_H
-#define TYPEARGS_H
+#ifndef BASECLASSWALKER_H
+#define BASECLASSWALKER_H
 
-#include "Constants.h"
-#include "Token.h"
+#include <deque>
+#include <set>
+#include "SymbolClass.h"
 
-namespace MFM{
-
-  struct TypeArgs
+namespace MFM
+{
+  class SymbolClass; //forward
+  class BaseclassWalker
   {
-    Token m_typeTok;
-    s32 m_bitsize;
-    s32 m_arraysize;
-    UTI m_classInstanceIdx;
-    UTI m_anothertduti;
-    UTI m_declListOrTypedefScalarType;
-    bool m_assignOK;
-    bool m_isStmt;
-    ALT m_declRef;
-    UTI m_referencedUTI;
-    bool m_hasConstantTypeModifier;
-    bool m_forMemberSelect;
+  public:
 
-    TypeArgs();
-    TypeArgs(const TypeArgs& tref);
-    ~TypeArgs();
+    BaseclassWalker();
+    BaseclassWalker(bool breadthfirst);
 
-    void init(const Token& typetoken);
-    TypeArgs& operator=(const TypeArgs& tref);
-    void setdeclref(const Token& ftoken, UTI referencedType);
+    ~BaseclassWalker();
+
+    void init(UTI cuti);
+    bool isDone();
+    void addAncestorsOf(SymbolClass * csymptr);
+    bool getNextBase(UTI& nextbase);
+
+  private:
+
+    std::deque<UTI> m_bases;
+    std::set<UTI> m_seenset;
+    bool m_breadthfirst;
+
+
   };
 
-} //MFM
-
-#endif //TYPEARGS_H
+}
+#endif  /* BASECLASSWALKER_H */

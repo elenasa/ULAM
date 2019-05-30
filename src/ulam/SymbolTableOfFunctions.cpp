@@ -183,9 +183,7 @@ namespace MFM {
     u32 accummaxes = 0;
     bool uninitbases = false;
 
-    std::set<UTI> seenset;
-    std::queue<UTI> basesqueue;
-    std::pair<std::set<UTI>::iterator,bool> ret;
+    BaseclassWalker walker;
 
     //initialize this classes VTable to super classes' VTable, or empty
     // some entries may be modified; or table may expand
@@ -194,18 +192,11 @@ namespace MFM {
     assert(isDefined);
 
     // get ancestors accumulated max index of originating virtual funcs (entire tree)
-    u32 basecount = csym->getBaseClassCount() + 1; //include super
-    for(u32 i = 0; i < basecount; i++)
-      basesqueue.push(csym->getBaseClass(i)); //extends queue with next level of base UTIs
+    walker.addAncestorsOf(csym);
 
-    while(!basesqueue.empty())
+    UTI baseuti = Nouti;
+    while(walker.getNextBase(baseuti))
       {
-	UTI baseuti = basesqueue.front();
-	basesqueue.pop(); //remove from front of queue
-	ret = seenset.insert(baseuti);
-	if (ret.second==false)
-	  continue; //already seen, try next one..
-
 	SymbolClass * basecsym = NULL;
 	if(m_state.alreadyDefinedSymbolClass(baseuti, basecsym))
 	  {
@@ -221,11 +212,7 @@ namespace MFM {
 		maxidx = UNKNOWNSIZE;
 		return; //short-circuit
 	      }
-
-	    // check all bases
-	    u32 basecount = basecsym->getBaseClassCount() + 1; //include super
-	    for(u32 i = 0; i < basecount; i++)
-	      basesqueue.push(basecsym->getBaseClass(i)); //extends queue with next level of base UTIs
+	    walker.addAncestorsOf(basecsym); // check all bases
 	  }
       } //end while
 

@@ -1223,9 +1223,6 @@ namespace MFM {
 
     //VOWNED_IDX enum is the same regardless of effective self (e.g. t3600)
     // belongs to originating class; subclass knows offset in VT (ulam-5)
-    //UTI decosuti = m_state.getUlamTypeAsDeref(cosuti); // t3758
-    //UlamType * decosut = m_state.getUlamTypeByIndex(decosuti);
-
     UlamType * vownut = m_state.getUlamTypeByIndex(vownuti);
     fp->write(vownut->getUlamTypeMangledName().c_str());
     fp->write("<EC>::"); //orignating class
@@ -1263,7 +1260,7 @@ namespace MFM {
     UlamType * cvfut = m_state.getUlamTypeByIndex(cvfuti);
 
     // check that we are not trying to call a pure virtual function: t41158, t41160, t41094, safe t41161
-    // limit to 'super' special case: t3606, t3608, t3774, t3779, t3788, t3794, t3795, t3967, t41131
+    // too limiting (ulam-5) to limit to 'super' special case: t3606, t3608, t3774, t3779, t3788, t3794, t3795, t3967, t41131
     //if(cos->isSuper()) //multiple bases possible (ulam-5)
     if(m_state.getUlamTypeAsDeref(cosuti) != cvfuti) //multiple bases possible (ulam-5)
       {
