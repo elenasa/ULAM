@@ -3857,22 +3857,13 @@ namespace MFM {
   {
     bool rtnb = false;
 
-    std::set<UTI> seenset;
-    std::queue< std::pair<UTI,UTI> > basesqueue;
-    std::pair<std::set<UTI>::iterator,bool> ret;
+    BaseclassWalker walkerpair;
+    walkerpair.init(cuti); //Nouti pair
 
-    basesqueue.push( std::pair<UTI, UTI> (cuti, Nouti)); //init
-
-    while(!rtnb && !basesqueue.empty())
+    UTI baseuti = Nouti;
+    UTI headuti = Nouti;
+    while(!rtnb && walkerpair.getNextBasePair(baseuti, headuti))
       {
-	std::pair<UTI,UTI> base = basesqueue.front();
-	UTI baseuti = base.first;
-	UTI basehead = base.second;
-	basesqueue.pop(); //remove from front of queue
-	ret = seenset.insert(baseuti);
-	if (ret.second==false)
-	  continue; //already seen, try next one..
-
 	SymbolClass * basecsym = NULL;
 	if(alreadyDefinedSymbolClass(baseuti, basecsym))
 	  {
@@ -3881,19 +3872,13 @@ namespace MFM {
 
 	    if(rtnb)
 	      {
-		if(basehead == Nouti) basehead = baseuti;
-		foundInBase = basehead;
+		if(headuti == Nouti) headuti = baseuti;
+		foundInBase = headuti;
 	      }
 	    else
 	      {
-		u32 basecount = basecsym->getBaseClassCount() + 1; //include super
-		for(u32 i = 0; i < basecount; i++)
-		  {
-		    UTI baseuti = basecsym->getBaseClass(i);
-		    if(basehead == Nouti) basehead = baseuti; //t3600
-		    //extends queue with next level of base UTIs
-		    basesqueue.push(std::pair<UTI,UTI> (baseuti, basehead));
-		  }
+		UTI basehead = (headuti == Nouti) ? baseuti : headuti; //t3600
+		walkerpair.addAncestorPairsOf(basecsym, basehead);
 	      }
 	  }
       } //end while

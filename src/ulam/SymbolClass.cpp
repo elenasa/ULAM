@@ -617,9 +617,7 @@ namespace MFM {
   void SymbolClass::assignClassArgValuesInStubCopy()
   {
     assert(m_resolver);
-    m_resolver->assignClassArgValuesInStubCopy();
-    //AssertBool isAssigned = m_resolver->assignClassArgValuesInStubCopy();
-    //assert(isAssigned); //t41007
+    m_resolver->assignClassArgValuesInStubCopy(); //t41007 cannot assert true result
   }
 
   void SymbolClass::cloneResolverUTImap(SymbolClass * csym)
@@ -1608,7 +1606,7 @@ namespace MFM {
   UTI SymbolClass::getOriginatingClassForVTableEntry(u32 idx)
   {
     assert(idx < m_vtable.size());
-    return m_vtable[idx].m_origClassUTI;
+    return m_vtable[idx].m_origClassUTI; //vowned
   }
 
   void SymbolClass::notePureFunctionSignatures()

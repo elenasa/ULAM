@@ -55,15 +55,16 @@ namespace MFM
     void init(UTI cuti);
     bool isDone();
     void addAncestorsOf(SymbolClass * csymptr);
+    void addAncestorPairsOf(SymbolClass * csymptr, UTI basehead);
+
     bool getNextBase(UTI& nextbase);
+    bool getNextBasePair(UTI& nextbase, UTI& basehead);
 
   private:
 
-    std::deque<UTI> m_bases;
+    std::deque<std::pair<UTI,UTI> > m_bases; //second unused, except to track nearest base class
     std::set<UTI> m_seenset;
-    bool m_breadthfirst;
-
-
+    bool m_breadthfirst; //default is breadth-first search across base classes
   };
 
 }
