@@ -1064,6 +1064,7 @@ namespace MFM {
     UTI locuti = classblock->getLocalsFilescopeType();
     if(locuti != Nouti)
       {
+	//locals filescope
 	assert(m_state.okUTItoContinue(locuti));
 	u32 mangledclassid = m_state.getMangledClassNameIdForUlamLocalsFilescope(locuti);
 
@@ -1074,6 +1075,15 @@ namespace MFM {
 	fp->write(m_state.m_pool.getDataAsString(mangledclassid).c_str());
 	fp->write("; }  //FORWARD"); GCNL;
       }
+#if 0
+    else
+      {
+	m_state.indent(fp);
+	fp->write("namespace MFM { ");
+	fp->write("struct VTentry; }  //FORWARD"); GCNL;
+      }
+#endif
+
   } //generateHeaderIncludes
 
   // create structs with BV, as storage, and typedef

@@ -165,84 +165,170 @@ namespace MFM {
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
     ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
 
-    m_state.indentUlamCode(fp);
-    fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
-    fp->write(" ");
-
-    fp->write(m_varSymbol->getMangledName().c_str());
-    fp->write("(");
-    fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str());
-
     if(stgetyp == UAtom)
       {
-	fp->write(", 0u + T::ATOM_FIRST_STATE_BIT, "); //position as super quark (e.g. t3639, t3709, t3675, t3408, t3336); as element t3249, t3255, t3637; as atom ref t3908
+	// get Type in tmpVarType at runtime
+	s32 tmpVarType = m_state.getNextTmpVarNumber();
+	m_state.indentUlamCode(fp);
+	fp->write("const s32 ");
+	fp->write(m_state.getTmpVarAsString(Int, tmpVarType, TMPREGISTER).c_str());;
+	fp->write(" = ");
+	fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str());
+	fp->write(".GetType();"); GCNL;
+
+	//get Pos in tmpVarPos at runtime
+	s32 tmpVarPos = m_state.getNextTmpVarNumber();
+	m_state.indentUlamCode(fp);
+	fp->write("const s32 ");
+	fp->write(m_state.getTmpVarAsString(Int, tmpVarPos, TMPREGISTER).c_str());
+	fp->write(" = UlamClass<EC>::GetRelativePositionOfBaseClass(uc, ");
+	fp->write(m_state.getTmpVarAsString(Int, tmpVarType, TMPREGISTER).c_str());
+	fp->write(", &");
+	fp->write(m_state.getTheInstanceMangledNameByIndex(vuti).c_str());
+	fp->write("); //relpos"); GCNL;
+
+	m_state.indentUlamCode(fp);
+	fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
+	fp->write(" ");
+	fp->write(m_varSymbol->getMangledName().c_str());
+	fp->write("(");
+	fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str());
+	fp->write(", ");
+	fp->write(m_state.getTmpVarAsString(Int, tmpVarPos, TMPREGISTER).c_str());
+	fp->write(" + T::ATOM_FIRST_STATE_BIT, "); //position as super quark (e.g. t3639, t3709, t3675, t3408, t3336); as element t3249, t3255, t3637; as atom ref t3908
 
 	//note: needs effective self of the atom, not simply the RHS type.
 	fp->write(m_state.getHiddenContextArgName());
 	fp->write(".LookupUlamElementTypeFromContext(");
-	fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str()); //t3636
-	fp->write(".GetType())");
+	fp->write(m_state.getTmpVarAsString(Int, tmpVarType, TMPREGISTER).c_str()); //3636
+	fp->write(")");
 	if(vclasstype == UC_QUARK)
 	  fp->write(", UlamRef<EC>::ELEMENTAL"); //becomes elemental, t3835
+
+	if(!stgcosut->isReference()) //not isAltRefType
+	  fp->write(", uc"); //t3249
+
+	fp->write("); //shadows lhs of 'as'"); GCNL;
       }
-    else if((stgclasstype == UC_ELEMENT))
+    else if(stgcosut->isReference()) //not isAltRefType,
       {
-	if(stgcosut->isReference()) //not isAltRefType
-	  {
-	    fp->write(", 0u, "); //t3655
-	    fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str()); //VG
-	    fp->write(".GetEffectiveSelf()"); //Sat Jun 18 17:30:20 2016
-	  }
-	else
-	  {
-	    fp->write(", 0u + T::ATOM_FIRST_STATE_BIT, &"); //t3586, t3589, t3637
-	    //must be same as look up for elements only Sat Jun 18 17:30:17 2016
-	    fp->write(m_state.getTheInstanceMangledNameByIndex(stgcosuti).c_str());
-	  }
+	//for references (t41011, t41012), use the effself to get relpos at runtime
+	s32 tmpVarPos = m_state.getNextTmpVarNumber();
+	m_state.indentUlamCode(fp);
+	fp->write("const s32 ");
+	fp->write(m_state.getTmpVarAsString(Int, tmpVarPos, TMPREGISTER).c_str());
+	fp->write(" = (");
+
+	fp->write(stgcos->getMangledName().c_str());
+	fp->write(".GetEffectiveSelf()->");
+	fp->write(m_state.getGetRelPosMangledFunctionName(stgcosuti)); //UlamClass Method
+	fp->write("(&");
+	fp->write(m_state.getTheInstanceMangledNameByIndex(vuti).c_str());
+	fp->write(")); //relpos"); GCNL;
+
+	m_state.indentUlamCode(fp);
+	fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
+	fp->write(" ");
+	fp->write(m_varSymbol->getMangledName().c_str());
+	fp->write("(");
+	fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str());
+	fp->write(", ");
+	fp->write(m_state.getTmpVarAsString(Int, tmpVarPos, TMPREGISTER).c_str());
+	fp->write(", ");
+	//note: needs effective self of the atom, not simply the RHS type.
+	fp->write(stgcos->getMangledName().c_str());
+	fp->write(".GetEffectiveSelf()");
 	if(vclasstype == UC_QUARK)
-	  fp->write(", UlamRef<EC>::ELEMENTAL"); //stays elemental
-      }
-    else if((stgclasstype == UC_TRANSIENT))
-      {
-	// transient can be another transient or a quark, not an element
-	fp->write(", 0u, ");
-	if(stgcosut->isReference()) //not isAltRefType
-	  {
-	    fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str()); //VG:t3826 ALT_AS
-	    fp->write(".GetEffectiveSelf()"); //t3824
-	  }
-	else
-	  {
-	    fp->write("&"); //t3822
-	    fp->write(m_state.getTheInstanceMangledNameByIndex(stgcosuti).c_str());
-	  }
-	if(vclasstype == UC_QUARK)
-	  fp->write(", UlamRef<EC>::CLASSIC"); //stays classic
-      }
-    else if((stgclasstype == UC_QUARK))
-      {
-	// quark can be another quark, not an element, nor transient
-	fp->write(", 0u, ");
-	if(stgcosut->isReference()) //not isAltRefType
-	  {
-	    fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str()); //VG: t3827,8,9 ALT_AS
-	    fp->write(".GetEffectiveSelf()");
-	  }
-	else
-	  {
-	    fp->write("&"); //t3830
-	    fp->write(m_state.getTheInstanceMangledNameByIndex(stgcosuti).c_str());
-	  }
-	assert(vclasstype == UC_QUARK);
-	fp->write(", UlamRef<EC>::CLASSIC"); //stays classic
+	  fp->write(", UlamRef<EC>::ELEMENTAL"); //becomes elemental, t3835
+	fp->write("); //shadows lhs of 'as'"); GCNL;
       }
     else
-      m_state.abortUndefinedUlamClassType(); //WHAT THEN???
+      {
+	// get relative position at compile time, both types are known.
+	u32 relpos = UNRELIABLEPOS;
+	AssertBool gotPos = m_state.getABaseClassRelativePositionInAClass(stgcosuti, vuti, relpos);
+	assert(gotPos);
 
-    if(!stgcosut->isReference()) //not isAltRefType
-      fp->write(", uc"); //t3249
+	m_state.indentUlamCode(fp);
+	fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
+	fp->write(" ");
 
-    fp->write("); //shadows lhs of 'as'"); GCNL;
+	fp->write(m_varSymbol->getMangledName().c_str());
+	fp->write("(");
+	fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str());
+
+	if((stgclasstype == UC_ELEMENT))
+	  {
+	    if(stgcosut->isReference()) //not isAltRefType
+	      {
+		//fp->write(", 0u, "); //t3655
+		fp->write(", ");
+		fp->write_decimal_unsigned(relpos);
+		fp->write("u, ");
+		fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str()); //VG
+		fp->write(".GetEffectiveSelf()"); //Sat Jun 18 17:30:20 2016
+	      }
+	    else
+	      {
+		//fp->write(", 0u + T::ATOM_FIRST_STATE_BIT, &"); //t3586, t3589, t3637
+		fp->write(", ");
+		fp->write_decimal_unsigned(relpos);
+		fp->write("u + T::ATOM_FIRST_STATE_BIT, &");
+
+		//must be same as look up for elements only Sat Jun 18 17:30:17 2016
+		fp->write(m_state.getTheInstanceMangledNameByIndex(stgcosuti).c_str());
+	      }
+	    if(vclasstype == UC_QUARK)
+	      fp->write(", UlamRef<EC>::ELEMENTAL"); //stays elemental
+	  }
+	else if((stgclasstype == UC_TRANSIENT))
+	  {
+	    // transient can be another transient or a quark, not an element
+	    //fp->write(", 0u, ");
+	    fp->write(", ");
+	    fp->write_decimal_unsigned(relpos);
+	    fp->write("u, ");
+	    if(stgcosut->isReference()) //not isAltRefType
+	      {
+		fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str()); //VG:t3826 ALT_AS
+		fp->write(".GetEffectiveSelf()"); //t3824
+	      }
+	    else
+	      {
+		fp->write("&"); //t3822
+		fp->write(m_state.getTheInstanceMangledNameByIndex(stgcosuti).c_str());
+	      }
+	    if(vclasstype == UC_QUARK)
+	      fp->write(", UlamRef<EC>::CLASSIC"); //stays classic
+	  }
+	else if((stgclasstype == UC_QUARK))
+	  {
+	    // quark can be another quark, not an element, nor transient
+	    //fp->write(", 0u, ");
+	    fp->write(", ");
+	    fp->write_decimal_unsigned(relpos);
+	    fp->write(", ");
+	    if(stgcosut->isReference()) //not isAltRefType
+	      {
+		fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str()); //VG: t3827,8,9 ALT_AS
+		fp->write(".GetEffectiveSelf()");
+	      }
+	    else
+	      {
+		fp->write("&"); //t3830
+		fp->write(m_state.getTheInstanceMangledNameByIndex(stgcosuti).c_str());
+	      }
+	    assert(vclasstype == UC_QUARK);
+	    fp->write(", UlamRef<EC>::CLASSIC"); //stays classic
+	  }
+	else
+	  m_state.abortUndefinedUlamClassType(); //WHAT THEN???
+
+	if(!stgcosut->isReference()) //not isAltRefType
+	  fp->write(", uc"); //t3249
+
+	fp->write("); //shadows lhs of 'as'"); GCNL;
+      } //end else
 
     m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of lhs ?
   } //genCode

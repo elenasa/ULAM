@@ -149,6 +149,8 @@ namespace MFM{
 
     virtual bool hasASymbolReferenceConstant();
 
+    virtual bool belongsToVOWN(UTI vown);
+
     virtual bool isAConstant();
 
     virtual bool isAConstantClass();

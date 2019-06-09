@@ -231,6 +231,15 @@ namespace MFM {
     return false;
   }
 
+  bool Node::belongsToVOWN(UTI vown)
+  {
+    std::ostringstream msg;
+    msg << "virtual bool " << prettyNodeName().c_str();
+    msg << "::belongsToVOWN(UTI vown){} is needed!!";
+    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+    return false;
+  }
+
   bool Node::isAConstant()
   {
     return false;
@@ -2515,10 +2524,22 @@ namespace MFM {
     UlamType * cosclassut = m_state.getUlamTypeByIndex(cosclassuti);
     assert(!cosclassut->isAltRefType());
 
-    if((cosSize == 1))
-       stgcos = m_state.getCurrentSelfSymbolForCodeGen();
-
     u32 pos = uvpass.getPassPos();
+
+    if((cosSize == 1))
+      {
+	stgcos = m_state.getCurrentSelfSymbolForCodeGen();
+	u32 relposofbaseclass = 0;
+	if(m_state.getABaseClassRelativePositionInAClass(stgcos->getUlamTypeIdx(), cosclassuti, relposofbaseclass))
+	  pos += relposofbaseclass; //t41319
+	else if(m_state.getABaseClassRelativePositionInAClass(cosclassuti, stgcos->getUlamTypeIdx(), relposofbaseclass))
+	  {
+	    pos -= relposofbaseclass;
+	    m_state.abortNeedsATest(); //????
+	  }
+	//else
+      }
+
 
     fp->write("UlamRef<EC>("); //wrapper for dm
     if(cosSize > 1 && stgcos->isTmpVarSymbol())
@@ -2532,10 +2553,23 @@ namespace MFM {
       {
 	if(needAdjustToStateBits(cosuti))
 	  fp->write("T::ATOM_FIRST_STATE_BIT + "); //t3880
-	fp->write("0u, "); //t3147
+	//fp->write("0u, "); //t3147
+	fp->write_decimal_unsigned(pos); //???
+	fp->write("u, "); //t3147
       }
     else
       {
+#if 1
+	if(uvpass.getPassApplyDelta())
+	  {
+	    fp->write(" -");
+	    if(cosSize > 1 && stgcos->isTmpVarSymbol())
+	      fp->write(stgcos->getMangledName().c_str()); //first arg t3543, not t3512
+	    else
+	      fp->write(m_state.getHiddenArgName()); //ur first arg
+	    fp->write(".GetDelta() + ");
+	  }
+#endif
 	fp->write_decimal_unsigned(pos); //rel offset //t3143, t3543
 	fp->write("u, ");
       }

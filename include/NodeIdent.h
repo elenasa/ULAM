@@ -82,6 +82,8 @@ namespace MFM{
 
     const Token& getToken() const;
 
+    virtual bool belongsToVOWN(UTI vown);
+
     virtual bool isAConstant();
 
     virtual void setClassType(UTI cuti); //noop

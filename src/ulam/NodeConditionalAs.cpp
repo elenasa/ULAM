@@ -382,7 +382,7 @@ namespace MFM {
     fp->write(nut->getTmpStorageTypeAsString().c_str()); //bool
     fp->write(" ");
     fp->write(m_state.getTmpVarAsString(nuti, tmpVarIs, TMPREGISTER).c_str());
-    fp->write(" = ");
+    fp->write(" = (");
 
     //is a class t3582,3,6,9 (reversed luti,ruti order to 'is')
     fp->write(m_state.getTheInstanceMangledNameByIndex(luti).c_str());
@@ -390,11 +390,16 @@ namespace MFM {
     fp->write(m_state.getAsMangledFunctionName(luti, ruti)); //UlamElement IsMethod
     fp->write("(&"); //one arg
     fp->write(m_state.getTheInstanceMangledNameByIndex(ruti).c_str());
-    fp->write(");"); GCNL;
+    fp->write("));"); GCNL;
 
     //update uvpass, include lhs name id
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     u32 lid = m_state.m_currentObjSymbolsForCodeGen.back()->getId();
+
+    //luti and ruti can be the same class (e.g. t3754)
+    //u32 relpos = UNRELIABLEPOS;
+    //AssertBool gotPos = m_state.getABaseClassRelativePositionInAClass(luti, ruti, relpos);
+    //assert(gotPos);
 
     uvpass = UVPass::makePass(tmpVarIs, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, lid);
     //NO m_state.clearCurrentObjSymbolsForCodeGen()
@@ -432,7 +437,7 @@ namespace MFM {
 
     if(rut->getUlamClassType() == UC_ELEMENT)
       {
-	//reversed call to rhs' overloaded c-implemented 'Is' method;
+	//reversed call to rhs' overloaded c-implemented 'Is' method; rtn bool;
 	// using lhs' T as argument; required for EMPTY-ELEMENT special case
 	fp->write(m_state.getTheInstanceMangledNameByIndex(ruti).c_str());
 	fp->write(".");
@@ -456,7 +461,7 @@ namespace MFM {
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     u32 lid = m_state.m_currentObjSymbolsForCodeGen.back()->getId();
 
-    uvpass = UVPass::makePass(tmpVarIs, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, lid);
+    uvpass = UVPass::makePass(tmpVarIs, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, lid); //relpos?
     //NO m_state.clearCurrentObjSymbolsForCodeGen()
   } //genCodeAtomAs
 
@@ -488,7 +493,7 @@ namespace MFM {
     fp->write(nut->getTmpStorageTypeAsString().c_str()); //bool
     fp->write(" ");
     fp->write(m_state.getTmpVarAsString(nuti, tmpVarIs, TMPREGISTER).c_str());
-    fp->write(" = ");
+    fp->write(" = (");
 
     //if array, error in c&l
     fp->write(stgcos->getMangledName().c_str());
@@ -496,13 +501,13 @@ namespace MFM {
     fp->write(m_state.getAsMangledFunctionName(luti, ruti)); //UlamClass IsMethod
     fp->write("(&");
     fp->write(m_state.getTheInstanceMangledNameByIndex(ruti).c_str());
-    fp->write(");"); GCNL;
+    fp->write("));"); GCNL;  //t3655
 
     //update uvpass, include lhs name id
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     u32 lid = m_state.m_currentObjSymbolsForCodeGen.back()->getId();
 
-    uvpass = UVPass::makePass(tmpVarIs, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, lid);
+    uvpass = UVPass::makePass(tmpVarIs, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, lid); //t3754
     //NO m_state.clearCurrentObjSymbolsForCodeGen()
   } //genCodeReferenceAs
 

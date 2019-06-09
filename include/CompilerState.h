@@ -164,7 +164,8 @@ namespace MFM{
 
     std::vector<Symbol *> m_currentObjSymbolsForCodeGen;  //used in code generation;
     Symbol * m_currentSelfSymbolForCodeGen; //used in code gen; parallels m_currentSelf
-    bool m_gencodingAVirtualFunctionDefinedInAQuark; //uses less efficient read/write without POS template arg
+    //bool m_gencodingAVirtualFunctionDefinedInAQuark; //uses less efficient read/write without POS template arg (unused)
+    UTI m_gencodingAVirtualFunctionInThisOriginatingClass; //helps determine relpos of dm variable; Nouti if non-virtual
 
     u32 m_currentIndentLevel; //used in code generation: func def, blocks, control body
     s32 m_nextTmpVarNumber; //used in code gen when a "slot index" is not available
@@ -387,6 +388,8 @@ namespace MFM{
     void updateLineageAndFirstCheckAndLabelPass();
     void updateLineageAndFirstCheckAndLabelPassForLocals();
     bool checkAndLabelPassForLocals();
+
+    u32 getMaxNumberOfRegisteredUlamClasses();
     void defineRegistrationNumberForUlamClasses(); //ulam-4
     void defineRegistrationNumberForLocals(); //ulam-4
     //void defineElementTypesForUlamClasses();
@@ -432,6 +435,7 @@ namespace MFM{
 
     const char * getIsMangledFunctionName(UTI ltype);
     const char * getAsMangledFunctionName(UTI ltype, UTI rtype);
+    const char * getGetRelPosMangledFunctionName(UTI ltype);
     const char * getClassLengthFunctionName(UTI ltype);
     const char * getClassRegistrationNumberFunctionName(UTI ltype);
     const char * getGetStringFunctionName();

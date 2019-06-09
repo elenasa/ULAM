@@ -960,18 +960,20 @@ namespace MFM {
 	fp->write(hiddenarg2str.c_str()); GCNL;
       }
 
+    u32 tvfpnum = m_state.getNextTmpVarNumber();
+    if(m_funcSymbol->isVirtualFunction())
+      {
+	u32 urtmpnumvfc = 0;
+	genCodeVirtualFunctionCallVTableEntry(fp, tvfpnum, urtmpnum, urtmpnumvfc); //indirect call thru func ptr
+	urtmpnum = urtmpnumvfc; //update w new ur
+      }
+
     std::ostringstream arglist;
     // presumably there's no = sign.., and no open brace for tmpvars
     arglist << genHiddenArgs(urtmpnum).c_str();
 
     //loads any variables into tmps before used as args (needs fp)
     arglist << genRestOfFunctionArgs(fp, uvpass).c_str();
-
-    u32 tvfpnum = m_state.getNextTmpVarNumber();
-    if(m_funcSymbol->isVirtualFunction())
-      {
-	genCodeVirtualFunctionCallVTableEntry(fp, tvfpnum, urtmpnum); //indirect call thru func ptr
-      }
 
     //non-void RETURN value saved in a tmp BitValue; depends on return type
     m_state.indentUlamCode(fp);
@@ -1059,6 +1061,14 @@ namespace MFM {
     m_state.indentUlamCode(fp);
     fp->write(hiddenarg2str.c_str()); GCNL;
 
+    u32 tvfpnum = m_state.getNextTmpVarNumber();
+    if(m_funcSymbol->isVirtualFunction())
+      {
+	u32 urtmpnumvfc = 0;
+	genCodeVirtualFunctionCallVTableEntry(fp, tvfpnum, urtmpnum, urtmpnumvfc); //indirect call thru func ptr
+	urtmpnum = urtmpnumvfc; //new ur
+      }
+
     std::ostringstream arglist;
     // presumably there's no = sign.., and no open brace for tmpvars
     arglist << genHiddenArgs(urtmpnum).c_str();
@@ -1066,11 +1076,6 @@ namespace MFM {
     //loads any variables into tmps before used as args (needs fp)
     arglist << genRestOfFunctionArgs(fp, uvpass).c_str();
 
-    u32 tvfpnum = m_state.getNextTmpVarNumber();
-    if(m_funcSymbol->isVirtualFunction())
-      {
-	genCodeVirtualFunctionCallVTableEntry(fp, tvfpnum, urtmpnum); //indirect call thru func ptr
-      }
 
     m_state.indentUlamCode(fp);
     //non-void RETURN value saved in a tmp BitValue; depends on return type
@@ -1127,7 +1132,7 @@ namespace MFM {
     uvpass = rtnuvpass;
   } //genCodeAReferenceIntoABitValue
 
-  void NodeFunctionCall::genCodeVirtualFunctionCallVTableEntry(File * fp, u32 tvfpnum, u32 urtmpnum)
+  void NodeFunctionCall::genCodeVirtualFunctionCallVTableEntry(File * fp, u32 tvfpnum, u32 urtmpnum, u32& urtmpnumvfc)
   {
     assert(m_funcSymbol);
     //requires runtime lookup for virtual function pointer
@@ -1224,13 +1229,116 @@ namespace MFM {
     //VOWNED_IDX enum is the same regardless of effective self (e.g. t3600)
     // belongs to originating class; subclass knows offset in VT (ulam-5)
     UlamType * vownut = m_state.getUlamTypeByIndex(vownuti);
-    fp->write(vownut->getUlamTypeMangledName().c_str());
-    fp->write("<EC>::"); //orignating class
-    fp->write("VOWNED_IDX_"); //== m_funcSymbol->getVirtualMethodIdx()
-    fp->write(m_funcSymbol->getMangledNameWithTypes().c_str());
-    fp->write(" + ");
-    fp->write(m_state.getTmpVarAsString(Unsigned, tmpvtstartidx, TMPREGISTER).c_str());
+
+    //MAKE A STRING for reuse: vtable index between the parens
+    std::ostringstream vtindexstring; //between parens
+    vtindexstring << vownut->getUlamTypeMangledName().c_str();
+    vtindexstring << "<EC>::"; //orignating class
+    vtindexstring << "VOWNED_IDX_"; //== m_funcSymbol->getVirtualMethodIdx()
+    vtindexstring <<m_funcSymbol->getMangledNameWithTypes().c_str();
+    vtindexstring <<  " + ";
+    vtindexstring << m_state.getTmpVarAsString(Unsigned, tmpvtstartidx, TMPREGISTER).c_str();
+
+
+    fp->write(vtindexstring.str().c_str());
     fp->write(");"); GCNL; //reading into a separate VfuncPtr tmp var
+
+
+    // UPDATE THE UR: with overriding classs relative pos and length
+
+    s32 tmpvarpos = m_state.getNextTmpVarNumber();
+    m_state.indentUlamCode(fp);
+    fp->write("u32 ");
+    fp->write(m_state.getTmpVarAsString(Unsigned, tmpvarpos, TMPREGISTER).c_str());
+    fp->write(" = ");
+
+    if(cos->isSelf() || cosSize == 0)
+      {
+	fp->write(m_state.getHiddenArgName()); //ur
+	fp->write(".GetEffectiveSelf()->getVTableEntryClassRelPos(");
+      }
+    else if(cos->isSuper())
+      {
+	fp->write(m_state.getTheInstanceMangledNameByIndex(decosuti).c_str());
+	fp->write(".getVTableEntryClassRelPos(");
+      }
+    else if(urtmpnum > 0)
+      {
+	fp->write(m_state.getUlamRefTmpVarAsString(urtmpnum).c_str());
+	fp->write(".GetEffectiveSelf()->getVTableEntryClassRelPos(");
+      }
+    else if(cos->getAutoLocalType() == ALT_AS)
+      {
+	m_state.abortShouldntGetHere();
+	fp->write(m_state.getHiddenArgName()); //ur, should use urtmpnum!!
+	fp->write(".GetEffectiveSelf()->getVTableEntryClassRelPos(");
+      }
+    else
+      {
+	//unless local or dm, known at compile time!
+	fp->write(m_state.getTheInstanceMangledNameByIndex(decosuti).c_str());
+	fp->write(".getVTableEntryClassRelPos(");
+      }
+
+    fp->write(vtindexstring.str().c_str());
+    fp->write(");"); GCNL; //reading into a separate relpos tmp var
+
+
+    s32 tmpvarlen = m_state.getNextTmpVarNumber();
+    m_state.indentUlamCode(fp);
+    fp->write("u32 ");
+    fp->write(m_state.getTmpVarAsString(Unsigned, tmpvarlen, TMPREGISTER).c_str());
+    fp->write(" = ");
+
+    if(cos->isSelf() || cosSize == 0)
+      {
+	fp->write(m_state.getHiddenArgName()); //ur
+	fp->write(".GetEffectiveSelf()->getVTableEntryClassLen(");
+      }
+    else if(cos->isSuper())
+      {
+	fp->write(m_state.getTheInstanceMangledNameByIndex(decosuti).c_str());
+	fp->write(".getVTableEntryClassLen(");
+      }
+    else if(urtmpnum > 0)
+      {
+	fp->write(m_state.getUlamRefTmpVarAsString(urtmpnum).c_str());
+	fp->write(".GetEffectiveSelf()->getVTableEntryClassLen(");
+      }
+    else if(cos->getAutoLocalType() == ALT_AS)
+      {
+	m_state.abortShouldntGetHere();
+	fp->write(m_state.getHiddenArgName()); //ur, should use urtmpnum!!
+	fp->write(".GetEffectiveSelf()->getVTableEntryClassLen(");
+      }
+    else
+      {
+	//unless local or dm, known at compile time!
+	fp->write(m_state.getTheInstanceMangledNameByIndex(decosuti).c_str());
+	fp->write(".getVTableEntryClassLen(");
+      }
+
+    fp->write(vtindexstring.str().c_str());
+    fp->write(");"); GCNL; //reading into a separate len tmp var
+
+
+    // READY to make virtual function call ur, with appropriate overriding class pos/len,
+    // same effself and usage;
+    urtmpnumvfc = m_state.getNextTmpVarNumber();
+    m_state.indentUlamCode(fp);
+    fp->write("UlamRef<EC> ");
+    fp->write(m_state.getUlamRefTmpVarAsString(urtmpnumvfc).c_str());
+    fp->write("(");
+    if(urtmpnum > 0)
+      fp->write(m_state.getUlamRefTmpVarAsString(urtmpnum).c_str());
+    else
+      fp->write(m_state.getHiddenArgName()); //ur
+    fp->write(", ");
+    fp->write(m_state.getTmpVarAsString(Unsigned, tmpvarpos, TMPREGISTER).c_str());
+    fp->write(", ");
+    fp->write(m_state.getTmpVarAsString(Unsigned, tmpvarlen, TMPREGISTER).c_str());
+    fp->write(");"); GCNL;
+    return;
   } //genCodeVirtualFunctionCallVTableEntry
 
   void NodeFunctionCall::genCodeVirtualFunctionCall(File * fp, u32 tvfpnum)
@@ -1255,7 +1363,7 @@ namespace MFM {
     assert(isDefined);
 
     u32 coffset = csym->getVTstartoffsetForBaseClass(vownuti);
-    assert(coffset<UNRELIABLEPOS);
+    assert(coffset < UNRELIABLEPOS);
     UTI cvfuti = csym->getClassForVTableEntry(vfidx + coffset); //t41304
     UlamType * cvfut = m_state.getUlamTypeByIndex(cvfuti);
 
@@ -1283,7 +1391,7 @@ namespace MFM {
     fp->write(") (");
     fp->write(m_state.getVFuncPtrTmpNumAsString(tvfpnum).c_str());
     fp->write(")) ");
-    //args to function pointer remain
+    //args to function pointer remain..
   } //genCodeVirtualFunctionCall
 
   // overrides Node in case of memberselect genCode

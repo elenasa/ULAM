@@ -503,6 +503,15 @@ namespace MFM {
 
     assert(!isNative());
 
+    if(m_funcSymbol->isVirtualFunction())
+      {
+	m_state.m_gencodingAVirtualFunctionInThisOriginatingClass = m_funcSymbol->getVirtualMethodOriginatingClassUTI(); //t41318
+      }
+    else
+      {
+	assert(m_state.m_gencodingAVirtualFunctionInThisOriginatingClass == Nouti); //sanity chk
+      }
+
     fp->write("\n");
     m_state.indentUlamCode(fp);
     fp->write("{\n");
@@ -519,6 +528,7 @@ namespace MFM {
     fp->write(m_funcSymbol->getMangledName().c_str()); //end of function
     fp->write("\n\n\n");
 
+    m_state.m_gencodingAVirtualFunctionInThisOriginatingClass = Nouti; //clear
     m_state.popClassContext(); //restores NodeBlock::getPreviousBlockPointer()
   } //genCode
 

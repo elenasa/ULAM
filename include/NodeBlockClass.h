@@ -256,6 +256,9 @@ namespace MFM{
     void genCodeBuiltInFunctionIsMethodRelatedInstance(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
     void genCodeBuiltInFunctionIsRelatedInstance(File * fp, std::set<UTI>& basesset);
 
+    void genCodeBuiltInFunctionGetRelPosMethodRelatedInstance(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
+    void genCodeBuiltInFunctionGetRelPosRelatedInstance(File * fp, std::set<UTI>& basesset);
+
     void genCodeBuiltInFunctionGetClassLength(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
     void genCodeBuiltInFunctionGetClassRegistrationNumber(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
     void genCodeBuiltInFunctionGetElementType(File * fp, bool declOnly, ULAMCLASSTYPE classtype);

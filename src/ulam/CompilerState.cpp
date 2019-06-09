@@ -78,6 +78,9 @@ namespace MFM {
   static const char * IS_MANGLED_FUNC_NAME = "internalCMethodImplementingIs"; //Uf_2is
   static const char * IS_MANGLED_FUNC_NAME_FOR_ATOM = "UlamClass<EC>::IsMethod"; //Uf_2is
 
+  static const char * GETRELPOS_MANGLED_FUNC_NAME = "internalCMethodImplementingGetRelativePositionOfBaseClass"; //Uf_2is
+  static const char * GETRELPOS_MANGLED_FUNC_NAME_FOR_ATOM = "UlamClass<EC>::GetRelativePositionOfBaseClass"; //Uf_2is
+
   static const char * GETCLASSLENGTH_FUNCNAME = "GetClassLength";
   static const char * GETCLASSREGISTRATIONNUMBER_FUNCNAME = "GetRegistrationNumber";
 
@@ -2106,12 +2109,20 @@ namespace MFM {
 
   bool CompilerState::getABaseClassRelativePositionInAClass(UTI cuti, UTI basep, u32& relposref)
   {
+    UTI defcuti = getUlamTypeAsDeref(cuti); //t3754
+    UTI defbasep = getUlamTypeAsDeref(basep); //t3824
+    if(UlamType::compare(defcuti, defbasep, *this) == UTIC_SAME)
+      {
+	relposref = 0; //special case, base class is self
+	return true;
+      }
+
     s32 accumpos = 0;
     bool hasbase = false;
 
     BaseclassWalker walker;
 
-    walker.init(cuti);
+    walker.init(defcuti); //t3831
 
     UTI baseuti = Nouti;
     //ulam-5 supports multiple base classes; superclass optional;
@@ -2121,14 +2132,14 @@ namespace MFM {
 	if(alreadyDefinedSymbolClass(baseuti, basecsym))
 	  {
 	    UTI foundinbase;
-	    hasbase = findNearestBaseClassToAnAncestor(baseuti, basep, foundinbase);
+	    hasbase = findNearestBaseClassToAnAncestor(baseuti, defbasep, foundinbase);
 	    if(hasbase)
 	      {
 		SymbolClass * foundbasecsym = NULL;
 		AssertBool isDefined = alreadyDefinedSymbolClass(foundinbase, foundbasecsym);
 		assert(isDefined);
 
-		s32 foundbaseitem = foundbasecsym->isABaseClassItem(basep); //direct
+		s32 foundbaseitem = foundbasecsym->isABaseClassItem(defbasep); //direct
 		if(foundbaseitem >= 0)
 		  {
 		    s32 pos = foundbasecsym->getBaseClassRelativePosition(foundbaseitem);
@@ -2734,6 +2745,11 @@ namespace MFM {
       }
     return (!goAgain() && (m_err.getErrorCount() + m_err.getWarningCount() == 0));
   } //checkAndLabelPassForLocals
+
+  u32 CompilerState::getMaxNumberOfRegisteredUlamClasses()
+  {
+    return m_registeredUlamClassCount;
+  }
 
   void CompilerState::defineRegistrationNumberForUlamClasses()
   {
@@ -3706,6 +3722,7 @@ namespace MFM {
       return 1;
 
     bool rtnb = false;
+    UTI foundinbase = Nouti;
     u32 matchingFuncCount = 0;
 
     FSTable FST; //starts here!!
@@ -3726,21 +3743,56 @@ namespace MFM {
 	    bool tmphazyargs = false;
 	    SymbolFunction * tmpfsym = NULL; //e.g. t3357
 	    u32 safematches = findMatchingFunctionWithSafeCastsInClassScope(fid, argNodes, tmpfsym, tmphazyargs, FST);
+	    //matchingFuncCount += safematches; //ALL, not just minimum (t41119)
 
-	    matchingFuncCount += safematches; //ALL, not just minimum (t41119)
 	    hasHazyArgs |= tmphazyargs; //(like t3483)
 
 	    if(safematches == 1) //found one, and only one, here first!!
 	      {
-		foundInAncestor = baseuti;
-		fsymref = tmpfsym;
-		rtnb = walker.isDone(); //only one level inheritance, let's go with that..
-		//assert(!hasHazyArgs); //t3484
+		if(foundinbase == Nouti)
+		  {
+		    foundinbase = baseuti;
+		    fsymref = tmpfsym;
+		    rtnb = walker.isDone(); //only one level inheritance, let's go with that..
+		    //assert(!hasHazyArgs); //t3484
+		    matchingFuncCount = safematches;
+		  }
+		else if(isClassASubclassOf(baseuti, foundinbase))
+		  {
+		    foundinbase = baseuti; //baseuti is subclass of foundinbase (e.g. UrSelf), switch
+		    fsymref = tmpfsym;
+		    rtnb = walker.isDone(); //only one level inheritance, let's go with that..
+		    matchingFuncCount = safematches;
+		  }
+		else if(!isClassASubclassOf(foundinbase, baseuti))
+		      {
+			std::ostringstream msg;
+			msg << "Virtual function: "  << m_pool.getDataAsString(tmpfsym->getId()).c_str();
+			msg << "(";
+			for (u32 i = 0; i < argNodes.size(); i++)
+			  {
+			    if(i > 0)
+			      msg << ", ";
+			    msg << getUlamTypeNameBriefByIndex(argNodes[i]->getNodeType()).c_str();
+			  }
+			msg << ") has conflicting declarations in multiple base classes, ";
+			msg << getUlamTypeNameBriefByIndex(foundinbase).c_str();
+			msg << " and ";
+			msg << getUlamTypeNameBriefByIndex(baseuti).c_str();
+			msg << " while compiling ";
+			msg << getUlamTypeNameBriefByIndex(cuti).c_str();
+			MSG2(tmpfsym->getTokPtr(), msg.str().c_str(), WARN); //was WARN
+			foundinbase = Nav; //WARNING
+			fsymref = NULL;
+			matchingFuncCount += safematches;
+		      }
+		//else skip this one, related and less specific.
+		//  matchingFuncCount += safematches;
 	      }
+	    else
+	      walker.addAncestorsOf(basecsym); //keep looking deeper
 
 	    popClassContext(); //didn't forget!!
-
-	    walker.addAncestorsOf(basecsym); //find all
 	  }
 	else if(baseuti == Hzy)
 	  {
@@ -3760,6 +3812,7 @@ namespace MFM {
       {
 	assert(matchingFuncCount == 1);
 	rtnb = true;
+	foundInAncestor = foundinbase;
       }
 
       FST.clear();
@@ -4193,6 +4246,14 @@ namespace MFM {
 
     return "AS_ERROR";
   } //getAsMangledFunctionName
+
+  const char * CompilerState::getGetRelPosMangledFunctionName(UTI ltype)
+  {
+    if(isAtom(ltype))
+      return GETRELPOS_MANGLED_FUNC_NAME_FOR_ATOM;
+
+    return GETRELPOS_MANGLED_FUNC_NAME;
+  }
 
   const char * CompilerState::getClassLengthFunctionName(UTI ltype)
   {

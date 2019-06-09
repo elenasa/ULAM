@@ -93,6 +93,11 @@ namespace MFM {
     return false;
   }
 
+  bool NodeMemberSelectByBaseClassType::belongsToVOWN(UTI vown)
+  {
+    return false; //specific base class is based on eff self pos
+  }
+
   bool NodeMemberSelectByBaseClassType::isArrayItem()
   {
     return false;
@@ -281,8 +286,9 @@ namespace MFM {
 
     //check the back (not front) to process multiple member selections
     m_nodeLeft->genCode(fp, uvpass);  //leave any array item as-is for gencode.
+    uvpass.setPassApplyDelta(true);
 
-    m_state.abortNeedsATest();
+    m_state.abortNeedsATest(); //XXXXXX
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************?
   } //genCode
 
@@ -338,6 +344,7 @@ namespace MFM {
 
     uvpass.setPassVarNum(tmpturnum);
     uvpass.setPassNameId(tidTok.m_dataindex);
+    uvpass.setPassApplyDelta(true); //always
   } //makeUVPassForCodeGen
 
 } //end MFM

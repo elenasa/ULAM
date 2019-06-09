@@ -86,6 +86,19 @@ namespace MFM {
     return m_nodeLeft->hasASymbolReferenceConstant();
   }
 
+  bool NodeMemberSelect::belongsToVOWN(UTI vown)
+  {
+    assert(m_nodeLeft && m_nodeRight);
+    if(m_nodeLeft->hasASymbolSelf())
+      return m_nodeRight->belongsToVOWN(vown); //determine
+    //if(m_nodeLeft->hasASymbolSuper())
+    //  return false;
+    //if(m_nodeLeft->hasASymbolReference())
+    //  return false;
+    //if(m_nodeLeft->isFunctionCall())
+    return false;
+  }
+
   bool NodeMemberSelect::isAConstant()
   {
     return m_nodeLeft->isAConstant(); //constant classes possible

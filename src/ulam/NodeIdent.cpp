@@ -169,6 +169,19 @@ namespace MFM {
     return m_token;
   }
 
+  bool NodeIdent::belongsToVOWN(UTI vown)
+  {
+    if(vown == Nouti)
+       return true; //non-virtual func, like vown, doesnt apply delta
+
+    if(hasASymbolDataMember())
+      {
+	UTI dmclass = m_varSymbol->getDataMemberClass();
+	return (UlamType::compare(dmclass, vown, m_state) == UTIC_SAME);
+      }
+    return false;
+  }
+
   bool NodeIdent::isAConstant()
   {
     bool rtn = false;
@@ -697,12 +710,15 @@ namespace MFM {
 	if(!m_varSymbol->isTmpVarSymbol())
 	  pos += m_varSymbol->getPosOffset();
 
-	uvpass = UVPass::makePass(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, pos, m_varSymbol->getId());
+	//might already be true when MemberSelectByBaseType; don't clobber.
+	bool applydelta = uvpass.getPassApplyDelta() || !belongsToVOWN(m_state.m_gencodingAVirtualFunctionInThisOriginatingClass); //t41318
+
+	uvpass = UVPass::makePass(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, pos, applydelta, m_varSymbol->getId());
       }
     else
       {
 	//local variable on the stack; could be array ptr!
-	uvpass = UVPass::makePass(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, pos, m_varSymbol->getId());
+	uvpass = UVPass::makePass(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, pos, false, m_varSymbol->getId());
       }
   } //makeUVPassForCodeGen
 
