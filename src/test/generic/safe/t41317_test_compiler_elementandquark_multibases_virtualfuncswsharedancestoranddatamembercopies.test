@@ -6,7 +6,7 @@
 ##
 #!
 Exit status: 0
-Ue_Foo +System { +<> Int(32) m_c4(0);  Int(32) m_a4(410);  Int(32) test() {  E4 e4;  typedef QBase2 QB2;  typedef QBase1 QB1;  m_a4 e4 ( )vfunca . = ( m_a4 )print ( m_a4 410 cast == )assert ( e4 m_b4 . )assert ( e4 m_b1 . )assert ( e4 QBase3 . QB1 . m_b1 . )assert ( e4 QB2 . QBase1 . m_b1 . ! )assert ( e4 QBase1 . m_b1 . ! )assert 0 cast return } }
+Ue_Foo +System { +<> Int(32) m_c4(0);  Int(32) m_a4(410);  Int(32) test() {  E4 e4;  typedef QBase2 QB2;  typedef QBase1 QB1;  m_a4 e4 ( )vfunca . = ( m_a4 )print ( m_a4 410 cast == )assert ( e4 m_b4 . )assert ( e4 m_b1 . )assert ( e4 QBase3 . QB1 . m_b1 . ! )assert ( e4 QB2 . QBase1 . m_b1 . ! )assert ( e4 QBase1 . m_b1 . )assert 0 cast return } }
 Uq_System { <NOMAIN> }
 Ue_E4 : QBase3 +QBase2 +QBase1 { :< :< Bool(1) m_b1(false); > Bool(1) m_b3(false); > +< +< Bool(1) m_b1(false); > Bool(1) m_b2(false); > +< Bool(1) m_b1(false); > Bool(1) m_b4(false);  typedef QBase2 QB2;  <NOMAIN> }
 Uq_QBase3 : QBase1 { :< Bool(1) m_b1(false); > Bool(1) m_b3(false);  <NOMAIN> }
@@ -19,7 +19,6 @@ Uq_QBase2 +QBase1 { +< Bool(1) m_b1(false); > Bool(1) m_b2(false);  <NOMAIN> }
 ##
 #>Foo.ulam
   ulam 4;
-//use QBase1;
 element Foo +System {
   Int m_c4;
   Int m_a4;
@@ -38,9 +37,9 @@ element Foo +System {
 
     //multiple copies of QBase1:
     assert(e4.m_b1);
-    assert(e4.QBase3.QB1.m_b1); //equivalent dm, in order
+    assert(!e4.QBase3.QB1.m_b1); //unchanged w extra +QBase1
     assert(!e4.QB2.QBase1.m_b1); //unchanged yet
-    assert(!e4.QBase1.m_b1); //unchanged
+    assert(e4.QBase1.m_b1); //equivlent dm changed
 
     return 0;
   }
@@ -70,7 +69,6 @@ quark QBase1 {
 quark QBase2 +QBase1 {
   Bool m_b2;
   virtual ARGB getColor(Unsigned s) { return super.getColor(s); }
-  //virtual Int vfunca() { return 210; } //ambiguous
   virtual Int vfuncc() { m_b2 = true; return 212; }
 }
 
@@ -79,7 +77,6 @@ quark QBase2 +QBase1 {
 quark QBase3 : QBase1 {
   Bool m_b3;
   virtual Int vfuncb() { return 311; }
-  //virtual Int vfunca() { m_b3 = true; return 310; } //ambiguous
 }
 
 

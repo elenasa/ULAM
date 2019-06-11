@@ -181,6 +181,8 @@ namespace MFM{
     bool isAbstract();
     bool checkAbstractClassError();
 
+    void buildIsBitVectorByRegNum(BV8K& bitvecref);
+
   protected:
     Resolver * m_resolver;
 

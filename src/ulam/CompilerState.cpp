@@ -3790,7 +3790,10 @@ namespace MFM {
 		//  matchingFuncCount += safematches;
 	      }
 	    else
-	      walker.addAncestorsOf(basecsym); //keep looking deeper
+	      {
+		matchingFuncCount += safematches; //err tests: t3479, t41132, t41305
+		walker.addAncestorsOf(basecsym); //keep looking deeper
+	      }
 
 	    popClassContext(); //didn't forget!!
 	  }

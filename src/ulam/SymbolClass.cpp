@@ -1075,15 +1075,6 @@ namespace MFM {
 	fp->write(m_state.m_pool.getDataAsString(mangledclassid).c_str());
 	fp->write("; }  //FORWARD"); GCNL;
       }
-#if 0
-    else
-      {
-	m_state.indent(fp);
-	fp->write("namespace MFM { ");
-	fp->write("struct VTentry; }  //FORWARD"); GCNL;
-      }
-#endif
-
   } //generateHeaderIncludes
 
   // create structs with BV, as storage, and typedef
@@ -1687,5 +1678,28 @@ namespace MFM {
       }
     return aok;
   } //checkAbstractClassError
+
+  void SymbolClass::buildIsBitVectorByRegNum(BV8K& bitvecref)
+  {
+    BaseclassWalker walker;
+
+    //recursively check class and ancestors (breadth-first), for auti
+    UTI cuti = getUlamTypeIdx();
+    walker.init(cuti);
+
+    UTI baseuti = Nouti;
+    while(walker.getNextBase(baseuti))
+      {
+	SymbolClass * basecsym = NULL;
+	if(m_state.alreadyDefinedSymbolClass(baseuti, basecsym))
+	  {
+	    u32 regid = basecsym->getRegistryNumber();
+	    bitvecref.WriteBit(regid,true);
+
+	    walker.addAncestorsOf(basecsym);
+	  }
+      } //end while
+    return;
+  } //buildIsBitVectorByRegNum
 
 } //end MFM

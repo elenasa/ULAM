@@ -2518,6 +2518,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     // 'is' quark related for both class types; overloads is-Method with THE_INSTANCE arg
     genCodeBuiltInFunctionIsMethodRelatedInstance(fp, declOnly, classtype);
+    genCodeBuiltInIsMethodByRegistrationNumber(fp, declOnly, classtype);
 
     // returns relative position of baseclass or self; -1 if unrelated.
     genCodeBuiltInFunctionGetRelPosMethodRelatedInstance(fp, declOnly, classtype);
@@ -2579,13 +2580,18 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     m_state.m_currentIndentLevel++;
 
-    std::set<UTI> setofbases;
-    genCodeBuiltInFunctionIsRelatedInstance(fp, setofbases);
-
-    fp->write("\n");
+    //std::set<UTI> setofbases;
+    //genCodeBuiltInFunctionIsRelatedInstance(fp, setofbases);
     m_state.indent(fp);
     fp->write("return ");
-    fp->write("(false); //not found"); GCNL;
+    fp->write(m_state.getIsMangledFunctionName(cuti));
+    fp->write("(cptrarg->");
+    fp->write(m_state.getClassRegistrationNumberFunctionName(cuti));
+    fp->write("());"); GCNL;
+    //fp->write("\n");
+    //m_state.indent(fp);
+    //fp->write("return ");
+    //fp->write("(false); //not found"); GCNL;
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
@@ -3115,7 +3121,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
 	m_state.indent(fp);
 	fp->write("static ");
-	fp->write("struct VTentry m_vtable[");
+	fp->write("struct VTentry<EC> m_vtable[");
 	fp->write_decimal_unsigned(maxidx);
 	fp->write("];"); GCNL;
 
@@ -3124,12 +3130,22 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	fp->write("virtual VfuncPtr getVTableEntry(u32 idx) const;"); GCNL;
 	fp->write("\n");
 
+#if 0
 	m_state.indent(fp);
 	fp->write("virtual u16 getVTableEntryClassRelPos(u32 idx) const;"); GCNL;
 	fp->write("\n");
 
 	m_state.indent(fp);
 	fp->write("virtual u16 getVTableEntryClassLen(u32 idx) const;"); GCNL;
+	fp->write("\n");
+
+	m_state.indent(fp);
+	fp->write("virtual u16 getVTableEntryClassRegistrationNum(u32 idx) const;"); GCNL;
+	fp->write("\n");
+#endif
+
+	m_state.indent(fp);
+	fp->write("virtual const UlamClass<EC> * getVTableEntryUlamClassPtr(u32 idx) const;"); GCNL;
 	fp->write("\n");
 	return;
       } //done w h-file
@@ -3139,7 +3155,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("template<class EC>\n"); //same for elements and quarks
 
     m_state.indent(fp);
-    fp->write("struct VTentry ");
+    fp->write("struct VTentry<EC> ");
 
     //include the mangled class::
     fp->write(cut->getUlamTypeMangledName().c_str());
@@ -3158,7 +3174,15 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	if(csym->isPureVTableEntry(i))
 	  {
 	    m_state.indent(fp);
+	    fp->write(" { "); //VTentry struct
 	    fp->write("&UlamClass<EC>::PureVirtualFunctionCalled");
+	    fp->write(", & ");
+	    UTI emptyinstead = m_state.getEmptyElementUTI();
+	    fp->write(m_state.getUlamTypeByIndex(emptyinstead)->getUlamTypeMangledName().c_str());
+	    fp->write("<EC>::THE_INSTANCE"); //instead of NULL  (e,g, t41301)
+	    fp->write(" } /* override class ");
+	    fp->write(m_state.getUlamTypeNameBriefByIndex(emptyinstead).c_str());
+	    fp->write(" instead */");
 	    continue;
 	  }
 
@@ -3181,11 +3205,18 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	fp->write(veut->getUlamTypeMangledName().c_str());
 	fp->write("<EC>::"); //same for elements and quarks
 	fp->write(csym->getMangledFunctionNameForVTableEntry(i).c_str());
-	fp->write("), ");
+	fp->write("), & ");
+#if 0
 	fp->write_decimal_unsigned(veclassrelpos);
 	fp->write(", ");
 	fp->write_decimal_unsigned(veut->getBitSize());
-	fp->write("} /* override class ");
+	fp->write(", ");
+	fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(veuti));
+#endif
+	fp->write(veut->getUlamTypeMangledName().c_str());
+	fp->write("<EC>::THE_INSTANCE"); //same for elements and quarks
+
+	fp->write(" } /* override class ");
 	fp->write(m_state.getUlamTypeNameBriefByIndex(veuti).c_str());
 	fp->write(" */");
       } //next vt entry
@@ -3221,8 +3252,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.indent(fp);
     fp->write("}\n\n");
 
-
-
+#if 0
     m_state.indent(fp);
     fp->write("template<class EC>\n"); //same for elements and quarks
 
@@ -3272,6 +3302,57 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.indent(fp);
     fp->write("}\n\n");
 
+
+    m_state.indent(fp);
+    fp->write("template<class EC>\n"); //same for elements and quarks
+
+    m_state.indent(fp);
+    fp->write("u16 ");
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write("<EC>::"); //same for elements and quarks
+    fp->write("getVTableEntryClassRegistrationNum(u32 idx) const\n");
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+
+    m_state.indent(fp);
+    fp->write("if(idx >= ");
+    fp->write_decimal_unsigned(maxidx);
+    fp->write(") FAIL(ARRAY_INDEX_OUT_OF_BOUNDS);"); GCNL;
+
+    m_state.indent(fp);
+    fp->write("return m_vtable[idx].oclassregnum;"); GCNL;
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("}\n\n");
+#endif
+
+    m_state.indent(fp);
+    fp->write("template<class EC>\n"); //same for elements and quarks
+
+    m_state.indent(fp);
+    fp->write("const UlamClass<EC> * ");
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write("<EC>::"); //same for elements and quarks
+    fp->write("getVTableEntryUlamClassPtr(u32 idx) const\n");
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+
+    m_state.indent(fp);
+    fp->write("if(idx >= ");
+    fp->write_decimal_unsigned(maxidx);
+    fp->write(") FAIL(ARRAY_INDEX_OUT_OF_BOUNDS);"); GCNL;
+
+    m_state.indent(fp);
+    fp->write("return m_vtable[idx].oclassptr;"); GCNL;
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("}\n\n");
+
+    return;
   }//genCodeBuiltInVirtualTable
 
   void NodeBlockClass::genCodeBuiltInVirtualTableStartOffsetHelper(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
@@ -3378,6 +3459,107 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.indent(fp);
     fp->write("}\n\n");
   }//genCodeBuiltInVirtualTableStartOffsetHelper
+
+  void NodeBlockClass::genCodeBuiltInIsMethodByRegistrationNumber(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
+  {
+    if(classtype == UC_LOCALSFILESCOPE)
+      return;
+
+    UTI cuti = m_state.getCompileThisIdx();
+    UlamType * cut = m_state.getUlamTypeByIndex(cuti);
+
+    if(declOnly)
+      {
+	//VTable accessor method
+	m_state.indent(fp);
+	fp->write("virtual bool ");
+	fp->write(m_state.getIsMangledFunctionName(cuti));
+	fp->write("(u32 rn) const;"); GCNL;
+	fp->write("\n");
+	return;
+      } //done w h-file
+
+    //isbyregnum BV accessor method
+    m_state.indent(fp);
+    fp->write("template<class EC>\n"); //same for elements and quarks
+
+    m_state.indent(fp);
+    fp->write("bool ");
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write("<EC>::"); //same for elements and quarks
+    fp->write(m_state.getIsMangledFunctionName(cuti));
+    fp->write("(u32 rn) const"); GCNL;
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+
+    m_state.indent(fp);
+    fp->write("if(rn >= ");
+    fp->write_decimal_unsigned(m_state.getMaxNumberOfRegisteredUlamClasses());
+    fp->write(") FAIL(ARRAY_INDEX_OUT_OF_BOUNDS);"); GCNL;
+    fp->write("\n");
+
+    genCodeBuildIsBVByRegistrationNumberHelper(fp, cuti);
+
+    m_state.indent(fp);
+    fp->write("return m_isbyregnumBV.ReadBit(rn);"); GCNL;
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("} //is-related\n\n");
+  }//genCodeBuiltInIsMethodByRegistrationNumber
+
+  void NodeBlockClass::genCodeBuildIsBVByRegistrationNumberHelper(File * fp, UTI cuti)
+  {
+    BV8K bitvec;
+    SymbolClass * csym = NULL;
+    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cuti, csym);
+    assert(isDefined);
+    csym->buildIsBitVectorByRegNum(bitvec);
+
+    u32 maxregistry = m_state.getMaxNumberOfRegisteredUlamClasses();
+    assert(maxregistry < MAX_REGISTRY_NUMBER);  //UlamClassRegistry<EC>::TABLE_SIZE
+
+    std::string dhex;
+    //bool notZero =
+    SymbolWithValue::getHexValueAsString(maxregistry, bitvec, dhex);
+
+    //build static constant array of u32's for BV8K:
+    m_state.indent(fp);
+    fp->write("static const u32 isbyregnum[(");
+    fp->write_decimal_unsigned(maxregistry);
+    fp->write(" + 31)/32] = { ");
+    fp->write(dhex.c_str());
+    fp->write(" };"); GCNL;
+
+    // declare perfect size BV with constant array of regnumbitvector BV8K
+    m_state.indent(fp);
+    fp->write("static BitVector<");
+    fp->write_decimal_unsigned(maxregistry);
+    fp->write("> m_isbyregnumBV;"); GCNL;
+
+    m_state.indent(fp);
+    fp->write("static bool initdone;\n\n");
+
+    m_state.indent(fp);
+    fp->write("if(!initdone)\n");
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+
+    m_state.indent(fp);
+    fp->write("initdone = true;\n");
+
+    m_state.indent(fp);
+    fp->write("m_isbyregnumBV.FromArray(isbyregnum);"); GCNL;
+
+    m_state.m_currentIndentLevel--;
+
+    m_state.indent(fp);
+    fp->write("}"); GCNL;
+    fp->write("\n");
+  }//genCodeBuiltInIsMethodByRegistrationNumberHelper
 
   void NodeBlockClass::generateInternalIsMethodForElement(File * fp, bool declOnly)
   {
