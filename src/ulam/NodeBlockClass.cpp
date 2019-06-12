@@ -2549,6 +2549,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
   void NodeBlockClass::genCodeBuiltInFunctionIsMethodRelatedInstance(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
+    if(classtype == UC_LOCALSFILESCOPE) return;
+
     UTI cuti = m_state.getCompileThisIdx();
 
     if(declOnly)
@@ -2635,6 +2637,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
   void NodeBlockClass::genCodeBuiltInFunctionGetRelPosMethodRelatedInstance(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
+    if(classtype == UC_LOCALSFILESCOPE) return;
+
     UTI cuti = m_state.getCompileThisIdx();
 
     if(declOnly)
@@ -3130,20 +3134,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	fp->write("virtual VfuncPtr getVTableEntry(u32 idx) const;"); GCNL;
 	fp->write("\n");
 
-#if 0
-	m_state.indent(fp);
-	fp->write("virtual u16 getVTableEntryClassRelPos(u32 idx) const;"); GCNL;
-	fp->write("\n");
-
-	m_state.indent(fp);
-	fp->write("virtual u16 getVTableEntryClassLen(u32 idx) const;"); GCNL;
-	fp->write("\n");
-
-	m_state.indent(fp);
-	fp->write("virtual u16 getVTableEntryClassRegistrationNum(u32 idx) const;"); GCNL;
-	fp->write("\n");
-#endif
-
 	m_state.indent(fp);
 	fp->write("virtual const UlamClass<EC> * getVTableEntryUlamClassPtr(u32 idx) const;"); GCNL;
 	fp->write("\n");
@@ -3206,13 +3196,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	fp->write("<EC>::"); //same for elements and quarks
 	fp->write(csym->getMangledFunctionNameForVTableEntry(i).c_str());
 	fp->write("), & ");
-#if 0
-	fp->write_decimal_unsigned(veclassrelpos);
-	fp->write(", ");
-	fp->write_decimal_unsigned(veut->getBitSize());
-	fp->write(", ");
-	fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(veuti));
-#endif
 	fp->write(veut->getUlamTypeMangledName().c_str());
 	fp->write("<EC>::THE_INSTANCE"); //same for elements and quarks
 
@@ -3251,82 +3234,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
     fp->write("}\n\n");
-
-#if 0
-    m_state.indent(fp);
-    fp->write("template<class EC>\n"); //same for elements and quarks
-
-    m_state.indent(fp);
-    fp->write("u16 ");
-    fp->write(cut->getUlamTypeMangledName().c_str());
-    fp->write("<EC>::"); //same for elements and quarks
-    fp->write("getVTableEntryClassRelPos(u32 idx) const\n");
-    m_state.indent(fp);
-    fp->write("{\n");
-
-    m_state.m_currentIndentLevel++;
-
-    m_state.indent(fp);
-    fp->write("if(idx >= ");
-    fp->write_decimal_unsigned(maxidx);
-    fp->write(") FAIL(ARRAY_INDEX_OUT_OF_BOUNDS);"); GCNL;
-
-    m_state.indent(fp);
-    fp->write("return m_vtable[idx].oclassrelpos;"); GCNL;
-    m_state.m_currentIndentLevel--;
-    m_state.indent(fp);
-    fp->write("}\n\n");
-
-
-    m_state.indent(fp);
-    fp->write("template<class EC>\n"); //same for elements and quarks
-
-    m_state.indent(fp);
-    fp->write("u16 ");
-    fp->write(cut->getUlamTypeMangledName().c_str());
-    fp->write("<EC>::"); //same for elements and quarks
-    fp->write("getVTableEntryClassLen(u32 idx) const\n");
-    m_state.indent(fp);
-    fp->write("{\n");
-
-    m_state.m_currentIndentLevel++;
-
-    m_state.indent(fp);
-    fp->write("if(idx >= ");
-    fp->write_decimal_unsigned(maxidx);
-    fp->write(") FAIL(ARRAY_INDEX_OUT_OF_BOUNDS);"); GCNL;
-
-    m_state.indent(fp);
-    fp->write("return m_vtable[idx].oclasslen;"); GCNL;
-    m_state.m_currentIndentLevel--;
-    m_state.indent(fp);
-    fp->write("}\n\n");
-
-
-    m_state.indent(fp);
-    fp->write("template<class EC>\n"); //same for elements and quarks
-
-    m_state.indent(fp);
-    fp->write("u16 ");
-    fp->write(cut->getUlamTypeMangledName().c_str());
-    fp->write("<EC>::"); //same for elements and quarks
-    fp->write("getVTableEntryClassRegistrationNum(u32 idx) const\n");
-    m_state.indent(fp);
-    fp->write("{\n");
-
-    m_state.m_currentIndentLevel++;
-
-    m_state.indent(fp);
-    fp->write("if(idx >= ");
-    fp->write_decimal_unsigned(maxidx);
-    fp->write(") FAIL(ARRAY_INDEX_OUT_OF_BOUNDS);"); GCNL;
-
-    m_state.indent(fp);
-    fp->write("return m_vtable[idx].oclassregnum;"); GCNL;
-    m_state.m_currentIndentLevel--;
-    m_state.indent(fp);
-    fp->write("}\n\n");
-#endif
 
     m_state.indent(fp);
     fp->write("template<class EC>\n"); //same for elements and quarks

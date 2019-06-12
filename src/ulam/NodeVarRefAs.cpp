@@ -219,7 +219,7 @@ namespace MFM {
 	fp->write(m_state.getTmpVarAsString(Int, tmpVarPos, TMPREGISTER).c_str());
 	fp->write(" = (");
 
-	fp->write(stgcos->getMangledName().c_str());
+	fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str()); //3826
 	fp->write(".GetEffectiveSelf()->");
 	fp->write(m_state.getGetRelPosMangledFunctionName(stgcosuti)); //UlamClass Method
 	fp->write("(&");
@@ -236,10 +236,11 @@ namespace MFM {
 	fp->write(m_state.getTmpVarAsString(Int, tmpVarPos, TMPREGISTER).c_str());
 	fp->write(", ");
 	//note: needs effective self of the atom, not simply the RHS type.
-	fp->write(stgcos->getMangledName().c_str());
+	fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str());
 	fp->write(".GetEffectiveSelf()");
-	if(vclasstype == UC_QUARK)
+	if((stgclasstype == UC_ELEMENT) && (vclasstype == UC_QUARK))
 	  fp->write(", UlamRef<EC>::ELEMENTAL"); //becomes elemental, t3835
+	//else stays implicitly classic (i.e. quark, or transient stg t3836, t3754)
 	fp->write("); //shadows lhs of 'as'"); GCNL;
       }
     else
@@ -259,9 +260,8 @@ namespace MFM {
 
 	if((stgclasstype == UC_ELEMENT))
 	  {
-	    if(stgcosut->isReference()) //not isAltRefType
+	    if(stgcosut->isReference()) //not isAltRefType (t3655)
 	      {
-		//fp->write(", 0u, "); //t3655
 		fp->write(", ");
 		fp->write_decimal_unsigned(relpos);
 		fp->write("u, ");
@@ -270,10 +270,9 @@ namespace MFM {
 	      }
 	    else
 	      {
-		//fp->write(", 0u + T::ATOM_FIRST_STATE_BIT, &"); //t3586, t3589, t3637
 		fp->write(", ");
 		fp->write_decimal_unsigned(relpos);
-		fp->write("u + T::ATOM_FIRST_STATE_BIT, &");
+		fp->write("u + T::ATOM_FIRST_STATE_BIT, &"); //t3586, t3589, t3637
 
 		//must be same as look up for elements only Sat Jun 18 17:30:17 2016
 		fp->write(m_state.getTheInstanceMangledNameByIndex(stgcosuti).c_str());
@@ -284,7 +283,6 @@ namespace MFM {
 	else if((stgclasstype == UC_TRANSIENT))
 	  {
 	    // transient can be another transient or a quark, not an element
-	    //fp->write(", 0u, ");
 	    fp->write(", ");
 	    fp->write_decimal_unsigned(relpos);
 	    fp->write("u, ");
@@ -304,7 +302,6 @@ namespace MFM {
 	else if((stgclasstype == UC_QUARK))
 	  {
 	    // quark can be another quark, not an element, nor transient
-	    //fp->write(", 0u, ");
 	    fp->write(", ");
 	    fp->write_decimal_unsigned(relpos);
 	    fp->write(", ");
