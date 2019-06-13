@@ -1,5 +1,5 @@
 ## -*- mode:ulam -*-
-#=t41320_test_compiler_elementandquark_multibases_refbasecallsoverridebaseclassvirtualfunc_fail
+#=t41321_test_compiler_elementandquark_multibases_specificbasevirtualfunccall
 ##
 ## gen output:
 ##  Int Arg: 510 (+ 4 asserts)

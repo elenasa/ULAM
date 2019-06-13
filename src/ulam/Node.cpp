@@ -2760,7 +2760,7 @@ namespace MFM {
 	  hiddenarg2 << m_state.getHiddenArgName(); //same ur
 	else if(stgcos->isSelf() && (stgcos == cos)) //t3831, t3274, t3275
 	  hiddenarg2 << m_state.getHiddenArgName(); //same ur
-	else //also true for super, i think (t41311)
+	else if(cos->isDataMember())
 	  {
 	    sameur = false;
 	    hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvar).c_str() << "(";
@@ -2775,6 +2775,20 @@ namespace MFM {
 	    hiddenarg2 << m_state.getTheInstanceMangledNameByIndex(cosuti).c_str(); //cos->isSuper rolls as cosuti
 	    hiddenarg2 << ", " << genUlamRefUsageAsString(cosuti).c_str();
 	    hiddenarg2 << ");";
+	  }
+	else //super, and specific bases, i think (t41311, t41322)
+	  {
+	    // for virtual funcs!!
+	    sameur = false;
+	    hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvar).c_str() << "(";
+	    //do not update ur to reflect "effective" self for this funccall
+	    if(stgcos->isTmpVarSymbol())
+	      hiddenarg2 << stgcos->getMangledName().c_str(); //t3811
+	    else
+	      hiddenarg2 << m_state.getHiddenArgName(); //ur t3102,3,4,6,7,8,9,10,11
+	    hiddenarg2 << ", " << calcPosOfCurrentObjectClassesAsString(uvpass); //relative off;
+	    hiddenarg2 << ", " << getLengthOfMemberClassForHiddenArg(cosuti); //len, t41120
+	    hiddenarg2 << "u, false);";
 	  }
       }
     else

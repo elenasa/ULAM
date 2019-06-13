@@ -1166,12 +1166,20 @@ namespace MFM {
     else if(cos->isSuper())
       {
 	lhsstr << m_state.getTheInstanceMangledNameByIndex(decosuti).c_str();
-	lhsstr << ".";
+	lhsstr << "."; //t41161
       }
     else if(urtmpnum > 0)
       {
-	lhsstr <<m_state.getUlamRefTmpVarAsString(urtmpnum).c_str();
-        lhsstr <<".GetEffectiveSelf()->";
+	if(cos->isTmpVarSymbol() && ((SymbolTmpVar *) cos)->isBaseClassRef())
+	  {
+	    lhsstr << m_state.getTheInstanceMangledNameByIndex(decosuti).c_str();
+	    lhsstr << "."; //t41311, t41314
+	  }
+	else //(e.g. t41301)
+	  {
+	    lhsstr <<m_state.getUlamRefTmpVarAsString(urtmpnum).c_str();
+	    lhsstr <<".GetEffectiveSelf()->";
+	  }
       }
     else if(cos->getAutoLocalType() == ALT_AS)
       {
