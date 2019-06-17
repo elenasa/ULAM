@@ -1,14 +1,14 @@
 ## -*- mode:ulam -*-
 #=t41316_test_compiler_transientandquark_multibases_virtualfuncsselectwdatamembersandtypedefs
 ##
-## gen output: (w interleaved asserts )
+## gen output:
 ## Int Arg: 212 (+ 1 assert)
 ## Int Arg: 110 (+ 4 asserts)
-## Int Arg: 110 (+ 2 asserts)
+## Int Arg: 110 (+ 3 asserts)
 ##
 #!
 Exit status: 0
-Ue_Foo +System { +<> Int(32) m_c4(212);  Int(32) m_a4(110);  Int(32) test() {  T4 t4;  typedef QBase2 QB2;  m_c4 t4 QB2 . ( )vfuncc . = ( m_c4 )print ( m_c4 212 cast == )assert typedef QBase1 QB1;  m_a4 t4 QBase3 . QB1 . ( )vfunca . = ( m_a4 )print ( m_a4 110 cast == )assert ( t4 m_b1 . ! )assert ( t4 QBase3 . QBase1 . m_b1 . )assert ( t4 QBase1 . m_b1 . ! )assert Int(32) a4 = t4 QBase1 . ( )vfunca .;  ( a4 )print ( a4 110 cast == )assert ( t4 QBase1 . m_b1 . )assert 0 cast return } }
+Ue_Foo +System { +<> Int(32) m_c4(212);  Int(32) m_a4(110);  Int(32) test() {  T4 t4;  typedef QBase2 QB2;  m_c4 t4 QB2 . ( )vfuncc . = ( m_c4 )print ( m_c4 212 cast == )assert typedef QBase1 QB1;  m_a4 t4 QBase3 . QB1 . ( )vfunca . = ( m_a4 )print ( m_a4 110 cast == )assert ( t4 m_b1 . )assert ( t4 QBase3 . QBase1 . m_b1 . ! )assert ( t4 QBase1 . m_b1 . )assert t4 m_b1 . false = Int(32) a4 = t4 QBase1 . ( )vfunca .;  ( a4 )print ( a4 110 cast == )assert ( t4 m_b1 . )assert ( t4 QBase1 . m_b1 . )assert 0 cast return } }
 Uq_System { <NOMAIN> }
 Un_T4 : QBase3 +QBase2 +QBase1 { :< :< Bool(1) m_b1(false); > Bool(1) m_b3(false); > +< Bool(1) m_b2(false); > +< Bool(1) m_b1(false); > typedef QBase2 QB2;  <NOMAIN> }
 Un_QBase3 : QBase1 { :< Bool(1) m_b1(false); > Bool(1) m_b3(false);  <NOMAIN> }
@@ -36,15 +36,17 @@ element Foo +System {
     m_a4 = t4.QBase3.QB1.vfunca(); //110
     print(m_a4);
     assert(m_a4==110);
-    assert(!t4.m_b1); //unchanged w extra +QBase1
-    assert(t4.QBase3.QBase1.m_b1); //equivalent dm
-    assert(!t4.QBase1.m_b1); //unchanged yet
+    assert(t4.m_b1); //changed w extra +QBase1
+    assert(!t4.QBase3.QBase1.m_b1); //unchanged
+    assert(t4.QBase1.m_b1); //changed, equivalent dm
 
+    t4.m_b1 = false; //reset
     Int a4 = t4.QBase1.vfunca(); //110
     print(a4);
     assert(a4==110);
 
-    assert(t4.QBase1.m_b1);
+    assert(t4.m_b1); //changed w extra +QBase1
+    assert(t4.QBase1.m_b1); //changed, equivalent dm
 
     return 0;
   }

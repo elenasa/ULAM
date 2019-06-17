@@ -2517,6 +2517,8 @@ namespace MFM {
       }
 
     u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
+    UTI stgcosuti = stgcos->getUlamTypeIdx();
+    UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
     UTI cosuti = cos->getUlamTypeIdx();
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
 
@@ -2528,10 +2530,11 @@ namespace MFM {
 
     if((cosSize == 1))
       {
-	stgcos = m_state.getCurrentSelfSymbolForCodeGen();
+	stgcos = m_state.getCurrentSelfSymbolForCodeGen(); //t41319
+
 	u32 relposofbaseclass = 0;
 	if(m_state.getABaseClassRelativePositionInAClass(stgcos->getUlamTypeIdx(), cosclassuti, relposofbaseclass))
-	  pos += relposofbaseclass; //t41319
+	  pos += relposofbaseclass; //t41319, t41314
 	else if(m_state.getABaseClassRelativePositionInAClass(cosclassuti, stgcos->getUlamTypeIdx(), relposofbaseclass))
 	  {
 	    pos -= relposofbaseclass;
@@ -2539,7 +2542,6 @@ namespace MFM {
 	  }
 	//else
       }
-
 
     fp->write("UlamRef<EC>("); //wrapper for dm
     if(cosSize > 1 && stgcos->isTmpVarSymbol())
@@ -2559,7 +2561,7 @@ namespace MFM {
       }
     else
       {
-#if 1
+#if 0
 	if(uvpass.getPassApplyDelta())
 	  {
 	    fp->write(" -");
@@ -2568,6 +2570,21 @@ namespace MFM {
 	    else
 	      fp->write(m_state.getHiddenArgName()); //ur first arg
 	    fp->write(".GetDelta() + ");
+	  }
+#endif
+#if 1
+	if(uvpass.getPassApplyDelta())
+	  {
+	    if(cosSize > 1 && stgcos->isTmpVarSymbol())
+	      fp->write(stgcos->getMangledName().c_str()); //first arg t3543, not t3512
+	    else
+	      fp->write(m_state.getHiddenArgName()); //ur first arg
+	    fp->write(".GetEffectiveSelfPos() ");
+
+	    if((stgcosut->getUlamClassType() == UC_ELEMENT) && stgcosut->isReference())
+	      fp->write("- T::ATOM_FIRST_STATE_BIT + "); //t41318
+	    else
+	      fp->write("+ ");
 	  }
 #endif
 	fp->write_decimal_unsigned(pos); //rel offset //t3143, t3543
@@ -2737,7 +2754,7 @@ namespace MFM {
   // the second hidden arg, ur/self, may need modification for
   // function calls, including custom array accessors.
   // formerly in NodeFunctionCall; duplicated as genHiddenArg2ForCustomArray
-  std::string Node::genHiddenArg2(const UVPass& uvpass, u32& urtmpnumref)
+  std::string Node::genHiddenArg2(const UVPass& uvpass, u32& urtmpnumref, UTI vownarg)
   {
     bool sameur = true;
     u32 tmpvar = m_state.getNextTmpVarNumber();
@@ -2751,6 +2768,7 @@ namespace MFM {
 
     UTI stgcosuti = stgcos->getUlamTypeIdx();
     UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
+    ULAMCLASSTYPE stgclasstype = stgcosut->getUlamClassType();
     UTI cosuti = cos->getUlamTypeIdx();
 
     // first "hidden" arg is the context, then "hidden" ref self (ur) arg
@@ -2788,7 +2806,7 @@ namespace MFM {
 	      hiddenarg2 << m_state.getHiddenArgName(); //ur t3102,3,4,6,7,8,9,10,11
 	    hiddenarg2 << ", " << calcPosOfCurrentObjectClassesAsString(uvpass); //relative off;
 	    hiddenarg2 << ", " << getLengthOfMemberClassForHiddenArg(cosuti); //len, t41120
-	    hiddenarg2 << "u, false);";
+	    hiddenarg2 << "u, true);"; //t41322 (always true!)
 	  }
       }
     else
@@ -2824,25 +2842,68 @@ namespace MFM {
 		  }
 		else
 		  {
-		    //ancestor takes on effective self of sub
-		    //uses UlamRef 2 arg copy constructor to maintain EffSelf and UsageType of ref
-		    hiddenarg2 << getLengthOfMemberClassForHiddenArg(cosuti) << "u);" ; //len t3637, t3746
+		    //ancestor keeps effective self of sub, more later..
+#if 0
+		    if(vownarg != Nouti)
+		      {
+			//virtual funcs use 3 arg UlamRef copy constr to maintain EffSelf and UsageType,
+			// while updating the rel pos to vowned class, apply delta true. (t41318-t41323)
+			hiddenarg2 << m_state.getTheInstanceMangledNameByIndex(cosuti).c_str();
+			hiddenarg2 << "." <<  m_state.getGetRelPosMangledFunctionName(cosuti);
+			hiddenarg2 << "( & " << m_state.getTheInstanceMangledNameByIndex(vownarg).c_str();
+			hiddenarg2 << "), " << getLengthOfMemberClassForHiddenArg(cosuti) << "u, true);";
+		      }
+		    else
+#endif
+		      //uses UlamRef 2 arg copy constructor to maintain EffSelf and UsageType of ref
+		      hiddenarg2 << getLengthOfMemberClassForHiddenArg(cosuti) << "u);" ; //len t3637, t3746
 		  }
 	      }
 	    else
 	      {
 		sameur = false;
-		//new ur to reflect "effective" self and storage for this funccall
-		hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvar).c_str() << "(";
+		// local variable:
+		//new ur to reflect "effective" self and storage for this funccall;
+		// in 2 steps to ascertain the correct posToEff in ulam-5 (t3605);
+		u32 tmpvarstg = m_state.getNextTmpVarNumber();
+		hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvarstg).c_str() << "(";
+		if(stgclasstype == UC_ELEMENT)
+		  hiddenarg2 << "T::ATOM_FIRST_STATE_BIT + ";
 
-		hiddenarg2 << calcPosOfCurrentObjectClassesAsString(uvpass); //relative off;
-		hiddenarg2 << ", " << getLengthOfMemberClassForHiddenArg(cosuti) << "u, "; //len
-
+		hiddenarg2 << "0u, " << getLengthOfMemberClassForHiddenArg(stgcosuti) << "u, "; //len
 		hiddenarg2 << stgcos->getMangledName().c_str() << ", &"; //storage
-		hiddenarg2 << m_state.getTheInstanceMangledNameByIndex(cosuti).c_str();
-
-		hiddenarg2 << ", " << genUlamRefUsageAsString(cosuti).c_str();
+		hiddenarg2 << m_state.getTheInstanceMangledNameByIndex(stgcosuti).c_str(); //effself
+		hiddenarg2 << ", " << genUlamRefUsageAsString(stgcosuti).c_str(); //usage
 		hiddenarg2 << ", uc";
+		hiddenarg2 << "); "; //line wraps
+
+		//second ulamref based on existing stg ulamref
+		hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvar).c_str() << "(";
+		hiddenarg2 << m_state.getUlamRefTmpVarAsString(tmpvarstg).c_str() << ", "; //existing
+		hiddenarg2 << calcPosOfCurrentObjectClassesAsString(uvpass); //relative off;
+		if(stgclasstype == UC_ELEMENT)
+		  hiddenarg2 << " - T::ATOM_FIRST_STATE_BIT";
+		hiddenarg2 << ", " << getLengthOfMemberClassForHiddenArg(cosuti) << "u, &"; //len
+
+		if((vownarg != Nouti) && !cos->isDataMember())
+		  {
+		    //virtual func call keeps the eff self of stg (t41321),
+		    // unless dm of local stg (e.g. t3804)
+		    // possible also check uvpass for applydelta == true?
+#if 0
+		    u32 relposvown = 0;
+		    AssertBool gotVO=getABaseClassRelativePositionInAClass(cosuti,vownarg,relposvown);
+		    assert(gotVO);
+		    hiddenarg2 << " + " << relposvown << "u";`
+#endif
+		    hiddenarg2 << m_state.getTheInstanceMangledNameByIndex(stgcosuti).c_str(); //same effself
+		    hiddenarg2 << ", " << genUlamRefUsageAsString(stgcosuti).c_str(); //same usage
+		  }
+		else
+		  {
+		    hiddenarg2 << m_state.getTheInstanceMangledNameByIndex(cosuti).c_str(); //new eff self
+		    hiddenarg2 << ", " << genUlamRefUsageAsString(cosuti).c_str(); //new usage
+		  }
 		hiddenarg2 << ");";
 	      }
 	  }
@@ -2916,6 +2977,24 @@ namespace MFM {
     assert(cosclassut->isScalar()); //cos array (t3147-48)
 
     u32 pos = uvpass.getPassPos();
+
+    if(stgcosut->isReference())
+      {
+	u32 relposofbaseclass = 0;
+	UTI startsearchcuti = stgcosuti;
+	if(uvpass.getPassApplyDelta() && (cosSize > 2))
+	  {
+	    Symbol * bsym = m_state.m_currentObjSymbolsForCodeGen[cosSize - 2];
+	    assert(bsym);
+	    if(bsym->isTmpVarSymbol() && ((SymbolTmpVar *) bsym)->isBaseClassRef())
+	      startsearchcuti = bsym->getUlamTypeIdx(); //t41323
+	    else
+	      m_state.abortNeedsATest(); //? or shouldntGetHere
+	  }
+	if(m_state.getABaseClassRelativePositionInAClass(startsearchcuti, cosclassuti, relposofbaseclass))
+	  pos += relposofbaseclass; //t41323
+      }
+    //else local var position is in uvpass (t41317)
 
     fp->write("UlamRef<EC>("); //wrapper for local storage
 

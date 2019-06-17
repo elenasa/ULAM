@@ -952,8 +952,9 @@ namespace MFM {
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
 
+    UTI vownuti = (m_funcSymbol->isVirtualFunction() ? m_funcSymbol->getVirtualMethodOriginatingClassUTI() : (UTI) Nouti);
     u32 urtmpnum = 0;
-    std::string hiddenarg2str = Node::genHiddenArg2(uvpass, urtmpnum);
+    std::string hiddenarg2str = Node::genHiddenArg2(uvpass, urtmpnum, vownuti);
     if(urtmpnum > 0)
       {
 	m_state.indentUlamCode(fp);
@@ -1240,9 +1241,9 @@ namespace MFM {
     fp->write(lhsstr.str().c_str());
     fp->write("getVTableEntryUlamClassPtr(");
     fp->write(vtindexstring.str().c_str());
-    fp->write(");"); GCNL; //reading into a separate classptr tmp var
+    fp->write("); //override class"); GCNL; //reading into a separate classptr tmp var
 
-
+#if 0
     s32 tmpvarregnum = m_state.getNextTmpVarNumber();
     m_state.indentUlamCode(fp);
     fp->write("u32 ");
@@ -1251,14 +1252,15 @@ namespace MFM {
     fp->write(m_state.getUlamClassTmpVarAsString(tmpvarclassptr).c_str());
     fp->write("->");
     fp->write(m_state.getClassRegistrationNumberFunctionName(decosuti));
-    fp->write("();"); GCNL; //reading into a separate regnum tmp var
+    fp->write("(); //override class regnum"); GCNL; //reading into a separate regnum tmp var
+#endif
 
-
+#if 0
     s32 tmpvarapplydelta = m_state.getNextTmpVarNumber();
     m_state.indentUlamCode(fp);
     fp->write("bool ");
     fp->write(m_state.getTmpVarAsString(Bool, tmpvarapplydelta, TMPREGISTER).c_str());
-    fp->write(" = false;\n");
+    fp->write(" = true; //false; //YES always apply delta (default)"); GCNL;
 
     u32 callerregnum = m_state.getAClassRegistrationNumber(decosuti);
 
@@ -1267,11 +1269,11 @@ namespace MFM {
     fp->write(m_state.getTmpVarAsString(Unsigned, tmpvarregnum, TMPREGISTER).c_str());
     fp->write(" != ");
     fp->write_decimal_unsigned(callerregnum); //override ne calling
-    fp->write("u) //caller ");
+    fp->write("u) //override and caller, ");
     fp->write(m_state.getUlamTypeNameBriefByIndex(decosuti).c_str());
-    fp->write(" regnum = ");
+    fp->write(" (regnum=");
     fp->write_decimal_unsigned(callerregnum); //override ne calling
-    fp->write("u\n");
+    fp->write("u), classes different, and..\n");
 
     m_state.indentUlamCode(fp);
     fp->write("{\n");
@@ -1310,7 +1312,7 @@ namespace MFM {
     m_state.m_currentIndentLevel++;
 
     m_state.indentUlamCode(fp);
-    fp->write("FAIL(VIRTUAL_CALLED_ON_SIBLING); //override not a base of calling either\n");
+    fp->write("FAIL(VIRTUAL_CALLED_ON_SIBLING); //override not a base of calling class either\n");
 
     m_state.m_currentIndentLevel--;
     m_state.m_currentIndentLevel--;
@@ -1318,17 +1320,25 @@ namespace MFM {
     m_state.indentUlamCode(fp);
     fp->write("} "); GCNL;
     fp->write("\n\n");
+#endif
 
+    //urtmpnumvfc = urtmpnum; //TODO: remove this arg!!!!
+#if 1
     s32 tmpvarpos = m_state.getNextTmpVarNumber();
     m_state.indentUlamCode(fp);
     fp->write("const u32 ");
     fp->write(m_state.getTmpVarAsString(Unsigned, tmpvarpos, TMPREGISTER).c_str());
     fp->write(" = ");
-    fp->write(lhsstr.str().c_str());
+    //fp->write(lhsstr.str().c_str());
+    if(urtmpnum > 0)
+      fp->write(m_state.getUlamRefTmpVarAsString(urtmpnum).c_str());
+    else
+      fp->write(m_state.getHiddenArgName()); //ur
+    fp->write(".GetEffectiveSelf()->"); //t41321
     fp->write(m_state.getGetRelPosMangledFunctionName(decosuti));
     fp->write("(");
     fp->write(m_state.getUlamClassTmpVarAsString(tmpvarclassptr).c_str());
-    fp->write(");"); GCNL; //reading into a separate relpos tmp var
+    fp->write("); //relpos of override class in effself"); GCNL; //reading into a separate relpos tmp var
 
     s32 tmpvarlen = m_state.getNextTmpVarNumber();
     m_state.indentUlamCode(fp);
@@ -1338,7 +1348,7 @@ namespace MFM {
     fp->write(m_state.getUlamClassTmpVarAsString(tmpvarclassptr).c_str());
     fp->write("->");
     fp->write(m_state.getClassLengthFunctionName(decosuti));
-    fp->write("();"); GCNL; //reading into a separate len tmp var
+    fp->write("(); //len of override class"); GCNL; //reading into a separate len tmp var
 
     // READY to make virtual function call ur, with appropriate overriding class pos/len,
     // same effself and usage;
@@ -1353,11 +1363,30 @@ namespace MFM {
       fp->write(m_state.getHiddenArgName()); //ur
     fp->write(", ");
     fp->write(m_state.getTmpVarAsString(Unsigned, tmpvarpos, TMPREGISTER).c_str());
+
+#if 0
+    //adjust pos to start of eff self, so new ulamref points to its overriding class
+    fp->write(" + ");
+    if(urtmpnum > 0)
+      fp->write(m_state.getUlamRefTmpVarAsString(urtmpnum).c_str());
+    else
+      fp->write(m_state.getHiddenArgName()); //ur
+    fp->write(".GetPos()");
+    fp->write(" - ");
+    if(urtmpnum > 0)
+      fp->write(m_state.getUlamRefTmpVarAsString(urtmpnum).c_str());
+    else
+      fp->write(m_state.getHiddenArgName()); //ur
+    fp->write(".GetDelta()");
+#endif
+
     fp->write(", ");
     fp->write(m_state.getTmpVarAsString(Unsigned, tmpvarlen, TMPREGISTER).c_str());
-    fp->write(", ");
-    fp->write(m_state.getTmpVarAsString(Bool, tmpvarapplydelta, TMPREGISTER).c_str());
+    fp->write(", true");
+    //fp->write(m_state.getTmpVarAsString(Bool, tmpvarapplydelta, TMPREGISTER).c_str());
     fp->write(");"); GCNL;
+#endif
+
     return;
   } //genCodeVirtualFunctionCallVTableEntry
 

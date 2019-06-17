@@ -304,6 +304,7 @@ namespace MFM {
 
     //build tmpvar symbol for virtual function ur (t41307)
     makeUVPassForCodeGen(uvpass);
+    uvpass.setPassApplyDelta(true); //always
 
     m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol); //*********UPDATED GLOBAL;
   } //genCodeToStoreInto
@@ -344,7 +345,6 @@ namespace MFM {
 
     uvpass.setPassVarNum(tmpturnum);
     uvpass.setPassNameId(tidTok.m_dataindex);
-    uvpass.setPassApplyDelta(true); //always
   } //makeUVPassForCodeGen
 
 } //end MFM

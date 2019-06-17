@@ -359,8 +359,8 @@ namespace MFM{
     Node * newCastingNode(Node * node, UTI tobeType);
     bool newCastingNodeWithCheck(Node * node, UTI tobeType, Node*& rtnNode);
 
-    //used for function calls second arg, including custom array accessors
-    std::string genHiddenArg2(const UVPass& uvpass, u32& urtmpnumref);
+    //used for function calls second arg, including custom array accessors, and virtual funcs
+    std::string genHiddenArg2(const UVPass& uvpass, u32& urtmpnumref, UTI vownarg);
     virtual u32 getLengthOfMemberClassForHiddenArg(UTI cosuti);
 
   private:

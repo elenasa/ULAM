@@ -54,14 +54,14 @@ element Foo : Secondary +Intermediate {
   Void behave()
   {
     Foo other;
-    s.print(self.Intermediate.m_i3); //why does this change after checkis?
+    s.print(self.Intermediate.m_i3);
 
     if(!checkis(other)) //should absolute be true, right?
       s.assert(false);
     s.print(m_i4);
     s.assert(m_i4 == -4);
     s.print(self.Secondary.m_i3);
-    s.print(self.Intermediate.m_i3); //why is this 4?
+    s.print(self.Intermediate.m_i3);
     s.print(other.Secondary.m_i3); //changed!
     s.print(other.Intermediate.m_i3);
     s.print(other.m_i3); //default in Secondary
@@ -72,7 +72,7 @@ element Foo : Secondary +Intermediate {
     s.print(m_a4);
     s.assert(m_a4 == 4);
     s.print(self.Secondary.m_i3);
-    s.print(self.Intermediate.m_i3); //why is this 4?
+    s.print(self.Intermediate.m_i3);
     s.print(other.Secondary.m_i3);
     s.print(other.Intermediate.m_i3); //changed!!
     s.print(other.m_i3);

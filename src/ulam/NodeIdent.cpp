@@ -719,7 +719,8 @@ namespace MFM {
 	  }
 
 	//might already be true when MemberSelectByBaseType; don't clobber.
-	bool applydelta = uvpass.getPassApplyDelta() || !belongsToVOWN(m_state.m_gencodingAVirtualFunctionInThisOriginatingClass); //t41318
+	//bool applydelta = uvpass.getPassApplyDelta() || !belongsToVOWN(m_state.m_gencodingAVirtualFunctionInThisOriginatingClass); //t41318
+	bool applydelta = uvpass.getPassApplyDelta(); //t41318
 
 	uvpass = UVPass::makePass(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, pos, applydelta, m_varSymbol->getId());
       }
