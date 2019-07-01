@@ -46,6 +46,7 @@
 #include "TargetMap.h"
 #include "MapClassMemberDesc.h"
 #include "VirtualTable.h" /* VT */
+#include "BaseClassTable.h"
 #include "BitVector.h"
 #include <vector>
 
@@ -71,9 +72,10 @@ namespace MFM{
     u32 getBaseClassCount();
     UTI getBaseClass(u32 item);
     s32 isABaseClassItem(UTI puti);
-    void appendBaseClass(UTI baseclass);
+    bool isSharedBase(u32 item) const;
+    void appendBaseClass(UTI baseclass, bool sharedbase);
     void updateBaseClass(UTI oldclasstype, u32 item, UTI newbaseclass);
-    void setBaseClass(UTI baseclass, u32 item);
+    void setBaseClass(UTI baseclass, u32 item, bool sharedbase = false);
     s32 getBaseClassRelativePosition(u32 item) const;
     void setBaseClassRelativePosition(u32 item, u32 pos);
 
@@ -167,7 +169,7 @@ namespace MFM{
     s32 getOrigVTableSize();
     VT& getVTableRef();
     u32 convertVTstartoffsetmap(std::map<u32, u32> & mapbyrnref); //returns count
-    u32 getVTstartoffsetForBaseClass(UTI baseuti);
+    u32 getVTstartoffsetOfRelatedOriginatingClass(UTI origuti);
     u32 getVTableIndexForOriginatingClass(u32 idx);
     bool isPureVTableEntry(u32 idx);
     UTI getClassForVTableEntry(u32 idx);
@@ -200,9 +202,12 @@ namespace MFM{
 
     ELE_TYPE m_elementType; //ulam-4
 
-    std::vector<UTI> m_bases;
-    std::vector<s32> m_basespos; //UNKNOWN < 0
-    //    std::vector<u32> m_basesVTstart;
+    BasesTable m_basestable;
+    BasesTableTypeMap m_basesmap;
+
+    s32 isABaseClassItemSearch(UTI buti);
+    bool updateBaseClassMap(UTI oldclasstype, u32 item, UTI newbaseclass);
+    bool insertBaseClassMapEntry(UTI buti, u32 item);
 
     void assignClassArgValuesInStubCopy();
 
@@ -219,11 +224,12 @@ namespace MFM{
 
     static std::string firstletterTolowercase(const std::string s);
 
+    std::map<UTI, u32> m_basesVTstart; //includes entire hierarchy and self
     VT m_vtable;
-    std::map<UTI, u32> m_basesVTstart;
     VT m_vownedVT;
-
     bool m_vtableinitialized;
+
+    void setVTstartoffsetOfRelatedOriginatingClass(UTI origuti, u32 startoffset);
   };
 
 }

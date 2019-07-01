@@ -111,7 +111,7 @@ namespace MFM{
 
     //ulam 5 supports multiple inheritance
     bool parseMultipleClassInheritances(SymbolClassName * cnsym);
-    bool parseRestOfMultiClassInheritance(SymbolClassName * cnsym);
+    bool parseRestOfMultiClassInheritance(SymbolClassName * cnsym, bool sharedVirtualBase);
 
     void setupSuperClassHelper(SymbolClassName * cnsym);
     void setupSuperClassHelper(SymbolClass * supercsym, SymbolClassName * cnsym);

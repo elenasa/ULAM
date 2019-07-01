@@ -12,14 +12,14 @@ namespace MFM {
 
   SymbolClass::SymbolClass(const Token& id, UTI utype, NodeBlockClass * classblock, SymbolClassNameTemplate * parent, CompilerState& state) : Symbol(id, utype, state), m_resolver(NULL), m_classBlock(classblock), m_parentTemplate(parent), m_quarkunion(false), m_stub(true), /*m_defaultValue(NULL),*/ m_isreadyDefaultValue(false) /* default */, m_bitsPacked(false), m_registryNumber(UNINITTED_REGISTRY_NUMBER), m_elementType(UNDEFINED_ELEMENT_TYPE), m_vtableinitialized(false)
   {
-    appendBaseClass(Nouti);
+    appendBaseClass(Nouti, false);
   }
 
   SymbolClass::SymbolClass(const SymbolClass& sref) : Symbol(sref), m_resolver(NULL), m_parentTemplate(sref.m_parentTemplate), m_quarkunion(sref.m_quarkunion), m_stub(sref.m_stub), /*m_defaultValue(NULL),*/ m_isreadyDefaultValue(false), m_bitsPacked(false), m_registryNumber(UNINITTED_REGISTRY_NUMBER), m_elementType(UNDEFINED_ELEMENT_TYPE), m_vtableinitialized(false)
   {
-    for(u32 i = 0; i < sref.m_bases.size(); i++)
+    for(u32 i = 0; i < sref.m_basestable.size(); i++)
       {
-	appendBaseClass(m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_bases[i],sref.getLoc()));
+	appendBaseClass(m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_basestable[i].m_base,sref.getLoc()), sref.isSharedBase(i));
 	if(sref.getBaseClassRelativePosition(i) >= 0) //t3326
 	  setBaseClassRelativePosition(i, (u32) sref.getBaseClassRelativePosition(i));
       }
@@ -47,7 +47,8 @@ namespace MFM {
 	m_resolver = NULL;
       }
 
-    m_bases.clear();
+    m_basestable.clear();
+    m_basesmap.clear();
   }
 
   Symbol * SymbolClass::clone()
@@ -93,25 +94,37 @@ namespace MFM {
 
   u32 SymbolClass::getBaseClassCount()
   {
-    u32 numbases = m_bases.size();
+    u32 numbases = m_basestable.size();
     assert(numbases >= 1);
     return numbases - 1; //excluding super class
   }
 
   UTI SymbolClass::getBaseClass(u32 item)
   {
-    assert(item < m_bases.size());
-    return m_bases[item];
+    assert(item < m_basestable.size());
+    return m_basestable[item].m_base;
   }
 
   s32 SymbolClass::isABaseClassItem(UTI buti)
   {
     s32 index = -1; //negative is not found
-    for(u32 i = 0; i < m_bases.size(); i++)
+    std::map<UTI, u32>::iterator it = m_basesmap.find(buti);
+    if(it != m_basesmap.end())
+      index = it->second;
+    else
+      index = isABaseClassItemSearch(buti); //slow, uses compare..
+    return index;
+  } //isABaseClassItem
+
+  s32 SymbolClass::isABaseClassItemSearch(UTI buti)
+  {
+    s32 index = -1; //negative is not found
+    for(u32 i = 0; i < m_basestable.size(); i++)
       {
-	if(m_bases[i] != Nouti) //super optional (t3102)
+	UTI baseuti = m_basestable[i].m_base;
+	if( baseuti != Nouti) //super optional (t3102)
 	  {
-	    if(UlamType::compare(m_bases[i], buti, m_state) == UTIC_SAME)
+	    if(UlamType::compare(baseuti, buti, m_state) == UTIC_SAME)
 	      {
 		index = i;
 		break;
@@ -119,50 +132,87 @@ namespace MFM {
 	  }
       }
     return index; //includes super
-  } //isABaseClassItem
+  } //isABaseClassItemSearch
 
-  void SymbolClass::appendBaseClass(UTI baseclass)
+  bool SymbolClass::isSharedBase(u32 item) const
   {
-    m_bases.push_back(baseclass);
-    m_basespos.push_back(UNKNOWNSIZE); //pos unknown
+    assert(item < m_basestable.size());
+    return m_basestable[item].m_baseshared;
   }
+
+  void SymbolClass::appendBaseClass(UTI baseclass, bool sharedbase)
+  {
+    u32 btindex = m_basestable.size(); //after append, zero-based
+
+    AssertBool mapnotdup = insertBaseClassMapEntry(baseclass, btindex);
+    assert(mapnotdup);
+
+    BaseClassEntry bentry;
+    bentry.m_base = baseclass;
+    bentry.m_basepos = UNKNOWNSIZE; //pos unknown
+    bentry.m_baseshared = sharedbase; //shared virtual base
+    bentry.m_basetmp = false; //spare
+    m_basestable.push_back(bentry);
+  } //appendBaseClass
 
   void SymbolClass::updateBaseClass(UTI oldclasstype, u32 item, UTI newbaseclass)
   {
     assert(!m_state.isUrSelf(getUlamTypeIdx()));
-    assert(item < m_bases.size());
-    assert(m_bases[item] == oldclasstype);
-    m_bases[item] = newbaseclass;
+    assert(item < m_basestable.size());
+    assert(m_basestable[item].m_base == oldclasstype);
+    m_basestable[item].m_base = newbaseclass;
+
+    AssertBool mapok = updateBaseClassMap(oldclasstype, item, newbaseclass);
+    assert(mapok);
   }
 
-  void SymbolClass::setBaseClass(UTI baseclass, u32 item)
+  void SymbolClass::setBaseClass(UTI baseclass, u32 item, bool sharedbase)
   {
     if(item == 0)
       {
 	if(!m_state.isUrSelf(getUlamTypeIdx()))
-	   updateBaseClass(m_bases[0], 0, baseclass); //initialized
+	   updateBaseClass(m_basestable[0].m_base, 0, baseclass); //initialized
       }
-    else if(item == m_bases.size())
+    else if(item == m_basestable.size())
       {
-	appendBaseClass(baseclass);
+	appendBaseClass(baseclass, sharedbase);
       }
     else
       {
-	assert(item < m_bases.size());
-	updateBaseClass(m_bases[item], item, baseclass);
+	assert(item < m_basestable.size());
+	updateBaseClass(m_basestable[item].m_base, item, baseclass);
       }
   } //setBaseClass
 
+  bool SymbolClass::updateBaseClassMap(UTI oldclasstype, u32 item, UTI newbaseclass)
+  {
+    std::map<UTI,u32>::iterator it = m_basesmap.find(oldclasstype);
+    assert(it != m_basesmap.end());
+
+    UTI oldbaseindex = it->second;
+    assert(oldbaseindex == item); //sanity
+    m_basesmap.erase(it);
+
+    return insertBaseClassMapEntry(newbaseclass, item);
+  }
+
+  bool SymbolClass::insertBaseClassMapEntry(UTI buti, u32 item)
+  {
+    std::pair<std::map<UTI,u32>::iterator, bool> reti;
+    reti = m_basesmap.insert(std::pair<UTI,u32>(buti, item)); //quick access
+    return reti.second; //false if already existed, i.e. not added
+  }
+
   s32 SymbolClass::getBaseClassRelativePosition(u32 item) const
   {
-    assert(item < m_basespos.size());
-    return m_basespos[item];
+    assert(item < m_basestable.size());
+    return m_basestable[item].m_basepos;
   }
 
   void SymbolClass::setBaseClassRelativePosition(u32 item, u32 pos)
   {
-    assert(item < m_basespos.size());
-    m_basespos[item] = (s32) pos;
+    assert(item < m_basestable.size());
+    m_basestable[item].m_basepos = (s32) pos;
   }
 
   const std::string SymbolClass::getMangledPrefix()
@@ -1471,7 +1521,8 @@ namespace MFM {
 	    s32 vtsize = basecsym->getOrigVTableSize();
 	    assert(vtsize >= 0); //caller made sure none unknown size
 
-	    m_basesVTstart.insert(std::pair<UTI,u32>(baseuti, basesmaxes));
+	    setVTstartoffsetOfRelatedOriginatingClass(baseuti, basesmaxes);
+	    //m_basesVTstart.insert(std::pair<UTI,u32>(baseuti, basesmaxes));
 
 	    //copy baseclass' originating VTable entries
 	    for(s32 i = 0; i < vtsize; i++)
@@ -1505,14 +1556,15 @@ namespace MFM {
     assert(m_vtable.size() == (u32) initialmax); //t3639
     assert(basesmaxes == (u32) initialmax);
 
-    m_basesVTstart.insert(std::pair<UTI,u32>(cuti, basesmaxes)); //start of our originating virtual funcs
+    setVTstartoffsetOfRelatedOriginatingClass(cuti, basesmaxes); //start of our originating virtual funcs
+    //m_basesVTstart.insert(std::pair<UTI,u32>(cuti, basesmaxes));
     m_vtableinitialized = true;
   } //initVTable
 
   void SymbolClass::updateVTable(u32 vidx, SymbolFunction * fsym, UTI kinuti, UTI origuti, bool isPure)
   {
     assert(m_state.okUTItoContinue(origuti));
-    u32 startoffset = getVTstartoffsetForBaseClass(origuti);
+    u32 startoffset = getVTstartoffsetOfRelatedOriginatingClass(origuti);
     assert((startoffset < UNRELIABLEPOS));
     u32 idx = startoffset + vidx;
     if(idx < m_vtable.size())
@@ -1557,6 +1609,7 @@ namespace MFM {
     return m_vtable;
   }
 
+
   u32 SymbolClass::convertVTstartoffsetmap(std::map<u32, u32> & mapbyrnref)
   {
     u32 count = 0;
@@ -1577,13 +1630,20 @@ namespace MFM {
     return count;
   } //convertVTstartoffsetmap
 
-  u32 SymbolClass::getVTstartoffsetForBaseClass(UTI baseuti)
+  u32 SymbolClass::getVTstartoffsetOfRelatedOriginatingClass(UTI origuti)
   {
     u32 startoffset = UNRELIABLEPOS;
-    std::map<UTI, u32>::iterator it = m_basesVTstart.find(baseuti);
+    std::map<UTI, u32>::iterator it = m_basesVTstart.find(origuti);
     if(it != m_basesVTstart.end())
       startoffset = it->second;
     return startoffset;
+  }
+
+  void SymbolClass::setVTstartoffsetOfRelatedOriginatingClass(UTI origuti, u32 startoffset)
+  {
+    std::pair<std::map<UTI,u32>::iterator, bool> reti;
+    reti = m_basesVTstart.insert(std::pair<UTI,u32>(origuti, startoffset)); //quick access
+    assert(reti.second); //false if already existed, i.e. not added
   }
 
   u32 SymbolClass::getVTableIndexForOriginatingClass(u32 idx)

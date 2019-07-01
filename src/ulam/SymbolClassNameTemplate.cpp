@@ -198,13 +198,13 @@ namespace MFM {
     return false;
   } //getSuperClassForClassInstance
 
-  void SymbolClassNameTemplate::appendBaseClassForClassInstance(UTI baseclass, UTI instance)
+  void SymbolClassNameTemplate::appendBaseClassForClassInstance(UTI baseclass, UTI instance, bool sharedbase)
   {
     SymbolClass * csym = NULL;
     if(findClassInstanceByUTI(instance, csym))
-      csym->appendBaseClass(baseclass); //Nouti is none, not a subclass.
+      csym->appendBaseClass(baseclass, sharedbase); //Nouti is none, not a subclass.
     else if(instance == getUlamTypeIdx())
-      SymbolClass::appendBaseClass(baseclass); //instance is template definition
+      SymbolClass::appendBaseClass(baseclass, sharedbase); //instance is template definition
     else
       m_state.abortShouldntGetHere(); //not found???
   }
@@ -266,6 +266,7 @@ namespace MFM {
     for(u32 i = 0; i < basecount; i++)
       {
 	UTI baseuti = SymbolClass::getBaseClass(i);
+	bool sharedbase = SymbolClass::isSharedBase(i);
 	if(m_state.okUTItoContinue(baseuti))
 	  {
 	    if(m_state.isClassAStub(baseuti))
@@ -273,14 +274,14 @@ namespace MFM {
 		//need a copy of the super stub, and its uti
 		baseuti = Hzy; //wait until resolving loop.
 	      }
-	    newclassinstance->setBaseClass(baseuti, i);
+	    newclassinstance->setBaseClass(baseuti, i, sharedbase);
 	    //any superclass block links are handled during c&l
 	  }
 	else
 	  {
 	    ULAMCLASSTYPE tclasstype = getUlamClass();
 	    if(tclasstype == UC_UNSEEN)
-	      newclassinstance->setBaseClass(Hzy, i);
+	      newclassinstance->setBaseClass(Hzy, i, sharedbase);
 	  }
       }
   } //initBaseClassListForAStubClassInstance

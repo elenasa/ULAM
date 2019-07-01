@@ -820,7 +820,7 @@ namespace MFM {
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cuti, vcsym);
     assert(isDefined);
 
-    u32 coffset = vcsym->getVTstartoffsetForBaseClass(vownuti);
+    u32 coffset = vcsym->getVTstartoffsetOfRelatedOriginatingClass(vownuti);
     assert(coffset<UNRELIABLEPOS);
     UTI vtcuti = vcsym->getClassForVTableEntry(vtidx + coffset); //t41304
 
@@ -1411,7 +1411,7 @@ namespace MFM {
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cosuti, csym);
     assert(isDefined);
 
-    u32 coffset = csym->getVTstartoffsetForBaseClass(vownuti);
+    u32 coffset = csym->getVTstartoffsetOfRelatedOriginatingClass(vownuti);
     assert(coffset < UNRELIABLEPOS);
     UTI cvfuti = csym->getClassForVTableEntry(vfidx + coffset); //t41304
     UlamType * cvfut = m_state.getUlamTypeByIndex(cvfuti);

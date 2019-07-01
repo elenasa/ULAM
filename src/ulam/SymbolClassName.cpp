@@ -62,11 +62,11 @@ namespace MFM {
     return SymbolClass::getBaseClass(0); //Nouti is none, Hzy a stub.
   }
 
-  void SymbolClassName::appendBaseClassForClassInstance(UTI baseclass, UTI instance)
+  void SymbolClassName::appendBaseClassForClassInstance(UTI baseclass, UTI instance, bool sharedbase)
   {
     assert(instance == getUlamTypeIdx());
     assert(instance != baseclass);
-    SymbolClass::appendBaseClass(baseclass);
+    SymbolClass::appendBaseClass(baseclass, sharedbase);
   }
 
   u32 SymbolClassName::getBaseClassCountForClassInstance(UTI instance)

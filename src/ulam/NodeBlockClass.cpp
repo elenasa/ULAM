@@ -3096,7 +3096,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     if(declOnly)
       {
 	u32 vowned = csym->getOrigVTableSize();
-	u32 vownstart = csym->getVTstartoffsetForBaseClass(cuti);
+	u32 vownstart = csym->getVTstartoffsetOfRelatedOriginatingClass(cuti);
 	//enum for method indexes; see UlamElement.h for first two.
 	m_state.indent(fp);
 	fp->write("enum VOWNED_IDX {\n");

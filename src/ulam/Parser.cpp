@@ -439,7 +439,7 @@ namespace MFM {
     getNextToken(rTok);
     unreadToken();
 
-    if(rTok.m_type == TOK_PLUS)
+    if((rTok.m_type == TOK_PLUS) || (rTok.m_type == TOK_HAT))
       {
 	parseMultipleClassInheritances(cnsym);
       }
@@ -774,9 +774,9 @@ namespace MFM {
     Token rTok;
     getNextToken(rTok);
 
-    while(rTok.m_type == TOK_PLUS)
+    while((rTok.m_type == TOK_PLUS) || (rTok.m_type == TOK_HAT))
       {
-	rtninherits = parseRestOfMultiClassInheritance(cnsym);
+	rtninherits = parseRestOfMultiClassInheritance(cnsym, (rTok.m_type == TOK_HAT));
 	getNextToken(rTok);
       }
 
@@ -784,7 +784,7 @@ namespace MFM {
     return rtninherits;
   } //parseMultipleClassInheritances
 
-  bool Parser::parseRestOfMultiClassInheritance(SymbolClassName * cnsym)
+  bool Parser::parseRestOfMultiClassInheritance(SymbolClassName * cnsym, bool sharedVirtualBase)
   {
     bool rtninherits = false;
     assert(cnsym);
@@ -818,7 +818,7 @@ namespace MFM {
 	      }
 	    else
 	      {
-		cnsym->appendBaseClassForClassInstance(baseuti, instance); //set here!!
+		cnsym->appendBaseClassForClassInstance(baseuti, instance, sharedVirtualBase); //set here!!
 		SymbolClass * basecsym = NULL;
 		AssertBool isDefined = m_state.alreadyDefinedSymbolClass(baseuti, basecsym);
 		assert(isDefined);

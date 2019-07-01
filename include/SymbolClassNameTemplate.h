@@ -65,7 +65,7 @@ namespace MFM{
     virtual void setSuperClassForClassInstance(UTI superclass, UTI instance);
     virtual UTI getSuperClassForClassInstance(UTI instance);
 
-    virtual void appendBaseClassForClassInstance(UTI baseclass, UTI instance);
+    virtual void appendBaseClassForClassInstance(UTI baseclass, UTI instance, bool sharedbase);
     virtual u32 getBaseClassCountForClassInstance(UTI instance);
     virtual UTI getBaseClassForClassInstance(UTI instance, u32 item);
     virtual bool updateBaseClassforClassInstance(UTI instance, UTI oldbase, UTI newbaseuti);
