@@ -49,6 +49,7 @@ namespace MFM {
 
     m_basestable.clear();
     m_basesmap.clear();
+    m_basesVTstart.clear();
   }
 
   Symbol * SymbolClass::clone()
@@ -140,6 +141,47 @@ namespace MFM {
     return m_basestable[item].m_baseshared;
   }
 
+  u32 SymbolClass::countSharedBases() const
+  {
+    u32 count = 0;
+    for(u32 i = 0; i < m_basestable.size(); i++)
+      {
+	UTI baseuti = m_basestable[i].m_base;
+	if( baseuti != Nouti) //super optional
+	  {
+	    if(isSharedBase(i))
+	      count++;
+	  }
+      }
+    return count;
+  } //countSharedBases
+
+  u32 SymbolClass::findSharedBases(std::map<UTI, u32>& svbmapref)
+  {
+    u32 count = 0;
+    for(u32 i = 0; i < m_basestable.size(); i++)
+      {
+	UTI baseuti = m_basestable[i].m_base;
+	if( baseuti != Nouti) //super optional
+	  {
+	    if(isSharedBase(i))
+	      {
+		std::map<UTI,u32>::iterator it = svbmapref.find(baseuti);
+		if(it != svbmapref.end())
+		  {
+		    it->second++; //increment
+		  }
+		else
+		  {
+		    svbmapref.insert(std::pair<UTI, u32>(baseuti, 1));
+		  }
+		count++;
+	      }
+	  }
+      }
+    return count;
+  } //findSharedBases
+
   void SymbolClass::appendBaseClass(UTI baseclass, bool sharedbase)
   {
     u32 btindex = m_basestable.size(); //after append, zero-based
@@ -150,8 +192,8 @@ namespace MFM {
     BaseClassEntry bentry;
     bentry.m_base = baseclass;
     bentry.m_basepos = UNKNOWNSIZE; //pos unknown
-    bentry.m_baseshared = sharedbase; //shared virtual base
-    bentry.m_basetmp = false; //spare
+    bentry.m_baseshared = sharedbase; //shared virtual ^base
+    bentry.m_tmpspare = false;
     m_basestable.push_back(bentry);
   } //appendBaseClass
 
@@ -192,7 +234,6 @@ namespace MFM {
     UTI oldbaseindex = it->second;
     assert(oldbaseindex == item); //sanity
     m_basesmap.erase(it);
-
     return insertBaseClassMapEntry(newbaseclass, item);
   }
 
@@ -1522,7 +1563,6 @@ namespace MFM {
 	    assert(vtsize >= 0); //caller made sure none unknown size
 
 	    setVTstartoffsetOfRelatedOriginatingClass(baseuti, basesmaxes);
-	    //m_basesVTstart.insert(std::pair<UTI,u32>(baseuti, basesmaxes));
 
 	    //copy baseclass' originating VTable entries
 	    for(s32 i = 0; i < vtsize; i++)
@@ -1557,7 +1597,6 @@ namespace MFM {
     assert(basesmaxes == (u32) initialmax);
 
     setVTstartoffsetOfRelatedOriginatingClass(cuti, basesmaxes); //start of our originating virtual funcs
-    //m_basesVTstart.insert(std::pair<UTI,u32>(cuti, basesmaxes));
     m_vtableinitialized = true;
   } //initVTable
 

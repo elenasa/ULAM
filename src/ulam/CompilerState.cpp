@@ -2094,6 +2094,65 @@ namespace MFM {
     return countids;
   } //findClassAncestorWithMatchingNameid
 
+  //return total count of shared base classes in the hierarchy of the first arg,
+  // and updated mapref of each with number of sharers in 2nd arg; recurses the family tree.
+  // (see countTheSharedVirtaulBasesInAClassHierarchy for just the total count)
+  u32 CompilerState::findTheSharedVirtualBasesInAClassHierarchy(UTI cuti, std::map<UTI, u32>& svbmapref)
+  {
+    u32 count = 0;
+    UTI subcuti = getUlamTypeAsDeref(cuti); //init for the loop
+
+    BaseclassWalker walker;
+
+    walker.init(subcuti);
+
+    UTI baseuti = Nouti;
+    //ulam-5 supports multiple base classes; superclass optional;
+    while(walker.getNextBase(baseuti))
+      {
+	SymbolClass * basecsym = NULL;
+	if(alreadyDefinedSymbolClass(baseuti, basecsym))
+	  {
+	    u32 bcnt = basecsym->findSharedBases(svbmapref);
+	    count += bcnt;
+
+	    //search all
+	    walker.addAncestorsOf(basecsym);
+	  }
+      } //end while
+
+    return count;
+  } //findTheSharedVirtualBasesInAClassHierarchy
+
+  //return total count of shared base classes in the hierarchy of the first arg,
+  // recurses the family tree. (see findTheSharedVirtaulBasesInAClassHierarchy)
+  u32 CompilerState::countTheSharedVirtualBasesInAClassHierarchy(UTI cuti)
+  {
+    u32 count = 0;
+    UTI subcuti = getUlamTypeAsDeref(cuti); //init for the loop
+
+    BaseclassWalker walker;
+
+    walker.init(subcuti);
+
+    UTI baseuti = Nouti;
+    //ulam-5 supports multiple base classes; superclass optional;
+    while(walker.getNextBase(baseuti))
+      {
+	SymbolClass * basecsym = NULL;
+	if(alreadyDefinedSymbolClass(baseuti, basecsym))
+	  {
+	    u32 bcnt = basecsym->countSharedBases();
+	    count += bcnt;
+
+	    //search all
+	    walker.addAncestorsOf(basecsym);
+	  }
+      } //end while
+
+    return count;
+  } //countTheSharedVirtualBasesInAClassHierarchy
+
   void CompilerState::resetABaseClassType(UTI cuti, UTI olduti, UTI newuti)
   {
     UTI subuti = getUlamTypeAsDeref(getUlamTypeAsScalar(cuti)); //in case of array

@@ -72,7 +72,11 @@ namespace MFM{
     u32 getBaseClassCount();
     UTI getBaseClass(u32 item);
     s32 isABaseClassItem(UTI puti);
+
     bool isSharedBase(u32 item) const;
+    u32 countSharedBases() const;
+    u32 findSharedBases(std::map<UTI, u32>& svbmapref);
+
     void appendBaseClass(UTI baseclass, bool sharedbase);
     void updateBaseClass(UTI oldclasstype, u32 item, UTI newbaseclass);
     void setBaseClass(UTI baseclass, u32 item, bool sharedbase = false);

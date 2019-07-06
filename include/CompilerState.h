@@ -282,6 +282,8 @@ namespace MFM{
     bool isClassATemplate(UTI cuti);
     bool isClassASubclass(UTI cuti); //fromerly returned super UTI, or Nav if no inheritance
     u32 findClassAncestorWithMatchingNameid(UTI cuti, u32 nameid, UTI& superp);
+    u32 findTheSharedVirtualBasesInAClassHierarchy(UTI cuti, std::map<UTI, u32>& svbmapref);
+    u32 countTheSharedVirtualBasesInAClassHierarchy(UTI cuti);
 
     bool isClassASubclassOf(UTI cuti, UTI superp);
     bool isBaseClassADirectAncestorOf(UTI cuti, UTI basep);
