@@ -9,7 +9,7 @@
 
 namespace MFM {
 
-  UlamTypeClass::UlamTypeClass(const UlamKeyTypeSignature key, CompilerState & state) : UlamType(key, state), m_customArray(false)
+  UlamTypeClass::UlamTypeClass(const UlamKeyTypeSignature key, CompilerState & state) : UlamType(key, state), m_customArray(false), m_bitsizeAsBaseClass(UNKNOWNSIZE)
   {
     m_wordLengthTotal = calcWordSize(getTotalBitSize());
     m_wordLengthItem = calcWordSize(getBitSize());
@@ -28,6 +28,19 @@ namespace MFM {
   bool UlamTypeClass::isPrimitiveType()
   {
     return false;
+  }
+
+  s32 UlamTypeClass::getBitsizeAsBaseClass()
+  {
+    assert(isScalar());
+    //assert(m_bitsizeAsBaseClass >= 0); //t3318
+    return m_bitsizeAsBaseClass;
+  }
+
+  void UlamTypeClass::setBitsizeAsBaseClass(s32 bs)
+  {
+    assert(isScalar());
+    m_bitsizeAsBaseClass = bs;
   }
 
   bool UlamTypeClass::cast(UlamValue & val, UTI typidx)

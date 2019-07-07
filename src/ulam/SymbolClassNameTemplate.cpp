@@ -266,7 +266,7 @@ namespace MFM {
     for(u32 i = 0; i < basecount; i++)
       {
 	UTI baseuti = SymbolClass::getBaseClass(i);
-	bool sharedbase = SymbolClass::isSharedBase(i);
+	bool sharedbase = SymbolClass::isDirectSharedBase(i);
 	if(m_state.okUTItoContinue(baseuti))
 	  {
 	    if(m_state.isClassAStub(baseuti))
@@ -1600,6 +1600,7 @@ namespace MFM {
 	UTI cuti = csym->getUlamTypeIdx(); //this instance
 	UTI uti = it->first; //this instance entry; may not match Symbol class' uti
 	s32 totalbits = 0;
+	s32 sharedbits = UNKNOWNSIZE;
 
 	if(checkSFINAE(csym))
 	  {
@@ -1638,6 +1639,18 @@ namespace MFM {
 
 	if(aok)
 	  {
+	    std::map<UTI, u32> svbmap;
+	    s32 sharedbitssaved = UNKNOWNSIZE;
+	    aok = csym->determineSharedBasesAndTotalBitsize(sharedbitssaved, sharedbits);
+	    assert(aok);
+	    assert(sharedbits >= 0);
+	    assert(sharedbits <= totalbits);
+	    assert(sharedbitssaved >= sharedbits);
+	    totalbits = (totalbits - sharedbitssaved + sharedbits); //updates total here!!
+	  }
+
+	if(aok)
+	  {
 	    m_state.setBitSize(uti, totalbits); //"scalar" Class bitsize  KEY ADJUSTED
 	    if(m_state.getBitSize(uti) != totalbits)
 	      {
@@ -1655,6 +1668,8 @@ namespace MFM {
 		msg << "CLASS INSTANCE '" << m_state.getUlamTypeNameByIndex(uti).c_str();
 		msg << "' UTI" << uti << ", SIZED: " << totalbits;
 		MSG(Symbol::getTokPtr(), msg.str().c_str(), DEBUG);
+		//after setBitSize so not to clobber it.
+		m_state.setBaseClassBitSize(cuti, totalbits - sharedbits); //noop for elements
 	      }
 	  }
 	else

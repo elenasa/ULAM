@@ -707,15 +707,23 @@ namespace MFM {
 	pos = uvpass.getPassPos();
 	// 'pos' modified by this data member symbol's packed bit position;
 	// except for array items, i.e. tmprefsymbols (t3910)
-	// adjusted if dm of base class by rel pos (t41320)
+	// adjusted if dm of (unshared) base class by rel pos (t41320)
 	if(!m_varSymbol->isTmpVarSymbol())
 	  {
 	    pos += m_varSymbol->getPosOffset();
 	    UTI dmclass = m_varSymbol->getDataMemberClass();
 	    UTI stgclass = uvpass.getPassTargetType();
-	    u32 relpos = 0;
-	    if((stgclass != Nouti) && m_state.getABaseClassRelativePositionInAClass(stgclass, dmclass, relpos))
-	      pos += relpos; //zero if the same, false if not a base class
+	    //if((stgclass != Nouti) && m_state.getABaseClassRelativePositionInAClass(stgclass, dmclass, relpos))
+	    if((stgclass != Nouti))
+	      {
+		u32 relpos = 0;
+		bool shared = m_state.getASharedBaseClassRelativePositionInAClass(stgclass, dmclass, relpos);
+		if(!shared)
+		  if(m_state.getABaseClassRelativePositionInAClass(stgclass, dmclass, relpos))
+		    pos += relpos; //zero if the same, false if not a base class
+		//else a shared base waits for effective self
+	      }
+	    //else (e.g. implicit self.)
 	  }
 
 	//might already be true when MemberSelectByBaseType; don't clobber.

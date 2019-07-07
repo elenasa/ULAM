@@ -2515,8 +2515,10 @@ namespace MFM {
 	fp->write(".");
 	return; //done
       }
-
     u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
+    if(cosSize == 1)
+      stgcos = m_state.getCurrentSelfSymbolForCodeGen(); //t41319
+
     UTI stgcosuti = stgcos->getUlamTypeIdx();
     UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
     UTI cosuti = cos->getUlamTypeIdx();
@@ -2528,19 +2530,46 @@ namespace MFM {
 
     u32 pos = uvpass.getPassPos();
 
+    u32 tmpsharedrelpos = 0; //use runtime shared pos based on effself instead
+    bool shared = m_state.getASharedBaseClassRelativePositionInAClass(stgcosuti, cosclassuti, tmpsharedrelpos);
+
     if((cosSize == 1))
       {
-	stgcos = m_state.getCurrentSelfSymbolForCodeGen(); //t41319
-
-	u32 relposofbaseclass = 0;
-	if(m_state.getABaseClassRelativePositionInAClass(stgcos->getUlamTypeIdx(), cosclassuti, relposofbaseclass))
-	  pos += relposofbaseclass; //t41319, t41314
-	else if(m_state.getABaseClassRelativePositionInAClass(cosclassuti, stgcos->getUlamTypeIdx(), relposofbaseclass))
+	//stgcos = m_state.getCurrentSelfSymbolForCodeGen(); //t41319
+	if(!shared)
 	  {
-	    pos -= relposofbaseclass;
-	    m_state.abortNeedsATest(); //????
+	    u32 relposofbaseclass = 0;
+	    if(m_state.getABaseClassRelativePositionInAClass(stgcosuti, cosclassuti, relposofbaseclass))
+	      pos += relposofbaseclass; //t41319, t41314
+	    else if(m_state.getABaseClassRelativePositionInAClass(cosclassuti, stgcosuti, relposofbaseclass))
+	      {
+		pos -= relposofbaseclass;
+		m_state.abortNeedsATest(); //????
+	      }
+	    //else
 	  }
-	//else
+	//else (shared)
+      }
+
+    u32 tmpsharedrelposvar = m_state.getNextTmpVarNumber();
+    if(shared)
+      {
+	//get shared relpos in a tmp var
+	//m_state.indentUlamCode(fp);
+	fp->write("const u32 ");
+	fp->write(m_state.getTmpVarAsString(Unsigned, tmpsharedrelposvar, TMPREGISTER).c_str());;
+	fp->write(" = ");
+	if(cosSize > 1 && stgcos->isTmpVarSymbol())
+	  fp->write(stgcos->getMangledName().c_str());
+	else
+	  fp->write(m_state.getHiddenArgName()); //ur first arg
+	fp->write(".GetEffectiveSelf()->");
+	fp->write(m_state.getGetRelPosMangledFunctionName(stgcosuti));
+	fp->write("( & ");
+	fp->write(m_state.getTheInstanceMangledNameByIndex(cosclassuti).c_str());
+	fp->write(");"); GCNL;
+	fp->write("\n");
+	m_state.indentUlamCode(fp); //used one previously done
       }
 
     fp->write("UlamRef<EC>("); //wrapper for dm
@@ -2587,6 +2616,13 @@ namespace MFM {
 	      fp->write("+ ");
 	  }
 #endif
+	if(shared)
+	  {
+	    fp->write(m_state.getTmpVarAsString(Unsigned, tmpsharedrelposvar, TMPREGISTER).c_str());;
+	    fp->write(" + ");
+	    assert(uvpass.getPassApplyDelta()); //double checking, ow need it!!
+	  }
+
 	fp->write_decimal_unsigned(pos); //rel offset //t3143, t3543
 	fp->write("u, ");
       }

@@ -16,6 +16,17 @@ namespace MFM {
     return UC_ELEMENT;
   }
 
+  s32 UlamTypeClassElement::getBitsizeAsBaseClass()
+  {
+    m_state.abortShouldntGetHere(); //only quarks & transients
+    return UNKNOWNSIZE;
+  }
+
+  void UlamTypeClassElement::setBitsizeAsBaseClass(s32 bs)
+  {
+    m_state.abortShouldntGetHere(); //only quarks and transients
+  }
+
   bool UlamTypeClassElement::cast(UlamValue & val, UTI typidx)
   {
     bool brtn = true;

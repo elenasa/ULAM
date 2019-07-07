@@ -252,6 +252,7 @@ namespace MFM{
     bool isScalar(UTI utArg);
     s32 getArraySize(UTI utArg);
     s32 getBitSize(UTI utArg);
+    s32 getBaseClassBitSize(UTI utiArg);
     ALT getReferenceType(UTI utArg);
     bool isReference(UTI utArg);
     bool isAltRefType(UTI utiArg);
@@ -264,6 +265,7 @@ namespace MFM{
     bool isHolder(UTI utArg);
     bool setBitSize(UTI utArg, s32 total);
     bool setUTISizes(UTI utArg, s32 bitsize, s32 arraysize);
+    bool setBaseClassBitSize(UTI utiArg, s32 basebitsize);
     void noteClassDataMembersTypeAndName(UTI cuti, s32 totalsize); //for errors
     void verifyZeroSizeUrSelf();
     void mergeClassUTI(UTI olduti, UTI cuti);
@@ -289,6 +291,7 @@ namespace MFM{
     bool isBaseClassADirectAncestorOf(UTI cuti, UTI basep);
     void resetABaseClassType(UTI cuti, UTI olduti, UTI newuti);
     bool getABaseClassRelativePositionInAClass(UTI cuti, UTI basep, u32& relposref);
+    bool getASharedBaseClassRelativePositionInAClass(UTI cuti, UTI basep, u32& relposref);
 
     bool isClassAStub(UTI cuti);
     bool hasClassAStubInHierarchy(UTI cuti);

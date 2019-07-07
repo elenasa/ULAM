@@ -73,15 +73,23 @@ namespace MFM{
     UTI getBaseClass(u32 item);
     s32 isABaseClassItem(UTI puti);
 
-    bool isSharedBase(u32 item) const;
-    u32 countSharedBases() const;
-    u32 findSharedBases(std::map<UTI, u32>& svbmapref);
+    bool isDirectSharedBase(u32 item) const;
+    u32 countDirectSharedBases() const;
+    u32 findDirectSharedBases(std::map<UTI, u32>& svbmapref);
 
     void appendBaseClass(UTI baseclass, bool sharedbase);
     void updateBaseClass(UTI oldclasstype, u32 item, UTI newbaseclass);
     void setBaseClass(UTI baseclass, u32 item, bool sharedbase = false);
     s32 getBaseClassRelativePosition(u32 item) const;
     void setBaseClassRelativePosition(u32 item, u32 pos);
+
+    UTI getSharedBaseClass(u32 item);
+    s32 isASharedBaseClassItem(UTI buti);
+    s32 isASharedBaseClassItemSearch(UTI buti);
+    u32 getSharedBaseClassCount() const;
+
+    s32 getSharedBaseClassRelativePosition(u32 item) const;
+    void setSharedBaseClassRelativePosition(u32 item, u32 pos);
 
     void setClassBlockNode(NodeBlockClass * node);
 
@@ -108,6 +116,7 @@ namespace MFM{
     bool hasCustomArrayLengthof();
 
     bool trySetBitsizeWithUTIValues(s32& totalbits);
+    bool determineSharedBasesAndTotalBitsize(s32& sharedbitssaved, s32& sharedbitsize);
 
     void printBitSizeOfClass();
 
@@ -207,11 +216,19 @@ namespace MFM{
     ELE_TYPE m_elementType; //ulam-4
 
     BasesTable m_basestable;
-    BasesTableTypeMap m_basesmap;
+    //BasesTableTypeMap m_basesmap; //UTI -> index into basestable
+    BasesTable m_sharedbasestable;
+    //BasesTableTypeMap m_sharedbasesmap; //UTI -> index into sharedbasestable
 
     s32 isABaseClassItemSearch(UTI buti);
-    bool updateBaseClassMap(UTI oldclasstype, u32 item, UTI newbaseclass);
-    bool insertBaseClassMapEntry(UTI buti, u32 item);
+    //bool updateBaseClassMap(UTI oldclasstype, u32 item, UTI newbaseclass);
+    //bool insertBaseClassMapEntry(UTI buti, u32 item);
+
+    void appendSharedBaseClass(UTI baseclass);
+    //bool insertSharedBaseClassMapEntry(UTI buti, u32 item);
+    void updateSharedBaseClass(UTI oldclasstype, u32 item, UTI newbaseclass);
+    //bool updateSharedBaseClassMap(UTI oldclasstype, u32 item, UTI newbaseclass);
+
 
     void assignClassArgValuesInStubCopy();
 
@@ -228,12 +245,12 @@ namespace MFM{
 
     static std::string firstletterTolowercase(const std::string s);
 
-    std::map<UTI, u32> m_basesVTstart; //includes entire hierarchy and self
+    BasesTableTypeMap m_basesVTstart; //includes entire hierarchy and self
     VT m_vtable;
     VT m_vownedVT;
     bool m_vtableinitialized;
 
-    void setVTstartoffsetOfRelatedOriginatingClass(UTI origuti, u32 startoffset);
+    bool setVTstartoffsetOfRelatedOriginatingClass(UTI origuti, u32 startoffset);
   };
 
 }

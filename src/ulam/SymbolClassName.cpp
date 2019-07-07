@@ -319,15 +319,28 @@ namespace MFM {
     bool aok = true;
     assert(!isClassTemplate());
 
+    UTI cuti = getUlamTypeIdx();
     NodeBlockClass * classNode = getClassBlockNode();
     assert(classNode); //infinite loop "Incomplete Class <> was never defined, fails sizing"
-    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
+    m_state.pushClassContext(cuti, classNode, classNode, false, NULL);
 
     s32 totalbits = 0;
+    s32 sharedbits = UNKNOWNSIZE;
     aok = SymbolClass::trySetBitsizeWithUTIValues(totalbits);
     if(aok)
       {
-	UTI cuti = getUlamTypeIdx();
+	std::map<UTI, u32> svbmap;
+	s32 sharedbitssaved = UNKNOWNSIZE;
+	aok = SymbolClass::determineSharedBasesAndTotalBitsize(sharedbitssaved, sharedbits);
+	assert(aok);
+	assert(sharedbits >= 0);
+	assert(sharedbits <= totalbits);
+	assert(sharedbitssaved >= sharedbits);
+	totalbits = (totalbits - sharedbitssaved + sharedbits); //updates total here!!
+      }
+
+    if(aok)
+      {
 	m_state.setBitSize(cuti, totalbits); //"scalar" Class bitsize  KEY ADJUSTED
 	if(m_state.getBitSize(cuti) != totalbits)
 	  {
@@ -344,6 +357,8 @@ namespace MFM {
 	    msg << "CLASS (regular) '" << m_state.getUlamTypeNameByIndex(cuti).c_str();
 	    msg << "' SIZED: " << totalbits;
 	    MSG(Symbol::getTokPtr(), msg.str().c_str(),DEBUG);
+	    //after setBitSize so not to clobber it.
+	    m_state.setBaseClassBitSize(cuti, totalbits - sharedbits); //noop for elements
 	  }
       }
     m_state.popClassContext(); //restore

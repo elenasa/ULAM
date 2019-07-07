@@ -42,7 +42,6 @@
 
 namespace MFM
 {
-
   struct BaseClassEntry
   {
     UTI m_base;

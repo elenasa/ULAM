@@ -1533,6 +1533,14 @@ namespace MFM {
     return (ut->getBitSize());
   }
 
+  s32 CompilerState::getBaseClassBitSize(UTI utiArg)
+  {
+    UlamType * ut = getUlamTypeByIndex(utiArg);
+    if(ut->getUlamClassType() == UC_ELEMENT)
+      return 0;
+    return (ut->getBitsizeAsBaseClass());
+  }
+
   ALT CompilerState::getReferenceType(UTI utiArg)
   {
     UlamType * ut = getUlamTypeByIndex(utiArg);
@@ -1757,6 +1765,54 @@ namespace MFM {
     }
     return true;
   } //setUTISizes
+
+  // return false if ERR; skips elements
+  bool CompilerState::setBaseClassBitSize(UTI utiArg, s32 basebitsize)
+  {
+    UlamType * ut = getUlamTypeByIndex(utiArg);
+
+    if(!okUTItoContinue(utiArg))
+      return false;
+
+    if(ut->isPrimitiveType() || !ut->isScalar())
+      return false;
+
+    ULAMCLASSTYPE classtype = ut->getUlamClassType();
+
+    if(classtype == UC_ELEMENT)
+      {
+	//shared bases reflected in element's total bitsize
+	return true; //done
+      }
+
+    //verify total bits is within limits for quarks and transients
+    if(classtype == UC_QUARK)
+      {
+	if(basebitsize > MAXBITSPERQUARK)
+	  {
+	    std::ostringstream msg;
+	    msg << "Trying to exceed allotted bit size (" << MAXBITSPERQUARK << ") for a base quark ";
+	    msg << ut->getUlamTypeClassNameBrief(utiArg).c_str() << " with " << basebitsize << " bits";
+	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
+	    return false;
+	  }
+      }
+
+    if(classtype == UC_TRANSIENT)
+      {
+	if(basebitsize > MAXBITSPERTRANSIENT)
+	  {
+	    std::ostringstream msg;
+	    msg << "Trying to exceed allotted bit size (" << MAXBITSPERTRANSIENT << ") for a base transient ";
+	    msg << ut->getUlamTypeClassNameBrief(utiArg).c_str() << " with " << basebitsize << " bits";
+	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
+	    return false;
+	  }
+      }
+
+    ut->setBitsizeAsBaseClass(basebitsize);
+    return true;
+  } //setBaseClassBitSize
 
   void CompilerState::noteClassDataMembersTypeAndName(UTI cuti, s32 totalsize)
   {
@@ -2113,7 +2169,7 @@ namespace MFM {
 	SymbolClass * basecsym = NULL;
 	if(alreadyDefinedSymbolClass(baseuti, basecsym))
 	  {
-	    u32 bcnt = basecsym->findSharedBases(svbmapref);
+	    u32 bcnt = basecsym->findDirectSharedBases(svbmapref);
 	    count += bcnt;
 
 	    //search all
@@ -2142,7 +2198,7 @@ namespace MFM {
 	SymbolClass * basecsym = NULL;
 	if(alreadyDefinedSymbolClass(baseuti, basecsym))
 	  {
-	    u32 bcnt = basecsym->countSharedBases();
+	    u32 bcnt = basecsym->countDirectSharedBases();
 	    count += bcnt;
 
 	    //search all
@@ -2185,6 +2241,7 @@ namespace MFM {
 
     UTI baseuti = Nouti;
     //ulam-5 supports multiple base classes; superclass optional;
+    //ulam-5 supports shared base classes;
     while(walker.getNextBase(baseuti) && !hasbase)
       {
 	SymbolClass * basecsym = NULL;
@@ -2201,10 +2258,18 @@ namespace MFM {
 		s32 foundbaseitem = foundbasecsym->isABaseClassItem(defbasep); //direct
 		if(foundbaseitem >= 0)
 		  {
-		    s32 pos = foundbasecsym->getBaseClassRelativePosition(foundbaseitem);
-		    assert(pos >= 0);
+		    if(!foundbasecsym->isDirectSharedBase(foundbaseitem))
+		      {
+			s32 pos = foundbasecsym->getBaseClassRelativePosition(foundbaseitem);
+			assert(pos >= 0);
 
-		    accumpos += pos; //more specific position within nextbase
+			accumpos += pos; //more specific position within nextbase
+		      }
+		    else
+		      {
+			hasbase = false; //shared, so skip
+			walker.addAncestorsOf(basecsym); //perhaps a non-shared base exists
+		      }
 		  }
 		else
 		  walker.addAncestorsOf(foundbasecsym);
@@ -2217,6 +2282,31 @@ namespace MFM {
     relposref = accumpos;
     return hasbase; //even for non-classes
   } //getABaseClassRelativePositionInAClass
+
+  bool CompilerState::getASharedBaseClassRelativePositionInAClass(UTI cuti, UTI basep, u32& relposref)
+  {
+    UTI defcuti = getUlamTypeAsDeref(cuti);
+    UTI defbasep = getUlamTypeAsDeref(basep);
+    if(UlamType::compare(defcuti, defbasep, *this) == UTIC_SAME)
+      return false; //not shared (t3102)
+
+    //ulam-5 supports shared base classes;
+    bool hasbase = false;
+    SymbolClass * csym = NULL;
+    s32 pos = UNKNOWNSIZE;
+    if(alreadyDefinedSymbolClass(cuti, csym))
+      {
+	s32 sharedbaseitem = csym->isASharedBaseClassItem(defbasep);
+	if(sharedbaseitem >= 0)
+	  {
+	    pos = csym->getSharedBaseClassRelativePosition(sharedbaseitem);
+	    assert(pos >= 0);
+	    hasbase = true;
+	  }
+      }
+    relposref = pos;
+    return hasbase; //even for non-classes (t3300)
+  } //getASharedBaseClassRelativePositionInAClass
 
   bool CompilerState::isClassAStub(UTI cuti)
   {
