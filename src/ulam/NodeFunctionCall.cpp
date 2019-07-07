@@ -1243,93 +1243,11 @@ namespace MFM {
     fp->write(vtindexstring.str().c_str());
     fp->write("); //override class"); GCNL; //reading into a separate classptr tmp var
 
-#if 0
-    s32 tmpvarregnum = m_state.getNextTmpVarNumber();
-    m_state.indentUlamCode(fp);
-    fp->write("u32 ");
-    fp->write(m_state.getTmpVarAsString(Unsigned, tmpvarregnum, TMPREGISTER).c_str());
-    fp->write(" = ");
-    fp->write(m_state.getUlamClassTmpVarAsString(tmpvarclassptr).c_str());
-    fp->write("->");
-    fp->write(m_state.getClassRegistrationNumberFunctionName(decosuti));
-    fp->write("(); //override class regnum"); GCNL; //reading into a separate regnum tmp var
-#endif
-
-#if 0
-    s32 tmpvarapplydelta = m_state.getNextTmpVarNumber();
-    m_state.indentUlamCode(fp);
-    fp->write("bool ");
-    fp->write(m_state.getTmpVarAsString(Bool, tmpvarapplydelta, TMPREGISTER).c_str());
-    fp->write(" = true; //false; //YES always apply delta (default)"); GCNL;
-
-    u32 callerregnum = m_state.getAClassRegistrationNumber(decosuti);
-
-    m_state.indentUlamCode(fp);
-    fp->write("if(");
-    fp->write(m_state.getTmpVarAsString(Unsigned, tmpvarregnum, TMPREGISTER).c_str());
-    fp->write(" != ");
-    fp->write_decimal_unsigned(callerregnum); //override ne calling
-    fp->write("u) //override and caller, ");
-    fp->write(m_state.getUlamTypeNameBriefByIndex(decosuti).c_str());
-    fp->write(" (regnum=");
-    fp->write_decimal_unsigned(callerregnum); //override ne calling
-    fp->write("u), classes different, and..\n");
-
-    m_state.indentUlamCode(fp);
-    fp->write("{\n");
-
-    m_state.m_currentIndentLevel++;
-
-    //if override is a sub- of calling (override is-a calling), apply delta
-    m_state.indentUlamCode(fp);
-    fp->write("if(");
-    fp->write(m_state.getUlamClassTmpVarAsString(tmpvarclassptr).c_str()); //override
-    fp->write("->");
-    fp->write(m_state.getIsMangledFunctionName(decosuti)); //has-a base of (is a sub of)
-    fp->write("((u32) "); //cast to disambiguate
-    fp->write_decimal_unsigned(callerregnum); //calling
-    fp->write("u))\n");
-
-    m_state.m_currentIndentLevel++;
-
-    m_state.indentUlamCode(fp);
-    fp->write(m_state.getTmpVarAsString(Bool, tmpvarapplydelta, TMPREGISTER).c_str());
-    fp->write(" = true; //calling class is-base of overriding class, apply delta\n");
-
-    m_state.m_currentIndentLevel--;
-
-    m_state.indentUlamCode(fp);
-    fp->write("else if(!");
-
-    //if overriding is NOT a base- of calling either, fail
-    fp->write(m_state.getTheInstanceMangledNameByIndex(cosuti).c_str()); //calling
-    fp->write(".");
-    fp->write(m_state.getIsMangledFunctionName(decosuti)); //has-a base of (is a sub of)
-    fp->write("(");
-    fp->write(m_state.getTmpVarAsString(Unsigned, tmpvarregnum, TMPREGISTER).c_str()); //override
-    fp->write("))\n");
-
-    m_state.m_currentIndentLevel++;
-
-    m_state.indentUlamCode(fp);
-    fp->write("FAIL(VIRTUAL_CALLED_ON_SIBLING); //override not a base of calling class either\n");
-
-    m_state.m_currentIndentLevel--;
-    m_state.m_currentIndentLevel--;
-
-    m_state.indentUlamCode(fp);
-    fp->write("} "); GCNL;
-    fp->write("\n\n");
-#endif
-
-    //urtmpnumvfc = urtmpnum; //TODO: remove this arg!!!!
-#if 1
     s32 tmpvarpos = m_state.getNextTmpVarNumber();
     m_state.indentUlamCode(fp);
     fp->write("const u32 ");
     fp->write(m_state.getTmpVarAsString(Unsigned, tmpvarpos, TMPREGISTER).c_str());
     fp->write(" = ");
-    //fp->write(lhsstr.str().c_str());
     if(urtmpnum > 0)
       fp->write(m_state.getUlamRefTmpVarAsString(urtmpnum).c_str());
     else
@@ -1363,30 +1281,10 @@ namespace MFM {
       fp->write(m_state.getHiddenArgName()); //ur
     fp->write(", ");
     fp->write(m_state.getTmpVarAsString(Unsigned, tmpvarpos, TMPREGISTER).c_str());
-
-#if 0
-    //adjust pos to start of eff self, so new ulamref points to its overriding class
-    fp->write(" + ");
-    if(urtmpnum > 0)
-      fp->write(m_state.getUlamRefTmpVarAsString(urtmpnum).c_str());
-    else
-      fp->write(m_state.getHiddenArgName()); //ur
-    fp->write(".GetPos()");
-    fp->write(" - ");
-    if(urtmpnum > 0)
-      fp->write(m_state.getUlamRefTmpVarAsString(urtmpnum).c_str());
-    else
-      fp->write(m_state.getHiddenArgName()); //ur
-    fp->write(".GetDelta()");
-#endif
-
     fp->write(", ");
     fp->write(m_state.getTmpVarAsString(Unsigned, tmpvarlen, TMPREGISTER).c_str());
     fp->write(", true");
-    //fp->write(m_state.getTmpVarAsString(Bool, tmpvarapplydelta, TMPREGISTER).c_str());
     fp->write(");"); GCNL;
-#endif
-
     return;
   } //genCodeVirtualFunctionCallVTableEntry
 

@@ -118,28 +118,6 @@ namespace MFM {
   s32 SymbolClass::isABaseClassItem(UTI buti)
   {
     return isABaseClassItemSearch(buti); //slow, uses compare..
-#if 0
-    s32 item = -1; //negative is not found
-    BasesTableTypeMap::iterator it = m_basesmap.find(buti);
-    if(it != m_basesmap.end())
-      item = it->second;
-    else
-      {
-	item = isABaseClassItemSearch(buti); //slow, uses compare..
-	if(item >= 0)
-	  {
-	    UTI alias;
-	    if(!m_state.findaUTIAlias(buti, alias))
-	      {
-		//buti is a root, so update base class table
-		updateBaseClass(getBaseClass(item), item, buti);
-	      }
-	    else
-	      m_state.abortShouldntGetHere(); //why not in map?
-	  }
-      }
-    return item;
-#endif
   } //isABaseClassItem
 
   s32 SymbolClass::isABaseClassItemSearch(UTI buti)
@@ -209,15 +187,6 @@ namespace MFM {
 
   void SymbolClass::appendBaseClass(UTI baseclass, bool sharedbase)
   {
-#if 0
-    u32 btitem = m_basestable.size(); //after append, zero-based
-    if(baseclass != Nouti)
-      {
-	AssertBool mapnotdup = insertBaseClassMapEntry(baseclass, btitem);
-	assert(mapnotdup);
-      }
-#endif
-
     BaseClassEntry bentry;
     bentry.m_base = baseclass;
     bentry.m_basepos = UNKNOWNSIZE; //pos unknown
@@ -232,11 +201,6 @@ namespace MFM {
     assert(item < m_basestable.size());
     assert(m_basestable[item].m_base == oldclasstype);
     m_basestable[item].m_base = newbaseclass;
-
-#if 0
-    AssertBool mapok = updateBaseClassMap(oldclasstype, item, newbaseclass);
-    assert(mapok);
-#endif
   }
 
   void SymbolClass::setBaseClass(UTI baseclass, u32 item, bool sharedbase)
@@ -256,30 +220,6 @@ namespace MFM {
 	updateBaseClass(m_basestable[item].m_base, item, baseclass);
       }
   } //setBaseClass
-
-#if 0
-  bool SymbolClass::updateBaseClassMap(UTI oldclasstype, u32 item, UTI newbaseclass)
-  {
-    if(oldclasstype != Nouti)
-      {
-	BasesTableTypeMap::iterator it = m_basesmap.find(oldclasstype);
-	assert(it != m_basesmap.end());
-
-	UTI oldbaseitem = it->second;
-	assert(oldbaseitem == item); //sanity
-	m_basesmap.erase(it);
-      }
-    return insertBaseClassMapEntry(newbaseclass, item);
-  }
-
-  bool SymbolClass::insertBaseClassMapEntry(UTI buti, u32 item)
-  {
-    if(buti == Nouti) return true;
-    std::pair<BasesTableTypeMap::iterator, bool> reti;
-    reti = m_basesmap.insert(std::pair<UTI,u32>(buti, item)); //quick access
-    return reti.second; //false if already existed, i.e. not added
-  }
-#endif
 
   s32 SymbolClass::getBaseClassRelativePosition(u32 item) const
   {
@@ -302,29 +242,6 @@ namespace MFM {
   s32 SymbolClass::isASharedBaseClassItem(UTI buti)
   {
     return isASharedBaseClassItemSearch(buti); //slow, uses compare..
-
-#if 0
-    s32 item = -1; //negative is not found
-    BasesTableTypeMap::iterator it = m_sharedbasesmap.find(buti);
-    if(it != m_sharedbasesmap.end())
-      item = it->second;
-    else
-      {
-	item = isASharedBaseClassItemSearch(buti); //slow, uses compare..
-	if(item >= 0)
-	  {
-	    UTI alias;
-	    if(!m_state.findaUTIAlias(buti, alias))
-	      {
-		//buti is a root, so update base class table
-		updateSharedBaseClass(getSharedBaseClass(item), item, buti);
-	      }
-	    else
-	      m_state.abortShouldntGetHere(); //why not in map?
-	  }
-      }
-    return item;
-#endif
   } //isABaseClassItem
 
   s32 SymbolClass::isASharedBaseClassItemSearch(UTI buti)
@@ -352,13 +269,6 @@ namespace MFM {
 
   void SymbolClass::appendSharedBaseClass(UTI baseclass)
   {
-#if 0
-    u32 sbtitem = m_sharedbasestable.size(); //after append, zero-based
-    assert(baseclass != Nouti);
-    AssertBool mapnotdup = insertSharedBaseClassMapEntry(baseclass, sbtitem);
-    assert(mapnotdup);
-#endif
-
     BaseClassEntry bentry;
     bentry.m_base = baseclass;
     bentry.m_basepos = UNKNOWNSIZE; //pos unknown
@@ -373,36 +283,7 @@ namespace MFM {
     assert(item < m_sharedbasestable.size());
     assert(m_sharedbasestable[item].m_base == oldclasstype);
     m_sharedbasestable[item].m_base = newbaseclass;
-
-#if 0
-    AssertBool mapok = updateSharedBaseClassMap(oldclasstype, item, newbaseclass);
-    assert(mapok);
-#endif
   }
-
-#if 0
-  bool SymbolClass::insertSharedBaseClassMapEntry(UTI buti, u32 item)
-  {
-    assert(buti != Nouti);
-    std::pair<BasesTableTypeMap::iterator, bool> reti;
-    reti = m_sharedbasesmap.insert(std::pair<UTI,u32>(buti, item)); //quick access
-    return reti.second; //false if already existed, i.e. not added
-  }
-
-  bool SymbolClass::updateSharedBaseClassMap(UTI oldclasstype, u32 item, UTI newbaseclass)
-  {
-    if(oldclasstype != Nouti)
-      {
-	BasesTableTypeMap::iterator it = m_sharedbasesmap.find(oldclasstype);
-	assert(it != m_sharedbasesmap.end());
-
-	UTI oldbaseitem = it->second;
-	assert(oldbaseitem == item); //sanity
-	m_sharedbasesmap.erase(it);
-      }
-    return insertSharedBaseClassMapEntry(newbaseclass, item);
-  }
-#endif
 
   s32 SymbolClass::getSharedBaseClassRelativePosition(u32 item) const
   {

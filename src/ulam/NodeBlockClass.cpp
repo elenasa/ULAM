@@ -1202,36 +1202,6 @@ void NodeBlockClass::checkTestFunctionReturnType()
 	i++;
       } //end while
 
-#if 0
-    //ulam-5 supports shared base classes;
-    u32 shbasecount = csym->getSharedBaseClassCount();
-    u32 j = 0;
-    while(j < shbasecount)
-      {
-	UTI baseuti = csym->getSharedBaseClass(j);
-	if(baseuti != Nouti)
-	  {
-	    NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(j);
-	    assert(shbasecblock);
-
-	    s32 basesmaxidx = shbasecblock->getVirtualMethodMaxIdx();
-	    if(basesmaxidx < 0)
-	      {
-		std::ostringstream msg;
-		msg << "Subclass '";
-		msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-		msg << "' inherits from '";
-		msg << m_state.getUlamTypeNameBriefByIndex(baseuti).c_str();
-		msg << "', a shared class whose max index for virtual functions is still unknown";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-		basesnotready++;
-		//return;
-	      }
-	  }
-	j++;
-      } //end while
-#endif
-
     if(basesnotready == 0)
       {
 	// for all the virtual function names, calculate their index in the VM Table
@@ -1304,34 +1274,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	  }
 	i++;
       } //end while
-
-#if 0
-    //ulam-5 supports shared base classes;
-    u32 shbasecount = csym->getSharedBaseClassCount();
-    u32 j = 0;
-    while(j < shbasecount)
-      {
-	UTI baseuti = csym->getSharedBaseClass(j);
-	assert(baseuti != Hzy);
-	if(baseuti != Nouti)
-	  {
-	    NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(j);
-	    if(!shbasecblock) //might be during resolving loop, not set yet
-	      {
-		std::ostringstream msg;
-		msg << "Subclass '";
-		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-		msg << "' inherits from '";
-		msg << m_state.getUlamTypeNameBriefByIndex(baseuti).c_str();
-		msg << "', an INCOMPLETE Shared Base class; ";
-		msg << "No check of custom array type functions";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	      }
-	    shbasecblock->checkCustomArrayTypeFunctions();
-	  }
-	j++;
-      } //end while
-#endif
   } //checkCustomArrayTypeFunctions
 
   UTI NodeBlockClass::getCustomArrayTypeFromGetFunction()
@@ -1369,26 +1311,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 		  }
 		i++;
 	      } //end while
-
-#if 0
-	    //ulam-5 supports shared base classes;
-	    u32 shbasecount = csym->getSharedBaseClassCount();
-	    u32 j = 0;
-	    while((catype == Nouti) && (j < shbasecount))
-	      {
-		UTI baseuti = csym->getSharedBaseClass(j);
-		if(baseuti != Nouti)
-		  {
-		    NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(j);
-		    assert(shbasecblock);
-		    catype = shbasecblock->getCustomArrayTypeFromGetFunction();
-		  }
-		j++;
-	      } //end while
-#endif
 	  }
       }
-    return catype; //from first base class???
+    return catype; //from first base class?
   } //getCustomArrayTypeFromGetFunction
 
   u32 NodeBlockClass::getCustomArrayIndexTypeFromGetFunction(Node * rnode, UTI& idxuti, bool& hasHazyArgs)
@@ -1428,25 +1353,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 		  }
 		i++;
 	      } //end while
-
-#if 0
-	    //ulam-5 supports shared base classes;
-	    u32 shbasecount = csym->getSharedBaseClassCount();
-	    u32 j = 0;
-	    while((j < shbasecount))
-	      {
-		UTI baseuti = csym->getSharedBaseClass(j);
-		if(baseuti != Nouti)
-		  {
-		    NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(j);
-		    assert(shbasecblock);
-		    bool tmphzyargs = false;
-		    camatches += shbasecblock->getCustomArrayIndexTypeFromGetFunction(rnode, idxuti, tmphzyargs);
-		    hasHazyArgs |= tmphzyargs;
-		  }
-		j++;
-	      } //end while
-#endif
 	  }
       }
     return camatches; //search all base classes, just super, or first one with a match???
@@ -1489,23 +1395,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	      }
 	    i++;
 	  } //end while
-
-#if 0
-	//ulam-5 supports shared base classes;
-	u32 shbasecount = csym->getSharedBaseClassCount();
-	u32 j = 0;
-	while((j < shbasecount))
-	  {
-	    UTI baseuti = csym->getSharedBaseClass(j);
-	    if(baseuti != Nouti)
-	      {
-		NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(j);
-		assert(shbasecblock);
-		camatch += shbasecblock->hasCustomArrayLengthofFunction();
-	      }
-	    j++;
-	  } //end while
-#endif
       }
     return camatch;
   } //hasCustomArrayLengthofFunction
@@ -1584,23 +1473,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	  }
 	i++;
       } //end while
-
-#if 0
-    //ulam-5 supports shared base classes;
-    u32 shbasecount = csym->getSharedBaseClassCount();
-    u32 j = 0;
-    while(j < shbasecount)
-      {
-	UTI baseuti = csym->getSharedBaseClass(j);
-	if(baseuti != Nouti)
-	  {
-	    NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(j);
-	    assert(shbasecblock);
-	    aok &= shbasecblock->buildDefaultValueForClassConstantDefs();
-	  }
-	j++;
-      } //end while
-#endif
 
     if(aok)
       if(m_nodeNext)

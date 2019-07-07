@@ -216,19 +216,11 @@ namespace MFM{
     ELE_TYPE m_elementType; //ulam-4
 
     BasesTable m_basestable;
-    //BasesTableTypeMap m_basesmap; //UTI -> index into basestable
-    BasesTable m_sharedbasestable;
-    //BasesTableTypeMap m_sharedbasesmap; //UTI -> index into sharedbasestable
+    BasesTable m_sharedbasestable; //ulam-5
 
     s32 isABaseClassItemSearch(UTI buti);
-    //bool updateBaseClassMap(UTI oldclasstype, u32 item, UTI newbaseclass);
-    //bool insertBaseClassMapEntry(UTI buti, u32 item);
-
     void appendSharedBaseClass(UTI baseclass);
-    //bool insertSharedBaseClassMapEntry(UTI buti, u32 item);
     void updateSharedBaseClass(UTI oldclasstype, u32 item, UTI newbaseclass);
-    //bool updateSharedBaseClassMap(UTI oldclasstype, u32 item, UTI newbaseclass);
-
 
     void assignClassArgValuesInStubCopy();
 

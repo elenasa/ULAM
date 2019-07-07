@@ -2590,18 +2590,6 @@ namespace MFM {
       }
     else
       {
-#if 0
-	if(uvpass.getPassApplyDelta())
-	  {
-	    fp->write(" -");
-	    if(cosSize > 1 && stgcos->isTmpVarSymbol())
-	      fp->write(stgcos->getMangledName().c_str()); //first arg t3543, not t3512
-	    else
-	      fp->write(m_state.getHiddenArgName()); //ur first arg
-	    fp->write(".GetDelta() + ");
-	  }
-#endif
-#if 1
 	if(uvpass.getPassApplyDelta())
 	  {
 	    if(cosSize > 1 && stgcos->isTmpVarSymbol())
@@ -2615,7 +2603,7 @@ namespace MFM {
 	    else
 	      fp->write("+ ");
 	  }
-#endif
+
 	if(shared)
 	  {
 	    fp->write(m_state.getTmpVarAsString(Unsigned, tmpsharedrelposvar, TMPREGISTER).c_str());;
@@ -2879,20 +2867,8 @@ namespace MFM {
 		else
 		  {
 		    //ancestor keeps effective self of sub, more later..
-#if 0
-		    if(vownarg != Nouti)
-		      {
-			//virtual funcs use 3 arg UlamRef copy constr to maintain EffSelf and UsageType,
-			// while updating the rel pos to vowned class, apply delta true. (t41318-t41323)
-			hiddenarg2 << m_state.getTheInstanceMangledNameByIndex(cosuti).c_str();
-			hiddenarg2 << "." <<  m_state.getGetRelPosMangledFunctionName(cosuti);
-			hiddenarg2 << "( & " << m_state.getTheInstanceMangledNameByIndex(vownarg).c_str();
-			hiddenarg2 << "), " << getLengthOfMemberClassForHiddenArg(cosuti) << "u, true);";
-		      }
-		    else
-#endif
-		      //uses UlamRef 2 arg copy constructor to maintain EffSelf and UsageType of ref
-		      hiddenarg2 << getLengthOfMemberClassForHiddenArg(cosuti) << "u);" ; //len t3637, t3746
+		    //uses UlamRef 2 arg copy constructor to maintain EffSelf and UsageType of ref
+		    hiddenarg2 << getLengthOfMemberClassForHiddenArg(cosuti) << "u);" ; //len t3637, t3746
 		  }
 	      }
 	    else
@@ -2926,12 +2902,6 @@ namespace MFM {
 		    //virtual func call keeps the eff self of stg (t41321),
 		    // unless dm of local stg (e.g. t3804)
 		    // possible also check uvpass for applydelta == true?
-#if 0
-		    u32 relposvown = 0;
-		    AssertBool gotVO=getABaseClassRelativePositionInAClass(cosuti,vownarg,relposvown);
-		    assert(gotVO);
-		    hiddenarg2 << " + " << relposvown << "u";`
-#endif
 		    hiddenarg2 << m_state.getTheInstanceMangledNameByIndex(stgcosuti).c_str(); //same effself
 		    hiddenarg2 << ", " << genUlamRefUsageAsString(stgcosuti).c_str(); //same usage
 		  }
