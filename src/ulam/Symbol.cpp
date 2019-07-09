@@ -74,6 +74,18 @@ namespace MFM {
     return false; //data members after packed bits.
   }
 
+  u32 Symbol::getPosOffsetInBase()
+  {
+    m_state.abortShouldntGetHere();
+    return 0; //data members only, incl. symbolparametervalue, and tmprefsymbol
+  }
+
+  bool Symbol::isPosOffsetInBaseReliable()
+  {
+    m_state.abortShouldntGetHere();
+    return false; //data members after packed bits.
+  }
+
   bool Symbol::isFunction()
   {
     return false;

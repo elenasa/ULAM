@@ -66,7 +66,7 @@ namespace MFM {
     return nodeType;
   } //checkAndLabelType
 
-  bool NodeModelParameterDef::buildDefaultValue(u32 wlen, BV8K& dvref)
+  bool NodeModelParameterDef::buildDefaultValue(u32 wlen, BV8K& dvref, BV8K& basedvref)
   {
     return true;
   }

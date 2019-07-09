@@ -194,13 +194,13 @@ namespace MFM {
       m_nodeNext->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
   }
 
-  bool NodeStatements::buildDefaultValue(u32 wlen, BV8K& dvref)
+  bool NodeStatements::buildDefaultValue(u32 wlen, BV8K& dvref, BV8K& basedvref)
   {
     bool aok = true;
     if(m_node)
-      aok &= m_node->buildDefaultValue(wlen, dvref); //yikes! (was |=) (t41185)
+      aok &= m_node->buildDefaultValue(wlen, dvref, basedvref); //yikes! (was |=) (t41185)
     if(aok && m_nodeNext) //why go on? (t41185)
-      aok &= m_nodeNext->buildDefaultValue(wlen, dvref);
+      aok &= m_nodeNext->buildDefaultValue(wlen, dvref, basedvref);
     return aok;
   }
 
@@ -243,12 +243,12 @@ namespace MFM {
     m_nodeNext = s;
   }
 
-  TBOOL NodeStatements::packBitsInOrderOfDeclaration(u32& offset)
+  TBOOL NodeStatements::packBitsInOrderOfDeclaration(u32& offset, u32& offsetasbase)
   {
-    TBOOL rtntb = m_node->packBitsInOrderOfDeclaration(offset); //updates offset
+    TBOOL rtntb = m_node->packBitsInOrderOfDeclaration(offset, offsetasbase); //updates offset
     if(m_nodeNext)
       {
-	TBOOL nodetb = m_nodeNext->packBitsInOrderOfDeclaration(offset);
+	TBOOL nodetb = m_nodeNext->packBitsInOrderOfDeclaration(offset, offsetasbase);
 	rtntb = Node::minTBOOL(rtntb, nodetb);
       }
     return rtntb;

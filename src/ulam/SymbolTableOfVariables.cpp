@@ -288,6 +288,7 @@ namespace MFM {
     return;
   } //initializeElementDefaultsForEval
 
+#if 0
   s32 SymbolTableOfVariables::findPosOfUlamTypeInTable(UTI utype, UTI& insidecuti)
   {
     s32 posfound = -1;
@@ -307,11 +308,10 @@ namespace MFM {
 	    else
 	      {
 		// check possible inheritance
-		UTI superuti = m_state.isClassASubclass(suti);
-		assert(superuti != Hzy);
-		if((superuti != Nouti) && (UlamType::compare(superuti, utype, m_state) == UTIC_SAME))
+		bool isabase = m_state.isClassASubclassOf(suti, utype);
+		if(isabase)
 		  {
-		    posfound = sym->getPosOffset(); //starts at beginning
+		    posfound = sym->getPosOffset (); //starts at beginning?
 		    insidecuti = suti;
 		    break;
 		  }
@@ -320,8 +320,10 @@ namespace MFM {
 	it++;
       }
     return posfound;
-  } //findPosOfUlamTypeInTable
+  } //findPosOfUlamTypeInTable (unused)
+#endif
 
+#if 0
   //replaced with parse tree method to preserve order of declaration
   void SymbolTableOfVariables::genCodeForTableOfVariableDataMembers(File * fp, ULAMCLASSTYPE classtype)
   {
@@ -336,6 +338,7 @@ namespace MFM {
 	it++;
       }
   } //genCodeForTableOfVariableDataMembers (unused)
+#endif
 
   void SymbolTableOfVariables::genModelParameterImmediateDefinitionsForTableOfVariableDataMembers(File *fp)
   {

@@ -1460,6 +1460,28 @@ namespace MFM {
     return rtnb;
   } //getDefaultClassValue
 
+  bool CompilerState::getDefaultBaseClassValue(UTI cuti, BV8K& dvref)
+  {
+    if(!okUTItoContinue(cuti)) return false; //short-circuit
+
+    UlamType * cut = getUlamTypeByIndex(cuti);
+    assert(cut->getUlamTypeEnum() == Class);
+
+    bool rtnb = true;
+    if(getBaseClassBitSize(cuti) > 0)
+      {
+	UTI scalarcuti = getUlamTypeAsScalar(cuti);
+	SymbolClass * csym = NULL;
+	AssertBool isDefined = alreadyDefinedSymbolClass(scalarcuti, csym);
+	assert(isDefined);
+	if(csym->packBitsForClassVariableDataMembers() == TBOOL_TRUE) //might as well see
+	  rtnb = csym->getDefaultBaseClassValue(dvref); //pass along ref
+	else
+	  rtnb = false; //really not ready
+      }
+    return rtnb;
+  } //getDefaultBaseClassValue
+
   void CompilerState::getDefaultAsArray(u32 bitsize, u32 arraysize, u32 tpos, const BV8K& dval, BV8K& darrval)
   {
     for(u32 j = 0; j < arraysize; j++)
@@ -1536,9 +1558,10 @@ namespace MFM {
   s32 CompilerState::getBaseClassBitSize(UTI utiArg)
   {
     UlamType * ut = getUlamTypeByIndex(utiArg);
-    if(ut->getUlamClassType() == UC_ELEMENT)
-      return 0;
-    return (ut->getBitsizeAsBaseClass());
+    ULAMCLASSTYPE classtype = ut->getUlamClassType();
+    if((classtype == UC_ELEMENT) || (classtype == UC_NOTACLASS))
+      return 0; //not a base class
+    return (ut->getBitsizeAsBaseClass()); //quarks, transients wo shared bases
   }
 
   ALT CompilerState::getReferenceType(UTI utiArg)
@@ -2241,7 +2264,6 @@ namespace MFM {
 
     UTI baseuti = Nouti;
     //ulam-5 supports multiple base classes; superclass optional;
-    //ulam-5 supports shared base classes;
     while(walker.getNextBase(baseuti) && !hasbase)
       {
 	SymbolClass * basecsym = NULL;
@@ -2258,6 +2280,11 @@ namespace MFM {
 		s32 foundbaseitem = foundbasecsym->isABaseClassItem(defbasep); //direct
 		if(foundbaseitem >= 0)
 		  {
+		    s32 pos = foundbasecsym->getBaseClassRelativePosition(foundbaseitem);
+		    assert(pos >= 0);
+
+		    accumpos += pos; //more specific position within nextbase
+#if 0
 		    if(!foundbasecsym->isDirectSharedBase(foundbaseitem))
 		      {
 			s32 pos = foundbasecsym->getBaseClassRelativePosition(foundbaseitem);
@@ -2270,14 +2297,43 @@ namespace MFM {
 			hasbase = false; //shared, so skip
 			walker.addAncestorsOf(basecsym); //perhaps a non-shared base exists
 		      }
+#endif
 		  }
 		else
-		  walker.addAncestorsOf(foundbasecsym);
+		  {
+		    //is shared
+		    s32 foundsharedbaseitem = foundbasecsym->isASharedBaseClassItem(defbasep); //direct
+		    if(foundsharedbaseitem >= 0)
+		      {
+			s32 pos = foundbasecsym->getSharedBaseClassRelativePosition(foundsharedbaseitem);
+			assert(pos >= 0);
+
+			accumpos += pos; //more specific position within nextbase
+		      }
+		    else
+		      walker.addAncestorsOf(foundbasecsym);
+		  }
 	      }
 	    else
 	      walker.addAncestorsOf(basecsym); //search all
 	  }
       } //end while
+
+    //ulam-5 supports shared base classes;
+    if(!hasbase)
+      {
+	SymbolClass * csym = NULL;
+	AssertBool isDefined = alreadyDefinedSymbolClass(defcuti, csym);
+	assert(isDefined);
+
+	s32 foundsharedbaseitem = csym->isASharedBaseClassItem(defbasep); //direct
+	if(foundsharedbaseitem >= 0)
+	  {
+	    s32 pos = csym->getSharedBaseClassRelativePosition(foundsharedbaseitem);
+	    assert(pos >= 0);
+	    accumpos += pos; //more specific position within nextbase?
+	  }
+      }
 
     relposref = accumpos;
     return hasbase; //even for non-classes

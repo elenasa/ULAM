@@ -704,13 +704,14 @@ namespace MFM {
     u32 pos = 0;
     if(m_varSymbol->isDataMember())
       {
-	pos = uvpass.getPassPos();
+	///pos = uvpass.getPassPos(); ??
+
 	// 'pos' modified by this data member symbol's packed bit position;
 	// except for array items, i.e. tmprefsymbols (t3910)
 	// adjusted if dm of (unshared) base class by rel pos (t41320)
 	if(!m_varSymbol->isTmpVarSymbol())
 	  {
-	    pos += m_varSymbol->getPosOffset();
+	    pos += m_varSymbol->getPosOffset(); //??
 	    UTI dmclass = m_varSymbol->getDataMemberClass();
 	    UTI stgclass = uvpass.getPassTargetType();
 	    //if((stgclass != Nouti) && m_state.getABaseClassRelativePositionInAClass(stgclass, dmclass, relpos))

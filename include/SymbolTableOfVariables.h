@@ -70,9 +70,9 @@ namespace MFM{
 
     //void packBitsForTableOfVariableDataMembers();  //after type labeling, before code gen
 
-    s32 findPosOfUlamTypeInTable(UTI utype, UTI& insidecuti);
+    //s32 findPosOfUlamTypeInTable(UTI utype, UTI& insidecuti);
 
-    void genCodeForTableOfVariableDataMembers(File * fp, ULAMCLASSTYPE classtype);  //(unused)
+    //void genCodeForTableOfVariableDataMembers(File * fp, ULAMCLASSTYPE classtype);  //(unused)
 
     void genModelParameterImmediateDefinitionsForTableOfVariableDataMembers(File *fp);
 

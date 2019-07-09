@@ -242,7 +242,7 @@ namespace MFM {
   s32 SymbolClass::isASharedBaseClassItem(UTI buti)
   {
     return isASharedBaseClassItemSearch(buti); //slow, uses compare..
-  } //isABaseClassItem
+  } //isASharedBaseClassItem
 
   s32 SymbolClass::isASharedBaseClassItemSearch(UTI buti)
   {
@@ -274,7 +274,7 @@ namespace MFM {
     bentry.m_basepos = UNKNOWNSIZE; //pos unknown
     bentry.m_baseshared = true; //shared virtual ^base
     bentry.m_tmpspare = false;
-    m_basestable.push_back(bentry);
+    m_sharedbasestable.push_back(bentry);
   } //appendSharedBaseClass
 
   void SymbolClass::updateSharedBaseClass(UTI oldclasstype, u32 item, UTI newbaseclass)
@@ -406,13 +406,14 @@ namespace MFM {
 	assert(m_state.isASeenClass(baseuti));
 	u32 numshared = it->second;
 	assert(numshared > 0);
-	s32 basebitsize = m_state.getBitSize(baseuti);
+	s32 basebitsize = m_state.getBaseClassBitSize(baseuti);
 	assert(basebitsize != UNKNOWNSIZE);
 
 	bitssaved += (basebitsize * numshared);
 	totalsharedbasebitsize += basebitsize;
 
-	appendSharedBaseClass(baseuti); //builds shared base table, for rel pos (later)
+	if(isASharedBaseClassItem(baseuti) < 0)
+	  appendSharedBaseClass(baseuti); //builds shared base table, for rel pos (later)
 	it++;
       } //while
 
@@ -528,6 +529,8 @@ namespace MFM {
       {
  	m_isreadyDefaultValue = true;
 	dvref = m_defaultValue;
+
+ 	m_isreadyDefaultBaseClassValue = true;
 	return true; //short-circuit, no data members, nor an element
       }
 
@@ -538,16 +541,70 @@ namespace MFM {
 	dvref.Write(0,ATOMFIRSTSTATEBITPOS, Parity2D_4x4::Add2DParity(type));
       }
 
+    BV8K basedv; //elements aren't base classes!!
     NodeBlockClass * classblock = getClassBlockNode();
     assert(classblock);
     m_state.pushClassContext(suti, classblock, classblock, false, NULL); //missing?
 
-    if((m_isreadyDefaultValue = classblock->buildDefaultValue(usizeof, dvref)))
-      m_defaultValue = dvref;
+    if((m_isreadyDefaultValue = classblock->buildDefaultValue(usizeof, dvref, basedv)))
+      {
+	m_defaultValue = dvref;
+	m_defaultBaseClassValue = basedv;
+	m_isreadyDefaultBaseClassValue = true;
+      }
 
     m_state.popClassContext();
     return m_isreadyDefaultValue;
   } //getDefaultValue
+
+  bool SymbolClass::getDefaultBaseClassValue(BV8K& dvref)
+  {
+    //could be any length up to 8K..(i.e. transient)
+    // element that doesn't fit into a u64
+    if(m_isreadyDefaultBaseClassValue)
+      {
+	dvref = m_defaultBaseClassValue;
+	return true; //short-circuit, known
+      }
+
+    UTI suti = getUlamTypeIdx();
+    UlamType * sut = m_state.getUlamTypeByIndex(suti);
+
+    if(!sut->isComplete())
+      {
+	std::ostringstream msg;
+	msg << "Cannot get default base class value for incomplete class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
+	MSG(Symbol::getTokPtr(),msg.str().c_str(), WAIT);
+	return false; //t3875
+      }
+
+    if(sut->getUlamClassType() == UC_ELEMENT)
+      {
+	std::ostringstream msg;
+	msg << "Cannot get default base class value for an element: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
+	MSG(Symbol::getTokPtr(),msg.str().c_str(), ERR);
+	return false;
+      }
+
+    BV8K dv;
+    u32 usizeof = sut->getBitsizeAsBaseClass(); //wo shared base data
+    if(usizeof == 0)
+      {
+ 	m_isreadyDefaultBaseClassValue = true;
+	dvref = m_defaultBaseClassValue;
+
+	getDefaultValue(dv); //keep in sync
+	return true; //short-circuit, no data members, nor an element
+      }
+
+    getDefaultValue(dv);
+    if(m_isreadyDefaultBaseClassValue)
+      dvref = m_defaultBaseClassValue;
+
+    return m_isreadyDefaultBaseClassValue;
+  } //getDefaultValueAsBaseClass
 
   bool SymbolClass::buildClassConstantDefaultValues()
   {

@@ -917,7 +917,7 @@ namespace MFM {
     return brtn;
   } //foldArrayInitExpression
 
-  bool NodeConstantDef::buildDefaultValue(u32 wlen, BV8K& bvref)
+  bool NodeConstantDef::buildDefaultValue(u32 wlen, BV8K& bvref, BV8K& basedvref)
   {
     AssertBool rtnok = buildDefaultValueForClassConstantDefs();
     assert(rtnok);
@@ -1032,7 +1032,7 @@ namespace MFM {
     return evalStatusReturnNoEpilog(NOTREADY); //was ERROR
   }
 
-  TBOOL NodeConstantDef::packBitsInOrderOfDeclaration(u32& offset)
+  TBOOL NodeConstantDef::packBitsInOrderOfDeclaration(u32& offset, u32& offsetasbase)
   {
     //do nothing, but override
     return TBOOL_TRUE;

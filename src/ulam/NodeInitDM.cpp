@@ -540,7 +540,7 @@ namespace MFM {
     return evalErrorReturn();
   }
 
-  TBOOL NodeInitDM::packBitsInOrderOfDeclaration(u32& offset)
+  TBOOL NodeInitDM::packBitsInOrderOfDeclaration(u32& offset, u32& offsetasbase)
   {
     m_state.abortNotImplementedYet();
     return TBOOL_FALSE;

@@ -191,7 +191,7 @@ namespace MFM{
 
     virtual UTI constantFold();
 
-    virtual bool buildDefaultValue(u32 wlen, BV8K& dvref);
+    virtual bool buildDefaultValue(u32 wlen, BV8K& dvref, BV8K& basedvref);
 
     virtual bool buildDefaultValueForClassConstantDefs();
 
@@ -214,7 +214,7 @@ namespace MFM{
     virtual EvalStatus evalStatusReturn(EvalStatus evs);
     virtual UlamValue makeUlamValuePtr();
 
-    virtual TBOOL packBitsInOrderOfDeclaration(u32& offset);
+    virtual TBOOL packBitsInOrderOfDeclaration(u32& offset, u32& offsetasbase);
 
     virtual void printUnresolvedVariableDataMembers();
 

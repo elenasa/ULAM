@@ -306,7 +306,7 @@ namespace MFM {
     return getNodeType();
   } //checkAndLabelType
 
-  TBOOL NodeVarRef::packBitsInOrderOfDeclaration(u32& offset)
+  TBOOL NodeVarRef::packBitsInOrderOfDeclaration(u32& offset, u32& offsetasbase)
   {
     m_state.abortShouldntGetHere(); //refs can't be data members
     return TBOOL_FALSE;

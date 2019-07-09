@@ -478,11 +478,11 @@ namespace MFM {
     return getNodeType(); //noop. parent required (was Nav)
   } //constantFold
 
-  bool Node::buildDefaultValue(u32 wlen, BV8K& dvref)
+  bool Node::buildDefaultValue(u32 wlen, BV8K& dvref, BV8K& basedvref)
   {
     std::ostringstream msg;
     msg << "virtual bool " << prettyNodeName().c_str();
-    msg << "::buildDefaultValue(u32 wlen, BV8K& dvref){} is needed!!";
+    msg << "::buildDefaultValue(u32 wlen, BV8K& dvref, BV8K& basedvref){} is needed!!";
     MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
     return false;
   }
@@ -676,7 +676,7 @@ namespace MFM {
     return rtnb;
   } //returnValueOnStackNeededForEval
 
-  TBOOL Node::packBitsInOrderOfDeclaration(u32& offset)
+  TBOOL Node::packBitsInOrderOfDeclaration(u32& offset, u32& offsetasbase)
   {
     m_state.abortShouldntGetHere();
     return TBOOL_FALSE;
@@ -2551,6 +2551,7 @@ namespace MFM {
 	//else (shared)
       }
 
+#if 0
     u32 tmpsharedrelposvar = m_state.getNextTmpVarNumber();
     if(shared)
       {
@@ -2565,12 +2566,13 @@ namespace MFM {
 	  fp->write(m_state.getHiddenArgName()); //ur first arg
 	fp->write(".GetEffectiveSelf()->");
 	fp->write(m_state.getGetRelPosMangledFunctionName(stgcosuti));
-	fp->write("( & ");
+	fp->write("(&");
 	fp->write(m_state.getTheInstanceMangledNameByIndex(cosclassuti).c_str());
 	fp->write(");"); GCNL;
 	fp->write("\n");
 	m_state.indentUlamCode(fp); //used one previously done
       }
+#endif
 
     fp->write("UlamRef<EC>("); //wrapper for dm
     if(cosSize > 1 && stgcos->isTmpVarSymbol())
@@ -2606,8 +2608,16 @@ namespace MFM {
 
 	if(shared)
 	  {
-	    fp->write(m_state.getTmpVarAsString(Unsigned, tmpsharedrelposvar, TMPREGISTER).c_str());;
-	    fp->write(" + ");
+	    //fp->write(m_state.getTmpVarAsString(Unsigned, tmpsharedrelposvar, TMPREGISTER).c_str());
+	    if(cosSize > 1 && stgcos->isTmpVarSymbol())
+	      fp->write(stgcos->getMangledName().c_str());
+	    else
+	      fp->write(m_state.getHiddenArgName()); //ur first arg
+	    fp->write(".GetEffectiveSelf()->");
+	    fp->write(m_state.getGetRelPosMangledFunctionName(stgcosuti));
+	    fp->write("(&");
+	    fp->write(m_state.getTheInstanceMangledNameByIndex(cosclassuti).c_str());
+	    fp->write(") + ");
 	    assert(uvpass.getPassApplyDelta()); //double checking, ow need it!!
 	  }
 
@@ -2984,6 +2994,9 @@ namespace MFM {
 
     u32 pos = uvpass.getPassPos();
 
+    u32 tmpsharedrelpos = 0; //use runtime shared pos based on effself instead
+    bool shared = m_state.getASharedBaseClassRelativePositionInAClass(stgcosuti, cosclassuti, tmpsharedrelpos);
+
     if(stgcosut->isReference())
       {
 	u32 relposofbaseclass = 0;
@@ -2997,10 +3010,18 @@ namespace MFM {
 	    else
 	      m_state.abortNeedsATest(); //? or shouldntGetHere
 	  }
-	if(m_state.getABaseClassRelativePositionInAClass(startsearchcuti, cosclassuti, relposofbaseclass))
-	  pos += relposofbaseclass; //t41323
+
+	if(!shared)
+	  {
+	    if(m_state.getABaseClassRelativePositionInAClass(startsearchcuti, cosclassuti, relposofbaseclass))
+	      pos += relposofbaseclass; //t41323
+	  }
+	//else shared, use effective self since stg is a ref
       }
-    //else local var position is in uvpass (t41317)
+    else //local var position is in uvpass (t41317)
+      {
+	pos += tmpsharedrelpos;
+      }
 
     fp->write("UlamRef<EC>("); //wrapper for local storage
 
@@ -3008,6 +3029,17 @@ namespace MFM {
       {
 	fp->write(stgcos->getMangledName().c_str()); //ref
 	fp->write(", ");
+
+	if(shared)
+	  {
+	    fp->write(stgcos->getMangledName().c_str());
+	    fp->write(".GetEffectiveSelf()->");
+	    fp->write(m_state.getGetRelPosMangledFunctionName(stgcosuti));
+	    fp->write("(&");
+	    fp->write(m_state.getTheInstanceMangledNameByIndex(cosclassuti).c_str());
+	    fp->write(") + ");
+	    //assert(uvpass.getPassApplyDelta()); //double checking, ow need it!!
+	  }
       }
 
     //reading entire thing, using ELEMENTAL, t.f. adjust (t3735)

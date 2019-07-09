@@ -54,10 +54,20 @@ namespace MFM {
 
   u32 SymbolWithValue::getPosOffset()
   {
-    return 0; //always zero
+    return 0; //always zero?
   }
 
   bool SymbolWithValue::isPosOffsetReliable()
+  {
+    return false; //non-data member.
+  }
+
+  u32 SymbolWithValue::getPosOffsetInBase()
+  {
+    return 0; //always zero?
+  }
+
+  bool SymbolWithValue::isPosOffsetInBaseReliable()
   {
     return false; //non-data member.
   }
