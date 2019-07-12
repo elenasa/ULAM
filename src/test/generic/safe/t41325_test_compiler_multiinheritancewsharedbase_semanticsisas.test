@@ -1,37 +1,44 @@
 ## -*- mode:ulam -*-
 #=t41325_test_compiler_multiinheritancewsharedbase_semanticsisas
 ##
-## gen output (asserts if failed only)
-## Int(3) Arg: 0x0
+## gen output
+## Int(3) Arg: 0x7
+## assert: arg is 1
+## after assert's abort: arg is 1
+## assert: arg is 1
+## after assert's abort: arg is 1
+## Int(4) Arg: 0x2
+## assert: arg is 1
+## after assert's abort: arg is 1
 ## Int(4) Arg: 0xc
 ## assert: arg is 1
 ## after assert's abort: arg is 1
-## Int(3) Arg: 0x0
-## Int(3) Arg: 0x0
-## Int(3) Arg: 0x1
-## Int(3) Arg: 0x0
 ## Int(3) Arg: 0x1
 ## assert: arg is 1
 ## after assert's abort: arg is 1
+## Int(3) Arg: 0x7
+## Int(3) Arg: 0x7
+## Int(3) Arg: 0x1
+## Int(3) Arg: 0x1
 ## Int(4) Arg: 0x4
 ## assert: arg is 1
 ## after assert's abort: arg is 1
-## Int(3) Arg: 0x0
-## Int(3) Arg: 0x0
-## Int(3) Arg: 0x1
 ## Int(3) Arg: 0x2
-## Int(3) Arg: 0x1
 ## assert: arg is 1
 ## after assert's abort: arg is 1
+## Int(3) Arg: 0x2
+## Int(3) Arg: 0x2
+## Int(3) Arg: 0x7
+## Int(3) Arg: 0x7
 ##
 #!
 Exit status: -11
 Ue_R { Int(32) test() {  System s;  Foo f;  f ( )behave . 0 cast return } }
 Uq_System { <NOMAIN> }
-Ue_Foo : Secondary +Intermediate { :< ^<Base> Bool(1) m_b2(false); > +< ^<Base> Int(4) m_i4(0);  Int(4) m_a4(0); > ^< Int(3) m_i3( 0); > Bool(7) sp(false);  System s();  <NOMAIN> }
-Uq_Secondary ^Base { ^<Base> ^< Int(3) m_i3( 0); > Bool(1) m_b2(false);  <NOMAIN> }
-Uq_Intermediate ^Base { ^<Base> ^< Int(3) m_i3( 0); > Int(4) m_i4(0);  Int(4) m_a4(0);  <NOMAIN> }
-Uq_Base { Int(3) m_i3( 0);  <NOMAIN> }
+Ue_Foo : Secondary +Intermediate { :< ^<Base> Bool(1) m_b2(false); > +< ^<Base> Int(4) m_i4( 2);  Int(4) m_a4( 3); > Bool(7) sp(false);  System s();  ^< Bool(1) bsp( true);  Int(3) m_i3( -1); > <NOMAIN> }
+Uq_Secondary ^Base { Bool(1) m_b2(false);  ^< Bool(1) bsp( true);  Int(3) m_i3( -1); > <NOMAIN> }
+Uq_Intermediate ^Base { Int(4) m_i4( 2);  Int(4) m_a4( 3);  ^< Bool(1) bsp( true);  Int(3) m_i3( -1); > <NOMAIN> }
+Uq_Base { Bool(1) bsp( true);  Int(3) m_i3( -1);  <NOMAIN> }
 ##
 ## informed by t41319, with shared bases using hat
 ##
@@ -54,29 +61,41 @@ element Foo : Secondary +Intermediate {
   Void behave()
   {
     Foo other;
-    s.print(self.Intermediate.m_i3); //shared ==-1 (0x3)
+
+    s.print(self.Intermediate.m_i3); //shared ==-1 (0x7)
+    s.assert(self.Intermediate.m_i3==-1); //shared ==-1 (0x7)
+    s.assert(m_i3==-1); //shared ==-1 (0x7)
+
+    s.print(m_i4); //Intermediate ==2, default
+    s.assert(m_i4 == 2);
 
     if(!checkis(other)) //should absolute be true, right?
       s.assert(false);
-    s.print(m_i4); //Intermediate ==-4 unchanged
+
+    s.print(m_i4); //Intermediate ==-4 (0xc)unchanged
     s.assert(m_i4 == -4);
-    s.print(self.Secondary.m_i3); //in shared Base, unchanged == -1 (0x3)
-    s.print(self.Intermediate.m_i3); //in shared Base, unchanged == -1 (0x3)
-    s.print(other.Secondary.m_i3); //shared changed == 1
-    s.print(other.Intermediate.m_i3); //shared changed == 1
+
     s.print(other.m_i3); //shared changed == 1
     s.assert(other.m_i3 == 1);
+
+    s.print(self.Secondary.m_i3); //in shared Base, unchanged == -1 (0x7)
+    s.print(self.Intermediate.m_i3); //in shared Base, unchanged == -1 (0x7)
+    s.print(other.Secondary.m_i3); //shared changed == 1
+    s.print(other.Intermediate.m_i3); //shared changed == 1
+
 
     if(!checkas(other)) //should absolute be true, right?
       s.assert(false);
     s.print(m_a4);
     s.assert(m_a4 == 4);
-    s.print(self.Secondary.m_i3);
-    s.print(self.Intermediate.m_i3);
-    s.print(other.Secondary.m_i3); //shared changed ==2
-    s.print(other.Intermediate.m_i3); //shared changed == 2
+
     s.print(other.m_i3); //shared changed == 2
     s.assert(other.Intermediate.m_i3 == 2);
+
+    s.print(other.Secondary.m_i3); //shared changed ==2
+    s.print(other.Intermediate.m_i3); //shared changed == 2
+    s.print(self.Secondary.m_i3); //in shared Base, unchanged == -1 (0x7)
+    s.print(self.Intermediate.m_i3); //in shared Base, unchanged == -1 (0x7)
   }
 }
 
@@ -84,8 +103,8 @@ element Foo : Secondary +Intermediate {
   ulam 3;
 quark Intermediate  ^Base
 {
-  Int(4) m_i4;
-  Int(4) m_a4;
+  Int(4) m_i4 = 2;
+  Int(4) m_a4 = 3;
   virtual Bool checkis(Base& base) {
     if (base is Self) {
       m_i4 = -4;
@@ -116,6 +135,7 @@ quark Secondary ^Base
   ulam 3;
 quark Base
 {
+  Bool bsp = true;
   Int(3) m_i3 = -1;
   virtual Bool checkis(Base& base) { return false; }
   virtual Bool checkas(Base& base) { return false; }

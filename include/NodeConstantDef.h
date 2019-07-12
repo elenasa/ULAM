@@ -109,7 +109,7 @@ namespace MFM{
 
     virtual bool foldArrayInitExpression();
 
-    virtual bool buildDefaultValue(u32 wlen, BV8K& dvref, BV8K& basedvref);
+    virtual bool buildDefaultValue(u32 wlen, BV8K& dvref);
 
     virtual bool buildDefaultValueForClassConstantDefs();
 
@@ -121,7 +121,7 @@ namespace MFM{
 
     virtual EvalStatus eval();
 
-    virtual TBOOL packBitsInOrderOfDeclaration(u32& offset, u32& offsetasbase);
+    virtual TBOOL packBitsInOrderOfDeclaration(u32& offset);
 
     virtual void printUnresolvedVariableDataMembers();
 

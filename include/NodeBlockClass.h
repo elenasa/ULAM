@@ -147,7 +147,7 @@ namespace MFM{
 
     bool hasCustomArrayLengthofFunction();
 
-    virtual bool buildDefaultValue(u32 wlen, BV8K& dvref, BV8K& basedvref); //starts here, called by SymbolClass; both complete and base default values (ulam-5)
+    virtual bool buildDefaultValue(u32 wlen, BV8K& dvref); //starts here, called by SymbolClass
 
     virtual bool buildDefaultValueForClassConstantDefs();
 

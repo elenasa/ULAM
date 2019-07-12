@@ -80,7 +80,7 @@ namespace MFM{
 
     virtual EvalStatus eval();
 
-    virtual TBOOL packBitsInOrderOfDeclaration(u32& offset, u32& offsetasbase);
+    virtual TBOOL packBitsInOrderOfDeclaration(u32& offset);
 
     virtual void printUnresolvedVariableDataMembers();
 

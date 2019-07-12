@@ -3,14 +3,14 @@
 
 namespace MFM {
 
-  SymbolVariableDataMember::SymbolVariableDataMember(const Token& id, UTI utype, u32 slot, CompilerState& state) : SymbolVariable(id, utype, state), m_posOffset(9999), m_posOffsetInBase(9999), m_dataMemberUnpackedSlotIndex(slot)
+  SymbolVariableDataMember::SymbolVariableDataMember(const Token& id, UTI utype, u32 slot, CompilerState& state) : SymbolVariable(id, utype, state), m_posOffset(9999), m_dataMemberUnpackedSlotIndex(slot)
   {
     setDataMemberClass(m_state.getCompileThisIdx());
   }
 
-  SymbolVariableDataMember::SymbolVariableDataMember(const SymbolVariableDataMember& sref) : SymbolVariable(sref), m_posOffset(sref.m_posOffset), m_posOffsetInBase(sref.m_posOffsetInBase), m_dataMemberUnpackedSlotIndex(sref.m_dataMemberUnpackedSlotIndex) { } //initval set by node vardecl c&l
+  SymbolVariableDataMember::SymbolVariableDataMember(const SymbolVariableDataMember& sref) : SymbolVariable(sref), m_posOffset(sref.m_posOffset), m_dataMemberUnpackedSlotIndex(sref.m_dataMemberUnpackedSlotIndex) { } //initval set by node vardecl c&l
 
-  SymbolVariableDataMember::SymbolVariableDataMember(const SymbolVariableDataMember& sref, bool keepType) : SymbolVariable(sref, keepType), m_posOffset(sref.m_posOffset), m_posOffsetInBase(sref.m_posOffsetInBase), m_dataMemberUnpackedSlotIndex(sref.m_dataMemberUnpackedSlotIndex) {} //initval set by node vardecl c&l
+  SymbolVariableDataMember::SymbolVariableDataMember(const SymbolVariableDataMember& sref, bool keepType) : SymbolVariable(sref, keepType), m_posOffset(sref.m_posOffset), m_dataMemberUnpackedSlotIndex(sref.m_dataMemberUnpackedSlotIndex) {} //initval set by node vardecl c&l
 
   SymbolVariableDataMember::~SymbolVariableDataMember()
   {
@@ -73,25 +73,6 @@ namespace MFM {
   void SymbolVariableDataMember::setPosOffset(u32 offsetIntoAtom)
   {
     m_posOffset = offsetIntoAtom; //relative to first state bit
-  }
-
-  //packed bit position of data members; relative to ATOMFIRSTSTATEBITPOS,
-  //or after bases wo shared bases (ulam-5).
-  u32 SymbolVariableDataMember::getPosOffsetInBase()
-  {
-    if(m_posOffsetInBase == 9999)
-      m_state.abortShouldntGetHere(); //not yet set
-    return m_posOffsetInBase;
-  }
-
-  bool SymbolVariableDataMember::isPosOffsetInBaseReliable()
-  {
-    return (m_posOffsetInBase != 9999);
-  }
-
-  void SymbolVariableDataMember::setPosOffsetInBase(u32 offsetIntoAtom)
-  {
-    m_posOffsetInBase = offsetIntoAtom; //relative to first state bit
   }
 
 #if 0

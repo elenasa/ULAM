@@ -8,7 +8,7 @@
 ##
 #!
 Exit status: 0
-Ue_Foo +System { +<> Int(32) m_c4(212);  Int(32) m_a4(110);  Int(32) test() {  E4 e4;  typedef QBase2 QB2;  m_c4 e4 QB2 . ( )vfuncc . = ( m_c4 )print ( m_c4 212 cast == )assert typedef QBase1 QB1;  m_a4 e4 QBase3 . QB1 . ( )vfunca . = ( m_a4 )print ( m_a4 110 cast == )assert ( e4 m_b1 . )assert ( e4 QBase1 . m_b1 . )assert ( e4 QBase3 . QBase1 . m_b1 . ! )assert e4 m_b1 . false = Int(32) a4 = e4 QBase1 . ( )vfunca .;  ( a4 )print ( a4 110 cast == )assert ( e4 m_b1 . )assert ( e4 QBase1 . m_b1 . )assert 0 cast return } }
+Ue_Foo +System { +<> Int(32) m_c4(212);  Int(32) m_a4(110);  Int(32) test() {  E4 e4;  typedef QBase2 QB2;  m_c4 e4 QB2 . ( )vfuncc . = ( m_c4 )print ( m_c4 212 cast == )assert typedef QBase1 QB1;  m_a4 e4 QBase3 . QB1 . ( )vfunca . = ( m_a4 )print ( m_a4 110 cast == )assert ( e4 m_b1 . ! )assert ( e4 QBase1 . m_b1 . ! )assert ( e4 QBase3 . QBase1 . m_b1 . )assert e4 QBase3 . QBase1 . m_b1 . false = Int(32) a4 = e4 QBase1 . ( )vfunca .;  ( a4 )print ( a4 110 cast == )assert ( e4 m_b1 . )assert ( e4 QBase1 . m_b1 . )assert 0 cast return } }
 Uq_System { <NOMAIN> }
 Ue_E4 : QBase3 +QBase2 +QBase1 { :< :< Bool(1) m_b1(false); > Bool(1) m_b3(false); > +< Bool(1) m_b2(false); > +< Bool(1) m_b1(false); > typedef QBase2 QB2;  <NOMAIN> }
 Uq_QBase3 : QBase1 { :< Bool(1) m_b1(false); > Bool(1) m_b3(false);  <NOMAIN> }
@@ -37,11 +37,11 @@ element Foo +System {
     m_a4 = e4.QBase3.QB1.vfunca(); //110
     print(m_a4);
     assert(m_a4==110);
-    assert(e4.m_b1); //changed, with extra +QBase1
-    assert(e4.QBase1.m_b1); //equiv dm, changed
-    assert(!e4.QBase3.QBase1.m_b1); //caller unchanged
+    assert(!e4.m_b1); //unchanged, even with extra +QBase1
+    assert(!e4.QBase1.m_b1); //equiv dm, unchanged
+    assert(e4.QBase3.QBase1.m_b1); //caller/override class changed
 
-    e4.m_b1 = false; //reset
+    e4.QBase3.QBase1.m_b1 = false; //reset
     Int a4 = e4.QBase1.vfunca(); //110
     print(a4);
     assert(a4==110);

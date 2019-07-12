@@ -66,7 +66,7 @@ namespace MFM {
     return getNodeType();
   } //checkAndLabelType
 
-  TBOOL NodeVarRefAs::packBitsInOrderOfDeclaration(u32& offset, u32& offsetasbase)
+  TBOOL NodeVarRefAs::packBitsInOrderOfDeclaration(u32& offset)
   {
     m_state.abortShouldntGetHere(); //refs can't be data members
     return TBOOL_FALSE;
@@ -226,6 +226,25 @@ namespace MFM {
 	fp->write(m_state.getTheInstanceMangledNameByIndex(vuti).c_str());
 	fp->write(")); //relpos"); GCNL;
 
+	//bool rtsubclassofleft = m_state.isClassASubclassOf(vuti,stgcosuti);
+	s32 tmpVarPosToEff = m_state.getNextTmpVarNumber();
+	//if(rtsubclassofleft)
+	  {
+	    m_state.indentUlamCode(fp);
+	    fp->write("const s32 ");
+	    fp->write(m_state.getTmpVarAsString(Int, tmpVarPosToEff, TMPREGISTER).c_str());
+	    fp->write(" = ");
+	    fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str());
+	    fp->write(".GetPosToEffectiveSelf();"); GCNL;
+
+	    //fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str()); //3826
+	    //fp->write(".GetEffectiveSelf()->");
+	    //fp->write(m_state.getGetRelPosMangledFunctionName(stgcosuti)); //UlamClass Method
+	    //fp->write("(&");
+	    //fp->write(m_state.getTheInstanceMangledNameByIndex(m_state.getUlamTypeAsDeref(stgcosuti)).c_str());
+	    //fp->write(")); //relpos of left, a base"); GCNL;
+	  }
+
 	m_state.indentUlamCode(fp);
 	fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
 	fp->write(" ");
@@ -234,6 +253,11 @@ namespace MFM {
 	fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str());
 	fp->write(", ");
 	fp->write(m_state.getTmpVarAsString(Int, tmpVarPos, TMPREGISTER).c_str());
+	//if(rtsubclassofleft)
+	  {
+	    fp->write(" - ");
+	    fp->write(m_state.getTmpVarAsString(Int, tmpVarPosToEff, TMPREGISTER).c_str()); //t41325 'checkas'
+	  }
 	fp->write(", ");
 	//note: needs effective self of the atom, not simply the RHS type.
 	fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str());

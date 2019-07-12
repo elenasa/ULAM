@@ -62,16 +62,6 @@ namespace MFM {
     return false; //non-data member.
   }
 
-  u32 SymbolWithValue::getPosOffsetInBase()
-  {
-    return 0; //always zero?
-  }
-
-  bool SymbolWithValue::isPosOffsetInBaseReliable()
-  {
-    return false; //non-data member.
-  }
-
   bool SymbolWithValue::isReady()
   {
     return m_isReady; //constant value

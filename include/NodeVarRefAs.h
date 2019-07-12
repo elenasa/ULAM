@@ -69,7 +69,7 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
-    virtual TBOOL packBitsInOrderOfDeclaration(u32& offset, u32& offsetasbase);
+    virtual TBOOL packBitsInOrderOfDeclaration(u32& offset);
 
     virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);
 

@@ -478,11 +478,11 @@ namespace MFM {
     return getNodeType(); //noop. parent required (was Nav)
   } //constantFold
 
-  bool Node::buildDefaultValue(u32 wlen, BV8K& dvref, BV8K& basedvref)
+  bool Node::buildDefaultValue(u32 wlen, BV8K& dvref)
   {
     std::ostringstream msg;
     msg << "virtual bool " << prettyNodeName().c_str();
-    msg << "::buildDefaultValue(u32 wlen, BV8K& dvref, BV8K& basedvref){} is needed!!";
+    msg << "::buildDefaultValue(u32 wlen, BV8K& dvref){} is needed!!";
     MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
     return false;
   }
@@ -676,7 +676,7 @@ namespace MFM {
     return rtnb;
   } //returnValueOnStackNeededForEval
 
-  TBOOL Node::packBitsInOrderOfDeclaration(u32& offset, u32& offsetasbase)
+  TBOOL Node::packBitsInOrderOfDeclaration(u32& offset)
   {
     m_state.abortShouldntGetHere();
     return TBOOL_FALSE;
@@ -2520,7 +2520,7 @@ namespace MFM {
       stgcos = m_state.getCurrentSelfSymbolForCodeGen(); //t41319
 
     UTI stgcosuti = stgcos->getUlamTypeIdx();
-    UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
+    //UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
     UTI cosuti = cos->getUlamTypeIdx();
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
 
@@ -2532,6 +2532,20 @@ namespace MFM {
 
     u32 tmpsharedrelpos = 0; //use runtime shared pos based on effself instead
     bool shared = m_state.getASharedBaseClassRelativePositionInAClass(stgcosuti, cosclassuti, tmpsharedrelpos);
+
+    if(!shared && uvpass.getPassApplyDelta() && (cosSize > 2))
+      {
+	//handling specific non-shared baseclass type here (e.g. t41311, t41325)
+	Symbol * bsym = m_state.m_currentObjSymbolsForCodeGen[cosSize - 2];
+	assert(bsym);
+	if(bsym->isTmpVarSymbol() && ((SymbolTmpVar *) bsym)->isBaseClassRef())
+	  {
+	    pos += bsym->getPosOffset();
+	    //if(stgclasstype == UC_ELEMENT)
+	    if(needAdjustToStateBits(stgcosuti))
+	      pos -= ATOMFIRSTSTATEBITPOS;
+	  }
+      }
 
     if((cosSize == 1))
       {
@@ -2598,11 +2612,12 @@ namespace MFM {
 	      fp->write(stgcos->getMangledName().c_str()); //first arg t3543, not t3512
 	    else
 	      fp->write(m_state.getHiddenArgName()); //ur first arg
-	    fp->write(".GetEffectiveSelfPos() ");
+	    //	    fp->write(".GetEffectiveSelfPos() ");
+	    fp->write(".GetPosToEffectiveSelf() ");
 
-	    if((stgcosut->getUlamClassType() == UC_ELEMENT) && stgcosut->isReference())
-	      fp->write("- T::ATOM_FIRST_STATE_BIT + "); //t41318
-	    else
+	    //if((stgcosut->getUlamClassType() == UC_ELEMENT) && stgcosut->isReference())
+	    // fp->write("- T::ATOM_FIRST_STATE_BIT + "); //t41318
+	    //else
 	      fp->write("+ ");
 	  }
 
@@ -2618,7 +2633,7 @@ namespace MFM {
 	    fp->write("(&");
 	    fp->write(m_state.getTheInstanceMangledNameByIndex(cosclassuti).c_str());
 	    fp->write(") + ");
-	    assert(uvpass.getPassApplyDelta()); //double checking, ow need it!!
+	    //assert(uvpass.getPassApplyDelta()); //double checking, ow need it!! t41325?
 	  }
 
 	fp->write_decimal_unsigned(pos); //rel offset //t3143, t3543
@@ -2899,28 +2914,35 @@ namespace MFM {
 		hiddenarg2 << ", uc";
 		hiddenarg2 << "); "; //line wraps
 
-		//second ulamref based on existing stg ulamref
-		hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvar).c_str() << "(";
-		hiddenarg2 << m_state.getUlamRefTmpVarAsString(tmpvarstg).c_str() << ", "; //existing
-		hiddenarg2 << calcPosOfCurrentObjectClassesAsString(uvpass); //relative off;
-		if(stgclasstype == UC_ELEMENT)
-		  hiddenarg2 << " - T::ATOM_FIRST_STATE_BIT";
-		hiddenarg2 << ", " << getLengthOfMemberClassForHiddenArg(cosuti) << "u, &"; //len
-
-		if((vownarg != Nouti) && !cos->isDataMember())
+		if(vownarg != Nouti)
 		  {
-		    //virtual func call keeps the eff self of stg (t41321),
-		    // unless dm of local stg (e.g. t3804)
-		    // possible also check uvpass for applydelta == true?
-		    hiddenarg2 << m_state.getTheInstanceMangledNameByIndex(stgcosuti).c_str(); //same effself
-		    hiddenarg2 << ", " << genUlamRefUsageAsString(stgcosuti).c_str(); //same usage
+		    //virtual func; second ulamref based on existing stg ulamref
+		    hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvar).c_str() << "(";
+		    hiddenarg2 << m_state.getUlamRefTmpVarAsString(tmpvarstg).c_str() << ", "; //existing
+		    hiddenarg2 << calcPosOfCurrentObjectClassesAsString(uvpass); //relative off;
+		    if(stgclasstype == UC_ELEMENT)
+		      hiddenarg2 << " - T::ATOM_FIRST_STATE_BIT";
+		    hiddenarg2 << ", " << getLengthOfMemberClassForHiddenArg(cosuti) << "u, &"; //len
+
+		    if(!cos->isDataMember())
+		      {
+			//virtual func call keeps the eff self of stg (t41321),
+			// unless dm of local stg (e.g. t3804)
+			// possible also check uvpass for applydelta == true?
+			hiddenarg2 << m_state.getTheInstanceMangledNameByIndex(stgcosuti).c_str(); //same effself
+			hiddenarg2 << ", " << genUlamRefUsageAsString(stgcosuti).c_str(); //same usage
+		      }
+		    else
+		      {
+			hiddenarg2 << m_state.getTheInstanceMangledNameByIndex(cosuti).c_str(); //new eff self
+			hiddenarg2 << ", " << genUlamRefUsageAsString(cosuti).c_str(); //new usage
+		      }
+		    hiddenarg2 << ");";
 		  }
 		else
 		  {
-		    hiddenarg2 << m_state.getTheInstanceMangledNameByIndex(cosuti).c_str(); //new eff self
-		    hiddenarg2 << ", " << genUlamRefUsageAsString(cosuti).c_str(); //new usage
+		    tmpvar = tmpvarstg; //not virtual
 		  }
-		hiddenarg2 << ");";
 	      }
 	  }
       }
@@ -2977,6 +2999,7 @@ namespace MFM {
 
     UTI stgcosuti = stgcos->getUlamTypeIdx();
     UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
+    //    ULAMCLASSTYPE stgclasstype = cosut->getUlamClassType();
 
     // handle inheritance, when data member is in superclass, not current class obj
     // now for both immediate elements and quarks..
@@ -2993,35 +3016,51 @@ namespace MFM {
     assert(cosclassut->isScalar()); //cos array (t3147-48)
 
     u32 pos = uvpass.getPassPos();
-
     u32 tmpsharedrelpos = 0; //use runtime shared pos based on effself instead
     bool shared = m_state.getASharedBaseClassRelativePositionInAClass(stgcosuti, cosclassuti, tmpsharedrelpos);
 
-    if(stgcosut->isReference())
+    //   u32 relposofbaseclass = 0;
+    //UTI startsearchcuti = stgcosuti;
+    if(uvpass.getPassApplyDelta() && (cosSize > 2))
       {
-	u32 relposofbaseclass = 0;
-	UTI startsearchcuti = stgcosuti;
-	if(uvpass.getPassApplyDelta() && (cosSize > 2))
+	//handling specific baseclass type here
+	Symbol * bsym = m_state.m_currentObjSymbolsForCodeGen[cosSize - 2];
+	assert(bsym);
+	if(bsym->isTmpVarSymbol() && ((SymbolTmpVar *) bsym)->isBaseClassRef())
 	  {
-	    Symbol * bsym = m_state.m_currentObjSymbolsForCodeGen[cosSize - 2];
-	    assert(bsym);
-	    if(bsym->isTmpVarSymbol() && ((SymbolTmpVar *) bsym)->isBaseClassRef())
-	      startsearchcuti = bsym->getUlamTypeIdx(); //t41323
-	    else
-	      m_state.abortNeedsATest(); //? or shouldntGetHere
+	    pos += bsym->getPosOffset();
+	    //if(stgclasstype == UC_ELEMENT)
+	    if(needAdjustToStateBits(stgcosuti))
+	      pos -= ATOMFIRSTSTATEBITPOS;
 	  }
 
-	if(!shared)
-	  {
-	    if(m_state.getABaseClassRelativePositionInAClass(startsearchcuti, cosclassuti, relposofbaseclass))
-	      pos += relposofbaseclass; //t41323
-	  }
-	//else shared, use effective self since stg is a ref
+#if 0
+	  startsearchcuti = bsym->getUlamTypeIdx(); //t41323, t41310(local var)
+	else
+	  m_state.abortNeedsATest(); //? or shouldntGetHere
+
+	if(m_state.getABaseClassRelativePositionInAClass(startsearchcuti, cosclassuti, relposofbaseclass))
+	  pos += relposofbaseclass; //t41323
+#endif
+      }
+
+#if 0
+    if(stgcosut->isReference())
+      {
       }
     else //local var position is in uvpass (t41317)
       {
-	pos += tmpsharedrelpos;
+	if(shared)
+	  pos += tmpsharedrelpos;
+	else
+	  {
+	    if(uvpass.getPassApplyDelta())
+	      {
+		//t41310
+	      }
+	  }
       }
+#endif
 
     fp->write("UlamRef<EC>("); //wrapper for local storage
 
@@ -3030,25 +3069,39 @@ namespace MFM {
 	fp->write(stgcos->getMangledName().c_str()); //ref
 	fp->write(", ");
 
-	if(shared)
+	//when stgref is same as cosclass, or cosclass is non-shared baseclass of stgref, use pos; else not the same and shared.
+	//if(shared)
+	if((UlamType::compare(m_state.getUlamTypeAsDeref(stgcosuti), cosclassuti, m_state) != UTIC_SAME) && shared)
 	  {
 	    fp->write(stgcos->getMangledName().c_str());
 	    fp->write(".GetEffectiveSelf()->");
 	    fp->write(m_state.getGetRelPosMangledFunctionName(stgcosuti));
 	    fp->write("(&");
 	    fp->write(m_state.getTheInstanceMangledNameByIndex(cosclassuti).c_str());
-	    fp->write(") + ");
+	    fp->write(") - ");
 	    //assert(uvpass.getPassApplyDelta()); //double checking, ow need it!!
+	    //	  }
+	    //if(uvpass.getPassApplyDelta())
+	    //{
+	    fp->write(stgcos->getMangledName().c_str());
+	    fp->write(".GetPosToEffectiveSelf() ");
+
+	    //if((stgcosut->getUlamClassType() == UC_ELEMENT)) //stg is ref
+	    //  fp->write("- T::ATOM_FIRST_STATE_BIT + ");
+	    //else
+	      fp->write("+ ");
 	  }
       }
 
     //reading entire thing, using ELEMENTAL, t.f. adjust (t3735)
-    if(needAdjustToStateBits(cosuti))
+    if(needAdjustToStateBits(stgcosuti) || needAdjustToStateBits(cosuti)) //t41325
+    //if(needAdjustToStateBits(cosuti))
       fp->write("T::ATOM_FIRST_STATE_BIT + "); //t3735
 
     fp->write_decimal_unsigned(pos); //rel offset
     fp->write("u, ");
 
+    //len
     if(cosclasstype == UC_ELEMENT)
       {
 	//elements too (t3735)..arrays of elements (t3735)?

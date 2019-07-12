@@ -246,7 +246,6 @@ namespace MFM{
     void getDefaultAsPackedArray(u32 len, u32 bitsize, u32 arraysize, u32 pos, u64 dval, u64& darrval);
     TBOOL tryToPackAClass(UTI cuti);
     bool getDefaultClassValue(UTI cuti, BV8K& dvref);
-    bool getDefaultBaseClassValue(UTI cuti, BV8K& dvref);
     void getDefaultAsArray(u32 bitsize, u32 arraysize, u32 tpos, const BV8K& dval, BV8K& darrval);
     bool genCodeClassDefaultConstantArray(File * fp, u32 len, BV8K& dval);
 

@@ -246,7 +246,7 @@ namespace MFM {
     return currBlock;
   } //getBlock
 
-  TBOOL NodeTypedef::packBitsInOrderOfDeclaration(u32& offset, u32& offsetasbase)
+  TBOOL NodeTypedef::packBitsInOrderOfDeclaration(u32& offset)
   {
     //do nothing, but override
     return TBOOL_TRUE;
@@ -290,7 +290,7 @@ namespace MFM {
       m_nodeTypeDesc->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
   } //countNavHzyNoutiNodes
 
-  bool NodeTypedef::buildDefaultValue(u32 wlen, BV8K& dvref, BV8K& basedvref)
+  bool NodeTypedef::buildDefaultValue(u32 wlen, BV8K& dvref)
   {
     return true; //pass on
   }

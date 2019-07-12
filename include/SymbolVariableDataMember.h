@@ -70,13 +70,7 @@ namespace MFM{
 
     void setPosOffset(u32 offsetIntoAtom);
 
-    virtual u32 getPosOffsetInBase();
-
-    virtual bool isPosOffsetInBaseReliable();
-
-    void setPosOffsetInBase(u32 offsetIntoAtom);
-
-    //    virtual void generateCodedVariableDeclarations(File * fp, ULAMCLASSTYPE classtype);
+    //virtual void generateCodedVariableDeclarations(File * fp, ULAMCLASSTYPE classtype);
 
     virtual void printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype);
 
@@ -86,7 +80,6 @@ namespace MFM{
 
   private:
     u32 m_posOffset; //relative
-    u32 m_posOffsetInBase; //relative to non-shared bases
     u32 m_dataMemberUnpackedSlotIndex;  //untrusted
   };
 

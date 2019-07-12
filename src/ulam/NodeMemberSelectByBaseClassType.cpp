@@ -320,8 +320,11 @@ namespace MFM {
     UTI basetype = m_nodeRight->getNodeType();
     u32 subpos = uvpass.getPassPos();
     u32 basepos = UNRELIABLEPOS;
-    if(!m_state.getABaseClassRelativePositionInAClass(subclass, basetype, basepos))
-      m_state.abortShouldntGetHere();
+
+    bool shared = m_state.getASharedBaseClassRelativePositionInAClass(subclass, basetype, basepos);
+    if(!shared)
+      if(!m_state.getABaseClassRelativePositionInAClass(subclass, basetype, basepos))
+	m_state.abortShouldntGetHere();
 
     //continue on to build tmpvarsymbol and coordinating uvpass
     u32 newpos = subpos+basepos;

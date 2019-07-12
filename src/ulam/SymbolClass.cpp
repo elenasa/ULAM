@@ -529,8 +529,6 @@ namespace MFM {
       {
  	m_isreadyDefaultValue = true;
 	dvref = m_defaultValue;
-
- 	m_isreadyDefaultBaseClassValue = true;
 	return true; //short-circuit, no data members, nor an element
       }
 
@@ -546,65 +544,14 @@ namespace MFM {
     assert(classblock);
     m_state.pushClassContext(suti, classblock, classblock, false, NULL); //missing?
 
-    if((m_isreadyDefaultValue = classblock->buildDefaultValue(usizeof, dvref, basedv)))
+    if((m_isreadyDefaultValue = classblock->buildDefaultValue(usizeof, dvref)))
       {
 	m_defaultValue = dvref;
-	m_defaultBaseClassValue = basedv;
-	m_isreadyDefaultBaseClassValue = true;
       }
 
     m_state.popClassContext();
     return m_isreadyDefaultValue;
   } //getDefaultValue
-
-  bool SymbolClass::getDefaultBaseClassValue(BV8K& dvref)
-  {
-    //could be any length up to 8K..(i.e. transient)
-    // element that doesn't fit into a u64
-    if(m_isreadyDefaultBaseClassValue)
-      {
-	dvref = m_defaultBaseClassValue;
-	return true; //short-circuit, known
-      }
-
-    UTI suti = getUlamTypeIdx();
-    UlamType * sut = m_state.getUlamTypeByIndex(suti);
-
-    if(!sut->isComplete())
-      {
-	std::ostringstream msg;
-	msg << "Cannot get default base class value for incomplete class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
-	MSG(Symbol::getTokPtr(),msg.str().c_str(), WAIT);
-	return false; //t3875
-      }
-
-    if(sut->getUlamClassType() == UC_ELEMENT)
-      {
-	std::ostringstream msg;
-	msg << "Cannot get default base class value for an element: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
-	MSG(Symbol::getTokPtr(),msg.str().c_str(), ERR);
-	return false;
-      }
-
-    BV8K dv;
-    u32 usizeof = sut->getBitsizeAsBaseClass(); //wo shared base data
-    if(usizeof == 0)
-      {
- 	m_isreadyDefaultBaseClassValue = true;
-	dvref = m_defaultBaseClassValue;
-
-	getDefaultValue(dv); //keep in sync
-	return true; //short-circuit, no data members, nor an element
-      }
-
-    getDefaultValue(dv);
-    if(m_isreadyDefaultBaseClassValue)
-      dvref = m_defaultBaseClassValue;
-
-    return m_isreadyDefaultBaseClassValue;
-  } //getDefaultValueAsBaseClass
 
   bool SymbolClass::buildClassConstantDefaultValues()
   {

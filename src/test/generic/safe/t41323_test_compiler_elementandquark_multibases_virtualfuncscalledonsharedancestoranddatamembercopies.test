@@ -37,15 +37,16 @@ element Foo +System {
       assert(m_a4==110);
 
       //multiple copies of QBase1:
-      assert(!a.m_b1);
+      assert(a.m_b1);
     }
 
     E4& e4ref = (E4&) a;
-    assert(!e4ref.QB2.m_b1); //equiv as-dm
-    assert(!e4ref.QBase3.m_b1); //equiv dm; touched
+    assert(e4ref.QB2.m_b1); //equiv as-dm
+    assert(!e4ref.QBase3.m_b1); //untouched
     assert(!e4ref.m_b4); //m_b4 not defined within as-block
-    assert(e4ref.QBase1.m_b1); //equiv dm; touched
-    assert(e4ref.m_b1); //touched
+    assert(!e4ref.QBase1.m_b1); //equiv dm; untouched
+    assert(!e4ref.m_b1); //untouched
+
 
     //COMPARE GEN CODE: as- with ref-
     Atom b = E4.instanceof;

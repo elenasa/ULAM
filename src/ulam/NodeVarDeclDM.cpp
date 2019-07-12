@@ -727,22 +727,22 @@ namespace MFM {
     return rtnb;
   } //updateConstant64
 
-  bool NodeVarDeclDM::buildDefaultValue(u32 wlen, BV8K& dvref, BV8K& basedvref)
+  bool NodeVarDeclDM::buildDefaultValue(u32 wlen, BV8K& dvref)
   {
     assert(m_varSymbol);
     assert(m_varSymbol->isDataMember());
     UTI vuti = m_varSymbol->getUlamTypeIdx();
     UTI cuti = m_state.getCompileThisIdx();
 
-    if(!m_varSymbol->isPosOffsetReliable() || !m_varSymbol->isPosOffsetInBaseReliable())
+    if(!m_varSymbol->isPosOffsetReliable())
       {
 	if(m_state.isAClass(vuti))
 	  m_state.tryToPackAClass(vuti);
 
-	if(!m_varSymbol->isPosOffsetReliable() || !m_varSymbol->isPosOffsetInBaseReliable())
+	if(!m_varSymbol->isPosOffsetReliable())
 	  m_state.tryToPackAClass(cuti); //t41262
 
-	if(!m_varSymbol->isPosOffsetReliable() || !m_varSymbol->isPosOffsetInBaseReliable())
+	if(!m_varSymbol->isPosOffsetReliable())
 	  return false;
 	//else continue
       }
@@ -754,7 +754,6 @@ namespace MFM {
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
 
     u32 pos = m_varSymbol->getPosOffset();
-    u32 posinbase = m_varSymbol->getPosOffsetInBase();
     u32 len = nut->getSizeofUlamType();
 
     if(len == 0)
@@ -812,7 +811,6 @@ namespace MFM {
 	    BV8K bvarr;
 	    m_varSymbol->getInitValue(bvarr);
 	    bvarr.CopyBV(0, pos, len, dvref); //both scalar and arrays (t41185, t41267, t3818)
-	    bvarr.CopyBV(0, posinbase, len, basedvref); //both scalar and arrays
 	  }
       }
     else if(etyp == UAtom) //this Transient contains an empty atom (t3802)
@@ -832,7 +830,6 @@ namespace MFM {
 
 	//updates dvref in place at position 'pos'
 	darrval.CopyBV(0, pos, len, dvref); //both scalar and arrays
-	darrval.CopyBV(0, posinbase, len, basedvref); //both scalar and arrays
 	aok = true;
       }
     else if(hasInitExpr())
@@ -844,7 +841,6 @@ namespace MFM {
 	if(m_varSymbol->getInitValue(dval))
 	  {
 	    dval.CopyBV(0u, pos, len, dvref); //frompos, topos, len, destBV
-	    dval.CopyBV(0, posinbase, len, basedvref); //both scalar and arrays
 	    aok = true; //e.g. t3512
 	  }
       }
@@ -885,7 +881,7 @@ namespace MFM {
     m_varSymbol->setInitValue(bvarr); //t3512
   } //foldDefaultClass
 
-  TBOOL NodeVarDeclDM::packBitsInOrderOfDeclaration(u32& offset, u32& offsetasbase)
+  TBOOL NodeVarDeclDM::packBitsInOrderOfDeclaration(u32& offset)
   {
     //can be called any time during c&l resolving loop; may not be ready yet
     assert((s32) offset >= 0); //neg is invalid
@@ -906,7 +902,6 @@ namespace MFM {
     assert(nuti == m_varSymbol->getUlamTypeIdx()); //same as symbol, or shouldn't be here!
 
     ((SymbolVariableDataMember *) m_varSymbol)->setPosOffset(offset);
-    ((SymbolVariableDataMember *) m_varSymbol)->setPosOffsetInBase(offsetasbase);
 
     if(m_state.isClassAQuarkUnion(m_state.getCompileThisIdx()))
       return TBOOL_TRUE; //offset not incremented; all DM at pos 0 (t3209, t41145)
@@ -914,7 +909,6 @@ namespace MFM {
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     u32 len = nut->getSizeofUlamType();
     offset += len; //uses atom-based size for element, and complete size for quark data members
-    offsetasbase += len;
     return TBOOL_TRUE;
   } //packBitsInOrderOfDeclaration
 

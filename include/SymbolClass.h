@@ -123,7 +123,6 @@ namespace MFM{
     bool getDefaultQuark(u32& dqref);
     bool getPackedDefaultValue(u64& dpkref);
     bool getDefaultValue(BV8K& dvref); //return true if ready
-    bool getDefaultBaseClassValue(BV8K& dvref);
 
     bool buildClassConstantDefaultValues();
 
@@ -218,9 +217,6 @@ namespace MFM{
 
     BasesTable m_basestable;
     BasesTable m_sharedbasestable; //ulam-5
-
-    BV8K m_defaultBaseClassValue; //BitVector
-    bool m_isreadyDefaultBaseClassValue;
 
     s32 isABaseClassItemSearch(UTI buti);
     void appendSharedBaseClass(UTI baseclass);

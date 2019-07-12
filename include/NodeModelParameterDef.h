@@ -62,7 +62,7 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
-    virtual bool buildDefaultValue(u32 wlen, BV8K& dvref, BV8K& basedvref);
+    virtual bool buildDefaultValue(u32 wlen, BV8K& dvref);
 
     virtual bool buildDefaultValueForClassConstantDefs();
 

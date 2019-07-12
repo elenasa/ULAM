@@ -82,7 +82,7 @@ namespace MFM{
 
     virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
 
-    virtual bool buildDefaultValue(u32 wlen, BV8K& dvref, BV8K& basedvref);
+    virtual bool buildDefaultValue(u32 wlen, BV8K& dvref);
 
     virtual bool buildDefaultValueForClassConstantDefs();
 
@@ -94,7 +94,7 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
-    virtual TBOOL packBitsInOrderOfDeclaration(u32& offset, u32& offsetasbase);
+    virtual TBOOL packBitsInOrderOfDeclaration(u32& offset);
 
     virtual void printUnresolvedVariableDataMembers();
 

@@ -1460,28 +1460,6 @@ namespace MFM {
     return rtnb;
   } //getDefaultClassValue
 
-  bool CompilerState::getDefaultBaseClassValue(UTI cuti, BV8K& dvref)
-  {
-    if(!okUTItoContinue(cuti)) return false; //short-circuit
-
-    UlamType * cut = getUlamTypeByIndex(cuti);
-    assert(cut->getUlamTypeEnum() == Class);
-
-    bool rtnb = true;
-    if(getBaseClassBitSize(cuti) > 0)
-      {
-	UTI scalarcuti = getUlamTypeAsScalar(cuti);
-	SymbolClass * csym = NULL;
-	AssertBool isDefined = alreadyDefinedSymbolClass(scalarcuti, csym);
-	assert(isDefined);
-	if(csym->packBitsForClassVariableDataMembers() == TBOOL_TRUE) //might as well see
-	  rtnb = csym->getDefaultBaseClassValue(dvref); //pass along ref
-	else
-	  rtnb = false; //really not ready
-      }
-    return rtnb;
-  } //getDefaultBaseClassValue
-
   void CompilerState::getDefaultAsArray(u32 bitsize, u32 arraysize, u32 tpos, const BV8K& dval, BV8K& darrval)
   {
     for(u32 j = 0; j < arraysize; j++)
@@ -2323,18 +2301,17 @@ namespace MFM {
     if(!hasbase)
       {
 	SymbolClass * csym = NULL;
-	AssertBool isDefined = alreadyDefinedSymbolClass(defcuti, csym);
-	assert(isDefined);
-
-	s32 foundsharedbaseitem = csym->isASharedBaseClassItem(defbasep); //direct
-	if(foundsharedbaseitem >= 0)
+	if(alreadyDefinedSymbolClass(defcuti, csym))
 	  {
-	    s32 pos = csym->getSharedBaseClassRelativePosition(foundsharedbaseitem);
-	    assert(pos >= 0);
-	    accumpos += pos; //more specific position within nextbase?
+	    s32 foundsharedbaseitem = csym->isASharedBaseClassItem(defbasep); //direct
+	    if(foundsharedbaseitem >= 0)
+	      {
+		s32 pos = csym->getSharedBaseClassRelativePosition(foundsharedbaseitem);
+		assert(pos >= 0);
+		accumpos += pos; //more specific position within nextbase?
+	      }
 	  }
       }
-
     relposref = accumpos;
     return hasbase; //even for non-classes
   } //getABaseClassRelativePositionInAClass
@@ -2350,7 +2327,7 @@ namespace MFM {
     bool hasbase = false;
     SymbolClass * csym = NULL;
     s32 pos = UNKNOWNSIZE;
-    if(alreadyDefinedSymbolClass(cuti, csym))
+    if(alreadyDefinedSymbolClass(defcuti, csym))
       {
 	s32 sharedbaseitem = csym->isASharedBaseClassItem(defbasep);
 	if(sharedbaseitem >= 0)

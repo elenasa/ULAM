@@ -292,47 +292,54 @@ namespace MFM {
 	    assert(basecblock);
 	    if(csym->isDirectSharedBase(i))
 	      {
-		fp->write(" ^<"); //shared, no recurse
-		fp->write(m_state.getUlamTypeNameBriefByIndex(baseuti).c_str()); //eg ^Foo(a), an instance of
+		if(cuti != m_state.getCompileThisIdx())
+		  {
+		    fp->write(" ^<"); //shared, no recurse
+		    fp->write(m_state.getUlamTypeNameBriefByIndex(baseuti).c_str()); //eg ^Foo(a), an instance of
+		    fp->write(">");
+		  } //else dont write it
 	      }
 	    else
 	      {
 		fp->write(" +<");
 		basecblock->printPostfixDataMembersParseTree(fp, baseuti);
+		fp->write(">");
 	      }
-	    fp->write(">");
 	    i++;
 	  } //end while
 
+	if(m_nodeNext)
+	  m_nodeNext->printPostfix(fp); //datamember vardecls
+
+	//ulam-5 supports shared base classes (comes after datamembers)
 	if(cuti == m_state.getCompileThisIdx())
 	  {
-	    //ulam-5 supports shared base classes;
 	    u32 shbasecount = csym->getSharedBaseClassCount();
 	    u32 j = 0;
 	    while(j < shbasecount)
 	      {
 		UTI baseuti = csym->getSharedBaseClass(j);
-		NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(j);
-
-		if(!isSharedBaseClassLinkReady(cuti, j))
+		if(!csym->isDirectSharedBase(j))
 		  {
-		    //use SCN instead of SC in case of stub (use template's classblock)
-		    SymbolClassName * basecnsym = NULL;
-		    AssertBool isDefined = m_state.alreadyDefinedSymbolClassNameByUTI(baseuti, basecnsym);
-		    assert(isDefined);
-		    shbasecblock = basecnsym->getClassBlockNode();
-		    baseuti = basecnsym->getUlamTypeIdx(); //in case of stub
+		    NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(j);
+
+		    if(!isSharedBaseClassLinkReady(cuti, j))
+		      {
+			//use SCN instead of SC in case of stub (use template's classblock)
+			SymbolClassName * basecnsym = NULL;
+			AssertBool isDefined = m_state.alreadyDefinedSymbolClassNameByUTI(baseuti, basecnsym);
+			assert(isDefined);
+			shbasecblock = basecnsym->getClassBlockNode();
+			baseuti = basecnsym->getUlamTypeIdx(); //in case of stub
+		      }
+		    assert(shbasecblock);
+		    fp->write(" ^<");
+		    shbasecblock->printPostfixDataMembersParseTree(fp, baseuti); //recurse here
+		    fp->write(">");
 		  }
-		assert(shbasecblock);
-		fp->write(" ^<");
-		shbasecblock->printPostfixDataMembersParseTree(fp, baseuti); //recurse here
-		fp->write(">");
 		j++;
 	      } //end while
 	  }
-
-	if(m_nodeNext)
-	  m_nodeNext->printPostfix(fp); //datamember vardecls
       } //compiling this class
   } //printPostfixDataMembersParseTree
 
@@ -1596,7 +1603,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
   } //hasCustomArrayLengthofFunction
 
   //starts here, called by SymbolClass
-  bool NodeBlockClass::buildDefaultValue(u32 wlen, BV8K& dvref, BV8K& basedvref)
+  bool NodeBlockClass::buildDefaultValue(u32 wlen, BV8K& dvref)
   {
     if(m_buildingDefaultValueInProgress)
       return false;
@@ -1623,14 +1630,11 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	  {
 	    //cleaner not circumventing SymbolClass (e.g. t41182,3, t3532)
 	    BV8K bvbase;
-	    if((m_state.getDefaultBaseClassValue(baseuti, bvbase)))
+	    if((m_state.getDefaultClassValue(baseuti, bvbase)))
 	      {
 		s32 relpos = csym->getBaseClassRelativePosition(i);
 		assert(relpos >= 0);
-		pos += relpos;
-		s32 basebitsize = m_state.getBaseClassBitSize(baseuti);
-		bvbase.CopyBV(0, (u32) pos, basebitsize, dvref);
-		bvbase.CopyBV(0, (u32) pos, basebitsize, basedvref);
+		bvbase.CopyBV(0, (u32) pos + relpos, m_state.getBaseClassBitSize(baseuti), dvref);
 	      }
 	    else
 	      aok = false;
@@ -1638,7 +1642,11 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	i++;
       } //end while
 
-    //ulam-5 supports shared base classes;
+    if(aok)
+      if(m_nodeNext)
+	aok = m_nodeNext->buildDefaultValue(wlen, dvref); //side-effect for dm vardecls
+
+    //ulam-5 supports shared base classes; after data members
     u32 shbasecount = csym->getSharedBaseClassCount();
     u32 j = 0;
     while(j < shbasecount)
@@ -1647,22 +1655,17 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	if((baseuti != Nouti))
 	  {
 	    BV8K bvbase;
-	    if((m_state.getDefaultBaseClassValue(baseuti, bvbase)))
+	    if((m_state.getDefaultClassValue(baseuti, bvbase)))
 	      {
 		s32 relpos = csym->getSharedBaseClassRelativePosition(j);
 		assert(relpos >= 0);
-		pos += relpos;
-		bvbase.CopyBV(0, (u32) pos, m_state.getBaseClassBitSize(baseuti), dvref);
+		bvbase.CopyBV(0, (u32) pos + relpos, m_state.getBaseClassBitSize(baseuti), dvref);
 	      }
 	    else
 	      aok = false;
 	  }
 	j++;
       } //end while
-
-    if(aok)
-      if(m_nodeNext)
-	aok = m_nodeNext->buildDefaultValue(wlen, dvref, basedvref); //side-effect for dm vardecls
 
     m_buildingDefaultValueInProgress = false; //clear
     return aok;
@@ -2201,9 +2204,20 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	i++;
       } //end while
 
-    u32 reloffsetAsBase = reloffset;
 
-    //ulam-5 supports shared base classes;
+    TBOOL rtntb = TBOOL_TRUE;
+    m_bitPackingInProgress = true;;
+
+    if(m_nodeNext)
+      {
+	TBOOL nodetb = m_nodeNext->packBitsInOrderOfDeclaration(reloffset);
+	rtntb = Node::minTBOOL(rtntb, nodetb);
+      }
+
+    m_bitPackingInProgress = false;
+
+
+    //ulam-5 supports shared base classes: put after our data members
     UTI cuti = m_state.getCompileThisIdx();
     if(nuti == cuti)
       {
@@ -2252,18 +2266,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	    j++;
 	  } //end while
       }
-
-    TBOOL rtntb = TBOOL_TRUE;
-    m_bitPackingInProgress = true;;
-
-    //m_ST.packBitsForTableOfVariableDataMembers(); //ST order not as declared
-    if(m_nodeNext)
-      {
-	TBOOL nodetb = m_nodeNext->packBitsInOrderOfDeclaration(reloffset, reloffsetAsBase);
-	rtntb = Node::minTBOOL(rtntb, nodetb);
-      }
-
-    m_bitPackingInProgress = false;
     return rtntb;
   } //packBitsForVariableDataMembers
 
