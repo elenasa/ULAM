@@ -6,7 +6,7 @@
 Exit status: 0
 Ue_R { Bool(1) b(true);  Int(32) test() {  System s;  A at;  b at ( A.instanceof )func . = s ( b )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
-Un_A : QW { :<> Bool(7) sp(false);  <NOMAIN> }
+Un_A : QW { Bool(7) sp(false);  :QW<> <NOMAIN> }
 Un_QW { <NOMAIN> }
 ##
 ## Dave requested a way to get default values for Self (within a quark);

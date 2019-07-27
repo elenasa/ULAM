@@ -3,19 +3,20 @@
 ##
 ## gen output: (w interleaved asserts )
 ## Int Arg: 212 (+ 1 assert)
-## Int Arg: 110 (+ 4 asserts)
-## Int Arg: 110 (+ 3 asserts)
-## Int Arg: 110 (+ 4 asserts)
+## Int Arg: 310 (+ 2 asserts)
+## Int Arg: 110 (+ 2 asserts)
+## Int Arg: 110 (+ 2 asserts)
 ##
 #!
 Exit status: 0
-Ue_E4 : QBase3 +QBase2 +QBase1 { :< +< Bool(1) m_b1(false); > typedef QBase1 QB1;  Bool(1) m_b3(false); > +< typedef QBase2 QB2;  Bool(1) m_b2(false); > +< Bool(1) m_b1(false); > Int(32) m_c4(212);  Int(32) m_a4(110);  Int(32) test() {  System s;  m_c4 self QB2 . ( )vfuncc . = s ( m_c4 )print . s ( m_c4 212 cast == )assert . m_a4 self Super . QB1 . ( )vfunca . = s ( m_a4 )print . s ( m_a4 110 cast == )assert . s ( self QBase3 . QBase1 . m_b1 . )assert . s ( self m_b1 . ! )assert . s ( self QBase1 . m_b1 . ! )assert . m_b1 false = Int(32) a4 = self QBase1 . ( )vfunca .;  s ( a4 )print . s ( a4 110 cast == )assert . s ( self m_b1 . )assert . m_b1 false = super QBase1 . m_b1 . false = s ( super QBase1 . m_b1 . ! )assert . Int(32) sa4 = super QB1 . ( )vfunca .;  s ( sa4 )print . s ( sa4 110 cast == )assert . s ( super QBase1 . m_b1 . )assert . s ( self Super . QB1 . m_b1 . )assert . s ( self m_b1 . ! )assert . 0 cast return } }
-Uq_QBase3 +QBase1 { +< Bool(1) m_b1(false); > typedef QBase1 QB1;  Bool(1) m_b3(false);  <NOMAIN> }
+Ue_E4 : QBase3 +QBase2 +QBase1 { Int(32) m_c4(212);  Int(32) m_a4(310);  :QBase3< typedef QBase1 QB1;  Bool(1) m_b3(true);  +QBase1< Bool(1) m_b1(true); >> +QBase2< typedef QBase2 QB2;  Bool(1) m_b2(true); > +QBase1< Bool(1) m_b1(false); > Int(32) test() {  System s;  m_c4 self QB2 . ( )vfuncc . = s ( m_c4 )print . s ( m_c4 212 cast == )assert . m_a4 self Super . ( )vfunca . = s ( m_a4 )print . s ( m_a4 310 cast == )assert . s ( self m_b1 . ! )assert . Int(32) a4 = self QBase1 . ( )vfunca .;  s ( a4 )print . s ( a4 110 cast == )assert . s ( self m_b1 . )assert . m_b1 false = Int(32) sa4 = super QB1 . ( )vfunca .;  s ( sa4 )print . s ( sa4 110 cast == )assert . s ( self m_b1 . )assert . 0 cast return } }
+Uq_QBase3 +QBase1 { typedef QBase1 QB1;  Bool(1) m_b3(false);  +QBase1< Bool(1) m_b1(false); > <NOMAIN> }
 Uq_QBase1 { Bool(1) m_b1(false);  <NOMAIN> }
 Uq_QBase2 { typedef QBase2 QB2;  Bool(1) m_b2(false);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 ##       informed by t41311; do we inherit typedefs in base classes that are seen before used? Yes.
+##       tests using super with implied self with specific base types and virtual func calls.
 ##
 #>E4.ulam
   ulam 4;
@@ -37,29 +38,21 @@ element E4 : QBase3 +QBase2 +QBase1 {
     s.print(m_c4);
     s.assert(m_c4==212);
 
-    m_a4 = self.Super.QB1.vfunca(); //110
+    m_a4 = self.Super.vfunca(); //310
     s.print(m_a4);
-    s.assert(m_a4==110);
-    s.assert(self.QBase3.QBase1.m_b1); //changed
-    s.assert(!self.m_b1); //untouched
-    s.assert(!self.QBase1.m_b1); //untouched
+    s.assert(m_a4==310);
+    s.assert(!self.m_b1); //shared, unchanged
 
-
-    m_b1 = false; //reset
     Int a4 = self.QBase1.vfunca(); //110
     s.print(a4);
     s.assert(a4==110);
     s.assert(self.m_b1);
 
-    m_b1 = false;
-    super.QBase1.m_b1 = false;
-    s.assert(!super.QBase1.m_b1);
+    m_b1 = false; //reset
     Int sa4 = super.QB1.vfunca(); //110
     s.print(sa4);
     s.assert(sa4==110);
-    s.assert(super.QBase1.m_b1);
-    s.assert(self.Super.QB1.m_b1); //sanity
-    s.assert(!self.m_b1);
+    s.assert(self.m_b1); //shared
 
     return 0;
   }

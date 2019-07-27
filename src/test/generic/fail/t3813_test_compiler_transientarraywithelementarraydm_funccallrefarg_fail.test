@@ -1,5 +1,5 @@
 ## -*- mode:ulam -*-
-#=t3813_test_compiler_transientarraywithelementarraydm_funccallrefarg_error
+#=t3813_test_compiler_transientarraywithelementarraydm_funccallrefarg_fail
 #!
 ##      gen code output:
 ##
@@ -11,10 +11,11 @@
 ## Aborted (core dumped)
 ##
 ## eval fails!
+##
 Exit status: -11
 Ue_R { Bool(1) b(false);  Bool(1) c(false);  Int(32) test() {  System s;  A ar[3];  Foo& fr = ar 2 [] mFoo 3 [] . cast;  0 cast return } }
 Uq_System { <NOMAIN> }
-Un_A : QW { :<> Bool(7) sp(false);  Foo mFoo[3]( Unary(3) mTre(0); ), ( Unary(3) mTre(0); ), ( Unary(3) mTre(0); );  <NOMAIN> }
+Un_A : QW { Bool(7) sp(false);  Foo mFoo[3]( Unary(3) mTre(0); ), ( Unary(3) mTre(0); ), ( Unary(3) mTre(0); );  :QW<> <NOMAIN> }
 Uq_QW { /* empty class block */ }
 Ue_Foo { Unary(3) mTre(0);  <NOMAIN> }
 ##

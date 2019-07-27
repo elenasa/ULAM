@@ -13,7 +13,7 @@
 Exit status: 0
 Ue_KeyExprRep { constant Elfoo celfoo = { 0xff807fc0, 0x40, 0x180 };  Int(32) test() {  SystemU3 s;  String(32) mystr[2] = ckeyexpr estr .;  s ( mystr 0 [] )print . s ( mystr 0 [] 2 [] 97u == )assert . s ( mystr 0 [] 3 [] ckeyexpr estr 0 [] 3 [] . == )assert . constant String(32)[2] mycstr = ckeyexpr estr .;  s ( mycstr 0 [] )print . s ( mycstr 0 [] 2 [] 97u == )assert . s ( mycstr 0 [] 3 [] ckeyexpr estr 0 [] 3 [] . == )assert . String(32) mystrarr[3] = cstr;  s ( mystrarr 0 [] )print . s ( 4u 4u cast == )assert . String(32) mystr2 = cstr 1 [];  s ( mystr2 )print . s ( mystr2 0 [] 112u == )assert . s ( mystr2 2 [] cstr 1 [] 2 [] == )assert . String(32) mystr3 = ckeyexpr "cool" .;  s ( mystr3 )print . s ( mystr3 0 [] 99u == )assert . String(32) mystr4 = celfoo estr 0 [] .;  s ( mystr4 )print . s ( mystr4 0 [] 109u == )assert . 0 cast return } }
 Ue_Elfoo { Bool(1) esp( true);  String(32) estr[2]( { "mel", "lem" });  constant String(32) c_str = "cool";  <NOMAIN> }
-Uq_SystemU3 : System { :<> <NOMAIN> }
+Uq_SystemU3 : System { :System<> <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 ## Informed by t41267 except trying to reach gencode to read constant class with String cos; or constant array of strings

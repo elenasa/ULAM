@@ -9,8 +9,8 @@
 Exit status: -11
 Ue_R { Int(32) test() {  System s;  TFoo tf;  QFoo& fooref = tf ( )func . cast;  s ( fooref QFoo is )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
-Un_TFoo : QFoo { :< :<>> <NOMAIN> }
-Uq_QFoo : QBar { :<> <NOMAIN> }
+Un_TFoo : QFoo { :QFoo<> ^QBar<> <NOMAIN> }
+Uq_QFoo : QBar { :QBar<> <NOMAIN> }
 Uq_QBar { /* empty class block */ }
 ##
 ## informed by Dave email 3/20/2017 and t41033

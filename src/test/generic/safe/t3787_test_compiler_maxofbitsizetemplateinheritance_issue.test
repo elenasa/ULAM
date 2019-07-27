@@ -2,7 +2,7 @@
 #=t3787_test_compiler_maxofbitsizetemplateinheritance_issue
 #!
 Exit status: 0
-Ue_Ish : QBase(3u) { :< constant Unsigned(32) bits = 3u;  typedef QOther(7u) MyQOther;  QOther(7u) mOther( constant Unsigned(32) width = 7u;  Unsigned(7) mData(0u); ); > Int(32) test() {  0 cast return } }
+Ue_Ish : QBase(3u) { :QBase(3u)< constant Unsigned(32) bits = 3u;  typedef QOther(7u) MyQOther;  QOther(7u) mOther( constant Unsigned(32) width = 7u;  Unsigned(7) mData(0u); ); > Int(32) test() {  0 cast return } }
 Uq_QBase(Unsigned(32) bits) { typedef QOther(width) MyQOther;  QOther(width) mOther(notready);  <NOMAIN> }
 Uq_QOther(Unsigned(32) width) { Unsigned(UNKNOWN) mData(notready);  <NOMAIN> }
 ##

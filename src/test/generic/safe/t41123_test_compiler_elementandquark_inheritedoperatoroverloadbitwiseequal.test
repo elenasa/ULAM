@@ -8,7 +8,7 @@
 ##
 #!
 Exit status: 4
-Ue_Foo : QW { :< Bits(32) m_it(0); > Bool(1) first(false);  Int(4) m_i(0);  Int(32) test() {  System s;  Foo f;  f ( 5u cast )operator|= . s ( f m_it . cast )print . s ( f m_it . 5u cast == )assert . f ( 3u cast )operator&= . s ( f m_it . cast )print . s ( f m_it . 1u cast == )assert . f ( 5u cast )operator^= . s ( f m_it . cast )print . s ( f m_it . 4u cast == )assert . f m_it . cast return } }
+Ue_Foo : QW { Bool(1) first(false);  Int(4) m_i(0);  :QW< Bits(32) m_it(0); > Int(32) test() {  System s;  Foo f;  f ( 5u cast )operator|= . s ( f m_it . cast )print . s ( f m_it . 5u cast == )assert . f ( 3u cast )operator&= . s ( f m_it . cast )print . s ( f m_it . 1u cast == )assert . f ( 5u cast )operator^= . s ( f m_it . cast )print . s ( f m_it . 4u cast == )assert . f m_it . cast return } }
 Uq_QW { Bits(32) m_it(0);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

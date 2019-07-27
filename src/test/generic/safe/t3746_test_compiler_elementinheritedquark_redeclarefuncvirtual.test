@@ -10,9 +10,9 @@
 ./Base.ulam:3:7: Warning: Virtual overloaded function <dfunc> has a NON-VIRTUAL ancestor in class: Base while compiling E2.
 Exit status: 0
 Uq_Base { <NOMAIN> }
-Uq_Sub1 : Base { :<> <NOMAIN> }
-Ue_E2 : Sub1 { :< :<>> <NOMAIN> }
-Ue_Test : System { :<> Bool(1) brtn[2](true,true);  Int(32) test() {  E2 e2;  Sub1& s1ref = e2 cast;  Base& bref = e2 cast;  brtn 0 [] s1ref ( )dfunc . 12 cast == = ( brtn 0 [] )assert brtn 1 [] bref ( )dfunc . 10 cast == = ( brtn 0 [] )assert 0 cast return } }
+Uq_Sub1 : Base { :Base<> <NOMAIN> }
+Ue_E2 : Sub1 { :Sub1<> ^Base<> <NOMAIN> }
+Ue_Test : System { Bool(1) brtn[2](true,true);  :System<> Int(32) test() {  E2 e2;  Sub1& s1ref = e2 cast;  Base& bref = e2 cast;  brtn 0 [] s1ref ( )dfunc . 12 cast == = ( brtn 0 [] )assert brtn 1 [] bref ( )dfunc . 10 cast == = ( brtn 0 [] )assert 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t3602, vtable-example 11/19/15

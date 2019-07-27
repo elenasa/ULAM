@@ -1,12 +1,12 @@
 ## -*- mode:ulam -*-
-#=t3683_test_compiler_elementandquark_quarkinstanceoffunccallarg
+#=t3683_test_compiler_elementandquark_quarkinstanceoffunccallarg_fail
 #!
 ##      gen code output: (1 assert)
 ##        include/Uq_10102QW10.tcc:26: FAILED: NOT_AN_ELEMENT
 ##        unevaluable without assuming atoms as elements
 ##
 Exit status: -1
-Ue_A : QW { :<> Bool(1) b(false);  Int(32) test() {  System s;  Atom(96) a = ( QW.instanceof )func;  { a QW is cond s ( false )assert . if s ( true )assert . else } 0 cast return } }
+Ue_A : QW { Bool(1) b(false);  :QW<> Int(32) test() {  System s;  Atom(96) a = ( QW.instanceof )func;  { a QW is cond s ( false )assert . if s ( true )assert . else } 0 cast return } }
 Uq_System { <NOMAIN> }
 Uq_QW { <NOMAIN> }
 ##

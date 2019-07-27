@@ -7,8 +7,8 @@
 Exit status: -11
 Ue_R { Int(32) test() {  System s;  Foo f;  f ( )behave . 0 cast return } }
 Uq_System { <NOMAIN> }
-Ue_Foo : Intermediate { :< :<>> Bool(7) sp(false);  System s();  <NOMAIN> }
-Uq_Intermediate : Base { :<> <NOMAIN> }
+Ue_Foo : Intermediate { Bool(7) sp(false);  System s();  :Intermediate<> ^Base<> <NOMAIN> }
+Uq_Intermediate : Base { :Base<> <NOMAIN> }
 Uq_Base { <NOMAIN> }
 ##
 ## Dave issue 1/19/2017, test of is/as semantics with inheritance:

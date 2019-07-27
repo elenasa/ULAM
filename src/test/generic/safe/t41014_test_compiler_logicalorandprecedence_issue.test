@@ -7,7 +7,7 @@
 Exit status: 0
 Uq_Typo(Int(32) a) : Bar { /* empty class block */ }
 Uq_Bar { Unsigned(3) bu( 7u);  <NOMAIN> }
-Ue_Eltypo : Typo(1) { :< :< Unsigned(3) bu(7u); > constant Int(32) a = 1; > Bool(1) sp(true);  Bool(1) sp2(true);  Unsigned(3) first(2u);  Int(32) test() {  System s;  Eltypo elt;  Atom(96) other = elt cast;  sp sp other Eltypo is || first cast 3 cast < && = s ( sp )assert . sp2 sp other Empty is first cast 3 cast < && || = s ( sp2 )assert . 0 cast return } }
+Ue_Eltypo : Typo(1) { Bool(1) sp(true);  Bool(1) sp2(true);  Unsigned(3) first(2u);  :Typo(1)< constant Int(32) a = 1;  :Bar< Unsigned(3) bu(7u); >> ^Bar< Unsigned(3) bu(7u); > Int(32) test() {  System s;  Eltypo elt;  Atom(96) other = elt cast;  sp sp other Eltypo is || first cast 3 cast < && = s ( sp )assert . sp2 sp other Empty is first cast 3 cast < && || = s ( sp2 )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by a Dave question 1/20/2017.

@@ -2,7 +2,7 @@
 #=t41153_test_compiler_elementandquark_selfcasttoatom_issue_error
 #!
 Exit status: -11
-Ue_MyElement : QOne(10u) { :< constant Unsigned(32) num = 10u; > Bool(1) sp(false);  Int(32) test() {  Atom(96) abc = self cast;  ( )behave 0 cast return } }
+Ue_MyElement : QOne(10u) { Bool(1) sp(false);  :QOne(10u)< constant Unsigned(32) num = 10u; > Int(32) test() {  Atom(96) abc = self cast;  ( )behave 0 cast return } }
 Uq_QOne(Unsigned(32) num) { <NOMAIN> }
 ##
 ## informed by user ish 11/5/2017:

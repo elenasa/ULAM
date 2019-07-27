@@ -6,7 +6,7 @@
 #!
 Exit status: 3
 Ue_R { Int(32) test() {  System s;  TPerc t;  t bb . true = t ( 7 cast )set . s ( t bb . )assert . s ( t ( )get . 7 cast == )assert . TPerc& tref = t cast;  s ( tref bb . )assert . s ( tref ( )get . 7 cast == )assert . TPerc b = TPerc.instanceof;  s ( b bb . t bb . != )assert . s ( b ( )get . t ( )get . != )assert . b ( )get . return } }
-Un_TPerc : Foo { :< Int(32) m_i( 3); > Bool(1) bb(false);  <NOMAIN> }
+Un_TPerc : Foo { Bool(1) bb(false);  :Foo< Int(32) m_i( 3); > <NOMAIN> }
 Un_Foo { Int(32) m_i( 3);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

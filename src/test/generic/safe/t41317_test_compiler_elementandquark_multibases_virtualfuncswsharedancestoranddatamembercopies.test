@@ -2,16 +2,16 @@
 #=t41317_test_compiler_elementandquark_multibases_virtualfuncswsharedancestoranddatamembercopies
 ##
 ## gen output:
-## Int Arg: 410 (+ 6 assert)
+## Int Arg: 410 (+ 3 assert)
 ##
 #!
 Exit status: 0
-Ue_Foo +System { +<> Int(32) m_c4(0);  Int(32) m_a4(410);  Int(32) test() {  E4 e4;  typedef QBase2 QB2;  typedef QBase1 QB1;  m_a4 e4 ( )vfunca . = ( m_a4 )print ( m_a4 410 cast == )assert ( e4 m_b4 . )assert ( e4 m_b1 . )assert ( e4 QBase3 . QB1 . m_b1 . ! )assert ( e4 QB2 . QBase1 . m_b1 . ! )assert ( e4 QBase1 . m_b1 . )assert 0 cast return } }
+Ue_Foo +System { Int(32) m_c4(0);  Int(32) m_a4(410);  +System<> Int(32) test() {  E4 e4;  typedef QBase2 QB2;  typedef QBase1 QB1;  m_a4 e4 ( )vfunca . = ( m_a4 )print ( m_a4 410 cast == )assert ( e4 m_b1 . )assert ( e4 m_b4 . )assert 0 cast return } }
 Uq_System { <NOMAIN> }
-Ue_E4 : QBase3 +QBase2 +QBase1 { :< :< Bool(1) m_b1(false); > Bool(1) m_b3(false); > +< +< Bool(1) m_b1(false); > Bool(1) m_b2(false); > +< Bool(1) m_b1(false); > Bool(1) m_b4(false);  typedef QBase2 QB2;  <NOMAIN> }
-Uq_QBase3 : QBase1 { :< Bool(1) m_b1(false); > Bool(1) m_b3(false);  <NOMAIN> }
+Ue_E4 : QBase3 +QBase2 +QBase1 { Bool(1) m_b4(false);  typedef QBase2 QB2;  :QBase3< Bool(1) m_b3(false); > +QBase2< Bool(1) m_b2(false); > +QBase1< Bool(1) m_b1(false); > <NOMAIN> }
+Uq_QBase3 : QBase1 { Bool(1) m_b3(false);  :QBase1< Bool(1) m_b1(false); > <NOMAIN> }
+Uq_QBase2 +QBase1 { Bool(1) m_b2(false);  +QBase1< Bool(1) m_b1(false); > <NOMAIN> }
 Uq_QBase1 { Bool(1) m_b1(false);  <NOMAIN> }
-Uq_QBase2 +QBase1 { +< Bool(1) m_b1(false); > Bool(1) m_b2(false);  <NOMAIN> }
 ##
 ##       informed by t41310; here we call concrete class' 'override,
 ##       and change its data member, as well as a shared bases (QB1) dm.
@@ -33,14 +33,10 @@ element Foo +System {
     m_a4 = e4.vfunca(); //410
     print(m_a4);
     assert(m_a4==410);
-    assert(e4.m_b4);
 
-    //multiple copies of QBase1:
+    //multiple copies of QBase1: SHARED
     assert(e4.m_b1);
-    assert(!e4.QBase3.QB1.m_b1); //unchanged w extra +QBase1
-    assert(!e4.QB2.QBase1.m_b1); //unchanged yet
-    assert(e4.QBase1.m_b1); //equivlent dm changed
-
+    assert(e4.m_b4);
     return 0;
   }
 }

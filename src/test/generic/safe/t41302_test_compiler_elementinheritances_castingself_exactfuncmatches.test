@@ -6,10 +6,11 @@
 ##Unsigned Arg: 5
 ##Unsigned Arg: 7
 ##
+##
 Exit status: 12
-Ue_Foo : Soo { :< :< Unsigned(3) us(5u);  Bool(3) cb(true); > Unsigned(3) sus(4u); > Bool(7) sp(false);  Int(32) a(73);  Int(32) test() {  System s;  ( 5u )setus Coo cc = self cast;  s ( cc us . cast )print . s ( cc us . cast 5 == )assert . cc ( 7u )setus . { cc cb . cond { s ( us cast )print . s ( us cast 5 == )assert . s ( cc us . cast )print . s ( cc us . cast 7 == )assert . us cast cc us . cast +b cast return } if } 0 cast return } }
+Ue_Foo : Soo { Bool(7) sp(false);  Int(32) a(73);  :Soo< Unsigned(3) sus(4u);  :Coo< Unsigned(3) us(5u);  Bool(3) cb(true); >> ^Coo< Unsigned(3) us(5u);  Bool(3) cb(true); > Int(32) test() {  System s;  ( 5u )setus Coo cc = self cast;  s ( cc us . cast )print . s ( cc us . cast 5 == )assert . cc ( 7u )setus . { cc cb . cond { s ( us cast )print . s ( us cast 5 == )assert . s ( cc us . cast )print . s ( cc us . cast 7 == )assert . us cast cc us . cast +b cast return } if } s ( false )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
-Uq_Soo : Coo { :< Unsigned(3) us( 2u);  Bool(3) cb( true); > Unsigned(3) sus( 4u);  <NOMAIN> }
+Uq_Soo : Coo { Unsigned(3) sus( 4u);  :Coo< Unsigned(3) us( 2u);  Bool(3) cb( true); > <NOMAIN> }
 Uq_Coo { Unsigned(3) us( 2u);  Bool(3) cb( true);  <NOMAIN> }
 ##
 ## chained class inheritance, regular (non-template), with casting self
@@ -43,6 +44,7 @@ element Foo : Soo {
 	s.assert(cc.us == 7);
 	return us + cc.us; //exit status 12
       }
+    s.assert(false);
     return 0;
   }
 }

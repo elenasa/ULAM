@@ -9,7 +9,7 @@
 ## Int(3) Arg: 0x0
 ## Int(3) Arg: 0x0
 ## Int(3) Arg: 0x1
-## Int(3) Arg: 0x0
+## Int(3) Arg: 0x1
 ## Int(3) Arg: 0x1
 ## assert: arg is 1
 ## after assert's abort: arg is 1
@@ -18,9 +18,9 @@
 ## after assert's abort: arg is 1
 ## Int(3) Arg: 0x0
 ## Int(3) Arg: 0x0
-## Int(3) Arg: 0x1
 ## Int(3) Arg: 0x2
-## Int(3) Arg: 0x1
+## Int(3) Arg: 0x2
+## Int(3) Arg: 0x2
 ## assert: arg is 1
 ## after assert's abort: arg is 1
 ##
@@ -28,9 +28,9 @@
 Exit status: -11
 Ue_R { Int(32) test() {  System s;  Foo f;  f ( )behave . 0 cast return } }
 Uq_System { <NOMAIN> }
-Ue_Foo : Secondary +Intermediate { :< :< Int(3) m_i3( 0); > Bool(1) m_b2(false); > +< :< Int(3) m_i3( 0); > Int(4) m_i4(0);  Int(4) m_a4(0); > Bool(7) sp(false);  System s();  <NOMAIN> }
-Uq_Secondary : Base { :< Int(3) m_i3( 0); > Bool(1) m_b2(false);  <NOMAIN> }
-Uq_Intermediate : Base { :< Int(3) m_i3( 0); > Int(4) m_i4(0);  Int(4) m_a4(0);  <NOMAIN> }
+Ue_Foo : Secondary +Intermediate { Bool(7) sp(false);  System s();  :Secondary< Bool(1) m_b2(false); > +Intermediate< Int(4) m_i4(0);  Int(4) m_a4(0); > ^Base< Int(3) m_i3( 0); > <NOMAIN> }
+Uq_Secondary : Base { Bool(1) m_b2(false);  :Base< Int(3) m_i3( 0); > <NOMAIN> }
+Uq_Intermediate : Base { Int(4) m_i4(0);  Int(4) m_a4(0);  :Base< Int(3) m_i3( 0); > <NOMAIN> }
 Uq_Base { Int(3) m_i3( 0);  <NOMAIN> }
 ##
 ## informed by t41318, with multiple bases

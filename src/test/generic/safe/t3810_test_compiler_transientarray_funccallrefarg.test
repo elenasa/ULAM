@@ -6,7 +6,7 @@
 Exit status: 0
 Ue_R { Bool(1) b(true);  Bool(1) c(true);  Bool(1) d(true);  Bool(1) e(true);  Int(32) test() {  System s;  QW qw;  A asingle;  asingle ( )setsp . b qw ( asingle cast )func . = s ( b )assert . A& singleref = asingle cast;  c qw ( singleref )func . = s ( c )assert . A ar[3];  ar 1 [] ( )setsp . d qw ( ar 1 [] cast )func . = s ( d )assert . A& r = ar 2 [] cast;  r ( )setsp . e qw ( r )func . = s ( e )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
-Un_A : QW { :<> Bool(7) sp(false);  <NOMAIN> }
+Un_A : QW { Bool(7) sp(false);  :QW<> <NOMAIN> }
 Uq_QW { <NOMAIN> }
 ##
 ## Dave requested a way to get default values for Self (within a quark);

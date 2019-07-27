@@ -3,20 +3,20 @@
 ##
 ## gen output:
 ## Int Arg: 212 (+ 1 assert)
-## Int Arg: 110 (+ 4 asserts)
-## Int Arg: 110 (+ 3 asserts)
+## Int Arg: 110 (+ 2 asserts)
+## Int Arg: 110 (+ 2 asserts)
 ##
 #!
 Exit status: 0
-Ue_Foo +System { +<> Int(32) m_c4(212);  Int(32) m_a4(110);  Int(32) test() {  E4 e4;  typedef QBase2 QB2;  m_c4 e4 QB2 . ( )vfuncc . = ( m_c4 )print ( m_c4 212 cast == )assert typedef QBase1 QB1;  m_a4 e4 QBase3 . QB1 . ( )vfunca . = ( m_a4 )print ( m_a4 110 cast == )assert ( e4 m_b1 . ! )assert ( e4 QBase1 . m_b1 . ! )assert ( e4 QBase3 . QBase1 . m_b1 . )assert e4 QBase3 . QBase1 . m_b1 . false = Int(32) a4 = e4 QBase1 . ( )vfunca .;  ( a4 )print ( a4 110 cast == )assert ( e4 m_b1 . )assert ( e4 QBase1 . m_b1 . )assert 0 cast return } }
+Ue_Foo +System { Int(32) m_c4(212);  Int(32) m_a4(110);  +System<> Int(32) test() {  E4 e4;  typedef QBase2 QB2;  m_c4 e4 QB2 . ( )vfuncc . = ( m_c4 )print ( m_c4 212 cast == )assert typedef QBase1 QB1;  m_a4 e4 QB1 . ( )vfunca . = ( m_a4 )print ( m_a4 110 cast == )assert ( e4 m_b1 . )assert e4 m_b1 . false = Int(32) a4 = e4 QBase1 . ( )vfunca .;  ( a4 )print ( a4 110 cast == )assert ( e4 m_b1 . )assert 0 cast return } }
 Uq_System { <NOMAIN> }
-Ue_E4 : QBase3 +QBase2 +QBase1 { :< :< Bool(1) m_b1(false); > Bool(1) m_b3(false); > +< Bool(1) m_b2(false); > +< Bool(1) m_b1(false); > typedef QBase2 QB2;  <NOMAIN> }
-Uq_QBase3 : QBase1 { :< Bool(1) m_b1(false); > Bool(1) m_b3(false);  <NOMAIN> }
+Ue_E4 : QBase3 +QBase2 +QBase1 { typedef QBase2 QB2;  :QBase3< Bool(1) m_b3(false); > +QBase2< Bool(1) m_b2(false); > +QBase1< Bool(1) m_b1(false); > <NOMAIN> }
+Uq_QBase3 : QBase1 { Bool(1) m_b3(false);  :QBase1< Bool(1) m_b1(false); > <NOMAIN> }
 Uq_QBase1 { Bool(1) m_b1(false);  <NOMAIN> }
 Uq_QBase2 { Bool(1) m_b2(false);  <NOMAIN> }
 ##
 ##       informed by t41309; here we want to pick a base class' 'override instead,
-##       and change its data member (but which one?); using typedefs
+##       and change its data member (but which one? SHARED!); using typedefs
 ##
 #>Foo.ulam
   ulam 4;
@@ -34,19 +34,16 @@ element Foo +System {
     assert(m_c4==212);
 
     typedef QBase3.Super QB1;
-    m_a4 = e4.QBase3.QB1.vfunca(); //110
+    m_a4 = e4.QB1.vfunca(); //110
     print(m_a4);
     assert(m_a4==110);
-    assert(!e4.m_b1); //unchanged, even with extra +QBase1
-    assert(!e4.QBase1.m_b1); //equiv dm, unchanged
-    assert(e4.QBase3.QBase1.m_b1); //caller/override class changed
+    assert(e4.m_b1); //changed, even with extra +QBase1
 
-    e4.QBase3.QBase1.m_b1 = false; //reset
+    e4.m_b1 = false; //reset
     Int a4 = e4.QBase1.vfunca(); //110
     print(a4);
     assert(a4==110);
     assert(e4.m_b1);
-    assert(e4.QBase1.m_b1);
 
     return 0;
   }

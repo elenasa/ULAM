@@ -30,8 +30,8 @@ Exit status: 0
 Ue_RefTest { System f();  Int(32) mChecks(-11);  Int(32) test() {  ( )runTests 0 cast return } }
 Uq_System { <NOMAIN> }
 Uq_QBrt { Bool(1) mQBool( true);  <NOMAIN> }
-Uq_QDat : QBrt { :< Bool(1) mQBool( true); > Unary(3) mUnDat(0);  QBrt mBaseDat( Bool(1) mQBool( true); );  <NOMAIN> }
-Uq_QSubDat { QDat mQdat( :< Bool(1) mQBool( true); > Unary(3) mUnDat(0);  QBrt mBaseDat( Bool(1) mQBool( true); ); );  <NOMAIN> }
+Uq_QDat : QBrt { Unary(3) mUnDat(0);  QBrt mBaseDat( Bool(1) mQBool( true); );  :QBrt< Bool(1) mQBool( true); > <NOMAIN> }
+Uq_QSubDat { QDat mQdat( Unary(3) mUnDat(0);  QBrt mBaseDat( Bool(1) mQBool( true); );  :QBrt< Bool(1) mQBool( true); >);  <NOMAIN> }
 ##
 ## informed by Dave!
 ##
