@@ -808,9 +808,12 @@ namespace MFM {
 	if(aok)
 	  {
 	    foldDefaultClass(); //init value for m_varSymbol (if not already done), handles arrays t3512
-	    BV8K bvarr;
-	    m_varSymbol->getInitValue(bvarr);
-	    bvarr.CopyBV(0, pos, len, dvref); //both scalar and arrays (t41185, t41267, t3818)
+	    if((aok = m_varSymbol->isInitValueReady()))
+	      {
+		BV8K bvarr;
+		m_varSymbol->getInitValue(bvarr);
+		bvarr.CopyBV(0, pos, len, dvref); //both scalar and arrays (t41185, t41267, t3818)
+	      } //else not ready (t41184)
 	  }
       }
     else if(etyp == UAtom) //this Transient contains an empty atom (t3802)
@@ -871,14 +874,15 @@ namespace MFM {
     s32 arraysize = nut->getArraySize();
 
     BV8K bvtmp;
-    AssertBool gotDefault = m_state.getDefaultClassValue(nuti, bvtmp); //uses scalar
-    assert(gotDefault); //maybe zeros
+    if(m_state.getDefaultClassValue(nuti, bvtmp)) //uses scalar
+      {
+	BV8K bvarr;
+	arraysize = arraysize > 0 ? arraysize : 1;
+	m_state.getDefaultAsArray(bitsize, arraysize, 0u, bvtmp, bvarr);
 
-    BV8K bvarr;
-    arraysize = arraysize > 0 ? arraysize : 1;
-    m_state.getDefaultAsArray(bitsize, arraysize, 0u, bvtmp, bvarr);
-
-    m_varSymbol->setInitValue(bvarr); //t3512
+	m_varSymbol->setInitValue(bvarr); //t3512
+      }
+    //else initValue not ready (e.g. t41184)
   } //foldDefaultClass
 
   TBOOL NodeVarDeclDM::packBitsInOrderOfDeclaration(u32& offset)

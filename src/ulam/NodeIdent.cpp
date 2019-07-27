@@ -671,10 +671,17 @@ namespace MFM {
     UlamValue ptr;
     if(m_varSymbol->isDataMember())
       {
-	assert((UlamType::compareForUlamValueAssignment(m_varSymbol->getDataMemberClass(), m_state.m_currentObjPtr.getPtrTargetType(), m_state) == UTIC_SAME) || m_state.isClassASubclassOf(m_state.m_currentObjPtr.getPtrTargetType(), m_varSymbol->getDataMemberClass())); //sanity, right? t3915
+	UTI objclass = m_state.m_currentObjPtr.getPtrTargetType();
+	UTI dmclass = m_varSymbol->getDataMemberClass();
+	assert((UlamType::compareForUlamValueAssignment(dmclass, objclass, m_state) == UTIC_SAME) || m_state.isClassASubclassOf(objclass, dmclass)); //sanity, right? t3915
 	// return ptr to this data member within the m_currentObjPtr
-	// 'pos' modified by this data member symbol's packed bit position
-	ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset(), m_varSymbol->getId());
+	// 'pos' modified by this data member symbol's packed bit position;
+	// and relative position of its class in m_currentObjPtr (ulam-5);
+	u32 relposofbase = 0;
+	AssertBool gotpos = m_state.getABaseClassRelativePositionInAClass(objclass, dmclass, relposofbase);
+	assert(gotpos);
+
+	ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset() + relposofbase, m_varSymbol->getId());
 
 	ptr.checkForAbsolutePtr(m_state.m_currentObjPtr); //t3810
       }
@@ -701,7 +708,8 @@ namespace MFM {
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     assert(UlamType::compare(nuti, m_varSymbol->getUlamTypeIdx(), m_state) == UTIC_SAME);
 
-    u32 pos = 0;
+    //    u32 pos = 0;
+    u32 pos = uvpass.getPassPos(); //t41184
     if(m_varSymbol->isDataMember())
       {
 	///pos = uvpass.getPassPos(); ??
@@ -712,9 +720,9 @@ namespace MFM {
 	if(!m_varSymbol->isTmpVarSymbol())
 	  {
 	    pos += m_varSymbol->getPosOffset(); //??
+#if 0
 	    UTI dmclass = m_varSymbol->getDataMemberClass();
 	    UTI stgclass = uvpass.getPassTargetType();
-	    //if((stgclass != Nouti) && m_state.getABaseClassRelativePositionInAClass(stgclass, dmclass, relpos))
 	    if((stgclass != Nouti))
 	      {
 		u32 relpos = 0;
@@ -725,10 +733,10 @@ namespace MFM {
 		//else a shared base waits for effective self
 	      }
 	    //else (e.g. implicit self.)
+#endif
 	  }
 
 	//might already be true when MemberSelectByBaseType; don't clobber.
-	//bool applydelta = uvpass.getPassApplyDelta() || !belongsToVOWN(m_state.m_gencodingAVirtualFunctionInThisOriginatingClass); //t41318
 	bool applydelta = uvpass.getPassApplyDelta(); //t41318
 
 	uvpass = UVPass::makePass(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, pos, applydelta, m_varSymbol->getId());

@@ -1764,6 +1764,8 @@ namespace MFM {
       msg << "Sizes SET for Class: " << newut->getUlamTypeName().c_str() << " (UTI" << utiArg << ")";
       MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
     }
+
+
     return true;
   } //setUTISizes
 
@@ -2111,10 +2113,14 @@ namespace MFM {
   bool CompilerState::isBaseClassADirectAncestorOf(UTI cuti, UTI basep)
   {
     bool hasbase = false;
+
+    UTI defcuti = getUlamTypeAsDeref(cuti);
+    UTI defbasep = getUlamTypeAsDeref(basep);
+
     SymbolClass * csym = NULL;
-    if(alreadyDefinedSymbolClass(cuti, csym))
+    if(alreadyDefinedSymbolClass(defcuti, csym))
       {
-	hasbase = (csym->isABaseClassItem(basep) >= 0); //t41308
+	hasbase = (csym->isABaseClassItem(defbasep) >= 0); //t41308
       }
     return hasbase; //even for non-classes
   } //isBaseClassADirectAncestorOf
@@ -2313,7 +2319,7 @@ namespace MFM {
 	  }
       }
     relposref = accumpos;
-    return hasbase; //even for non-classes
+    return hasbase; //false for non-classes
   } //getABaseClassRelativePositionInAClass
 
   bool CompilerState::getASharedBaseClassRelativePositionInAClass(UTI cuti, UTI basep, u32& relposref)
@@ -4803,7 +4809,6 @@ namespace MFM {
     return brtn;
   } //isLocalUnreturnableAbsoluteReferenceForEval
 
-
   //general purpose store
   void CompilerState::assignValue(UlamValue lptr, UlamValue ruv)
   {
@@ -5002,6 +5007,42 @@ namespace MFM {
     return cxblock->hasStringDataMembers();
   }
 
+  void CompilerState::extractQuarkBaseFromSubclassForEval(UlamValue fmuvarg, UTI buti, UlamValue& touvref)
+  {
+    UTI debuti = getUlamTypeAsDeref(buti); //t41319 attempts to cast ele to base quarkref
+    UTI cuti = fmuvarg.getUlamValueTypeIdx();
+    assert(isClassASubclassOf(cuti, debuti));
+
+    s32 pos = ATOMFIRSTSTATEBITPOS; //all classes start after type in ulamvalue
+
+    BaseclassWalker walker;
+    walker.init(debuti);
+
+    UTI baseuti = Nouti;
+    //ulam-5 supports multiple base classes; superclass optional;
+    while(walker.getNextBase(baseuti))
+      {
+	SymbolClass * basecsym = NULL;
+	if(alreadyDefinedSymbolClass(baseuti, basecsym))
+	  {
+	    u32 fmrelpos = 0;
+	    getABaseClassRelativePositionInAClass(cuti, baseuti, fmrelpos);
+
+	    u32 torelpos = 0;
+	    getABaseClassRelativePositionInAClass(debuti, baseuti, torelpos);
+
+	    s32 blen = getBaseClassBitSize(baseuti);
+	    assert(blen <= MAXBITSPERINT);
+
+	    u32 qdata = fmuvarg.getData(pos + fmrelpos, blen);
+	    touvref.putData(pos + torelpos, blen, qdata);
+
+	    //include all ancestors of arg buti
+	    walker.addAncestorsOf(basecsym);
+	  }
+      } //end while
+  } //extractQuarkBaseFromSubclassForEval
+
   void CompilerState::setupCenterSiteForTesting()
   {
     //set up an atom in eventWindow; init m_currentObjPtr to point to it
@@ -5155,6 +5196,16 @@ namespace MFM {
   s32 CompilerState::getNextTmpVarNumber()
   {
     return ++m_nextTmpVarNumber;
+  }
+
+  bool CompilerState::isStringATmpVar(u32 id)
+  {
+    std::ostringstream str;
+    str << m_pool.getDataAsString(id);
+    std::string name = str.str();
+    if(name.length() > 3)
+      return((name[0] == 'U') && (name[1] == 'h') && (name[2] == '_'));
+    return false;
   }
 
   const std::string CompilerState::getTmpVarAsString(UTI uti, s32 num, TMPSTORAGE stg)

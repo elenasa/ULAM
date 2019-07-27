@@ -256,6 +256,15 @@ namespace MFM {
 
     u32 startpos = ATOMFIRSTSTATEBITPOS; //use relative offsets
 
+    UTI buti = m_state.getCompileThisIdx(); //us
+    if(UlamType::compare(buti, startuti, m_state) != UTIC_SAME)
+      {
+	u32 baserelpos = 0;
+	if(m_state.getABaseClassRelativePositionInAClass(startuti, buti, baserelpos))
+	  startpos += baserelpos;
+	//else a data member (eg t41304)
+      }
+
     std::map<u32, Symbol* >::iterator it = m_idToSymbolPtr.begin();
     while(it != m_idToSymbolPtr.end())
       {

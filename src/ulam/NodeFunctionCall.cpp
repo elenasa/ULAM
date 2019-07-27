@@ -264,7 +264,7 @@ namespace MFM {
 
     if(funcSymbol && m_funcSymbol != funcSymbol)
       {
-	//may preceed function parameter c&l, and fail names of args with type
+	//may precede function parameter c&l, and fail names of args with type
 	//(e.g. Class isn't really a class).
 	std::ostringstream msg;
 	msg << "Substituting <" << m_state.m_pool.getDataAsString(funcSymbol->getId()).c_str() << "> ";
@@ -953,8 +953,9 @@ namespace MFM {
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
 
     UTI vownuti = (m_funcSymbol->isVirtualFunction() ? m_funcSymbol->getVirtualMethodOriginatingClassUTI() : (UTI) Nouti);
+    UTI futi = m_funcSymbol->getDataMemberClass();
     u32 urtmpnum = 0;
-    std::string hiddenarg2str = Node::genHiddenArg2(uvpass, urtmpnum, vownuti);
+    std::string hiddenarg2str = Node::genHiddenArg2(uvpass, urtmpnum, vownuti, futi);
     if(urtmpnum > 0)
       {
 	m_state.indentUlamCode(fp);
@@ -981,7 +982,6 @@ namespace MFM {
     if(nuti != Void)
       {
 	u32 pos = 0; //POS 0 leftjustified;
-	//bool isref = (nut->getReferenceType() == ALT_REF); //t3946
 	bool isref = m_state.isAltRefType(nuti); //t3946, t41188
 	if(!isref && (nut->getUlamClassType() == UC_NOTACLASS)) //includes atom too
 	  {
@@ -1250,31 +1250,22 @@ namespace MFM {
       {
 	s32 tmpvarpos = m_state.getNextTmpVarNumber();
 	m_state.indentUlamCode(fp);
-	fp->write("const u32 ");
-	fp->write(m_state.getTmpVarAsString(Unsigned, tmpvarpos, TMPREGISTER).c_str());
+	fp->write("const s32 ");
+	fp->write(m_state.getTmpVarAsString(Int, tmpvarpos, TMPREGISTER).c_str());
 	fp->write(" = ");
-#if 0
-	if(knownatcompiletime)
-	  {
-	    u32 relpos = 0;
-	    AssertBool gotpos = m_state.getABaseClassRelativePositionInAClass(cosuti, vownuti, relpos);
-	    assert(gotpos);
-	    fp->write_decimal_unsigned(relpos); //t41310
-	    fp->write("u; //vown relpos in override class"); GCNL;
-	  }
+	if(urtmpnum > 0)
+	  fp->write(m_state.getUlamRefTmpVarAsString(urtmpnum).c_str());
 	else
-#endif
-	  {
-	    if(urtmpnum > 0)
-	      fp->write(m_state.getUlamRefTmpVarAsString(urtmpnum).c_str());
-	    else
-	      fp->write(m_state.getHiddenArgName()); //ur
-	    fp->write(".GetEffectiveSelf()->"); //t41321
-	    fp->write(m_state.getGetRelPosMangledFunctionName(decosuti));
-	    fp->write("(");
-	    fp->write(m_state.getUlamClassTmpVarAsString(tmpvarclassptr).c_str());
-	    fp->write("); //relpos of override class in effself"); GCNL; //reading into a separate relpos tmp var
-	  }
+	  fp->write(m_state.getHiddenArgName()); //ur
+	fp->write(".GetEffectiveSelf()->"); //t41321
+	fp->write(m_state.getGetRelPosMangledFunctionName(decosuti));
+	fp->write("(");
+	fp->write(m_state.getUlamClassTmpVarAsString(tmpvarclassptr).c_str());
+	fp->write("); //relpos of override class in effself"); GCNL; //reading into a separate relpos tmp var
+	m_state.indentUlamCode(fp);
+	fp->write("MFM_API_ASSERT(");
+	fp->write(m_state.getTmpVarAsString(Int, tmpvarpos, TMPREGISTER).c_str());
+	fp->write(" >= 0, PURE_VIRTUAL_CALLED);"); GCNL; //t41095, t41163 (fail tests)
 
 	s32 tmpvarlen = m_state.getNextTmpVarNumber();
 	m_state.indentUlamCode(fp);
@@ -1298,7 +1289,7 @@ namespace MFM {
 	else
 	  fp->write(m_state.getHiddenArgName()); //ur
 	fp->write(", ");
-	fp->write(m_state.getTmpVarAsString(Unsigned, tmpvarpos, TMPREGISTER).c_str());
+	fp->write(m_state.getTmpVarAsString(Int, tmpvarpos, TMPREGISTER).c_str());
 	fp->write(", ");
 	fp->write(m_state.getTmpVarAsString(Unsigned, tmpvarlen, TMPREGISTER).c_str());
 	fp->write(", true");
@@ -1337,7 +1328,6 @@ namespace MFM {
 
     // check that we are not trying to call a pure virtual function: t41158, t41160, t41094, safe t41161
     // too limiting (ulam-5) to limit to 'super' special case: t3606, t3608, t3774, t3779, t3788, t3794, t3795, t3967, t41131
-    //if(cos->isSuper()) //multiple bases possible (ulam-5)
     if(m_state.getUlamTypeAsDeref(cosuti) != cvfuti) //multiple bases possible (ulam-5)
       {
 	SymbolClass * cvfsym = NULL;

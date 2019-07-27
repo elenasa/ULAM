@@ -199,10 +199,10 @@ namespace MFM {
 	while(i < basecount)
 	  {
 	    UTI baseuti = csym->getBaseClass(i);
-	    if(csym->isDirectSharedBase(i))
-	      fp->write(" ^");
-	    else
-	      fp->write(" +");
+	    //if(csym->isDirectSharedBase(i))
+	    //  fp->write(" ^");
+	    //else
+	    fp->write(" +");
 	    fp->write(m_state.getUlamTypeNameBriefByIndex(baseuti).c_str());  //e.g. +Foo(a), an instance of
 	    i++;
 	  } //end while
@@ -243,10 +243,19 @@ namespace MFM {
     fp->write("\n");
   } //printPostfix
 
+  //has only initialized DM values, not current values
   void NodeBlockClass::printPostfixDataMembersParseTree(File * fp, UTI cuti)
   {
     //UTI cuti = getNodeType(); maybe Hzy, use arg instead
     if(m_state.isUrSelf(cuti)) return;
+
+    //ulam-5 data members precede base classes; all bases shared
+    if(m_nodeNext)
+      m_nodeNext->printPostfix(fp); //datamember vardecls
+
+    //base classes only
+    if(UlamType::compare(cuti, m_state.getCompileThisIdx(), m_state) != UTIC_SAME)
+      return;
 
     //inheritance
     SymbolClass * csym = NULL;
@@ -267,9 +276,12 @@ namespace MFM {
 		superuti = supercnsym->getUlamTypeIdx(); //in case of stub (t41007)
 	      }
 	    assert(superblock);
-	    fp->write(" :<");
+	    fp->write(" :");
+	    fp->write(m_state.getUlamTypeNameBriefByIndex(superuti).c_str()); //eg ^Foo(a), an instance of
+	    fp->write("<");
 	    superblock->printPostfixDataMembersParseTree(fp, superuti);
 	    fp->write(">");
+	    //else
 	  }
 
 	//ulam-5 supports multiple base classes; superclass optional
@@ -290,61 +302,62 @@ namespace MFM {
 		baseuti = basecnsym->getUlamTypeIdx(); //in case of stub
 	      }
 	    assert(basecblock);
-	    if(csym->isDirectSharedBase(i))
-	      {
-		if(cuti != m_state.getCompileThisIdx())
-		  {
-		    fp->write(" ^<"); //shared, no recurse
-		    fp->write(m_state.getUlamTypeNameBriefByIndex(baseuti).c_str()); //eg ^Foo(a), an instance of
-		    fp->write(">");
-		  } //else dont write it
-	      }
-	    else
-	      {
-		fp->write(" +<");
-		basecblock->printPostfixDataMembersParseTree(fp, baseuti);
-		fp->write(">");
-	      }
+	    fp->write(" +");
+	    fp->write(m_state.getUlamTypeNameBriefByIndex(baseuti).c_str()); //eg ^Foo(a), an instance of
+	    fp->write("<");
+	    basecblock->printPostfixDataMembersParseTree(fp, baseuti);
+	    fp->write(">");
 	    i++;
 	  } //end while
 
-	if(m_nodeNext)
-	  m_nodeNext->printPostfix(fp); //datamember vardecls
-
 	//ulam-5 supports shared base classes (comes after datamembers)
-	if(cuti == m_state.getCompileThisIdx())
+	u32 shbasecount = csym->getSharedBaseClassCount();
+	u32 j = 0;
+	while(j < shbasecount)
 	  {
-	    u32 shbasecount = csym->getSharedBaseClassCount();
-	    u32 j = 0;
-	    while(j < shbasecount)
+	    UTI baseuti = csym->getSharedBaseClass(j);
+	    if(!m_state.isUrSelf(baseuti))
 	      {
-		UTI baseuti = csym->getSharedBaseClass(j);
-		if(!csym->isDirectSharedBase(j))
-		  {
-		    NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(j);
+		NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(j);
 
-		    if(!isSharedBaseClassLinkReady(cuti, j))
-		      {
-			//use SCN instead of SC in case of stub (use template's classblock)
-			SymbolClassName * basecnsym = NULL;
-			AssertBool isDefined = m_state.alreadyDefinedSymbolClassNameByUTI(baseuti, basecnsym);
-			assert(isDefined);
-			shbasecblock = basecnsym->getClassBlockNode();
-			baseuti = basecnsym->getUlamTypeIdx(); //in case of stub
-		      }
-		    assert(shbasecblock);
-		    fp->write(" ^<");
+		if(!isSharedBaseClassLinkReady(cuti, j))
+		  {
+		    //use SCN instead of SC in case of stub (use template's classblock)
+		    SymbolClassName * basecnsym = NULL;
+		    AssertBool isDefined = m_state.alreadyDefinedSymbolClassNameByUTI(baseuti, basecnsym);
+		    assert(isDefined);
+		    shbasecblock = basecnsym->getClassBlockNode();
+		    baseuti = basecnsym->getUlamTypeIdx(); //in case of stub
+		  }
+		assert(shbasecblock);
+
+		s32 bitem = csym->isABaseClassItem(baseuti);
+		if(bitem < 0)
+		  {
+		    //not a direct shared base
+		    fp->write(" ^");
+		    fp->write(m_state.getUlamTypeNameBriefByIndex(baseuti).c_str()); //eg ^Foo(a), an instance of
+		    fp->write("<");
 		    shbasecblock->printPostfixDataMembersParseTree(fp, baseuti); //recurse here
 		    fp->write(">");
 		  }
-		j++;
-	      } //end while
-	  }
-      } //compiling this class
+		//else
+	      }
+	    j++;
+	  } //end while
+      }
   } //printPostfixDataMembersParseTree
 
+  //data member with most current values impacted by test()
   void NodeBlockClass::printPostfixDataMembersSymbols(File * fp, s32 slot, u32 startpos, UTI cuti)
   {
+    //ulam-5 data members precede base classes
+    m_ST.printPostfixValuesForTableOfVariableDataMembers(fp, slot, startpos, m_state.getUlamTypeByIndex(cuti)->getUlamClassType());
+
+    //if(UlamType::compare(cuti, m_state.getCompileThisIdx(), m_state) != UTIC_SAME)
+    //  don't return; //t3542
+
+    //ulam-5 output all base classes at the end of current class; all bases are shared;
     //inheritance
     SymbolClass * csym = NULL;
     if(m_state.alreadyDefinedSymbolClass(cuti, csym))
@@ -355,8 +368,11 @@ namespace MFM {
 	  {
 	    NodeBlockClass * superblock = getBaseClassBlockPointer(0);
 	    assert(superblock && UlamType::compare(superblock->getNodeType(), superuti, m_state) == UTIC_SAME);
-	    fp->write(" :<");
-	    superblock->printPostfixDataMembersSymbols(fp, slot, startpos, superuti);
+	    u32 relpos = csym->getBaseClassRelativePosition(0);
+	    fp->write(" :");
+	    fp->write(m_state.getUlamTypeNameBriefByIndex(superuti).c_str()); //eg ^Foo(a), an instance of
+	    fp->write("<");
+	    superblock->printPostfixDataMembersSymbols(fp, slot, startpos + relpos, superuti);
 	    fp->write(">");
 	  }
 
@@ -368,16 +384,11 @@ namespace MFM {
 	    UTI baseuti = csym->getBaseClass(i);
 	    NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
 	    assert(basecblock && UlamType::compare(basecblock->getNodeType(), baseuti, m_state) == UTIC_SAME);
-	    if(csym->isDirectSharedBase(i))
-	      {
-		fp->write(" ^<"); //shared, no recurse
-		fp->write(m_state.getUlamTypeNameBriefByIndex(baseuti).c_str()); //eg ^Foo(a), an instance of
-	      }
-	    else
-	      {
-		fp->write(" +<");
-		basecblock->printPostfixDataMembersSymbols(fp, slot, startpos, baseuti);
-	      }
+	    u32 relpos = csym->getBaseClassRelativePosition(i);
+	    fp->write(" +");
+	    fp->write(m_state.getUlamTypeNameBriefByIndex(baseuti).c_str()); //eg ^Foo(a), an instance of
+	    fp->write("<");
+	    basecblock->printPostfixDataMembersSymbols(fp, slot, startpos + relpos, baseuti);
 	    fp->write(">");
 	    i++;
 	  } //end while
@@ -387,17 +398,27 @@ namespace MFM {
 	u32 j = 0;
 	while(j < shbasecount)
 	  {
-	    UTI baseuti = csym->getBaseClass(j);
-	    NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(j);
-	    assert(shbasecblock && UlamType::compare(shbasecblock->getNodeType(), baseuti, m_state) == UTIC_SAME);
-	    fp->write(" ^<");
-	    shbasecblock->printPostfixDataMembersSymbols(fp, slot, startpos, baseuti); //recurse
-	    fp->write(">");
+	    UTI baseuti = csym->getSharedBaseClass(j);
+	    if(!m_state.isUrSelf(baseuti)) //t3102
+	      {
+		NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(j);
+		assert(shbasecblock && UlamType::compare(shbasecblock->getNodeType(), baseuti, m_state) == UTIC_SAME);
+
+		s32 bitem = csym->isABaseClassItem(baseuti);
+		if(bitem < 0)
+		  {
+		    //not a direct shared base
+		    u32 relpos = csym->getSharedBaseClassRelativePosition(j);
+		    fp->write(" ^");
+		    fp->write(m_state.getUlamTypeNameBriefByIndex(baseuti).c_str()); //eg ^Foo(a), an instance of
+		    fp->write("<");
+		    shbasecblock->printPostfixDataMembersSymbols(fp, slot, startpos + relpos, baseuti); //recurse
+		    fp->write(">");
+		  } //else
+	      }
 	    j++;
 	  } //end while
       }
-
-    m_ST.printPostfixValuesForTableOfVariableDataMembers(fp, slot, startpos, m_state.getUlamTypeByIndex(cuti)->getUlamClassType());
   } //printPostfixDataMembersSymbols
 
   void NodeBlockClass::noteBaseClassTypeAndName(UTI nuti, u32 baseitem, bool sharedbase, s32 totalsize, u32& accumsize)
@@ -409,16 +430,16 @@ namespace MFM {
 
     std::ostringstream note;
     note << "(" << nsize << " of ";
-    note << totalsize << " bits, at " << accumsize << ") from ";
+    note << totalsize << " bits, at " << accumsize << ") from "; //relpos unknown at this time
     if(baseitem == 0)
-      note << "super";
+      note << "super ";
+
+    if(sharedbase)
+      note << "shared base: ";
     else
-      {
-	if(sharedbase)
-	  note << "shared ";
-	note << "base ";
-      }
-    note << "class: " << nut->getUlamTypeClassNameBrief(nuti).c_str();
+      note << "base class: ";
+
+    note << nut->getUlamTypeClassNameBrief(nuti).c_str();
     MSG(getNodeLocationAsString().c_str(), note.str().c_str(), NOTE);
 
     accumsize += nsize;
@@ -435,6 +456,10 @@ namespace MFM {
     std::ostringstream note;
     note << "Components of " << cut->getUlamTypeClassNameBrief(cuti).c_str() << " are."; //terminating double dot
     MSG(getNodeLocationAsString().c_str(), note.str().c_str(), NOTE);
+
+    //ulam-5 data members precede base classes; all bases are shared.
+    if(m_nodeNext)
+      m_nodeNext->noteTypeAndName(totalsize, accumsize); //datamember vardecls
 
     //inheritance
     SymbolClass * csym = NULL;
@@ -454,7 +479,7 @@ namespace MFM {
 		superblock = supercnsym->getClassBlockNode();
 	      }
 	    assert(superblock);
-	    superblock->noteBaseClassTypeAndName(superuti, 0, false, totalsize, accumsize); //no recursion
+	    superblock->noteBaseClassTypeAndName(superuti, 0, (csym->getNumberSharingBase(0) > 1), totalsize, accumsize); //no recursion
 	  }
 
 	//ulam-5 supports multiple base classes; superclass optional
@@ -474,11 +499,10 @@ namespace MFM {
 		basecblock = basecnsym->getClassBlockNode();
 	      }
 	    assert(basecblock);
-	    if(!csym->isDirectSharedBase(i))
-	      basecblock->noteBaseClassTypeAndName(baseuti, i, false, totalsize, accumsize); //no recursion
+	    basecblock->noteBaseClassTypeAndName(baseuti, i, (csym->getNumberSharingBase(1) > 1), totalsize, accumsize); //no recursion
 	    i++;
 	  } //end while
-
+#if 1
 	//ulam-5 supports shared base classes;
 	u32 sharedbasecount = csym->getSharedBaseClassCount();
 	u32 j = 0;
@@ -496,13 +520,17 @@ namespace MFM {
 		shbasecblock = basecnsym->getClassBlockNode();
 	      }
 	    assert(shbasecblock);
-	    shbasecblock->noteBaseClassTypeAndName(sbaseuti, i + j, true, totalsize, accumsize); //no recursion
+	    s32 bitem = csym->isABaseClassItem(sbaseuti);
+	    if(bitem < 0)
+	      {
+		//not a direct shared base
+		if(!m_state.isUrSelf(sbaseuti))
+		  shbasecblock->noteBaseClassTypeAndName(sbaseuti, i + j, true, totalsize, accumsize); //no recursion
+	      }
 	    j++;
 	  } //end while
+#endif
       }
-
-    if(m_nodeNext)
-      m_nodeNext->noteTypeAndName(totalsize, accumsize); //datamember vardecls
   } //noteDataMembersParseTree
 
   const char * NodeBlockClass::getName()
@@ -707,6 +735,10 @@ namespace MFM {
 UTI NodeBlockClass::checkMultipleInheritances()
 {
   UTI nuti = m_state.getCompileThisIdx(); //may be Hzy getNodeType();
+
+  //make progress even when not yet complete (t41009,t41010, t3874, t41184)
+  //  if(!m_state.isComplete(nuti)) return Hzy;
+
   bool brtnhzy = false;
 
   SymbolClass * csym = NULL;
@@ -831,6 +863,7 @@ UTI NodeBlockClass::checkMultipleInheritances()
 	  //this is a subclass.
 	  if(!isSharedBaseClassLinkReady(nuti, j))
 	    {
+	      //not a direct shared base
 	      if(!m_state.isComplete(baseuti))
 		{
 		  std::ostringstream msg;
@@ -868,9 +901,13 @@ UTI NodeBlockClass::checkMultipleInheritances()
 		      brtnhzy |= false; //t3889, t3831, t3674
 		    }
 
-		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+		  s32 bitem = csym->isABaseClassItem(baseuti);
+		  if(bitem < 0)
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+		  //else
+		  //  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //dupl err msg.
 		  //need to break the chain; e.g. don't want template symbol addresses used
-		  setSharedBaseClassBlockPointer(NULL, i); //force to try again!! avoid inf loop
+		  setSharedBaseClassBlockPointer(NULL, j); //force to try again!! avoid inf loop
 		}
 	    }
 	}
@@ -1613,6 +1650,12 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     bool aok = true;
     UTI nuti = getNodeType();
 
+    // ulam-5 data members precede base classes
+    if(m_nodeNext)
+      aok = m_nodeNext->buildDefaultValue(wlen, dvref); //side-effect for dm vardecls
+
+    m_buildingDefaultValueInProgress = false; //clear
+
     //ulam-5 supports multiple base classes; superclass optional
     SymbolClass * csym = NULL;
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(nuti, csym);
@@ -1626,7 +1669,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     while(i < basecount)
       {
 	UTI baseuti = csym->getBaseClass(i);
-	if((baseuti != Nouti) && !csym->isDirectSharedBase(i))
+	if((baseuti != Nouti))// && !csym->isDirectSharedBase(i))
 	  {
 	    //cleaner not circumventing SymbolClass (e.g. t41182,3, t3532)
 	    BV8K bvbase;
@@ -1642,18 +1685,16 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	i++;
       } //end while
 
-    if(aok)
-      if(m_nodeNext)
-	aok = m_nodeNext->buildDefaultValue(wlen, dvref); //side-effect for dm vardecls
-
     //ulam-5 supports shared base classes; after data members
     u32 shbasecount = csym->getSharedBaseClassCount();
     u32 j = 0;
     while(j < shbasecount)
       {
 	UTI baseuti = csym->getSharedBaseClass(j);
-	if((baseuti != Nouti))
+	s32 bitem = csym->isABaseClassItem(baseuti);
+	if(bitem < 0)
 	  {
+	    //not a direct shared base
 	    BV8K bvbase;
 	    if((m_state.getDefaultClassValue(baseuti, bvbase)))
 	      {
@@ -1667,7 +1708,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	j++;
       } //end while
 
-    m_buildingDefaultValueInProgress = false; //clear
     return aok;
   } //buildDefaultValue
 
@@ -2058,6 +2098,13 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     if((but->getUlamClassType() == UC_TRANSIENT) && (but->getTotalBitSize() > MAXSTATEBITS))
       return; //cannot do eval on a huge transient
 
+    //ulam-5 data members precede bases; all bases are shared
+    m_ST.initializeElementDefaultsForEval(uv, cuti);
+
+    //ulam-5 shared bases come after all the base class data members
+    if(UlamType::compare(cuti, buti, m_state) != UTIC_SAME)
+      return;
+
     //ulam-5 supports multiple base classes; superclass optional
     SymbolClass * csym = NULL;
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(buti, csym);
@@ -2069,38 +2116,40 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       {
 	UTI baseuti = csym->getBaseClass(i);
 	assert(baseuti != Hzy);
-	if((baseuti != Nouti) && !csym->isDirectSharedBase(i))
+	if((baseuti != Nouti)) // && !csym->isDirectSharedBase(i))
 	  {
 	    NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
 	    assert(basecblock);
-	    m_state.pushClassContext(cuti, basecblock, basecblock, false, NULL);
-	    basecblock->initElementDefaultsForEval(uv, cuti); //????
+	    m_state.pushClassContext(baseuti, basecblock, basecblock, false, NULL);
+	    basecblock->initElementDefaultsForEval(uv, cuti);
 	    m_state.popClassContext(); //restore
 	  }
 	i++;
       } //end while
 
     //ulam-5 supports shared base classes;
-    if(buti == cuti) //count only once
+    u32 shbasecount = csym->getSharedBaseClassCount();
+    u32 j = 0;
+    while(j < shbasecount)
       {
-	u32 shbasecount = csym->getSharedBaseClassCount();
-	u32 j = 0;
-	while(j < shbasecount)
+	UTI baseuti = csym->getSharedBaseClass(j);
+	assert(baseuti != Hzy);
+	if(baseuti != Nouti)
 	  {
-	    UTI baseuti = csym->getSharedBaseClass(j);
-	    assert(baseuti != Hzy);
-	    if(baseuti != Nouti)
+	    s32 bitem = csym->isABaseClassItem(baseuti);
+	    if(bitem < 0)
 	      {
+		//not a direct shared base
 		NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(j);
 		assert(shbasecblock);
-		m_state.pushClassContext(cuti, shbasecblock, shbasecblock, false, NULL);
-		shbasecblock->initElementDefaultsForEval(uv, cuti); //????
+		m_state.pushClassContext(baseuti, shbasecblock, shbasecblock, false, NULL);
+		shbasecblock->initElementDefaultsForEval(uv, cuti);
 		m_state.popClassContext(); //restore
 	      }
-	    j++;
-	  } //end while
-      }
-    return m_ST.initializeElementDefaultsForEval(uv, cuti);
+	  }
+	j++;
+      } //end while
+    return;
   } //initElementDefaultsForEval
 
   //don't set nextNode since it'll get deleted with program.
@@ -2157,9 +2206,20 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     u32 reloffset = 0;
 
-    UTI nuti = getNodeType();
+    //ulam-5 put data members first, then bases in declared order, and end w non-direct shared
+    TBOOL rtntb = TBOOL_TRUE;
+    m_bitPackingInProgress = true;;
+
+    if(m_nodeNext)
+      {
+	TBOOL nodetb = m_nodeNext->packBitsInOrderOfDeclaration(reloffset);
+	rtntb = Node::minTBOOL(rtntb, nodetb);
+      }
+
+    m_bitPackingInProgress = false;
 
     //ulam-5 supports multiple base classes; superclass optional
+    UTI nuti = getNodeType();
     SymbolClass * csym = NULL;
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(nuti, csym);
     assert(isDefined);
@@ -2174,7 +2234,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	    return TBOOL_HAZY;
 	  }
 
-	if((baseuti != Nouti) && !csym->isDirectSharedBase(i))
+	if((baseuti != Nouti))// && !csym->isDirectSharedBase(i))
 	  {
 	    NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
 	    if(!basecblock)
@@ -2205,19 +2265,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       } //end while
 
 
-    TBOOL rtntb = TBOOL_TRUE;
-    m_bitPackingInProgress = true;;
-
-    if(m_nodeNext)
-      {
-	TBOOL nodetb = m_nodeNext->packBitsInOrderOfDeclaration(reloffset);
-	rtntb = Node::minTBOOL(rtntb, nodetb);
-      }
-
-    m_bitPackingInProgress = false;
-
-
-    //ulam-5 supports shared base classes: put after our data members
+    //ulam-5 supports shared base classes:
     UTI cuti = m_state.getCompileThisIdx();
     if(nuti == cuti)
       {
@@ -2254,14 +2302,19 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 		  }
 
 		u32 baseoffset = m_state.getBaseClassBitSize(baseuti);
-		csym->setSharedBaseClassRelativePosition(j, reloffset);
 		s32 bitem = csym->isABaseClassItem(baseuti);
-		if(bitem >=0)
+		if(bitem < 0)
+		  {
+		    //not a direct shared base
+		    csym->setSharedBaseClassRelativePosition(j, reloffset); //directshared
+		    reloffset += baseoffset;
+		  }
+		else
 		  {
 		    assert(csym->isDirectSharedBase(bitem));
-		    csym->setBaseClassRelativePosition(bitem, reloffset); //directshared
+		    u32 directsharedoffset = csym->getBaseClassRelativePosition(bitem);
+		    csym->setSharedBaseClassRelativePosition(j, directsharedoffset);
 		  }
-		reloffset += baseoffset;
 	      }
 	    j++;
 	  } //end while
@@ -3075,7 +3128,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     // returns relative position of baseclass or self; -1 if unrelated.
     genCodeBuiltInFunctionGetRelPosMethodRelatedInstance(fp, declOnly, classtype);
-
+    genCodeBuiltInFunctionGetRelPosMethodRelatedInstanceByRegistrationNumber(fp, declOnly, classtype);
     // 'is' is only for element/classes
     if(classtype == UC_ELEMENT)
       {
@@ -3153,6 +3206,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("} //is-related\n\n");
   } //genCodeBuiltInFunctionIsMethodRelatedInstance
 
+#if 0
   void NodeBlockClass::genCodeBuiltInFunctionIsRelatedInstance(File * fp, std::set<UTI>& basesset)
   {
     UTI nuti = getNodeType();
@@ -3188,6 +3242,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	fp->write(") return(true); //inherited class, or self"); GCNL;
       }
   } //genCodeBuiltInFunctionIsRelatedInstance
+#endif
 
   void NodeBlockClass::genCodeBuiltInFunctionGetRelPosMethodRelatedInstance(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
@@ -3224,19 +3279,19 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     m_state.m_currentIndentLevel++;
 
-    std::set<UTI> setofbases;
-    genCodeBuiltInFunctionGetRelPosRelatedInstance(fp, setofbases);
-
-    fp->write("\n");
     m_state.indent(fp);
     fp->write("return ");
-    fp->write("(-1); //not found"); GCNL;
+    fp->write(m_state.getGetRelPosMangledFunctionName(cuti));
+    fp->write("(cptrarg->");
+    fp->write(m_state.getClassRegistrationNumberFunctionName(cuti));
+    fp->write("());"); GCNL;
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
     fp->write("} //relpos\n\n");
   } //genCodeBuiltInFunctionGetRelPosMethodRelatedInstance
 
+#if 0
   void NodeBlockClass::genCodeBuiltInFunctionGetRelPosRelatedInstance(File * fp, std::set<UTI>& basesset)
   {
     UTI nuti = getNodeType();
@@ -3287,6 +3342,109 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	fp->write("); //position of inherited class, or self"); GCNL;
       }
   } //genCodeBuiltInFunctionGetRelPosOfRelatedInstance
+#endif
+
+  void NodeBlockClass::genCodeBuiltInFunctionGetRelPosMethodRelatedInstanceByRegistrationNumber(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
+  {
+    if(classtype == UC_LOCALSFILESCOPE) return;
+
+    UTI cuti = m_state.getCompileThisIdx();
+
+    if(declOnly)
+      {
+	m_state.indent(fp);
+	fp->write("//helper method, not called directly\n");
+
+	m_state.indent(fp);
+	fp->write("s32 ");
+	fp->write(m_state.getGetRelPosMangledFunctionName(cuti));
+	fp->write("(const u32 regid) const;"); GCNL; //overloade
+	fp->write("\n");
+	return;
+      }
+
+    m_state.indent(fp);
+    fp->write("template<class EC>\n"); //same for elements and quarks
+
+    m_state.indent(fp);
+    fp->write("s32 "); //return relpos >=0 if related
+
+    //include the mangled class::
+    fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
+    fp->write("<EC>::");
+    fp->write(m_state.getGetRelPosMangledFunctionName(cuti));
+    fp->write("(const u32 regid) const\n");
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+
+    m_state.indent(fp);
+    fp->write("switch(regid)\n");
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+
+    //cases:
+    genCodeBuiltInFunctionGetRelPosRelatedInstanceByRegistrationNumber(fp);
+
+    m_state.indent(fp);
+    fp->write("default: ;\n");
+
+    m_state.m_currentIndentLevel--;
+
+    m_state.indent(fp);
+    fp->write("};\n");
+
+    m_state.indent(fp);
+    fp->write("return ");
+    fp->write("(-1); //not found"); GCNL; //for compiler
+
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("} //relpos\n\n");
+  } //genCodeBuiltInFunctionGetRelPosMethodRelatedInstanceByRegistrationNumber
+
+  void NodeBlockClass::genCodeBuiltInFunctionGetRelPosRelatedInstanceByRegistrationNumber(File * fp)
+  {
+    UTI nuti = getNodeType();
+
+    SymbolClass * csym = NULL;
+    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(nuti, csym);
+    assert(isDefined);
+
+    //ulam-5 supports multiple base classes; superclass optional
+    //ulam-5 supports shared base classes; all bases are shared!
+    u32 basecount = csym->getSharedBaseClassCount();
+    u32 j = 0;
+    while(j < basecount)
+      {
+	UTI baseuti = csym->getSharedBaseClass(j);
+	//skip the ancestor of a template
+	if((baseuti != Nouti))
+	  {
+	    u32 regnum = m_state.getAClassRegistrationNumber(baseuti);
+	    u32 relpos = csym->getSharedBaseClassRelativePosition(j);
+	    m_state.indent(fp);
+	    fp->write("case ");
+	    fp->write_decimal_unsigned(regnum);
+	    fp->write(": return(");
+	    fp->write_decimal_unsigned(relpos);
+	    fp->write("); //position of ");
+	    fp->write(m_state.getUlamTypeNameBriefByIndex(baseuti).c_str()); GCNL;
+	  }
+	j++;
+      } //end while
+
+    u32 myregnum = m_state.getAClassRegistrationNumber(nuti);
+    m_state.indent(fp);
+    fp->write("case ");
+    fp->write_decimal_unsigned(myregnum);
+    fp->write(": return(0); //position of ");
+    fp->write(m_state.getUlamTypeNameBriefByIndex(nuti).c_str()); GCNL;
+
+  } //genCodeBuiltInFunctionGetRelPosOfRelatedInstanceByRegistrationNumber
 
   void NodeBlockClass::genCodeBuiltInFunctionGetClassLength(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
@@ -3961,6 +4119,10 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.m_currentIndentLevel++;
 
     m_state.indent(fp);
+    fp->write("//Insure 'rn' within max number of registered classes (");
+    fp->write_decimal_unsigned(m_state.getMaxNumberOfRegisteredUlamClasses());
+    fp->write(")\n");
+    m_state.indent(fp);
     fp->write("if(rn >= ");
     fp->write_decimal_unsigned(m_state.getMaxNumberOfRegisteredUlamClasses());
     fp->write(") FAIL(ARRAY_INDEX_OUT_OF_BOUNDS);"); GCNL;
@@ -3968,6 +4130,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     genCodeBuildIsBVByRegistrationNumberHelper(fp, cuti);
 
+    m_state.indent(fp);
+    fp->write("//the rn-th bit is 'on', iff related\n");
     m_state.indent(fp);
     fp->write("return m_isbyregnumBV.ReadBit(rn);"); GCNL;
     m_state.m_currentIndentLevel--;

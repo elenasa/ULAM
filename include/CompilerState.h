@@ -506,6 +506,8 @@ namespace MFM{
 
     bool hasThisClassStringDataMembers();
 
+    void extractQuarkBaseFromSubclassForEval(UlamValue fmuvarg, UTI buti, UlamValue& touvref);
+
     void setupCenterSiteForTesting();
     void setupCenterSiteForGenCode();
     void generateTestInstancesForLocalsFilescopes(File * fp);
@@ -521,6 +523,7 @@ namespace MFM{
     void outputLineNumberForDebugging(File * fp, Locator nodeloc);
 
     s32 getNextTmpVarNumber();
+    bool isStringATmpVar(u32 id);
     const std::string getTmpVarAsString(UTI uti, s32 num, TMPSTORAGE stg);
     const std::string getUlamRefTmpVarAsString(s32 num);
     const std::string getUlamClassTmpVarAsString(s32 num);

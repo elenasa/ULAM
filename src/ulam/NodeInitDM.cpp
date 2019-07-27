@@ -438,6 +438,12 @@ namespace MFM {
 
     u32 pos = symptr->getPosOffset();
 
+    // check if by ancestor for base relative position (ulam-5)
+    UTI dmclass = symptr->getDataMemberClass();
+    u32 baserelpos = 0;
+    if(m_state.getABaseClassRelativePositionInAClass(m_ofClassUTI, dmclass, baserelpos))
+      pos += baserelpos; //t41183 m_str
+
     m_posOfDM = pos; //don't include the element adjustment (t41176)
 
     if(m_state.getUlamTypeByIndex(m_ofClassUTI)->getUlamClassType() == UC_ELEMENT)

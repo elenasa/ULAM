@@ -343,6 +343,8 @@ namespace MFM {
   {
     if(isCustomArray())
       return m_state.getUlamTypeByIndex(getCustomArrayType())->getTmpStorageTypeForTmpVar();
+    if(isReference())
+      return TMPBITVAL; //eg t41302
     return UlamType::getTmpStorageTypeForTmpVar();
   }
 

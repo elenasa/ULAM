@@ -30,7 +30,7 @@ namespace MFM {
     UlamType * fmut = m_state.getUlamTypeByIndex(valtypidx);
     assert(fmut->isScalar() && isScalar());
     ULAMTYPE vetyp = fmut->getUlamTypeEnum();
-    ULAMCLASSTYPE vclasstype = fmut->getUlamClassType();
+    //    ULAMCLASSTYPE vclasstype = fmut->getUlamClassType();
 
     //now allowing atoms to be cast as quarks, as well as elements;
     // also allowing subclasses to be cast as their superclass (u1.2.2)
@@ -43,11 +43,22 @@ namespace MFM {
       }
     else if(m_state.isClassASubclassOf(valtypidx, typidx))
       {
+	s32 len = getTotalBitSize();
+	assert(len != UNKNOWNSIZE);
+	if(len > MAXBITSPERINT)
+	  m_state.abortNotSupported(); //quarks are max 32 bits
+	UlamValue newval = UlamValue::makeImmediateClass(typidx, 0, len);
+	m_state.extractQuarkBaseFromSubclassForEval(val, typidx, newval);
+	val = newval;
+#if 0
+	u32 baserelpos = 0;
+	m_state.getABaseClassRelativePositionInAClass(valtypidx, typidx, baserelpos);
 	//2 quarks, or element (val), or transient, inherits from this quark
 	if(vclasstype == UC_ELEMENT)
 	  {
 	    s32 pos = ATOMFIRSTSTATEBITPOS; //ancestors start at first state bit pos
-	    s32 len = getTotalBitSize();
+	    pos += baserelpos;
+	    s32 len = getBitsizeAsBaseClass(); //getTotalBitSize();
 	    assert(len != UNKNOWNSIZE);
 	    if(len <= MAXBITSPERINT)
 	      {
@@ -65,8 +76,8 @@ namespace MFM {
 	  }
 	else if(vclasstype == UC_TRANSIENT) //t3998, t3999, t41000, t41001, t41069
 	  {
-	    s32 pos = 0; //ancestors start at first bit pos
-	    s32 len = getTotalBitSize();
+	    s32 pos = baserelpos; //ancestors start at first bit pos
+	    s32 len = getBitsizeAsBaseClass(); //getTotalBitSize();
 	    assert(len != UNKNOWNSIZE);
 	    if(len <= MAXBITSPERINT)
 	      {
@@ -93,6 +104,7 @@ namespace MFM {
 	    u32 qdata = vdata >> (vlen - len); //stays left-justified
 	    val = UlamValue::makeImmediateClass(typidx, qdata, len);
 	  }
+#endif
       }
     else
       brtn = false;
@@ -207,10 +219,15 @@ namespace MFM {
 
     m_state.m_currentIndentLevel++;
 
-    //forward declaration of quark (before struct!)
+    //forward declaration of quark and its immediate (before struct!)
     m_state.indent(fp);
     fp->write("template<class EC> class ");
     fp->write(scalarmangledName.c_str());
+    fp->write(";  //forward"); GCNL;
+
+    m_state.indent(fp);
+    fp->write("template<class EC> class ");
+    fp->write(getUlamTypeImmediateMangledName().c_str());
     fp->write(";  //forward"); GCNL;
     fp->write("\n");
 
@@ -241,12 +258,21 @@ namespace MFM {
     fp->write(scalarmangledName.c_str());
     fp->write("<EC> Us;"); GCNL;
 
+    //immediate typedef
+    m_state.indent(fp);
+    fp->write("typedef ");
+    fp->write(getLocalStorageTypeAsString().c_str());
+    fp->write(" Usi;"); GCNL;
+
+    fp->write("\n");
+
     //read 'entire quark' method
     genUlamTypeAutoReadDefinitionForC(fp);
 
     //write 'entire quark' method
     genUlamTypeAutoWriteDefinitionForC(fp);
 
+    //keep this one too?
     //constructor given storage
     m_state.indent(fp);
     fp->write(automangledName.c_str());
@@ -260,6 +286,16 @@ namespace MFM {
       fp->write("UlamRef<EC>::CLASSIC");
     fp->write(", uc) { }"); GCNL;
 
+    //constructor for conditional-as (auto); superclass ref of element (t3617, t3735);
+    m_state.indent(fp);
+    fp->write(automangledName.c_str());
+    fp->write("(BitStorage<EC>& targ, u32 idx, u32 postoeff, const UlamClass<EC>* effself, const typename UlamRef<EC>::UsageType usage, const UlamContext<EC>& uc) : UlamRef<EC>");
+    fp->write("(idx, "); //the real pos!!!
+    fp->write_decimal_unsigned(len); //includes arraysize
+    fp->write("u, postoeff, targ, effself, ");
+    fp->write("usage"); //controlled by caller
+    fp->write(", uc) { }"); GCNL;
+
     //constructor for chain of refs (e.g. memberselect with array item)
     m_state.indent(fp);
     fp->write(automangledName.c_str());
@@ -271,16 +307,6 @@ namespace MFM {
     else
       fp->write("UlamRef<EC>::CLASSIC");
     fp->write(") { }"); GCNL;
-
-    //constructor for conditional-as (auto); superclass ref of element (t3617);
-    m_state.indent(fp);
-    fp->write(automangledName.c_str());
-    fp->write("(BitStorage<EC>& targ, u32 idx, const UlamClass<EC>* effself, const typename UlamRef<EC>::UsageType usage, const UlamContext<EC>& uc) : UlamRef<EC>");
-    fp->write("(idx, "); //the real pos!!!
-    fp->write_decimal_unsigned(len); //includes arraysize
-    fp->write("u, targ, effself, ");
-    fp->write("usage"); //controlled by caller
-    fp->write(", uc) { }"); GCNL;
 
     //constructor for chain of autorefs
     m_state.indent(fp);
@@ -342,14 +368,16 @@ namespace MFM {
   {
     if(isScalar() || WritePacked(getPackable()))
       {
-	// ref param to avoid excessive copying
+	// ref param to avoid excessive copying; (ulam-5) use deref copy constr
+	// when a different effSelf (may be spread out).
 	m_state.indent(fp);
 	fp->write(getTmpStorageTypeAsString().c_str()); //u32, u64, or BV96
 	fp->write(" read() const { ");
-	fp->write("return ");
-	fp->write("UlamRef<EC>::");
+	fp->write("if(&Us::THE_INSTANCE==this->GetEffectiveSelf()) ");
+	fp->write("return UlamRef<EC>::");
 	fp->write(readMethodForCodeGen().c_str()); //just the guts
-	fp->write("(); /* entire quark */ }"); GCNL;
+	fp->write("();/* entire quark */");
+	fp->write("else { return Usi(*this).read(); } }"); GCNL;
       }
 
     //scalar and entire PACKEDLOADABLE array handled by read method
@@ -375,16 +403,90 @@ namespace MFM {
 
   void UlamTypeClassQuark::genUlamTypeAutoWriteDefinitionForC(File * fp)
   {
-    if(isScalar() || WritePacked(getPackable()))
+    if(isScalar())
       {
 	//ref param to avoid excessive copying; not an array
 	m_state.indent(fp);
 	fp->write("void");
 	fp->write(" write(const ");
 	fp->write(getTmpStorageTypeAsString().c_str()); //u32, u64, or BV96
-	fp->write("& targ) { UlamRef<EC>::");
+	fp->write("& targ) { ");
+	if(getBitSize() > 0)
+	  {
+	    fp->write("if(&Us::THE_INSTANCE==this->GetEffectiveSelf()) ");
+	    fp->write("UlamRef<EC>::");
+	    fp->write(writeMethodForCodeGen().c_str());
+	    fp->write("(targ); /* entire quark */ ");
+	    fp->write("else { ");
+	    fp->write("BitVector<QUARK_SIZE> tmpbv(targ); ");
+
+	    //write the data members first
+	    //here.. 'd' UlamRef is initially pointing to them.
+	    u32 myblen = getBitsizeAsBaseClass();
+	    if(myblen > 0)
+	      {
+		fp->write("/*data members first*/ ");
+		fp->write("UlamRef<EC>(*this,");
+		fp->write_decimal_unsigned(myblen);
+		fp->write("u).Write(");
+		fp->write("tmpbv.Read(0u,");
+		fp->write_decimal_unsigned(myblen);
+		fp->write("u)); ");
+	      }
+
+	    //then, write each of its non-zero size (shared) base classes
+	    //class instance idx is always the scalar uti
+	    UTI scalaruti =  m_key.getUlamKeyTypeSignatureClassInstanceIdx();
+	    SymbolClass * csym = NULL;
+	    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(scalaruti, csym);
+	    assert(isDefined);
+	    u32 shbasecount = csym->getSharedBaseClassCount();
+	    if(shbasecount > 0)
+	      fp->write("/*nonzero base classes*/ ");
+	    u32 j = 0;
+	    while(j < shbasecount)
+	      {
+		UTI baseuti = csym->getSharedBaseClass(j);
+		u32 blen = m_state.getBaseClassBitSize(baseuti);
+		if(blen > 0)
+		  {
+		    fp->write("UlamRef<EC>(*this, this->GetEffectiveSelf()->");
+		    fp->write(m_state.getGetRelPosMangledFunctionName(baseuti));
+		    fp->write("(");
+		    fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(baseuti));
+		    fp->write("u)- this->GetPosToEffectiveSelf(),");
+		    //fp->write("u),");
+		    fp->write_decimal_unsigned(blen);
+		    fp->write("u,true).Write(tmpbv.Read(");
+		    fp->write_decimal_unsigned(csym->getSharedBaseClassRelativePosition(j));
+		    fp->write("u,");
+		    fp->write_decimal_unsigned(blen);
+		    fp->write("u)); /*");
+		    fp->write(m_state.getUlamTypeNameBriefByIndex(baseuti).c_str());
+		    fp->write(" */ ");
+		  }
+		j++;
+	      } //end while
+	    fp->write("} }"); GCNL;
+	  }
+	else
+	  {
+	    fp->write("/* noop */ ");
+	    fp->write("}"); GCNL;
+	  }
+      }
+    else if(WritePacked(getPackable()))
+      {
+	//ref param to avoid excessive copying; an array (t3845)
+	m_state.indent(fp);
+	fp->write("void");
+	fp->write(" write(const ");
+	fp->write(getTmpStorageTypeAsString().c_str()); //u32, u64, or BV96
+	fp->write("& targ) { ");
+	fp->write("UlamRef<EC>::");
 	fp->write(writeMethodForCodeGen().c_str());
-	fp->write("(targ); /* entire quark */ }"); GCNL;
+	fp->write("(targ); /* entire quark */ ");
+	fp->write("}"); GCNL;
       }
 
     //scalar and entire PACKEDLOADABLE array handled by write method
@@ -473,7 +575,7 @@ namespace MFM {
     fp->write("};"); GCNL;
 
     u32 dqval = 0;
-    bool hasDQ = m_state.getDefaultQuark(m_key.getUlamKeyTypeSignatureClassInstanceIdx(), dqval);
+    bool hasDQ = m_state.getDefaultQuark(scalaruti, dqval);
 
     m_state.indent(fp);
     fp->write("typedef BitVector<");
@@ -501,6 +603,7 @@ namespace MFM {
     fp->write("typedef ");
     fp->write(scalarmangledName.c_str());
     fp->write("<EC> Us;"); GCNL;
+
     fp->write("\n");
 
     //read/write methods before constructors in case used.
@@ -560,13 +663,68 @@ namespace MFM {
     fp->write("(const u32 * const ");
     fp->write(" arg) : BVS(arg) { if(arg==NULL) FAIL(NULL_POINTER); }"); GCNL;
 
-    //constructor from ref of same type
+    //constructor from ref of same type (e.g. effself subclass)
     m_state.indent(fp);
     fp->write(mangledName.c_str());
     fp->write("(const ");
     fp->write(automangledName.c_str());
     fp->write("<EC>& d) { ");
-    fp->write("write(d.read()); }"); GCNL;
+    if(isScalar())
+      {
+	fp->write("if(&Us::THE_INSTANCE==d.GetEffectiveSelf()) ");
+	fp->write("write(d.read()); ");
+	fp->write("else {");
+	//write the data members first
+	//here.. 'd' UlamRef is initially pointing to them.
+	u32 myblen = getBitsizeAsBaseClass();
+	if(myblen > 0)
+	  {
+	    fp->write("/*data members first*/ ");
+	    fp->write("BVS::Write(");
+	    fp->write("0u,");
+	    fp->write_decimal_unsigned(myblen);
+	    fp->write("u,");
+	    fp->write("UlamRef<EC>(d,");
+	    fp->write_decimal_unsigned(myblen);
+	    fp->write("u).Read()); ");
+	  }
+
+	//then, write each of its non-zero size (shared) base classes
+	SymbolClass * csym = NULL;
+	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(scalaruti, csym);
+	assert(isDefined);
+	u32 shbasecount = csym->getSharedBaseClassCount();
+	if(shbasecount > 0)
+	  fp->write("/*nonzero base classes*/ ");
+	u32 j = 0;
+	while(j < shbasecount)
+	  {
+	    UTI baseuti = csym->getSharedBaseClass(j);
+	    u32 blen = m_state.getBaseClassBitSize(baseuti);
+	    if(blen > 0)
+	      {
+		fp->write("BVS::Write(");
+		fp->write_decimal_unsigned(csym->getSharedBaseClassRelativePosition(j));
+		fp->write("u,");
+		fp->write_decimal_unsigned(blen);
+		fp->write("u,");
+		fp->write("UlamRef<EC>(d,d.GetEffectiveSelf()->");
+		fp->write(m_state.getGetRelPosMangledFunctionName(baseuti));
+		fp->write("(");
+		fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(baseuti));
+		//	    fp->write("u)-d.GetPosToEffectiveSelf(),");
+		fp->write("u),");
+		fp->write_decimal_unsigned(blen);
+		fp->write("u,true).Read()); /*");
+		fp->write(m_state.getUlamTypeNameBriefByIndex(baseuti).c_str());
+		fp->write(" */ ");
+	      }
+	    j++;
+	  } //end while
+	fp->write("} }"); GCNL;
+      }
+    else //array (eg t3143)
+      fp->write("write(d.read()); }"); GCNL;
 
     //default destructor (intentionally left out)
 

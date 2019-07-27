@@ -45,8 +45,7 @@ namespace MFM
   struct BaseClassEntry
   {
     UTI m_base;
-    bool m_baseshared; //declared with [^]
-    bool m_tmpspare; //rounds out the struct size
+    u32 m_numbaseshared; //rounds out the struct size
     s32 m_basepos; //UNKNOWN < 0
   };
 

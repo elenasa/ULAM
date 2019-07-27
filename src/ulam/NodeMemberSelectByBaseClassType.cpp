@@ -59,7 +59,7 @@ namespace MFM {
       {
 	UTI luti = m_nodeLeft->getNodeType();
 	//	if(m_state.okUTItoContinue(luti) && !m_state.isBaseClassADirectAncestorOf(luti,nuti))
-	if(m_state.okUTItoContinue(luti) && !m_state.isClassASubclassOf(luti,nuti))
+	if(m_state.okUTItoContinue(luti) && (UlamType::compareForAssignment(luti, nuti, m_state) != UTIC_SAME) && !m_state.isClassASubclassOf(luti,nuti))
 	  {
 	    std::ostringstream msg;
 	    msg << "Selected Base Class Type ";
@@ -71,6 +71,19 @@ namespace MFM {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    nuti = Nav; //t41308
 	  }
+#if 0
+	// right node is type descriptor, can't test here!! BUT WHERE??
+	if(!m_nodeRight->isFunctionCall())
+	  {
+	    std::ostringstream msg;
+	    msg << "Selected Base Class Type ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+	    msg << " is not followed by a function call, ";
+	    msg << "and cannot be used in this context";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    nuti = Nav;
+	  }
+#endif
 	setNodeType(nuti); //right type
       }
 
@@ -321,20 +334,21 @@ namespace MFM {
     u32 subpos = uvpass.getPassPos();
     u32 basepos = UNRELIABLEPOS;
 
+    //compile time basepos, assuming subclass is not a ref
     bool shared = m_state.getASharedBaseClassRelativePositionInAClass(subclass, basetype, basepos);
     if(!shared)
       if(!m_state.getABaseClassRelativePositionInAClass(subclass, basetype, basepos))
 	m_state.abortShouldntGetHere();
 
     //continue on to build tmpvarsymbol and coordinating uvpass
-    u32 newpos = subpos+basepos;
+    u32 newpos = subpos; //subpos+basepos;
 
     assert(basepos < uvpass.getPassLen());
     uvpass.setPassPosForced(newpos); //t41310
 
     Node::adjustUVPassForElements(uvpass);
 
-    newpos = uvpass.getPassPos(); //update
+    newpos = uvpass.getPassPos(); //update for tmp symbol
 
     uvpass.setPassTargetType(basetype);
 
@@ -348,6 +362,7 @@ namespace MFM {
 
     uvpass.setPassVarNum(tmpturnum);
     uvpass.setPassNameId(tidTok.m_dataindex);
+    uvpass.setPassPosForced(0); //reset for any following data members
   } //makeUVPassForCodeGen
 
 } //end MFM

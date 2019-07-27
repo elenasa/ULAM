@@ -1212,7 +1212,7 @@ namespace MFM {
 	    fp->write(m_varSymbol->getMangledName().c_str());
 	    fp->write("("); // use constructor (not equals)
 	    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
-	    if((uvpass.getPassStorage() == TMPBITVAL) && m_nodeInitExpr->isExplicitCast())
+	    if((uvpass.getPassStorage() == TMPBITVAL) && m_nodeInitExpr->isExplicitCast() && !m_state.isReference(uvpass.getPassTargetType())) //no read for ref(t41302)
 	      fp->write(".read()"); //ulamexports: WallPort->QPort4->Cell (e.g. t3922, t3715)
 	    else if(m_state.isAtomRef(vuti))
 	      fp->write(", uc");

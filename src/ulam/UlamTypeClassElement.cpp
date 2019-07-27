@@ -254,13 +254,27 @@ namespace MFM {
     //write 'entire' method
     genUlamTypeAutoWriteDefinitionForC(fp);
 
-    //constructor for conditional-as (auto)
+    //keep this one too?
+    //constructor for conditional-as (auto); constructor given storage
     m_state.indent(fp);
     fp->write(automangledName.c_str());
     fp->write("(BitStorage<EC>& targ, u32 idx, const UlamClass<EC>* effself, const UlamContext<EC> & uc) : UlamRef<EC>");
     fp->write("(idx, "); //the real pos!!!
     fp->write_decimal_unsigned(len); //atom-based size, includes: arraysize, and Type
     fp->write("u, targ, effself, ");
+    if(!isScalar())
+      fp->write("UlamRef<EC>::ARRAY");
+    else
+      fp->write("UlamRef<EC>::ELEMENTAL");
+    fp->write(", uc) { }"); GCNL;
+
+    //constructor for conditional-as (auto); constructor given storage
+    m_state.indent(fp);
+    fp->write(automangledName.c_str());
+    fp->write("(BitStorage<EC>& targ, u32 idx, u32 postoeff, const UlamClass<EC>* effself, const UlamContext<EC> & uc) : UlamRef<EC>");
+    fp->write("(idx, "); //the real pos!!!
+    fp->write_decimal_unsigned(len); //atom-based size, includes: arraysize, and Type
+    fp->write("u, postoeff, targ, effself, ");
     if(!isScalar())
       fp->write("UlamRef<EC>::ARRAY");
     else

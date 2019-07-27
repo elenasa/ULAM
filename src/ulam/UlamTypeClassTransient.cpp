@@ -209,11 +209,17 @@ namespace MFM {
 
     m_state.m_currentIndentLevel++;
 
-    //forward declaration of class (before struct!)
+    //forward declaration of class and its immediate (before struct!)
     m_state.indent(fp);
     fp->write("template<class EC> class ");
     fp->write(scalarmangledName.c_str());
     fp->write(";  //forward"); GCNL;
+
+    m_state.indent(fp);
+    fp->write("template<class EC> class ");
+    fp->write(getUlamTypeImmediateMangledName().c_str());
+    fp->write(";  //forward"); GCNL;
+
     fp->write("\n");
 
     m_state.indent(fp);
@@ -237,6 +243,14 @@ namespace MFM {
     fp->write(scalarmangledName.c_str());
     fp->write("<EC> Us;"); GCNL;
 
+    //immediate typedef
+    m_state.indent(fp);
+    fp->write("typedef ");
+    fp->write(getLocalStorageTypeAsString().c_str());
+    fp->write(" Usi;"); GCNL;
+
+    fp->write("\n");
+
     m_state.indent(fp);
     fp->write("typedef UlamRef"); //was atomicparametertype
     fp->write("<EC> Up_Us;"); GCNL;
@@ -247,12 +261,27 @@ namespace MFM {
     //write 'entire' method
     genUlamTypeAutoWriteDefinitionForC(fp);
 
+    //keep this one too?
+    // constructor given storage
     m_state.indent(fp);
     fp->write(automangledName.c_str());
     fp->write("(BitStorage<EC>& targ, u32 idx, const UlamClass<EC>* effself, const UlamContext<EC>& uc) : UlamRef<EC>");
     fp->write("(idx, "); //the real pos!!!
     fp->write_decimal_unsigned(len); //includes arraysize
     fp->write("u, targ, effself, ");
+    if(!isScalar())
+      fp->write("UlamRef<EC>::ARRAY");
+    else
+      fp->write("UlamRef<EC>::CLASSIC");
+    fp->write(", uc) { }"); GCNL;
+
+    //constructor given storage
+    m_state.indent(fp);
+    fp->write(automangledName.c_str());
+    fp->write("(BitStorage<EC>& targ, u32 idx, u32 postoeff, const UlamClass<EC>* effself, const UlamContext<EC>& uc) : UlamRef<EC>");
+    fp->write("(idx, "); //the real pos!!!
+    fp->write_decimal_unsigned(len); //includes arraysize
+    fp->write("u, postoeff, targ, effself, ");
     if(!isScalar())
       fp->write("UlamRef<EC>::ARRAY");
     else
@@ -329,11 +358,13 @@ namespace MFM {
     m_state.indent(fp);
     fp->write(getTmpStorageTypeAsString().c_str()); //u32, u64, or BV96
     fp->write(" read() const { ");
+    fp->write("if(&Us::THE_INSTANCE==this->GetEffectiveSelf()){ ");
     fp->write(getTmpStorageTypeAsString().c_str()); //u32, u64, or BV96
     fp->write(" tmpbv; this->GetStorage().");
     fp->write(readMethodForCodeGen().c_str()); //just the guts
     fp->write("(this->GetPos(), tmpbv); ");
-    fp->write("return tmpbv; /* entire transient */ }"); GCNL;
+    fp->write("return tmpbv;/* entire transient */}");
+    fp->write("else { return Usi(*this).read(); } }"); GCNL;
 
     //scalar and entire PACKEDLOADABLE array handled by read method
     if(!isScalar())
@@ -359,19 +390,91 @@ namespace MFM {
 
   void UlamTypeClassTransient::genUlamTypeAutoWriteDefinitionForC(File * fp)
   {
+
     // write must be scalar; ref param to avoid excessive copying
     //not an array
-    m_state.indent(fp);
-    fp->write("void");
-    fp->write(" write(const ");
-    fp->write(getTmpStorageTypeAsString().c_str()); //u32, u64, or BV96
-    fp->write("& targ) { this->GetStorage().");
-    fp->write(writeMethodForCodeGen().c_str());
-    fp->write("(this->GetPos(), targ); /* entire transient */ }"); GCNL;
-
-    //scalar and entire PACKEDLOADABLE array handled by write method
-    if(!isScalar())
+    if(isScalar())
       {
+	//ref param to avoid excessive copying; not an array
+	m_state.indent(fp);
+	fp->write("void");
+	fp->write(" write(const ");
+	fp->write(getTmpStorageTypeAsString().c_str()); //u32, u64, or BV96
+	fp->write("& targ) { ");
+	if(getBitSize() > 0)
+	  {
+	    fp->write("if(&Us::THE_INSTANCE==this->GetEffectiveSelf()) ");
+	    fp->write("UlamRef<EC>::");
+	    fp->write(writeMethodForCodeGen().c_str());
+	    fp->write("(targ); /* entire transient */ ");
+	    fp->write("else { ");
+
+	    //write the data members first
+	    //here.. 'd' UlamRef is initially pointing to them.
+	    u32 myblen = getBitsizeAsBaseClass();
+	    if(myblen > 0)
+	      {
+		fp->write("/*data members first*/ ");
+		fp->write("UlamRef<EC>(*this,");
+		fp->write_decimal_unsigned(myblen);
+		fp->write("u).Write(");
+		fp->write("targ.Read(0u,");
+		fp->write_decimal_unsigned(myblen);
+		fp->write("u)); ");
+	      }
+
+	    //then, write each of its non-zero size (shared) base classes
+	    //class instance idx is always the scalar uti
+	    UTI scalaruti =  m_key.getUlamKeyTypeSignatureClassInstanceIdx();
+	    SymbolClass * csym = NULL;
+	    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(scalaruti, csym);
+	    assert(isDefined);
+	    u32 shbasecount = csym->getSharedBaseClassCount();
+	    if(shbasecount > 0)
+	      fp->write("/*nonzero base classes*/ ");
+	    u32 j = 0;
+	    while(j < shbasecount)
+	      {
+		UTI baseuti = csym->getSharedBaseClass(j);
+		u32 blen = m_state.getBaseClassBitSize(baseuti);
+		if(blen > 0)
+		  {
+		    fp->write("UlamRef<EC>(*this, this->GetEffectiveSelf()->");
+		    fp->write(m_state.getGetRelPosMangledFunctionName(baseuti));
+		    fp->write("(");
+		    fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(baseuti));
+		    fp->write("u)- this->GetPosToEffectiveSelf(),");
+		    //fp->write("u),");
+		    fp->write_decimal_unsigned(blen);
+		    fp->write("u,true).Write(targ.Read(");
+		    fp->write_decimal_unsigned(csym->getSharedBaseClassRelativePosition(j));
+		    fp->write("u,");
+		    fp->write_decimal_unsigned(blen);
+		    fp->write("u)); /*");
+		    fp->write(m_state.getUlamTypeNameBriefByIndex(baseuti).c_str());
+		    fp->write(" */ ");
+		  }
+		j++;
+	      } //end while
+	    fp->write("} }"); GCNL;
+	  }
+	else
+	  {
+	    fp->write("/* noop */ ");
+	    fp->write("}"); GCNL;
+	  }
+      }
+    else
+      {
+	//array
+	m_state.indent(fp);
+	fp->write("void");
+	fp->write(" write(const ");
+	fp->write(getTmpStorageTypeAsString().c_str()); //u32, u64, or BV96
+	fp->write("& targ) { this->GetStorage().");
+	fp->write(writeMethodForCodeGen().c_str());
+	fp->write("(this->GetPos(), targ); /* entire transient */ }"); GCNL;
+
 	//class instance idx is always the scalar uti
 	UTI scalaruti =  m_key.getUlamKeyTypeSignatureClassInstanceIdx();
 	const std::string scalarmangledName = m_state.getUlamTypeByIndex(scalaruti)->getUlamTypeMangledName();
@@ -519,7 +622,62 @@ namespace MFM {
     fp->write("(const ");
     fp->write(automangledName.c_str());
     fp->write("<EC>& d) { ");
-    fp->write("write(d.read()); }"); GCNL;
+    if(isScalar())
+      {
+	fp->write("if(&Us::THE_INSTANCE==d.GetEffectiveSelf()) ");
+	fp->write("write(d.read()); ");
+	fp->write("else {");
+	//write the data members first
+	//here.. 'd' UlamRef is initially pointing to them.
+	u32 myblen = getBitsizeAsBaseClass();
+	if(myblen > 0)
+	  {
+	    fp->write("/*data members first*/ ");
+	    fp->write("BVS::Write(");
+	    fp->write("0u,");
+	    fp->write_decimal_unsigned(myblen);
+	    fp->write("u,");
+	    fp->write("UlamRef<EC>(d,");
+	    fp->write_decimal_unsigned(myblen);
+	    fp->write("u).Read()); ");
+	  }
+
+	//then, write each of its non-zero size (shared) base classes
+	SymbolClass * csym = NULL;
+	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(scalaruti, csym);
+	assert(isDefined);
+	u32 shbasecount = csym->getSharedBaseClassCount();
+	if(shbasecount > 0)
+	  fp->write("/*nonzero base classes*/ ");
+	u32 j = 0;
+	while(j < shbasecount)
+	  {
+	    UTI baseuti = csym->getSharedBaseClass(j);
+	    u32 blen = m_state.getBaseClassBitSize(baseuti);
+	    if(blen > 0)
+	      {
+		fp->write("BVS::Write(");
+		fp->write_decimal_unsigned(csym->getSharedBaseClassRelativePosition(j));
+		fp->write("u,");
+		fp->write_decimal_unsigned(blen);
+		fp->write("u,");
+		fp->write("UlamRef<EC>(d,d.GetEffectiveSelf()->");
+		fp->write(m_state.getGetRelPosMangledFunctionName(baseuti));
+		fp->write("(");
+		fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(baseuti));
+		//	    fp->write("u)-d.GetPosToEffectiveSelf(),");
+		fp->write("u),");
+		fp->write_decimal_unsigned(blen);
+		fp->write("u,true).Read()); /*");
+		fp->write(m_state.getUlamTypeNameBriefByIndex(baseuti).c_str());
+		fp->write(" */ ");
+	      }
+	    j++;
+	  } //end while
+	fp->write("} }"); GCNL;
+      }
+    else //array
+      fp->write("write(d.read()); }"); GCNL;
 
     //default destructor (intentionally left out)
 

@@ -1639,14 +1639,15 @@ namespace MFM {
 
 	if(aok)
 	  {
-	    std::map<UTI, u32> svbmap;
 	    s32 sharedbitssaved = UNKNOWNSIZE;
 	    aok = csym->determineSharedBasesAndTotalBitsize(sharedbitssaved, sharedbits);
-	    assert(aok);
-	    assert(sharedbits >= 0);
-	    assert(sharedbits <= totalbits);
-	    assert(sharedbitssaved >= sharedbits);
-	    totalbits = (totalbits - sharedbitssaved + sharedbits); //updates total here!!
+	    if(aok)
+	      {
+		assert(sharedbits >= 0);
+		assert(sharedbits <= totalbits);
+		assert(sharedbitssaved >= sharedbits);
+		totalbits = (totalbits - sharedbitssaved + sharedbits); //updates total here!!
+	      }
 	  }
 
 	if(aok)

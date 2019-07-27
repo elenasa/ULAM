@@ -394,6 +394,7 @@ namespace MFM {
 
     //automatically create a Self typedef symbol for this class type
     u32 selfid = m_state.m_pool.getIndexForDataString("Self");
+    assert(!m_state.isReference(utype)); //for the record.
     Token SelfTok(TOK_TYPE_IDENTIFIER, identTok.m_locator, selfid);
     SymbolTypedef * symtypedef = new SymbolTypedef(SelfTok, utype, utype, m_state); //selftype
     assert(symtypedef);
@@ -439,7 +440,8 @@ namespace MFM {
     getNextToken(rTok);
     unreadToken();
 
-    if((rTok.m_type == TOK_PLUS) || (rTok.m_type == TOK_HAT))
+    //if((rTok.m_type == TOK_PLUS) || (rTok.m_type == TOK_HAT))
+    if((rTok.m_type == TOK_PLUS))
       {
 	parseMultipleClassInheritances(cnsym);
       }
@@ -774,9 +776,10 @@ namespace MFM {
     Token rTok;
     getNextToken(rTok);
 
-    while((rTok.m_type == TOK_PLUS) || (rTok.m_type == TOK_HAT))
+    //    while((rTok.m_type == TOK_PLUS) || (rTok.m_type == TOK_HAT))
+    while((rTok.m_type == TOK_PLUS))
       {
-	rtninherits = parseRestOfMultiClassInheritance(cnsym, (rTok.m_type == TOK_HAT));
+	rtninherits = parseRestOfMultiClassInheritance(cnsym, true); //all bases are shared
 	getNextToken(rTok);
       }
 
@@ -3576,6 +3579,8 @@ namespace MFM {
     TypeArgs typeargs;
     typeargs.m_forMemberSelect = true;
 
+    bool hasOneBaseTypeSelector = false; //one is sufficient, all bases shared (ulam-5)
+
     //use loop rather than recursion to get a left-associated tree;
     // needed to support, for example: a.b.c.atomof (t3905)
     while(getExpectedToken(TOK_DOT, pTok, QUIETLY)) //if not, quietly unreads
@@ -3609,6 +3614,15 @@ namespace MFM {
 	  {
 	    unreadToken();
 
+	    if(hasOneBaseTypeSelector)
+	      {
+		std::ostringstream msg;
+		msg << "Member Select By Base Type: ";
+		msg << m_state.getTokenDataAsString(iTok).c_str();
+		msg << " is redundant; All base classes are shared. Pick one!";
+		MSG(&iTok, msg.str().c_str(), ERR);
+	      }
+
 	    NodeTypeDescriptor * nextmembertypeNode = parseTypeDescriptor(typeargs, true); //isaclass
 	    assert(nextmembertypeNode);
 
@@ -3616,6 +3630,7 @@ namespace MFM {
 	    assert(ms);
 	    ms->setNodeLocation(iTok.m_locator);
 	    rtnNode = ms;
+	    hasOneBaseTypeSelector = true;
 	  }
 	else
 	  {
@@ -5927,7 +5942,7 @@ Node * Parser::wrapFactor(Node * leftNode)
 
     TypeArgs typeargs;
 
-    //allow types with preceeding dots (e.g. from another class)
+    //allow types with preceding dots (e.g. from another class)
     //t3407, 3826,27,30; t3868,61,62
     NodeTypeDescriptor * typeNode = parseTypeDescriptorIncludingLocalsScope(typeargs, true, false);
 

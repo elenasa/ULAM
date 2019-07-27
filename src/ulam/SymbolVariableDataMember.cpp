@@ -161,11 +161,11 @@ namespace MFM {
 	NodeBlockClass * classNode = csym->getClassBlockNode();
 	assert(classNode);
 	u32 newstartpos = startpos + getPosOffset();
-	s32 len = vut->getBitSize();
+	s32 len = vut->getBitSize(); //t3143
 	for(s32 i = 0; i < size; i++)
 	  classNode->printPostfixDataMembersSymbols(fp, slot, newstartpos + len * i, scalarquark);
       }
-    else
+    else if(vclasstype == UC_NOTACLASS)
       {
 	PACKFIT packFit = m_state.determinePackable(vuti);
 	assert(WritePacked(packFit)); //has to be to fit in an atom/site;
@@ -194,7 +194,7 @@ namespace MFM {
 		if((vetyp == String) && (data == 0))
 		  sprintf(valstr," ");
 		else
-		  vut->getDataAsString(data, valstr, 'z'); //'z' -> no preceeding ','
+		  vut->getDataAsString(data, valstr, 'z'); //'z' -> no preceding ','
 		if(vetyp == Unsigned || vetyp == Unary)
 		  strcat(valstr, "u");
 
@@ -217,7 +217,7 @@ namespace MFM {
 	    else if(len <= MAXBITSPERLONG)
 	      {
 		u64 data = atval.getDataLongFromAtom(nextPtr, m_state);
-		vut->getDataLongAsString(data, valstr, 'z'); //'z' -> no preceeding ','
+		vut->getDataLongAsString(data, valstr, 'z'); //'z' -> no preceding ','
 		if(vetyp == Unsigned || vetyp == Unary)
 		  strcat(valstr, "u");
 
@@ -246,6 +246,11 @@ namespace MFM {
 	fp->write(valstr); //results out here!
 	delete [] valstr;
       } //not a quark
+    else
+      {
+	//an element or transient
+	m_state.abortNotImplementedYet();
+      }
     fp->write("); ");
   } //printPostfixValuesOfVariableDeclarations
 

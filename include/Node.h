@@ -302,7 +302,17 @@ namespace MFM{
     //index of first element or ele ref object; o.w. -1
     s32 isCurrentObjectsContainingAnElement();
 
-    std::string calcPosOfCurrentObjectClassesAsString(const UVPass& uvpass);
+    //index of last selected Base Type tmp symbol object; o.w.-1
+    s32 isCurrentObjectsContainingABaseTypeTmpSymbol();
+
+    //index of last tmp symbol object; o.w.-1
+    s32 isCurrentObjectsContainingATmpVarSymbol();
+
+    // used by genHiddenArg2 for function calls;
+    std::string calcPosOfCurrentObjectClassesAsString(const UVPass& uvpass, bool adjstEle);
+
+    //called when (implicit self) data member is a complete class; pos known at compile time (e.g. t3541)
+    u32 calcDataMemberPosOfCurrentObjectClasses();
 
     //false means its the entire array or not an array at all
     bool isCurrentObjectAnArrayItem(UTI cosuti, const UVPass& uvpass);
@@ -318,7 +328,7 @@ namespace MFM{
 
     void adjustUVPassForElements(UVPass & uvpass);
 
-    SymbolTmpVar * makeTmpVarSymbolForCodeGen(UVPass& uvpass, Symbol * sym);
+    SymbolTmpVar * makeTmpVarSymbolForCodeGen(UVPass& uvpass, Symbol * symarg);
 
     std::string genUlamRefUsageAsString(UTI uti);
 
@@ -359,8 +369,8 @@ namespace MFM{
     Node * newCastingNode(Node * node, UTI tobeType);
     bool newCastingNodeWithCheck(Node * node, UTI tobeType, Node*& rtnNode);
 
-    //used for function calls second arg, including custom array accessors, and virtual funcs
-    std::string genHiddenArg2(const UVPass& uvpass, u32& urtmpnumref, UTI vownarg);
+    //used for function calls second arg, including custom array accessors, and virtual funcso
+    std::string genHiddenArg2(const UVPass& uvpass, u32& urtmpnumref, UTI vownarg, UTI funcclassarg);
     virtual u32 getLengthOfMemberClassForHiddenArg(UTI cosuti);
 
   private:

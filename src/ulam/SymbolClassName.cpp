@@ -329,14 +329,15 @@ namespace MFM {
     aok = SymbolClass::trySetBitsizeWithUTIValues(totalbits);
     if(aok)
       {
-	std::map<UTI, u32> svbmap;
 	s32 sharedbitssaved = UNKNOWNSIZE;
 	aok = SymbolClass::determineSharedBasesAndTotalBitsize(sharedbitssaved, sharedbits);
-	assert(aok);
-	assert(sharedbits >= 0);
-	assert(sharedbits <= totalbits);
-	assert(sharedbitssaved >= sharedbits);
-	totalbits = (totalbits - sharedbitssaved + sharedbits); //updates total here!!
+	if(aok) //3755 QBase not ready
+	  {
+	    assert(sharedbits >= 0);
+	    assert(sharedbits <= totalbits);
+	    assert(sharedbitssaved >= sharedbits);
+	    totalbits = (totalbits - sharedbitssaved + sharedbits); //updates total here!!
+	  }
       }
 
     if(aok)

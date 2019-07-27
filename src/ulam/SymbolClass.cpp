@@ -12,7 +12,7 @@ namespace MFM {
 
   SymbolClass::SymbolClass(const Token& id, UTI utype, NodeBlockClass * classblock, SymbolClassNameTemplate * parent, CompilerState& state) : Symbol(id, utype, state), m_resolver(NULL), m_classBlock(classblock), m_parentTemplate(parent), m_quarkunion(false), m_stub(true), /*m_defaultValue(NULL),*/ m_isreadyDefaultValue(false) /* default */, m_bitsPacked(false), m_registryNumber(UNINITTED_REGISTRY_NUMBER), m_elementType(UNDEFINED_ELEMENT_TYPE), m_vtableinitialized(false)
   {
-    appendBaseClass(Nouti, false);
+    appendBaseClass(Nouti, true);
   }
 
   SymbolClass::SymbolClass(const SymbolClass& sref) : Symbol(sref), m_resolver(NULL), m_parentTemplate(sref.m_parentTemplate), m_quarkunion(sref.m_quarkunion), m_stub(sref.m_stub), /*m_defaultValue(NULL),*/ m_isreadyDefaultValue(false), m_bitsPacked(false), m_registryNumber(UNINITTED_REGISTRY_NUMBER), m_elementType(UNDEFINED_ELEMENT_TYPE), m_vtableinitialized(false)
@@ -20,15 +20,12 @@ namespace MFM {
     for(u32 i = 0; i < sref.m_basestable.size(); i++)
       {
 	appendBaseClass(m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_basestable[i].m_base,sref.getLoc()), sref.isDirectSharedBase(i));
-	//if(sref.getBaseClassRelativePosition(i) >= 0)
-	//  setBaseClassRelativePosition(i, (u32) sref.getBaseClassRelativePosition(i)); //??? what if base a different size??? */
+	setNumberSharingBase(i, sref.getNumberSharingBase(i));
       }
 
-    for(u32 i = 0; i < sref.m_sharedbasestable.size(); i++)
+    for(u32 j = 0; j < sref.m_sharedbasestable.size(); j++)
       {
-	appendSharedBaseClass(m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_sharedbasestable[i].m_base,sref.getLoc()));
-	//if(sref.getSharedBaseClassRelativePosition(i) >= 0)
-	//  setSharedBaseClassRelativePosition(i, (u32) sref.getSharedBaseClassRelativePosition(i)); //??? what if base a different size??? */
+	appendSharedBaseClass(m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_sharedbasestable[j].m_base,sref.getLoc()), sref.getNumberSharingSharedBase(j));
       }
 
     if(sref.m_classBlock)
@@ -55,9 +52,7 @@ namespace MFM {
       }
 
     m_basestable.clear();
-    //m_basesmap.clear();
     m_sharedbasestable.clear();
-    //m_sharedbasesmap.clear();
     m_basesVTstart.clear();
   }
 
@@ -141,7 +136,7 @@ namespace MFM {
   bool SymbolClass::isDirectSharedBase(u32 item) const
   {
     assert(item < m_basestable.size());
-    return m_basestable[item].m_baseshared;
+    return (getNumberSharingBase(item) > 0);
   }
 
   u32 SymbolClass::countDirectSharedBases() const
@@ -189,9 +184,8 @@ namespace MFM {
   {
     BaseClassEntry bentry;
     bentry.m_base = baseclass;
+    bentry.m_numbaseshared = (sharedbase ? 1 : 0); //=true, all shared virtual ^base
     bentry.m_basepos = UNKNOWNSIZE; //pos unknown
-    bentry.m_baseshared = sharedbase; //shared virtual ^base
-    bentry.m_tmpspare = false;
     m_basestable.push_back(bentry);
   } //appendBaseClass
 
@@ -220,6 +214,24 @@ namespace MFM {
 	updateBaseClass(m_basestable[item].m_base, item, baseclass);
       }
   } //setBaseClass
+
+  void SymbolClass::clearBaseAsShared(u32 item)
+  {
+    assert(item < m_basestable.size());
+    m_basestable[item].m_numbaseshared = 0;
+  }
+
+  void SymbolClass::setNumberSharingBase(u32 item, u32 numshared)
+  {
+    assert(item < m_basestable.size());
+    m_basestable[item].m_numbaseshared = numshared;
+  }
+
+  u32 SymbolClass::getNumberSharingBase(u32 item) const
+  {
+    assert(item < m_basestable.size());
+    return m_basestable[item].m_numbaseshared;
+  }
 
   s32 SymbolClass::getBaseClassRelativePosition(u32 item) const
   {
@@ -267,13 +279,18 @@ namespace MFM {
     return m_sharedbasestable.size();
   } //getSharedBaseClassCount
 
-  void SymbolClass::appendSharedBaseClass(UTI baseclass)
+  u32 SymbolClass::getNumberSharingSharedBase(u32 item) const
+  {
+    assert(item < m_sharedbasestable.size());
+    return m_sharedbasestable[item].m_numbaseshared;
+  }
+
+  void SymbolClass::appendSharedBaseClass(UTI baseclass, u32 numshared)
   {
     BaseClassEntry bentry;
     bentry.m_base = baseclass;
+    bentry.m_numbaseshared = numshared; //shared virtual ^base
     bentry.m_basepos = UNKNOWNSIZE; //pos unknown
-    bentry.m_baseshared = true; //shared virtual ^base
-    bentry.m_tmpspare = false;
     m_sharedbasestable.push_back(bentry);
   } //appendSharedBaseClass
 
@@ -406,14 +423,20 @@ namespace MFM {
 	assert(m_state.isASeenClass(baseuti));
 	u32 numshared = it->second;
 	assert(numshared > 0);
+
 	s32 basebitsize = m_state.getBaseClassBitSize(baseuti);
-	assert(basebitsize != UNKNOWNSIZE);
+	if(basebitsize == UNKNOWNSIZE) //t3755
+	  return false; //wait..
 
 	bitssaved += (basebitsize * numshared);
 	totalsharedbasebitsize += basebitsize;
 
 	if(isASharedBaseClassItem(baseuti) < 0)
-	  appendSharedBaseClass(baseuti); //builds shared base table, for rel pos (later)
+	  appendSharedBaseClass(baseuti, numshared); //builds shared base table, for rel pos (later)
+
+	s32 bitem = isABaseClassItem(baseuti);
+	if(bitem >= 0) //direct shared
+	  setNumberSharingBase(bitem, numshared);
 	it++;
       } //while
 
@@ -1863,7 +1886,8 @@ namespace MFM {
   {
     BaseclassWalker walker;
 
-    //recursively check class and ancestors (breadth-first), for auti
+    //recursively sets the bit located at each ancestor's registration number;
+    //gencoded is-method checks for relative by testing if the regnum bit is on.
     UTI cuti = getUlamTypeIdx();
     walker.init(cuti);
 
