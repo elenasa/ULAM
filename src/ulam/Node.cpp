@@ -1777,8 +1777,15 @@ namespace MFM {
 	  fp->write(stgcos->getMangledName().c_str());
 	fp->write(", ");
 
-	if(needAdjustToStateBits(cosuti) && (vetyp != UAtom)) //t3907
-	  fp->write("T::ATOM_FIRST_STATE_BIT + "); //t3803, t3832
+	//	if(needAdjustToStateBits(cosuti) && (vetyp != UAtom)) //t3907
+	if(vetyp != UAtom) //t3907
+	  {
+	    s32 edx = isCurrentObjectsContainingAnElement();
+	    if((edx >= 0) && needAdjustToStateBits(m_state.m_currentObjSymbolsForCodeGen[edx]->getUlamTypeIdx()))
+	      {
+		fp->write("T::ATOM_FIRST_STATE_BIT + "); //t3803, t3832, t3632
+	      }
+	  }
 	fp->write_decimal_unsigned(pos); //rel offset
 	fp->write("u");
 	if(vetyp == Class)
@@ -1970,6 +1977,16 @@ namespace MFM {
 	  //local stg or reference
 	  fp->write(stgcos->getMangledName().c_str());
 
+	bool adjstForEle = false;
+	if(!stgcosut->isReference() && (vetyp != UAtom))
+	  {
+	    s32 edx = isCurrentObjectsContainingAnElement();
+	    if((edx >= 0) && needAdjustToStateBits(m_state.m_currentObjSymbolsForCodeGen[edx]->getUlamTypeIdx()))
+	      {
+		adjstForEle = true;
+	      }
+	  }
+
 	if(cos->isDataMember())
 	  {
 	    fp->write(", ");
@@ -1977,10 +1994,13 @@ namespace MFM {
 
 	    fp->write("u");
 
+	    if(adjstForEle)
+	      fp->write(" + T::ATOM_FIRST_STATE_BIT"); //t3635
+
 	    if(vetyp == Class)
 	      {
-		if(needAdjustToStateBits(vuti))
-		  fp->write(" + T::ATOM_FIRST_STATE_BIT");
+		//	if(needAdjustToStateBits(vuti))
+		//  fp->write(" + T::ATOM_FIRST_STATE_BIT");
 		//element array ref pos NOT adjusted to T::ATOM_FIRST_STATE_BIT (t3814)
 		fp->write(", NULL"); //arrays eff self is null
 	      }
@@ -2011,6 +2031,9 @@ namespace MFM {
 	      {
 		if(!stgcosut->isReference()) //not isAltRefType
 		  {
+		    if(adjstForEle)
+		      fp->write(" + T::ATOM_FIRST_STATE_BIT"); //t3635
+
 		    //effective self for arrays is NULL
 		    fp->write(", 0u, NULL"); //t3670 3668, t3669, t3670
 		  }
@@ -2611,14 +2634,18 @@ namespace MFM {
     //if((cosSize == 1) || (stgcos->isSelf()))// && (cosut->getUlamClassType() == UC_ELEMENT))
     //if((cosSize == 1) || stgcos->isSelf() || (UlamType::compare(selfuti, cosclassuti, m_state) != UTIC_SAME))// && (cosut->getUlamClassType() == UC_ELEMENT))
 
-    if((cosSize == 1) || stgcos->isSelf() || stgTreatAsDM)
+    if((cosSize == 1) || stgcos->isSelf() || stgcos->isSuper() || stgTreatAsDM)
       {
 	//reading entire thing, using ELEMENTAL, t.f. adjust (t3880)
-	if(cosut->getUlamClassType() == UC_ELEMENT)
-	  {
-	    if(needAdjustToStateBits(cosuti))
-	      fp->write("T::ATOM_FIRST_STATE_BIT + "); //t3880, t3147
-	  }
+	//if(cosut->getUlamClassType() == UC_ELEMENT)
+	//  {
+	//    if(needAdjustToStateBits(cosuti))
+	//      fp->write("T::ATOM_FIRST_STATE_BIT + "); //t3880, t3147
+	//  }
+	s32 edx = isCurrentObjectsContainingAnElement();
+	if((edx >= 0) && needAdjustToStateBits(m_state.m_currentObjSymbolsForCodeGen[edx]->getUlamTypeIdx()))
+	  fp->write("T::ATOM_FIRST_STATE_BIT + "); //prettier than adding to pos, t3880, t3147
+
 	//implicit or explicit self, a reference
 	fp->write(m_state.getHiddenArgName()); //ur first arg
 	fp->write(".GetEffectiveSelf()->");
@@ -2629,6 +2656,8 @@ namespace MFM {
 	    UTI stgcosclassuti = stgcos->getDataMemberClass();
 	    fp->write(m_state.getTheInstanceMangledNameByIndex(stgcosclassuti).c_str());
 	  }
+	else if(stgcos->isSuper())
+	  fp->write(m_state.getTheInstanceMangledNameByIndex(stgcosuti).c_str()); //t3749
 	else
 	  fp->write(m_state.getTheInstanceMangledNameByIndex(cosclassuti).c_str());
 	fp->write(") - ");
