@@ -201,9 +201,9 @@ namespace MFM {
 
 	if((vclasstype == UC_QUARK) && !(stgcosut->isReference()))
 	  {
-	fp->write(m_state.getTmpVarAsString(Int, tmpVarPos, TMPREGISTER).c_str()); //new UlamRef arg: efftoself
-	fp->write(", ");
-      } //else (element, t3637) (atomref, t3639)
+	    fp->write(m_state.getTmpVarAsString(Int, tmpVarPos, TMPREGISTER).c_str()); //new UlamRef arg: efftoself
+	    fp->write(", ");
+	  } //else (element, t3637) (atomref, t3639)
 
 	//note: needs effective self of the atom, not simply the RHS type.
 	fp->write(m_state.getHiddenContextArgName());

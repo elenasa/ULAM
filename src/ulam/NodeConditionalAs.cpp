@@ -199,6 +199,26 @@ namespace MFM {
 			newType = Nav;
 		      }
 		  }
+		else if(!m_state.isAltRefType(luti) && (rclasstype != UC_QUARK))
+		  {
+		    //quarks can only inherit from other quarks (t41326);
+		    //quark refs cannot be checked at compile time.
+		    std::ostringstream msg;
+		    msg << "Invalid righthand type of conditional operator '" << getName();
+		    msg << "'; must be a quark name, not ";
+		    msg << rut->getUlamTypeNameBrief().c_str();
+		    if(rclasstype == UC_UNSEEN)
+		      {
+			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+			newType = Hzy;
+		      }
+		    else
+		      {
+			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+			newType = Nav;
+		      }
+		  }
+		//else
 	      }
 	    else if(lclasstype == UC_UNSEEN)
 	      {
