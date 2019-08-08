@@ -421,7 +421,9 @@ namespace MFM {
 	    m_state.indentUlamCode(fp);
 	    fp->write("if(_IsLocal((void *) &");
 	    fp->write(cossym->getMangledName().c_str());
-	    if(m_state.isAltRefType(cosuti))
+	    // test if storage a ref is pointing to is on the stack, not the ref itself;
+	    // use isReference (not isAltRefType) to include ALT_ARRAYITEM which aref's return.
+	    if(m_state.isReference(cosuti)) //t3653, t3916, t3942, t41071,3,4, t41289
 	      fp->write(".GetStorage()");
 	    fp->write("))"); GCNL;
 
