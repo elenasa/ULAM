@@ -192,16 +192,12 @@ namespace MFM {
 	    fp->write(" : ");
 	    fp->write(m_state.getUlamTypeNameBriefByIndex(superuti).c_str());  //e.g. : Foo(a), an instance of
 	  }
-
 	//ulam-5 supports multiple base classes; superclass optional
 	u32 basecount = csym->getBaseClassCount() + 1; //include super
 	u32 i = 1;
 	while(i < basecount)
 	  {
 	    UTI baseuti = csym->getBaseClass(i);
-	    //if(csym->isDirectSharedBase(i))
-	    //  fp->write(" ^");
-	    //else
 	    fp->write(" +");
 	    fp->write(m_state.getUlamTypeNameBriefByIndex(baseuti).c_str());  //e.g. +Foo(a), an instance of
 	    i++;
@@ -502,7 +498,7 @@ namespace MFM {
 	    basecblock->noteBaseClassTypeAndName(baseuti, i, (csym->getNumberSharingBase(1) > 1), totalsize, accumsize); //no recursion
 	    i++;
 	  } //end while
-#if 1
+
 	//ulam-5 supports shared base classes;
 	u32 sharedbasecount = csym->getSharedBaseClassCount();
 	u32 j = 0;
@@ -529,7 +525,6 @@ namespace MFM {
 	      }
 	    j++;
 	  } //end while
-#endif
       }
   } //noteDataMembersParseTree
 
@@ -904,8 +899,7 @@ UTI NodeBlockClass::checkMultipleInheritances()
 		  s32 bitem = csym->isABaseClassItem(baseuti);
 		  if(bitem < 0)
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-		  //else
-		  //  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //dupl err msg.
+		  //else drop msg
 		  //need to break the chain; e.g. don't want template symbol addresses used
 		  setSharedBaseClassBlockPointer(NULL, j); //force to try again!! avoid inf loop
 		}
@@ -1035,7 +1029,6 @@ UTI NodeBlockClass::checkMultipleInheritances()
 		  msg << m_state.getUlamTypeNameBriefByIndex(baseuti).c_str();
 		  msg << "', a class that's neither a transient nor a quark"; //e.g. error/t3725
 		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		  //setNodeType(Nav);
 		  errs = true;
 		}
 	    }
@@ -1105,7 +1098,6 @@ UTI NodeBlockClass::checkMultipleInheritances()
 		  msg << m_state.getUlamTypeNameBriefByIndex(baseuti).c_str();
 		  msg << "', a class that's neither a transient nor a quark"; //e.g. error/t3725
 		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		  //setNodeType(Nav);
 		  errs = true;
 		}
 	    }
@@ -1669,7 +1661,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     while(i < basecount)
       {
 	UTI baseuti = csym->getBaseClass(i);
-	if((baseuti != Nouti))// && !csym->isDirectSharedBase(i))
+	if((baseuti != Nouti))
 	  {
 	    //cleaner not circumventing SymbolClass (e.g. t41182,3, t3532)
 	    BV8K bvbase;
@@ -3188,61 +3180,17 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     m_state.m_currentIndentLevel++;
 
-    //std::set<UTI> setofbases;
-    //genCodeBuiltInFunctionIsRelatedInstance(fp, setofbases);
     m_state.indent(fp);
     fp->write("return ");
     fp->write(m_state.getIsMangledFunctionName(cuti));
     fp->write("(cptrarg->");
     fp->write(m_state.getClassRegistrationNumberFunctionName(cuti));
     fp->write("());"); GCNL;
-    //fp->write("\n");
-    //m_state.indent(fp);
-    //fp->write("return ");
-    //fp->write("(false); //not found"); GCNL;
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
     fp->write("} //is-related\n\n");
   } //genCodeBuiltInFunctionIsMethodRelatedInstance
-
-#if 0
-  void NodeBlockClass::genCodeBuiltInFunctionIsRelatedInstance(File * fp, std::set<UTI>& basesset)
-  {
-    UTI nuti = getNodeType();
-
-    SymbolClass * csym = NULL;
-    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(nuti, csym);
-    assert(isDefined);
-
-    //ulam-5 supports multiple base classes; superclass optional
-    //ulam-5 supports shared base classes; appears once.
-    u32 basecount = csym->getBaseClassCount() + 1; //include super
-    u32 i = 0;
-    while(i < basecount)
-      {
-	UTI baseuti = csym->getBaseClass(i);
-	//skip the ancestor of a template
-	if(baseuti != Nouti)
-	  {
-	    //then include any of its relatives:
-	    NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
-	    assert(basecblock);
-	    basecblock->genCodeBuiltInFunctionIsRelatedInstance(fp, basesset);
-	  }
-	i++;
-      } //end while
-
-    std::pair<std::set<UTI>::iterator,bool> ret = basesset.insert(nuti);
-    if (ret.second)
-      {
-	m_state.indent(fp);
-	fp->write("if(cptrarg == &");
-	fp->write(m_state.getTheInstanceMangledNameByIndex(nuti).c_str());
-	fp->write(") return(true); //inherited class, or self"); GCNL;
-      }
-  } //genCodeBuiltInFunctionIsRelatedInstance
-#endif
 
   void NodeBlockClass::genCodeBuiltInFunctionGetRelPosMethodRelatedInstance(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
@@ -3290,59 +3238,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.indent(fp);
     fp->write("} //relpos\n\n");
   } //genCodeBuiltInFunctionGetRelPosMethodRelatedInstance
-
-#if 0
-  void NodeBlockClass::genCodeBuiltInFunctionGetRelPosRelatedInstance(File * fp, std::set<UTI>& basesset)
-  {
-    UTI nuti = getNodeType();
-
-    SymbolClass * csym = NULL;
-    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(nuti, csym);
-    assert(isDefined);
-
-    //ulam-5 supports multiple base classes; superclass optional
-    //ulam-5 supports shared base classes;
-    u32 basecount = csym->getBaseClassCount() + 1; //include super
-    u32 i = 0;
-    while(i < basecount)
-      {
-	UTI baseuti = csym->getBaseClass(i);
-	//skip the ancestor of a template
-	if((baseuti != Nouti))
-	  {
-	    //then include any of its shared and non-shared relatives:
-	    NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
-	    assert(basecblock);
-	    basecblock->genCodeBuiltInFunctionGetRelPosRelatedInstance(fp, basesset);
-	  }
-	i++;
-      } //end while
-
-    std::pair<std::set<UTI>::iterator,bool> ret = basesset.insert(nuti);
-    if (ret.second)
-      {
-	UTI cuti = m_state.getCompileThisIdx(); /* very important!! */
-	u32 relpos = UNRELIABLEPOS;
-	if(!m_state.getABaseClassRelativePositionInAClass(cuti, nuti, relpos))
-	  {
-	    if(cuti==nuti)
-	      relpos = 0; //e.g. UrSelf
-	    else if(m_state.getASharedBaseClassRelativePositionInAClass(cuti, nuti, relpos))
-	      {
-		//bingo!
-	      }
-	    else
-	      m_state.abortShouldntGetHere();
-	  }
-	m_state.indent(fp);
-	fp->write("if(cptrarg == &");
-	fp->write(m_state.getTheInstanceMangledNameByIndex(nuti).c_str());
-	fp->write(") return(");
-	fp->write_decimal_unsigned(relpos); //t41318
-	fp->write("); //position of inherited class, or self"); GCNL;
-      }
-  } //genCodeBuiltInFunctionGetRelPosOfRelatedInstance
-#endif
 
   void NodeBlockClass::genCodeBuiltInFunctionGetRelPosMethodRelatedInstanceByRegistrationNumber(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
@@ -3777,9 +3672,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	//get all initialized data members packed into 'daref'
 	// unlike element and quarks, data members can be elements, atoms and other transients
 	//e.g. t3811, t3812
-	genCodeBuiltInFunctionBuildingDefaultDataMembers(fp);
 	// ulam-4 element type already into default value
-	//genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(fp, 0, NULL); //startpos = 0
+	genCodeBuiltInFunctionBuildingDefaultDataMembers(fp);
 
 	m_state.indent(fp);
 	fp->write("bvsref.WriteBV(pos, "); //first arg
@@ -4005,7 +3899,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	m_state.indent(fp);
 	fp->write("static ");
 	fp->write("u16 m_vtablestartoffsets[");
-	//fp->write("UlamClassRegistry<EC>::TABLE_SIZE");
 	fp->write_decimal_unsigned(maxregistry);
 	fp->write("];"); GCNL;
 
@@ -4031,14 +3924,12 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write(cut->getUlamTypeMangledName().c_str());
     fp->write("<EC>::"); //same for elements and quarks
     fp->write("m_vtablestartoffsets[");
-    //fp->write("UlamClassRegistry<EC>::TABLE_SIZE");
     fp->write_decimal_unsigned(maxregistry);
     fp->write("] = {\n");
 
     m_state.m_currentIndentLevel++;
     m_state.indent(fp);
     //generate each VT entry:
-    //for(u32 i = 0; i < MAX_REGISTRY_NUMBER; i++)
     for(u32 i = 0; i < maxregistry; i++)
       {
 	if(i > 0)
@@ -4074,7 +3965,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.indent(fp);
     fp->write("if(rn >= ");
     fp->write_decimal_unsigned(maxregistry);
-      //fp->write("UlamClassRegistry<EC>::TABLE_SIZE");
     fp->write(") FAIL(ARRAY_INDEX_OUT_OF_BOUNDS);"); GCNL;
 
     m_state.indent(fp);
@@ -4151,7 +4041,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     assert(maxregistry < MAX_REGISTRY_NUMBER);  //UlamClassRegistry<EC>::TABLE_SIZE
 
     std::string dhex;
-    //bool notZero =
     SymbolWithValue::getHexValueAsString(maxregistry, bitvec, dhex);
 
     //build static constant array of u32's for BV8K:

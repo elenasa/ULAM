@@ -30,7 +30,6 @@ namespace MFM {
     UlamType * fmut = m_state.getUlamTypeByIndex(valtypidx);
     assert(fmut->isScalar() && isScalar());
     ULAMTYPE vetyp = fmut->getUlamTypeEnum();
-    //    ULAMCLASSTYPE vclasstype = fmut->getUlamClassType();
 
     //now allowing atoms to be cast as quarks, as well as elements;
     // also allowing subclasses to be cast as their superclass (u1.2.2)
@@ -50,61 +49,6 @@ namespace MFM {
 	UlamValue newval = UlamValue::makeImmediateClass(typidx, 0, len);
 	m_state.extractQuarkBaseFromSubclassForEval(val, typidx, newval);
 	val = newval;
-#if 0
-	u32 baserelpos = 0;
-	m_state.getABaseClassRelativePositionInAClass(valtypidx, typidx, baserelpos);
-	//2 quarks, or element (val), or transient, inherits from this quark
-	if(vclasstype == UC_ELEMENT)
-	  {
-	    s32 pos = ATOMFIRSTSTATEBITPOS; //ancestors start at first state bit pos
-	    pos += baserelpos;
-	    s32 len = getBitsizeAsBaseClass(); //getTotalBitSize();
-	    assert(len != UNKNOWNSIZE);
-	    if(len <= MAXBITSPERINT)
-	      {
-		u32 qdata = val.getDataFromAtom(pos, len);
-		val = UlamValue::makeImmediateClass(typidx, qdata, len);
-	      }
-	    else if(len <= MAXBITSPERLONG)
-	      {
-		m_state.abortNotSupported(); //quarks are max 32 bits
-		u64 qdata = val.getDataLongFromAtom(pos, len);
-		val = UlamValue::makeImmediateLongClass(typidx, qdata, len);
-	      }
-	    else
-	      m_state.abortGreaterThanMaxBitsPerLong();
-	  }
-	else if(vclasstype == UC_TRANSIENT) //t3998, t3999, t41000, t41001, t41069
-	  {
-	    s32 pos = baserelpos; //ancestors start at first bit pos
-	    s32 len = getBitsizeAsBaseClass(); //getTotalBitSize();
-	    assert(len != UNKNOWNSIZE);
-	    if(len <= MAXBITSPERINT)
-	      {
-		u32 qdata = val.getDataFromAtom(pos, len);
-		val = UlamValue::makeImmediateClass(typidx, qdata, len);
-	      }
-	    else if(len <= MAXBITSPERLONG)
-	      {
-		m_state.abortNotSupported(); //quarks are max 32 bits
-		u64 qdata = val.getDataLongFromAtom(pos, len);
-		val = UlamValue::makeImmediateLongClass(typidx, qdata, len);
-	      }
-	    else
-	      m_state.abortGreaterThanMaxBitsPerLong();
-	  }
-	else
-	  {
-	    // both left-justified immediate quarks
-	    // Coo c = (Coo) f.su; where su is a Soo : Coo
-	    s32 vlen = fmut->getTotalBitSize();
-	    s32 len = getTotalBitSize();
-	    u32 vdata = val.getImmediateClassData(vlen); //not from element
-	    assert((vlen - len) >= 0); //sanity check
-	    u32 qdata = vdata >> (vlen - len); //stays left-justified
-	    val = UlamValue::makeImmediateClass(typidx, qdata, len);
-	  }
-#endif
       }
     else
       brtn = false;
@@ -116,9 +60,6 @@ namespace MFM {
   {
     FORECAST scr = UlamTypeClass::explicitlyCastable(typidx);
     // as of updated ulam-3: atom or atomref, possibly ok when inherited (runtime)
-    //if(scr == CAST_CLEAR)
-    //check from atom or atomref, possibly ok for quark ref only (runtime)
-    //if(m_state.isAtom(typidx) && !isReference()) scr = CAST_BAD;
     return scr;
   } //explicitlyCastable
 
@@ -129,8 +70,7 @@ namespace MFM {
 
   const std::string UlamTypeClassQuark::getUlamTypeUPrefix()
   {
-    //scalar or array Sat Sep 30 16:05:48 2017
-    return "Uq_";
+    return "Uq_"; //scalar or array Sat Sep 30 16:05:48 2017
   } //getUlamTypeUPrefix
 
   const std::string UlamTypeClassQuark::readMethodForCodeGen()

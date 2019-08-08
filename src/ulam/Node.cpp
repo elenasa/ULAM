@@ -1430,8 +1430,7 @@ namespace MFM {
       {
 	fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //VALUE
 
-	//for ANY immediate atom arg from a T
-	//needs effective self from T's type
+	//for ANY immediate atom arg from a T; needs effective self from Ts type
 	if(m_state.isAtomRef(vuti))
 	  {
 	    assert(uvpass.getPassStorage() == TMPTATOM); // t41139
@@ -1449,17 +1448,6 @@ namespace MFM {
 	  {
 	    //no longer atom-based primitives
 	  }
-
-#if 0
-	//but why? t41120 QW q = (Coo) f; no such constructor for a quark "ref" cast
-	if(m_state.isReference(vuti)) //i'm back
-	  {
-	    fp->write(", ");
-	    fp->write_decimal_unsigned(pos); //position for constructor
-	    fp->write("u");
-	  }
-#endif
-
       }
     fp->write(");"); GCNL; //func arg& ?
 
@@ -1634,7 +1622,6 @@ namespace MFM {
 	fp->write("u");
       }
 
-    //    if(stgcos->isTmpVarSymbol() || cos->isDataMember())
     if(stgcos->isTmpVarSymbol())
       {
 	fp->write(" + ");
@@ -2032,8 +2019,6 @@ namespace MFM {
 
 	    if(vetyp == Class)
 	      {
-		//	if(needAdjustToStateBits(vuti))
-		//  fp->write(" + T::ATOM_FIRST_STATE_BIT");
 		//element array ref pos NOT adjusted to T::ATOM_FIRST_STATE_BIT (t3814)
 		fp->write(", NULL"); //arrays eff self is null
 	      }
@@ -2603,7 +2588,6 @@ namespace MFM {
       stgcos = m_state.getCurrentSelfSymbolForCodeGen(); //t41319
 
     UTI stgcosuti = stgcos->getUlamTypeIdx();
-    //UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
     UTI cosuti = cos->getUlamTypeIdx();
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
 
@@ -2614,7 +2598,6 @@ namespace MFM {
     // stg as tmpvar, eventhough a data member, has a good 'pos'
     // for example, t3512 with ALT_ARRAYITEM as stg;
     bool stgTreatAsDM = stgcos->isDataMember() && !stgcos->isTmpVarSymbol();
-    //    UTI selfuti = m_state.getCurrentSelfSymbolForCodeGen()->getUlamTypeIdx();
     bool askEffSelf = askEffectiveSelfAtRuntimeForRelPosOfBase();
     u32 calcpos = calcDataMemberPosOfCurrentObjectClasses(Nouti);
     u32 pos = uvpass.getPassPos();
@@ -2860,7 +2843,6 @@ namespace MFM {
     UTI cosuti = cos->getUlamTypeIdx();
 
     bool stgTreatAsDM = stgcos->isDataMember() && !stgcos->isTmpVarSymbol();
-    //bool askEffSelf = askEffectiveSelfAtRuntimeForRelPosOfBase();
 
     UTI skipfuncclass = Nouti; //not funcclassarg; consider funcs of a base separately (e.g. t3831)
     //cos precedes .func()
@@ -2873,8 +2855,7 @@ namespace MFM {
       }
 
     //e.g. element is a dm of a transient, and cos is dm of element,
-    //then pos of cos needs the 25u, even if stg is a ref
-    //(i.e. to the transient), t3805;
+    //then pos of cos needs the 25u, even if stg is a ref (i.e. to the transient), t3805;
     s32 edx = isCurrentObjectsContainingAnElement();
     bool adjstEle = ((edx >= 0) && needAdjustToStateBits(m_state.m_currentObjSymbolsForCodeGen[edx]->getUlamTypeIdx()));
 
@@ -2883,28 +2864,8 @@ namespace MFM {
       {
 	if(m_state.m_currentObjSymbolsForCodeGen.empty() || (stgcos->isSelf() && (stgcos == cos)))
 	  {
-#if 0
-	    //at end..
-	    //implicit self, func in a baseclass (t3686)
-	    if(askEffSelf || m_state.isClassASubclassOf(stgcosuti, funcclassarg))
-	      {
-		sameur = false;
-		hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvar).c_str() << "(";
-		hiddenarg2 << m_state.getHiddenArgName(); //same ur
-		hiddenarg2 << ", " << m_state.getHiddenArgName();
-		hiddenarg2 << ".GetEffectiveSelf()->";
-		hiddenarg2 << m_state.getGetRelPosMangledFunctionName(stgcosuti); //not an atom
-		hiddenarg2 << "(&";
-		hiddenarg2 << m_state.getTheInstanceMangledNameByIndex(funcclassarg).c_str();
-		hiddenarg2 << ") - " << m_state.getHiddenArgName(); //ur first arg
-		hiddenarg2 << ".GetPosToEffectiveSelf()";
-		hiddenarg2 << ", " << getLengthOfMemberClassForHiddenArg(funcclassarg) << "u, true);"; //len
-	      }
-	    else
-#endif
-
-	      if(!funcinbase)
-		hiddenarg2 << m_state.getHiddenArgName(); //same ur
+	    if(!funcinbase)
+	      hiddenarg2 << m_state.getHiddenArgName(); //same ur
 	  }
 	else if(cos->isDataMember() || stgTreatAsDM)
 	  {
@@ -2930,7 +2891,7 @@ namespace MFM {
 	    if(adjstEle)
 	      hiddenarg2 << " + T::ATOM_FIRST_STATE_BIT";
 
-	    //func belongs to base class of the cos data member, add its offset, no change to effself (t3831)
+	    //func belongs to baseclass of the cos dm, add its offset, no change to effself (t3831)
 	    hiddenarg2 << ", " << getLengthOfMemberClassForHiddenArg(cosuti) << "u, &"; //len, t41120
 	    hiddenarg2 << m_state.getTheInstanceMangledNameByIndex(cosuti).c_str(); //cos->isSuper rolls as cosuti
 	    hiddenarg2 << ", " << genUlamRefUsageAsString(cosuti).c_str();
@@ -2946,7 +2907,7 @@ namespace MFM {
 	      hiddenarg2 << stgcos->getMangledName().c_str(); //t3811
 	    else
 	      hiddenarg2 << m_state.getHiddenArgName(); //ur t3102,3,4,6,7,8,9,10,11
-	    hiddenarg2 << ", " << calcPosOfCurrentObjectClassesAsString(uvpass, false, skipfuncclass); //relative off;
+	    hiddenarg2 << ", " << calcPosOfCurrentObjectClassesAsString(uvpass, false, skipfuncclass); //rel offset;
 	    if(adjstEle)
 	      hiddenarg2 << " + T::ATOM_FIRST_STATE_BIT";
 
@@ -3007,7 +2968,6 @@ namespace MFM {
 		if(vownarg == Nouti)
 		  {
 		    //NOT a virtual func, however, funcclassarg (where its defined) may be a base class
-		    //		    if(stgclasstype == UC_ELEMENT)
 		    if(adjstEle)
 		      hiddenarg2 << "T::ATOM_FIRST_STATE_BIT + ";
 		    hiddenarg2 << calcPosOfCurrentObjectClassesAsString(uvpass, false, skipfuncclass); //rel off; incl 25u
@@ -3227,7 +3187,7 @@ namespace MFM {
 	//else
       }
 
-    //t41184 already adjusted! but not t3541? STOP THAT!! (see Node::adjustUVPassForElements)
+    //t41184 already adjusted! but not t3541? STOP IT!! (see Node::adjustUVPassForElements)
     // reading entire thing, using ELEMENTAL, adjust? (t3735), no adjust (t3968)
     // reading member of a transient dm that's an element, adjust (t3968)
     bool adjstEle = false;
@@ -3948,7 +3908,7 @@ namespace MFM {
 	    assert(gottmp);
 
 	    pos += tmprelpos;
-	    pos += sym->getPosOffset(); //?
+	    pos += sym->getPosOffset();
 	  }
 	else
 	  m_state.abortNotImplementedYet();
@@ -3972,8 +3932,8 @@ namespace MFM {
   bool Node::askEffectiveSelfAtRuntimeForRelPosOfBase()
   {
     bool askEffSelf = false;
-    //self may change with as-conditional (t3831)
-    UTI cuti = m_state.getUlamTypeAsDeref(m_state.getCurrentSelfSymbolForCodeGen()->getUlamTypeIdx()); //not getCompileThisIdx()
+    //self may change with as-conditional; not getCompileThisIdx() (t3831)
+    UTI cuti = m_state.getUlamTypeAsDeref(m_state.getCurrentSelfSymbolForCodeGen()->getUlamTypeIdx());
     u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
 
     Symbol * stgcos = NULL;
@@ -3983,7 +3943,6 @@ namespace MFM {
 
     if(stgcos->isSuper())
       askEffSelf = true;
-    //    else if((cosSize == 1) && stgcos->isDataMember())
     else if(stgcos->isDataMember()) //implicit self, t3541
       askEffSelf = UlamType::compare(stgcos->getDataMemberClass(), cuti, m_state) != UTIC_SAME;
     else if(stgcos->isSelf() && cosSize > 1 && m_state.m_currentObjSymbolsForCodeGen[1]->isDataMember()) //explicit self
@@ -4043,17 +4002,6 @@ namespace MFM {
       return false;
     return true;
   } //needAdjustToStateBits
-
-  void Node::adjustUVPassForElements(UVPass & uvpass)
-  {
-	return; //t3605 ugly!
-    UTI puti = uvpass.getPassTargetType();
-    if(needAdjustToStateBits(puti))
-      {
-	u32 lpos = uvpass.getPassPos();
-	uvpass.setPassPosForElementType(lpos, m_state);
-      }
-  }
 
   SymbolTmpVar * Node::makeTmpVarSymbolForCodeGen(UVPass& uvpass, Symbol * symarg)
   {

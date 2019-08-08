@@ -329,8 +329,6 @@ namespace MFM{
     //true if a non-ref, scalar element
     bool needAdjustToStateBits(UTI cuti);
 
-    void adjustUVPassForElements(UVPass & uvpass);
-
     SymbolTmpVar * makeTmpVarSymbolForCodeGen(UVPass& uvpass, Symbol * symarg);
 
     std::string genUlamRefUsageAsString(UTI uti);
@@ -355,16 +353,12 @@ namespace MFM{
 
     void genCodeReadFromAConstantClassIntoATmpVar(File * fp, UVPass& uvpass);
 
-    //void genCodeReadArrayItemFromAConstantClassIntoATmpVarWithConstantIndex(File * fp, UVPass & luvpass, s32 rindex);
-
     void genCodeReadArrayItemFromAConstantClassIntoATmpVar(File * fp, UVPass & luvpass, UVPass & ruvpass);
 
     virtual void checkForSymbol();
 
     void genCodeReadElementTypeField(File * fp, UVPass & uvpass);
     void restoreElementTypeForAncestorCasting(File * fp, UVPass & uvpass);
-    //void genFixForElementTypeFieldInTmpVarOfConstantClass(File * fp, const UVPass & uvpass);
-    //void genFixForStringRegNumInTmpVarOfConstantClass(File * fp, const UVPass & uvpass);
 
     //common helpers for safe casting
     bool buildCastingFunctionCallNode(Node * node, UTI tobeType, Node*& rtnNode);

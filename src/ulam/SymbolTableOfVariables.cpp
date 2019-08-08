@@ -298,41 +298,6 @@ namespace MFM {
   } //initializeElementDefaultsForEval
 
 #if 0
-  s32 SymbolTableOfVariables::findPosOfUlamTypeInTable(UTI utype, UTI& insidecuti)
-  {
-    s32 posfound = -1;
-    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
-    while(it != m_idToSymbolPtr.end())
-      {
-	Symbol * sym = it->second;
-	if(sym->isDataMember() && variableSymbolWithCountableSize(sym))
-	  {
-	    UTI suti = sym->getUlamTypeIdx();
-	    if(UlamType::compare(suti, utype, m_state) == UTIC_SAME)
-	      {
-		posfound = sym->getPosOffset();
-		insidecuti = suti;
-		break;
-	      }
-	    else
-	      {
-		// check possible inheritance
-		bool isabase = m_state.isClassASubclassOf(suti, utype);
-		if(isabase)
-		  {
-		    posfound = sym->getPosOffset (); //starts at beginning?
-		    insidecuti = suti;
-		    break;
-		  }
-	      }
-	  }
-	it++;
-      }
-    return posfound;
-  } //findPosOfUlamTypeInTable (unused)
-#endif
-
-#if 0
   //replaced with parse tree method to preserve order of declaration
   void SymbolTableOfVariables::genCodeForTableOfVariableDataMembers(File * fp, ULAMCLASSTYPE classtype)
   {

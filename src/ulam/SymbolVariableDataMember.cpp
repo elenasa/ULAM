@@ -75,44 +75,6 @@ namespace MFM {
     m_posOffset = offsetIntoAtom; //relative to first state bit
   }
 
-#if 0
-  // replaced by NodeVarDecl:genCode to leverage the declaration order preserved by the parse tree.
-  void SymbolVariableDataMember::generateCodedVariableDeclarations(File * fp, ULAMCLASSTYPE classtype)
-  {
-    assert(classtype == UC_ELEMENT); //really?
-    UTI vuti = getUlamTypeIdx();
-    UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-    ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
-
-    m_state.indentUlamCode(fp);
-    fp->write(vut->getUlamTypeMangledName().c_str()); //for C++
-
-    if(vclasstype == UC_QUARK) //called on classtype elements only
-      {
-	fp->write("<");
-	fp->write_decimal(getPosOffset());
-	fp->write(">");
-      }
-    fp->write(" ");
-    fp->write(getMangledName().c_str());
-
-#if 0
-    s32 arraysize = vut->getArraySize();
-    if(arraysize > NONARRAYSIZE)
-      {
-	fp->write("[");
-	fp->write_decimal(arraysize);
-	fp->write("]");
-      }
-    else if(arraysize == UNKNOWNSIZE)
-      {
-	fp->write("[UNKNOWN]");
-      }
-#endif
-    fp->write(";"); GCNL;
-  } //generateCodedVariableDeclarations
-#endif
-
   // replaces NodeVarDecl:printPostfix to learn the values of Class' storage in center site
   void SymbolVariableDataMember::printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype)
   {

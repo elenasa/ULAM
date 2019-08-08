@@ -58,7 +58,6 @@ namespace MFM {
     if(m_state.okUTItoContinue(nuti))
       {
 	UTI luti = m_nodeLeft->getNodeType();
-	//	if(m_state.okUTItoContinue(luti) && !m_state.isBaseClassADirectAncestorOf(luti,nuti))
 	if(m_state.okUTItoContinue(luti) && (UlamType::compareForAssignment(luti, nuti, m_state) != UTIC_SAME) && !m_state.isClassASubclassOf(luti,nuti))
 	  {
 	    std::ostringstream msg;
@@ -345,8 +344,6 @@ namespace MFM {
 
     assert(basepos < uvpass.getPassLen());
     uvpass.setPassPosForced(newpos); //t41310
-
-    Node::adjustUVPassForElements(uvpass);
 
     newpos = uvpass.getPassPos(); //update for tmp symbol
 

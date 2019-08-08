@@ -547,7 +547,6 @@ namespace MFM {
     if(passalongUVPass())
       {
 	luvpass = uvpass;
-	Node::adjustUVPassForElements(luvpass); //t3803?
       }
 
     m_nodeLeft->genCodeToStoreInto(fp, luvpass);
@@ -557,7 +556,6 @@ namespace MFM {
     if(passalongUVPass())
       {
 	uvpass = luvpass;
-	Node::adjustUVPassForElements(uvpass); //t3803?
       }
 
     //check the back (not front) to process multiple member selections (e.g. t3818)
@@ -575,8 +573,7 @@ namespace MFM {
     UVPass luvpass;
     if(passalongUVPass())
       {
-	luvpass = uvpass; //t3584
-	Node::adjustUVPassForElements(luvpass); //t3803 ?
+	luvpass = uvpass; //t3584, t3803
       }
 
     // if parent is another MS, we might need to adjust pos first
@@ -590,8 +587,7 @@ namespace MFM {
     UVPass ruvpass;
     if(passalongUVPass())
       {
-	ruvpass = luvpass;  //t3615 ?
-	Node::adjustUVPassForElements(ruvpass); //t3803
+	ruvpass = luvpass;  //t3615, t3803
       }
 
     m_nodeRight->genCodeToStoreInto(fp, ruvpass); //uvpass contains the member selected, or cos obj symbol?
@@ -601,7 +597,6 @@ namespace MFM {
     //tmp variable needed for any function call not returning a ref (t41006), including 'aref'(t41005); func calls returning a ref already made tmpvar.
     // uvpass not necessarily returning a reference type (t3913,4,5,7);
     // t41035 returns a primitive ref; t3946, t3948
-    //    if(m_nodeRight->isFunctionCall() && !m_state.isReference(uvpass.getPassTargetType()))
     if(m_nodeRight->isFunctionCall() && !m_state.isStringATmpVar(uvpass.getPassNameId()))
       {
 	m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, NULL); //dm to avoid leaks

@@ -70,8 +70,6 @@ namespace MFM{
 
     void setPosOffset(u32 offsetIntoAtom);
 
-    //virtual void generateCodedVariableDeclarations(File * fp, ULAMCLASSTYPE classtype);
-
     virtual void printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype);
 
     virtual void setStructuredComment();

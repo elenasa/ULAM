@@ -184,16 +184,7 @@ namespace MFM {
     // on presence of 'else'.
     m_nodeCondition->genCode(fp, uvpass);
 
-    //    bool changedCurrentSelfSymbolForAs = false;
     Symbol * saveyourself = m_state.getCurrentSelfSymbolForCodeGen();
-#if 0
-    if(m_nodeCondition->asConditionalNode() && (uvpass.getPassNameId() == m_state.m_pool.getIndexForDataString("self")))
-      {
-	m_state.m_currentSelfSymbolForCodeGen = m_state.m_currentObjSymbolsForCodeGen.back();
-	changedCurrentSelfSymbolForAs = true; //t3831
-      }
-#endif
-
     bool isTerminal = (uvpass.getPassStorage() == TERMINAL);
     UTI cuti = uvpass.getPassTargetType();
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
@@ -232,10 +223,7 @@ namespace MFM {
     fp->write(getName()); //end
     fp->write("\n");
 
-
-    //    if(changedCurrentSelfSymbolForAs)
     m_state.m_currentSelfSymbolForCodeGen = saveyourself; //restore self (e.g. t3831)
-
   } //genCode
 
 } //end MFM

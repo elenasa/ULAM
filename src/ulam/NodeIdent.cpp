@@ -245,7 +245,8 @@ namespace MFM {
 
 	Symbol * asymptr = NULL;
 	bool hazyKin = false;
-	// must capture symbol ptr even if part of incomplete chain to do any necessary surgery (e.g. stub class args t3526, t3525, inherited dm t3408), wait if hazyKin (t3572)?;
+	// must capture symbol ptr even if part of incomplete chain to do any necessary surgery
+	// (e.g. stub class args t3526, t3525, inherited dm t3408), wait if hazyKin (t3572)?;
 	if(m_state.alreadyDefinedSymbol(m_token.m_dataindex, asymptr, hazyKin))
 	  {
 	    if(!asymptr->isFunction() && !asymptr->isTypedef() && !asymptr->isConstant() && !asymptr->isModelParameter())
@@ -653,7 +654,7 @@ namespace MFM {
   {
     if(m_varSymbol->isSelf())
       {
-	//when "self" is a quark, we're inside a func called on a quark (e.g. dm or local)
+	// when "self" is a quark, we're inside a func called on a quark (e.g. dm or local)
 	//'atomof' gets entire atom/element containing this quark; including its type!
 	//'self' gets type/pos/len of the quark from which 'atom' can be extracted
 	UlamValue selfuvp = m_state.m_currentSelfPtr;
@@ -662,9 +663,9 @@ namespace MFM {
 	return selfuvp;
       } //done
 
-    //can't use global m_currentAutoObjPtr, since there might be nested as conditional blocks.
-    // NodeVarDecl for this autolocal sets AutoPtrForEval during its eval.
-    // ALT_REF, ALT_CONSTREF, ALT_ARRAYITEM cannot guarantee its NodeVarRef init was last encountered, like ALT_AS.
+    // can't use global m_currentAutoObjPtr, since there might be nested as conditional blocks.
+    // NodeVarDecl for this autolocal sets AutoPtrForEval during its eval. Unlike ALT_AS,
+    // ALT_REF, ALT_CONSTREF, ALT_ARRAYITEM cannot guarantee its NodeVarRef init was last encountered.
     if(m_varSymbol->getAutoLocalType() == ALT_AS)
       return ((SymbolVariableStack *) m_varSymbol)->getAutoPtrForEval(); //haha! we're done.
 
@@ -708,33 +709,14 @@ namespace MFM {
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     assert(UlamType::compare(nuti, m_varSymbol->getUlamTypeIdx(), m_state) == UTIC_SAME);
 
-    //    u32 pos = 0;
     u32 pos = uvpass.getPassPos(); //t41184
     if(m_varSymbol->isDataMember())
       {
-	///pos = uvpass.getPassPos(); ??
-
 	// 'pos' modified by this data member symbol's packed bit position;
 	// except for array items, i.e. tmprefsymbols (t3910)
 	// adjusted if dm of (unshared) base class by rel pos (t41320)
 	if(!m_varSymbol->isTmpVarSymbol())
-	  {
-	    pos += m_varSymbol->getPosOffset(); //??
-#if 0
-	    UTI dmclass = m_varSymbol->getDataMemberClass();
-	    UTI stgclass = uvpass.getPassTargetType();
-	    if((stgclass != Nouti))
-	      {
-		u32 relpos = 0;
-		bool shared = m_state.getASharedBaseClassRelativePositionInAClass(stgclass, dmclass, relpos);
-		if(!shared)
-		  if(m_state.getABaseClassRelativePositionInAClass(stgclass, dmclass, relpos))
-		    pos += relpos; //zero if the same, false if not a base class
-		//else a shared base waits for effective self
-	      }
-	    //else (e.g. implicit self.)
-#endif
-	  }
+	  pos += m_varSymbol->getPosOffset();
 
 	//might already be true when MemberSelectByBaseType; don't clobber.
 	bool applydelta = uvpass.getPassApplyDelta(); //t41318

@@ -264,7 +264,7 @@ namespace MFM {
       }
     else
       {
-	//here, stgcos not a reference
+	// here, stgcos not a reference
 	// get relative position at compile time, both types are known.
 	u32 relpos = UNRELIABLEPOS;
 	AssertBool gotPos = m_state.getABaseClassRelativePositionInAClass(stgcosuti, vuti, relpos);
@@ -359,7 +359,6 @@ namespace MFM {
     fp->write(m_varSymbol->getMangledName().c_str());
     fp->write("(");
     fp->write(stgcos->getMangledName().c_str()); //ur
-    //fp->write(", 0u, ");
     fp->write(", ");
     fp->write(stgcos->getMangledName().c_str()); //ur
     fp->write(".GetEffectiveSelf()->");

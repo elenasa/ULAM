@@ -2268,20 +2268,6 @@ namespace MFM {
 		    assert(pos >= 0);
 
 		    accumpos += pos; //more specific position within nextbase
-#if 0
-		    if(!foundbasecsym->isDirectSharedBase(foundbaseitem))
-		      {
-			s32 pos = foundbasecsym->getBaseClassRelativePosition(foundbaseitem);
-			assert(pos >= 0);
-
-			accumpos += pos; //more specific position within nextbase
-		      }
-		    else
-		      {
-			hasbase = false; //shared, so skip
-			walker.addAncestorsOf(basecsym); //perhaps a non-shared base exists
-		      }
-#endif
 		  }
 		else
 		  {

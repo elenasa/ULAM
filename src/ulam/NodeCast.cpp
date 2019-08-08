@@ -1199,9 +1199,6 @@ namespace MFM {
 	  {
 	    //from quark ref to atom/atomref (fail/t3691)
 	    fp->write(" = ");
-	    //if(vstor == TMPBITVAL)
-	    //  fp->write(uvpass.getTmpVarAsString(m_state).c_str());
-	    //else
 	    fp->write(stgcos->getMangledName().c_str());
 	    fp->write("."); //entire storage
 	    fp->write(tobe->readMethodForCodeGen().c_str());
@@ -1277,8 +1274,9 @@ namespace MFM {
 	// don't repeat genCodeToStoreInto when m_node is a function call that returns a ref
 	if(!m_node->isFunctionCall())
 	  {
+	    //No need to load lhs into tmp (T); symbol's in COS vector
 	    UVPass ruvpass;
-	    m_node->genCodeToStoreInto(fp, ruvpass); //No need to load lhs into tmp (T); symbol's in COS vector
+	    m_node->genCodeToStoreInto(fp, ruvpass);
 	  }
 	else //(t41053, case 1)
 	  m_state.abortShouldntGetHere();
@@ -1575,15 +1573,11 @@ namespace MFM {
 	//read from pos var, for length of quark
 	s32 tmpVarVal = m_state.getNextTmpVarNumber();
 	m_state.indentUlamCode(fp);
-	//	fp->write("const ");
-	//fp->write(tobe->getTmpStorageTypeAsString().c_str()); //u32
 	UTI reftobeType = m_state.getUlamTypeAsRef(tobeType);
 	UlamType * reftobe = m_state.getUlamTypeByIndex(reftobeType);
 	fp->write(reftobe->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
 	fp->write(" ");
-	//	fp->write(m_state.getTmpVarAsString(tobeType, tmpVarVal, TMPREGISTER).c_str());
 	fp->write(m_state.getTmpVarAsString(reftobeType, tmpVarVal, TMPBITVAL).c_str());
-	//fp->write(" = ");
 	fp->write("(");
 
 	//make a temporary reference to a super-quark in an element for reading
@@ -1606,7 +1600,7 @@ namespace MFM {
 	    fp->write("u + ");
 	  }
 
-	//fp->write("0u, "); //offset of decendent is NOT always 0 from start of state bits
+	//offset of decendent is NOT always 0 from start of state bits (ulam-5)
 	fp->write(m_state.getTmpVarAsString(Int, tmpVarPos, TMPREGISTER).c_str()); //ulam-5
 	fp->write(", ");
 
@@ -1646,15 +1640,9 @@ namespace MFM {
 	  fp->write(", uc"); //t41065, m-case;
 	//else t41065 j-case;
 
-#if 0
-	fp->write(").");
-	fp->write(tobe->readMethodForCodeGen().c_str());
-	fp->write("();"); GCNL;
-#endif
 	fp->write("));"); GCNL;
 
 	//update the uvpass to have the casted quark value
-	//uvpass = UVPass::makePass(tmpVarVal, tobe->getTmpStorageTypeForTmpVar(), tobeType, m_state.determinePackable(tobeType), m_state, 0, 0); //POS 0 rightjustified;
 	uvpass = UVPass::makePass(tmpVarVal, reftobe->getTmpStorageTypeForTmpVar(), reftobeType, m_state.determinePackable(reftobeType), m_state, 0, 0); //POS 0 rightjustified;
       }
     else
@@ -1827,8 +1815,9 @@ namespace MFM {
 	// CHANGES uvpass..and vuti, derefuti, etc.
 	if(m_state.m_currentObjSymbolsForCodeGen.empty() && !m_node->isFunctionCall())
 	  {
+	    //No need to load lhs into tmp (T); symbol's in COS vector; its value is in uvpass
 	    UVPass ruvpass;
-	    m_node->genCodeToStoreInto(fp, ruvpass); //No need to load lhs into tmp (T); symbol's in COS vector; its value is in uvpass
+	    m_node->genCodeToStoreInto(fp, ruvpass);
 	  }
 	//else (t41052, case 3)
 
@@ -1838,7 +1827,6 @@ namespace MFM {
 	    uvpass.setPassTargetType(tobeType); //minimal casting
 	    return; //done
 	  }
-
 
 	Symbol * stgcos = NULL;
 	Symbol * cos = NULL;
@@ -1909,7 +1897,7 @@ namespace MFM {
 	      }
 	    else
 	      {
-		//		fp->write("0u, &"); //e.g. quark-sub to quark-super-ref (t3758)
+		//e.g. quark-sub to quark-super-ref (t3758)
 		fp->write(m_state.getTmpVarAsString(Int, tmpVarPos, TMPREGISTER).c_str()); //ulam-5
 		fp->write(", &"); //e.g. quark-sub to quark-super-ref (t3758)
 		fp->write(m_state.getTheInstanceMangledNameByIndex(stgcosuti).c_str()); //t41292
@@ -1923,25 +1911,19 @@ namespace MFM {
       }
     else
       {
-	//m_state.abortNotImplementedYet();
-	//e.g. a quark var here would be ok if a baseclass (o.w. runtime failure)
-	//t3560, t3757
+	//e.g. a quark var here would be ok if a baseclass (o.w. runtime failure) (t3560, t3757)
 	m_state.indentUlamCode(fp);
 	fp->write("const ");
 	fp->write(tobe->getTmpStorageTypeAsString().c_str()); //u32
 	fp->write(" ");
 	fp->write(m_state.getTmpVarAsString(tobeType, tmpVarSuper, tobe->getTmpStorageTypeForTmpVar()).c_str());;
 
-	//	fp->write(" = _ShiftOpRightInt32(");
-	// right shift the bitlen of vuti - the bitlen of tobeType
-
 	fp->write(" = _ShiftOpLeftInt32(");
 	// left shift the pos of vuti
 	fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum, vut->getTmpStorageTypeForTmpVar()).c_str());
 	fp->write(", ");
-	//	s32 nlen = tobe->getBitSize();
 	s32 nlen = vut->getBitSize();
-	s32 shiftlen = uvpass.getPassPos(); //m_state.getBitSize(vuti) - nlen;
+	s32 shiftlen = uvpass.getPassPos();
 	fp->write_decimal(shiftlen);
 	fp->write(", ");
 	fp->write_decimal(nlen);
