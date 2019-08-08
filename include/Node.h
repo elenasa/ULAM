@@ -309,10 +309,13 @@ namespace MFM{
     s32 isCurrentObjectsContainingATmpVarSymbol();
 
     // used by genHiddenArg2 for function calls;
-    std::string calcPosOfCurrentObjectClassesAsString(const UVPass& uvpass, bool adjstEle);
+    std::string calcPosOfCurrentObjectClassesAsString(const UVPass& uvpass, bool adjstEle, UTI funcclassarg);
 
     //called when (implicit self) data member is a complete class; pos known at compile time (e.g. t3541)
-    u32 calcDataMemberPosOfCurrentObjectClasses();
+    u32 calcDataMemberPosOfCurrentObjectClasses(UTI funcclassarg = Nouti);
+
+    //true means we can't know rel pos of 'stg' until runtime; o.w. known at compile time.
+    bool askEffectiveSelfAtRuntimeForRelPosOfBase();
 
     //false means its the entire array or not an array at all
     bool isCurrentObjectAnArrayItem(UTI cosuti, const UVPass& uvpass);

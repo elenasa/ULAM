@@ -1,11 +1,12 @@
 ## -*- mode:ulam -*-
 #=t41313_test_compiler_elementandquark_multibases_virtualfuncsselectpure_error
 #!
-./E4.ulam:17:27: ERROR: (2) Virtual function <Uf_6vfunca10> is pure; cannot be called for eval.
+./E4.ulam:17:24: ERROR: (2) Virtual function <Uf_6vfunca10> is pure; cannot be called for eval.
 Exit status: -1
 Unrecoverable Program Test FAILURE.
 ##
 ##       informed by t41312; when a base class function is pure
+##     test modified for shared bases: ./E4.ulam:22:26: ERROR: Member Select By Base Type: QBase1 is redundant; All base classes are shared. Pick one!.
 ##
 #>E4.ulam
   ulam 4;
@@ -24,17 +25,11 @@ element E4 : QBase3 +QBase2 +QBase1 {
     m_c4 = vfunca(); //override!
 
     typedef Super.QBase1 QB1;
-    m_a4 = self.Super.QB1.vfunca(); //pure!
+    m_a4 = self.QBase1.vfunca(); //pure!//    m_a4 = self.Super.QB1.vfunca(); //pure!
     s.print(m_a4);
     s.assert(m_a4==110);
     s.assert(self.m_b1);
-    s.assert(self.QBase3.QBase1.m_b1); //equivalent dm
-    s.assert(!self.QBase1.m_b1); //unchanged yet
-
-    Int a4 = self.QBase1.vfunca(); //also pure! but no error..caught in eval
-    s.print(a4);
-    s.assert(a4==110);
-
+    s.assert(self.QBase1.m_b1); //equivalent dm s.assert(self.QBase3.QBase1.m_b1); //equivalent dm
     return 0;
   }
 }

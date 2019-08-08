@@ -1004,6 +1004,9 @@ namespace MFM {
 
     assert(m_varSymbol->isDataMember());
 
+    UVPass uvpass2clear;
+    uvpass = uvpass2clear; //refresh
+
     return genCodedBitFieldTypedef(fp, uvpass);
   } //genCode
 

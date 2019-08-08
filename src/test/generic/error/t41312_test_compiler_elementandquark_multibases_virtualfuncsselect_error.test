@@ -11,6 +11,10 @@ Unrecoverable Program Type Label FAILURE.
 ##       order of the m_basesVTstart table order (needed to be depth-first), so that
 ##       a subclass with no vowned vfuncs would share start offset with its base.
 ##
+##       test modified for shared bases:
+##  ./E4.ulam:20:23: ERROR: Member Select By Base Type: QB1 is redundant; All base classes are shared. Pick one!.
+##  ./E4.ulam:24:26: ERROR: Member Select By Base Type: QBase1 is redundant; All base classes are shared. Pick one!.
+##
 #>E4.ulam
   ulam 4;
 element E4 : QBase3 +QBase2 +QBase1 {
@@ -31,16 +35,12 @@ element E4 : QBase3 +QBase2 +QBase1 {
     s.assert(m_c4==212);
 
     typedef Super.Super QB1;
-    m_a4 = self.Super.QB1.vfunca(); //110
+    m_a4 = self.QB1.vfunca(); //110 //self.Super.QB1.vfunca(); //110
     s.print(m_a4);
     s.assert(m_a4==110);
     s.assert(self.m_b1);
-    s.assert(self.QBase3.QBase1.m_b1); //equivalent dm
-    s.assert(!self.QBase1.m_b1); //unchanged yet
-
-    Int a4 = self.QBase1.vfunca(); //110
-    s.print(a4);
-    s.assert(a4==110);
+    //    s.assert(self.QBase3.QBase1.m_b1); //equivalent dm
+    s.assert(self.QBase1.m_b1); //changed also
 
     return 0;
   }

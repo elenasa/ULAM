@@ -331,7 +331,15 @@ namespace MFM {
     if(asit)
       {
 	UTI asuti = ruti; //as deref'd type
-	UlamValue ptr = UlamValue::makePtr(pluv.getPtrSlotIndex(), pluv.getPtrStorage(), asuti, m_state.determinePackable(asuti), m_state, pluv.getPtrPos() + 0, pluv.getPtrNameId());
+	u32 relpos = 0;
+	if(!m_state.isAtom(luti))
+	  {
+	    AssertBool gotrelpos = m_state.getABaseClassRelativePositionInAClass(luti, ruti, relpos);
+	    assert(gotrelpos); //t3589
+	  }
+	//else (t3637) n/a for atoms, use 0?
+
+	UlamValue ptr = UlamValue::makePtr(pluv.getPtrSlotIndex(), pluv.getPtrStorage(), asuti, m_state.determinePackable(asuti), m_state, pluv.getPtrPos() + relpos, pluv.getPtrNameId());
 
 	ptr.checkForAbsolutePtr(pluv);
 

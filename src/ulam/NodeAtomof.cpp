@@ -219,7 +219,10 @@ namespace MFM {
 	fp->write("(");
 
 	fp->write(stgcos->getMangledName().c_str()); //ur for self
-	fp->write(", "); //is storage! can't be const (error/t3659)
+	fp->write(", - "); //is storage! can't be const (error/t3659), t3408
+
+	fp->write(stgcos->getMangledName().c_str()); //ur for self, cant assume 0u pos
+	fp->write(".GetPosToEffectiveSelf()"); //t3701
 
 	fp->write(" - T::ATOM_FIRST_STATE_BIT"); //must be an effective element ref (e.g.t3684, t3663)
 	fp->write("); //atomof"); GCNL;

@@ -1692,7 +1692,9 @@ namespace MFM {
 	  }
 	else
 	  {
-	    fp->write("); //decendent element cast"); GCNL;  //3697
+	    fp->write(", "); //offset of decendent is NOT always 0, +25
+	    fp->write(m_state.getTmpVarAsString(Int, tmpVarPos, TMPREGISTER).c_str()); //ulam-5, t3697
+	    fp->write("); //decendent element cast"); GCNL;
 	  }
 
 	//update the uvpass to have the casted immediate quark

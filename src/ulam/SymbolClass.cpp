@@ -1017,7 +1017,7 @@ namespace MFM {
 
   void SymbolClass::generateCode(FileManager * fm)
   {
-    //class context already pushed..
+    //class context already pushed..compilingThisIdx is us.
     assert(m_classBlock);
 
     ULAMCLASSTYPE classtype = getUlamClass();

@@ -192,12 +192,15 @@ namespace MFM {
 
     uvpass = ruvpass;
 
+#if 0
+    // no longer adjusting pos for elements Wed Aug  7 10:54:04 2019 .
     //undo any element adjustment now that we are returning an object, not a ref
     if(Node::needAdjustToStateBits(ruvpass.getPassTargetType()))
       {
 	u32 rpos = ruvpass.getPassPos();
 	uvpass.setPassPos(rpos - ATOMFIRSTSTATEBITPOS); //t41091
       }
+#endif
 
     //tmp variable needed for any function call not returning a ref (constructors return Void).
     m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, NULL); //dm to avoid leaks

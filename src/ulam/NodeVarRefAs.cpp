@@ -347,7 +347,7 @@ namespace MFM {
   void NodeVarRefAs::genCodeRefAsSelf(File * fp, UVPass& uvpass)
   {
     //no tmpref needed since 'self' (i.e. ur) is already a C++ reference
-    //t3821, t3815 (transient), t3828 (quark)
+    //t3821, t3815 (transient), t3828 (quark), t3831
     Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
 
     UTI vuti = m_varSymbol->getUlamTypeIdx();
@@ -358,8 +358,19 @@ namespace MFM {
     fp->write(" ");
     fp->write(m_varSymbol->getMangledName().c_str());
     fp->write("(");
-    fp->write(stgcos->getMangledName().c_str()); //stg
-    fp->write(", 0u, ");
+    fp->write(stgcos->getMangledName().c_str()); //ur
+    //fp->write(", 0u, ");
+    fp->write(", ");
+    fp->write(stgcos->getMangledName().c_str()); //ur
+    fp->write(".GetEffectiveSelf()->");
+    fp->write(m_state.getGetRelPosMangledFunctionName(vuti)); //not an atom
+    fp->write("(&");
+    fp->write(m_state.getTheInstanceMangledNameByIndex(vuti).c_str());
+    fp->write(") - ");
+    fp->write(stgcos->getMangledName().c_str()); //ur
+    fp->write(".GetPosToEffectiveSelf()");
+
+    fp->write(", ");
     fp->write(stgcos->getMangledName().c_str()); //stg
     fp->write(".GetEffectiveSelf()");
     fp->write("); //shadows lhs of 'as'"); GCNL;
@@ -370,6 +381,7 @@ namespace MFM {
     fp->write("; //shadows self"); GCNL;
 
     m_varSymbol->setIsSelf(); //nope
+    m_state.m_currentSelfSymbolForCodeGen = m_varSymbol;
 
     m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of lhs
   } //genCodeRefAsSelf

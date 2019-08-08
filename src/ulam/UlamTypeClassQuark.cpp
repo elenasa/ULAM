@@ -325,6 +325,14 @@ namespace MFM {
     fp->write_decimal_unsigned(len); //includes arraysize
     fp->write("u) { }"); GCNL;
 
+    //(general) copy constructor here; base pos relative to exisiting (t3697)
+    m_state.indent(fp);
+    fp->write(automangledName.c_str());
+    fp->write("(const UlamRef");
+    fp->write("<EC>& r, s32 idx) : UlamRef<EC>(r, idx, ");
+    fp->write_decimal_unsigned(len); //includes arraysize
+    fp->write("u, true) { }"); GCNL;
+
     //(exact) copy constructor; pos relative to exisiting (i.e. same).
     //t3617, t3631, t3668, t3669, t3672, t3689, t3692, t3693, t3697, t3746
     m_state.indent(fp);

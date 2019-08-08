@@ -1521,7 +1521,14 @@ namespace MFM {
 	  }
 	else
 	  {
+	    //ref arg to match non-ref parameter (t41120)
 	    m_argumentNodes->genCode(fp, auvpass, i);
+	    UTI auti = auvpass.getPassTargetType();
+	    if(m_state.isReference(auti))
+	      {
+		auti = m_state.getUlamTypeAsDeref(auti);
+		auvpass.setPassTargetType(auti); //t41120, casted for immediate constr
+	      }
 	    Node::genCodeConvertATmpVarIntoBitVector(fp, auvpass);
 	  }
 	arglist << ", " << auvpass.getTmpVarAsString(m_state).c_str();
