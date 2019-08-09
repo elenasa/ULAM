@@ -3303,8 +3303,8 @@ namespace MFM {
   bool CompilerState::alreadyDefinedSymbolByAncestorOf(UTI cuti, u32 dataindex, Symbol *& symptr, bool& hasHazyKin)
   {
     BaseclassWalker walker;
-
-    //recursively check ancestors (breadth-first), for defined name (and not a Holder? t41298,9)
+    //recursively check ancestors (breadth-first), for first defined name
+    //(and not a Holder? t41298,9); see next method below for complete set;
     SymbolClass * csym = NULL;
     if(alreadyDefinedSymbolClass(cuti, csym))
       walker.addAncestorsOf(csym);
@@ -3335,6 +3335,45 @@ namespace MFM {
 	//else
       } //end while
     return kinhadit;
+  } //alreadyDefinedSymbolByAncestorOf
+
+  bool CompilerState::alreadyDefinedSymbolByAncestorsOf(UTI cuti, u32 dataindex, std::set<UTI>& kinsetref, bool& hasHazyKin)
+  {
+    BaseclassWalker walker;
+    // return complete set of base class UTIs that share the symbol name id (error/t41331).
+    SymbolClass * csym = NULL;
+    if(alreadyDefinedSymbolClass(cuti, csym))
+      walker.addAncestorsOf(csym);
+
+    UTI baseuti = Nouti;
+    while(walker.getNextBase(baseuti))
+      {
+	SymbolClass * basecsym = NULL;
+	if(alreadyDefinedSymbolClass(baseuti, basecsym))
+	  {
+	    NodeBlockClass * basecblock = basecsym->getClassBlockNode();
+	    pushClassContext(baseuti, basecblock, basecblock, false, NULL);
+	    Symbol * symptr = NULL;
+	    bool tmphzykin = false;
+	    bool kinhadit = alreadyDefinedSymbolHere(dataindex, symptr, tmphzykin);
+
+	    popClassContext(); //restore
+
+	    if(kinhadit)
+	      {
+		kinsetref.insert(baseuti);
+		hasHazyKin |= tmphzykin;
+	      }
+	    //all
+	    walker.addAncestorsOf(basecsym);
+	  }
+	else if(baseuti == Hzy)
+	  {
+	    hasHazyKin = true; //like t3641
+	  }
+	//else
+      } //end while
+    return !kinsetref.empty();
   } //alreadyDefinedSymbolByAncestorOf
 
   bool CompilerState::alreadyDefinedSymbolByAClassOrAncestor(UTI cuti, u32 dataindex, Symbol *& symptr, bool& hasHazyKin)

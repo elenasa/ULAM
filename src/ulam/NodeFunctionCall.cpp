@@ -1303,7 +1303,24 @@ namespace MFM {
 	fp->write(");"); GCNL;
       }
     else
-      urtmpnumvfc = urtmpnum; //same ur
+      {
+	//error/t41313, error/t41330
+	SymbolClass * bcsym = NULL;
+	AssertBool gotBaseClass = m_state.alreadyDefinedSymbolClass(decosuti, bcsym);
+	assert(gotBaseClass);
+
+	u32 vfidx = m_funcSymbol->getVirtualMethodIdx();
+	u32 startoffset = bcsym->getVTstartoffsetOfRelatedOriginatingClass(vownuti);
+	if(bcsym->isPureVTableEntry(vfidx+startoffset))
+	  {
+	    std::ostringstream msg;
+	    msg << "Virtual function <" << m_funcSymbol->getMangledNameWithTypes().c_str();
+	    msg << "> is pure; cannot be called directly in baseclass: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(decosuti).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	  }
+	urtmpnumvfc = urtmpnum; //same ur
+      }
     return;
   } //genCodeVirtualFunctionCallVTableEntry
 

@@ -311,19 +311,36 @@ namespace MFM {
 	return Nav; //short-circuit
       }
 
-    //don't allow a subclass to shadow a base class datamember
-    Symbol * varSymbolOfSameName = NULL;
+    //don't allow a subclass to shadow a base class datamember (error/t41331)
+    //    Symbol * varSymbolOfSameName = NULL;
+    std::set<UTI> kinset;
     bool hazyKin = false;
-    if(m_state.alreadyDefinedSymbolByAncestorOf(cuti, m_vid, varSymbolOfSameName, hazyKin))
+    if(m_state.alreadyDefinedSymbolByAncestorsOf(cuti, m_vid, kinset, hazyKin))
       {
+	u32 kinsetsize = kinset.size();
+
 	std::ostringstream msg;
 	msg << "Data member '";
 	msg << m_state.m_pool.getDataAsString(m_vid).c_str();
-	msg << "' is shadowing an ancestor";
+	msg << "' is shadowing ";
+	if(kinsetsize == 1)
+	  msg << "an ancestor: ";
+	else
+	  msg << kinsetsize << " ancestors: ";
 
-      UTI ancestor = varSymbolOfSameName->getDataMemberClass();
-      if(m_state.okUTItoContinue(ancestor))
-	msg << ": " << m_state.getUlamTypeNameBriefByIndex(ancestor).c_str();
+	u32 k=0;
+	std::set<UTI>::iterator it;
+	for(it = kinset.begin(); it != kinset.end(); it++, k++)
+	  {
+	    UTI ancestor = *it;
+	    //UTI ancestor = varSymbolOfSameName->getDataMemberClass();
+	    if(m_state.okUTItoContinue(ancestor))
+	      {
+		if(k > 0)
+		  msg << ", ";
+		msg << m_state.getUlamTypeNameBriefByIndex(ancestor).c_str();
+	      }
+	  }
 
       if(hazyKin)
 	{
@@ -340,7 +357,6 @@ namespace MFM {
 	}
     }
     //else continue...
-
 
     //NodeVarDecl handles array initialization for both locals & dm
     // since initial expressions must be constant for both (unlike local scalars)

@@ -1751,7 +1751,6 @@ namespace MFM {
     return m_vtable;
   }
 
-
   u32 SymbolClass::convertVTstartoffsetmap(std::map<u32, u32> & mapbyrnref)
   {
     u32 count = 0;
