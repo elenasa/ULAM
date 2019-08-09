@@ -3615,7 +3615,9 @@ namespace MFM {
 		else if(!isClassASubclassOf(foundinbase, baseuti))
 		  {
 		    std::ostringstream msg;
-		    msg << "Virtual function: "  << m_pool.getDataAsString(tmpfsym->getId()).c_str();
+		    if(tmpfsym->isVirtualFunction())
+		      msg << "Virtual ";
+		    msg << "Function: "  << m_pool.getDataAsString(tmpfsym->getId()).c_str();
 		    msg << "(";
 		    for (u32 i = 0; i < typeVec.size(); i++)
 		      {
@@ -3623,7 +3625,7 @@ namespace MFM {
 			  msg << ", ";
 			msg << getUlamTypeNameBriefByIndex(typeVec[i]).c_str();
 		      }
-		    msg << ") has conflicting declarations in multiple base classes, ";
+		    msg << ") has conflicting declarations in multiple ancestor base classes, ";
 		    msg << getUlamTypeNameBriefByIndex(foundinbase).c_str();
 		    msg << " and ";
 		    msg << getUlamTypeNameBriefByIndex(baseuti).c_str();
@@ -3707,7 +3709,9 @@ namespace MFM {
 		    else if(!isClassASubclassOf(foundinbase, baseuti))
 		      {
 			std::ostringstream msg;
-			msg << "Virtual function: "  << m_pool.getDataAsString(tmpfsym->getId()).c_str();
+			if(tmpfsym->isVirtualFunction())
+			  msg << "Virtual ";
+			msg << "Function: "  << m_pool.getDataAsString(tmpfsym->getId()).c_str();
 			msg << "(";
 			for (u32 i = 0; i < typeVec.size(); i++)
 			  {
@@ -3715,7 +3719,7 @@ namespace MFM {
 			      msg << ", ";
 			    msg << getUlamTypeNameBriefByIndex(typeVec[i]).c_str();
 			  }
-			msg << ") has conflicting declarations in multiple base classes, ";
+			msg << ") has conflicting declarations in ancestor base classes, ";
 			msg << getUlamTypeNameBriefByIndex(foundinbase).c_str();
 			msg << " and ";
 			msg << getUlamTypeNameBriefByIndex(baseuti).c_str();
@@ -3743,7 +3747,9 @@ namespace MFM {
 		    else if(!isClassASubclassOf(baseuti, foundOriginator))
 		      {
 			std::ostringstream msg;
-			msg << "Virtual function: "  << m_pool.getDataAsString(tmpfsym->getId()).c_str();
+			if(tmpfsym->isVirtualFunction())
+			  msg << "Virtual ";
+			msg << "Function: "  << m_pool.getDataAsString(tmpfsym->getId()).c_str();
 			msg << "(";
 			for (u32 i = 0; i < typeVec.size(); i++)
 			  {
@@ -3751,7 +3757,7 @@ namespace MFM {
 			      msg << ", ";
 			    msg << getUlamTypeNameBriefByIndex(typeVec[i]).c_str();
 			  }
-			msg << ") has conflicting Original declarations in multiple base classes, ";
+			msg << ") has conflicting Originating declarations in multiple base classes, ";
 			msg << getUlamTypeNameBriefByIndex(baseuti).c_str();
 			msg << " and ";
 			msg << getUlamTypeNameBriefByIndex(foundOriginator).c_str();
@@ -3762,7 +3768,7 @@ namespace MFM {
 			else
 			  MSG2(tmpfsym->getTokPtr(), msg.str().c_str(), WARN);
 			foundOriginator = Nav; //WARNING
-			origfsymref = NULL;
+			origfsymref = NULL; //t41312
 		      }
 		  }
 	      } //gotmatch
@@ -3941,7 +3947,9 @@ namespace MFM {
 		else if(!isClassASubclassOf(foundinbase, baseuti))
 		      {
 			std::ostringstream msg;
-			msg << "Virtual function: "  << m_pool.getDataAsString(tmpfsym->getId()).c_str();
+			if(tmpfsym->isVirtualFunction()) //t41329 non-virtual func;
+			  msg << "Virtual ";
+			msg << "Function: "  << m_pool.getDataAsString(tmpfsym->getId()).c_str();
 			msg << "(";
 			for (u32 i = 0; i < argNodes.size(); i++)
 			  {
@@ -6076,8 +6084,8 @@ namespace MFM {
 	  }
 	rtnb = hasHazyKin;
       }
-    return rtnb; //true if isaclass, AND either isastub, OR has hazykin (ie a baseclasslink notready)
-    //return (block->isAClassBlock() && (isClassAStub(buti) || ((isClassASubclass(buti) != Nouti) && !((NodeBlockClass *) block)->isSuperClassLinkReady(buti))));
+    //true if isaclass, AND either isastub, OR has hazykin (ie a baseclasslink notready)
+    return rtnb;
   }
 
   bool CompilerState::isStillHazy(UTI uti)
