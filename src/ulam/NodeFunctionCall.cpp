@@ -81,7 +81,8 @@ namespace MFM {
 
   UTI NodeFunctionCall::checkAndLabelType()
   {
-    UTI it = Nav;  // init return type
+    UTI it = getNodeType(); //Nav;  // init return type
+
     u32 numErrorsFound = 0;
     u32 numHazyFound = 0;
 
@@ -110,7 +111,7 @@ namespace MFM {
 
     if(m_state.isFuncIdInAClassScopeOrAncestor(cuti, m_functionNameTok.m_dataindex, fnsymptr, hazyKin) && !hazyKin)
       {
-        //use member block doesn't apply to arguments; no change to current block
+	//use member block doesn't apply to arguments; no change to current block
 	m_state.pushCurrentBlockAndDontUseMemberBlock(m_state.getCurrentBlock()); //set forall args
 	listuti = m_argumentNodes->checkAndLabelType(); //plus side-effect; void return is ok
 
@@ -301,7 +302,16 @@ namespace MFM {
 	assert(m_funcSymbol && m_funcSymbol == funcSymbol);
 
 	it = m_funcSymbol->getUlamTypeIdx();
-	setNodeType(it);
+	assert(m_state.okUTItoContinue(it));
+	if(m_state.isComplete(it))
+	  setNodeType(it);
+	else
+	  {
+	    //Sun Aug 11 2019 Dave issue w Bounce.ulam: nodeType stays incomplete
+	    setNodeType(Hzy);
+	    m_state.setGoAgain(); //for compier counts
+	    return Hzy; //short circuit
+	  }
 
 	// insert safe casts of complete arg types, now that we have a "matching" function symbol
         //use member block doesn't apply to arguments; no change to current block

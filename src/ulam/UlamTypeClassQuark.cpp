@@ -492,10 +492,17 @@ namespace MFM {
 
     m_state.m_currentIndentLevel++;
 
+    //forward declaration of quark and immediate ref (before struct)
     m_state.indent(fp);
     fp->write("template<class EC> class ");
     fp->write(scalarmangledName.c_str());
     fp->write("; //forward"); GCNL;
+
+    m_state.indent(fp);
+    fp->write("template<class EC> class ");
+    fp->write(automangledName.c_str());
+    fp->write("; //forward"); GCNL;
+
     fp->write("\n");
 
     m_state.indent(fp);
@@ -672,7 +679,9 @@ namespace MFM {
 	fp->write("} }"); GCNL;
       }
     else //array (eg t3143)
-      fp->write("write(d.read()); }"); GCNL;
+      {
+	fp->write("write(d.read()); }"); GCNL;
+      }
 
     //default destructor (intentionally left out)
 
