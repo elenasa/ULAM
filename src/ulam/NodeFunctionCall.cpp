@@ -283,7 +283,16 @@ namespace MFM {
 	assert(m_funcSymbol && m_funcSymbol == funcSymbol);
 
 	it = m_funcSymbol->getUlamTypeIdx();
-	setNodeType(it);
+	assert(m_state.okUTItoContinue(it));
+	if(m_state.isComplete(it))
+	  setNodeType(it);
+	else
+	  {
+	    //Sun Aug 11 2019 Dave issue w Bounce.ulam: nodeType stays incomplete
+	    setNodeType(Hzy);
+	    m_state.setGoAgain(); //for compier counts
+	    return Hzy; //short circuit
+	  }
 
 	// insert safe casts of complete arg types, now that we have a "matching" function symbol
         //use member block doesn't apply to arguments; no change to current block

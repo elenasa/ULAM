@@ -425,6 +425,13 @@ namespace MFM {
 
     m_state.m_currentIndentLevel++;
 
+    //forward declaration for immediate ref (before struct)
+    m_state.indent(fp);
+    fp->write("template<class EC> class ");
+    fp->write(automangledName.c_str());
+    fp->write("; //forward"); GCNL;
+    fp->write("\n");
+
     m_state.indent(fp);
     fp->write("template<class EC>\n");
     m_state.indent(fp);
