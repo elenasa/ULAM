@@ -409,6 +409,7 @@ namespace MFM {
 
   bool SymbolClass::determineSharedBasesAndTotalBitsize(s32& sharedbitssaved, s32& sharedbitsize)
   {
+    //builds shared base table, for rel pos (later)
     std::map<UTI, u32> svbmap; //shared virtual base map
     UTI suti = getUlamTypeIdx();
     m_state.findTheSharedVirtualBasesInAClassHierarchy(suti, svbmap);
@@ -432,7 +433,7 @@ namespace MFM {
 	totalsharedbasebitsize += basebitsize;
 
 	if(isASharedBaseClassItem(baseuti) < 0)
-	  appendSharedBaseClass(baseuti, numshared); //builds shared base table, for rel pos (later)
+	  appendSharedBaseClass(baseuti, numshared);
 
 	s32 bitem = isABaseClassItem(baseuti);
 	if(bitem >= 0) //direct shared
@@ -884,7 +885,6 @@ namespace MFM {
   bool SymbolClass::hasMappedUTI(UTI auti, UTI& mappedUTI)
   {
     bool rtnb = false;
-
     BaseclassWalker walker;
 
     //recursively check class and ancestors for auti
@@ -1675,8 +1675,8 @@ namespace MFM {
 		    assert(ve.m_funcPtr);
 		    ve.m_funcPtr->getVectorOfParameterTypes(pTypes);
 
-		    // in case a virtual func is overridden by a subclass of baseuti in cuti ancestory,
-		    // especially when not in cuti (e.g. t3600)
+		    // in case a virtual func is overridden by a subclass of baseuti
+		    // in cuti ancestory, especially when not in cuti (e.g. t3600)
 		    SymbolFunction * tmpfsym = NULL;
 		    UTI foundInAncestor = Nouti;
 		    if(m_state.findOverrideMatchingVirtualFunctionStrictlyByTypesInAncestorOf(cuti, ve.m_funcPtr->getId(), pTypes, true /* virtualInSub */, tmpfsym, foundInAncestor) && (foundInAncestor != baseuti) && m_state.isClassASubclassOf(foundInAncestor,baseuti))

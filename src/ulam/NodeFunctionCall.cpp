@@ -1360,8 +1360,10 @@ namespace MFM {
     UTI cvfuti = csym->getClassForVTableEntry(vfidx + coffset); //t41304
     UlamType * cvfut = m_state.getUlamTypeByIndex(cvfuti);
 
-    // check that we are not trying to call a pure virtual function: t41158, t41160, t41094, safe t41161
-    // too limiting (ulam-5) to limit to 'super' special case: t3606, t3608, t3774, t3779, t3788, t3794, t3795, t3967, t41131
+    // check that we are not trying to call a pure virtual function:
+    //   t41158, t41160, t41094, safe t41161
+    // too limiting (ulam-5) to limit to 'super' special case:
+    //   t3606, t3608, t3774, t3779, t3788, t3794, t3795, t3967, t41131
     if(m_state.getUlamTypeAsDeref(cosuti) != cvfuti) //multiple bases possible (ulam-5)
       {
 	SymbolClass * cvfsym = NULL;

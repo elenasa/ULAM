@@ -366,7 +366,7 @@ namespace MFM {
 	    assert(superblock && UlamType::compare(superblock->getNodeType(), superuti, m_state) == UTIC_SAME);
 	    u32 relpos = csym->getBaseClassRelativePosition(0);
 	    fp->write(" :");
-	    fp->write(m_state.getUlamTypeNameBriefByIndex(superuti).c_str()); //eg ^Foo(a), an instance of
+	    fp->write(m_state.getUlamTypeNameBriefByIndex(superuti).c_str()); //eg :Foo(a), an instance of
 	    fp->write("<");
 	    superblock->printPostfixDataMembersSymbols(fp, slot, startpos + relpos, superuti);
 	    fp->write(">");
@@ -382,7 +382,7 @@ namespace MFM {
 	    assert(basecblock && UlamType::compare(basecblock->getNodeType(), baseuti, m_state) == UTIC_SAME);
 	    u32 relpos = csym->getBaseClassRelativePosition(i);
 	    fp->write(" +");
-	    fp->write(m_state.getUlamTypeNameBriefByIndex(baseuti).c_str()); //eg ^Foo(a), an instance of
+	    fp->write(m_state.getUlamTypeNameBriefByIndex(baseuti).c_str()); //eg +Foo(a), an instance of
 	    fp->write("<");
 	    basecblock->printPostfixDataMembersSymbols(fp, slot, startpos + relpos, baseuti);
 	    fp->write(">");

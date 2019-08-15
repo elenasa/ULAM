@@ -3311,6 +3311,7 @@ namespace MFM {
   bool CompilerState::alreadyDefinedSymbolByAncestorsOf(UTI cuti, u32 dataindex, std::set<UTI>& kinsetref, bool& hasHazyKin)
   {
     BaseclassWalker walker;
+
     // return complete set of base class UTIs that share the symbol name id (error/t41331).
     SymbolClass * csym = NULL;
     if(alreadyDefinedSymbolClass(cuti, csym))
@@ -3608,10 +3609,7 @@ namespace MFM {
 
 	    SymbolFunction * tmpfsym = NULL; //repeated use
 	    bool gotmatch = findMatchingFunctionStrictlyByTypesInClassScope(fid, typeVec, tmpfsym);
-
 	    popClassContext(); //didn't forget!!
-
-	    //gotmatch = gotmatch && tmpfsym->isVirtualFunction(); //t3602?
 
 	    if(gotmatch)
 	      {
@@ -3633,43 +3631,8 @@ namespace MFM {
 		  }
 		else
 		  {
-		    //if(foundinbase == Nouti)
-		      {
-			foundinbase = baseuti;
-			fsymref = tmpfsym;
-		      }
-#if 0
-		    else if(isClassASubclassOf(baseuti, foundinbase))
-		      {
-			foundinbase = baseuti; //baseuti is subclass of foundinbase (e.g. UrSelf), switch
-			fsymref = tmpfsym;
-		      }
-		    else if(!isClassASubclassOf(foundinbase, baseuti))
-		      {
-			std::ostringstream msg;
-			if(tmpfsym->isVirtualFunction())
-			  msg << "Virtual ";
-			msg << "Function: "  << m_pool.getDataAsString(tmpfsym->getId()).c_str();
-			msg << "(";
-			for (u32 i = 0; i < typeVec.size(); i++)
-			  {
-			    if(i > 0)
-			      msg << ", ";
-			    msg << getUlamTypeNameBriefByIndex(typeVec[i]).c_str();
-			  }
-			msg << ") has conflicting declarations in multiple ancestor base classes, ";
-			msg << getUlamTypeNameBriefByIndex(foundinbase).c_str();
-			msg << " and ";
-			msg << getUlamTypeNameBriefByIndex(baseuti).c_str();
-			msg << " while compiling ";
-			msg << getUlamTypeNameBriefByIndex(cuti).c_str();
-			MSG2(tmpfsym->getTokPtr(), msg.str().c_str(), WARN);
-			foundInAncestor = Nav; //WARNING
-			fsymref = NULL;
-			return false; //t41312
-		      }
-#endif
-		    //		    rtnb = okUTItoContinue(foundinbase); //neither Nav, nor Nouti (t41325,19)
+		    foundinbase = baseuti;
+		    fsymref = tmpfsym;
 		    rtnb = true; //(t41325,19) stop ok since breadth-first search
 		  }
 	      } //gotmatch
@@ -3837,7 +3800,6 @@ namespace MFM {
 
     //Like in C++, exact matches in a subclass overrides any possible exact matches
     //in base classes; ow, use baseclass w exact match, assuming no ambiguity among others.
-
     UTI baseuti = Nouti;
     while(!exactlyone && walker.getNextBase(baseuti))
       {

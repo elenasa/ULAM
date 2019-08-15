@@ -2233,7 +2233,6 @@ namespace MFM {
 	return false; //short-circuit
       }
 
-    //    if(nuti == Hzy)
     if(m_state.isStillHazy(nuti))
       {
 	std::ostringstream msg;
@@ -2891,7 +2890,7 @@ namespace MFM {
 	    if(adjstEle)
 	      hiddenarg2 << " + T::ATOM_FIRST_STATE_BIT";
 
-	    //func belongs to baseclass of the cos dm, add its offset, no change to effself (t3831)
+	    //func belongs to baseclass of cos dm, add its offset, no change to effself (t3831)
 	    hiddenarg2 << ", " << getLengthOfMemberClassForHiddenArg(cosuti) << "u, &"; //len, t41120
 	    hiddenarg2 << m_state.getTheInstanceMangledNameByIndex(cosuti).c_str(); //cos->isSuper rolls as cosuti
 	    hiddenarg2 << ", " << genUlamRefUsageAsString(cosuti).c_str();
@@ -3144,7 +3143,9 @@ namespace MFM {
 	fp->write(stgcos->getMangledName().c_str()); //ref
 	fp->write(", ");
 
-	//when stgref is same as cosclass, or cosclass is "non-shared" baseclass of stg nonref, use pos; else not the same and ref. (t41323); non-shared DATA MEMBERS return -1 relpos (t41268);
+	// when stgref is same as cosclass, or cosclass is "non-shared" baseclass
+	// of stg nonref, use pos; else not the same and ref. (t41323);
+	// non-shared DATA MEMBERS return -1 relpos (t41268);
 	if(m_state.isClassASubclassOf(stgcosuti, cosclassuti))
 	  {
 	    fp->write(stgcos->getMangledName().c_str());
@@ -3539,8 +3540,6 @@ namespace MFM {
       method = nut->readMethodForCodeGen(); //UlamRef
     else if(m_state.m_currentObjSymbolsForCodeGen.size() > 1)
       method = nut->readMethodForCodeGen(); //UlamRef
-    //else if(nut->getUlamClassType() == UC_TRANSIENT)
-    //  method = nut->readMethodForCodeGen(); //BitStorage ReadBV (t41272)
     else
       method = "read"; //local variable name, not a transient
     return method;
@@ -3831,19 +3830,14 @@ namespace MFM {
 	    if(shared)
 	      {
 		s32 posfix = tmpsharedrelpos; // - pos; //already includes atomfirststatebit
-		//if(adjstEle)
-		//  posfix += ATOMFIRSTSTATEBITPOS; //compensated for already
-		//if(posfix != 0)
 		posStr << posfix;
 		outputpos = false;
 	      }
 	  }
       }
-    //	else if(cos->isDataMember())
     else if(cos->isDataMember() && (cos != stgcos)) //also uvpass target type is stgcosuti
       {
 	u32 newpos = calcDataMemberPosOfCurrentObjectClasses(funcclassarg);
-	//	if(newpos != 0)
 	posStr << newpos << "u ";
 	outputpos = false;
       }
@@ -3866,7 +3860,8 @@ namespace MFM {
     return posStr.str();
   } //calcPosOfCurrentObjectClassesAsString
 
-  //called when (implicit self) data member is a complete class; pos known at compile time (e.g. t3541)
+  //called when (implicit self) data member is a complete class;
+  // pos known at compile time (e.g. t3541)
   u32 Node::calcDataMemberPosOfCurrentObjectClasses(UTI funcclassarg)
   {
     s32 pos = 0;
@@ -3927,7 +3922,7 @@ namespace MFM {
     return pos;
   } //calcDataMemberPosOfCurrentObjectClasses
 
-  //true means we can't know rel pos of 'stg' until runtime; o.w. known at compile time.
+  // true means we can't know rel pos of 'stg' until runtime; o.w. known at compile time.
   // invarients: pos points to the 'stg' type, refs cannot be dm.
   bool Node::askEffectiveSelfAtRuntimeForRelPosOfBase()
   {
