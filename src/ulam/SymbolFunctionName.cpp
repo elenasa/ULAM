@@ -301,7 +301,9 @@ namespace MFM {
 	SymbolFunction * basefsym = NULL;
 	SymbolFunction * origfsym = NULL;
 	//might belong to a great-ancestor (can't tell from isFuncIdInAClassScope())
-	if(m_state.findMatchingVirtualFunctionStrictlyByTypesInAncestorOf(cuti, fid, pTypes, fsym->isVirtualFunction(), basefsym, kinuti, origfsym, origuti))
+	// finds first match using the default search order.
+	//	if(m_state.findMatchingVirtualFunctionStrictlyByTypesInAncestorOf(cuti, fid, pTypes, fsym->isVirtualFunction(), basefsym, kinuti, origfsym, origuti))
+	if(m_state.findOverrideMatchingVirtualFunctionStrictlyByTypesInAncestorOf(cuti, fid, pTypes, fsym->isVirtualFunction(), basefsym, kinuti))
 	  {
 	    if(basefsym->isVirtualFunction())
 	      {
@@ -321,12 +323,19 @@ namespace MFM {
 		    fsym->setVirtualFunction(); //fix quietly (e.g. t3880)
 		    assert(maxidx != UNKNOWNSIZE); //o.w. wouldn't be here yet
 		  }
-		vidx = origfsym->getVirtualMethodIdx(); //is vowned vidx
+		//	vidx = origfsym->getVirtualMethodIdx(); //is vowned vidx
 		kinuti = cuti; //overriding
 		overriding = true; //t41096, t41097
+
+		//now search all for the originating base class..
+		if(m_state.findOriginatingMatchingVirtualFunctionStrictlyByTypesInAncestorOf(cuti, fid, pTypes, fsym->isVirtualFunction(), origfsym, origuti))
+		  vidx = origfsym->getVirtualMethodIdx(); //is vowned vidx
+		else //error was found (t41312)
+		  origuti = cuti; //new entry?
 	      }
 	    else
 	      {
+		//base aint, but sub is..
 		if(fsym->isVirtualFunction())
 		  {
 		    //c++, quietly fails
@@ -339,9 +348,9 @@ namespace MFM {
 		    //probably upsets compiler assert...need a Nav node?
 		    kinuti = cuti;
 		    origuti = cuti; //t3746
-		    m_state.abortShouldntGetHere();
 		  }
 	      }
+
 	  }
 	else
 	  {

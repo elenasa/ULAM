@@ -285,7 +285,6 @@ namespace MFM{
     bool isClassASubclass(UTI cuti); //fromerly returned super UTI, or Nav if no inheritance
     u32 findClassAncestorWithMatchingNameid(UTI cuti, u32 nameid, UTI& superp);
     u32 findTheSharedVirtualBasesInAClassHierarchy(UTI cuti, std::map<UTI, u32>& svbmapref);
-    u32 countTheSharedVirtualBasesInAClassHierarchy(UTI cuti);
 
     bool isClassASubclassOf(UTI cuti, UTI superp);
     bool isBaseClassADirectAncestorOf(UTI cuti, UTI basep);
@@ -328,8 +327,8 @@ namespace MFM{
     bool isFuncIdInAClassScopeOrAncestor(UTI cuti, u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
 
     bool findMatchingFunctionStrictlyByTypesInClassScope(u32 fid, std::vector<UTI> typeVec, SymbolFunction*& fsymref);
-    bool findMatchingVirtualFunctionStrictlyByTypesInAncestorOf(UTI cuti, u32 fid, std::vector<UTI> typeVec, SymbolFunction*& fsymref, UTI& foundInAncestor);
-    bool findMatchingVirtualFunctionStrictlyByTypesInAncestorOf(UTI cuti, u32 fid, std::vector<UTI> typeVec, bool virtualInSub, SymbolFunction*& fsymref, UTI& foundInAncestor, SymbolFunction*& origfsymref, UTI& firstInAncestor);
+    bool findOverrideMatchingVirtualFunctionStrictlyByTypesInAncestorOf(UTI cuti, u32 fid, std::vector<UTI> typeVec, bool virtualInSub, SymbolFunction*& fsymref, UTI& foundInAncestor);
+    bool findOriginatingMatchingVirtualFunctionStrictlyByTypesInAncestorOf(UTI cuti, u32 fid, std::vector<UTI> typeVec, bool virtualInSub, SymbolFunction*& origfsymref, UTI& firstInAncestor);
 
     u32 findMatchingFunctionInClassScope(u32 fid, std::vector<Node *> nodeArgs, SymbolFunction*& fsymref, bool& hasHazyArgs);
     bool findMatchingFunctionInAClassScopeOrAncestor(UTI cuti, u32 fid, std::vector<Node *> nodeArgs, SymbolFunction*& fsymref, bool& hasHazyArgs, UTI& foundInAncestor);

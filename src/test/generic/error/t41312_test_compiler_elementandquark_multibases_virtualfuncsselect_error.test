@@ -1,10 +1,7 @@
 ## -*- mode:ulam -*-
 #=t41312_test_compiler_elementandquark_multibases_virtualfuncsselect_error
 #!
-./QBase2.ulam:5:15: Warning: Virtual Function: vfunca() has conflicting declarations in multiple ancestor base classes, QBase3 and QBase2 while compiling E4.
-./QBase2.ulam:5:15: Warning: Virtual Function: vfunca() has conflicting declarations in multiple ancestor base classes, QBase3 and QBase2 while compiling E4.
-./QBase2.ulam:5:15: ERROR: Virtual Function: vfunca() has conflicting declarations in ancestor base classes, QBase3 and QBase2 while compiling E4.
-./QBase2.ulam:5:15: ERROR: Virtual Function: vfunca() has conflicting Originating declarations in multiple base classes, QBase2 and QBase3 while compiling E4.
+./QBase2.ulam:5:15: ERROR: Virtual Function: vfunca() has conflicting Originating declarations in multiple base classes, QBase2 and QBase1 while compiling E4.
 Unrecoverable Program Type Label FAILURE.
 ##
 ##       informed by t41311; ambiguous virtual func caused seg fault due to the

@@ -2,7 +2,9 @@
 
 namespace MFM {
 
-  BaseclassWalker::BaseclassWalker() : m_breadthfirst(true) {}
+  //BaseclassWalker::BaseclassWalker() : m_breadthfirst(true) {}  //breadth-first as default
+
+  BaseclassWalker::BaseclassWalker() : m_breadthfirst(false) {}   //depth-first as default
 
   BaseclassWalker::BaseclassWalker(bool breadthfirst) : m_breadthfirst(breadthfirst) {}
 
@@ -33,12 +35,17 @@ namespace MFM {
   {
     assert(csymptr);
     u32 basecount = csymptr->getBaseClassCount() + 1; //include super
-    for(u32 i = 0; i < basecount; i++)
+    if(m_breadthfirst)
       {
-	if(m_breadthfirst)
-	  m_bases.push_back(std::pair<UTI,UTI>(csymptr->getBaseClass(i), basehead)); //extends FIFO queue with next level of base UTIs
-	else
-	  m_bases.push_front(std::pair<UTI,UTI>(csymptr->getBaseClass(i), basehead)); //extends LIFO stack with next level of base UTIs
+	//extends FIFO queue with next level of base UTIs
+	for(u32 i = 0; i < basecount; i++)
+	  m_bases.push_back(std::pair<UTI,UTI>(csymptr->getBaseClass(i), basehead));
+      }
+    else
+      {
+	//extends LIFO stack with next level of base UTIs; reverse order.
+	for(s32 i = basecount - 1; i >= 0; i--)
+	  m_bases.push_front(std::pair<UTI,UTI>(csymptr->getBaseClass(i), basehead));
       }
   } //addAncestorPairsOf
 
@@ -58,7 +65,8 @@ namespace MFM {
 
     while(!rtnb && !m_bases.empty())
       {
-	std::pair<UTI, UTI> base = m_bases.front(); //always from the front, regardless of breadth or depth-first
+	//always from the front, regardless of breadth or depth-first
+	std::pair<UTI, UTI> base = m_bases.front();
 	baseuti = base.first;
 	headuti = base.second;
 	m_bases.pop_front();

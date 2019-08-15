@@ -27,7 +27,7 @@ quark SuperDuper
 #:Sub1.ulam
   ulam 2;
 quark Sub1 : Sup {
-  Void behave() {
+  Void behave() { //needs virtual keyword!!
     self.func();  // should be fine
     super.func(); // should not compile?
   }

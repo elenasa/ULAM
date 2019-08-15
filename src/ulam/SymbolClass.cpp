@@ -887,7 +887,7 @@ namespace MFM {
 
     BaseclassWalker walker;
 
-    //recursively check class and ancestors (breadth-first), for auti
+    //recursively check class and ancestors for auti
     UTI cuti = getUlamTypeIdx();
     walker.init(cuti);
 
@@ -1644,7 +1644,7 @@ namespace MFM {
     u32 basesmaxes = 0;
 
     // get each ancestors' originating virtual function max index,
-    // (entire tree, no dups) (t41312, t41303).
+    // (entire tree, no dups) (t41312, t41303, t3602, t41325).
     BaseclassWalker walker;
 
     UTI cuti = getUlamTypeIdx();
@@ -1679,7 +1679,7 @@ namespace MFM {
 		    // especially when not in cuti (e.g. t3600)
 		    SymbolFunction * tmpfsym = NULL;
 		    UTI foundInAncestor = Nouti;
-		    if(m_state.findMatchingVirtualFunctionStrictlyByTypesInAncestorOf(cuti, ve.m_funcPtr->getId(), pTypes, tmpfsym, foundInAncestor) && (foundInAncestor != baseuti) && m_state.isClassASubclassOf(foundInAncestor,baseuti))
+		    if(m_state.findOverrideMatchingVirtualFunctionStrictlyByTypesInAncestorOf(cuti, ve.m_funcPtr->getId(), pTypes, true /* virtualInSub */, tmpfsym, foundInAncestor) && (foundInAncestor != baseuti) && m_state.isClassASubclassOf(foundInAncestor,baseuti))
 		      {
 			assert(tmpfsym);
 			ve.m_ofClassUTI = foundInAncestor;
