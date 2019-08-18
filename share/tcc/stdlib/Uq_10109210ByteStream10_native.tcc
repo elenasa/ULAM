@@ -5,6 +5,7 @@
 #include "UlamByteWrappers.h"
 #include <stdarg.h>  /* For ... */
 
+#if 0
 //e.g. run test t3531, find Int(3) immediates in generated code for Ue_10103Ish10_Types.h
 #ifndef Ud_Ui_Ut_r10131i
 #define Ud_Ui_Ut_r10131i
@@ -52,6 +53,7 @@ namespace MFM{
   };
 } //MFM
 #endif /*Ud_Ui_Ut_10131i */
+#endif
 
 namespace MFM{
 
