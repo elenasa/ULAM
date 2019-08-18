@@ -212,7 +212,7 @@ namespace MFM {
 		maxidx = UNKNOWNSIZE;
 		return; //short-circuit
 	      }
-	    walker.addAncestorsOf(basecsym); // check all bases
+	    walker.addAncestorsOf(basecsym); // visit all bases
 	  }
       } //end while
 

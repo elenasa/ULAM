@@ -328,7 +328,7 @@ namespace MFM{
 
     bool findMatchingFunctionStrictlyByTypesInClassScope(u32 fid, std::vector<UTI> typeVec, SymbolFunction*& fsymref);
     bool findOverrideMatchingVirtualFunctionStrictlyByTypesInAncestorOf(UTI cuti, u32 fid, std::vector<UTI> typeVec, bool virtualInSub, SymbolFunction*& fsymref, UTI& foundInAncestor);
-    bool findOriginatingMatchingVirtualFunctionStrictlyByTypesInAncestorOf(UTI cuti, u32 fid, std::vector<UTI> typeVec, bool virtualInSub, SymbolFunction*& origfsymref, UTI& firstInAncestor);
+    bool findOriginatingMatchingVirtualFunctionStrictlyByTypesInAncestorOf(UTI cuti, u32 fid, std::vector<UTI> typeVec, SymbolFunction*& origfsymref, UTI& firstInAncestor);
 
     u32 findMatchingFunctionInClassScope(u32 fid, std::vector<Node *> nodeArgs, SymbolFunction*& fsymref, bool& hasHazyArgs);
     bool findMatchingFunctionInAClassScopeOrAncestor(UTI cuti, u32 fid, std::vector<Node *> nodeArgs, SymbolFunction*& fsymref, bool& hasHazyArgs, UTI& foundInAncestor);

@@ -276,12 +276,13 @@ namespace MFM {
     UTI cuti = m_state.getCompileThisIdx();
     u32 fid = getId();
 
-    //initialize this classes VTable to super classes' orig VTable, or empty
+    //initialize this classes VTable to base classes' orig VTable, or empty
     // some entries may be modified; or table may expand
     SymbolClass * csym = NULL;
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cuti, csym);
     assert(isDefined);
 
+    //search all overloaded functions with this name id (fid)
     std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
     while(it != m_mangledFunctionNames.end())
       {
@@ -293,16 +294,15 @@ namespace MFM {
 	s32 vidx = UNKNOWNSIZE; //virtual index
 	bool overriding = false;
 
-	//search for virtual function w exact name/type in superclass
+	// search for virtual function w exact name/type in a baseclass
 	// if found, this function must also be virtual
 	std::vector<UTI> pTypes;
 	fsym->getVectorOfParameterTypes(pTypes);
 
 	SymbolFunction * basefsym = NULL;
 	SymbolFunction * origfsym = NULL;
-	//might belong to a great-ancestor (can't tell from isFuncIdInAClassScope())
-	// finds first match using the default search order.
-	//	if(m_state.findMatchingVirtualFunctionStrictlyByTypesInAncestorOf(cuti, fid, pTypes, fsym->isVirtualFunction(), basefsym, kinuti, origfsym, origuti))
+	// might belong to a great-ancestor (can't tell from isFuncIdInAClassScope())
+	// find first match using breadth-first search order..before looking for originating class
 	if(m_state.findOverrideMatchingVirtualFunctionStrictlyByTypesInAncestorOf(cuti, fid, pTypes, fsym->isVirtualFunction(), basefsym, kinuti))
 	  {
 	    if(basefsym->isVirtualFunction())
@@ -323,12 +323,11 @@ namespace MFM {
 		    fsym->setVirtualFunction(); //fix quietly (e.g. t3880)
 		    assert(maxidx != UNKNOWNSIZE); //o.w. wouldn't be here yet
 		  }
-		//	vidx = origfsym->getVirtualMethodIdx(); //is vowned vidx
 		kinuti = cuti; //overriding
 		overriding = true; //t41096, t41097
 
-		//now search all for the originating base class..
-		if(m_state.findOriginatingMatchingVirtualFunctionStrictlyByTypesInAncestorOf(cuti, fid, pTypes, fsym->isVirtualFunction(), origfsym, origuti))
+		//now search all for the originating base class..of this virtual func
+		if(m_state.findOriginatingMatchingVirtualFunctionStrictlyByTypesInAncestorOf(cuti, fid, pTypes, origfsym, origuti))
 		  vidx = origfsym->getVirtualMethodIdx(); //is vowned vidx
 		else //error was found (t41312)
 		  origuti = cuti; //new entry?

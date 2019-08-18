@@ -2088,12 +2088,11 @@ namespace MFM {
     if(subcuti==derefbasep)
       return false; //t41312, all gen code
 
-    BaseclassWalker walker(true); //use breadth-first, doesn't really matter.
-
+    BaseclassWalker walker; //use default, doesn't really matter..all shared.
     walker.init(subcuti);
 
-    UTI baseuti = Nouti;
     //ulam-5 supports multiple base classes; superclass optional;
+    UTI baseuti = Nouti;
     while(!hasbase && walker.getNextBase(baseuti))
       {
 	SymbolClass * basecsym = NULL;
@@ -2132,12 +2131,11 @@ namespace MFM {
     u32 countids = 0;
     UTI subcuti = getUlamTypeAsDeref(cuti); //init for the loop
 
-    BaseclassWalker walker(true); //breadth-first; doesn't really matter
-
+    BaseclassWalker walker; //use default; doesn't really matter
     walker.init(subcuti);
 
-    UTI baseuti = Nouti;
     //ulam-5 supports multiple base classes; superclass optional;
+    UTI baseuti = Nouti;
     while(walker.getNextBase(baseuti))
       {
 	SymbolClass * basecsym = NULL;
@@ -2148,9 +2146,7 @@ namespace MFM {
 		basep = baseuti;
 		countids++;
 	      }
-
-	    //search all
-	    walker.addAncestorsOf(basecsym);
+	    walker.addAncestorsOf(basecsym); //search all
 	  }
       } //end while
 
@@ -2165,11 +2161,10 @@ namespace MFM {
     UTI subcuti = getUlamTypeAsDeref(cuti); //init for the loop
 
     BaseclassWalker walker;
-
     walker.init(subcuti);
 
-    UTI baseuti = Nouti;
     //ulam-5 supports multiple base classes; superclass optional;
+    UTI baseuti = Nouti;
     while(walker.getNextBase(baseuti))
       {
 	SymbolClass * basecsym = NULL;
@@ -2178,8 +2173,7 @@ namespace MFM {
 	    u32 bcnt = basecsym->findDirectSharedBases(svbmapref);
 	    count += bcnt;
 
-	    //search all
-	    walker.addAncestorsOf(basecsym);
+	    walker.addAncestorsOf(basecsym); //search all
 	  }
       } //end while
 
@@ -2208,16 +2202,14 @@ namespace MFM {
 	relposref = 0; //special case, base class is self
 	return true;
       }
-
     s32 accumpos = 0;
     bool hasbase = false;
 
     BaseclassWalker walker;
-
     walker.init(defcuti); //t3831
 
+    //ulam-5 supports multiple base classes; superclass optional; all bases are shared;
     UTI baseuti = Nouti;
-    //ulam-5 supports multiple base classes; superclass optional;
     while(walker.getNextBase(baseuti) && !hasbase)
       {
 	SymbolClass * basecsym = NULL;
@@ -2236,44 +2228,27 @@ namespace MFM {
 		  {
 		    s32 pos = foundbasecsym->getBaseClassRelativePosition(foundbaseitem);
 		    assert(pos >= 0);
-
 		    accumpos += pos; //more specific position within nextbase
 		  }
 		else
 		  {
-		    //is shared
+		    //all bases are "shared"; like getASharedBaseClassRelativePositionInAClass
 		    s32 foundsharedbaseitem = foundbasecsym->isASharedBaseClassItem(defbasep); //direct
 		    if(foundsharedbaseitem >= 0)
 		      {
 			s32 pos = foundbasecsym->getSharedBaseClassRelativePosition(foundsharedbaseitem);
 			assert(pos >= 0);
-
 			accumpos += pos; //more specific position within nextbase
 		      }
 		    else
-		      walker.addAncestorsOf(foundbasecsym);
+		      walker.addAncestorsOf(foundbasecsym); //t3565, t3568
 		  }
 	      }
 	    else
-	      walker.addAncestorsOf(basecsym); //search all
+	      walker.addAncestorsOf(basecsym); //search all (error:t3842,41094,t41158)
 	  }
       } //end while
 
-    //ulam-5 supports shared base classes;
-    if(!hasbase)
-      {
-	SymbolClass * csym = NULL;
-	if(alreadyDefinedSymbolClass(defcuti, csym))
-	  {
-	    s32 foundsharedbaseitem = csym->isASharedBaseClassItem(defbasep); //direct
-	    if(foundsharedbaseitem >= 0)
-	      {
-		s32 pos = csym->getSharedBaseClassRelativePosition(foundsharedbaseitem);
-		assert(pos >= 0);
-		accumpos += pos; //more specific position within nextbase?
-	      }
-	  }
-      }
     relposref = accumpos;
     return hasbase; //false for non-classes
   } //getABaseClassRelativePositionInAClass
@@ -3524,7 +3499,7 @@ namespace MFM {
   {
     bool rtnb = false;
 
-    BaseclassWalker walker(true); //breadth-first for functions
+    BaseclassWalker walker; //ambiguous non-virtual funcs must be called specifically
     walker.init(cuti);
 
     UTI baseuti = Nouti;
@@ -3644,7 +3619,7 @@ namespace MFM {
     return rtnb;
   } //findOverrideMatchingVirtualFunctionStrictlyByTypesInAncestorOf
 
-  bool CompilerState::findOriginatingMatchingVirtualFunctionStrictlyByTypesInAncestorOf(UTI cuti, u32 fid, std::vector<UTI> typeVec, bool virtualInSub, SymbolFunction*& origfsymref, UTI& firstInAncestor)
+  bool CompilerState::findOriginatingMatchingVirtualFunctionStrictlyByTypesInAncestorOf(UTI cuti, u32 fid, std::vector<UTI> typeVec, SymbolFunction*& origfsymref, UTI& firstInAncestor)
   {
     bool rtnb = false;
     UTI foundOriginator = Nouti;
@@ -3677,20 +3652,16 @@ namespace MFM {
 	      {
 		if(!tmpfsym->isVirtualFunction())
 		  {
-		    if(virtualInSub)
-		      {
-			//c++, quietly supports it (t3746).
-			std::ostringstream msg;
-			msg << "Virtual overloaded function <";
-			msg << m_pool.getDataAsString(fid).c_str();
-			msg << "> has a NON-VIRTUAL ancestor in class: ";
-			msg << getUlamTypeNameBriefByIndex(baseuti).c_str();
-			msg << " while compiling ";
-			msg << getUlamTypeNameBriefByIndex(cuti).c_str();
-			MSG2(tmpfsym->getTokPtr(), msg.str().c_str(), WARN);
-			warns = true; //t3746
-		      }
-		    //else
+		    //c++, quietly supports it (t3746).
+		    std::ostringstream msg;
+		    msg << "Virtual overloaded function <";
+		    msg << m_pool.getDataAsString(fid).c_str();
+		    msg << "> has a NON-VIRTUAL ancestor in class: ";
+		    msg << getUlamTypeNameBriefByIndex(baseuti).c_str();
+		    msg << " while compiling ";
+		    msg << getUlamTypeNameBriefByIndex(cuti).c_str();
+		    MSG2(tmpfsym->getTokPtr(), msg.str().c_str(), WARN);
+		    warns = true; //t3746
 		  }
 		else
 		  {
@@ -3728,16 +3699,8 @@ namespace MFM {
 			msg << getUlamTypeNameBriefByIndex(foundOriginator).c_str();
 			msg << " while compiling ";
 			msg << getUlamTypeNameBriefByIndex(cuti).c_str();
-			if(virtualInSub)
-			  {
-			    MSG2(tmpfsym->getTokPtr(), msg.str().c_str(), ERR);
-			    origfsymref = NULL; //t41312
-			  }
-			else
-			  {
-			    MSG2(tmpfsym->getTokPtr(), msg.str().c_str(), WARN);
-			    warns = true;
-			  }
+			MSG2(tmpfsym->getTokPtr(), msg.str().c_str(), ERR);
+			origfsymref = NULL; //t41312
 		      }
 		  }
 	      } //gotmatch
@@ -3759,7 +3722,6 @@ namespace MFM {
 	msg << getUlamTypeNameBriefByIndex(cuti).c_str();
 	MSG2(csym->getTokPtr(), msg.str().c_str(), WARN);
       }
-
     return rtnb;
   } //findOriginatingMatchingVirtualFunctionStrictlyByTypesInAncestorOf
 
@@ -3793,7 +3755,7 @@ namespace MFM {
     bool exactlyone = false; //true if exact match found
     u32 matchingFuncCount = 0; //U32_MAX;
 
-    BaseclassWalker walker(true);  //breadth-first for functions
+    BaseclassWalker walker; //default ok for functions
     walker.init(cuti);
 
     //can't assume class context already pushed
@@ -3820,9 +3782,8 @@ namespace MFM {
 	      {
 		foundInAncestor = baseuti;
 		fsymref = tmpfsym;
-		//only one level inheritance, let's go with that..(t3600)
+		//could be ambiguous amongst the baseclasses (t3600)
 		exactlyone = walker.isDone();
-		//otherwise still could be ambiguous amongst the base classes
 		//assert(!hasHazyArgs); t3395
 	      }
 
@@ -3878,7 +3839,7 @@ namespace MFM {
 
   u32 CompilerState::findMatchingFunctionWithSafeCastsInAClassScopeOrAncestor(UTI cuti, u32 fid, std::vector<Node *> argNodes, SymbolFunction*& fsymref, bool& hasHazyArgs, UTI& foundInAncestor)
   {
-    //traverse hierarchy for exact match, first in subclass, then in rest of base classes
+    //traverse hierarchy for exact match
     if(findMatchingFunctionInAClassScopeOrAncestor(cuti, fid, argNodes, fsymref, hasHazyArgs, foundInAncestor))
       return 1;
 
@@ -3888,7 +3849,7 @@ namespace MFM {
 
     FSTable FST; //starts here!!
 
-    BaseclassWalker walker(true); //breadth-first for functions
+    BaseclassWalker walker; //default okay for functions
     walker.init(cuti);
 
     UTI baseuti = Nouti;
@@ -4993,8 +4954,8 @@ namespace MFM {
     BaseclassWalker walker;
     walker.init(debuti);
 
-    UTI baseuti = Nouti;
     //ulam-5 supports multiple base classes; superclass optional;
+    UTI baseuti = Nouti;
     while(walker.getNextBase(baseuti))
       {
 	SymbolClass * basecsym = NULL;

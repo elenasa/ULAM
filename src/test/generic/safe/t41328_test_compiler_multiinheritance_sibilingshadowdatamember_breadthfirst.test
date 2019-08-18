@@ -16,11 +16,11 @@ Uq_QBase1 { Bool(1) m_b1(false);  <NOMAIN> }
 Uq_QBase2 +QBase1 { Bool(1) m_boo(false);  Bits(1) m_bit(0);  +QBase1< Bool(1) m_b1(false); > <NOMAIN> }
 ##
 ##  siblings may share the same data member names; Bases can be accessed specifically;
-##  overriding function uses its copy;
+##  overriding function uses its dm copy; In search for a dm name...
 ##  WHEN, default is breadth-first order of bases as declared,
 ##  great-grandparents come after last base (see BaseclassWalker.cpp);
 ##  OR, WHEN, default is depth-first order of bases as declared,
-##  great-grandparents come BEFORE last base.
+##  great-grandparents come BEFORE last base;
 ##
 ##  also, siblings may have non-virtual functions with same name, requiring
 ##  specific base when called to disambiguate. (see error/t41329)
