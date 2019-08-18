@@ -504,8 +504,9 @@ namespace MFM {
     NodeBlockFunctionDefinition * func = getFunctionNode();
     assert(func); //how would a function symbol be without a body?
 
-    //up to programmer to define this function!!!
-    if(!declOnly && (func->isNative() || (isVirtualFunction() && isPureVirtualFunction())))
+    //up to programmer to define this function!!! provide headstart for natives
+    //if(!declOnly && (func->isNative() || (isVirtualFunction() && isPureVirtualFunction())))
+    if(!declOnly && (isVirtualFunction() && isPureVirtualFunction()))
       return;
 
     if(!declOnly)
@@ -514,6 +515,7 @@ namespace MFM {
 	m_state.outputTextAsCommentWithLocationUpdate(fp, floc);
       }
 
+    UTI cuti = m_state.getCompileThisIdx();
     UTI suti = getUlamTypeIdx();
     UlamType * sut = m_state.getUlamTypeByIndex(suti); //return type
 
@@ -527,6 +529,14 @@ namespace MFM {
       }
     else
       {
+	if(func->isNative())
+	  {
+	    fp->write("#if 0\n");
+	    m_state.indentUlamCode(fp);
+	    fp->write("/* REPLACE/D IN FILE: ");
+	    fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
+	    fp->write("_native.tcc WITH PROGRAMMER PROVIDED C++ CODE */\n");
+	  }
 	m_state.indentUlamCode(fp);
 	fp->write("template<class EC>\n"); //same for elements and quarks
 	m_state.indentUlamCode(fp);
@@ -536,7 +546,6 @@ namespace MFM {
     fp->write(" ");
     if(!declOnly)
       {
-	UTI cuti = m_state.getCompileThisIdx();
 	//include the mangled class::
 	fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
 	fp->write("<EC>::"); //same for elements and quarks
@@ -604,8 +613,47 @@ namespace MFM {
 	if(!isVirtualFunction())
 	  fp->write(" const"); //quark and element functions (incl natives) are const, not c++ static
 
-	UVPass uvpass;
-	func->genCode(fp, uvpass);
+	//NATIVE STUB headstart for programmer
+	if(func->isNative())
+	  {
+	    fp->write(" //native\n");
+	    m_state.indentUlamCode(fp);
+	    fp->write("{ \n");
+
+	    m_state.m_currentIndentLevel++;
+
+	    if(suti != Void)
+	      {
+		m_state.indentUlamCode(fp);
+		fp->write(sut->getLocalStorageTypeAsString().c_str()); //return type for C++
+		fp->write(" rtn;\n");
+		m_state.indentUlamCode(fp);
+		fp->write("/*  more C++ code to be supplied by programmer */\n");
+		m_state.indentUlamCode(fp);
+		fp->write("return rtn;\n");
+	      }
+	    else
+	      {
+		m_state.indentUlamCode(fp);
+		fp->write("/*  more C++ code to be supplied by programmer */\n");
+		m_state.indentUlamCode(fp);
+		fp->write("return;"); GCNL;
+	      }
+
+	    m_state.m_currentIndentLevel--;
+
+	    m_state.indentUlamCode(fp);
+	    fp->write("} //");
+	    fp->write(getMangledName().c_str()); //comment only
+	    GCNL;
+
+	    fp->write("#endif\n\n");
+	  }
+	else
+	  {
+	    UVPass uvpass;
+	    func->genCode(fp, uvpass);
+	  }
       }
 
     if(declOnly && isVirtualFunction()) //can be native too
