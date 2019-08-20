@@ -106,7 +106,7 @@ namespace MFM {
     fp->write("; ");
   } //printPostfix
 
-  void NodeConstantDef::noteTypeAndName(s32 totalsize, u32& accumsize)
+  void NodeConstantDef::noteTypeAndName(UTI cuti, s32 totalsize, u32& accumsize)
   {
     return; //bypass
   }

@@ -251,7 +251,7 @@ namespace MFM{
     void genCodeHeaderLocalsFilescope(File * fp);
 
     void genCodeDataMemberChartAsComment(File * fp, UTI cuti); //at end of header
-    void genBaseClassTypeAndNameEntryAsComment(File * fp, UTI nuti, s32 totalsize, u32& accumsize, u32 baseitem); //for base classes
+    void genBaseClassTypeAndNameEntryAsComment(File * fp, UTI nuti, s32 atpos, u32& accumsize, u32 baseitem); //for base classes
 
     void genThisUlamBaseClassAsAHeaderComment(File * fp);
 

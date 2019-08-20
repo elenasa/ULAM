@@ -414,6 +414,17 @@ namespace MFM {
 
     if(qTok.m_type == TOK_COLON)
       {
+	if(m_state.isClassAQuarkUnion(utype))
+	  {
+	    std::ostringstream msg;
+	    msg << "Inheritance for quark-union identifier '";
+	    msg << m_state.getUlamTypeNameBriefByIndex(utype).c_str();
+	    msg << "' currently unsupported";
+	    MSG(&qTok, msg.str().c_str(), ERR); //t41334
+	    delete rtnNode;
+	    return NULL;
+	  }
+
 	SymbolClass * supercsym = NULL;
 	UTI superuti = Nouti;
 	inherits = parseRestOfClassInheritance(cnsym, supercsym, superuti);
@@ -440,9 +451,19 @@ namespace MFM {
     getNextToken(rTok);
     unreadToken();
 
-    //if((rTok.m_type == TOK_PLUS) || (rTok.m_type == TOK_HAT))
     if((rTok.m_type == TOK_PLUS))
       {
+	if(m_state.isClassAQuarkUnion(utype))
+	  {
+	    std::ostringstream msg;
+	    msg << "Multiple Inheritance for quark-union identifier '";
+	    msg << m_state.getUlamTypeNameBriefByIndex(utype).c_str();
+	    msg << "' currently unsupported";
+	    MSG(&rTok, msg.str().c_str(), ERR); //t41334
+	    delete rtnNode;
+	    return NULL;
+	  }
+
 	parseMultipleClassInheritances(cnsym);
       }
 
@@ -776,7 +797,6 @@ namespace MFM {
     Token rTok;
     getNextToken(rTok);
 
-    //    while((rTok.m_type == TOK_PLUS) || (rTok.m_type == TOK_HAT))
     while((rTok.m_type == TOK_PLUS))
       {
 	rtninherits = parseRestOfMultiClassInheritance(cnsym, true); //all bases are shared

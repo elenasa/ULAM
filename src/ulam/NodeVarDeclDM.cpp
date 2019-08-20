@@ -127,7 +127,7 @@ namespace MFM {
     fp->write("; ");
   } //printPostfix
 
-  void NodeVarDeclDM::noteTypeAndName(s32 totalsize, u32& accumsize)
+  void NodeVarDeclDM::noteTypeAndName(UTI cuti, s32 totalsize, u32& accumsize)
   {
     assert(m_varSymbol);
     UTI nuti = m_varSymbol->getUlamTypeIdx(); //t41286, node type for class DMs maybe Hzy still.
@@ -158,7 +158,10 @@ namespace MFM {
 	note << "[UNKNOWN]";
       }
     MSG(getNodeLocationAsString().c_str(), note.str().c_str(), NOTE);
-    accumsize += nsize;
+
+    //all union data members start at pos 0
+    if(!m_state.isClassAQuarkUnion(cuti))
+      accumsize += nsize;
   } //noteTypeAndName
 
   void NodeVarDeclDM::genTypeAndNameEntryAsComment(File * fp, s32 totalsize, u32& accumsize)
@@ -168,12 +171,14 @@ namespace MFM {
 
     UlamKeyTypeSignature vkey = m_state.getUlamKeyTypeSignatureByIndex(nuti);
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    s32 nsize = nut->getTotalBitSize();
+    s32 nsize = nut->getSizeofUlamType(); //e.g. 96 for elements
+
+    s32 pos = m_varSymbol->getPosOffset(); //better data (e.g. quarkunion)
 
     // "| Position\t| Bitsize\t| Name\t| Type\t| "
     m_state.indent(fp);
     fp->write("| ");
-    fp->write_decimal_unsigned(accumsize); //at
+    fp->write_decimal_unsigned(pos); //at
     fp->write("\t| ");
     fp->write_decimal(nsize); // of totalsize
     fp->write("\t| "); //name

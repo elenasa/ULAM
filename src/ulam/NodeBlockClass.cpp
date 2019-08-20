@@ -455,7 +455,7 @@ namespace MFM {
 
     //ulam-5 data members precede base classes; all bases are shared.
     if(m_nodeNext)
-      m_nodeNext->noteTypeAndName(totalsize, accumsize); //datamember vardecls
+      m_nodeNext->noteTypeAndName(cuti, totalsize, accumsize); //datamember vardecls
 
     //inheritance
     SymbolClass * csym = NULL;
@@ -1050,7 +1050,7 @@ UTI NodeBlockClass::checkMultipleInheritances()
 	      else
 		{
 		  //for all others (elements and quarks)
-		  //must be "seen" by now; e.g. typedef array of quarks (t3674), t3862, t41150
+		  //must be "seen" by now; e.g. typedef array of quarks (t3674),t3862,t41150
 		  std::ostringstream msg;
 		  msg << "Subclass '";
 		  msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
@@ -2256,7 +2256,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	i++;
       } //end while
 
-
     //ulam-5 supports shared base classes:
     UTI cuti = m_state.getCompileThisIdx();
     if(nuti == cuti)
@@ -2425,7 +2424,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
   {
     u32 accumsize = 0;
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
-    s32 totalsize = cut->getTotalBitSize();
+    s32 totalsize = cut->getTotalBitSize(); //actual for elements(as in mangled name)
 
     m_state.indent(fp);
     fp->write("/*__________________________________________________\n");
@@ -2441,14 +2440,20 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.indent(fp);
     fp->write("| Pos\t| Bits\t| Name\t| Type\n");
 
+    //ulam-5 data members precede base classes
+    if(m_nodeNext)
+      m_nodeNext->genTypeAndNameEntryAsComment(fp, totalsize, accumsize); //dm vardecls
+
     //ulam-5 supports multiple base classes; superclass optional
     SymbolClass * csym = NULL;
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cuti, csym);
     assert(isDefined);
 
+    if(csym->isQuarkUnion())
+      accumsize = totalsize; //i.e. max dm bitsize, not cummulative
+
     UTI superuti = csym->getBaseClass(0);
-    //skip UrSelf to avoid extensive changes to all test answers
-    if(m_state.okUTItoContinue(superuti) && !m_state.isUrSelf(superuti))
+    if(m_state.okUTItoContinue(superuti)) //no skip UrSelf here
       {
 	NodeBlockClass * superblock = getBaseClassBlockPointer(0);
 	if(!isBaseClassLinkReady(cuti,0))
@@ -2460,7 +2465,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	    superblock = supercnsym->getClassBlockNode();
 	  }
 	assert(superblock);
-	superblock->genBaseClassTypeAndNameEntryAsComment(fp, superuti, totalsize, accumsize, 0); //no recursion
+	s32 pos = csym->getBaseClassRelativePosition(0);
+	superblock->genBaseClassTypeAndNameEntryAsComment(fp, superuti, pos, accumsize, 0); //no recursion
       }
 
     //ulam-5 supports multiple base classes; superclass optional
@@ -2480,7 +2486,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	    basecblock = basecnsym->getClassBlockNode();
 	  }
 	assert(basecblock);
-	basecblock->genBaseClassTypeAndNameEntryAsComment(fp, baseuti, totalsize, accumsize, i); //no recursion
+	s32 pos = csym->getBaseClassRelativePosition(i);
+	basecblock->genBaseClassTypeAndNameEntryAsComment(fp, baseuti, pos, accumsize, i); //no recursion
 	i++;
       } //end while
 
@@ -2491,7 +2498,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       {
 	UTI baseuti = csym->getSharedBaseClass(j);
 	NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(j);
-
 	if(!isSharedBaseClassLinkReady(cuti, j))
 	  {
 	    //use SCN instead of SC in case of stub (use template's classblock)
@@ -2501,20 +2507,24 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	    shbasecblock = basecnsym->getClassBlockNode();
 	  }
 	assert(shbasecblock);
-	shbasecblock->genBaseClassTypeAndNameEntryAsComment(fp, baseuti, totalsize, accumsize, i+j); //no recursion
+
+	s32 bitem = csym->isABaseClassItem(baseuti);
+	if(bitem < 0) //not a direct shared base
+	  {
+	    s32 pos = csym->getSharedBaseClassRelativePosition(j);
+	    shbasecblock->genBaseClassTypeAndNameEntryAsComment(fp, baseuti, pos, accumsize, j+1000); //no recursion
+	  }
 	j++;
       } //end while
-
-    if(m_nodeNext)
-      m_nodeNext->genTypeAndNameEntryAsComment(fp, totalsize, accumsize); //datamember vardecls
 
     m_state.indent(fp);
     fp->write("|___________________________________________________\n");
     m_state.indent(fp);
-    fp->write("*/\n"); //end of comment
+    fp->write("*/"); //end of comment
+    GCNL;
   } //genClassDataMemberChartAsComment
 
-  void NodeBlockClass::genBaseClassTypeAndNameEntryAsComment(File * fp, UTI nuti, s32 totalsize, u32& accumsize, u32 baseitem)
+  void NodeBlockClass::genBaseClassTypeAndNameEntryAsComment(File * fp, UTI nuti, s32 atpos, u32& accumsize, u32 baseitem)
   {
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     s32 nsize = nut->getBitsizeAsBaseClass();
@@ -2522,7 +2532,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     // "// | Position\t| Bitsize\t| Name\t| Type"
     m_state.indent(fp);
     fp->write("| ");
-    fp->write_decimal_unsigned(accumsize); //at
+    fp->write_decimal_unsigned(atpos); //at
     fp->write("\t| ");
     fp->write_decimal(nsize); // of totalsize
     if(baseitem == 0)
@@ -2532,6 +2542,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write(nut->getUlamTypeClassNameBrief(nuti).c_str());
     fp->write("\n");
 
+    //quarkunions don't accumulate sizes of dm, they use max dm size;
+    //quarkunions cannot be base classes, or have any (except UrSelf); (t3209, t41145)
+    assert((atpos == (s32) accumsize) || m_state.isClassAQuarkUnion(m_state.getCompileThisIdx()));
     accumsize += nsize;
   } //genBaseClassTypeAndNameEntryAsComment
 
@@ -2568,7 +2581,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.indent(fp);
     fp->write("QUARK_SIZE = ");
     fp->write_decimal(cut->getBitSize());
-    fp->write(" /* Requiring quarks to advertise their size in a std way.) */\n");
+    fp->write(" /* Requiring quarks to advertise their size in a std way.*/\n");
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
     fp->write("};"); GCNL;
@@ -2667,7 +2680,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.indent(fp);
     fp->write("ELEMENT_TYPE = ");
     fp->write_hexadecimal(elementType);
-    fp->write(" /* Requiring elements to advertise their type in a std way.) */\n");
+    fp->write(" /* Requiring elements to advertise their type in a std way.*/\n");
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
     fp->write("};"); GCNL;
@@ -2829,22 +2842,24 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     //ulam-5 supports multiple base classes; superclass optional
     u32 basecount = csym->getBaseClassCount() + 1; //include super
     u32 i = 0;
+
+    fp->write(" /*");
+
     while(i < basecount)
       {
 	UTI baseuti = csym->getBaseClass(i);
 	//skip the ancestor of a template
 	if(baseuti != Nouti)
 	  {
-	    fp->write(" /*, ");
 	    if(i==0)
-	      fp->write(":");
+	      fp->write(" :");
 	    else
-	      fp->write("+");
+	      fp->write(" +");
 	    fp->write(m_state.getUlamTypeByIndex(baseuti)->getUlamTypeMangledName().c_str());
-	    fp->write(" */");
 	  }
 	i++;
       } //end while
+    fp->write(" */\n");
   } //genThisUlamBaseClassAsAHeaderComment
 
   void NodeBlockClass::genShortNameParameterTypesExtractedForHeaderFile(File * fp)
@@ -3091,9 +3106,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
   void NodeBlockClass::generateCodeForBuiltInClassFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
     //ALL builtin should be hident!!!! XXXXXX
+    fp->write("\n\n");
     m_state.indent(fp);
-    fp->write("//BUILT-IN FUNCTIONS:\n");
-    fp->write("\n");
+    fp->write("//BUILT-IN FUNCTIONS:\n\n");
 
     //define built-in init method for any "data member" constant class or arrays:
     generateBuiltinConstantClassOrArrayInitializationFunction(fp, declOnly);
@@ -3524,6 +3539,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	// (including 25 zeros for Type) e.g. t3510, t3173.
 	if(genCodeBuiltInFunctionBuildingDefaultDataMembers(fp))
 	  {
+	    fp->write("\n");
 	    m_state.indent(fp);
 	    fp->write("da.WriteBV(0u, initBV);"); GCNL;
 	  }

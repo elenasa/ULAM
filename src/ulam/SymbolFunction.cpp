@@ -504,8 +504,7 @@ namespace MFM {
     NodeBlockFunctionDefinition * func = getFunctionNode();
     assert(func); //how would a function symbol be without a body?
 
-    //up to programmer to define this function!!! provide headstart for natives
-    //if(!declOnly && (func->isNative() || (isVirtualFunction() && isPureVirtualFunction())))
+    //up to programmer to define a native function!!! provide headstart
     if(!declOnly && (isVirtualFunction() && isPureVirtualFunction()))
       return;
 

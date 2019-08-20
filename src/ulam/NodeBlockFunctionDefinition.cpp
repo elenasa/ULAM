@@ -522,11 +522,10 @@ namespace MFM {
 
     m_state.m_currentIndentLevel--;
 
-    fp->write("\n");
     m_state.indentUlamCode(fp);
     fp->write("} // ");
     fp->write(m_funcSymbol->getMangledName().c_str()); //end of function
-    fp->write("\n\n\n");
+    fp->write("\n");
 
     m_state.m_gencodingAVirtualFunctionInThisOriginatingClass = Nouti; //clear
     m_state.popClassContext(); //restores NodeBlock::getPreviousBlockPointer()

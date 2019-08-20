@@ -590,7 +590,7 @@ namespace MFM {
   //bypasses THIS class being compiled
   void SymbolTableOfClasses::generateForwardDefsForTableOfClasses(File * fp)
   {
-    fp->write("//Forward Defs of other classes:"); GCNL;
+    fp->write("\n//Forward Defs of other classes:"); GCNL;
 
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
     while(it != m_idToSymbolPtr.end())
