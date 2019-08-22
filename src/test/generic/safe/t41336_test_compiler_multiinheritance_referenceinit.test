@@ -7,11 +7,10 @@
 ##  Bool(3) Arg: 0x7 (true) (+ 3 asserts)
 ##  Bool(3) Arg: 0x7 (true) (+ 3 asserts)
 ##  Bool(3) Arg: 0x7 (true) (+ 2 asserts)
-##  Bool(3) Arg: 0x0 (false) (+ 1 assert)
 ##
 #!
 Exit status: 0
-Ue_Foo +System { Bool(1) m_c4(false);  Bool(1) m_a4(true);  +System<> Int(32) test() {  E4 e4;  e4 QBase2 . m_boo . true = ( e4 QBase2 . m_boo . )assert ( e4 m_boo . ! )assert ( e4 QBase3 . m_boo . ! )assert e4 QBase2 . m_boo . false = e4 m_boo . true = ( e4 m_boo . cast )print ( e4 m_boo . )assert ( e4 QBase3 . m_boo . )assert ( e4 QBase2 . m_boo . ! )assert ( e4 m_boo . cast )print m_c4 e4 ( )rboo . = m_a4 e4 ( )rbootwo . = ( m_c4 )assert ( m_a4 ! )assert ( e4 ( )rboothree . cast )assert ( e4 m_boo . cast )print m_c4 e4 ( )bootwo . = m_a4 e4 ( )boo . = ( m_c4 ! )assert ( m_a4 )assert ( e4 ( )boothree . )assert E4& e4ref = e4 cast;  ( e4ref m_boo . cast )print Bool(1)& booref = e4ref m_boo . cast;  ( booref cast )assert Bool(1)& boo2ref = e4ref QBase2 . m_boo . cast;  ( boo2ref cast ! )assert e4ref m_boo . false = ( e4ref m_boo . cast )print Bool(1)& boo3ref = e4ref ( )rboothree .;  ( boo3ref cast ! )assert 0 cast return } }
+Ue_Foo +System { Bool(1) m_c4(false);  Bool(1) m_a4(true);  +System<> Int(32) test() {  E4 e4;  e4 QBase2 . m_boo . true = ( e4 QBase2 . m_boo . )assert ( e4 m_boo . ! )assert ( e4 QBase3 . m_boo . ! )assert e4 QBase2 . m_boo . false = e4 m_boo . true = ( e4 m_boo . cast )print ( e4 m_boo . )assert ( e4 QBase3 . m_boo . )assert ( e4 QBase2 . m_boo . ! )assert ( e4 m_boo . cast )print m_c4 e4 ( )rboo . = m_a4 e4 ( )rbootwo . = ( m_c4 )assert ( m_a4 ! )assert ( e4 ( )rboothree . cast )assert ( e4 m_boo . cast )print m_c4 e4 ( )bootwo . = m_a4 e4 ( )boo . = ( m_c4 ! )assert ( m_a4 )assert ( e4 ( )boothree . )assert E4& e4ref = e4 cast;  ( e4ref m_boo . cast )print Bool(1)& booref = e4ref m_boo . cast;  ( booref cast )assert Bool(1)& boo2ref = e4ref QBase2 . m_boo . cast;  ( boo2ref cast ! )assert 0 cast return } }
 Uq_System { <NOMAIN> }
 Ue_E4 : QBase3 +QBase2 +QBase1 { Bool(1) m_b4(false);  typedef QBase2 QB2;  :QBase3< Bool(1) m_boo(false); > +QBase2< Bool(1) m_boo(false);  Bits(1) m_bit(0); > +QBase1< Bool(1) m_b1(false); > <NOMAIN> }
 Uq_QBase2 +QBase1 { Bool(1) m_boo(false);  Bits(1) m_bit(0);  +QBase1< Bool(1) m_b1(false); > <NOMAIN> }
@@ -71,13 +70,6 @@ element Foo +System {
     assert(booref);
     Bool & boo2ref = e4ref.QBase2.m_boo; //uses a ref, with BaseType.
     assert(!boo2ref);
-
-    //init ref with funccall
-    e4ref.m_boo = false; //reset
-    print(e4ref.m_boo);
-    Bool & boo3ref = e4ref.rboothree(); //gets default m_boo, uses a ref, no BaseType.
-    assert(!boo3ref);
-
     return 0;
   }
 
@@ -100,7 +92,8 @@ element E4 : QBase3 +QBase2 +QBase1 {
 
   Bool& rboothree()
   {
-    return super.m_boo; //try super instead of self.QBase3
+    return super.m_boo; //ok
+    //return self.QBase3.m_boo; //fails
   }
 
   Bool& rboo()
@@ -115,7 +108,8 @@ element E4 : QBase3 +QBase2 +QBase1 {
 
   Bool boothree()
   {
-    return super.m_boo; //instead of self.QBase3
+    return super.m_boo;
+    //return self.QBase3.m_boo;
   }
 
   Bool boo()

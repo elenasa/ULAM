@@ -48,8 +48,6 @@ element Foo +System {
     assert(!e4ref.m_b4); //m_b4 not defined within as-block
 
 
-
-
     //COMPARE GEN CODE: as- with ref-
     Atom b = E4.instanceof;
     QBase2& qb2ref = (QBase2&) b;
