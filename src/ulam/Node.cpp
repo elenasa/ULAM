@@ -1926,17 +1926,16 @@ namespace MFM {
 	  }
 	else //non-class cos, stg is a ref.. runtime rel pos, unless applydelta
 	  {
-	    if(!askEffSelf && uvpass.getPassApplyDelta())
+	    if(!askEffSelf && (uvpass.getPassApplyDelta() || stgcos->isSuper()))
 	      {
-		//specific base class, stg is a ref (first relpos in stgref);
-		//(t41333, see rbootwo())
-		pos = calcDataMemberPosOfCurrentObjectClasses(Nouti); //reset pos
 		fp->write(", ");
+		pos = calcDataMemberPosOfCurrentObjectClasses(Nouti); //reset pos
+		//specific base class, stg is a ref (first relpos in stgref);
+		//(t41333, see rbootwo()); or super (t41333 rboothree());
 		fp->write_decimal_unsigned(pos); //rel offset
 		fp->write("u);"); GCNL;
 	      }
-
-	    if(askEffSelf)
+	    else if(askEffSelf)
 	      {
 		//default data member, stg is a ref (t41333, last set)
 		assert(cos->isDataMember()); //sanity
@@ -2720,6 +2719,11 @@ namespace MFM {
 	    fp->write("u, "); //t3541
 	  }
 	else if(stgcos->isSelf() && !askEffSelf)
+	  {
+	    fp->write_decimal_unsigned(calcpos);
+	    fp->write("u, "); //t3831
+	  }
+	else if(stgcos->isSuper() && !askEffSelf)
 	  {
 	    fp->write_decimal_unsigned(calcpos);
 	    fp->write("u, "); //t3831
@@ -3924,8 +3928,6 @@ namespace MFM {
 
     u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
     assert(cosSize > 0);
-    s32 BTi = -1;
-    u32 BTrelpos = 0;
 
     //implicit self for stgcos to be a data member; (could be "OFF",e.g.cond-as w self t3831)
     UTI cuti = m_state.getCurrentSelfSymbolForCodeGen()->getUlamTypeIdx();
@@ -3934,9 +3936,18 @@ namespace MFM {
     //o.w. pos is already known 'self' at compile time. skip offset if tmpvar (t3512);
     Symbol * csym = m_state.m_currentObjSymbolsForCodeGen[0];
     assert(csym);
-    if(csym->isDataMember() && !csym->isTmpVarSymbol())
+    UTI firstuti = csym->getUlamTypeIdx();
+    if(csym->isSuper())
+      {
+	//'super' offset needed when not asking effself (t3749, t41333)
+	u32 suprelpos = 0;
+	AssertBool gotsuprelpos = m_state.getABaseClassRelativePositionInAClass(cuti, firstuti, suprelpos);
+	pos += suprelpos;
+      }
+    else if(csym->isDataMember() && !csym->isTmpVarSymbol())
       pos += csym->getPosOffset();
-    cuti = csym->getUlamTypeIdx(); //next in line
+    //else
+    cuti = firstuti; //next in line
 
     for(u32 i = 1; i < cosSize; i++)
       {
@@ -3947,21 +3958,6 @@ namespace MFM {
 	//tmpSymbols (e.g. a func return value) are not data members (t3914);
 	if(sdmclass != Nouti)
 	  {
-	    if(BTi > -1)
-	      {
-		assert(i = BTi + 1); //sanity, looking at the next symbol
-		UTI bt = m_state.m_currentObjSymbolsForCodeGen[BTi]->getUlamTypeIdx();
-		//backout BT if sdmclass is a baseclass of bt (shared bases) (t41321)
-		if(UlamType::compare(sdmclass, bt, m_state) != UTIC_SAME)
-		  {
-		    pos -= BTrelpos;
-		    assert(BTi > 0); //sanity
-		    cuti = m_state.m_currentObjSymbolsForCodeGen[BTi-1]->getUlamTypeIdx();
-		  }
-		//else ok
-		BTi = -1; //clear
-	      } //else continue..
-
 	    u32 relpos;
 	    AssertBool gotRelPos = m_state.getABaseClassRelativePositionInAClass(cuti, sdmclass, relpos);
 	    assert(gotRelPos);
@@ -3971,18 +3967,17 @@ namespace MFM {
 	  }
 	else if(sym->isTmpVarSymbol())
 	  {
-	    u32 tmprelpos; //error/t41313
-	    AssertBool gottmp = m_state.getABaseClassRelativePositionInAClass(cuti, suti, tmprelpos);
-	    assert(gottmp);
-
-	    pos += tmprelpos;
-	    pos += sym->getPosOffset();
-
-	    if(((SymbolTmpVar *) sym)->isBaseClassRef())
+	    if(!((SymbolTmpVar *) sym)->isBaseClassRef())
 	      {
-		BTi = i;
-		BTrelpos = tmprelpos;
+		u32 tmprelpos; //error/t41313
+		AssertBool gottmp = m_state.getABaseClassRelativePositionInAClass(cuti, suti, tmprelpos);
+		assert(gottmp);
+
+		pos += tmprelpos;
+		pos += sym->getPosOffset();
 	      }
+	    else //ignore BaseClassTypes (implicit in data member class of next symbol)
+	      suti = cuti; //t41319
 	  }
 	else
 	  m_state.abortNotImplementedYet();
@@ -4015,15 +4010,23 @@ namespace MFM {
     loadStorageAndCurrentObjectSymbols(stgcos, cos);
     assert(stgcos && cos);
     UTI stgcosuti = stgcos->getUlamTypeIdx();
+    UTI derefstguti = m_state.getUlamTypeAsDeref(stgcosuti);
 
     if(stgcos->isSuper())
-      askEffSelf = true;
+      {
+	if((funcclassarg == Nouti))
+	  askEffSelf = ((cosSize > 1) && m_state.m_currentObjSymbolsForCodeGen[1]->isDataMember()) ? (UlamType::compare(m_state.m_currentObjSymbolsForCodeGen[1]->getDataMemberClass(), derefstguti, m_state) != UTIC_SAME) : true; //t3749
+	else
+	  //t3743,4,5,6, t41097,t41161, t41298,9,
+	  //t41304,7,8,9,10,11,14,15,16,17,18,20,21,22,23,27,28, t41333,t41336
+	  askEffSelf = false;
+      }
     else if(stgcos->isDataMember() && !stgcos->isTmpVarSymbol()) //implicit self, t3541
       askEffSelf = UlamType::compare(stgcos->getDataMemberClass(), cuti, m_state) != UTIC_SAME;
     else if(stgcos->isSelf() && (cosSize > 1) && m_state.m_currentObjSymbolsForCodeGen[1]->isDataMember()) //explicit self, not BT
       askEffSelf = (funcclassarg == Nouti) ? (UlamType::compare(m_state.m_currentObjSymbolsForCodeGen[1]->getDataMemberClass(), cuti, m_state) != UTIC_SAME) : false;
     else if(m_state.isReference(stgcosuti) && (cosSize > 1) && m_state.m_currentObjSymbolsForCodeGen[1]->isDataMember()) //ref, not BT
-      askEffSelf = (funcclassarg == Nouti) ? (UlamType::compare(m_state.m_currentObjSymbolsForCodeGen[1]->getDataMemberClass(), m_state.getUlamTypeAsDeref(stgcosuti), m_state) != UTIC_SAME) : false; //t3914
+      askEffSelf = (funcclassarg == Nouti) ? (UlamType::compare(m_state.m_currentObjSymbolsForCodeGen[1]->getDataMemberClass(), derefstguti, m_state) != UTIC_SAME) : false; //t3914
     else if((BTtmpi > -1) && (stgcos->isSelf() || m_state.isReference(stgcosuti)))
       askEffSelf = true; //a specific BaseType with a ref or self, t41323
     else

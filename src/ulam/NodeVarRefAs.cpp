@@ -362,7 +362,7 @@ namespace MFM {
     fp->write(", ");
     fp->write(stgcos->getMangledName().c_str()); //ur
     fp->write(".GetEffectiveSelf()->");
-    fp->write(m_state.getGetRelPosMangledFunctionName(vuti)); //not an atom
+    fp->write(m_state.getGetRelPosMangledFunctionName(vuti)); //nonatom
     fp->write("(&");
     fp->write(m_state.getTheInstanceMangledNameByIndex(vuti).c_str());
     fp->write(") - ");
@@ -379,8 +379,10 @@ namespace MFM {
     fp->write(m_varSymbol->getMangledName().c_str());
     fp->write("; //shadows self"); GCNL;
 
-    m_varSymbol->setIsSelf(); //nope
+    m_varSymbol->setIsSelf(); //tricky
     m_state.m_currentSelfSymbolForCodeGen = m_varSymbol;
+
+    //what about 'super' in this context?
 
     m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of lhs
   } //genCodeRefAsSelf
