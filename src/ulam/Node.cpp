@@ -1567,7 +1567,7 @@ namespace MFM {
       {
 	UTI euti = m_state.m_currentObjSymbolsForCodeGen[edx]->getUlamTypeIdx(); //needAdjustToStateBits())
 	UlamType * eut = m_state.getUlamTypeByIndex(euti);
-	adjstForEle = !eut->isScalar() || !eut->isReference(); //going for array item (t3832)
+	adjstForEle = !eut->isScalar() || !eut->isReference(); //neither array/item (t3832)
       }
 
     m_state.indentUlamCode(fp);
@@ -1582,18 +1582,18 @@ namespace MFM {
 	if(stgcos->isDataMember() && !stgcos->isTmpVarSymbol()) //t3149, t3147
 	  {
 	    fp->write(m_state.getHiddenArgName()); //t3543
-	    stgisaref = true;
+	    stgisaref = true; //implicit self
 	  }
-	else
+	else //array item (dm && tmpvar), or self, super, ref, local stg
 	  {
 	    fp->write(stgcos->getMangledName().c_str()); //t3702, t3818
-	    stgisaref = stgcosut->isReference(); //t3114 (not isAltRefType)
+	    stgisaref = stgcosut->isReference(); //t3114 (not isAltRefType),incl ARRAYITEM,AS
 	  }
       }
     else
       {
 	fp->write(cos->getMangledName().c_str()); //local array
-	stgisaref = cosut->isReference(); //not isAltRefType
+	stgisaref = cosut->isReference(); //not isAltRefType, incl ARRAYITEM,AS
       }
 
     fp->write(", ");
@@ -2043,9 +2043,9 @@ namespace MFM {
     fp->write(vsymptr->getMangledName().c_str());
     fp->write("("); //pass ref in constructor (ref's not assigned with =)
 
-    if(stgcos->isDataMember() && !stgcosut->isReference()) //rhs may be an element/atom in a transient; not a reference (not isAltRefType?)
+    if(stgcos->isDataMember() && !stgcosut->isReference()) //rhs may be an element/atom in a transient; not a reference (not isAltRefType?) excluding AS and ARRAYITEM too.
       {
-	//can be a reference when an array item (t3818)
+	//array item is a reference (t3818)
 	fp->write(m_state.getHiddenArgName());
 	fp->write(", ");
 	fp->write_decimal_unsigned(pos); //relative off array base
@@ -2957,7 +2957,7 @@ namespace MFM {
 
 	    if(askEffSelf)
 	      {
-		//implicit self (not included in calcPos..)
+		//implicit self i.e. stgTreatAsDM (not included in calcPos..)
 		hiddenarg2 << " + " << m_state.getHiddenArgName(); //ur first arg
 		hiddenarg2 << ".GetEffectiveSelf()->";
 		hiddenarg2 << m_state.getGetRelPosMangledFunctionName(stgcosuti); //nonatom
@@ -2986,7 +2986,7 @@ namespace MFM {
 	  }
 	else //super, and specific bases, i think (t41311, t41322)
 	  {
-	    // for virtual funcs!!
+	    // especially for virtual funcs!!
 	    sameur = false;
 	    hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvar).c_str() << "(";
 	    //do not update ur to reflect "effective" self for this funccall
@@ -2994,7 +2994,9 @@ namespace MFM {
 	      hiddenarg2 << stgcos->getMangledName().c_str(); //t3811
 	    else
 	      hiddenarg2 << m_state.getHiddenArgName(); //ur t3102,3,4,6,7,8,9,10,11
-	    hiddenarg2 << ", " << calcPosOfCurrentObjectClassesAsString(uvpass, false, skipfuncclass); //rel offset;
+
+	      hiddenarg2 << ", " << calcPosOfCurrentObjectClassesAsString(uvpass, false, skipfuncclass); //rel offset;
+
 	    if(adjstEle)
 	      hiddenarg2 << " + T::ATOM_FIRST_STATE_BIT";
 
@@ -3013,20 +3015,34 @@ namespace MFM {
 	  }
 	else //local var
 	  {
-	    if(m_state.m_currentObjSymbolsForCodeGen.empty())
-	      {
-		hiddenarg2 << m_state.getHiddenArgName(); //same ur
-	      }
-	    else if(stgcosut->isReference()) //t3751, t3752, (ALT_AS: t3249, t3255) not isAltRefType
+	    assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
+
+	    //Not isAltRefType; ALT_AS:t3249,t3255; t3751,t3752; ALT_ARRAYITEM tmp (t3832)
+	    if(stgcosut->isReference())
 	      {
 		sameur = false;
 		//update ur to reflect "effective" self for this funccall
 		hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvar).c_str() << "(";
 		hiddenarg2 << stgcos->getMangledName().c_str() << ", ";
 
-		if(cos->isDataMember()) //dm of local stgcos
+		if(cos->isDataMember()) //dm of local stgcos, cosSize==1 (e.g.tmp arrayitem)
 		  {
-		    hiddenarg2 << calcPosOfCurrentObjectClassesAsString(uvpass, false, skipfuncclass); //relative off;
+		    if(askEffSelf)
+		      {
+			//e.g. ref to a base, but dm in base's base, a shared base.
+			//can't know effSelf at compile time;t3648,t3751,2,3,4,5,t3811,t3832
+			hiddenarg2 << stgcos->getMangledName().c_str();
+			hiddenarg2 << ".GetEffectiveSelf()->";
+			hiddenarg2 << m_state.getGetRelPosMangledFunctionName(stgcosuti); //nonatom
+			hiddenarg2 << "(&";
+			UTI cosclassuti = cos->getDataMemberClass();
+			hiddenarg2 << m_state.getTheInstanceMangledNameByIndex(cosclassuti).c_str();
+			hiddenarg2 << ") -" << stgcos->getMangledName().c_str();
+			hiddenarg2 << ".GetPosToEffectiveSelf()";
+		      }
+		    else
+		      hiddenarg2 << calcPosOfCurrentObjectClassesAsString(uvpass, false, skipfuncclass); //reloffset;
+
 		    if(adjstEle)
 		      hiddenarg2 << " + T::ATOM_FIRST_STATE_BIT";
 
@@ -4025,18 +4041,23 @@ namespace MFM {
 	  askEffSelf = ((cosSize > 1) && m_state.m_currentObjSymbolsForCodeGen[1]->isDataMember()) ? (UlamType::compare(m_state.m_currentObjSymbolsForCodeGen[1]->getDataMemberClass(), derefstguti, m_state) != UTIC_SAME) : true; //t3749, t41338
 	else
 	  //t41304,7,8,9,10,11,14,15,16,17,18,20,21,22,23,27,28, t41333,t41336,
-	  askEffSelf = false; //t3743,4,5,6, t41097,t41161, t41298,9
+	  askEffSelf = false; //t3743,4,5,6,t41097,t41161,t41298,9
       }
-    else if(stgcos->isDataMember() && !stgcos->isTmpVarSymbol()) //implicit self, t3541
-      askEffSelf = UlamType::compare(stgcos->getDataMemberClass(), cuti, m_state) != UTIC_SAME;
+    else if(stgcos->isDataMember()) //implicit self,t3541,t3832(arrayitem==tmp&&ref&&dm);
+      askEffSelf = stgcos->isTmpVarSymbol() ? false : (UlamType::compare(stgcos->getDataMemberClass(), cuti, m_state) != UTIC_SAME);
     else if(stgcos->isSelf() && (cosSize > 1) && m_state.m_currentObjSymbolsForCodeGen[1]->isDataMember()) //explicit self, not BT
       askEffSelf = (funcclassarg == Nouti) ? (UlamType::compare(m_state.m_currentObjSymbolsForCodeGen[1]->getDataMemberClass(), cuti, m_state) != UTIC_SAME) : false;
     else if(m_state.isReference(stgcosuti) && (cosSize > 1) && m_state.m_currentObjSymbolsForCodeGen[1]->isDataMember()) //ref, not BT
-      askEffSelf = (funcclassarg == Nouti) ? (UlamType::compare(m_state.m_currentObjSymbolsForCodeGen[1]->getDataMemberClass(), derefstguti, m_state) != UTIC_SAME) : false; //t3914
+      askEffSelf = (UlamType::compare(m_state.m_currentObjSymbolsForCodeGen[1]->getDataMemberClass(), derefstguti, m_state) != UTIC_SAME); //t3914
     else if((BTtmpi > -1) && (stgcos->isSelf() || m_state.isReference(stgcosuti)))
-      askEffSelf = true; //a specific BaseType with a ref or self, t41323
-    else
-      askEffSelf = m_state.isReference(stgcos->getUlamTypeIdx()) && ((cosSize > 1) || (funcclassarg != Nouti)); //funcs not included in stack (t3735)
+      {
+	askEffSelf = true; //a specific BaseType with a ref or self, t41323
+      }
+    else //default
+      {
+	//funcs not included in stack (t3735); arrayitems are refs (t3832)
+	askEffSelf = m_state.isReference(stgcos->getUlamTypeIdx()) && ((cosSize > 1) || (funcclassarg != Nouti));
+      }
     return askEffSelf;
   } //askEffectiveSelfAtRuntimeForRelPosOfBase
 

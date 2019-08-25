@@ -63,7 +63,6 @@ namespace MFM {
   {
     UTI it = NodeVarRef::checkAndLabelType();
     setNodeType(it);
-    //    if(m_state.okUTItoContinue(it))
     makeSuperSymbolForAsBlock(); //only when lhs is 'self'
     return getNodeType();
   } //checkAndLabelType
@@ -396,6 +395,7 @@ namespace MFM {
       return; //nothing to do
 
     //similar to makeSuperSymbol in NodeBlockFunctionDefinition
+    //important to make 'super' before its uses c&l, even if incomplete;
     UTI cuti = m_varSymbol->getUlamTypeIdx(); //the new self, getNodeType() might be Hzy
     SymbolClass * csym = NULL;
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cuti, csym);
@@ -422,11 +422,12 @@ namespace MFM {
       }
     else if(!m_state.isComplete(supersym->getUlamTypeIdx()))
       {
+	//update superuti when complete
 	if(m_state.isComplete(superuti))
 	  supersym->resetUlamType(m_state.getUlamTypeAsRef(superuti, ALT_AS));
       }
     else
-      assert(UlamType::compare(superuti, m_state.getUlamTypeAsDeref(supersym->getUlamTypeIdx()), m_state) == UTIC_SAME); //already done.
+      assert(UlamType::compare(superuti, m_state.getUlamTypeAsDeref(supersym->getUlamTypeIdx()), m_state) == UTIC_SAME); //sanity check, already done.
   } //makeSuperSymbolForAsBlock
 
 } //end MFM
