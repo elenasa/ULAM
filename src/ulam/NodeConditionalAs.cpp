@@ -120,6 +120,18 @@ namespace MFM {
 	return Nav;
       }
 
+    if(m_nodeLeft->hasASymbolSuper())
+      {
+	std::ostringstream msg;
+	msg << "Shorthand 'super' is too mind-blowing as the lefthand name ";
+	msg << "of conditional operator '" << getName();
+	msg << "'; consider using virtual functions instead";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	newType = Nav;
+	setNodeType(Nav);
+	return Nav;
+      }
+
     assert(m_nodeTypeDesc);
     UTI ruti = m_nodeTypeDesc->checkAndLabelType();
     if(m_state.okUTItoContinue(ruti))

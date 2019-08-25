@@ -3900,6 +3900,13 @@ namespace MFM {
 	posStr << newpos << "u ";
 	outputpos = false;
       }
+    else if(stgcos->isSuper())
+      {
+	u32 newpos = calcDataMemberPosOfCurrentObjectClasses(funcclassarg); //t41338
+	posStr << newpos << "u ";
+	outputpos = false;
+      }
+    //else
 
     //save for after calcDataMemberPos includes it too (t3605)
     if(outputpos) //3604 (pos in uvpass, don't double!)
@@ -4015,11 +4022,10 @@ namespace MFM {
     if(stgcos->isSuper())
       {
 	if((funcclassarg == Nouti))
-	  askEffSelf = ((cosSize > 1) && m_state.m_currentObjSymbolsForCodeGen[1]->isDataMember()) ? (UlamType::compare(m_state.m_currentObjSymbolsForCodeGen[1]->getDataMemberClass(), derefstguti, m_state) != UTIC_SAME) : true; //t3749
+	  askEffSelf = ((cosSize > 1) && m_state.m_currentObjSymbolsForCodeGen[1]->isDataMember()) ? (UlamType::compare(m_state.m_currentObjSymbolsForCodeGen[1]->getDataMemberClass(), derefstguti, m_state) != UTIC_SAME) : true; //t3749, t41338
 	else
-	  //t3743,4,5,6, t41097,t41161, t41298,9,
-	  //t41304,7,8,9,10,11,14,15,16,17,18,20,21,22,23,27,28, t41333,t41336
-	  askEffSelf = false;
+	  //t41304,7,8,9,10,11,14,15,16,17,18,20,21,22,23,27,28, t41333,t41336,
+	  askEffSelf = false; //t3743,4,5,6, t41097,t41161, t41298,9
       }
     else if(stgcos->isDataMember() && !stgcos->isTmpVarSymbol()) //implicit self, t3541
       askEffSelf = UlamType::compare(stgcos->getDataMemberClass(), cuti, m_state) != UTIC_SAME;

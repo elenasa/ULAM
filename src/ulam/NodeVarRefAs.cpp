@@ -63,6 +63,8 @@ namespace MFM {
   {
     UTI it = NodeVarRef::checkAndLabelType();
     setNodeType(it);
+    //    if(m_state.okUTItoContinue(it))
+    makeSuperSymbolForAsBlock(); //only when lhs is 'self'
     return getNodeType();
   } //checkAndLabelType
 
@@ -382,9 +384,49 @@ namespace MFM {
     m_varSymbol->setIsSelf(); //tricky
     m_state.m_currentSelfSymbolForCodeGen = m_varSymbol;
 
-    //what about 'super' in this context?
-
+    //what about 'super' in this context? tmp super symbol to the rescue! see c&l
     m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of lhs
   } //genCodeRefAsSelf
+
+  void NodeVarRefAs::makeSuperSymbolForAsBlock()
+  {
+    assert(m_varSymbol);
+    u32 selfid = m_state.m_pool.getIndexForDataString("self");
+    if(m_varSymbol->getId() != selfid)
+      return; //nothing to do
+
+    //similar to makeSuperSymbol in NodeBlockFunctionDefinition
+    UTI cuti = m_varSymbol->getUlamTypeIdx(); //the new self, getNodeType() might be Hzy
+    SymbolClass * csym = NULL;
+    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cuti, csym);
+    assert(isDefined);
+    UTI superuti = csym->getBaseClass(0);
+    if(superuti == Nouti)
+      superuti = m_state.m_urSelfUTI;
+
+    Symbol * supersym = NULL;
+    u32 superid = m_state.m_pool.getIndexForDataString("super");
+    NodeBlock * curblock = m_state.getCurrentBlock();
+    assert(curblock);
+    if(!curblock->isIdInScope(superid, supersym))
+      {
+	assert(m_state.okUTItoContinue(superuti));
+	s32 slot = -(m_state.slotsNeeded(m_state.m_currentFunctionReturnType) + 1);
+
+	Token superTok(TOK_IDENTIFIER, getNodeLocation(), superid);
+	supersym = new SymbolVariableStack(superTok, m_state.getUlamTypeAsRef(superuti, ALT_AS), slot, m_state);
+	assert(supersym);
+	supersym->setAutoLocalType(ALT_AS);
+	supersym->setIsSuper();
+	m_state.addSymbolToCurrentScope(supersym); //ownership goes to the block
+      }
+    else if(!m_state.isComplete(supersym->getUlamTypeIdx()))
+      {
+	if(m_state.isComplete(superuti))
+	  supersym->resetUlamType(m_state.getUlamTypeAsRef(superuti, ALT_AS));
+      }
+    else
+      assert(UlamType::compare(superuti, m_state.getUlamTypeAsDeref(supersym->getUlamTypeIdx()), m_state) == UTIC_SAME); //already done.
+  } //makeSuperSymbolForAsBlock
 
 } //end MFM

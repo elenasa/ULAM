@@ -451,6 +451,11 @@ namespace MFM {
     assert(m_varSymbol);
     UTI rtnuti = m_varSymbol->getUlamTypeIdx();
 
+    if(m_varSymbol->isSuper())
+      {
+	return rtnuti; //short circuit as-cond super (t41338)
+      }
+
     if(!m_varSymbol->isDataMember() && (((SymbolVariableStack *) m_varSymbol)->getDeclNodeNo() > getNodeNo()))
       {
 	NodeBlock * currBlock = getBlock();
@@ -661,6 +666,20 @@ namespace MFM {
 	UTI ttype = selfuvp.getPtrTargetType();
 	assert(m_state.okUTItoContinue(ttype));
 	return selfuvp;
+      } //done
+    else if(m_varSymbol->isSuper())
+      {
+	// manufactured super for self as-cond. (t41338)
+	UlamValue selfuvp = m_state.m_currentSelfPtr;
+	UTI selfttype = selfuvp.getPtrTargetType();
+	assert(m_state.okUTItoContinue(selfttype));
+	UTI supertype = m_varSymbol->getUlamTypeIdx(); //ALT_AS
+	u32 relposofsuper = 0;
+	AssertBool gotpos = m_state.getABaseClassRelativePositionInAClass(selfttype, supertype, relposofsuper);
+	assert(gotpos);
+	selfuvp.setPtrPos(selfuvp.getPtrPos() + relposofsuper);
+	selfuvp.setPtrTargetType(m_state.getUlamTypeAsDeref(supertype));
+	return selfuvp; //now superuvp.
       } //done
 
     // can't use global m_currentAutoObjPtr, since there might be nested as conditional blocks.
