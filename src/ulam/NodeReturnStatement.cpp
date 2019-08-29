@@ -433,7 +433,7 @@ namespace MFM {
 	    m_state.m_currentIndentLevel--;
 	  }
 
-	//no need to make a tmp symbol if the symbol already is one
+	//still need to make a tmp symbol if the symbol already is one
 	// e.g. func call ref returned (t41030-35)
 	//if(!cossym->isTmpVarSymbol()) makes ulamexports EVentWindow very unhappy!
 	{

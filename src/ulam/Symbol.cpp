@@ -32,7 +32,7 @@ namespace MFM {
 
   u32 Symbol::getId()
   {
-    return m_idtok.m_dataindex;
+    return m_state.getTokenDataAsStringId(m_idtok);
   }
 
   Locator Symbol::getLoc()

@@ -89,8 +89,8 @@ namespace MFM {
     if(opolId == 0)
       {
 	std::ostringstream msg;
-	msg << "Overload for operator <" << getName();
-	msg << "> is not supported as operand for class: ";
+	msg << "Overload for operator '" << getName();
+	msg << "' is not supported as operand for class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_nodeLeft->getNodeType()).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	return NULL;
@@ -120,9 +120,9 @@ namespace MFM {
 	if(!m_state.isFuncIdInAClassScopeOrAncestor(luti, opolId, fnsymptr, hazyKin))
 	  {
 	    std::ostringstream msg;
-	    msg << "Overload for operator <" << getName();
-	    msg << "> and its inverse <" << invopname;
-	    msg << "> are not supported as operand for class: ";
+	    msg << "Overload for operator '" << getName();
+	    msg << "' and its inverse '" << invopname;
+	    msg << "' are not supported as operand for class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    return NULL;
@@ -130,9 +130,9 @@ namespace MFM {
 	else //continue with a bang
 	  {
 	    std::ostringstream msg;
-	    msg << "Using overload operator <" << getName();
-	    msg << ">'s negated inverse <" << invopname;
-	    msg << "> operator for class: ";
+	    msg << "Using overload operator '" << getName();
+	    msg << "' negated inverse '" << invopname;
+	    msg << "' operator for class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	    useInverseOp = true;

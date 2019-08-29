@@ -410,7 +410,7 @@ namespace MFM {
 	classblock->setNodeLocation(cloc);
 	classblock->setNodeType(cuti); //incomplete
 
-	Token cTok(TOK_IDENTIFIER, cloc, id);
+	Token cTok(TOK_TYPE_IDENTIFIER, cloc, id);
 	//symbol ownership goes to the programDefST;
 	//distinguish between template and regular classes, where?
 	//assert(cnsym == NULL); //leak?
@@ -432,7 +432,8 @@ namespace MFM {
     //can't be a typedef!! get's the wrong name for type key; use key as arg
     UTI tmputi = Nav;
     UTI tmpforscalaruti = Nouti;
-    AssertBool isDef = getUlamTypeByTypedefName(typeTok.m_dataindex, tmputi, tmpforscalaruti);
+    u32 tokid = getTokenDataAsStringId(typeTok);
+    AssertBool isDef = getUlamTypeByTypedefName(tokid, tmputi, tmpforscalaruti);
     assert(!isDef);
 
     //is this name already a typedef for a complex type?
@@ -1073,8 +1074,9 @@ namespace MFM {
     ULAMTYPE bUT = Nav;
     UTI uti = Nav;
     UTI tmpforscalaruti = Nouti;
+    u32 tokid = getTokenDataAsStringId(tok);
     //is this name already a typedef for a complex type?
-    if(getUlamTypeByTypedefName(tok.m_dataindex, uti, tmpforscalaruti))
+    if(getUlamTypeByTypedefName(tokid, uti, tmpforscalaruti))
       bUT = getUlamTypeByIndex(uti)->getUlamTypeEnum();
     else if(Token::getSpecialTokenWork(tok.m_type) == TOKSP_TYPEKEYWORD)
       {
@@ -1090,7 +1092,7 @@ namespace MFM {
       {
 	//check for existing Class type
 	SymbolClassName * cnsym = NULL;
-	if(alreadyDefinedSymbolClassName(tok.m_dataindex, cnsym))
+	if(alreadyDefinedSymbolClassName(tokid, cnsym))
 	  {
 	    bUT = Class;
 	  } //else or make one if doesn't exist yet, while parsing---do we do this anymore?
@@ -1104,8 +1106,9 @@ namespace MFM {
   {
     UTI uti = Nav;
     UTI tmpforscalaruti = Nouti;
+    u32 tokid = getTokenDataAsStringId(tok);
     //is this name already a typedef for a complex type?
-    if(!getUlamTypeByTypedefName(tok.m_dataindex, uti, tmpforscalaruti))
+    if(!getUlamTypeByTypedefName(tokid, uti, tmpforscalaruti))
       {
 	if(Token::getSpecialTokenWork(tok.m_type) == TOKSP_TYPEKEYWORD)
 	  {
@@ -1120,7 +1123,7 @@ namespace MFM {
 	  {
 	    //check for existing Class type
 	    SymbolClassName * cnsym = NULL;
-	    if(alreadyDefinedSymbolClassName(tok.m_dataindex, cnsym))
+	    if(alreadyDefinedSymbolClassName(tokid, cnsym))
 	      {
 		uti = cnsym->getUlamTypeIdx();  //beware: may not match class parameters!!!
 	      } //else or make one if doesn't exist yet, while parsing---do we do this anymore?
@@ -1133,8 +1136,9 @@ namespace MFM {
   {
     UTI uti = Nav;
     UTI tmpforscalaruti = Nouti;
+    u32 tokid = getTokenDataAsStringId(args.m_typeTok);
     //is this name already a typedef for a complex type?
-    if(!getUlamTypeByTypedefName(args.m_typeTok.m_dataindex, uti, tmpforscalaruti))
+    if(!getUlamTypeByTypedefName(tokid, uti, tmpforscalaruti))
       {
 	if(Token::getSpecialTokenWork(args.m_typeTok.m_type) == TOKSP_TYPEKEYWORD)
 	  {
@@ -1149,7 +1153,7 @@ namespace MFM {
 	  {
 	    //check for existing Class type
 	    SymbolClassName * cnsym = NULL;
-	    if(alreadyDefinedSymbolClassName(args.m_typeTok.m_dataindex, cnsym))
+	    if(alreadyDefinedSymbolClassName(tokid, cnsym))
 	      {
 		uti = cnsym->getUlamTypeIdx();  //beware: may not match class parameters!!!
 	      }
@@ -2611,13 +2615,14 @@ namespace MFM {
 
   bool CompilerState::removeIncompleteClassSymbolFromProgramTable(u32 id)
   {
-    Token ntok(TOK_IDENTIFIER, m_locOfNextLineText, id); //junk loc
+    Token ntok(TOK_TYPE_IDENTIFIER, m_locOfNextLineText, id); //junk loc
     return removeIncompleteClassSymbolFromProgramTable(ntok);
   }
 
   bool CompilerState::removeIncompleteClassSymbolFromProgramTable(const Token& nTok)
   {
     bool rtnb = false;
+    assert(nTok.m_type == TOK_TYPE_IDENTIFIER);
     u32 id = nTok.m_dataindex;
     SymbolClassName * cnsym = NULL;
     if(alreadyDefinedSymbolClassName(id, cnsym))
@@ -2653,6 +2658,7 @@ namespace MFM {
   //temporary UlamType which will be updated during type labeling.
   bool CompilerState::addIncompleteClassSymbolToProgramTable(const Token& cTok, SymbolClassName * & symptr)
   {
+    assert(cTok.m_type == TOK_TYPE_IDENTIFIER); //3676
     u32 dataindex = cTok.m_dataindex;
     bool isNotDefined = (symptr == NULL) && !alreadyDefinedSymbolClassName(dataindex, symptr);
     assert(isNotDefined);
@@ -2681,6 +2687,7 @@ namespace MFM {
   //temporary UlamType which will be updated during type labeling.
   bool CompilerState::addIncompleteTemplateClassSymbolToProgramTable(const Token& cTok, SymbolClassNameTemplate * & symptr)
   {
+    assert(cTok.m_type == TOK_TYPE_IDENTIFIER);
     u32 dataindex = cTok.m_dataindex;
     AssertBool isNotDefined = ((symptr == NULL) && !alreadyDefinedSymbolClassNameTemplate(dataindex,symptr));
     assert(isNotDefined);
@@ -2741,7 +2748,7 @@ namespace MFM {
   {
     if(m_unseenClasses.empty())
       return;
-
+    assert(identTok.m_type == TOK_TYPE_IDENTIFIER); //t3380
     std::set<u32>::iterator it = m_unseenClasses.find(identTok.m_dataindex);
     if(it != m_unseenClasses.end())
       {
@@ -2905,7 +2912,7 @@ namespace MFM {
 
 	//create a temporary "class" !!!
 	u32 cid = getClassNameIdForUlamLocalsFilescope(locuti);
-	Token cTok(TOK_IDENTIFIER, localsblock->getNodeLocation(), cid);
+	Token cTok(TOK_TYPE_IDENTIFIER, localsblock->getNodeLocation(), cid); //t3852
 	SymbolClassName * cnsym = NULL;
 	AssertBool isDefined = addIncompleteClassSymbolToProgramTable(cTok, cnsym);
 	assert(isDefined);
@@ -4097,6 +4104,19 @@ namespace MFM {
     if(loc.getFullPathIndex() > 0)
       return m_pool.getDataAsString(loc.getFullPathIndex());
     return "";
+  }
+
+  u32 CompilerState::getTokenDataAsStringId(const Token & tok)
+  {
+    if(tok.m_dataindex > 0)
+      {
+	if(tok.m_type == TOK_DQUOTED_STRING)
+	  return tok.m_dataindex; //different pool
+	else if(tok.isOperatorOverloadIdentToken(this))
+	  return tok.m_dataindex; //t41238
+	return tok.m_dataindex; //(else)
+      }
+    return tok.getTokenStringId();
   }
 
   const std::string CompilerState::getTokenDataAsString(const Token & tok)

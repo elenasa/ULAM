@@ -299,7 +299,7 @@ namespace MFM {
 	  {
 	    assert(m_state.okUTItoContinue(superuti));
 
-	    Token superTok(TOK_IDENTIFIER, getNodeLocation(), superid);
+	    Token superTok(TOK_KW_SUPER, getNodeLocation(), 0);
 	    supersym = new SymbolVariableStack(superTok, m_state.getUlamTypeAsRef(superuti, ALT_REF), slot, m_state);
 	    assert(supersym);
 	    supersym->setAutoLocalType(ALT_REF);

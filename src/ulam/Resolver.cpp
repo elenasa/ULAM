@@ -130,11 +130,12 @@ namespace MFM {
     if(m_state.isComplete(huti))
       return true; //short-circuit, known (t41287,8)
 
+    u32 tokid = m_state.getTokenDataAsStringId(tok);
     UTI kuti = Nav;
     if(etyp == Class)
       {
 	SymbolClassName * cnsym = NULL; //no way a template or stub
-	if(!m_state.alreadyDefinedSymbolClassName(tok.m_dataindex, cnsym))
+	if(!m_state.alreadyDefinedSymbolClassName(tokid, cnsym))
 	  {
 	    SymbolClass * csym = NULL;
 	    if(m_state.alreadyDefinedSymbolClassAsHolder(huti, csym))
@@ -202,7 +203,7 @@ namespace MFM {
       {
 	//a typedef (e.g. t3379, 3381)
 	UTI tmpscalar = Nouti;
-	if(m_state.getUlamTypeByTypedefName(tok.m_dataindex, kuti, tmpscalar))
+	if(m_state.getUlamTypeByTypedefName(tokid, kuti, tmpscalar))
 	  aok = !m_state.isHolder(kuti);
       }
 
@@ -233,9 +234,10 @@ namespace MFM {
     assert(templateclassblock);
     m_state.pushClassContext(tuti, templateclassblock, templateclassblock, false, NULL);
 
+    u32 tokid = m_state.getTokenDataAsStringId(tok);
     Symbol * argSym = NULL;
     bool hazykin = false;
-    if(m_state.alreadyDefinedSymbol(tok.m_dataindex, argSym, hazykin))
+    if(m_state.alreadyDefinedSymbol(tokid, argSym, hazykin))
       {
 	m_state.popClassContext(); //restore before another check call
 

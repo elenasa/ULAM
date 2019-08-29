@@ -196,7 +196,8 @@ namespace MFM {
 
 	Symbol * asymptr = NULL;
 	bool hazyKin = false;
-	if(m_state.alreadyDefinedSymbol(m_token.m_dataindex, asymptr, hazyKin))
+	u32 tokid = m_state.getTokenDataAsStringId(m_token);
+	if(m_state.alreadyDefinedSymbol(tokid, asymptr, hazyKin))
 	  {
 	    rtn = asymptr->isConstant();
 	  }
@@ -245,9 +246,10 @@ namespace MFM {
 
 	Symbol * asymptr = NULL;
 	bool hazyKin = false;
+	u32 tokid = m_state.getTokenDataAsStringId(m_token);
 	// must capture symbol ptr even if part of incomplete chain to do any necessary surgery
 	// (e.g. stub class args t3526, t3525, inherited dm t3408), wait if hazyKin (t3572)?;
-	if(m_state.alreadyDefinedSymbol(m_token.m_dataindex, asymptr, hazyKin))
+	if(m_state.alreadyDefinedSymbol(tokid, asymptr, hazyKin))
 	  {
 	    if(!asymptr->isFunction() && !asymptr->isTypedef() && !asymptr->isConstant() && !asymptr->isModelParameter())
 	      {
@@ -622,7 +624,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Variable '";
-	    msg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str();
+	    msg << m_state.getTokenDataAsString(m_token).c_str();
 	    msg << "' is not a valid lefthand side. Eval FAILS";
 	    if(stor == TBOOL_HAZY)
 	      {
@@ -757,6 +759,7 @@ namespace MFM {
     // ask current scope block if this variable name is there;
     // if so, nothing to install return symbol and false
     // function names also checked when currentBlock is the classblock.
+    assert(m_token.m_type == TOK_TYPE_IDENTIFIER);
     if(m_state.isIdInCurrentScope(m_token.m_dataindex, asymptr))
       {
 	tduti = asymptr->getUlamTypeIdx();
@@ -816,23 +819,10 @@ namespace MFM {
 		  }
 		brtn = true;
 	      } //holder done
-	    else if(asymptr->getId() == m_state.m_pool.getIndexForDataString("Self"))
-	      brtn = false; //e.g. error/t3391, error/t3698
-	    else if(asymptr->getId() == m_state.m_pool.getIndexForDataString("Super"))
-	      brtn = false;
 	    else
 	      brtn = true;
 	  } //a typedef already there
 	return brtn; //already there, and updated
-      }
-    else
-      {
-	//regardless of scope, protected names:
-	if(m_token.m_dataindex == m_state.m_pool.getIndexForDataString("Self"))
-	  return false;
-
-	if(m_token.m_dataindex == m_state.m_pool.getIndexForDataString("Super"))
-	  return false;
       }
 
     SymbolClassName * prematureclass = NULL;
@@ -874,7 +864,7 @@ namespace MFM {
 	    brtn = true;
 	  }
       }
-    else if(m_state.getUlamTypeByTypedefName(args.m_typeTok.m_dataindex, tduti, tdscalaruti))
+    else if(m_state.getUlamTypeByTypedefName(m_state.getTokenDataAsStringId(args.m_typeTok), tduti, tdscalaruti)) //t3674 Self;
       {
 	args.m_declListOrTypedefScalarType = tdscalaruti; //not Nav when tduti is an array
 	if(checkTypedefOfTypedefSizes(args, tduti)) //ref
@@ -980,7 +970,7 @@ namespace MFM {
 	    brtn = true;
 	  }
       }
-    else if(m_state.getUlamTypeByTypedefName(args.m_typeTok.m_dataindex, uti, tdscalaruti))
+    else if(m_state.getUlamTypeByTypedefName(m_state.getTokenDataAsStringId(args.m_typeTok), uti, tdscalaruti))
       {
 	args.m_declListOrTypedefScalarType = tdscalaruti; //not Nav when tduti is an array
 	if(checkConstantTypedefSizes(args, uti))
@@ -1085,7 +1075,7 @@ namespace MFM {
 	    uti = args.m_anothertduti;
 	  }
       }
-    else if(m_state.getUlamTypeByTypedefName(args.m_typeTok.m_dataindex, uti, tdscalaruti))
+    else if(m_state.getUlamTypeByTypedefName(m_state.getTokenDataAsStringId(args.m_typeTok), uti, tdscalaruti))
       {
 	args.m_declListOrTypedefScalarType = tdscalaruti; //not Nav when tduti is an array
 	if(checkConstantTypedefSizes(args, uti))
@@ -1166,7 +1156,7 @@ namespace MFM {
 	  }
 	brtn = true;
       }
-    else if(m_state.getUlamTypeByTypedefName(args.m_typeTok.m_dataindex, auti, tdscalaruti))
+    else if(m_state.getUlamTypeByTypedefName(m_state.getTokenDataAsStringId(args.m_typeTok), auti, tdscalaruti))
       {
 	args.m_declListOrTypedefScalarType = tdscalaruti; //not Nav when tduti is an array
 	// check typedef types here..

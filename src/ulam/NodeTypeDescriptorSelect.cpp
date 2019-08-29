@@ -107,10 +107,11 @@ namespace MFM {
 	ULAMTYPE seletyp = selut->getUlamTypeEnum();
 	if(seletyp == Class)
 	  {
+	    u32 tokid = m_state.getTokenDataAsStringId(m_typeTok); //t3806,7,8 t41312
 	    // find our id in the "selected" class, must be a typedef (t3267)
 	    Symbol * asymptr = NULL;
 	    bool hazyKin = false;
-	    if(m_state.alreadyDefinedSymbolByAClassOrAncestor(seluti, m_typeTok.m_dataindex, asymptr, hazyKin) && !hazyKin)
+	    if(m_state.alreadyDefinedSymbolByAClassOrAncestor(seluti, tokid, asymptr, hazyKin) && !hazyKin)
 	      {
 		if(asymptr->isTypedef())
 		  {

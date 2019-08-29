@@ -91,6 +91,7 @@ namespace MFM {
     //look up in class block, and match argument types to parameters
     SymbolFunction * funcSymbol = NULL;
     Symbol * fnsymptr = NULL;
+    u32 funcid = m_state.getTokenDataAsStringId(m_functionNameTok); //t41087
 
     //label argument types; used to pinpoint the exact function symbol in case of overloading
     std::vector<Node *> argNodes;
@@ -109,7 +110,7 @@ namespace MFM {
 	cuti = memberblock->getNodeType();
       }
 
-    if(m_state.isFuncIdInAClassScopeOrAncestor(cuti, m_functionNameTok.m_dataindex, fnsymptr, hazyKin) && !hazyKin)
+    if(m_state.isFuncIdInAClassScopeOrAncestor(cuti, funcid, fnsymptr, hazyKin) && !hazyKin)
       {
 	//use member block doesn't apply to arguments; no change to current block
 	m_state.pushCurrentBlockAndDontUseMemberBlock(m_state.getCurrentBlock()); //set forall args
@@ -152,7 +153,7 @@ namespace MFM {
 	// exact match if possible; o.w. allow safe casts to find matches
 	bool hasHazyArgs = false;
 	UTI foundInAncestor = Nouti;
-	u32 numFuncs = m_state.findMatchingFunctionWithSafeCastsInAClassScopeOrAncestor(cuti, m_functionNameTok.m_dataindex, argNodes, funcSymbol, hasHazyArgs, foundInAncestor);
+	u32 numFuncs = m_state.findMatchingFunctionWithSafeCastsInAClassScopeOrAncestor(cuti, funcid, argNodes, funcSymbol, hasHazyArgs, foundInAncestor);
 	if(numFuncs == 0)
 	  {
 	    assert(foundInAncestor == Nouti); //sanity
@@ -212,7 +213,7 @@ namespace MFM {
 	      {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //t3479
 		numErrorsFound++;
-		m_state.noteAmbiguousFunctionSignaturesInAClassHierarchy(cuti, m_functionNameTok.m_dataindex, argNodes, numFuncs);
+		m_state.noteAmbiguousFunctionSignaturesInAClassHierarchy(cuti, funcid, argNodes, numFuncs);
 	      }
 	  }
 	else
@@ -856,9 +857,10 @@ namespace MFM {
 	//set up compiler state to use the member class block for symbol searches
 	m_state.pushClassContextUsingMemberClassBlock(memberClassNode);
 
+	u32 funcid = m_state.getTokenDataAsStringId(m_functionNameTok); //t41087
 	Symbol * fnsymptr = NULL;
 	bool hazyKin = false;
-	AssertBool isDefinedFunc = (m_state.isFuncIdInClassScope(m_functionNameTok.m_dataindex, fnsymptr, hazyKin) && !hazyKin);
+	AssertBool isDefinedFunc = (m_state.isFuncIdInClassScope(funcid, fnsymptr, hazyKin) && !hazyKin);
 	assert(isDefinedFunc);
 
 	//find this func in the virtual class; get its func def.

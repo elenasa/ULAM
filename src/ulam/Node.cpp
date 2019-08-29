@@ -1104,7 +1104,7 @@ namespace MFM {
 	m_state.indentUlamCode(fp); //not const
 	if(stgcos->isSelf() && (stgcos == cos))
 	  genSelfNameOfMethod(fp);
-	else if(!Node::isCurrentObjectALocalVariableOrArgument())
+	else if(!isLocal)
 	  genMemberNameOfMethod(fp, uvpass); //transient dm (t3967)
 	else //local already taken care of
 	  genLocalMemberNameOfMethod(fp, uvpass); //transient const ref func arg (t41271)
@@ -2498,8 +2498,7 @@ namespace MFM {
 
     //create "atom" symbol whose index is "hidden" first arg (i.e. a Pass to an Atom);
     //immediately below the return value(s); and belongs to the function definition scope.
-    u32 selfid = m_state.m_pool.getIndexForDataString("self"); //was "self"
-    Token selfTok(TOK_IDENTIFIER, loc, selfid);
+    Token selfTok(TOK_KW_SELF, loc, 0);
 
     m_state.m_parsingVariableSymbolTypeFlag = STF_FUNCPARAMETER; //for symbol install
     SymbolVariableStack * selfsym = new SymbolVariableStack(selfTok, UAtom, m_state);
@@ -3241,14 +3240,13 @@ namespace MFM {
 
     fp->write("UlamRef<EC>("); //wrapper for local storage
 
-    if(stgcosut->isReference()) //not isAltRefType (t3249, t41318)
+    if(stgcosut->isReference()) //not isAltRefType, could be AS or ARRAYITEM (t3249, t41318)
       {
 	fp->write(stgcos->getMangledName().c_str()); //ref
 	fp->write(", ");
 
-	// when stgref is same as cosclass, or cosclass is "non-shared" baseclass
-	// of stg nonref, use pos; else not the same and ref. (t41323);
-	// non-shared DATA MEMBERS return -1 relpos (t41268);
+	// when stgref is same as cosclass, use pos; else askEffSelf
+	// (not the same and ref).(t41323,t41268);
 	if(askEffSelf)
 	  {
 	    fp->write(stgcos->getMangledName().c_str());
@@ -3262,16 +3260,16 @@ namespace MFM {
 	    fp->write("+ ");
 	  }
       }
-    //else //local var position is in uvpass (t41317, t41310, t3826)
+    //else local var position is in uvpass (t41317, t41310, t3826)
 
-    //t41184 already adjusted! but not t3541? STOP IT!! (see Node::adjustUVPassForElements)
+    //t41184 already adjusted! but not t3541? MADDNESS!! (formerly adjustUVPassForElements)
     // reading entire thing, using ELEMENTAL, adjust? (t3735), no adjust (t3968)
     // reading member of a transient dm that's an element, adjust (t3968)
     bool adjstEle = false;
     s32 edx = /*(cosclasstype == UC_ELEMENT) ? -1 :*/ isCurrentObjectsContainingAnElement();
     if((edx >= 0) && needAdjustToStateBits(m_state.m_currentObjSymbolsForCodeGen[edx]->getUlamTypeIdx()))
       {
-	fp->write("T::ATOM_FIRST_STATE_BIT + "); //prettier than adding to pos, t3735, t3968
+	fp->write("T::ATOM_FIRST_STATE_BIT + "); //prettier than adding 25 to pos (t3735,t3968)
 	adjstEle = true;
       }
 
@@ -3723,8 +3721,9 @@ namespace MFM {
     //quark's self is an atom or immediate, and should be treated like a local arg.
     // notes: self is not a data member. references cannot be data members.
     //        func def's are dm, but func calls are not.
+    //        arrayitem is a tmpvar, also altref type, and sometimes dm.
     if(m_state.m_currentObjSymbolsForCodeGen.empty())
-      return false; //must be self, t.f. not local
+      return false; //must be self, t.f. not local; or uvpass is tmpvar?
 
     if(m_state.m_currentObjSymbolsForCodeGen[0]->isDataMember())
       {
@@ -3734,21 +3733,18 @@ namespace MFM {
 	  return true; //treat model parameter like local storage
 	if(isCurrentObjectsContainingATmpVarSymbol() > -1)
 	  return true; //treat tmpvar symbols like local storage (t3914?)
+	return false; //implicit self, non-local
+      }
+
+    if(m_state.m_currentObjSymbolsForCodeGen[0]->isSelf()) //explcit self
+      {
+	UTI stgcosuti = m_state.m_currentObjSymbolsForCodeGen[0]->getUlamTypeIdx();
+	assert(!m_state.isAtom(stgcosuti)); //parse error (t3284)
 	return false;
       }
 
-    if(m_state.m_currentObjSymbolsForCodeGen[0]->isSelf())
-      {
-	UTI stgcosuti = m_state.m_currentObjSymbolsForCodeGen[0]->getUlamTypeIdx();
-	if(!m_state.isAtom(stgcosuti))
-	  return false; //self, not atom
-	//else true
-      }
-
     if(m_state.m_currentObjSymbolsForCodeGen[0]->isSuper())
-      {
-	return false; //t41311
-      }
+      return false; //t41311
 
     return true; //including references
   } //isCurrentObjectALocalVariableOrArgument

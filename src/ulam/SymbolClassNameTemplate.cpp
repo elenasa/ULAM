@@ -403,15 +403,14 @@ namespace MFM {
     //previous block is template's class block, and new NNO here!
     NodeBlockClass * newblockclass = new NodeBlockClass(templateclassblock, m_state);
     assert(newblockclass);
-    //newblockclass->setNodeLocation(blockclass->getNodeLocation()); //questionable LOC???
-    newblockclass->setNodeLocation(newloc); //questionable LOC??? t41221
+    newblockclass->setNodeLocation(newloc); //questionable LOC? t41221
 
     //provides proper context for setting type (e.g. t3640)
     m_state.pushClassContext(newuti, newblockclass, newblockclass, false, NULL);
 
     newblockclass->setNodeType(newuti);
     newblockclass->resetNodeNo(templateclassblock->getNodeNo()); //keep NNO consistent (new)
-    //    newblockclass->setSuperBlockPointer(NULL); //wait for c&l when no longer a stub
+    //newblockclass->setSuperBlockPointer(NULL); //wait for c&l when no longer a stub
 
     Token stubTok(TOK_IDENTIFIER,csym->getLoc(), getId());
 

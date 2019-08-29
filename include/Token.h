@@ -78,7 +78,7 @@ namespace MFM{
 
     void init(TokenType t, Locator l, u32 d);
 
-    u32 getTokenStringId();
+    u32 getTokenStringId() const;
     u32 getTokenEnumNameId();
 
     const char * getTokenString();

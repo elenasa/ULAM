@@ -413,7 +413,7 @@ namespace MFM {
 	assert(m_state.okUTItoContinue(superuti));
 	s32 slot = -(m_state.slotsNeeded(m_state.m_currentFunctionReturnType) + 1);
 
-	Token superTok(TOK_IDENTIFIER, getNodeLocation(), superid);
+	Token superTok(TOK_KW_SUPER, getNodeLocation(), 0);
 	supersym = new SymbolVariableStack(superTok, m_state.getUlamTypeAsRef(superuti, ALT_AS), slot, m_state);
 	assert(supersym);
 	supersym->setAutoLocalType(ALT_AS);

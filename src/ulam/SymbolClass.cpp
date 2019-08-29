@@ -669,13 +669,15 @@ namespace MFM {
       m_resolver = new Resolver(getUlamTypeIdx(), m_state);
     assert(m_resolver);
     m_resolver->addUnknownTypeToken(tok, huti);
-  } //addUnknownTypeNameIdToClass
+    if(tok.m_type == TOK_KW_TYPE_SUPER)
+      setBaseClass(huti, 0, true); //t41312??
+  } //addUnknownTypeTokenToClass
 
   Token SymbolClass::removeKnownTypeTokenFromClass(UTI huti)
   {
     assert(m_resolver);
     return m_resolver->removeKnownTypeToken(huti);
-  } //removeKnownTypeNameIdToClass
+  } //removeKnownTypeTokenFromClass
 
   bool SymbolClass::hasUnknownTypeInClass(UTI huti)
   {
