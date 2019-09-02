@@ -5,7 +5,7 @@
 ##
 #!
 Exit status: 0
-Ue_A { Bool(1) b1(true);  Bool(1) b2(true);  Unsigned(8) asc1(98u);  Unsigned(8) asc2(114u);  Int(32) test() {  System s;  String(32) str = strarr 0 [];  Int(32) slen = 3u cast;  asc1 str 0 [] = b1 asc1 98u == = s ( b1 )assert . asc2 str slen 1 cast -b [] = b2 asc2 114u == = s ( b2 )assert . 0 cast return } }
+Ue_A { Bool(1) b1(true);  Bool(1) b2(true);  Unsigned(8) asc1(98u);  Unsigned(8) asc2(114u);  Int(32) test() {  System s;  String(32) str = strarr 0 [];  Int(32) slen = 3u cast;  self asc1 . str 0 [] = self b1 . self asc1 . 98u == = s ( self b1 . )assert . self asc2 . str slen 1 cast -b [] = self b2 . self asc2 . 114u == = s ( self b2 . )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t3953, locals filescope

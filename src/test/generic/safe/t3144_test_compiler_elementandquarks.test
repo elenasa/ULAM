@@ -2,7 +2,7 @@
 #=t3144_test_compiler_elementandquarks
 #!
 Exit status: 1
-Ue_Test { Bar bar( Foo valoo( Int(7) val(1); ); );  Int(32) test() {  bar valoo . val . 1 cast = bar valoo . val . cast return } }
+Ue_Test { Bar bar( Foo valoo( Int(7) val(1); ); );  Int(32) test() {  self bar . valoo . val . 1 cast = self bar . valoo . val . cast return } }
 Uq_Bar { Foo valoo( Int(7) val(0); );  <NOMAIN> }
 Uq_Foo { Int(7) val(0);  <NOMAIN> }
 #>Test.ulam

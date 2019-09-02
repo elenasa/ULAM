@@ -45,7 +45,7 @@ namespace MFM {
     if(m_state.okUTItoContinue(oftype))
       {
 	//a virtual function (instanceof), behaves differently on refs vs object
-	bool isself = m_nodeOf ? (m_nodeOf->hasASymbolSelf()) : false;
+	bool isself = m_nodeOf ? (m_nodeOf->hasASymbolSelf() && !m_nodeOf->isAMemberSelect()) : false; //t41092
 	bool issuper = m_nodeOf ? (m_nodeOf->hasASymbolSuper()) : false;
 	bool isaref = m_state.isAltRefType(oftype) || isself || issuper;
 

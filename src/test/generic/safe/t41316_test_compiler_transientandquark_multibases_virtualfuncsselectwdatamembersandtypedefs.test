@@ -8,7 +8,7 @@
 ##
 #!
 Exit status: 0
-Ue_Foo +System { Int(32) m_c4(212);  Int(32) m_a4(110);  +System<> Int(32) test() {  T4 t4;  typedef QBase2 QB2;  m_c4 t4 QB2 . ( )vfuncc . = ( m_c4 )print ( m_c4 212 cast == )assert typedef QBase1 QB1;  m_a4 t4 QB1 . ( )vfunca . = ( m_a4 )print ( m_a4 110 cast == )assert ( t4 m_b1 . )assert Int(32) a4 = t4 QBase1 . ( )vfunca .;  ( a4 )print ( a4 110 cast == )assert ( t4 m_b1 . )assert 0 cast return } }
+Ue_Foo +System { Int(32) m_c4(212);  Int(32) m_a4(110);  +System<> Int(32) test() {  T4 t4;  typedef QBase2 QB2;  self m_c4 . t4 QB2 . ( )vfuncc . = self ( self m_c4 . )print . self ( self m_c4 . 212 cast == )assert . typedef QBase1 QB1;  self m_a4 . t4 QB1 . ( )vfunca . = self ( self m_a4 . )print . self ( self m_a4 . 110 cast == )assert . self ( t4 m_b1 . )assert . Int(32) a4 = t4 QBase1 . ( )vfunca .;  self ( a4 )print . self ( a4 110 cast == )assert . self ( t4 m_b1 . )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 Un_T4 : QBase3 +QBase2 +QBase1 { typedef QBase2 QB2;  :QBase3< Bool(1) m_b3(false); > +QBase2< Bool(1) m_b2(false); > +QBase1< Bool(1) m_b1(false); > <NOMAIN> }
 Un_QBase3 : QBase1 { Bool(1) m_b3(false);  :QBase1< Bool(1) m_b1(false); > <NOMAIN> }

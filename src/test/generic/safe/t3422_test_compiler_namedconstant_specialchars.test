@@ -1,6 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3422_test_compiler_namedconstant_specialchars
 #!
+#!
 Exit status: 0
 Ue_A { Int(32) test() {  constant Unsigned(8) cA = 7u;  constant Unsigned(8) cB = 8u;  constant Unsigned(8) cT = 9u;  constant Unsigned(8) cN = 10u;  constant Unsigned(8) cV = 11u;  constant Unsigned(8) cF = 12u;  constant Unsigned(8) cR = 13u;  constant Unsigned(8) cDQ = 34u;  constant Unsigned(8) cTIC = 39u;  constant Unsigned(8) cQ = 63u;  constant Unsigned(8) cESC = 92u;  0 cast return } }
 ##

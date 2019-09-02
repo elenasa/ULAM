@@ -3,7 +3,7 @@
 #!
 ./A.ulam:3:8: ERROR: Possible Divide By Zero Attempt.
 ./A.ulam:3:8: ERROR: Constant value expression for binary op/ is erroneous while compiling class: A.
-./A.ulam:3:4: ERROR: Assignment is invalid; LHS: Int(4); RHS: erroneous.
+./A.ulam:3:4: ERROR: Assignment is invalid; LHS: unresolved; RHS: erroneous.
 Unrecoverable Program Type Label FAILURE.
 ##
 #>A.ulam

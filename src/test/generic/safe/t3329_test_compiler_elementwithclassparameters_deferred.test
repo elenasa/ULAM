@@ -1,6 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3329_test_compiler_elementwithclassparameters_deferred
 #!
+#!
 Exit status: 3
 Ue_R { Int(32) test() {  S(1,2) s12;  s12 ( )func . return } }
 Ue_S(Int(32) x, Int(32) y) { Bool(1) sp(false);  <NOMAIN> }

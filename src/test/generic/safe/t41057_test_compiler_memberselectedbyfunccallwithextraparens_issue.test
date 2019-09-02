@@ -6,7 +6,7 @@
 ##
 #!
 Exit status: 0
-Ue_Foo { Int(32) m_i(10);  Int(32) test() {  System s;  m_i ( )getme ( )func . = s ( m_i )print . s ( m_i 10 cast == )assert . { ( )getme ( )func . 0 cast > cond { 0 cast return } if } s ( false )assert . -1 cast return } }
+Ue_Foo { Int(32) m_i(10);  Int(32) test() {  System s;  self m_i . self ( )getme . ( )func . = s ( self m_i . )print . s ( self m_i . 10 cast == )assert . { self ( )getme . ( )func . 0 cast > cond { 0 cast return } if } s ( false )assert . -1 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by Dave ish 3/27/2017

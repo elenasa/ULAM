@@ -7,7 +7,7 @@
 ##
 #!
 Exit status: 2
-Ue_D { Int(3) d(2);  Int(32) test() {  System s;  Qw qw;  d ( qw ( )getW . )foo = s ( d )print . s ( d 1 cast == )assert . d ( qw ( )getW . )foo = s ( d )print . s ( d 2 == )assert . d cast return } }
+Ue_D { Int(3) d(2);  Int(32) test() {  System s;  Qw qw;  self d . self ( qw ( )getW . )foo . = s ( self d . )print . s ( self d . 1 cast == )assert . self d . self ( qw ( )getW . )foo . = s ( self d . )print . s ( self d . 2 == )assert . self d . cast return } }
 Uq_System { <NOMAIN> }
 Uq_Qw { typedef Int(3) Woo;  Int(3) w(0);  <NOMAIN> }
 ##

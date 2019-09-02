@@ -1,6 +1,5 @@
 ## -*- mode:ulam -*-
 #=t3273_test_compiler_unsignedthreebit_plusequal_issue
-#!
 ##      /* gen code output:
 ##	 Unsigned Arg: 1
 ##	 Unsigned Arg: 1
@@ -39,8 +38,9 @@
 ##	 Unsigned Arg: 7
 ##	 Unsigned Arg: 7
 ##      */
+#!
 Exit status: 0
-Ue_A { System s();  Int(32) test() {  Unsigned(3) x = 0 cast;  Unsigned(3) y = 0 cast;  Unsigned(3) z = 0 cast;  { Int(32) i = 0 cast;  i 12 cast < cond { x 1 cast += s ( x cast )print . y 1 cast += s ( y cast )print . z z cast 1 cast +b cast = s ( z cast )print . } _1: i 1 += while } 0 cast return } }
+Ue_A { System s();  Int(32) test() {  Unsigned(3) x = 0 cast;  Unsigned(3) y = 0 cast;  Unsigned(3) z = 0 cast;  { Int(32) i = 0 cast;  i 12 cast < cond { x 1 cast += self s . ( x cast )print . y 1 cast += self s . ( y cast )print . z z cast 1 cast +b cast = self s . ( z cast )print . } _1: i 1 += while } 0 cast return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
   ulam 1;

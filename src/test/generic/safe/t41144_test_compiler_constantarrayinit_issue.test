@@ -4,6 +4,7 @@
 ## gen output: (1 assert)
 ##
 #!
+#!
 Exit status: 0
 Ue_A { typedef Unsigned(8) Color;  constant Unsigned(8)[8] reds = { 0x10203, 0x4050607 };  Int(32) test() {  System s;  s ( reds 6 [] 6u cast == )assert . 0 cast return } }
 Uq_System { <NOMAIN> }

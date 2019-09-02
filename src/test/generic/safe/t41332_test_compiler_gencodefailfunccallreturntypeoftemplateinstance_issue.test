@@ -2,6 +2,7 @@
 #=t41332_test_compiler_gencodefailfunccallreturntypeoftemplateinstance_issue
 ##
 #!
+#!
 Exit status: 0
 Ue_Foo +System { Int(32) m_c4(0);  Int(32) m_a4(0);  +System<> Int(32) test() {  Bounce ball;  ball ( )behave . 0 cast return } }
 Uq_System { <NOMAIN> }

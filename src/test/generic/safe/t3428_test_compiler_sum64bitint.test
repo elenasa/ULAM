@@ -4,6 +4,7 @@
 ## gen output: 2 asserts
 ##
 #!
+#!
 Exit status: 64
 Ue_A { Int(32) test() {  System s;  typedef Int(64) Long;  Int(64) k = 1 cast;  Int(64) m;  m k HexU64(0x7fffffff, 0xffffffff) +b = s ( k 1 cast == )assert . s ( m HexU64(0x7fffffff, 0xffffffff) == )assert . 64u cast return } }
 Uq_System { <NOMAIN> }

@@ -2,7 +2,7 @@
 #=t3270_test_compiler_elementandquark_arraytypedeffromanotherclass
 #!
 Exit status: 1
-Ue_TypedefIssue { typedef Unsigned(3) Symmetry[2];  Unsigned(3) x[2](2u,1u);  Bool(1) b(true);  Int(32) test() {  Vector t;  x 0 [] 2 cast = x 1 [] 1 cast = { t ( x )set . cond b true = if } t m 1 [] . cast return } }
+Ue_TypedefIssue { typedef Unsigned(3) Symmetry[2];  Unsigned(3) x[2](2u,1u);  Bool(1) b(true);  Int(32) test() {  Vector t;  self x . 0 [] 2 cast = self x . 1 [] 1 cast = { t ( self x . )set . cond self b . true = if } t m 1 [] . cast return } }
 Uq_Vector { typedef Unsigned(3) Symmetry[2];  Unsigned(3) m[2](0,0);  <NOMAIN> }
 #>TypedefIssue.ulam
   ulam 1;

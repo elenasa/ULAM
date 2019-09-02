@@ -6,7 +6,7 @@
 ##
 #!
 Exit status: 0
-Ue_A { Bool(1) b(true);  Unsigned(8) m_asc(119u);  Int(32) test() {  System s;  m_asc ( )getString 6 [] = s ( m_asc cast )print . b m_asc 119u == = s ( b )assert . 0 cast return } }
+Ue_A { Bool(1) b(true);  Unsigned(8) m_asc(119u);  Int(32) test() {  System s;  self m_asc . self ( )getString . 6 [] = s ( self m_asc . cast )print . self b . self m_asc . 119u == = s ( self b . )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## based on t41074 and t3970

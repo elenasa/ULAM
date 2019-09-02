@@ -1,6 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3385_test_compiler_firsttypeastypedefofclass_doubledots
 #!
+#!
 Exit status: -4
 Ue_F { Int(32) test() {  -4 cast return } }
 Ue_A { typedef X H;  typedef Int(3) ZZ;  <NOMAIN> }

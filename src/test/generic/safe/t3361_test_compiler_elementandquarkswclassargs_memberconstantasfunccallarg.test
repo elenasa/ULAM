@@ -1,6 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3361_test_compiler_elementandquarkswclassargs_memberconstantasfunccallarg
 #!
+#!
 Exit status: -2
 Ue_R { Int(32) test() {  Foo(0) f;  f ( )copy . return } }
 Ue_Foo(Int(32) a) { <NOMAIN> }

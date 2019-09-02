@@ -2,7 +2,7 @@
 #=t3303_test_compiler_controlifblock
 #!
 Exit status: 0
-Ue_A { Int(32) a(6);  Int(32) b(0);  Int(32) test() {  a 7 cast = b 0 cast = { a 0 cast != cond { Int(32) b;  b 1 cast b +b = a a 1 cast -b = } if b a = else } b return } }
+Ue_A { Int(32) a(6);  Int(32) b(0);  Int(32) test() {  self a . 7 cast = self b . 0 cast = { self a . 0 cast != cond { Int(32) b;  b 1 cast b +b = self a . self a . 1 cast -b = } if self b . self a . = else } self b . return } }
 #>A.ulam
   ulam 1;
 element A {

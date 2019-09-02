@@ -7,7 +7,7 @@
 ##
 #!
 Exit status: 0
-Ue_Foo +System { Int(32) m_c4(212);  Int(32) m_a4(110);  +System<> Int(32) test() {  E4 e4;  m_c4 e4 QBase2 . ( )vfuncc . = ( m_c4 )print ( m_c4 212 cast == )assert m_a4 e4 QBase3 . ( )vfunca . = ( m_a4 )print ( m_a4 110 cast == )assert 0 cast return } }
+Ue_Foo +System { Int(32) m_c4(212);  Int(32) m_a4(110);  +System<> Int(32) test() {  E4 e4;  self m_c4 . e4 QBase2 . ( )vfuncc . = self ( self m_c4 . )print . self ( self m_c4 . 212 cast == )assert . self m_a4 . e4 QBase3 . ( )vfunca . = self ( self m_a4 . )print . self ( self m_a4 . 110 cast == )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 Ue_E4 : QBase3 +QBase2 { :QBase3< Bool(1) m_b3(false); > +QBase2< Bool(1) m_b2(false); > ^QBase1< Bool(1) m_b1(false); > <NOMAIN> }
 Uq_QBase2 { Bool(1) m_b2(false);  <NOMAIN> }

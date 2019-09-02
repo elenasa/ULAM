@@ -2678,7 +2678,8 @@ namespace MFM {
 
     if(!Token::isTokenAType(pTok))
       {
-	//note: this means it can't be a typedef from another class; might be a class constructor (t41077)
+	//note: this means it can't be a typedef from another class;
+	//might be a class constructor (t41077)
 	unreadToken();
 	return NULL;
       }

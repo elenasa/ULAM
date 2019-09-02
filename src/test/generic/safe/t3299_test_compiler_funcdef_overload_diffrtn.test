@@ -1,13 +1,13 @@
 ## -*- mode:ulam -*-
 #=t3299_test_compiler_funcdef_overload_diffrtn
-#!
 ##      /* gen code output:
 ##	 Int(3) Arg: 0x3
 ##	 Bool(3) Arg: 0x7 (true)
 ##      */
 ##
+#!
 Exit status: 0
-Ue_A { System s();  Bool(1) sp(true);  Int(3) spi(3);  Int(32) test() {  Bool(1) mybool = true;  spi ( mybool 7 cast )foo cast = s ( spi )print . sp ( mybool )foo = s ( sp cast )print . 0 cast return } }
+Ue_A { System s();  Bool(1) sp(true);  Int(3) spi(3);  Int(32) test() {  Bool(1) mybool = true;  self spi . self ( mybool 7 cast )foo . cast = self s . ( self spi . )print . self sp . self ( mybool )foo . = self s . ( self sp . cast )print . 0 cast return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
 ulam 1;

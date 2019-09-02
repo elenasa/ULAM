@@ -2,7 +2,7 @@
 #=t3494_test_compiler_divideandmodmixedtypes
 #!
 Exit status: 1
-Ue_A { Unary(4) e(3u);  Unary(4) c(0u);  Int(4) k(2);  Int(4) j(1);  Int(32) test() {  Int(32) g = 11 cast;  Int(32) h = 2 cast;  e 3u cast = k g e cast % cast = j e cast h / cast = j cast return } }
+Ue_A { Unary(4) e(3u);  Unary(4) c(0u);  Int(4) k(2);  Int(4) j(1);  Int(32) test() {  Int(32) g = 11 cast;  Int(32) h = 2 cast;  self e . 3u cast = self k . g self e . cast % cast = self j . self e . cast h / cast = self j . cast return } }
 ##
 ##      //picked lhs of equal so no casting would be asked for!
 #>A.ulam

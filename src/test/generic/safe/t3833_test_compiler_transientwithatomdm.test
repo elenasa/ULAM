@@ -1,10 +1,10 @@
 ## -*- mode:ulam -*-
 #=t3833_test_compiler_transientarraywithatomdm
-#!
 ##      gen code output: (1 asserts)
 ##
+#!
 Exit status: -11
-Ue_R { Bool(1) b(false);  Bool(1) c(false);  Int(32) test() {  System s;  Too too;  too ( )initToo . Atom(96) a1 = too mAtoo .;  b a1 Foo is = s ( b )assert . 0 cast return } }
+Ue_R { Bool(1) b(false);  Bool(1) c(false);  Int(32) test() {  System s;  Too too;  too ( )initToo . Atom(96) a1 = too mAtoo .;  self b . a1 Foo is = s ( self b . )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 Un_Too { Atom(96) mAtoo(Atom(96));  <NOMAIN> }
 Ue_Foo { Bool(7) sp( true);  <NOMAIN> }

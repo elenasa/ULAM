@@ -1,6 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3355_test_compiler_elementandquarkswclassargs2_typedeffromanotherclasstypedef
 #!
+#!
 Exit status: 3
 Ue_R { Int(32) test() {  P(1) pel;  pel var . 3 cast = pel var . cast return } }
 Ue_P(Int(32) a) { Bool(1) b(false);  Unsigned(UNKNOWN) var(notready);  <NOMAIN> }

@@ -1,6 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3378_test_compiler_unseenclassesholdertypedef_class
 #!
+#!
 Exit status: 1
 Uq_A { Bool(3) y(false);  <NOMAIN> }
 Ue_F { typedef A Foo;  Int(32) test() {  A f;  f y . true cast = { f y . cond f y . cast return if } 0 cast return } }

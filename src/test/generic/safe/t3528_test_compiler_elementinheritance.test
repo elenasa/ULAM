@@ -1,6 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3528_test_compiler_elementinheritance
 #!
+#!
 Exit status: 77
 Ue_Foo : Soo { Bool(7) sp(false);  Int(32) a(73);  :Soo< Unsigned(3) us(4u); > Int(32) test() {  Foo f;  f us . cast f a . +b return } }
 Uq_Soo { Unsigned(3) us( 4u);  <NOMAIN> }

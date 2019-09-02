@@ -1284,9 +1284,13 @@ namespace MFM {
 
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     Symbol * stgcos = NULL;
-    stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
+    Symbol * cos = NULL;
+    Node::loadStorageAndCurrentObjectSymbols(stgcos, cos);
+    assert(cos && stgcos);
     UTI stgcosuti = stgcos->getUlamTypeIdx();
     UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
+    UTI cosuti = cos->getUlamTypeIdx();
+    UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
 
     // "downcast" might not be true; compare to be sure the transient is-related to quark
     if(m_state.isClassASubclassOf(tobeType, vuti)) //super (vuti) -> sub (tobe)
@@ -1331,9 +1335,9 @@ namespace MFM {
 	fp->write(m_state.getTheInstanceMangledNameByIndex(tobeType).c_str());
 	fp->write("); //relpos"); GCNL;
       }
-    else if(stgcos->isDataMember())
+    else if(stgcos->isSelf() && (stgcos != cos))
       {
-	fp->write_decimal(stgcos->getPosOffset()); //t41141, t41292
+	fp->write_decimal(cos->getPosOffset()); //t41141, t41292
 	fp->write("); //dm"); GCNL;
       }
     else
@@ -1355,7 +1359,7 @@ namespace MFM {
 	fp->write("UlamRef<EC>(");
 	if(stgcosut->isAltRefType())
 	  {
-	    fp->write(stgcos->getMangledName().c_str()); //reference
+	    fp->write(stgcos->getMangledName().c_str()); //reference, includes self
 	    fp->write(", ");
 	  }
 	fp->write_decimal_unsigned(uvpass.getPassPos());
@@ -1367,10 +1371,7 @@ namespace MFM {
 
 	if(!stgcosut->isAltRefType())
 	  {
-	    if(stgcos->isDataMember())
-	      fp->write(m_state.getHiddenArgName());
-	    else
-	      fp->write(stgcos->getMangledName().c_str()); //storage
+	    fp->write(stgcos->getMangledName().c_str()); //storage
 	    fp->write(", &");
 	    fp->write(m_state.getTheInstanceMangledNameByIndex(tobeType).c_str());
 	  }
@@ -1400,7 +1401,7 @@ namespace MFM {
 	fp->write(m_state.getTmpVarAsString(tobeType, tmpref, TMPBITVAL).c_str());
 	fp->write("(");
 
-	if(stgcos->isDataMember())
+	if(stgcos->isSelf()) //hence data member follows
 	  fp->write(m_state.getHiddenArgName()); //ur first arg (t3967)
 	else
 	  fp->write(stgcos->getMangledName().c_str());
@@ -1410,17 +1411,18 @@ namespace MFM {
 	fp->write("u + ");
 	fp->write(m_state.getTmpVarAsString(Int, tmpVarPos, TMPREGISTER).c_str()); //ulam-5
 
-	if(!stgcosut->isAltRefType())
+	if(!cosut->isAltRefType())
 	  {
 	    //transients stg at pos, state of super quark at 0
 	    //t3789, case 1: Qbase& qref = tw;
 	    fp->write(", &");
 	    fp->write(m_state.getTheInstanceMangledNameByIndex(vuti).c_str());
-	    if(!stgcos->isDataMember()) //t3967
+	    if(!stgcos->isSelf()) //not isdm t3967
 	      fp->write(", uc");
 	  }
 	else
 	  {
+	    //t3788, t3794,5t41054,t41142,t41298,9
 	    fp->write(", ");
 	    fp->write(stgcos->getMangledName().c_str());
 	    fp->write(".GetEffectiveSelf()"); //maintains eff self
@@ -1659,9 +1661,10 @@ namespace MFM {
 	fp->write("(");
 	if(stgcos->isSelf() && !useSelf)
 	  fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //?
-	else if(stgcos->isDataMember())
+	else if(stgcos->isSelf() && (stgcos != cos))
 	  {
-	    fp->write_decimal(stgcos->getPosOffset()); //like t41141, test?
+	    //should this be symbol at [0+1], or cos at back?
+	    fp->write_decimal(cos->getPosOffset()); //t3697,t3701,t3756,7,t3774,9,t41069
 	    fp->write("u");
 	  }
 	else
@@ -1717,7 +1720,10 @@ namespace MFM {
 
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     Symbol * stgcos = NULL;
-    stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
+    Symbol * cos = NULL;
+    Node::loadStorageAndCurrentObjectSymbols(stgcos, cos);
+    assert(stgcos && cos);
+
     UTI stgcosuti = stgcos->getUlamTypeIdx();
 
     assert(m_state.isAltRefType(stgcosuti));
@@ -1755,10 +1761,11 @@ namespace MFM {
 	fp->write(" ");
 	fp->write(m_state.getTmpVarAsString(tobeType, tmpVarVal, TMPBITVAL).c_str());
 	fp->write("(");
-	if(stgcos->isDataMember())
+	if(stgcos->isSelf() && (stgcos!=cos))
 	  {
-	    fp->write_decimal(stgcos->getPosOffset()); //like t41141, test?
+	    fp->write_decimal(cos->getPosOffset()); //no test
 	    fp->write("u");
+	    //m_state.abortNeedsATest();
 	  }
 	else
 	  fp->write(stgcos->getMangledName().c_str()); //a ref

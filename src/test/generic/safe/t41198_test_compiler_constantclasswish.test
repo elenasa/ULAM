@@ -10,7 +10,7 @@
 ##
 #!
 Exit status: 0
-Ue_Foo { Bool(1) b(true);  Bool(1) b1(true);  Bool(1) b2(true);  Bool(1) b3(true);  Int(32) test() {  System s;  Unsigned(32) foosz = 0u;  s ( foosz )print . s ( foosz 0u cast == )assert . QFoo qfoo;  b qfoo c_qbar . sp . = s ( qfoo c_qbar . sp . cast )print . s ( qfoo c_qbar . sp . )assert . Int(4) fr1 = c_qbar iou .;  b1 c_qbar iou . 7 == = s ( fr1 )print . s ( b1 )assert . Unary(3) fr2 = qfoo c_qbar . r 1 [] .;  b2 qfoo c_qbar . r 1 [] . cast 2u == = s ( fr2 )print . s ( b2 )assert . Int(32) i = 4 cast;  Unary(3) fr3 = c_qbar r i [] .;  b3 c_qbar r i [] . cast 0u cast == = s ( fr3 )print . s ( b3 )assert . 0 cast return } }
+Ue_Foo { Bool(1) b(true);  Bool(1) b1(true);  Bool(1) b2(true);  Bool(1) b3(true);  Int(32) test() {  System s;  Unsigned(32) foosz = 0u;  s ( foosz )print . s ( foosz 0u cast == )assert . QFoo qfoo;  self b . qfoo c_qbar . sp . = s ( qfoo c_qbar . sp . cast )print . s ( qfoo c_qbar . sp . )assert . Int(4) fr1 = c_qbar iou .;  self b1 . c_qbar iou . 7 == = s ( fr1 )print . s ( self b1 . )assert . Unary(3) fr2 = qfoo c_qbar . r 1 [] .;  self b2 . qfoo c_qbar . r 1 [] . cast 2u == = s ( fr2 )print . s ( self b2 . )assert . Int(32) i = 4 cast;  Unary(3) fr3 = c_qbar r i [] .;  self b3 . c_qbar r i [] . cast 0u cast == = s ( fr3 )print . s ( self b3 . )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 Uq_QFoo { constant QBar c_qbar = { .r = { 3 cast, 2 cast, 0 cast }, .sp = true };  <NOMAIN> }
 Uq_QBar { Bool(1) sp(false);  Unary(3) r[5]( { 1u });  Int(4) iou( 7);  <NOMAIN> }

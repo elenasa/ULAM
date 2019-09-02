@@ -1,6 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3573_test_compiler_elementandquarkinheritancetemplatemix_wconstant
 #!
+#!
 Exit status: 4
 Ue_R { Int(32) test() {  Tu(1) tu;  tu 4 . return } }
 Ue_Tu(Int(32) x) : Foo { /* empty class block */ }

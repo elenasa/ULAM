@@ -6,7 +6,7 @@
 ##
 #!
 Exit status: 0
-Ue_FString { Bool(1) b1(true);  Bool(1) b2(true);  System s();  Int(32) test() {  b2 ( )mapToStringCoords = s ( b2 )assert . 0 cast return } }
+Ue_FString { Bool(1) b1(true);  Bool(1) b2(true);  System s();  Int(32) test() {  self b2 . self ( )mapToStringCoords . = self s . ( self b2 . )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by Dave 'continue' issue 1/15/2017, and t3985, t3210

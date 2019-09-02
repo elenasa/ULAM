@@ -9,6 +9,7 @@
 ##
 ## FAILED: ILLEGAL_ARGUMENT
 #!
+#!
 Exit status: 7
 Ue_T { Int(32) test() {  System sys;  E e;  sys ( e 7 . )print . sys ( e 7 . 7 == )assert . sys ( e v . b . cast )print . sys ( e v . b . )assert . e 7 . cast return } }
 Uq_System { <NOMAIN> }

@@ -2,7 +2,7 @@
 #=t3256_test_compiler_funccalltypedefarg_issue
 #!
 Exit status: 1
-Ue_TypedefIssue { typedef Unsigned(3) Symmetry;  Bool(1) b(true);  Unsigned(3) m(0u);  Int(32) test() {  TypedefIssue t;  { t ( 0 cast )set . cond b true = if } { t ( 1 cast )set . cond b true = if } t m . cast return } }
+Ue_TypedefIssue { typedef Unsigned(3) Symmetry;  Bool(1) b(true);  Unsigned(3) m(0u);  Int(32) test() {  TypedefIssue t;  { t ( 0 cast )set . cond self b . true = if } { t ( 1 cast )set . cond self b . true = if } t m . cast return } }
 ##      /*
 ##      ulam 1;
 ##      use Empty;

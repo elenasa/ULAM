@@ -1,6 +1,7 @@
 ## -*- mode:ulam -*-
 #=t41010_test_compiler_elementinheritance_localdeffromanotherclasstypedef_unseenclass
 #!
+#!
 Exit status: 3
 Ue_R { Int(32) test() {  System s;  Foo f;  f a . f us . cast = s ( f a . )print . s ( f a . 4u cast == )assert . f a . 3u = s ( f a . )print . s ( f a . 3u cast == )assert . f sp . f ( )func . cast = s ( f sp . cast )assert . f a . cast return } }
 Uq_System { <NOMAIN> }

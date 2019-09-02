@@ -14,7 +14,7 @@
 #!
 Exit status: 0
 Uq_QW { Int(7) m[3](0,0,0);  <NOMAIN> }
-Ue_IshE { Bool(1) sp(false);  QW mA[2]( Int(7) m[3](3,0,0);  Int(7) m[3](4,0,0); );  QW mB( Int(7) m[3](0,0,0); );  Int(32) test() {  System s;  ( 1 cast 0 cast 4 cast )set s ( ( 1 cast 0 cast )get )print . s ( ( 1 cast 0 cast )get 4 cast -b 0 cast == )assert . ( 0 cast 0 cast 3 cast )set s ( ( 0 cast 0 cast )get )print . s ( ( 0 cast 0 cast )get 3 cast -b 0 cast == )assert . s ( ( 1 cast 0 cast )get 4 cast -b 0 cast == )assert . ( 1 cast 0 cast )get 4 cast -b return } }
+Ue_IshE { Bool(1) sp(false);  QW mA[2]( Int(7) m[3](3,0,0);  Int(7) m[3](4,0,0); );  QW mB( Int(7) m[3](0,0,0); );  Int(32) test() {  System s;  self ( 1 cast 0 cast 4 cast )set . s ( self ( 1 cast 0 cast )get . )print . s ( self ( 1 cast 0 cast )get . 4 cast -b 0 cast == )assert . self ( 0 cast 0 cast 3 cast )set . s ( self ( 0 cast 0 cast )get . )print . s ( self ( 0 cast 0 cast )get . 3 cast -b 0 cast == )assert . s ( self ( 1 cast 0 cast )get . 4 cast -b 0 cast == )assert . self ( 1 cast 0 cast )get . 4 cast -b return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t3653, also uses a data member in questioncolon.

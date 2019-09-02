@@ -1,6 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3491_test_compiler_arrayunarysizeof
 #!
+#!
 Exit status: 9
 Ue_Eltypo { constant Unary(3) cy = 7u;  typedef Int(3) IArr[3];  Int(32) test() {  Int(3) arr[3];  9u cast return } }
 #>Eltypo.ulam

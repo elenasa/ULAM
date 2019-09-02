@@ -1,13 +1,13 @@
 ## -*- mode:ulam -*-
 #=t3148_test_compiler_elementmemberselect_returnarray
-#!
 ##      //code gen output:
 ##      //Bool(3) Arg: 0x0 (false)
 ##      //Bool(3) Arg: 0x0 (false)
 ##      //Bool(3) Arg: 0x7 (true)
 ##      //Bool(3) Arg: 0x7 (true)
+#!
 Exit status: 0
-Ue_Foo { typedef Bool(1) BA[6];  System s();  Bool(1) m_ba[6](false,true,false,true,false,true);  Int(32) test() {  Foo f;  f m_ba 0 [] . true = f m_ba . f ( 1 cast )check . = m_ba f m_ba . = s ( f m_ba 0 [] . cast )print . s ( m_ba 0 [] cast )print . s ( f m_ba 5 [] . cast )print . s ( m_ba 5 [] cast )print . 0 cast return } }
+Ue_Foo { typedef Bool(1) BA[6];  System s();  Bool(1) m_ba[6](false,true,false,true,false,true);  Int(32) test() {  Foo f;  f m_ba 0 [] . true = f m_ba . f ( 1 cast )check . = self m_ba . f m_ba . = self s . ( f m_ba 0 [] . cast )print . self s . ( self m_ba . 0 [] cast )print . self s . ( f m_ba 5 [] . cast )print . self s . ( self m_ba . 5 [] cast )print . 0 cast return } }
 Uq_System { <NOMAIN> }
 #>Foo.ulam
   ulam 1;

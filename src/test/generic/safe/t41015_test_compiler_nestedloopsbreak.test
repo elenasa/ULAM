@@ -5,7 +5,7 @@
 ##
 #!
 Exit status: 20
-Ue_A { Int(32) d(20);  System s();  Bool(7) b(false);  Int(32) test() {  d ( 4 cast 5 cast )times = s ( d )print . s ( d 20 cast == )assert . d return } }
+Ue_A { Int(32) d(20);  System s();  Bool(7) b(false);  Int(32) test() {  self d . self ( 4 cast 5 cast )times . = self s . ( self d . )print . self s . ( self d . 20 cast == )assert . self d . return } }
 Uq_System { <NOMAIN> }
 ##
 ## see t41002, t3210

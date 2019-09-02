@@ -1,10 +1,10 @@
 ## -*- mode:ulam -*-
 #=t3591_test_compiler_unaryarrayindex_ish
-#!
 ## gen code output: (3 asserts)
 ##
+#!
 Exit status: 2
-Ue_Ish2 { Bool(1) myState(false);  Bool(1) myOutput(false);  typedef Unary(2) Phase;  Unary(2) phase(2u);  constant Unary(2) cBLUE = 0u;  constant Unary(2) cRED = 1u;  constant Unary(2) cGREEN = 3u;  Int(32) test() {  System s;  Unary(2) p = 2 cast;  s ( p cast 2 == )assert . s ( ( phase )prev cast 2 == )assert . constant Unary(2) cP = 0u;  Unary(2) q = -1 cast;  s ( q cast 0 cast == )assert . ( )behave phase ( phase )prev = ( )behave phase ( phase )prev = ( )behave phase ( phase )prev = ( )behave phase ( phase )prev = phase cast return } }
+Ue_Ish2 { Bool(1) myState(false);  Bool(1) myOutput(false);  typedef Unary(2) Phase;  Unary(2) phase(2u);  constant Unary(2) cBLUE = 0u;  constant Unary(2) cRED = 1u;  constant Unary(2) cGREEN = 3u;  Int(32) test() {  System s;  Unary(2) p = 2 cast;  s ( p cast 2 == )assert . s ( self ( self phase . )prev . cast 2 == )assert . constant Unary(2) cP = 0u;  Unary(2) q = -1 cast;  s ( q cast 0 cast == )assert . self ( )behave . self phase . self ( self phase . )prev . = self ( )behave . self phase . self ( self phase . )prev . = self ( )behave . self phase . self ( self phase . )prev . = self ( )behave . self phase . self ( self phase . )prev . = self phase . cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## (see also t3877)

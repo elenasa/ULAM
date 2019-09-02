@@ -2,7 +2,7 @@
 #=t3618_test_compiler_arrayindex_ish
 #!
 Exit status: 0
-Ue_Ish { Unsigned(4) foo[6](3u,3u,3u,2u,0u,0u);  Int(32) test() {  Unsigned(32) i = 0 cast;  foo i [] 1 cast = i 3 cast = foo i [] 2 cast = { i 0 cast = i 3u cast < cond { foo i [] 3 cast = } _1: i 1 cast += while } 0 cast return } }
+Ue_Ish { Unsigned(4) foo[6](3u,3u,3u,2u,0u,0u);  Int(32) test() {  Unsigned(32) i = 0 cast;  self foo . i [] 1 cast = i 3 cast = self foo . i [] 2 cast = { i 0 cast = i 3u cast < cond { self foo . i [] 3 cast = } _1: i 1 cast += while } 0 cast return } }
 ##
 #>Ish.ulam
   ulam 1;

@@ -1,18 +1,19 @@
 ## -*- mode:ulam -*-
 #=t3312_test_compiler_lvalintarray
-#!
 ##      //constant fold: a 2 1 -b
+#!
 Exit status: 1
-Ue_A { Int(16) a[2](1,0);  Int(32) test() {  a 1 [] 1 cast = a 0 [] a 1 [] cast 0 cast +b cast = a a 0 [] [] a 0 [] cast 1 cast -b cast = a a 1 [] [] cast return } }
+Ue_A { Int(16) a[2](1,0);  Int(32) test() {  self a . 1 [] 1 cast = self a . 0 [] self a . 1 [] cast 0 cast +b cast = self a . self a . 0 [] [] self a . 0 [] cast 1 cast -b cast = self a . self a . 1 [] [] cast return } }
 #>A.ulam
+  ulam 1;
 element A {
- Int(16) a[2];
- Int test() {
- a[2-1] = 1;
- a[0] = (Int(16)) (a[1] + 0);
- a[a[0]] = (Int(16)) (a[0] - 1);
- return a[a[1]];
- }
- }
+  Int(16) a[2];
+  Int test() {
+    a[2-1] = 1;
+    a[0] = (Int(16)) (a[1] + 0);
+    a[a[0]] = (Int(16)) (a[0] - 1);
+    return a[a[1]];
+  }
+}
 
 #.

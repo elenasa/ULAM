@@ -6,7 +6,7 @@
 ##
 #!
 Exit status: -11
-Ue_Res { EventWindow ew();  Bool(1) b(false);  Int(32) test() {  System s;  b ew ( 1 cast )aref . Empty is = s ( b cast )print . s ( b )assert . 0 cast return } }
+Ue_Res { EventWindow ew();  Bool(1) b(false);  Int(32) test() {  System s;  self b . self ew . ( 1 cast )aref . Empty is = s ( self b . cast )print . s ( self b . )assert . 0 cast return } }
 Uq_EventWindow { <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

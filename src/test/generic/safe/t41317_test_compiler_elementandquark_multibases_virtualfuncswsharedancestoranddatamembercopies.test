@@ -6,7 +6,7 @@
 ##
 #!
 Exit status: 0
-Ue_Foo +System { Int(32) m_c4(0);  Int(32) m_a4(410);  +System<> Int(32) test() {  E4 e4;  typedef QBase2 QB2;  typedef QBase1 QB1;  m_a4 e4 ( )vfunca . = ( m_a4 )print ( m_a4 410 cast == )assert ( e4 m_b1 . )assert ( e4 m_b4 . )assert 0 cast return } }
+Ue_Foo +System { Int(32) m_c4(0);  Int(32) m_a4(410);  +System<> Int(32) test() {  E4 e4;  typedef QBase2 QB2;  typedef QBase1 QB1;  self m_a4 . e4 ( )vfunca . = self ( self m_a4 . )print . self ( self m_a4 . 410 cast == )assert . self ( e4 m_b1 . )assert . self ( e4 m_b4 . )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 Ue_E4 : QBase3 +QBase2 +QBase1 { Bool(1) m_b4(false);  typedef QBase2 QB2;  :QBase3< Bool(1) m_b3(false); > +QBase2< Bool(1) m_b2(false); > +QBase1< Bool(1) m_b1(false); > <NOMAIN> }
 Uq_QBase3 : QBase1 { Bool(1) m_b3(false);  :QBase1< Bool(1) m_b1(false); > <NOMAIN> }

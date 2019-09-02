@@ -7,6 +7,7 @@
 ## Unsigned Arg: 2
 ##
 #!
+#!
 Exit status: -11
 Ue_Mob : WindowScanner { typedef Unsigned(6) SiteNum;  Bool(1) sp(false);  :WindowScanner< typedef Unsigned(6) SiteNum; > Int(32) test() {  WindowServices ws;  ws ( self cast )scan . System s;  s ( ws mSites 3 [] . cast )print . s ( ws mSites 3 [] . cast 2 cast == )assert . 0 cast return } }
 Uq_WindowScanner { typedef Unsigned(6) SiteNum;  <NOMAIN> }

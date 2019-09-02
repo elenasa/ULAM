@@ -8,7 +8,7 @@
 ##      */
 #!
 Exit status: 16
-Ue_A { Bool(7) b(true);  System s();  Unsigned(32) d(16u);  Int(32) test() {  Int(32) a = 8 cast;  { a 0 cast != cond { Bits(32) dits = d cast;  dits 1 cast <<= d dits cast = s ( d )print . Bits(32) aits = a cast;  aits 1 cast >>= a aits cast = } _1: while } b 1 cast d << cast a > cast = d cast return } }
+Ue_A { Bool(7) b(true);  System s();  Unsigned(32) d(16u);  Int(32) test() {  Int(32) a = 8 cast;  { a 0 cast != cond { Bits(32) dits = self d . cast;  dits 1 cast <<= self d . dits cast = self s . ( self d . )print . Bits(32) aits = a cast;  aits 1 cast >>= a aits cast = } _1: while } self b . 1 cast self d . << cast a > cast = self d . cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t3246, except with shift equals.

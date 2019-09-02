@@ -6,7 +6,7 @@
 ##
 #!
 Exit status: 9
-Ue_A { Bool(1) sp(true);  Int(5) nineth(9);  typedef A BigSite[10];  Int(32) test() {  System s;  A site[10] = ( )func2;  A site2[10];  site2 ( )func2 = nineth ( site )func = s ( nineth cast )print . sp nineth 9 == = s ( sp )assert . ( site )func cast return } }
+Ue_A { Bool(1) sp(true);  Int(5) nineth(9);  typedef A BigSite[10];  Int(32) test() {  System s;  A site[10] = self ( )func2 .;  A site2[10];  site2 self ( )func2 . = self nineth . self ( site )func . = s ( self nineth . cast )print . self sp . self nineth . 9 == = s ( self sp . )assert . self ( site )func . cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by 3706 (Int(5) not Int), and 3708 (Quark array, not element)

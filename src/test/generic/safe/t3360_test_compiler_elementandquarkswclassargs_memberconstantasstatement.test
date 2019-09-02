@@ -5,7 +5,7 @@
 ##
 #!
 Exit status: 2
-Ue_Foo { Bool(1) sp(true);  Int(32) test() {  System s;  Booly(0u,2u,true) b;  sp b 7u . cast = s ( sp )assert . b 2u . cast return } }
+Ue_Foo { Bool(1) sp(true);  Int(32) test() {  System s;  Booly(0u,2u,true) b;  self sp . b 7u . cast = s ( self sp . )assert . b 2u . cast return } }
 Uq_Booly(Unsigned(3) firstRange, Unsigned(3) lastRange, Bool(3) bomb) { Bool(1) m_bo(false);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

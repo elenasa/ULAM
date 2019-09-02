@@ -177,6 +177,8 @@ namespace MFM{
 
     virtual bool asConditionalNode(); //only NodeConditionalAs returns true
 
+    virtual bool isAMemberSelect();
+
     virtual bool getConstantValue(BV8K& bval);
 
     virtual FORECAST safeToCastTo(UTI newType);
@@ -309,11 +311,11 @@ namespace MFM{
     s32 isCurrentObjectsContainingATmpVarSymbol();
 
     // used by genHiddenArg2 for function calls;
-    std::string calcPosOfCurrentObjectClassesAsString(const UVPass& uvpass, bool adjstEle, UTI funcclassarg);
+    std::string calcPosOfCurrentObjectClassesAsString(const UVPass& uvpass, bool adjstEle, bool askeffselfarg, UTI funcclassarg);
 
     //called when (implicit self) data member is a complete class;
     //pos known at compile time (e.g. t3541)
-    u32 calcDataMemberPosOfCurrentObjectClasses(UTI funcclassarg = Nouti);
+    u32 calcDataMemberPosOfCurrentObjectClasses(bool askingeffself, UTI funcclassarg);
 
     //true means we can't know rel pos of 'stg' until runtime; o.w. known at compile time.
     bool askEffectiveSelfAtRuntimeForRelPosOfBase(UTI funcclassarg = Nouti);

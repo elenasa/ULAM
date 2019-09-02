@@ -1,11 +1,11 @@
 ## -*- mode:ulam -*-
 #=t3185_test_compiler_elementandquark_coordindexfunc
-#!
 ##      /* gen code output:
 ##	 Int Arg: 40
 ##       */
+#!
 Exit status: 40
-Ue_Foo { System s();  Bool(7) m_b(false);  Int(32) m_idx(40);  C2D m_coord( Int(6) m_width(9);  Int(6) m_height(4); );  Int(32) test() {  m_idx m_coord ( 0 cast 0 cast )getIndex . = s ( m_idx )print . m_idx return } }
+Ue_Foo { System s();  Bool(7) m_b(false);  Int(32) m_idx(40);  C2D m_coord( Int(6) m_width(9);  Int(6) m_height(4); );  Int(32) test() {  self m_idx . self m_coord . ( 0 cast 0 cast )getIndex . = self s . ( self m_idx . )print . self m_idx . return } }
 Uq_System { <NOMAIN> }
 Uq_C2D { Int(6) m_width( 9);  Int(6) m_height( 4);  <NOMAIN> }
 #>Foo.ulam

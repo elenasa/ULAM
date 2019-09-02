@@ -1,6 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3254_test_compiler_ifblockscope_issue
 #!
+#!
 Exit status: 10
 Ue_E { Int(32) test() {  E e;  Int(32) a = 10 cast;  e ( a )func . { true cond { Int(28) a = 6 cast;  } if } { true cond Int(8) a = -1 cast;  if } e ( a )func . a return } }
 ##

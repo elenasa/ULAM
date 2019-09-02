@@ -1,6 +1,5 @@
 ## -*- mode:ulam -*-
 #=t3844_test_compiler_zerolengtharrayreference_quark
-#!
 ##      /* gen code output:
 ##        2 asserts +
 ##	 Int Arg: 0
@@ -14,8 +13,9 @@
 ##	 Int Arg: 8
 ##	 Int Arg: 9
 ##      */
+#!
 Exit status: 10
-Ue_A { System s();  typedef QW NoSite[0];  typedef QW& NoRef[0];  typedef QW& NRR[0];  typedef QW BigSite[10];  typedef QW& BSRef[10];  typedef QW& BRR[10];  Int(32) test() {  QW nosite[0];  QW& nositeref[0] = nosite cast;  QW& nrr[0] = nositeref;  s ( true )assert . s ( true )assert . QW site[10];  QW& siteref[10] = site cast;  QW& brr[10] = siteref;  QW qw;  { Int(32) i = 0 cast;  i 10 cast < cond { siteref i [] qw = siteref i [] ( 1 cast i )set . s ( brr i [] ( 1 cast )get . )print . } _1: i 1 += while } 10 cast return } }
+Ue_A { System s();  typedef QW NoSite[0];  typedef QW& NoRef[0];  typedef QW& NRR[0];  typedef QW BigSite[10];  typedef QW& BSRef[10];  typedef QW& BRR[10];  Int(32) test() {  QW nosite[0];  QW& nositeref[0] = nosite cast;  QW& nrr[0] = nositeref;  self s . ( true )assert . self s . ( true )assert . QW site[10];  QW& siteref[10] = site cast;  QW& brr[10] = siteref;  QW qw;  { Int(32) i = 0 cast;  i 10 cast < cond { siteref i [] qw = siteref i [] ( 1 cast i )set . self s . ( brr i [] ( 1 cast )get . )print . } _1: i 1 += while } 10 cast return } }
 Uq_QW { Bool(1) bw(false);  Int(8) iwarr[3](0,0,0);  Bits(7) tw(0);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

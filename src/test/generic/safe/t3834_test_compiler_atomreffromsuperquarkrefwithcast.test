@@ -5,6 +5,7 @@
 ##   Unsigned Arg: 2
 ##
 #!
+#!
 Exit status: 2
 Ue_R { Int(32) test() {  System s;  Eltypo elt;  Typo(1)& poref = elt cast;  poref ( 2u cast )func . Atom(96)& a = poref cast;  Eltypo ell = a cast;  s ( ell bu . cast )print . s ( ell bu . 2u cast == )assert . ell bu . cast return } }
 Uq_System { <NOMAIN> }

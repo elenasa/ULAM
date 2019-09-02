@@ -498,6 +498,14 @@ namespace MFM {
     //    assert(m_state.m_currentObjSymbolForCodeGen != NULL);
     m_state.pushCurrentBlock(this);
 
+    //"self" belongs to func def block that we're currently gencoding
+    u32 selfid = m_state.m_pool.getIndexForDataString("self");
+    Symbol * selfsym = NULL;
+    bool hazykin = false; //unused
+    AssertBool gotSelf = m_state.alreadyDefinedSymbolHere(selfid, selfsym, hazykin);
+    assert(gotSelf);
+    m_state.m_currentSelfSymbolForCodeGen = selfsym;
+
     assert(isDefinition());
     assert(m_nodeNext);
 

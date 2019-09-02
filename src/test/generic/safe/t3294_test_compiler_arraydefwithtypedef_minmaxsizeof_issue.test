@@ -1,12 +1,12 @@
 ## -*- mode:ulam -*-
 #=t3294_test_compiler_arraydefwithtypedef_minmaxsizeof_issue
-#!
 ##      /* gen code output:
 ##	 Unsigned Arg: 8
 ##      */
 ##
+#!
 Exit status: 1
-Ue_Efoo { System s();  typedef Unsigned(3) PortId;  Bool(1) heardFrom[8](false,false,false,false,false,false,false,false);  Int(32) test() {  typedef Bool(3) B3;  Bool(3) b = true cast;  s ( 8u )print . b cast return } }
+Ue_Efoo { System s();  typedef Unsigned(3) PortId;  Bool(1) heardFrom[8](false,false,false,false,false,false,false,false);  Int(32) test() {  typedef Bool(3) B3;  Bool(3) b = true cast;  self s . ( 8u )print . b cast return } }
 Uq_System { <NOMAIN> }
 #>Efoo.ulam
   ulam 1;

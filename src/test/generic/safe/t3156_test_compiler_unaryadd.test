@@ -2,7 +2,7 @@
 #=t3156_test_compiler_unaryadd
 #!
 Exit status: 3
-Ue_A { Unary(3) b(1u);  System s();  Bool(1) sp(false);  Unary(3) a(2u);  Unary(3) c(3u);  Int(32) test() {  a 2 cast = b 1 cast = c a cast b cast +b cast = s ( c )print . c cast return } }
+Ue_A { Unary(3) b(1u);  System s();  Bool(1) sp(false);  Unary(3) a(2u);  Unary(3) c(3u);  Int(32) test() {  self a . 2 cast = self b . 1 cast = self c . self a . cast self b . cast +b cast = self s . ( self c . )print . self c . cast return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
   ulam 1;

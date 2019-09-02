@@ -1,6 +1,7 @@
 ## -*- mode:ulam -*-
 #=t41058_test_compiler_peskytypedeffromanotherclassdeclaredtwice_issue
 #!
+#!
 Exit status: 7
 Ue_R { Int(32) test() {  typedef Unsigned(3) Dir;  Content content;  content ( 1u cast 3u cast 7u cast )setDir . content m_cmdPrio . mVal . cast return } }
 Uq_TestEventWindow { typedef Unsigned(3) Dir;  <NOMAIN> }

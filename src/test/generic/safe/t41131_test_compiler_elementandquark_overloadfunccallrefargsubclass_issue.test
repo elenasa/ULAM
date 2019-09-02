@@ -5,6 +5,7 @@
 ##    Int Arg: 1
 ##
 #!
+#!
 Exit status: 0
 Ue_R { Bool(1) b(false);  Int(32) test() {  Fail f;  f ( 1 cast )fail . 0 cast return } }
 Uq_Fail { System s();  <NOMAIN> }

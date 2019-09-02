@@ -9,7 +9,7 @@
 ##
 #!
 Exit status: 0
-Ue_Foo +System { +System<> Int(32) test() {  E5 e5;  E4 e4;  Int(32) a5 = e5 ( )vfunca .;  ( a5 )print ( a5 510 cast == )assert Int(32) a4 = e4 ( )vfunca .;  ( a4 )print ( a4 410 cast == )assert Int(32) c4 = e4 ( )vfuncc .;  ( c4 )print ( c4 412 cast == )assert Int(32) b4 = e4 ( )vfuncb .;  ( b4 )print ( b4 311 cast == )assert 0 cast return } }
+Ue_Foo +System { +System<> Int(32) test() {  E5 e5;  E4 e4;  Int(32) a5 = e5 ( )vfunca .;  self ( a5 )print . self ( a5 510 cast == )assert . Int(32) a4 = e4 ( )vfunca .;  self ( a4 )print . self ( a4 410 cast == )assert . Int(32) c4 = e4 ( )vfuncc .;  self ( c4 )print . self ( c4 412 cast == )assert . Int(32) b4 = e4 ( )vfuncb .;  self ( b4 )print . self ( b4 311 cast == )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 Ue_E5 : QBase2 { :QBase2< Bool(1) m_b2(false); > <NOMAIN> }
 Ue_E4 : QBase3 +QBase1 { :QBase3< Bool(1) m_b3(false); > +QBase1< Bool(1) m_b1(false); > <NOMAIN> }

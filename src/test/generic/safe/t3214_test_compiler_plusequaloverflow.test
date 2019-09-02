@@ -8,7 +8,7 @@
 ##      */
 #!
 Exit status: 0
-Ue_A { Int(3) b(3);  System s();  Bool(1) d(false);  Int(3) a(3);  Int(3) c(3);  Int(32) test() {  a 3 = b 3 = c a cast b cast +b cast = s ( c )print . a b += s ( a )print . d a cast c cast -b 0 cast != = s ( d ! )assert . d cast return } }
+Ue_A { Int(3) b(3);  System s();  Bool(1) d(false);  Int(3) a(3);  Int(3) c(3);  Int(32) test() {  self a . 3 = self b . 3 = self c . self a . cast self b . cast +b cast = self s . ( self c . )print . self a . self b . += self s . ( self a . )print . self d . self a . cast self c . cast -b 0 cast != = self s . ( self d . ! )assert . self d . cast return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
   ulam 1;

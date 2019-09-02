@@ -7,7 +7,7 @@
 ##
 #!
 Exit status: 1
-Ue_A { System s();  Int(32) a(1);  Int(32) b(1);  Int(32) test() {  a 2 cast = b 0 cast = { typedef Int(32) _SWITCHTYPEDEF12;  Int(32) Uh_switchcond12 = a 1 -=;  Uh_switchcond12 0 cast == cond { b 2 cast = break } if Uh_switchcond12 -1 cast == cond { b 3 cast = break } if true cond { b 1 cast = break } if else else _1: } s ( b )print . s ( b 1 cast == )assert . s ( a )print . s ( a 1 cast == )assert . a return } }
+Ue_A { System s();  Int(32) a(1);  Int(32) b(1);  Int(32) test() {  self a . 2 cast = self b . 0 cast = { typedef Int(32) _SWITCHTYPEDEF12;  Int(32) Uh_switchcond12 = self a . 1 -=;  Uh_switchcond12 0 cast == cond { self b . 2 cast = break } if Uh_switchcond12 -1 cast == cond { self b . 3 cast = break } if true cond { self b . 1 cast = break } if else else _1: } self s . ( self b . )print . self s . ( self b . 1 cast == )assert . self s . ( self a . )print . self s . ( self a . 1 cast == )assert . self a . return } }
 Uq_System { <NOMAIN> }
 ##
 ## first switch test: evaluate switch condition once only!

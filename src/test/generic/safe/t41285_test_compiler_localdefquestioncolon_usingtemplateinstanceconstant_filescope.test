@@ -4,6 +4,7 @@
 ## gen output: 1 assert
 ##
 #!
+#!
 Exit status: 0
 Ue_Foo { Int(32) test() {  System s;  s ( true )assert . 0 cast return } }
 Uq_QFoo(Unsigned(32) q) { constant Unsigned(32) cSoo = q;  <NOMAIN> }

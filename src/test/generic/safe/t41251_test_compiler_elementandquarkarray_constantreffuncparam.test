@@ -2,7 +2,7 @@
 #=t41251_test_compiler_elementandquarkarray_constantreffuncparam
 #!
 Exit status: 0
-Ue_Foo { typedef Bar Pop[2];  System s();  Bool(3) b(true);  Int(4) m_i(0);  Bar m_bar2[2]( Bool(1) val_b[3](false,true,false);  Bool(1) val_b[3](false,true,false); );  Bar sbar( Bool(1) val_b[3](false,true,false); );  Int(32) test() {  b ( m_bar2 cast 1 cast )check cast = s ( b cast )assert . 0 cast return } }
+Ue_Foo { typedef Bar Pop[2];  System s();  Bool(3) b(true);  Int(4) m_i(0);  Bar m_bar2[2]( Bool(1) val_b[3](false,true,false);  Bool(1) val_b[3](false,true,false); );  Bar sbar( Bool(1) val_b[3](false,true,false); );  Int(32) test() {  self b . self ( self m_bar2 . cast 1 cast )check . cast = self s . ( self b . cast )assert . 0 cast return } }
 Uq_Bar { Bool(1) val_b[3]( { false, true, false });  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

@@ -1,10 +1,10 @@
 ## -*- mode:ulam -*-
 #=t3739_test_compiler_transient_assignment
-#!
 ##      gen code output: (3 asserts)
 ##
+#!
 Exit status: 0
-Ue_R { Bool(1) b(true);  Int(32) test() {  System s;  A at;  at sp . false cast = A& atref = at cast;  b atref ( A.instanceof )func . = s ( b )assert . b atref ( at )func . = s ( b )assert . s ( atref sp . ! cast )assert . TW tw;  tw atref m_tw . = at m_tw . tw = 0 cast return } }
+Ue_R { Bool(1) b(true);  Int(32) test() {  System s;  A at;  at sp . false cast = A& atref = at cast;  self b . atref ( A.instanceof )func . = s ( self b . )assert . self b . atref ( at )func . = s ( self b . )assert . s ( atref sp . ! cast )assert . TW tw;  tw atref m_tw . = at m_tw . tw = 0 cast return } }
 Uq_System { <NOMAIN> }
 Un_A { Bool(7) sp( true);  TW m_tw( Bool(1) b( true);  Bits(3) ts( 2u); );  <NOMAIN> }
 Un_TW { Bool(1) b( true);  Bits(3) ts( 2u);  <NOMAIN> }

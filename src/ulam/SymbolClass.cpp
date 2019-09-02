@@ -1025,7 +1025,7 @@ namespace MFM {
     ULAMCLASSTYPE classtype = getUlamClass();
 
     // setup for codeGen
-    m_state.m_currentSelfSymbolForCodeGen = this;
+    m_state.m_currentSelfSymbolForCodeGen = this; //tmp
     m_state.clearCurrentObjSymbolsForCodeGen();
 
     m_state.setupCenterSiteForGenCode(); //temporary!!! (t3207, t3714)

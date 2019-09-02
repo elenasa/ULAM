@@ -2,7 +2,7 @@
 #=t3367_test_compiler_elementandquarkswclassargs3_typedeffromanotherclasstypedef
 #!
 Exit status: 4
-Ue_R { P(3) pel( constant Int(32) a = 3;  Unsigned(4) var(0u); );  Int(32) test() {  P(3) pvar;  pvar ( )punc = pvar ( )func . cast return } }
+Ue_R { P(3) pel( constant Int(32) a = 3;  Unsigned(4) var(0u); );  Int(32) test() {  P(3) pvar;  pvar self ( )punc . = pvar ( )func . cast return } }
 Uq_V { typedef Q(3) Woof;  <NOMAIN> }
 Uq_Q(Int(32) s) { typedef P(a) Foo;  <NOMAIN> }
 Uq_P(Int(32) a) { Unsigned(UNKNOWN) var(notready);  <NOMAIN> }

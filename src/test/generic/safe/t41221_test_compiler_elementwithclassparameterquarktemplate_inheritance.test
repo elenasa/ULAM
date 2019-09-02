@@ -8,6 +8,7 @@
 ##   true
 ##
 #!
+#!
 Exit status: 2
 Ue_T { Int(32) test() {  System sys;  E(true) et;  sys ( et 2 . )print . sys ( et 2 . 2 cast == )assert . sys ( et b . cast )print . sys ( et b . )assert . E(false) ef;  sys ( ef 2 . )print . sys ( ef 2 . 2 cast == )assert . sys ( ef b . cast )print . sys ( ef b . )assert . et 2 . cast return } }
 Uq_System { <NOMAIN> }

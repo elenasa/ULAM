@@ -7,8 +7,8 @@
 ## Ue_R { Int(32) test() {  R tw;  ( )func tw = ( )funcme tw = ( )funcref tw CAST?needed = 0 cast return } }
 ##
 #!
-Exit status: -1
-Ue_R { Bool(3) first(false);  Int(32) test() {  System s;  R tw;  tw first . true cast = ( )func tw = ( )funcme tw = ( )funcref tw = s ( first cast )assert . 0 cast return } }
+Exit status: 0
+Ue_R { Bool(3) first(true);  Int(32) test() {  System s;  R tw;  tw first . true cast = self ( )func . tw = self ( )funcme . tw = self ( )funcref . tw = s ( self first . cast )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t3790, t41054

@@ -6,6 +6,7 @@
 ## after asserts abort: arg is 1
 ##
 #!
+#!
 Exit status: 1
 Ue_Foo : Bar { :Bar< Bool(1) val_b[3](false,false,false); > Int(32) test() {  System s;  Foo g;  Bar& r = g cast;  g val_b 1 [] . true = s ( r val_b 1 [] . )assert . r val_b 1 [] . cast return } }
 Uq_Bar { Bool(1) val_b[3](false,false,false);  <NOMAIN> }

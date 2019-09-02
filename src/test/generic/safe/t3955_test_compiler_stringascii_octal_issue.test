@@ -5,7 +5,7 @@
 ##
 #!
 Exit status: 0
-Ue_A { constant String(32) str = " \01\0\0";  Bool(1) b1(true);  Bool(1) b2(true);  Unsigned(8) asc1(32u);  Unsigned(8) asc2(49u);  Int(32) test() {  System s;  Int(32) slen = 5u cast;  b1 slen 5 cast == = s ( b1 )assert . asc1 " \01\0\0" 0 [] = asc2 " \01\0\0" 2 [] = b2 asc1 32u == asc2 49u == && = s ( b2 )assert . 0 cast return } }
+Ue_A { constant String(32) str = " \01\0\0";  Bool(1) b1(true);  Bool(1) b2(true);  Unsigned(8) asc1(32u);  Unsigned(8) asc2(49u);  Int(32) test() {  System s;  Int(32) slen = 5u cast;  self b1 . slen 5 cast == = s ( self b1 . )assert . self asc1 . " \01\0\0" 0 [] = self asc2 . " \01\0\0" 2 [] = self b2 . self asc1 . 32u == self asc2 . 49u == && = s ( self b2 . )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by Font issue by Dave 11292016, t3951, t3930

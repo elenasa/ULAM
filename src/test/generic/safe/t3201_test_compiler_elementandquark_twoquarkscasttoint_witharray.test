@@ -1,6 +1,5 @@
 ## -*- mode:ulam -*-
 #=t3201_test_compiler_elementandquark_twoquarkscasttoint_witharray
-#!
 ##      // changed to <<2 instead of *4u and got a different last answer (4 instead of 7)
 ##      //developed by Dave (10092014) in c++ and then converted to Ulam.
 ##      // 7 is max that Int(4) can be positively, so 12 becomes 7.
@@ -14,8 +13,9 @@
 ##      */
 ##
 ##      // constant fold minus
+#!
 Exit status: 7
-Ue_Foo { System s();  Bar bar1( Bool(1) b(false);  Unsigned(3) x(1u);  Unsigned(3) y(2u); );  Bar bar2( Bool(1) b(false);  Unsigned(3) x(3u);  Unsigned(3) y(0u); );  Int(4) i[2](6,7);  Int(32) test() {  Int(2) d;  d 1 = bar1 x . d cast = bar1 y . 2 cast = bar2 x . 3 cast = bar2 y . 0 cast = i 0 [] bar1 ( )toInt . cast = i 1 [] bar2 ( )toInt . cast = s ( bar1 x . cast )print . s ( bar1 x . cast 1 cast == )assert . s ( bar1 y . cast )print . s ( bar1 y . cast 2 cast == )assert . s ( bar2 x . cast )print . s ( bar2 x . cast 3 cast == )assert . s ( bar2 y . cast )print . s ( bar2 y . cast 0 cast == )assert . s ( i 0 [] )print . s ( i 0 [] 6 == )assert . s ( i 1 [] )print . s ( i 1 [] 7 == )assert . i 1 [] cast return } }
+Ue_Foo { System s();  Bar bar1( Bool(1) b(false);  Unsigned(3) x(1u);  Unsigned(3) y(2u); );  Bar bar2( Bool(1) b(false);  Unsigned(3) x(3u);  Unsigned(3) y(0u); );  Int(4) i[2](6,7);  Int(32) test() {  Int(2) d;  d 1 = self bar1 . x . d cast = self bar1 . y . 2 cast = self bar2 . x . 3 cast = self bar2 . y . 0 cast = self i . 0 [] self bar1 . ( )toInt . cast = self i . 1 [] self bar2 . ( )toInt . cast = self s . ( self bar1 . x . cast )print . self s . ( self bar1 . x . cast 1 cast == )assert . self s . ( self bar1 . y . cast )print . self s . ( self bar1 . y . cast 2 cast == )assert . self s . ( self bar2 . x . cast )print . self s . ( self bar2 . x . cast 3 cast == )assert . self s . ( self bar2 . y . cast )print . self s . ( self bar2 . y . cast 0 cast == )assert . self s . ( self i . 0 [] )print . self s . ( self i . 0 [] 6 == )assert . self s . ( self i . 1 [] )print . self s . ( self i . 1 [] 7 == )assert . self i . 1 [] cast return } }
 Uq_System { <NOMAIN> }
 Uq_Bar { Bool(1) b(false);  Unsigned(3) x(0);  Unsigned(3) y(0);  <NOMAIN> }
 #>Foo.ulam

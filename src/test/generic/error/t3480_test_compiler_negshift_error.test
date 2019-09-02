@@ -16,9 +16,9 @@ Unrecoverable Program Type Label FAILURE.
   ulam 1;
 element A {
   Bool(7) b;
-  Unsigned d;
   Int test(){
     Int a;
+    Unsigned d;
     a = 8;
     d = 1;
     while(a){

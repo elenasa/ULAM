@@ -1,11 +1,11 @@
 ## -*- mode:ulam -*-
 #=t3840_test_compiler_zerolengtharrayreference_atom
-#!
 ##      gen code output: (2 + 3 * 10) 32 asserts, plus 1
 ##        Unsigned Arg: 960
 ##
+#!
 Exit status: -11
-Ue_A { System s();  typedef Atom(96) BigSite[10];  typedef Atom(96) & BSRef[10];  typedef Atom(96) & BRR[10];  typedef Atom(96) NoSite[0];  typedef Atom(96) & NoRef[0];  typedef Atom(96) & NRR[0];  Int(32) test() {  Atom(96) nosite[0];  Atom(96)& nositeref[0] = nosite cast;  Atom(96)& nrr[0] = nositeref;  s ( true )assert . s ( true )assert . Atom(96) site[10];  Atom(96)& siteref[10] = site cast;  Atom(96)& brr[10] = siteref;  Atom(96) a = self.atomof cast;  Atom(96) ab;  { Int(32) i = 0 cast;  i 10 cast < cond { siteref i [] a = s ( brr i [] A is )assert . ab siteref i [] = s ( ab A is )assert . Atom(96) ac = siteref i [];  s ( ac A is )assert . } _1: i 1 += while } s ( 960u )print . s ( true )assert . 10 cast return } }
+Ue_A { System s();  typedef Atom(96) BigSite[10];  typedef Atom(96) & BSRef[10];  typedef Atom(96) & BRR[10];  typedef Atom(96) NoSite[0];  typedef Atom(96) & NoRef[0];  typedef Atom(96) & NRR[0];  Int(32) test() {  Atom(96) nosite[0];  Atom(96)& nositeref[0] = nosite cast;  Atom(96)& nrr[0] = nositeref;  self s . ( true )assert . self s . ( true )assert . Atom(96) site[10];  Atom(96)& siteref[10] = site cast;  Atom(96)& brr[10] = siteref;  Atom(96) a = self.atomof cast;  Atom(96) ab;  { Int(32) i = 0 cast;  i 10 cast < cond { siteref i [] a = self s . ( brr i [] A is )assert . ab siteref i [] = self s . ( ab A is )assert . Atom(96) ac = siteref i [];  self s . ( ac A is )assert . } _1: i 1 += while } self s . ( 960u )print . self s . ( true )assert . 10 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t3671

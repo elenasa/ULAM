@@ -1,6 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3152_test_compiler_fortyonebools
 #!
+#!
 Exit status: 1
 Ue_B { Int(32) test() {  Bool(1) m_bSites[41];  m_bSites 20 [] true = m_bSites 20 [] cast return } }
 #>B.ulam

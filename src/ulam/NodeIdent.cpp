@@ -6,6 +6,7 @@
 #include "NodeIdent.h"
 #include "CompilerState.h"
 #include "NodeBlockClass.h"
+#include "NodeMemberSelect.h"
 #include "NodeModelParameter.h"
 #include "NodeTypeBitsize.h"
 #include "SymbolVariableDataMember.h"
@@ -236,7 +237,7 @@ namespace MFM {
 
 	if(m_state.useMemberBlock())
 	  {
-	    m_state.pushCurrentBlock(currBlock); //e.g. memberselect needed for already defined
+	    m_state.pushCurrentBlock(currBlock); //e.g. memberselect needed for already defined symbol
 	    NodeBlockClass * memberblock = m_state.getCurrentMemberClassBlock();
 	    assert(memberblock);
 	    cuti = memberblock->getNodeType();
@@ -441,12 +442,76 @@ namespace MFM {
       }
 
     if(m_state.okUTItoContinue(it) && m_varSymbol)
+    it = specifyimplicitselfexplicitly();
+
+    if(m_state.okUTItoContinue(it) && m_varSymbol)
       it = checkUsedBeforeDeclared();
 
     setNodeType(it);
     if(it == Hzy) m_state.setGoAgain();
     return it;
   } //checkAndLabelType
+
+  UTI NodeIdent::specifyimplicitselfexplicitly()
+  {
+    assert(m_varSymbol);
+    UTI vuti = m_varSymbol->getUlamTypeIdx();
+    if(!m_varSymbol->isDataMember())
+      return vuti; //no change
+
+    if(m_state.useMemberBlock())
+      {
+	return vuti; //t3337 (e.g. t.m_arr[1]) parent is sqbkt, parent's parent is '.'
+      }
+
+    //a data member/func call needs to be rhs of member select "."
+    NodeBlock * currBlock = getBlock();
+
+    NNO pno = Node::getYourParentNo();
+
+    m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock); //push again
+
+    Node * parentNode = m_state.findNodeNoInThisClassForParent(pno);
+    assert(parentNode);
+
+    m_state.popClassContext(); //restore
+
+    bool implicitself = true;
+
+    if(parentNode->isAMemberSelect())
+      {
+	Symbol * rhsym = NULL;
+	if(!parentNode->getSymbolPtr(rhsym))
+	  vuti = Hzy; //t41152
+
+	implicitself = (rhsym != m_varSymbol);
+      }
+    //else
+
+    if(!implicitself)
+      return vuti; //done
+
+    Token selfTok(TOK_KW_SELF, m_token.m_locator, 0);
+    NodeIdent * explicitself = new NodeIdent(selfTok, NULL, m_state);
+    assert(explicitself);
+    explicitself->setNodeLocation(getNodeLocation());
+
+    NodeMemberSelect * newnode = new NodeMemberSelect(explicitself, this, m_state);
+    assert(newnode);
+    NNO newnodeno = newnode->getNodeNo(); //for us after swap
+
+    AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+    assert(swapOk);
+
+    resetNodeNo(newnodeno); //moved before update lineage (t3337)
+
+    //redo look-up given explicit self
+    m_varSymbol = NULL;
+    m_currBlockNo = 0;
+
+    //reusing this, no suicide
+    return Hzy;
+  } //specifyimplicitselfexplicitly
 
   UTI NodeIdent::checkUsedBeforeDeclared()
   {
@@ -1130,7 +1195,8 @@ namespace MFM {
     // ask current scope block if this variable name is there;
     // if so, nothing to install return symbol and false
     // function names also checked when currentBlock is the classblock.
-    if(m_state.isIdInCurrentScope(m_token.m_dataindex, asymptr))
+    u32 tokid = m_state.getTokenDataAsStringId(m_token); //3821 as-cond uses lhs token
+    if(m_state.isIdInCurrentScope(tokid, asymptr))
       {
 	if(!(asymptr->isFunction()) && !(asymptr->isTypedef()) && !(asymptr->isConstant()) && !(asymptr->isModelParameter()))
 	  setSymbolPtr((SymbolVariable *) asymptr); //updates Node's symbol, if is variable
@@ -1215,7 +1281,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Variable symbol '";
-	    msg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str();
+	    msg << m_state.getTokenDataAsString(m_token).c_str();
 	    msg << "' cannot be a reference";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    brtn = false;

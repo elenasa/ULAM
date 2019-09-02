@@ -6,7 +6,7 @@
 ##
 #!
 Exit status: -11
-Ue_Res { EventWindow ew();  Bool(1) b(false);  Int(32) test() {  System s;  Cell cell;  ew ( 1 cast )aref . cell cast = Atom(96)& aref = ew ( 1 cast )aref .;  { aref Cell as cond { Cell& aref;  self b . aref sp . cast = s ( b cast )print . s ( b )assert . } if s ( false )assert . else } 0 cast return } }
+Ue_Res { EventWindow ew();  Bool(1) b(false);  Int(32) test() {  System s;  Cell cell;  self ew . ( 1 cast )aref . cell cast = Atom(96)& aref = self ew . ( 1 cast )aref .;  { aref Cell as cond { Cell& aref;  self b . aref sp . cast = s ( self b . cast )print . s ( self b . )assert . } if s ( false )assert . else } 0 cast return } }
 Uq_EventWindow { <NOMAIN> }
 Uq_System { <NOMAIN> }
 Ue_Cell { Bool(3) sp( true);  <NOMAIN> }

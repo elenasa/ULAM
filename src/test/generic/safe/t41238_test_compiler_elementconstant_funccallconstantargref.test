@@ -8,7 +8,7 @@
 #!
 Exit status: 99
 Ue_T { Bool(1) m_sp(false);  Int(32) m_i(0);  <NOMAIN> }
-Ue_R { Int(32) m_ri(99);  Int(32) test() {  System sys;  T t = cet;  Int(32) it = ( t cast )func;  sys ( it )print . sys ( it 99 cast == )assert . Int(32) i = ( cet cast )func;  sys ( i )print . sys ( i 99 cast == )assert . m_ri return } }
+Ue_R { Int(32) m_ri(99);  Int(32) test() {  System sys;  T t = cet;  Int(32) it = self ( t cast )func .;  sys ( it )print . sys ( it 99 cast == )assert . Int(32) i = self ( cet cast )func .;  sys ( i )print . sys ( i 99 cast == )assert . self m_ri . return } }
 Uq_System { <NOMAIN> }
 ##
 ##    //informed by t41236, except func call with constant T as ref arg

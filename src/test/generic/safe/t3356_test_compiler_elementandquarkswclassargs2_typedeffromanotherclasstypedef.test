@@ -1,6 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3356_test_compiler_elementandquarkswclassargs2_typedeffromanotherclasstypedef
 #!
+#!
 Exit status: 2
 Ue_R { Int(32) test() {  P(1) pel;  pel arr 2 [] . 2 cast = pel arr 2 [] . cast return } }
 Ue_P(Int(32) a) { constant Unsigned(UNKNOWN) nvar = 3u;  Int(4) arr[UNKNOWN](notready);  Bool(1) b(false);  <NOMAIN> }

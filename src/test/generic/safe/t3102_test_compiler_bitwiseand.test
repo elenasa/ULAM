@@ -1,25 +1,26 @@
+## -*- mode: ulam -*-
 #=t3102_test_compiler_bitwiseand
 #!
 Exit status: 2
-Ue_A { Int(3) b(2);  System s();  Bool(1) d(true);  Int(3) a(2);  Int(32) test() {  a 3 = b 2 = a a cast b cast & cast = s ( a )print . d a 3 < = s ( d )assert . a cast return } }
+Ue_A { Int(3) b(2);  System s();  Bool(1) d(true);  Int(3) a(2);  Int(32) test() {  self a . 3 = self b . 2 = self a . self a . cast self b . cast & cast = self s . ( self a . )print . self d . self a . 3 < = self s . ( self d . )assert . self a . cast return } }
 Uq_System { <NOMAIN> }
 ##
 #>A.ulam
-ulam 1;
+  ulam 1;
 use System;
 element A {
-System s;
-Bool d;
-Int(3) a, b;
-Int test() {
-a = 3;
-b = 2;
-a = (Int(3)) (a & b);
-s.print(a);
- d = (a < a.maxof) ;
- s.assert(d);
-return a;
-}
+  System s;
+  Bool d;
+  Int(3) a, b;
+  Int test() {
+    a = 3;
+    b = 2;
+    a = (Int(3)) (a & b);
+    s.print(a);
+    d = (a < a.maxof) ;
+    s.assert(d);
+    return a;
+  }
 }
 
 #:System.ulam

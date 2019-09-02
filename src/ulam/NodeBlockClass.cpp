@@ -29,8 +29,6 @@ namespace MFM {
     assert(m_nodeArgumentList);
     initBaseClassBlockList();
     m_state.popClassContext();
-    //m_nodeParameterList = (NodeList *) ref.m_nodeParameterList->instantiate(); //instances don't need this; its got symbols
-    //m_nodeArgumentList = (NodeList *) ref.m_nodeArgumentList->instantiate(); //instances only need this for constant array arguments; templates don't need this.
   }
 
   NodeBlockClass::~NodeBlockClass()

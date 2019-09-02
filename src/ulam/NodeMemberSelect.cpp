@@ -91,17 +91,17 @@ namespace MFM {
     assert(m_nodeLeft && m_nodeRight);
     if(m_nodeLeft->hasASymbolSelf())
       return m_nodeRight->belongsToVOWN(vown); //determine
-    //if(m_nodeLeft->hasASymbolSuper())
-    //  return false;
-    //if(m_nodeLeft->hasASymbolReference())
-    //  return false;
-    //if(m_nodeLeft->isFunctionCall())
     return false;
   }
 
   bool NodeMemberSelect::isAConstant()
   {
     return m_nodeLeft->isAConstant(); //constant classes possible
+  }
+
+  bool NodeMemberSelect::isAMemberSelect()
+  {
+    return true;
   }
 
   const std::string NodeMemberSelect::methodNameForCodeGen()
@@ -143,7 +143,7 @@ namespace MFM {
 	return getNodeType();
       } //done
 
-    TBOOL stor = checkStoreIntoAble();
+    TBOOL stor = checkStoreIntoAble(); //given lhs, this node set later
     if(m_nodeRight->isFunctionCall())
       {
 	if(stor == TBOOL_FALSE)
@@ -421,10 +421,10 @@ namespace MFM {
     evs = m_nodeRight->eval(); //a Node Function Call here, or data member eval
     if(evs != NORMAL) return evalStatusReturn(evs);
 
-    //assigns rhs to lhs UV pointer (handles arrays);
+    //assigns rhs (next slot e.g. t3704) to lhs UV pointer (handles arrays);
     //also copy result UV to stack, -1 relative to current frame pointer
     if(slot) //avoid Void's
-      if(!doBinaryOperation(1, 1+slot, slot))
+      if(!doBinaryOperation(1, 1+1, slot))
 	return evalStatusReturn(ERROR); //skip restore now, ok???
 
     m_state.m_currentObjPtr = saveCurrentObjectPtr; //restore current object ptr
@@ -440,20 +440,26 @@ namespace MFM {
    bool NodeMemberSelect::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
   {
     assert(slots);
-    //the return value of a function call, or value of a data member
-    UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(rslot);
 
     UlamValue rtnUV;
     UTI ruti = getNodeType();
-    PACKFIT packFit = m_state.determinePackable(ruti);
 
-    if(m_state.isScalar(ruti) || WritePacked(packFit))
+    if(Node::returnValueOnStackNeededForEval(ruti)) //t3704
       {
-	rtnUV = ruv;
+	//the return value of a function call, or value of a data member
+	UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(rslot);
+	PACKFIT packFit = m_state.determinePackable(ruti);
+
+	if(m_state.isScalar(ruti) || WritePacked(packFit))
+	  {
+	    rtnUV = ruv;
+	  }
+	else
+	  m_state.abortNotImplementedYet(); //or repeat the next else ????
       }
     else
       {
-	//make a ptr to an unpacked array, base[0] ? [pls test]
+	//make a ptr to an unpacked array, base[0] ? //t3704
 	rtnUV = UlamValue::makePtr(rslot, EVALRETURN, ruti, UNPACKED, m_state);
       }
 

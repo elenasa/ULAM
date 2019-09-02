@@ -10,7 +10,7 @@
 ##	 unevaluable because eval is unable to return a non-void native function in an empty block
 #!
 Exit status: -11
-Ue_A { Math math();  Int(32) test() {  System s;  QW qw;  CAQ caq;  Int(32) m = math ( qw ( )toInt . cast -4 caq ( 7 cast )aref . )max .;  s ( m )print . s ( m 4 cast == )assert . Int(32) no = math ( )max .;  s ( no )print . s ( no -2147483648 == )assert . m return } }
+Ue_A { Math math();  Int(32) test() {  System s;  QW qw;  CAQ caq;  Int(32) m = self math . ( qw ( )toInt . cast -4 caq ( 7 cast )aref . )max .;  s ( m )print . s ( m 4 cast == )assert . Int(32) no = self math . ( )max .;  s ( no )print . s ( no -2147483648 == )assert . m return } }
 Uq_Math { <NOMAIN> }
 Uq_System { <NOMAIN> }
 Uq_QW { <NOMAIN> }

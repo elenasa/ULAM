@@ -11,7 +11,7 @@ use Empty;
 element Tu {
   typedef Atom A;
   Empty e;
-  parameter A aep = e;
+  parameter A aep = Empty.instanceof; //was = e
   Int test(){
     return 0;
   }

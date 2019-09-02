@@ -1,6 +1,7 @@
 ## -*- mode:ulam -*-
 #=t41299_test_compiler_commentoutusewindowscanner_issue
 #!
+#!
 Exit status: 0
 Ue_Foo { Int(32) test() {  TWest tw;  0 cast return } }
 Ue_TWest : SubQ { EventWindow ew( typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry;  typedef Unsigned(3) Dir; );  :SubQ<> ^QContent<> ^SPLATInstance<> <NOMAIN> }

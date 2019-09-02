@@ -1,26 +1,27 @@
 ## -*- mode:ulam -*-
 #=t3315_test_compiler_simplewithparens
-#!
 ##      /* gen code output:
 ##	 Int Arg: 32
 ##      */
 ##      // constant fold: barne 1 3 +b 8 * = s
 ##
+#!
 Exit status: 32
-Ue_A { Bool(7) b(false);  System s();  Int(32) barne(32);  Int(32) test() {  barne 32 cast = s ( barne )print . barne return } }
+Ue_A { Bool(7) b(false);  System s();  Int(32) barne(32);  Int(32) test() {  self barne . 32 cast = self s . ( self barne . )print . self barne . return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
+  ulam 1;
 use System;
 element A {
-System s;
-Bool(7) b;
- Int barne;
- Int test() {
- barne = (1 + 3) * 8;
-s.print(barne);
- return barne;
- }
- }
+  System s;
+  Bool(7) b;
+  Int barne;
+  Int test() {
+    barne = (1 + 3) * 8;
+    s.print(barne);
+    return barne;
+  }
+}
 
 #:System.ulam
 ulam 1;

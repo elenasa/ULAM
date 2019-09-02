@@ -2,7 +2,7 @@
 #=t41279_test_compiler_maxofexpression_questioncolon
 #!
 Exit status: 0
-Ue_Foo { Unsigned(6) mGradVal(63u);  Int(32) test() {  System s;  Unsigned(32) ans = ( )func;  s ( ans 1u cast == )assert . 0 cast return } }
+Ue_Foo { Unsigned(6) mGradVal(63u);  Int(32) test() {  System s;  Unsigned(32) ans = self ( )func .;  s ( ans 1u cast == )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## ISH informed by Dave splat InnerMembrane code 2/22/19.

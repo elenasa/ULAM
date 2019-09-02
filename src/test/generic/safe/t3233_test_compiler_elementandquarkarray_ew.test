@@ -1,6 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3233_test_compiler_elementandquarkarray_ew
 #!
+#!
 Exit status: -11
 Ue_EWE { Int(32) test() {  EventWindow ew;  Atom(96) a;  a ew ( 0 cast )aref . = Atom(96) b = ew ( 0 cast )aref . cast;  0 cast return } }
 Uq_EventWindow { <NOMAIN> }

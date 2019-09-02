@@ -1,36 +1,36 @@
 ## -*- mode:ulam -*-
 #=t3183_test_compiler_element_unarycastconstant
-#!
 ##      /* gen code output:
 ##	 Int(4) Arg: 0x2
 ##	 Bool(3) Arg: 0x7 (true)
 ##      */
 ##
 ##      //constant fold negative
+#!
 Exit status: 2
-Ue_Foo { System s();  Bool(3) m_b(true);  Int(4) m_i(2);  Unary(4) m_u[5](1u,0u,3u,2u,0u);  Int(32) test() {  m_u 0 [] 1 cast = m_u 1 [] 0 cast = m_u 2 [] 3u cast = m_u 3 [] 2u cast = m_u 4 [] -1 cast = m_i m_u 3 [] cast = s ( m_i )print . m_b m_u 3 [] cast 2 cast == cast = s ( m_b )print . m_u 3 [] cast return } }
+Ue_Foo { System s();  Bool(3) m_b(true);  Int(4) m_i(2);  Unary(4) m_u[5](1u,0u,3u,2u,0u);  Int(32) test() {  self m_u . 0 [] 1 cast = self m_u . 1 [] 0 cast = self m_u . 2 [] 3u cast = self m_u . 3 [] 2u cast = self m_u . 4 [] -1 cast = self m_i . self m_u . 3 [] cast = self s . ( self m_i . )print . self m_b . self m_u . 3 [] cast 2 cast == cast = self s . ( self m_b . )print . self m_u . 3 [] cast return } }
 Uq_System { <NOMAIN> }
 #>Foo.ulam
-ulam 1;
+  ulam 1;
 use System;
- element Foo {
-System s;
-Bool(3) m_b;
-Int(4) m_i;
- Unary(4) m_u[5];
- Int test() {
- m_u[0] = 1;
- m_u[1] = 0;
- m_u[2] = 3u;
- m_u[3] = 2u;
- m_u[4] = (Unary(4)) -1;
-  m_i = m_u[3];
-s.print(m_i);
- m_b = m_u[3] == 2;
-s.print(m_b);
- return m_u[3];
- }
- }
+element Foo {
+  System s;
+  Bool(3) m_b;
+  Int(4) m_i;
+  Unary(4) m_u[5];
+  Int test() {
+    m_u[0] = 1;
+    m_u[1] = 0;
+    m_u[2] = 3u;
+    m_u[3] = 2u;
+    m_u[4] = (Unary(4)) -1;
+    m_i = m_u[3];
+    s.print(m_i);
+    m_b = m_u[3] == 2;
+    s.print(m_b);
+    return m_u[3];
+  }
+}
 
 #:System.ulam
 ulam 1;

@@ -1,12 +1,12 @@
 ## -*- mode:ulam -*-
 #=t3160_test_compiler_unarybitwiseor
-#!
 ##      /* gen code output:
 ##	 Unary(3) Arg: 0x2
 ##	 Unsigned Arg: 3
 ##      */
+#!
 Exit status: 2
-Ue_A { Unary(3) b(1u);  System s();  Unary(3) a(2u);  Unary(3) c(2u);  Unsigned(2) e(2u);  Unsigned(2) f(1u);  Unsigned(2) g(3u);  Int(32) test() {  a e 2 cast = cast = b f 1 cast = cast = c a cast b cast | cast = s ( c )print . g e cast f cast | cast = s ( g cast )print . c cast return } }
+Ue_A { Unary(3) b(1u);  System s();  Unary(3) a(2u);  Unary(3) c(2u);  Unsigned(2) e(2u);  Unsigned(2) f(1u);  Unsigned(2) g(3u);  Int(32) test() {  self a . self e . 2 cast = cast = self b . self f . 1 cast = cast = self c . self a . cast self b . cast | cast = self s . ( self c . )print . self g . self e . cast self f . cast | cast = self s . ( self g . cast )print . self c . cast return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
   ulam 1;

@@ -637,6 +637,7 @@ namespace MFM {
 	//avoid when empty since no "self" defined within initialization scope. t41170
 	rtnstgidx = loadStorageAndCurrentObjectSymbols(stgcos, cos);
 	assert(stgcos && cos);
+	assert(cosSize == m_state.m_currentObjSymbolsForCodeGen.size()); //???
       }
     assert(rtnstgidx <= 0 || useLocalVar);
 

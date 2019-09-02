@@ -7,6 +7,7 @@
 ## Bool(3) Arg: 0x0 (false)
 ##
 #!
+#!
 Exit status: 0
 Ue_A { Bar bar( Bool(1) b(true); );  Int(4) b(5);  Bool(7) d(true);  Int(4) a(4);  Int(32) test() {  System s;  Bar localbar = localbar ( false )Self .;  Bar ibar = localbar.instanceof ( false )Self .;  Bar tbar = Bar.instanceof ( false )Self .;  s ( localbar b . cast )print . s ( localbar b . ! )assert . s ( ibar b . cast )print . s ( ibar b . ! )assert . s ( tbar b . cast )print . s ( tbar b . ! )assert . 0 cast return } }
 Uq_Bar { Bool(1) b( true);  <NOMAIN> }

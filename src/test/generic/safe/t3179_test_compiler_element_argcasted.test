@@ -1,30 +1,30 @@
 ## -*- mode:ulam -*-
 #=t3179_test_compiler_element_argcasted
-#!
 ##      /* gen code outpu:
 ##	 Bool(3) Arg: 0x7 (true)
 ##      */
+#!
 Exit status: 1
-Ue_Foo { System s();  Bool(3) m_b(true);  Int(32) test() {  m_b ( true cast )check = s ( m_b )print . m_b cast return } }
+Ue_Foo { System s();  Bool(3) m_b(true);  Int(32) test() {  self m_b . self ( true cast )check . = self s . ( self m_b . )print . self m_b . cast return } }
 Uq_System { <NOMAIN> }
 #>Foo.ulam
-ulam 1;
+  ulam 1;
 use System;
- element Foo {
-System s;
- Bool(3) m_b;
- Bool(3) check(Bool(2+1) b) {
- return b /* true */;
- }
- Bool(3) check(Bool(2+3) b) {
- return false;
- }
- Int test() {
- m_b = check( (Bool(3)) true);
-s.print(m_b);
- return (Int) m_b;
- }
- }
+element Foo {
+  System s;
+  Bool(3) m_b;
+  Bool(3) check(Bool(2+1) b) {
+    return b /* true */;
+  }
+  Bool(3) check(Bool(2+3) b) {
+    return false;
+  }
+  Int test() {
+    m_b = check( (Bool(3)) true);
+    s.print(m_b);
+    return (Int) m_b;
+  }
+}
 ##      // the test:
 ##     //changed m_b and check return type to Bool(3) to use System print for gen code test
 ##

@@ -76,6 +76,8 @@ namespace MFM{
 
     virtual bool isAConstant();
 
+    virtual bool isAMemberSelect();
+
     virtual const std::string methodNameForCodeGen();
 
     virtual FORECAST safeToCastTo(UTI newType);

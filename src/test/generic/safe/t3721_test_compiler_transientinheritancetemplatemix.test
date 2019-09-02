@@ -5,7 +5,7 @@
 ##  Int Arg: 1
 #!
 Exit status: 1
-Ue_R { Int(32) rtn(1);  Int(32) test() {  System s;  Tu t;  rtn t ( )behive . = s ( rtn )print . s ( rtn 1 cast == )assert . rtn return } }
+Ue_R { Int(32) rtn(1);  Int(32) test() {  System s;  Tu t;  self rtn . t ( )behive . = s ( self rtn . )print . s ( self rtn . 1 cast == )assert . self rtn . return } }
 Un_Tu : Foo(1,true) { :Foo(1,true)<> <NOMAIN> }
 Un_Foo(Int(32) a, Bool(1) b) { /* empty class block */ }
 Uq_System { <NOMAIN> }

@@ -7,7 +7,7 @@
 ##
 #!
 Exit status: 0
-Ue_Foo { System s();  Bool(1) m_ba[6](false,true,false,false,false,true);  Int(32) test() {  Foo f;  f m_ba 1 [] . true = f m_ba 5 [] . f ( 1 cast )check . = m_ba f m_ba . = s ( f m_ba 5 [] . cast )print . s ( f m_ba 5 [] . )assert . s ( m_ba 5 [] cast )print . s ( m_ba 5 [] )assert . 0 cast return } }
+Ue_Foo { System s();  Bool(1) m_ba[6](false,true,false,false,false,true);  Int(32) test() {  Foo f;  f m_ba 1 [] . true = f m_ba 5 [] . f ( 1 cast )check . = self m_ba . f m_ba . = self s . ( f m_ba 5 [] . cast )print . self s . ( f m_ba 5 [] . )assert . self s . ( self m_ba . 5 [] cast )print . self s . ( self m_ba . 5 [] )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 #>Foo.ulam
   ulam 1;

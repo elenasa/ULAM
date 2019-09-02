@@ -2,7 +2,7 @@
 #=t3485_test_compiler_voidfuncreturnscastedatom
 #!
 Exit status: 0
-Ue_Tu { Bool(3) me(false);  Int(32) test() {  ( )func 0 cast return } }
+Ue_Tu { Bool(3) me(false);  Int(32) test() {  self ( )func . 0 cast return } }
 #>Tu.ulam
   ulam 1;
 element Tu {

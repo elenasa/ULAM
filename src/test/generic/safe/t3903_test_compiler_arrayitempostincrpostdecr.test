@@ -9,7 +9,7 @@
 ##
 #!
 Exit status: 2
-Ue_Foo { typedef Unsigned(8) ARGB[4];  Unsigned(8) a[4](0u,1u,0u,0u);  Int(32) test() {  System s;  Int(32) j = 0 cast;  a j 1 ++ [] 1 cast ++ s ( a 0 [] cast )print . s ( a 0 [] cast 1 cast == )assert . a 0 [] 1 cast -- s ( a 0 [] cast )print . s ( a 0 [] cast 0 cast == )assert . a j 1 ++ [] 1 cast ++ s ( a 1 [] cast )print . s ( a 1 [] cast 1 cast == )assert . s ( j )print . j return } }
+Ue_Foo { typedef Unsigned(8) ARGB[4];  Unsigned(8) a[4](0u,1u,0u,0u);  Int(32) test() {  System s;  Int(32) j = 0 cast;  self a . j 1 ++ [] 1 cast ++ s ( self a . 0 [] cast )print . s ( self a . 0 [] cast 1 cast == )assert . self a . 0 [] 1 cast -- s ( self a . 0 [] cast )print . s ( self a . 0 [] cast 0 cast == )assert . self a . j 1 ++ [] 1 cast ++ s ( self a . 1 [] cast )print . s ( self a . 1 [] cast 1 cast == )assert . s ( j )print . j return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t3557

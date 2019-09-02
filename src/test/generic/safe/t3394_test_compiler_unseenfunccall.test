@@ -1,6 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3394_test_compiler_unseenfunccall
 #!
+#!
 Exit status: 0
 Ue_A { /* empty class block */ }
 Ue_R { Int(32) test() {  typedef Colony(3u) Ish;  Colony(3u) ish;  ish ( 7u cast )setTailAge . 0 cast return } }

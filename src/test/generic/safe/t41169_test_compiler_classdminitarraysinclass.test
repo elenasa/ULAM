@@ -10,7 +10,7 @@
 ##
 #!
 Exit status: 0
-Ue_A { Bool(1) b(false);  QFoo m_foo( QBar m_bar( Unary(3) r[5](3u,2u,0u,0u,0u);  Bool(1) sp(true); ); );  QBar m_bar( Unary(3) r[5](0u,3u,2u,2u,2u);  Bool(1) sp(true); );  Int(32) test() {  System s;  Unary(3) chkr0 = m_foo m_bar . r 0 [] .;  s ( chkr0 )print . s ( m_foo m_bar . r 0 [] . )print . s ( m_foo m_bar . r 0 [] . cast 3 == )assert . Unary(3) chkr3 = m_foo m_bar . r 3 [] .;  s ( chkr3 )print . s ( m_foo m_bar . r 3 [] . )print . s ( m_foo m_bar . r 3 [] . cast 0 cast == )assert . s ( m_foo m_bar . sp . cast )print . s ( m_foo m_bar . sp . )assert . 0 cast return } }
+Ue_A { Bool(1) b(false);  QFoo m_foo( QBar m_bar( Unary(3) r[5](3u,2u,0u,0u,0u);  Bool(1) sp(true); ); );  QBar m_bar( Unary(3) r[5](0u,3u,2u,2u,2u);  Bool(1) sp(true); );  Int(32) test() {  System s;  Unary(3) chkr0 = self m_foo . m_bar . r 0 [] .;  s ( chkr0 )print . s ( self m_foo . m_bar . r 0 [] . )print . s ( self m_foo . m_bar . r 0 [] . cast 3 == )assert . Unary(3) chkr3 = self m_foo . m_bar . r 3 [] .;  s ( chkr3 )print . s ( self m_foo . m_bar . r 3 [] . )print . s ( self m_foo . m_bar . r 3 [] . cast 0 cast == )assert . s ( self m_foo . m_bar . sp . cast )print . s ( self m_foo . m_bar . sp . )assert . 0 cast return } }
 Uq_QFoo { QBar m_bar( Bool(1) sp(false);  Unary(3) r[5]( { 1u }); );  <NOMAIN> }
 Uq_QBar { Bool(1) sp(false);  Unary(3) r[5]( { 1u });  <NOMAIN> }
 Uq_System { <NOMAIN> }

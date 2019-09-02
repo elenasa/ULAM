@@ -1,20 +1,21 @@
 ## -*- mode:ulam -*-
 #=t3113_test_compiler_arrays_error
 #!
-./D.ulam:6:7: ERROR: Incompatible (nonscalar) types: Int(32)[2] and Int(2) used with binary =.
-./D.ulam:11:0: ERROR: Casting different Array sizes: Int(2) TO Int(32)[2].
-./D.ulam:7:10: ERROR: Cannot explicitly cast Int(2) to type: Int(32)[2].
-./D.ulam:7:10: ERROR: Array casts currently not supported.
-./D.ulam:7:10: ERROR: Consider implementing array casts: Cannot cast scalar into array.
-./D.ulam:7:7: ERROR: Assignment is invalid; LHS: Int(32)[2]; RHS: erroneous.
+./D.ulam:7:7: ERROR: Incompatible (nonscalar) types: Int(32)[2] and Int(2) used with binary =.
+./D.ulam:12:0: ERROR: Casting different Array sizes: Int(2) TO Int(32)[2].
+./D.ulam:8:10: ERROR: Cannot explicitly cast Int(2) to type: Int(32)[2].
+./D.ulam:8:10: ERROR: Array casts currently not supported.
+./D.ulam:8:10: ERROR: Consider implementing array casts: Cannot cast scalar into array.
+./D.ulam:8:7: ERROR: Assignment is invalid; LHS: Int(32)[2]; RHS: erroneous.
 Unrecoverable Program Type Label FAILURE.
 ##
 #>D.ulam
   ulam 1;
 element D {
   typedef Int IA[2];
-  IA a;
+
   Int test() {
+    IA a;
     a = 1;
     a = (IA) 1;
     return a[1];

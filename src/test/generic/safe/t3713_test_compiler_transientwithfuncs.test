@@ -2,7 +2,7 @@
 #=t3713_test_compiler_transientwithfuncs
 #!
 Exit status: 39
-Ue_Foo { Int(32) ta(39);  Int(32) test() {  System s;  Too t;  t a . 39u cast = ta t ( )get . = s ( ta )print . t sp . ta 39u cast == cast = s ( t sp . cast )assert . ta return } }
+Ue_Foo { Int(32) ta(39);  Int(32) test() {  System s;  Too t;  t a . 39u cast = self ta . t ( )get . = s ( self ta . )print . t sp . self ta . 39u cast == cast = s ( t sp . cast )assert . self ta . return } }
 Un_Too { Bool(7) sp(false);  Int(32) a( 87);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

@@ -1,6 +1,7 @@
 ## -*- mode:ulam -*-
 #=t41152_test_compiler_element_namedconstantarrayfuncrtn_issue
 #!
+#!
 Exit status: 0
 Ue_MyElement { Q q( constant Unsigned(8)[4] cCOLOR = { 0xdd0000 }; );  Int(32) test() {  0 cast return } }
 Uq_Q { constant Unsigned(8)[4] cCOLOR = { 0u cast, 221u, 0u cast, 0u cast };  <NOMAIN> }

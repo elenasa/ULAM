@@ -7,7 +7,7 @@
 ##note: order of appearance of 'Bool b' first; not in parse-tree order to print their values.
 #!
 Exit status: 7
-Ue_Foo { Bool(1) b(false);  typedef Bar Pop[2];  Bool(1) a(true);  Bar m_bar2[2]( Bool(1) val_b[3](false,false,false);  Bool(1) val_b[3](false,false,false); );  Int(32) m_i(7);  Bar m_bar1( Bool(1) val_b[3](false,false,false); );  Bar m_bar3( Bool(1) val_b[3](false,false,false); );  Int(32) test() {  System s;  Foo f;  a f ( 1 cast )check . = s ( a )assert . m_i 7 cast = s ( m_i 7 cast == )assert . m_i return } }
+Ue_Foo { Bool(1) b(false);  typedef Bar Pop[2];  Bool(1) a(true);  Bar m_bar2[2]( Bool(1) val_b[3](false,false,false);  Bool(1) val_b[3](false,false,false); );  Int(32) m_i(7);  Bar m_bar1( Bool(1) val_b[3](false,false,false); );  Bar m_bar3( Bool(1) val_b[3](false,false,false); );  Int(32) test() {  System s;  Foo f;  self a . f ( 1 cast )check . = s ( self a . )assert . self m_i . 7 cast = s ( self m_i . 7 cast == )assert . self m_i . return } }
 Uq_Bar { Bool(1) val_b[3](false,false,false);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 #>Foo.ulam

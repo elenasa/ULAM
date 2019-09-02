@@ -6,7 +6,7 @@
 ##
 #!
 Exit status: 3
-Ue_A { Int(32) ans(3);  typedef Int(3) BigSite[10];  Int(32) test() {  System s;  Int(3) site[10] = ( )func2;  Int(3) site2[10] = site;  ans ( site )func = s ( ans )print . s ( ans 3 cast == )assert . ( site )func return } }
+Ue_A { Int(32) ans(3);  typedef Int(3) BigSite[10];  Int(32) test() {  System s;  Int(3) site[10] = self ( )func2 .;  Int(3) site2[10] = site;  self ans . self ( site )func . = s ( self ans . )print . s ( self ans . 3 cast == )assert . self ( site )func . return } }
 Uq_System { <NOMAIN> }
 ##
 ##      //informed by error/t3417_

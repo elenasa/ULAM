@@ -125,6 +125,7 @@ namespace MFM{
     void setBlock(NodeBlock * ptr);
     NodeBlock * getBlock();
 
+    UTI specifyimplicitselfexplicitly();
     UTI checkUsedBeforeDeclared();
 
     SymbolVariable *  makeSymbol(UTI auti, ALT reftype, const TypeArgs& args);

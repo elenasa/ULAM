@@ -7,7 +7,7 @@
 ##
 #!
 Exit status: 0
-Ue_A { System s();  Bool(7) b(false);  Unsigned(32) x(15u);  Unsigned(32) y(0u);  Int(32) test() {  y x ( 4 cast 5 cast )times cast = = s ( x )print . s ( x 15u cast == )assert . y ( x x )max = s ( y )print . s ( y 0u cast == )assert . y cast return } }
+Ue_A { System s();  Bool(7) b(false);  Unsigned(32) x(15u);  Unsigned(32) y(0u);  Int(32) test() {  self y . self x . self ( 4 cast 5 cast )times . cast = = self s . ( self x . )print . self s . ( self x . 15u cast == )assert . self y . self ( self x . self x . )max . = self s . ( self y . )print . self s . ( self y . 0u cast == )assert . self y . cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## try overload 'max' with Unsigned args and return Unsigned; let x and y be Unsigned

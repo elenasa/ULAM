@@ -1,9 +1,9 @@
 ## -*- mode:ulam -*-
 #=t3345_test_compiler_elementandquarkswclassargs_typedeffromanotherclasstypedef
-#!
 ##      //Constants have explicit types
+#!
 Exit status: 3
-Ue_P { Bool(1) b(false);  Unsigned(3) var(3u);  Int(32) test() {  P pel;  var pel var . 3u cast = = pel var . cast return } }
+Ue_P { Bool(1) b(false);  Unsigned(3) var(3u);  Int(32) test() {  P pel;  self var . pel var . 3u cast = = pel var . cast return } }
 Uq_Q(Int(32) s) { typedef Unsigned(UNKNOWN) Foo;  <NOMAIN> }
 Uq_V { typedef Q(3) Woof;  <NOMAIN> }
 ##

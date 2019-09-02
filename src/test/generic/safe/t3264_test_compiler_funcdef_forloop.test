@@ -2,7 +2,7 @@
 #=t3264_test_compiler_funcdef_forloop
 #!
 Exit status: 20
-Ue_A { Bool(7) b(false);  Int(32) d(20);  System s();  Int(32) test() {  d ( 4 cast 5 cast )times = s ( d )print . d return } }
+Ue_A { Bool(7) b(false);  Int(32) d(20);  System s();  Int(32) test() {  self d . self ( 4 cast 5 cast )times . = self s . ( self d . )print . self d . return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
   ulam 1;

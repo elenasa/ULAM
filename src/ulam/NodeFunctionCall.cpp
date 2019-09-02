@@ -1,6 +1,8 @@
 #include "NodeFunctionCall.h"
 #include "CompilerState.h"
 #include "NodeBlockFunctionDefinition.h"
+#include "NodeIdent.h"
+#include "NodeMemberSelect.h"
 #include "SymbolFunction.h"
 #include "SymbolFunctionName.h"
 #include "SymbolVariableDataMember.h"
@@ -127,10 +129,10 @@ namespace MFM {
 	      hzyArgs++;
 	    else if(argtype == Nouti)
 	      noutiArgs++;
-
-	    // track constants and potential casting to be handled
-	    if(m_argumentNodes->isAConstant(i))
-	      constantArgs++;
+	    else //t3984,5
+	      // track constants and potential casting to be handled
+	      if(m_argumentNodes->isAConstant(i))
+		constantArgs++;
 	  }
 	m_state.popClassContext(); //restore here
 
@@ -304,7 +306,10 @@ namespace MFM {
 
 	it = m_funcSymbol->getUlamTypeIdx();
 	assert(m_state.okUTItoContinue(it));
-	if(m_state.isComplete(it))
+
+	it = specifyimplicitselfexplicitly();
+
+	if(m_state.okUTItoContinue(it) && m_state.isComplete(it))
 	  setNodeType(it);
 	else
 	  {
@@ -437,6 +442,60 @@ namespace MFM {
       }
     return it;
   } //checkAndLabelType
+
+  UTI NodeFunctionCall::specifyimplicitselfexplicitly()
+  {
+    assert(m_funcSymbol);
+    UTI futi = m_funcSymbol->getUlamTypeIdx();
+
+    //a func call needs to be rhs of member select "."
+    if(m_state.useMemberBlock())
+      {
+	return futi; //t3200
+      }
+
+    NNO pno = Node::getYourParentNo();
+
+    NodeBlock * currBlock = m_state.getCurrentBlock();
+    m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock); //push again
+
+
+    Node * parentNode = m_state.findNodeNoInThisClassForParent(pno);
+    assert(parentNode);
+
+    m_state.popClassContext(); //restore
+
+    bool implicitself = true;
+
+    if(parentNode->isAMemberSelect())
+      {
+	Symbol * rhsym = NULL;
+	if(!parentNode->getSymbolPtr(rhsym))
+	  futi = Hzy;
+
+	implicitself = (rhsym != m_funcSymbol);
+      }
+    //else
+
+    if(!implicitself)
+      return futi; //done, no change
+
+    Token selfTok(TOK_KW_SELF, getNodeLocation(), 0);
+    NodeIdent * explicitself = new NodeIdent(selfTok, NULL, m_state);
+    assert(explicitself);
+
+    NodeMemberSelect * newnode = new NodeMemberSelect(explicitself, this, m_state);
+    assert(newnode);
+
+    AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+    assert(swapOk);
+
+    //redo look-up given explicit self
+    m_funcSymbol = NULL;
+
+    //reusing this, no suicide
+    return Hzy;
+  } //specifyimplicitselfexplicitly
 
   void NodeFunctionCall::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
   {
