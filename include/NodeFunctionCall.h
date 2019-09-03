@@ -114,6 +114,7 @@ namespace MFM{
     NodeList * m_argumentNodes;
     SymbolTmpVar * m_tmpvarSymbol;
 
+    TBOOL lookagainincaseimplicitselfchanged();
     UTI specifyimplicitselfexplicitly();
 
     EvalStatus evalArgumentsInReverseOrder(u32& argsPushed);

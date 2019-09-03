@@ -125,6 +125,7 @@ namespace MFM{
     void setBlock(NodeBlock * ptr);
     NodeBlock * getBlock();
 
+    TBOOL lookagainincaseimplicitselfchanged();
     UTI specifyimplicitselfexplicitly();
     UTI checkUsedBeforeDeclared();
 

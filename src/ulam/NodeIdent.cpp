@@ -331,21 +331,25 @@ namespace MFM {
 	  }
 	else
 	  {
-	    std::ostringstream msg;
-	    msg << "Variable <" << m_state.getTokenDataAsString(m_token).c_str();
-	    msg << "> is not defined, or was used before declared in a function";
-	    if(!hazyKin)
+	    TBOOL foundit = lookagainincaseimplicitselfchanged(); //TBOOL_HAZY is good! (t41344,5)
+	    if(foundit != TBOOL_TRUE)
 	      {
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		it = Nav;
+		std::ostringstream msg;
+		msg << "Variable <" << m_state.getTokenDataAsString(m_token).c_str();
+		msg << "> is not defined, or was used before declared in a function";
+		if((foundit != TBOOL_HAZY))
+		  {
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    it = Nav;
+		  }
+		else
+		  {
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+		    it = Hzy;
+		  }
+		errCnt++;
+		m_state.popClassContext(); //restore
 	      }
-	    else
-	      {
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-		it = Hzy;
-	      }
-	    errCnt++;
-	    m_state.popClassContext(); //restore
 	  }
       } //lookup symbol done
     else if(m_varSymbol->isConstant() && !m_state.isConstantRefType(m_varSymbol->getUlamTypeIdx()))
@@ -452,6 +456,67 @@ namespace MFM {
     return it;
   } //checkAndLabelType
 
+  TBOOL NodeIdent::lookagainincaseimplicitselfchanged()
+  {
+    TBOOL rtn = TBOOL_FALSE;
+
+    Symbol * symptr = NULL;
+    bool hazyKin = false;
+
+    if(!m_state.useMemberBlock())
+      {
+	//not found in current context, perhaps 'self' has changed scope (t41344)
+	u32 selfid = m_state.m_pool.getIndexForDataString("self");
+	Symbol * selfsym = NULL;
+	bool hazykin = false; //unused
+	bool gotSelf = m_state.alreadyDefinedSymbolHere(selfid, selfsym, hazykin);
+	if(gotSelf)
+	  {
+	    UTI selfuti = selfsym->getUlamTypeIdx();
+	    SymbolClass * csym = NULL;
+	    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(selfuti, csym);
+	    assert(isDefined);
+
+	    NodeBlockClass * memberClassNode = csym->getClassBlockNode();
+	    assert(memberClassNode);
+
+	    UTI selfblockuti = memberClassNode->getNodeType();
+	    if(m_state.okUTItoContinue(selfblockuti))
+	      {
+		//set up compiler state to use the member class block for variable
+		m_state.pushClassContextUsingMemberClassBlock(memberClassNode);
+
+		u32 tokid = m_state.getTokenDataAsStringId(m_token);
+		bool foundit = m_state.alreadyDefinedSymbol(tokid, symptr, hazyKin);
+		if(foundit)
+		  rtn = TBOOL_TRUE;
+		m_state.popClassContext();
+	      }
+	    else if(selfblockuti == Nav)
+	      rtn = TBOOL_FALSE;
+	    else if(selfblockuti == Hzy)
+	      rtn = TBOOL_HAZY;
+	    else if(selfblockuti == Nouti)
+	      rtn = TBOOL_HAZY;
+	    //else
+	  } //ends gotself (t3415,t3431,t3455,t3460,t41283)
+      } //ends not using memberblock
+
+    if(rtn == TBOOL_TRUE)
+      {
+	setSymbolPtr((SymbolVariable *) symptr);
+	setBlockNo(symptr->getBlockNoOfST()); //refined
+	setBlock(NULL);
+	UTI it = specifyimplicitselfexplicitly(); //returns Hzy
+	if(it == Hzy)
+	  rtn = TBOOL_HAZY;
+	else if(!m_state.okUTItoContinue(it))
+	  rtn = TBOOL_FALSE;
+	//else still TBOOL_TRUE
+      }
+    return rtn;
+  } //lookagainincaseimplicitselfchanged
+
   UTI NodeIdent::specifyimplicitselfexplicitly()
   {
     assert(m_varSymbol);
@@ -484,7 +549,7 @@ namespace MFM {
 	if(!parentNode->getSymbolPtr(rhsym))
 	  vuti = Hzy; //t41152
 
-	implicitself = (rhsym != m_varSymbol);
+	implicitself = (rhsym != m_varSymbol); //rhsym null wont match
       }
     //else
 

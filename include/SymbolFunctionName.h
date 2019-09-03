@@ -77,8 +77,7 @@ namespace MFM{
 
     u32 findMatchingFunctionWithSafeCasts(std::vector<Node*> argNodes, SymbolFunction *& funcSymbol, bool& hasHazyArgs, FSTable& fstableref);
 
-    //u32 findMatchingFunctionWithSafeCastsInAncestors(std::vector<Node*> argNodes, SymbolFunction *& funcSymbol, bool& hasHazyArgs);
-    //u32 findMatchingFunctionWithSafeCastsInAClassScopeOrAncestors(UTI cuti, std::vector<Node*> argNodes, SymbolFunction *& funcSymbol, bool& hasHazyArgs);
+    u32 anyFunctionSymbolPtr(SymbolFunction *& funcptr);
 
     u32 noteAmbiguousFunctionSignatures(std::vector<Node *> argNodes, u32 counter, u32 numMatchesFound);
 

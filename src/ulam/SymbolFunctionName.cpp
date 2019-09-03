@@ -198,6 +198,17 @@ namespace MFM {
     return matchingFuncCount;
   } //findMatchingFunctionWithSafeCasts
 
+  u32 SymbolFunctionName::anyFunctionSymbolPtr(SymbolFunction *& funcptr)
+  {
+    std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
+    if(it != m_mangledFunctionNames.end())
+      {
+	funcptr = it->second;
+	return 1;
+      }
+    return 0;
+  } //anyFunctionSymbol
+
   u32 SymbolFunctionName::noteAmbiguousFunctionSignatures(std::vector<Node *> argNodes, u32 counter, u32 numMatchesFound)
   {
     assert(!m_mangledFunctionNames.empty());

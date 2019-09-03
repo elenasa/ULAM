@@ -258,18 +258,27 @@ namespace MFM {
       }
     else
       {
-	std::ostringstream msg;
-	msg << "(2) <" << m_state.getTokenDataAsString(m_functionNameTok).c_str();
-	msg << "> is not a defined function, or cannot be safely called in this context";
+	TBOOL foundit = TBOOL_FALSE;
 	if(hazyKin)
-	  {
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	    numHazyFound++;
-	  }
+	  foundit = TBOOL_HAZY;
 	else
+	  foundit = lookagainincaseimplicitselfchanged(); //TBOOL_HAZY is good!(t41346)
+
+	if(foundit != TBOOL_TRUE)
 	  {
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    numErrorsFound++;
+	    std::ostringstream msg;
+	    msg << "(2) <" << m_state.getTokenDataAsString(m_functionNameTok).c_str();
+	    msg << "> is not a defined function, or cannot be safely called in this context";
+	    if(foundit == TBOOL_HAZY)
+	      {
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+		numHazyFound++;
+	      }
+	    else
+	      {
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		numErrorsFound++;
+	      }
 	  }
       }
 
@@ -442,6 +451,69 @@ namespace MFM {
       }
     return it;
   } //checkAndLabelType
+
+  TBOOL NodeFunctionCall::lookagainincaseimplicitselfchanged()
+  {
+    TBOOL rtn = TBOOL_FALSE;
+
+    Symbol * fnsymptr = NULL;
+    bool hazyKin = false;
+
+    if(!m_state.useMemberBlock())
+      {
+	//not found in current context, perhaps 'self' has changed scope (t41344)
+	u32 selfid = m_state.m_pool.getIndexForDataString("self");
+	Symbol * selfsym = NULL;
+	bool hazykin = false; //unused
+	bool gotSelf = m_state.alreadyDefinedSymbolHere(selfid, selfsym, hazykin);
+	if(gotSelf)
+	  {
+	    UTI selfuti = selfsym->getUlamTypeIdx();
+	    SymbolClass * csym = NULL;
+	    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(selfuti, csym);
+	    assert(isDefined);
+
+	    NodeBlockClass * memberClassNode = csym->getClassBlockNode();
+	    assert(memberClassNode);
+
+	    UTI selfblockuti = memberClassNode->getNodeType();
+	    if(m_state.okUTItoContinue(selfblockuti))
+	      {
+		//set up compiler state to use the member class block for variable
+		m_state.pushClassContextUsingMemberClassBlock(memberClassNode);
+
+		u32 funcid = m_state.getTokenDataAsStringId(m_functionNameTok);
+		bool foundit = m_state.isFuncIdInAClassScopeOrAncestor(selfblockuti, funcid, fnsymptr, hazyKin);
+		if(foundit)
+		  rtn = TBOOL_TRUE;
+		m_state.popClassContext();
+	      }
+	    else if(selfblockuti == Nav)
+	      rtn = TBOOL_FALSE;
+	    else if(selfblockuti == Hzy)
+	      rtn = TBOOL_HAZY;
+	    else if(selfblockuti == Nouti)
+	      rtn = TBOOL_HAZY;
+	    //else
+	  } //ends gotself (t3415,t3431,t3455,t3460,t41283)
+      } //ends not using memberblock
+
+    if(rtn == TBOOL_TRUE)
+      {
+	SymbolFunction * tmpfuncsym = NULL;
+	((SymbolFunctionName *) fnsymptr)->anyFunctionSymbolPtr(tmpfuncsym);
+	assert(tmpfuncsym);
+	m_funcSymbol = tmpfuncsym;
+	UTI it = specifyimplicitselfexplicitly(); //returns Hzy
+	if(it == Hzy)
+	  rtn = TBOOL_HAZY;
+	else if(!m_state.okUTItoContinue(it))
+	  rtn = TBOOL_FALSE;
+	//else still TBOOL_TRUE
+      }
+    assert(m_funcSymbol==NULL);
+    return rtn;
+  } //lookagainincaseimplicitselfchanged
 
   UTI NodeFunctionCall::specifyimplicitselfexplicitly()
   {
