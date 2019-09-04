@@ -317,50 +317,9 @@ namespace MFM {
       }
 
     //don't allow a subclass to shadow a base class datamember (error/t41331)
-    //    Symbol * varSymbolOfSameName = NULL;
-    std::set<UTI> kinset;
-    bool hazyKin = false;
-    if(m_state.alreadyDefinedSymbolByAncestorsOf(cuti, m_vid, kinset, hazyKin))
-      {
-	u32 kinsetsize = kinset.size();
-
-	std::ostringstream msg;
-	msg << "Data member '";
-	msg << m_state.m_pool.getDataAsString(m_vid).c_str();
-	msg << "' is shadowing ";
-	if(kinsetsize == 1)
-	  msg << "an ancestor: ";
-	else
-	  msg << kinsetsize << " ancestors: ";
-
-	u32 k=0;
-	std::set<UTI>::iterator it;
-	for(it = kinset.begin(); it != kinset.end(); it++, k++)
-	  {
-	    UTI ancestor = *it;
-	    //UTI ancestor = varSymbolOfSameName->getDataMemberClass();
-	    if(m_state.okUTItoContinue(ancestor))
-	      {
-		if(k > 0)
-		  msg << ", ";
-		msg << m_state.getUlamTypeNameBriefByIndex(ancestor).c_str();
-	      }
-	  }
-
-      if(hazyKin)
-	{
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	  setNodeType(Hzy);
-	  m_state.setGoAgain();
-	  return Hzy; //short-circuit
-	}
-      else
-	{
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	  setNodeType(Nav);
-	  return Nav; //short-circuit
-	}
-    }
+    TBOOL shadowt = checkForNoShadowingSubclass(cuti);
+    if(shadowt != TBOOL_TRUE)
+      return getNodeType();
     //else continue...
 
     //NodeVarDecl handles array initialization for both locals & dm
@@ -444,6 +403,53 @@ namespace MFM {
       }
     return getNodeType();
   } //checkAndLabelType
+
+  TBOOL NodeVarDeclDM::checkForNoShadowingSubclass(UTI cuti)
+  {
+    std::set<UTI> kinset;
+    bool hazyKin = false;
+    if(m_state.alreadyDefinedSymbolByAncestorsOf(cuti, m_vid, kinset, hazyKin))
+      {
+	u32 kinsetsize = kinset.size();
+
+	std::ostringstream msg;
+	msg << "Data member '";
+	msg << m_state.m_pool.getDataAsString(m_vid).c_str();
+	msg << "' is shadowing ";
+	if(kinsetsize == 1)
+	  msg << "an ancestor: ";
+	else
+	  msg << kinsetsize << " ancestors: ";
+
+	u32 k=0;
+	std::set<UTI>::iterator it;
+	for(it = kinset.begin(); it != kinset.end(); it++, k++)
+	  {
+	    UTI ancestor = *it;
+	    if(m_state.okUTItoContinue(ancestor))
+	      {
+		if(k > 0)
+		  msg << ", ";
+		msg << m_state.getUlamTypeNameBriefByIndex(ancestor).c_str();
+	      }
+	  }
+
+      if(hazyKin)
+	{
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	  setNodeType(Hzy);
+	  m_state.setGoAgain();
+	  return TBOOL_HAZY;
+	}
+      else
+	{
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	  setNodeType(Nav);
+	  return TBOOL_FALSE;
+	}
+      }
+    return TBOOL_TRUE; //aok
+  } //checkForNoShadowingSubclass
 
   bool NodeVarDeclDM::checkDataMemberSizeConstraints()
   {

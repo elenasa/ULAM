@@ -122,6 +122,7 @@ namespace MFM{
     void foldDefaultClass();
     void genCodedBitFieldTypedef(File * fp, UVPass& uvpass);
 
+    TBOOL checkForNoShadowingSubclass(UTI cuti); //during c&l
     bool checkDataMemberSizeConstraints(); //during c&l
   };
 } //MFM
