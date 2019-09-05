@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeIdent.h - Node handling Identifiers for ULAM
  *
- * Copyright (C) 2014-2018 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2018 Ackleyshack LLC.
+ * Copyright (C) 2014-2019 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2019 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeIdent.h - Node handling Identifiers for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2018 All rights reserved.
+  \date (C) 2014-2019 All rights reserved.
   \gpl
 */
 
@@ -125,6 +125,7 @@ namespace MFM{
     void setBlock(NodeBlock * ptr);
     NodeBlock * getBlock();
 
+    bool replaceOurselves(Symbol * symptr, Node *& newnoderef);
     TBOOL lookagainincaseimplicitselfchanged();
     UTI specifyimplicitselfexplicitly();
     UTI checkUsedBeforeDeclared();

@@ -272,66 +272,36 @@ namespace MFM {
 		    it = Hzy; //t3572, t3597, t41183, and ulamexports QBox
 		    errCnt++;
 		  }
-	      }
-	    else if(asymptr->isConstant())
-	      {
-		UTI auti = asymptr->getUlamTypeIdx();
-		// replace ourselves with a constant node instead;
-		// same node no, and loc (e.g. t3573)
-		Node * newnode = NULL;
-		if(m_state.isAClass(auti))
-		  {
-		    if(m_state.isScalar(auti))
-		      newnode = new NodeConstantClass(m_token, (SymbolWithValue *) asymptr, NULL, m_state);
-		    else
-		      newnode = new NodeConstantClassArray(m_token, (SymbolWithValue *) asymptr, NULL, m_state); //t41261
-		  }
-		else if(m_state.isScalar(auti))
-		  newnode = new NodeConstant(m_token, (SymbolWithValue *) asymptr, NULL, m_state);
-		else
-		  newnode = new NodeConstantArray(m_token, (SymbolWithValue *) asymptr, NULL, m_state);
-		assert(newnode);
-
-		AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
-		assert(swapOk);
-
-		m_state.popClassContext(); //restore
-
-		delete this; //suicide is painless..
-
-		return newnode->checkAndLabelType();
-	      }
-	    else if(asymptr->isModelParameter())
-	      {
-		// replace ourselves with a parameter node instead;
-		// same node no, and loc
-		NodeModelParameter * newnode = new NodeModelParameter(m_token, (SymbolModelParameterValue*) asymptr, NULL, m_state);
-		assert(newnode);
-
-		AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
-		assert(swapOk);
-
-		m_state.popClassContext(); //restore
-
-		delete this; //suicide is painless..
-
-		return newnode->checkAndLabelType();
+		m_state.popClassContext(); //restore t3102
 	      }
 	    else
 	      {
-		std::ostringstream msg;
-		msg << "(1) <" << m_state.getTokenDataAsString(m_token).c_str();
-		msg << "> is not a variable, and cannot be used as one with class: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		it = Nav;
-		errCnt++;
+		Node * newnode = NULL;
+		if(replaceOurselves(asymptr, newnode))
+		  {
+		    m_state.popClassContext(); //restore
+
+		    delete this; //suicide is painless..
+
+		    return newnode->checkAndLabelType();
+		  }
+		else
+		  {
+		    std::ostringstream msg;
+		    msg << "(1) <" << m_state.getTokenDataAsString(m_token).c_str();
+		    msg << "> is not a variable, and cannot be used as one with class: ";
+		    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    it = Nav;
+		    errCnt++;
+		    m_state.popClassContext(); //restore
+		  }
 	      }
-	    m_state.popClassContext(); //restore
 	  }
 	else
 	  {
-	    TBOOL foundit = lookagainincaseimplicitselfchanged(); //TBOOL_HAZY is good! (t41344,5)
+	    //not found, look again...(t41344,5)
+	    TBOOL foundit = lookagainincaseimplicitselfchanged(); //TBOOL_HAZY is good!
 	    if(foundit != TBOOL_TRUE)
 	      {
 		std::ostringstream msg;
@@ -348,50 +318,21 @@ namespace MFM {
 		    it = Hzy;
 		  }
 		errCnt++;
-		m_state.popClassContext(); //restore
+		//m_state.popClassContext(); //restore
 	      }
+	    m_state.popClassContext(); //restore
 	  }
       } //lookup symbol done
-    else if(m_varSymbol->isConstant() && !m_state.isConstantRefType(m_varSymbol->getUlamTypeIdx()))
+    else
       {
-	UTI vuti = m_varSymbol->getUlamTypeIdx();
-
-	// replace ourselves with a constant node instead;
-	// same node no, and loc (e.g. t3573, t3526)
 	Node * newnode = NULL;
-	if(m_state.isAClass(vuti))
+	if(replaceOurselves(m_varSymbol, newnode))
 	  {
-	    if(m_state.isScalar(vuti))
-	      newnode = new NodeConstantClass(m_token, (SymbolWithValue *) m_varSymbol, NULL, m_state);
-	    else
-	      newnode = new NodeConstantClassArray(m_token, (SymbolWithValue *) m_varSymbol, NULL, m_state);
+	    delete this; //suicide is painless..
+
+	    return newnode->checkAndLabelType();
 	  }
-	else if(m_state.isScalar(vuti))
-	  newnode = new NodeConstant(m_token, (SymbolWithValue *) m_varSymbol, NULL, m_state);
-	else
-	  newnode = new NodeConstantArray(m_token, (SymbolWithValue *) m_varSymbol, NULL, m_state);
-	assert(newnode);
-
-	AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
-	assert(swapOk);
-
-	delete this; //suicide is painless..
-
-	return newnode->checkAndLabelType();
-      }
-    else if(m_varSymbol->isModelParameter())
-      {
-	// replace ourselves with a parameter node instead;
-	// same node no, and loc
-	NodeModelParameter * newnode = new NodeModelParameter(m_token, (SymbolModelParameterValue*) m_varSymbol, NULL, m_state);
-	assert(newnode);
-
-	AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
-	assert(swapOk);
-
-	delete this; //suicide is painless..
-
-	return newnode->checkAndLabelType();
+	//else continue
       }
 
     if(!errCnt && m_varSymbol)
@@ -456,6 +397,54 @@ namespace MFM {
     return it;
   } //checkAndLabelType
 
+  bool NodeIdent::replaceOurselves(Symbol * symptr, Node *& newnoderef)
+  {
+    assert(symptr);
+    assert(newnoderef==NULL);
+
+    bool rtnb = false;
+    UTI suti = symptr->getUlamTypeIdx();
+    if(symptr->isConstant() && !m_state.isConstantRefType(suti))
+      {
+	// replace ourselves with a constant node instead;
+	// same node no, and loc (e.g. t3573)
+	Node * newnode = NULL;
+	if(m_state.isAClass(suti))
+	  {
+	    if(m_state.isScalar(suti))
+	      newnode = new NodeConstantClass(m_token, (SymbolWithValue *) symptr, NULL, m_state);
+	    else
+	      newnode = new NodeConstantClassArray(m_token, (SymbolWithValue *) symptr, NULL, m_state); //t41261
+	  }
+	else if(m_state.isScalar(suti))
+	  newnode = new NodeConstant(m_token, (SymbolWithValue *) symptr, NULL, m_state);
+	else
+	  newnode = new NodeConstantArray(m_token, (SymbolWithValue *) symptr, NULL, m_state);
+	assert(newnode);
+
+	AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+	assert(swapOk);
+
+	newnoderef = newnode;
+	rtnb = true;
+      }
+    else if(symptr->isModelParameter())
+      {
+	// replace ourselves with a parameter node instead;
+	// same node no, and loc
+	NodeModelParameter * newnode = new NodeModelParameter(m_token, (SymbolModelParameterValue*) symptr, NULL, m_state);
+	assert(newnode);
+
+	AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+	assert(swapOk);
+
+	newnoderef = newnode;
+	rtnb = true;
+      }
+    //else did not replace ourselves
+    return rtnb;
+  } //replaceOurselves
+
   TBOOL NodeIdent::lookagainincaseimplicitselfchanged()
   {
     TBOOL rtn = TBOOL_FALSE;
@@ -490,7 +479,8 @@ namespace MFM {
 		bool foundit = m_state.alreadyDefinedSymbol(tokid, symptr, hazyKin);
 		if(foundit)
 		  rtn = TBOOL_TRUE;
-		m_state.popClassContext();
+
+		m_state.popClassContext(); //restore
 	      }
 	    else if(selfblockuti == Nav)
 	      rtn = TBOOL_FALSE;

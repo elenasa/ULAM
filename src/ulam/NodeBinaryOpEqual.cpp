@@ -39,7 +39,10 @@ namespace MFM {
   bool NodeBinaryOpEqual::checkSafeToCastTo(UTI unused, UTI& newType)
   {
     bool rtnOK = true;
-    FORECAST scr = m_nodeRight->safeToCastTo(newType);
+    //bypass same bitsize check when a primitive ref for assignment: t3625,32,51,t3817,t41001
+    bool isAClassOrAtom = m_state.isAClass(newType) || m_state.isAtom(newType);
+    UTI chknewtype = isAClassOrAtom ? newType : m_state.getUlamTypeAsDeref(newType);
+    FORECAST scr = m_nodeRight->safeToCastTo(chknewtype);
     if(scr != CAST_CLEAR)
       {
 	ULAMTYPE etyp = m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum();
@@ -153,21 +156,23 @@ namespace MFM {
     UlamType * lut = m_state.getUlamTypeByIndex(leftType);
     if(lut->getUlamTypeEnum() == Class)
       {
-	if((m_state.getUlamTypeByIndex(rightType)->getUlamTypeEnum() != Class) && !m_state.isAtom(rightType))
+	bool rhsIsClassOrAtom = m_state.isAClass(rightType) || m_state.isAtom(rightType);
+	Node * newnode = NULL;
+	TBOOL replaced = replaceOurselves(rhsIsClassOrAtom, newnode);
+
+	if(replaced == TBOOL_HAZY)
+	  newType = Hzy;
+	else if(replaced == TBOOL_TRUE)
 	  {
-	    //try for operator overload first (e.g. (pre) +=,-=, (post) ++,-- )
-	    Node * newnode = buildOperatorOverloadFuncCallNode(); //virtual
-	    if(newnode)
+	    delete this; //suicide is painless..
+
+	    return newnode->checkAndLabelType();
+	  }
+	else //tbool_false
+	  {
+	    if(rhsIsClassOrAtom)
 	      {
-		AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
-		assert(swapOk);
-
-		m_nodeLeft = NULL; //recycle as memberselect
-		m_nodeRight = NULL; //recycle as func call arg
-
-		delete this; //suicide is painless..
-
-		return newnode->checkAndLabelType();
+		makeDefaultStructAssignment(leftType, rightType, newType);
 	      }
 	    else
 	      {
@@ -181,61 +186,75 @@ namespace MFM {
 		newType = Nav; //error
 	      }
 	  }
-	else
-	  {
-	    //RHS is class or atom;
-	    //first look for (safe cast) arg match overload operator=
-	    bool hazyArg = false;
-	    Node * newnode = buildOperatorOverloadFuncCallNodeForMatchingArg(hazyArg);
-	    if(hazyArg)
-	      {
-		newType = Hzy;
-	      }
-	    else if(newnode)
-	      {
-		AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
-		assert(swapOk);
-
-		m_nodeLeft = NULL; //recycle as memberselect
-		m_nodeRight = NULL; //recycle as func call arg
-
-		delete this; //suicide is painless..
-
-		return newnode->checkAndLabelType();
-	      }
-	    else
-	      {
-		//default struct assign
-		if(UlamType::compareForAssignment(newType, rightType, m_state) != UTIC_SAME)
-		  {
-		    UTI derefLeft = m_state.getUlamTypeAsDeref(leftType); //tmp deref type
-		    if(checkSafeToCastTo(rightType, newType))
-		      {
-			if(!Node::makeCastingNode(m_nodeRight, derefLeft, m_nodeRight))
-			  newType = Nav; //error
-		      }//else not safe, error msg, newType changed
-		  } //else same enough
-	      }
-	  }
       }
-    else
-      {
-	//LHS not class; cast RHS if necessary and safe
-	if(UlamType::compareForAssignment(newType, rightType, m_state) != UTIC_SAME)
-	  {
-	    UTI derefLeft = m_state.getUlamTypeAsDeref(leftType); //tmp deref type
-	    if(checkSafeToCastTo(rightType, derefLeft))
-	      {
-		if(!Node::makeCastingNode(m_nodeRight, derefLeft, m_nodeRight))
-		  newType = Nav; //error
-	      } //else not safe, error msg, newType changed
-	  } //else the same
-      }
+    else //lhs is not a class
+      makeDefaultStructAssignment(leftType, rightType, newType);
 
     setNodeType(newType);
     if(newType == Hzy) m_state.setGoAgain();
     return newType;
   } //checkAndLabelType
+
+  void NodeBinaryOpEqual::makeDefaultStructAssignment(UTI lt, UTI rt, UTI& newtyperef)
+  {
+    //cast RHS if necessary and safe; newtyperef initialized to lt
+    // "safeness" based on deref of newtype
+    if(UlamType::compareForAssignment(lt, rt, m_state) != UTIC_SAME)
+      {
+	if(checkSafeToCastTo(rt, newtyperef))
+	  {
+	    UTI derefLeft = m_state.getUlamTypeAsDeref(lt); //tmp deref type
+	    if(!Node::makeCastingNode(m_nodeRight, derefLeft, m_nodeRight))
+	      newtyperef = Nav; //error
+	  } //else not safe, error msg, newTyperef changed
+      } //else the same
+  }
+
+  TBOOL NodeBinaryOpEqual::replaceOurselves(bool classoratom, Node *& newnoderef)
+  {
+    TBOOL rtntb = TBOOL_FALSE;
+
+    if(!classoratom)
+      {
+	//try for operator overload first (e.g. (pre) +=,-=, (post) ++,-- )
+	Node * newnode = buildOperatorOverloadFuncCallNode(); //virtual
+	if(newnode)
+	  {
+	    AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+	    assert(swapOk);
+
+	    m_nodeLeft = NULL; //recycle as memberselect
+	    m_nodeRight = NULL; //recycle as func call arg
+
+	    newnoderef = newnode;
+	    rtntb = TBOOL_TRUE;
+	  }
+      }
+    else
+      {
+	//RHS is class or atom;
+	//first look for (safe cast) arg match overload operator=
+	bool hazyArg = false;
+	Node * newnode = buildOperatorOverloadFuncCallNodeForMatchingArg(hazyArg);
+	if(hazyArg)
+	  {
+	    rtntb = TBOOL_HAZY;
+	  }
+	else if(newnode)
+	  {
+	    AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+	    assert(swapOk);
+
+	    m_nodeLeft = NULL; //recycle as memberselect
+	    m_nodeRight = NULL; //recycle as func call arg
+
+	    newnoderef = newnode;
+	    rtntb = TBOOL_TRUE;
+	  }
+	//else no replacement, use default struct assign
+      }
+    return rtntb;
+  } //replaceOurselves
 
   //here, we check for func with matching argument when both sides the same Class type,
   // or rhs is an atom, so we can use the default struct equal if no overload defined.

@@ -200,37 +200,49 @@ namespace MFM {
 	nodeType = setConstantTypeForNode(m_funcTok); //enough info to set this constant node's type
 	if((m_funcTok.m_type == TOK_KW_LENGTHOF))
 	  {
-	    if(m_state.isAClass(m_uti) && m_state.isClassACustomArray(m_uti) && m_state.hasAClassCustomArrayLengthof(m_uti))
+	    Node * newnode = NULL;
+	    if(replaceOurselvesLengthOf(newnode))
 	      {
-		//replace node with func call to 'alengthof'
-		Node * newnode = buildAlengthofFuncCallNode();
-		AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
-		assert(swapOk);
-
-		m_nodeOf = NULL; //recycled
-
 		delete this; //suicide is painless..
 
 		return newnode->checkAndLabelType();
 	      }
-	    //else if(isAConstant())
-	    else if(isAConstant() && isReadyConstant())
-	      {
-		//constantFold, like NodeBinaryOp (e.g. t3985)
-		//replace with a NodeTerminal; might not be ready (t41065)
-		Node * newnode = constantFoldLengthofConstantString();
-		assert(newnode);
-		AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
-		assert(swapOk);
-
-		delete this; //suicide is painless..
-
-		return newnode->checkAndLabelType();
-	      }
+	    //else keep it
 	  }
       }
     return nodeType; //getNodeType(); //updated to Unsigned, hopefully
   } //checkandLabelType
+
+  bool NodeTerminalProxy::replaceOurselvesLengthOf(Node *& newnoderef)
+  {
+    bool rtnb = false;
+    if(m_state.isAClass(m_uti) && m_state.isClassACustomArray(m_uti) && m_state.hasAClassCustomArrayLengthof(m_uti))
+      {
+	//replace node with func call to 'alengthof'
+	Node * newnode = buildAlengthofFuncCallNode();
+	assert(newnode);
+	AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+	assert(swapOk);
+
+	m_nodeOf = NULL; //recycled
+	newnoderef = newnode;
+	rtnb = true;
+      }
+    else if(isAConstant() && isReadyConstant())
+      {
+	//constantFold, like NodeBinaryOp (e.g. t3985)
+	//replace with a NodeTerminal; might not be ready (t41065)
+	Node * newnode = constantFoldLengthofConstantString();
+	assert(newnode);
+	AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+	assert(swapOk);
+
+	newnoderef = newnode;
+	rtnb = true;
+      }
+    //else didn't replace us
+    return rtnb;
+  } //replaceOurselvesLengthOf
 
   Node * NodeTerminalProxy::buildAlengthofFuncCallNode()
   {
