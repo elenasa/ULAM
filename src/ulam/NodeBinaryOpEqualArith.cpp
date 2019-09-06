@@ -92,9 +92,11 @@ namespace MFM {
 	    m_nodeLeft = NULL; //recycle as memberselect
 	    m_nodeRight = NULL; //recycle as func call arg
 
+	    m_state.setGoAgain();
+
 	    delete this; //suicide is painless..
 
-	    return newnode->checkAndLabelType();
+	    return Hzy;
 	  }
 	else
 	  {

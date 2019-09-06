@@ -29,11 +29,11 @@ quark Bar
 use Typo;
 use System;
 element Eltypo : Typo(1) {
-  System s;
   Unsigned(3) first;
   Unsigned(3) second;
   Typo(1) t;
   Int test(){
+    System s;
     if(self as Bar){
       func(3u); //modifies 'bu'
       s.print(bu);

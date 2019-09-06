@@ -200,12 +200,13 @@ namespace MFM {
 	nodeType = setConstantTypeForNode(m_funcTok); //enough info to set this constant node's type
 	if((m_funcTok.m_type == TOK_KW_LENGTHOF))
 	  {
-	    Node * newnode = NULL;
-	    if(replaceOurselvesLengthOf(newnode))
+	    if(replaceOurselvesLengthOf())
 	      {
+		m_state.setGoAgain();
+
 		delete this; //suicide is painless..
 
-		return newnode->checkAndLabelType();
+		return Hzy;
 	      }
 	    //else keep it
 	  }
@@ -213,7 +214,7 @@ namespace MFM {
     return nodeType; //getNodeType(); //updated to Unsigned, hopefully
   } //checkandLabelType
 
-  bool NodeTerminalProxy::replaceOurselvesLengthOf(Node *& newnoderef)
+  bool NodeTerminalProxy::replaceOurselvesLengthOf()
   {
     bool rtnb = false;
     if(m_state.isAClass(m_uti) && m_state.isClassACustomArray(m_uti) && m_state.hasAClassCustomArrayLengthof(m_uti))
@@ -225,7 +226,6 @@ namespace MFM {
 	assert(swapOk);
 
 	m_nodeOf = NULL; //recycled
-	newnoderef = newnode;
 	rtnb = true;
       }
     else if(isAConstant() && isReadyConstant())
@@ -237,7 +237,6 @@ namespace MFM {
 	AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
 	assert(swapOk);
 
-	newnoderef = newnode;
 	rtnb = true;
       }
     //else didn't replace us

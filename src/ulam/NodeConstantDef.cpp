@@ -429,20 +429,50 @@ namespace MFM {
 	      }
 	  } //end array initializers or empty class init (eit == Void)
 
-	if(m_state.okUTItoContinue(nuti) && m_state.okUTItoContinue(suti) && (m_state.isScalar(nuti) ^ m_state.isScalar(suti)))
+	if(m_state.okUTItoContinue(nuti) && m_state.okUTItoContinue(suti))
+	  {
+	    if(m_state.isScalar(nuti) ^ m_state.isScalar(suti))
+	      {
+		std::ostringstream msg;
+		msg << "Constant value expression for";
+		if(m_constSymbol && m_constSymbol->isClassArgument())
+		  msg << " class argument";
+		else if(m_constSymbol && m_constSymbol->isClassParameter())
+		  msg << " class parameter";
+		msg << ": ";
+		msg << m_state.m_pool.getDataAsString(m_cid).c_str();
+		msg << ", array/scalar mismatch";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		setNodeType(Nav);
+		return Nav; //short-circuit (t3446, t3898)
+	      }
+	  }
+	else
 	  {
 	    std::ostringstream msg;
 	    msg << "Constant value expression for";
 	    if(m_constSymbol && m_constSymbol->isClassArgument())
 	      msg << " class argument";
 	    else if(m_constSymbol && m_constSymbol->isClassParameter())
-	  msg << " class parameter";
+	      msg << " class parameter";
 	    msg << ": ";
 	    msg << m_state.m_pool.getDataAsString(m_cid).c_str();
-	    msg << ", array/scalar mismatch";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    setNodeType(Nav);
-	    return Nav; //short-circuit (t3446, t3898)
+	    msg << ", is ";
+	    if(nuti == Nav || suti == Nav)
+	      {
+		msg << "invalid";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		setNodeType(Nav);
+		return Nav;
+	      }
+	    else
+	      {
+		msg << "not ready";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+		setNodeType(Hzy);
+		m_state.setGoAgain();
+		return Hzy; //short-circuit (t3893)
+	      }
 	  }
 
 	if(m_nodeExpr && !m_nodeExpr->isAConstant() && !m_state.isConstantRefType(suti))
@@ -456,7 +486,7 @@ namespace MFM {
 	    msg << ": ";
 	    msg << m_state.m_pool.getDataAsString(m_cid).c_str();
 	    msg << ", is not a constant";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //t3893 wrong loc!!
 	    setNodeType(Nav);
 	    return Nav; //short-circuit (error/t3453) after possible empty array init is deleted (t41202)
 	  }

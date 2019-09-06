@@ -125,7 +125,7 @@ namespace MFM{
     void setBlock(NodeBlock * ptr);
     NodeBlock * getBlock();
 
-    bool replaceOurselves(Symbol * symptr, Node *& newnoderef);
+    bool replaceOurselves(Symbol * symptr);
     TBOOL lookagainincaseimplicitselfchanged();
     UTI specifyimplicitselfexplicitly();
     UTI checkUsedBeforeDeclared();

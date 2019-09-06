@@ -386,8 +386,8 @@ namespace MFM {
 	NodeConstantDef * ceNode = *vit;
 	if(ceNode)
 	  {
-	    //ceNode->fixPendingArgumentNode(); //possibly renames if arg unseen tmp name.
-	    defaultval = ceNode->hasDefaultSymbolValue();
+	    //use default value if there is one AND there isn't a constant expression (t3893)
+	    defaultval = ceNode->hasDefaultSymbolValue() && !ceNode->hasConstantExpr();
 
 	    //OMG! if this was a default value for class arg, t3891,
 	    // we want to use the class stub/template as the 'context' rather than where the
@@ -398,7 +398,8 @@ namespace MFM {
 		SymbolClassNameTemplate * templateparent = stubcsym->getParentClassTemplate();
 		assert(templateparent);
 		NodeBlockClass * templateclassblock = templateparent->getClassBlockNode();
-		stubclassblock->resetNodeLocations(templateclassblock->getNodeLocation()); //temporarily change stub loc, in case of local filescope, including arg/params
+		//temporarily change stub loc, in case of local filescope, incl arg/params
+		stubclassblock->resetNodeLocations(templateclassblock->getNodeLocation());
 
 		m_state.pushClassContext(m_classUTI, stubclassblock, stubclassblock, false, NULL);
 		pushedtemplate = true;

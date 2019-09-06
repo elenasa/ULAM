@@ -152,7 +152,9 @@ namespace MFM {
     else
       newType = Hzy; //was = cuti;
 
-    m_nodeBody->checkAndLabelType(); //side-effect
+    //don't do body when condition is error, or isn't ready and as-cond (t3924)
+    if((newType != Nav) && ((newType != Hzy) || !m_nodeCondition->asConditionalNode()))
+      m_nodeBody->checkAndLabelType(); //side-effect
 
     setNodeType(newType); //stays the same
     if(newType == Hzy) m_state.setGoAgain();

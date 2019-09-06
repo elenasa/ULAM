@@ -114,7 +114,7 @@ namespace MFM{
     NodeBlock * m_currBlockPtr; //could be NULL
     SymbolTmpVar * m_tmpvarSymbol;
 
-    bool replaceOurselves(Symbol * symptr, Node *& newnoderef);
+    bool replaceOurselves(Symbol * symptr);
     UTI checkUsedBeforeDeclared();
     UlamValue makeUlamValuePtr();
 

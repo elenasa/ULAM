@@ -555,7 +555,7 @@ namespace MFM {
   {
     UTI nuti = getNodeType();
 
-    if(nuti == Nav || !m_state.isComplete(nuti))
+    if(!m_state.okUTItoContinue(nuti) || !m_state.isComplete(nuti))
       return false; //e.g. not a constant
 
     assert(m_varSymbol);

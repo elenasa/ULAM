@@ -148,9 +148,11 @@ namespace MFM {
 
 	    m_node = NULL; //recycle as memberselect
 
+	    m_state.setGoAgain();
+
 	    delete this; //suicide is painless..
 
-	    return newnode->checkAndLabelType();
+	    return Hzy;
 	  }
 	//else should fail again as non-primitive;
       } //done
@@ -174,7 +176,7 @@ namespace MFM {
     if(newType == Hzy) m_state.setGoAgain(); //since not error
     Node::setStoreIntoAble(TBOOL_FALSE);
 
-    if((newType != Nav) && isAConstant() && m_node->isReadyConstant())
+    if(m_state.okUTItoContinue(newType) && isAConstant() && m_node->isReadyConstant())
       return constantFold();
 
     return newType;
@@ -319,9 +321,7 @@ namespace MFM {
     u64 val = U64_MAX;
     UTI nuti = getNodeType();
 
-    if(nuti == Nav) return Nav; //nothing to do yet
-
-    //if(nuti == Hzy) return Hzy; //nothing to do yet TRY?
+    assert(m_state.okUTItoContinue(nuti)); //nothing to do yet
 
     // if here, must be a constant..
     assert(isAConstant());
@@ -389,9 +389,11 @@ namespace MFM {
     newnode->setYourParentNo(pno);
     newnode->resetNodeNo(getNodeNo());
 
+    m_state.setGoAgain();
+
     delete this; //suicide is painless..
 
-    return newnode->checkAndLabelType();
+    return Hzy;
   } //constantFold
 
   bool NodeUnaryOp::assignClassArgValueInStubCopy()

@@ -85,7 +85,7 @@ namespace MFM{
 
   private:
 
-    TBOOL replaceOurselves(bool classoratom, Node *& newnoderef);
+    TBOOL replaceOurselves(bool classoratom);
     Node * buildOperatorOverloadFuncCallNodeForMatchingArg(bool& hazyArg);
     void makeDefaultStructAssignment(UTI lt, UTI rt, UTI& newtyperef);
   };

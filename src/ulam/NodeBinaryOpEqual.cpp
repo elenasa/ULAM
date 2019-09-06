@@ -157,16 +157,17 @@ namespace MFM {
     if(lut->getUlamTypeEnum() == Class)
       {
 	bool rhsIsClassOrAtom = m_state.isAClass(rightType) || m_state.isAtom(rightType);
-	Node * newnode = NULL;
-	TBOOL replaced = replaceOurselves(rhsIsClassOrAtom, newnode);
+	TBOOL replaced = replaceOurselves(rhsIsClassOrAtom);
 
 	if(replaced == TBOOL_HAZY)
 	  newType = Hzy;
 	else if(replaced == TBOOL_TRUE)
 	  {
+	    m_state.setGoAgain(); //t41119,t41120,t41121,t41134,t41332
+
 	    delete this; //suicide is painless..
 
-	    return newnode->checkAndLabelType();
+	    return Hzy;
 	  }
 	else //tbool_false
 	  {
@@ -210,7 +211,7 @@ namespace MFM {
       } //else the same
   }
 
-  TBOOL NodeBinaryOpEqual::replaceOurselves(bool classoratom, Node *& newnoderef)
+  TBOOL NodeBinaryOpEqual::replaceOurselves(bool classoratom)
   {
     TBOOL rtntb = TBOOL_FALSE;
 
@@ -226,7 +227,6 @@ namespace MFM {
 	    m_nodeLeft = NULL; //recycle as memberselect
 	    m_nodeRight = NULL; //recycle as func call arg
 
-	    newnoderef = newnode;
 	    rtntb = TBOOL_TRUE;
 	  }
       }
@@ -248,7 +248,6 @@ namespace MFM {
 	    m_nodeLeft = NULL; //recycle as memberselect
 	    m_nodeRight = NULL; //recycle as func call arg
 
-	    newnoderef = newnode;
 	    rtntb = TBOOL_TRUE;
 	  }
 	//else no replacement, use default struct assign

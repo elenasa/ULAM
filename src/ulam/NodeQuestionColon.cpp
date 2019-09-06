@@ -372,9 +372,11 @@ namespace MFM {
     AssertBool isSwap = Node::exchangeNodeWithParent(newnode);
     assert(isSwap);
 
+    m_state.setGoAgain();
+
     delete this; //suicide is painless..
 
-    return newnode->checkAndLabelType();
+    return Hzy;
   } //constantFold
 
   EvalStatus NodeQuestionColon::eval()

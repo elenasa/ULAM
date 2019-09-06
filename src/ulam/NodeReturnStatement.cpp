@@ -114,7 +114,6 @@ namespace MFM {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    nodeType = Nav;
 	  }
-	//else if(UlamType::compareForArgumentMatching(nodeType, rtnType, m_state) != UTIC_SAME)
 	else if(UlamType::compareForAssignment(nodeType, rtnType, m_state) != UTIC_SAME)
 	  {
 	    if(UlamType::compare(rtnType, Void, m_state) == UTIC_NOTSAME)

@@ -40,9 +40,11 @@ namespace MFM {
 	    m_nodeLeft = NULL; //recycle as memberselect
 	    m_nodeRight = NULL; //recycle as func call arg
 
+	    m_state.setGoAgain();
+
 	    delete this; //suicide is painless..
 
-	    return newnode->checkAndLabelType(); //t41109
+	    return Hzy; //t41109
 	  }
 	//else should fail again as non-primitive;
       } //done
@@ -72,8 +74,8 @@ namespace MFM {
     if(newType == Hzy) m_state.setGoAgain(); //nolonger needed in calcnodetypes
     Node::setStoreIntoAble(TBOOL_FALSE);
 
-    //still may need casting (e.g. unary compared to an int) before constantfolding
-    if((newType != Nav) && isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
+    //still may need casting (e.g. unary compared to an int) before constantfolding, t41273
+    if(m_state.okUTItoContinue(newType) && isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
       return NodeBinaryOp::constantFold();
 
     return newType;

@@ -166,12 +166,13 @@ namespace MFM {
 	checkForSymbol();
 	if(m_constSymbol)
 	  {
-	    Node * newnode = NULL;
-	    if(replaceOurselves(m_constSymbol, newnode))
+	    if(replaceOurselves(m_constSymbol))
 	      {
+		m_state.setGoAgain();
+
 		delete this; //suicide is painless..
 
-		return newnode->checkAndLabelType();
+		return Hzy; //t41266,t41274
 	      }
 	    //else keep it!
 	  }
@@ -312,10 +313,9 @@ namespace MFM {
     m_state.popClassContext(); //restore
   } //checkForSymbol
 
-  bool NodeConstant::replaceOurselves(Symbol * symptr, Node *& newnoderef)
+  bool NodeConstant::replaceOurselves(Symbol * symptr)
   {
     assert(symptr);
-    assert(newnoderef==NULL);
 
     bool rtnb = false;
     UTI suti = symptr->getUlamTypeIdx();
@@ -333,7 +333,6 @@ namespace MFM {
 	assert(swapOk);
 
 	m_nodeTypeDesc = NULL; //tfr to new node
-	newnoderef = newnode;
 	rtnb = true;
       }
     else if(!m_state.isScalar(suti))
@@ -345,7 +344,6 @@ namespace MFM {
 	assert(swapOk);
 
 	m_nodeTypeDesc = NULL; //tfr to new node
-	newnoderef = newnode;
 	rtnb = true;
       }
     else if(symptr->isModelParameter())
@@ -359,7 +357,6 @@ namespace MFM {
 	assert(swapOk);
 
 	m_nodeTypeDesc = NULL; //tfr to new node
-	newnoderef = newnode;
 	rtnb = true;
       }
     //else did not replace ourselves

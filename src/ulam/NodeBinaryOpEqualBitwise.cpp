@@ -45,9 +45,11 @@ namespace MFM {
 	    m_nodeLeft = NULL; //recycle as memberselect
 	    m_nodeRight = NULL; //recycle as func call arg
 
+	    m_state.setGoAgain();
+
 	    delete this; //suicide is painless..
 
-	    return newnode->checkAndLabelType();
+	    return Hzy;
 	  }
 	//else should fail again as non-primitive;
       } //done
@@ -75,7 +77,7 @@ namespace MFM {
     //before constant folding; if needed (e.g. Remainder, Divide)
     castThyselfToResultType(rightType, leftType, newType);
 
-    if((newType != Nav) && isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
+    if(m_state.okUTItoContinue(newType) && isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
       newType = constantFold();
 
     UTI nodeType = newType;

@@ -180,9 +180,11 @@ namespace MFM {
 	    m_nodeLeft = NULL; //recycle as memberselect
 	    m_nodeRight = NULL; //recycle as func call arg
 
+	    m_state.setGoAgain();
+
 	    delete this; //suicide is painless..
 
-	    return newnode->checkAndLabelType();
+	    return Hzy;
 	  }
 	//else should fail again as non-primitive;
       } //done
@@ -213,7 +215,7 @@ namespace MFM {
     //before constant folding; if needed (e.g. Remainder, Divide)
     castThyselfToResultType(rightType, leftType, newType);
 
-    if((newType != Nav) && isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
+    if(m_state.okUTItoContinue(newType) && isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
       return constantFold();
 
     return newType;
@@ -539,8 +541,8 @@ namespace MFM {
     u64 val = 0;
     UTI nuti = getNodeType();
 
-    if(nuti == Nav) return Nav; //nothing to do yet
-    //if(nuti == Hzy) return Hzy; //nothing to do yet TRY?
+    //t3323,t3489,t3509,t3849,50,51,t41145
+    assert(m_state.okUTItoContinue(nuti)); //nothing to do yet
 
     // if here, must be a constant..
     assert(isAConstant());
@@ -609,9 +611,11 @@ namespace MFM {
     newnode->setYourParentNo(pno); //a leaf
     newnode->resetNodeNo(getNodeNo());
 
+    m_state.setGoAgain();
+
     delete this; //suicide is painless..
 
-    return newnode->checkAndLabelType();
+    return Hzy;
   } //constantFold
 
   bool NodeBinaryOp::assignClassArgValueInStubCopy()

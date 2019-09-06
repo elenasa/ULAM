@@ -276,14 +276,14 @@ namespace MFM {
 	      }
 	    else
 	      {
-		Node * newnode = NULL;
-		if(replaceOurselves(asymptr, newnode))
+		if(replaceOurselves(asymptr))
 		  {
 		    m_state.popClassContext(); //restore
+		    m_state.setGoAgain();
 
 		    delete this; //suicide is painless..
 
-		    return newnode->checkAndLabelType();
+		    return Hzy;
 		  }
 		else
 		  {
@@ -325,12 +325,13 @@ namespace MFM {
       } //lookup symbol done
     else
       {
-	Node * newnode = NULL;
-	if(replaceOurselves(m_varSymbol, newnode))
+	if(replaceOurselves(m_varSymbol))
 	  {
+	    m_state.setGoAgain();
+
 	    delete this; //suicide is painless..
 
-	    return newnode->checkAndLabelType();
+	    return Hzy;
 	  }
 	//else continue
       }
@@ -397,10 +398,9 @@ namespace MFM {
     return it;
   } //checkAndLabelType
 
-  bool NodeIdent::replaceOurselves(Symbol * symptr, Node *& newnoderef)
+  bool NodeIdent::replaceOurselves(Symbol * symptr)
   {
     assert(symptr);
-    assert(newnoderef==NULL);
 
     bool rtnb = false;
     UTI suti = symptr->getUlamTypeIdx();
@@ -425,7 +425,6 @@ namespace MFM {
 	AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
 	assert(swapOk);
 
-	newnoderef = newnode;
 	rtnb = true;
       }
     else if(symptr->isModelParameter())
@@ -438,7 +437,6 @@ namespace MFM {
 	AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
 	assert(swapOk);
 
-	newnoderef = newnode;
 	rtnb = true;
       }
     //else did not replace ourselves

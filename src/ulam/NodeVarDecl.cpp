@@ -412,11 +412,13 @@ namespace MFM {
 	if(hasInitExpr())
 	  newnode->m_nodeInitExpr = (Node *) m_nodeInitExpr->instantiate();
 
+	m_state.setGoAgain();
+
 	delete this; //suicide is painless..
 
 	// we must be the last thing called by checkandlabel
 	// to return properly to our parent
-	return newnode->checkAndLabelType();
+	return Hzy;
       }
     return true; //ok
   } //checkReferenceCompatibility

@@ -95,7 +95,7 @@ namespace MFM{
     virtual UTI setConstantTypeForNode(const Token& tok);
     bool updateProxy();
 
-    bool replaceOurselvesLengthOf(Node *& newnoderef);
+    bool replaceOurselvesLengthOf();
     Node * buildAlengthofFuncCallNode(); //like toInt cast in Node
     Node* constantFoldLengthofConstantString();
 
