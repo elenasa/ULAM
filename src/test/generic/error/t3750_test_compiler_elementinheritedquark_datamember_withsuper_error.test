@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3750_test_compiler_elementinheritedquark_datamember_withsuper_error
 #!
-./Sub1.ulam:7:24: ERROR: Variable <sint> is not defined, or was used before declared in a function.
+./Sub1.ulam:7:24: ERROR: Variable 'sint' is not defined, or was used before declared in a function.
 ./Sub1.ulam:7:13: ERROR: Cannot cast erroneous type.
 Unrecoverable Program Type Label FAILURE.
 ##

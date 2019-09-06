@@ -266,8 +266,8 @@ namespace MFM {
 		else
 		  {
 		    std::ostringstream msg;
-		    msg << "Identifier <" << m_state.getTokenDataAsString(m_token).c_str();
-		    msg << "> was used while still undeclared";
+		    msg << "Identifier '" << m_state.getTokenDataAsString(m_token).c_str();
+		    msg << "' was used while still undeclared";
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 		    it = Hzy; //t3572, t3597, t41183, and ulamexports QBox
 		    errCnt++;
@@ -288,8 +288,8 @@ namespace MFM {
 		else
 		  {
 		    std::ostringstream msg;
-		    msg << "(1) <" << m_state.getTokenDataAsString(m_token).c_str();
-		    msg << "> is not a variable, and cannot be used as one with class: ";
+		    msg << "(1) '" << m_state.getTokenDataAsString(m_token).c_str();
+		    msg << "' is not a variable, and cannot be used as one with class: ";
 		    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		    it = Nav;
@@ -305,8 +305,8 @@ namespace MFM {
 	    if(foundit != TBOOL_TRUE)
 	      {
 		std::ostringstream msg;
-		msg << "Variable <" << m_state.getTokenDataAsString(m_token).c_str();
-		msg << "> is not defined, or was used before declared in a function";
+		msg << "Variable '" << m_state.getTokenDataAsString(m_token).c_str();
+		msg << "' is not defined, or was used before declared in a function";
 		if((foundit != TBOOL_HAZY))
 		  {
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);

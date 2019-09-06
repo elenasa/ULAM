@@ -268,8 +268,8 @@ namespace MFM {
     if(opolId == 0)
       {
 	std::ostringstream msg;
-	msg << "Overload for operator <" << getName();
-	msg << "> is not supported as operand for class: ";
+	msg << "Overload for operator" << getName();
+	msg << " is not supported as operand for class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(leftType).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	return NULL;
@@ -326,7 +326,7 @@ namespace MFM {
       {
 	UTI lt = m_nodeLeft->getNodeType();
 	std::ostringstream msg;
-	msg << "Unmodifiable lefthand side of assignment expression <";
+	msg << "Unmodifiable lefthand side of assignment expression '";
 	if(m_nodeLeft->isAMemberSelect()) //t3133
 	  {
 	    Symbol * rhsym = NULL;
@@ -341,7 +341,7 @@ namespace MFM {
 	  }
 	else
 	  msg << m_nodeLeft->getName();
-	msg << ">, type: " << m_state.getUlamTypeNameBriefByIndex(lt).c_str();
+	msg << "', type: " << m_state.getUlamTypeNameBriefByIndex(lt).c_str();
 	if(m_nodeLeft->isFunctionCall())
 	  msg << "; may be a function call";
 	else if(m_nodeLeft->hasASymbolReference() && m_nodeLeft->hasASymbolReferenceConstant())
@@ -370,17 +370,17 @@ namespace MFM {
 	if(unpackedArrayLeft)
 	  {
 	    std::ostringstream msg;
-	    msg << "Lefthand side of equals requires UNPACKED array support <";
+	    msg << "Lefthand side of equals requires UNPACKED array support '";
 	    msg << m_nodeLeft->getName();
-	    msg << ">, type: " << m_state.getUlamTypeNameBriefByIndex(lt).c_str();
+	    msg << "', type: " << m_state.getUlamTypeNameBriefByIndex(lt).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
 	if(unpackedArrayRight)
 	  {
 	    std::ostringstream msg;
-	    msg << "Righthand side of equals requires UNPACKED array support <";
+	    msg << "Righthand side of equals requires UNPACKED array support '";
 	    msg << m_nodeRight->getName();
-	    msg << ">, type: " << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
+	    msg << "', type: " << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
 	rtnOK = false;

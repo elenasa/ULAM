@@ -1,8 +1,8 @@
 ## -*- mode:ulam -*-
 #=t3552_test_compiler_funccallargsnomatchwinheritance_error
 #!
-./Tu.ulam:8:5: ERROR: (1) <print> has no defined function with 2 matching argument types: Bool(1), Int(3), and cannot be called.
-./Tu.ulam:9:5: ERROR: (1) <print> has no defined function with 0 matching argument types: and cannot be called.
+./Tu.ulam:8:5: ERROR: (1) 'print' has no defined function with 2 matching argument types: Bool(1), Int(3), and cannot be called.
+./Tu.ulam:9:5: ERROR: (1) 'print' has no defined function with 0 matching argument types: and cannot be called.
 Unrecoverable Program Type Label FAILURE.
 ##
 ##       //no matching function: error should list the type, not just the number

@@ -2,7 +2,7 @@
 #=t3674_test_compiler_elementandquarkarrayinheritance_error
 #!
 ./Tu.ulam:3:9: ERROR: Subclass 'Tu' inherits from 'F3', a class that's not a quark.
-./Tu.ulam:3:14: ERROR: UNSEEN class type <F3> was never defined in <F3.ulam>.
+./Tu.ulam:3:14: ERROR: UNSEEN class type <F3> was never defined in: F3.ulam.
 Unrecoverable Program Type Label FAILURE.
 ##
 ##       //element inheriting from quark array

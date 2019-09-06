@@ -51,8 +51,8 @@ namespace MFM {
 		if(!m_nodeOf->hasASymbolDataMember())
 		  {
 		    std::ostringstream msg;
-		    msg << "<" << m_nodeOf->getName();
-		    msg << "> is a quark and cannot be used with ";
+		    msg << "'" << m_nodeOf->getName();
+		    msg << "' is a quark and cannot be used with ";
 		    msg << getName() << "; try a reference or self";
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		    setNodeType(Nav);
@@ -71,8 +71,8 @@ namespace MFM {
 	    else if(ofclasstype == UC_TRANSIENT)
 	      {
 		std::ostringstream msg;
-		msg << "<" << m_nodeOf->getName();
-		msg << "> is a transient";
+		msg << "'" << m_nodeOf->getName();
+		msg << "' is a transient";
 		msg << "; Transients cannot be used with " << getName();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		setNodeType(Nav); //e.g. error/t3761
@@ -82,8 +82,8 @@ namespace MFM {
 	else if(ofclasstype == UC_TRANSIENT)
 	  {
 	    std::ostringstream msg;
-	    msg << "<"  << m_nodeOf->getName();
-	    msg << "> is a transient reference";
+	    msg << "'"  << m_nodeOf->getName();
+	    msg << "' is a transient reference";
 	    msg << "; Transients cannot be used with " << getName();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    setNodeType(Nav); //e.g. error/t3762

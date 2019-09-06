@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3215_test_compiler_element_modelparameterint
 #!
-./Foo.ulam:12:12: ERROR: Unmodifiable lefthand side of assignment expression <chance>, type: Int(32).
+./Foo.ulam:12:12: ERROR: Unmodifiable lefthand side of assignment expression 'chance', type: Int(32).
 Unrecoverable Program Type Label FAILURE.
 ##
 ## generate code for test:

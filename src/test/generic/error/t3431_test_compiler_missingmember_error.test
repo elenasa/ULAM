@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3431_test_compiler_missingmember_error
 #!
-./A.ulam:6:13: ERROR: Variable <long> is not defined, or was used before declared in a function.
+./A.ulam:6:13: ERROR: Variable 'long' is not defined, or was used before declared in a function.
 ./A.ulam:6:18: ERROR: Undetermined type for missing member 'long' Proxy.
 ./A.ulam:6:7: ERROR: Assignment is invalid; LHS: Int(64); RHS: erroneous.
 Unrecoverable Program Type Label FAILURE.

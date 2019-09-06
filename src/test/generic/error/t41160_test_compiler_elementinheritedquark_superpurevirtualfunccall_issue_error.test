@@ -2,7 +2,7 @@
 #=t41160_test_compiler_elementinheritedquark_superpurevirtualfunccall_issue_error
 ##
 #!
-./Sub1.ulam:5:11: ERROR: (2) Virtual function <Uf_4func10> is pure; cannot be called for eval.
+./Sub1.ulam:5:11: ERROR: (2) Virtual function 'Uf_4func10' is pure; cannot be called for eval.
 Exit status: -1
 Unrecoverable Program Test FAILURE.
 ##

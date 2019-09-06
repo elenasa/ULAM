@@ -3601,9 +3601,9 @@ namespace MFM {
 		      {
 			//c++, quietly supports it (t3746, t41160).
 			std::ostringstream msg;
-			msg << "Virtual overloaded function <";
+			msg << "Virtual overloaded function '";
 			msg << m_pool.getDataAsString(fid).c_str();
-			msg << "> has a NON-VIRTUAL ancestor in class: ";
+			msg << "' has a NON-VIRTUAL ancestor in class: ";
 			msg << getUlamTypeNameBriefByIndex(baseuti).c_str();
 			msg << " while compiling ";
 			msg << getUlamTypeNameBriefByIndex(cuti).c_str();
@@ -3661,9 +3661,9 @@ namespace MFM {
 		  {
 		    //c++, quietly supports it (t3746).
 		    std::ostringstream msg;
-		    msg << "Virtual overloaded function <";
+		    msg << "Virtual overloaded function '";
 		    msg << m_pool.getDataAsString(fid).c_str();
-		    msg << "> has a NON-VIRTUAL ancestor in class: ";
+		    msg << "' has a NON-VIRTUAL ancestor in class: ";
 		    msg << getUlamTypeNameBriefByIndex(baseuti).c_str();
 		    msg << " while compiling ";
 		    msg << getUlamTypeNameBriefByIndex(cuti).c_str();
@@ -3721,9 +3721,9 @@ namespace MFM {
     if(warns)
       {
 	std::ostringstream msg;
-	msg << "Virtual overloaded function <";
+	msg << "Virtual overloaded function '";
 	msg << m_pool.getDataAsString(fid).c_str();
-	msg << "> Originating class is: ";
+	msg << "' Originating class is: ";
 	msg << getUlamTypeNameBriefByIndex(firstInAncestor).c_str();
 	msg << " while compiling ";
 	msg << getUlamTypeNameBriefByIndex(cuti).c_str();
@@ -4282,10 +4282,10 @@ namespace MFM {
 		    std::ostringstream msg;
 		    msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str();
 		    msg << "''s Return type's " << getUlamTypeNameByIndex(it).c_str();
-		    msg << " array size <" << getArraySize(it);
-		    msg << "> does not match resulting type's ";
-		    msg << getUlamTypeNameByIndex(rType).c_str() << " array size <";
-		    msg << getArraySize(rType) << ">";
+		    msg << " array size [" << getArraySize(it);
+		    msg << "] does not match resulting type's ";
+		    msg << getUlamTypeNameByIndex(rType).c_str() << " array size [";
+		    msg << getArraySize(rType) << "]";
 		    m_err.buildMessage(rNode->getNodeLocationAsString().c_str(), msg.str().c_str(), "MFM::NodeReturnStatement", "checkAndLabelType", rNode->getNodeLocation().getLineNo(), MSG_ERR);
 		  }
 
@@ -4294,10 +4294,10 @@ namespace MFM {
 		    std::ostringstream msg;
 		    msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str();
 		    msg << "''s Return type's " << getUlamTypeNameByIndex(it).c_str();
-		    msg << " bit size <" << getBitSize(it);
-		    msg << "> does not match resulting type's ";
-		    msg << getUlamTypeNameByIndex(rType).c_str() << " bit size <";
-		    msg << getBitSize(rType) << ">";
+		    msg << " bit size (" << getBitSize(it);
+		    msg << ") does not match resulting type's ";
+		    msg << getUlamTypeNameByIndex(rType).c_str() << " bit size (";
+		    msg << getBitSize(rType) << ")";
 		    m_err.buildMessage(rNode->getNodeLocationAsString().c_str(), msg.str().c_str(), "MFM::NodeReturnStatement", "checkAndLabelType", rNode->getNodeLocation().getLineNo(), MSG_ERR);
 		  }
 

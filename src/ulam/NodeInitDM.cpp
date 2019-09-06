@@ -370,8 +370,8 @@ namespace MFM {
     else
       {
 	std::ostringstream msg;
-	msg << "Data Member <" << m_state.m_pool.getDataAsString(m_cid).c_str();
-	msg << "> is not defined, and cannot be initialized for this instance of class ";
+	msg << "Data Member '" << m_state.m_pool.getDataAsString(m_cid).c_str();
+	msg << "' is not defined, and cannot be initialized for this instance of class ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_ofClassUTI).c_str();
 	if(!hazyKin)
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);

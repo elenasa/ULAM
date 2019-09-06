@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t41237_test_compiler_elementconstant_funccallrefarg_error
 #!
-./R.ulam:10:13: ERROR: (1) <func> has no defined function with 1 matching argument type: T, and cannot be called.
+./R.ulam:10:13: ERROR: (1) 'func' has no defined function with 1 matching argument type: T, and cannot be called.
 ./R.ulam:10:5: ERROR: Initial value expression for: i, initialization is invalid.
 Unrecoverable Program Type Label FAILURE.
 ##

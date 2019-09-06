@@ -2,7 +2,7 @@
 #=t41127_test_compiler_element_operatoroverloadlogicalops_error
 #!
 ./Foo.ulam:22:17: ERROR: Weird Lex! <||> isn't an overloadable operation.
-./Foo.ulam:23:3: ERROR: Name of variable/function <{>: Identifier must begin with a lower-case letter.
+./Foo.ulam:23:3: ERROR: Name of variable/function '{': Identifier must begin with a lower-case letter.
 ./Foo.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'Foo'; Possible missing ending curly brace.
 ./Foo.ulam:23:3: ERROR: Invalid Class Type <{>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 ./Foo.ulam:2:9: ERROR: Invalid Type: Foo.

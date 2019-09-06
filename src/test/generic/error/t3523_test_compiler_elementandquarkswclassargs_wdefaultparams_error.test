@@ -5,7 +5,7 @@
 ./P.ulam:6:9: ERROR: Class Argument after Comma is missing, for template 'Q'.
 ./P.ulam:7:11: ERROR: Too many Class Arguments (3); Class Template 'Q' expects 2.
 ./P.ulam:8:7: ERROR: Class Argument after Open Paren is missing, for template 'Q'.
-./P.ulam:8:7: ERROR: Name of variable <,>: Identifier must begin with a lower-case letter.
+./P.ulam:8:7: ERROR: Name of variable ',': Identifier must begin with a lower-case letter.
 ./P.ulam:8:7: ERROR: Invalid Statement (possible missing semicolon).
 Unrecoverable Program Parse FAILURE: <P.ulam>
 ##

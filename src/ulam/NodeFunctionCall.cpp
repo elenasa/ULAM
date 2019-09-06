@@ -160,8 +160,8 @@ namespace MFM {
 	  {
 	    assert(foundInAncestor == Nouti); //sanity
 	    std::ostringstream msg;
-	    msg << "(1) <" << m_state.getTokenDataAsString(m_functionNameTok).c_str();
-	    msg << "> has no defined function with " << numargs;
+	    msg << "(1) '" << m_state.getTokenDataAsString(m_functionNameTok).c_str();
+	    msg << "' has no defined function with " << numargs;
 	    msg << " matching argument type";
 	    if(numargs != 1)
 	      msg << "s";
@@ -187,11 +187,11 @@ namespace MFM {
 	  {
 	    assert(foundInAncestor == Nav); //sanity
 	    std::ostringstream msg;
-	    msg << "Ambiguous matches (" << numFuncs << ") of function <";
+	    msg << "Ambiguous matches (" << numFuncs << ") of function '";
 	    msg << m_state.getTokenDataAsString(m_functionNameTok).c_str();
 	    if(numargs > 0)
 	      {
-		msg << "> called with " << numargs << " argument type";
+		msg << "' called with " << numargs << " argument type";
 		if(numargs != 1)
 		  msg << "s";
 		msg << ": ";
@@ -204,7 +204,7 @@ namespace MFM {
 	      }
 	    else
 	      {
-		msg << "> called without arguments"; //t41329, t41305
+		msg << "' called without arguments"; //t41329, t41305
 	      }
 	    if(hasHazyArgs)
 	      {
@@ -236,9 +236,9 @@ namespace MFM {
 		    if(argreferable != TBOOL_TRUE)
 		      {
 			std::ostringstream msg;
-			msg << "Invalid argument " << i + 1 << " to function <";
+			msg << "Invalid argument " << i + 1 << " to function '";
 			msg << m_state.getTokenDataAsString(m_functionNameTok).c_str();
-			msg << ">; Cannot be used as a reference parameter";
+			msg << "'; Cannot be used as a reference parameter";
 			if(argreferable == TBOOL_HAZY)
 			  {
 			    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
@@ -267,8 +267,8 @@ namespace MFM {
 	if(foundit != TBOOL_TRUE)
 	  {
 	    std::ostringstream msg;
-	    msg << "(2) <" << m_state.getTokenDataAsString(m_functionNameTok).c_str();
-	    msg << "> is not a defined function, or cannot be safely called in this context";
+	    msg << "(2) '" << m_state.getTokenDataAsString(m_functionNameTok).c_str();
+	    msg << "' is not a defined function, or cannot be safely called in this context";
 	    if(foundit == TBOOL_HAZY)
 	      {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
@@ -389,9 +389,9 @@ namespace MFM {
 			  msg << "Constant ";
 			msg << "Reference Vararg: " ;
 			msg << "arg_" << i + 1;
-			msg << " to function <";
+			msg << " to function '";
 			msg << m_state.getTokenDataAsString(m_functionNameTok).c_str();
-			msg <<">; type ";
+			msg <<"'; type ";
 			msg << m_state.getUlamTypeNameBriefByIndex(auti).c_str();
 			msg << " is currently unsupported";
 			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
@@ -411,8 +411,8 @@ namespace MFM {
 		  msg << "arg_" << i + 1;
 		}
 
-	      msg << " to function <";
-	      msg << m_state.getTokenDataAsString(m_functionNameTok).c_str() <<">";
+	      msg << " to function '";
+	      msg << m_state.getTokenDataAsString(m_functionNameTok).c_str() <<"'";
 	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	      argsWithCastErr.clear();
 	    }
@@ -702,9 +702,9 @@ namespace MFM {
 
     std::ostringstream msg;
     msg << "Eval of function calls as lefthand values is not currently supported.";
-    msg << " Save the results of <";
+    msg << " Save the results of '";
     msg << m_state.getTokenDataAsString(m_functionNameTok).c_str();
-    msg << "> to a variable, type: ";
+    msg << "' to a variable, type: ";
     msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
 
     if((getStoreIntoAble() != TBOOL_TRUE) && !isAConstructorFunctionCall())
@@ -1006,8 +1006,8 @@ namespace MFM {
 	if(numFuncs != 1)
 	  {
 	    std::ostringstream msg;
-	    msg << "Virtual function <" << funcSymbol->getMangledNameWithTypes().c_str();
-	    msg << "> is ";
+	    msg << "Virtual function '" << funcSymbol->getMangledNameWithTypes().c_str();
+	    msg << "' is ";
 	    if(numFuncs > 1)
 	      msg << "ambiguous";
 	    else
@@ -1018,16 +1018,16 @@ namespace MFM {
 	if(!funcSymbol->isVirtualFunction())
 	  {
 	    std::ostringstream msg;
-	    msg << "Function <" << funcSymbol->getMangledNameWithTypes().c_str();
-	    msg << "> is not virtual";
+	    msg << "Function '" << funcSymbol->getMangledNameWithTypes().c_str();
+	    msg << "' is not virtual";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    rtnok = false;
 	  }
 	else if(funcSymbol->isPureVirtualFunction())
 	  {
 	    std::ostringstream msg;
-	    msg << "(1) Virtual function <" << funcSymbol->getMangledNameWithTypes().c_str();
-	    msg << "> is pure; cannot be called for eval";
+	    msg << "(1) Virtual function '" << funcSymbol->getMangledNameWithTypes().c_str();
+	    msg << "' is pure; cannot be called for eval";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    rtnok = false;
 	  }
@@ -1042,8 +1042,8 @@ namespace MFM {
 	if(m_funcSymbol->isPureVirtualFunction())
 	  {
 	    std::ostringstream msg;
-	    msg << "(2) Virtual function <" << m_funcSymbol->getMangledNameWithTypes().c_str();
-	    msg << "> is pure; cannot be called for eval";
+	    msg << "(2) Virtual function '" << m_funcSymbol->getMangledNameWithTypes().c_str();
+	    msg << "' is pure; cannot be called for eval";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    rtnok = false; //t41094, t41158, t41160, t41313
 	  }
@@ -1059,8 +1059,8 @@ namespace MFM {
     if(!m_funcSymbol || !m_state.okUTItoContinue(getNodeType()))
       {
 	std::ostringstream msg;
-	msg << "(3) <" << m_state.getTokenDataAsString(m_functionNameTok).c_str();
-	msg << "> is not a fully resolved function definition; ";
+	msg << "(3) '" << m_state.getTokenDataAsString(m_functionNameTok).c_str();
+	msg << "' is not a fully resolved function definition; ";
 	msg << "A call to it cannot be generated in this context";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	m_state.clearCurrentObjSymbolsForCodeGen();
@@ -1457,8 +1457,8 @@ namespace MFM {
 	if(bcsym->isPureVTableEntry(vfidx+startoffset))
 	  {
 	    std::ostringstream msg;
-	    msg << "Virtual function <" << m_funcSymbol->getMangledNameWithTypes().c_str();
-	    msg << "> is pure; cannot be called directly in baseclass: ";
+	    msg << "Virtual function '" << m_funcSymbol->getMangledNameWithTypes().c_str();
+	    msg << "' is pure; cannot be called directly in baseclass: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(decosuti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
@@ -1505,8 +1505,8 @@ namespace MFM {
 	if(cvfsym->isPureVTableEntry(vfidx))
 	  {
 	    std::ostringstream msg;
-	    msg << "Virtual function <" << m_funcSymbol->getMangledNameWithTypes().c_str();
-	    msg << "> is pure; cannot be called";
+	    msg << "Virtual function '" << m_funcSymbol->getMangledNameWithTypes().c_str();
+	    msg << "' is pure; cannot be called";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
       }

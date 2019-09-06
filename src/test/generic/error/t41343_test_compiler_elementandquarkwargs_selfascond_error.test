@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t41343_test_compiler_elementandquarkwargs_selfascond_error
 #!
-./Eltypo.ulam:14:7: ERROR: Variable <first> is not defined, or was used before declared in a function.
+./Eltypo.ulam:14:7: ERROR: Variable 'first' is not defined, or was used before declared in a function.
 ./Eltypo.ulam:14:13: ERROR: Assignment is invalid; LHS: erroneous; RHS: Unsigned(3).
 Unrecoverable Program Type Label FAILURE.
 ##

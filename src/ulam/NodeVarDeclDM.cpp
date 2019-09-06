@@ -470,7 +470,7 @@ namespace MFM {
 	if((len > MAXBITSPERLONG) && (dmclasstype == UC_NOTACLASS) && ut->isScalar() && ut->isNumericType()) //BitField constraint
 	  {
 	    std::ostringstream msg;
-	    msg << "Data member <" << getName() << "> of numeric scalar type: ";
+	    msg << "Data member '" << getName() << "' of numeric scalar type: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
 	    msg << ", total size: " << (s32) m_state.getTotalBitSize(it);
 	    msg << " MUST fit into " << MAXBITSPERLONG << " bits;";
@@ -482,7 +482,7 @@ namespace MFM {
 	if(dmclasstype == UC_ELEMENT)
 	  {
 	    std::ostringstream msg;
-	    msg << "Data member <" << getName() << "> of type: ";
+	    msg << "Data member '" << getName() << "' of type: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
 	    msg << ", is an element, and is NOT permitted; Local variables, quarks, ";
 	    msg << "and Model Parameters do not have this restriction";
@@ -495,7 +495,7 @@ namespace MFM {
 	    if(!ut->isScalar() && (len > MAXSTATEBITS)) //was MAXBITSPERLONG
 	      {
 		std::ostringstream msg;
-		msg << "Data member <" << getName() << "> of class array type: ";
+		msg << "Data member '" << getName() << "' of class array type: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
 		msg << ", total size: " << (s32) len;
 		msg << " MUST fit into " << MAXSTATEBITS << " bits;";
@@ -508,7 +508,7 @@ namespace MFM {
 	if(dmclasstype == UC_TRANSIENT)
 	  {
 	    std::ostringstream msg;
-	    msg << "Data member <" << getName() << "> of type: ";
+	    msg << "Data member '" << getName() << "' of type: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
 	    msg << ", is a transient, and is NOT permitted; Local variables, ";
 	    msg << "do not have this restriction";
@@ -523,7 +523,7 @@ namespace MFM {
 	if(ut->isScalar() && (len > MAXBITSPERINT))
 	  {
 	    std::ostringstream msg;
-	    msg << "Data member <" << getName() << "> of class type: ";
+	    msg << "Data member '" << getName() << "' of class type: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
 	    msg << ", total size: " << (s32) len;
 	    msg << " MUST fit into " << MAXBITSPERINT << " bits";

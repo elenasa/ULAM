@@ -192,8 +192,8 @@ namespace MFM {
     if(opolId == 0)
       {
 	std::ostringstream msg;
-	msg << "Overload for operator <" << getName();
-	msg << "> is not supported as operand for class: ";
+	msg << "Overload for operator" << getName();
+	msg << " is not supported as operand for class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_node->getNodeType()).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	return NULL;

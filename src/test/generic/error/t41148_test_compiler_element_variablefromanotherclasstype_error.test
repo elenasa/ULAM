@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t41148_test_compiler_element_variablefromanotherclasstype_error
 #!
-./MyElement.ulam:5:18: ERROR: (1) <mFOO> is not a constant, and cannot be used as one with a class type: MyParms.
+./MyElement.ulam:5:18: ERROR: (1) 'mFOO' is not a constant, and cannot be used as one with a class type: MyParms.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t41146 and t41147, user ish 11/5/2017:

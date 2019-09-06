@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3740_test_compiler_transientrefassignmentundefined_error
 #!
-./R.ulam:6:16: ERROR: Variable <at2> is not defined, or was used before declared in a function.
+./R.ulam:6:16: ERROR: Variable 'at2' is not defined, or was used before declared in a function.
 ./R.ulam:6:5: ERROR: Initial value expression for: atref, initialization is invalid.
 ./R.ulam:6:5: ERROR: Storage expression for: atref, is invalid.
 Unrecoverable Program Type Label FAILURE.

@@ -707,16 +707,16 @@ namespace MFM {
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "(1) <" << m_state.m_pool.getDataAsString(m_vid).c_str();
-	    msg << "> is not a variable, and cannot be used as one";
+	    msg << "(1) '" << m_state.m_pool.getDataAsString(m_vid).c_str();
+	    msg << "' is not a variable, and cannot be used as one";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
       }
     else
       {
 	std::ostringstream msg;
-	msg << "(2) Variable <" << m_state.m_pool.getDataAsString(m_vid).c_str();
-	msg << "> is not defined, and cannot be used";
+	msg << "(2) Variable '" << m_state.m_pool.getDataAsString(m_vid).c_str();
+	msg << "' is not defined, and cannot be used";
 	if(!hazyKin)
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	else

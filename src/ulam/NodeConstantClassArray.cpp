@@ -186,8 +186,8 @@ namespace MFM {
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "(1) <" << m_state.getTokenDataAsString(m_token).c_str();
-	    msg << "> is not a constant, and cannot be used as one with class: ";
+	    msg << "(1) '" << m_state.getTokenDataAsString(m_token).c_str();
+	    msg << "' is not a constant, and cannot be used as one with class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
@@ -195,8 +195,8 @@ namespace MFM {
     else
       {
 	std::ostringstream msg;
-	msg << "Named Constant Array <" << m_state.getTokenDataAsString(m_token).c_str();
-	msg << "> is not defined, or was used before declared in a function";
+	msg << "Named Constant Array '" << m_state.getTokenDataAsString(m_token).c_str();
+	msg << "' is not defined, or was used before declared in a function";
 	if(!hazyKin)
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	else

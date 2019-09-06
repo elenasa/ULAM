@@ -678,7 +678,7 @@ namespace MFM {
 	  if(errMsg)
 	    {
 	      std::ostringstream msg;
-	      msg << "Invalid signed constant <" << numstr.c_str() << ">: ";
+	      msg << "Invalid signed constant '" << numstr.c_str() << "': ";
               msg << errMsg;
 	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    }
@@ -696,7 +696,7 @@ namespace MFM {
 	  if(errMsg)
 	    {
 	      std::ostringstream msg;
-	      msg << "Invalid unsigned constant <" << numstr.c_str() << ">: ";
+	      msg << "Invalid unsigned constant '" << numstr.c_str() << "': ";
               msg << errMsg;
 	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    }

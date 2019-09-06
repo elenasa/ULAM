@@ -322,9 +322,9 @@ namespace MFM {
 		if(!fsym->isVirtualFunction())
 		  {
 		    std::ostringstream msg;
-		    msg << "Non-virtual overloaded function <";
+		    msg << "Non-virtual overloaded function '";
 		    msg << m_state.m_pool.getDataAsString(fid).c_str();
-		    msg << "> has a VIRTUAL ancestor in class: ";
+		    msg << "' has a VIRTUAL ancestor in class: ";
 		    msg << m_state.getUlamTypeNameBriefByIndex(kinuti).c_str();
 		    msg << " while compiling ";
 		    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
@@ -350,9 +350,9 @@ namespace MFM {
 		  {
 		    //c++, quietly fails
 		    std::ostringstream msg;
-		    msg << "Virtual overloaded function <";
+		    msg << "Virtual overloaded function '";
 		    msg << m_state.m_pool.getDataAsString(fid).c_str();
-		    msg << "> has a NON-VIRTUAL ancestor in class: ";
+		    msg << "' has a NON-VIRTUAL ancestor in class: ";
 		    msg << m_state.getUlamTypeNameBriefByIndex(kinuti).c_str();
 		    MSG(fsym->getTokPtr(), msg.str().c_str(), WARN);
 		    //probably upsets compiler assert...need a Nav node?
@@ -425,9 +425,9 @@ namespace MFM {
 	if(checkForDuplicateFunctionSignature(mangledFunctionMap, probcount, fsym))
 	  {
 	    std::ostringstream msg;
-	    msg << "Check overloaded function <";
+	    msg << "Check overloaded function '";
 	    msg << m_state.m_pool.getDataAsString(fsym->getId()).c_str();
-	    msg << "> has a duplicate definition (";
+	    msg << "' has a duplicate definition (";
 	    msg << fsym->getMangledNameWithTypes().c_str();
 	    msg << "), while compiling class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
@@ -472,9 +472,9 @@ namespace MFM {
 	if(UlamType::compare(rtntype, futi, m_state) == UTIC_NOTSAME) //NEVER LEGAL!
 	  {
 	    std::ostringstream msg;
-	    msg << "Check overloaded function <";
+	    msg << "Check overloaded function '";
 	    msg << m_state.m_pool.getDataAsString(fsym->getId()).c_str();
-	    msg << "> with different return types (";
+	    msg << "' with different return types (";
 	    msg << m_state.getUlamTypeNameBriefByIndex(rtntype).c_str();
 	    msg << ", " << m_state.getUlamTypeNameBriefByIndex(futi).c_str();
 	    msg << "), in ";
@@ -693,9 +693,9 @@ namespace MFM {
 	  {
 	    std::string fkey = it->first;
 	    std::ostringstream msg;
-	    msg << (ncnt - fcntnavs) << " nodes with erroneous types remain in function <";
+	    msg << (ncnt - fcntnavs) << " nodes with erroneous types remain in function '";
 	    msg << m_state.m_pool.getDataAsString(getId());
-	    msg << "> (" << fkey.c_str() << ")";
+	    msg << "' (" << fkey.c_str() << ")";
 	    MSG(func->getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
 	    countNavs += (ncnt - fcntnavs);
 	  }
@@ -704,9 +704,9 @@ namespace MFM {
 	  {
 	    std::string fkey = it->first;
 	    std::ostringstream msg;
-	    msg << (hcnt - fcnthzy) << " nodes with unresolved types remain in function <";
+	    msg << (hcnt - fcnthzy) << " nodes with unresolved types remain in function '";
 	    msg << m_state.m_pool.getDataAsString(getId());
-	    msg << "> (" << fkey.c_str() << ")";
+	    msg << "' (" << fkey.c_str() << ")";
 	    MSG(func->getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
 	    countHzy += (hcnt - fcnthzy);
 	  }
@@ -715,9 +715,9 @@ namespace MFM {
 	  {
 	    std::string fkey = it->first;
 	    std::ostringstream msg;
-	    msg << (nocnt - fcntunset) << " nodes with unset types remain in function <";
+	    msg << (nocnt - fcntunset) << " nodes with unset types remain in function '";
 	    msg << m_state.m_pool.getDataAsString(getId());
-	    msg << "> (" << fkey.c_str() << ")";
+	    msg << "' (" << fkey.c_str() << ")";
 	    MSG(func->getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
 	    countUnset += (nocnt - fcntunset);
 	  }
@@ -731,10 +731,10 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Summary: " << countNavs << " nodes with erroneous types remain in ";
 	if(numfuncs > 1)
-	  msg << "all " <<  numfuncs << " functions <";
+	  msg << "all " <<  numfuncs << " functions '";
 	else
-	  msg << " a single function <";
-	msg << m_state.m_pool.getDataAsString(getId()) << "> in class: ";
+	  msg << " a single function '";
+	msg << m_state.m_pool.getDataAsString(getId()) << "' in class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(m_state.getFullLocationAsString(getLoc()).c_str(), msg.str().c_str(), INFO);
       }
@@ -745,10 +745,10 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Summary: " << countHzy << " nodes with unresolved types remain in ";
 	if(numfuncs > 1)
-	  msg << "all " <<  numfuncs << " functions <";
+	  msg << "all " <<  numfuncs << " functions '";
 	else
-	  msg << " a single function <";
-	msg << m_state.m_pool.getDataAsString(getId()) << "> in class: ";
+	  msg << " a single function '";
+	msg << m_state.m_pool.getDataAsString(getId()) << "' in class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(m_state.getFullLocationAsString(getLoc()).c_str(), msg.str().c_str(), INFO);
       }
@@ -759,10 +759,10 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Summary: " << countUnset << " nodes with unset types remain in ";
 	if(numfuncs > 1)
-	  msg << "all " <<  numfuncs << " functions <";
+	  msg << "all " <<  numfuncs << " functions '";
 	else
-	  msg << " a single function <";
-	msg << m_state.m_pool.getDataAsString(getId()) << "> in class: ";
+	  msg << " a single function '";
+	msg << m_state.m_pool.getDataAsString(getId()) << "' in class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(m_state.getFullLocationAsString(getLoc()).c_str(), msg.str().c_str(), INFO);
       }

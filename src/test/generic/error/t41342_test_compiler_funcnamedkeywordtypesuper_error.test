@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t41342_test_compiler_funcnamedkeywordtypesuper_error
 #!
-./Su.ulam:9:8: ERROR: Name of variable/function <Super>: Identifier must begin with a lower-case letter.
+./Su.ulam:9:8: ERROR: Name of variable/function 'Super': Identifier must begin with a lower-case letter.
 ./Su.ulam:3:1: ERROR: Empty/Incomplete Class Definition 'Su'; Possible missing ending curly brace.
 ./Su.ulam:9:8: ERROR: Invalid Class Type <(>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 ./Su.ulam:3:9: ERROR: Invalid Type: Su.

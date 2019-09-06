@@ -260,7 +260,7 @@ namespace MFM {
     else
       {
 	std::ostringstream msg;
-	msg << "Undefined function block <" << getName() << ">";
+	msg << "Undefined function block '" << getName() << "'";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(Nav);
       }

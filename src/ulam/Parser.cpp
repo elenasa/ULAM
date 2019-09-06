@@ -249,8 +249,8 @@ namespace MFM {
 	    else if(cnSym->isClassTemplate())
 	      {
 		std::ostringstream msg;
-		msg << "Conflicting class args previously seen for class with no parameters <";
-		msg << m_state.m_pool.getDataAsString(cnSym->getId()).c_str() << ">";
+		msg << "Conflicting class args previously seen for class with no parameters '";
+		msg << m_state.m_pool.getDataAsString(cnSym->getId()).c_str() << "'";
 		MSG(&iTok, msg.str().c_str(), ERR);
 		m_state.clearStructuredCommentToken();
 		return  true; //we're done unless we can gobble the rest up?
@@ -651,9 +651,9 @@ namespace MFM {
     else
       {
 	std::ostringstream msg;
-	msg << "Expected a 'Type' Token!! got Token '";
+	msg << "Expected a 'Type' Token!! got Token <";
 	msg << m_state.getTokenDataAsString(pTok).c_str();
-	msg << "' instead for class parameter declaration";
+	msg << "> instead for class parameter declaration";
 	MSG(&pTok, msg.str().c_str(), ERR);
 	return;
       }
@@ -989,12 +989,12 @@ namespace MFM {
 		if(iTok.m_type == TOK_OPEN_PAREN)
 		  eTok = pTok;
 		std::ostringstream msg;
-		msg << "Name of variable/function <";
+		msg << "Name of variable/function '";
 		msg << m_state.getTokenDataAsString(eTok).c_str();
 		if((Token::getSpecialTokenWork(eTok.m_type) == TOKSP_KEYWORD))
-		  msg << ">: Identifier must not be a reserved keyword";
+		  msg << "': Identifier must not be a reserved keyword";
 		else
-		  msg << ">: Identifier must begin with a lower-case letter";
+		  msg << "': Identifier must begin with a lower-case letter";
 		MSG(&iTok, msg.str().c_str(), ERR);
 		m_state.clearStructuredCommentToken();
 		delete typeNode;
@@ -2221,8 +2221,8 @@ namespace MFM {
       {
 	//eat error token, t41098
 	std::ostringstream msg;
-	msg << "Statement starts with flag keyword <";
-	msg << m_state.getTokenDataAsString(pTok).c_str() << ">";
+	msg << "Statement starts with flag keyword '";
+	msg << m_state.getTokenDataAsString(pTok).c_str() << "'";
 	MSG(&pTok, msg.str().c_str(), ERR);
       }
     else if(pTok.m_type == TOK_ERROR_LOWLEVEL)
@@ -2489,9 +2489,9 @@ namespace MFM {
 	    else
 	      {
 		std::ostringstream msg;
-		msg << "Invalid Model Parameter Name <";
+		msg << "Invalid Model Parameter Name '";
 		msg << m_state.getTokenDataAsString(iTok).c_str();
-		msg << ">, Parameter Identifier requires lower-case";
+		msg << "', Parameter Identifier requires lower-case";
 		MSG(&iTok, msg.str().c_str(), ERR);
 		delete typeNode;
 		typeNode = NULL;
@@ -2500,9 +2500,8 @@ namespace MFM {
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "Invalid Model Parameter Type <";
-	    msg << m_state.getTokenDataAsString(pTok).c_str();
-	    msg << ">";
+	    msg << "Invalid Model Parameter Type '";
+	    msg << m_state.getTokenDataAsString(pTok).c_str() << "'";
 	    MSG(&pTok, msg.str().c_str(), ERR);
 	  }
       }
@@ -2557,11 +2556,11 @@ namespace MFM {
       {
 	//user error!
 	std::ostringstream msg;
-	msg << "Name of variable <" << m_state.getTokenDataAsString(iTok).c_str();
+	msg << "Name of variable '" << m_state.getTokenDataAsString(iTok).c_str();
 	if((Token::getSpecialTokenWork(iTok.m_type) == TOKSP_KEYWORD))
-	  msg << ">: Identifier must not be a reserved keyword";
+	  msg << "': Identifier must not be a reserved keyword";
 	else
-	  msg << ">: Identifier must begin with a lower-case letter";
+	  msg << "': Identifier must begin with a lower-case letter";
 	MSG(&iTok, msg.str().c_str(), ERR);
 	unreadToken();
 	delete typeNode;
@@ -3576,8 +3575,8 @@ namespace MFM {
 	if(asymptr && !asymptr->isFunction())
 	  {
 	    std::ostringstream msg;
-	    msg << "Undefined function <" << m_state.getTokenDataAsString(identTok).c_str();
-	    msg << "> has already been declared as a variable at: ."; //..
+	    msg << "Undefined function '" << m_state.getTokenDataAsString(identTok).c_str();
+	    msg << "' has already been declared as a variable at: ."; //..
 	    MSG(&identTok, msg.str().c_str(), ERR);
 
 	    std::ostringstream imsg;
@@ -4793,8 +4792,8 @@ Node * Parser::wrapFactor(Node * leftNode)
       {
 	//assignments required for references
 	std::ostringstream msg;
-	msg << "Must assign to reference <" << m_state.getTokenDataAsString(identTok).c_str();
-	msg << "> at the time of its declaration";
+	msg << "Must assign to reference '" << m_state.getTokenDataAsString(identTok).c_str();
+	msg << "' at the time of its declaration";
 	MSG(&eTok, msg.str().c_str(), ERR);
 	getTokensUntil(TOK_SEMICOLON); //rest of statement is ignored.
 	unreadToken();
@@ -4806,8 +4805,8 @@ Node * Parser::wrapFactor(Node * leftNode)
 	  {
 	    std::ostringstream msg;
 	    msg << "Unexpected token <" << m_state.getTokenDataAsString(eTok).c_str();
-	    msg << "> indicates a constructor function call or function definition; neither are valid ";
-	    msg << "here for primitive variable '";
+	    msg << "> indicates a constructor function call or function definition; ";
+	    msg << "neither are valid here for primitive variable '";
 	    msg << m_state.getTokenDataAsString(identTok).c_str() << "'";
 	    MSG(&eTok, msg.str().c_str(), ERR); //t41082
 	    unreadToken();
@@ -5011,8 +5010,8 @@ Node * Parser::wrapFactor(Node * leftNode)
 
 	    std::ostringstream msg;
 	    msg << "Unexpected input!! Token <" << m_state.getTokenDataAsString(aTok).c_str();
-	    msg << "> while parsing class variable " << m_state.m_pool.getDataAsString(classvarId).c_str();
-	    msg << ", init item " << (n + 1);
+	    msg << "> while parsing class variable '" << m_state.m_pool.getDataAsString(classvarId).c_str();
+	    msg << "', init item " << (n + 1);
 	    MSG(&aTok, msg.str().c_str(), ERR);
 	    return false; //original caller owns rtnList, should delete if empty!
 	  }
@@ -5027,8 +5026,8 @@ Node * Parser::wrapFactor(Node * leftNode)
 
 	    std::ostringstream msg;
 	    msg << "Unexpected input!! Token <" << m_state.getTokenDataAsString(aTok).c_str();
-	    msg << "> while parsing class variable " << m_state.m_pool.getDataAsString(classvarId).c_str();
-	    msg << ", init item " << (n + 1);
+	    msg << "> while parsing class variable '" << m_state.m_pool.getDataAsString(classvarId).c_str();
+	    msg << "', init item " << (n + 1);
 	    MSG(&aTok, msg.str().c_str(), ERR);
 	    return false; //original caller owns rtnList, should delete if empty!
 	  }
@@ -5042,8 +5041,8 @@ Node * Parser::wrapFactor(Node * leftNode)
       {
 	std::ostringstream msg;
 	msg << "Unexpected input!! Token <" << m_state.getTokenDataAsString(iTok).c_str();
-	msg << "> while parsing class variable " << m_state.m_pool.getDataAsString(classvarId).c_str();
-	msg << ", init item " << (n + 1) << ", expected a data member identifier";
+	msg << "> while parsing class variable '" << m_state.m_pool.getDataAsString(classvarId).c_str();
+	msg << "', init item " << (n + 1) << ", expected a data member identifier";
 	MSG(&iTok, msg.str().c_str(), ERR);
 	return false; //original caller owns rtnList, should delete if empty!
       }
@@ -5054,8 +5053,8 @@ Node * Parser::wrapFactor(Node * leftNode)
       {
 	std::ostringstream msg;
 	msg << "Unexpected input!! Token <" << m_state.getTokenDataAsString(pTok).c_str();
-	msg << "> while parsing class variable " << m_state.m_pool.getDataAsString(classvarId).c_str();
-	msg << ", init item " << (n + 1) << ", expected '='";
+	msg << "> while parsing class variable '" << m_state.m_pool.getDataAsString(classvarId).c_str();
+	msg << "', init item " << (n + 1) << ", expected '='";
 	MSG(&pTok, msg.str().c_str(), ERR);
 	return false; //original caller owns rtnList, should delete if empty!
       }
@@ -5370,8 +5369,8 @@ Node * Parser::wrapFactor(Node * leftNode)
 	      {
 		fsymptr->markForVariableArgs(false);
 		std::ostringstream msg;
-		msg << "Variable args (...) supported for native functions only; not <";
-		msg << m_state.m_pool.getDataAsString(fsymptr->getId()).c_str() << ">";
+		msg << "Variable args (...) supported for native functions only; not '";
+		msg << m_state.m_pool.getDataAsString(fsymptr->getId()).c_str() << "'";
 		MSG(rtnNode->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	      }
 	  }
@@ -5434,9 +5433,9 @@ Node * Parser::wrapFactor(Node * leftNode)
 	    if(fsym->takesVariableArgs() && argSym)
 	      {
 		std::ostringstream msg;
-		msg << "Parameter <";
+		msg << "Parameter '";
 		msg << m_state.m_pool.getDataAsString(argSym->getId()).c_str();
-		msg << "> appears after ellipses (...)";
+		msg << "' appears after ellipses (...)";
 		MSG(&pTok, msg.str().c_str(), ERR);
 	      }
 	  }
@@ -5493,11 +5492,11 @@ Node * Parser::wrapFactor(Node * leftNode)
       {
 	//user error!
 	std::ostringstream msg;
-	msg << "Function parameter <" << m_state.getTokenDataAsString(iTok).c_str();
+	msg << "Function parameter '" << m_state.getTokenDataAsString(iTok).c_str();
 	if((Token::getSpecialTokenWork(iTok.m_type) == TOKSP_KEYWORD))
-	  msg << ">: Name must not be a reserved keyword";
+	  msg << "': Name must not be a reserved keyword";
 	else
-	  msg << ">: Name must begin with a lower-case letter";
+	  msg << "': Name must begin with a lower-case letter";
 	MSG(&iTok, msg.str().c_str(), ERR);
 	//unreadToken();
 	delete typeNode;
@@ -5572,7 +5571,7 @@ Node * Parser::wrapFactor(Node * leftNode)
 	    fsymFromDef->setPureVirtualFunction();
 
 	    std::ostringstream msg;
-	    msg << "Pure Virtual Function <" << funcNode->getName() << ">";
+	    msg << "Pure Virtual Function '" << funcNode->getName() << "'";
 	    MSG(&qTok, msg.str().c_str(), INFO);
 
 	    unreadToken();
@@ -5604,8 +5603,8 @@ Node * Parser::wrapFactor(Node * leftNode)
     if(!isConstr && Token::isTokenAType(identTok))
       {
 	std::ostringstream msg;
-	msg << "Function <" << m_state.getTokenDataAsString(identTok).c_str();
-	msg << "> is not a valid (lower case) name";
+	msg << "Function '" << m_state.getTokenDataAsString(identTok).c_str();
+	msg << "' is not a valid (lower case) name";
 	MSG(&identTok, msg.str().c_str(), ERR);
 
 	//eat tokens until end of definition ?
@@ -5685,8 +5684,8 @@ Node * Parser::wrapFactor(Node * leftNode)
 		// rtnNode is NULL; (t3255)
 		std::ostringstream msg;
 		msg << "Invalid variable declaration of base type <";
-		msg << m_state.getTokenAsATypeName(args.m_typeTok).c_str() << "> and name <";
-		msg << m_state.getTokenDataAsString(identTok).c_str() << "> (missing symbol)";
+		msg << m_state.getTokenAsATypeName(args.m_typeTok).c_str() << "> and name '";
+		msg << m_state.getTokenDataAsString(identTok).c_str() << "' (missing symbol)";
 		MSG(&args.m_typeTok, msg.str().c_str(), ERR);
 	      }
 	  }
@@ -5773,8 +5772,8 @@ Node * Parser::wrapFactor(Node * leftNode)
 		std::ostringstream msg;
 		msg << "Invalid typedef of base type <";
 		msg << m_state.getTokenAsATypeName(args.m_typeTok).c_str();
-		msg << "> and name <" << m_state.getTokenDataAsString(identTok).c_str();
-		msg << "> (missing symbol)";
+		msg << "> and name '" << m_state.getTokenDataAsString(identTok).c_str();
+		msg << "' (missing symbol)";
 		MSG(&identTok, msg.str().c_str(), ERR);
 	      }
 	    m_state.clearStructuredCommentToken();
@@ -5843,8 +5842,7 @@ Node * Parser::wrapFactor(Node * leftNode)
 		std::ostringstream msg;
 		msg << "Invalid constant definition of type <";
 		msg << m_state.getTokenAsATypeName(args.m_typeTok).c_str();
-		msg << "> and name <" << m_state.getTokenDataAsString(identTok).c_str();
-		msg << ">";
+		msg << "> and name '" << m_state.getTokenDataAsString(identTok).c_str() << "'";
 		MSG(&identTok, msg.str().c_str(), ERR);
 	      }
 
@@ -6591,7 +6589,8 @@ Node * Parser::wrapFactor(Node * leftNode)
 	if(!quietly)
 	  {
 	    std::ostringstream msg;
-	    msg << "Unexpected token <" << pTok.getTokenEnumNameFromPool(&m_state).c_str() << ">; Expected ";
+	    msg << "Unexpected token <" << pTok.getTokenEnumNameFromPool(&m_state).c_str();
+	    msg << ">; Expected ";
 	    msg << Token::getTokenAsStringFromPool(eTokType, &m_state).c_str();
 	    MSG(&pTok, msg.str().c_str(), ERR);
 	  }

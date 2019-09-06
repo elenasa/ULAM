@@ -2,7 +2,7 @@
 #=t41330_test_compiler_multiinheritance_purevirtualonselectedbase_error
 ##
 #!
-./Foo.ulam:16:25: ERROR: Virtual function <Uf_6vfuncb10> is pure; cannot be called directly in baseclass: QBaseLast.
+./Foo.ulam:16:25: ERROR: Virtual function 'Uf_6vfuncb10' is pure; cannot be called directly in baseclass: QBaseLast.
 Unrecoverable Program GenCode FAILURE.
 ##
 ##  specific virtual could be pure. specific base class can be checked at compile time.

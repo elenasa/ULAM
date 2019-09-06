@@ -6,9 +6,9 @@
 ## after asserts abort: arg is 1
 ##
 #!
-./Base.ulam:3:7: Warning: Virtual overloaded function <dfunc> has a NON-VIRTUAL ancestor in class: Base while compiling Sub1.
-./Base.ulam:3:7: Warning: Virtual overloaded function <dfunc> has a NON-VIRTUAL ancestor in class: Base while compiling E2.
-./E2.ulam:3:9: Warning: Virtual overloaded function <dfunc> Originating class is: Sub1 while compiling E2.
+./Base.ulam:3:7: Warning: Virtual overloaded function 'dfunc' has a NON-VIRTUAL ancestor in class: Base while compiling Sub1.
+./Base.ulam:3:7: Warning: Virtual overloaded function 'dfunc' has a NON-VIRTUAL ancestor in class: Base while compiling E2.
+./E2.ulam:3:9: Warning: Virtual overloaded function 'dfunc' Originating class is: Sub1 while compiling E2.
 Exit status: 0
 Uq_Base { <NOMAIN> }
 Uq_Sub1 : Base { :Base<> <NOMAIN> }
