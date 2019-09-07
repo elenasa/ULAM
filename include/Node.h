@@ -369,6 +369,9 @@ namespace MFM{
     Node * newCastingNode(Node * node, UTI tobeType);
     bool newCastingNodeWithCheck(Node * node, UTI tobeType, Node*& rtnNode);
 
+    //helper for Operator OVerload Function Calls
+    Node * buildOperatorOverloadFuncCallNodeHelper(Node * selectNode, Node * argNode, const char * nameForTok);
+
     //used for function calls second arg, including custom array accessors, and virtual funcso
     std::string genHiddenArg2(const UVPass& uvpass, u32& urtmpnumref, UTI vownarg, UTI funcclassarg);
     virtual u32 getLengthOfMemberClassForHiddenArg(UTI cosuti);

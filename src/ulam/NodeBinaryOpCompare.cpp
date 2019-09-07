@@ -28,26 +28,13 @@ namespace MFM {
     UTI leftType = m_nodeLeft->checkAndLabelType();
     UTI rightType = m_nodeRight->checkAndLabelType();
 
-    UlamType * lut = m_state.getUlamTypeByIndex(leftType);
-    if((lut->getUlamTypeEnum() == Class))
+    if(NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode())
       {
-	Node * newnode = buildOperatorOverloadFuncCallNode();
-	if(newnode)
-	  {
-	    AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
-	    assert(swapOk);
-
-	    m_nodeLeft = NULL; //recycle as memberselect
-	    m_nodeRight = NULL; //recycle as func call arg
-
-	    m_state.setGoAgain();
-
-	    delete this; //suicide is painless..
-
-	    return Hzy; //t41109
-	  }
-	//else should fail again as non-primitive;
-      } //done
+	m_state.setGoAgain();
+	delete this; //suicide is painless..
+	return Hzy;
+      }
+    //else should fail again as non-primitive;
 
     UTI newType = calcNodeType(leftType, rightType); //for casting
     if(m_state.isComplete(newType))

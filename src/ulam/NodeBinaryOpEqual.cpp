@@ -164,9 +164,7 @@ namespace MFM {
 	else if(replaced == TBOOL_TRUE)
 	  {
 	    m_state.setGoAgain(); //t41119,t41120,t41121,t41134,t41332
-
 	    delete this; //suicide is painless..
-
 	    return Hzy;
 	  }
 	else //tbool_false
@@ -213,20 +211,14 @@ namespace MFM {
 
   TBOOL NodeBinaryOpEqual::replaceOurselves(bool classoratom)
   {
+    //here, when lefthand side is a class
     TBOOL rtntb = TBOOL_FALSE;
 
     if(!classoratom)
       {
 	//try for operator overload first (e.g. (pre) +=,-=, (post) ++,-- )
-	Node * newnode = buildOperatorOverloadFuncCallNode(); //virtual
-	if(newnode)
+	if(NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode())
 	  {
-	    AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
-	    assert(swapOk);
-
-	    m_nodeLeft = NULL; //recycle as memberselect
-	    m_nodeRight = NULL; //recycle as func call arg
-
 	    rtntb = TBOOL_TRUE;
 	  }
       }

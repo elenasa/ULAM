@@ -98,6 +98,8 @@ namespace MFM{
 
   protected:
 
+    virtual Node * buildOperatorOverloadFuncCallNode();
+
   private:
     bool m_isCustomArray;
     SymbolTmpVar * m_tmpvarSymbol;
@@ -114,8 +116,6 @@ namespace MFM{
     virtual UTI calcNodeType(UTI lt, UTI rt); //stub
 
     void genCodeAUserStringByte(File * fp, UVPass& uvpass);
-
-    virtual Node * buildOperatorOverloadFuncCallNode();
 
     bool getConstantArrayItemValue(BV8K& bvitem);
   };

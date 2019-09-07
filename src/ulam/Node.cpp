@@ -2651,6 +2651,41 @@ namespace MFM {
     return rtnB;
   } //warnOfNarrowingCast
 
+  Node * Node::buildOperatorOverloadFuncCallNodeHelper(Node * selectNode, Node * argNode, const char * nameForTok)
+  {
+    Token identTok;
+    TokenType opTokType = Token::getTokenTypeFromString(nameForTok);
+    assert(opTokType != TOK_LAST_ONE);
+    Token opTok(opTokType, getNodeLocation(), 0);
+    u32 opolId = Token::getOperatorOverloadFullNameId(opTok, &m_state);
+    if(opolId == 0)
+      {
+	std::ostringstream msg;
+	msg << "Overload for operator " << getName();
+	msg << " is not supported as operand for class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(selectNode->getNodeType()).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	return NULL;
+      }
+
+    identTok.init(TOK_IDENTIFIER, getNodeLocation(), opolId);
+
+    //fill in func symbol during type labeling;
+    NodeFunctionCall * fcallNode = new NodeFunctionCall(identTok, NULL, m_state);
+    assert(fcallNode);
+    fcallNode->setNodeLocation(identTok.m_locator);
+
+    if(argNode)
+      fcallNode->addArgument(argNode);
+
+    NodeMemberSelect * mselectNode = new NodeMemberSelect(selectNode, fcallNode, m_state);
+    assert(mselectNode);
+    mselectNode->setNodeLocation(identTok.m_locator);
+
+    //redo check and type labeling done by caller!!
+    return mselectNode; //replace right node with new branch
+  } //buildOperatorOverloadFuncCallNodeHelper
+
   void Node::genMemberNameOfMethod(File * fp, const UVPass& uvpass, bool endingdot)
   {
     assert(!isCurrentObjectALocalVariableOrArgument());

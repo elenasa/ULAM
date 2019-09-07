@@ -149,9 +149,7 @@ namespace MFM {
 	    m_node = NULL; //recycle as memberselect
 
 	    m_state.setGoAgain();
-
 	    delete this; //suicide is painless..
-
 	    return Hzy;
 	  }
 	//else should fail again as non-primitive;
@@ -184,36 +182,7 @@ namespace MFM {
 
   Node * NodeUnaryOp::buildOperatorOverloadFuncCallNode()
   {
-    Token identTok;
-    TokenType opTokType = Token::getTokenTypeFromString(getName());
-    assert(opTokType != TOK_LAST_ONE);
-    Token opTok(opTokType, getNodeLocation(), 0);
-    u32 opolId = Token::getOperatorOverloadFullNameId(opTok, &m_state);
-    if(opolId == 0)
-      {
-	std::ostringstream msg;
-	msg << "Overload for operator" << getName();
-	msg << " is not supported as operand for class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_node->getNodeType()).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	return NULL;
-      }
-
-    identTok.init(TOK_IDENTIFIER, getNodeLocation(), opolId);
-
-    //fill in func symbol during type labeling;
-    NodeFunctionCall * fcallNode = new NodeFunctionCall(identTok, NULL, m_state);
-    assert(fcallNode);
-    fcallNode->setNodeLocation(identTok.m_locator);
-
-    //similar to Binary Op's except no argument
-
-    NodeMemberSelect * mselectNode = new NodeMemberSelect(m_node, fcallNode, m_state);
-    assert(mselectNode);
-    mselectNode->setNodeLocation(identTok.m_locator);
-
-    //redo check and type labeling done by caller!!
-    return mselectNode; //replace right node with new branch
+    return Node::buildOperatorOverloadFuncCallNodeHelper(m_node, NULL, getName());
   } //buildOperatorOverloadFuncCallNode
 
   bool NodeUnaryOp::checkSafeToCastTo(UTI unused, UTI& newType)
