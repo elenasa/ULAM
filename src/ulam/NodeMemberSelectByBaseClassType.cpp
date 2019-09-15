@@ -162,15 +162,10 @@ namespace MFM {
 
     m_state.m_currentObjPtr = newCurrentObjectPtr;
 
-    //u32 slot = makeRoomForNodeType(nuti);
-    //evs = m_nodeRight->eval(); //a Node Function Call here, or data member eval
-    //if(evs != NORMAL) return evalStatusReturn(evs);
-
     //assigns rhs to lhs UV pointer (handles arrays?);
     //also copy result UV to stack, -1 relative to current frame pointer
-    //if(slot) //avoid Void's
     if(!doBinaryOperation(1, 1, 1))
-      return evalStatusReturn(ERROR); //skip restore now, ok???
+      return evalStatusReturn(ERROR); //skip restore now, ok?
 
     m_state.m_currentObjPtr = saveCurrentObjectPtr; //restore current object ptr
     m_state.m_currentSelfPtr = saveCurrentSelfPtr; //restore current self ptr
@@ -256,13 +251,6 @@ namespace MFM {
 	newCurrentObjectPtr = assignAnonymousClassReturnValueToStack(newCurrentObjectPtr); //t3913
       }
 
-    //   m_state.m_currentObjPtr = newCurrentObjectPtr;
-
-    //if(!doBinaryOperation(1, 1, 1))
-    //  return evalStatusReturn(ERROR); //skip restore now, ok???
-    //evs = m_nodeRight->evalToStoreInto();
-    //if(evs != NORMAL) return evalStatusReturn(evs);
-
     UlamValue ruvPtr;
     ruvPtr = newCurrentObjectPtr;
 
@@ -285,8 +273,6 @@ namespace MFM {
     m_state.m_currentObjPtr = newCurrentObjectPtr;
 
     Node::assignReturnValuePtrToStack(ruvPtr);
-
-    //    m_state.m_currentObjPtr = saveCurrentObjectPtr; //restore current object ptr **********
 
     evalNodeEpilog();
     return NORMAL;
@@ -342,7 +328,7 @@ namespace MFM {
     //continue on to build tmpvarsymbol and coordinating uvpass
     u32 newpos = subpos; //subpos+basepos;
 
-    assert(basepos < uvpass.getPassLen());
+    assert(basepos <= uvpass.getPassLen()); //t41351
     uvpass.setPassPosForced(newpos); //t41310
 
     newpos = uvpass.getPassPos(); //update for tmp symbol
