@@ -268,6 +268,7 @@ namespace MFM{
     bool setBaseClassBitSize(UTI utiArg, s32 basebitsize);
     void noteClassDataMembersTypeAndName(UTI cuti, s32 totalsize); //for errors
     void verifyZeroSizeUrSelf();
+    void verifyZeroRegistryIdForUrSelf();
     void mergeClassUTI(UTI olduti, UTI cuti);
     bool isARootUTI(UTI auti);
     bool findaUTIAlias(UTI auti, UTI& aliasuti);

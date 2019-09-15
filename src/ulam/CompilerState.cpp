@@ -1845,6 +1845,20 @@ namespace MFM {
       }
   }
 
+  void CompilerState::verifyZeroRegistryIdForUrSelf()
+  {
+    u32 urselfrn = getAClassRegistrationNumber(m_urSelfUTI);
+    if(urselfrn != 0)
+      {
+	std::ostringstream msg;
+        msg << getUlamTypeNameBriefByIndex(m_urSelfUTI).c_str();
+	msg << " has a NON-ZERO Registry Number (";
+	msg << urselfrn << ")";
+	MSG2("", msg.str().c_str() , ERR);
+      }
+  }
+
+
   void CompilerState::mergeClassUTI(UTI olduti, UTI cuti)
   {
     UlamKeyTypeSignature key1 = getUlamKeyTypeSignatureByIndex(olduti);
