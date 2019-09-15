@@ -2,6 +2,7 @@
 #=t41040_test_compiler_controlswitch_whichtoken_error
 #!
 ./A.ulam:9:5: ERROR: Invalid Statement (possible missing semicolon).
+./A.ulam:14:5: ERROR: Expecting Type of data member/function (or, in the midst of errors); Got <case>.
 ./A.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'A'; Possible missing ending curly brace.
 ./A.ulam:14:5: ERROR: Invalid Class Type <case>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 ./A.ulam:2:9: ERROR: Invalid Type: A.

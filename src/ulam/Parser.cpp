@@ -964,8 +964,14 @@ namespace MFM {
 
 	if(typeNode == NULL)
 	  {
+	    std::ostringstream msg;
+	    msg << "Expecting Type of data member/function";
+	    msg << " (or, in the midst of errors); Got <";
+	    msg << m_state.getTokenDataAsString(pTok).c_str() << ">";
+	    MSG(&pTok, msg.str().c_str(), ERR);
+
 	    m_state.clearStructuredCommentToken(); //missing
-	    return false; //expecting a type, not sizeof, probably an error! (t3856)
+	    return false; //expecting a type, not sizeof, probably an error! (t3856,t41350)
 	  }
 
 	bool isConstr = false;

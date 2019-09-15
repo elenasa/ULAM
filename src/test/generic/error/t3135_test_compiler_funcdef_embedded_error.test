@@ -3,6 +3,7 @@
 #!
 ./D.ulam:5:12: ERROR: Unexpected token <(> indicates a constructor function call or function definition; neither are valid here for primitive variable 'foo'.
 ./D.ulam:5:12: ERROR: Invalid Statement (possible missing semicolon).
+./D.ulam:9:4: ERROR: Expecting Type of data member/function (or, in the midst of errors); Got <return>.
 ./D.ulam:1:1: ERROR: Empty/Incomplete Class Definition 'D'; Possible missing ending curly brace.
 ./D.ulam:9:4: ERROR: Invalid Class Type <return>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 ./D.ulam:1:7: ERROR: Invalid Type: D.
