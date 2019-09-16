@@ -229,16 +229,32 @@ namespace MFM {
     csym->initVTable(maxidx);
 
     s32 vownedcount = 0;
+
+    //first reorder: sort all funcs by mangledname string
+    std::map<std::string, SymbolFunction *> mangledFuncs; //mangled func name -> symbol function ptr
+    u32 vfc = 0;
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;
 	assert(sym && sym->isFunction());
-	((SymbolFunctionName *) sym)->calcMaxIndexOfVirtualFunctions(vownedcount);
+
+	vfc += ((SymbolFunctionName *) sym)->addFunctionsToThisTable(mangledFuncs);
 	it++;
       }
+    assert(vfc == mangledFuncs.size()); //sanity
 
-    maxidx += vownedcount;
+    std::map<std::string, SymbolFunction *>::iterator it2 = mangledFuncs.begin();
+    while(it2 != mangledFuncs.end())
+      {
+	SymbolFunction * fsym = it2->second;
+	assert(fsym);
+	fsym->calcMaxIndexOfVirtualFunction(csym, vownedcount);
+	it2++;
+      }
+
+    maxidx += vownedcount; //update ref arg
+    mangledFuncs.clear(); //tmp
     return;
   } //calcMaxIndexForVirtualTableOfFunctions
 

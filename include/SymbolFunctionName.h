@@ -47,7 +47,7 @@ namespace MFM{
 
   class Node; //forward
   class NodeBlockClass; //forward
-  class SymbolTable; //forward
+  class SymbolTableOfFunctions; //forward
 
   class SymbolFunctionName : public Symbol
   {
@@ -69,6 +69,8 @@ namespace MFM{
 
     bool overloadFunction(SymbolFunction * fsym);
 
+    u32 addFunctionsToThisTable(std::map<std::string, SymbolFunction *>& mapref); //for virtual index calc
+
     u32 findMatchingFunctionStrictlyByTypes(std::vector<UTI> argTypes, SymbolFunction *& funcSymbol, bool& hasHazyArgs);
 
     u32 findMatchingFunctionStrictlyVoid(SymbolFunction *& funcSymbol);
@@ -84,8 +86,6 @@ namespace MFM{
     u32 getDepthSumOfFunctions();
 
     void calcMaxDepthOfFunctions(); //called after all UTI sizes are known
-
-    void calcMaxIndexOfVirtualFunctions(s32& maxidx);
 
     void setupConstantSlotIndexesInFunctions(u32& cslotidx);
 

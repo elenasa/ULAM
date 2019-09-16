@@ -5,7 +5,7 @@
 #include "NodeBlockFunctionDefinition.h"
 #include "SymbolVariable.h"
 #include "CompilerState.h"
-#include "SymbolTable.h"
+#include "SymbolTableOfFunctions.h"
 #include "MapFunctionDesc.h"
 
 namespace MFM {
@@ -83,6 +83,12 @@ namespace MFM {
       }
     return overloaded;
   } //overloadFunction
+
+  u32 SymbolFunctionName::addFunctionsToThisTable(std::map<std::string, SymbolFunction *>& mapref)
+  {
+    mapref.insert(m_mangledFunctionNames.begin(), m_mangledFunctionNames.end());
+    return m_mangledFunctionNames.size();
+  }
 
   u32 SymbolFunctionName::findMatchingFunctionStrictlyVoid(SymbolFunction *& funcSymbol)
   {
@@ -277,127 +283,6 @@ namespace MFM {
       }
     return;
   } //calcMaxDepthOfFunctions
-
-  // after all the UTI types are known, including array and bitsize
-  // and before eval() for testing, calc the max index of virtual functions,
-  // where base class functions come first; arg is UNKNOWNSIZE if first time
-  // and any ancestors are already known.
-  void SymbolFunctionName::calcMaxIndexOfVirtualFunctions(s32& maxidx)
-  {
-    UTI cuti = m_state.getCompileThisIdx();
-    u32 fid = getId();
-
-    //initialize this classes VTable to base classes' orig VTable, or empty
-    // some entries may be modified; or table may expand
-    SymbolClass * csym = NULL;
-    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cuti, csym);
-    assert(isDefined);
-
-    //search all overloaded functions with this name id (fid)
-    std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
-    while(it != m_mangledFunctionNames.end())
-      {
-	SymbolFunction * fsym = it->second;
-
-	//possibly us, or a great-ancestor that has first decl of this func
-	UTI kinuti; // ref to find, Nav if not found
-	UTI origuti; // class first declared
-	s32 vidx = UNKNOWNSIZE; //virtual index
-	bool overriding = false;
-
-	// search for virtual function w exact name/type in a baseclass
-	// if found, this function must also be virtual
-	std::vector<UTI> pTypes;
-	fsym->getVectorOfParameterTypes(pTypes);
-
-	SymbolFunction * basefsym = NULL;
-	SymbolFunction * origfsym = NULL;
-	// might belong to a great-ancestor (can't tell from isFuncIdInAClassScope())
-	// find first match using breadth-first search order..before looking for originating class
-	if(m_state.findOverrideMatchingVirtualFunctionStrictlyByTypesInAncestorOf(cuti, fid, pTypes, fsym->isVirtualFunction(), basefsym, kinuti))
-	  {
-	    if(basefsym->isVirtualFunction())
-	      {
-		//like c++, this fsym should be too!
-		if(!fsym->isVirtualFunction())
-		  {
-		    std::ostringstream msg;
-		    msg << "Non-virtual overloaded function '";
-		    msg << m_state.m_pool.getDataAsString(fid).c_str();
-		    msg << "' has a VIRTUAL ancestor in class: ";
-		    msg << m_state.getUlamTypeNameBriefByIndex(kinuti).c_str();
-		    msg << " while compiling ";
-		    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-		    msg << "; treated as virtual";
-		    MSG(fsym->getTokPtr(), msg.str().c_str(), DEBUG); //was WARN (e.g. behave())
-
-		    fsym->setVirtualFunction(); //fix quietly (e.g. t3880)
-		    assert(maxidx != UNKNOWNSIZE); //o.w. wouldn't be here yet
-		  }
-		kinuti = cuti; //overriding
-		overriding = true; //t41096, t41097
-
-		//now search all for the originating base class..of this virtual func
-		if(m_state.findOriginatingMatchingVirtualFunctionStrictlyByTypesInAncestorOf(cuti, fid, pTypes, origfsym, origuti))
-		  vidx = origfsym->getVirtualMethodIdx(); //is vowned vidx
-		else //error was found (t41312)
-		  origuti = cuti; //new entry?
-	      }
-	    else
-	      {
-		//base aint, but sub is..
-		if(fsym->isVirtualFunction())
-		  {
-		    //c++, quietly fails
-		    std::ostringstream msg;
-		    msg << "Virtual overloaded function '";
-		    msg << m_state.m_pool.getDataAsString(fid).c_str();
-		    msg << "' has a NON-VIRTUAL ancestor in class: ";
-		    msg << m_state.getUlamTypeNameBriefByIndex(kinuti).c_str();
-		    MSG(fsym->getTokPtr(), msg.str().c_str(), WARN);
-		    //probably upsets compiler assert...need a Nav node?
-		    kinuti = cuti;
-		    origuti = cuti; //t3746
-		  }
-	      }
-
-	  }
-	else
-	  {
-	    kinuti = cuti; //new entry, this class
-	    origuti = cuti;
-	  }
-	//end ancestor check
-
-	if(fsym->isVirtualFunction())
-	  {
-	    if(vidx == UNKNOWNSIZE)
-	      {
-		//table extends with new (next) entry/idx
-		vidx = (maxidx != UNKNOWNSIZE ? maxidx : 0);
-		maxidx = vidx + 1;
-	      }
-	    //else use ancestor index; maxidx stays same; is an override
-	    fsym->setVirtualMethodIdx(vidx); //vowned in origuti
-	    fsym->setVirtualMethodOriginatingClassUTI(origuti);
-
-	    csym->updateVTable(vidx, fsym, kinuti, origuti, fsym->isPureVirtualFunction());
-
-	    //check overriding virtual function when flag set by programmer(t41096,97,98)
-	    if(fsym->getInsureVirtualOverrideFunction() && !overriding)
-	      {
-		std::ostringstream msg;
-		msg << "@Override flag fails virtual function: ";
-		msg << fsym->getFunctionNameWithTypes().c_str();
-		MSG(fsym->getTokPtr(), msg.str().c_str(), ERR);
-	      }
-	  }
-	else
-	  maxidx = (maxidx != UNKNOWNSIZE ? maxidx : 0); //stays same, or known 0
-	++it;
-      } //while
-    return;
-  } //calcMaxIndexOfVirtualFunctions
 
   void SymbolFunctionName::checkAbstractInstanceErrorsInFunctions()
   {

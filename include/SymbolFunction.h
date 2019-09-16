@@ -45,8 +45,9 @@
 
 namespace MFM{
 
-  class NodeBlockFunctionDefinition;  //forward
-  class CompilerState;   //forward
+  class NodeBlockFunctionDefinition; //forward
+  class CompilerState; //forward
+  class SymbolClass; //forward
 
   class SymbolFunction : public Symbol
   {
@@ -102,6 +103,8 @@ namespace MFM{
 
     u32 getVirtualMethodOriginatingClassUTI();
     void setVirtualMethodOriginatingClassUTI(UTI uti);
+
+    void calcMaxIndexOfVirtualFunction(SymbolClass * csym, s32& maxidx);
 
     bool isConstructorFunction();
     void setConstructorFunction();

@@ -1,5 +1,6 @@
 #include "SymbolFunction.h"
 #include "NodeBlockFunctionDefinition.h"
+#include "SymbolClass.h"
 #include "SymbolVariable.h"
 #include "SymbolVariableStack.h"
 #include "CompilerState.h"
@@ -478,6 +479,115 @@ namespace MFM {
     assert(m_virtualOrigUTI == Nouti);
     m_virtualOrigUTI = uti;
   }
+
+  // after all the UTI types are known, including array and bitsize
+  // and before eval() for testing, calc the max index of virtual functions,
+  // where base class functions come first; arg is UNKNOWNSIZE if first time
+  // and any ancestors are already known.
+  void SymbolFunction::calcMaxIndexOfVirtualFunction(SymbolClass* csym, s32& maxidx)
+  {
+    //initialize this classes VTable to base classes' orig VTable, or empty
+    // some entries may be modified; or table may expand
+    UTI cuti = csym->getUlamTypeIdx(); //same as compilethis..
+    u32 fid = getId();
+
+    //search all overloaded functions with this name id (fid)
+    //possibly us, or a great-ancestor that has first decl of this func
+    UTI kinuti; // ref to find, Nav if not found
+    UTI origuti; // class first declared
+    s32 vidx = UNKNOWNSIZE; //virtual index
+    bool overriding = false;
+
+    // search for virtual function w exact name/type in a baseclass
+    // if found, this function must also be virtual
+    std::vector<UTI> pTypes;
+    this->getVectorOfParameterTypes(pTypes);
+
+    SymbolFunction * basefsym = NULL;
+    SymbolFunction * origfsym = NULL;
+    // might belong to a great-ancestor (can't tell from isFuncIdInAClassScope())
+    // find first match using breadth-first search order..before looking for originating class
+    if(m_state.findOverrideMatchingVirtualFunctionStrictlyByTypesInAncestorOf(cuti, fid, pTypes, this->isVirtualFunction(), basefsym, kinuti))
+      {
+	if(basefsym->isVirtualFunction())
+	  {
+	    //like c++, this fsym should be too!
+	    if(!this->isVirtualFunction())
+	      {
+		std::ostringstream msg;
+		msg << "Non-virtual overloaded function '";
+		msg << m_state.m_pool.getDataAsString(fid).c_str();
+		msg << "' has a VIRTUAL ancestor in class: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(kinuti).c_str();
+		msg << " while compiling ";
+		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+		msg << "; treated as virtual";
+		MSG(this->getTokPtr(), msg.str().c_str(), DEBUG); //was WARN (e.g. behave())
+
+		this->setVirtualFunction(); //fix quietly (e.g. t3880)
+		assert(maxidx != UNKNOWNSIZE); //o.w. wouldn't be here yet
+	      }
+	    kinuti = cuti; //overriding
+	    overriding = true; //t41096, t41097
+
+	    //now search all for the originating base class..of this virtual func
+	    if(m_state.findOriginatingMatchingVirtualFunctionStrictlyByTypesInAncestorOf(cuti, fid, pTypes, origfsym, origuti))
+	      vidx = origfsym->getVirtualMethodIdx(); //is vowned vidx
+	    else //error was found (t41312)
+	      origuti = cuti; //new entry?
+	  }
+	else
+	  {
+	    //base aint, but sub is..
+	    if(this->isVirtualFunction())
+	      {
+		//c++, quietly fails
+		std::ostringstream msg;
+		msg << "Virtual overloaded function '";
+		msg << m_state.m_pool.getDataAsString(fid).c_str();
+		msg << "' has a NON-VIRTUAL ancestor in class: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(kinuti).c_str();
+		MSG(this->getTokPtr(), msg.str().c_str(), WARN);
+		//probably upsets compiler assert...need a Nav node?
+		kinuti = cuti;
+		origuti = cuti; //t3746
+	      }
+	  }
+      }
+    else
+      {
+	kinuti = cuti; //new entry, this class
+	origuti = cuti;
+      }
+    //end ancestor check
+
+    if(this->isVirtualFunction())
+      {
+	if(vidx == UNKNOWNSIZE)
+	  {
+	    //table extends with new (next) entry/idx
+	    vidx = (maxidx != UNKNOWNSIZE ? maxidx : 0);
+	    maxidx = vidx + 1;
+	  }
+	//else use ancestor index; maxidx stays same; is an override
+	this->setVirtualMethodIdx(vidx); //vowned in origuti
+	this->setVirtualMethodOriginatingClassUTI(origuti);
+
+	csym->updateVTable(vidx, this, kinuti, origuti, this->isPureVirtualFunction());
+
+	//check overriding virtual function when flag set by programmer(t41096,97,98)
+	if(this->getInsureVirtualOverrideFunction() && !overriding)
+	  {
+	    std::ostringstream msg;
+	    msg << "@Override flag fails virtual function: ";
+	    msg << this->getFunctionNameWithTypes().c_str();
+	    MSG(this->getTokPtr(), msg.str().c_str(), ERR);
+	  }
+      }
+    else
+      maxidx = (maxidx != UNKNOWNSIZE ? maxidx : 0); //stays same, or known 0
+    return;
+  } //calcMaxIndexOfVirtualFunction
 
   bool SymbolFunction::isConstructorFunction()
   {

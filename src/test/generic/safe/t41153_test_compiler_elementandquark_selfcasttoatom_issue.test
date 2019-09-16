@@ -23,6 +23,11 @@ element MyElement : QOne(10)
 
 quark QOne(Unsigned num)
 {
+  //check lexical order (zi, one, vendo) of vowned_idx enum in .h
+  virtual Void vendo() { return; }
+  virtual Int one() { return 1; }
+  virtual Void zi() { return; }
+
   Void behave(){
     // ALL GOOD!!
 

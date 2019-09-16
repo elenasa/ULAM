@@ -40,6 +40,7 @@
 #include "SymbolTable.h"
 #include "MapClassMemberDesc.h"
 #include "FunctionSignatureTable.h"
+#include "SymbolFunction.h"
 
 namespace MFM{
 
