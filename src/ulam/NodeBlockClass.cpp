@@ -1010,56 +1010,11 @@ UTI NodeBlockClass::checkMultipleInheritances()
   while(i < basecount)
     {
       UTI baseuti = csym->getBaseClass(i);
-
       if(m_state.okUTItoContinue(baseuti))
 	{
 	  ULAMCLASSTYPE baseclasstype = m_state.getUlamTypeByIndex(baseuti)->getUlamClassType();
 	  ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(nuti)->getUlamClassType();
-	  if(classtype == UC_TRANSIENT)
-	    {
-	      //allow transients to inherit from either transients or quarks (t3723)
-	      if((baseclasstype != UC_TRANSIENT) && (baseclasstype != UC_QUARK))
-		{
-		  std::ostringstream msg;
-		  msg << "Subclass '";
-		  msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-		  msg << "' inherits from '";
-		  msg << m_state.getUlamTypeNameBriefByIndex(baseuti).c_str();
-		  msg << "', a class that's neither a transient nor a quark"; //e.g. error/t3725
-		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		  errs = true;
-		}
-	    }
-	  else if(baseclasstype != UC_QUARK)
-	    {
-	      //O(n) search of localdefs for nicer error message (t3875, t41010)
-	      u32 lostid = m_state.findTypedefNameIdInLocalsScopeByIndex(baseuti);
-	      if(lostid > 0)
-		{
-		  std::ostringstream msg;
-		  msg << "Subclass '";
-		  msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-		  msg << "' inherits from '";
-		  msg << m_state.m_pool.getDataAsString(lostid).c_str();
-		  msg << "', an unresolved local filescope typedef";
-		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		  errs = true;
-		}
-	      else
-		{
-		  //for all others (elements and quarks)
-		  //must be "seen" by now; e.g. typedef array of quarks (t3674),t3862,t41150
-		  std::ostringstream msg;
-		  msg << "Subclass '";
-		  msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-		  msg << "' inherits from '";
-		  msg << m_state.getUlamTypeNameBriefByIndex(baseuti).c_str();
-		  msg << "', a class that's not a quark";
-		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		  errs = true;
-		}
-	    }
-	  else if(m_state.isClassAQuarkUnion(baseuti))
+	  if(m_state.isClassAQuarkUnion(baseuti))
 	    {
 	      std::ostringstream msg;
 	      msg << "Subclass '";
@@ -1070,7 +1025,52 @@ UTI NodeBlockClass::checkMultipleInheritances()
 	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	      errs = true;
 	    }
-	}
+	  else if(classtype == UC_TRANSIENT)
+	    {
+	      //allow transients to inherit from either transients or quarks (t3723,t3725);
+	      // but not quark-union (t41352)
+	      if((baseclasstype != UC_TRANSIENT) && (baseclasstype != UC_QUARK))
+		{
+		  std::ostringstream msg;
+		  msg << "Subclass '";
+		  msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+		  msg << "' inherits from '";
+		  msg << m_state.getUlamTypeNameBriefByIndex(baseuti).c_str();
+		  msg << "', a class that's neither a transient nor a quark";
+		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		  errs = true;
+		}
+	    }
+	  else if(baseclasstype != UC_QUARK)
+	    {
+	      //O(n) search of localdefs for nicer error message (t3875, t41010)
+	      u32 lostid = m_state.findTypedefNameIdInLocalsScopeByIndex(baseuti);
+	      if(lostid > 0)
+		{
+		  std::ostringstream msg;
+		  msg << "Subclass '";
+		  msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+		  msg << "' inherits from '";
+		  msg << m_state.m_pool.getDataAsString(lostid).c_str();
+		  msg << "', an unresolved local filescope typedef";
+		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		  errs = true;
+		}
+	      else
+		{
+		  //for all others (elements and quarks)
+		  //must be "seen" by now; e.g.typedef array of quarks t3674,t3862,t41150
+		  std::ostringstream msg;
+		  msg << "Subclass '";
+		  msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+		  msg << "' inherits from '";
+		  msg << m_state.getUlamTypeNameBriefByIndex(baseuti).c_str();
+		  msg << "', a class that's not a quark";
+		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		  errs = true;
+		}
+	    } //else
+	} //not ready
       i++;
     } //end while
 
@@ -1079,14 +1079,24 @@ UTI NodeBlockClass::checkMultipleInheritances()
   while(j < shbasecount)
     {
       UTI baseuti = csym->getSharedBaseClass(j);
-
       if(m_state.okUTItoContinue(baseuti))
 	{
 	  ULAMCLASSTYPE baseclasstype = m_state.getUlamTypeByIndex(baseuti)->getUlamClassType();
 	  ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(nuti)->getUlamClassType();
-	  if(classtype == UC_TRANSIENT)
+	  if(m_state.isClassAQuarkUnion(baseuti))
 	    {
-	      //allow transients to inherit from either transients or quarks (t3723)
+	      std::ostringstream msg;
+	      msg << "Subclass '";
+	      msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+	      msg << "' inherits from shared base '";
+	      msg << m_state.getUlamTypeNameBriefByIndex(baseuti).c_str() << "'";
+	      msg << ", a currently unsupported base class type: quark-union";
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	      errs = true;
+	    }
+	  else if(classtype == UC_TRANSIENT)
+	    {
+	      //allow transients to inherit from either transients or quarks (t3723,t3725)
 	      if((baseclasstype != UC_TRANSIENT) && (baseclasstype != UC_QUARK))
 		{
 		  std::ostringstream msg;
@@ -1094,7 +1104,7 @@ UTI NodeBlockClass::checkMultipleInheritances()
 		  msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
 		  msg << "' inherits from shared base '";
 		  msg << m_state.getUlamTypeNameBriefByIndex(baseuti).c_str();
-		  msg << "', a class that's neither a transient nor a quark"; //e.g. error/t3725
+		  msg << "', a class that's neither a transient nor a quark";
 		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		  errs = true;
 		}
@@ -1117,7 +1127,7 @@ UTI NodeBlockClass::checkMultipleInheritances()
 	      else
 		{
 		  //for all others (elements and quarks)
-		  //must be "seen" by now; e.g. typedef array of quarks (t3674), t3862, t41150
+		  //must be "seen" by now; e.g.typedef array of quarks t3674,t3862,t41150
 		  std::ostringstream msg;
 		  msg << "Subclass '";
 		  msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
@@ -1127,19 +1137,8 @@ UTI NodeBlockClass::checkMultipleInheritances()
 		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		  errs = true;
 		}
-	    }
-	  else if(m_state.isClassAQuarkUnion(baseuti))
-	    {
-	      std::ostringstream msg;
-	      msg << "Subclass '";
-	      msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-	      msg << "' inherits from shared base '";
-	      msg << m_state.getUlamTypeNameBriefByIndex(baseuti).c_str() << "'";
-	      msg << ", a currently unsupported base class type: quark-union";
-	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	      errs = true;
-	    }
-	}
+	    } //else
+	} //not ready
       j++;
     } //end while
 

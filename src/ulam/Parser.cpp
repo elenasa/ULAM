@@ -462,7 +462,6 @@ namespace MFM {
 	    delete rtnNode;
 	    return NULL;
 	  }
-
 	parseMultipleClassInheritances(cnsym);
       }
 
