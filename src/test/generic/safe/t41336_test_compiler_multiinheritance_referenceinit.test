@@ -1,5 +1,5 @@
 ## -*- mode:ulam -*-
-#=t41333_test_compiler_multiinheritance_siblingshadowdatamemberlhs
+#=t41336_test_compiler_multiinheritance_referenceinit
 ##
 ## gen output:
 ##   (3 asserts)

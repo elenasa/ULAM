@@ -1120,8 +1120,17 @@ namespace MFM {
     fp->write(m_state.getUlamTypeByIndex(nuti)->getUlamTypeMangledName().c_str());
     fp->write("\", \"");
     fp->write(m_state.m_pool.getDataAsString(m_varSymbol->getId()).c_str());
+    fp->write("\", \"");
+
+    //ulam-5, needs baseclass relative start pos
+    UTI dmclass = m_varSymbol->getDataMemberClass();
+    u32 dmclassrelpos = UNRELIABLEPOS;
+    AssertBool gotRelPos = m_state.getABaseClassRelativePositionInAClass(m_state.getCompileThisIdx(), dmclass, dmclassrelpos);
+    assert(gotRelPos);
+
+    fp->write(m_state.getUlamTypeByIndex(dmclass)->getUlamTypeMangledName().c_str());
     fp->write("\", ");
-    fp->write_decimal(m_varSymbol->getPosOffset());
+    fp->write_decimal(m_varSymbol->getPosOffset() + dmclassrelpos);
     fp->write("u); return i; }"); GCNL;
 
     dmcount++; //increment data member count

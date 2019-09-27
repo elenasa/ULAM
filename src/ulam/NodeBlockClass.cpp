@@ -4313,10 +4313,15 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	//skip the ancestor of a template
 	if(baseuti != Nouti)
 	  {
-	    //then include any of its relatives:
-	    NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(j);
-	    assert(shbasecblock);
-	    shbasecblock->generateUlamClassInfo(fp, declOnly, dmcount);
+	    s32 bitem = csym->isABaseClassItem(baseuti);
+	    if(bitem < 0)
+	      {
+		//not a direct shared base
+		//then include any of its relatives:
+		NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(j);
+		assert(shbasecblock);
+		shbasecblock->generateUlamClassInfo(fp, declOnly, dmcount);
+	      }
 	  }
 	j++;
       } //end while
