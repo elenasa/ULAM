@@ -64,11 +64,18 @@ namespace MFM{
     const u32 baseclassoffset = ur.GetEffectiveSelf()->GetVTStartOffsetForClassByRegNum(Uq_10109210ByteStream10<EC>::THE_INSTANCE.GetRegistrationNumber());
 
     VfuncPtr writeByte = ur.GetEffectiveSelf()->getVTableEntry(writeByteFuncIdx + baseclassoffset);
+
+    const UlamClass<EC> * Uh_7tuclass240 = ur.GetEffectiveSelf()->getVTableEntryUlamClassPtr(writeByteFuncIdx + baseclassoffset); //override class //gcnl:NodeFunctionCall.cpp:1397
+    const s32 Uh_5tlreg241 = ur.GetEffectiveSelf()->internalCMethodImplementingGetRelativePositionOfBaseClass(Uh_7tuclass240); //relpos of override class in effself //gcnl:NodeFunctionCall.cpp:1414
+    MFM_API_ASSERT(Uh_5tlreg241 >= 0, PURE_VIRTUAL_CALLED); //gcnl:NodeFunctionCall.cpp:1418
+    const u32 Uh_5tlreg242 = Uh_7tuclass240->GetClassLength(); //len of override class //gcnl:NodeFunctionCall.cpp:1428
+    UlamRef<EC> Uh_3tur243(ur, Uh_5tlreg241, Uh_5tlreg242, true); //gcnl:NodeFunctionCall.cpp:1446
+
     Uq_10109210ByteStream10<EC>::Uf_919writeByte1110181u writeByteFunc
       = (Uq_10109210ByteStream10<EC>::Uf_919writeByte1110181u) writeByte;
 
-    _UlamByteSinkWrapper<EC> ubsw(uc,ur, writeByteFunc);
-    Ui_Uq_r10109210ByteStream10<EC> self(ur, 0u, ur.GetEffectiveSelf());
+    _UlamByteSinkWrapper<EC> ubsw(uc, Uh_3tur243, writeByteFunc);
+    Ui_Uq_r10109210ByteStream10<EC> self(ur, Uh_5tlreg241, ur.GetEffectiveSelf());
 
     const u32 strval = Uv_3fmt.read();
     const u8 * p = GetStringPointerFromGlobalStringPool(strval);
