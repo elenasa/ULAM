@@ -18,12 +18,11 @@ namespace MFM{
   template<class EC>
   void Uq_10104Fail10<EC>::Uf_4fail(const UlamContext<EC>& uc, UlamRef<EC>& ur, Ui_Uq_r10109210ByteStream10<EC>& Ur_2bs) const
   {
-    UlamRef<EC> urbs(Ur_2bs, 0u); //gcnl:NodeFunctionCall.cpp:965
-    const u32 readByteFuncIdx = Uq_10109210ByteStream10<EC>::VOWNED_IDX_Uf_8readByte10;
-    const u32 baseclassoffset = urbs.GetEffectiveSelf()->GetVTStartOffsetForClassByRegNum(Uq_10109210ByteStream10<EC>::THE_INSTANCE.GetRegistrationNumber());
+    UlamRef<EC> urbs(Ur_2bs,0,0u);
+    VfuncPtr readByteFunc;
+    UlamRef<EC> urvf(urbs, Uq_10109210ByteStream10<EC>::VOWNED_IDX_Uf_8readByte10, Uq_10109210ByteStream10<EC>::THE_INSTANCE, readByteFunc);
 
-    VfuncPtr readByteFunc = urbs.GetEffectiveSelf()->getVTableEntry(readByteFuncIdx + baseclassoffset);
-    _UlamByteSourceWrapper<EC> ubsw(uc,Ur_2bs,(typename Uq_10109210ByteStream10<EC>::Uf_8readByte10) (readByteFunc));
+    _UlamByteSourceWrapper<EC> ubsw(uc,urvf,(typename Uq_10109210ByteStream10<EC>::Uf_8readByte10) (readByteFunc));
 
     u32 type = ur.GetType();
     typedef typename EC::ATOM_CONFIG AC;

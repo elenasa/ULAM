@@ -9,12 +9,12 @@ namespace MFM{
   template<class EC>
   void Uq_10156Logger10<EC>::Uf_3log(const UlamContext<EC>& uc, UlamRef<EC>& ur, Ui_Uq_r10109210ByteStream10<EC>& Ur_2bs) const
   {
-    UlamRef<EC> urbs(Ur_2bs, 0u); //gcnl:NodeFunctionCall.cpp:965
-    const u32 readByteFuncIdx = Uq_10109210ByteStream10<EC>::VOWNED_IDX_Uf_8readByte10;
-    const u32 baseclassoffset = urbs.GetEffectiveSelf()->GetVTStartOffsetForClassByRegNum(Uq_10109210ByteStream10<EC>::THE_INSTANCE.GetRegistrationNumber());
+    UlamRef<EC> urbs(Ur_2bs, 0, 0u); //gcnl:NodeFunctionCall.cpp:965
 
-    VfuncPtr readByteFunc = urbs.GetEffectiveSelf()->getVTableEntry(readByteFuncIdx + baseclassoffset);
-    _UlamByteSourceWrapper<EC> ubsw(uc,Ur_2bs,(typename Uq_10109210ByteStream10<EC>::Uf_8readByte10) (readByteFunc));
+    VfuncPtr readByteFunc;
+    UlamRef<EC> vfur(urbs, Uq_10109210ByteStream10<EC>::VOWNED_IDX_Uf_8readByte10, Uq_10109210ByteStream10<EC>::THE_INSTANCE, readByteFunc);
+
+    _UlamByteSourceWrapper<EC> ubsw(uc, vfur, (typename Uq_10109210ByteStream10<EC>::Uf_8readByte10) (readByteFunc));
 
     Ui_Ut_10141u<EC> level = Uf_8getLevel(uc,ur);
     u32 clevel = level.read();

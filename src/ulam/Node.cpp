@@ -3000,30 +3000,32 @@ namespace MFM {
 	    if(adjstEle)
 	      hiddenarg2 << " + T::ATOM_FIRST_STATE_BIT";
 
-	    //func belongs to baseclass of cos dm, add its offset, no change to effself (t3831)
+	    //func belongs to baseclass of cos dm, add its offset, no
+	    //change to effself (t3831)
 	    hiddenarg2 << ", " << getLengthOfMemberClassForHiddenArg(cosuti) << "u, &"; //len, t41120
 	    hiddenarg2 << m_state.getTheInstanceMangledNameByIndex(cosuti).c_str(); //cos->isSuper rolls as cosuti
 	    hiddenarg2 << ", " << genUlamRefUsageAsString(cosuti).c_str();
 	    hiddenarg2 << ");";
 	  }
-	else //super, and specific bases, i think (t41311, t41322)
+	else //super, and specific bases, i think (t41311, t41322, t41338)
 	  {
-	    // especially for virtual funcs!!
-	    sameur = false;
-	    hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvar).c_str() << "(";
-	    //do not update ur to reflect "effective" self for this funccall
-	    if(stgcos->isTmpVarSymbol())
-	      hiddenarg2 << stgcos->getMangledName().c_str(); //t3811
-	    else
-	      hiddenarg2 << m_state.getHiddenArgName(); //ur t3102,3,4,6,7,8,9,10,11
+	    // just for non-virtuals (t41338, t41322)
+	    if(vownarg == Nouti)
+	      {
+		sameur = false;
+		hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvar).c_str() << "(";
+		//donot update ur to reflect "effective" self for this funccall
+		if(stgcos->isTmpVarSymbol())
+		  hiddenarg2 << stgcos->getMangledName().c_str(); //t3811
+		else
+		  hiddenarg2 << m_state.getHiddenArgName(); //ur t3102,3,4,6,7,8,9,10,11
+		hiddenarg2 << ", " << calcPosOfCurrentObjectClassesAsString(uvpass, false, askEffSelf, skipfuncclass); //rel offset;
 
-	    hiddenarg2 << ", " << calcPosOfCurrentObjectClassesAsString(uvpass, false, askEffSelf, skipfuncclass); //rel offset;
-
-	    if(adjstEle)
-	      hiddenarg2 << " + T::ATOM_FIRST_STATE_BIT";
-
-	    hiddenarg2 << ", " << getLengthOfMemberClassForHiddenArg(cosuti); //len, t41120
-	    hiddenarg2 << "u, true);"; //t41322 (always true!)
+		if(adjstEle)
+		  hiddenarg2 << " + T::ATOM_FIRST_STATE_BIT";
+		hiddenarg2 << ", " << getLengthOfMemberClassForHiddenArg(cosuti); //len, t41120
+		hiddenarg2 << "u, true);"; //t41322, t41338 (always true!)
+	      } //else sameur (t41353)
 	  }
       }
     else
@@ -3051,8 +3053,9 @@ namespace MFM {
 		  {
 		    if(askEffSelf)
 		      {
-			//e.g. ref to a base, but dm in base's base, a shared base.
-			//can't know effSelf at compile time;t3648,t3751,2,3,4,5,t3811,t3832
+			//e.g. ref to a base, but dm in base's base, a
+			//shared base.  can't know effSelf at compile
+			//time;t3648,t3751,2,3,4,5,t3811,t3832
 			hiddenarg2 << stgcos->getMangledName().c_str();
 			hiddenarg2 << ".GetEffectiveSelf()->";
 			hiddenarg2 << m_state.getGetRelPosMangledFunctionName(stgcosuti); //nonatom
@@ -3076,24 +3079,25 @@ namespace MFM {
 		  }
 		else
 		  {
-		    //ancestor keeps effective self of sub, more later..t3637, t3746
-		    //uses UlamRef 2-arg copy constr to keep EffSelf and UsageType of ref
-		    hiddenarg2 << getLengthOfMemberClassForHiddenArg(cosuti) << "u);" ; //len
+		    //ancestor keeps effective self of sub, more
+		    //later..t3637, t3746 uses UlamRef 3-arg copy
+		    //constr to keep pos (t3249), EffSelf and UsageType of ref
+		    hiddenarg2 << "0," << getLengthOfMemberClassForHiddenArg(cosuti) << "u);" ; //pos, len
 		  }
 	      }
 	    else
 	      {
 		sameur = false;
-		// local variable:
-		// new ur to reflect "effective" self and storage for this funccall;
-		// in 2 steps to ascertain the correct posToEff in ulam-5 (t3605);
+		// local variable: new ur to reflect "effective" self
+		// and storage for this funccall; in 2 steps to
+		// ascertain the correct posToEff in ulam-5 (t3605);
 		u32 tmpvarstg = m_state.getNextTmpVarNumber();
 		hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvarstg).c_str() << "(";
 
 		if(vownarg == Nouti)
 		  {
-		    //NOT a virtual func, however, funcclassarg (where its defined)
-		    //may be a base class
+		    //NOT a virtual func, however, funcclassarg (where
+		    //its defined); may be a baseclass
 		    if(adjstEle)
 		      hiddenarg2 << "T::ATOM_FIRST_STATE_BIT + ";
 		    hiddenarg2 << calcPosOfCurrentObjectClassesAsString(uvpass, false, askEffSelf, skipfuncclass); //rel off; incl 25u
@@ -3115,43 +3119,56 @@ namespace MFM {
 		      hiddenarg2 << "T::ATOM_FIRST_STATE_BIT + ";
 
 		    hiddenarg2 << "0u , " << getLengthOfMemberClassForHiddenArg(stgcosuti) << "u, "; //len
-		    hiddenarg2 << "0u, "; //UlamRef extra arg for pos-to-Eff ???
+		    hiddenarg2 << "0u, "; //UlamRef extra arg for pos-to-Eff??
 		    hiddenarg2 << stgcos->getMangledName().c_str() << ", &"; //storage
 		    hiddenarg2 << m_state.getTheInstanceMangledNameByIndex(stgcosuti).c_str(); //effself
 		    hiddenarg2 << ", " << genUlamRefUsageAsString(stgcosuti).c_str(); //usage
 		    hiddenarg2 << ", uc";
 		    hiddenarg2 << "); "; //line wraps
 
-		    //virtual func; second ulamref based on existing stg ulamref
-		    hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvar).c_str() << "(";
-		    hiddenarg2 << m_state.getUlamRefTmpVarAsString(tmpvarstg).c_str() << ", "; //existing
-		    hiddenarg2 << calcPosOfCurrentObjectClassesAsString(uvpass, false, askEffSelf, skipfuncclass); //relpos (t3763, t41310)
-		    if(adjstEle && (stgclasstype != UC_ELEMENT))
-		      hiddenarg2 << " + T::ATOM_FIRST_STATE_BIT";
-
-		    hiddenarg2 << ", " << getLengthOfMemberClassForHiddenArg(cosuti) << "u, &"; //len
-
-		    if(!cos->isDataMember())
+		    //virtual func: 2nd ulamref based on existing stg
+		    // ulamref; no implicit 'self' anymore, hence
+		    // testing "dot-chain" size > 1;
+		    if(m_state.m_currentObjSymbolsForCodeGen.size() > 1)
 		      {
-			//virtual func call keeps the eff self of stg (t41321),
-			// unless dm of local stg (e.g. t3804)
-			// possible also check uvpass for applydelta == true?
-			hiddenarg2 << m_state.getTheInstanceMangledNameByIndex(stgcosuti).c_str(); //same effself
-			hiddenarg2 << ", " << genUlamRefUsageAsString(stgcosuti).c_str(); //same usage
+			hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvar).c_str() << "(";
+			hiddenarg2 << m_state.getUlamRefTmpVarAsString(tmpvarstg).c_str() << ", "; //existing
+			hiddenarg2 << calcPosOfCurrentObjectClassesAsString(uvpass, false, askEffSelf, skipfuncclass); //relpos (t3763, t41310)
+			if(adjstEle && (stgclasstype != UC_ELEMENT))
+			  hiddenarg2 << " + T::ATOM_FIRST_STATE_BIT";
+			hiddenarg2 << ", " << getLengthOfMemberClassForHiddenArg(cosuti) << "u, &"; //len
+			if(!cos->isDataMember())
+			  {
+			    //e.g. cos is a BaseType: t41307,8,9,10,16,21,27
+			    //virtual func call keeps the eff self of stg,
+			    // unless dm of local stg (e.g. t3804)
+			    // possible also chk uvpass: applydelta == true?
+			    hiddenarg2 << m_state.getTheInstanceMangledNameByIndex(stgcosuti).c_str(); //same effself
+			    hiddenarg2 << ", " << genUlamRefUsageAsString(stgcosuti).c_str(); //same usage
+			  }
+			else
+			  {
+			    //data member uses its effective self: t3804,5
+			    hiddenarg2 << m_state.getTheInstanceMangledNameByIndex(cosuti).c_str(); //new effself
+			    hiddenarg2 << ", " << genUlamRefUsageAsString(cosuti).c_str(); //new usage
+			  }
+			hiddenarg2 << ");";
 		      }
 		    else
 		      {
-			hiddenarg2 << m_state.getTheInstanceMangledNameByIndex(cosuti).c_str(); //new eff self
-			hiddenarg2 << ", " << genUlamRefUsageAsString(cosuti).c_str(); //new usage
+			//t3357,8,t3361,t3531,t3600,t3719,20,21,2,t3743,5,7,8,
+			//t3804,5,t3880,t41000,1,7,11,12,97,t41298,9
+			//t41304,17,19,22,25,27,28,32.
+			tmpvar = tmpvarstg; //cos size <= 1
 		      }
-		    hiddenarg2 << ");";
 		  }
 	      }
 	  }
       }
 
     u32 tmpvarbasefunc = m_state.getNextTmpVarNumber();
-    if(funcinbase)
+    //non-virtual functions that are in base classes
+    if(funcinbase && (vownarg == Nouti))
       {
 	if(!sameur)
 	  hiddenarg2 << " "; //readability btn wrapping UlamRefs
@@ -3180,9 +3197,10 @@ namespace MFM {
 	else
 	  hiddenarg2 << funcclassrelpos << "u, ";
 	hiddenarg2 << getLengthOfMemberClassForHiddenArg(funcclassarg) << "u, true);"; //len
-      }
+      } //else funcinbase && virtual: t3600,1 3743,5,7, t3986,
+    //t41005,6,7,11,12, t41153,61, t41298,9, t41304,7,18,19,20,22,23,25.
 
-    if(funcinbase)
+    if(funcinbase && (vownarg == Nouti))
       urtmpnumref = tmpvarbasefunc;
     else if(!sameur)
       urtmpnumref = tmpvar; //update arg
@@ -4088,7 +4106,7 @@ namespace MFM {
 	  askEffSelf = ((cosSize > 1) && m_state.m_currentObjSymbolsForCodeGen[1]->isDataMember()) ? (UlamType::compare(m_state.m_currentObjSymbolsForCodeGen[1]->getDataMemberClass(), derefstguti, m_state) != UTIC_SAME) : true; //t3749, t41338
 	else
 	  //t41304,7,8,9,10,11,14,15,16,17,18,20,21,22,23,27,28, t41333,t41336,
-	  askEffSelf = false; //t3743,4,5,6,t41097,t41161,t41298,9
+	  askEffSelf = true; //was false; //t3743,4,5,6,t41097,t41161,t41298,9
       }
     else if(stgcos->isDataMember()) //implicit self,t3541,t3832(arrayitem==tmp&&ref&&dm);
       {

@@ -1286,8 +1286,8 @@ namespace MFM {
   void NodeFunctionCall::genCodeVirtualFunctionCallVTableEntry(File * fp, u32 tvfpnum, u32 urtmpnum, u32& urtmpnumvfc)
   {
     assert(m_funcSymbol);
-    //requires runtime lookup for virtual function pointer
-    //need typedef typename for this vfunc, any vtable of any owner of this vfunc
+    //Often requires runtime lookup for virtual function pointer;
+    //need typedef typename for this vfunc by any owner of this vfunc
     u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
     Symbol * cos = NULL; //any owner of func
 
@@ -1308,96 +1308,108 @@ namespace MFM {
     UlamType * vownut = m_state.getUlamTypeByIndex(vownuti);
 
     bool knownatcompiletime = false;
+    bool lhscallseffself = false;
+    bool checkforpure = false;
     //MAKE A STRING for reuse: lhs vtable accessor
     std::ostringstream lhsstr; //caller string
     if(cos->isSelf() || cosSize == 0)
       {
 	lhsstr << m_state.getHiddenArgName(); //ur
 	lhsstr << ".GetEffectiveSelf()->";
+	lhscallseffself = true;
       }
     else if(cos->isSuper())
       {
 	lhsstr << m_state.getTheInstanceMangledNameByIndex(decosuti).c_str();
 	lhsstr << "."; //t41161
+	checkforpure = true;
       }
-    else if(urtmpnum > 0)
+    else if(cos->isTmpVarSymbol() && ((SymbolTmpVar *) cos)->isBaseClassRef())
       {
-	if(cos->isTmpVarSymbol() && ((SymbolTmpVar *) cos)->isBaseClassRef())
-	  {
-	    lhsstr << m_state.getTheInstanceMangledNameByIndex(decosuti).c_str();
-	    lhsstr << "."; //t41311, t41314
-	    knownatcompiletime = true;
-	  }
-	else //(e.g. t41301)
-	  {
-	    lhsstr <<m_state.getUlamRefTmpVarAsString(urtmpnum).c_str();
-	    lhsstr <<".GetEffectiveSelf()->";
-	  }
+	lhsstr << m_state.getTheInstanceMangledNameByIndex(decosuti).c_str();
+	lhsstr << "."; //t41311, t41314
+	//was, knownatcompiletime = true; //t41353
+	checkforpure = true; //error:t41313
+      }
+    else if(urtmpnum > 0)//(e.g. t41301)
+      {
+	lhsstr <<m_state.getUlamRefTmpVarAsString(urtmpnum).c_str();
+	lhsstr <<".GetEffectiveSelf()->";
+	lhscallseffself = true;
       }
     else if(cos->getAutoLocalType() == ALT_AS)
       {
 	m_state.abortShouldntGetHere();
 	lhsstr << m_state.getHiddenArgName(); //ur, should use urtmpnum!!
 	lhsstr << ".GetEffectiveSelf()->";
+	lhscallseffself = true;
       }
     else
       {
 	//unless local or dm, known at compile time!
+	// BUT caught by (utmpnum > 0) case, first.
+	//m_state.abortNeedsATest(); t41354???
 	lhsstr << m_state.getTheInstanceMangledNameByIndex(decosuti).c_str();
 	lhsstr << ".";
 	knownatcompiletime = true;
+	checkforpure = true;
       }
 
-
-    s32 tmpvtstartidx = m_state.getNextTmpVarNumber();
-    m_state.indentUlamCode(fp);
-    fp->write("const u32 ");
-    fp->write(m_state.getTmpVarAsString(Unsigned, tmpvtstartidx, TMPREGISTER).c_str());
-    fp->write(" = ");
-
-    fp->write(lhsstr.str().c_str());
-    fp->write("GetVTStartOffsetForClassByRegNum(");
-    fp->write_decimal_unsigned(vownregnum);
-    fp->write("); // ");  //reading into a tmp var
-    fp->write(m_state.getUlamTypeNameBriefByIndex(vownuti).c_str());
-    fp->write(" regnum=");
-    fp->write_decimal_unsigned(vownregnum); GCNL;
-
-    //MAKE A STRING for reuse: vtable index between the parens w tmpvtstartidx
-    std::ostringstream vtindexstring; //between parens
-    vtindexstring << vownut->getUlamTypeMangledName().c_str();
-    vtindexstring << "<EC>::"; //orignating class
-    vtindexstring << "VOWNED_IDX_"; //== m_funcSymbol->getVirtualMethodIdx()
-    vtindexstring <<m_funcSymbol->getMangledNameWithTypes().c_str();
-    vtindexstring <<  " + ";
-    vtindexstring << m_state.getTmpVarAsString(Unsigned, tmpvtstartidx, TMPREGISTER).c_str();
-
-    //requires runtime lookup for virtual function pointer
-    m_state.indentUlamCode(fp);
-    fp->write("VfuncPtr "); //legitimize this tmp label TODO
-    fp->write(m_state.getVFuncPtrTmpNumAsString(tvfpnum).c_str()); //Uf_tvfpNNN
-    fp->write(" = ");
-
-    fp->write(lhsstr.str().c_str());
-    fp->write("getVTableEntry(");
-    fp->write(vtindexstring.str().c_str());
-    fp->write(");"); GCNL; //reading into a separate VfuncPtr tmp var
-
-
-    // UPDATE THE UR: with overriding classs relative pos and length
-    s32 tmpvarclassptr = m_state.getNextTmpVarNumber();
-    m_state.indentUlamCode(fp);
-    fp->write("const UlamClass<EC> * ");
-    fp->write(m_state.getUlamClassTmpVarAsString(tmpvarclassptr).c_str());
-    fp->write(" = ");
-
-    fp->write(lhsstr.str().c_str());
-    fp->write("getVTableEntryUlamClassPtr(");
-    fp->write(vtindexstring.str().c_str());
-    fp->write("); //override class"); GCNL; //reading into a separate classptr tmp var
+    //use shorthand UlamRef for virtual funcs when effSelf is used (t41322)
+    if(lhscallseffself)
+      {
+	return genCodeVirtualFunctionCallVTableEntryUsingEffectiveSelf(fp,tvfpnum,urtmpnum,urtmpnumvfc);
+      } //done
 
     if(!knownatcompiletime)
       {
+	//spell it out, since lhs doesn't use EffectiveSelf()
+	s32 tmpvtstartidx = m_state.getNextTmpVarNumber();
+	m_state.indentUlamCode(fp);
+	fp->write("const u32 ");
+	fp->write(m_state.getTmpVarAsString(Unsigned, tmpvtstartidx, TMPREGISTER).c_str());
+	fp->write(" = ");
+
+	fp->write(lhsstr.str().c_str());
+	fp->write("GetVTStartOffsetForClassByRegNum(");
+	fp->write_decimal_unsigned(vownregnum);
+	fp->write("); // ");  //reading into a tmp var
+	fp->write(m_state.getUlamTypeNameBriefByIndex(vownuti).c_str());
+	fp->write(" regnum=");
+	fp->write_decimal_unsigned(vownregnum); GCNL;
+
+	//MAKE A STRING for reuse: vtable index btn the parens w tmpvtstartidx
+	std::ostringstream vtindexstring; //between parens
+	vtindexstring << vownut->getUlamTypeMangledName().c_str();
+	vtindexstring << "<EC>::"; //orignating class
+	vtindexstring << "VOWNED_IDX_"; //== m_funcSymbol->getVirtualMethodIdx()
+	vtindexstring <<m_funcSymbol->getMangledNameWithTypes().c_str();
+	vtindexstring <<  " + ";
+	vtindexstring << m_state.getTmpVarAsString(Unsigned, tmpvtstartidx, TMPREGISTER).c_str();
+
+	//requires runtime lookup for virtual function pointer
+	m_state.indentUlamCode(fp);
+	fp->write("VfuncPtr "); //legitimize this tmp label TODO
+	fp->write(m_state.getVFuncPtrTmpNumAsString(tvfpnum).c_str()); //Uf_tvfpNNN
+	fp->write(" = ");
+
+	fp->write(lhsstr.str().c_str());
+	fp->write("getVTableEntry(");
+	fp->write(vtindexstring.str().c_str());
+	fp->write(");"); GCNL; //reading into a separate VfuncPtr tmp var
+
+	// UPDATE THE UR: with overriding class' relative pos and length
+	s32 tmpvarclassptr = m_state.getNextTmpVarNumber();
+	m_state.indentUlamCode(fp);
+	fp->write("const UlamClass<EC> * ");
+	fp->write(m_state.getUlamClassTmpVarAsString(tmpvarclassptr).c_str());
+	fp->write(" = ");
+
+	fp->write(lhsstr.str().c_str());
+	fp->write("getVTableEntryUlamClassPtr(");
+	fp->write(vtindexstring.str().c_str());
+	fp->write("); //override class"); GCNL; //reading into a separate classptr tmp var
+
 	s32 tmpvarpos = m_state.getNextTmpVarNumber();
 	m_state.indentUlamCode(fp);
 	fp->write("const s32 ");
@@ -1427,8 +1439,7 @@ namespace MFM {
 	fp->write(m_state.getClassLengthFunctionName(decosuti));
 	fp->write("(); //len of override class"); GCNL; //reading into a separate len tmp var
 
-	// READY to make virtual function call ur, with appropriate overriding class pos/len,
-	// same effself and usage;
+	//Create UlamRef for this vfunc call:
 	urtmpnumvfc = m_state.getNextTmpVarNumber();
 	m_state.indentUlamCode(fp);
 	fp->write("UlamRef<EC> ");
@@ -1447,25 +1458,88 @@ namespace MFM {
       }
     else
       {
-	//error/t41313, error/t41330
-	SymbolClass * bcsym = NULL;
-	AssertBool gotBaseClass = m_state.alreadyDefinedSymbolClass(decosuti, bcsym);
-	assert(gotBaseClass);
-
-	u32 vfidx = m_funcSymbol->getVirtualMethodIdx();
-	u32 startoffset = bcsym->getVTstartoffsetOfRelatedOriginatingClass(vownuti);
-	if(bcsym->isPureVTableEntry(vfidx+startoffset))
-	  {
-	    std::ostringstream msg;
-	    msg << "Virtual function '" << m_funcSymbol->getMangledNameWithTypes().c_str();
-	    msg << "' is pure; cannot be called directly in baseclass: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(decosuti).c_str();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	  }
+	//knownatcompiletime..
+	m_state.abortNotImplementedYet();
 	urtmpnumvfc = urtmpnum; //same ur
       }
+
+  // may also check for pure when relpos is not known at compiletime, but we
+  // know which VTable to use (e.g. BaseType/Super specified)
+  // t41313,t41330; t41160,t41158,t41094
+  if(checkforpure)
+    {
+      //error/t41313, error/t41330
+      SymbolClass * bcsym = NULL;
+      AssertBool gotBaseClass = m_state.alreadyDefinedSymbolClass(decosuti, bcsym);
+      assert(gotBaseClass);
+
+      u32 vfidx = m_funcSymbol->getVirtualMethodIdx();
+      u32 startoffset = bcsym->getVTstartoffsetOfRelatedOriginatingClass(vownuti);
+      if(bcsym->isPureVTableEntry(vfidx+startoffset))
+	{
+	  std::ostringstream msg;
+	  msg << "Virtual function '" << m_funcSymbol->getMangledNameWithTypes().c_str();
+	  msg << "' is pure; cannot be called directly in baseclass: ";
+	  msg << m_state.getUlamTypeNameBriefByIndex(decosuti).c_str();
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	}
+    }
+    // READY to make virtual function call ur, with appropriate
+    // overriding class pos/len, same effself and usage;
     return;
   } //genCodeVirtualFunctionCallVTableEntry
+
+  void NodeFunctionCall::genCodeVirtualFunctionCallVTableEntryUsingEffectiveSelf(File * fp, u32 tvfpnum, u32 urtmpnum, u32& urtmpnumvfc)
+  {
+    assert(m_funcSymbol);
+    //requires runtime lookup for virtual function pointer; needs
+    //typedef typename for this vfunc (in any owner of this vfunc);
+    //(ulam-5) requires runtime lookup for vfunc vowned index, plus
+    //start index into virtual table (using registration number of
+    //orig class), both known at compile time.
+    UTI vownuti = m_funcSymbol->getVirtualMethodOriginatingClassUTI();
+    u32 vownregnum = m_state.getAClassRegistrationNumber(vownuti);
+    //VOWNED_IDX enum is the same regardless of effective self (e.g. t3600)
+    // belongs to originating class; subclass knows offset in VT (ulam-5)
+    UlamType * vownut = m_state.getUlamTypeByIndex(vownuti);
+
+    //MAKE A STRING for reuse: vtable index between the parens w tmpvtstartidx
+    std::ostringstream vtindexstring; //between parens
+    vtindexstring << vownut->getUlamTypeMangledName().c_str();
+    vtindexstring << "<EC>::"; //orignating class
+    vtindexstring << "VOWNED_IDX_"; //== m_funcSymbol->getVirtualMethodIdx()
+    vtindexstring <<m_funcSymbol->getMangledNameWithTypes().c_str();
+
+    //requires runtime lookup for virtual function pointer
+    m_state.indentUlamCode(fp);
+    fp->write("VfuncPtr "); //legitimize this tmp label TODO
+    fp->write(m_state.getVFuncPtrTmpNumAsString(tvfpnum).c_str()); //Uf_tvfpNNN
+    fp->write(";"); GCNL;
+
+    //generate shorthand UlamRef constructor for vfunc calls:
+    urtmpnumvfc = m_state.getNextTmpVarNumber();
+    m_state.indentUlamCode(fp);
+    fp->write("UlamRef<EC> ");
+    fp->write(m_state.getUlamRefTmpVarAsString(urtmpnumvfc).c_str());
+    fp->write("(");
+    if(urtmpnum > 0)
+      fp->write(m_state.getUlamRefTmpVarAsString(urtmpnum).c_str());
+    else
+      fp->write(m_state.getHiddenArgName()); //ur
+    fp->write(", ");
+    fp->write(vtindexstring.str().c_str());
+    fp->write(", ");
+    fp->write_decimal_unsigned(vownregnum);
+    fp->write("u /*");
+    fp->write(m_state.getUlamTypeNameBriefByIndex(vownuti).c_str());
+    fp->write("*/, true, ");
+    fp->write(m_state.getVFuncPtrTmpNumAsString(tvfpnum).c_str()); //Uf_tvfpNNN
+    fp->write(");"); GCNL;
+
+    // READY to make virtual function call ur, with appropriate
+    // overriding class pos/len, same effself and usage;
+    return;
+  } //genCodeVirtualFunctionCallVTableEntryUsingEffectiveSelf
 
   void NodeFunctionCall::genCodeVirtualFunctionCall(File * fp, u32 tvfpnum)
   {
@@ -1473,6 +1547,7 @@ namespace MFM {
     //requires runtime lookup for virtual function pointer
     u32 vfidx = m_funcSymbol->getVirtualMethodIdx();
     UTI vownuti = m_funcSymbol->getVirtualMethodOriginatingClassUTI();
+    UlamType * vownut = m_state.getUlamTypeByIndex(vownuti);
 
     //need typedef typename for this vfunc, any vtable of any owner of this vfunc
     u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
@@ -1491,7 +1566,6 @@ namespace MFM {
     u32 coffset = csym->getVTstartoffsetOfRelatedOriginatingClass(vownuti);
     assert(coffset < UNRELIABLEPOS);
     UTI cvfuti = csym->getClassForVTableEntry(vfidx + coffset); //t41304
-    UlamType * cvfut = m_state.getUlamTypeByIndex(cvfuti);
 
     // check that we are not trying to call a pure virtual function:
     //   t41158, t41160, t41094, safe t41161
@@ -1512,7 +1586,7 @@ namespace MFM {
       }
 
     fp->write("((typename ");
-    fp->write(cvfut->getUlamTypeMangledName().c_str());
+    fp->write(vownut->getUlamTypeMangledName().c_str()); //any class fine for its typedef
     fp->write("<EC>::"); //same for elements and quarks
     fp->write(m_funcSymbol->getMangledNameWithTypes().c_str());
     fp->write(") (");

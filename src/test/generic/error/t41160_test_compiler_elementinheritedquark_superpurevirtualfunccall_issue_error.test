@@ -2,9 +2,8 @@
 #=t41160_test_compiler_elementinheritedquark_superpurevirtualfunccall_issue_error
 ##
 #!
-./Sub1.ulam:5:11: ERROR: (2) Virtual function 'Uf_4func10' is pure; cannot be called for eval.
-Exit status: -1
-Unrecoverable Program Test FAILURE.
+./Sub1.ulam:5:11: ERROR: Virtual function 'Uf_4func10' is pure; cannot be called directly in baseclass: Sup.
+Unrecoverable Program GenCode FAILURE.
 ##
 ## pure virtual called on a super, should be catchable by ulam compiler,
 ## unlike ref to base class that can be any sub with non-pure implementation.

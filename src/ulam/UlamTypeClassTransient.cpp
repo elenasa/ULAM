@@ -304,7 +304,7 @@ namespace MFM {
     m_state.indent(fp);
     fp->write(automangledName.c_str());
     fp->write("(const UlamRef");
-    fp->write("<EC>& r) : UlamRef<EC>(r, 0, r.GetLen(), r.GetEffectiveSelf(), ");
+    fp->write("<EC>& r) : UlamRef<EC>(r,0,r.GetLen(),r.GetEffectiveSelf(),");
     if(!isScalar())
       fp->write("UlamRef<EC>::ARRAY");
     else
@@ -316,7 +316,7 @@ namespace MFM {
     fp->write(automangledName.c_str());
     fp->write("(const ");
     fp->write(automangledName.c_str());
-    fp->write("<EC>& r) : UlamRef<EC>(r, 0, r.GetLen(), r.GetEffectiveSelf(), ");
+    fp->write("<EC>& r) : UlamRef<EC>(r,0,r.GetLen(),r.GetEffectiveSelf(),");
     if(!isScalar())
       fp->write("UlamRef<EC>::ARRAY");
     else
@@ -415,7 +415,7 @@ namespace MFM {
 	    if(myblen > 0)
 	      {
 		fp->write("/*data members first*/ ");
-		fp->write("UlamRef<EC>(*this,");
+		fp->write("UlamRef<EC>(*this,0,");
 		fp->write_decimal_unsigned(myblen);
 		fp->write("u).Write(");
 		fp->write("targ.Read(0u,");
@@ -644,7 +644,7 @@ namespace MFM {
 	    fp->write("0u,");
 	    fp->write_decimal_unsigned(myblen);
 	    fp->write("u,");
-	    fp->write("UlamRef<EC>(d,");
+	    fp->write("UlamRef<EC>(d,0,");
 	    fp->write_decimal_unsigned(myblen);
 	    fp->write("u).Read()); ");
 	  }

@@ -5,9 +5,8 @@
 ## /home/elenas/WORK/ulam/repo/MFM-fork/MFM/src/core/include/UlamClass.h:262: FAILED: PURE_VIRTUAL_CALLED
 ##
 #!
-./E2.ulam:3:43: ERROR: (2) Virtual function <Uf_5afunc11102321i> is pure; cannot be called for eval.
-Exit status: -1
-Unrecoverable Program Test FAILURE.
+./E2.ulam:3:43: ERROR: Virtual function 'Uf_5afunc11102321i' is pure; cannot be called directly in baseclass: Sub1.
+Unrecoverable Program GenCode FAILURE.
 ##
 ## informed by error/t41094
 ##

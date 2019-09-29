@@ -261,7 +261,7 @@ namespace MFM {
     m_state.indent(fp);
     fp->write(automangledName.c_str());
     fp->write("(const UlamRef");
-    fp->write("<EC>& r) : UlamRef<EC>(r, ");
+    fp->write("<EC>& r) : UlamRef<EC>(r,0,");
     fp->write_decimal_unsigned(len); //includes arraysize
     fp->write("u) { }"); GCNL;
 
@@ -279,7 +279,7 @@ namespace MFM {
     fp->write(automangledName.c_str());
     fp->write("(const ");
     fp->write(automangledName.c_str());
-    fp->write("<EC>& r) : UlamRef<EC>(r, r.GetLen()");
+    fp->write("<EC>& r) : UlamRef<EC>(r,0,r.GetLen()");
     fp->write(") { }"); GCNL;
 
     //default destructor (intentially left out)
@@ -374,7 +374,7 @@ namespace MFM {
 	    if(myblen > 0)
 	      {
 		fp->write("/*data members first*/ ");
-		fp->write("UlamRef<EC>(*this,");
+		fp->write("UlamRef<EC>(*this,0,"); //t3172
 		fp->write_decimal_unsigned(myblen);
 		fp->write("u).Write(");
 		fp->write("tmpbv.Read(0u,");
@@ -403,7 +403,6 @@ namespace MFM {
 		    fp->write("(");
 		    fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(baseuti));
 		    fp->write("u)- this->GetPosToEffectiveSelf(),");
-		    //fp->write("u),");
 		    fp->write_decimal_unsigned(blen);
 		    fp->write("u,true).Write(tmpbv.Read(");
 		    fp->write_decimal_unsigned(csym->getSharedBaseClassRelativePosition(j));
@@ -639,7 +638,7 @@ namespace MFM {
 	    fp->write("0u,");
 	    fp->write_decimal_unsigned(myblen);
 	    fp->write("u,");
-	    fp->write("UlamRef<EC>(d,");
+	    fp->write("UlamRef<EC>(d,0,"); //t3230
 	    fp->write_decimal_unsigned(myblen);
 	    fp->write("u).Read()); ");
 	  }
