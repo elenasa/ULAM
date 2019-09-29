@@ -6,7 +6,7 @@
 ##
 #!
 Exit status: -1
-Ue_Foo { Int(32) test() {  Atom(96) f3;  Atom(96)& r = ( f3 cast )caller2;  0 cast return } }
+Ue_Foo { Int(32) test() {  Atom(96) f3;  Atom(96)& r = self ( f3 cast )caller2 .;  0 cast return } }
 ##
 ## informed by Dave email 2/10/2017 and t41029, see safe/t41033
 ##

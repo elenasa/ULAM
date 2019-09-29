@@ -5,7 +5,7 @@
 ##
 #!
 Exit status: 0
-Ue_MyElement { typedef MyParms B;  typedef MyElement A;  Int(32) test() {  ( pFOO(3u) 12u cast )func 0 cast return } }
+Ue_MyElement { typedef MyParms B;  typedef MyElement A;  Int(32) test() {  self ( pFOO(3u) 12u cast )func . 0 cast return } }
 Ue_MyParms {parameter Unsigned(32) pFOO = 3u;  <NOMAIN> }
 ##
 ## informed by t41146 and t41147, user ish 11/5/2017:
