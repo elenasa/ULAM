@@ -288,12 +288,7 @@ namespace MFM {
 
 	//(ulam-5) base class no longer at zero (t3735)
 	fp->write(stgcos->getMangledName().c_str()); //ur for self
-	fp->write(".GetEffectiveSelf()->");
-	fp->write(m_state.getGetRelPosMangledFunctionName(stgcos->getUlamTypeIdx()));
-	fp->write("(&");
-	fp->write(m_state.getTheInstanceMangledNameByIndex(getOfType()).c_str());
-	fp->write(")");
-
+	fp->write(".GetPosToEffectiveSelf()"); //t41007
 	fp->write(" - T::ATOM_FIRST_STATE_BIT"); //must be an effective element ref (e.g.t3684, t3663)
 	fp->write("); //atomof"); GCNL;
 
