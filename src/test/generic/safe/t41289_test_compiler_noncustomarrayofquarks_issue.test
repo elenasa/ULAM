@@ -4,7 +4,6 @@
 ## gen output: 2 asserts
 ##
 #!
-#!
 Exit status: 0
 Ue_Foo { Int(32) test() {  System s;  C2D xy = xy ( 1 cast 2 cast )Self .;  Other pair;  pair m_arr 0 [] . xy = s ( pair m_arr 0 [] . m_width . 1 cast == )assert . Custom custom;  custom ( 0 cast )aref . xy = s ( custom ( 0 cast )aref . m_width . 1 cast == )assert . 0 cast return } }
 Uq_System { <NOMAIN> }

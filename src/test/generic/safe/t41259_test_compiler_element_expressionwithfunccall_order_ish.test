@@ -1,7 +1,6 @@
 ## -*- mode:ulam -*-
 #=t41259_test_compiler_element_expressionwithfunccall_order_ish_error
 #!
-#!
 Exit status: 0
 Ue_Foo { Int(32) test() {  Foo f;  Unsigned(32) var1 = f ( )func . 1u cast +b;  Unsigned(32) var2 = 1u cast f ( )func . +b;  0 cast return } }
 ##

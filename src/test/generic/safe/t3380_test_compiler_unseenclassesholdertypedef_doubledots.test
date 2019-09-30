@@ -1,7 +1,6 @@
 ## -*- mode:ulam -*-
 #=t3380_test_compiler_unseenclassesholdertypedef_doubledots
 #!
-#!
 Exit status: 0
 Ue_F { Int(32) test() {  0 cast return } }
 Ue_A { typedef Int(32) ZZ;  <NOMAIN> }

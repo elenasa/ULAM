@@ -1,7 +1,6 @@
 ## -*- mode:ulam -*-
 #=t3863_test_compiler_localarrayinit_packedloadable_issue
 #!
-#!
 Exit status: 0
 Ue_A { System s();  Int(32) test() {  Unsigned(8) rtn[4] = { 255u, 0u };  typedef Unsigned(16) BIGARGB[4];  Unsigned(16) rtn2[4] = { 65518u, 0u };  typedef Unsigned(33) WEIRDOG[5];  Unsigned(33) rtn3[5] = { HexU64(0x1, 0x23456789), HexU64(0x0, 0x0) };  0 cast return } }
 Uq_System { <NOMAIN> }

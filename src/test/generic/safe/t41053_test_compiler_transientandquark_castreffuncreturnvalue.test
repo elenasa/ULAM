@@ -6,7 +6,6 @@
 ## cannot eval atom ref return type that is element Foo, too
 ##
 #!
-#!
 Exit status: -11
 Ue_R { Int(32) test() {  System s;  TFoo tf;  QFoo& fooref = tf ( )func . cast;  s ( fooref QFoo is )assert . 0 cast return } }
 Uq_System { <NOMAIN> }

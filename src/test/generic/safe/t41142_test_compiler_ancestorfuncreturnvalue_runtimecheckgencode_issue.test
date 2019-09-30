@@ -1,7 +1,6 @@
 ## -*- mode:ulam -*-
 #=t41142_test_compiler_ancestorfuncreturnvalue_runtimecheckgencode_issue
 #!
-#!
 Exit status: 0
 Ue_MyElement { Int(32) test() {  0 cast return } }
 Uq_MyQ { /* empty class block */ }

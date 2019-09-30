@@ -1,7 +1,6 @@
 ## -*- mode:ulam -*-
 #=t41056_test_compiler_classinstancetypedefasfuncparamtype_issue
 #!
-#!
 Exit status: 7
 Ue_R { Int(32) test() {  Content content;  content ( 1u cast 3u cast 7u cast )setDir . content m_cmdPrio . mVal . cast return } }
 Ue_Content : QContent { constant Unsigned(32) cCMD_BITS = 7u;  typedef UMod(7u) CommandSpinner;  typedef Unsigned(3) Dir;  Unsigned(3) m_moveDir(0);  typedef Unsigned(3) Velocity;  Unsigned(3) m_moveVelocity(0);  UMod(7u) m_cmdPrio( typedef Unsigned(7) Value;  constant Unsigned(7) cVALUE_MIDPOINT = 63u;  Unsigned(7) mVal(0); );  :QContent<> <NOMAIN> }

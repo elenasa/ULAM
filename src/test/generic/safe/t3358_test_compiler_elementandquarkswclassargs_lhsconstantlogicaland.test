@@ -1,7 +1,6 @@
 ## -*- mode:ulam -*-
 #=t3358_test_compiler_elementandquarkswclassargs_lhsconstantlogicaland
 #!
-#!
 Exit status: 1
 Ue_Foo { Int(32) test() {  Booly(7u,8u,true) b;  b ( )behave . b m_bo . cast return } }
 Uq_Booly(Unsigned(4) firstRange, Unsigned(4) lastRange, Bool(1) bomb) { Bool(1) m_bo(false);  <NOMAIN> }

@@ -1,7 +1,6 @@
 ## -*- mode:ulam -*-
 #=t3317_test_compiler_emptysimplestmt
 #!
-#!
 Exit status: 0
 Ue_A { Int(32) test() {  ; ; ; 0 cast return } }
 #>A.ulam

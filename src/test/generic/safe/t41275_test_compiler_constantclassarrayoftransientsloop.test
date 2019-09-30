@@ -7,7 +7,6 @@
 ##
 ## Big transients unevaluable
 #!
-#!
 Exit status: -11
 Ue_KeyExprRep { Int(32) test() {  SystemU3 s;  { Int(32) i = 0 cast;  i 5u cast < cond { s ( keyexpr_x13 i [] m_elfoo . estr 0 [] . )print . s ( 32u 4u cast == )assert . } _1: i 1 ++ while } constant KeyExprNode mykeyarraycopy = keyexpr_x13;  { Int(32) j = 0 cast;  j 5 cast < cond { s ( mykeyarraycopy j [] m_elfoo . estr 1 [] . )print . s ( 32u 3u cast == )assert . } _2: j 1 ++ while } 0 cast return } }
 Ue_Elfoo { Bool(1) esp( true);  String(32) estr[2]( { "melt", "let" });  constant String(32) c_str = "reunion";  <NOMAIN> }

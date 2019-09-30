@@ -1,7 +1,6 @@
 ## -*- mode:ulam -*-
 #=t3531_test_compiler_forloopgencode_issue
 #!
-#!
 ## apparently a gcc bug:
 ## https://gcc.gnu.org/bugzilla/show_bug.cgi?id=59124
 ##

@@ -1,7 +1,6 @@
 ## -*- mode:ulam -*-
 #=t3756_test_compiler_elementandquark_assignreftosub_toint_issue
 #!
-#!
 Exit status: -1
 Ue_A : QW { Bool(1) b(false);  Bool(1) c(false);  :QW< Bool(1) bw(false);  :Qbase< Unary(5) m_five(0u); >> ^Qbase< Unary(5) m_five(0u); > Int(32) test() {  System s;  Qbase& qref = self cast;  A apple3 = qref.atomof cast;  A& appleref = qref cast;  Atom(96)& atr = qref.atomof;  Atom(96) a = qref.atomof cast;  0 cast return } }
 Uq_QW : Qbase { Bool(1) bw(false);  :Qbase< Unary(5) m_five(0); > <NOMAIN> }

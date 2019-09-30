@@ -7,7 +7,6 @@
 ##
 ## FAILED: ILLEGAL_ARGUMENT
 #!
-#!
 Exit status: 3
 Ue_T { Int(32) test() {  System sys;  constant Q(false) cqf = { .i = 3 };  S(0x18,false) sf;  sys ( sf 3 . )print . sys ( sf 3 . 3 cast == )assert . sys ( sf v . b . cast )print . sys ( sf v . b . ! )assert . sf 3 . cast return } }
 Uq_System { <NOMAIN> }

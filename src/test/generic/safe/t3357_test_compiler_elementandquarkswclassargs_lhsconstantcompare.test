@@ -1,7 +1,6 @@
 ## -*- mode:ulam -*-
 #=t3357_test_compiler_elementandquarkswclassargs_lhsconstantcompare
 #!
-#!
 Exit status: 0
 Ue_Foo { Int(32) test() {  Booly(true) b;  b ( )behave . 0 cast return } }
 Uq_Booly(Bool(1) bomb) { Bool(1) m_bo(false);  <NOMAIN> }

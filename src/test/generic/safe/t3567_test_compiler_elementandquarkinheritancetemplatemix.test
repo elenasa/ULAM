@@ -1,7 +1,6 @@
 ## -*- mode:ulam -*-
 #=t3567_test_compiler_elementandquarkinheritancetemplatemix
 #!
-#!
 Exit status: 4
 Ue_R { Int(32) test() {  Tu(1) tu;  tu mi . return } }
 Ue_Tu(Int(32) x) : Foo { /* empty class block */ }

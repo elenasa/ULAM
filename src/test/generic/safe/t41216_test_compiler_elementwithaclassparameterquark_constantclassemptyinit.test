@@ -9,7 +9,6 @@
 ##
 ## ILLEGAL_ARGUMENT
 #!
-#!
 Exit status: 3
 Ue_T { Int(32) test() {  System sys;  constant Q cqt = { };  sys ( cqt i . )print . sys ( cqt i . 3 cast == )assert . sys ( cqt b . cast )print . sys ( cqt b . )assert . S(0x98) s;  sys ( s 3 . )print . sys ( s 3 . 3 cast == )assert . sys ( s v . b . cast )print . sys ( s v . b . )assert . s 3 . cast return } }
 Uq_System { <NOMAIN> }

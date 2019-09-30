@@ -4,7 +4,6 @@
 ## gen output: 1 asserts
 ##
 #!
-#!
 Exit status: 0
 Ue_Foo { typedef C2D C2D2[2];  Int(32) test() {  System s;  C2D xy = xy ( 1 cast 2 cast )Self .;  C2D pair[2];  pair 0 [] xy = s ( pair 0 [] m_width . 1 cast == )assert . 0 cast return } }
 Uq_C2D { Int(4) m_width(0);  Int(4) m_height(0);  <NOMAIN> }

@@ -4,7 +4,6 @@
 ## gen output: (1 assert)
 ##
 #!
-#!
 Exit status: 4
 Ue_Eltypo { typedef Empty EArr[4];  Int(32) test() {  System s;  Empty arr[4];  s ( true )assert . 4u cast return } }
 Uq_System { <NOMAIN> }

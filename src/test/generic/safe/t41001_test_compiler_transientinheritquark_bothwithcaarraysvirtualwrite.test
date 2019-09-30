@@ -6,7 +6,6 @@
 ## Int arg: 12
 ##
 #!
-#!
 Exit status: 0
 Ue_Foo { Bool(1) first(false);  Int(32) test() {  System s;  Soo su;  Coo& cref = su cast;  su ( 0 cast )aref . 8 cast = s ( su ( 0 cast )aref . cast )print . s ( su ( 0 cast )aref . cast 8 cast == )assert . cref ( 1 cast )aref . 12 cast = s ( cref ( 1 cast )aref . cast )print . s ( cref ( 1 cast )aref . cast 12 cast == )assert . 0 cast return } }
 Uq_System { <NOMAIN> }

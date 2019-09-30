@@ -1,7 +1,6 @@
 ## -*- mode:ulam -*-
 #=t3374_test_compiler_unseenclassesholdertypedefswarrays
 #!
-#!
 Exit status: 1
 Uq_A { /* empty class block */ }
 Ue_F { typedef Bool(3) Foo[2];  Int(32) test() {  Bool(3) f[2];  f 0 [] true cast = { f 0 [] cond f 0 [] cast return if } 0 cast return } }

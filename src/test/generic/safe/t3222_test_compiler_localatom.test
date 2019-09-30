@@ -1,7 +1,6 @@
 ## -*- mode:ulam -*-
 #=t3222_test_compiler_localatom
 #!
-#!
 Exit status: 96
 Ue_A { Int(3) b(0);  System s();  Bool(1) d(false);  Int(3) a(0);  Int(3) c(0);  Int(32) test() {  typedef Atom(96) T;  Atom(96) tm;  96u cast return } }
 Uq_System { <NOMAIN> }

@@ -5,7 +5,6 @@
 ##  Unsigned Arg: 8
 ##
 #!
-#!
 Exit status: 8
 Ue_Eltypo { Int(32) test() {  System s;  EventWindow ew;  Unsigned(32) len = ew ( )alengthof .;  len ew ( )alengthof . = s ( len )print . s ( len 8u cast == )assert . ew ( )alengthof . cast return } }
 Uq_System { <NOMAIN> }

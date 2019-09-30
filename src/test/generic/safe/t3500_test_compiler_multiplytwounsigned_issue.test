@@ -1,7 +1,6 @@
 ## -*- mode:ulam -*-
 #=t3500_test_compiler_multiplytwounsigned_issue
 #!
-#!
 Exit status: 0
 Ue_A { typedef Unsigned(4) Timer;  Int(32) test() {  Unsigned(4) t;  Unsigned(8) res = t cast t cast *;  ; res cast return } }
 ##

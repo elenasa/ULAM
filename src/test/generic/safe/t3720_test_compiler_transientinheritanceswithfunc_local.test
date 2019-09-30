@@ -6,7 +6,6 @@
 ##  Unsigned Arg: 11
 ##
 #!
-#!
 Exit status: 11
 Ue_R { Int(32) test() {  Foo f;  f ( )func . return } }
 Un_Foo { System s();  Bool(1) first(false);  <NOMAIN> }

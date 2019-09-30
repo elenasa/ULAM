@@ -1,7 +1,6 @@
 ## -*- mode:ulam -*-
 #=t3575_test_compiler_elementandquarkinheritancetemplatemix_wfunccall
 #!
-#!
 Exit status: 8
 Ue_R { Int(32) test() {  Tu(1) tu;  tu ( )func . tu ( )func . +b return } }
 Ue_Tu(Int(32) x) : Foo { /* empty class block */ }

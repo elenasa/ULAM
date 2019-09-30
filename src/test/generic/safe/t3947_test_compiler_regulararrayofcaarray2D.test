@@ -1,7 +1,6 @@
 ## -*- mode:ulam -*-
 #=t3947_test_compiler_regulararrayofcaarray2D
 #!
-#!
 Exit status: -11
 Ue_R { Int(32) test() {  EventWindow tvt[7];  EventWindow& ew = tvt 2 [] cast;  Atom(96) atom1 = ew ( 0 cast )aref . cast;  Atom(96) atom2 = tvt 2 [] ( 0 cast )aref . cast;  0 cast return } }
 Uq_EventWindow { <NOMAIN> }

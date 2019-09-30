@@ -25,7 +25,6 @@
 ## after assert's abort: arg is 1
 ##
 #!
-#!
 Exit status: -11
 Ue_R { Int(32) test() {  System s;  Foo f;  f ( )behave . 0 cast return } }
 Uq_System { <NOMAIN> }

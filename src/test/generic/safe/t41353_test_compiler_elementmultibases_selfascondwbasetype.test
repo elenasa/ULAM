@@ -6,7 +6,6 @@
 ##       Unsigned Arg: 3
 ##
 #!
-#!
 Exit status: 3
 Uq_Typo(Int(32) a) : Bar { /* empty class block */ }
 Uq_Bar : Gah { Bool(1) sp(false);  :Gah< Unsigned(3) bu( 7u); > <NOMAIN> }

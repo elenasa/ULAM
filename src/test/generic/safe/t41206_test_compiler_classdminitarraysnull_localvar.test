@@ -10,7 +10,6 @@
 ## Bool(3) Arg: 0x7 (true)
 ##
 #!
-#!
 Exit status: 0
 Ue_A { Bool(1) b(false);  Int(32) test() {  System s;  QBar bar = { .r = { }, .sp = false };  Unary(3) chkr0 = bar r 0 [] .;  s ( chkr0 )print . s ( bar r 0 [] . )print . s ( bar r 0 [] . cast 1 cast == )assert . s ( bar sp . cast )print . s ( bar sp . ! )assert . QBar bar0 = { };  Unary(3) chkr3 = bar0 r 3 [] .;  s ( chkr3 )print . s ( bar0 r 3 [] . )print . s ( bar0 r 3 [] . cast 1 cast == )assert . s ( bar0 sp . cast )print . s ( bar0 sp . )assert . 0 cast return } }
 Uq_System { <NOMAIN> }

@@ -14,7 +14,6 @@
 ## Unary(3) Arg: 0x3
 ##
 #!
-#!
 Exit status: -11
 Ue_A { Bool(1) b(false);  QFoo m_foo( QBar m_bartwo[2]( Unary(3) r[5](3u,2u,0u,0u,0u);  Bool(1) sp(true);  Unary(3) r[5](0u,3u,2u,2u,2u);  Bool(1) sp(true); ); );  Int(32) test() {  System s;  R mytr = { .m_b = true };  s ( mytr m_a . m_foo . m_bartwo 0 [] . sp . cast )print . s ( mytr m_a . m_foo . m_bartwo 0 [] . sp . )assert . s ( mytr m_a . m_foo . m_bartwo 1 [] . sp . cast )print . s ( mytr m_a . m_foo . m_bartwo 1 [] . sp . )assert . Unary(3) chkr0 = mytr m_a . m_foo . m_bartwo 0 [] . r 0 [] .;  s ( chkr0 )print . s ( mytr m_a . m_foo . m_bartwo 0 [] . r 0 [] . )print . s ( mytr m_a . m_foo . m_bartwo 0 [] . r 0 [] . cast 2 == )assert . Unary(3) chkr3 = mytr m_a . m_foo . m_bartwo 0 [] . r 3 [] .;  s ( chkr3 )print . s ( mytr m_a . m_foo . m_bartwo 0 [] . r 3 [] . )print . s ( mytr m_a . m_foo . m_bartwo 0 [] . r 3 [] . cast 3 == )assert . Unary(3) chkr11 = mytr m_a . m_foo . m_bartwo 1 [] . r 1 [] .;  s ( chkr11 )print . s ( mytr m_a . m_foo . m_bartwo 1 [] . r 1 [] . )print . s ( mytr m_a . m_foo . m_bartwo 1 [] . r 1 [] . cast 0 cast == )assert . Unary(3) chkr13 = mytr m_a . m_foo . m_bartwo 1 [] . r 3 [] .;  s ( chkr13 )print . s ( mytr m_a . m_foo . m_bartwo 1 [] . r 3 [] . )print . s ( mytr m_a . m_foo . m_bartwo 1 [] . r 3 [] . cast 3 == )assert . 0 cast return } }
 Uq_QFoo { QBar m_bartwo[2]( Bool(1) sp(false);  Unary(3) r[5]( { 1u }); ), ( Bool(1) sp(false);  Unary(3) r[5]( { 1u }); );  <NOMAIN> }

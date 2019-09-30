@@ -1,7 +1,6 @@
 ## -*- mode:ulam -*-
 #=t3435_test_compiler_unpackedarrayatom
 #!
-#!
 Exit status: 10
 Ue_A { typedef Atom(96) BigSite[10];  Int(32) test() {  Atom(96) site[10];  { Int(32) i = 0 cast;  i 10 cast < cond { site i [] self cast = } _1: i 1 += while } 10 cast return } }
 ## (was)

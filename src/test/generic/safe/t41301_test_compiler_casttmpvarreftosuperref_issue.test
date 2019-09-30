@@ -1,7 +1,6 @@
 ## -*- mode:ulam -*-
 #=t41301_test_compiler_casttmpvarreftosuperref_issue
 #!
-#!
 Exit status: -11
 Ue_Foo { Int(32) test() {  SystemU3 du;  typedef ByteStreamArray(250u) MsgBuf;  ByteStreamArray(250u) buf;  du ( buf cast cast )print . 0 cast return } }
 Uq_SystemU3 : System { :System<> <NOMAIN> }

@@ -1,7 +1,6 @@
 ## -*- mode:ulam -*-
 #=t3423_test_compiler_namedconstant_octal
 #!
-#!
 Exit status: 0
 Ue_A { Int(32) test() {  constant Unsigned(8) c255 = 255u;  constant Unsigned(8) c73 = 73u;  constant Unsigned(8) c64 = 64u;  constant Unsigned(8) c8 = 8u;  constant Unsigned(8) c1 = 1u;  constant Unsigned(8) cZ = 0u;  0 cast return } }
 ##

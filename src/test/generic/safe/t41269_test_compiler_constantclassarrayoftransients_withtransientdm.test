@@ -15,7 +15,6 @@
 ##
 ## Big transients unevaluable.
 #!
-#!
 Exit status: -11
 Ue_KeyExprRep { Int(32) test() {  SystemU3 s;  KeyExprNode mykey = keyexpr_x13 0 [];  s ( mykey m_rightIndex . cast )print . s ( mykey m_rightIndex . 2u cast == )assert . s ( keyexpr_x13 1 [] m_rightIndex . cast )print . s ( keyexpr_x13 1 [] m_rightIndex . 4u cast == )assert . KeyExprNode mykeyexpr_x13[5] = keyexpr_x13;  s ( mykeyexpr_x13 2 [] m_keyCode . cast )print . s ( mykeyexpr_x13 2 [] m_keyCode . keyexpr_x13 2 [] m_keyCode . == )assert . Tfoo elephant = keyexpr_x13 4 [] m_tfoo .;  s ( elephant esp . )assert . String(32) mystr = elephant estr .;  s ( elephant estr . )print . String(32) estring = keyexpr_x13 4 [] m_tfoo . estr .;  s ( estring )print . s ( elephant estr 0 [] . 109u == )assert . s ( keyexpr_x13 3 [] m_tfoo . estr 1 [] . 101u == )assert . s ( elephant estr 2 [] . keyexpr_x13 3 [] m_tfoo . estr 2 [] . == )assert . 0 cast return } }
 Un_Tfoo { Bool(1) esp( true);  String(32) estr( "mel");  <NOMAIN> }

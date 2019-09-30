@@ -8,7 +8,6 @@
 ##   Unsigned Arg: 2
 ##
 #!
-#!
 Exit status: 0
 Ue_KeyExprRep { Int(32) test() {  SystemU3 s;  constant Elfoo celfooe = melfoo;  s ( celfooe esp . ! )assert . s ( celfooe estr 0 [] . )print . s ( 2u )print . s ( true )assert . constant Elfoo celfoof = keyexpr_x13 4 [] melfoo .;  s ( celfoof esp . ! )assert . s ( celfoof estr 0 [] . )print . s ( 2u )print . s ( true )assert . 0 cast return } }
 Ue_Elfoo { Bool(1) esp( true);  String(32) estr[2]( { "melt", "let" });  constant String(32) c_str = "reunion";  <NOMAIN> }

@@ -5,7 +5,6 @@
 ##  Unsigned Arg: 0
 ##
 #!
-#!
 Exit status: 0
 Ue_P { Bool(1) b(false);  Int(32) test() {  System s;  Int(32) i = by 3 [];  s ( by 3 [] )print . s ( by 3 [] 0 cast == )assert . i return } }
 Uq_System { <NOMAIN> }

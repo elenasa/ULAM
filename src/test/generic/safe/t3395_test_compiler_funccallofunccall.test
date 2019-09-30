@@ -1,7 +1,6 @@
 ## -*- mode:ulam -*-
 #=t3395_test_compiler_funccallofunccall
 #!
-#!
 Exit status: 0
 Ue_A { /* empty class block */ }
 Ue_R { Int(32) test() {  Colony(3u) c;  c ( c ( )getTailAge . )setTailAge . 0 cast return } }

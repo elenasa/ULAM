@@ -1,7 +1,6 @@
 ## -*- mode:ulam -*-
 #=t3350_test_compiler_elementandquarkswclassargs2_bitsizearg
 #!
-#!
 Exit status: 96
 Ue_R { Int(32) test() {  constant Unsigned(3) var = 3u;  P(3u) pel;  96u cast return } }
 Uq_V { typedef Q(3) Woof;  <NOMAIN> }

@@ -1,7 +1,6 @@
 ## -*- mode:ulam -*-
 #=t3880_test_compiler_transientwelementdm_gencodewrite_issue
 #!
-#!
 Exit status: -11
 Ue_R { Int(32) test() {  Ish e;  e ( )behave . 0 cast return } }
 Ue_Ish { Bool(1) mBool(false);  <NOMAIN> }

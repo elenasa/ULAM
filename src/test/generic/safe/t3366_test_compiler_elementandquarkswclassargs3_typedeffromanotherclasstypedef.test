@@ -1,7 +1,6 @@
 ## -*- mode:ulam -*-
 #=t3366_test_compiler_elementandquarkswclassargs3_typedeffromanotherclasstypedef
 #!
-#!
 Exit status: 3
 Ue_R { Int(32) test() {  P(3) pvar;  pvar var . pvar ( )func . = pvar var . cast return } }
 Uq_V { typedef Q(3) Woof;  <NOMAIN> }

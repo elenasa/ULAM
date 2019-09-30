@@ -5,7 +5,6 @@
 ##      //Constants have explicit types; instead of -2 NodeTerminalProxy outputs 'f.sizeof' for example.
 ##
 #!
-#!
 Exit status: 0
 Ue_R { Int(32) test() {  Foo(1,3u) f;  Foo(1,3u) p;  f sp . true = 0 cast return } }
 Ue_Foo(Int(32) x, Unsigned(32) y) { Bool(UNKNOWN) sp(notready);  Bool(UNKNOWN) b(notready);  Bool(UNKNOWN) c[UNKNOWN](notready);  <NOMAIN> }

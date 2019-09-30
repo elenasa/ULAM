@@ -1,7 +1,6 @@
 ## -*- mode:ulam -*-
 #=t3555_test_compiler_elementinheritance_unseen
 #!
-#!
 Exit status: 77
 Ue_Foo : Soo { Bool(7) sp(false);  Int(32) a(73);  :Soo< typedef Bool(7) B7;  Unsigned(3) us(4u); > Int(32) test() {  Foo f;  f us . cast f a . +b return } }
 Uq_Soo { typedef Bool(7) B7;  Unsigned(3) us( 4u);  <NOMAIN> }

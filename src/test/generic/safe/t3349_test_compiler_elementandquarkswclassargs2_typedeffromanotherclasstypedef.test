@@ -1,7 +1,6 @@
 ## -*- mode:ulam -*-
 #=t3349_test_compiler_elementandquarkswclassargs2_typedeffromanotherclasstypedef
 #!
-#!
 Exit status: 96
 Ue_R { Int(32) test() {  constant Unsigned(3) var = 3u;  P(3u) pel;  96u cast return } }
 Ue_P(Unsigned(3) a) { Bool(UNKNOWN) b(notready);  <NOMAIN> }

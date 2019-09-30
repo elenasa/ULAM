@@ -1,7 +1,6 @@
 ## -*- mode:ulam -*-
 #=t3711_test_compiler_transient
 #!
-#!
 Exit status: 1
 Ue_Foo { Int(32) test() {  Too t;  1 cast return } }
 Un_Too { Bool(7) sp(false);  Int(32) a(0);  <NOMAIN> }
