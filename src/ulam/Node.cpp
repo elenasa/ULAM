@@ -3082,7 +3082,7 @@ namespace MFM {
 		    //ancestor keeps effective self of sub, more
 		    //later..t3637, t3746 uses UlamRef 3-arg copy
 		    //constr to keep pos (t3249), EffSelf and UsageType of ref
-		    hiddenarg2 << "0," << getLengthOfMemberClassForHiddenArg(cosuti) << "u);" ; //pos, len
+		    hiddenarg2 << "0, " << getLengthOfMemberClassForHiddenArg(cosuti) << "u);" ; //pos, len
 		  }
 	      }
 	    else

@@ -1331,28 +1331,22 @@ namespace MFM {
 	//was, knownatcompiletime = true; //t41353
 	checkforpure = true; //error:t41313
       }
-    else if(urtmpnum > 0)//(e.g. t41301)
+    else if(m_state.isReference(cosuti) && (urtmpnum > 0)) //t41301
       {
+	// could be ALT_AS: t3601,36,39, t3747, t3835, t41046, t41315,18,20,23
 	lhsstr <<m_state.getUlamRefTmpVarAsString(urtmpnum).c_str();
 	lhsstr <<".GetEffectiveSelf()->";
 	lhscallseffself = true;
       }
-    else if(cos->getAutoLocalType() == ALT_AS)
-      {
-	m_state.abortShouldntGetHere();
-	lhsstr << m_state.getHiddenArgName(); //ur, should use urtmpnum!!
-	lhsstr << ".GetEffectiveSelf()->";
-	lhscallseffself = true;
-      }
     else
       {
-	//unless local or dm, known at compile time!
-	// BUT caught by (utmpnum > 0) case, first.
-	//m_state.abortNeedsATest(); t41354???
+	//unless local or dm, known at compile time! (t41354)
+	//t3357,8, t3361,t3531, t3600, t3719,20,21,22, t3743,5,7,8, t3804,5
+	//t3880, t41000,1,7,11,12,97, t41298,9, t41304,17,19,22,25,27,28,32,54
 	lhsstr << m_state.getTheInstanceMangledNameByIndex(decosuti).c_str();
 	lhsstr << ".";
 	knownatcompiletime = true;
-	checkforpure = true;
+	checkforpure = true; //must be!
       }
 
     //use shorthand UlamRef for virtual funcs when effSelf is used (t41322)
@@ -1458,8 +1452,8 @@ namespace MFM {
       }
     else
       {
-	//knownatcompiletime..
-	m_state.abortNotImplementedYet();
+	//knownatcompiletime..VfuncPtr read into variable after checkforpure
+	assert(checkforpure);
 	urtmpnumvfc = urtmpnum; //same ur
       }
 
@@ -1475,13 +1469,35 @@ namespace MFM {
 
       u32 vfidx = m_funcSymbol->getVirtualMethodIdx();
       u32 startoffset = bcsym->getVTstartoffsetOfRelatedOriginatingClass(vownuti);
-      if(bcsym->isPureVTableEntry(vfidx+startoffset))
+      u32 vt = vfidx + startoffset;
+
+      if(bcsym->isPureVTableEntry(vt))
 	{
 	  std::ostringstream msg;
 	  msg << "Virtual function '" << m_funcSymbol->getMangledNameWithTypes().c_str();
 	  msg << "' is pure; cannot be called directly in baseclass: ";
 	  msg << m_state.getUlamTypeNameBriefByIndex(decosuti).c_str();
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	}
+      else if(knownatcompiletime)
+	{
+	  UTI veuti = bcsym->getClassForVTableEntry(vt); //t3600
+	  UlamType * veut = m_state.getUlamTypeByIndex(veuti);
+
+	  m_state.indentUlamCode(fp);
+	  fp->write("VfuncPtr "); //legitimize this tmp label TODO
+	  fp->write(m_state.getVFuncPtrTmpNumAsString(tvfpnum).c_str()); //Uf_tvfpNNN
+	  fp->write(" = ");
+	  fp->write("(VfuncPtr) "); //cast to void
+	  fp->write("((typename "); //cast to contextual type info
+	  fp->write(vownut->getUlamTypeMangledName().c_str());
+	  fp->write("<EC>::"); //same for elements and quarks
+	  fp->write(bcsym->getMangledFunctionNameWithTypesForVTableEntry(vt).c_str());
+	  fp->write(") &");
+	  fp->write(veut->getUlamTypeMangledName().c_str());
+	  fp->write("<EC>::"); //same for elements and quarks
+	  fp->write(bcsym->getMangledFunctionNameForVTableEntry(vt).c_str());
+	  fp->write(");"); GCNL; //reading into a separate VfuncPtr tmp var
 	}
     }
     // READY to make virtual function call ur, with appropriate
