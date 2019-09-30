@@ -418,7 +418,7 @@ namespace MFM {
 
 	// we must be the last thing called by checkandlabel
 	// to return properly to our parent
-	return Hzy;
+	//return Hzy;
       }
     return true; //ok
   } //checkReferenceCompatibility
