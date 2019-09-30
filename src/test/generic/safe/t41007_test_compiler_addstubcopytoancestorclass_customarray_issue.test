@@ -4,7 +4,6 @@
 ## gen output: (1 assert)
 ##
 #!
-#!
 Exit status: 0
 Ue_R { Int(32) test() {  A ela;  ela ( )behave . 0 cast return } }
 Ue_A : ConstantLabelAndFont("foobar",33u) { /* empty class block */ }

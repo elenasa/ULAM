@@ -1342,7 +1342,7 @@ namespace MFM {
       {
 	//unless local or dm, known at compile time! (t41354)
 	//t3357,8, t3361,t3531, t3600, t3719,20,21,22, t3743,5,7,8, t3804,5
-	//t3880, t41000,1,7,11,12,97, t41298,9, t41304,17,19,22,25,27,28,32,54
+	//t3880,t41000,1,7,11,12,97, t41298,9, t41304,17,19,22,25,27,28,32,54
 	lhsstr << m_state.getTheInstanceMangledNameByIndex(decosuti).c_str();
 	lhsstr << ".";
 	knownatcompiletime = true;
@@ -1454,7 +1454,6 @@ namespace MFM {
       {
 	//knownatcompiletime..VfuncPtr read into variable after checkforpure
 	assert(checkforpure);
-	urtmpnumvfc = urtmpnum; //same ur
       }
 
   // may also check for pure when relpos is not known at compiletime, but we
@@ -1463,15 +1462,15 @@ namespace MFM {
   if(checkforpure)
     {
       //error/t41313, error/t41330
-      SymbolClass * bcsym = NULL;
-      AssertBool gotBaseClass = m_state.alreadyDefinedSymbolClass(decosuti, bcsym);
-      assert(gotBaseClass);
+      SymbolClass * csym = NULL;
+      AssertBool gotClass = m_state.alreadyDefinedSymbolClass(decosuti,csym);
+      assert(gotClass);
 
       u32 vfidx = m_funcSymbol->getVirtualMethodIdx();
-      u32 startoffset = bcsym->getVTstartoffsetOfRelatedOriginatingClass(vownuti);
+      u32 startoffset = csym->getVTstartoffsetOfRelatedOriginatingClass(vownuti);
       u32 vt = vfidx + startoffset;
 
-      if(bcsym->isPureVTableEntry(vt))
+      if(csym->isPureVTableEntry(vt))
 	{
 	  std::ostringstream msg;
 	  msg << "Virtual function '" << m_funcSymbol->getMangledNameWithTypes().c_str();
@@ -1481,8 +1480,33 @@ namespace MFM {
 	}
       else if(knownatcompiletime)
 	{
-	  UTI veuti = bcsym->getClassForVTableEntry(vt); //t3600
+	  UTI veuti = csym->getClassForVTableEntry(vt); //t3600
 	  UlamType * veut = m_state.getUlamTypeByIndex(veuti);
+	  if(UlamType::compare(veuti, decosuti, m_state) != UTIC_SAME)
+	    {
+	      u32 verelpos;
+	      AssertBool gotrelpos = m_state.getABaseClassRelativePositionInAClass(decosuti, veuti, verelpos);
+	      assert(gotrelpos);
+
+	      //Create UlamRef for this vfunc call to override class (t41007)
+	      urtmpnumvfc = m_state.getNextTmpVarNumber();
+	      m_state.indentUlamCode(fp);
+	      fp->write("UlamRef<EC> ");
+	      fp->write(m_state.getUlamRefTmpVarAsString(urtmpnumvfc).c_str());
+	      fp->write("(");
+	      if(urtmpnum > 0)
+		fp->write(m_state.getUlamRefTmpVarAsString(urtmpnum).c_str());
+	      else
+		fp->write(m_state.getHiddenArgName()); //ur
+	      fp->write(", ");
+	      fp->write_decimal(verelpos); //override pos
+	      fp->write(", ");
+	      fp->write_decimal_unsigned(veut->getSizeofUlamType()); //override len
+	      fp->write("u, true");
+	      fp->write(");"); GCNL;
+	    }
+	  else
+	    urtmpnumvfc = urtmpnum; //same ur
 
 	  m_state.indentUlamCode(fp);
 	  fp->write("VfuncPtr "); //legitimize this tmp label TODO
@@ -1492,11 +1516,11 @@ namespace MFM {
 	  fp->write("((typename "); //cast to contextual type info
 	  fp->write(vownut->getUlamTypeMangledName().c_str());
 	  fp->write("<EC>::"); //same for elements and quarks
-	  fp->write(bcsym->getMangledFunctionNameWithTypesForVTableEntry(vt).c_str());
+	  fp->write(csym->getMangledFunctionNameWithTypesForVTableEntry(vt).c_str());
 	  fp->write(") &");
 	  fp->write(veut->getUlamTypeMangledName().c_str());
 	  fp->write("<EC>::"); //same for elements and quarks
-	  fp->write(bcsym->getMangledFunctionNameForVTableEntry(vt).c_str());
+	  fp->write(csym->getMangledFunctionNameForVTableEntry(vt).c_str());
 	  fp->write(");"); GCNL; //reading into a separate VfuncPtr tmp var
 	}
     }
