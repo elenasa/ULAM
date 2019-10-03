@@ -157,8 +157,7 @@ namespace MFM{
     }
 
     va_end(ap);
-    //return self;
-    return ur;
+    return Ui_Uq_r10109210ByteStream10<EC>(ur);
   } // Uf_6printf
 
 } //MFM
