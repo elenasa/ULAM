@@ -1600,7 +1600,7 @@ namespace MFM {
   void NodeConstantDef::generateTestInstance(File * fp, bool runtest)
   {}
 
-  void NodeConstantDef::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
+  void NodeConstantDef::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount, std::set<UTI>& setofbasesseenref)
   {}
 
   void NodeConstantDef::addMemberDescriptionToInfoMap(UTI classType, ClassMemberMap& classmembers)

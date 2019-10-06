@@ -110,7 +110,7 @@ namespace MFM{
 
     virtual void generateBuiltinConstantClassOrArrayInitializationFunction(File * fp, bool declOnly);
 
-    virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount);
+    virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount, std::set<UTI>& setofbasesseenref);
 
     virtual void addMemberDescriptionToInfoMap(UTI classType, ClassMemberMap& classmembers);
 

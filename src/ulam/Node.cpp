@@ -2266,7 +2266,7 @@ namespace MFM {
     m_state.abortShouldntGetHere();
   }
 
-  void Node::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
+  void Node::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount, std::set<UTI>& setofbasesseenref)
   {
     //fufilled by NodeVarDecl, NodeBlock; bypassed by NodeTypedef and NodeConstDef
     m_state.abortShouldntGetHere();

@@ -1108,7 +1108,7 @@ namespace MFM {
       }
   }
 
-  void NodeVarDeclDM::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
+  void NodeVarDeclDM::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount, std::set<UTI>& setofbasesseenref)
   {
     UTI nuti = getNodeType();
 

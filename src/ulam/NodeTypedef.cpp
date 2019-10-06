@@ -349,7 +349,7 @@ namespace MFM {
   void NodeTypedef::generateTestInstance(File * fp, bool runtest)
   { /* noop */ }
 
-  void NodeTypedef::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
+  void NodeTypedef::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount, std::set<UTI>& setofbasesseenref)
   {}
 
   void NodeTypedef::addMemberDescriptionToInfoMap(UTI classType, ClassMemberMap& classmembers)

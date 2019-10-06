@@ -1439,7 +1439,7 @@ namespace MFM {
   void NodeCast::genCodeCastDescendantTransient(File * fp, UVPass & uvpass)
   {
     //cast tobe related quark done by genCodeCastDescendantTransientAsQuark
-    // here, ancestor is a transient that is read by ReadBV (+ args) 20191006 ish.
+    // here, ancestor is a transient that is read by ReadBV (+ args) t41355
     UTI tobeType = getCastType(); //related transient tobe
     UlamType * tobe = m_state.getUlamTypeByIndex(tobeType);
     TMPSTORAGE tstor = tobe->getTmpStorageTypeForTmpVar();
@@ -1529,12 +1529,10 @@ namespace MFM {
 	//read from pos 0, for length of transient
 	s32 tmpVarVal = m_state.getNextTmpVarNumber();
 	m_state.indentUlamCode(fp);
-	//fp->write("const ");
 	fp->write(tobe->getTmpStorageTypeAsString().c_str()); //BV, not const
 	fp->write(" ");
-	fp->write(m_state.getTmpVarAsString(tobeType, tmpVarVal, tstor).c_str()); //ish 20191006
+	fp->write(m_state.getTmpVarAsString(tobeType, tmpVarVal, tstor).c_str()); //t41355
 	fp->write(";"); GCNL;
-	//fp->write(" = ");
 
 	m_state.indentUlamCode(fp);
 	fp->write("UlamRef<EC>(");

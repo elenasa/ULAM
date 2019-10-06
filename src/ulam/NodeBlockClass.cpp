@@ -4259,7 +4259,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	fp->write("{\n");
 	m_state.m_currentIndentLevel++;
 
-	generateUlamClassInfo(fp, declOnly, dmcount);
+	std::set<UTI> setofbasesseen;
+	generateUlamClassInfo(fp, declOnly, dmcount, setofbasesseen);
 
 	m_state.m_currentIndentLevel--;
 	m_state.indent(fp);
@@ -4279,9 +4280,15 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       }
   } //generateUlamClassInfoFunction
 
-  void NodeBlockClass::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
+  void NodeBlockClass::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount, std::set<UTI> & setofbasesseenref)
   {
     UTI nuti = getNodeType();
+
+    std::pair<std::set<UTI>::iterator, bool> reti = setofbasesseenref.insert(nuti);
+    if(!reti.second) return; //false if already existed, i.e. not added
+
+    if(m_nodeNext)
+      m_nodeNext->generateUlamClassInfo(fp, declOnly, dmcount, setofbasesseenref);
 
     SymbolClass * csym = NULL;
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(nuti, csym);
@@ -4299,7 +4306,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	    //then include any of its relatives:
 	    NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
 	    assert(basecblock);
-	    basecblock->generateUlamClassInfo(fp, declOnly, dmcount);
+	    basecblock->generateUlamClassInfo(fp, declOnly, dmcount, setofbasesseenref);
 	  }
 	i++;
       } //end while
@@ -4313,21 +4320,16 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	//skip the ancestor of a template
 	if(baseuti != Nouti)
 	  {
-	    s32 bitem = csym->isABaseClassItem(baseuti);
-	    if(bitem < 0)
-	      {
-		//not a direct shared base
-		//then include any of its relatives:
-		NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(j);
-		assert(shbasecblock);
-		shbasecblock->generateUlamClassInfo(fp, declOnly, dmcount);
-	      }
+	    //s32 bitem = csym->isABaseClassItem(baseuti);
+	    //if(bitem < 0)
+	    //not a direct shared base
+	    //then include any of its relatives:
+	    NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(j);
+	    assert(shbasecblock);
+	    shbasecblock->generateUlamClassInfo(fp, declOnly, dmcount, setofbasesseenref);
 	  }
 	j++;
       } //end while
-
-    if(m_nodeNext)
-      m_nodeNext->generateUlamClassInfo(fp, declOnly, dmcount);
   } //generateUlamClassInfo
 
   void NodeBlockClass::generateUlamClassInfoCount(File * fp, bool declOnly, u32 dmcount)
