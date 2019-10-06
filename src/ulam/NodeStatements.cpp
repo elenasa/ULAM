@@ -340,11 +340,11 @@ namespace MFM {
     return;
   }
 
-  void NodeStatements::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount, std::set<UTI>& setofbasesseenref)
+  void NodeStatements::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
   {
-    m_node->generateUlamClassInfo(fp, declOnly, dmcount, setofbasesseenref);
+    m_node->generateUlamClassInfo(fp, declOnly, dmcount);
     if(m_nodeNext)
-      m_nodeNext->generateUlamClassInfo(fp, declOnly, dmcount, setofbasesseenref);
+      m_nodeNext->generateUlamClassInfo(fp, declOnly, dmcount);
   }
 
   void NodeStatements::addMemberDescriptionToInfoMap(UTI classType, ClassMemberMap& classmembers)

@@ -41,7 +41,6 @@
 #include <stdio.h>
 #include <assert.h>
 #include <vector>
-#include <set>
 #include "BitVector.h"
 #include "CastOps.h"
 #include "File.h"
@@ -241,7 +240,7 @@ namespace MFM{
 
     virtual void generateTestInstance(File * fp, bool runtest);
 
-    virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount, std::set<UTI>& setofbasesseenref);
+    virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount);
 
     virtual void addMemberDescriptionToInfoMap(UTI classType, ClassMemberMap& classmembers);
 

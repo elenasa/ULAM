@@ -1268,7 +1268,7 @@ namespace MFM {
     m_state.abortShouldntGetHere(); //see NodeVarDeclDM
   }
 
-  void NodeVarDecl::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount, std::set<UTI>& setofbasesseenref)
+  void NodeVarDecl::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
   {
     m_state.abortShouldntGetHere(); //see NodeVarDeclDM data members only
   }

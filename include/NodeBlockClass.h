@@ -288,7 +288,7 @@ namespace MFM{
     void generateGetPosForQuark(File * fp, bool declOnly);
 
     void generateUlamClassInfoFunction(File * fp, bool declOnly, u32& dmcount);
-    virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount, std::set<UTI>& setofbasesseenref);
+    virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount);
     void generateUlamClassInfoCount(File * fp, bool declOnly, u32 dmcount);
     void generateUlamClassGetMangledName(File * fp, bool declOnly);
 
