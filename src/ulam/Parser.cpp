@@ -3682,6 +3682,18 @@ namespace MFM {
 	    ms->setNodeLocation(iTok.m_locator);
 	    rtnNode = ms;
 	    hasOneBaseTypeSelector = true;
+
+	    Token tmpTok;
+	    getNextToken(tmpTok);
+	    unreadToken();
+	    if(tmpTok.m_type != TOK_DOT)
+	      {
+		std::ostringstream msg;
+		msg << "Expected data member or function call to follow member select by type '";
+		msg << m_state.getTokenDataAsString(iTok).c_str();
+		msg << "'";
+		MSG(&iTok, msg.str().c_str(), ERR); //t41356
+	      }
 	  }
 	else
 	  {
