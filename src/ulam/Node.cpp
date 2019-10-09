@@ -1228,10 +1228,12 @@ namespace MFM {
     //VALUE TO BE WRITTEN:
     // with immediate quarks, they are read into a tmpreg as other immediates
     // with immediate elements, too! value is not a terminal
-    TMPSTORAGE rstor = ruvpass.getPassStorage();
     fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
+#if 1
+    TMPSTORAGE rstor = ruvpass.getPassStorage();
     if(rstor == TMPBITVAL)
       fp->write(".read()");
+#endif
 
     fp->write(");"); GCNL;
 
@@ -1303,6 +1305,8 @@ namespace MFM {
     fp->write(writeMethodForCodeGen(cosuti, luvpass).c_str()); //t3739
     fp->write("(0u, "); //pos part of local member name (UlamRef)
     fp->write(ruvpass.getTmpVarAsString(m_state).c_str()); //tmp var ref
+    //if((ruvpass.getPassStorage() == TMPBITVAL) && m_state.isAClass(ruvpass.getPassTargetType()))
+    //  fp->write(".read()"); //t41355, t3715 (primitive)
     fp->write(");"); GCNL;
 
     m_state.clearCurrentObjSymbolsForCodeGen();
@@ -1552,6 +1556,7 @@ namespace MFM {
     s32 tmpVarNum2 = m_state.getNextTmpVarNumber();
     s32 pos = luvpass.getPassPos();
 
+    bool askEffSelf = askEffectiveSelfAtRuntimeForRelPosOfBase(); //t41355
     u32 calcpos = calcDataMemberPosOfCurrentObjectClasses(false, Nouti);
 
     //first array item, with item in uvpass (e.g. t3147)
@@ -1636,6 +1641,20 @@ namespace MFM {
 	fp->write(" + ");
 	fp->write_decimal_unsigned(pos); //rel offset (t3512, t3543, t3648, t3702, t3776, t3668, t3811, t3946, t3832)
 	fp->write("u");
+      }
+    else if(askEffSelf) //t41355
+      {
+	assert(cos->isDataMember()); //sanity?
+	UTI cosclassuti = cos->getDataMemberClass();
+	fp->write(" + ");
+	fp->write(stgcos->getMangledName().c_str());
+	fp->write(".GetEffectiveSelf()->");
+	fp->write(m_state.getGetRelPosMangledFunctionName(stgcosuti)); //nonatom
+	fp->write("(&");
+	fp->write(m_state.getTheInstanceMangledNameByIndex(cosclassuti).c_str());
+	fp->write(") - ");
+	fp->write(stgcos->getMangledName().c_str());
+	fp->write(".GetPosToEffectiveSelf()");
       }
     else if(cos->isDataMember())
       {

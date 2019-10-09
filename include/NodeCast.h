@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeCast.h - Basic Node for handling Type Casting for ULAM
  *
- * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2017 Ackleyshack LLC.
+ * Copyright (C) 2014-2019 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2019 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeCast.h - Basic Node for handling Type Casting for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2017 All rights reserved.
+  \date (C) 2014-2019 All rights reserved.
   \gpl
 */
 
@@ -132,6 +132,7 @@ namespace MFM{
     void genCodeCastDescendantElement(File * fp, UVPass & uvpass);
     void genCodeCastAncestorQuarkAsSubElement(File * fp, UVPass & uvpass);
     void genCodeCastDescendantQuark(File * fp, UVPass & uvpass);
+    void genPositionOfBaseIntoATmpVar(File * fp, u32 tmpvarpos, UTI baseuti, UTI tobeType, Symbol * stgcos, Symbol * cos); //helper
 
     void genCodeCastAsReference(File * fp, UVPass & uvpass);
     void genCodeCastFromAReference(File * fp, UVPass & uvpass);

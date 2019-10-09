@@ -4,14 +4,16 @@
 ##Unsigned Arg: 5
 ##Unsigned Arg: 5
 ##Unsigned Arg: 7
+##Unsigned Arg: 4
 ##
 ##
 #!
-Exit status: 12
-Ue_Foo : Soo { Bool(7) sp(false);  Int(32) a(73);  :Soo< Unsigned(3) sus(4u);  :Coo< Unsigned(3) us(5u);  Bool(3) cb(true); >> ^Coo< Unsigned(3) us(5u);  Bool(3) cb(true); > Int(32) test() {  System s;  self ( 5u )setus . Coo cc = self cast;  s ( cc us . cast )print . s ( cc us . cast 5 == )assert . cc ( 7u )setus . { cc cb . cond { s ( self us . cast )print . s ( self us . cast 5 == )assert . s ( cc us . cast )print . s ( cc us . cast 7 == )assert . self us . cast cc us . cast +b cast return } if } s ( false )assert . 0 cast return } }
+Exit status: 10
+Ue_Foo : Soo +Doh +Coo { Bool(7) sp(false);  Int(32) a(73);  :Soo< Unsigned(3) sus(4u);  :Coo< Unsigned(3) us(0u);  Bool(3) cb(false); >> +Doh< Bits(12) mewbits(1); > +Coo< Unsigned(3) us(5u);  Bool(3) cb(true); > Int(32) test() {  System s;  self ( 5u )setus . Soo cc = self cast;  s ( cc us . cast )print . s ( cc us . cast 5 == )assert . cc ( 7u )setus . { cc cb . cond { s ( self us . cast )print . s ( self us . cast 5 == )assert . s ( cc sus . cast )print . s ( cc sus . 7u == )assert . s ( self sus . cast )print . s ( self sus . 4u == )assert . self us . cast cc us . cast +b cast return } if } s ( false )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 Uq_Soo : Coo { Unsigned(3) sus( 4u);  :Coo< Unsigned(3) us( 2u);  Bool(3) cb( true); > <NOMAIN> }
 Uq_Coo { Unsigned(3) us( 2u);  Bool(3) cb( true);  <NOMAIN> }
+Uq_Doh { Bits(12) mewbits( 1u);  <NOMAIN> }
 ##
 ## chained class inheritance, regular (non-template), with casting self
 ## informed by t3559, t3229;  exact func match version (see t3562 for safe cast function matching)
@@ -20,7 +22,7 @@ Uq_Coo { Unsigned(3) us( 2u);  Bool(3) cb( true);  <NOMAIN> }
   ulam 2;
 use System;
 use Soo;
-element Foo : Soo {
+element Foo : Soo +Doh +Coo{
   Bool(7) sp;
   Int a = 73;
   Void setus(Unsigned(3) x)
@@ -31,18 +33,20 @@ element Foo : Soo {
   Int test() {
     System s;
     setus(5u); //Unsigned(3)
-    Coo cc = (Coo) self; //also works
+    Soo cc = (Soo) self; //also works, cast optional
     s.print(cc.us); //not default 2u
     s.assert(cc.us == 5);
 
-    cc.setus(7u);
+    cc.setus(7u); //changes sus, not us
     if(cc.cb)
       {
 	s.print(us); //5u
 	s.assert(us == 5);
-	s.print(cc.us); //7u
-	s.assert(cc.us == 7);
-	return us + cc.us; //exit status 12
+	s.print(cc.sus); //7u
+	s.assert(cc.sus == 7u);
+	s.print(sus); //4u, default
+	s.assert(sus == 4u);
+	return us + cc.us; //exit status 10
       }
     s.assert(false);
     return 0;
@@ -69,6 +73,13 @@ quark Coo {
   {
     us = x;
   }
+}
+
+#:Doh.ulam
+  ulam 4;
+quark Doh {
+  //prevent Soo and Coo being consecutive bases in Foo
+  Bits(12) mewbits = 1u;
 }
 
 #:System.ulam

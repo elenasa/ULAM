@@ -180,8 +180,8 @@ namespace MFM {
   void UlamTypeClassTransient::genUlamTypeMangledAutoDefinitionForC(File * fp)
   {
     assert(getUlamClassType() == UC_TRANSIENT);
-
     s32 len = getTotalBitSize(); //could be 0, includes arrays
+    s32 baselen = isScalar() ? getBitsizeAsBaseClass() : len; //could be 0, default when effself not self (ulam-5)
 
     //class instance idx is always the scalar uti
     UTI scalaruti =  m_key.getUlamKeyTypeSignatureClassInstanceIdx();
@@ -267,7 +267,15 @@ namespace MFM {
     fp->write(automangledName.c_str());
     fp->write("(BitStorage<EC>& targ, u32 idx, const UlamClass<EC>* effself, const UlamContext<EC>& uc) : UlamRef<EC>");
     fp->write("(idx, "); //the real pos!!!
-    fp->write_decimal_unsigned(len); //includes arraysize
+    if(!isScalar())
+      fp->write_decimal_unsigned(len); //includes arraysize
+    else
+      {
+	fp->write("&Us::THE_INSTANCE==effself ? ");
+	fp->write_decimal_unsigned(len); //includes arraysize
+	fp->write("u : ");
+	fp->write_decimal_unsigned(baselen); //base class
+      }
     fp->write("u, targ, effself, ");
     if(!isScalar())
       fp->write("UlamRef<EC>::ARRAY");
@@ -280,7 +288,15 @@ namespace MFM {
     fp->write(automangledName.c_str());
     fp->write("(BitStorage<EC>& targ, u32 idx, u32 postoeff, const UlamClass<EC>* effself, const UlamContext<EC>& uc) : UlamRef<EC>");
     fp->write("(idx, "); //the real pos!!!
-    fp->write_decimal_unsigned(len); //includes arraysize
+    if(!isScalar())
+      fp->write_decimal_unsigned(len); //includes arraysize
+    else
+      {
+	fp->write("&Us::THE_INSTANCE==effself ? ");
+	fp->write_decimal_unsigned(len); //includes arraysize
+	fp->write("u : ");
+	fp->write_decimal_unsigned(baselen); //base class
+      }
     fp->write("u, postoeff, targ, effself, ");
     if(!isScalar())
       fp->write("UlamRef<EC>::ARRAY");
@@ -292,7 +308,15 @@ namespace MFM {
     m_state.indent(fp);
     fp->write(automangledName.c_str());
     fp->write("(const UlamRef<EC>& arg, s32 idx, const UlamClass<EC>* effself) : UlamRef<EC>(arg, idx, ");
-    fp->write_decimal_unsigned(len); //includes arraysize
+    if(!isScalar())
+      fp->write_decimal_unsigned(len); //includes arraysize
+    else
+      {
+	fp->write("&Us::THE_INSTANCE==effself ? ");
+	fp->write_decimal_unsigned(len); //includes arraysize
+	fp->write("u : ");
+	fp->write_decimal_unsigned(baselen); //base class
+      }
     fp->write("u, effself, ");
     if(!isScalar())
       fp->write("UlamRef<EC>::ARRAY");
@@ -300,11 +324,21 @@ namespace MFM {
       fp->write("UlamRef<EC>::CLASSIC");
     fp->write(") { }"); GCNL;
 
-    //(general) copy constructor here; pos relative to exisiting (i.e. same).
+    //(general) copy constructor here; pos relative to existing (i.e. same).
     m_state.indent(fp);
     fp->write(automangledName.c_str());
     fp->write("(const UlamRef");
-    fp->write("<EC>& r) : UlamRef<EC>(r,0,r.GetLen(),r.GetEffectiveSelf(),");
+    fp->write("<EC>& r) : UlamRef<EC>(r,0,");
+    if(!isScalar())
+      fp->write("r.GetLen()");
+    else
+      {
+	fp->write("&Us::THE_INSTANCE==r.GetEffectiveSelf() ? ");
+	fp->write("r.GetLen() : ");
+	fp->write_decimal_unsigned(baselen); //base class
+	fp->write("u");
+      }
+    fp->write(",r.GetEffectiveSelf(),");
     if(!isScalar())
       fp->write("UlamRef<EC>::ARRAY");
     else
@@ -316,7 +350,17 @@ namespace MFM {
     fp->write(automangledName.c_str());
     fp->write("(const ");
     fp->write(automangledName.c_str());
-    fp->write("<EC>& r) : UlamRef<EC>(r,0,r.GetLen(),r.GetEffectiveSelf(),");
+    fp->write("<EC>& r) : UlamRef<EC>(r,0,");
+    if(!isScalar())
+      fp->write("r.GetLen()");
+    else
+      {
+	fp->write("&Us::THE_INSTANCE==r.GetEffectiveSelf() ? ");
+	fp->write("r.GetLen() : ");
+	fp->write_decimal_unsigned(baselen); //base class
+	fp->write("u");
+      }
+    fp->write(",r.GetEffectiveSelf(),");
     if(!isScalar())
       fp->write("UlamRef<EC>::ARRAY");
     else
@@ -356,14 +400,14 @@ namespace MFM {
   void UlamTypeClassTransient::genUlamTypeAutoReadDefinitionForC(File * fp)
   {
     m_state.indent(fp);
-    fp->write(getTmpStorageTypeAsString().c_str()); //u32, u64, or BV96
+    fp->write(getTmpStorageTypeAsString().c_str()); //u32, u64, or BV
     fp->write(" read() const { ");
     fp->write("if(&Us::THE_INSTANCE==this->GetEffectiveSelf()){ ");
     fp->write(getTmpStorageTypeAsString().c_str()); //u32, u64, or BV96
-    fp->write(" tmpbv; this->GetStorage().");
+    fp->write(" tmpbv;this->GetStorage().");
     fp->write(readMethodForCodeGen().c_str()); //just the guts
-    fp->write("(this->GetPos(), tmpbv); ");
-    fp->write("return tmpbv;/* entire transient */}");
+    fp->write("(this->GetPos(),tmpbv);");
+    fp->write("return tmpbv;/*entire transient*/}");
     fp->write("else { return Usi(*this).read(); } }"); GCNL;
 
     //scalar and entire PACKEDLOADABLE array handled by read method
@@ -377,50 +421,62 @@ namespace MFM {
 	m_state.indent(fp);
 	fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //s32 or u32
 	fp->write(" readArrayItem(");
-	fp->write("const u32 index, const u32 itemlen) const { return ");
+	fp->write("const u32 index,const u32 itemlen) const { return ");
 	fp->write("UlamRef<EC>(");
-	fp->write("*this, index * itemlen, "); //const ref, rel offset
-	fp->write("itemlen, &");  //itemlen,
+	fp->write("*this,index * itemlen,"); //const ref, rel offset
+	fp->write("itemlen,&");  //itemlen,
 	fp->write(m_state.getTheInstanceMangledNameByIndex(scalaruti).c_str());
-	fp->write(", UlamRef<EC>::CLASSIC).");
+	fp->write(",UlamRef<EC>::CLASSIC).");
 	fp->write(readArrayItemMethodForCodeGen().c_str());
-	fp->write("(); }"); GCNL;
+	fp->write("();}"); GCNL;
       }
   } //genUlamTypeAutoReadDefinitionForC
 
   void UlamTypeClassTransient::genUlamTypeAutoWriteDefinitionForC(File * fp)
   {
-
     // write must be scalar; ref param to avoid excessive copying
     //not an array
     if(isScalar())
       {
 	//ref param to avoid excessive copying; not an array
 	m_state.indent(fp);
-	fp->write("void");
-	fp->write(" write(const ");
-	fp->write(getTmpStorageTypeAsString().c_str()); //u32, u64, or BV96
-	fp->write("& targ) { ");
+	fp->write("void write(const ");
+	fp->write(getTmpStorageTypeAsString().c_str()); //u32, u64, or BV
+	fp->write("& targ){ ");
 	if(getBitSize() > 0)
 	  {
 	    fp->write("if(&Us::THE_INSTANCE==this->GetEffectiveSelf()) ");
 	    fp->write("UlamRef<EC>::");
 	    fp->write(writeMethodForCodeGen().c_str());
-	    fp->write("(targ); /* entire transient */ ");
-	    fp->write("else { ");
+	    fp->write("(targ); /*entire transient*/ ");
+	    fp->write("else{ ");
 
 	    //write the data members first
-	    //here.. 'd' UlamRef is initially pointing to them.
+	    //here.. 'targ' BV is the complete, 'this' UlamRef
+	    // may be different effSelf within larger context
 	    u32 myblen = getBitsizeAsBaseClass();
 	    if(myblen > 0)
 	      {
 		fp->write("/*data members first*/ ");
-		fp->write("UlamRef<EC>(*this,0,");
-		fp->write_decimal_unsigned(myblen);
-		fp->write("u).Write(");
-		fp->write("targ.Read(0u,");
-		fp->write_decimal_unsigned(myblen);
-		fp->write("u)); ");
+		if(myblen <= MAXBITSPERINT)
+		  {
+		    fp->write("UlamRef<EC>(*this,0,");
+		    fp->write_decimal_unsigned(myblen);
+		    fp->write("u).Write(");
+		    fp->write("targ.Read(0u,");
+		    fp->write_decimal_unsigned(myblen);
+		    fp->write("u)); ");
+		  }
+		else
+		  {
+		    fp->write("BitVector<");
+		    fp->write_decimal_unsigned(myblen);
+		    fp->write("u> tmpDM;");
+		    fp->write("targ.ReadBV(0,tmpDM);");
+		    fp->write("tmpDM.CopyBV(0,this->GetPos(),");
+		    fp->write_decimal_unsigned(myblen);
+		    fp->write("u,this->GetStorage());");
+		  }
 	      }
 
 	    //then, write each of its non-zero size (shared) base classes
@@ -439,20 +495,43 @@ namespace MFM {
 		u32 blen = m_state.getBaseClassBitSize(baseuti);
 		if(blen > 0)
 		  {
-		    fp->write("UlamRef<EC>(*this, this->GetEffectiveSelf()->");
-		    fp->write(m_state.getGetRelPosMangledFunctionName(baseuti));
-		    fp->write("(");
-		    fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(baseuti));
-		    fp->write("u)- this->GetPosToEffectiveSelf(),");
-		    //fp->write("u),");
-		    fp->write_decimal_unsigned(blen);
-		    fp->write("u,true).Write(targ.Read(");
-		    fp->write_decimal_unsigned(csym->getSharedBaseClassRelativePosition(j));
-		    fp->write("u,");
-		    fp->write_decimal_unsigned(blen);
-		    fp->write("u)); /*");
+		    if(blen <= MAXBITSPERINT)
+		      {
+			fp->write("UlamRef<EC>(*this,this->GetEffectiveSelf()->");
+			fp->write(m_state.getGetRelPosMangledFunctionName(baseuti));
+			fp->write("(");
+			fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(baseuti));
+			fp->write("u)- this->GetPosToEffectiveSelf(),");
+			fp->write_decimal_unsigned(blen);
+			fp->write("u).Write(targ.Read(");
+			fp->write_decimal_unsigned(csym->getSharedBaseClassRelativePosition(j));
+			fp->write("u,");
+			fp->write_decimal_unsigned(blen);
+			fp->write("u));");
+		      }
+		    else
+		      {
+			fp->write("BitVector<");
+			fp->write_decimal_unsigned(blen);
+			fp->write("u> tmpbv");
+			fp->write_decimal(j);
+			fp->write(";targ.ReadBV(");
+			fp->write_decimal_unsigned(csym->getSharedBaseClassRelativePosition(j));
+			fp->write("u,tmpbv");
+			fp->write_decimal(j);
+			fp->write(");tmpbv");
+			fp->write_decimal(j);
+			fp->write(".CopyBV(0,this->GetEffectiveSelf()->");
+			fp->write(m_state.getGetRelPosMangledFunctionName(baseuti));
+			fp->write("(");
+			fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(baseuti));
+			fp->write("u)- this->GetPosToEffectiveSelf(),");
+			fp->write_decimal_unsigned(blen);
+			fp->write("u,this->GetStorage());");
+		      }
+		    fp->write("/*");
 		    fp->write(m_state.getUlamTypeNameBriefByIndex(baseuti).c_str());
-		    fp->write(" */ ");
+		    fp->write("*/ ");
 		  }
 		j++;
 	      } //end while
@@ -593,16 +672,16 @@ namespace MFM {
     fp->write("() { ");
     if(isScalar())
       {
-	fp->write("Us::THE_INSTANCE.getDefaultTransient(0u, *this); }"); GCNL;
+	fp->write("Us::THE_INSTANCE.getDefaultTransient(0u,*this); }"); GCNL;
       }
     else
       {
 	fp->write("BVIS tmpbs; Us::THE_INSTANCE.getDefaultTransient(0u, tmpbs); ");
-	fp->write(" BVI tmpbvi; tmpbs.ReadBV(0u, tmpbvi); ");
+	fp->write(" BVI tmpbvi; tmpbs.ReadBV(0u,tmpbvi); ");
 	fp->write("for(u32 j = 0; j < ");
 	fp->write_decimal_unsigned(arraysize);
 	fp->write("u; j++) ");
-	fp->write("writeArrayItem(tmpbvi, j, ");
+	fp->write("writeArrayItem(tmpbvi,j,");
 	fp->write_decimal_unsigned(bitsize);
 	fp->write("); }"); GCNL;
       }
@@ -640,15 +719,27 @@ namespace MFM {
 	if(myblen > 0)
 	  {
 	    fp->write("/*data members first*/ ");
-	    fp->write("BVS::Write(");
-	    fp->write("0u,");
-	    fp->write_decimal_unsigned(myblen);
-	    fp->write("u,");
-	    fp->write("UlamRef<EC>(d,0,");
-	    fp->write_decimal_unsigned(myblen);
-	    fp->write("u).Read()); ");
+	    if(myblen <= MAXBITSPERINT)
+	      {
+		fp->write("BVS::Write(");
+		fp->write("0u,");
+		fp->write_decimal_unsigned(myblen);
+		fp->write("u,");
+		fp->write("UlamRef<EC>(d,0,");
+		fp->write_decimal_unsigned(myblen);
+		fp->write("u).Read()); ");
+	      }
+	    else
+	      {
+		fp->write("BitVector<");
+		fp->write_decimal_unsigned(myblen);
+		fp->write("u> tmpDM;");
+		fp->write("d.GetStorage().ReadBV(d.GetPos(),tmpDM);");
+		fp->write("tmpDM.CopyBV(0,0,");
+		fp->write_decimal_unsigned(myblen);
+		fp->write("u,this->m_stg);");
+	      }
 	  }
-
 	//then, write each of its non-zero size (shared) base classes
 	SymbolClass * csym = NULL;
 	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(scalaruti, csym);
@@ -663,22 +754,45 @@ namespace MFM {
 	    u32 blen = m_state.getBaseClassBitSize(baseuti);
 	    if(blen > 0)
 	      {
-		fp->write("BVS::Write(");
-		fp->write_decimal_unsigned(csym->getSharedBaseClassRelativePosition(j));
-		fp->write("u,");
-		fp->write_decimal_unsigned(blen);
-		fp->write("u,");
-		fp->write("UlamRef<EC>(d,d.GetEffectiveSelf()->");
-		fp->write(m_state.getGetRelPosMangledFunctionName(baseuti));
-		fp->write("(");
-		fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(baseuti));
-		//	    fp->write("u)-d.GetPosToEffectiveSelf(),");
-		fp->write("u),");
-		fp->write_decimal_unsigned(blen);
-		fp->write("u,true).Read()); /*");
+		if(blen <= MAXBITSPERINT)
+		  {
+		    fp->write("BVS::Write(");
+		    fp->write_decimal_unsigned(csym->getSharedBaseClassRelativePosition(j));
+		    fp->write("u,");
+		    fp->write_decimal_unsigned(blen);
+		    fp->write("u,");
+		    fp->write("UlamRef<EC>(d,d.GetEffectiveSelf()->");
+		    fp->write(m_state.getGetRelPosMangledFunctionName(baseuti));
+		    fp->write("(");
+		    fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(baseuti));
+		    fp->write("u)-d.GetPosToEffectiveSelf(),");
+		    fp->write_decimal_unsigned(blen);
+		    fp->write("u).Read());");
+		  }
+		else
+		  {
+		    fp->write("BitVector<");
+		    fp->write_decimal_unsigned(blen);
+		    fp->write("u> tmpbv");
+		    fp->write_decimal(j);
+		    fp->write(";d.GetStorage().ReadBV(d.GetEffectiveSelf()->");
+		    fp->write(m_state.getGetRelPosMangledFunctionName(baseuti));
+		    fp->write("(");
+		    fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(baseuti));
+		    fp->write("u)- d.GetPosToEffectiveSelf(),tmpbv");
+		    fp->write_decimal(j);
+		    fp->write(");tmpbv");
+		    fp->write_decimal(j);
+		    fp->write(".CopyBV(0,");
+		    fp->write_decimal_unsigned(csym->getSharedBaseClassRelativePosition(j));
+		    fp->write("u,");
+		    fp->write_decimal_unsigned(blen);
+		    fp->write("u,this->m_stg);");
+		  }
+		fp->write("/*");
 		fp->write(m_state.getUlamTypeNameBriefByIndex(baseuti).c_str());
-		fp->write(" */ ");
-	      }
+		fp->write("*/ ");
+	      } //next base
 	    j++;
 	  } //end while
 	fp->write("} }"); GCNL;
