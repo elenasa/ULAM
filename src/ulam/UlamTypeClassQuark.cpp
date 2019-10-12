@@ -313,7 +313,6 @@ namespace MFM {
 	fp->write("u : ");
 	fp->write_decimal_unsigned(baselen); //base class
       }
-    //    fp->write("u, true) { }"); GCNL; //want applydelta, true ???
     fp->write("u) { }"); GCNL; //want applydelta, true ???
 
     //(exact) copy constructor; pos relative to existing (i.e. same).
@@ -456,7 +455,7 @@ namespace MFM {
 		    fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(baseuti));
 		    fp->write("u)- this->GetPosToEffectiveSelf(),");
 		    fp->write_decimal_unsigned(blen);
-		    fp->write("u,true).Write(tmpbv.Read(");
+		    fp->write("u).Write(tmpbv.Read("); //no true t41358
 		    fp->write_decimal_unsigned(csym->getSharedBaseClassRelativePosition(j));
 		    fp->write("u,");
 		    fp->write_decimal_unsigned(blen);

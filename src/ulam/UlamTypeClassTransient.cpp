@@ -345,6 +345,22 @@ namespace MFM {
       fp->write("UlamRef<EC>::CLASSIC");
     fp->write(") { }"); GCNL;
 
+    //(general) copy constructor here; base pos relative to existing (t41355)
+    m_state.indent(fp);
+    fp->write(automangledName.c_str());
+    fp->write("(const UlamRef");
+    fp->write("<EC>& r, s32 idx) : UlamRef<EC>(r, idx, ");
+    if(!isScalar())
+      fp->write_decimal_unsigned(len); //includes arraysize
+    else
+      {
+	fp->write("&Us::THE_INSTANCE==r.GetEffectiveSelf() ? ");
+	fp->write_decimal_unsigned(len); //includes arraysize
+	fp->write("u : ");
+	fp->write_decimal_unsigned(baselen); //base class
+      }
+    fp->write("u) { }"); GCNL; //want applydelta, true ???
+
     //(exact) copy constructor (for compiler)
     m_state.indent(fp);
     fp->write(automangledName.c_str());
@@ -448,7 +464,7 @@ namespace MFM {
 	    fp->write("if(&Us::THE_INSTANCE==this->GetEffectiveSelf()) ");
 	    fp->write("UlamRef<EC>::");
 	    fp->write(writeMethodForCodeGen().c_str());
-	    fp->write("(targ); /*entire transient*/ ");
+	    fp->write("(0,targ); /*entire transient*/ ");
 	    fp->write("else{ ");
 
 	    //write the data members first
@@ -472,10 +488,10 @@ namespace MFM {
 		    fp->write("BitVector<");
 		    fp->write_decimal_unsigned(myblen);
 		    fp->write("u> tmpDM;");
-		    fp->write("targ.ReadBV(0,tmpDM);");
-		    fp->write("tmpDM.CopyBV(0,this->GetPos(),");
+		    fp->write("targ.ReadBV(0u,tmpDM);");
+		    fp->write("UlamRef<EC>(*this,0,");
 		    fp->write_decimal_unsigned(myblen);
-		    fp->write("u,this->GetStorage());");
+		    fp->write("u).WriteBV(0u,tmpDM);");
 		  }
 	      }
 
@@ -519,15 +535,15 @@ namespace MFM {
 			fp->write_decimal_unsigned(csym->getSharedBaseClassRelativePosition(j));
 			fp->write("u,tmpbv");
 			fp->write_decimal(j);
-			fp->write(");tmpbv");
-			fp->write_decimal(j);
-			fp->write(".CopyBV(0,this->GetEffectiveSelf()->");
+			fp->write(");UlamRef<EC>(*this,this->GetEffectiveSelf()->");
 			fp->write(m_state.getGetRelPosMangledFunctionName(baseuti));
 			fp->write("(");
 			fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(baseuti));
 			fp->write("u)- this->GetPosToEffectiveSelf(),");
 			fp->write_decimal_unsigned(blen);
-			fp->write("u,this->GetStorage());");
+			fp->write("u).WriteBV(0u,tmpbv");
+			fp->write_decimal(j);
+			fp->write(");");
 		      }
 		    fp->write("/*");
 		    fp->write(m_state.getUlamTypeNameBriefByIndex(baseuti).c_str());
@@ -734,10 +750,10 @@ namespace MFM {
 		fp->write("BitVector<");
 		fp->write_decimal_unsigned(myblen);
 		fp->write("u> tmpDM;");
-		fp->write("d.GetStorage().ReadBV(d.GetPos(),tmpDM);");
-		fp->write("tmpDM.CopyBV(0,0,");
+		fp->write("UlamRef<EC>(d,0,");
 		fp->write_decimal_unsigned(myblen);
-		fp->write("u,this->m_stg);");
+		fp->write("u).ReadBV(0u,tmpDM);");
+		fp->write("this->WriteBV(0u,tmpDM);");
 	      }
 	  }
 	//then, write each of its non-zero size (shared) base classes
@@ -775,19 +791,19 @@ namespace MFM {
 		    fp->write_decimal_unsigned(blen);
 		    fp->write("u> tmpbv");
 		    fp->write_decimal(j);
-		    fp->write(";d.GetStorage().ReadBV(d.GetEffectiveSelf()->");
+		    fp->write("; UlamRef<EC>(d, d.GetEffectiveSelf()->");
 		    fp->write(m_state.getGetRelPosMangledFunctionName(baseuti));
 		    fp->write("(");
 		    fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(baseuti));
-		    fp->write("u)- d.GetPosToEffectiveSelf(),tmpbv");
-		    fp->write_decimal(j);
-		    fp->write(");tmpbv");
-		    fp->write_decimal(j);
-		    fp->write(".CopyBV(0,");
-		    fp->write_decimal_unsigned(csym->getSharedBaseClassRelativePosition(j));
-		    fp->write("u,");
+		    fp->write("u)- d.GetPosToEffectiveSelf(),");
 		    fp->write_decimal_unsigned(blen);
-		    fp->write("u,this->m_stg);");
+		    fp->write("u).ReadBV(0u,tmpbv");
+		    fp->write_decimal(j);
+		    fp->write("); this->WriteBV(");
+		    fp->write_decimal(csym->getSharedBaseClassRelativePosition(j));
+		    fp->write(", tmpbv");
+		    fp->write_decimal(j);
+		    fp->write(");");
 		  }
 		fp->write("/*");
 		fp->write(m_state.getUlamTypeNameBriefByIndex(baseuti).c_str());

@@ -199,7 +199,8 @@ namespace MFM {
   const std::string Symbol::getMangledName()
   {
     std::ostringstream mangled;
-    if(isSelf())
+    //if(isSelf()) t41359
+    if(isSelf() && (getAutoLocalType() != ALT_AS))
       {
 	mangled << m_state.getHiddenArgName(); // ur
       }

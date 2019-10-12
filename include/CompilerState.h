@@ -635,6 +635,7 @@ namespace MFM{
     bool isAtomRef(UTI auti);
     bool isThisLocalsFileScope();
     bool isALocalsFileScope(UTI uti);
+    bool isAPrimitiveType(UTI uti);
     bool isAClass(UTI uti);
     bool isASeenClass(UTI cuti);
     bool isASeenElement(UTI cuti);

@@ -126,7 +126,6 @@ namespace MFM{
 
     void genCodeCastAtomAndElement(File * fp, UVPass & uvpass);
     void genCodeCastAtomAndQuark(File * fp, UVPass & uvpass);
-    void genCodeCastDescendantTransientAsQuark(File * fp, UVPass & uvpass);
     void genCodeCastDescendantTransient(File * fp, UVPass & uvpass);
     void genCodeCastAncestorQuarkAsSubTransient(File * fp, UVPass & uvpass);
     void genCodeCastDescendantElement(File * fp, UVPass & uvpass);

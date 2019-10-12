@@ -612,6 +612,8 @@ namespace MFM {
     fp->write(getName());
     fp->write("\n\n");
 
+    //tmpVarNum contents OUT-OF-SCOPE!! Causes: "pure virtual method called" on ReadAtom(pos) (t41065 foofunc case)
+    //generated code uses c++ trick: copy constructor w lhs as arg (not op=).
     s32 tmpVarNum2 = m_state.getNextTmpVarNumber();
     m_state.indentUlamCode(fp);
     fp->write(nut->getLocalStorageTypeAsString().c_str());

@@ -5949,6 +5949,11 @@ namespace MFM {
     return ((ut->getUlamTypeEnum() == LocalsFileScope) || (ut->getUlamClassType() == UC_LOCALSFILESCOPE));
   }
 
+  bool CompilerState::isAPrimitiveType(UTI uti)
+  {
+    return (getUlamTypeByIndex(uti)->isPrimitiveType());
+  }
+
   bool CompilerState::isAClass(UTI uti)
   {
     return (getUlamTypeByIndex(uti)->getUlamTypeEnum() == Class);
