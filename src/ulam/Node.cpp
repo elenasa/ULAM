@@ -1126,17 +1126,11 @@ namespace MFM {
 	else //local already taken care of
 	  genLocalMemberNameOfMethod(fp, uvpass); //transient const ref func arg (t41271)
 
-#if 0
-	if(m_state.isAltRefType(stgcosuti))
-	  fp->write("GetStorage()."); //need storage to do ReadBV (e.g.t3737,t3738,t3739)
-#endif
-
 	//read method based on last cos
 	fp->write(readMethodForCodeGen(cosuti, uvpass).c_str());
 	//	if(cos->isDataMember())
 	if(cos->isDataMember() || m_state.isAltRefType(stgcosuti))
 	  {
-	    //assert(m_state.m_currentObjSymbolsForCodeGen.size() > 1); //sanity
 	    fp->write("(0u, "); //pos part of local member name (UlamRef) (e.g. t3739, 3788, 3789, 3795, 3805)
 	    fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNum, cstor).c_str()); //t41269
 	    fp->write(");"); GCNL;
