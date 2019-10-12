@@ -37,6 +37,11 @@ quark DebugUtils {
 
   Void print(UrSelf& a) native;
 
+  Void print(ByteStreamReader& a, Bool reread) {
+    if (reread && a.canReread()) a.reread();
+    a.mFail.fail();
+  }
+
   Bool hasEventWindow() native;
 
   Void printContext() { printContext(cPRINT_QUARK_MEMBERS); }
@@ -53,4 +58,5 @@ quark DebugUtils {
   Void print(Unary(3) arg) native;
   Void print(Bool(3) arg) native;
   Void assert(Bool b) native;
+
 }

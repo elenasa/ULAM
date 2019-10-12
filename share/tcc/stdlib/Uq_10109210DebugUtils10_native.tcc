@@ -18,11 +18,14 @@ namespace MFM{
                                                              UlamRef<EC>& ur,
                                                              Ui_Ut_102321t<EC>& Uv_5flags) const
   {
+    
+    if (!uc.HasEventWindow()) return;
+
+    OString512 buff;
     const EventWindow<EC> & ew = uc.GetEventWindow();
     const Tile<EC> & tile = ew.GetTile();
     SPoint ctr = ew.GetCenterInTile();
 
-    OString512 buff;
     u32 flags = Uv_5flags.read();
     T atdirect = ew.GetCenterAtomDirect();
     Uq_10109210DebugUtils10_printAtom(uc, atdirect, flags, buff);
@@ -37,7 +40,6 @@ namespace MFM{
   void Uq_10109210DebugUtils10<EC>::Uf_5print(const UlamContext<EC> & uc, UlamRef<EC>& ur, Ui_Uq_102323C2D10<EC>& Uv_5coord) const //native
   {
     enum { R = EC::EVENT_WINDOW_RADIUS };
-    const EventWindow<EC> & ew = uc.GetEventWindow();
 
     const s32 x = _SignExtend32(UlamRef<EC>(0u, 16u, Uv_5coord, NULL, UlamRef<EC>::PRIMITIVE, uc).Read(), 16);
     const s32 y = _SignExtend32(UlamRef<EC>(16u, 16u, Uv_5coord, NULL, UlamRef<EC>::PRIMITIVE, uc).Read(), 16);
@@ -179,7 +181,11 @@ namespace MFM{
   void Uq_10109210DebugUtils10<EC>::Uf_5print(const UlamContext<EC>& uc, UlamRef<EC>& ur, Ui_Uq_r10106UrSelf10<EC>& Ur_1a) const
   {
     OString4096 buff;
-    DebugPrint<EC>(uc, Ur_1a, buff);
+    const UlamClass<EC> * effSelf = Ur_1a.GetEffectiveSelf();
+    MFM_API_ASSERT_NONNULL(effSelf);
+    u32 effSelfLen = effSelf->GetClassLength();
+    UlamRef<EC> effref(Ur_1a, -Ur_1a.GetPosToEffectiveSelf(), effSelfLen);
+    DebugPrint<EC>(uc, effref, buff);
     buff.Printf("\n");
     if (buff.GetLength() > 0)
       LOG.Message("%s",buff.GetZString());

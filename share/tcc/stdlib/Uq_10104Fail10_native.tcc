@@ -20,9 +20,9 @@ namespace MFM{
   {
     UlamRef<EC> urbs(Ur_2bs,0,0u);
     VfuncPtr readByteFunc;
-    UlamRef<EC> urvf(urbs, Uq_10109210ByteStream10<EC>::VOWNED_IDX_Uf_8readByte10, Uq_10109210ByteStream10<EC>::THE_INSTANCE, readByteFunc);
+    UlamRef<EC> urvf(urbs, Uq_10109216ByteStreamReader10<EC>::VOWNED_IDX_Uf_8readByte10, Uq_10109216ByteStreamReader10<EC>::THE_INSTANCE, readByteFunc);
 
-    _UlamByteSourceWrapper<EC> ubsw(uc,urvf,(typename Uq_10109210ByteStream10<EC>::Uf_8readByte10) (readByteFunc));
+    _UlamByteSourceWrapper<EC> ubsw(uc,urvf,(typename Uq_10109216ByteStreamReader10<EC>::Uf_8readByte10) (readByteFunc));
 
     u32 type = ur.GetType();
     typedef typename EC::ATOM_CONFIG AC;

@@ -4,6 +4,8 @@ quark Logger {
   typedef Unsigned(4) Level;
   Level mLevel = 3u;  
 
+  Self(Level newlevel) { setLevel(newlevel); }
+
   Void setLevel(Level newlevel) { mLevel = newlevel; }
   Level getLevel() { return mLevel; }
 
