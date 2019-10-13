@@ -10,7 +10,7 @@ Unrecoverable Program Parse FAILURE: <System.ulam>
 ##  informed by issue 20191006; No parse error, left for c++ compiler to complain.
 ##
 #>MyElement.ulam
-  ulam 4;
+  ulam 5;
 local typedef Unsigned(5) Uint;
 
 quark Combo {

@@ -17,7 +17,7 @@ Uq_System { <NOMAIN> }
 ##  informed by t41355, except T0 is a quark that we try to replace.
 ##
 #>BS.ulam
-  ulam 4;
+  ulam 5;
 local typedef Unsigned(5) Uint;
 
 quark T0 {

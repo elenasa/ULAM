@@ -9,7 +9,7 @@ Unrecoverable Program Type Label FAILURE.
 ## culam: NodeVarRefAs.cpp:236: virtual void MFM::NodeVarRefAs::genCode(MFM::File*, MFM::UVPass&): Assertion `vclasstype == UC_QUARK' failed.'
 ##
 #>Foo.ulam
-  ulam 4;
+  ulam 5;
 element Foo +System {
   Int m_c4;
   Int m_a4;
@@ -48,7 +48,7 @@ element Foo +System {
 
 
 #:E4.ulam
-  ulam 4;
+  ulam 5;
 element E4 : QBase3 +QBase2 +QBase1 {
   Bool m_b4;
   virtual Int vfuncc() { return 412; }
@@ -65,7 +65,7 @@ quark QBase1 {
 }
 
 #:QBase2.ulam
-  ulam 4;
+  ulam 5;
 quark QBase2 +QBase1 {
   Bool m_b2;
   Bits(1) m_bit; //so that len of QBase2 is different than its pos in E4.

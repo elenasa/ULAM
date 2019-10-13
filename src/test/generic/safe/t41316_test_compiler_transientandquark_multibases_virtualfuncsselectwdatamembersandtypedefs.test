@@ -18,7 +18,7 @@ Uq_QBase2 { Bool(1) m_b2(false);  <NOMAIN> }
 ##       informed by t41310; uses transient T4 instead of element E4, and transient base (QBase3).
 ##
 #>Foo.ulam
-  ulam 4;
+  ulam 5;
 element Foo +System {
   Int m_c4;
   Int m_a4;
@@ -50,7 +50,7 @@ element Foo +System {
 
 
 #:T4.ulam
-  ulam 4;
+  ulam 5;
 transient T4 : QBase3 +QBase2 +QBase1 {
   virtual Int vfuncc() { return 412; }
   virtual Int vfunca() { return 410; }

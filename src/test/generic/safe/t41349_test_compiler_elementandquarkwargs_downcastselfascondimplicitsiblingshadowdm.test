@@ -53,7 +53,7 @@ quark Bar
 }
 
 #>Eltypo.ulam
-  ulam 2;
+  ulam 5;
 use Typo;
 use System;
 element Eltypo + QFoo +Typo(1) {

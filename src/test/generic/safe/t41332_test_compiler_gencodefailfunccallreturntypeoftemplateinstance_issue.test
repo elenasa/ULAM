@@ -14,7 +14,7 @@ Uq_C2D { typedef Int(16) Coord;  typedef Unsigned(3) Dir;  Int(16) x( 0);  Int(1
 ## Dave issue 8/11/19: generated code should compile! NodeFuncCall complete return type delayed when returning Self, a template instance. (zero sized 'C2D' is bad);
 ##
 #>Foo.ulam
-  ulam 4;
+  ulam 5;
 element Foo +System {
   Int m_c4;
   Int m_a4;

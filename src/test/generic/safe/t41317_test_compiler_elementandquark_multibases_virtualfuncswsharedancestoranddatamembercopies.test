@@ -18,7 +18,7 @@ Uq_QBase1 { Bool(1) m_b1(false);  <NOMAIN> }
 ##       (but which one? ans: the first in base order, QB3);
 ##
 #>Foo.ulam
-  ulam 4;
+  ulam 5;
 element Foo +System {
   Int m_c4;
   Int m_a4;
@@ -43,7 +43,7 @@ element Foo +System {
 
 
 #:E4.ulam
-  ulam 4;
+  ulam 5;
 element E4 : QBase3 +QBase2 +QBase1 {
   Bool m_b4;
   virtual Int vfuncc() { return 412; }
@@ -61,7 +61,7 @@ quark QBase1 {
 }
 
 #:QBase2.ulam
-  ulam 4;
+  ulam 5;
 quark QBase2 +QBase1 {
   Bool m_b2;
   virtual ARGB getColor(Unsigned s) { return super.getColor(s); }

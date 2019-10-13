@@ -21,7 +21,7 @@ element Test {
 }
 
 #:QU.ulam
-  ulam 4;
+  ulam 5;
 use System; //avoids more errors about missing System class after error.
 union QU + System {
   Bool n;

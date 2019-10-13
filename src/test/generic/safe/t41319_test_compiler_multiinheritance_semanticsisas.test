@@ -47,7 +47,7 @@ element R {
 }
 
 #:Foo.ulam
-  ulam 4;
+  ulam 5;
 element Foo : Secondary +Intermediate {
   Bool(7) sp;
   System s;

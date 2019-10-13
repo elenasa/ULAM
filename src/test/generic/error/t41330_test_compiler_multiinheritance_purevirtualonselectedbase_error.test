@@ -9,7 +9,7 @@ Unrecoverable Program GenCode FAILURE.
 ##  (see also t41313)
 ##
 #>Foo.ulam
-  ulam 4;
+  ulam 5;
 element Foo +System {
   Int m_c4;
   Int m_a4;
@@ -34,7 +34,7 @@ element Foo +System {
 
 
 #:E4.ulam
-  ulam 4;
+  ulam 5;
 element E4 : QBase3 +QBase2 +QBaseLast {
   Bool m_b4;
   virtual Int vfunca() { m_b1 = true; return 411; }
@@ -53,7 +53,7 @@ quark QBase1 {
 }
 
 #:QBase2.ulam
-  ulam 4;
+  ulam 5;
 quark QBase2 +QBase1 {
   Bool m_boo;
   Bits(1) m_bit; //so that len of QBase2 is different than its pos in E4.

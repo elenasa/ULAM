@@ -17,7 +17,7 @@ Uq_QBase3 +QBase1 { Bool(1) m_b3(false);  +QBase1< Bool(1) m_b1(false); > <NOMAI
 ##       informed by t41307; formerly requiring direct ancestor
 ##
 #>Foo.ulam
-  ulam 4;
+  ulam 5;
 element Foo +System {
   Int m_c4;
   Int m_a4;
@@ -39,7 +39,7 @@ element Foo +System {
 
 
 #:E4.ulam
-  ulam 4;
+  ulam 5;
 element E4 : QBase3 +QBase2 {
   virtual Int vfuncc() { return 412; }
   virtual Int vfunca() { return 410; }
@@ -65,7 +65,7 @@ quark QBase2 {
 }
 
 #:QBase3.ulam
-  ulam 4;
+  ulam 5;
 quark QBase3 +QBase1 {
   Bool m_b3;
   virtual Int vfuncb() { return 311; }

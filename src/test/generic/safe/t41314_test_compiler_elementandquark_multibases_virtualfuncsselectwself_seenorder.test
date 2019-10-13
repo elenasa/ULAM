@@ -19,7 +19,7 @@ Uq_System { <NOMAIN> }
 ##       tests using super with implied self with specific base types and virtual func calls.
 ##
 #>E4.ulam
-  ulam 4;
+  ulam 5;
 use QBase3;
 use QBase2;
 element E4 : QBase3 +QBase2 +QBase1 {
@@ -80,7 +80,7 @@ quark QBase2 {
 }
 
 #:QBase3.ulam
-  ulam 4;
+  ulam 5;
 use QBase1;
 quark QBase3 +QBase1 {
   typedef QBase1 QB1;

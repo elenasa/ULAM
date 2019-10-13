@@ -31,7 +31,7 @@ element RS {
 
 
 #:T3.ulam
-  ulam 4;
+  ulam 5;
 local typedef Unsigned(5) Uint;
 
 quark T0 {

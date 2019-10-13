@@ -22,7 +22,7 @@ element Foo {
 
 
 #:E4.ulam
-  ulam 4;
+  ulam 5;
 element E4 : QBase3 +QBase1 {
   virtual Int vfuncc() { return 412; }
   virtual Void behave() { }

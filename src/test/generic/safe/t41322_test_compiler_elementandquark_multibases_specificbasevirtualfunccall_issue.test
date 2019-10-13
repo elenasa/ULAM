@@ -18,7 +18,7 @@ Uq_SystemU3 : System { :System<> <NOMAIN> }
 ##       informed by t41321, t41161, and Daves java example 6/13/19
 ##
 #>Foo.ulam
-  ulam 4;
+  ulam 5;
 element Foo  +System {
   Int test()
   {

@@ -19,7 +19,7 @@ Uq_QBase2 { Bool(1) m_b2(false);  <NOMAIN> }
 ##       and change its data member (but which one? SHARED!); using typedefs
 ##
 #>Foo.ulam
-  ulam 4;
+  ulam 5;
 element Foo +System {
   Int m_c4;
   Int m_a4;
@@ -51,7 +51,7 @@ element Foo +System {
 
 
 #:E4.ulam
-  ulam 4;
+  ulam 5;
 element E4 : QBase3 +QBase2 +QBase1 {
   virtual Int vfuncc() { return 412; }
   virtual Int vfunca() { return 410; }

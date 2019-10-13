@@ -20,7 +20,7 @@ Uq_QBase2 { Bool(1) m_b2(false);  <NOMAIN> }
 ##       //first test of multiple base classes and virtual functions based on Dave's notes
 ##
 #>Foo.ulam
-  ulam 4;
+  ulam 5;
 element Foo +System {
 
   Int test()
@@ -49,7 +49,7 @@ element Foo +System {
 
 
 #:E4.ulam
-  ulam 4;
+  ulam 5;
 element E4 : QBase3 +QBase1 {
   virtual Int vfuncc() { return 412; }
   virtual Int vfunca() { return 410; }
@@ -81,7 +81,7 @@ quark QBase2 {
 }
 
 #:QBase3.ulam
-  ulam 4;
+  ulam 5;
 quark QBase3 +QBase1 {
   Bool m_b3;
   virtual Int vfuncb() { return 311; }

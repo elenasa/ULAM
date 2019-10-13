@@ -13,7 +13,7 @@ Unrecoverable Program Type Label FAILURE.
 ##  ./E4.ulam:24:26: ERROR: Member Select By Base Type: QBase1 is redundant; All base classes are shared. Pick one!.
 ##
 #>E4.ulam
-  ulam 4;
+  ulam 5;
 element E4 : QBase3 +QBase2 +QBase1 {
   Int m_c4;
   Int m_a4;

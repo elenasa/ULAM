@@ -19,7 +19,7 @@ Uq_System { <NOMAIN> }
 ##                      within as-conditionals
 ##
 #>BS.ulam
-  ulam 4;
+  ulam 5;
 local typedef Unsigned(5) Uint;
 
 quark T0 {

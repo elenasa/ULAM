@@ -26,7 +26,7 @@ Uq_System { <NOMAIN> }
 ##
 ##
 #>BondDemoBond.ulam
-  ulam 4;
+  ulam 5;
 quark DemoBase : Printable {
   Void printSelf() { print("DemoBase"); }
 }
@@ -51,7 +51,7 @@ element BondDemoBond : DemoBase + MIBondable + Printable {
 }
 
 #:MIBondable.ulam
-  ulam 4;
+  ulam 5;
 quark Bond + Printable {
   typedef Unsigned(6) SiteNum;
 
@@ -112,7 +112,7 @@ quark System {
 }
 
 #:Fail.ulam
-  ulam 2;
+  ulam 5;
 quark Fail + System {
   Void fail()
   {

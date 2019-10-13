@@ -18,7 +18,7 @@ Uq_System { <NOMAIN> }
 ##       and change its data member (but which one? SHARED!); using self and super.
 ##
 #>E4.ulam
-  ulam 4;
+  ulam 5;
 element E4 : QBase3 +QBase2 +QBase1 {
   Int m_c4;
   Int m_a4;

@@ -54,7 +54,7 @@ element R {
 }
 
 #:Foo.ulam
-  ulam 4;
+  ulam 5;
 element Foo : Secondary +Intermediate {
   Bool(7) sp;
   System s;
@@ -100,7 +100,7 @@ element Foo : Secondary +Intermediate {
 }
 
 #:Intermediate.ulam
-  ulam 3;
+  ulam 5;
 quark Intermediate +Base
 {
   Int(4) m_i4 = 2;
@@ -125,7 +125,7 @@ quark Intermediate +Base
 }
 
 #:Secondary.ulam
-  ulam 4;
+  ulam 5;
 quark Secondary +Base
 {
   Bool m_b2;
