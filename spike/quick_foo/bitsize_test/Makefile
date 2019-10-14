@@ -8,8 +8,8 @@ CFLAGS:= -g -pthread -Wall -ansi -pedantic -Werror
 default: all
 
 all:	FORCE
-	g++ -c $(CFLAGS) -I ../../../include -I $(MFM_INCLUDES) *.cpp
-	g++ -L $(MFM_BUILD_CORE) -L $(MFM_BUILD_PLATFORM) ./*.o -l mfmcore -l mfmplatform-linux -l mfmcore -pthread -o main
+	$(CXX) -c $(CFLAGS) -I ../../../include -I $(MFM_INCLUDES) *.cpp
+	$(CXX) -L $(MFM_BUILD_CORE) -L $(MFM_BUILD_PLATFORM) ./*.o -l mfmcore -l mfmplatform-linux -l mfmcore -pthread -o main
 
 clean:
 	rm -f *.o
