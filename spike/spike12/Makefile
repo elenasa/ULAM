@@ -25,10 +25,10 @@ $(BIN_DIR):
 	mkdir -p $(BIN_DIR)
 
 $(BIN_DIR)/%: $(BUILD_DIR)/%.o  | $(BIN_DIR)
-	g++ $< $(ULAMLIB) -o $@
+	$(CXX) $< $(ULAMLIB) -o $@
 
 $(BUILD_DIR)/%.o: %.cpp $(HDRS) $(ALLDEP) | $(BUILD_DIR)
-	g++ -c $(CFLAGS) $(INCLUDES) $< -o $@
+	$(CXX) -c $(CFLAGS) $(INCLUDES) $< -o $@
 
 clean:	FORCE
 	@rm -f *~
