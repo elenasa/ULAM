@@ -4,7 +4,7 @@
 ## gen output: 5 asserts
 #!
 Exit status: 0
-Ue_Foo { Int(32) test() {  System s;  EReg ereg;  Unsigned(32) ans = ( ereg cast )vote;  s ( ans 0u cast == )assert . Unsigned(32) ans1 = ( 0u cast )voteNoParen;  s ( ans1 1u cast == )assert . Unsigned(32) ans2 = ( 2u cast )voteNoParen;  s ( ans2 3u cast == )assert . Unsigned(32) ans3 = ( 0u cast )voteWParen;  s ( ans3 1u cast == )assert . Unsigned(32) ans4 = ( 2u cast )voteWParen;  s ( ans4 0u cast == )assert . 0 cast return } }
+Ue_Foo { Int(32) test() {  System s;  EReg ereg;  Unsigned(32) ans = self ( ereg cast )vote .;  s ( ans 0u cast == )assert . Unsigned(32) ans1 = self ( 0u cast )voteNoParen .;  s ( ans1 1u cast == )assert . Unsigned(32) ans2 = self ( 2u cast )voteNoParen .;  s ( ans2 3u cast == )assert . Unsigned(32) ans3 = self ( 0u cast )voteWParen .;  s ( ans3 1u cast == )assert . Unsigned(32) ans4 = self ( 2u cast )voteWParen .;  s ( ans4 0u cast == )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 Ue_EReg { Int(32) mer(0);  <NOMAIN> }
 Uq_QMembrane { Bool(1) bq(false);  <NOMAIN> }

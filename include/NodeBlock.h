@@ -121,7 +121,7 @@ namespace MFM{
   protected:
     SymbolTableOfVariables m_ST;
 
-    void genCodeDeclsForVariableDataMembers(File * fp, ULAMCLASSTYPE classtype);
+    //void genCodeDeclsForVariableDataMembers(File * fp, ULAMCLASSTYPE classtype);
 
   private:
     NodeBlock * m_prevBlockNode;

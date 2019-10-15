@@ -1,12 +1,12 @@
 ## -*- mode:ulam -*-
 #=t3812_test_compiler_transientarraywithatomarraydm_funccallrefarg
-#!
 ##      gen code output: (2 asserts)
 ##
+#!
 Exit status: -11
-Ue_R { Bool(1) b(false);  Bool(1) c(false);  Int(32) test() {  System s;  QW qw;  Foo foo;  A ar[3];  ar 1 [] mAtoo 2 [] . foo cast = ( ar 1 [] mAtoo 2 [] . cast 1u cast )setATre b qw ( ar 1 [] mAtoo 2 [] . cast )aunc . = s ( b )assert . ar 2 [] mAtoo 1 [] . foo cast = Atom(96)& arref = ar 2 [] mAtoo 1 [] . cast;  arref foo cast = ( arref 2u cast )setATre c qw ( arref )aunc . = s ( c )assert . 0 cast return } }
+Ue_R { Bool(1) b(false);  Bool(1) c(false);  Int(32) test() {  System s;  QW qw;  Foo foo;  A ar[3];  ar 1 [] mAtoo 2 [] . foo cast = self ( ar 1 [] mAtoo 2 [] . cast 1u cast )setATre . self b . qw ( ar 1 [] mAtoo 2 [] . cast )aunc . = s ( self b . )assert . ar 2 [] mAtoo 1 [] . foo cast = Atom(96)& arref = ar 2 [] mAtoo 1 [] . cast;  arref foo cast = self ( arref 2u cast )setATre . self c . qw ( arref )aunc . = s ( self c . )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
-Un_A : QW { :<> Bool(7) sp(false);  Atom(96) mAtoo[3](Atom(96)[3]Atom(96)[3]Atom(96)[3]);  <NOMAIN> }
+Un_A : QW { Bool(7) sp(false);  Atom(96) mAtoo[3](Atom(96)[3]Atom(96)[3]Atom(96)[3]);  :QW<> <NOMAIN> }
 Uq_QW { <NOMAIN> }
 Ue_Foo { Unary(3) mTre(0);  <NOMAIN> }
 ##

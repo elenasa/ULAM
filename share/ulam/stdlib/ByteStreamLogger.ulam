@@ -1,0 +1,17 @@
+//ulam 5;
+use ByteStream;
+
+transient ByteStreamLogger : ByteStreamArray(128) + Logger {
+
+  @Override
+  Int writeByte(ASCII x) 
+  {
+    // Accumulate non-\n bytes in ByteStreamArray
+    if (x != '\n') return super.writeByte(x);
+
+    // On \n, flush accumulate to log and restart
+    log(self);
+    reset();
+    return 0;
+  }
+}

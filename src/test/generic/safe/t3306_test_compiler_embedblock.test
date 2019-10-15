@@ -1,6 +1,5 @@
 ## -*- mode:ulam -*-
 #=t3306_test_compiler_embedblock
-#!
 ##      /* gen code output:
 ##	 Int Arg: 4
 ##	 Int Arg: 5
@@ -11,8 +10,9 @@
 ##       */
 ##      // constant folded: 3 1 +b, and 2 4 *,
 ##
+#!
 Exit status: 5
-Ue_A { Bool(1) b(true);  System s();  Unary(6) sp(0u);  Int(32) j(5);  Int(32) i(5);  Int(32) test() {  j 4 cast = s ( j )print . { j j 1 cast +b = s ( j )print . Int(32) j;  j 8 cast = s ( j )print . b j 8 cast == = s ( b )assert . } i j = s ( i )print . j return } }
+Ue_A { Bool(1) b(true);  System s();  Unary(6) sp(0u);  Int(32) j(5);  Int(32) i(5);  Int(32) test() {  self j . 4 cast = self s . ( self j . )print . { self j . self j . 1 cast +b = self s . ( self j . )print . Int(32) j;  j 8 cast = self s . ( j )print . self b . j 8 cast == = self s . ( self b . )assert . } self i . self j . = self s . ( self i . )print . self j . return } }
 Uq_System { <NOMAIN> }
 ##      //requires new grammar: tests scope
 ##

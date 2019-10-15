@@ -6,7 +6,7 @@
 ##
 #!
 Exit status: 0
-Ue_Tu { Int(3) me(2);  Int(32) test() {  System s;  ( false )func s ( me )print . s ( me 2 == )assert . 0 cast return } }
+Ue_Tu { Int(3) me(2);  Int(32) test() {  System s;  self ( false )func . s ( self me . )print . s ( self me . 2 == )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t3485

@@ -2,7 +2,7 @@
 #=t41186_test_compiler_element_constantrefargfunccall_error
 ##
 #!
-./Foo.ulam:12:9: ERROR: Unmodifiable lefthand side of assignment expression <bok>, type: constant Bool(3)&; may be a constant function parameter.
+./Foo.ulam:12:9: ERROR: Unmodifiable lefthand side of assignment expression 'bok', type: constant Bool(3)&; may be a constant function parameter.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t3624, testing new feature, the constant function parameter

@@ -1,9 +1,9 @@
 ## -*- mode:ulam -*-
 #=t3679_test_compiler_elementandquark_Selfatomoffordefaultquarklocal_fail
-#!
 ##        include/Uq_10102QW10.tcc:30: FAILED: NOT_AN_ELEMENT
 ##        unevaluable without assuming atoms as elements
 ##
+#!
 Exit status: -1
 Ue_A { Bool(1) b(false);  Int(32) test() {  System s;  QW qw;  Atom(96) a = qw ( )func .;  { a A as cond { A& a;  s ( false )assert . } if s ( true )assert . else } { a QW is cond s ( false )assert . if s ( true )assert . else } 0 cast return } }
 Uq_System { <NOMAIN> }

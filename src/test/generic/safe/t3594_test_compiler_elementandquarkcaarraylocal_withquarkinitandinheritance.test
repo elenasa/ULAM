@@ -1,15 +1,15 @@
 ## -*- mode:ulam -*-
 #=t3594_test_compiler_elementandquarkcaarraylocal_withquarkinitandinheritance
-#!
 ##
 ## gencode output (interleaved asserts):
 ## Bool(3) Arg: 0x7 (true)
 ## Bool(3) Arg: 0x0 (false)
 ##
+#!
 Exit status: 0
-Ue_Foo { Bool(3) b(true);  typedef Car Pop[2];  System s();  Bool(3) c(false);  Car sbar( :< Bool(1) val_b[3](false,false,false); > Bool(1) cb(true); );  Int(32) test() {  Car m_bar2[2];  Unary(2) i = 0 cast;  b m_bar2 i cast [] cb . cast = s ( b )print . s ( b cast )assert . m_bar2 i cast [] cb . false = c m_bar2 i cast [] cb . cast = s ( c )print . s ( c ! cast )assert . 0 cast return } }
+Ue_Foo { Bool(3) b(true);  typedef Car Pop[2];  System s();  Bool(3) c(false);  Car sbar( Bool(1) cb(true);  :Bar< Bool(1) val_b[3](false,false,false); >);  Int(32) test() {  Car m_bar2[2];  Unary(2) i = 0 cast;  self b . m_bar2 i cast [] cb . cast = self s . ( self b . )print . self s . ( self b . cast )assert . m_bar2 i cast [] cb . false = self c . m_bar2 i cast [] cb . cast = self s . ( self c . )print . self s . ( self c . ! cast )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
-Uq_Car : Bar { :< Bool(1) val_b[3](false,false,false); > Bool(1) cb( true);  <NOMAIN> }
+Uq_Car : Bar { Bool(1) cb( true);  :Bar< Bool(1) val_b[3](false,false,false); > <NOMAIN> }
 Uq_Bar { Bool(1) val_b[3](false,false,false);  <NOMAIN> }
 ##
 ## informed by 3543, m_bar2 is a local array here

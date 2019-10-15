@@ -1,9 +1,9 @@
 ## -*- mode:ulam -*-
 #=t3699_test_compiler_primitiveinstanceofatomof_error
 #!
-./A.ulam:6:19: ERROR: Invalid non-class type provided: 'a.instanceof'.
+./A.ulam:6:19: ERROR: Invalid non-class type provided: 'self.a.instanceof'.
 ./A.ulam:6:5: ERROR: Initial value expression for: ia, initialization is invalid.
-./A.ulam:7:17: ERROR: Invalid non-class type provided: 'a.atomof'.
+./A.ulam:7:17: ERROR: Invalid non-class type provided: 'self.a.atomof'.
 ./A.ulam:7:5: ERROR: Initial value expression for: d, initialization is invalid.
 ./A.ulam:7:5: ERROR: Storage expression for: d, is invalid.
 Unrecoverable Program Type Label FAILURE.

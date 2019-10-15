@@ -6,9 +6,9 @@
 #!
 Exit status: 0
 Uq_Base { Bits(4) bits( 12u);  <NOMAIN> }
-Uq_Sub1 : Base { :< Bits(4) bits( 12u); > Int(3) sint( -1);  <NOMAIN> }
-Ue_E2 : Sub1 { :< :< Bits(4) bits( 12u); > Int(3) sint( -1); > Bool(7) esp( true);  <NOMAIN> }
-Ue_Test : System { :<> Bool(1) brtn[3](false,true,false);  Int(32) test() {  Sub1 sb1;  Int(32) j = sb1 ( )toInt .;  brtn 1 [] j 12 cast == = ( brtn 1 [] )assert 0 cast return } }
+Uq_Sub1 : Base { Int(3) sint( -1);  :Base< Bits(4) bits( 12u); > <NOMAIN> }
+Ue_E2 : Sub1 { Bool(7) esp( true);  :Sub1< Int(3) sint( -1); > ^Base< Bits(4) bits( 12u); > <NOMAIN> }
+Ue_Test : System { Bool(1) brtn[3](false,true,false);  :System<> Int(32) test() {  Sub1 sb1;  Int(32) j = sb1 ( )toInt .;  self brtn . 1 [] j 12 cast == = self ( self brtn . 1 [] )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ##

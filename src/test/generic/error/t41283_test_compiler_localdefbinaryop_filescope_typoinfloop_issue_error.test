@@ -1,8 +1,7 @@
 ## -*- mode:ulam -*-
 #=t41283_test_compiler_localdefbinaryop_filescope_typoinfloop_issue_error
 #!
-./Foo.ulam:3:51: ERROR: Variable <cSooLength7u> is not defined, or was used before declared in a function.
-./Foo.ulam:3:16: ERROR: Constant value expression for: cSooVolume, is invalid.
+./Foo.ulam:3:51: ERROR: Variable 'cSooLength7u' is not defined, or was used before declared in a function.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by Daves typo 3/1/19 that caused an infinite loop!! oh no!

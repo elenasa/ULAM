@@ -1,12 +1,12 @@
 ## -*- mode:ulam -*-
 #=t3172_test_compiler_elementandquark_returnquark
-#!
 ##      /*
 ##	gen code output:
 ##	Unsigned Arg: 15
 ##      */
+#!
 Exit status: 15
-Ue_Foo { System s();  typedef Bar Pop[2];  Unsigned(4) m_i(0u);  Bar m_bar[2]( Bool(1) val_b[3](false,false,false);  Bool(1) val_b[3](false,true,false); );  Int(32) test() {  Foo f;  f m_i . 15 cast = m_bar 1 [] f ( 1 cast )check . = s ( f m_i . cast )print . f m_i . cast return } }
+Ue_Foo { System s();  typedef Bar Pop[2];  Unsigned(4) m_i(0u);  Bar m_bar[2]( Bool(1) val_b[3](false,false,false);  Bool(1) val_b[3](false,true,false); );  Int(32) test() {  Foo f;  f m_i . 15 cast = self m_bar . 1 [] f ( 1 cast )check . = self s . ( f m_i . cast )print . f m_i . cast return } }
 Uq_System { <NOMAIN> }
 Uq_Bar { Bool(1) val_b[3](false,false,false);  <NOMAIN> }
 #>Foo.ulam

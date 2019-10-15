@@ -147,7 +147,6 @@ namespace MFM {
     if(NodeMemberSelect::passalongUVPass())
       {
 	luvpass = uvpass;
-	Node::adjustUVPassForElements(luvpass);
       }
 
     m_nodeLeft->genCodeToStoreInto(fp, luvpass);
@@ -155,7 +154,6 @@ namespace MFM {
     if(passalongUVPass()) //true
       {
 	uvpass = luvpass;
-	Node::adjustUVPassForElements(uvpass);
       }
 
     //check the back (not front) to process multiple member selections
@@ -174,7 +172,6 @@ namespace MFM {
     if(NodeMemberSelect::passalongUVPass())
       {
 	luvpass = uvpass;
-	Node::adjustUVPassForElements(luvpass);
       }
 
     // if parent is another MS, we might need to adjust pos first
@@ -185,19 +182,13 @@ namespace MFM {
     if(passalongUVPass()) //true
       {
 	ruvpass = luvpass;
-	Node::adjustUVPassForElements(ruvpass);
       }
 
     m_nodeRight->genCodeToStoreInto(fp, ruvpass); //uvpass contains the member selected, or cos obj symbol?
 
     uvpass = ruvpass;
 
-    //undo any element adjustment now that we are returning an object, not a ref
-    if(Node::needAdjustToStateBits(ruvpass.getPassTargetType()))
-      {
-	u32 rpos = ruvpass.getPassPos();
-	uvpass.setPassPos(rpos - ATOMFIRSTSTATEBITPOS); //t41091
-      }
+    // no longer adjusting pos for elements here; done later explicitly in gencode (ulam-5) t41091.
 
     //tmp variable needed for any function call not returning a ref (constructors return Void).
     m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, NULL); //dm to avoid leaks

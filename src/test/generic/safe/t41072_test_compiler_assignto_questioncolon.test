@@ -7,7 +7,7 @@
 ##
 #!
 Exit status: 0
-Ue_A { Bool(1) ok(true);  Int(32) a(2);  Int(32) d(0);  Int(32) test() {  System s;  Int(32) b;  ok ?  a :  b 1 cast = s ( b )print . s ( b 1 cast == )assert . ok true = ok ?  a :  b 2 cast = s ( a )print . s ( a 2 cast == )assert . 0 cast return } }
+Ue_A { Bool(1) ok(true);  Int(32) a(2);  Int(32) d(0);  Int(32) test() {  System s;  Int(32) b;  self ok . ?  self a . :  b 1 cast = s ( b )print . s ( b 1 cast == )assert . self ok . true = self ok . ?  self a . :  b 2 cast = s ( self a . )print . s ( self a . 2 cast == )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## suggested by Dave 4/15/17 for ?: test;

@@ -1,12 +1,12 @@
 ## -*- mode:ulam -*-
 #=t3560_test_compiler_quarkinheritance_casting_dm
-#!
 ## gencode output (+assert):
 ## Bool(3) Arg: 0x7 (true)
 ##
+#!
 Exit status: 3
-Ue_Foo { System s();  Bool(1) first(true);  Soo su( :< Bool(3) cb(true); > Unsigned(3) us(4u); );  Int(32) test() {  Foo f;  Coo c = f su . cast;  first c cb . cast = { first cond { s ( first cast )print . s ( first )assert . 3u cast return } if } 0 cast return } }
-Uq_Soo : Coo { :< Bool(3) cb( true); > Unsigned(3) us( 4u);  <NOMAIN> }
+Ue_Foo { System s();  Bool(1) first(true);  Soo su( Unsigned(3) us(4u);  :Coo< Bool(3) cb(true); >);  Int(32) test() {  Foo f;  Coo c = f su . cast;  self first . c cb . cast = { self first . cond { self s . ( self first . cast )print . self s . ( self first . )assert . 3u cast return } if } 0 cast return } }
+Uq_Soo : Coo { Unsigned(3) us( 4u);  :Coo< Bool(3) cb( true); > <NOMAIN> }
 Uq_Coo { Bool(3) cb( true);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

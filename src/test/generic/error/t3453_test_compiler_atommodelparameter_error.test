@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3453_test_compiler_atommodelparameter_error
 #!
-./Tu.ulam:5:3: ERROR: Data member <e> of type: Empty, is an element, and is NOT permitted; Local variables, quarks, and Model Parameters do not have this restriction.
+./Tu.ulam:5:3: ERROR: Data member 'e' of type: Empty, is an element, and is NOT permitted; Local variables, quarks, and Model Parameters do not have this restriction.
 ./Tu.ulam:6:13: ERROR: Constant value expression for: aep, is not a constant.
 Unrecoverable Program Type Label FAILURE.
 ##
@@ -11,7 +11,7 @@ use Empty;
 element Tu {
   typedef Atom A;
   Empty e;
-  parameter A aep = e;
+  parameter A aep = Empty.instanceof; //was = e
   Int test(){
     return 0;
   }

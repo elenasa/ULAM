@@ -1,0 +1,64 @@
+## -*- mode:ulam -*-
+#=t3284_test_compiler_varcalledkeywordselforsuper_error
+#!
+./Su.ulam:9:12: ERROR: Name of variable 'self': Identifier must not be a reserved keyword.
+./Su.ulam:9:12: ERROR: Invalid Statement (possible missing semicolon).
+./Su.ulam:10:10: ERROR: Name of variable 'super': Identifier must not be a reserved keyword.
+./Su.ulam:10:10: ERROR: Invalid Statement (possible missing semicolon).
+./Su.ulam:17:17: ERROR: Invalid typedef Alias <Super>, Type Identifier (2nd arg) must not be a reserved keyword.
+./Su.ulam:18:17: ERROR: Invalid typedef Alias <Self>, Type Identifier (2nd arg) must not be a reserved keyword.
+./Su.ulam:21:24: ERROR: Function parameter 'super': Name must not be a reserved keyword.
+./Su.ulam:21:36: ERROR: Function parameter 'self': Name must not be a reserved keyword.
+./Su.ulam:26:7: ERROR: Name of variable/function 'self': Identifier must not be a reserved keyword.
+./Su.ulam:3:1: ERROR: Empty/Incomplete Class Definition 'Su'; Possible missing ending curly brace.
+./Su.ulam:26:7: ERROR: Invalid Class Type <self>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+./Su.ulam:3:9: ERROR: Invalid Type: Su.
+ ERROR: No parse tree for This Class: Su.
+Unrecoverable Program Parse FAILURE: <Su.ulam>
+##
+#>Su.ulam
+  ulam 1;
+use Qu;
+element Su {
+  //  constant Su self = Su.instanceof;
+  //constant Qu super = Qu.instanceof;
+
+  Int test(){
+    {
+      Atom self;
+      Su super;
+    }
+    return 0;
+  }
+
+  Void inafunc()
+  {
+    typedef Qu& Super;
+    typedef Su& Self;
+  }
+
+  Int funcparams(Super super, Self self)
+  {
+    return -2;
+  }
+
+ Void self()
+  {
+    //func called self?
+    //./Su.ulam:21:2: ERROR: self cannot be used again as a function, it has a previous definition as 'Su(UNKNOWN)<29> self'.
+  }
+
+  Void super()
+  {
+    //func called super?
+    //./Su.ulam:21:3: ERROR: super cannot be used again as a function, it has a previous definition as 'Qu(UNKNOWN)<28> super'.
+  }
+}
+
+
+#:Qu.ulam
+  ulam 1;
+quark Qu {
+}
+
+#.

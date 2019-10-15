@@ -1,6 +1,5 @@
 ## -*- mode:ulam -*-
 #=t3348_test_compiler_elementandquarkswclassargs2_typedeffromanotherclasstypedef_sizeof
-#!
 ##      /* gen code output:
 ##	 Unsigned Arg: 1
 ##	 Unsigned Arg: 96
@@ -8,6 +7,7 @@
 ##      */
 ##      //Constants have explicit types
 ##
+#!
 Exit status: 1
 Ue_R { Int(32) test() {  System s;  constant Unsigned(3) var = 3u;  P(1u) pel;  s ( 1u )print . s ( 96u )print . s ( 96u )print . 1u cast return } }
 Ue_P(Unsigned(32) a) { Bool(UNKNOWN) b(notready);  Int(32) foo(0);  <NOMAIN> }

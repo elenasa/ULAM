@@ -6,7 +6,7 @@
 ##
 #!
 Exit status: 1
-Ue_A { Int(32) d(1);  Int(32) test() {  System s;  Bool(1) mybool[3];  mybool 0 [] true = mybool 1 [] false = mybool 2 [] false = d ( 7 cast mybool )m = s ( d )print . s ( d 1 cast == )assert . d return } }
+Ue_A { Int(32) d(1);  Int(32) test() {  System s;  Bool(1) mybool[3];  mybool 0 [] true = mybool 1 [] false = mybool 2 [] false = self d . self ( 7 cast mybool )m . = s ( self d . )print . s ( self d . 1 cast == )assert . self d . return } }
 Uq_System { <NOMAIN> }
 ##
 ## first ?: test; informed by t3114

@@ -5,11 +5,11 @@
 ##
 #!
 Exit status: 2
-Ue_A { Int(32) m_i(2);  Int(32) test() {  System s;  Qfoo car;  Qfoo pop;  m_i pop ( 3 car ( )func . ( )b . )p . da . ( )gu . = s ( m_i )print . s ( m_i 2 cast == )assert . m_i return } }
+Ue_A { Int(32) m_i(2);  Int(32) test() {  System s;  Qfoo car;  Qfoo pop;  self m_i . pop ( 3 car ( )func . ( )b . )p . da . ( )gu . = s ( self m_i . )print . s ( self m_i . 2 cast == )assert . self m_i . return } }
 Uq_System { <NOMAIN> }
 Uq_QW { Bool(1) m_b(false);  Qda da( Int(3) m_dai(0); );  <NOMAIN> }
 Uq_Qda { Int(3) m_dai(0);  <NOMAIN> }
-Uq_Qfoo : QW { :< Bool(1) m_b(false);  Qda da( Int(3) m_dai(0); ); > <NOMAIN> }
+Uq_Qfoo : QW { :QW< Bool(1) m_b(false);  Qda da( Int(3) m_dai(0); ); > <NOMAIN> }
 ##
 ## informed by Dave 9/22/2016
 ##

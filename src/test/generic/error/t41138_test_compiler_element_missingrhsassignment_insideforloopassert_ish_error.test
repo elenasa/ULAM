@@ -9,7 +9,7 @@
 ./Foo.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'Check2'; Possible missing ending curly brace.
  ERROR: No parse tree for This Class: Foo.
 Unrecoverable Program Parse FAILURE: <Foo.ulam>
-./C2D.ulam:2:7: ERROR: Conflicting class args previously seen for class with no parameters <C2D>.
+./C2D.ulam:2:7: ERROR: Conflicting class args previously seen for class with no parameters 'C2D'.
 ./Foo.ulam:16:23: ERROR: Invalid Type: C2D.
 Unrecoverable Program Parse FAILURE: <C2D.ulam>
 ##

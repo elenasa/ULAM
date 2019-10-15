@@ -7,7 +7,7 @@
 ##
 #!
 Exit status: 0
-Ue_Eltypo { typedef String(32) SArr[2];  String(32) m_sarr[2]( ,"bar");  Bool(1) b1(true);  Bool(1) b2(true);  Int(32) test() {  System s;  m_sarr 1 [] "bar" = Unsigned(32) len1 = 3u;  s ( len1 )print . b1 len1 3u cast == = s ( b1 )assert . Unsigned(32) len2 = 2u;  s ( len2 )print . b2 len2 2u cast == = s ( b2 )assert . 0 cast return } }
+Ue_Eltypo { typedef String(32) SArr[2];  String(32) m_sarr[2]( ,"bar");  Bool(1) b1(true);  Bool(1) b2(true);  Int(32) test() {  System s;  self m_sarr . 1 [] "bar" = Unsigned(32) len1 = 3u;  s ( len1 )print . self b1 . len1 3u cast == = s ( self b1 . )assert . Unsigned(32) len2 = 2u;  s ( len2 )print . self b2 . len2 2u cast == = s ( self b2 . )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## Informed by t3945, t3933, lengthof a String array item, and array of Strings

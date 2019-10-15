@@ -2,7 +2,7 @@
 #=t3943_test_compiler_array2D_error
 #!
 ./Eltypo.ulam:5:10: ERROR: Array size [] is included in typedef 'IArr', and cannot be redefined by variable 'twodim'.
-./Eltypo.ulam:5:5: ERROR: Invalid variable declaration of base type <Int> and name <twodim> (missing symbol).
+./Eltypo.ulam:5:5: ERROR: Invalid variable declaration of base type <Int> and name 'twodim' (missing symbol).
 Unrecoverable Program Parse FAILURE: <Eltypo.ulam>
 ##
 ## To answer question posed by Dave 11/22/2016, 2d-custom array?

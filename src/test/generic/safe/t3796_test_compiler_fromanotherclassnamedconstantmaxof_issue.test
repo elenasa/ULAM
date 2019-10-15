@@ -7,7 +7,7 @@
 ##
 #!
 Exit status: 1
-Ue_R { Unsigned(32) ans(1u);  Int(32) test() {  System s;  QFoo qfoo;  ans qfoo 16u . = s ( ans )print . s ( ans 16u cast == )assert . ans 1u = s ( ans )print . s ( ans 1u cast == )assert . ans cast return } }
+Ue_R { Unsigned(32) ans(1u);  Int(32) test() {  System s;  QFoo qfoo;  self ans . qfoo 16u . = s ( self ans . )print . s ( self ans . 16u cast == )assert . self ans . 1u = s ( self ans . )print . s ( self ans . 1u cast == )assert . self ans . cast return } }
 Uq_System { <NOMAIN> }
 Uq_QFoo { typedef Unsigned(4) Cat;  constant Unsigned(32) cSIZE = 16u;  constant Unsigned(32) csize = 1u;  <NOMAIN> }
 Uq_Q { typedef Unsigned(4) Cat;  <NOMAIN> }

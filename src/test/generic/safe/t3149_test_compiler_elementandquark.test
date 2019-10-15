@@ -2,7 +2,7 @@
 #=t3149_test_compiler_elementandquark
 #!
 Exit status: 7
-Ue_Foo { Int(4) m_i(0);  Bar m_bar( Bool(1) val_b[3](true,false,false); );  Int(32) test() {  Foo f;  m_bar val_b 0 [] . f ( 1 cast )check . = 7 cast return } }
+Ue_Foo { Int(4) m_i(0);  Bar m_bar( Bool(1) val_b[3](true,false,false); );  Int(32) test() {  Foo f;  self m_bar . val_b 0 [] . f ( 1 cast )check . = 7 cast return } }
 Uq_Bar { Bool(1) val_b[3](false,false,false);  <NOMAIN> }
 #>Foo.ulam
   ulam 1;

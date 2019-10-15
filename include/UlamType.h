@@ -150,6 +150,10 @@ namespace MFM{
 
     virtual u32 getSizeofUlamType();
 
+    virtual s32 getBitsizeAsBaseClass();
+
+    virtual void setBitsizeAsBaseClass(s32 bs);
+
     ALT getReferenceType();
 
     bool isReference();

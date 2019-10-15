@@ -1,6 +1,5 @@
 ## -*- mode:ulam -*-
 #=t3668_test_compiler_unpackedarrayreference_quark
-#!
 ##      /* gen code output:
 ##	 Int Arg: 0
 ##	 Int Arg: 1
@@ -13,8 +12,9 @@
 ##	 Int Arg: 8
 ##	 Int Arg: 9
 ##      */
+#!
 Exit status: 10
-Ue_A { System s();  typedef QW BigSite[10];  typedef QW& BSRef[10];  typedef QW& BRR[10];  Int(32) test() {  QW site[10];  QW& siteref[10] = site cast;  QW& brr[10] = siteref;  QW qw;  { Int(32) i = 0 cast;  i 10 cast < cond { siteref i [] qw = siteref i [] ( 1 cast i )set . s ( brr i [] ( 1 cast )get . )print . } _1: i 1 += while } 10 cast return } }
+Ue_A { System s();  typedef QW BigSite[10];  typedef QW& BSRef[10];  typedef QW& BRR[10];  Int(32) test() {  QW site[10];  QW& siteref[10] = site cast;  QW& brr[10] = siteref;  QW qw;  { Int(32) i = 0 cast;  i 10 cast < cond { siteref i [] qw = siteref i [] ( 1 cast i )set . self s . ( brr i [] ( 1 cast )get . )print . } _1: i 1 += while } 10 cast return } }
 Uq_QW { Bool(1) bw(false);  Int(8) iwarr[3](0,0,0);  Bits(7) tw(0);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

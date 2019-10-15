@@ -1,12 +1,12 @@
 ## -*- mode:ulam -*-
 #=t3697_test_compiler_elementandquark_castreftoatom
-#!
 ##      gen code output: (1 assert)
 ##
+#!
 Exit status: -11
-Ue_A : QW { :< :< Unary(5) m_five(3u); > Bool(1) bw(false); > Bool(1) b(false);  Bool(1) c(false);  Int(32) test() {  System s;  Qbase& qref = self cast;  qref m_five . 3u cast = Atom(96) a = qref cast;  A apple = a cast;  b apple m_five . cast 3u cast == = s ( b )assert . b cast return } }
+Ue_A : QW { Bool(1) b(false);  Bool(1) c(false);  :QW< Bool(1) bw(false);  :Qbase< Unary(5) m_five(3u); >> ^Qbase< Unary(5) m_five(3u); > Int(32) test() {  System s;  Qbase& qref = self cast;  qref m_five . 3u cast = Atom(96) a = qref cast;  A apple = a cast;  self b . apple m_five . cast 3u cast == = s ( self b . )assert . self b . cast return } }
 Uq_System { <NOMAIN> }
-Uq_QW : Qbase { :< Unary(5) m_five(0); > Bool(1) bw(false);  <NOMAIN> }
+Uq_QW : Qbase { Bool(1) bw(false);  :Qbase< Unary(5) m_five(0); > <NOMAIN> }
 Uq_Qbase { Unary(5) m_five(0);  <NOMAIN> }
 ##
 ## Dave requested a way to get default values for Self (within a quark);

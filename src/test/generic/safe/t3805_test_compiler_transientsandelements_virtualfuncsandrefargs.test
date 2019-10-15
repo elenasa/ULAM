@@ -1,6 +1,5 @@
 ## -*- mode:ulam -*-
 #=t3805_test_compiler_transientsandelements_virtualfuncsandrefargs
-#!
 ##      gen code output (if fail, assert):
 ##  Unsigned Arg: 3
 ##  Unsigned Arg: 3
@@ -36,12 +35,13 @@
 ##  Unsigned Arg: 1
 ##  Int Arg: -16
 ##
+#!
 Exit status: -11
-Ue_RefTest { System f();  Int(32) mChecks(-2);  Int(32) test() {  ( )runTests 0 cast return } }
+Ue_RefTest { System f();  Int(32) mChecks(-2);  Int(32) test() {  self ( )runTests . 0 cast return } }
 Uq_System { <NOMAIN> }
-Ue_ESubDat : QBrt { :< Bool(1) mQBool( true); > QBrt mQdat( Bool(1) mQBool( true); );  <NOMAIN> }
+Ue_ESubDat : QBrt { QBrt mQdat( Bool(1) mQBool( true); );  :QBrt< Bool(1) mQBool( true); > <NOMAIN> }
 Uq_QBrt { Bool(1) mQBool( true);  <NOMAIN> }
-Un_TDat : QBrt { :< Bool(1) mQBool( true); > Unary(3) mUnDat(0);  QBrt mBaseDat( Bool(1) mQBool( true); );  ESubDat mEleDat( :< Bool(1) mQBool( true); > QBrt mQdat( Bool(1) mQBool( true); ); );  <NOMAIN> }
+Un_TDat : QBrt { Unary(3) mUnDat(0);  QBrt mBaseDat( Bool(1) mQBool( true); );  ESubDat mEleDat( QBrt mQdat( Bool(1) mQBool( true); );  :QBrt< Bool(1) mQBool( true); >);  :QBrt< Bool(1) mQBool( true); > <NOMAIN> }
 ##
 ## informed by t3804
 ##

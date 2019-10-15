@@ -8,10 +8,10 @@
 #!
 Exit status: 0
 Uq_Base { <NOMAIN> }
-Uq_Sub1 : Base { :<> <NOMAIN> }
-Ue_E1 : Base { :<> <NOMAIN> }
-Ue_E2 : Sub1 { :< :<>> <NOMAIN> }
-Ue_Test : System { :<> Bool(1) brtn[4](false,true,true,true);  Int(32) test() {  E1 e1;  brtn 2 [] e1 ( )vuser . 7 cast == = ( brtn 2 [] )assert E2 e2;  brtn 3 [] e2 ( )vuser . 9 cast == = ( brtn 3 [] )assert Sub1 s1;  brtn 1 [] s1 ( )vuser . 2 cast == = ( brtn 1 [] )assert 0 cast return } }
+Uq_Sub1 : Base { :Base<> <NOMAIN> }
+Ue_E1 : Base { :Base<> <NOMAIN> }
+Ue_E2 : Sub1 { :Sub1<> ^Base<> <NOMAIN> }
+Ue_Test : System { Bool(1) brtn[4](false,true,true,true);  :System<> Int(32) test() {  E1 e1;  self brtn . 2 [] e1 ( )vuser . 7 cast == = self ( self brtn . 2 [] )assert . E2 e2;  self brtn . 3 [] e2 ( )vuser . 9 cast == = self ( self brtn . 3 [] )assert . Sub1 s1;  self brtn . 1 [] s1 ( )vuser . 2 cast == = self ( self brtn . 1 [] )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t3602

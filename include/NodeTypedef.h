@@ -62,7 +62,7 @@ namespace MFM{
 
     virtual void printPostfix(File * f);
 
-    virtual void noteTypeAndName(s32 totalsize, u32& accumsize);
+    virtual void noteTypeAndName(UTI cuti, s32 totalsize, u32& accumsize);
 
     virtual void genTypeAndNameEntryAsComment(File * fp, s32 totalsize, u32& accumsize);
 

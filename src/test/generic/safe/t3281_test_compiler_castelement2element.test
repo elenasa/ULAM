@@ -5,7 +5,7 @@
 ##
 #!
 Exit status: 8
-Ue_Tu { Int(32) me(8);  Int(32) test() {  System s;  Atom(96) a;  Tu t;  Tu u;  me 8 cast = u self = s ( u me . 8 cast == )assert . t u = s ( t me . 8 cast == )assert . u me . 3 cast = a u cast cast = t a cast = s ( t me . 3 cast == )assert . me return } }
+Ue_Tu { Int(32) me(8);  Int(32) test() {  System s;  Atom(96) a;  Tu t;  Tu u;  self me . 8 cast = u self = s ( u me . 8 cast == )assert . t u = s ( t me . 8 cast == )assert . u me . 3 cast = a u cast cast = t a cast = s ( t me . 3 cast == )assert . self me . return } }
 Uq_System { <NOMAIN> }
 #>Tu.ulam
   ulam 1;

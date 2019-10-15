@@ -6,7 +6,7 @@
 ##
 #!
 Exit status: 1
-Ue_Foo { Int(3) m_i(3);  Int(32) test() {  System s;  ( )caller1 Foo f3;  f3 m_i . 1 cast = Foo& r = ( f3 cast false )caller2;  s ( r m_i . )print . s ( r m_i . 1 cast == )assert . r m_i . cast return } }
+Ue_Foo { Int(3) m_i(3);  Int(32) test() {  System s;  self ( )caller1 . Foo f3;  f3 m_i . 1 cast = Foo& r = self ( f3 cast false )caller2 .;  s ( r m_i . )print . s ( r m_i . 1 cast == )assert . r m_i . cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by Dave email 2/10/2017 and t41030

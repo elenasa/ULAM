@@ -1,0 +1,43 @@
+## -*- mode:ulam -*-
+#=t41334_test_compiler_quarkunioninheritance_error
+#!
+./QU.ulam:3:10: ERROR: Multiple Inheritance for quark-union identifier 'QU' currently unsupported.
+./QU.ulam:3:1: ERROR: Empty/Incomplete Class Definition 'QU'; Possible missing ending curly brace.
+./QU.ulam:3:10: ERROR: Invalid Class Type <+>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+./QU.ulam:3:7: ERROR: Invalid Type: QU.
+ ERROR: No parse tree for This Class: QU.
+Unrecoverable Program Parse FAILURE: <QU.ulam>
+##
+## Quark-unions cannot be bases, but can they inherit? For now, NO.
+## Applies to both single and multi-inheritance.
+##
+#>Test.ulam
+  ulam 4;
+element Test {
+  Int test(){
+    QU qus;
+    return 0;
+  }
+}
+
+#:QU.ulam
+  ulam 5;
+use System; //avoids more errors about missing System class after error.
+union QU + System {
+  Bool n;
+  Int(3) i;
+  Bits(5) t;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

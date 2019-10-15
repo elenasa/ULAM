@@ -11,7 +11,7 @@
 Exit status: 0
 Ue_KeyExprRep { constant QBar cqbar = { 0xd };  Int(32) test() {  SystemU3 s;  String(32) mystr[2] = ckeyexpr cqstr .;  s ( mystr 0 [] )print . s ( mystr 0 [] 2 [] 101u == )assert . s ( mystr 0 [] 3 [] ckeyexpr cqstr 0 [] 3 [] . == )assert . constant String(32)[2] mycstr = ckeyexpr cqstr .;  s ( mycstr 0 [] )print . s ( mycstr 0 [] 2 [] 101u == )assert . s ( mycstr 0 [] 3 [] ckeyexpr cqstr 0 [] 3 [] . == )assert . String(32) mystr3 = ckeyexpr qstr .;  s ( mystr3 )print . s ( mystr3 0 [] 99u == )assert . String(32) mystr4 = cqbar qstr .;  s ( mystr4 )print . s ( mystr4 0 [] 110u == )assert . 0 cast return } }
 Uq_QBar { constant String(32)[2] cqstr = { "qmel", "qlem" };  String(32) qstr( "neat");  <NOMAIN> }
-Uq_SystemU3 : System { :<> <NOMAIN> }
+Uq_SystemU3 : System { :System<> <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 ## Informed by t41267 except trying to reach gencode to read constant class with String cos; or constant array of strings

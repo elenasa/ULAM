@@ -412,11 +412,13 @@ namespace MFM {
 	if(hasInitExpr())
 	  newnode->m_nodeInitExpr = (Node *) m_nodeInitExpr->instantiate();
 
+	m_state.setGoAgain();
+
 	delete this; //suicide is painless..
 
 	// we must be the last thing called by checkandlabel
 	// to return properly to our parent
-	return newnode->checkAndLabelType();
+	//return Hzy;
       }
     return true; //ok
   } //checkReferenceCompatibility
@@ -705,16 +707,16 @@ namespace MFM {
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "(1) <" << m_state.m_pool.getDataAsString(m_vid).c_str();
-	    msg << "> is not a variable, and cannot be used as one";
+	    msg << "(1) '" << m_state.m_pool.getDataAsString(m_vid).c_str();
+	    msg << "' is not a variable, and cannot be used as one";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
       }
     else
       {
 	std::ostringstream msg;
-	msg << "(2) Variable <" << m_state.m_pool.getDataAsString(m_vid).c_str();
-	msg << "> is not defined, and cannot be used";
+	msg << "(2) Variable '" << m_state.m_pool.getDataAsString(m_vid).c_str();
+	msg << "' is not defined, and cannot be used";
 	if(!hazyKin)
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	else
@@ -1212,7 +1214,7 @@ namespace MFM {
 	    fp->write(m_varSymbol->getMangledName().c_str());
 	    fp->write("("); // use constructor (not equals)
 	    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
-	    if((uvpass.getPassStorage() == TMPBITVAL) && m_nodeInitExpr->isExplicitCast())
+	    if((uvpass.getPassStorage() == TMPBITVAL) && m_nodeInitExpr->isExplicitCast() && !m_state.isReference(uvpass.getPassTargetType())) //no read for ref(t41302)
 	      fp->write(".read()"); //ulamexports: WallPort->QPort4->Cell (e.g. t3922, t3715)
 	    else if(m_state.isAtomRef(vuti))
 	      fp->write(", uc");

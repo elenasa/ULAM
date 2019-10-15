@@ -11,7 +11,7 @@
 #!
 Exit status: 2
 Ue_T { Int(32) test() {  System sys;  E(true) et;  sys ( et 2 . )print . sys ( et 2 . 2 cast == )assert . sys ( et b . cast )print . sys ( et b . )assert . E(false) ef;  sys ( ef 3 . )print . sys ( ef 3 . 3 cast == )assert . sys ( ef b . cast )print . sys ( ef b . ! )assert . et 2 . cast return } }
-Uq_S(Bool(1) bp) : Q(flag) { :< Bool(1) b(notready);  Int(4) i(0); > constant Int(UNKNOWN) csi = bp ?  CONSTANT? :  CONSTANT?;  <NOMAIN> }
+Uq_S(Bool(1) bp) : Q(flag) { constant Int(4) csi = bp ?  2 :  3;  :Q11< Bool(1) b(notready);  Int(4) i(0); > <NOMAIN> }
 Uq_Q(Bool(1) flag) { Bool(1) b(notready);  Int(4) i(0);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 Ue_E(Bool(1) bp) : S(bp) { /* empty class block */ }

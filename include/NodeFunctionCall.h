@@ -114,13 +114,17 @@ namespace MFM{
     NodeList * m_argumentNodes;
     SymbolTmpVar * m_tmpvarSymbol;
 
+    TBOOL lookagainincaseimplicitselfchanged();
+    UTI specifyimplicitselfexplicitly();
+
     EvalStatus evalArgumentsInReverseOrder(u32& argsPushed);
     EvalStatus evalHiddenArguments(u32& argsPushed, NodeBlockFunctionDefinition *& func);
     bool getVirtualFunctionForEval(UlamValue & atomPtr, NodeBlockFunctionDefinition *& rtnfunc);
 
     void genCodeIntoABitValue(File * fp, UVPass& uvpass);
     void genCodeAReferenceIntoABitValue(File * fp, UVPass& uvpass);
-    void genCodeVirtualFunctionCallVTableEntry(File * fp, u32 tvfpnum, u32 urtmpnum);
+    void genCodeVirtualFunctionCallVTableEntry(File * fp, u32 tvfpnum, u32 urtmpnum, u32& urtmpnumvfc);
+    void genCodeVirtualFunctionCallVTableEntryUsingEffectiveSelf(File * fp, u32 tvfpnum, u32 urtmpnum, u32& urtmpnumvfc);
     void genCodeVirtualFunctionCall(File * fp, u32 tvfpnum);
     std::string genHiddenArg2ForARef(File * fp, UVPass uvpass, u32& urtmpnumref);
     std::string genHiddenArgs(u32 urtmpnum);

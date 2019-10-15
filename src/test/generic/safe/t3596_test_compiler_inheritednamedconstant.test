@@ -1,14 +1,14 @@
 ## -*- mode:ulam -*-
 #=t3596_test_compiler_inheritednamedconstant
-#!
 ##     /* gen code output (+assert):
 ##	 Int Arg: 8
 ##       */
 ##      //different casts since Constants have explicit types
 ##      // constant fold: j 1 7 +b =, 1 6u cast +b
 ##
+#!
 Exit status: 8
-Ue_A : B { :< constant Int(32) cOW = 7;  typedef Int(3) Bar[2];  Int(3) jar[2](0,0); > Int(32) j(8);  Int(32) test() {  System s;  j 8 = s ( j )print . s ( j 8 cast == )assert . j return } }
+Ue_A : B { Int(32) j(8);  :B< constant Int(32) cOW = 7;  typedef Int(3) Bar[2];  Int(3) jar[2](0,0); > Int(32) test() {  System s;  self j . 8 = s ( self j . )print . s ( self j . 8 cast == )assert . self j . return } }
 Uq_System { <NOMAIN> }
 Uq_B { constant Int(32) cOW = 7;  typedef Int(3) Bar[2];  Int(3) jar[2](0,0);  <NOMAIN> }
 ##

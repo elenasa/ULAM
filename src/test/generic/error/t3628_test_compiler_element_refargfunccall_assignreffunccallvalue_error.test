@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3628_test_compiler_element_refargfunccall_assignreffunccallvalue_error
 #!
-./Foo.ulam:23:5: ERROR: Invalid argument 1 to function <check>; Cannot be used as a reference parameter.
+./Foo.ulam:23:5: ERROR: Invalid argument 1 to function 'check'; Cannot be used as a reference parameter.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t3626

@@ -13,7 +13,7 @@ namespace MFM {
     assert(m_nodeParameterList);
   }
 
-  NodeBlockFunctionDefinition::NodeBlockFunctionDefinition(const NodeBlockFunctionDefinition& ref) : NodeBlock(ref), m_funcSymbol(NULL), m_isDefinition(ref.m_isDefinition), m_maxDepth(ref.m_maxDepth), m_native(ref.m_native)
+  NodeBlockFunctionDefinition::NodeBlockFunctionDefinition(const NodeBlockFunctionDefinition& ref) : NodeBlock(ref), m_funcSymbol(NULL), m_isDefinition(ref.m_isDefinition), m_maxDepth(ref.m_maxDepth), m_native(ref.m_native), m_nodeTypeDesc(NULL)
  {
    m_nodeParameterList = (NodeList *) ref.m_nodeParameterList->instantiate();
    if(ref.m_nodeTypeDesc)
@@ -241,9 +241,9 @@ namespace MFM {
     u32 selfid = m_state.m_pool.getIndexForDataString("self");
     Symbol * selfsym = NULL;
     bool hazyKin = false; //return is always false?
-    AssertBool isDefined = m_state.alreadyDefinedSymbol(selfid, selfsym, hazyKin) && !hazyKin;
+    AssertBool isDefined = m_state.alreadyDefinedSymbolHere(selfid, selfsym, hazyKin) && !hazyKin;
     assert(isDefined);
-    s32 newslot = -2 - m_state.slotsNeeded(getNodeType()); //2nd hidden arg
+    s32 newslot = -2 - m_state.slotsNeeded(it); //2nd hidden arg
     ((SymbolVariable *) selfsym)->setStackFrameSlotIndex(newslot);
 
     m_state.m_currentFunctionReturnNodes.clear(); //vector of return nodes
@@ -260,7 +260,7 @@ namespace MFM {
     else
       {
 	std::ostringstream msg;
-	msg << "Undefined function block <" << getName() << ">";
+	msg << "Undefined function block '" << getName() << "'";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(Nav);
       }
@@ -287,7 +287,10 @@ namespace MFM {
   void NodeBlockFunctionDefinition::makeSuperSymbol(s32 slot)
   {
     UTI cuti = m_state.getCompileThisIdx();
-    UTI superuti = m_state.isClassASubclass(cuti);
+    SymbolClass * csym = NULL;
+    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cuti, csym);
+    assert(isDefined);
+    UTI superuti = csym->getBaseClass(0);
     SymbolVariableStack * supersym = NULL;
     u32 superid = m_state.m_pool.getIndexForDataString("super");
     if(!NodeBlock::isIdInScope(superid, (Symbol *&) supersym))
@@ -296,7 +299,7 @@ namespace MFM {
 	  {
 	    assert(m_state.okUTItoContinue(superuti));
 
-	    Token superTok(TOK_IDENTIFIER, getNodeLocation(), superid);
+	    Token superTok(TOK_KW_SUPER, getNodeLocation(), 0);
 	    supersym = new SymbolVariableStack(superTok, m_state.getUlamTypeAsRef(superuti, ALT_REF), slot, m_state);
 	    assert(supersym);
 	    supersym->setAutoLocalType(ALT_REF);
@@ -495,10 +498,27 @@ namespace MFM {
     //    assert(m_state.m_currentObjSymbolForCodeGen != NULL);
     m_state.pushCurrentBlock(this);
 
+    //"self" belongs to func def block that we're currently gencoding
+    u32 selfid = m_state.m_pool.getIndexForDataString("self");
+    Symbol * selfsym = NULL;
+    bool hazykin = false; //unused
+    AssertBool gotSelf = m_state.alreadyDefinedSymbolHere(selfid, selfsym, hazykin);
+    assert(gotSelf);
+    m_state.m_currentSelfSymbolForCodeGen = selfsym;
+
     assert(isDefinition());
     assert(m_nodeNext);
 
     assert(!isNative());
+
+    if(m_funcSymbol->isVirtualFunction())
+      {
+	m_state.m_gencodingAVirtualFunctionInThisOriginatingClass = m_funcSymbol->getVirtualMethodOriginatingClassUTI(); //t41318
+      }
+    else
+      {
+	assert(m_state.m_gencodingAVirtualFunctionInThisOriginatingClass == Nouti); //sanity chk
+      }
 
     fp->write("\n");
     m_state.indentUlamCode(fp);
@@ -510,12 +530,12 @@ namespace MFM {
 
     m_state.m_currentIndentLevel--;
 
-    fp->write("\n");
     m_state.indentUlamCode(fp);
     fp->write("} // ");
     fp->write(m_funcSymbol->getMangledName().c_str()); //end of function
-    fp->write("\n\n\n");
+    fp->write("\n");
 
+    m_state.m_gencodingAVirtualFunctionInThisOriginatingClass = Nouti; //clear
     m_state.popClassContext(); //restores NodeBlock::getPreviousBlockPointer()
   } //genCode
 

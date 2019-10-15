@@ -1,0 +1,159 @@
+## -*- mode:ulam -*-
+#=t41336_test_compiler_multiinheritance_referenceinit
+##
+## gen output:
+##   (3 asserts)
+##  Bool(3) Arg: 0x7 (true) (+ 3 asserts)
+##  Bool(3) Arg: 0x7 (true) (+ 3 asserts)
+##  Bool(3) Arg: 0x7 (true) (+ 3 asserts)
+##  Bool(3) Arg: 0x7 (true) (+ 2 asserts)
+##
+#!
+Exit status: 0
+Ue_Foo +System { Bool(1) m_c4(false);  Bool(1) m_a4(true);  +System<> Int(32) test() {  E4 e4;  e4 QBase2 . m_boo . true = self ( e4 QBase2 . m_boo . )assert . self ( e4 m_boo . ! )assert . self ( e4 QBase3 . m_boo . ! )assert . e4 QBase2 . m_boo . false = e4 m_boo . true = self ( e4 m_boo . cast )print . self ( e4 m_boo . )assert . self ( e4 QBase3 . m_boo . )assert . self ( e4 QBase2 . m_boo . ! )assert . self ( e4 m_boo . cast )print . self m_c4 . e4 ( )rboo . = self m_a4 . e4 ( )rbootwo . = self ( self m_c4 . )assert . self ( self m_a4 . ! )assert . self ( e4 ( )rboothree . cast )assert . self ( e4 m_boo . cast )print . self m_c4 . e4 ( )bootwo . = self m_a4 . e4 ( )boo . = self ( self m_c4 . ! )assert . self ( self m_a4 . )assert . self ( e4 ( )boothree . )assert . E4& e4ref = e4 cast;  self ( e4ref m_boo . cast )print . Bool(1)& booref = e4ref m_boo . cast;  self ( booref cast )assert . Bool(1)& boo2ref = e4ref QBase2 . m_boo . cast;  self ( boo2ref cast ! )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+Ue_E4 : QBase3 +QBase2 +QBase1 { Bool(1) m_b4(false);  typedef QBase2 QB2;  :QBase3< Bool(1) m_boo(false); > +QBase2< Bool(1) m_boo(false);  Bits(1) m_bit(0); > +QBase1< Bool(1) m_b1(false); > <NOMAIN> }
+Uq_QBase2 +QBase1 { Bool(1) m_boo(false);  Bits(1) m_bit(0);  +QBase1< Bool(1) m_b1(false); > <NOMAIN> }
+Uq_QBase3 : QBase1 { Bool(1) m_boo(false);  :QBase1< Bool(1) m_b1(false); > <NOMAIN> }
+Uq_QBase1 { Bool(1) m_b1(false);  <NOMAIN> }
+##
+##  siblings may share the same data member names; Bases can be accessed specifically;
+##  didnot reach NodeMemberSelectByBaseType::genCode, even on lhs; but found
+##  gencode issues in genCodeReferenceInitialization. Tests primitive cases..
+##
+#>Foo.ulam
+  ulam 5;
+element Foo +System {
+  Bool m_c4;
+  Bool m_a4;
+
+  Int test()
+  {
+    E4 e4;
+
+    //here, specific base (QBase2) changes its m_boo DM;
+    e4.QBase2.m_boo = true;
+    assert(e4.QBase2.m_boo); //changed specific one
+    assert(!e4.m_boo); //not default one
+    assert(!e4.QBase3.m_boo); //not equiv default one
+
+    e4.QBase2.m_boo = false; //reset
+
+    //here, default order is applied
+    e4.m_boo = true;
+    print(e4.m_boo);
+    assert(e4.m_boo); //changed default one in QBase3
+    assert(e4.QBase3.m_boo); //equiv one
+    assert(!e4.QBase2.m_boo); //not sibling
+
+    //accessor methods to test ref returns with MemberSelectByBaseType
+    print(e4.m_boo); //still true
+    m_c4 = e4.rboo();
+    m_a4 = e4.rbootwo();
+    assert(m_c4);
+    assert(!m_a4);
+    assert(e4.rboothree());
+
+    //switch
+    //accessor methods to test nonref returns with MemberSelectByBaseType
+    print(e4.m_boo); //still true
+    m_c4 = e4.bootwo();
+    m_a4 = e4.boo();
+    assert(!m_c4);
+    assert(m_a4);
+    assert(e4.boothree());
+
+    //check with a ref
+    E4& e4ref = e4;
+    print(e4ref.m_boo); //still true
+    Bool & booref = e4ref.m_boo; //gets default m_boo, uses a ref, no BaseType.
+    assert(booref);
+    Bool & boo2ref = e4ref.QBase2.m_boo; //uses a ref, with BaseType.
+    assert(!boo2ref);
+    return 0;
+  }
+
+}
+
+
+#:E4.ulam
+  ulam 5;
+element E4 : QBase3 +QBase2 +QBase1 {
+  Bool m_b4;
+  virtual Int vfuncc() { m_boo = true; return 412; }
+  virtual Void behave() { }
+  typedef QBase2 QB2;
+
+
+  Bool& rbootwo()
+  {
+    return self.QBase2.m_boo;
+  }
+
+  Bool& rboothree()
+  {
+    return super.m_boo; //ok
+    //return self.QBase3.m_boo; //fails
+  }
+
+  Bool& rboo()
+  {
+    return m_boo; //equiv rboothree
+  }
+
+  Bool bootwo()
+  {
+    return self.QBase2.m_boo;
+  }
+
+  Bool boothree()
+  {
+    return super.m_boo;
+    //return self.QBase3.m_boo;
+  }
+
+  Bool boo()
+  {
+    return m_boo; //equiv rboothree
+  }
+
+}
+
+#:QBase1.ulam
+    ulam 4;
+quark QBase1 {
+  Bool m_b1;
+  Void funcNotVirtualSoIrrelevantHere() { }
+  virtual Int vfunca() { m_b1 = true; return 110; }
+}
+
+#:QBase2.ulam
+  ulam 5;
+quark QBase2 +QBase1 {
+  Bool m_boo;
+  Bits(1) m_bit; //so that len of QBase2 is different than its pos in E4.
+  virtual ARGB getColor(Unsigned s) { return super.getColor(s); }
+  virtual Int vfuncc() { m_boo = true; return 212; }
+}
+
+#:QBase3.ulam
+  ulam 4;
+quark QBase3 : QBase1 {
+  Bool m_boo;
+  virtual Int vfuncb() { return 311; }
+}
+
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

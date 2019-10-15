@@ -54,12 +54,41 @@ namespace MFM {
   {
     assert(instance == getUlamTypeIdx());
     assert(instance != superclass);
-    SymbolClass::setSuperClass(superclass);
+    SymbolClass::setBaseClass(superclass, 0);
   }
 
   UTI SymbolClassName::getSuperClassForClassInstance(UTI instance)
   {
-    return SymbolClass::getSuperClass(); //Nouti is none, not a subclass.
+    return SymbolClass::getBaseClass(0); //Nouti is none, Hzy a stub.
+  }
+
+  void SymbolClassName::appendBaseClassForClassInstance(UTI baseclass, UTI instance, bool sharedbase)
+  {
+    assert(instance == getUlamTypeIdx());
+    assert(instance != baseclass);
+    SymbolClass::appendBaseClass(baseclass, sharedbase);
+  }
+
+  u32 SymbolClassName::getBaseClassCountForClassInstance(UTI instance)
+  {
+    return SymbolClass::getBaseClassCount();
+  }
+
+  UTI SymbolClassName::getBaseClassForClassInstance(UTI instance, u32 item)
+  {
+    return SymbolClass::getBaseClass(item);
+  }
+
+  bool SymbolClassName::updateBaseClassforClassInstance(UTI instance, UTI oldbase, UTI newbaseuti)
+  {
+    bool aok = false;
+    s32 item = isABaseClassItem(oldbase);
+    if(item > 0) //excludes super
+      {
+	SymbolClass::updateBaseClass(oldbase, item, newbaseuti);
+	aok = true;
+      }
+    return aok;
   }
 
   Node * SymbolClassName::findNodeNoInAClassInstance(UTI instance, NNO n)
@@ -76,7 +105,7 @@ namespace MFM {
     return foundNode;
   } //findNodeNoInAClassInstance
 
-  std::string SymbolClassName::formatAnInstancesArgValuesAsAString(UTI instance)
+  std::string SymbolClassName::formatAnInstancesArgValuesAsAString(UTI instance, bool dereftypes)
   {
     UTI basicuti = m_state.getUlamTypeAsDeref(m_state.getUlamTypeAsScalar(instance));
     UTI rootbasicuti = basicuti;
@@ -140,7 +169,7 @@ namespace MFM {
     assert(classNode);
     m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
 
-    classNode->checkDuplicateFunctions();
+    classNode->checkDuplicateFunctionsInClassAndAncestors();
     m_state.popClassContext(); //restore
   } //checkDuplicateFunctionsForClassInstances
 
@@ -290,15 +319,29 @@ namespace MFM {
     bool aok = true;
     assert(!isClassTemplate());
 
+    UTI cuti = getUlamTypeIdx();
     NodeBlockClass * classNode = getClassBlockNode();
     assert(classNode); //infinite loop "Incomplete Class <> was never defined, fails sizing"
-    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
+    m_state.pushClassContext(cuti, classNode, classNode, false, NULL);
 
     s32 totalbits = 0;
+    s32 sharedbits = UNKNOWNSIZE;
     aok = SymbolClass::trySetBitsizeWithUTIValues(totalbits);
     if(aok)
       {
-	UTI cuti = getUlamTypeIdx();
+	s32 sharedbitssaved = UNKNOWNSIZE;
+	aok = SymbolClass::determineSharedBasesAndTotalBitsize(sharedbitssaved, sharedbits);
+	if(aok) //3755 QBase not ready
+	  {
+	    assert(sharedbits >= 0);
+	    assert(sharedbits <= totalbits);
+	    assert(sharedbitssaved >= sharedbits);
+	    totalbits = (totalbits - sharedbitssaved + sharedbits); //updates total here!!
+	  }
+      }
+
+    if(aok)
+      {
 	m_state.setBitSize(cuti, totalbits); //"scalar" Class bitsize  KEY ADJUSTED
 	if(m_state.getBitSize(cuti) != totalbits)
 	  {
@@ -315,6 +358,8 @@ namespace MFM {
 	    msg << "CLASS (regular) '" << m_state.getUlamTypeNameByIndex(cuti).c_str();
 	    msg << "' SIZED: " << totalbits;
 	    MSG(Symbol::getTokPtr(), msg.str().c_str(),DEBUG);
+	    //after setBitSize so not to clobber it.
+	    m_state.setBaseClassBitSize(cuti, totalbits - sharedbits); //noop for elements
 	  }
       }
     m_state.popClassContext(); //restore

@@ -7,7 +7,7 @@
 #!
 Exit status: 96
 Ue_T { Bool(1) m_sp(false);  Int(32) m_i(0);  <NOMAIN> }
-Ue_R { Bool(1) m_rb(true);  Int(32) m_ri(99);  Int(32) test() {  System sys;  T est = cet;  m_rb est m_sp . = sys ( m_rb )assert . m_ri est m_i . = sys ( m_ri )print . sys ( m_ri 99 cast == )assert . 96u cast return } }
+Ue_R { Bool(1) m_rb(true);  Int(32) m_ri(99);  Int(32) test() {  System sys;  T est = cet;  self m_rb . est m_sp . = sys ( self m_rb . )assert . self m_ri . est m_i . = sys ( self m_ri . )print . sys ( self m_ri . 99 cast == )assert . 96u cast return } }
 Uq_System { <NOMAIN> }
 ##
 ##    //informed by Dave ish (3/3/18), and t41229 class assignment in T with constant element

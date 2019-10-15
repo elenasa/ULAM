@@ -12,7 +12,7 @@
 ##
 #!
 Exit status: 0
-Ue_Foo { typedef Unsigned(8) ARGB[4];  Unsigned(8) a[4](1u,2u,3u,4u);  Int(32) test() {  System s;  ( a 1 [] )func s ( a 1 [] cast )print . s ( a 1 [] 2u cast == )assert . ( a 0 [] cast )func2 s ( a 0 [] cast )print . s ( a 0 [] 2u cast == )assert . ( a 0 [] cast )func3 s ( a 0 [] cast )print . s ( a 0 [] 1u cast == )assert . constant Unsigned(8)[4] ca = { 1u cast, 2u cast, 3u cast, 4u cast };  ( ca 1 [] )func s ( ca 1 [] cast )print . s ( ca 1 [] 2u cast == )assert . Unsigned(8)& ar = a 3 [] cast;  ( ar cast )func s ( ar cast )print . s ( ar cast 4u cast == )assert . ( ar )func2 s ( ar cast )print . s ( ar cast 5u cast == )assert . ( ar )func3 s ( ar cast )print . s ( ar cast 4u cast == )assert . 0 cast return } }
+Ue_Foo { typedef Unsigned(8) ARGB[4];  Unsigned(8) a[4](1u,2u,3u,4u);  Int(32) test() {  System s;  self ( self a . 1 [] )func . s ( self a . 1 [] cast )print . s ( self a . 1 [] 2u cast == )assert . self ( self a . 0 [] cast )func2 . s ( self a . 0 [] cast )print . s ( self a . 0 [] 2u cast == )assert . self ( self a . 0 [] cast )func3 . s ( self a . 0 [] cast )print . s ( self a . 0 [] 1u cast == )assert . constant Unsigned(8)[4] ca = { 1u cast, 2u cast, 3u cast, 4u cast };  self ( ca 1 [] )func . s ( ca 1 [] cast )print . s ( ca 1 [] 2u cast == )assert . Unsigned(8)& ar = self a . 3 [] cast;  self ( ar cast )func . s ( ar cast )print . s ( ar cast 4u cast == )assert . self ( ar )func2 . s ( ar cast )print . s ( ar cast 5u cast == )assert . self ( ar )func3 . s ( ar cast )print . s ( ar cast 4u cast == )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t3250, t41099

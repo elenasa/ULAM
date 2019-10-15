@@ -2,7 +2,7 @@
 #=t3447_test_compiler_comparefunccallreturns
 #!
 Exit status: 1
-Ue_T { Bool(1) b(true);  Int(32) test() {  b ( )func1 ( )func2 == = b cast return } }
+Ue_T { Bool(1) b(true);  Int(32) test() {  self b . self ( )func1 . self ( )func2 . == = self b . cast return } }
 #>T.ulam
   ulam 1;
 element T{

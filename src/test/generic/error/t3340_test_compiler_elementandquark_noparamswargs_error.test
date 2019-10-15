@@ -3,7 +3,7 @@
 #!
 ./Foo.ulam:3:13: ERROR: Class without parameters already exists with the same name: NoParms, and was first noticed at: ..
 ./NoParms.ulam:2:7: ERROR: .. this location.
-./Foo.ulam:4:3: ERROR: Invalid variable declaration of base type <NoParms> and name <boom> (missing symbol).
+./Foo.ulam:4:3: ERROR: Invalid variable declaration of base type <NoParms> and name 'boom' (missing symbol).
 ./Foo.ulam:3:1: ERROR: Empty/Incomplete Class Definition 'Foo'; Possible missing ending curly brace.
 ./Foo.ulam:4:18: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 ./Foo.ulam:3:9: ERROR: Invalid Type: Foo.

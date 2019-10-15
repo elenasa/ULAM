@@ -1,12 +1,12 @@
 ## -*- mode:ulam -*-
 #=t3537_test_compiler_quarkinheritance_nonlocaluse
-#!
 ## gencode output (+assert):
 ## Bool(3) Arg: 0x7 (true)
 ##
+#!
 Exit status: 96
-Ue_Foo { System s();  Bool(1) first(false);  Soo su( :< Bool(3) cb(true); > Unsigned(3) us(4u); );  Int(32) test() {  { su cb . cond { s ( su cb . )print . s ( su cb . cast )assert . 96u cast return } if } 0 cast return } }
-Uq_Soo : Coo { :< Bool(3) cb( true); > Unsigned(3) us( 4u);  <NOMAIN> }
+Ue_Foo { System s();  Bool(1) first(false);  Soo su( Unsigned(3) us(4u);  :Coo< Bool(3) cb(true); >);  Int(32) test() {  { self su . cb . cond { self s . ( self su . cb . )print . self s . ( self su . cb . cast )assert . 96u cast return } if } 0 cast return } }
+Uq_Soo : Coo { Unsigned(3) us( 4u);  :Coo< Bool(3) cb( true); > <NOMAIN> }
 Uq_Coo { Bool(3) cb( true);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

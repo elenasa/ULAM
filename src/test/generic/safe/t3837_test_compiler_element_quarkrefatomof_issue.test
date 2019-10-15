@@ -8,7 +8,7 @@
 ##
 #!
 Exit status: -11
-Ue_Foo : QPerc { :< Bool(1) bb(false); > Int(32) mi(0);  Int(32) test() {  System s;  Atom(96) a = Foo.instanceof cast;  QPerc& qref = a cast;  Atom(96) aqinas = qref.atomof cast;  mi qref ( )func . = s ( 1u )print . s ( true )assert . s ( 96u )print . s ( true )assert . s ( mi )print . bb mi 2 cast == = s ( bb )assert . mi return } }
+Ue_Foo : QPerc { Int(32) mi(0);  :QPerc< Bool(1) bb(false); > Int(32) test() {  System s;  Atom(96) a = Foo.instanceof cast;  QPerc& qref = a cast;  Atom(96) aqinas = qref.atomof cast;  self mi . qref ( )func . = s ( 1u )print . s ( true )assert . s ( 96u )print . s ( true )assert . s ( self mi . )print . self bb . self mi . 2 cast == = s ( self bb . )assert . self mi . return } }
 Uq_QPerc { Bool(1) bb(false);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

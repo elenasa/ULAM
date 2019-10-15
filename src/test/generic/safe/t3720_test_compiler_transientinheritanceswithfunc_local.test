@@ -1,16 +1,16 @@
 ## -*- mode:ulam -*-
 #=t3720_test_compiler_transientinheritanceswithfunc_local
-#!
 ## gencode output: (interleaved asserts)
-##Int Arg: -1
-##Int Arg: 1
-##Unsigned Arg: 11
+##  Int Arg: -1
+##  Int Arg: 1
+##  Unsigned Arg: 11
 ##
+#!
 Exit status: 11
 Ue_R { Int(32) test() {  Foo f;  f ( )func . return } }
 Un_Foo { System s();  Bool(1) first(false);  <NOMAIN> }
-Un_Soo : Coo { :< :< Int(5) lu( -1); > Bool(3) cb( true); > Unsigned(3) us( 4u);  <NOMAIN> }
-Un_Coo : Loo { :< Int(5) lu( -1); > Bool(3) cb( true);  <NOMAIN> }
+Un_Soo : Coo { Unsigned(3) us( 4u);  :Coo< Bool(3) cb( true); > ^Loo< Int(5) lu( -1); > <NOMAIN> }
+Un_Coo : Loo { Bool(3) cb( true);  :Loo< Int(5) lu( -1); > <NOMAIN> }
 Un_Loo { Int(5) lu( -1);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

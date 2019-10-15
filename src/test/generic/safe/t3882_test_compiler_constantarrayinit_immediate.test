@@ -11,7 +11,7 @@
 ##
 #!
 Exit status: 0
-Ue_A { Bool(1) b1(true);  Bool(1) b2(true);  Bool(1) b3(true);  Int(32) test() {  constant Unsigned(8)[4] rtn1 = { 254u, 0 cast };  constant Unsigned(16)[4] rtn2 = { 65518u, 0 cast };  constant Unsigned(33)[5] rtn3 = { HexU64(0x1, 0x23456789), 0 cast };  System s;  s ( rtn1 0 [] cast )print . s ( rtn1 3 [] cast )print . b1 rtn1 0 [] rtn1 3 [] > = s ( b1 )assert . s ( rtn2 0 [] cast )print . s ( rtn2 3 [] cast )print . b2 rtn2 0 [] rtn2 3 [] > = s ( b2 )assert . s ( rtn3 0 [] cast )print . s ( rtn3 4 [] cast )print . b3 rtn3 0 [] rtn3 4 [] > = s ( b3 )assert . 0 cast return } }
+Ue_A { Bool(1) b1(true);  Bool(1) b2(true);  Bool(1) b3(true);  Int(32) test() {  constant Unsigned(8)[4] rtn1 = { 254u, 0 cast };  constant Unsigned(16)[4] rtn2 = { 65518u, 0 cast };  constant Unsigned(33)[5] rtn3 = { HexU64(0x1, 0x23456789), 0 cast };  System s;  s ( rtn1 0 [] cast )print . s ( rtn1 3 [] cast )print . self b1 . rtn1 0 [] rtn1 3 [] > = s ( self b1 . )assert . s ( rtn2 0 [] cast )print . s ( rtn2 3 [] cast )print . self b2 . rtn2 0 [] rtn2 3 [] > = s ( self b2 . )assert . s ( rtn3 0 [] cast )print . s ( rtn3 4 [] cast )print . self b3 . rtn3 0 [] rtn3 4 [] > = s ( self b3 . )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## first test of constant arrays:

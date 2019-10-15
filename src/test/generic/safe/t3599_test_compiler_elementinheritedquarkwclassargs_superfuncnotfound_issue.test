@@ -2,8 +2,8 @@
 #=t3599_test_compiler_elementinheritedquarkwclassargs_superfuncnotfound_issue
 #!
 Exit status: 0
-Ue_CLife0 : CLife { :< :< constant Unary(5) stateCount = 1u;  typedef Unary(2) Phase;  Unary(2) phase(1u);  constant Unary(2) cBLUE = 0u;  constant Unary(2) cRED = 1u;  constant Unary(2) cGREEN = 3u; >> Int(32) test() {  ( )behave 0 cast return } }
-Uq_CLife : QSync(1) { :< typedef Unary(2) Phase;  Unary(2) phase(0);  constant Unary(2) cBLUE = 0u;  constant Unary(2) cRED = 1u;  constant Unary(2) cGREEN = 3u; > <NOMAIN> }
+Ue_CLife0 : CLife { :CLife< :QSync(1)< constant Unary(5) stateCount = 1u;  typedef Unary(2) Phase;  Unary(2) phase(1u);  constant Unary(2) cBLUE = 0u;  constant Unary(2) cRED = 1u;  constant Unary(2) cGREEN = 3u; >> ^QSync(1)< constant Unary(5) stateCount = 1u;  typedef Unary(2) Phase;  Unary(2) phase(1u);  constant Unary(2) cBLUE = 0u;  constant Unary(2) cRED = 1u;  constant Unary(2) cGREEN = 3u; > Int(32) test() {  self ( )behave . 0 cast return } }
+Uq_CLife : QSync(1) { :QSync(1)< typedef Unary(2) Phase;  Unary(2) phase(0);  constant Unary(2) cBLUE = 0u;  constant Unary(2) cRED = 1u;  constant Unary(2) cGREEN = 3u; > <NOMAIN> }
 Uq_QSync(Unary(5) stateCount) { typedef Unary(2) Phase;  Unary(2) phase(0);  constant Unary(2) cBLUE = 0u;  constant Unary(2) cRED = 1u;  constant Unary(2) cGREEN = 3u;  <NOMAIN> }
 ##
 ## informed by CLife issue, can we find the superBehave?

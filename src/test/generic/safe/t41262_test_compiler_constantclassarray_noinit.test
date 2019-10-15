@@ -5,7 +5,7 @@
 ##
 #!
 Exit status: 3
-Ue_KeyExprRep { KeyExprNode m_key( Unsigned(8) m_rightIndex(4u);  Unsigned(8) m_leftIndex(3u);  typedef Unsigned(8) Byte;  Unsigned(8) m_keyCode(0u);  Unsigned(8) m_op(38u); );  Int(32) test() {  System s;  m_key keyexpr_x13 1 [] = s ( m_key m_rightIndex . 4u cast == )assert . s ( keyexpr_x13 1 [] m_rightIndex . 4u cast == )assert . m_key m_leftIndex . cast return } }
+Ue_KeyExprRep { KeyExprNode m_key( Unsigned(8) m_rightIndex(4u);  Unsigned(8) m_leftIndex(3u);  typedef Unsigned(8) Byte;  Unsigned(8) m_keyCode(0u);  Unsigned(8) m_op(38u); );  Int(32) test() {  System s;  self m_key . keyexpr_x13 1 [] = s ( self m_key . m_rightIndex . 4u cast == )assert . s ( keyexpr_x13 1 [] m_rightIndex . 4u cast == )assert . self m_key . m_leftIndex . cast return } }
 Uq_KeyExprNode { typedef Unsigned(8) Byte;  Unsigned(8) m_leftIndex( 3u);  Unsigned(8) m_rightIndex( 4u);  Unsigned(8) m_keyCode(0);  Unsigned(8) m_op( 38u);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

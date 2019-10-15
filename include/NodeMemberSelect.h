@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeMemberSelect.h -  Node for handling Class Instance Member Selection for ULAM
  *
- * Copyright (C) 2014-2018 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2018 Ackleyshack LLC.
+ * Copyright (C) 2014-2019 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2019 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeMemberSelect.h -  Node for handling Class Instance Member Selection for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2018  All rights reserved.
+  \date (C) 2014-2019  All rights reserved.
   \gpl
 */
 
@@ -72,7 +72,11 @@ namespace MFM{
 
     virtual bool hasASymbolReferenceConstant();
 
+    virtual bool belongsToVOWN(UTI vown);
+
     virtual bool isAConstant();
+
+    virtual bool isAMemberSelect();
 
     virtual const std::string methodNameForCodeGen();
 

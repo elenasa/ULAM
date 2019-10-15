@@ -1,12 +1,12 @@
 ## -*- mode:ulam -*-
 #=t3516_test_compiler_elementandquarkswclassargs2_typedeffromanotherclasstypedef_dminit
-#!
 ##
 ## gencode output:
 ##   Unsigned Arg: 3
 ##   assert: arg is 1
 ##   after asserts abort: arg is 1
 ##
+#!
 Exit status: 3
 Ue_R { Int(32) test() {  System s;  P(1u) pel;  s ( pel var . cast )print . s ( pel var . cast 3 cast == )assert . pel var . cast return } }
 Uq_System { <NOMAIN> }

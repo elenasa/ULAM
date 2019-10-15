@@ -1,7 +1,6 @@
 ## -*- mode:ulam -*-
 #=t3480_test_compiler_negshift_error
 #!
-./A.ulam:9:5: ERROR: Use a comparison operation to convert Int(32) to Bool(1) for 'while'.
 ./A.ulam:10:25: ERROR: Unsigned is the supported type for shift distance, operation <<; Suggest casting Int(2) to Unsigned.
 ./A.ulam:10:12: ERROR: Cannot cast erroneous type.
 ./A.ulam:10:9: ERROR: Assignment is invalid; LHS: Unsigned(32); RHS: erroneous.
@@ -16,14 +15,15 @@ Unrecoverable Program Type Label FAILURE.
   ulam 1;
 element A {
   Bool(7) b;
-  Unsigned d;
   Int test(){
     Int a;
+    Unsigned d;
     a = 8;
     d = 1;
-    while(a){
+    while(true){
       d = (Unsigned) (d << -1);
       a = (Int) (a >> -1);
+      break;
     }
     return (Int) d;
   }

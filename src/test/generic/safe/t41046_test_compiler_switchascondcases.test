@@ -2,7 +2,7 @@
 #=t41046_test_compiler_switchascondcases
 #!
 Exit status: -11
-Ue_EWE : QFoo { :<> Int(32) test() {  EventWindow ew;  Int(32) i = 0 cast;  ew ( 0 cast )aref . EWE.instanceof cast = Atom(96) a = ew ( i )aref . cast;  { i 1 ++ 4 cast < cond { { typedef Bool(1) _SWITCHTYPEDEF13;  a EWE as cond { EWE& a;  a ( )foomethod . a.atomof ew ( i )aref . = } if a QFoo as cond { QFoo& a;  a ( )foomethod . a.atomof ew ( i )aref . = } if true cond { a ew ( i )aref . = } if else else _2: } } _1: while } i return } }
+Ue_EWE : QFoo { :QFoo<> Int(32) test() {  EventWindow ew;  Int(32) i = 0 cast;  ew ( 0 cast )aref . EWE.instanceof cast = Atom(96) a = ew ( i )aref . cast;  { i 1 ++ 4 cast < cond { { typedef Bool(1) _SWITCHTYPEDEF13;  a EWE as cond { EWE& a;  a ( )foomethod . a.atomof ew ( i )aref . = } if a QFoo as cond { QFoo& a;  a ( )foomethod . a.atomof ew ( i )aref . = } if true cond { a ew ( i )aref . = } if else else _2: } } _1: while } i return } }
 Uq_QFoo { <NOMAIN> }
 Uq_EventWindow { <NOMAIN> }
 ##

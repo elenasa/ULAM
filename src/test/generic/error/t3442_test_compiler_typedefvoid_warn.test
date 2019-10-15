@@ -3,7 +3,7 @@
 #!
 ./A.ulam:2:13: Warning: Void bitsize expression disregarded; size is zero.
 Exit status: 0
-Ue_A { typedef Void V0;  Int(32) test() {  ( )func 0u cast return } }
+Ue_A { typedef Void V0;  Int(32) test() {  self ( )func . 0u cast return } }
 ##
 #>A.ulam
 element A {

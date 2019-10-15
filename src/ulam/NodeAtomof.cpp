@@ -51,8 +51,8 @@ namespace MFM {
 		if(!m_nodeOf->hasASymbolDataMember())
 		  {
 		    std::ostringstream msg;
-		    msg << "<" << m_nodeOf->getName();
-		    msg << "> is a quark and cannot be used with ";
+		    msg << "'" << m_nodeOf->getName();
+		    msg << "' is a quark and cannot be used with ";
 		    msg << getName() << "; try a reference or self";
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		    setNodeType(Nav);
@@ -71,8 +71,8 @@ namespace MFM {
 	    else if(ofclasstype == UC_TRANSIENT)
 	      {
 		std::ostringstream msg;
-		msg << "<" << m_nodeOf->getName();
-		msg << "> is a transient";
+		msg << "'" << m_nodeOf->getName();
+		msg << "' is a transient";
 		msg << "; Transients cannot be used with " << getName();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		setNodeType(Nav); //e.g. error/t3761
@@ -82,8 +82,8 @@ namespace MFM {
 	else if(ofclasstype == UC_TRANSIENT)
 	  {
 	    std::ostringstream msg;
-	    msg << "<"  << m_nodeOf->getName();
-	    msg << "> is a transient reference";
+	    msg << "'"  << m_nodeOf->getName();
+	    msg << "' is a transient reference";
 	    msg << "; Transients cannot be used with " << getName();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    setNodeType(Nav); //e.g. error/t3762
@@ -219,7 +219,10 @@ namespace MFM {
 	fp->write("(");
 
 	fp->write(stgcos->getMangledName().c_str()); //ur for self
-	fp->write(", "); //is storage! can't be const (error/t3659)
+	fp->write(", - "); //is storage! can't be const (error/t3659), t3408
+
+	fp->write(stgcos->getMangledName().c_str()); //ur for self, cant assume 0u pos
+	fp->write(".GetPosToEffectiveSelf()"); //t3701
 
 	fp->write(" - T::ATOM_FIRST_STATE_BIT"); //must be an effective element ref (e.g.t3684, t3663)
 	fp->write("); //atomof"); GCNL;
@@ -281,8 +284,11 @@ namespace MFM {
 	fp->write("(");
 
 	fp->write(stgcos->getMangledName().c_str()); //ur for self
-	fp->write(", "); //is storage! can't be const (error/t3659)
+	fp->write(", -"); //is storage! can't be const (error/t3659)
 
+	//(ulam-5) base class no longer at zero (t3735)
+	fp->write(stgcos->getMangledName().c_str()); //ur for self
+	fp->write(".GetPosToEffectiveSelf()"); //t41007
 	fp->write(" - T::ATOM_FIRST_STATE_BIT"); //must be an effective element ref (e.g.t3684, t3663)
 	fp->write("); //atomof"); GCNL;
 

@@ -1,12 +1,12 @@
 ## -*- mode:ulam -*-
 #=t3443_test_compiler_elementwargs_modelparameterint_fail
-#!
 ##
 ## gencode output: (due to model parameter)
 ## include/Ue_10103Foo1110131i12_Types.h:379: FAILED: NULL_POINTER
 ##
+#!
 Exit status: -1
-Ue_R { System s();  constant Int(3) ra = -1;  Int(32) i(-1);  Int(32) test() {  Foo(-1) f;  s ( f chance(-1) . )print . i f chance(-1) . cast = s ( i )print . Foo(2) g;  i return } }
+Ue_R { System s();  constant Int(3) ra = -1;  Int(32) i(-1);  Int(32) test() {  Foo(-1) f;  self s . ( f chance(-1) . )print . self i . f chance(-1) . cast = self s . ( self i . )print . Foo(2) g;  self i . return } }
 Uq_System { <NOMAIN> }
 Ue_Foo(Int(3) a) {parameter Int(3) chance = a; parameter Bool(3) bok = a 0 !=; parameter Unary(3) ytriplet = a 1 +b; parameter Unary(3) xtriplet = a cast;  <NOMAIN> }
 ##

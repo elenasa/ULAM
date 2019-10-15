@@ -3,7 +3,7 @@
 #!
 Exit status: 11
 Ue_IshD { typedef QSwapLine(4) OurSwapLine;  Int(32) test() {  11u cast return } }
-Uq_QSwapLine(Unary(5) itagBits) : QID(myTagBits) { :< constant Unsigned(32) cQID_TAG_BITS = myTagBits;  Bits(1) mArray[UNKNOWN](notready); > Int(UNKNOWN) mPhase(unknown);  <NOMAIN> }
+Uq_QSwapLine(Unary(5) itagBits) : QID(myTagBits) { Int(7) mPhase(0);  :QID11< constant Unsigned(32) cQID_TAG_BITS = myTagBits;  Bits(1) mArray[UNKNOWN](notready); > <NOMAIN> }
 Uq_QID(Unary(5) myTagBits) { constant Unsigned(32) cQID_TAG_BITS = myTagBits;  Bits(1) mArray[UNKNOWN](notready);  <NOMAIN> }
 ##
 ## informed by Dave ish 1/24/2016, (order matters)

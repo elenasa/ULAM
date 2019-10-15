@@ -17,7 +17,7 @@ Exit status: -11
 Ue_KeyExprRep { Int(32) test() {  SystemU3 s;  KeyExprNode mykey = keyexpr_x13 0 [];  s ( mykey m_rightIndex . cast )print . s ( mykey m_rightIndex . 2u cast == )assert . s ( keyexpr_x13 1 [] m_rightIndex . cast )print . s ( keyexpr_x13 1 [] m_rightIndex . 4u cast == )assert . KeyExprNode mykeyexpr_x13[5] = keyexpr_x13;  s ( mykeyexpr_x13 2 [] m_keyCode . cast )print . s ( mykeyexpr_x13 2 [] m_keyCode . keyexpr_x13 2 [] m_keyCode . == )assert . Elfoo elephant = keyexpr_x13 4 [] m_elfoo .;  s ( elephant esp . )assert . String(32) mystr = elephant estr .;  s ( elephant estr . )print . String(32) estring = keyexpr_x13 4 [] m_elfoo . estr .;  s ( estring )print . s ( elephant estr 0 [] . 109u == )assert . s ( keyexpr_x13 3 [] m_elfoo . estr 1 [] . 101u == )assert . s ( elephant estr 2 [] . keyexpr_x13 3 [] m_elfoo . estr 2 [] . == )assert . 0 cast return } }
 Ue_Elfoo { Bool(1) esp( true);  String(32) estr( "mel");  <NOMAIN> }
 Un_KeyExprNode { typedef Unsigned(8) Byte;  Unsigned(8) m_leftIndex(0);  Unsigned(8) m_rightIndex(0);  Unsigned(8) m_keyCode(0);  Unsigned(8) m_op(0);  Elfoo m_elfoo( celfoo);  <NOMAIN> }
-Uq_SystemU3 : System { :<> <NOMAIN> }
+Uq_SystemU3 : System { :System<> <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 ## informed by Dave 3/18/18 ish, and t41261: except array of transients instead of quarks constant class array

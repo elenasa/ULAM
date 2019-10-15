@@ -1,26 +1,26 @@
 ## -*- mode:ulam -*-
 #=t3192_test_compiler_element_unsignedtype
-#!
 ##
 ## Unsigned Arg: 0
 ## Unsigned Arg: 1
 ##
+#!
 Exit status: 1
-Ue_Foo { System s();  Unsigned(1) m_array[7](0u,1u,0u,0u,0u,0u,0u);  Int(32) test() {  m_array 1 [] 1 cast = s ( m_array 0 [] cast )print . s ( m_array 1 [] cast )print . m_array 1 [] cast return } }
+Ue_Foo { System s();  Unsigned(1) m_array[7](0u,1u,0u,0u,0u,0u,0u);  Int(32) test() {  self m_array . 1 [] 1 cast = self s . ( self m_array . 0 [] cast )print . self s . ( self m_array . 1 [] cast )print . self m_array . 1 [] cast return } }
 Uq_System { <NOMAIN> }
 #>Foo.ulam
-ulam 1;
+  ulam 1;
 use System;
- element Foo {
-System s;
-Unsigned(1) m_array[7];
- Int test() {
- m_array[1] = 1;
-s.print(m_array[0]);
-s.print(m_array[1]);
- return m_array[1];
- }
- }
+element Foo {
+  System s;
+  Unsigned(1) m_array[7];
+  Int test() {
+    m_array[1] = 1;
+    s.print(m_array[0]);
+    s.print(m_array[1]);
+    return m_array[1];
+  }
+}
 
 ##
 ##      // test system quark with native overloaded print funcs; assert

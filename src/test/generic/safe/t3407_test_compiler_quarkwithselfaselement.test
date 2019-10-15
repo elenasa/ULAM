@@ -1,12 +1,12 @@
 ## -*- mode:ulam -*-
 #=t3407_test_compiler_quarkwithselfaselement
-#!
 ##  gen code output (+ assert):
 ##	 Int Arg: 1
 ##	 Int Arg: 2
 ##
+#!
 Exit status: 2
-Ue_ElT : Typo { :<> Int(32) i(2);  Int(32) test() {  System s;  Atom(96) mar = self cast;  ( mar cast )incr self mar cast = s ( i )print . ( mar cast )incr self mar cast = s ( i )print . s ( i 2 cast == )assert . i return } }
+Ue_ElT : Typo { Int(32) i(2);  :Typo<> Int(32) test() {  System s;  s ( self i . 0 cast == )assert . Atom(96) mar = self cast;  self ( mar cast )incr . self mar cast = s ( self i . )print . self ( mar cast )incr . self mar cast = s ( self i . )print . s ( self i . 2 cast == )assert . self i . return } }
 Uq_Typo { <NOMAIN> }
 Uq_System { <NOMAIN> }
 #>ElT.ulam
@@ -15,6 +15,7 @@ element ElT : Typo {
   Int i;
   Int test() {
     System s;
+    s.assert(i == 0);
     Atom mar = self;
     incr(mar);
     self = (ElT) mar;

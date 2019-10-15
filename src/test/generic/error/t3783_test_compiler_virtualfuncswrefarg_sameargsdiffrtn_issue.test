@@ -7,7 +7,7 @@
 ## Unsigned Arg: 2
 ##
 #!
-./WindowScanner.ulam:4:16: ERROR: Check overloaded function <visit> with different return types (Void, Bool(1)), while compiling class: WindowScanner.
+./WindowScanner.ulam:4:16: ERROR: Check overloaded function 'visit' with different return types (Void, Bool(1)), in Mob.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## based on 3 day ish 06/10/2016 - 06/13/2016 caused by virtual func 'visit' with different return types

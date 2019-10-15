@@ -459,6 +459,17 @@ namespace MFM {
     return getTotalBitSize(); //by default
   }
 
+  s32 UlamType::getBitsizeAsBaseClass()
+  {
+    m_state.abortShouldntGetHere();
+    return UNKNOWNSIZE;
+  }
+
+  void UlamType::setBitsizeAsBaseClass(s32 bs)
+  {
+    m_state.abortShouldntGetHere(); //only classes
+  }
+
   ALT UlamType::getReferenceType()
   {
     return m_key.getUlamKeyTypeSignatureReferenceType();

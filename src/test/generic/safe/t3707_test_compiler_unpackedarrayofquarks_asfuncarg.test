@@ -7,7 +7,7 @@
 ## eval: does not support unpacked quark arrays (see NodeVarDecl::eval)
 #!
 Exit status: 3
-Ue_A : QW { :< Int(3) qint(0);  typedef QW BigSite[100]; > typedef QW BigSite[100];  Int(32) nineth(3);  Int(32) test() {  System s;  QW site[100] = ( )func2;  QW site2[100];  site2 ( )func2 = nineth ( site )func = s ( nineth )print . s ( nineth 3 cast == )assert . ( site )func return } }
+Ue_A : QW { typedef QW BigSite[100];  Int(32) nineth(3);  :QW< Int(3) qint(0);  typedef QW BigSite[100]; > Int(32) test() {  System s;  QW site[100] = self ( )func2 .;  QW site2[100];  site2 self ( )func2 . = self nineth . self ( site )func . = s ( self nineth . )print . s ( self nineth . 3 cast == )assert . self ( site )func . return } }
 Uq_QW { Int(3) qint(0);  typedef QW BigSite[100];  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

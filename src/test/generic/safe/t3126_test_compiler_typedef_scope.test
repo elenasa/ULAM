@@ -2,7 +2,7 @@
 #=t3126_test_compiler_typedef_scope
 #!
 Exit status: 4
-Ue_A { Int(32) x(4);  Int(32) test() {  typedef Int(32) Bar[2];  Int(32) e[2];  { e 0 [] 4 cast = } x e 0 [] = x return } }
+Ue_A { Int(32) x(4);  Int(32) test() {  typedef Int(32) Bar[2];  Int(32) e[2];  { e 0 [] 4 cast = } self x . e 0 [] = self x . return } }
 #>A.ulam
   ulam 1;
 element A {

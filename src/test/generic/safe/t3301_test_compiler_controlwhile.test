@@ -2,7 +2,7 @@
 #=t3301_test_compiler_controlwhile
 #!
 Exit status: 8
-Ue_A { Int(32) a(0);  Int(32) b(8);  Int(32) test() {  a 5 cast = b 0 cast = { a 1 -= 0 cast != cond b b 2 cast +b = _1: while } b return } }
+Ue_A { Int(32) a(0);  Int(32) b(8);  Int(32) test() {  self a . 5 cast = self b . 0 cast = { self a . 1 -= 0 cast != cond self b . self b . 2 cast +b = _1: while } self b . return } }
 ##
 ## single statement while loop
 ##

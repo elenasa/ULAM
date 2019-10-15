@@ -166,58 +166,20 @@ namespace MFM {
 	checkForSymbol();
 	if(m_constSymbol)
 	  {
-	    UTI suti = m_constSymbol->getUlamTypeIdx();
-	    if(m_state.isAClass(suti))
+	    if(replaceOurselves(m_constSymbol))
 	      {
-		Node * newnode = NULL;
-		if(!m_state.isScalar(suti))
-		  newnode = new NodeConstantClassArray(m_token, (SymbolConstantValue *) m_constSymbol, m_nodeTypeDesc, m_state);
-		else
-		  newnode = new NodeConstantClass(m_token, (SymbolConstantValue *) m_constSymbol, m_nodeTypeDesc, m_state);
+		m_state.setGoAgain();
 
-		assert(newnode);
-		AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
-		assert(swapOk);
-
-		m_nodeTypeDesc = NULL; //tfr to new node
 		delete this; //suicide is painless..
 
-		return newnode->checkAndLabelType();
-	      }
-	    else if(!m_state.isScalar(suti))
-	      {
-		NodeConstantArray * newnode = new NodeConstantArray(m_token, (SymbolConstantValue *) m_constSymbol, m_nodeTypeDesc, m_state);
-		assert(newnode);
-
-		AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
-		assert(swapOk);
-
-		m_nodeTypeDesc = NULL; //tfr to new node
-		delete this; //suicide is painless..
-
-		return newnode->checkAndLabelType();
-	      }
-	    else if(m_constSymbol->isModelParameter())
-	      {
-		// replace ourselves with a parameter node instead;
-		// same node no, and loc
-		NodeModelParameter * newnode = new NodeModelParameter(m_token, (SymbolModelParameterValue*) m_constSymbol, m_nodeTypeDesc, m_state);
-		assert(newnode);
-
-		AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
-		assert(swapOk);
-
-		m_nodeTypeDesc = NULL; //tfr to new node
-		delete this; //suicide is painless..
-
-		return newnode->checkAndLabelType();
+		return Hzy; //t41266,t41274
 	      }
 	    //else keep it!
 	  }
       }
     else
       {
-	stubcopy = m_state.hasClassAStub(m_state.getCompileThisIdx()); //includes ancestors
+	stubcopy = m_state.hasClassAStubInHierarchy(m_state.getCompileThisIdx()); //includes ancestors
       }
 
     if(m_constSymbol)
@@ -320,8 +282,8 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg <<"(1) ";
-	    msg << "<" << m_state.getTokenDataAsString(m_token).c_str();
-	    msg << "> is not a constant, and cannot be used as one with ";
+	    msg << "'" << m_state.getTokenDataAsString(m_token).c_str();
+	    msg << "' is not a constant, and cannot be used as one with ";
 	    if(m_nodeTypeDesc && m_state.isAClass(m_nodeTypeDesc->getNodeType()))
 	      {
 		msg << "a class type: "; //t41148
@@ -341,8 +303,8 @@ namespace MFM {
     else
       {
 	std::ostringstream msg;
-	msg << "Named Constant <" << m_state.getTokenDataAsString(m_token).c_str();
-	msg << "> is not defined, or was used before declared in a function";
+	msg << "Named Constant '" << m_state.getTokenDataAsString(m_token).c_str();
+	msg << "' is not defined, or was used before declared in a function";
 	if(!hazyKin)
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	else
@@ -350,6 +312,56 @@ namespace MFM {
       }
     m_state.popClassContext(); //restore
   } //checkForSymbol
+
+  bool NodeConstant::replaceOurselves(Symbol * symptr)
+  {
+    assert(symptr);
+
+    bool rtnb = false;
+    UTI suti = symptr->getUlamTypeIdx();
+
+    if(m_state.isAClass(suti))
+      {
+	Node * newnode = NULL;
+	if(m_state.isScalar(suti))
+	  newnode = new NodeConstantClass(m_token, (SymbolConstantValue *) symptr, m_nodeTypeDesc, m_state);
+	else
+	  newnode = new NodeConstantClassArray(m_token, (SymbolConstantValue *) symptr, m_nodeTypeDesc, m_state); //t41261
+
+	assert(newnode);
+	AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+	assert(swapOk);
+
+	m_nodeTypeDesc = NULL; //tfr to new node
+	rtnb = true;
+      }
+    else if(!m_state.isScalar(suti))
+      {
+	NodeConstantArray * newnode = new NodeConstantArray(m_token, (SymbolConstantValue *) symptr, m_nodeTypeDesc, m_state);
+	assert(newnode);
+
+	AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+	assert(swapOk);
+
+	m_nodeTypeDesc = NULL; //tfr to new node
+	rtnb = true;
+      }
+    else if(symptr->isModelParameter())
+      {
+	// replace ourselves with a parameter node instead;
+	// same node no, and loc
+	NodeModelParameter * newnode = new NodeModelParameter(m_token, (SymbolModelParameterValue*) symptr, m_nodeTypeDesc, m_state);
+	assert(newnode);
+
+	AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+	assert(swapOk);
+
+	m_nodeTypeDesc = NULL; //tfr to new node
+	rtnb = true;
+      }
+    //else did not replace ourselves
+    return rtnb;
+  } //replaceOurselves
 
   UTI NodeConstant::checkUsedBeforeDeclared()
   {

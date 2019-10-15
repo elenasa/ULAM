@@ -1,0 +1,93 @@
+## -*- mode:ulam -*-
+#=t41330_test_compiler_multiinheritance_purevirtualonselectedbase_error
+##
+#!
+./Foo.ulam:16:25: ERROR: Virtual function 'Uf_6vfuncb10' is pure; cannot be called directly in baseclass: QBaseLast.
+Unrecoverable Program GenCode FAILURE.
+##
+##  specific virtual could be pure. specific base class can be checked at compile time.
+##  (see also t41313)
+##
+#>Foo.ulam
+  ulam 5;
+element Foo +System {
+  Int m_c4;
+  Int m_a4;
+
+  Int test()
+  {
+    E4 e4;
+
+    //breadth-first selected virtual func
+    m_a4 = e4.vfuncb(); //666
+    print(m_a4);
+    assert(m_a4==666);
+
+    //pure selected, runtime/test error
+    m_c4 = e4.QBaseLast.vfuncb(); //pure error
+    print(m_c4);
+    assert(m_c4==9111);
+
+    return 0;
+  }
+}
+
+
+#:E4.ulam
+  ulam 5;
+element E4 : QBase3 +QBase2 +QBaseLast {
+  Bool m_b4;
+  virtual Int vfunca() { m_b1 = true; return 411; }
+  virtual Int vfuncc() { m_boo = true; return 412; }
+  virtual Int vfuncb() { return 666; }
+  virtual Void behave() { }
+  typedef QBase2 QB2;
+}
+
+#:QBase1.ulam
+    ulam 4;
+quark QBase1 {
+  Bool m_b1;
+  Void funcNotVirtualSoIrrelevantHere() { }
+  virtual Int vfunca() { m_b1 = true; return 110; }
+}
+
+#:QBase2.ulam
+  ulam 5;
+quark QBase2 +QBase1 {
+  Bool m_boo;
+  Bits(1) m_bit; //so that len of QBase2 is different than its pos in E4.
+  virtual ARGB getColor(Unsigned s) { return super.getColor(s); }
+  virtual Int vfuncc() { m_boo = true; return 212; }
+}
+
+#:QBase3.ulam
+  ulam 4;
+quark QBase3 : QBase1 {
+  Bool m_boo;
+  Int funcb() { return 311; }
+  //virtual Int vfuncb() { return 3111; } conflicting declarations..
+}
+
+#:QBaseLast.ulam
+  ulam 4;
+quark QBaseLast {
+  Bool m_b1;
+  Int funcb() { return 911; }
+  virtual Int vfuncb();
+}
+
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

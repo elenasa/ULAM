@@ -11,7 +11,7 @@
 ##      */
 #!
 Exit status: 16
-Ue_A { Bool(7) b(false);  System s();  Int(32) d(16);  Int(32) e(0);  Int(32) test() {  Int(32) a = 8 cast;  Int(32) f = 7 cast;  Int(32) g = f;  Int(32) h;  s ( a )print . s ( f )print . s ( g )print . d 1 cast = { a 0 cast != cond { d d cast 1 cast << cast = s ( d )print . a a cast 1 cast >> cast = } _1: while } d return } }
+Ue_A { Bool(7) b(false);  System s();  Int(32) d(16);  Int(32) e(0);  Int(32) test() {  Int(32) a = 8 cast;  Int(32) f = 7 cast;  Int(32) g = f;  Int(32) h;  self s . ( a )print . self s . ( f )print . self s . ( g )print . self d . 1 cast = { a 0 cast != cond { self d . self d . cast 1 cast << cast = self s . ( self d . )print . a a cast 1 cast >> cast = } _1: while } self d . return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
   ulam 1;

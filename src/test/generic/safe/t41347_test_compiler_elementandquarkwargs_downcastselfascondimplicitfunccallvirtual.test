@@ -1,0 +1,100 @@
+## -*- mode:ulam -*-
+#=t41347_test_compiler_elementandquarkwargs_downcastselfascondimplicitfunccallvirtual
+##   gencode output (3 interleaved asserts):
+##       assert: arg is 1
+##       after asserts abort: arg is 1
+##	 Unsigned Arg: 2
+##       Unsigned Arg: 2
+##       Unsigned Arg: 2
+##
+#!
+Exit status: 7
+Uq_Typo(Int(32) a) : Bar { Bool(1) typool(false);  :Bar< Unsigned(3) bu( 7u); > <NOMAIN> }
+Ue_Eltypo : Typo(1) { System s();  constant Unsigned(3) cTWO = 2u;  Unsigned(3) first(2u);  Unsigned(3) second(7u);  Typo(1) t( constant Int(32) a = 1;  Bool(1) typool(false);  :Bar< Unsigned(3) bu(2u); >);  :Typo(1)< constant Int(32) a = 1;  Bool(1) typool(true);  :Bar< Unsigned(3) bu(7u); >> ^Bar< Unsigned(3) bu(7u); > Int(32) test() {  self ( )functest . self s . ( self t . bu . cast )print . self s . ( self t . bu . 2u == )assert . self s . ( self first . cast )print . self s . ( self first . 2u == )assert . self second . self bu . = self second . cast return } }
+Uq_System { <NOMAIN> }
+Uq_Bar { Unsigned(3) bu( 7u);  <NOMAIN> }
+##
+## "conditional downcast"
+## informed by 41344, except implicit 'self' in as-block used with function calls
+##
+#:Typo.ulam
+  ulam 4;
+use Eltypo;
+quark Typo(Int a) : Bar{
+  Bool typool;
+  Void functest()
+  {
+    System s;
+    if(self as Eltypo){
+      super.typool = true; //super optional, found in Eltypo ancestor
+      s.assert(typool);
+      t.func(funcel()); //modifies ElTypo datamember 'bu' in Bar
+      s.print(t.bu);
+      s.assert(t.bu == funcel());
+      first = t.bu; //2u, from 7u
+    }
+    else
+      s.assert(false);
+  }
+
+  virtual Unsigned(3) funcel()
+  {
+    return 5u;
+  }
+}
+
+#:Bar.ulam
+  ulam 2;
+quark Bar
+{
+  Unsigned(3) bu = 7u;
+  Void func(Unsigned u)
+  {
+    bu = (Unsigned(3)) u;
+  }
+
+  virtual Unsigned(3) funcel()
+  {
+    return 3u;
+  }
+}
+
+#>Eltypo.ulam
+  ulam 2;
+use Typo;
+use System;
+element Eltypo : Typo(1) {
+  System s;
+  constant Unsigned(3) cTWO = 2u;
+  Unsigned(3) first;
+  Unsigned(3) second;
+  Typo(1) t;
+  Int test(){
+    functest();
+    s.print(t.bu);
+    s.assert(t.bu == cTWO);
+    s.print(first);
+    s.assert(first == cTWO);
+    second = self.bu; //still 7
+    return second;
+  }
+
+  virtual Unsigned(3) funcel()
+  {
+    return cTWO;
+  }
+
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

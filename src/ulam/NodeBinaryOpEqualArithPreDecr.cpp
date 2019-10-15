@@ -35,30 +35,11 @@ namespace MFM {
 
   Node * NodeBinaryOpEqualArithPreDecr::buildOperatorOverloadFuncCallNode()
   {
-    Token identTok;
-    TokenType opTokType = Token::getTokenTypeFromString("--");
-    assert(opTokType != TOK_LAST_ONE);
-    Token opTok(opTokType, getNodeLocation(), 0);
-    u32 opolId = Token::getOperatorOverloadFullNameId(opTok, &m_state);
-    assert(opolId != 0);
-
-    identTok.init(TOK_IDENTIFIER, getNodeLocation(), opolId);
-
-    //fill in func symbol during type labeling;
-    NodeFunctionCall * fcallNode = new NodeFunctionCall(identTok, NULL, m_state);
-    assert(fcallNode);
-    fcallNode->setNodeLocation(identTok.m_locator);
-
     //pre incr/decr has no argument
     delete m_nodeRight;
     m_nodeRight = NULL;
 
-    NodeMemberSelect * mselectNode = new NodeMemberSelect(m_nodeLeft, fcallNode, m_state);
-    assert(mselectNode);
-    mselectNode->setNodeLocation(identTok.m_locator);
-
-    //redo check and type labeling done by caller!!
-    return mselectNode; //replace right node with new branch
+    return Node::buildOperatorOverloadFuncCallNodeHelper(m_nodeLeft, NULL, "--");
   } //buildOperatorOverloadFuncCallNode
 
   UlamValue NodeBinaryOpEqualArithPreDecr::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)

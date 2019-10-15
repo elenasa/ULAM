@@ -9,8 +9,8 @@
 ##
 #!
 Exit status: 11
-Ue_A { String(32) m_s("hello world");  Int(32) m_total(11);  Int(32) test() {  SystemU3 su3;  String(32) mt = "";  m_s mt = su3 ( m_s )print . m_total 0u cast += su3 ( m_total )print . su3 ( m_total 0 cast == )assert . String(32) s;  s "hello world" = m_s s = su3 ( m_s )print . m_total 11u cast += su3 ( m_total )print . su3 ( m_total 11 cast == )assert . m_total return } }
-Uq_SystemU3 : System { :<> <NOMAIN> }
+Ue_A { String(32) m_s("hello world");  Int(32) m_total(11);  Int(32) test() {  SystemU3 su3;  String(32) mt = "";  self m_s . mt = su3 ( self m_s . )print . self m_total . 0u cast += su3 ( self m_total . )print . su3 ( self m_total . 0 cast == )assert . String(32) s;  s "hello world" = self m_s . s = su3 ( self m_s . )print . self m_total . 11u cast += su3 ( self m_total . )print . su3 ( self m_total . 11 cast == )assert . self m_total . return } }
+Uq_SystemU3 : System { :System<> <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 ## SystemU3 subclasses System for backward compatibility (all tests that use System.ulam)

@@ -2,7 +2,7 @@
 #=t41192_test_compiler_element_initconstantreflocalvar_error
 ##
 #!
-./Foo.ulam:8:10: ERROR: Unmodifiable lefthand side of assignment expression <bref>, type: constant Bool(3)&; may be a constant function parameter.
+./Foo.ulam:8:10: ERROR: Unmodifiable lefthand side of assignment expression 'bref', type: constant Bool(3)&; may be a constant function parameter.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t41187, and t41234 testing new feature, the named constant ref

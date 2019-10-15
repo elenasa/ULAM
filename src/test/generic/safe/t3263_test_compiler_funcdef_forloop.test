@@ -1,11 +1,11 @@
 ## -*- mode:ulam -*-
 #=t3263_test_compiler_funcdef_forloop
-#!
 ##      /* gen code output:
 ##	 Int Arg: 20
 ##      */
+#!
 Exit status: 20
-Ue_A { Bool(7) b(false);  Int(32) d(20);  Int(32) test() {  System s;  d ( 4 cast 5 cast )times = s ( d )print . d return } }
+Ue_A { Bool(7) b(false);  Int(32) d(20);  Int(32) test() {  System s;  self d . self ( 4 cast 5 cast )times . = s ( self d . )print . self d . return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
   ulam 1;

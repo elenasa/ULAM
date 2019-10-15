@@ -5,7 +5,7 @@
 ##
 #!
 Exit status: 0
-Ue_MyElement : MyParms { :< constant Unsigned(32) cFOO = 3u; > constant Unsigned(32) cFOO = 4u;  Int(32) test() {  System s;  ( 3u 12u cast )func s ( true )assert . 0 cast return } }
+Ue_MyElement : MyParms { constant Unsigned(32) cFOO = 4u;  :MyParms< constant Unsigned(32) cFOO = 3u; > Int(32) test() {  System s;  self ( 3u 12u cast )func . s ( true )assert . 0 cast return } }
 Uq_MyParms { constant Unsigned(32) cFOO = 3u;  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

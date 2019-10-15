@@ -85,7 +85,7 @@ namespace MFM {
     return tok_string[m_type];
   }
 
-  u32 Token::getTokenStringId()
+  u32 Token::getTokenStringId() const
   {
     return tok_stringid[m_type];
   }

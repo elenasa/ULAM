@@ -7,7 +7,7 @@
 ##
 #!
 Exit status: 1
-Ue_Foo : QPerc { :< Bool(1) b(true); > Int(32) test() {  System s;  Atom(96) a = self cast;  { a Foo as cond { Foo& a;  a b . true = self a = } if } s ( b )assert . 1 cast return } }
+Ue_Foo : QPerc { :QPerc< Bool(1) b(true); > Int(32) test() {  System s;  Atom(96) a = self cast;  { a Foo as cond { Foo& a;  a b . true = self a = } if } s ( self b . )assert . 1 cast return } }
 Uq_QPerc { Bool(1) b(false);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

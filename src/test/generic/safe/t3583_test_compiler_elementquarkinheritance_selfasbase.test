@@ -8,8 +8,8 @@
 ##
 #!
 Exit status: 6
-Ue_Foo : Soo { :< :< Unsigned(3) us(2u);  Bool(3) cb(true); > Unsigned(3) sus(4u); > Bool(1) first(false);  Int(32) fsz(6);  Int(32) test() {  System s;  Foo f = self cast;  { f Coo as cond { Coo& f;  s ( f cb . )print . s ( f cb . cast )assert . f us . 1u cast = s ( f us . cast )print . s ( f us . cast 1 cast == )assert . s ( 6u )print . s ( true )assert . fsz 6u cast = } if s ( false )assert . else } s ( fsz )print . fsz return } }
-Uq_Soo : Coo { :< Unsigned(3) us( 2u);  Bool(3) cb( true); > Unsigned(3) sus( 4u);  <NOMAIN> }
+Ue_Foo : Soo { Bool(1) first(false);  Int(32) fsz(6);  :Soo< Unsigned(3) sus(4u);  :Coo< Unsigned(3) us(2u);  Bool(3) cb(true); >> ^Coo< Unsigned(3) us(2u);  Bool(3) cb(true); > Int(32) test() {  System s;  Foo f = self cast;  { f Coo as cond { Coo& f;  s ( f cb . )print . s ( f cb . cast )assert . f us . 1u cast = s ( f us . cast )print . s ( f us . cast 1 cast == )assert . s ( 6u )print . s ( true )assert . self fsz . 6u cast = } if s ( false )assert . else } s ( self fsz . )print . self fsz . return } }
+Uq_Soo : Coo { Unsigned(3) sus( 4u);  :Coo< Unsigned(3) us( 2u);  Bool(3) cb( true); > <NOMAIN> }
 Uq_Coo { Unsigned(3) us( 2u);  Bool(3) cb( true);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

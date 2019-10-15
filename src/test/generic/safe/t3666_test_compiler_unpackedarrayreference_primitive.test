@@ -1,6 +1,5 @@
 ## -*- mode:ulam -*-
 #=t3666_test_compiler_unpackedarrayreference_primitive
-#!
 ##      /* gen code output:
 ##	 Int Arg: 0
 ##	 Int Arg: 1
@@ -13,8 +12,9 @@
 ##	 Int Arg: 8
 ##	 Int Arg: 9
 ##      */
+#!
 Exit status: 10
-Ue_A { System s();  typedef Int(32) BigSite[10];  typedef Int(32) & BSRef[10];  typedef Int(32) & BRR[10];  Int(32) test() {  Int(32) site[10];  Int(32)& siteref[10] = site cast;  Int(32)& brr[10] = siteref;  { Int(32) i = 0 cast;  i 10 cast < cond { siteref i [] i = s ( brr i [] )print . } _1: i 1 += while } 10 cast return } }
+Ue_A { System s();  typedef Int(32) BigSite[10];  typedef Int(32) & BSRef[10];  typedef Int(32) & BRR[10];  Int(32) test() {  Int(32) site[10];  Int(32)& siteref[10] = site cast;  Int(32)& brr[10] = siteref;  { Int(32) i = 0 cast;  i 10 cast < cond { siteref i [] i = self s . ( brr i [] )print . } _1: i 1 += while } 10 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t3276 (see t3667 for packed primitive)

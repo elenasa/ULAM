@@ -1,14 +1,14 @@
 ## -*- mode:ulam -*-
 #=t3206_test_compiler_elementandquark_systemnativefuncs
-#!
 ##      /* gen code output:
 ##	 Int Arg: -1
 ##	 Int(4) Arg: 0xf
 ##	 assert: arg is 1
 ##	 after assert's abort: arg is 1
 ##       */
+#!
 Exit status: -1
-Ue_Foo { Bool(3) b(false);  System m_s();  Int(4) i(0);  Int(4) j(-1);  Int(32) test() {  i 0 cast = j ( i cast 1 cast -b cast )update = m_s ( j cast )print . m_s ( j )print . m_s ( b ! cast )assert . j cast return } }
+Ue_Foo { Bool(3) b(false);  System m_s();  Int(4) i(0);  Int(4) j(-1);  Int(32) test() {  self i . 0 cast = self j . self ( self i . cast 1 cast -b cast )update . = self m_s . ( self j . cast )print . self m_s . ( self j . )print . self m_s . ( self b . ! cast )assert . self j . cast return } }
 Uq_System { <NOMAIN> }
 #>Foo.ulam
   ulam 1;

@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * SymbolClassName.h -  Basic Class Symbol Name for ULAM
  *
- * Copyright (C) 2015-2018 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2018 Ackleyshack LLC.
+ * Copyright (C) 2015-2019 The Regents of the University of New Mexico.
+ * Copyright (C) 2015-2019 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file SymbolClassName.h -  Basic Class Symbol Name for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2018 All rights reserved.
+  \date (C) 2015-2019 All rights reserved.
   \gpl
 */
 
@@ -62,9 +62,14 @@ namespace MFM{
     virtual void setSuperClassForClassInstance(UTI superclass, UTI instance);
     virtual UTI getSuperClassForClassInstance(UTI instance);
 
+    virtual void appendBaseClassForClassInstance(UTI baseclass, UTI instance, bool sharedbase);
+    virtual u32 getBaseClassCountForClassInstance(UTI instance);
+    virtual UTI getBaseClassForClassInstance(UTI instance, u32 item);
+    virtual bool updateBaseClassforClassInstance(UTI instance, UTI oldbase, UTI newbaseuti);
+
     virtual Node * findNodeNoInAClassInstance(UTI instance, NNO n);
 
-    virtual std::string formatAnInstancesArgValuesAsAString(UTI instance);
+    virtual std::string formatAnInstancesArgValuesAsAString(UTI instance, bool dereftypes = false);
     virtual std::string generateUlamClassSignature();
 
     virtual bool hasInstanceMappedUTI(UTI instance, UTI auti, UTI& mappedUTI);

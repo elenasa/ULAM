@@ -1,13 +1,13 @@
 ## -*- mode:ulam -*-
 #=t3718_test_compiler_transientinheritancewithfunc
-#!
 ## gencode output:
 ## Bool(3) Arg: 0x7 (true) (+ assert)
 ##
+#!
 Exit status: 6
-Ue_R { System s();  Bool(1) first(false);  Int(32) test() {  Foo f;  { f su . ( )check . cond { s ( f su . cb . )print . s ( f su . cb . cast )assert . 6u cast return } if } 0 cast return } }
-Un_Foo { Soo su( :< Bool(3) cb( true); > Unsigned(3) us( 4u); );  <NOMAIN> }
-Un_Soo : Coo { :< Bool(3) cb( true); > Unsigned(3) us( 4u);  <NOMAIN> }
+Ue_R { System s();  Bool(1) first(false);  Int(32) test() {  Foo f;  { f su . ( )check . cond { self s . ( f su . cb . )print . self s . ( f su . cb . cast )assert . 6u cast return } if } 0 cast return } }
+Un_Foo { Soo su( Unsigned(3) us( 4u);  :Coo< Bool(3) cb( true); >);  <NOMAIN> }
+Un_Soo : Coo { Unsigned(3) us( 4u);  :Coo< Bool(3) cb( true); > <NOMAIN> }
 Un_Coo { Bool(3) cb( true);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

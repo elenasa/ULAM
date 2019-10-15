@@ -1,10 +1,12 @@
 ## -*- mode:ulam -*-
 #=t41163_test_compiler_elementinheritedquark_superpurevirtualfunccall_issue_fail
 ##
+## gen error:
 ## /home/elenas/WORK/ulam/repo/MFM-fork/MFM/src/core/include/UlamClass.h:262: FAILED: PURE_VIRTUAL_CALLED
+## gen output: (1 assert)
 ##
 #!
-./Sub1.ulam:9:19: ERROR: Virtual function <Uf_4func10> is pure; cannot be called.
+./Sub1.ulam:9:19: ERROR: Virtual function 'Uf_4func10' is pure; cannot be called directly in baseclass: Sup.
 Unrecoverable Program GenCode FAILURE.
 ##
 ## informed by t41161

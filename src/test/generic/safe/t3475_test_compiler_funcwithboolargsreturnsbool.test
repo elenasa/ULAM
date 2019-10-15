@@ -2,7 +2,7 @@
 #=t3475_test_compiler_funcwithboolargsreturnsbool
 #!
 Exit status: 0
-Ue_Tu { Bool(3) me(false);  Int(32) test() {  me ( )func cast = me ( false me )func2 cast = me ( false true cast )func2 cast = me cast return } }
+Ue_Tu { Bool(3) me(false);  Int(32) test() {  self me . self ( )func . cast = self me . self ( false self me . )func2 . cast = self me . self ( false true cast )func2 . cast = self me . cast return } }
 ##
 ##      //func args do not cast implicitly except for constants: (see t3474)
 ##      //./Tu.ulam:13:7: ERROR: (1) <func2> has no defined function with 2 matching argument types: Bool(3), Bool(3), and cannot be called, while compiling class: Tu.

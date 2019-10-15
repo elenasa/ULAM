@@ -1,13 +1,13 @@
 ## -*- mode:ulam -*-
 #=t3548_test_compiler_quarkinheritancewithfuncoverload_nonlocaluse
-#!
 ## gencode output:
 ## assert: arg is 1
 ## after asserts abort: arg is 1
 ##
+#!
 Exit status: 0
-Ue_Foo { System s();  Bool(1) first(false);  Soo su( :< Bool(3) cb(true); > Unsigned(3) us(4u);  Bool(3) cbs(false); );  Int(32) test() {  Foo f;  first su ( 1 cast )check . = { first cond { s ( first cast )print . 96u cast return } if } s ( true )assert . 0 cast return } }
-Uq_Soo : Coo { :< Bool(3) cb( true); > Unsigned(3) us( 4u);  Bool(3) cbs(false);  <NOMAIN> }
+Ue_Foo { System s();  Bool(1) first(false);  Soo su( Unsigned(3) us(4u);  Bool(3) cbs(false);  :Coo< Bool(3) cb(true); >);  Int(32) test() {  Foo f;  self first . self su . ( 1 cast )check . = { self first . cond { self s . ( self first . cast )print . 96u cast return } if } self s . ( true )assert . 0 cast return } }
+Uq_Soo : Coo { Unsigned(3) us( 4u);  Bool(3) cbs(false);  :Coo< Bool(3) cb( true); > <NOMAIN> }
 Uq_Coo { Bool(3) cb( true);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

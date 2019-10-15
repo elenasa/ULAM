@@ -121,6 +121,7 @@ namespace MFM {
     if(!perrs)
       {
 	m_state.defineRegistrationNumberForUlamClasses(); //ulam-4
+	m_state.verifyZeroRegistryIdForUrSelf(); //ulam-5
 	perrs = m_state.m_err.getErrorCount();
 	if(perrs > 0)
 	  {

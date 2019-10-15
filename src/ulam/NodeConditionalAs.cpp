@@ -120,6 +120,18 @@ namespace MFM {
 	return Nav;
       }
 
+    if(m_nodeLeft->hasASymbolSuper())
+      {
+	std::ostringstream msg;
+	msg << "Shorthand 'super' is too mind-blowing as the lefthand name ";
+	msg << "of conditional operator '" << getName();
+	msg << "'; consider using virtual functions instead";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	newType = Nav;
+	setNodeType(Nav);
+	return Nav;
+      }
+
     assert(m_nodeTypeDesc);
     UTI ruti = m_nodeTypeDesc->checkAndLabelType();
     if(m_state.okUTItoContinue(ruti))
@@ -199,6 +211,26 @@ namespace MFM {
 			newType = Nav;
 		      }
 		  }
+		else if(!m_state.isAltRefType(luti) && (rclasstype != UC_QUARK))
+		  {
+		    //quarks can only inherit from other quarks (t41326);
+		    //quark refs cannot be checked at compile time.
+		    std::ostringstream msg;
+		    msg << "Invalid righthand type of conditional operator '" << getName();
+		    msg << "'; must be a quark name, not ";
+		    msg << rut->getUlamTypeNameBrief().c_str();
+		    if(rclasstype == UC_UNSEEN)
+		      {
+			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+			newType = Hzy;
+		      }
+		    else
+		      {
+			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+			newType = Nav;
+		      }
+		  }
+		//else
 	      }
 	    else if(lclasstype == UC_UNSEEN)
 	      {
@@ -331,7 +363,15 @@ namespace MFM {
     if(asit)
       {
 	UTI asuti = ruti; //as deref'd type
-	UlamValue ptr = UlamValue::makePtr(pluv.getPtrSlotIndex(), pluv.getPtrStorage(), asuti, m_state.determinePackable(asuti), m_state, pluv.getPtrPos() + 0, pluv.getPtrNameId());
+	u32 relpos = 0;
+	if(!m_state.isAtom(luti))
+	  {
+	    AssertBool gotrelpos = m_state.getABaseClassRelativePositionInAClass(luti, ruti, relpos);
+	    assert(gotrelpos); //t3589
+	  }
+	//else (t3637) n/a for atoms, use 0?
+
+	UlamValue ptr = UlamValue::makePtr(pluv.getPtrSlotIndex(), pluv.getPtrStorage(), asuti, m_state.determinePackable(asuti), m_state, pluv.getPtrPos() + relpos, pluv.getPtrNameId());
 
 	ptr.checkForAbsolutePtr(pluv);
 
@@ -382,7 +422,7 @@ namespace MFM {
     fp->write(nut->getTmpStorageTypeAsString().c_str()); //bool
     fp->write(" ");
     fp->write(m_state.getTmpVarAsString(nuti, tmpVarIs, TMPREGISTER).c_str());
-    fp->write(" = ");
+    fp->write(" = (");
 
     //is a class t3582,3,6,9 (reversed luti,ruti order to 'is')
     fp->write(m_state.getTheInstanceMangledNameByIndex(luti).c_str());
@@ -390,11 +430,16 @@ namespace MFM {
     fp->write(m_state.getAsMangledFunctionName(luti, ruti)); //UlamElement IsMethod
     fp->write("(&"); //one arg
     fp->write(m_state.getTheInstanceMangledNameByIndex(ruti).c_str());
-    fp->write(");"); GCNL;
+    fp->write("));"); GCNL;
 
     //update uvpass, include lhs name id
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     u32 lid = m_state.m_currentObjSymbolsForCodeGen.back()->getId();
+
+    //luti and ruti can be the same class (e.g. t3754)
+    //u32 relpos = UNRELIABLEPOS;
+    //AssertBool gotPos = m_state.getABaseClassRelativePositionInAClass(luti, ruti, relpos);
+    //assert(gotPos);
 
     uvpass = UVPass::makePass(tmpVarIs, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, lid);
     //NO m_state.clearCurrentObjSymbolsForCodeGen()
@@ -432,7 +477,7 @@ namespace MFM {
 
     if(rut->getUlamClassType() == UC_ELEMENT)
       {
-	//reversed call to rhs' overloaded c-implemented 'Is' method;
+	//reversed call to rhs' overloaded c-implemented 'Is' method; rtn bool;
 	// using lhs' T as argument; required for EMPTY-ELEMENT special case
 	fp->write(m_state.getTheInstanceMangledNameByIndex(ruti).c_str());
 	fp->write(".");
@@ -456,7 +501,7 @@ namespace MFM {
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     u32 lid = m_state.m_currentObjSymbolsForCodeGen.back()->getId();
 
-    uvpass = UVPass::makePass(tmpVarIs, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, lid);
+    uvpass = UVPass::makePass(tmpVarIs, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, lid); //relpos?
     //NO m_state.clearCurrentObjSymbolsForCodeGen()
   } //genCodeAtomAs
 
@@ -488,7 +533,7 @@ namespace MFM {
     fp->write(nut->getTmpStorageTypeAsString().c_str()); //bool
     fp->write(" ");
     fp->write(m_state.getTmpVarAsString(nuti, tmpVarIs, TMPREGISTER).c_str());
-    fp->write(" = ");
+    fp->write(" = (");
 
     //if array, error in c&l
     fp->write(stgcos->getMangledName().c_str());
@@ -496,13 +541,13 @@ namespace MFM {
     fp->write(m_state.getAsMangledFunctionName(luti, ruti)); //UlamClass IsMethod
     fp->write("(&");
     fp->write(m_state.getTheInstanceMangledNameByIndex(ruti).c_str());
-    fp->write(");"); GCNL;
+    fp->write("));"); GCNL;  //t3655
 
     //update uvpass, include lhs name id
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     u32 lid = m_state.m_currentObjSymbolsForCodeGen.back()->getId();
 
-    uvpass = UVPass::makePass(tmpVarIs, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, lid);
+    uvpass = UVPass::makePass(tmpVarIs, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, lid); //t3754
     //NO m_state.clearCurrentObjSymbolsForCodeGen()
   } //genCodeReferenceAs
 

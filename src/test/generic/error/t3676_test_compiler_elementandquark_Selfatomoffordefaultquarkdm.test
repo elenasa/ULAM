@@ -6,7 +6,7 @@
 ##        unevaluable without assuming atoms as elements
 ##
 Exit status: -11
-Ue_A { Bool(1) b(true);  QW m_qw();  Int(32) test() {  System s;  b true = Atom(96) a = m_qw ( )func .;  { a A as cond { A& a;  s ( false )assert . } if s ( true )assert . else } { a QW is cond s ( false )assert . if s ( true )assert . else } 0 cast return } }
+Ue_A { Bool(1) b(true);  QW m_qw();  Int(32) test() {  System s;  self b . true = Atom(96) a = self m_qw . ( )func .;  { a A as cond { A& a;  s ( false )assert . } if s ( true )assert . else } { a QW is cond s ( false )assert . if s ( true )assert . else } 0 cast return } }
 Uq_System { <NOMAIN> }
 Uq_QW { <NOMAIN> }
 ##

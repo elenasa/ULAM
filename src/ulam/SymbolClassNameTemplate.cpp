@@ -181,9 +181,9 @@ namespace MFM {
     assert(instance != superclass);
     SymbolClass * csym = NULL;
     if(findClassInstanceByUTI(instance, csym))
-      csym->setSuperClass(superclass); //Nouti is none, not a subclass.
+      csym->setBaseClass(superclass, 0); //Nouti is none, not a subclass.
     else if(instance == getUlamTypeIdx())
-      SymbolClass::setSuperClass(superclass); //instance is template definition
+      SymbolClass::setBaseClass(superclass, 0); //instance is template definition
     else
       m_state.abortShouldntGetHere(); //not found???
   } //setSuperClassForClassInstance
@@ -192,11 +192,99 @@ namespace MFM {
   {
     SymbolClass * csym = NULL;
     if(findClassInstanceByUTI(instance, csym))
-      return csym->getSuperClass(); //Nouti is none, not a subclass.
+      return csym->getBaseClass(0); //Nouti is none, Hzy a stub
     else if(instance == getUlamTypeIdx())
-      return SymbolClass::getSuperClass(); //instance is template definition
+      return SymbolClass::getBaseClass(0); //instance is template definition
     return false;
   } //getSuperClassForClassInstance
+
+  void SymbolClassNameTemplate::appendBaseClassForClassInstance(UTI baseclass, UTI instance, bool sharedbase)
+  {
+    SymbolClass * csym = NULL;
+    if(findClassInstanceByUTI(instance, csym))
+      csym->appendBaseClass(baseclass, sharedbase); //Nouti is none, not a subclass.
+    else if(instance == getUlamTypeIdx())
+      SymbolClass::appendBaseClass(baseclass, sharedbase); //instance is template definition
+    else
+      m_state.abortShouldntGetHere(); //not found???
+  }
+
+  u32 SymbolClassNameTemplate::getBaseClassCountForClassInstance(UTI instance)
+  {
+    u32 count = 0;
+    SymbolClass * csym = NULL;
+    if(findClassInstanceByUTI(instance, csym))
+      count = csym->getBaseClassCount(); //Nouti is none, not a subclass.
+    else if(instance == getUlamTypeIdx())
+      count = SymbolClass::getBaseClassCount(); //instance is template definition
+    else
+      m_state.abortShouldntGetHere(); //not found???
+
+    return count;
+  }
+
+  UTI SymbolClassNameTemplate::getBaseClassForClassInstance(UTI instance, u32 item)
+  {
+    UTI baseuti;
+    SymbolClass * csym = NULL;
+    if(findClassInstanceByUTI(instance, csym))
+      baseuti = csym->getBaseClass(item); //Nouti is none, not a subclass.
+    else if(instance == getUlamTypeIdx())
+      SymbolClass::getBaseClass(item); //instance is template definition
+    else
+      m_state.abortShouldntGetHere(); //not found???
+    return baseuti;
+  }
+
+  bool SymbolClassNameTemplate::updateBaseClassforClassInstance(UTI instance, UTI oldbase, UTI newbaseuti)
+  {
+    bool aok = false;
+    s32 item = -1;
+    SymbolClass * csym = NULL;
+    if(findClassInstanceByUTI(instance, csym))
+      item = csym->isABaseClassItem(oldbase); //Nouti is none, not a subclass.
+    else if(instance == getUlamTypeIdx())
+      item = SymbolClass::isABaseClassItem(oldbase); //instance is template definition
+    else
+      m_state.abortShouldntGetHere(); //not found???
+
+    if(item > 0) //excludes super
+      {
+	if(csym != NULL)
+	  csym->updateBaseClass(oldbase, item, newbaseuti);
+	else
+	  SymbolClass::updateBaseClass(oldbase, item, newbaseuti);
+	aok = true;
+      }
+    return aok;
+  } //updateBaseClassforClassInstance
+
+  void SymbolClassNameTemplate::initBaseClassListForAStubClassInstance(SymbolClass * & newclassinstance)
+  {
+    //from template
+    u32 basecount = SymbolClass::getBaseClassCount() + 1; //includes super
+    for(u32 i = 0; i < basecount; i++)
+      {
+	UTI baseuti = SymbolClass::getBaseClass(i);
+	bool sharedbase = SymbolClass::isDirectSharedBase(i);
+	if(m_state.okUTItoContinue(baseuti))
+	  {
+	    if(m_state.isClassAStub(baseuti))
+	      {
+		//need a copy of the super stub, and its uti
+		baseuti = Hzy; //wait until resolving loop.
+	      }
+	    newclassinstance->setBaseClass(baseuti, i, sharedbase);
+	    //any superclass block links are handled during c&l
+	  }
+	else
+	  {
+	    ULAMCLASSTYPE tclasstype = getUlamClass();
+	    if(tclasstype == UC_UNSEEN)
+	      newclassinstance->setBaseClass(Hzy, i, sharedbase);
+	  }
+      }
+  } //initBaseClassListForAStubClassInstance
 
   // (does not include template as an instance!)
   bool SymbolClassNameTemplate::findClassInstanceByUTI(UTI uti, SymbolClass * & symptrref)
@@ -285,24 +373,8 @@ namespace MFM {
     if(isQuarkUnion())
       newclassinstance->setQuarkUnion();
 
-    //inheritance:
-    UTI superuti = getSuperClass();
-    if(m_state.okUTItoContinue(superuti))
-      {
-	if(m_state.isClassAStub(superuti))
-	  {
-	    //need a copy of the super stub, and its uti
-	    superuti = Hzy; //wait until resolving loop.
-	  }
-	newclassinstance->setSuperClass(superuti);
-	//any superclass block links are handled during c&l
-      }
-    else
-      {
-	ULAMCLASSTYPE tclasstype = getUlamClass();
-	if(tclasstype == UC_UNSEEN)
-	  newclassinstance->setSuperClass(Hzy);
-      }
+    //inheritance: (multi-inheritance ulam-5)
+    initBaseClassListForAStubClassInstance(newclassinstance);
 
     if(isCATemplate)
       ((UlamTypeClass *) m_state.getUlamTypeByIndex(stubcuti))->setCustomArray();
@@ -331,15 +403,14 @@ namespace MFM {
     //previous block is template's class block, and new NNO here!
     NodeBlockClass * newblockclass = new NodeBlockClass(templateclassblock, m_state);
     assert(newblockclass);
-    //newblockclass->setNodeLocation(blockclass->getNodeLocation()); //questionable LOC???
-    newblockclass->setNodeLocation(newloc); //questionable LOC??? t41221
+    newblockclass->setNodeLocation(newloc); //questionable LOC? t41221
 
     //provides proper context for setting type (e.g. t3640)
     m_state.pushClassContext(newuti, newblockclass, newblockclass, false, NULL);
 
     newblockclass->setNodeType(newuti);
     newblockclass->resetNodeNo(templateclassblock->getNodeNo()); //keep NNO consistent (new)
-    newblockclass->setSuperBlockPointer(NULL); //wait for c&l when no longer a stub
+    //newblockclass->setSuperBlockPointer(NULL); //wait for c&l when no longer a stub
 
     Token stubTok(TOK_IDENTIFIER,csym->getLoc(), getId());
 
@@ -351,9 +422,11 @@ namespace MFM {
     if(isQuarkUnion())
       newclassinstance->setQuarkUnion();
 
+    //inheritance: (multi-inheritance ulam-5)
+    initBaseClassListForAStubClassInstance(newclassinstance);
+
     if(isCATemplate)
       ((UlamTypeClass *) m_state.getUlamTypeByIndex(newuti))->setCustomArray(); //t41007
-
 
     // we are in the middle of fully instantiating (context) or parsing;
     // with known args that we want to use to resolve, if possible, these pending args:
@@ -571,7 +644,7 @@ namespace MFM {
 
 	// class instance's prev classblock is linked to its template's when stub is made.
 	// later, during c&l if a subclass, the super ptr gets the classblock of superclass
-	cblock->setSuperBlockPointer(NULL); //wait for c&l when no longer a stub
+	cblock->initBaseClassBlockList(); //wait for c&l when no longer a stub
 	it++;
       } //while any more stubs
   } //fixAnyUnseenClassInstances
@@ -641,15 +714,25 @@ namespace MFM {
 	m_state.pushClassContext(cuti, classNode, classNode, false, NULL);
 
 	//pending args could depend on constants in ancestors (t3887)
-	UTI superuti = csym->getSuperClass();
-	if(m_state.okUTItoContinue(superuti) && !classNode->isSuperClassLinkReady(cuti))
+	//ulam-5 supports multiple base classes; superclass optional
+	u32 basecount = csym->getBaseClassCount() + 1; //include super
+	u32 i = 0;
+	while(i < basecount)
 	  {
-	    SymbolClass * supercsym = NULL;
-	    if(m_state.alreadyDefinedSymbolClass(superuti, supercsym) && !supercsym->isStub())
+	    UTI baseuti = csym->getBaseClass(i);
+	    if(m_state.okUTItoContinue(baseuti) && !classNode->isBaseClassLinkReady(cuti,i))
 	      {
-		classNode->setSuperBlockPointer(supercsym->getClassBlockNode());
+		SymbolClass * basecsym = NULL;
+		if(m_state.alreadyDefinedSymbolClass(baseuti, basecsym))
+		  {
+		    if(!basecsym->isStub())
+		      classNode->setBaseClassBlockPointer(basecsym->getClassBlockNode(),i);
+		    else
+		      aok = false;
+		  }
 	      }
-	  }
+	    i++;
+	  } //end while
 
 	aok &= csym->statusNonreadyClassArguments(); //could bypass if fully instantiated
 
@@ -659,14 +742,14 @@ namespace MFM {
     return aok;
   } //statusNonreadyClassArgumentsInStubClassInstances
 
-  std::string SymbolClassNameTemplate::formatAnInstancesArgValuesAsAString(UTI instance)
+  std::string SymbolClassNameTemplate::formatAnInstancesArgValuesAsAString(UTI instance, bool dereftypes)
   {
     std::ostringstream args;
 
     UlamType * cut = m_state.getUlamTypeByIndex(instance);
     bool isARef = cut->isAltRefType();
-    if(isARef)
-      args << "r";
+    if(isARef && !dereftypes)
+      args << "r"; //default is false for 2nd arg
 
     u32 numParams = getNumberOfParameters();
     args << ToLeximitedNumber(numParams);
@@ -701,6 +784,9 @@ namespace MFM {
 	    AssertBool isDefined = m_state.alreadyDefinedSymbol(psym->getId(), asym, hazyKin);
 	    assert(isDefined);
 	    UTI auti = asym->getUlamTypeIdx();
+	    if(dereftypes)
+	      auti = m_state.getUlamTypeAsDeref(auti);
+
 	    UlamType * aut = m_state.getUlamTypeByIndex(auti);
 
 	    //append 'instance's arg (mangled) type; little 'c' for a class type parameter (t41209)
@@ -953,7 +1039,7 @@ namespace MFM {
 	  }
 
 	//check for any ancestor stubs needed
-	if(!checkTemplateAncestorBeforeAStubInstantiation(csym))
+	if(!checkTemplateAncestorsBeforeAStubInstantiation(csym))
 	  {
 	    aok &= false;
 	    it++;
@@ -978,7 +1064,7 @@ namespace MFM {
 	classNode->updatePrevBlockPtrOfFuncSymbolsInTable();
 
 	//set super block pointer to this class block during c&l
-	classNode->setSuperBlockPointer(NULL); //clear in case of stubs
+	classNode->initBaseClassBlockList(); //clear in case of stubs
 
 	//copy any constant strings from the stub
 	//clone->setUserStringPoolRef(csym->getUserStringPoolRef()); //t3962
@@ -1023,57 +1109,59 @@ namespace MFM {
     return aok;
   } //fullyInstantiate
 
-  bool SymbolClassNameTemplate::checkTemplateAncestorBeforeAStubInstantiation(SymbolClass * stubcsym)
+  bool SymbolClassNameTemplate::checkTemplateAncestorsBeforeAStubInstantiation(SymbolClass * stubcsym)
   {
     assert(!stubcsym->pendingClassArgumentsForClassInstance());
 
-    bool rtnok = false;
-    //if stub's superclass is still a stub..wait on full instantiation
-    UTI stubsuperuti = stubcsym->getSuperClass();
-    UTI superuti = SymbolClass::getSuperClass(); //template's ancestor
-
-    if((stubsuperuti == Nouti) || (stubsuperuti == Hzy))
+    bool rtnok = true;
+    //if any of stub's base classes are still a stub..wait on full instantiation
+    u32 basecount = stubcsym->getBaseClassCount() + 1; //include super
+    for(u32 i = 0; i < basecount; i++)
       {
-	//template was unseen at the time stub was made
-	if(superuti == Nouti)
-	  {
-	    stubcsym->setSuperClass(Nouti); //no ancester
-	    rtnok = true;
-	  }
-	else if(m_state.isUrSelf(superuti))
-	  {
-	    stubcsym->setSuperClass(superuti); //UrSelf is ancester; not a stub
-	    rtnok = true;
-	  }
-	else if(superuti == Hzy) //only UNSEEN Templates
-	  {
-	    rtnok = false;
-	  }
-	else if(!m_state.isASeenClass(superuti))
-	  {
-	    rtnok = false;
-	  }
-	else if(!m_state.isClassAStub(superuti))
-	  {
-	    stubcsym->setSuperClass(superuti); //not a stub; t3567, 3573, t3574, t3575
-	    rtnok = true;
-	  }
-	else
-	  {
-	    //if superuti is a stub of this template, we have a possible un-ending (MAX_ITERATIONS)
-	    // increase in the size of m_scalarClassInstanceIdxToSymbolPtr each time we're called;
-	    // never resolving; should be caught at parse time (t3901)
-	    //stubsuperuti = m_state.addStubCopyToAncestorClassTemplate(superuti, stubcsym->getUlamTypeIdx());
-	    stubsuperuti = m_state.addStubCopyToAncestorClassTemplate(superuti, stubcsym->getContextForPendingArgValues(), stubcsym->getContextForPendingArgTypes(), stubcsym->getLoc());
-	    stubcsym->setSuperClass(stubsuperuti); //stubcopy's type set here!!
-	    rtnok = false;
-	  }
-      }
-    else //neither nouti or hzy
-      rtnok = !m_state.isClassAStub(stubsuperuti);
+	UTI stubbaseuti = stubcsym->getBaseClass(i);
+	UTI superbaseuti = SymbolClass::getBaseClass(i); //template's ancestor
 
+	if((stubbaseuti == Nouti) || (stubbaseuti == Hzy))
+	  {
+	    //template was unseen at the time stub was made
+	    if(superbaseuti == Nouti)
+	      {
+		stubcsym->updateBaseClass(stubbaseuti, i, Nouti); //no ancester
+		rtnok &= true;
+	      }
+	    else if(m_state.isUrSelf(superbaseuti))
+	      {
+		stubcsym->updateBaseClass(stubbaseuti, i, superbaseuti); //UrSelf is ancester; not a stub
+		rtnok &= true;
+	      }
+	    else if(superbaseuti == Hzy) //only UNSEEN Templates
+	      {
+		rtnok &= false;
+	      }
+	    else if(!m_state.isASeenClass(superbaseuti))
+	      {
+		rtnok &= false;
+	      }
+	    else if(!m_state.isClassAStub(superbaseuti))
+	      {
+		stubcsym->updateBaseClass(stubbaseuti, i, superbaseuti); //not a stub; t3567, 3573, t3574, t3575
+		rtnok &= true;
+	      }
+	    else
+	      {
+		//if superbaseuti is a stub of this template, we have a possible un-ending (MAX_ITERATIONS)
+		// increase in the size of m_scalarClassInstanceIdxToSymbolPtr each time we're called;
+		// never resolving; should be caught at parse time (t3901)
+		UTI newstubbaseuti = m_state.addStubCopyToAncestorClassTemplate(superbaseuti, stubcsym->getContextForPendingArgValues(), stubcsym->getContextForPendingArgTypes(), stubcsym->getLoc());
+		stubcsym->updateBaseClass(stubbaseuti, i, newstubbaseuti); //stubcopy's type set here!!
+		rtnok &= false;
+	      }
+	  }
+	else //neither nouti or hzy
+	  rtnok &= !m_state.isClassAStub(stubbaseuti);
+      } //for loop of bases
     return rtnok;
-  } //checkTemplateAncestorBeforeAStubInstantiation
+  } //checkTemplateAncestorsBeforeAStubInstantiation
 
   void SymbolClassNameTemplate::mergeClassInstancesFromTEMP()
   {
@@ -1157,7 +1245,7 @@ namespace MFM {
 	  {
 	    m_state.pushClassContext(csym->getUlamTypeIdx(), classNode, classNode, false, NULL);
 
-	    classNode->checkDuplicateFunctions(); //do each instance
+	    classNode->checkDuplicateFunctionsInClassAndAncestors(); //do each instance
 	    m_state.popClassContext(); //restore
 	  }
 	else
@@ -1511,6 +1599,7 @@ namespace MFM {
 	UTI cuti = csym->getUlamTypeIdx(); //this instance
 	UTI uti = it->first; //this instance entry; may not match Symbol class' uti
 	s32 totalbits = 0;
+	s32 sharedbits = UNKNOWNSIZE;
 
 	if(checkSFINAE(csym))
 	  {
@@ -1549,6 +1638,19 @@ namespace MFM {
 
 	if(aok)
 	  {
+	    s32 sharedbitssaved = UNKNOWNSIZE;
+	    aok = csym->determineSharedBasesAndTotalBitsize(sharedbitssaved, sharedbits);
+	    if(aok)
+	      {
+		assert(sharedbits >= 0);
+		assert(sharedbits <= totalbits);
+		assert(sharedbitssaved >= sharedbits);
+		totalbits = (totalbits - sharedbitssaved + sharedbits); //updates total here!!
+	      }
+	  }
+
+	if(aok)
+	  {
 	    m_state.setBitSize(uti, totalbits); //"scalar" Class bitsize  KEY ADJUSTED
 	    if(m_state.getBitSize(uti) != totalbits)
 	      {
@@ -1566,6 +1668,8 @@ namespace MFM {
 		msg << "CLASS INSTANCE '" << m_state.getUlamTypeNameByIndex(uti).c_str();
 		msg << "' UTI" << uti << ", SIZED: " << totalbits;
 		MSG(Symbol::getTokPtr(), msg.str().c_str(), DEBUG);
+		//after setBitSize so not to clobber it.
+		m_state.setBaseClassBitSize(cuti, totalbits - sharedbits); //noop for elements
 	      }
 	  }
 	else

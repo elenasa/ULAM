@@ -5,8 +5,8 @@
 ##  Int Arg: 4
 #!
 Exit status: 4
-Ue_R { Int(32) rtn(4);  Int(32) test() {  System s;  Tu(1) t;  rtn t ( )func . = s ( rtn )print . s ( rtn 4 cast == )assert . rtn return } }
-Un_Tu(Int(32) x) : Foo { :< Int(32) mi( 4); > <NOMAIN> }
+Ue_R { Int(32) rtn(4);  Int(32) test() {  System s;  Tu(1) t;  self rtn . t ( )func . = s ( self rtn . )print . s ( self rtn . 4 cast == )assert . self rtn . return } }
+Un_Tu(Int(32) x) : Foo { :Foo< Int(32) mi( 4); > <NOMAIN> }
 Un_Foo { Int(32) mi( 4);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

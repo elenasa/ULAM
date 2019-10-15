@@ -2,7 +2,7 @@
 #=t3178_test_compiler_elementandquark_argbitsizeexpr
 #!
 Exit status: 1
-Ue_Foo { Int(5) m_i(0);  Bar m_bar( Bool(1) val_b[3](false,false,false); );  Bool(1) m_b(true);  Int(32) test() {  Foo f;  f m_bar . ( )reset . Bool(3) t;  t true cast = m_b ( t )check = Bool(5) r;  r true cast = m_i ( r )check cast cast = m_b cast return } }
+Ue_Foo { Int(5) m_i(0);  Bar m_bar( Bool(1) val_b[3](false,false,false); );  Bool(1) m_b(true);  Int(32) test() {  Foo f;  f m_bar . ( )reset . Bool(3) t;  t true cast = self m_b . self ( t )check . = Bool(5) r;  r true cast = self m_i . self ( r )check . cast cast = self m_b . cast return } }
 Uq_Bar { Bool(1) val_b[3](false,false,false);  <NOMAIN> }
 #>Foo.ulam
 ulam 1;

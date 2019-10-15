@@ -6,7 +6,7 @@
 ##
 #!
 Exit status: 0
-Ue_A { constant String(32) str = "hello world";  Unsigned(32) slen(11u);  Unsigned(8) asc(104u);  Bool(1) b1(true);  Bool(1) b2(true);  Int(32) test() {  System s;  String(32) newstr = "hello world" cast;  String(32)& refstr = newstr cast;  slen 11u = s ( slen )print . b1 slen 11u cast == = s ( b1 )assert . asc refstr 0 [] = b2 asc 104u == = s ( b2 )assert . 0 cast return } }
+Ue_A { constant String(32) str = "hello world";  Unsigned(32) slen(11u);  Unsigned(8) asc(104u);  Bool(1) b1(true);  Bool(1) b2(true);  Int(32) test() {  System s;  String(32) newstr = "hello world" cast;  String(32)& refstr = newstr cast;  self slen . 11u = s ( self slen . )print . self b1 . self slen . 11u cast == = s ( self b1 . )assert . self asc . refstr 0 [] = self b2 . self asc . 104u == = s ( self b2 . )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## tests double-digit length string, lengthof string reference, and casting String to String.

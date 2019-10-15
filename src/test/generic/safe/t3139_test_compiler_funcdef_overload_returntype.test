@@ -1,9 +1,9 @@
 ## -*- mode:ulam -*-
 #=t3139_test_compiler_funcdef_overload_returntype
-#!
 ##no longer an error
+#!
 Exit status: 6
-Ue_A { typedef Int(4) Foo[8];  Int(4) d[8](6,0,0,0,0,0,0,0);  Int(32) test() {  Bool(1) mybool;  mybool true = d ( mybool )foo = d 0 [] ( 6 cast )foo cast = d 0 [] cast return } }
+Ue_A { typedef Int(4) Foo[8];  Int(4) d[8](6,0,0,0,0,0,0,0);  Int(32) test() {  Bool(1) mybool;  mybool true = self d . self ( mybool )foo . = self d . 0 [] self ( 6 cast )foo . cast = self d . 0 [] cast return } }
 #>A.ulam
   ulam 1;
 element A {

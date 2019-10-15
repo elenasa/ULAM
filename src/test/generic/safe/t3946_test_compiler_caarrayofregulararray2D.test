@@ -6,7 +6,7 @@
 ##
 #!
 Exit status: 0
-Ue_R { typedef Int(5) IArr[3];  Int(5) m_i(6);  Int(5) m_j(6);  Int(32) test() {  System s;  TWindows tvt;  Int(5) ia[3] = tvt ( 2 cast )aref . cast;  m_i ia 1 [] = m_j tvt ( 2 cast )aref . 1 [] = s ( m_i cast )print . s ( m_j 6 cast == )assert . s ( m_j m_i == )assert . 0 cast return } }
+Ue_R { typedef Int(5) IArr[3];  Int(5) m_i(6);  Int(5) m_j(6);  Int(32) test() {  System s;  TWindows tvt;  Int(5) ia[3] = tvt ( 2 cast )aref . cast;  self m_i . ia 1 [] = self m_j . tvt ( 2 cast )aref . 1 [] = s ( self m_i . cast )print . s ( self m_j . 6 cast == )assert . s ( self m_j . self m_i . == )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 Un_TWindows { typedef Int(5) IArr[3];  Int(5) m_arr0[3]( { 0, 0, 0 });  Int(5) m_arr1[3]( { 1, 2, 3 });  Int(5) m_arr2[3]( { 2, 4, 6 });  Int(5) m_arr3[3]( { 3, 6, 9 });  <NOMAIN> }
 ##

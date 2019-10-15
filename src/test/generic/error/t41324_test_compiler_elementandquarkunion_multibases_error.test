@@ -1,0 +1,48 @@
+## -*- mode:ulam -*-
+#=t41324_test_compiler_elementandquarkunion_multibases_error
+#!
+./E4.ulam:2:9: ERROR: Subclass 'E4' inherits from 'QBase1', a currently unsupported base class type: quark-union.
+./QBase3.ulam:2:7: ERROR: Subclass 'QBase3' inherits from 'QBase1', a currently unsupported base class type: quark-union.
+Unrecoverable Program Type Label FAILURE.
+##
+##  stop the maddness! fornow..no quark-unions are base classes.
+##
+#>Foo.ulam
+  ulam 4;
+element Foo {
+
+  Int test()
+  {
+    E4 e4;
+
+    Int b4 = e4.vfuncb(); // 311
+    return 0;
+  }
+}
+
+
+#:E4.ulam
+  ulam 5;
+element E4 : QBase3 +QBase1 {
+  virtual Int vfuncc() { return 412; }
+  virtual Void behave() { }
+}
+
+#:QBase1.ulam
+    ulam 4;
+union QBase1 {
+  Bool m_b1;
+  Bits(3) m_bits;
+  Void funcNotVirtualSoIrrelevantHere() { }
+  virtual Int vfuncb() { return 111; }
+}
+
+
+#:QBase3.ulam
+  ulam 4;
+quark QBase3 : QBase1 {
+  Bool m_b3;
+  virtual Int vfuncb() { return 311; }
+}
+
+#.

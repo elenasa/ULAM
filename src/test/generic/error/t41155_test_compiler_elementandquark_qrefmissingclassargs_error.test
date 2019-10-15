@@ -2,7 +2,7 @@
 #=t41155_test_compiler_elementandquark_qrefmissingclassargs_error
 #!
 ./MyElement.ulam:15:10: ERROR: Missing Class Arguments for an instance stub of class template 'QOne'.
-./MyElement.ulam:15:5: ERROR: Invalid variable declaration of base type <QOne> and name <badref> (missing symbol).
+./MyElement.ulam:15:5: ERROR: Invalid variable declaration of base type <QOne> and name 'badref' (missing symbol).
 ./MyElement.ulam:15:19: ERROR: Invalid Statement (possible missing semicolon).
 Unrecoverable Program Parse FAILURE: <MyElement.ulam>
 ##

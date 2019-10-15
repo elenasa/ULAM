@@ -16,6 +16,17 @@ namespace MFM {
     return UC_ELEMENT;
   }
 
+  s32 UlamTypeClassElement::getBitsizeAsBaseClass()
+  {
+    m_state.abortShouldntGetHere(); //only quarks & transients
+    return UNKNOWNSIZE;
+  }
+
+  void UlamTypeClassElement::setBitsizeAsBaseClass(s32 bs)
+  {
+    m_state.abortShouldntGetHere(); //only quarks and transients
+  }
+
   bool UlamTypeClassElement::cast(UlamValue & val, UTI typidx)
   {
     bool brtn = true;
@@ -243,13 +254,27 @@ namespace MFM {
     //write 'entire' method
     genUlamTypeAutoWriteDefinitionForC(fp);
 
-    //constructor for conditional-as (auto)
+    //keep this one too?
+    //constructor for conditional-as (auto); constructor given storage
     m_state.indent(fp);
     fp->write(automangledName.c_str());
     fp->write("(BitStorage<EC>& targ, u32 idx, const UlamClass<EC>* effself, const UlamContext<EC> & uc) : UlamRef<EC>");
     fp->write("(idx, "); //the real pos!!!
     fp->write_decimal_unsigned(len); //atom-based size, includes: arraysize, and Type
     fp->write("u, targ, effself, ");
+    if(!isScalar())
+      fp->write("UlamRef<EC>::ARRAY");
+    else
+      fp->write("UlamRef<EC>::ELEMENTAL");
+    fp->write(", uc) { }"); GCNL;
+
+    //constructor for conditional-as (auto); constructor given storage
+    m_state.indent(fp);
+    fp->write(automangledName.c_str());
+    fp->write("(BitStorage<EC>& targ, u32 idx, u32 postoeff, const UlamClass<EC>* effself, const UlamContext<EC> & uc) : UlamRef<EC>");
+    fp->write("(idx, "); //the real pos!!!
+    fp->write_decimal_unsigned(len); //atom-based size, includes: arraysize, and Type
+    fp->write("u, postoeff, targ, effself, ");
     if(!isScalar())
       fp->write("UlamRef<EC>::ARRAY");
     else
@@ -430,11 +455,17 @@ namespace MFM {
 
     m_state.m_currentIndentLevel++;
 
-    //forward declaration of element (before struct!)
+    //forward declaration of element and immediate ref (before struct)
     m_state.indent(fp);
     fp->write("template<class EC> class ");
     fp->write(scalarmangledName.c_str());
     fp->write(";  //forward"); GCNL;
+
+    m_state.indent(fp);
+    fp->write("template<class EC> class ");
+    fp->write(automangledName.c_str());
+    fp->write("; //forward"); GCNL;
+
     fp->write("\n");
 
     m_state.indent(fp);

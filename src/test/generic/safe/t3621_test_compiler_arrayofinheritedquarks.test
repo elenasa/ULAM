@@ -2,7 +2,7 @@
 #=t3621_test_compiler_arrayofinheritedquarks
 #!
 Exit status: 10
-Ue_A : B { :<> Int(32) test() {  B site[10];  { Int(32) i = 0 cast;  i 10 cast < cond { site i [] self cast = } _1: i 1 += while } 10 cast return } }
+Ue_A : B { :B<> Int(32) test() {  B site[10];  { Int(32) i = 0 cast;  i 10 cast < cond { site i [] self cast = } _1: i 1 += while } 10 cast return } }
 Uq_B { /* empty class block */ }
 ##
 ##      // taken from t3436; here, tests non-typedef decl

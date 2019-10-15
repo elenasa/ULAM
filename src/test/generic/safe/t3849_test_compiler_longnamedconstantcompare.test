@@ -5,7 +5,7 @@
 ##
 #!
 Exit status: 0
-Ue_A { constant Int(64) j = HexU64(0xffffffff, 0xffff2222);  Int(32) i(-56798);  Int(32) n(56798);  Int(32) test() {  System s;  s ( true )assert . n HexU64(0x0, 0xddde) cast = i HexU64(0xffffffff, 0xffff2222) cast = s ( i n +b 0 cast == )assert . i n +b return } }
+Ue_A { constant Int(64) j = HexU64(0xffffffff, 0xffff2222);  Int(32) i(-56798);  Int(32) n(56798);  Int(32) test() {  System s;  s ( true )assert . self n . HexU64(0x0, 0xddde) cast = self i . HexU64(0xffffffff, 0xffff2222) cast = s ( self i . self n . +b 0 cast == )assert . self i . self n . +b return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by error/t3848

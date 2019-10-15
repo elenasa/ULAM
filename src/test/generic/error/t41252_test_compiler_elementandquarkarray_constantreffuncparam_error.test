@@ -2,7 +2,7 @@
 #=t41251_test_compiler_elementandquarkarray_constantreffuncparam
 #!
 ./Foo.ulam:10:16: ERROR: Member selected must be a modifiable lefthand side: '[]' requires a variable.
-./Foo.ulam:11:25: ERROR: Unmodifiable lefthand side of assignment expression <.>, type: Bool(1).
+./Foo.ulam:11:25: ERROR: Unmodifiable lefthand side of assignment expression 'brefarg.val_b', type: Bool(1).
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t41251, except try to assign to constant array ref function parameter,

@@ -2,7 +2,7 @@
 #=t41094_test_compiler_elementinheritedquark_purevirtualfunccalleval_error
 ##
 #!
-./E2.ulam:3:43: ERROR: Virtual function <Uf_5afunc11102321i> is pure; cannot be called.
+./E2.ulam:3:43: ERROR: Virtual function 'Uf_5afunc11102321i' is pure; cannot be called directly in baseclass: Sub1.
 Unrecoverable Program GenCode FAILURE.
 ##
 ## informed by t3609

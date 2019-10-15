@@ -1,12 +1,12 @@
 ## -*- mode:ulam -*-
 #=t3685_test_compiler_elementandquark_elementinstanceoffunccallarg
-#!
 ##      gen code output: (2 asserts)
 ##
 ##        unevaluable without assuming atoms as elements (c should be false)
 ##
+#!
 Exit status: 0
-Ue_A : QW { :<> Bool(1) b(true);  Bool(1) c(true);  Int(32) test() {  System s;  b ( self.instanceof )func = s ( b )assert . Atom(96) a;  c ( a )func = s ( c ! )assert . 0 cast return } }
+Ue_A : QW { Bool(1) b(true);  Bool(1) c(true);  :QW<> Int(32) test() {  System s;  self b . self ( self.instanceof )func . = s ( self b . )assert . Atom(96) a;  self c . self ( a )func . = s ( self c . ! )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 Uq_QW { <NOMAIN> }
 ##

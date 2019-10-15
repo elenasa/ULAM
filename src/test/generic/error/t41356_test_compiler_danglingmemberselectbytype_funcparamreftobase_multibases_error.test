@@ -1,0 +1,104 @@
+## -*- mode:ulam -*-
+#=t41356_test_compiler_danglingmemberselectbytype_funcparamreftobase_multibases_error
+#!
+./MyElement.ulam:54:16: ERROR: Expected data member or function call to follow member select by type 'QO'.
+Unrecoverable Program Parse FAILURE: <MyElement.ulam>
+Unrecoverable Program Parse FAILURE: <Fail.ulam>
+Unrecoverable Program Parse FAILURE: <SystemU3.ulam>
+Unrecoverable Program Parse FAILURE: <System.ulam>
+##
+##  informed by issue 20191006; No parse error, left for c++ compiler to complain.
+##
+#>MyElement.ulam
+  ulam 5;
+local typedef Unsigned(5) Uint;
+
+quark Combo {
+  Uint mC = 1;
+  virtual Uint get() ;
+}
+
+quark QO : Combo {
+  Uint mUint = 9;
+  virtual Void set(Uint d) {
+    mUint = d;
+  }
+  Uint nvget() { return mUint; }
+  Uint get() { return nvget(); }
+}
+
+quark Q2 {
+  Uint mQ2int = 3;
+
+  Void set(Uint x) {   /* not virtual */
+    mQ2int = x;
+  }
+
+  Uint nvget() { return mQ2int; }
+  Uint get() { return nvget(); }
+}
+
+element MyElement +Q2 +QO +Combo {
+  Bool mEB = true;
+  Uint nvget() { return 2u; }
+  Void funcS(Self& me, Uint u) {
+    if (me.nvget() != u) {
+      Fail f;
+      f.fail("funcS");
+    }
+  }
+
+  Void funcO(QO& qo, Uint u) {
+    if (qo.nvget() != u) {
+      Fail f;
+      f.fail("funcO");
+    }
+  }
+
+  Void func2(Q2& q2, Uint u) {
+    if (q2.nvget() != u) {
+      Fail f;
+      f.fail("func2");
+    }
+  }
+
+  Int test() {
+    funcO(self.QO,9u); // error
+    func2(self,3u);
+    funcS(self,2u);
+    return 0;
+  }
+}
+
+#:Fail.ulam
+  ulam 2;
+quark Fail {
+  SystemU3 s;
+  Void fail() { s.assert(false); }
+  Void fail(Int code) {s.print(code); s.assert(true); /*true for testing purposes only!!!*/ }
+  Void fail(Bits bits) { fail((Int) bits); }
+  Void fail(String string) {
+    s.print(string);
+    s.assert(false);
+  }
+}
+
+#:SystemU3.ulam
+  ulam 3;
+quark SystemU3 : System {
+  Void print(String s) native;
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

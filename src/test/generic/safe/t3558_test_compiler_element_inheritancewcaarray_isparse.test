@@ -5,7 +5,7 @@
 ##
 #!
 Exit status: -11
-Ue_EventWindowTest : EvtWinEl { :< Int(32) m_idx(40); > constant Int(32) v = -2;  Int(32) test() {  System s;  Atom(96) a;  EventWindowTest ewt;  a ewt ( 0 cast )aref . = s ( a EventWindowTest is )assert . 0 cast return } }
+Ue_EventWindowTest : EvtWinEl { constant Int(32) v = -2;  :EvtWinEl< Int(32) m_idx(40); > Int(32) test() {  System s;  Atom(96) a;  EventWindowTest ewt;  a ewt ( 0 cast )aref . = s ( a EventWindowTest is )assert . 0 cast return } }
 Uq_EvtWinEl { Int(32) m_idx( 40);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

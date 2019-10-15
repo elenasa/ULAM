@@ -8,7 +8,7 @@
 #!
 Exit status: -11
 Un_T { Bool(1) m_sp(false);  Int(32) m_i(0);  Atom(96) m_a(Atom(96));  <NOMAIN> }
-Ue_R { Bool(1) m_rb(false);  Int(32) m_ri(0);  Int(32) test() {  System sys;  T est = ctt;  m_rb est m_sp . = sys ( m_rb )assert . m_ri est m_i . = sys ( m_ri )print . sys ( m_ri 99 cast == )assert . 129u cast return } }
+Ue_R { Bool(1) m_rb(false);  Int(32) m_ri(0);  Int(32) test() {  System sys;  T est = ctt;  self m_rb . est m_sp . = sys ( self m_rb . )assert . self m_ri . est m_i . = sys ( self m_ri . )print . sys ( self m_ri . 99 cast == )assert . 129u cast return } }
 Uq_System { <NOMAIN> }
 ##
 ##    //informed by t41230 class assignment in R with constant transient

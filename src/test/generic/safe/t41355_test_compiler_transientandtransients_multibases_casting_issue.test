@@ -1,0 +1,78 @@
+## -*- mode:ulam -*-
+#=t41355_test_compiler_transientandtransients_multibases_casting_issue
+##
+## gen output: +7 asserts
+## Unsigned Arg: 7
+##
+## big transients are  unevaluable
+#!
+Exit status: -11
+Ue_BS +System { +System<> Int(32) test() {  T3 wow;  constant Unsigned(5)[3] cT0 = { 7 cast, 6 cast, 5 cast };  wow mT0 . cT0 = self ( wow mT0 0 [] . cast )print . self ( wow mT0 0 [] . cast 7 cast == )assert . wow mT3_T2 . wow cast = self ( wow mT3_T2 . mT2 1 [] . cast 8 cast == )assert . self ( wow mT3 2 [] . cast 14 cast == )assert . self ( wow mT3_T2 . mT0 0 [] . cast 7 cast == )assert . T2& t2ref = wow cast;  self ( t2ref mT2 1 [] . cast 8 cast == )assert . self ( t2ref mT2_T1 . mT1 3 [] . cast 6 cast == )assert . self ( t2ref mT0 0 [] . cast 7 cast == )assert . 0 cast return } }
+Un_T0 { Unsigned(5) mT0[3]( { 0u, 1u, 2u });  <NOMAIN> }
+Un_T1 : T0 { T0 mT1_T0( Unsigned(5) mT0[3]( { 0u, 1u, 2u }); );  Unsigned(5) mT1[4]( { 3u, 4u, 5u, 6u });  :T0< Unsigned(5) mT0[3]( { 0u, 1u, 2u }); > <NOMAIN> }
+Un_T2 : T1 +T0 { T1 mT2_T1( T0 mT1_T0( Unsigned(5) mT0[3]( { 0u, 1u, 2u }); );  Unsigned(5) mT1[4]( { 3u, 4u, 5u, 6u });  :T0< Unsigned(5) mT0[3]( { 0u, 1u, 2u }); >);  T0 mT2_T0( Unsigned(5) mT0[3]( { 0u, 1u, 2u }); );  Unsigned(5) mT2[5]( { 7u, 8u, 9u, 10u, 11u });  :T1< T0 mT1_T0( Unsigned(5) mT0[3]( { 0u, 1u, 2u }); );  Unsigned(5) mT1[4]( { 3u, 4u, 5u, 6u }); > +T0< Unsigned(5) mT0[3]( { 0u, 1u, 2u }); > <NOMAIN> }
+Un_T3 : T2 +T0 +T1 { T2 mT3_T2( T1 mT2_T1( T0 mT1_T0( Unsigned(5) mT0[3]( { 0u, 1u, 2u }); );  Unsigned(5) mT1[4]( { 3u, 4u, 5u, 6u });  :T0< Unsigned(5) mT0[3]( { 0u, 1u, 2u }); >);  T0 mT2_T0( Unsigned(5) mT0[3]( { 0u, 1u, 2u }); );  Unsigned(5) mT2[5]( { 7u, 8u, 9u, 10u, 11u });  :T1< T0 mT1_T0( Unsigned(5) mT0[3]( { 0u, 1u, 2u }); );  Unsigned(5) mT1[4]( { 3u, 4u, 5u, 6u }); > +T0< Unsigned(5) mT0[3]( { 0u, 1u, 2u }); >);  T1 mT3_T1( T0 mT1_T0( Unsigned(5) mT0[3]( { 0u, 1u, 2u }); );  Unsigned(5) mT1[4]( { 3u, 4u, 5u, 6u });  :T0< Unsigned(5) mT0[3]( { 0u, 1u, 2u }); >);  T0 mT3_T0( Unsigned(5) mT0[3]( { 0u, 1u, 2u }); );  Unsigned(5) mT3[6]( { 12u, 13u, 14u, 15u, 16u, 17u });  :T2< T1 mT2_T1( T0 mT1_T0( Unsigned(5) mT0[3]( { 0u, 1u, 2u }); );  Unsigned(5) mT1[4]( { 3u, 4u, 5u, 6u });  :T0< Unsigned(5) mT0[3]( { 0u, 1u, 2u }); >);  T0 mT2_T0( Unsigned(5) mT0[3]( { 0u, 1u, 2u }); );  Unsigned(5) mT2[5]( { 7u, 8u, 9u, 10u, 11u }); > +T0< Unsigned(5) mT0[3]( { 0u, 1u, 2u }); > +T1< T0 mT1_T0( Unsigned(5) mT0[3]( { 0u, 1u, 2u }); );  Unsigned(5) mT1[4]( { 3u, 4u, 5u, 6u }); > <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+##  informed by Dave ish 10/6/19: hierarchy of transients; 2 gencode errors:
+##     ReadBV without args; tmpvar w wrong tmp storage in name.
+##
+#>BS.ulam
+  ulam 4;
+local typedef Unsigned(5) Uint;
+
+transient T0 {
+  Uint mT0[3] = {0,1,2 };
+}
+transient T1 : T0 {
+  T0 mT1_T0;
+  Uint mT1[4] = {3,4,5,6};
+}
+transient T2 : T1 + T0 {
+  T1 mT2_T1;
+  T0 mT2_T0;
+  Uint mT2[5] = { 7,8,9,10,11};
+}
+transient T3 : T2 + T0 + T1 {
+  T2 mT3_T2;
+  T1 mT3_T1;
+  T0 mT3_T0;
+  Uint mT3[6] = { 12, 13, 14, 15, 16, 17 };
+}
+
+element BS +System {
+
+  Int test()
+  {
+    T3 wow;
+    constant Uint cT0[3] = {7,6,5 };
+    wow.mT0 = cT0; //modify base dm
+    print(wow.mT0[0]);
+    assert(wow.mT0[0] == 7); //changed
+
+    wow.mT3_T2 = wow; //writes into same local var
+    assert(wow.mT3_T2.mT2[1] == 8); //same
+    assert(wow.mT3[2] == 14); //same
+    assert(wow.mT3_T2.mT0[0] == 7); //changed?
+
+    T2& t2ref = wow;
+    assert(t2ref.mT2[1] == 8); //same, except in base
+    assert(t2ref.mT2_T1.mT1[3] == 6); //same
+    assert(t2ref.mT0[0] == 7); //changed?
+    return 0;
+  }
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

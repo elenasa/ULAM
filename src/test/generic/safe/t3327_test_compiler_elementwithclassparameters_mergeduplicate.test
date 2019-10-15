@@ -1,10 +1,10 @@
 ## -*- mode:ulam -*-
 #=t3327_test_compiler_elementwithclassparameters_mergeduplicate
-#!
 ##      //before decllist:
 ##      //Exit status: 0\nUe_Foo { Bool(UNKNOWN) b(false);  constant Int(CONSTANT) x = NONREADYCONST;  constant Int(CONSTANT) y = NONREADYCONST;  Bool(UNKNOWN) sp(false);  Int(32) test() {  Foo f;  Foo p;  f sp . -2 -2 == = 0 return } }\nUe_Poo { Bool(1) valb[3](false,false,false);  <NOMAIN> }
 ##      //Constants have explicit types; instead of -2 NodeTerminalProxy outputs 'f.sizeof' for example.
 ##
+#!
 Exit status: 0
 Ue_R { Int(32) test() {  Foo(1,3u) f;  Foo(1,3u) p;  f sp . true = 0 cast return } }
 Ue_Foo(Int(32) x, Unsigned(32) y) { Bool(UNKNOWN) sp(notready);  Bool(UNKNOWN) b(notready);  Bool(UNKNOWN) c[UNKNOWN](notready);  <NOMAIN> }

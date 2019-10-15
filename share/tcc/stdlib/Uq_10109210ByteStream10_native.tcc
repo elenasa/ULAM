@@ -5,6 +5,8 @@
 #include "UlamByteWrappers.h"
 #include <stdarg.h>  /* For ... */
 
+#if 0
+//e.g. run test t3531, find Int(3) immediates in generated code for Ue_10103Ish10_Types.h
 #ifndef Ud_Ui_Ut_r10131i
 #define Ud_Ui_Ut_r10131i
 namespace MFM{
@@ -15,12 +17,12 @@ namespace MFM{
     typedef typename AC::ATOM_TYPE T;
     enum { BPA = AC::BITS_PER_ATOM };
 
-    const u32 read() const { return UlamRef<EC>::Read(); /* entire */ } //gcnl:UlamTypePrimitive.cpp:323
-    void write(const u32& targ) { UlamRef<EC>::Write(targ); /* entire */ } //gcnl:UlamTypePrimitive.cpp:355
-    Ui_Ut_r10131i(BitStorage<EC>& targ, u32 idx, const UlamContext<EC>& uc) : UlamRef<EC>(idx, 3u, targ, NULL, UlamRef<EC>::PRIMITIVE, uc) { } //gcnl:UlamTypePrimitive.cpp:241
-    Ui_Ut_r10131i(const UlamRef<EC>& arg, s32 idx) : UlamRef<EC>(arg, idx, 3u, NULL, UlamRef<EC>::PRIMITIVE) { } //gcnl:UlamTypePrimitive.cpp:253
-    Ui_Ut_r10131i(const Ui_Ut_r10131i<EC>& arg) : UlamRef<EC>(arg, 0, arg.GetLen(), NULL, UlamRef<EC>::PRIMITIVE) { MFM_API_ASSERT_ARG(arg.GetLen() == 3); } //gcnl:UlamTypePrimitive.cpp:268
-    Ui_Ut_r10131i& operator=(const Ui_Ut_r10131i& rhs); //declare away //gcnl:UlamTypePrimitive.cpp:277
+    const u32 read() const { return UlamRef<EC>::Read(); /* entire */ } //gcnl:UlamTypePrimitive.cpp:311
+    void write(const u32& targ) { UlamRef<EC>::Write(targ); /* entire */ } //gcnl:UlamTypePrimitive.cpp:343
+    Ui_Ut_r10131i(BitStorage<EC>& targ, u32 idx, const UlamContext<EC>& uc) : UlamRef<EC>(idx, 3u, targ, NULL, UlamRef<EC>::PRIMITIVE, uc) { } //gcnl:UlamTypePrimitive.cpp:229
+    Ui_Ut_r10131i(const UlamRef<EC>& arg, s32 idx) : UlamRef<EC>(arg, idx, 3u, NULL, UlamRef<EC>::PRIMITIVE) { } //gcnl:UlamTypePrimitive.cpp:241
+    Ui_Ut_r10131i(const Ui_Ut_r10131i<EC>& arg) : UlamRef<EC>(arg, 0, arg.GetLen(), NULL, UlamRef<EC>::PRIMITIVE) { MFM_API_ASSERT_ARG(arg.GetLen() == 3); } //gcnl:UlamTypePrimitive.cpp:256
+    Ui_Ut_r10131i& operator=(const Ui_Ut_r10131i& rhs); //declare away //gcnl:UlamTypePrimitive.cpp:265
   };
 } //MFM
 #endif /*Ud_Ui_Ut_r10131i */
@@ -29,6 +31,8 @@ namespace MFM{
 #define Ud_Ui_Ut_10131i
 namespace MFM{
 
+  template<class EC> class Ui_Ut_r10131i; //forward //gcnl:UlamTypePrimitive:
+
   template<class EC>
   struct Ui_Ut_10131i : public BitVectorBitStorage<EC, BitVector<3u> >
   {
@@ -36,31 +40,33 @@ namespace MFM{
     typedef typename AC::ATOM_TYPE T;
     enum { BPA = AC::BITS_PER_ATOM };
 
-    typedef BitVector<3> BV; //gcnl:UlamTypePrimitive.cpp:476
-    typedef BitVectorBitStorage<EC, BV> BVS; //gcnl:UlamTypePrimitive.cpp:479
+    typedef BitVector<3> BV; //gcnl:UlamTypePrimitive.cpp:464
+    typedef BitVectorBitStorage<EC, BV> BVS; //gcnl:UlamTypePrimitive.cpp:467
 
-    const u32 read() const { return BVS::Read(0u, 3u); } //gcnl:UlamTypePrimitive.cpp:565
-    void write(const u32& v) { BVS::Write(0u, 3u, v); } //gcnl:UlamTypePrimitive.cpp:602
-    Ui_Ut_10131i() { } //gcnl:UlamTypePrimitive.cpp:492
-    Ui_Ut_10131i(const u32 d) { write(d); } //gcnl:UlamTypePrimitive.cpp:500
-    Ui_Ut_10131i(const Ui_Ut_10131i& other) { this->write(other.read()); } //gcnl:UlamTypePrimitive.cpp:523
-    Ui_Ut_10131i(const Ui_Ut_r10131i<EC>& d) { this->write(d.read()); } //gcnl:UlamTypePrimitive.cpp:532
+    const u32 read() const { return BVS::Read(0u, 3u); } //gcnl:UlamTypePrimitive.cpp:556
+    void write(const u32& v) { BVS::Write(0u, 3u, v); } //gcnl:UlamTypePrimitive.cpp:606
+    Ui_Ut_10131i() { } //gcnl:UlamTypePrimitive.cpp:480
+    Ui_Ut_10131i(const u32 d) { write(d); } //gcnl:UlamTypePrimitive.cpp:488
+    Ui_Ut_10131i(const Ui_Ut_10131i& other) : BVS() { this->write(other.read()); } //gcnl:UlamTypePrimitive.cpp:511
+    Ui_Ut_10131i(const Ui_Ut_r10131i<EC>& d) { this->write(d.read()); } //gcnl:UlamTypePrimitive.cpp:520
+    virtual const char * GetUlamTypeMangledName() const { return "Ut_10131i"; } //gcnl:UlamType.cpp:929
   };
 } //MFM
 #endif /*Ud_Ui_Ut_10131i */
+#endif
 
 namespace MFM{
 
   template<class EC>
   Ui_Uq_r10109210ByteStream10<EC> Uq_10109210ByteStream10<EC>::Uf_6printf(const UlamContext<EC>& uc, UlamRef<EC>& ur, Ui_Ut_102321s<EC>& Uv_3fmt, ...) const
   {
-    const u32 writeByteFuncIdx = Uq_10109210ByteStream10<EC>::VTABLE_IDX_Uf_919writeByte1110181u;
-    VfuncPtr writeByte = ur.GetEffectiveSelf()->getVTableEntry(writeByteFuncIdx);
+    VfuncPtr writeByte;
+    UlamRef<EC> vfur(ur, Uq_10109210ByteStream10<EC>::VOWNED_IDX_Uf_919writeByte1110181u, Uq_10109210ByteStream10<EC>::THE_INSTANCE, writeByte);
+
     Uq_10109210ByteStream10<EC>::Uf_919writeByte1110181u writeByteFunc
       = (Uq_10109210ByteStream10<EC>::Uf_919writeByte1110181u) writeByte;
 
-    _UlamByteSinkWrapper<EC> ubsw(uc,ur, writeByteFunc);
-    Ui_Uq_r10109210ByteStream10<EC> self(ur, 0u, ur.GetEffectiveSelf());
+    _UlamByteSinkWrapper<EC> ubsw(uc, vfur, writeByteFunc);
 
     const u32 strval = Uv_3fmt.read();
     const u8 * p = GetStringPointerFromGlobalStringPool(strval);
@@ -151,7 +157,7 @@ namespace MFM{
     }
 
     va_end(ap);
-    return self;
+    return Ui_Uq_r10109210ByteStream10<EC>(ur);
   } // Uf_6printf
 
 } //MFM

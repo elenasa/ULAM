@@ -108,13 +108,13 @@ namespace MFM {
       m_nodeNext->printPostfix(fp);
   } //printPostfix
 
-  void NodeStatements::noteTypeAndName(s32 totalsize, u32& accumsize)
+  void NodeStatements::noteTypeAndName(UTI cuti, s32 totalsize, u32& accumsize)
   {
     assert(m_node);    //e.g. bad decl
-    m_node->noteTypeAndName(totalsize, accumsize);
+    m_node->noteTypeAndName(cuti, totalsize, accumsize);
 
     if(m_nodeNext)
-      m_nodeNext->noteTypeAndName(totalsize, accumsize);
+      m_nodeNext->noteTypeAndName(cuti, totalsize, accumsize);
   }
 
   void NodeStatements::genTypeAndNameEntryAsComment(File * fp, s32 totalsize, u32& accumsize)

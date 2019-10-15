@@ -1,8 +1,8 @@
 ## -*- mode:ulam -*-
 #=t3908_test_compiler_elementandquark_atomofmemberselectarrayitemlval
-#!
 ##      gen code output: 2 asserts
 ##
+#!
 Exit status: -11
 Ue_R { Int(32) ans(0);  Int(32) test() {  System s;  T tr[2];  tr 1 [] m_earr 2 [] . b . true = Atom(96)& me = tr 1 [] m_earr 2 [] ..atomof;  { me A as cond { A& me;  s ( me b . )assert . } if s ( false )assert . else } A a;  tr 1 [] m_earr 2 [] ..atomof a cast = { me A as cond { A& me;  s ( me b . ! )assert . } if s ( false )assert . else } 0 cast return } }
 Uq_System { <NOMAIN> }

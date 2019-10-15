@@ -2,7 +2,7 @@
 #=t3477_test_compiler_funcargcalledwithunfitconstants
 #!
 Exit status: 7
-Ue_Tu { typedef Int(3) I;  typedef Int(4) J;  Int(32) test() {  ( 7 )func cast return } }
+Ue_Tu { typedef Int(3) I;  typedef Int(4) J;  Int(32) test() {  self ( 7 )func . cast return } }
 #>Tu.ulam
   ulam 1;
 element Tu {

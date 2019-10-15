@@ -12,7 +12,7 @@
 ## Int Arg: 7
 #!
 Exit status: 7
-Ue_A { Int(4) b(4);  System s();  Bar bar( Bool(1) b(true); );  Int(4) a(3);  Bool(7) d(true);  Int(32) test() {  Bar localbar;  A locala;  s ( a cast b cast +b cast )print . s ( bar b . )assert . s ( bar b . cast )print . s ( localbar b . cast )print . s ( locala d . cast )print . s ( locala a . cast locala b . cast +b cast )print . locala a . 1 cast -= locala b . 1 cast -= s ( locala a . cast locala b . cast +b cast )print . a 1 cast -= b 1 cast -= a cast b cast +b cast return } }
+Ue_A { Int(4) b(4);  System s();  Bar bar( Bool(1) b(true); );  Int(4) a(3);  Bool(7) d(true);  Int(32) test() {  Bar localbar;  A locala;  self s . ( self a . cast self b . cast +b cast )print . self s . ( self bar . b . )assert . self s . ( self bar . b . cast )print . self s . ( localbar b . cast )print . self s . ( locala d . cast )print . self s . ( locala a . cast locala b . cast +b cast )print . locala a . 1 cast -= locala b . 1 cast -= self s . ( locala a . cast locala b . cast +b cast )print . self a . 1 cast -= self b . 1 cast -= self a . cast self b . cast +b cast return } }
 Uq_Bar { Bool(1) b( true);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 #>A.ulam

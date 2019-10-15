@@ -1,12 +1,13 @@
 ## -*- mode:ulam -*-
 #=t3767_test_compiler_elementandquarkswclassargs_wdefaultparamvalueandtype_negbs_error
 #!
-./P.ulam:7:16: ERROR: Type Bitsize specifier for Unsigned type, within (), is a negative numeric constant expression: -3.
-./P.ulam:8:11: ERROR: Type Bitsize specifier for Unsigned type, within (), is a negative numeric constant expression: -4.
-./P.ulam:13:0: ERROR: Invalid size (0) to set for primitive type: Unsigned.
+./P.ulam:9:16: ERROR: Type Bitsize specifier for Unsigned type, within (), is a negative numeric constant expression: -3.
+./P.ulam:10:16: ERROR: Type Bitsize specifier for Unsigned type, within (), is a negative numeric constant expression: -4.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t3526
+## named constants used to delay errors; also finds rather quickly:
+## ./P.ulam:13:0: ERROR: Invalid size (0) to set for primitive type: Unsigned.
 ##
 #>P.ulam
   ulam 1;
@@ -14,10 +15,12 @@ use Q;
 element P {
   Bool b;
   constant Unsigned c = 3u;
+  constant Unsigned d = 4u;
+  constant Unsigned e = (d - c - 1);
   Int test() {
     Q(-(Int)c, 0) x; //fails
-    Q(-4, 0) z; //fails
-    Q(0, 0) y; //fails
+    Q(-(Int)d, 0) z; //fails
+    Q(e, 0) y; //fails, intentionally delayed
     return (Int) (z.sizeof) + (Int) (y.sizeof);
   }
 }

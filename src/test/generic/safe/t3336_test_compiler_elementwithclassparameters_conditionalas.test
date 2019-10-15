@@ -1,14 +1,14 @@
 ## -*- mode:ulam -*-
 #=t3336_test_compiler_elementwithclassparameters_conditionalas
-#!
 ##      /* gen code output (with assert):
 ##	 Int Arg: 1
 ##      */
 ##      //Constants have explicit types
 ##      //eval can't test 'as' since atoms have no types: e(7), not e(0).
 ##
+#!
 Exit status: -11
-Ue_Foo : Counter4(3) { :< constant Int(32) x = 3;  Int(3) d(0); > System s();  Int(32) e(0);  constant Int(32) v = 3;  Int(32) test() {  Atom(96) a;  Foo f;  a f cast = { a Counter4(3) as cond { Counter4(3)& a;  a ( )incr . e a ( )get . = s ( e )print . } if e 7 cast = else } s ( e 1 cast == )assert . e return } }
+Ue_Foo : Counter4(3) { System s();  Int(32) e(0);  constant Int(32) v = 3;  :Counter4(3)< constant Int(32) x = 3;  Int(3) d(0); > Int(32) test() {  Atom(96) a;  Foo f;  a f cast = { a Counter4(3) as cond { Counter4(3)& a;  a ( )incr . self e . a ( )get . = self s . ( self e . )print . } if self e . 7 cast = else } self s . ( self e . 1 cast == )assert . self e . return } }
 Uq_Counter4(Int(32) x) { Int(UNKNOWN) d(notready);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

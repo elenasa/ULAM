@@ -4,7 +4,7 @@
 Exit status: 3
 Ue_R { Int(32) test() {  System s;  Foo f;  f a . f us . cast = s ( f a . )print . s ( f a . 4u cast == )assert . f a . 3u = s ( f a . )print . s ( f a . 3u cast == )assert . f sp . f ( )func . cast = s ( f sp . cast )assert . f a . cast return } }
 Uq_System { <NOMAIN> }
-Ue_Foo : Soo(3u) { :< Unsigned(3) us( 4u); > Bool(7) sp(false);  Unsigned(32) a( 73u);  <NOMAIN> }
+Ue_Foo : Soo(3u) { Bool(7) sp(false);  Unsigned(32) a( 73u);  :Soo(3u)< Unsigned(3) us( 4u); > <NOMAIN> }
 Uq_Constants { constant Unsigned(3) soosize = 3u;  typedef Soo(3u) Soo3;  <NOMAIN> }
 Uq_Soo(Unsigned(3) v) { Unsigned(UNKNOWN) us(notready);  <NOMAIN> }
 ##

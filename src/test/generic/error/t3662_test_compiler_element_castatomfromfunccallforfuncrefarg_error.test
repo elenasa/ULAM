@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3662_test_compiler_element_castatomfromfunccallforfuncrefarg_error
 #!
-./Foo.ulam:12:10: ERROR: Invalid argument 1 to function <func>; Cannot be used as a reference parameter.
+./Foo.ulam:12:10: ERROR: Invalid argument 1 to function 'func'; Cannot be used as a reference parameter.
 ./Foo.ulam:12:8: ERROR: Assignment is invalid; LHS: Bool(1); RHS: erroneous.
 Unrecoverable Program Type Label FAILURE.
 ##

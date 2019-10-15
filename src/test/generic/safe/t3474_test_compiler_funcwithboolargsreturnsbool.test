@@ -1,10 +1,10 @@
 ## -*- mode:ulam -*-
 #=t3474_test_compiler_funcwithboolargsreturnsbool
-#!
 ##      //./Tu.ulam:13:7: ERROR: (1) <func2> has no defined function with 2 matching argument types: Bool(3), Bool(3), and cannot be called, while compiling class: Tu.
 ##
+#!
 Exit status: 0
-Ue_Tu { Bool(3) me(false);  Int(32) test() {  me ( )func cast = me ( me me )func2 cast = me cast return } }
+Ue_Tu { Bool(3) me(false);  Int(32) test() {  self me . self ( )func . cast = self me . self ( self me . self me . )func2 . cast = self me . cast return } }
 #>Tu.ulam
   ulam 1;
 element Tu {

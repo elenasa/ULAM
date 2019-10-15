@@ -9,7 +9,7 @@
 ##
 #!
 Exit status: 8
-Ue_Foo : QW { :< Bits(32) m_it(0); > Bool(1) first(false);  Int(4) m_i(0);  Int(32) test() {  System s;  Foo f;  f m_it . 1u cast = f ( 5u cast )operator<<= . s ( f m_it . cast )print . s ( f m_it . 32u cast == )assert . f ( 2u cast )operator>>= . s ( f m_it . cast )print . s ( f m_it . 8u cast == )assert . Unsigned(32) usl = f ( 1u cast )operator<< .;  s ( usl )print . s ( usl 16u cast == )assert . Unsigned(32) usr = f ( 3u cast )operator>> .;  s ( usr )print . s ( usr 1u cast == )assert . s ( f m_it . 8u cast == )assert . f m_it . cast return } }
+Ue_Foo : QW { Bool(1) first(false);  Int(4) m_i(0);  :QW< Bits(32) m_it(0); > Int(32) test() {  System s;  Foo f;  f m_it . 1u cast = f ( 5u cast )operator<<= . s ( f m_it . cast )print . s ( f m_it . 32u cast == )assert . f ( 2u cast )operator>>= . s ( f m_it . cast )print . s ( f m_it . 8u cast == )assert . Unsigned(32) usl = f ( 1u cast )operator<< .;  s ( usl )print . s ( usl 16u cast == )assert . Unsigned(32) usr = f ( 3u cast )operator>> .;  s ( usr )print . s ( usr 1u cast == )assert . s ( f m_it . 8u cast == )assert . f m_it . cast return } }
 Uq_QW { Bits(32) m_it(0);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

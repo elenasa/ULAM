@@ -6,7 +6,7 @@
 ##
 #!
 Exit status: 40
-Ue_Foo { Int(32) m_idx(40);  C2D m_coord( typedef Int(6) IF;  Int(6) m_width(9);  Int(6) m_height(4); );  Int(32) test() {  System s;  m_idx m_coord ( 9 cast 4 cast )func . ( 0 cast 0 cast )getIndex . = s ( m_idx )print . s ( m_idx 40 cast == )assert . m_idx return } }
+Ue_Foo { Int(32) m_idx(40);  C2D m_coord( typedef Int(6) IF;  Int(6) m_width(9);  Int(6) m_height(4); );  Int(32) test() {  System s;  self m_idx . self m_coord . ( 9 cast 4 cast )func . ( 0 cast 0 cast )getIndex . = s ( self m_idx . )print . s ( self m_idx . 40 cast == )assert . self m_idx . return } }
 Uq_C2D { typedef Int(6) IF;  Int(6) m_width(0);  Int(6) m_height(0);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

@@ -1,6 +1,5 @@
 ## -*- mode:ulam -*-
 #=t3828_test_compiler_quarkinheritance_selfascond
-#!
 ## gencode output:
 ## Bool(3) Arg: 0x7 (true)
 ## assert: arg is 1
@@ -12,9 +11,10 @@
 ## after asserts abort: arg is 1
 ##
 ##
+#!
 Exit status: 0
-Ue_Foo { Bool(1) first(true);  Int(32) test() {  Soo su;  first su ( )func . = 0 cast return } }
-Uq_Soo : Coo { :< Bool(3) cb(false); > Unsigned(3) us( 4u);  <NOMAIN> }
+Ue_Foo { Bool(1) first(true);  Int(32) test() {  Soo su;  self first . su ( )func . = 0 cast return } }
+Uq_Soo : Coo { Unsigned(3) us( 4u);  :Coo< Bool(3) cb(false); > <NOMAIN> }
 Uq_Coo { Bool(3) cb(false);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

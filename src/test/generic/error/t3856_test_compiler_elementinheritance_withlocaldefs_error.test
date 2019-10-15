@@ -2,6 +2,7 @@
 #=t3856_test_compiler_elementinheritance_withlocaldefs_error
 #!
 ./Foo.ulam:5:3: ERROR: Keyword 'local' for filescope: Foo.ulam; used incorrectly in this context.
+./Foo.ulam:5:3: ERROR: Expecting Type of data member/function (or, in the midst of errors); Got <local>.
 ./Foo.ulam:4:1: ERROR: Empty/Incomplete Class Definition 'Foo'; Possible missing ending curly brace.
 ./Foo.ulam:5:18: ERROR: Invalid Class Type <Unsigned>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 ./Foo.ulam:4:9: ERROR: Invalid Type: Foo.

@@ -5,6 +5,7 @@
 ./A.ulam:15:7: ERROR: Incomplete condition; which-control failure.
 ./A.ulam:15:7: ERROR: Unexpected token <TOK_OPEN_CURLY>; Expected }.
 ./A.ulam:17:2: ERROR: Break statement not within loop or which-control.
+./A.ulam:20:5: ERROR: Expecting Type of data member/function (or, in the midst of errors); Got <return>.
 ./A.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'A'; Possible missing ending curly brace.
 ./A.ulam:20:5: ERROR: Invalid Class Type <return>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 ./A.ulam:2:9: ERROR: Invalid Type: A.

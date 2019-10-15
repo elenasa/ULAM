@@ -1,14 +1,14 @@
 ## -*- mode:ulam -*-
 #=t41074_test_compiler_elementandquark_customarrayonfunccallreturn
-#!
 ##      gen code output: 2 asserts
 ##          Bool(3) Arg: 0x7 (true)
 ##
+#!
 Exit status: -11
-Ue_A : QW { :<> Bool(1) b(false);  System s();  QW m_q();  Int(32) test() {  b ( )getCA ( 0 cast )aref . ( )setb . = s ( b cast )print . s ( b )assert . ( )getCA ( 1 cast )aref . b . b = ( )getCA ( 2 cast )aref . ( )getCA ( 0 cast )aref . = 0 cast return } }
+Ue_A : QW { Bool(1) b(false);  System s();  QW m_q();  :QW<> Int(32) test() {  self b . self ( )getCA . ( 0 cast )aref . ( )setb . = self s . ( self b . cast )print . self s . ( self b . )assert . self ( )getCA . ( 1 cast )aref . b . self b . = self ( )getCA . ( 2 cast )aref . self ( )getCA . ( 0 cast )aref . = 0 cast return } }
 Uq_System { <NOMAIN> }
 Uq_QW { <NOMAIN> }
-Un_Tfoo { A m_a[4]( :<> System s();  Bool(1) b(false);  QW m_q(); ), ( :<> System s();  Bool(1) b(false);  QW m_q(); ), ( :<> System s();  Bool(1) b(false);  QW m_q(); ), ( :<> System s();  Bool(1) b(false);  QW m_q(); );  <NOMAIN> }
+Un_Tfoo { A m_a[4]( System s();  Bool(1) b(false);  QW m_q();  :QW<>), ( System s();  Bool(1) b(false);  QW m_q();  :QW<>), ( System s();  Bool(1) b(false);  QW m_q();  :QW<>), ( System s();  Bool(1) b(false);  QW m_q();  :QW<>);  <NOMAIN> }
 ##
 ## informed by t3916
 ##

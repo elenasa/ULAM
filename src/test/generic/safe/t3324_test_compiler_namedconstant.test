@@ -1,34 +1,37 @@
 ## -*- mode:ulam -*-
 #=t3324_test_compiler_namedconstant
-#!
 ##     /* gen code output:
 ##	 Int Arg: 8
 ##       */
 ##      //different casts since Constants have explicit types
 ##      // constant fold: j 1 7 +b =, 1 6u cast +b
 ##
+#!
 Exit status: 8
-Ue_A { Int(32) j(8);  System s();  Int(32) test() {  constant Int(32) cOW = 7;  j 8 = s ( j )print . j return } }
+Ue_A { Int(32) j(8);  System s();  Int(32) test() {  constant Int(32) cOW = 7;  self j . 8 = self s . ( self j . )print . self j . return } }
 Uq_System { <NOMAIN> }
 Uq_B { typedef Int(3) Bar[2];  Int(3) j[2](0,0);  <NOMAIN> }
 #>A.ulam
+  ulam 1;
 use System;
 use B;
 element A{
-System s;
-Int j;
-Int test () {
-constant Int cOW = 1 + B.sizeof;
- j = 1 + cOW;
-s.print(j);
- return j;
-}
+  System s;
+  Int j;
+  Int test () {
+    constant Int cOW = 1 + B.sizeof;
+    j = 1 + cOW;
+    s.print(j);
+    return j;
+  }
 }
 
 #:B.ulam
+  ulam 1;
 quark B{
-typedef Int(3) Bar[2]; Bar j;
+  typedef Int(3) Bar[2]; Bar j;
 }
+
 #:System.ulam
 ulam 1;
 quark System {

@@ -2,7 +2,7 @@
 #=t3570_test_compiler_elementandquarkinheritancetemplatemix_wconstant
 #!
 Exit status: 1
-Ue_Tu : Foo(1,true) { :< constant Int(32) a = 1;  constant Bool(1) b = true;  constant Int(32) c = 1; > Int(32) test() {  1 return } }
+Ue_Tu : Foo(1,true) { :Foo(1,true)< constant Int(32) a = 1;  constant Bool(1) b = true;  constant Int(32) c = 1; > Int(32) test() {  1 return } }
 Uq_Foo(Int(32) a, Bool(1) b) { constant Int(32) c = a;  <NOMAIN> }
 ##
 ##       //classes can inherit from a template instance, and vis versa

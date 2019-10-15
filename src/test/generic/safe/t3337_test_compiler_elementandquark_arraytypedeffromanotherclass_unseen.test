@@ -1,9 +1,9 @@
 ## -*- mode:ulam -*-
 #=t3337_test_compiler_elementandquark_arraytypedeffromanotherclass_unseen
-#!
 ##      //No error about zero bitsize!!
 ##      //Exit status: 1\nUe_TypedefIssue { Unsigned(3) x[2](2,1);  Bool(1) b(true);  Vector t( typedef Unsigned(3) Symmetry[2];  Unsigned(3) m[2](2,1); );  Int(32) test() {  x 0 [] 2 cast = x 1 [] 1 cast = t ( x )set . cond b true = if t m 1 [] . cast return } }\nUq_Vector { typedef Unsigned(3) Symmetry[2];  Unsigned(3) m[2](2,1);  <NOMAIN> }
 ##
+#!
 Exit status: 1
 Ue_R { Int(32) test() {  TypedefIssue ish;  ish ( )foo . return } }
 Ue_TypedefIssue { typedef Unsigned(3) Symmetry[2];  Unsigned(3) x[2](0,0);  Bool(1) b(false);  Vector t( typedef Unsigned(3) Channel;  typedef Unsigned(3) Symmetry[2];  Unsigned(3) m[2](0,0); );  <NOMAIN> }

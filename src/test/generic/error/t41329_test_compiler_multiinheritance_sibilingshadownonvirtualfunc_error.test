@@ -1,0 +1,104 @@
+## -*- mode:ulam -*-
+#=t41329_test_compiler_multiinheritance_siblingshadownonvirtualfunc_error
+##
+#!
+./QBaseLast.ulam:4:7: Warning: Function: funcb() has conflicting declarations in multiple base classes, QBase3 and QBaseLast while compiling E4.
+./Foo.ulam:15:15: ERROR: Ambiguous matches (2) of function 'funcb' called without arguments.
+./QBase3.ulam:4:7: NOTE: Match (1 of 2) : Int(32) funcb().
+./QBaseLast.ulam:4:7: NOTE: Match (2 of 2) : Int(32) funcb().
+./Foo.ulam:15:10: ERROR: Assignment is invalid; LHS: Int(32); RHS: erroneous.
+./QBaseLast.ulam:5:15: Warning: Virtual Function: vfuncb() has conflicting declarations in multiple base classes, QBase3 and QBaseLast while compiling E4.
+./Foo.ulam:18:15: ERROR: Ambiguous matches (2) of function 'vfuncb' called without arguments.
+./QBase3.ulam:5:15: NOTE: Match (1 of 2) : Int(32) vfuncb().
+./QBaseLast.ulam:5:15: NOTE: Match (2 of 2) : Int(32) vfuncb().
+./Foo.ulam:18:10: ERROR: Assignment is invalid; LHS: Int(32); RHS: erroneous.
+Unrecoverable Program Type Label FAILURE.
+##
+##  informed by t41328; siblings may have non-virtual functions with same name, requiring
+##  specific base when called to disambiguate.
+##  Virtual funcs originating in siblings outputs errors when called.
+##
+#>Foo.ulam
+  ulam 5;
+element Foo +System {
+  Int m_c4;
+  Int m_a4;
+
+  Int test()
+  {
+    E4 e4;
+
+    //must specify which base for ambiguous non-virtual funcb
+    m_a4 = e4.QBaseLast.funcb(); //911
+    print(m_a4);
+    assert(m_a4==911);
+
+    m_c4 = e4.funcb(); //ambiguous
+
+    //not until called, do we get errors for virtuals originating in siblings
+    m_a4 = e4.vfuncb();
+    print(m_a4);
+    assert(m_a4==3111);
+
+    return 0;
+  }
+}
+
+
+#:E4.ulam
+  ulam 5;
+element E4 : QBase3 +QBase2 +QBaseLast {
+  Bool m_b4;
+  virtual Int vfunca() { m_b1 = true; return 411; }
+  virtual Int vfuncc() { m_boo = true; return 412; }
+  virtual Void behave() { }
+  typedef QBase2 QB2;
+}
+
+#:QBase1.ulam
+    ulam 4;
+quark QBase1 {
+  Bool m_b1;
+  Void funcNotVirtualSoIrrelevantHere() { }
+  virtual Int vfunca() { m_b1 = true; return 110; }
+}
+
+#:QBase2.ulam
+  ulam 5;
+quark QBase2 +QBase1 {
+  Bool m_boo;
+  Bits(1) m_bit; //so that len of QBase2 is different than its pos in E4.
+  virtual ARGB getColor(Unsigned s) { return super.getColor(s); }
+  virtual Int vfuncc() { m_boo = true; return 212; }
+}
+
+#:QBase3.ulam
+  ulam 4;
+quark QBase3 : QBase1 {
+  Bool m_boo;
+  Int funcb() { return 311; }
+  virtual Int vfuncb() { return 3111; }
+}
+
+#:QBaseLast.ulam
+  ulam 4;
+quark QBaseLast {
+  Bool m_b1;
+  Int funcb() { return 911; }
+  virtual Int vfuncb() { return 9111; }
+}
+
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

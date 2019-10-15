@@ -386,6 +386,9 @@ namespace MFM {
     assert(m_varSymbol->isAutoLocal());
     assert(m_varSymbol->getAutoLocalType() != ALT_AS);
 
+    UVPass uvpass2clear;
+    uvpass = uvpass2clear; //refresh (t3804);
+
     if(hasInitExpr())
       {
 	// get the right-hand side, stgcos

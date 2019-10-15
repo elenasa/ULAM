@@ -8,7 +8,7 @@
 ##
 #!
 Exit status: 4
-Ue_A { Int(32) b(2);  Int(32) c(4);  Int(32) test() {  System s;  Bar a;  b 1 cast a ( )toInt . cast << cast = s ( b )print . s ( b 2 cast == )assert . c a ( )toInt . cast cast 2 cast << cast = s ( c )print . s ( c 4 cast == )assert . Bits(32) bits = c cast a ( )toInt . cast <<;  s ( bits cast )print . s ( bits 8u cast == )assert . c return } }
+Ue_A { Int(32) b(2);  Int(32) c(4);  Int(32) test() {  System s;  Bar a;  self b . 1 cast a ( )toInt . cast << cast = s ( self b . )print . s ( self b . 2 cast == )assert . self c . a ( )toInt . cast cast 2 cast << cast = s ( self c . )print . s ( self c . 4 cast == )assert . Bits(32) bits = self c . cast a ( )toInt . cast <<;  s ( bits cast )print . s ( bits 8u cast == )assert . self c . return } }
 Uq_System { <NOMAIN> }
 Uq_Bar { <NOMAIN> }
 #>A.ulam

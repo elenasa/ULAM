@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3334_test_compiler_elementwithclassparameters_deferredfuncargs_duperror
 #!
-./S.ulam:10:5: ERROR: Check overloaded function <func> has a duplicate definition (Uf_4func1110121i), while compiling class: S(2,2).
+./S.ulam:10:5: ERROR: Check overloaded function 'func' has a duplicate definition (Uf_4func1110121i), while compiling class: S(2,2).
 Unrecoverable Program Type Label FAILURE.
 ##
 ##    //informed by t3333

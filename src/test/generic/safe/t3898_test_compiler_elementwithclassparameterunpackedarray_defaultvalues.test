@@ -6,9 +6,9 @@
 ##
 #!
 Exit status: 4
-Ue_T { Int(32) r(4);  Int(32) test() {  System s;  S(111213n14141414141414,-3) n;  r n ( )func . = s ( r )print . s ( r 4 cast == )assert . r return } }
+Ue_T { Int(32) r(4);  Int(32) test() {  System s;  S(111213n14141414141414,-3) n;  self r . n ( )func . = s ( self r . )print . s ( self r . 4 cast == )assert . self r . return } }
 Uq_System { <NOMAIN> }
-Uq_S(Int(32)[10] y = NONREADYCONSTARRAY, Int(32) x = -3) { <NOMAIN> }
+Uq_S(Int(32)[10] y = NONREADYCONSTARRAY, Int(32) x = NONREADYCONST) { <NOMAIN> }
 ##
 ##    //informed by t3894: devault values for class params,
 ##    //including constant array w negative values, and negative default class param value

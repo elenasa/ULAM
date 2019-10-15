@@ -2,7 +2,7 @@
 #=t3622_test_compiler_quarkinheritances_superclassready_ish
 #!
 Exit status: 0
-Ue_TriggerIshSCLR { IshSCLR me( :< constant Unsigned(32) a = 8u; >);  Int(32) test() {  0 cast return } }
+Ue_TriggerIshSCLR { IshSCLR me( :ISHY(8u)< constant Unsigned(32) a = 8u; >);  Int(32) test() {  0 cast return } }
 Uq_IshSCLR : ISHY(8u) { /* empty class block */ }
 Uq_ISHY(Unsigned(32) a) { /* empty class block */ }
 Uq_IshSCLR2 : ISHY(8u) { /* empty class block */ }

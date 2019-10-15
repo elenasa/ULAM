@@ -2,7 +2,7 @@
 #=t3138_test_compiler_funcdef_overload
 #!
 Exit status: 6
-Ue_A { typedef Int(16) Foo[2];  Int(16) d[2](6,3);  Int(32) test() {  Bool(1) mybool;  mybool true = d ( mybool )foo = d ( 6 cast )foo = d 0 [] cast return } }
+Ue_A { typedef Int(16) Foo[2];  Int(16) d[2](6,3);  Int(32) test() {  Bool(1) mybool;  mybool true = self d . self ( mybool )foo . = self d . self ( 6 cast )foo . = self d . 0 [] cast return } }
 #>A.ulam
 element A {
  typedef Int(16) Foo [2];

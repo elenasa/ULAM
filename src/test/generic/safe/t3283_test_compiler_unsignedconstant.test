@@ -1,6 +1,5 @@
 ## -*- mode:ulam -*-
 #=t3283_test_compiler_unsignedconstant
-#!
 ##      // Int i = 2147483648; prints as -2147483648, but gets this warning from gcc:
 ##      //include/Ue_102322Fu.tcc:38:39: warning: overflow in implicit constant conversion [-Woverflow]
 ##      // instead do the casting as in itypes.h
@@ -9,22 +8,23 @@
 ##	 Int Arg: 2147483647
 ##      */
 ##      //now printing from saved value
+#!
 Exit status: 0
-Ue_Fu { System s();  Int(32) i(2147483647);  Int(32) test() {  Unsigned(32) u = 4294967295u;  s ( u )print . i 2147483648u cast = s ( i )print . 0 cast return } }
+Ue_Fu { System s();  Int(32) i(2147483647);  Int(32) test() {  Unsigned(32) u = 4294967295u;  self s . ( u )print . self i . 2147483648u cast = self s . ( self i . )print . 0 cast return } }
 Uq_System { <NOMAIN> }
 #>Fu.ulam
-ulam 1;
+  ulam 1;
 use System;
 element Fu {
-System s;
-Int i;
-Int test(){
-Unsigned u = 0xffffffffu;
-s.print(u);
-i = (Int) 2147483648u;
-s.print(i);
-return 0;
-}
+  System s;
+  Int i;
+  Int test(){
+    Unsigned u = 0xffffffffu;
+    s.print(u);
+    i = (Int) 2147483648u;
+    s.print(i);
+    return 0;
+  }
 }
 
 #:System.ulam

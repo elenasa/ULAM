@@ -1,5 +1,5 @@
 ## -*- mode:ulam -*-
-#=t3682_test_compiler_elementquarkinheritance_returnatomasquarkself_error
+#=t3682_test_compiler_elementquarkinheritance_returnatomasquarkself_fail
 ## gencode output (interleaved asserts):
 ##
 ##     include/Uq_10163Coo10.tcc:24: FAILED: NOT_AN_ELEMENT
@@ -8,8 +8,8 @@
 ## dus evals as 6u and fails; expects 2u/
 #!
 Exit status: -11
-Ue_Foo : Soo { :< :< Unsigned(3) us(2u);  Bool(3) cb(true); > Unsigned(3) sus(4u); > Bool(1) first(false);  Unsigned(3) cus(6u);  Unsigned(3) dus(6u);  Int(32) test() {  System s;  Coo c = ( )func;  cus c us . = s ( c us . cast )print . s ( c us . cast 1 cast == )assert . Coo d = c ( )func .;  dus d us . = s ( d us . cast )print . s ( d us . cast 3 cast == )assert . s ( c us . cast d us . cast +b cast )print . s ( c us . cast d us . cast +b cast 6 cast == )assert . s ( cus cast dus cast +b cast )print . s ( cus cast dus cast +b cast 4 cast == )assert . c us . cast d us . cast +b cast return } }
-Uq_Soo : Coo { :< Unsigned(3) us( 2u);  Bool(3) cb( true); > Unsigned(3) sus( 4u);  <NOMAIN> }
+Ue_Foo : Soo { Bool(1) first(false);  Unsigned(3) cus(6u);  Unsigned(3) dus(6u);  :Soo< Unsigned(3) sus(4u);  :Coo< Unsigned(3) us(2u);  Bool(3) cb(true); >> ^Coo< Unsigned(3) us(2u);  Bool(3) cb(true); > Int(32) test() {  System s;  Coo c = self ( )func .;  self cus . c us . = s ( c us . cast )print . s ( c us . cast 1 cast == )assert . Coo d = c ( )func .;  self dus . d us . = s ( d us . cast )print . s ( d us . cast 3 cast == )assert . s ( c us . cast d us . cast +b cast )print . s ( c us . cast d us . cast +b cast 6 cast == )assert . s ( self cus . cast self dus . cast +b cast )print . s ( self cus . cast self dus . cast +b cast 4 cast == )assert . c us . cast d us . cast +b cast return } }
+Uq_Soo : Coo { Unsigned(3) sus( 4u);  :Coo< Unsigned(3) us( 2u);  Bool(3) cb( true); > <NOMAIN> }
 Uq_Coo { Unsigned(3) us( 2u);  Bool(3) cb( true);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

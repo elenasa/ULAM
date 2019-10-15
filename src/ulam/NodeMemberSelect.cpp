@@ -86,9 +86,22 @@ namespace MFM {
     return m_nodeLeft->hasASymbolReferenceConstant();
   }
 
+  bool NodeMemberSelect::belongsToVOWN(UTI vown)
+  {
+    assert(m_nodeLeft && m_nodeRight);
+    if(m_nodeLeft->hasASymbolSelf())
+      return m_nodeRight->belongsToVOWN(vown); //determine
+    return false;
+  }
+
   bool NodeMemberSelect::isAConstant()
   {
     return m_nodeLeft->isAConstant(); //constant classes possible
+  }
+
+  bool NodeMemberSelect::isAMemberSelect()
+  {
+    return true;
   }
 
   const std::string NodeMemberSelect::methodNameForCodeGen()
@@ -130,7 +143,7 @@ namespace MFM {
 	return getNodeType();
       } //done
 
-    TBOOL stor = checkStoreIntoAble();
+    TBOOL stor = checkStoreIntoAble(); //given lhs, this node set later
     if(m_nodeRight->isFunctionCall())
       {
 	if(stor == TBOOL_FALSE)
@@ -408,10 +421,10 @@ namespace MFM {
     evs = m_nodeRight->eval(); //a Node Function Call here, or data member eval
     if(evs != NORMAL) return evalStatusReturn(evs);
 
-    //assigns rhs to lhs UV pointer (handles arrays);
+    //assigns rhs (next slot e.g. t3704) to lhs UV pointer (handles arrays);
     //also copy result UV to stack, -1 relative to current frame pointer
     if(slot) //avoid Void's
-      if(!doBinaryOperation(1, 1+slot, slot))
+      if(!doBinaryOperation(1, 1+1, slot))
 	return evalStatusReturn(ERROR); //skip restore now, ok???
 
     m_state.m_currentObjPtr = saveCurrentObjectPtr; //restore current object ptr
@@ -427,20 +440,26 @@ namespace MFM {
    bool NodeMemberSelect::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
   {
     assert(slots);
-    //the return value of a function call, or value of a data member
-    UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(rslot);
 
     UlamValue rtnUV;
     UTI ruti = getNodeType();
-    PACKFIT packFit = m_state.determinePackable(ruti);
 
-    if(m_state.isScalar(ruti) || WritePacked(packFit))
+    if(Node::returnValueOnStackNeededForEval(ruti)) //t3704
       {
-	rtnUV = ruv;
+	//the return value of a function call, or value of a data member
+	UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(rslot);
+	PACKFIT packFit = m_state.determinePackable(ruti);
+
+	if(m_state.isScalar(ruti) || WritePacked(packFit))
+	  {
+	    rtnUV = ruv;
+	  }
+	else
+	  m_state.abortNotImplementedYet(); //or repeat the next else ????
       }
     else
       {
-	//make a ptr to an unpacked array, base[0] ? [pls test]
+	//make a ptr to an unpacked array, base[0] ? //t3704
 	rtnUV = UlamValue::makePtr(rslot, EVALRETURN, ruti, UNPACKED, m_state);
       }
 
@@ -534,7 +553,6 @@ namespace MFM {
     if(passalongUVPass())
       {
 	luvpass = uvpass;
-	Node::adjustUVPassForElements(luvpass); //t3803?
       }
 
     m_nodeLeft->genCodeToStoreInto(fp, luvpass);
@@ -544,7 +562,6 @@ namespace MFM {
     if(passalongUVPass())
       {
 	uvpass = luvpass;
-	Node::adjustUVPassForElements(uvpass); //t3803?
       }
 
     //check the back (not front) to process multiple member selections (e.g. t3818)
@@ -562,8 +579,7 @@ namespace MFM {
     UVPass luvpass;
     if(passalongUVPass())
       {
-	luvpass = uvpass; //t3584
-	Node::adjustUVPassForElements(luvpass); //t3803 ?
+	luvpass = uvpass; //t3584, t3803
       }
 
     // if parent is another MS, we might need to adjust pos first
@@ -577,8 +593,7 @@ namespace MFM {
     UVPass ruvpass;
     if(passalongUVPass())
       {
-	ruvpass = luvpass;  //t3615 ?
-	Node::adjustUVPassForElements(ruvpass); //t3803
+	ruvpass = luvpass;  //t3615, t3803
       }
 
     m_nodeRight->genCodeToStoreInto(fp, ruvpass); //uvpass contains the member selected, or cos obj symbol?
@@ -588,7 +603,7 @@ namespace MFM {
     //tmp variable needed for any function call not returning a ref (t41006), including 'aref'(t41005); func calls returning a ref already made tmpvar.
     // uvpass not necessarily returning a reference type (t3913,4,5,7);
     // t41035 returns a primitive ref; t3946, t3948
-    if(m_nodeRight->isFunctionCall() && !m_state.isReference(uvpass.getPassTargetType()))
+    if(m_nodeRight->isFunctionCall() && !m_state.isStringATmpVar(uvpass.getPassNameId()))
       {
 	m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, NULL); //dm to avoid leaks
 	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
@@ -604,8 +619,8 @@ namespace MFM {
 	UTI cosuti = cossym->getUlamTypeIdx();
 	UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
 	//t3913, t3915 tmpref may not be a ref, but may need adjusting (i.e. anonymous element returned)
-	// t3706 not isAltRefType
-	rtnb = (!cosut->isReference() && (!cossym->isTmpVarSymbol() || Node::needAdjustToStateBits(cosuti)));
+	// t3706 not isAltRefType; t41307,9,10 isBaseClassRef (ulam-5); t41314 pass if self;
+	rtnb = cossym->isSelf() || (!cosut->isReference() && (!cossym->isTmpVarSymbol() || Node::needAdjustToStateBits(cosuti) || ((SymbolTmpVar *) cossym)->isBaseClassRef()));
       }
     return rtnb;
   }

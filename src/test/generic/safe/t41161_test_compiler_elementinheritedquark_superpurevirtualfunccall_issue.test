@@ -6,11 +6,11 @@
 ##
 #!
 Exit status: 0
-Uq_Sup : SuperDuper { :<> <NOMAIN> }
+Uq_Sup : SuperDuper { :SuperDuper<> <NOMAIN> }
 Uq_SuperDuper { <NOMAIN> }
-Uq_Sub1 : Sup { :< :<>> Int(32) m_fun(0);  <NOMAIN> }
+Uq_Sub1 : Sup { Int(32) m_fun(0);  :Sup<> ^SuperDuper<> <NOMAIN> }
 Uq_System { <NOMAIN> }
-Ue_E : Sub1 { :< :< :<>> Int(32) m_fun(2); > Int(32) test() {  System s;  ( )behave s ( m_fun )print . s ( m_fun 2 cast == )assert . 0 cast return } }
+Ue_E : Sub1 { :Sub1< Int(32) m_fun(2);  :Sup< :SuperDuper<>> ^SuperDuper<>> ^Sup< :SuperDuper<>> ^SuperDuper<> Int(32) test() {  System s;  self ( )behave . s ( self m_fun . )print . s ( self m_fun . 2 cast == )assert . 0 cast return } }
 ##
 ## informed by t41160
 ##

@@ -7,7 +7,7 @@
 ##
 #!
 Exit status: 0
-Ue_A { Bool(1) b(true);  Bits(1) c[70](0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0);  System s();  Int(32) test() {  s ( 70u )print . s ( true )assert . c 10 [] 1u cast = b c 10 [] 1u cast == = s ( b cast )print . s ( b )assert . 0 cast return } }
+Ue_A { Bool(1) b(true);  Bits(1) c[70](0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0);  System s();  Int(32) test() {  self s . ( 70u )print . self s . ( true )assert . self c . 10 [] 1u cast = self b . self c . 10 [] 1u cast == = self s . ( self b . cast )print . self s . ( self b . )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t3775, except null initialization of array c

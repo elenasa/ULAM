@@ -2,7 +2,7 @@
 #=t3221_test_compiler_bitwiseandequalwithconstant
 #!
 Exit status: 2
-Ue_A { typedef Bits(3) B;  Bits(3) b(2);  Int(32) test() {  b 2 cast = b 3 cast &= b cast return } }
+Ue_A { typedef Bits(3) B;  Bits(3) b(2);  Int(32) test() {  self b . 2 cast = self b . 3 cast &= self b . cast return } }
 #>A.ulam
 ulam 1;
  element A {

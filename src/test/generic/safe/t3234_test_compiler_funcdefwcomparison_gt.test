@@ -2,28 +2,31 @@
 #=t3234_test_compiler_funcdefwcomparison_gt
 #!
 Exit status: 20
-Ue_A { Bool(7) b(false);  Int(32) d(20);  System s();  Int(32) test() {  d ( 4 cast 5 cast )times = s ( d )print . d return } }
+Ue_A { Bool(7) b(false);  Int(32) d(20);  System s();  Int(32) test() {  self d . self ( 4 cast 5 cast )times . = self s . ( self d . )print . self d . return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
+  ulam 1;
 use System;
 element A {
- Int times(Int m, Int n) {
-Int d;
- while(m > 0)
-{ d += n;
- m-=1;
-s.print(d);
+  Int times(Int m, Int n) {
+    Int d;
+    while(m > 0)
+    {
+      d += n;
+      m-=1;
+      s.print(d);
+    }
+    return d;
+  }
+  System s;
+  Bool(7) b;
+  Int d;
+  Int test(){
+    d = times(4,5);
+    s.print(d);
+    return d;
+  }
 }
- return d;
- }
-System s;
-Bool(7) b;
-Int d;
-Int test(){ d = times(4,5);
-s.print(d);
-return d;
- }
- }
 
 #:System.ulam
 ulam 1;

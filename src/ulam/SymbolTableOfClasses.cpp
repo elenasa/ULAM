@@ -382,9 +382,9 @@ namespace MFM {
 		std::ostringstream msg;
 		msg << "UNSEEN class type <";
 		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-		msg << "> was never defined in <";
+		msg << "> was never defined in: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-		msg << ".ulam>"; // e.g. error/t3492
+		msg << ".ulam"; // e.g. error/t3492
 		MSG(sym->getTokPtr(), msg.str().c_str(), ERR);
 		navcount++; //for compiler counter
 		//sym->getClassBlockNode()->setNodeType(Nav); //for compiler counter
@@ -590,7 +590,7 @@ namespace MFM {
   //bypasses THIS class being compiled
   void SymbolTableOfClasses::generateForwardDefsForTableOfClasses(File * fp)
   {
-    fp->write("//Forward Defs of other classes:"); GCNL;
+    fp->write("\n//Forward Defs of other classes:"); GCNL;
 
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
     while(it != m_idToSymbolPtr.end())

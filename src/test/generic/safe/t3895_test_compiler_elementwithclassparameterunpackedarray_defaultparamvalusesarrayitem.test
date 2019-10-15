@@ -5,16 +5,16 @@
 ##  Int Arg: 3
 ##
 #!
+Exit status: 3
+Ue_T { Int(32) r(3);  Int(32) test() {  System s;  constant Int(32)[10] site = { 1 cast, 2 cast, 3 cast, 4 cast };  S(11121314141414141414,3,3u) n;  self r . n ( )func . cast = s ( self r . )print . s ( self r . 3 cast == )assert . self r . return } }
+Uq_System { <NOMAIN> }
+Uq_S(Int(32)[10] y, Int(32) x, Unsigned(32) s = NONREADYCONST) { <NOMAIN> }
+Uq_V(Int(32) a) { Unsigned(UNKNOWN) vfoo(notready);  <NOMAIN> }
 ##./T.ulam:16:7: ERROR: Class argument types are limited to scalars by MFM::UlamTypeInfo: Int(32)[10] (arg 1) in class S(21011121314141414141414,3,3u).
 ##./T.ulam:16:7: ERROR: Class argument types are limited to 32 bits by MFM::UlamTypeInfo: Int(64) (arg 2) in class S(21011121314141414141414,3,3u).
 ##Unrecoverable Program Type Label FAILURE.
 ##
 ## otherwise is supported by ulam compiler:
-Exit status: 3
-Ue_T { Int(32) r(3);  Int(32) test() {  System s;  constant Int(32)[10] site = { 1 cast, 2 cast, 3 cast, 4 cast };  S(11121314141414141414,3,3u) n;  r n ( )func . cast = s ( r )print . s ( r 3 cast == )assert . r return } }
-Uq_System { <NOMAIN> }
-Uq_S(Int(32)[10] y, Int(32) x, Unsigned(32) s = NONREADYCONST) { <NOMAIN> }
-Uq_V(Int(32) a) { Unsigned(UNKNOWN) vfoo(notready);  <NOMAIN> }
 ##
 ##    //informed by t3894: param bitsize based on constant array item
 ##

@@ -1,14 +1,14 @@
 ## -*- mode:ulam -*-
 #=t3587_test_compiler_elementandquarkwargs_returnquark
-#!
 ##
 ##   gencode output: (unused variable Uh_5tlreg12) (interleaved asserts)
 ##	 Unsigned Arg: 2
 ##	 Unsigned Arg: 2
 ##	 Unsigned Arg: 2
 ##
+#!
 Exit status: 2
-Ue_E : Qfoo { :< Unsigned(3) data(2u); > Bool(1) b(false);  System s();  Qfoo m_foo( Unsigned(3) data(2u); );  Int(32) test() {  ( )func s ( data cast )print . s ( data cast 2 cast == )assert . Qfoo f;  m_foo f ( )func . = s ( m_foo data . cast )print . s ( m_foo data . cast 2 cast == )assert . Qfoo g = m_foo ( )func .;  s ( g data . cast )print . s ( g data . cast 2 cast == )assert . g data . cast return } }
+Ue_E : Qfoo { Bool(1) b(false);  System s();  Qfoo m_foo( Unsigned(3) data(2u); );  :Qfoo< Unsigned(3) data(2u); > Int(32) test() {  self ( )func . self s . ( self data . cast )print . self s . ( self data . cast 2 cast == )assert . Qfoo f;  self m_foo . f ( )func . = self s . ( self m_foo . data . cast )print . self s . ( self m_foo . data . cast 2 cast == )assert . Qfoo g = self m_foo . ( )func .;  self s . ( g data . cast )print . self s . ( g data . cast 2 cast == )assert . g data . cast return } }
 Uq_Qfoo { Unsigned(3) data(0);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

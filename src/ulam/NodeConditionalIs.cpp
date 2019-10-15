@@ -223,7 +223,7 @@ namespace MFM {
     fp->write(nut->getTmpStorageTypeAsString().c_str()); //bool
     fp->write(" ");
     fp->write(m_state.getTmpVarAsString(nuti, tmpVarIs, TMPREGISTER).c_str());
-    fp->write(" = ");
+    fp->write(" = (");
 
     //is a class
     fp->write(m_state.getTheInstanceMangledNameByIndex(luti).c_str());
@@ -231,7 +231,7 @@ namespace MFM {
     fp->write(m_state.getIsMangledFunctionName(luti)); //UlamElement IsMethod
     fp->write("(&"); //one arg
     fp->write(m_state.getTheInstanceMangledNameByIndex(ruti).c_str());
-    fp->write(");"); GCNL;
+    fp->write("));"); GCNL;
 
     //update uvpass
     uvpass = UVPass::makePass(tmpVarIs, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //POS 0 rightjustified (atom-based).
@@ -265,7 +265,7 @@ namespace MFM {
 
     if(rut->getUlamClassType() == UC_ELEMENT)
       {
-	//reversed call to rhs' overloaded c-implemented 'Is' method;
+	//reversed call to rhs' overloaded c-implemented 'Is' method; rtn bool (t3255)
 	// using lhs' T as argument; required for EMPTY-ELEMENT special case
 	fp->write(m_state.getTheInstanceMangledNameByIndex(ruti).c_str());
 	fp->write(".");
@@ -327,7 +327,7 @@ namespace MFM {
     fp->write(m_state.getIsMangledFunctionName(luti)); //UlamClass IsMethod
     fp->write("(&");
     fp->write(m_state.getTheInstanceMangledNameByIndex(ruti).c_str());
-    fp->write(");"); GCNL;
+    fp->write(");"); GCNL; //3255
 
     //update uvpass
     uvpass = UVPass::makePass(tmpVarIs, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //POS 0 rightjustified (atom-based).

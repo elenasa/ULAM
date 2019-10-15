@@ -2,8 +2,8 @@
 #=t3649_test_compiler_elementandquark_unseenclasstypedef_localquarkarrayGTlong_edit
 ##
 ## gen output: assert
-#!
 ##./Foo.ulam:7:5: ERROR: EVAL: Unpacked array of quarks is unsupported:  Bar(7) with variable symbol name 'tar'.
+#!
 Exit status: 1
 Ue_Foo { Bar(7) b( constant Int(32) x = 7;  Bits(7) m_bits(0); );  constant Int(32) cx = 7;  typedef Bar(7) Tar;  Int(32) test() {  System s;  Bar(7) tar[10];  tar 3 [] ( 1 cast )set . s ( 1 cast tar 3 [] ( )toInt . == )assert . tar 3 [] ( )toInt . return } }
 Uq_System { <NOMAIN> }

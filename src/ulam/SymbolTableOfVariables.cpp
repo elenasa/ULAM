@@ -256,6 +256,15 @@ namespace MFM {
 
     u32 startpos = ATOMFIRSTSTATEBITPOS; //use relative offsets
 
+    UTI buti = m_state.getCompileThisIdx(); //us
+    if(UlamType::compare(buti, startuti, m_state) != UTIC_SAME)
+      {
+	u32 baserelpos = 0;
+	if(m_state.getABaseClassRelativePositionInAClass(startuti, buti, baserelpos))
+	  startpos += baserelpos;
+	//else a data member (eg t41304)
+      }
+
     std::map<u32, Symbol* >::iterator it = m_idToSymbolPtr.begin();
     while(it != m_idToSymbolPtr.end())
       {
@@ -288,40 +297,7 @@ namespace MFM {
     return;
   } //initializeElementDefaultsForEval
 
-  s32 SymbolTableOfVariables::findPosOfUlamTypeInTable(UTI utype, UTI& insidecuti)
-  {
-    s32 posfound = -1;
-    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
-    while(it != m_idToSymbolPtr.end())
-      {
-	Symbol * sym = it->second;
-	if(sym->isDataMember() && variableSymbolWithCountableSize(sym))
-	  {
-	    UTI suti = sym->getUlamTypeIdx();
-	    if(UlamType::compare(suti, utype, m_state) == UTIC_SAME)
-	      {
-		posfound = sym->getPosOffset();
-		insidecuti = suti;
-		break;
-	      }
-	    else
-	      {
-		// check possible inheritance
-		UTI superuti = m_state.isClassASubclass(suti);
-		assert(superuti != Hzy);
-		if((superuti != Nouti) && (UlamType::compare(superuti, utype, m_state) == UTIC_SAME))
-		  {
-		    posfound = sym->getPosOffset(); //starts at beginning
-		    insidecuti = suti;
-		    break;
-		  }
-	      }
-	  }
-	it++;
-      }
-    return posfound;
-  } //findPosOfUlamTypeInTable
-
+#if 0
   //replaced with parse tree method to preserve order of declaration
   void SymbolTableOfVariables::genCodeForTableOfVariableDataMembers(File * fp, ULAMCLASSTYPE classtype)
   {
@@ -336,6 +312,7 @@ namespace MFM {
 	it++;
       }
   } //genCodeForTableOfVariableDataMembers (unused)
+#endif
 
   void SymbolTableOfVariables::genModelParameterImmediateDefinitionsForTableOfVariableDataMembers(File *fp)
   {

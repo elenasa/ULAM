@@ -9,7 +9,7 @@
 ##       //Constants have explicit types; a cast changed
 #!
 Exit status: -11
-Ue_EventWindowTest { constant Int(32) v = -2;  EventWindow(-2) ew( constant Int(32) w = -2; );  Int(32) test() {  System s;  Int(32) rtn = -1 cast;  EventWindowTest ewt;  ew ( 0 cast )aref . ewt cast = Atom(96) a = ew ( 0 cast )aref . cast;  Atom(96) aw = ewt cast;  { aw EventWindowTest is cond rtn -2 = if rtn 1 cast = else } s ( rtn )print . s ( rtn -2 == )assert . rtn return } }
+Ue_EventWindowTest { constant Int(32) v = -2;  EventWindow(-2) ew( constant Int(32) w = -2; );  Int(32) test() {  System s;  Int(32) rtn = -1 cast;  EventWindowTest ewt;  self ew . ( 0 cast )aref . ewt cast = Atom(96) a = self ew . ( 0 cast )aref . cast;  Atom(96) aw = ewt cast;  { aw EventWindowTest is cond rtn -2 = if rtn 1 cast = else } s ( rtn )print . s ( rtn -2 == )assert . rtn return } }
 Uq_EventWindow(Int(32) w) { <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##      //informed by t3248

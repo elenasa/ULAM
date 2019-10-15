@@ -199,6 +199,7 @@ namespace MFM {
     //copy constructor for autoref (chain would be unpacked array,
     // e.g. 3812 requires NULL effself)
     // no extra uc, consistent with other types now.
+    // len for array item is one atom (t3671)
     m_state.indent(fp);
     fp->write(automangledName.c_str());
     fp->write("(const UlamRef<EC>& arg, s32 idx) : UlamRef<EC>(arg, idx, BPA, NULL, UlamRef<EC>::ATOMIC) { }"); GCNL;
@@ -295,6 +296,13 @@ namespace MFM {
     fp->write("\n");
 
     m_state.m_currentIndentLevel++;
+
+    //forward declaration for immediate ref (before struct)
+    m_state.indent(fp);
+    fp->write("template<class EC> class ");
+    fp->write(automangledName.c_str());
+    fp->write("; //forward"); GCNL;
+    fp->write("\n");
 
     m_state.indent(fp);
     fp->write("template<class EC>\n");

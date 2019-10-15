@@ -1,0 +1,29 @@
+## -*- mode:ulam -*-
+#=t41341_test_compiler_funcnamedkeywordsuper_error
+#!
+./Su.ulam:9:7: ERROR: Name of variable/function 'super': Identifier must not be a reserved keyword.
+./Su.ulam:3:1: ERROR: Empty/Incomplete Class Definition 'Su'; Possible missing ending curly brace.
+./Su.ulam:9:7: ERROR: Invalid Class Type <super>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+./Su.ulam:3:9: ERROR: Invalid Type: Su.
+ ERROR: No parse tree for This Class: Su.
+Unrecoverable Program Parse FAILURE: <Su.ulam>
+##
+#>Su.ulam
+  ulam 1;
+use Qu;
+element Su {
+  Int test(){
+    super();
+    return 0;
+  }
+
+ Void super() { }
+}
+
+
+#:Qu.ulam
+  ulam 1;
+quark Qu {
+}
+
+#.

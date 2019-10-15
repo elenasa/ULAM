@@ -79,7 +79,7 @@ namespace MFM{
 
     void printPostfixDataMembersSymbols(File * fp, s32 slot, u32 startpos, UTI cuti);
 
-    void noteClassTypeAndName(UTI nuti, s32 totalsize, u32& accumsize);
+    void noteBaseClassTypeAndName(UTI nuti, u32 baseitem, bool sharedbase, s32 totalsize, u32& accumsize);
 
     void noteDataMembersParseTree(UTI cuti, s32 totalsize);
 
@@ -91,11 +91,27 @@ namespace MFM{
 
     virtual bool isAClassBlock();
 
-    NodeBlockClass * getSuperBlockPointer();
 
-    void setSuperBlockPointer(NodeBlockClass *);
+    void clearBaseClassBlockList();
 
-    bool isSuperClassLinkReady(UTI cuti);
+    void clearSharedBaseClassBlockList();
+
+    void initBaseClassBlockList();
+
+    void initSharedBaseClassBlockList();
+
+    void setBaseClassBlockPointer(NodeBlockClass *, u32 item);
+
+    void setSharedBaseClassBlockPointer(NodeBlockClass *, u32 item);
+
+    NodeBlockClass * getBaseClassBlockPointer(u32 item);
+
+    NodeBlockClass * getSharedBaseClassBlockPointer(u32 item);
+
+    bool isBaseClassLinkReady(UTI cuti, u32 item);
+
+    bool isSharedBaseClassLinkReady(UTI cuti, u32 item);
+
 
     virtual bool hasStringDataMembers();
 
@@ -135,9 +151,11 @@ namespace MFM{
 
     virtual bool buildDefaultValueForClassConstantDefs();
 
-    u32 checkDuplicateFunctions();
+    void checkDuplicateFunctionsInClassAndAncestors();
 
-    void checkMatchingFunctionsInAncestors(std::map<std::string, UTI>& mangledFunctionMap, u32& probcount);
+    u32 checkDuplicateFunctions(FSTable& mangledFunctionMap, u32& probcount);
+
+    void checkMatchingFunctions();
 
     void calcMaxDepthOfFunctions();
 
@@ -211,7 +229,8 @@ namespace MFM{
 
   private:
 
-    NodeBlockClass * m_superBlockNode;
+    std::vector<NodeBlockClass *> m_nodeBaseClassBlockList; // NodeBlockClass * m_superBlockNode;
+    std::vector<NodeBlockClass *> m_nodeSharedBaseClassBlockList; // NodeBlockClass * m_superBlockNode;
 
     bool m_buildingDefaultValueInProgress;
     bool m_bitPackingInProgress;
@@ -222,6 +241,7 @@ namespace MFM{
     NodeList * m_nodeParameterList; //constants
     NodeList * m_nodeArgumentList;  //template instance
 
+    UTI checkMultipleInheritances();
     void checkTestFunctionReturnType();
     void checkCustomArrayLengthofFunctionReturnType();
 
@@ -231,9 +251,9 @@ namespace MFM{
     void genCodeHeaderLocalsFilescope(File * fp);
 
     void genCodeDataMemberChartAsComment(File * fp, UTI cuti); //at end of header
-    void genClassTypeAndNameEntryAsComment(File * fp, UTI nuti, s32 totalsize, u32& accumsize); //for superclass
+    void genBaseClassTypeAndNameEntryAsComment(File * fp, UTI nuti, s32 atpos, u32& accumsize, u32 baseitem); //for base classes
 
-    void genThisUlamSuperClassAsAHeaderComment(File * fp);
+    void genThisUlamBaseClassAsAHeaderComment(File * fp);
 
     void genShortNameParameterTypesExtractedForHeaderFile(File * fp);
 
@@ -245,7 +265,12 @@ namespace MFM{
     void generateCodeForBuiltInClassFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
 
     void genCodeBuiltInFunctionIsMethodRelatedInstance(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
-    void genCodeBuiltInFunctionIsRelatedInstance(File * fp);
+    void genCodeBuiltInIsMethodByRegistrationNumber(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
+    void genCodeBuildIsBVByRegistrationNumberHelper(File * fp, UTI cuti);
+
+    void genCodeBuiltInFunctionGetRelPosMethodRelatedInstance(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
+    void genCodeBuiltInFunctionGetRelPosMethodRelatedInstanceByRegistrationNumber(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
+    void genCodeBuiltInFunctionGetRelPosRelatedInstanceByRegistrationNumber(File * fp);
 
     void genCodeBuiltInFunctionGetClassLength(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
     void genCodeBuiltInFunctionGetClassRegistrationNumber(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
@@ -256,6 +281,7 @@ namespace MFM{
     void genCodeBuiltInFunctionBuildDefaultTransient(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
 
     void genCodeBuiltInVirtualTable(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
+    void genCodeBuiltInVirtualTableStartOffsetHelper(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
 
     void generateInternalIsMethodForElement(File * fp, bool declOnly);
     void generateInternalTypeAccessorsForElement(File * fp, bool declOnly);

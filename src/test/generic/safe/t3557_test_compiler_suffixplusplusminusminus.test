@@ -13,7 +13,7 @@
 ##
 #!
 Exit status: 0
-Ue_Foo { typedef Unsigned(8) ARGB[4];  System s();  Int(32) test() {  Int(32) a;  a 1 ++ s ( a )print . s ( a 1 cast == )assert . a 1 -- s ( a )print . s ( a 0 cast == )assert . ( )func ( )wunc a return } }
+Ue_Foo { typedef Unsigned(8) ARGB[4];  System s();  Int(32) test() {  Int(32) a;  a 1 ++ self s . ( a )print . self s . ( a 1 cast == )assert . a 1 -- self s . ( a )print . self s . ( a 0 cast == )assert . self ( )func . self ( )wunc . a return } }
 Uq_System { <NOMAIN> }
 ##
 ## tests post increment, post decrement (no longer an error test)

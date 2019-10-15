@@ -6,7 +6,7 @@
 ##
 #!
 Exit status: 0
-Ue_WallPort : QPort4(2u) { :< constant Unsigned(2) extraScanDistance = 2u; > typedef QPort4(2u) QPort;  Bool(1) b(true);  Int(32) test() {  System s;  b ( )update ! = s ( b )assert . 0 cast return } }
+Ue_WallPort : QPort4(2u) { typedef QPort4(2u) QPort;  Bool(1) b(true);  :QPort4(2u)< constant Unsigned(2) extraScanDistance = 2u; > Int(32) test() {  System s;  self b . self ( )update . ! = s ( self b . )assert . 0 cast return } }
 Uq_QPort4(Unsigned(2) extraScanDistance) { <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

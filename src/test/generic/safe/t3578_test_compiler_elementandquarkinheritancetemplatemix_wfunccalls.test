@@ -3,7 +3,7 @@
 #!
 Exit status: 10
 Ue_R { Int(32) test() {  Tu(1) tu;  Tu(2) tu2;  Tu(3) tu3;  Foo foo;  foo ( )func . tu ( )func . +b tu2 ( )func . +b tu3 ( )func . +b return } }
-Uq_Tu(Int(32) x) : Foo { :< Int(32) mi( 4); > <NOMAIN> }
+Uq_Tu(Int(32) x) : Foo { :Foo< Int(32) mi( 4); > <NOMAIN> }
 Uq_Foo { Int(32) mi( 4);  <NOMAIN> }
 ##
 ##       //template classes can inherit from a regular class
