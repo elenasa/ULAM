@@ -75,6 +75,18 @@ quark EventWindow {
   Bool isLegal(SiteNum index) { return index < size(); }
   Bool isLegal(C2D coord) { return isLegal(getSiteNumberRaw(coord)); }
 
+  /** Determine the accessibility of index, considering the following three factors:
+
+      (1) Is index a legal SiteNum under any circumstances?  
+      (2) If so, does index fit inside the currently accessible EventWindow radius?
+      (3) If so, is the indicated site live?
+
+      \returns false if the answer to any of those questions is 'no', otherwise true.
+
+      \sa getAccessibleSize()
+      \sa isLive(SiteNum)
+  */
+
   Bool isAccessible(SiteNum index) { return index < getAccessibleSize() && isLive(index); }
   Bool isAccessible(C2D coord) { return isLegal(coord) && isAccessible(getSiteNumberRaw(coord)); }
 
