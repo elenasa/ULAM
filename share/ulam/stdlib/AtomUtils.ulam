@@ -13,6 +13,13 @@ quark AtomUtils {
    */
   Int getType(Atom a) native;
 
+  /** Determine if '.atomof' could be performed on the given ref without failing.
+
+      \returns true iff ref refers to something that has a storage
+      atom associated with it, false otherwise.
+  */
+  Bool hasAtomof(UrSelf& ref) native;
+
   Type getValidType(Atom a)
   {
     Fail f;
