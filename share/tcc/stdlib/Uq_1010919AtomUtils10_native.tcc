@@ -13,6 +13,7 @@ namespace MFM {
     return ubool;
   } // Uf_919hasAtomof
 
+
   //! AtomUtils.ulam:10:   Type getType(Atom a) {
   template<class EC>
   Ui_Ut_102321i<EC> Uq_1010919AtomUtils10<EC>::Uf_7getType(const UlamContext<EC> & uc, UlamRef<EC>& ur, Ui_Ut_102961a<EC>& Uv_1a) const
