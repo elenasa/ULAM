@@ -1,4 +1,4 @@
-//ulam 5;
+ulam 5;
 use ByteStream;
 
 transient ByteStreamArray(Unsigned len) : ByteStreamReaderWriter {
