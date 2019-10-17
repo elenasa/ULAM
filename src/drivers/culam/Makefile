@@ -18,10 +18,10 @@ $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
 
 $(BIN_DIR)/$(DRIVER_NAME): ${OBJS} | $(BIN_DIR)
-	g++ $(OBJS) $(LIBS) -o $@
+	$(CXX) $(OBJS) $(LIBS) -o $@
 
 $(BUILD_DIR)/%.o: %.cpp $(HDRS) $(ALLDEP) | $(BUILD_DIR)
-	g++ -c ${CFLAGS} ${DEFINES} ${INCLUDES} $< -o $@
+	$(CXX) -c ${CFLAGS} ${DEFINES} ${INCLUDES} $< -o $@
 
 clean:	FORCE
 	@rm -f *~

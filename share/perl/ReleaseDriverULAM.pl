@@ -55,7 +55,7 @@ my $ULAM_LANGUAGE_VERSION="ulam2";
 $| = 1;
 my $GIT_URL = "https://github.com/DaveAckley/ULAM.git";
 my $MFM_GIT_URL = "https://github.com/DaveAckley/MFM.git";
-my @DISTROS = ("precise", "trusty", "xenial");
+my @DISTROS = ("bionic","precise", "trusty", "xenial");
 
 use Cwd 'abs_path';
 use File::Basename;

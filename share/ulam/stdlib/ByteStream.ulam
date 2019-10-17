@@ -51,6 +51,11 @@ quark ByteStreamWriter +ByteStream {
   // OUTPUT ROUTINES
   //
 
+  Self & printChar(ASCII byte) {
+    writeByte(byte);
+    return self;
+  }
+
   Self & print(String s)
   {
     for (Unsigned i = 0; i < s.lengthof; ++i) 
@@ -69,6 +74,11 @@ quark ByteStreamWriter +ByteStream {
     return self;
   }
 
+  Self & print(Unsigned n)
+  {
+    return print(n,10u);
+  }
+
   Self & print(Unsigned n, Unsigned base)
   {
     if (n == 0u) return print("0");
@@ -79,7 +89,7 @@ quark ByteStreamWriter +ByteStream {
 
     if (n >= base) print(n/base,base);
 
-    writeByte(c[n]);
+    writeByte(c[n%base]);
 
     return self;
   }

@@ -191,6 +191,32 @@ namespace MFM{
       LOG.Message("%s",buff.GetZString());
   } // Uf_5print
 
+//! DebugUtils.ulam:60:   Void print(ByteStreamReader & bs) native;
+  template<class EC>
+  void Uq_10109210DebugUtils10<EC>::Uf_5print(const UlamContext<EC>& uc, UlamRef<EC>& ur,
+                                              Ui_Uq_r10109216ByteStreamReader10<EC>& Ur_2bs) const
+  {
+    OString4096 buff;
+
+    VfuncPtr readbyteptr;
+    // Build the appropriate ref for a virtual function call
+    UlamRef<EC> vfur(Ur_2bs,                                                       // The ref we're calling a virtual function on
+                     Uq_10109216ByteStreamReader10<EC>::VOWNED_IDX_Uf_8readByte10, // The index of the vfunc we're calling
+                     Uq_10109216ByteStreamReader10<EC>::THE_INSTANCE,              // The class that originated that vfunc
+                     readbyteptr);                                                 // Where to stick the resulting vfuncptr
+    while(true) {
+      const Ui_Ut_102321i<EC> ret =
+        ((typename Uq_10109216ByteStreamReader10<EC>::Uf_8readByte10) (readbyteptr)) (uc, vfur); // Make the call
+      const s32 ch = ret.read();                                                   // Unbox the result
+
+      if(ch < 0) break; 
+      buff.WriteByte((u8) ch);
+      
+    } // end while
+    LOG.Message("%s",buff.GetZString());
+  } // Uf_5print
+
+
   template<class EC>
   void Uq_10109210DebugUtils10<EC>::Uf_6assert(const UlamContext<EC> & uc, UlamRef<EC>& ur, Ui_Ut_10111b<EC>& Uv_1b) const //native
   {
