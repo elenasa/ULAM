@@ -185,10 +185,12 @@ namespace MFM {
 
     //class instance idx is always the scalar uti
     UTI scalaruti =  m_key.getUlamKeyTypeSignatureClassInstanceIdx();
-    const std::string scalarmangledName = m_state.getUlamTypeByIndex(scalaruti)->getUlamTypeMangledName();
+    UlamType * scalarut = m_state.getUlamTypeByIndex(scalaruti);
+    const std::string scalarmangledName = scalarut->getUlamTypeMangledName();
+    const std::string automangledName = getUlamTypeImmediateAutoMangledName();
+    const std::string mangledName = scalarut->getUlamTypeImmediateMangledName();
 
     m_state.m_currentIndentLevel = 0;
-    const std::string automangledName = getUlamTypeImmediateAutoMangledName();
     std::ostringstream  ud;
     ud << "Ud_" << automangledName; //d for define (p used for atomicparametrictype)
     std::string udstr = ud.str();
@@ -217,7 +219,7 @@ namespace MFM {
 
     m_state.indent(fp);
     fp->write("template<class EC> class ");
-    fp->write(getUlamTypeImmediateMangledName().c_str());
+    fp->write(mangledName.c_str());
     fp->write(";  //forward"); GCNL;
 
     fp->write("\n");
@@ -246,8 +248,8 @@ namespace MFM {
     //immediate typedef
     m_state.indent(fp);
     fp->write("typedef ");
-    fp->write(getLocalStorageTypeAsString().c_str());
-    fp->write(" Usi;"); GCNL;
+    fp->write(mangledName.c_str());
+    fp->write("<EC> Usi;"); GCNL;
 
     fp->write("\n");
 
@@ -269,13 +271,16 @@ namespace MFM {
     fp->write("(idx, "); //the real pos!!!
     if(!isScalar())
       fp->write_decimal_unsigned(len); //includes arraysize
-    else
+    else if(len > 0)
       {
 	fp->write("&Us::THE_INSTANCE==effself ? ");
 	fp->write_decimal_unsigned(len); //includes arraysize
 	fp->write("u : ");
 	fp->write_decimal_unsigned(baselen); //base class
       }
+    else
+	fp->write_decimal_unsigned(0);
+
     fp->write("u, targ, effself, ");
     if(!isScalar())
       fp->write("UlamRef<EC>::ARRAY");
@@ -290,13 +295,16 @@ namespace MFM {
     fp->write("(idx, "); //the real pos!!!
     if(!isScalar())
       fp->write_decimal_unsigned(len); //includes arraysize
-    else
+    else if(len > 0)
       {
 	fp->write("&Us::THE_INSTANCE==effself ? ");
 	fp->write_decimal_unsigned(len); //includes arraysize
 	fp->write("u : ");
 	fp->write_decimal_unsigned(baselen); //base class
       }
+    else
+	fp->write_decimal_unsigned(0);
+
     fp->write("u, postoeff, targ, effself, ");
     if(!isScalar())
       fp->write("UlamRef<EC>::ARRAY");
@@ -304,19 +312,36 @@ namespace MFM {
       fp->write("UlamRef<EC>::CLASSIC");
     fp->write(", uc) { }"); GCNL;
 
+    //short-hand from immediate to ref of same type
+    if(isScalar())
+      {
+	m_state.indent(fp);
+	fp->write(automangledName.c_str());
+	fp->write("(");
+	fp->write(mangledName.c_str());
+	fp->write("<EC>& targ, const UlamContext<EC> & uc) : UlamRef<EC>");
+	fp->write("(0, "); //pos
+	fp->write_decimal_unsigned(len);
+	fp->write("u, targ, & Us::THE_INSTANCE, UlamRef<EC>::CLASSIC, uc)");
+	fp->write(" { }"); GCNL;
+      }
+
     //constructor for chain of autorefs (e.g. memberselect with array item)
     m_state.indent(fp);
     fp->write(automangledName.c_str());
     fp->write("(const UlamRef<EC>& arg, s32 idx, const UlamClass<EC>* effself) : UlamRef<EC>(arg, idx, ");
     if(!isScalar())
       fp->write_decimal_unsigned(len); //includes arraysize
-    else
+    else if(len > 0)
       {
 	fp->write("&Us::THE_INSTANCE==effself ? ");
 	fp->write_decimal_unsigned(len); //includes arraysize
 	fp->write("u : ");
 	fp->write_decimal_unsigned(baselen); //base class
       }
+    else
+      fp->write_decimal_unsigned(0);
+
     fp->write("u, effself, ");
     if(!isScalar())
       fp->write("UlamRef<EC>::ARRAY");
@@ -331,13 +356,19 @@ namespace MFM {
     fp->write("<EC>& r) : UlamRef<EC>(r,0,");
     if(!isScalar())
       fp->write("r.GetLen()");
-    else
+    else if(len > 0)
       {
-	fp->write("&Us::THE_INSTANCE==r.GetEffectiveSelf() ? ");
+	fp->write("&Us::THE_INSTANCE==r.GetEffectiveSelfPointer() ? ");
 	fp->write("r.GetLen() : ");
 	fp->write_decimal_unsigned(baselen); //base class
 	fp->write("u");
       }
+    else
+      {
+	fp->write_decimal_unsigned(0);
+	fp->write("u");
+      }
+
     fp->write(",r.GetEffectiveSelf(),");
     if(!isScalar())
       fp->write("UlamRef<EC>::ARRAY");
@@ -352,13 +383,16 @@ namespace MFM {
     fp->write("<EC>& r, s32 idx) : UlamRef<EC>(r, idx, ");
     if(!isScalar())
       fp->write_decimal_unsigned(len); //includes arraysize
-    else
+    else if(len > 0)
       {
-	fp->write("&Us::THE_INSTANCE==r.GetEffectiveSelf() ? ");
+	fp->write("&Us::THE_INSTANCE==r.GetEffectiveSelfPointer() ? ");
 	fp->write_decimal_unsigned(len); //includes arraysize
 	fp->write("u : ");
 	fp->write_decimal_unsigned(baselen); //base class
       }
+    else
+      fp->write_decimal_unsigned(0);
+
     fp->write("u) { }"); GCNL; //want applydelta, true ???
 
     //(exact) copy constructor (for compiler)
@@ -371,7 +405,7 @@ namespace MFM {
       fp->write("r.GetLen()");
     else
       {
-	fp->write("&Us::THE_INSTANCE==r.GetEffectiveSelf() ? ");
+	fp->write("&Us::THE_INSTANCE==r.GetEffectiveSelfPointer() ? ");
 	fp->write("r.GetLen() : ");
 	fp->write_decimal_unsigned(baselen); //base class
 	fp->write("u");
@@ -418,7 +452,7 @@ namespace MFM {
     m_state.indent(fp);
     fp->write(getTmpStorageTypeAsString().c_str()); //u32, u64, or BV
     fp->write(" read() const { ");
-    fp->write("if(&Us::THE_INSTANCE==this->GetEffectiveSelf()){ ");
+    fp->write("if(&Us::THE_INSTANCE==this->GetEffectiveSelfPointer()){ ");
     fp->write(getTmpStorageTypeAsString().c_str()); //u32, u64, or BV96
     fp->write(" tmpbv;this->GetStorage().");
     fp->write(readMethodForCodeGen().c_str()); //just the guts
@@ -461,7 +495,7 @@ namespace MFM {
 	fp->write("& targ){ ");
 	if(getBitSize() > 0)
 	  {
-	    fp->write("if(&Us::THE_INSTANCE==this->GetEffectiveSelf()) ");
+	    fp->write("if(&Us::THE_INSTANCE==this->GetEffectiveSelfPointer()) ");
 	    fp->write("UlamRef<EC>::");
 	    fp->write(writeMethodForCodeGen().c_str());
 	    fp->write("(0,targ); /*entire transient*/ ");
@@ -726,7 +760,7 @@ namespace MFM {
     fp->write("<EC>& d) { ");
     if(isScalar())
       {
-	fp->write("if(&Us::THE_INSTANCE==d.GetEffectiveSelf()) ");
+	fp->write("if(&Us::THE_INSTANCE==d.GetEffectiveSelfPointer()) ");
 	fp->write("write(d.read()); ");
 	fp->write("else {");
 	//write the data members first

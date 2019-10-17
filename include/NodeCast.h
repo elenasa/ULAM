@@ -131,7 +131,7 @@ namespace MFM{
     void genCodeCastDescendantElement(File * fp, UVPass & uvpass);
     void genCodeCastAncestorQuarkAsSubElement(File * fp, UVPass & uvpass);
     void genCodeCastDescendantQuark(File * fp, UVPass & uvpass);
-    void genPositionOfBaseIntoATmpVar(File * fp, u32 tmpvarpos, UTI baseuti, UTI tobeType, Symbol * stgcos, Symbol * cos); //helper
+    void genPositionOfBaseIntoATmpVar(File * fp, u32 tmpvarpos, UVPass & uvpass, Symbol * stgcos, Symbol * cos); //helper
 
     void genCodeCastAsReference(File * fp, UVPass & uvpass);
     void genCodeCastFromAReference(File * fp, UVPass & uvpass);

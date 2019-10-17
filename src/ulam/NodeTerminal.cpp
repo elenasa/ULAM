@@ -644,7 +644,7 @@ namespace MFM {
 	  m_state.abortGreaterThanMaxBitsPerLong();
       }
 
-    if(UlamType::compareForString(nuti, m_state) == UTIC_SAME)
+    if(m_state.isAStringType(nuti))
       {
 	u32 sidx = (m_constant.uval & STRINGIDXMASK);
 	assert((sidx > 0));

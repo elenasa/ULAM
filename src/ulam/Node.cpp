@@ -1819,6 +1819,15 @@ namespace MFM {
     if(!cosut->isScalar() && vut->isScalar())
       return genCodeArrayItemRefInit(fp, uvpass, vsymptr);
 
+#if 0
+    if(m_state.m_currentObjSymbolsForCodeGen.empty())
+      {
+	//local var (no currentObjSymbols, 1 arg since same type) e.g. t3617, t3779, t41199
+	assert(UlamType::compare(uvpass.getPassTargetType(), vuti, m_state) == UTIC_SAME);
+	return;
+      }
+#endif
+
     ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
     ULAMTYPE vetyp = vut->getUlamTypeEnum();
     u32 pos = 0;
@@ -1842,6 +1851,8 @@ namespace MFM {
 	//local var (no currentObjSymbols, 1 arg since same type) e.g. t3617, t3779
 	assert(UlamType::compare(uvpass.getPassTargetType(), vuti, m_state) == UTIC_SAME);
 	fp->write(uvpass.getTmpVarAsString(m_state).c_str());
+	if((vetyp == Class) && (uvpass.getPassStorage() == TMPBITVAL))
+	  fp->write(", uc"); //not TMPAUTOREF, so need uc (t41071)
 	fp->write(");"); GCNL;
       }
     else if(!m_state.isReference(stgcosuti)) //not isAltRefType (t3650);
@@ -1853,6 +1864,14 @@ namespace MFM {
 	else
 	  fp->write(stgcos->getMangledName().c_str()); //local var
 	fp->write(", ");
+
+	if((vetyp == Class) && m_state.isARefTypeOfUlamType(stgcosuti,vuti)==UTIC_SAME)
+	  {
+	    //shorthand cnstr: ref fm non-ref of same type. e.g. t41065, t3715
+	    fp->write("uc);"); GCNL;
+	    m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of rhs ?
+	    return; //done
+	  }
 
 	if(vetyp != UAtom) //t3907
 	  {
@@ -1924,7 +1943,7 @@ namespace MFM {
       }
     else //rhs is a reference
       {
-	//a ref that's not a tmpref has calc'd its position (t3820, t3908, t3910);
+	//a ref that's not a tmpref has calc'd its pos (t3820, t3908, t3910);
 	if(!cos->isTmpVarSymbol())
 	  {
 	    pos = uvpass.getPassPos();

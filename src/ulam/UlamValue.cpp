@@ -498,6 +498,7 @@ namespace MFM {
     else
       {
 	assert(p.isTargetPacked() == PACKED);
+
 	// base [0] is furthest from the end
 	UlamValue nextPtr = UlamValue::makeScalarPtr(p,state);
 	s32 itemlen = nextPtr.getPtrLen();

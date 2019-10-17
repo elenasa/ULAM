@@ -527,6 +527,7 @@ namespace MFM{
     bool isStringATmpVar(u32 id);
     const std::string getTmpVarAsString(UTI uti, s32 num, TMPSTORAGE stg);
     const std::string getUlamRefTmpVarAsString(s32 num);
+    const std::string getUlamRefMutTmpVarAsString(s32 num);
     const std::string getUlamClassTmpVarAsString(s32 num);
     const std::string getAtomBitStorageTmpVarAsString(s32 num);
     const std::string getLabelNumAsString(s32 num);
@@ -636,6 +637,7 @@ namespace MFM{
     bool isThisLocalsFileScope();
     bool isALocalsFileScope(UTI uti);
     bool isAPrimitiveType(UTI uti);
+    bool isAStringType(UTI uti);
     bool isAClass(UTI uti);
     bool isASeenClass(UTI cuti);
     bool isASeenElement(UTI cuti);

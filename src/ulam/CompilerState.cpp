@@ -5237,6 +5237,13 @@ namespace MFM {
     return labelname.str();
   }
 
+  const std::string CompilerState::getUlamRefMutTmpVarAsString(s32 num)
+  {
+    std::ostringstream labelname; //into
+    labelname << "Uh_4turm" << ToLeximitedNumber(num);
+    return labelname.str();
+  }
+
   const std::string CompilerState::getUlamClassTmpVarAsString(s32 num)
   {
     std::ostringstream labelname; //into
@@ -5952,6 +5959,11 @@ namespace MFM {
   bool CompilerState::isAPrimitiveType(UTI uti)
   {
     return (getUlamTypeByIndex(uti)->isPrimitiveType());
+  }
+
+  bool CompilerState::isAStringType(UTI uti)
+  {
+    return UlamType::compareForString(uti, *this) == UTIC_SAME;
   }
 
   bool CompilerState::isAClass(UTI uti)
