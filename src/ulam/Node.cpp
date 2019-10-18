@@ -3847,6 +3847,12 @@ namespace MFM {
       {
 	UTI stgcosuti = m_state.m_currentObjSymbolsForCodeGen[0]->getUlamTypeIdx();
 	assert(!m_state.isAtom(stgcosuti)); //parse error (t3284)
+	if(isCurrentObjectsContainingAConstant() > -1)
+	  return true; //treat named constant/class array like local storage
+	if(isCurrentObjectsContainingAModelParameter() > -1)
+	  return true; //treat model parameter like local storage (t3259)
+	if(isCurrentObjectsContainingATmpVarSymbol() > -1)
+	  return true; //treat tmpvar symbols like local storage (t3914?)
 	return false;
       }
 
@@ -3892,7 +3898,7 @@ namespace MFM {
     return indexOfLast;
   } //isCurrentObjectsContainingAConstant
 
-  // returns the index to the last object that's a named constant; o.w. -1 none found;
+  // returns the index to the last object that's a named constant class; o.w. -1 none found;
   // preceding object is the "owner", others before it are irrelevant;
   s32 Node::isCurrentObjectsContainingAConstantClass()
   {
@@ -3948,7 +3954,7 @@ namespace MFM {
     return indexOfLastBT;
   } //isCurrentObjectsContainingABaseTypeTmpSymbol
 
-  // returns the index to the last object that's a Base Type selector; o.w. -1 none found;
+  // returns the index to the last object that's a tmp var symbol (not base type); o.w. -1 none found;
   // preceding object is the "owner", others before it are irrelevant;
   s32 Node::isCurrentObjectsContainingATmpVarSymbol()
   {
@@ -3957,7 +3963,8 @@ namespace MFM {
     for(s32 i = cosSize - 1; i >= 0; i--)
       {
 	Symbol * bsym = m_state.m_currentObjSymbolsForCodeGen[i];
-	if(bsym->isTmpVarSymbol())
+	//if(bsym->isTmpVarSymbol())
+	if(bsym->isTmpVarSymbol() && !((SymbolTmpVar *) bsym)->isBaseClassRef())
 	  {
 	    indexOfLastTmp = i;
 	    break;
