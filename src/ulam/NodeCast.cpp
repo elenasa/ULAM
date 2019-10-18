@@ -644,7 +644,8 @@ namespace MFM {
     UTI nodeType = m_node->getNodeType();
     bool isternarynode = (m_node->getName()[0] == '?'); //t41071
 
-    if((!m_state.isAPrimitiveType(tobeType) || !m_state.isAPrimitiveType(nodeType)) && needsacast && !isExplicitCast() && !isternarynode)
+    //if((!m_state.isAPrimitiveType(tobeType) || !m_state.isAPrimitiveType(nodeType)) && needsacast && !isExplicitCast() && !isternarynode)
+    if((!m_state.isAPrimitiveType(tobeType) || !m_state.isAPrimitiveType(nodeType)) && needsacast && !isternarynode)
       m_node->genCodeToStoreInto(fp, uvpass); //(e.g. classes, atoms)
     else
       m_node->genCode(fp, uvpass); //might be unused (e.g. classes, atoms)
@@ -818,26 +819,31 @@ namespace MFM {
   {
     UTI tobeType = getCastType();
     UlamType * tobe = m_state.getUlamTypeByIndex(tobeType);
+    TMPSTORAGE tstor = tobe->getTmpStorageTypeForTmpVar();
 
     UTI vuti = uvpass.getPassTargetType();  //replace
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
+    TMPSTORAGE vstor = uvpass.getPassStorage();
 
+    //assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     Symbol * stgcos = NULL;
+    Symbol * cos = NULL;
+    Node::loadStorageAndCurrentObjectSymbols(stgcos, cos);
+    UTI cosuti = cos->getUlamTypeIdx();
 
-    if(tobe->isReference()) //not isAltRefType, could be ALT_AS (t3835)
+    bool usePassVal = m_state.m_currentObjSymbolsForCodeGen.empty() && ((vstor == TMPBITVAL) || (vstor == TMPAUTOREF));
+    bool makeValFromPass = m_state.m_currentObjSymbolsForCodeGen.empty() && !usePassVal;
+
+    s32 tmpTstg = m_state.getNextTmpVarNumber();
+    if(makeValFromPass)
       {
-	// don't repeat genCodeToStoreInto when m_node is a func call that returns an atomref
-	if(m_state.m_currentObjSymbolsForCodeGen.empty() && !m_node->isFunctionCall())
-	  {
-	    //safe to call genCodeToStoreInto since nodeType must be storeintoable;
-	    //except when assignment of Foo.instanceof (t3818)
-	    UVPass ruvpass;
-	    m_node->genCodeToStoreInto(fp, ruvpass); //No need to load lhs into tmp (T); symbol's in COS vector
-	  }
-	//else (t41051) ILLEGAL_ARGUMENT
-
-	assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
-	stgcos = m_state.m_currentObjSymbolsForCodeGen.back();
+	m_state.indentUlamCode(fp);
+	fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members, tmp immediate from-type
+	fp->write(" ");
+	fp->write(m_state.getTmpVarAsString(vuti, tmpTstg, TMPBITVAL).c_str());
+	fp->write(" = ");
+	fp->write(uvpass.getTmpVarAsString(m_state).c_str());
+	fp->write(";"); GCNL;
       }
 
       // "downcast" might not be true; compare to be sure the atom is an element "Foo"
@@ -849,21 +855,22 @@ namespace MFM {
 	  fp->write(".");
 	  fp->write(m_state.getIsMangledFunctionName(tobeType));
 	  fp->write("(");
-	  if(stgcos)
+	  if(usePassVal)
 	    {
-	      assert(m_state.isAtom(stgcos->getUlamTypeIdx()));
-	      fp->write(stgcos->getMangledName().c_str()); //t3754, t3408 Tue Mar 21 2017
-	      fp->write(".read()");
+	      fp->write(uvpass.getTmpVarAsString(m_state).c_str());
+	      fp->write(".");
+	      fp->write(vut->readMethodForCodeGen().c_str());
+	      fp->write("()");
+	    }
+	  else if(makeValFromPass)
+	    {
+	      fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //t3277
 	    }
 	  else
 	    {
-	      fp->write(uvpass.getTmpVarAsString(m_state).c_str());
-	      if(uvpass.getPassStorage() == TMPBITVAL)
-		{
-		  fp->write(".");
-		  fp->write(vut->readMethodForCodeGen().c_str());
-		  fp->write("()");
-		}
+	      assert(m_state.isAtom(cos->getUlamTypeIdx()));
+	      fp->write(cos->getMangledName().c_str()); //t3754, t3408
+	      fp->write(".read()");
 	    }
 
 	  fp->write("))"); GCNL;
@@ -873,39 +880,69 @@ namespace MFM {
 	  fp->write("FAIL(BAD_CAST);"); GCNL;
 	  m_state.m_currentIndentLevel--;
 
-	  if(tobe->isReference()) //t3754 (not isAltRefType, , could be ALT_AS t3835)
-	  {
-	    assert(stgcos);
-	    UTI stgcosuti = stgcos->getUlamTypeIdx();
+	  if(tobe->isReference()) //t3754 (not isAltRefType, could be ALT_AS t3835)
+	    {
+	    u32 idforuvpass = 0;
  	    s32 tmpeleref = m_state.getNextTmpVarNumber(); //tmp since no variable name
 	    m_state.indentUlamCode(fp);
 	    fp->write(tobe->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
 	    fp->write(" ");
 	    fp->write(m_state.getTmpVarAsString(tobeType, tmpeleref, TMPAUTOREF).c_str());
 	    fp->write("(");
-	    fp->write(stgcos->getMangledName().c_str()); //assumes only one!!!
-	    fp->write(", ");
-	    //must displace the Typefield for element ref
-	    fp->write("0u + T::ATOM_FIRST_STATE_BIT, ");
-	    if(m_state.isAtomRef(stgcosuti)) //t3754
+
+	    if(usePassVal)
 	      {
-		fp->write(stgcos->getMangledName().c_str()); //assumes only one!!!
-		fp->write(".GetEffectiveSelf()"); //maintains eff self
+		fp->write(uvpass.getTmpVarAsString(m_state).c_str());
+		fp->write(", ");
+		//must displace the Typefield for element ref
+		fp->write("0u + T::ATOM_FIRST_STATE_BIT, ");
+		if(m_state.isAtomRef(vuti)) //from atom/ref tmpvar
+		  {
+		    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
+		    fp->write(".GetEffectiveSelf()"); //maintains eff self
+		  }
+		else
+		  {
+		    fp->write("&");
+		    fp->write(m_state.getTheInstanceMangledNameByIndex(tobeType).c_str());
+		    fp->write(", uc");
+		  }
+		fp->write(");"); GCNL;
 	      }
-	    else
+	    else if(makeValFromPass) //fm atom non-ref
 	      {
-		fp->write("&");
-		fp->write(m_state.getTheInstanceMangledNameByIndex(tobeType).c_str());
-		fp->write(", uc"); //t3754
+		m_state.abortShouldntGetHere();
 	      }
-	    fp->write(");"); GCNL;
-	    uvpass = UVPass::makePass(tmpeleref, TMPAUTOREF, tobeType, UNPACKED, m_state, 0, stgcos->getId()); //POS moved left for type; pass along name id);
+	    else //fm atom/ref named var/dm
+	      {
+		fp->write(cos->getMangledName().c_str()); //assumes only one!!!
+		fp->write(", ");
+		//must displace the Typefield for element ref
+		fp->write("0u + T::ATOM_FIRST_STATE_BIT, ");
+		if(m_state.isAtomRef(cosuti)) //t3754
+		  {
+		    fp->write(cos->getMangledName().c_str()); //assumes only one!
+		    fp->write(".GetEffectiveSelf()"); //maintains eff self
+		  }
+		else
+		  {
+		    fp->write("&");
+		    fp->write(m_state.getTheInstanceMangledNameByIndex(tobeType).c_str());
+		    fp->write(", uc"); //t3754
+		  }
+		fp->write(");"); GCNL;
+		idforuvpass = cos->getId();
+	      }
+
+	    uvpass = UVPass::makePass(tmpeleref, TMPAUTOREF, tobeType, UNPACKED, m_state, 0, idforuvpass); //POS moved left for type; pass along name id);
 	  }
 	  else
 	    {
-	      TMPSTORAGE vstor = uvpass.getPassStorage();
+	      //tobe non-ref element
+#if 0
 	      if(m_state.isAtomRef(vuti) && (vstor != TMPTATOM)) //from atomref-to-element
 		{
+		  assert(usePassVal); //sanity
 		  //read into a T (t41157), unless already a T from .atomof (t3756)
 		  s32 tmpVarNum2 = m_state.getNextTmpVarNumber(); //tmp for atomref
 		  m_state.indentUlamCode(fp);
@@ -919,16 +956,54 @@ namespace MFM {
 
 		  uvpass = UVPass::makePass(tmpVarNum2, TMPTATOM, tobeType, UNPACKED, m_state, 0, uvpass.getPassNameId());
 		}
-	      else //no need to read atom-based element (e.g. t3410, 3277)
-		uvpass.setPassTargetType(tobeType); //same variable
+	      else //no need to re-read atom-based element (e.g. t3410, 3277)
+		{
+		  Node::genCodeReadIntoATmpVar(fp,uvpass); //t3697,t41153
+		  uvpass.setPassTargetType(tobeType); //same variable
+		}
+#endif
+
+
+	      if(m_state.isAtomRef(vuti)) //from atomref-to-element
+		{
+		  s32 tmpVarNum2 = m_state.getNextTmpVarNumber(); //tmp for atomref
+		  m_state.indentUlamCode(fp);
+		  fp->write("const ");
+		  fp->write(vut->getTmpStorageTypeAsString().c_str()); //for C++ local vars
+		  fp->write(" ");
+		  fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum2, TMPTATOM).c_str());
+		  fp->write(" = ");
+
+		  if(usePassVal)
+		    {
+		      //read into a T (t41157), unless already a T from .atomof (t3756)
+		      fp->write(uvpass.getTmpVarAsString(m_state).c_str());
+		      fp->write(".read();"); GCNL;
+		    }
+		  else if(makeValFromPass)
+		    {
+		      fp->write(m_state.getTmpVarAsString(vuti, tmpTstg, TMPBITVAL).c_str());
+		      fp->write(".read();"); GCNL;
+		    }
+		  else //no need to re-read? atom-based element (e.g. t3410, 3277)
+		    {
+		      fp->write(cos->getMangledName().c_str());
+		      fp->write(".read();"); GCNL;
+		    }
+		  uvpass = UVPass::makePass(tmpVarNum2, TMPTATOM, tobeType, UNPACKED, m_state, 0, uvpass.getPassNameId());
+		}
+	      else
+		{
+		  Node::genCodeReadIntoATmpVar(fp,uvpass); //t3697,t41153
+		  uvpass.setPassTargetType(tobeType); //same variable
+		}
 	    }
 	}
       else if(m_state.isAtomRef(tobeType))
 	{
 	  //from element-to-atom
 	  //element-ref to atom-ref is why we couldn't have packed elements!!! t3753
-	  assert(stgcos);
-	  UTI stgcosuti = stgcos->getUlamTypeIdx();
+	  u32 idforuvpass = 0;
 	  UlamType * atomut = m_state.getUlamTypeByIndex(UAtom);
 	  s32 tmpatomref = m_state.getNextTmpVarNumber(); //tmp since no variable name
 	  m_state.indentUlamCode(fp);
@@ -936,18 +1011,41 @@ namespace MFM {
 	  fp->write("<EC> ");
 	  fp->write(m_state.getTmpVarAsString(tobeType, tmpatomref, TMPAUTOREF).c_str());
 	  fp->write("(");
-	  fp->write(stgcos->getMangledName().c_str()); //assumes only one!!!
-	  fp->write(", ");
-	  //must displace the Typefield if a ref
-	  if(m_state.isAltRefType(stgcosuti))
+
+	  if(usePassVal) //fm element/ele-ref
 	    {
-	      fp->write("- T::ATOM_FIRST_STATE_BIT);"); GCNL; //t3753
+	      fp->write(uvpass.getTmpVarAsString(m_state).c_str());
+	      fp->write(", ");
+	      //must displace the Typefield if a ref
+	      if(m_state.isAltRefType(vuti))
+		{
+		  fp->write("- T::ATOM_FIRST_STATE_BIT);"); GCNL; //t3753
+		}
+	      else
+		{
+		  fp->write("0u, uc);"); GCNL;
+		}
+	    }
+	  else if(makeValFromPass)
+	    {
+	      m_state.abortNotImplementedYet(); //??
 	    }
 	  else
 	    {
-	      fp->write("0u, uc);"); GCNL;
+	      fp->write(cos->getMangledName().c_str()); //assumes only one!!!
+	      fp->write(", ");
+	      //must displace the Typefield if a ref
+	      if(m_state.isAltRefType(cosuti))
+		{
+		  fp->write("- T::ATOM_FIRST_STATE_BIT);"); GCNL; //t3753
+		}
+	      else
+		{
+		  fp->write("0u, uc);"); GCNL;
+		}
+	      idforuvpass = cos->getId();
 	    }
-	  uvpass = UVPass::makePass(tmpatomref, TMPAUTOREF, tobeType, UNPACKED, m_state, 0, stgcos->getId()); //POS moved left for type; pass along name id);
+	  uvpass = UVPass::makePass(tmpatomref, TMPAUTOREF, tobeType, UNPACKED, m_state, 0, idforuvpass); //POS moved left for type; pass along name id);
 	}
       else if(m_state.isAtom(tobeType))
 	{
@@ -958,58 +1056,392 @@ namespace MFM {
 	}
       else //no atoms, explicit like-kind elements
 	{
+	  u32 idforuvpass = 0;
+#if 0
+	  //MOVE UP
+	  s32 tmpTstg = m_state.getNextTmpVarNumber();
+	  if(makeValFromPass)
+	    {
+	      m_state.indentUlamCode(fp);
+	      fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members, tmp immediate from-type
+	      fp->write(" ");
+	      fp->write(m_state.getTmpVarAsString(vuti, tmpTstg, TMPBITVAL).c_str());
+	      fp->write(" = ");
+	      fp->write(uvpass.getTmpVarAsString(m_state).c_str());
+	      fp->write(";"); GCNL;
+	    }
+#endif
 	  UTI reftobeType = m_state.getUlamTypeAsRef(tobeType);
 	  UlamType * reftobe = m_state.getUlamTypeByIndex(reftobeType);
 
 	  //explicit cast from element-ref, to element or element-ref; or
 	  //explicit cast from element storage, to element or element-ref
-	  assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
-	  stgcos = m_state.m_currentObjSymbolsForCodeGen.back();
-	  UTI stgcosuti = stgcos->getUlamTypeIdx();
-	  s32 tmpeleref = m_state.getNextTmpVarNumber();
-	  if(m_state.isAltRefType(stgcosuti))
-	    {
-	      //explicit cast from element-ref, to element or element-ref (t41052)
-	      m_state.indentUlamCode(fp);
-	      fp->write(reftobe->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
-	      fp->write(" ");
-	      fp->write(m_state.getTmpVarAsString(reftobeType, tmpeleref, TMPAUTOREF).c_str());
-	      fp->write("(");
-	      fp->write(stgcos->getMangledName().c_str()); //assumes only one!!
-		{
-		  fp->write(", 0u, ");
-		  fp->write(stgcos->getMangledName().c_str()); //assumes only one!!
-		  fp->write(".GetEffectiveSelf()");
-		}
+	  //explicit cast element to element ref (e.g. question colon, t41067)
 
-		fp->write(");"); GCNL;
-		uvpass = UVPass::makePass(tmpeleref, TMPAUTOREF, reftobeType, UNPACKED, m_state, 0, stgcos->getId()); //POS moved left for type; pass along name id);
+	  //assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
+
+	  s32 tmpeleref = m_state.getNextTmpVarNumber();
+	  m_state.indentUlamCode(fp);
+	  fp->write(reftobe->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
+	  fp->write(" ");
+	  fp->write(m_state.getTmpVarAsString(reftobeType, tmpeleref, TMPAUTOREF).c_str());
+	  fp->write("(");
+
+	  if(usePassVal)
+	    {
+	      fp->write(uvpass.getTmpVarAsString(m_state).c_str());
+	      if(!m_state.isAltRefType(vuti))
+		  fp->write(", uc");
+	      fp->write(");"); GCNL;
+	    }
+	  else if(makeValFromPass)
+	    {
+	      fp->write(m_state.getTmpVarAsString(vuti, tmpTstg, TMPBITVAL).c_str());
+	      fp->write(", uc");
+	      fp->write(");"); GCNL;
 	    }
 	  else
 	    {
-	      //from element (storage), to element or element-ref
-	      //explicit cast element to element ref (e.g. question colon, t41067)
-	      m_state.indentUlamCode(fp);
-	      fp->write(reftobe->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
-	      fp->write(" ");
-	      fp->write(m_state.getTmpVarAsString(reftobeType, tmpeleref, TMPAUTOREF).c_str());
-	      fp->write("(");
-	      fp->write(stgcos->getMangledName().c_str()); //assumes only one!!
-	      fp->write(", ");
-	      fp->write("+ T::ATOM_FIRST_STATE_BIT, &"); //displace Typefield of element
-	      fp->write(m_state.getTheInstanceMangledNameByIndex(tobeType).c_str());
-	      fp->write(", uc"); //non-ref to ref
-	      fp->write(");"); GCNL;
+	      //explicit cast fm element or element-ref, to element-ref(t41052)
+	      // ,including 'self' (t3583,t3912,3,t41065,89,t41139)
+	      fp->write(cos->getMangledName().c_str()); //assumes only one!!
+	      if(!m_state.isAltRefType(cosuti))
+		{
+		  fp->write(", T::ATOM_FIRST_STATE_BIT + 0, &"); //pos
+		  fp->write(m_state.getTheInstanceMangledNameByIndex(cosuti).c_str());
+		  fp->write(", uc");
+		  fp->write(");"); GCNL; //t41052
+		}
+	      else
+		{
+		  fp->write(", 0, "); //pos
+		  fp->write(cos->getMangledName().c_str()); //assumes only one!
+		  fp->write(".GetEffectiveSelf()");
+		  fp->write(");"); GCNL;
+		}
 
-	      uvpass = UVPass::makePass(tmpeleref, TMPAUTOREF, tobeType, UNPACKED, m_state, 0, stgcos->getId()); //POS moved left for type; pass along name id);
+	      idforuvpass = cos->getId();
+	    }
+	  if(tobe->isReference())
+	    {
+	      uvpass = UVPass::makePass(tmpeleref, TMPAUTOREF, reftobeType, UNPACKED, m_state, 0, idforuvpass); //POS moved left for type; pass along name id)
+	    }
+	  else
+	    {
+	      s32 tmpeleval = m_state.getNextTmpVarNumber();
+	      //convert element ref to its immediate, and read into
+	      //tmpstorage to return (t41067)
+	      m_state.indentUlamCode(fp);
+	      fp->write(tobe->getTmpStorageTypeAsString().c_str()); //BV, not const
+	      fp->write(" ");
+	      fp->write(m_state.getTmpVarAsString(tobeType, tmpeleval, tstor).c_str());
+	      fp->write(" = ");
+	      fp->write(tobe->getLocalStorageTypeAsString().c_str()); //anonymous immediate
+	      fp->write("(");
+	      fp->write(m_state.getTmpVarAsString(reftobeType, tmpeleref, TMPAUTOREF).c_str());
+	      fp->write(").read();"); GCNL;
+
+	      //update the uvpass to have the casted quark value
+	      uvpass = UVPass::makePass(tmpeleval, tstor, tobeType, m_state.determinePackable(tobeType), m_state, 0, 0); //POS 0 rightjustified;
 	    }
 	}
+
       //don't read like ref's do!
       //update the uvpass to have the casted type
       m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of rhs
       return;
   } //genCodeCastAtomAndElement
 
+  void NodeCast::genCodeCastAtomAndQuark(File * fp, UVPass & uvpass)
+  {
+    // quark tobe, only if ancestor
+    // also allow quark refs -> atom cast, if ancestor of atom type.
+    // e.g. assignments (e.g. t3697, error/t3691).
+
+    UTI tobeType = getCastType();
+    UlamType * tobe = m_state.getUlamTypeByIndex(tobeType);
+    TMPSTORAGE tstor = tobe->getTmpStorageTypeForTmpVar();
+
+    UTI  vuti = uvpass.getPassTargetType();
+    assert(m_state.okUTItoContinue(vuti));
+    UlamType * vut = m_state.getUlamTypeByIndex(vuti);
+    TMPSTORAGE vstor = uvpass.getPassStorage();
+
+    //stack still empty when func call returns self (t41065, case foofunc())
+    Symbol * stgcos = NULL;
+    Symbol * cos = NULL;
+    Node::loadStorageAndCurrentObjectSymbols(stgcos, cos);
+
+    UTI cosuti = cos->getUlamTypeIdx();
+    UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
+
+    bool usePassVal = m_state.m_currentObjSymbolsForCodeGen.empty() && ((vstor == TMPBITVAL) || (vstor == TMPAUTOREF));
+    bool makeValFromPass = m_state.m_currentObjSymbolsForCodeGen.empty() && !usePassVal;
+
+    s32 tmpStg = m_state.getNextTmpVarNumber();
+    if(makeValFromPass)
+      {
+	m_state.indentUlamCode(fp);
+	fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members, tmp immediate from-type
+	fp->write(" ");
+	fp->write(m_state.getTmpVarAsString(vuti, tmpStg, TMPBITVAL).c_str());
+	fp->write("(");
+	fp->write(uvpass.getTmpVarAsString(m_state).c_str());
+	fp->write(");"); GCNL;
+      }
+
+    s32 tmpVarIs = m_state.getNextTmpVarNumber();
+    // "downcast" might not be true; compare to be sure the atom is-a quark "Foo"
+    // by inheritance (see t3631)
+
+    //Type used twice, put in a tmp var
+    s32 tmpVarType = m_state.getNextTmpVarNumber();
+    m_state.indentUlamCode(fp);
+    fp->write("const s32 ");
+    fp->write(m_state.getTmpVarAsString(Int, tmpVarType, TMPREGISTER).c_str());;
+    fp->write(" = ");
+    if(m_state.isAtom(vuti))
+      {
+	//locals t3692,3,7,3701, t3756,7,t3837, t3986, t41005,6,7
+	//e.g. carray (e.g. error/t3508), a data member
+	if(usePassVal)
+	  {
+	    fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //t41143
+	    fp->write("."); //no read for self
+	    fp->write("ReadAtom");
+	    fp->write("()");
+	  }
+	else if(makeValFromPass) //a T
+	  {
+	    fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //t3692
+	  }
+	else
+	  {
+	    assert(!cos->isSelf());
+	    fp->write(cos->getMangledName().c_str()); //assumes only one!!!
+	  }
+	fp->write(".GetType();"); GCNL;
+	//got atom's Element Type in tmpvar.
+
+	//now, check that Type is a defined Element type
+	m_state.indentUlamCode(fp);
+	fp->write("const bool ");
+	fp->write(m_state.getTmpVarAsString(Bool, tmpVarIs, TMPREGISTER).c_str());
+	fp->write(" = ((");
+
+	//when SUBATOMIC quark, uses first state bit position (0)
+	// immediate quark's storage cast as a quark? Terrible idea!!
+	fp->write(m_state.getTmpVarAsString(Int, tmpVarType, TMPREGISTER).c_str());
+	fp->write(" == T::ATOM_UNDEFINED_TYPE) ? false : "); //subatomic type
+
+	//internal method, takes uc, u32 and const char*, returns true
+	// if same or ancester
+	fp->write(m_state.getIsMangledFunctionName(vuti));
+	fp->write("(");
+	fp->write("uc, ");
+	fp->write(m_state.getTmpVarAsString(Int, tmpVarType, TMPREGISTER).c_str());
+	fp->write(", &");
+	fp->write(m_state.getTheInstanceMangledNameByIndex(tobeType).c_str());
+	fp->write("));"); GCNL;
+      }
+    else
+      {
+	//From a quark, cast to atom..check load and check Type tmpvar
+	//e.g. a quark here would fail, if not a superclass && ref
+	if(usePassVal)
+	  {
+	    assert(vut->isAltRefType());
+	    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
+	  }
+	else if(makeValFromPass)
+	  {
+	    fp->write(m_state.getTmpVarAsString(vuti, tmpStg, TMPBITVAL).c_str());  //t3697, t41153
+	  }
+	else
+	  {
+	    assert(cosut->isAltRefType()); //t3697,t3834 (self is a ref,too)
+	    fp->write(cos->getMangledName().c_str());
+	  }
+	fp->write(".");
+	fp->write("GetType();"); GCNL;
+	//got atom's Element Type in tmpvar.
+
+	//insure the qref has a (MFM) type that's not UNDEFINED
+	// don't use quark read into tmpvar in uvpass (u32); t41153,4,5)
+	m_state.indentUlamCode(fp);
+	fp->write("const bool ");
+	fp->write(m_state.getTmpVarAsString(Bool, tmpVarIs, TMPREGISTER).c_str());
+	fp->write(" = (");
+	fp->write(m_state.getTmpVarAsString(Int, tmpVarType, TMPREGISTER).c_str());
+	fp->write(" != T::ATOM_UNDEFINED_TYPE);"); GCNL; //subatomic type
+      }
+
+    m_state.indentUlamCode(fp);
+    fp->write("if(!");
+    fp->write(m_state.getTmpVarAsString(Bool, tmpVarIs, TMPREGISTER).c_str());
+    fp->write(")\n");
+
+    m_state.m_currentIndentLevel++;
+    m_state.indentUlamCode(fp);
+    fp->write("FAIL(BAD_CAST);"); GCNL;
+    fp->write("\n");
+    m_state.m_currentIndentLevel--;
+
+    //Next pos of quark in atom/element..
+    //offset of descendant NOT always 0 fm start of state bits (ulam-5)
+    s32 tmpVarPos = m_state.getNextTmpVarNumber();
+    m_state.indentUlamCode(fp);
+    fp->write("const s32 ");
+    fp->write(m_state.getTmpVarAsString(Int, tmpVarPos, TMPREGISTER).c_str());
+
+    if(m_state.isAtom(vuti))
+      {
+	fp->write(" = ");
+	fp->write(m_state.getGetRelPosMangledFunctionName(vuti)); //UlamClass Method
+	fp->write("(uc, ");
+	fp->write(m_state.getTmpVarAsString(Int, tmpVarType, TMPREGISTER).c_str()); //element type
+	fp->write(", &");
+	fp->write(m_state.getTheInstanceMangledNameByIndex(tobeType).c_str()); //baseclass ptr
+	fp->write("); //relpos"); GCNL;
+      }
+    else
+      {
+	//sub-atomic vuti, tobetype is a defined atom (e.g. t41153)
+	// subtraction gets pos of element's state bits
+	fp->write(" = -(");
+	fp->write(m_state.getGetRelPosMangledFunctionName(UAtom)); //UlamClass Method
+	fp->write("(uc, ");
+	fp->write(m_state.getTmpVarAsString(Int, tmpVarType, TMPREGISTER).c_str()); //element type
+	fp->write(", &");
+	fp->write(m_state.getTheInstanceMangledNameByIndex(vuti).c_str()); //baseclass ptr
+	fp->write(")); //relpos back to state"); GCNL;
+      }
+
+    //t3631, t3692, t3693, t3697, t3701, t3756, t3757, t3789, t3834, t3837
+    // might be ancestor quark
+    // can't let Node::genCodeReadIntoTmpVar do this for us (we need a ref!):
+    //    if(!tobe->isReference()) // not isAltRefType, could be ALT_AS (t3835)
+
+    // here, making a complete object quark from an atom/ref, need
+    // that CLEVER trick i do believe (i.e. make a ref, then its
+    // immediate) in order to gather possible scattered base
+    // classes. Can't make a complete atom from a quark, unless
+    // it's a quarkref.
+    UTI reftobeType = m_state.getUlamTypeAsRef(tobeType);
+    UlamType * reftobe = m_state.getUlamTypeByIndex(reftobeType);
+
+    if(m_state.isAtom(vuti)) //from atom/ref->quark/ref
+      {
+	s32 tmpVarRef = m_state.getNextTmpVarNumber();
+	m_state.indentUlamCode(fp);
+	fp->write(reftobe->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
+	fp->write(" ");
+	fp->write(m_state.getTmpVarAsString(reftobeType, tmpVarRef, TMPAUTOREF).c_str());
+	fp->write("(");
+	if(usePassVal)
+	  {
+	    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
+	    if(vstor == TMPBITVAL)
+	      fp->write(", uc");
+	    fp->write(");"); GCNL;
+	  }
+	else if(makeValFromPass)
+	  {
+	    fp->write(m_state.getTmpVarAsString(vuti, tmpStg, TMPBITVAL).c_str());
+	    fp->write(", uc");
+	    fp->write(");"); GCNL;
+	  }
+	else if(cosut->isReference()) //atom-ref t3986,t41005,6,7,t41143
+	  {
+	    fp->write(cos->getMangledName().c_str()); //reference
+	    fp->write(", ");
+	    fp->write(m_state.getTmpVarAsString(Int, tmpVarPos, TMPREGISTER).c_str());
+	    fp->write(" + T::ATOM_FIRST_STATE_BIT, ");
+	    fp->write(cos->getMangledName().c_str()); //ref
+	    fp->write(".GetEffectiveSelf()");
+	    fp->write(");"); GCNL;
+	  }
+	else //atom non-ref
+	  {
+	    fp->write(cos->getMangledName().c_str());
+	    fp->write(", ");
+	    fp->write(m_state.getTmpVarAsString(Int, tmpVarPos, TMPREGISTER).c_str()); //pos +25
+	    fp->write(" + T::ATOM_FIRST_STATE_BIT, ");
+	    fp->write(m_state.getTmpVarAsString(Int, tmpVarPos, TMPREGISTER).c_str()); //postoeff
+	    fp->write(", NULL, "); //eff self of atom
+	    fp->write(genUlamRefUsageAsString(vuti).c_str()); //atomic
+	    fp->write(", uc");
+	    fp->write(");"); GCNL;
+	  }
+
+	if(tobe->isReference())
+	  {
+	    uvpass = UVPass::makePass(tmpVarRef, TMPAUTOREF, reftobeType, m_state.determinePackable(reftobeType), m_state, 0, 0); //POS 0 rightjustified
+	  }
+	else //tobe non-ref quark
+	  {
+	    //immediate cntr makes complete quark fm scattered bases
+	    //in its ref
+	    //t3697, error t3691, t41143 atom/ref->quark
+	    s32 tmpVarSuper = m_state.getNextTmpVarNumber();
+	    m_state.indentUlamCode(fp);
+	    fp->write(tobe->getTmpStorageTypeAsString().c_str()); //BV, not const
+	    fp->write(" ");
+	    fp->write(m_state.getTmpVarAsString(tobeType, tmpVarSuper, tstor).c_str());
+	    fp->write(" = ");
+	    fp->write(tobe->getLocalStorageTypeAsString().c_str()); //anonymous immediate
+	    fp->write("(");
+	    fp->write(m_state.getTmpVarAsString(reftobeType, tmpVarRef, TMPAUTOREF).c_str());
+	    fp->write(").read();"); GCNL;
+
+	    //update the uvpass to have the casted quark value
+	    uvpass = UVPass::makePass(tmpVarSuper, tstor, tobeType, m_state.determinePackable(tobeType), m_state, 0, 0); //POS 0 rightjustified;
+	  }
+      }
+    else
+      {
+	//from quark ref to atom/atomref (fail/t3691),t3697,t41153
+	s32 tmpVarAtomRef = m_state.getNextTmpVarNumber();
+	m_state.indentUlamCode(fp);
+	fp->write(reftobe->getLocalStorageTypeAsString().c_str());
+	fp->write(" ");
+	fp->write(m_state.getTmpVarAsString(reftobeType, tmpVarAtomRef, TMPAUTOREF).c_str());
+	fp->write("(");
+	if(usePassVal)
+	  fp->write(uvpass.getTmpVarAsString(m_state).c_str());
+	else if(makeValFromPass)
+	  {
+	    m_state.abortShouldntGetHere();
+	  }
+	else
+	  fp->write(cos->getMangledName().c_str());
+	fp->write(","); //entire storage
+	fp->write(m_state.getTmpVarAsString(Int, tmpVarPos, TMPREGISTER).c_str()); //pos -25
+	fp->write(" - T::ATOM_FIRST_STATE_BIT");
+	fp->write(");"); GCNL;
+
+	if(tobe->isReference())
+	  {
+	    uvpass = UVPass::makePass(tmpVarAtomRef, TMPAUTOREF, tobeType, m_state.determinePackable(tobeType), m_state, 0, 0); //POS 0 rightjustified;
+	  }
+	else
+	  {
+	    s32 tmpVarAtom = m_state.getNextTmpVarNumber();
+	    m_state.indentUlamCode(fp);
+	    fp->write(tobe->getLocalStorageTypeAsString().c_str());
+	    fp->write(" ");
+	    fp->write(m_state.getTmpVarAsString(tobeType, tmpVarAtom, TMPBITVAL).c_str());
+	    fp->write("(");
+	    fp->write(m_state.getTmpVarAsString(reftobeType, tmpVarAtomRef, TMPAUTOREF).c_str());
+	    fp->write(");"); GCNL;
+
+	    uvpass = UVPass::makePass(tmpVarAtom, TMPBITVAL, tobeType, m_state.determinePackable(tobeType), m_state, 0, 0); //POS 0 rightjustified;
+	  }
+      }
+    m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of lhs
+  } //genCodeCastAtomAndQuark
+
+#if 0
   void NodeCast::genCodeCastAtomAndQuark(File * fp, UVPass & uvpass)
   {
     // quark tobe, only if ancestor
@@ -1277,6 +1709,7 @@ namespace MFM {
       }
     m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of lhs
   } //genCodeCastAtomAndQuark
+#endif
 
   void NodeCast::genCodeCastDescendantTransient(File * fp, UVPass & uvpass)
   {
