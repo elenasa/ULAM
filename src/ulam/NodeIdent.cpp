@@ -512,6 +512,9 @@ namespace MFM {
     if(!m_varSymbol->isDataMember())
       return vuti; //no change
 
+    if(m_varSymbol->isTmpVarSymbol())
+      return vuti; //no change
+
     if(m_state.useMemberBlock())
       {
 	return vuti; //t3337 (e.g. t.m_arr[1]) parent is sqbkt, parent's parent is '.'

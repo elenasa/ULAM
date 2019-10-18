@@ -195,10 +195,13 @@ namespace MFM {
 
     //class instance idx is always the scalar uti
     UTI scalaruti =  m_key.getUlamKeyTypeSignatureClassInstanceIdx();
-    const std::string scalarmangledName = m_state.getUlamTypeByIndex(scalaruti)->getUlamTypeMangledName();
+    UlamType * scalarut = m_state.getUlamTypeByIndex(scalaruti);
+    const std::string scalarmangledName = scalarut->getUlamTypeMangledName();
+    const std::string automangledName = getUlamTypeImmediateAutoMangledName();
+    const std::string mangledName = scalarut->getUlamTypeImmediateMangledName();
 
     m_state.m_currentIndentLevel = 0;
-    const std::string automangledName = getUlamTypeImmediateAutoMangledName();
+
     std::ostringstream  ud;
     ud << "Ud_" << automangledName; //d for define (p used for atomicparametrictype)
     std::string udstr = ud.str();
@@ -219,11 +222,18 @@ namespace MFM {
 
     m_state.m_currentIndentLevel++;
 
-    //forward declaration of element (before struct!)
+    //forward declaration of class and its immediate (before struct!)
     m_state.indent(fp);
     fp->write("template<class EC> class ");
     fp->write(scalarmangledName.c_str());
-    fp->write(";  //forward\n"); GCNL;
+    fp->write(";  //forward"); GCNL;
+
+    m_state.indent(fp);
+    fp->write("template<class EC> class ");
+    fp->write(mangledName.c_str());
+    fp->write(";  //forward"); GCNL;
+
+    fp->write("\n");
 
     m_state.indent(fp);
     fp->write("template<class EC>\n");
@@ -280,6 +290,20 @@ namespace MFM {
     else
       fp->write("UlamRef<EC>::ELEMENTAL");
     fp->write(", uc) { }"); GCNL;
+
+    //short-hand from immediate to ref of same type
+    if(isScalar())
+      {
+	m_state.indent(fp);
+	fp->write(automangledName.c_str());
+	fp->write("(");
+	fp->write(mangledName.c_str());
+	fp->write("<EC>& earg, const UlamContext<EC> & uc) : UlamRef<EC>");
+	fp->write("(T::ATOM_FIRST_STATE_BIT + 0, "); //the real pos!!!
+	fp->write_decimal_unsigned(len); //atom-based size
+	fp->write("u, earg, & Us::THE_INSTANCE, UlamRef<EC>::ELEMENTAL, uc)");
+	fp->write(" { }"); GCNL;
+      }
 
     //copy constructor here
     // t3670,

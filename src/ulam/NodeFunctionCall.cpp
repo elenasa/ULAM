@@ -1878,6 +1878,12 @@ namespace MFM {
 	vuti = m_argumentNodes->getNodeType(n); //pass type we got
       }
 
+    if(m_state.m_currentObjSymbolsForCodeGen.empty())
+      {
+	if(UlamType::compare(uvpass.getPassTargetType(), vuti, m_state) == UTIC_SAME)
+	  return; //t41199
+      }
+
     s32 tmpVarArgNum = m_state.getNextTmpVarNumber();
 
     UVPass luvpass = UVPass::makePass(tmpVarArgNum, TMPAUTOREF, vuti, m_state.determinePackable(vuti), m_state, 0, id);

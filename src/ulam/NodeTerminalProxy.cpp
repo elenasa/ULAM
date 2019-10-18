@@ -100,7 +100,7 @@ namespace MFM {
 	//lengthof a scalar String variable is not constant, t3984; but,
 	//lengthof a String array is, t3985;
 	UTI ofnodeType = m_nodeOf->getNodeType();
-	if((UlamType::compareForString(ofnodeType, m_state) == UTIC_SAME) && m_state.isScalar(ofnodeType))
+	if(m_state.isAStringType(ofnodeType) && m_state.isScalar(ofnodeType))
 	  return m_nodeOf->isAConstant();
       }
     //else, e.g. length of String type has null m_nodeOf, and is constant 32u (t3933).
@@ -123,7 +123,7 @@ namespace MFM {
   {
     //when minmaxsizeof a selected member; and for clones,
     //when m_uti is a String, we must c&l m_nodeOf to find its symbol (t3960)
-    if((!m_state.okUTItoContinue(m_uti) || (UlamType::compareForString(m_uti, m_state) == UTIC_SAME)) && m_nodeOf)
+    if((!m_state.okUTItoContinue(m_uti) || m_state.isAStringType(m_uti)) && m_nodeOf)
       {
 	UTI ofuti = m_nodeOf->checkAndLabelType();
 	if(m_state.okUTItoContinue(ofuti))
@@ -343,7 +343,7 @@ namespace MFM {
 
     if((m_funcTok.m_type == TOK_KW_LENGTHOF))
       {
-	if(m_nodeOf && (UlamType::compareForString(m_nodeOf->getNodeType(), m_state) == UTIC_SAME))
+	if(m_nodeOf && m_state.isAStringType(m_nodeOf->getNodeType()))
 	  {
 	    //String or String array item (t3933, t3949, t3984)
 	    evalNodeProlog(0); //new current frame pointer
@@ -394,7 +394,7 @@ namespace MFM {
     if(m_funcTok.m_type == TOK_KW_LENGTHOF)
       {
 
-	if(m_nodeOf && (UlamType::compareForString(m_uti, m_state) == UTIC_SAME))
+	if(m_nodeOf && m_state.isAStringType(m_uti))
 	  {
 	    //String or String array item (t3933, t3949)
 	    return genCodeForUserStringLength(fp, uvpass); //t3929
@@ -419,13 +419,11 @@ namespace MFM {
 
   void NodeTerminalProxy::genCodeForUserStringLength(File * fp, UVPass& uvpass)
   {
-    assert(UlamType::compareForString(m_uti, m_state) == UTIC_SAME);
+    assert(m_state.isAStringType(m_uti));
     assert(m_nodeOf);
     UTI nuti = getNodeType();
     UVPass ofpass;
     m_nodeOf->genCode(fp, ofpass);
-
-    //TMPSTORAGE ofstor = ofpass.getPassStorage();
 
     s32 tmpVarNum = m_state.getNextTmpVarNumber();
     m_state.indentUlamCode(fp);

@@ -1248,7 +1248,7 @@ void NodeBlockClass::checkTestFunctionReturnType()
 		  }
 		if(!aut->isScalar())
 		  {
-		    if(UlamType::compareForString(auti, m_state) == UTIC_SAME)
+		    if(m_state.isAStringType(auti))
 		      {
 			std::ostringstream msg;
 			msg << "Class arguments of type String are limited to scalars ";

@@ -305,7 +305,7 @@ namespace MFM {
       }
 
     //don't allow unions to contain string data members (t41093)
-    if(m_state.isClassAQuarkUnion(cuti) && UlamType::compareForString(nuti, m_state) == UTIC_SAME)
+    if(m_state.isClassAQuarkUnion(cuti) && m_state.isAStringType(nuti))
       {
 	std::ostringstream msg;
 	msg << "Data member '";
