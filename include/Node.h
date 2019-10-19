@@ -179,6 +179,8 @@ namespace MFM{
 
     virtual bool isAMemberSelect();
 
+    virtual bool isTernaryExpression();
+
     virtual bool getConstantValue(BV8K& bval);
 
     virtual FORECAST safeToCastTo(UTI newType);

@@ -125,6 +125,11 @@ namespace MFM {
     return m_nodeCondition->isAConstant(); //t41280
   }
 
+  bool NodeQuestionColon::isTernaryExpression()
+  {
+    return true; //for NodeCast
+  }
+
   UTI NodeQuestionColon::calcNodeType(UTI lt, UTI rt)
   {
     if(!m_state.neitherNAVokUTItoContinue(lt, rt))
@@ -566,13 +571,7 @@ namespace MFM {
   {
     assert(m_nodeCondition && m_nodeLeft && m_nodeRight);
     UTI nuti = getNodeType();
-#if 0
-    if(!m_state.isReference(nuti))
-      {
-	//pure virtual error when reference code used on non-ref (t41065)
-	return genCode(fp,uvpass); //e.g. called by NodeCast t41071
-      }
-#endif
+    //pure virtual error when reference code used on non-ref (t41065)
 
     if(m_state.getReferenceType(nuti) != ALT_REF)
       nuti = m_state.getUlamTypeAsRef(nuti); //e.g. called by NodeCast t41071

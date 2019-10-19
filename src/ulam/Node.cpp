@@ -312,6 +312,11 @@ namespace MFM {
     return false;
   }
 
+  bool Node::isTernaryExpression()
+  {
+    return false;
+  }
+
   bool Node::getConstantValue(BV8K& bval)
   {
     std::ostringstream msg;
@@ -1054,31 +1059,6 @@ namespace MFM {
       fp->write(m_state.getHiddenArgName()); //t41120,t3707,8
     fp->write(".");
     return;
-#if 0
-    Symbol * stgcos = NULL;
-    Symbol * cos = NULL;
-    loadStorageAndCurrentObjectSymbols(stgcos, cos);
-    assert(stgcos && cos);
-
-    AssertBool cosSizeOneOrZero = (stgcos == cos);
-    assert(cosSizeOneOrZero); //sanity check, pls!
-
-    UTI stgcosuti = stgcos->getUlamTypeIdx();
-    UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
-
-    // NOT just ur.Read() (e.g. big array of quarks: 3707, 3708)
-    fp->write("UlamRef<EC>(");
-    fp->write(m_state.getHiddenArgName()); //ur
-    fp->write(", 0u, "); // (already + 25) e.g. t3407
-    fp->write_decimal_unsigned(getLengthOfMemberClassForHiddenArg(stgcosuti));
-    fp->write("u, &");
-    fp->write(m_state.getTheInstanceMangledNameByIndex(stgcosuti).c_str());
-    fp->write(", ");
-    fp->write(genUlamRefUsageAsString(stgcosuti).c_str());
-    if(!stgcosut->isAltRefType())
-      fp->write(", uc");
-    fp->write(").");
-#endif
   } //genSelfNameOfMethod
 
   void Node::genCodeReadTransientIntoATmpVar(File * fp, UVPass & uvpass)
@@ -1818,15 +1798,6 @@ namespace MFM {
 
     if(!cosut->isScalar() && vut->isScalar())
       return genCodeArrayItemRefInit(fp, uvpass, vsymptr);
-
-#if 0
-    if(m_state.m_currentObjSymbolsForCodeGen.empty())
-      {
-	//local var (no currentObjSymbols, 1 arg since same type) e.g. t3617, t3779, t41199
-	assert(UlamType::compare(uvpass.getPassTargetType(), vuti, m_state) == UTIC_SAME);
-	return;
-      }
-#endif
 
     ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
     ULAMTYPE vetyp = vut->getUlamTypeEnum();
