@@ -224,7 +224,7 @@ namespace MFM {
     fp->write("(idx, "); //the real pos!!!
     if(!isScalar())
       fp->write_decimal_unsigned(len); //includes arraysize
-    else if(len > 0)
+    else if(len != baselen)
       {
 	fp->write("&Us::THE_INSTANCE==effself ? ");
 	fp->write_decimal_unsigned(len); //includes arraysize
@@ -232,7 +232,7 @@ namespace MFM {
 	fp->write_decimal_unsigned(baselen); //base class
       }
     else
-      fp->write_decimal_unsigned(0);
+      fp->write_decimal_unsigned(len);
 
     fp->write("u, targ, effself, ");
     if(!isScalar())
@@ -272,7 +272,7 @@ namespace MFM {
     fp->write("(const UlamRef<EC>& arg, s32 idx, const UlamClass<EC>* effself) : UlamRef<EC>(arg, idx, ");
     if(!isScalar())
       fp->write_decimal_unsigned(len); //includes arraysize
-    else if(len > 0)
+    else if(len != baselen)
       {
 	fp->write("& Us::THE_INSTANCE==effself ? ");
 	fp->write_decimal_unsigned(len); //includes arraysize
@@ -280,7 +280,7 @@ namespace MFM {
 	fp->write_decimal_unsigned(baselen); //base class
       }
     else
-      fp->write_decimal_unsigned(0);
+      fp->write_decimal_unsigned(len);
 
     fp->write("u, effself, ");
     if(!isScalar())
@@ -295,7 +295,7 @@ namespace MFM {
     fp->write("(const UlamRef<EC>& arg, s32 idx, const UlamClass<EC>* effself, const typename UlamRef<EC>::UsageType usage) : UlamRef<EC>(arg, idx, ");
     if(!isScalar())
       fp->write_decimal_unsigned(len); //includes arraysize
-    else if(len > 0)
+    else if(len != baselen)
       {
 	fp->write("&Us::THE_INSTANCE==effself ? ");
 	fp->write_decimal_unsigned(len); //includes arraysize
@@ -303,7 +303,7 @@ namespace MFM {
 	fp->write_decimal_unsigned(baselen); //base class
       }
     else
-      fp->write_decimal_unsigned(0);
+      fp->write_decimal_unsigned(len);
 
     fp->write("u, effself, ");
     fp->write("usage"); //controlled by caller
@@ -316,7 +316,7 @@ namespace MFM {
     fp->write("<EC>& r) : UlamRef<EC>(r,0,");
     if(!isScalar())
       fp->write_decimal_unsigned(len); //includes arraysize
-    else if(len > 0)
+    else if(len != baselen)
       {
 	fp->write("&Us::THE_INSTANCE==r.GetEffectiveSelfPointer() ? ");
 	fp->write_decimal_unsigned(len); //includes arraysize
@@ -324,7 +324,7 @@ namespace MFM {
 	fp->write_decimal_unsigned(baselen); //base class
       }
     else
-      fp->write_decimal_unsigned(0);
+      fp->write_decimal_unsigned(len);
 
     fp->write("u) { }"); GCNL;
 
@@ -335,7 +335,7 @@ namespace MFM {
     fp->write("<EC>& r, s32 idx) : UlamRef<EC>(r, idx, ");
     if(!isScalar())
       fp->write_decimal_unsigned(len); //includes arraysize
-    else if(len > 0)
+    else if(len != baselen)
       {
 	fp->write("&Us::THE_INSTANCE==r.GetEffectiveSelfPointer() ? ");
 	fp->write_decimal_unsigned(len); //includes arraysize
@@ -343,7 +343,7 @@ namespace MFM {
 	fp->write_decimal_unsigned(baselen); //base class
       }
     else
-      fp->write_decimal_unsigned(0);
+      fp->write_decimal_unsigned(len);
 
     fp->write("u) { }"); GCNL; //want applydelta, true ???
 
@@ -356,7 +356,7 @@ namespace MFM {
     fp->write("<EC>& r) : UlamRef<EC>(r,0,");
     if(!isScalar())
       fp->write("r.GetLen()");
-    else if(len > 0)
+    else if(len != baselen)
       {
 	fp->write("&Us::THE_INSTANCE==r.GetEffectiveSelfPointer() ? ");
 	fp->write("r.GetLen() : ");
@@ -365,7 +365,7 @@ namespace MFM {
       }
     else
       {
-	fp->write_decimal_unsigned(0);
+	fp->write_decimal_unsigned(len);
 	fp->write("u");
       }
 
