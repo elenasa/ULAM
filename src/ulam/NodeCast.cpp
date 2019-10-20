@@ -1165,15 +1165,13 @@ namespace MFM {
 	if(usePassVal)
 	  {
 	    fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //t41143
-	    fp->write("."); //no read for self
-	    fp->write("ReadAtom");
-	    fp->write("()");
+	    fp->write(".ReadAtom()");
 	  }
 	else if(makeValFromPass) //a T
 	  {
 	    fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //t3692
 	  }
-	else
+	else //no read for self
 	  {
 	    assert(!cos->isSelf());
 	    fp->write(cos->getMangledName().c_str()); //assumes only one!!!
@@ -1187,7 +1185,7 @@ namespace MFM {
 	fp->write(m_state.getTmpVarAsString(Bool, tmpVarIs, TMPREGISTER).c_str());
 	fp->write(" = ((");
 
-	//when SUBATOMIC quark, uses first state bit position (0)
+	//when SUBATOMIC quark, dont know rel pos without asking (ulam-5)
 	// immediate quark's storage cast as a quark? Terrible idea!!
 	fp->write(m_state.getTmpVarAsString(Int, tmpVarType, TMPREGISTER).c_str());
 	fp->write(" == T::ATOM_UNDEFINED_TYPE) ? false : "); //subatomic type
@@ -1300,16 +1298,40 @@ namespace MFM {
 	  {
 	    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
 	    if(vstor == TMPBITVAL)
-	      fp->write(", uc");
-	    fp->write(");"); GCNL;
+	      {
+		//fp->write(".ReadAtom(),");
+		fp->write(",");
+		fp->write(m_state.getTmpVarAsString(Int, tmpVarPos, TMPREGISTER).c_str());
+		fp->write(" + T::ATOM_FIRST_STATE_BIT, ");
+		fp->write(m_state.getTmpVarAsString(Int, tmpVarPos, TMPREGISTER).c_str()); //postoeff
+		fp->write(", uc.LookupUlamElementTypeFromContext(");
+		fp->write(m_state.getTmpVarAsString(Int, tmpVarType, TMPREGISTER).c_str());;
+		fp->write("), UlamRef<EC>::CLASSIC, uc");
+		fp->write(");"); GCNL;
+	      }
+	    else //tmpautoref
+	      {
+		fp->write(", ");
+		fp->write(m_state.getTmpVarAsString(Int, tmpVarPos, TMPREGISTER).c_str());
+		fp->write(" + T::ATOM_FIRST_STATE_BIT, ");
+		fp->write(uvpass.getTmpVarAsString(m_state).c_str());
+		fp->write(".GetEffectiveSelf()");
+		fp->write(");"); GCNL;
+	      }
 	  }
 	else if(makeValFromPass)
 	  {
 	    fp->write(m_state.getTmpVarAsString(vuti, tmpStg, TMPBITVAL).c_str());
-	    fp->write(", uc");
+	    fp->write(",");
+	    fp->write(m_state.getTmpVarAsString(Int, tmpVarPos, TMPREGISTER).c_str());
+	    fp->write(" + T::ATOM_FIRST_STATE_BIT, ");
+	    fp->write(m_state.getTmpVarAsString(Int, tmpVarPos, TMPREGISTER).c_str()); //postoeff
+	    fp->write(", uc.LookupUlamElementTypeFromContext(");
+	    fp->write(m_state.getTmpVarAsString(Int, tmpVarType, TMPREGISTER).c_str());;
+	    fp->write("), UlamRef<EC>::CLASSIC, uc");
 	    fp->write(");"); GCNL;
 	  }
-	else if(cosut->isReference()) //atom-ref t3986,t41005,6,7,t41143
+	else if(cosut->isReference()) //fm atom-ref t3986,t41005,6,7,t41143
 	  {
 	    fp->write(cos->getMangledName().c_str()); //reference
 	    fp->write(", ");
@@ -1319,20 +1341,20 @@ namespace MFM {
 	    fp->write(".GetEffectiveSelf()");
 	    fp->write(");"); GCNL;
 	  }
-	else //atom non-ref
+	else //fm atom non-ref
 	  {
 	    fp->write(cos->getMangledName().c_str());
 	    fp->write(", ");
 	    fp->write(m_state.getTmpVarAsString(Int, tmpVarPos, TMPREGISTER).c_str()); //pos +25
 	    fp->write(" + T::ATOM_FIRST_STATE_BIT, ");
 	    fp->write(m_state.getTmpVarAsString(Int, tmpVarPos, TMPREGISTER).c_str()); //postoeff
-	    fp->write(", NULL, "); //eff self of atom
-	    fp->write(genUlamRefUsageAsString(vuti).c_str()); //atomic
-	    fp->write(", uc");
+	    fp->write(", uc.LookupUlamElementTypeFromContext(");
+	    fp->write(m_state.getTmpVarAsString(Int, tmpVarType, TMPREGISTER).c_str());;
+	    fp->write("), UlamRef<EC>::CLASSIC, uc");
 	    fp->write(");"); GCNL;
 	  }
 
-	if(tobe->isReference())
+	if(tobe->isReference()) //to quark-ref
 	  {
 	    uvpass = UVPass::makePass(tmpVarRef, TMPAUTOREF, reftobeType, m_state.determinePackable(reftobeType), m_state, 0, 0); //POS 0 rightjustified
 	  }
