@@ -985,7 +985,7 @@ namespace MFM {
 
 	NodeBlockClass * memberClassNode = vtcsym->getClassBlockNode();
 	assert(memberClassNode);  //e.g. forgot the closing brace on quark definition
-	//set up compiler state to use the member class block for symbol searches
+	//setup compilerstate to use the member class block for symbol search
 	m_state.pushClassContextUsingMemberClassBlock(memberClassNode);
 
 	u32 funcid = m_state.getTokenDataAsStringId(m_functionNameTok); //t41087
@@ -1039,6 +1039,7 @@ namespace MFM {
       } //end lookup virtual function
     else
       {
+	//t41361 cannot go by vtclass when it needs its subclass' table
 	if(m_funcSymbol->isPureVirtualFunction())
 	  {
 	    std::ostringstream msg;
@@ -1621,7 +1622,9 @@ namespace MFM {
     //   t41158, t41160, t41094, safe t41161
     // too limiting (ulam-5) to limit to 'super' special case:
     //   t3606, t3608, t3774, t3779, t3788, t3794, t3795, t3967, t41131
-    if(m_state.getUlamTypeAsDeref(cosuti) != cvfuti) //multiple bases possible (ulam-5)
+    // once cos is a ref, all bets off! unclear effSelf, e.g. cos is 'self'
+    //    if(m_state.getUlamTypeAsDeref(cosuti) != cvfuti) //multiple bases possible (ulam-5)
+    if(!m_state.isAltRefType(cosuti) && (m_state.getUlamTypeAsDeref(cosuti) != cvfuti)) //multiple bases possible (ulam-5); issue +(t41361 TODO)
       {
 	SymbolClass * cvfsym = NULL;
 	AssertBool iscvfDefined = m_state.alreadyDefinedSymbolClass(cvfuti, cvfsym);
