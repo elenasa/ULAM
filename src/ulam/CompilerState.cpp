@@ -4886,7 +4886,6 @@ namespace MFM {
     assert(lptr.isPtr());
     assert(rptr.isPtr());
 
-
     assert(UlamType::compare(lptr.getPtrTargetType(), rptr.getPtrTargetType(), *this) == UTIC_SAME);
 
     STORAGE place = lptr.getPtrStorage();
@@ -5193,40 +5192,55 @@ namespace MFM {
     PACKFIT packed = determinePackable(uti);
     bool isLoadableRegister = (packed == PACKEDLOADABLE);
 
-    if((stg == TMPREGISTER) || (stg == TMPARRAYIDX))
+    switch(stg)
       {
-	if(isLoadableRegister)
-	  tmpVar << "Uh_5tlreg" ; //tmp loadable register
-	else
-	  tmpVar << "Uh_5tureg" ; //tmp unpacked register
-      }
-    else if(stg == TMPBITVAL)
-      {
-	if(isLoadableRegister)
-	  tmpVar << "Uh_5tlval" ; //tmp loadable value
-	else
-	  tmpVar << "Uh_5tuval" ; //tmp unpacked value
-      }
-    else if(stg == TMPAUTOREF)
-      {
-	if(isLoadableRegister)
-	  tmpVar << "Uh_6tlref" ; //tmp loadable autoref
-	else
-	  tmpVar << "Uh_6turef" ; //tmp unpacked autoref
-      }
-    else if(stg == TMPTATOM)
-      {
-	tmpVar << "Uh_3tut" ; //tmp unpacked atom T
-      }
-    else if(stg == TMPATOMBS)
-      {
-	tmpVar << "Uh_4tabs" ; //tmp atombitstorage
-      }
-    else
-      abortShouldntGetHere(); //removes assumptions about tmpbitval.
-
+      case TMPREGISTER:
+      case TMPARRAYIDX:
+	{
+	  if(isLoadableRegister)
+	    tmpVar << "Uh_5tlreg" ; //tmp loadable register
+	  else
+	    tmpVar << "Uh_5tureg" ; //tmp unpacked register
+	}
+	break;
+      case TMPBITVAL:
+	{
+	  if(isLoadableRegister)
+	    tmpVar << "Uh_5tlval" ; //tmp loadable value
+	  else
+	    tmpVar << "Uh_5tuval" ; //tmp unpacked value
+	}
+	break;
+      case TMPAUTOREF:
+	{
+	  if(isLoadableRegister)
+	    tmpVar << "Uh_6tlref" ; //tmp loadable autoref
+	  else
+	    tmpVar << "Uh_6turef" ; //tmp unpacked autoref
+	}
+	break;
+      case TMPTATOM:
+	{
+	  tmpVar << "Uh_3tut" ; //tmp unpacked atom T
+	}
+	break;
+      case TMPATOMBS:
+	{
+	  tmpVar << "Uh_4tabs" ; //tmp atombitstorage
+	}
+	break;
+      case TMPTBV:
+	{
+	  if(isLoadableRegister)
+	    tmpVar << "Uh_3tlbv" ; //tmp loadable bitvector
+	  else
+	    tmpVar << "Uh_3tubv" ; //tmp unpacked bitvector
+	}
+	break;
+      default:
+	abortShouldntGetHere(); //removes assumptions about tmpbitval.
+      };
     tmpVar << ToLeximitedNumber(num);
-
     return tmpVar.str();
   } //getTmpVarAsString
 

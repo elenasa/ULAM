@@ -140,8 +140,7 @@ namespace MFM {
 
   TMPSTORAGE UlamTypePrimitive::getTmpStorageTypeForTmpVar()
   {
-    //immediate storage is TMPBITVAL for all UlamTypes.
-    return UlamType::getTmpStorageTypeForTmpVar(); //TMPREGISTER
+    return UlamType::getTmpStorageTypeForTmpVar();
   }
 
   const std::string UlamTypePrimitive::castMethodForCodeGen(UTI nodetype)

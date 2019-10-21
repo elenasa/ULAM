@@ -100,6 +100,9 @@ namespace MFM {
 
   enum STORAGE { IMMEDIATE = 0, EVENTWINDOW, STACK, EVALRETURN, UNPACKEDSTRUCT, CNSTSTACK};
 
+  /**
+      TMPSTORAGE: in uvpass, primarily used to name tmp variables, also to test for tmpbitval and tmpautoref, immediate types, that could need write/read(); terminal is a number; the rest are based on UlamType* and total bitsize (e.g. transients, element, atom are virtually special cases)
+   */
   enum TMPSTORAGE { TERMINAL = 0, TMPREGISTER, TMPBITVAL, TMPAUTOREF, TMPTATOM, TMPATOMBS, TMPTBV, TMPARRAYIDX };
 
   enum PACKFIT { UNPACKED = 0, PACKED, PACKEDLOADABLE};

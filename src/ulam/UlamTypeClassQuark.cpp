@@ -269,7 +269,7 @@ namespace MFM {
     //constructor for chain of refs (e.g. memberselect with array item)
     m_state.indent(fp);
     fp->write(automangledName.c_str());
-    fp->write("(const UlamRef<EC>& arg, s32 idx, const UlamClass<EC>* effself) : UlamRef<EC>(arg, idx, ");
+    fp->write("(const UlamRef<EC>& arg, s32 incr, const UlamClass<EC>* effself) : UlamRef<EC>(arg, incr, ");
     if(!isScalar())
       fp->write_decimal_unsigned(len); //includes arraysize
     else if(len != baselen)
@@ -292,7 +292,7 @@ namespace MFM {
     //constructor for chain of autorefs
     m_state.indent(fp);
     fp->write(automangledName.c_str());
-    fp->write("(const UlamRef<EC>& arg, s32 idx, const UlamClass<EC>* effself, const typename UlamRef<EC>::UsageType usage) : UlamRef<EC>(arg, idx, ");
+    fp->write("(const UlamRef<EC>& arg, s32 incr, const UlamClass<EC>* effself, const typename UlamRef<EC>::UsageType usage) : UlamRef<EC>(arg, incr, ");
     if(!isScalar())
       fp->write_decimal_unsigned(len); //includes arraysize
     else if(len != baselen)
@@ -332,7 +332,7 @@ namespace MFM {
     m_state.indent(fp);
     fp->write(automangledName.c_str());
     fp->write("(const UlamRef");
-    fp->write("<EC>& r, s32 idx) : UlamRef<EC>(r, idx, ");
+    fp->write("<EC>& r, s32 incr) : UlamRef<EC>(r, incr, ");
     if(!isScalar())
       fp->write_decimal_unsigned(len); //includes arraysize
     else if(len != baselen)

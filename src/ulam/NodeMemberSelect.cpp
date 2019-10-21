@@ -459,8 +459,9 @@ namespace MFM {
       }
     else
       {
-	//make a ptr to an unpacked array, base[0] ? //t3704
-	rtnUV = UlamValue::makePtr(rslot, EVALRETURN, ruti, UNPACKED, m_state);
+	//make a ptr to an unpacked array, base[0] ? //t3704,
+	//t3381,t3853,t3995 (PACKEDLOADABLE, not UNPACKED);
+	rtnUV = UlamValue::makePtr(rslot, EVALRETURN, ruti, m_state.determinePackable(ruti), m_state);
       }
 
     if((rtnUV.getUlamValueTypeIdx() == Nav) || (ruti == Nav))

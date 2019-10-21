@@ -1067,19 +1067,24 @@ namespace MFM {
 	return;
       }
 
+    UTI nuti = getNodeType();
+
     // The Call:
-    if((uvpass.getPassStorage() == TMPAUTOREF))
+    //    if((uvpass.getPassStorage() == TMPAUTOREF))
+    //treat atom/ref as tmpbitval (t41143)
+    if((uvpass.getPassStorage() == TMPAUTOREF) && !m_state.isAtom(nuti))
       genCodeAReferenceIntoABitValue(fp, uvpass);
     else
       genCodeIntoABitValue(fp, uvpass);
 
     // Result:
-    if(getNodeType() != Void)
+    if(nuti != Void)
       {
 	UTI vuti = uvpass.getPassTargetType();
 	// skip reading classes and atoms
 	if(m_state.getUlamTypeByIndex(vuti)->isPrimitiveType())
 	  {
+	    //e.g. t3653, t3946, t41001,7,34,71,73, t41333,6, t41351,3, t41358,9
 	    Node::genCodeConvertABitVectorIntoATmpVar(fp, uvpass); //inc uvpass slot
 	  }
 	//else class or atom stays as a tmpbitval (e.g. t41143)
@@ -1101,6 +1106,7 @@ namespace MFM {
     // generate for value
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    TMPSTORAGE nstor = nut->isReference() ? TMPAUTOREF : TMPBITVAL; //not TMPREGISTER for primitives (t3114) or quarks (t3272)
 
     UTI vownuti = (m_funcSymbol->isVirtualFunction() ? m_funcSymbol->getVirtualMethodOriginatingClassUTI() : (UTI) Nouti);
     UTI futi = m_funcSymbol->getDataMemberClass();
@@ -1160,15 +1166,15 @@ namespace MFM {
 	    //else local var or arg, including references and model parameter, customarray (t3223)
 	  }
 
-	uvpass = UVPass::makePass(rtntmpnum, TMPBITVAL, nuti, m_state.determinePackable(nuti), m_state, pos, selfid); //POS adjusted for BitVector, justified; self id in Pass;
+	uvpass = UVPass::makePass(rtntmpnum, nstor, nuti, m_state.determinePackable(nuti), m_state, pos, selfid); //POS adjusted for BitVector, justified; self id in Pass;
 
 	// put result of function call into a variable;
 	// (C turns it into the copy constructor)
 	if(getStoreIntoAble() == TBOOL_FALSE)
 	  fp->write("const ");
-	fp->write(nut->getLocalStorageTypeAsString().c_str()); //e.g. BitVector<32>
+	fp->write(nut->getLocalStorageTypeAsString().c_str()); //e.g. Ui_
 	fp->write(" ");
-	fp->write(m_state.getTmpVarAsString(nuti, rtntmpnum, TMPBITVAL).c_str());
+	fp->write(m_state.getTmpVarAsString(nuti, rtntmpnum, nstor).c_str());
 	fp->write(" = ");
       } //not void return
 
@@ -1203,14 +1209,18 @@ namespace MFM {
   {
     UVPass rtnuvpass;
     // generate for value
-    UTI nuti = getNodeType();
+    UTI nuti = getNodeType(); //func return type
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    TMPSTORAGE nstor = nut->getTmpStorageTypeForTmpVar(); //tmpautoref
 
     u32 urtmpnum = 0;
-    std::string hiddenarg2str = genHiddenArg2ForARef(fp, uvpass, urtmpnum);
+    //    if(m_state.m_currentObjSymbolsForCodeGen.empty() || m_state.m_currentObjSymbolsForCodeGen[0]->isSelf())
+      {
+	std::string hiddenarg2str = genHiddenArg2ForARef(fp, uvpass, urtmpnum);
 
-    m_state.indentUlamCode(fp);
-    fp->write(hiddenarg2str.c_str()); GCNL;
+	m_state.indentUlamCode(fp);
+	fp->write(hiddenarg2str.c_str()); GCNL;
+      }
 
     u32 tvfpnum = m_state.getNextTmpVarNumber();
     if(m_funcSymbol->isVirtualFunction())
@@ -1247,14 +1257,14 @@ namespace MFM {
 	else
 	  selfid = m_state.m_currentObjSymbolsForCodeGen[0]->getId();
 
-	rtnuvpass = UVPass::makePass(rtnSlot, TMPBITVAL, nuti, m_state.determinePackable(nuti), m_state, pos, selfid); //POS adjusted for BitVector, justified; self id in Pass;
+	rtnuvpass = UVPass::makePass(rtnSlot, nstor, nuti, m_state.determinePackable(nuti), m_state, pos, selfid); //POS adjusted for BitVector, justified; self id in Pass;
 
 	// put result of function call into a variable;
 	// (C turns it into the copy constructor)
 	fp->write("const ");
 	fp->write(nut->getLocalStorageTypeAsString().c_str()); //e.g. BitVector<32>
 	fp->write(" ");
-	fp->write(m_state.getTmpVarAsString(nuti, rtnSlot, TMPBITVAL).c_str());
+	fp->write(m_state.getTmpVarAsString(nuti, rtnSlot, nstor).c_str());
 	fp->write(" = ");
       } //not void return
 
@@ -1690,26 +1700,44 @@ namespace MFM {
     //vuti may not be a ref (e.g. t3668, a QW that was deref'd by [].)
     bool isaref = m_state.isAltRefType(vuti);
 
+    bool usePassVal = m_state.m_currentObjSymbolsForCodeGen.empty();
+    Symbol * stgcos = !usePassVal ? m_state.m_currentObjSymbolsForCodeGen[0] : NULL;
+
     //use possible dereference type for mangled name
     UTI derefuti = m_state.getUlamTypeAsDeref(vuti);
     assert(m_state.isAClass(derefuti));
 
-   u32 tmpvarnum = uvpass.getPassVarNum();
    u32 tmpvarur = m_state.getNextTmpVarNumber();
-
     std::ostringstream hiddenarg2;
     //new ur to reflect "effective" self and the ref storage, for this funccall
     hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvarur).c_str() << "(";
-    hiddenarg2 << m_state.getTmpVarAsString(derefuti, tmpvarnum, TMPAUTOREF).c_str();
-    if(isaref)
-      hiddenarg2 << ", 0u"; //references already offset t3811
-    else
-      hiddenarg2 << ", " << uvpass.getPassPos() << "u"; //element refs already +25
 
-    hiddenarg2 << ", " << getLengthOfMemberClassForHiddenArg(derefuti) << "u, "; //len t3370
-    hiddenarg2 << "&";
-    hiddenarg2 << m_state.getTheInstanceMangledNameByIndex(derefuti).c_str();
-    hiddenarg2 << ", " << genUlamRefUsageAsString(derefuti).c_str();
+    if(isaref)
+      {
+	if(usePassVal)
+	  hiddenarg2 << uvpass.getTmpVarAsString(m_state).c_str();
+	else
+	  hiddenarg2 << stgcos->getMangledName().c_str();
+	hiddenarg2 << ", 0u"; //references already offset t3811
+      }
+    else
+      hiddenarg2 << uvpass.getPassPos() << "u"; //element refs already +25
+
+    hiddenarg2 << ", " << getLengthOfMemberClassForHiddenArg(derefuti) << "u"; //len t3370
+
+    if(!isaref)
+      {
+	hiddenarg2 << ", ";
+	if(usePassVal)
+	  hiddenarg2 << uvpass.getTmpVarAsString(m_state).c_str();
+	else
+	  hiddenarg2 << stgcos->getMangledName().c_str();
+	hiddenarg2 << ", &";
+	hiddenarg2 << m_state.getTheInstanceMangledNameByIndex(derefuti).c_str();
+	hiddenarg2 << ", " << Node::genUlamRefUsageAsString(derefuti).c_str();
+	hiddenarg2 << ", uc";
+      }
+
     hiddenarg2 << ");";
 
     urtmpnumref = tmpvarur;

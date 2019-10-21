@@ -352,9 +352,90 @@ namespace MFM {
 	  m_state.abortShouldntGetHere();
       }
     setNodeType(newType);
+#if 0
+    if(m_state.okUTItoContinue(newType))
+      {
+	newType = specifyimplicitselfexplicitly(); //e.g. t3175
+	setNodeType(newType); //reset
+      }
+#endif
     if(newType == Hzy) m_state.setGoAgain(); //covers non-error(debug) messages for incompletes
     return newType;
   } //checkAndLabelType
+
+#if 0
+  //see also NodeIdent
+  UTI NodeSquareBracket::specifyimplicitselfexplicitly()
+  {
+    UTI nuti = getNodeType();
+    if(!m_nodeLeft->hasASymbolDataMember())
+      return nuti; //no change
+
+    Symbol * leftsym = NULL;
+    if(m_nodeLeft->getSymbolPtr(leftsym))
+      {
+	if(leftsym->isTmpVarSymbol())
+	  return nuti; //no change
+      }
+
+    if(m_state.useMemberBlock())
+      {
+	return nuti; //(e.g. t.m_arr[1]) parent is sqbkt, parent's parent is '.'
+      }
+
+    //a data member array item needs to be rhs of member select "."
+    NodeBlock * currBlock = m_state.getCurrentBlock();
+
+    NNO pno = Node::getYourParentNo();
+
+    m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock); //push again
+
+    Node * parentNode = m_state.findNodeNoInThisClassForParent(pno);
+    assert(parentNode);
+
+    m_state.popClassContext(); //restore
+
+    bool implicitself = true;
+
+    if(parentNode->isAMemberSelect())
+      {
+	Symbol * rhsym = NULL;
+	if(!parentNode->getSymbolPtr(rhsym))
+	  nuti = Hzy;
+
+	implicitself = (rhsym != leftsym); //rhsym null wont match
+      }
+#if 0
+    //rhs is array item (t3312)
+    else if(parentNode->isArrayItem() && !parentNode->isACast())
+      {
+	//casts ask child if array item (:  //t3148
+	implicitself = false; //leave it to NodeSqBkt
+      }
+#endif
+    //else
+
+    if(!implicitself)
+      return nuti; //done
+
+    Token selfTok(TOK_KW_SELF, getNodeLocation(), 0);
+    NodeIdent * explicitself = new NodeIdent(selfTok, NULL, m_state);
+    assert(explicitself);
+    explicitself->setNodeLocation(getNodeLocation());
+
+    NodeMemberSelect * newnode = new NodeMemberSelect(explicitself, this, m_state);
+    assert(newnode);
+    NNO newnodeno = newnode->getNodeNo(); //for us after swap
+
+    AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+    assert(swapOk);
+
+    resetNodeNo(newnodeno); //moved before update lineage
+
+    //reusing this, no suicide
+    return Hzy;
+  } //specifyimplicitselfexplicitly
+#endif
 
   bool NodeSquareBracket::getConstantArrayItemValue(BV8K& bvitem)
   {

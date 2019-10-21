@@ -94,6 +94,8 @@ namespace MFM{
 
     virtual bool isComplete();
 
+    PACKFIT getPackable();
+
     virtual const std::string readMethodForCodeGen();
 
     virtual const std::string writeMethodForCodeGen();

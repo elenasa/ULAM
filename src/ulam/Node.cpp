@@ -1225,11 +1225,9 @@ namespace MFM {
     // with immediate quarks, they are read into a tmpreg as other immediates
     // with immediate elements, too! value is not a terminal
     fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
-#if 1
     TMPSTORAGE rstor = ruvpass.getPassStorage();
-    if(rstor == TMPBITVAL)
+    if((rstor == TMPBITVAL) || (rstor == TMPAUTOREF))
       fp->write(".read()");
-#endif
 
     fp->write(");"); GCNL;
 
@@ -1339,7 +1337,7 @@ namespace MFM {
 
     //VALUE TO BE WRITTEN:
     fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
-    if(ruvpass.getPassStorage() == TMPBITVAL)
+    if((ruvpass.getPassStorage() == TMPBITVAL) || (ruvpass.getPassStorage() == TMPAUTOREF))
       fp->write(".read()");
     fp->write("); //write into atomof ref"); GCNL;
 
@@ -1351,6 +1349,7 @@ namespace MFM {
     //unlike the others, here, uvpass is the autoref (stg);
     //cos tell us where to go within the selected member
     UTI luti = luvpass.getPassTargetType();
+    TMPSTORAGE rstor = ruvpass.getPassStorage();
 
     m_state.indentUlamCode(fp);
     fp->write(luvpass.getTmpVarAsString(m_state).c_str()); //TMPAUTOREF
@@ -1358,10 +1357,10 @@ namespace MFM {
     fp->write(writeMethodForCodeGen(luti, luvpass).c_str());
     fp->write("(");
     //VALUE TO BE WRITTEN:
-    // with immediate quarks (t3708, t3172), they are read into a tmpreg as other immediates
+    // with immediate quarks/refs (t3708, t3172), they are read into a tmpreg as other immediates
     // with immediate elements, too! value is not a terminal
     fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
-    if(ruvpass.getPassStorage() == TMPBITVAL)
+    if((rstor == TMPBITVAL) || (rstor == TMPAUTOREF))
       fp->write(".read()");
     fp->write(");"); GCNL;
 
@@ -1473,25 +1472,26 @@ namespace MFM {
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeConvertATmpVarIntoBitVector
 
-  // write out immediate tmp BitValue as an intermediate tmpVar
+  // write out immediate (LocalStorage) tmp var as an intermediate tmpVar
   void Node::genCodeConvertABitVectorIntoATmpVar(File * fp, UVPass & uvpass)
   {
     UTI vuti = uvpass.getPassTargetType();
     assert(m_state.okUTItoContinue(vuti));
-    UlamType * vut = m_state.getUlamTypeByIndex(vuti);
 
-    assert(uvpass.getPassStorage() == TMPBITVAL);
+    //e.g. could be primitive ref from aref (t3653, t41333,6)
+    UTI derefvuti = m_state.getUlamTypeAsDeref(vuti); //type after read
+    UlamType * derefvut = m_state.getUlamTypeByIndex(derefvuti);
 
     // write out immediate tmp BitValue as an intermediate tmpVar
     s32 tmpVarNum2 = m_state.getNextTmpVarNumber();
-    TMPSTORAGE tmp2stor = vut->getTmpStorageTypeForTmpVar();
+    TMPSTORAGE tmp2stor = derefvut->getTmpStorageTypeForTmpVar();
 
     m_state.indentUlamCode(fp);
     fp->write("const ");
 
-    fp->write(vut->getTmpStorageTypeAsString().c_str()); //u32
+    fp->write(derefvut->getTmpStorageTypeAsString().c_str()); //u32
     fp->write(" ");
-    fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum2, tmp2stor).c_str());
+    fp->write(m_state.getTmpVarAsString(derefvuti, tmpVarNum2, tmp2stor).c_str());
     fp->write(" = ");
 
     fp->write(uvpass.getTmpVarAsString(m_state).c_str());
@@ -1500,7 +1500,7 @@ namespace MFM {
     // use immediate read for entire array; doesn't make sense for custom arrays
     assert(!isCurrentObjectAnArrayItem(vuti, uvpass)); //sanity
 
-    uvpass = UVPass::makePass(tmpVarNum2, tmp2stor, vuti, m_state.determinePackable(vuti), m_state, 0, 0); //POS 0 rightjustified (atom-based).
+    uvpass = UVPass::makePass(tmpVarNum2, tmp2stor, derefvuti, m_state.determinePackable(derefvuti), m_state, 0, 0); //POS 0 rightjustified (atom-based).
     uvpass.setPassPos(0); //entire register
     m_state.clearCurrentObjSymbolsForCodeGen(); //forgotten?
   } //genCodeConvertABitVectorIntoATmpVar
@@ -4142,6 +4142,7 @@ namespace MFM {
     loadStorageAndCurrentObjectSymbols(stgcos, cos);
     assert(stgcos && cos);
     UTI stgcosuti = stgcos->getUlamTypeIdx();
+    //    UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
     UTI derefstguti = m_state.getUlamTypeAsDeref(stgcosuti);
 
     u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
@@ -4157,7 +4158,7 @@ namespace MFM {
       }
     else if(stgcos->isDataMember()) //implicit self,t3541,t3832(arrayitem==tmp&&ref&&dm);
       {
-	assert(stgcos->isTmpVarSymbol()); //implicit self mostly gone;
+	assert(stgcos->isTmpVarSymbol()); //implicit self mostly gone; e.g. t3175 aitem
 	askEffSelf = false;
       }
     else if(stgcos->isSelf() && (cosSize > 1) && m_state.m_currentObjSymbolsForCodeGen[1]->isDataMember()) //explicit self, not BT

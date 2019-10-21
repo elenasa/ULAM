@@ -285,6 +285,13 @@ namespace MFM {
     return UlamType::isComplete();
   }
 
+  PACKFIT UlamTypeClass::getPackable()
+  {
+    //if(isCustomArray())
+    //  return m_state.getUlamTypeByIndex(getCustomArrayType())->getPackable(); //t41143
+    return UlamType::getPackable();
+  } //getPackable
+
   const std::string UlamTypeClass::readMethodForCodeGen()
   {
     return "Illiterate";
@@ -344,10 +351,6 @@ namespace MFM {
 
   TMPSTORAGE UlamTypeClass::getTmpStorageTypeForTmpVar()
   {
-    if(isCustomArray())
-      return m_state.getUlamTypeByIndex(getCustomArrayType())->getTmpStorageTypeForTmpVar();
-    if(isReference())
-      return TMPBITVAL; //eg t41302
     return UlamType::getTmpStorageTypeForTmpVar();
   }
 

@@ -727,6 +727,8 @@ namespace MFM {
        fp->write(m_state.getTmpVarAsString(tobeType, tmpVarNum, vstor).c_str());
        if(vstor == TMPBITVAL)
 	 fp->write(".read()");
+       if(vstor == TMPAUTOREF)
+	 m_state.abortNeedsATest();
      }
 
    fp->write(", ");

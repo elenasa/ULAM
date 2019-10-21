@@ -513,6 +513,8 @@ namespace MFM {
 	fp->write(luvpass.getTmpVarAsString(m_state).c_str());
 	if(luvpass.getPassStorage() == TMPBITVAL)
 	  fp->write(".read()");
+	if(luvpass.getPassStorage() == TMPAUTOREF)
+	  m_state.abortShouldntGetHere(); //not a ref!
 	fp->write(";"); GCNL;
       }
 
@@ -538,6 +540,8 @@ namespace MFM {
 	fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
 	if(ruvpass.getPassStorage() == TMPBITVAL)
 	  fp->write(".read()");
+	if(ruvpass.getPassStorage() == TMPAUTOREF)
+	  m_state.abortShouldntGetHere(); //not a ref!
 	fp->write(";"); GCNL;
       }
 
@@ -561,6 +565,8 @@ namespace MFM {
 	  {
 	    Node::genCodeConvertABitVectorIntoATmpVar(fp, uvpass); //inc uvpass slot
 	  }
+	else if(uvpass.getPassStorage() == TMPAUTOREF)
+	  m_state.abortShouldntGetHere(); //not a ref!
 	//else ok
       }
 

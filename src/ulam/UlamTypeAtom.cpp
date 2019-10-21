@@ -53,7 +53,9 @@ namespace MFM {
 
   TMPSTORAGE UlamTypeAtom::getTmpStorageTypeForTmpVar()
   {
-    return TMPTATOM; //per array item/per atom
+    if(isScalar())
+      return TMPTATOM; //per array item/per atom
+    return TMPTBV;
   }
 
   bool UlamTypeAtom::isMinMaxAllowed()
@@ -202,7 +204,7 @@ namespace MFM {
     // len for array item is one atom (t3671)
     m_state.indent(fp);
     fp->write(automangledName.c_str());
-    fp->write("(const UlamRef<EC>& arg, s32 idx) : UlamRef<EC>(arg, idx, BPA, NULL, UlamRef<EC>::ATOMIC) { }"); GCNL;
+    fp->write("(const UlamRef<EC>& arg, s32 incr) : UlamRef<EC>(arg, incr, BPA, NULL, UlamRef<EC>::ATOMIC) { }"); GCNL;
 
     //copy constructor (non-const), t3701, t3735, t3753,4,5,6,7,8,9
     // required by EventWindow aref method (ulamexports)
@@ -554,12 +556,12 @@ namespace MFM {
     fp->write(automangledName.c_str());
     fp->write("(const ");
     fp->write(automangledName.c_str());
-    fp->write("<EC>& r, u32 idx) : UlamRef<EC>(r, idx, r.GetLen(), r.GetEffectiveSelf(), UlamRef<EC>::ARRAY) { }"); GCNL;
+    fp->write("<EC>& r, u32 incr) : UlamRef<EC>(r, incr, r.GetLen(), r.GetEffectiveSelf(), UlamRef<EC>::ARRAY) { }"); GCNL;
 
     //constructor for chain of autorefs (e.g. memberselect with array item)
     m_state.indent(fp);
     fp->write(automangledName.c_str());
-    fp->write("(const UlamRef<EC>& arg, s32 idx, const UlamClass<EC>* effself) : UlamRef<EC>(arg, idx, ");
+    fp->write("(const UlamRef<EC>& arg, s32 incr, const UlamClass<EC>* effself) : UlamRef<EC>(arg, incr, ");
     fp->write_decimal_unsigned(len); //includes arraysize
     fp->write("u, effself, UlamRef<EC>::ARRAY) {}"); GCNL;
 
