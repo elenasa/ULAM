@@ -1120,7 +1120,6 @@ namespace MFM {
 	    fp->write("("); //use immediate's read for gather among scattered bases (ulam-5); t41359
 	    fp->write(");"); GCNL;
 	  }
-
       }
     uvpass = UVPass::makePass(tmpVarNum, cstor, cosuti, m_state.determinePackable(cosuti), m_state, 0, 0); //POS 0 justified (atom-based).
 
@@ -1158,18 +1157,17 @@ namespace MFM {
   {
     UTI luti = luvpass.getPassTargetType();
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
-
     UTI ruti = ruvpass.getPassTargetType();
 
     // No split if custom array, that requires an 'aref' function call;
     // handled as genCodeConvertATmpVarIntoCustomArrayAutoRef t41006
 
+    if(m_state.isAtomRef(luti) && m_state.isAtom(ruti))
+      return genCodeWriteToAtomofRefFromATmpVar(fp, luvpass, ruvpass);
+
     // split off autoref stg/member selected
     if(luvpass.getPassStorage() == TMPAUTOREF)
       return genCodeWriteToAutorefFromATmpVar(fp, luvpass, ruvpass);
-
-    if(m_state.isAtomRef(luti) && m_state.isAtom(ruti))
-      return genCodeWriteToAtomofRefFromATmpVar(fp, luvpass, ruvpass);
 
     // here, cos is symbol used to determine read method: either self or last of cos.
     // stgcos is symbol used to determine first "hidden" arg
@@ -2034,7 +2032,7 @@ namespace MFM {
 	UVPass cuvpass = uvpass;
 	if(isCurrentObjectsContainingAConstantClass() >= 0)
 	  {
-	    isConstantClass = true;
+	    isConstantClass = true; //t41271,2
 	    genCodeReadFromAConstantClassIntoATmpVar(fp, cuvpass); //fixes strings and element types
 
 	    UTI cuvuti = cuvpass.getPassTargetType();
@@ -2043,11 +2041,11 @@ namespace MFM {
 	    m_state.indentUlamCode(fp);
 	    fp->write(cuvut->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
 	    fp->write(" ");
-	    fp->write(m_state.getTmpVarAsString(cuvuti, tmpForImmed, cuvpass.getPassStorage()).c_str());
+	    fp->write(m_state.getTmpVarAsString(cuvuti, tmpForImmed, TMPBITVAL).c_str());
 	    fp->write("(");
 	    fp->write(cuvpass.getTmpVarAsString(m_state).c_str());
 	    fp->write(");"); GCNL;
-	    cuvpass = UVPass::makePass(tmpForImmed, cuvpass.getPassStorage(), cuvuti, m_state.determinePackable(cuvuti), m_state, 0, 0); //POS 0 justified (atom-based).
+	    cuvpass = UVPass::makePass(tmpForImmed, TMPBITVAL, cuvuti, m_state.determinePackable(cuvuti), m_state, 0, 0); //POS 0 justified (atom-based).
 	  }
 
 	m_state.indentUlamCode(fp);
@@ -2059,7 +2057,7 @@ namespace MFM {
 	fp->write("("); //pass ref in constructor (ref's not assigned with =)
 	if(isConstantClass)
 	  {
-	    fp->write(cuvpass.getTmpVarAsString(m_state).c_str()); //??
+	    fp->write(cuvpass.getTmpVarAsString(m_state).c_str());
 	  }
 	else
 	  {
@@ -2089,8 +2087,8 @@ namespace MFM {
 	if(vetyp == Class)
 	  {
 	   if(stgcosut->isScalar() && needAdjustToStateBits(stgcosuti))
-	     fp->write(" + T::ATOM_FIRST_STATE_BIT"); //?
-	   assert(!cosut->isReference()); //not isAltRefType?
+	     fp->write(" + T::ATOM_FIRST_STATE_BIT");
+	   assert(!cosut->isReference()); //not isAltRefType
 	   fp->write(", NULL");
 	  }
 	fp->write(");"); GCNL;
