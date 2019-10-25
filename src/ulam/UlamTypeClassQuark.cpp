@@ -245,11 +245,13 @@ namespace MFM {
     //element (t3617, t3735);
     m_state.indent(fp);
     fp->write(automangledName.c_str());
-    fp->write("(BitStorage<EC>& targ, u32 idx, u32 postoeff, const UlamClass<EC>* effself, const typename UlamRef<EC>::UsageType usage, const UlamContext<EC>& uc) : UlamRef<EC>");
+    //fp->write("(BitStorage<EC>& targ, u32 idx, u32 postoeff, const UlamClass<EC>* effself, const typename UlamRef<EC>::UsageType usage, const UlamContext<EC>& uc) : UlamRef<EC>");
+    fp->write("(BitStorage<EC>& targ, u32 idx, u32 postoeff, const UlamClass<EC>* effself, const UlamContext<EC>& uc) : UlamRef<EC>");
     fp->write("(idx, "); //the real pos!!!
     fp->write_decimal_unsigned(baselen); //baseclass
     fp->write("u, postoeff, targ, effself, ");
-    fp->write("usage"); //controlled by caller
+    //    fp->write("usage"); //controlled by caller
+    fp->write("UlamRef<EC>::CLASSIC");
     fp->write(", uc) { }"); GCNL;
 
     //short-hand from immediate to ref of same type
@@ -287,8 +289,10 @@ namespace MFM {
       fp->write("UlamRef<EC>::ARRAY");
     else
       fp->write("UlamRef<EC>::CLASSIC");
+    //    fp->write(", true");
     fp->write(") { }"); GCNL;
 
+#if 0
     //constructor for chain of autorefs
     m_state.indent(fp);
     fp->write(automangledName.c_str());
@@ -308,6 +312,7 @@ namespace MFM {
     fp->write("u, effself, ");
     fp->write("usage"); //controlled by caller
     fp->write(") { }"); GCNL;
+#endif
 
     //(general) copy constructor here; pos relative to existing (i.e. same). t3788, t41153
     m_state.indent(fp);
