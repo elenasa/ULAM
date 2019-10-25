@@ -2072,7 +2072,10 @@ namespace MFM {
 	else
 	  fp->write(stgcos->getMangledName().c_str()); //a ref or stg
 
-	if(!m_state.isAltRefType(stgcosuti) || stgcos->isSelf())
+	//when usePassVal, stgcos is 'self';
+	//check isReference (not AltRefType) in case ALT_AS (t41365)
+	//if(!m_state.isAltRefType(stgcosuti) || stgcos->isSelf())
+	if(!m_state.isReference(stgcosuti) || stgcos->isSelf())
 	  {
 	    fp->write(", ");
 	    if(cos->isDataMember())

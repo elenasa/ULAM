@@ -1,0 +1,71 @@
+## -*- mode:ulam -*-
+#=t41365_test_compiler_elementandquarks_multibases_virtualfuncs_nestedascond_ish
+##
+## gen code output: (1 assert)
+##
+## unevaluable without assuming atoms as elements
+##
+#!
+Exit status: -11
+Ue_Ish5 : System { :System<> Int(32) test() {  E1 e1;  E2 e2;  Atom(96) a1 = e1 cast;  Atom(96) a2 = e2 cast;  { a1 QBond as cond { QBond& a1;  { a2 QBond as cond { QBond& a2;  self ( a1 ( a2 cast )afunc . )assert . } if } } if } 0 cast return } }
+Ue_E1 : QBond { :QBond<> <NOMAIN> }
+Uq_QBond { <NOMAIN> }
+Ue_E2 : QBond { :QBond<> <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## informed by t3636, and Daves ish 10/26/19, gencode c++ error
+##
+#:Ish5.ulam
+  ulam 2;
+use E1;
+use E2;
+use System;
+element Ish5 : System {
+  Int test() {
+    E1 e1;
+    E2 e2;
+    Atom a1 = e1;
+    Atom a2 = e2;
+    if (a1 as QBond) {
+      if (a2 as QBond) {
+	assert(a1.afunc(a2));
+      }
+    }
+    return 0;
+  }
+}
+
+#:E1.ulam
+  ulam 2;
+element E1 : QBond {
+  virtual Int func() { return 1; }
+}
+
+#:E2.ulam
+  ulam 2;
+element E2 : QBond {
+  virtual Int func() { return 2; }
+}
+
+#:QBond.ulam
+  ulam 5;
+quark QBond {
+  virtual Bool afunc(Self & obj)
+  {
+    return (obj is E2);
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+
+#.
