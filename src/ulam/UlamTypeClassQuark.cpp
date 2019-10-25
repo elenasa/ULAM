@@ -283,36 +283,12 @@ namespace MFM {
       }
     else
       fp->write_decimal_unsigned(len);
-
     fp->write("u, effself, ");
     if(!isScalar())
       fp->write("UlamRef<EC>::ARRAY");
     else
       fp->write("UlamRef<EC>::CLASSIC");
-    //    fp->write(", true");
     fp->write(") { }"); GCNL;
-
-#if 0
-    //constructor for chain of autorefs
-    m_state.indent(fp);
-    fp->write(automangledName.c_str());
-    fp->write("(const UlamRef<EC>& arg, s32 incr, const UlamClass<EC>* effself, const typename UlamRef<EC>::UsageType usage) : UlamRef<EC>(arg, incr, ");
-    if(!isScalar())
-      fp->write_decimal_unsigned(len); //includes arraysize
-    else if(len != baselen)
-      {
-	fp->write("&Us::THE_INSTANCE==effself ? ");
-	fp->write_decimal_unsigned(len); //includes arraysize
-	fp->write("u : ");
-	fp->write_decimal_unsigned(baselen); //base class
-      }
-    else
-      fp->write_decimal_unsigned(len);
-
-    fp->write("u, effself, ");
-    fp->write("usage"); //controlled by caller
-    fp->write(") { }"); GCNL;
-#endif
 
     //(general) copy constructor here; pos relative to existing (i.e. same). t3788, t41153
     m_state.indent(fp);
@@ -330,7 +306,6 @@ namespace MFM {
       }
     else
       fp->write_decimal_unsigned(len);
-
     fp->write("u) { }"); GCNL;
 
     //(general) copy constructor here; base pos relative to existing (t3697)
@@ -349,7 +324,6 @@ namespace MFM {
       }
     else
       fp->write_decimal_unsigned(len);
-
     fp->write("u) { }"); GCNL; //want applydelta, true ???
 
     //(exact) copy constructor; pos relative to existing (i.e. same).
@@ -373,7 +347,6 @@ namespace MFM {
 	fp->write_decimal_unsigned(len);
 	fp->write("u");
       }
-
     fp->write(") { }"); GCNL;
 
     //default destructor (intentially left out)
@@ -410,7 +383,7 @@ namespace MFM {
   {
     if(isScalar() || WritePacked(getPackable()))
       {
-	// ref param to avoid excessive copying; (ulam-5) use deref copy constr
+	//ref param to avoid excessive copying; (ulam-5) use deref copy cnstr
 	// when a different effSelf (may be spread out).
 	m_state.indent(fp);
 	fp->write(getTmpStorageTypeAsString().c_str()); //u32, u64, or BV96

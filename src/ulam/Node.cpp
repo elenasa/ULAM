@@ -821,7 +821,6 @@ namespace MFM {
 	      }
 	  }
       }
-
     uvpass = UVPass::makePass(tmpVarNum, cstor, cosuti, m_state.determinePackable(cosuti), m_state, 0, 0); //POS 0 justified (atom-based).
 
     s32 namedconstantidx = isCurrentObjectsContainingAConstant();
@@ -1678,16 +1677,7 @@ namespace MFM {
 	if(!stgisaref)
 	  fp->write(", 0u"); //extra ulamRef arg, pos-to-eff (t3436, t3605, t3832);
 	fp->write(", &");
-	fp->write(m_state.getTheInstanceMangledNameByIndex(scalarcosuti).c_str()); //t3495, t3512, t3543, t3648, t3702, t3776, t3668, t3811
-
-#if 0
-	//t3621
-	if(!stgisaref && (cosclasstype == UC_QUARK)) //not transient (t3832)
-	  {
-	    fp->write(", ");
-	    fp->write(genUlamRefUsageAsString(scalarcosuti).c_str()); //t41179
-	  }
-#endif
+	fp->write(m_state.getTheInstanceMangledNameByIndex(scalarcosuti).c_str()); //t3495, t3512, t3543, t3648, t3702, t3776, t3668, t3811, t3621
       }
     //else skip primitives (t3114, t3605)
 
@@ -1900,16 +1890,7 @@ namespace MFM {
 
 	    //effective self of data member (or stg if not dm)
 	    fp->write(", &"); //left just
-	    fp->write(m_state.getTheInstanceMangledNameByIndex(cosuti).c_str()); //was vuti t3969
-
-#if 0
-	    //usage for quarks, gone t3801,4,5
-	    if(vclasstype == UC_QUARK)
-	      {
-		fp->write(", ");
-		fp->write(genUlamRefUsageAsString(cosuti).c_str());
-	      }//else element or transients refs do not require usage (e.g. t3938)
-#endif
+	    fp->write(m_state.getTheInstanceMangledNameByIndex(cosuti).c_str()); //was vuti t3969; t3801,4,5 (usage for quarks gone);
 	  } //end for classes
 
 	if(!stgcos->isSelf()) //technically stg is self (ur) if dm, so no uc (t3695)

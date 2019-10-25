@@ -206,18 +206,11 @@ namespace MFM {
 	    fp->write(", ");
 	  } //else (element, t3637) (atomref, t3639)
 
-	//note: needs effective self of the atom, not simply the RHS type.
+	//note: needs eff self of the atom, not simply the RHS type (t3835)
 	fp->write(m_state.getHiddenContextArgName());
 	fp->write(".LookupUlamElementTypeFromContext(");
 	fp->write(m_state.getTmpVarAsString(Int, tmpVarType, TMPREGISTER).c_str()); //3636
 	fp->write(")");
-#if 0
-	if(vclasstype == UC_QUARK)
-	  fp->write(", UlamRef<EC>::ELEMENTAL"); //becomes elemental, t3835
-	if((vclasstype == UC_QUARK) && !(stgcosut->isReference()))
-	  fp->write(", UlamRef<EC>::CLASSIC"); //no longer elemental, t3835
-#endif
-
 	if(!stgcosut->isReference()) //not isAltRefType
 	  fp->write(", uc"); //t3249
 
@@ -225,7 +218,7 @@ namespace MFM {
       }
     else if(stgcosut->isReference()) //not isAltRefType,
       {
-	//for references (t41011, t41012), use the effself to get relpos at runtime;
+	//for refs (t41011,t41012) use the effself to get relpos at runtime;
 	//must be good pos since is-method passed
 	s32 tmpVarPos = m_state.getNextTmpVarNumber();
 	m_state.indentUlamCode(fp);
@@ -261,12 +254,7 @@ namespace MFM {
 	fp->write(", ");
 	//note: needs effective self of the atom, not simply the RHS type.
 	fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str());
-	fp->write(".GetEffectiveSelf()");
-#if 0
-	if((stgclasstype == UC_ELEMENT) && (vclasstype == UC_QUARK))
-	  fp->write(", UlamRef<EC>::ELEMENTAL"); //becomes elemental, t3835
-	//else stays implicitly classic (i.e. quark, or transient stg t3836, t3754)
-#endif
+	fp->write(".GetEffectiveSelf()"); //t3835,6,t3754, CLASSIC
 	fp->write("); //shadows lhs of 'as'"); GCNL;
       }
     else
@@ -299,12 +287,6 @@ namespace MFM {
 
 	    //must be same as look up for elements only Sat Jun 18 17:30:17 2016
 	    fp->write(m_state.getTheInstanceMangledNameByIndex(stgcosuti).c_str());
-
-#if 0
-	    if(vclasstype == UC_QUARK)
-	      fp->write(", UlamRef<EC>::ELEMENTAL"); //stays elemental
-#endif
-
 	    fp->write(", uc"); //t3249
 	    fp->write("); //shadows lhs of 'as'"); GCNL;
 	  }
@@ -323,12 +305,6 @@ namespace MFM {
 
 	    fp->write("&"); //t3822
 	    fp->write(m_state.getTheInstanceMangledNameByIndex(stgcosuti).c_str());
-
-#if 0
-	    if(vclasstype == UC_QUARK)
-	      fp->write(", UlamRef<EC>::CLASSIC"); //stays classic
-#endif
-
 	    fp->write(", uc"); //t3249
 	    fp->write("); //shadows lhs of 'as'"); GCNL;
 	  }
@@ -343,10 +319,6 @@ namespace MFM {
 	    fp->write(m_state.getTheInstanceMangledNameByIndex(stgcosuti).c_str());
 
 	    assert(vclasstype == UC_QUARK);
-#if 0
-	    fp->write(", UlamRef<EC>::CLASSIC"); //stays classic
-#endif
-
 	    fp->write(", uc"); //t3249
 	    fp->write("); //shadows lhs of 'as'"); GCNL;
 	  }
