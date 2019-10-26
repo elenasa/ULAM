@@ -1816,7 +1816,6 @@ namespace MFM {
 	    return false;
 	  }
       }
-
     ut->setBitsizeAsBaseClass(basebitsize);
     return true;
   } //setBaseClassBitSize
@@ -2089,7 +2088,9 @@ namespace MFM {
     if(alreadyDefinedSymbolClass(subuti, csym))
       {
 	count = csym->getBaseClassCount(); //added bases
-	if(csym->getBaseClass(0) != Nouti) //super optional
+	//	if(csym->getBaseClass(0) != Nouti) //super optional
+	UTI superuti = csym->getBaseClass(0);
+	if((superuti != Nouti) && !isUrSelf(superuti)) //super optiona
 	  count++; //Hzy if UNSEEN counts here
       }
     return (count > 0);
@@ -5655,6 +5656,7 @@ namespace MFM {
 
   Node * CompilerState::findNodeNoInAncestorsLocalsScope(NNO n, UTI cuti)
   {
+    abortNotImplementedYet(); //isClassASubclass returns bool
     Node * rtnNode = NULL;
     UTI superuti = isClassASubclass(cuti);
     if(okUTItoContinue(superuti))
@@ -5673,7 +5675,7 @@ namespace MFM {
 	  }
       }
     return rtnNode;
-  } //findNodeNoInAncestorsLocalsScope
+  } //findNodeNoInAncestorsLocalsScope (unused)
 
   u32 CompilerState::getRegistrationNumberForClassOrLocalsScope(UTI cuti)
   {

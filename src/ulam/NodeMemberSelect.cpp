@@ -187,7 +187,7 @@ namespace MFM {
 	msg << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
 	if(leftblockuti == Nav)
 	  {
-	    m_state.abortShouldntGetHere(); //because luti is complete!
+	    m_state.abortShouldntGetHere(); //luti is complete! (t41363)
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    setNodeType(Nav);
 	    return Nav;

@@ -1720,34 +1720,60 @@ namespace MFM {
     UTI cosuti = cos->getUlamTypeIdx();
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
     ULAMCLASSTYPE cosclasstype = cosut->getUlamClassType();
+    UTI refcosuti = m_state.getUlamTypeAsRef(cosuti, ALT_REF);
+    UlamType * refcosut = m_state.getUlamTypeByIndex(refcosuti);
 
     bool usePassVal = m_state.m_currentObjSymbolsForCodeGen.empty() && ((uvpass.getPassStorage() == TMPBITVAL) || (uvpass.getPassStorage() == TMPAUTOREF));
     bool makeValFromPass = m_state.m_currentObjSymbolsForCodeGen.empty() && !usePassVal;
 
     assert(m_state.isClassASubclassOf(vuti, tobeType) || (m_state.isARefTypeOfUlamType(tobeType, vuti) == UTIC_SAME)); //not a downcast; going sub->super/base
 
+    s32 tmpvarEle = 0;
     s32 posToEle = 0;
     if(!m_state.m_currentObjSymbolsForCodeGen.empty())
       {
 	if((UlamType::compare(stgcosuti, vuti, m_state) != UTIC_SAME) && (stgclasstype == UC_TRANSIENT))
 	  {
 	    assert(cosclasstype == UC_ELEMENT);
-	    //	if(!m_state.isReference(stgcosuti)) //WHY ONLY if non-ref???
-	    {
-	      if(cos->isDataMember())
-		//e.g. t3735 QB& ref = t.elt;
-		// where QB is a base of element elt, a dm of transient t;
-		posToEle = cos->getPosOffset(); //like t41141, test?
-	    }
+	    assert(cos->isDataMember()); //what else could it be?
+
+	    //e.g. t3735 QB& ref = t.elt;
+	    // where QB is a base of element elt, a dm of transient t;
+	    posToEle = cos->getPosOffset(); //like t41141, t41363
+
+	    // when stgcos is a ref, so that we can keep posToEff
+	    //accurate, /we need tmp immediate ref to element, when
+	    //tobe is a baseclass type (t41363)
+	    if(m_state.isReference(stgcosuti) && (UlamType::compare(m_state.getUlamTypeAsDeref(tobeType),cosuti,m_state) != UTIC_SAME))
+	      {
+		tmpvarEle = m_state.getNextTmpVarNumber();
+		m_state.indentUlamCode(fp);
+		fp->write(refcosut->getLocalStorageTypeAsString().c_str()); //tmp immediate ref element from-type
+		fp->write(" ");
+		fp->write(m_state.getTmpVarAsString(refcosuti, tmpvarEle, TMPAUTOREF).c_str());
+		fp->write("(");
+		fp->write(stgcos->getMangledName().c_str()); //ref transient
+		fp->write(", T::ATOM_FIRST_STATE_BIT + "); //elements stg at 0 , state at 25
+		fp->write_decimal_unsigned(posToEle);
+		fp->write("u, &");
+		fp->write(m_state.getTheInstanceMangledNameByIndex(cosuti).c_str()); //effSelf of element dm
+		fp->write(");"); GCNL;
+
+		posToEle = 0; //done
+	      }
+	    else
+	      {
+		assert((u32) posToEle == uvpass.getPassPos()); //sanity (if true, don't need posToEle);
+	      }
 	  }
-	assert((u32) posToEle == uvpass.getPassPos()); //sanity (if true, don't need posToEle);
       } //else using uvpass in some manner..
     else
-      posToEle = uvpass.getPassPos(); //? t41065,ref to element pos=0;
+      {
+	posToEle = uvpass.getPassPos(); //needed? t41065,ref to element pos=0;
+      }
 
     s32 tmpVarPos = m_state.getNextTmpVarNumber();
     genPositionOfBaseIntoATmpVar(fp, tmpVarPos, uvpass, stgcos, cos);
-
 
     s32 tmpTstg = m_state.getNextTmpVarNumber();
     if(makeValFromPass)
@@ -1768,7 +1794,7 @@ namespace MFM {
     UlamType * reftobe = m_state.getUlamTypeByIndex(reftobeType);
 
     m_state.indentUlamCode(fp);
-    fp->write(reftobe->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
+    fp->write(reftobe->getLocalStorageTypeAsString().c_str());
     fp->write(" ");
     fp->write(m_state.getTmpVarAsString(reftobeType, tmpVarRef, TMPAUTOREF).c_str());
     fp->write("(");
@@ -1786,14 +1812,21 @@ namespace MFM {
 	fp->write(m_state.getTmpVarAsString(vuti, tmpTstg, TMPBITVAL).c_str());
 	fp->write(", T::ATOM_FIRST_STATE_BIT + "); //elements stg at 0 , state of quark at 2
       }
-    else if(stgcosut->isAltRefType())
+    else if(stgcosut->isReference())
       {
-	fp->write(stgcos->getMangledName().c_str()); //ref, incl self
+	if(tmpvarEle > 0)
+	  {
+	    assert(cos->isDataMember()); //sanity
+	    assert(cosclasstype == UC_ELEMENT); //sanity, t41363
+	    fp->write(m_state.getTmpVarAsString(refcosuti, tmpvarEle, TMPAUTOREF).c_str());
+	  }
+	else
+	  fp->write(stgcos->getMangledName().c_str()); //ref, incl self
 	fp->write(", "); //ready for pos
       }
     else //stg is non-ref
       {
-	fp->write(stgcos->getMangledName().c_str()); //ref, incl self
+	fp->write(stgcos->getMangledName().c_str());
 	fp->write(", T::ATOM_FIRST_STATE_BIT + "); //elements stg at 0 , state at 25
       }
 
@@ -1807,11 +1840,10 @@ namespace MFM {
 	fp->write("u");
       }
 
-    fp->write(", ");
-
     //delta fm pos to element state bits for non-ref stg (ulam-5)
     if(usePassVal)
       {
+	fp->write(", ");
 	if(m_state.isReference(vuti)) //t3735, t3562, t3621
 	  {
 	    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
@@ -1829,23 +1861,42 @@ namespace MFM {
       }
     else if(makeValFromPass) //i.e. non-ref
       {
+	fp->write(", ");
 	fp->write(m_state.getTmpVarAsString(Int, tmpVarPos, TMPREGISTER).c_str());
 	fp->write(", &");
 	fp->write(m_state.getTheInstanceMangledNameByIndex(vuti).c_str()); //keeps effSelf
 	fp->write(", uc");
 	fp->write(");"); GCNL;
       }
-    else if(!cosut->isAltRefType()) //but cos is dm t3735
+    else if(cos->isDataMember())
       {
+	if(tmpvarEle == 0) //stgcos is non-ref, accepts delta arg
+	  {
+	    fp->write(", ");
+	    fp->write(m_state.getTmpVarAsString(Int, tmpVarPos, TMPREGISTER).c_str()); //delta
+	    fp->write(", &");
+	    fp->write(m_state.getTheInstanceMangledNameByIndex(cosuti).c_str());
+	    fp->write(", uc");
+	    fp->write(");"); GCNL; //cos is data member,t3735, t41363
+	  }
+	else
+	  {
+	    fp->write(");"); GCNL; //cos is data member,t41363 w tmpvarEle
+	  }
+      }
+    else if(!stgcosut->isAltRefType())
+      {
+	fp->write(", ");
 	fp->write(m_state.getTmpVarAsString(Int, tmpVarPos, TMPREGISTER).c_str()); //delta
 	fp->write(", &");
-	fp->write(m_state.getTheInstanceMangledNameByIndex(cosuti).c_str());
+	fp->write(m_state.getTheInstanceMangledNameByIndex(stgcosuti).c_str());
 	fp->write(", uc");
 	fp->write(");"); GCNL;
       }
     else //stg/cos is ref
       {
-	fp->write(cos->getMangledName().c_str());
+	fp->write(", ");
+	fp->write(stgcos->getMangledName().c_str());
 	fp->write(".GetEffectiveSelf()");
 	fp->write(");"); GCNL;
       }

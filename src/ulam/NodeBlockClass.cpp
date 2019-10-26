@@ -1911,6 +1911,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	if(baseuti != Nouti)
 	  {
 	    s32 bs = m_state.getBitSize(baseuti); //may contain shared bits!
+	    //s32 bs = m_state.getBaseClassBitSize(baseuti); //only dm bits!
 	    if(bs < 0)
 	      return bs; //error if any base class size is negative
 	    else
@@ -2245,7 +2246,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	      }
 
 	    s32 baseoffset = m_state.getBaseClassBitSize(baseuti);
-	    assert(baseoffset >= 0); //t3318
+	    assert(baseoffset >= 0); //t3318,t3755
 	    csym->setBaseClassRelativePosition(i, reloffset); //t3102, t3536 before updating reloffset
 	    reloffset += baseoffset;
 	  }

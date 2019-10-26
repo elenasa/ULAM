@@ -318,8 +318,11 @@ namespace MFM {
   {
     bool aok = true;
     assert(!isClassTemplate());
-
     UTI cuti = getUlamTypeIdx();
+
+    if(m_state.isComplete(cuti))
+      return true;
+
     NodeBlockClass * classNode = getClassBlockNode();
     assert(classNode); //infinite loop "Incomplete Class <> was never defined, fails sizing"
     m_state.pushClassContext(cuti, classNode, classNode, false, NULL);

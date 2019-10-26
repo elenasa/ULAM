@@ -143,7 +143,16 @@ namespace MFM {
 	    break;
 	  }
 	else
-	  m_state.setBitSize(suti, symsize); //symsize does not include arrays
+	  {
+	    //symsize does not include arrays
+	    bool isabaseclass = m_state.isScalar(suti) && m_state.isAClass(suti);
+	    s32 savebasebitsize = 0;
+	    if(isabaseclass) //t41298,9 (atom), t3143 (array)
+	      savebasebitsize = m_state.getBaseClassBitSize(suti);
+	    m_state.setBitSize(suti, symsize);
+	    if(isabaseclass) //t41298,9 (atom)
+	      m_state.setBaseClassBitSize(suti,savebasebitsize);//restr t3755
+	  }
 
 	UlamType * sut = m_state.getUlamTypeByIndex(suti); //no sooner!
 	s32 arraysize = sut->getArraySize();
@@ -361,7 +370,7 @@ namespace MFM {
 
     UlamType * argut = m_state.getUlamTypeByIndex(arguti);
     s32 totbitsize = argut->getBitSize(); // why not total bit size? findNodeNoInThisClass fails (e.g. t3144, etc)
-    //    ULAMCLASSTYPE argclasstype = argut->getUlamClassType(); Hzy fails t41288
+    //ULAMCLASSTYPE argclasstype = argut->getUlamClassType();Hzy fails t41288
     s32 argarraysize = argut->getArraySize();
     if(!m_state.isAClass(arguti)) //includes Atom type, Hzy arrays
       {
@@ -466,13 +475,31 @@ namespace MFM {
 
 		    m_state.pushClassContext(csym->getUlamTypeIdx(), classblock, classblock, false, NULL);
 
+#if 0
 		    if(csym->isQuarkUnion())
 		      csize = classblock->getMaxBitSizeOfVariableSymbolsInTable();
 		    else
 		      csize = classblock->getBitSizesOfVariableSymbolsInTable(); //data members only
-
+#endif
+		    bool aok = true;
+		    s32 sharedbits = UNKNOWNSIZE;
+		    aok = csym->trySetBitsizeWithUTIValues(csize);
+		    if(aok)
+		      {
+			s32 sharedbitssaved = UNKNOWNSIZE;
+			aok = csym->determineSharedBasesAndTotalBitsize(sharedbitssaved, sharedbits);
+			if(aok)
+			  {
+			    assert(sharedbits >= 0);
+			    assert(sharedbits <= csize);
+			    assert(sharedbitssaved >= sharedbits);
+			    csize = (csize - sharedbitssaved + sharedbits); //updates total here!!
+			    //before setUTIsizes, restored later (t3755)
+			    aok = m_state.setBaseClassBitSize(cuti, csize - sharedbits); //noop for elements
+			  }
+		      }
 		    m_state.popClassContext(); //restore
-		    return csize;
+		    return aok ? csize : UNKNOWNSIZE;
 		  }
 	      }
 	  } //totbitsize == 0
