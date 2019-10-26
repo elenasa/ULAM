@@ -473,16 +473,11 @@ namespace MFM {
 			return UNKNOWNSIZE;
 		      }
 
-		    m_state.pushClassContext(csym->getUlamTypeIdx(), classblock, classblock, false, NULL);
-
-#if 0
-		    if(csym->isQuarkUnion())
-		      csize = classblock->getMaxBitSizeOfVariableSymbolsInTable();
-		    else
-		      csize = classblock->getBitSizesOfVariableSymbolsInTable(); //data members only
-#endif
 		    bool aok = true;
 		    s32 sharedbits = UNKNOWNSIZE;
+
+		    m_state.pushClassContext(csym->getUlamTypeIdx(), classblock, classblock, false, NULL);
+
 		    aok = csym->trySetBitsizeWithUTIValues(csize);
 		    if(aok)
 		      {

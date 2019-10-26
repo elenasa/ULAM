@@ -2088,9 +2088,9 @@ namespace MFM {
     if(alreadyDefinedSymbolClass(subuti, csym))
       {
 	count = csym->getBaseClassCount(); //added bases
-	//	if(csym->getBaseClass(0) != Nouti) //super optional
+	//super optional, UrSelf is default superclass
 	UTI superuti = csym->getBaseClass(0);
-	if((superuti != Nouti) && !isUrSelf(superuti)) //super optiona
+	if((superuti != Nouti) && !isUrSelf(superuti))
 	  count++; //Hzy if UNSEEN counts here
       }
     return (count > 0);
@@ -5653,29 +5653,6 @@ namespace MFM {
       localsblock->findNodeNo(n, rtnNode);
     return rtnNode;
   }
-
-  Node * CompilerState::findNodeNoInAncestorsLocalsScope(NNO n, UTI cuti)
-  {
-    abortNotImplementedYet(); //isClassASubclass returns bool
-    Node * rtnNode = NULL;
-    UTI superuti = isClassASubclass(cuti);
-    if(okUTItoContinue(superuti))
-      {
-	SymbolClassName * supcnsym = NULL;
-	AssertBool isDefined = alreadyDefinedSymbolClassNameByUTI(superuti, supcnsym);
-	assert(isDefined);
-	//local def, using (possible) template's local scope
-	if(!rtnNode)
-	  rtnNode = findNodeNoInALocalsScope(supcnsym->getLoc(), n);
-
-	if(!rtnNode)
-	  {
-	    if(isClassASubclass(superuti))
-	      rtnNode = findNodeNoInAncestorsLocalsScope(n, superuti); //recurse
-	  }
-      }
-    return rtnNode;
-  } //findNodeNoInAncestorsLocalsScope (unused)
 
   u32 CompilerState::getRegistrationNumberForClassOrLocalsScope(UTI cuti)
   {

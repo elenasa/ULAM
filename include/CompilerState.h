@@ -572,7 +572,6 @@ namespace MFM{
     NodeBlockLocals * findALocalsScopeByNodeNo(NNO n);
     Node * findNodeNoInALocalsScope(Locator loc, NNO n);
     Node * findNodeNoInALocalsScope(UTI luti, NNO n);
-    Node * findNodeNoInAncestorsLocalsScope(NNO n, UTI cuti);
 
     u32 getRegistrationNumberForClassOrLocalsScope(UTI cuti); //ulam-4
     u32 getAClassRegistrationNumber(UTI cuti); //ulam-4

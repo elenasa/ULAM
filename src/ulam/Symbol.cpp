@@ -65,7 +65,7 @@ namespace MFM {
   u32 Symbol::getPosOffset()
   {
     m_state.abortShouldntGetHere();
-    return 0; //data members only, incl. symbolparametervalue, and tmprefsymbol
+    return 0; //data members only, incl.symbolparametervalue,tmprefsymbol
   }
 
   bool Symbol::isPosOffsetReliable()
