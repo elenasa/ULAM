@@ -3143,7 +3143,7 @@ namespace MFM {
 		    hiddenarg2 << "0u, "; //UlamRef extra arg for pos-to-Eff??
 		    hiddenarg2 << stgcos->getMangledName().c_str() << ", &"; //storage
 		    hiddenarg2 << m_state.getTheInstanceMangledNameByIndex(stgcosuti).c_str(); //effself
-		    hiddenarg2 << ", " << genUlamRefUsageAsString(stgcosuti).c_str(); //usage
+		    hiddenarg2 << ", " << genUlamRefUsageAsString(cosuti).c_str(); //usage may change Sat Oct 26 16:12:46 2019
 		    hiddenarg2 << ", uc";
 		    hiddenarg2 << "); "; //line wraps
 
