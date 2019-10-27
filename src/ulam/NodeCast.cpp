@@ -1265,14 +1265,27 @@ namespace MFM {
     else
       {
 	//sub-atomic vuti, tobetype is a defined atom (e.g. t41153)
-	// subtraction gets pos of element's state bits
+	// subtraction gets pos of element's state bits from quark ref
 	fp->write(" = -(");
+	// try to be more like atomof
+	if(usePassVal)
+	  fp->write(uvpass.getTmpVarAsString(m_state).c_str());
+	else if(makeValFromPass)
+	  m_state.abortShouldntGetHere();
+	else
+	  fp->write(cos->getMangledName().c_str());
+
+	fp->write(".GetPosToEffectiveSelf()"); //t3684,t3701,t41367
+
+#if 0
 	fp->write(m_state.getGetRelPosMangledFunctionName(UAtom)); //UlamClass Method
 	fp->write("(uc, ");
 	fp->write(m_state.getTmpVarAsString(Int, tmpVarType, TMPREGISTER).c_str()); //element type
 	fp->write(", &");
 	fp->write(m_state.getTheInstanceMangledNameByIndex(vuti).c_str()); //baseclass ptr
-	fp->write(")); //relpos back to state"); GCNL;
+#endif
+
+	fp->write("); //relpos back to state"); GCNL;
       }
 
     //t3631, t3692, t3693, t3697, t3701, t3756, t3757, t3789, t3834, t3837
