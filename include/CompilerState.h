@@ -443,6 +443,7 @@ namespace MFM{
     const char * getAsMangledFunctionName(UTI ltype, UTI rtype);
     const char * getGetRelPosMangledFunctionName(UTI ltype);
     const char * getClassLengthFunctionName(UTI ltype);
+    const char * getBaseClassLengthFunctionName(UTI ltype);
     const char * getClassRegistrationNumberFunctionName(UTI ltype);
     const char * getGetStringFunctionName();
     const char * getGetStringLengthFunctionName();

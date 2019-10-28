@@ -419,7 +419,7 @@ namespace MFM {
     //called when superclass of an oversized class instance
     //UTI nuti = getNodeType(); //maybe Hzy, use arg instead
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    s32 nsize = nut->getBitsizeAsBaseClass();
+    s32 nsize = nut->getBitsizeAsBaseClass(); //never an element
 
     std::ostringstream note;
     note << "(" << nsize << " of ";
@@ -3363,6 +3363,15 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	fp->write(m_state.getClassLengthFunctionName(cuti));
 	fp->write("() const;"); GCNL;
 	fp->write("\n");
+
+	if(classtype != UC_ELEMENT)
+	  {
+	    m_state.indent(fp);
+	    fp->write("virtual u32 ");
+	    fp->write(m_state.getBaseClassLengthFunctionName(cuti));
+	    fp->write("() const;"); GCNL;
+	    fp->write("\n");
+	  }
 	return;
       }
 
@@ -3393,7 +3402,43 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.m_currentIndentLevel--;
 
     m_state.indent(fp);
-    fp->write("} //getClassLength\n\n");
+    fp->write("} //");
+    fp->write(m_state.getClassLengthFunctionName(cuti));
+    fp->write("\n\n");
+
+    //elements are never a baseclass, fail.
+    if(classtype == UC_ELEMENT) return;
+
+    //next, returns base class size:
+    m_state.indent(fp);
+    fp->write("template<class EC>\n");
+
+    m_state.indent(fp);
+    fp->write("u32 ");
+
+    //include the mangled class::
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write("<EC>");
+
+    fp->write("::");
+    fp->write(m_state.getBaseClassLengthFunctionName(cuti));
+    fp->write("( ) const\n");
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+
+    m_state.indent(fp);
+    fp->write("return ");
+    fp->write_decimal_unsigned(cut->getBitsizeAsBaseClass());
+    fp->write(";"); GCNL;
+
+    m_state.m_currentIndentLevel--;
+
+    m_state.indent(fp);
+    fp->write("} //");
+    fp->write(m_state.getBaseClassLengthFunctionName(cuti));
+    fp->write("\n\n");
   } //genCodeBuiltInFunctionGetClassLength
 
   void NodeBlockClass::genCodeBuiltInFunctionGetClassRegistrationNumber(File * fp, bool declOnly, ULAMCLASSTYPE classtype)

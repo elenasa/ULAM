@@ -33,6 +33,7 @@ namespace MFM {
   s32 UlamTypeClass::getBitsizeAsBaseClass()
   {
     assert(isScalar());
+    assert(!isReference()); //t41366
     //assert(m_bitsizeAsBaseClass >= 0); //t3318
     return m_bitsizeAsBaseClass;
   }

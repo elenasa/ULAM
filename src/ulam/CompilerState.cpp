@@ -82,6 +82,7 @@ namespace MFM {
   static const char * GETRELPOS_MANGLED_FUNC_NAME_FOR_ATOM = "UlamClass<EC>::GetRelativePositionOfBaseClass"; //Uf_2is
 
   static const char * GETCLASSLENGTH_FUNCNAME = "GetClassLength";
+  static const char * GETBASECLASSLENGTH_FUNCNAME = "GetClassDataMembersSize";
   static const char * GETCLASSREGISTRATIONNUMBER_FUNCNAME = "GetRegistrationNumber";
 
   static const char * GETSTRING_FUNCNAME = "GetStringPointerFromGlobalStringPool";
@@ -1539,7 +1540,8 @@ namespace MFM {
 
   s32 CompilerState::getBaseClassBitSize(UTI utiArg)
   {
-    UlamType * ut = getUlamTypeByIndex(utiArg);
+    UTI deref = getUlamTypeAsDeref(utiArg);
+    UlamType * ut = getUlamTypeByIndex(deref);
     ULAMCLASSTYPE classtype = ut->getUlamClassType();
     if((classtype == UC_ELEMENT) || (classtype == UC_NOTACLASS))
       return 0; //not a base class
@@ -4421,6 +4423,12 @@ namespace MFM {
   {
     assert(okUTItoContinue(ltype));
     return GETCLASSLENGTH_FUNCNAME;
+  }
+
+  const char * CompilerState::getBaseClassLengthFunctionName(UTI ltype)
+  {
+    assert(okUTItoContinue(ltype));
+    return GETBASECLASSLENGTH_FUNCNAME;
   }
 
   const char * CompilerState::getClassRegistrationNumberFunctionName(UTI ltype)

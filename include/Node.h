@@ -376,7 +376,8 @@ namespace MFM{
 
     //used for function calls second arg, including custom array accessors, and virtual funcso
     std::string genHiddenArg2(const UVPass& uvpass, u32& urtmpnumref, UTI vownarg, UTI funcclassarg);
-    virtual u32 getLengthOfMemberClassForHiddenArg(UTI cosuti);
+    u32 getLengthOfMemberClassForHiddenArg(UTI uti);
+    u32 getBaseLengthOfMemberClassForHiddenArg(UTI uti);
 
   private:
     UTI m_utype;

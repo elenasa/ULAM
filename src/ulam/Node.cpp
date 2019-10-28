@@ -3021,8 +3021,8 @@ namespace MFM {
 	    if(adjstEle)
 	      hiddenarg2 << " + T::ATOM_FIRST_STATE_BIT";
 
-	    //func belongs to baseclass of cos dm, add its offset, no
-	    //change to effself (t3831)
+	    //func belongs to baseclass of cos dm, add its offset,
+	    //change effself to cos (t3831)
 	    hiddenarg2 << ", " << getLengthOfMemberClassForHiddenArg(cosuti) << "u, &"; //len, t41120
 	    hiddenarg2 << m_state.getTheInstanceMangledNameByIndex(cosuti).c_str(); //cos->isSuper rolls as cosuti
 	    hiddenarg2 << ", " << genUlamRefUsageAsString(cosuti).c_str();
@@ -3044,7 +3044,7 @@ namespace MFM {
 
 		if(adjstEle)
 		  hiddenarg2 << " + T::ATOM_FIRST_STATE_BIT";
-		hiddenarg2 << ", " << getLengthOfMemberClassForHiddenArg(cosuti); //len, t41120
+		hiddenarg2 << ", " << getBaseLengthOfMemberClassForHiddenArg(cosuti); //baselen, t41120
 		hiddenarg2 << "u, true);"; //t41322, t41338 (always true!)
 	      } //else sameur (t41353)
 	  }
@@ -3093,7 +3093,7 @@ namespace MFM {
 		      hiddenarg2 << " + T::ATOM_FIRST_STATE_BIT";
 
 		    hiddenarg2 << ", " << getLengthOfMemberClassForHiddenArg(cosuti) << "u, "; //len, t41120
-		    hiddenarg2 << "&"; //effective self of dm (t3804 check -10)
+		    hiddenarg2 << "&"; //effself of dm (t3804 check -10)
 		    hiddenarg2 << m_state.getTheInstanceMangledNameByIndex(cosuti).c_str();
 		    hiddenarg2 << ", " << genUlamRefUsageAsString(cosuti).c_str();
 		    hiddenarg2 << ");";
@@ -3103,7 +3103,7 @@ namespace MFM {
 		    //ancestor keeps effective self of sub, more
 		    //later..t3637, t3746 uses UlamRef 3-arg copy
 		    //constr to keep pos (t3249), EffSelf and UsageType of ref
-		    hiddenarg2 << "0, " << getLengthOfMemberClassForHiddenArg(cosuti) << "u);" ; //pos, len
+		    hiddenarg2 << "0, " << getBaseLengthOfMemberClassForHiddenArg(cosuti) << "u);" ; //pos, baselen
 		  }
 	      }
 	    else
@@ -3157,18 +3157,20 @@ namespace MFM {
 			hiddenarg2 << calcPosOfCurrentObjectClassesAsString(uvpass, false, askEffSelf, skipfuncclass); //relpos (t3763, t41310)
 			if(adjstEle && (stgclasstype != UC_ELEMENT))
 			  hiddenarg2 << " + T::ATOM_FIRST_STATE_BIT";
-			hiddenarg2 << ", " << getLengthOfMemberClassForHiddenArg(cosuti) << "u, &"; //len
+
 			if(!cos->isDataMember())
 			  {
 			    //e.g. cos is a BaseType: t41307,8,9,10,16,21,27
 			    //virtual func call keeps the eff self of stg,
 			    // unless dm of local stg (e.g. t3804)
 			    // possible also chk uvpass: applydelta == true?
+			    hiddenarg2 << ", " << getBaseLengthOfMemberClassForHiddenArg(cosuti) << "u, &"; //baselen
 			    hiddenarg2 << m_state.getTheInstanceMangledNameByIndex(stgcosuti).c_str(); //same effself
-			    hiddenarg2 << ", " << genUlamRefUsageAsString(stgcosuti).c_str(); //same usage
+			    hiddenarg2 << ", " << genUlamRefUsageAsString(cosuti).c_str(); //new usage
 			  }
 			else
 			  {
+			    hiddenarg2 << ", " << getLengthOfMemberClassForHiddenArg(cosuti) << "u, &"; //len
 			    //data member uses its effective self: t3804,5
 			    hiddenarg2 << m_state.getTheInstanceMangledNameByIndex(cosuti).c_str(); //new effself
 			    hiddenarg2 << ", " << genUlamRefUsageAsString(cosuti).c_str(); //new usage
@@ -3217,7 +3219,7 @@ namespace MFM {
 	  }
 	else
 	  hiddenarg2 << funcclassrelpos << "u, ";
-	hiddenarg2 << getLengthOfMemberClassForHiddenArg(funcclassarg) << "u, true);"; //len
+	hiddenarg2 << getBaseLengthOfMemberClassForHiddenArg(funcclassarg) << "u, true);"; //baselen (always true!)
       } //else funcinbase && virtual: t3600,1 3743,5,7, t3986,
     //t41005,6,7,11,12, t41153,61, t41298,9, t41304,7,18,19,20,22,23,25.
 
@@ -4260,9 +4262,14 @@ namespace MFM {
     return usageStr.str();
   } //genUlamRefUsageAsString
 
-  u32 Node::getLengthOfMemberClassForHiddenArg(UTI cosuti)
+  u32 Node::getLengthOfMemberClassForHiddenArg(UTI uti)
   {
-    return m_state.getUlamTypeByIndex(cosuti)->getTotalBitSize();
+    return m_state.getTotalBitSize(uti);
+  }
+
+  u32 Node::getBaseLengthOfMemberClassForHiddenArg(UTI uti)
+  {
+    return m_state.getBaseClassBitSize(uti);
   }
 
 } //end MFM

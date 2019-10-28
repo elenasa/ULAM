@@ -1434,15 +1434,17 @@ namespace MFM {
 	fp->write(m_state.getTmpVarAsString(Int, tmpvarpos, TMPREGISTER).c_str());
 	fp->write(" >= 0, PURE_VIRTUAL_CALLED);"); GCNL; //t41095, t41163 (fail tests)
 
+	// since lookup is into a baseclass' vtable, use baseclass length of override class, since it cannot be the effself;
 	s32 tmpvarlen = m_state.getNextTmpVarNumber();
 	m_state.indentUlamCode(fp);
 	fp->write("const u32 ");
 	fp->write(m_state.getTmpVarAsString(Unsigned, tmpvarlen, TMPREGISTER).c_str());
 	fp->write(" = ");
+
 	fp->write(m_state.getUlamClassTmpVarAsString(tmpvarclassptr).c_str());
 	fp->write("->");
-	fp->write(m_state.getClassLengthFunctionName(decosuti));
-	fp->write("(); //len of override class"); GCNL; //reading into a separate len tmp var
+	fp->write(m_state.getBaseClassLengthFunctionName(decosuti));
+	fp->write("(); //baselen of override class"); GCNL; //reading into a separate len tmp var
 
 	//Create UlamRef for this vfunc call:
 	urtmpnumvfc = m_state.getNextTmpVarNumber();
@@ -1458,7 +1460,7 @@ namespace MFM {
 	fp->write(m_state.getTmpVarAsString(Int, tmpvarpos, TMPREGISTER).c_str());
 	fp->write(", ");
 	fp->write(m_state.getTmpVarAsString(Unsigned, tmpvarlen, TMPREGISTER).c_str());
-	fp->write(", true");
+	fp->write(", true"); //USAGE not updated? (always true!)
 	fp->write(");"); GCNL;
       }
     else
@@ -1513,7 +1515,7 @@ namespace MFM {
 	      fp->write_decimal(verelpos); //override pos
 	      fp->write(", ");
 	      fp->write_decimal_unsigned(veut->getSizeofUlamType()); //override len
-	      fp->write("u, true");
+	      fp->write("u, true"); //(always true!)
 	      fp->write(");"); GCNL;
 	    }
 	  else
@@ -1583,7 +1585,7 @@ namespace MFM {
     fp->write_decimal_unsigned(vownregnum);
     fp->write("u /*");
     fp->write(m_state.getUlamTypeNameBriefByIndex(vownuti).c_str());
-    fp->write("*/, true, ");
+    fp->write("*/, true, "); //(always true!)
     fp->write(m_state.getVFuncPtrTmpNumAsString(tvfpnum).c_str()); //Uf_tvfpNNN
     fp->write(");"); GCNL;
 
@@ -1937,17 +1939,5 @@ void NodeFunctionCall::genLocalMemberNameOfMethod(File * fp)
     fp->write(fut->getUlamTypeMangledName().c_str()); //e.g. t3605
     fp->write("<EC>::THE_INSTANCE.");
   } //genLocalMemberNameOfMethod
-
-  u32 NodeFunctionCall::getLengthOfMemberClassForHiddenArg(UTI cosuti)
-  {
-    //both virtuals and non- (original)
-    UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
-    return cosut->getTotalBitSize();
-
-    //change len.. (new, unused)
-    UTI futi = m_funcSymbol->getDataMemberClass();
-    UlamType * fut = m_state.getUlamTypeByIndex(futi);
-    return fut->getTotalBitSize();
-  }
 
 } //end MFM
