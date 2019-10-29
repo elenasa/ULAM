@@ -5,13 +5,11 @@
 ##	 Unsigned Arg: 4 (+ 3 asserts)
 ##       Unsigned Arg: 7 (+ 1 assert)
 ##       Unsigned Arg: 4 (+ 2 asserts)
-##
-##  WRONG eval, expected 4, not 7; first and second also incorrect!
 #!
-Exit status: 7
+Exit status: 4
 Uq_Typo(Int(32) a) : Bar { Bool(3) spt(false);  :Bar< Unsigned(3) bu( 7u); > <NOMAIN> }
 Uq_Bar { Unsigned(3) bu( 7u);  <NOMAIN> }
-Ue_Eltypo : Typo(1) +Bar { Unsigned(3) first(7u);  Unsigned(3) second(7u);  Typo(1) t( constant Int(32) a = 1;  Bool(3) spt(false);  :Bar< Unsigned(3) bu(7u); >);  :Typo(1)< constant Int(32) a = 1;  Bool(3) spt(false);  :Bar< Unsigned(3) bu(7u); >> +Bar< Unsigned(3) bu(7u); > Int(32) test() {  System s;  Eltypo elf;  Bar& barref = elf t . cast;  barref ( 3u cast )func . s ( barref bu . cast )print . s ( barref bu . cast 4 == )assert . self first . barref bu . = s ( elf t . spt . cast )assert . s ( elf spt . ! cast )assert . s ( elf bu . cast )print . s ( elf bu . cast 7 == )assert . s ( self first . cast )print . s ( self first . cast 4 == )assert . self second . elf t . bu . = s ( self second . 4u == )assert . self second . cast return } }
+Ue_Eltypo : Typo(1) +Bar { Unsigned(3) first(4u);  Unsigned(3) second(4u);  Typo(1) t( constant Int(32) a = 1;  Bool(3) spt(false);  :Bar< Unsigned(3) bu(7u); >);  :Typo(1)< constant Int(32) a = 1;  Bool(3) spt(false);  :Bar< Unsigned(3) bu(7u); >> +Bar< Unsigned(3) bu(7u); > Int(32) test() {  System s;  Eltypo elf;  Bar& barref = elf t . cast;  barref ( 3u cast )func . s ( barref bu . cast )print . s ( barref bu . cast 4 == )assert . self first . barref bu . = s ( elf t . spt . cast )assert . s ( elf spt . ! cast )assert . s ( elf bu . cast )print . s ( elf bu . cast 7 == )assert . s ( self first . cast )print . s ( self first . cast 4 == )assert . self second . elf t . bu . = s ( self second . 4u == )assert . self second . cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by 3588, t41363
@@ -24,6 +22,7 @@ quark Typo(Int a) : Bar{
   virtual Void func(Unsigned u)
   {
     spt = true;
+    //super.func(u + 1u); //should be equivalent!
     self.Bar.func(u + 1u);
   }
 }

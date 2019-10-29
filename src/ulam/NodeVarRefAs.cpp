@@ -110,6 +110,8 @@ namespace MFM {
     ((SymbolVariableStack *) m_varSymbol)->setAutoStorageTypeForEval(autostgtype); //for future virtual function call eval uses
 
     //m_state.m_funcCallStack.storeUlamValueInSlot(pluv, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex()); //doesn't seem to matter..
+    m_state.m_currentAutoObjPtr = UlamValue(); //wipeout
+    m_state.m_currentAutoStorageType = Nouti; //clear (was Nav)
 
     return NORMAL;
   } //eval

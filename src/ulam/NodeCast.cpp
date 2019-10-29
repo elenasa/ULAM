@@ -604,9 +604,20 @@ namespace MFM {
 	      {
 		UTI dereftobe = m_state.getUlamTypeAsDeref(tobeType);
 		ruvPtr.setPtrTargetType(dereftobe); //t3754 case 1 & 3 (to element ref)
+
+		//before the cast, so we don't lose the subclass ("effself") in
+		//case of virtual func calls? (t41364)???
+		m_state.m_currentAutoObjPtr = ruvPtr;
+		m_state.m_currentAutoStorageType = nodeType;
+
 		u32 baserelpos = 0;
-		if(m_state.getABaseClassRelativePositionInAClass(ttype, dereftobe, baserelpos))
-		  ruvPtr.setPtrPos(ruvPtr.getPtrPos() + baserelpos); //t41319
+		//if(m_state.getABaseClassRelativePositionInAClass(ttype, dereftobe, baserelpos))
+		//use nodetype for data members (t41364)
+		if(m_state.getABaseClassRelativePositionInAClass(nodeType, dereftobe, baserelpos))
+		  {
+		    ruvPtr.setPtrPos(ruvPtr.getPtrPos() + baserelpos); //t41319
+		    ruvPtr.setPtrLen(m_state.getBaseClassBitSize(dereftobe)); //t41364
+		  }
 	      }
 	  }
       }

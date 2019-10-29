@@ -959,7 +959,13 @@ namespace MFM {
 	      }
 	    else if(m_state.isClassASubclassOf(auti, atomPtr.getPtrTargetType()))
 	      {
+		UTI baseuti = atomPtr.getPtrTargetType();
 		atomPtr.setPtrTargetType(auti); //t3746
+		u32 relposofbase = 0; //t41364
+		AssertBool gotpos = m_state.getABaseClassRelativePositionInAClass(auti, baseuti, relposofbase);
+		assert(gotpos);
+		atomPtr.setPtrPos(atomPtr.getPtrPos() - relposofbase);
+		atomPtr.setPtrLen(m_state.getTotalBitSize(auti)); //as complete object
 	      }
 	  }
       } //else can't be an autolocal

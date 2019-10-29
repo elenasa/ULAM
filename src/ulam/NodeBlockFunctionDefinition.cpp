@@ -362,6 +362,10 @@ namespace MFM {
     //for eval, native function blocks (NodeBlockEmpty) return Normal. t3942
     if(isNative() && getNodeType() != Void) return evalStatusReturnNoEpilog(UNEVALUABLE);
 
+    //for eval, virtual functions, init globals (e.g. t3611)
+    m_state.m_currentAutoObjPtr = UlamValue(); //wipeout
+    m_state.m_currentAutoStorageType = Nouti; //clear (was Nav)
+
     m_state.pushCurrentBlock(this); //push func def
 
     // m_currentObjPtr set up by caller

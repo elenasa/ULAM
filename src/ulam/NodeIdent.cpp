@@ -802,6 +802,8 @@ namespace MFM {
 	assert(gotpos);
 	selfuvp.setPtrPos(selfuvp.getPtrPos() + relposofsuper);
 	selfuvp.setPtrTargetType(m_state.getUlamTypeAsDeref(supertype));
+	selfuvp.setPtrLen(m_state.getBaseClassBitSize(supertype));
+	selfuvp.setPtrNameId(0);
 	return selfuvp; //now superuvp.
       } //done
 
