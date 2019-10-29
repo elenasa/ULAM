@@ -1446,7 +1446,9 @@ namespace MFM {
 	fp->write(m_state.getBaseClassLengthFunctionName(decosuti));
 	fp->write("(); //baselen of override class"); GCNL; //reading into a separate len tmp var
 
-	//Create UlamRef for this vfunc call:
+	//Create UlamRef for this vfunc call: t3743,4,5,6,t41097,t41161,
+	//t41298,9, t41304,7,8,9,10,11,14,15,16,17,18, t41320,1,2,3,7,8,
+	//t41333,6,8,t41351,3,t41361,3,4,6
 	urtmpnumvfc = m_state.getNextTmpVarNumber();
 	m_state.indentUlamCode(fp);
 	fp->write("UlamRef<EC> ");
@@ -1460,7 +1462,9 @@ namespace MFM {
 	fp->write(m_state.getTmpVarAsString(Int, tmpvarpos, TMPREGISTER).c_str());
 	fp->write(", ");
 	fp->write(m_state.getTmpVarAsString(Unsigned, tmpvarlen, TMPREGISTER).c_str());
-	fp->write(", true"); //USAGE not updated? (always true!)
+	fp->write(", ");
+	fp->write(Node::genUlamRefUsageAsString(decosuti).c_str());
+	fp->write(", true"); //(always true!)
 	fp->write(");"); GCNL;
       }
     else
@@ -1515,7 +1519,9 @@ namespace MFM {
 	      fp->write_decimal(verelpos); //override pos
 	      fp->write(", ");
 	      fp->write_decimal_unsigned(veut->getSizeofUlamType()); //override len
-	      fp->write("u, true"); //(always true!)
+	      fp->write("u, ");
+	      fp->write(Node::genUlamRefUsageAsString(veuti).c_str()); //usage
+	      fp->write(", true"); //(always true!)
 	      fp->write(");"); GCNL;
 	    }
 	  else
@@ -1585,7 +1591,7 @@ namespace MFM {
     fp->write_decimal_unsigned(vownregnum);
     fp->write("u /*");
     fp->write(m_state.getUlamTypeNameBriefByIndex(vownuti).c_str());
-    fp->write("*/, true, "); //(always true!)
+    fp->write("*/, true, "); //usage based on override class, (always true!)
     fp->write(m_state.getVFuncPtrTmpNumAsString(tvfpnum).c_str()); //Uf_tvfpNNN
     fp->write(");"); GCNL;
 

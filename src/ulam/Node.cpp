@@ -3045,7 +3045,8 @@ namespace MFM {
 		if(adjstEle)
 		  hiddenarg2 << " + T::ATOM_FIRST_STATE_BIT";
 		hiddenarg2 << ", " << getBaseLengthOfMemberClassForHiddenArg(cosuti); //baselen, t41120
-		hiddenarg2 << "u, true);"; //t41322, t41338 (always true!)
+		hiddenarg2 << "u, " << genUlamRefUsageAsString(cosuti).c_str();
+		hiddenarg2 << ", true);"; //t41322, t41338 (always true!)
 	      } //else sameur (t41353)
 	  }
       }
@@ -3219,7 +3220,9 @@ namespace MFM {
 	  }
 	else
 	  hiddenarg2 << funcclassrelpos << "u, ";
-	hiddenarg2 << getBaseLengthOfMemberClassForHiddenArg(funcclassarg) << "u, true);"; //baselen (always true!)
+	hiddenarg2 << getBaseLengthOfMemberClassForHiddenArg(funcclassarg);
+	hiddenarg2 << "u, " << genUlamRefUsageAsString(funcclassarg).c_str();
+	hiddenarg2 << ", true);"; //baselen (always true!)
       } //else funcinbase && virtual: t3600,1 3743,5,7, t3986,
     //t41005,6,7,11,12, t41153,61, t41298,9, t41304,7,18,19,20,22,23,25.
 

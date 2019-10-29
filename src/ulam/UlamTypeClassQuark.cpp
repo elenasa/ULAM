@@ -718,7 +718,7 @@ namespace MFM {
 		//	    fp->write("u)-d.GetPosToEffectiveSelf(),");
 		fp->write("u),");
 		fp->write_decimal_unsigned(blen);
-		fp->write("u,true).Read()); /*"); //(always true!)
+		fp->write("u, UlamRef<EC>::CLASSIC, true).Read()); /*"); //(always true!)
 		fp->write(m_state.getUlamTypeNameBriefByIndex(baseuti).c_str());
 		fp->write(" */ ");
 	      }
