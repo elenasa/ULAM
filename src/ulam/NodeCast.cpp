@@ -1581,9 +1581,12 @@ namespace MFM {
 	fp->write(m_state.getTheInstanceMangledNameByIndex(tobeType).c_str());
 	fp->write(".");
 	fp->write(m_state.getIsMangledFunctionName(tobeType)); //UlamElement IsMethod
-	fp->write("(&"); //one arg
-	fp->write(m_state.getTheInstanceMangledNameByIndex(vuti).c_str());
-	fp->write(") )");
+	fp->write("(");
+	fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(vuti)); //efficiency
+	fp->write("u) )");
+	fp->write(" /* ");
+	fp->write(m_state.getUlamTypeNameBriefByIndex(vuti).c_str());
+	fp->write(" */ \n");
 
 	m_state.m_currentIndentLevel++;
 	m_state.indentUlamCode(fp);
@@ -1851,9 +1854,12 @@ namespace MFM {
 	fp->write(m_state.getTheInstanceMangledNameByIndex(tobeType).c_str());
 	fp->write(".");
 	fp->write(m_state.getIsMangledFunctionName(tobeType)); //UlamElement IsMethod
-	fp->write("(&"); //one arg
-	fp->write(m_state.getTheInstanceMangledNameByIndex(vuti).c_str());
-	fp->write("))\n");
+	fp->write("("); //one arg
+	fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(vuti)); //efficiency
+	fp->write("u))");
+	fp->write(" /* ");
+	fp->write(m_state.getUlamTypeNameBriefByIndex(vuti).c_str());
+	fp->write(" */ \n");
 
 	m_state.m_currentIndentLevel++;
 	m_state.indentUlamCode(fp);

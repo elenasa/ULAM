@@ -3193,16 +3193,101 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.m_currentIndentLevel++;
 
     m_state.indent(fp);
-    fp->write("return ");
-    fp->write(m_state.getIsMangledFunctionName(cuti));
+    fp->write("return (");
+    //    fp->write(m_state.getIsMangledFunctionName(cuti));
+    fp->write(m_state.getGetRelPosMangledFunctionName(cuti));
     fp->write("(cptrarg->");
     fp->write(m_state.getClassRegistrationNumberFunctionName(cuti));
-    fp->write("());"); GCNL;
+    fp->write("()) >= 0);"); GCNL;
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
     fp->write("} //is-related\n\n");
   } //genCodeBuiltInFunctionIsMethodRelatedInstance
+
+  void NodeBlockClass::genCodeBuiltInIsMethodByRegistrationNumber(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
+  {
+    if(classtype == UC_LOCALSFILESCOPE)
+      return;
+
+    UTI cuti = m_state.getCompileThisIdx();
+    UlamType * cut = m_state.getUlamTypeByIndex(cuti);
+
+    if(declOnly)
+      {
+	//VTable accessor method
+	m_state.indent(fp);
+	fp->write("virtual bool ");
+	fp->write(m_state.getIsMangledFunctionName(cuti));
+	fp->write("(u32 rn) const;"); GCNL;
+	fp->write("\n");
+	return;
+      } //done w h-file
+
+    //isbyregnum BV accessor method
+    m_state.indent(fp);
+    fp->write("template<class EC>\n"); //same for elements and quarks
+
+    m_state.indent(fp);
+    fp->write("bool ");
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write("<EC>::"); //same for elements and quarks
+    fp->write(m_state.getIsMangledFunctionName(cuti));
+    fp->write("(u32 rn) const"); GCNL;
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+
+    m_state.indent(fp);
+    fp->write("return (");
+    fp->write(m_state.getGetRelPosMangledFunctionName(cuti));
+    fp->write("(rn) >= 0);"); GCNL;
+
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("} //is-related\n\n");
+  }//genCodeBuiltInIsMethodByRegistrationNumber
+
+  void NodeBlockClass::generateInternalIsMethodForElement(File * fp, bool declOnly)
+  {
+    UTI cuti = getNodeType();
+
+    if(declOnly)
+      {
+	m_state.indent(fp);
+	fp->write("//helper method not called directly\n");
+
+	m_state.indent(fp);
+	fp->write("bool ");
+	fp->write(m_state.getIsMangledFunctionName(cuti));
+	fp->write("(const T& targ) const;"); GCNL;
+	fp->write("\n");
+	return;
+      }
+
+    m_state.indent(fp);
+    fp->write("template<class EC>\n");
+    m_state.indent(fp);
+    fp->write("bool "); //return pos offset, or -1 if not found
+
+    //include the mangled class::
+    fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
+
+    fp->write("<EC>::");
+    fp->write(m_state.getIsMangledFunctionName(cuti));
+    fp->write("(const T& targ) const\n");
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+    m_state.indent(fp);
+    fp->write("return (ELEMENT_TYPE == targ.GetType());"); GCNL;
+
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("} //isMethod\n\n");
+  } //generateInternalIsMethodForElement
 
   void NodeBlockClass::genCodeBuiltInFunctionGetRelPosMethodRelatedInstance(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
@@ -3350,8 +3435,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write_decimal_unsigned(myregnum);
     fp->write(": return(0); //position of ");
     fp->write(m_state.getUlamTypeNameBriefByIndex(nuti).c_str()); GCNL;
-
-  } //genCodeBuiltInFunctionGetRelPosOfRelatedInstanceByRegistrationNumber
+  } //genCodeBuiltInFunctionGetRelPosRelatedInstanceByRegistrationNumber
 
   void NodeBlockClass::genCodeBuiltInFunctionGetClassLength(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
@@ -3443,6 +3527,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
   void NodeBlockClass::genCodeBuiltInFunctionGetClassRegistrationNumber(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
+    //returns class registry number(replaces UlamClass.tcc in MFM virtually)
     UTI cuti = m_state.getCompileThisIdx();
     if(declOnly)
       {
@@ -3460,7 +3545,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("template<class EC>\n");
 
     m_state.indent(fp);
-    fp->write("u32 "); //returns class registry number(replaces UlamClass.tcc in MFM virtually)
+    fp->write("u32 ");
 
     //include the mangled class::
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
@@ -4032,61 +4117,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("}\n\n");
   }//genCodeBuiltInVirtualTableStartOffsetHelper
 
-  void NodeBlockClass::genCodeBuiltInIsMethodByRegistrationNumber(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
-  {
-    if(classtype == UC_LOCALSFILESCOPE)
-      return;
-
-    UTI cuti = m_state.getCompileThisIdx();
-    UlamType * cut = m_state.getUlamTypeByIndex(cuti);
-
-    if(declOnly)
-      {
-	//VTable accessor method
-	m_state.indent(fp);
-	fp->write("virtual bool ");
-	fp->write(m_state.getIsMangledFunctionName(cuti));
-	fp->write("(u32 rn) const;"); GCNL;
-	fp->write("\n");
-	return;
-      } //done w h-file
-
-    //isbyregnum BV accessor method
-    m_state.indent(fp);
-    fp->write("template<class EC>\n"); //same for elements and quarks
-
-    m_state.indent(fp);
-    fp->write("bool ");
-    fp->write(cut->getUlamTypeMangledName().c_str());
-    fp->write("<EC>::"); //same for elements and quarks
-    fp->write(m_state.getIsMangledFunctionName(cuti));
-    fp->write("(u32 rn) const"); GCNL;
-    m_state.indent(fp);
-    fp->write("{\n");
-
-    m_state.m_currentIndentLevel++;
-
-    m_state.indent(fp);
-    fp->write("//Insure 'rn' within max number of registered classes (");
-    fp->write_decimal_unsigned(m_state.getMaxNumberOfRegisteredUlamClasses());
-    fp->write(")\n");
-    m_state.indent(fp);
-    fp->write("if(rn >= ");
-    fp->write_decimal_unsigned(m_state.getMaxNumberOfRegisteredUlamClasses());
-    fp->write(") FAIL(ARRAY_INDEX_OUT_OF_BOUNDS);"); GCNL;
-    fp->write("\n");
-
-    genCodeBuildIsBVByRegistrationNumberHelper(fp, cuti);
-
-    m_state.indent(fp);
-    fp->write("//the rn-th bit is 'on', iff related\n");
-    m_state.indent(fp);
-    fp->write("return m_isbyregnumBV.ReadBit(rn);"); GCNL;
-    m_state.m_currentIndentLevel--;
-    m_state.indent(fp);
-    fp->write("} //is-related\n\n");
-  }//genCodeBuiltInIsMethodByRegistrationNumber
-
+#if 0
   void NodeBlockClass::genCodeBuildIsBVByRegistrationNumberHelper(File * fp, UTI cuti)
   {
     BV8K bitvec;
@@ -4137,46 +4168,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("}"); GCNL;
     fp->write("\n");
   }//genCodeBuiltInIsMethodByRegistrationNumberHelper
-
-  void NodeBlockClass::generateInternalIsMethodForElement(File * fp, bool declOnly)
-  {
-    UTI cuti = getNodeType();
-
-    if(declOnly)
-      {
-	m_state.indent(fp);
-	fp->write("//helper method not called directly\n");
-
-	m_state.indent(fp);
-	fp->write("bool ");
-	fp->write(m_state.getIsMangledFunctionName(cuti));
-	fp->write("(const T& targ) const;"); GCNL;
-	fp->write("\n");
-	return;
-      }
-
-    m_state.indent(fp);
-    fp->write("template<class EC>\n");
-    m_state.indent(fp);
-    fp->write("bool "); //return pos offset, or -1 if not found
-
-    //include the mangled class::
-    fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
-
-    fp->write("<EC>::");
-    fp->write(m_state.getIsMangledFunctionName(cuti));
-    fp->write("(const T& targ) const\n");
-    m_state.indent(fp);
-    fp->write("{\n");
-
-    m_state.m_currentIndentLevel++;
-    m_state.indent(fp);
-    fp->write("return (ELEMENT_TYPE == targ.GetType());"); GCNL;
-
-    m_state.m_currentIndentLevel--;
-    m_state.indent(fp);
-    fp->write("} //isMethod\n\n");
-  } //generateInternalIsMethodForElement
+#endif
 
   void NodeBlockClass::generateInternalTypeAccessorsForElement(File * fp, bool declOnly)
   {
@@ -4243,7 +4235,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     if(declOnly)
       {
 	m_state.indent(fp);
-	fp->write("__inline__ const u32 GetPos() const { return 0u; }\n"); //?????
+	fp->write("__inline__ const u32 GetPos() const { return 0u; }\n"); //?
       }
   } //generateGetPosForQuark
 
