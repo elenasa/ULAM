@@ -1652,8 +1652,12 @@ namespace MFM {
 	fp->write(stgcos->getMangledName().c_str());
 	fp->write(".GetEffectiveSelf()->");
 	fp->write(m_state.getGetRelPosMangledFunctionName(stgcosuti)); //nonatom
-	fp->write("(&");
-	fp->write(m_state.getTheInstanceMangledNameByIndex(cosclassuti).c_str());
+	fp->write("(");
+	fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(cosclassuti)); //efficiency
+	fp->write("u ");
+	fp->write("/* ");
+	fp->write(m_state.getUlamTypeNameBriefByIndex(cosclassuti).c_str());
+	fp->write(" */");
 	fp->write(") - ");
 	fp->write(stgcos->getMangledName().c_str());
 	fp->write(".GetPosToEffectiveSelf() + ");
@@ -1855,11 +1859,15 @@ namespace MFM {
 		fp->write(m_state.getHiddenArgName()); //ur first arg
 		fp->write(".GetEffectiveSelf()->");
 		fp->write(m_state.getGetRelPosMangledFunctionName(stgcosuti)); //nonatom
-		fp->write("(&");
 
 		assert(cos->isDataMember());
 		UTI cosclassuti = cos->getDataMemberClass();
-		fp->write(m_state.getTheInstanceMangledNameByIndex(cosclassuti).c_str());
+		fp->write("(");
+		fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(cosclassuti)); //efficiency
+		fp->write("u ");
+		fp->write("/* ");
+		fp->write(m_state.getUlamTypeNameBriefByIndex(cosclassuti).c_str());
+		fp->write(" */");
 		fp->write(") - ");
 		fp->write(m_state.getHiddenArgName()); //ur
 		fp->write(".GetPosToEffectiveSelf() + "); //uvpass has cos dm pos (t41140)
@@ -1964,8 +1972,12 @@ namespace MFM {
 		fp->write(stgcos->getMangledName().c_str());
 		fp->write(".GetEffectiveSelf()->");
 		fp->write(m_state.getGetRelPosMangledFunctionName(stgcosuti)); //nonatom
-		fp->write("(&");
-		fp->write(m_state.getTheInstanceMangledNameByIndex(cosclassuti).c_str());
+		fp->write("(");
+		fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(cosclassuti)); //efficiency
+		fp->write("u ");
+		fp->write("/* ");
+		fp->write(m_state.getUlamTypeNameBriefByIndex(cosclassuti).c_str());
+		fp->write(" */");
 		fp->write(") - ");
 		fp->write(stgcos->getMangledName().c_str());
 		fp->write(".GetPosToEffectiveSelf() ");
@@ -2760,23 +2772,44 @@ namespace MFM {
 	    fp->write(m_state.getHiddenArgName()); //ur first arg
 	    fp->write(".GetEffectiveSelf()->");
 	    fp->write(m_state.getGetRelPosMangledFunctionName(stgcosuti)); //nonatom
-	    fp->write("(&");
-
+	    fp->write("(");
 	    if(stgcos->isSuper())
-	      fp->write(m_state.getTheInstanceMangledNameByIndex(stgcosuti).c_str()); //t3749
+	      {
+		fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(stgcosuti)); //efficiency
+		fp->write("u ");
+		fp->write("/* ");
+		fp->write(m_state.getUlamTypeNameBriefByIndex(stgcosuti).c_str());
+		fp->write(" */");
+	      }
 	    else if((cosSize > 2))
 	      {
 		Symbol * dmcos = m_state.m_currentObjSymbolsForCodeGen[1];
 		if(dmcos->isDataMember() && !dmcos->isTmpVarSymbol())
 		  {
 		    UTI dmclassuti = dmcos->getDataMemberClass();
-		    fp->write(m_state.getTheInstanceMangledNameByIndex(dmclassuti).c_str());
+		    fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(dmclassuti)); //efficiency
+		    fp->write("u ");
+		    fp->write("/* ");
+		    fp->write(m_state.getUlamTypeNameBriefByIndex(dmclassuti).c_str());
+		    fp->write(" */");
 		  }
 		else
-		  fp->write(m_state.getTheInstanceMangledNameByIndex(cosclassuti).c_str());
+		  {
+		    fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(cosclassuti)); //efficiency
+		    fp->write("u ");
+		    fp->write("/* ");
+		    fp->write(m_state.getUlamTypeNameBriefByIndex(cosclassuti).c_str());
+		    fp->write(" */");
+		  }
 	      }
 	    else
-	      fp->write(m_state.getTheInstanceMangledNameByIndex(cosclassuti).c_str());
+	      {
+		fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(cosclassuti)); //efficiency
+		fp->write("u ");
+		fp->write("/* ");
+		fp->write(m_state.getUlamTypeNameBriefByIndex(cosclassuti).c_str());
+		fp->write(" */");
+	      }
 
 	    fp->write(") - ");
 	    fp->write(m_state.getHiddenArgName()); //ur first arg t41321
@@ -3010,10 +3043,15 @@ namespace MFM {
 		hiddenarg2 << " + " << m_state.getHiddenArgName(); //ur first arg
 		hiddenarg2 << ".GetEffectiveSelf()->";
 		hiddenarg2 << m_state.getGetRelPosMangledFunctionName(stgcosuti); //nonatom
-		hiddenarg2 << "(&";
 
 		UTI cosclassuti = cos->getDataMemberClass();
-		hiddenarg2 << m_state.getTheInstanceMangledNameByIndex(cosclassuti).c_str();
+		hiddenarg2 << "(";
+		hiddenarg2 << m_state.getAClassRegistrationNumber(cosclassuti); //efficiency
+		hiddenarg2 << "u ";
+		hiddenarg2 << "/* ";
+		hiddenarg2 << m_state.getUlamTypeNameBriefByIndex(cosclassuti).c_str();
+		hiddenarg2 << " */";
+
 		hiddenarg2 << ") -" << m_state.getHiddenArgName(); //ur first arg t41321
 		hiddenarg2 << ".GetPosToEffectiveSelf()";
 	      }
@@ -3081,9 +3119,13 @@ namespace MFM {
 			hiddenarg2 << stgcos->getMangledName().c_str();
 			hiddenarg2 << ".GetEffectiveSelf()->";
 			hiddenarg2 << m_state.getGetRelPosMangledFunctionName(stgcosuti); //nonatom
-			hiddenarg2 << "(&";
 			UTI cosclassuti = cos->getDataMemberClass();
-			hiddenarg2 << m_state.getTheInstanceMangledNameByIndex(cosclassuti).c_str();
+			hiddenarg2 << "(";
+			hiddenarg2 << m_state.getAClassRegistrationNumber(cosclassuti); //efficiency
+			hiddenarg2 << "u ";
+			hiddenarg2 << "/* ";
+			hiddenarg2 << m_state.getUlamTypeNameBriefByIndex(cosclassuti).c_str();
+			hiddenarg2 << " */";
 			hiddenarg2 << ") -" << stgcos->getMangledName().c_str();
 			hiddenarg2 << ".GetPosToEffectiveSelf()";
 		      }
@@ -3214,8 +3256,12 @@ namespace MFM {
 
 	    hiddenarg2 << ".GetEffectiveSelf()->";
 	    hiddenarg2 << m_state.getGetRelPosMangledFunctionName(stgcosuti); //nonatom
-	    hiddenarg2 << "(&";
-	    hiddenarg2 << m_state.getTheInstanceMangledNameByIndex(funcclassarg).c_str();
+	    hiddenarg2 << "(";
+	    hiddenarg2 << m_state.getAClassRegistrationNumber(funcclassarg); //efficiency
+	    hiddenarg2 << "u ";
+	    hiddenarg2 << "/* ";
+	    hiddenarg2 << m_state.getUlamTypeNameBriefByIndex(funcclassarg).c_str();
+	    hiddenarg2 << " */";
 	    hiddenarg2 << "), ";
 	  }
 	else
@@ -3319,8 +3365,12 @@ namespace MFM {
 	    fp->write(stgcos->getMangledName().c_str());
 	    fp->write(".GetEffectiveSelf()->");
 	    fp->write(m_state.getGetRelPosMangledFunctionName(stgcosuti)); //nonatom
-	    fp->write("(&");
-	    fp->write(m_state.getTheInstanceMangledNameByIndex(cosclassuti).c_str());
+	    fp->write("(");
+	    fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(cosclassuti)); //efficiency
+	    fp->write("u ");
+	    fp->write("/* ");
+	    fp->write(m_state.getUlamTypeNameBriefByIndex(cosclassuti).c_str());
+	    fp->write(" */");
 	    fp->write(") - ");
 	    fp->write(stgcos->getMangledName().c_str());
 	    fp->write(".GetPosToEffectiveSelf() ");

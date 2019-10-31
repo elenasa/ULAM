@@ -1966,8 +1966,12 @@ namespace MFM {
 	    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
 	    fp->write(".GetEffectiveSelf()->");
 	    fp->write(m_state.getGetRelPosMangledFunctionName(vuti));
-	    fp->write("(&");
-	    fp->write(m_state.getTheInstanceMangledNameByIndex(tobeType).c_str());
+	    fp->write("(");
+	    fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(tobeType)); //efficiency
+	    fp->write("u ");
+	    fp->write("/* ");
+	    fp->write(m_state.getUlamTypeNameBriefByIndex(tobeType).c_str());
+	    fp->write(" */");
 	    fp->write(") - ");
 	    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
 	    fp->write(".GetPosToEffectiveSelf();"); GCNL;
@@ -1977,9 +1981,9 @@ namespace MFM {
 	    fp->write(m_state.getTheInstanceMangledNameByIndex(vuti).c_str());
 	    fp->write(".");
 	    fp->write(m_state.getGetRelPosMangledFunctionName(vuti)); //UlamElement GetRelPosMethod
-	    fp->write("(&"); //one arg
-	    fp->write(m_state.getTheInstanceMangledNameByIndex(tobeType).c_str());
-	    fp->write("); //relpos of ");
+	    fp->write("(");
+	    fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(tobeType)); //efficiency
+	    fp->write("u); //relpos of ");
 	    fp->write(m_state.getUlamTypeNameBriefByIndex(tobeType).c_str());
 	    GCNL;
 	  }
@@ -1989,9 +1993,9 @@ namespace MFM {
 	fp->write(m_state.getTheInstanceMangledNameByIndex(vuti).c_str());
 	fp->write(".");
 	fp->write(m_state.getGetRelPosMangledFunctionName(vuti)); //UlamElement GetRelPosMethod
-	fp->write("(&"); //one arg
-	fp->write(m_state.getTheInstanceMangledNameByIndex(tobeType).c_str());
-	fp->write("); //relpos of ");
+	fp->write("(");
+	fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(tobeType)); //efficiency
+	fp->write("u); //relpos of ");
 	fp->write(m_state.getUlamTypeNameBriefByIndex(tobeType).c_str());
 	GCNL;
       }
@@ -2010,8 +2014,12 @@ namespace MFM {
 		fp->write(stgcos->getMangledName().c_str());
 		fp->write(".GetEffectiveSelf()->");
 		fp->write(m_state.getGetRelPosMangledFunctionName(vuti));
-		fp->write("(&");
-		fp->write(m_state.getTheInstanceMangledNameByIndex(tobeType).c_str());
+		fp->write("(");
+		fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(tobeType)); //efficiency
+		fp->write("u ");
+		fp->write("/* ");
+		fp->write(m_state.getUlamTypeNameBriefByIndex(tobeType).c_str());
+		fp->write(" */");
 		fp->write(") - ");
 		fp->write(stgcos->getMangledName().c_str());
 		fp->write(".GetPosToEffectiveSelf();"); GCNL;
@@ -2028,8 +2036,12 @@ namespace MFM {
 		fp->write(stgcos->getMangledName().c_str());
 		fp->write(".GetEffectiveSelf()->");
 		fp->write(m_state.getGetRelPosMangledFunctionName(vuti));
-		fp->write("(&");
-		fp->write(m_state.getTheInstanceMangledNameByIndex(tobeType).c_str());
+		fp->write("(");
+		fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(tobeType)); //efficiency
+		fp->write("u ");
+		fp->write("/* ");
+		fp->write(m_state.getUlamTypeNameBriefByIndex(tobeType).c_str());
+		fp->write(" */");
 		fp->write(") - ");
 		fp->write(stgcos->getMangledName().c_str());
 		fp->write(".GetPosToEffectiveSelf();"); GCNL;

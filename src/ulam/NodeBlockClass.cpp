@@ -3194,7 +3194,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     m_state.indent(fp);
     fp->write("return (");
-    //    fp->write(m_state.getIsMangledFunctionName(cuti));
     fp->write(m_state.getGetRelPosMangledFunctionName(cuti));
     fp->write("(cptrarg->");
     fp->write(m_state.getClassRegistrationNumberFunctionName(cuti));
