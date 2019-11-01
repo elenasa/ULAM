@@ -128,6 +128,10 @@ namespace MFM {
 	    {
 	      brtn = makeFlagToken(cstring, returnTok);
 	    }
+	  else if(c == '_')
+	    {
+	      brtn = makeSubstituteToken(cstring, returnTok);
+	    }
 	  else
 	    {
 	      brtn = makeOperatorToken(cstring, returnTok);
@@ -379,6 +383,65 @@ namespace MFM {
     return brtn;
   } //makeFlagToken
 
+  //called because first byte was _
+  u32 Lexer::makeSubstituteToken(std::string& aname, Token & tok)
+  {
+    u32 brtn = 0;
+    Locator firstloc = m_SS.getLocator(); //save for new token
+
+    s32 c = m_SS.read(); //capital letter follows __ for a valid flag
+
+    if(c == '_')
+      {
+
+	while((c >= 0) && (Token::isUpper(c) || (c == '_')))
+	  {
+	    //continue with uppercase alpha, or 2 underscore
+	    aname.push_back(c);
+	    c = m_SS.read();
+	  }
+
+	unread();
+
+	TokenType ttype = getTokenTypeFromString(aname);
+	if(ttype != TOK_LAST_ONE)
+	  {
+	    SpecialTokenWork sptok = Token::getSpecialTokenWork(ttype);
+	    if(sptok == TOKSP_FLAGKEYWORD)
+	      {
+		if(ttype == TOK_KW_FLAG_INSERTFILE)
+		  {
+		    //substitute a string token of filename from this loc
+		    std::string path = m_state.getPathFromLocator(firstloc);
+		    u32 idx = 0;
+		    u32 rtn = formatUserString(path, idx);
+		    if(rtn == 0)
+		      tok.init(TOK_DQUOTED_STRING,firstloc,idx);
+		    return rtn; // == 0 == ok
+		  }
+		else if(ttype == TOK_KW_FLAG_INSERTLINE)
+		  {
+		    //substitute a number token for line of file from this loc
+		    std::ostringstream ss;
+		    ss << firstloc.getLineNo();
+		    std::string lineno = ss.str();
+		    u32 idx = m_state.m_pool.getIndexForDataString(lineno);
+		    tok.init(TOK_NUMBER_UNSIGNED, firstloc, idx);
+		    return 0;
+		  }
+		// else not defined..fall thru
+	      }
+	  }
+      }
+    //else not a flag
+
+    std::ostringstream errmsg;
+    errmsg << "Weird Lex! <" << aname;
+    errmsg << "> does not precede a valid flag keyword";
+    brtn = m_state.m_pool.getIndexForDataString(errmsg.str());
+    return brtn;
+  } //makeSubstituteToken
+
   //starts with a non-alpha or non-digit, so
   //possibly a simple operator (e.g. +, =),
   //or a double operator
@@ -520,24 +583,11 @@ namespace MFM {
 	return m_state.m_pool.getIndexForDataString(errmsg.str());
       }
 
-    //format user string; length must be less than 256
-    u32 slen = astring.length();
-    if(slen >= 256)
-      {
-	std::ostringstream errmsg;
-	errmsg << "Lexer could not complete double quoted string <" << astring << ">; Must be less than 256 length";
-	return m_state.m_pool.getIndexForDataString(errmsg.str());
-      }
-
-    std::ostringstream newstr;
-    if(slen == 0)
-      newstr << (u8) 0;
-    else
-      newstr << (u8) slen << astring << (u8) 0; //slen doesn't include itself or terminating byte; see StringPoolUser.
-
-    u32 idx = m_state.m_tokenupool.getIndexForDataString(newstr.str());
-    tok.init(TOK_DQUOTED_STRING,firstloc,idx);
-    return 0;
+    u32 idx = 0;
+    u32 rtn = formatUserString(astring, idx);
+    if(rtn == 0)
+      tok.init(TOK_DQUOTED_STRING,firstloc,idx);
+    return rtn; // == 0 == ok
   } //makeDoubleQuoteToken
 
   u32 Lexer::makeSingleQuoteToken(std::string& astring, Token & tok)
@@ -808,6 +858,27 @@ namespace MFM {
     errmsg << runningtotal << "'";
     return m_state.m_pool.getIndexForDataString(errmsg.str());
   } //formatHexConstant
+
+  u32 Lexer::formatUserString(std::string& astring, u32& usrstridx)
+  {
+    //format user string; length must be less than 256
+    u32 slen = astring.length();
+    if(slen >= 256)
+      {
+	std::ostringstream errmsg;
+	errmsg << "Lexer could not complete double quoted string <" << astring << ">; Must be less than 256 length";
+	return m_state.m_pool.getIndexForDataString(errmsg.str());
+      }
+
+    std::ostringstream newstr;
+    if(slen == 0)
+      newstr << (u8) 0;
+    else
+      newstr << (u8) slen << astring << (u8) 0; //slen doesn't include itself or terminating byte; see StringPoolUser.
+
+    usrstridx = m_state.m_tokenupool.getIndexForDataString(newstr.str());
+    return 0;
+  }
 
   s32 Lexer::eatComment(Token& rtnTok, bool& isStructuredComment)
   {
