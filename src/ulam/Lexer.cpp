@@ -16,36 +16,30 @@ namespace MFM {
     //m_stringToDataIndex.clear(); //both? strings already destructed.
   }
 
-
   const std::string Lexer::getPathFromLocator(Locator& loc)
   {
     return m_SS.getPathFromLocator(loc);
   }
-
 
   u32 Lexer::push(std::string filename, bool onlyOnce)
   {
     return m_SS.push(filename,onlyOnce);
   }
 
-
   u32 Lexer::getFileUlamVersion() const
   {
     return m_SS.getFileUlamVersion();
   }
-
 
   void Lexer::setFileUlamVersion(u32 ver)
   {
     m_SS.setFileUlamVersion(ver);
   }
 
-
   void Lexer::unread()
   {
     return m_SS.unread();
   }
-
 
   bool Lexer::getNextToken(Token & returnTok)
   {
@@ -152,7 +146,6 @@ namespace MFM {
     return (brtn == 0);
   } //getNextToken
 
-
   //called because first byte was alpha
   u32 Lexer::makeWordToken(std::string& aname, Token & tok)
   {
@@ -241,7 +234,6 @@ namespace MFM {
       }
     return brtn;
   } //makeWordToken
-
 
   //called because first byte was numeric
   u32 Lexer::makeNumberToken(std::string& anumber, Token & tok)
@@ -429,6 +421,11 @@ namespace MFM {
 		    tok.init(TOK_NUMBER_UNSIGNED, firstloc, idx);
 		    return 0;
 		  }
+		else if(ttype == TOK_KW_FLAG_INSERTFUNC)
+		  {
+		    tok.init(ttype, firstloc, 0);
+		    return 0;
+		  }
 		// else not defined..fall thru
 	      }
 	  }
@@ -498,7 +495,6 @@ namespace MFM {
     errmsg << "Weird! Lexer could not find match for <" << astring << ">";
     return m_state.m_pool.getIndexForDataString(errmsg.str());
   } //makeOperatorToken
-
 
   u32 Lexer::checkEllipsisToken(std::string& astring, Locator firstloc)
   {
@@ -878,7 +874,7 @@ namespace MFM {
 
     usrstridx = m_state.m_tokenupool.getIndexForDataString(newstr.str());
     return 0;
-  }
+  } //formatUserString
 
   s32 Lexer::eatComment(Token& rtnTok, bool& isStructuredComment)
   {

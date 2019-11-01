@@ -121,6 +121,8 @@ namespace MFM{
     std::map<u32, NodeBlockLocals *> m_localsPerFilePath; //holds block of local constants and typedefs
     bool m_parsingLocalDef; //used for populating m_localsPerFilePath
     Token m_currentLocalDefToken; //used to identify current file path when m_parsingLocalDef is true
+    u32 m_parsingFUNCid; //used for __FUNC__ used within a function definition; 0 is none.
+    Token m_parsingFuncDefToken; //valid when m_parsingFUNCid > 0.
 
     SYMBOLTYPEFLAG m_parsingVariableSymbolTypeFlag;
 
@@ -410,6 +412,7 @@ namespace MFM{
     const std::string & getDataAsUnFormattedUserString(u32 combinedidx);
     bool isValidUserStringIndex(u32 combinedidx);
     u32 getUserStringLength(u32 combinedidx);
+    u32 formatAndGetIndexForDataUserString(std::string& astring);
 
     bool countNavHzyNoutiNodesPass();
     void countNavNodesForLocals(u32& navcount, u32& hzycount, u32& unsetcount);

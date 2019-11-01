@@ -124,7 +124,7 @@ namespace MFM {
     "*/\n\n";
 
   //use of this in the initialization list seems to be okay;
-  CompilerState::CompilerState(): m_linesForDebug(false), m_programDefST(*this), m_parsingLocalDef(false), m_parsingVariableSymbolTypeFlag(STF_NEEDSATYPE), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_pendingArgStubContext(0), m_pendingArgTypeStubContext(0), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0), m_urSelfUTI(Nouti), m_emptyElementUTI(Nouti), m_registeredUlamClassCount(0)
+  CompilerState::CompilerState(): m_linesForDebug(false), m_programDefST(*this), m_parsingLocalDef(false), m_parsingFUNCid(0), m_parsingVariableSymbolTypeFlag(STF_NEEDSATYPE), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_pendingArgStubContext(0), m_pendingArgTypeStubContext(0), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0), m_urSelfUTI(Nouti), m_emptyElementUTI(Nouti), m_registeredUlamClassCount(0)
   {
     m_err.init(this, debugOn, infoOn, noteOn, warnOn, waitOn, NULL);
     Token::initTokenMap(*this);
@@ -4195,6 +4195,21 @@ namespace MFM {
     //return classupool.getStringLength(sidx);
     return m_upool.getStringLength(sidx);
   }
+
+  u32 CompilerState::formatAndGetIndexForDataUserString(std::string& astring)
+  {
+    // e.g. used to get function name as a string for ulam programmer (t41368);
+    // format user string; length must be less than 256. similar to Lexer.
+    u32 slen = astring.length();
+    assert(slen < 256);
+
+    std::ostringstream newstr;
+    if(slen == 0)
+      newstr << (u8) 0;
+    else
+      newstr << (u8) slen << astring << (u8) 0; //slen doesn't include itself or terminating byte; see StringPoolUser.
+    return m_upool.getIndexForDataString(newstr.str());
+  } //formatAndGetIndexForDataUserString
 
   std::string CompilerState::getDataAsStringMangled(u32 dataindex)
   {

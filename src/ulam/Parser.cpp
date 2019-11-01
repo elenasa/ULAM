@@ -3954,6 +3954,27 @@ namespace MFM {
 	assert(rtnNode);
 	rtnNode = parseRestOfFactor(rtnNode); //t3941
 	break;
+      case TOK_KW_FLAG_INSERTFUNC:
+	{
+	  if(m_state.m_parsingFUNCid == 0)
+	    {
+	      std::ostringstream msg;
+	      msg << "Keyword <" << m_state.getTokenDataAsString(pTok).c_str();
+	      msg << "> must be in a function";
+	      MSG(&pTok, msg.str().c_str(), ERR);
+	    }
+	  else
+	    {
+	      assert(m_state.m_parsingFUNCid == m_state.getTokenDataAsStringId(m_state.m_parsingFuncDefToken));
+	      std::string fname = m_state.getTokenDataAsString(m_state.m_parsingFuncDefToken);
+	      u32 stringidx = m_state.formatAndGetIndexForDataUserString(fname);
+	      rtnNode = new NodeTerminal((u64) stringidx, String, m_state);
+	      assert(rtnNode);
+	      rtnNode->setNodeLocation(pTok.m_locator);
+	      rtnNode = parseRestOfFactor(rtnNode); //supports [] after
+	    }
+	}
+	break;
       case TOK_NUMBER_FLOAT:
 	{
 	  std::ostringstream msg;
@@ -4475,6 +4496,7 @@ Node * Parser::wrapFactor(Node * leftNode)
       case TOK_DQUOTED_STRING:
       case TOK_NUMBER_FLOAT:
       case TOK_OPEN_PAREN:
+      case TOK_KW_FLAG_INSERTFUNC:
 	rtnNode = parseFactor();
 	rtnNode = parseRestOfFactor(rtnNode);
 	break;
@@ -5277,6 +5299,9 @@ Node * Parser::wrapFactor(Node * leftNode)
     fsymptr->setFunctionNode(rtnNode); //tfr ownership
 
     u32 ftokid = m_state.getTokenDataAsStringId(identTok); //t41077,t41134,t41314
+    m_state.m_parsingFUNCid = ftokid;
+    m_state.m_parsingFuncDefToken = identTok;
+
     //set class type to custom array; the current class block
     //node type was set to its class symbol type after checkAndLabelType
     // caType is the return type of the 'aget' method (set here).
@@ -5401,6 +5426,7 @@ Node * Parser::wrapFactor(Node * leftNode)
     //this block's ST is no longer in scope
     m_state.popClassContext(); //= prevBlock;
     m_state.m_parsingVariableSymbolTypeFlag = STF_NEEDSATYPE;
+    m_state.m_parsingFUNCid = 0;
     return rtnNode;
   } //makeFunctionBlock
 
