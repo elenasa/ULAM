@@ -271,6 +271,10 @@ namespace MFM{
     void genCodeBuiltInFunctionGetRelPosMethodRelatedInstanceByRegistrationNumber(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
     void genCodeBuiltInFunctionGetRelPosRelatedInstanceByRegistrationNumber(File * fp);
 
+    void genCodeBuiltInFunctionNumberOfBases(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
+    void genCodeBuiltInFunctionGetOrderedBaseClass(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
+    void generateBuiltInFunctionGetOrderedBaseClassEntry(File * fp); //helper
+
     void genCodeBuiltInFunctionGetClassLength(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
     void genCodeBuiltInFunctionGetClassRegistrationNumber(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
     void genCodeBuiltInFunctionGetElementType(File * fp, bool declOnly, ULAMCLASSTYPE classtype);

@@ -445,6 +445,8 @@ namespace MFM{
     const char * getIsMangledFunctionName(UTI ltype);
     const char * getAsMangledFunctionName(UTI ltype, UTI rtype);
     const char * getGetRelPosMangledFunctionName(UTI ltype);
+    const char * getNumberOfBasesFunctionName(UTI ltype);
+    const char * getOrderedBaseClassFunctionName(UTI ltype);
     const char * getClassLengthFunctionName(UTI ltype);
     const char * getBaseClassLengthFunctionName(UTI ltype);
     const char * getClassRegistrationNumberFunctionName(UTI ltype);
