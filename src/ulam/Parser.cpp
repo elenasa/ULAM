@@ -3961,7 +3961,7 @@ namespace MFM {
 	      std::ostringstream msg;
 	      msg << "Keyword <" << m_state.getTokenDataAsString(pTok).c_str();
 	      msg << "> must be in a function";
-	      MSG(&pTok, msg.str().c_str(), ERR);
+	      MSG(&pTok, msg.str().c_str(), ERR); //t41369
 	    }
 	  else
 	    {
@@ -3971,7 +3971,7 @@ namespace MFM {
 	      rtnNode = new NodeTerminal((u64) stringidx, String, m_state);
 	      assert(rtnNode);
 	      rtnNode->setNodeLocation(pTok.m_locator);
-	      rtnNode = parseRestOfFactor(rtnNode); //supports [] after
+	      rtnNode = parseRestOfFactor(rtnNode); //supports [] after (t41368)
 	    }
 	}
 	break;

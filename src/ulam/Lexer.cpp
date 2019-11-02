@@ -155,7 +155,7 @@ namespace MFM {
     s32 c = m_SS.read();
 
     //continue with alpha or numeric or underscore
-    while(c >= 0 && (isalpha(c) || isdigit(c) || c == '_' ))
+    while((c >= 0) && (isalpha(c) || isdigit(c) || c == '_' ))
       {
 	aname.push_back(c);
 	c = m_SS.read();
@@ -403,12 +403,22 @@ namespace MFM {
 	      {
 		if(ttype == TOK_KW_FLAG_INSERTFILE)
 		  {
-		    //substitute a string token of filename from this loc
+		    //substitute a string token of filename from this locator
 		    std::string path = m_state.getPathFromLocator(firstloc);
 		    u32 idx = 0;
 		    u32 rtn = formatUserString(path, idx);
 		    if(rtn == 0)
-		      tok.init(TOK_DQUOTED_STRING,firstloc,idx);
+		      tok.init(TOK_DQUOTED_STRING, firstloc, idx);
+		    return rtn; // == 0 == ok
+		  }
+		if(ttype == TOK_KW_FLAG_INSERTPATH)
+		  {
+		    //substitute a string token of file path from this locator
+		    std::string path = m_state.getFullPathFromLocator(firstloc);
+		    u32 idx = 0;
+		    u32 rtn = formatUserString(path, idx);
+		    if(rtn == 0)
+		      tok.init(TOK_DQUOTED_STRING, firstloc, idx);
 		    return rtn; // == 0 == ok
 		  }
 		else if(ttype == TOK_KW_FLAG_INSERTLINE)
@@ -862,7 +872,8 @@ namespace MFM {
     if(slen >= 256)
       {
 	std::ostringstream errmsg;
-	errmsg << "Lexer could not complete double quoted string <" << astring << ">; Must be less than 256 length";
+	errmsg << "Lexer could not complete double quoted string <" << astring;
+	errmsg << ">; Must be less than 256 length";
 	return m_state.m_pool.getIndexForDataString(errmsg.str());
       }
 

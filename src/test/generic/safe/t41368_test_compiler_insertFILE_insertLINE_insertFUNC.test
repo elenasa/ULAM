@@ -2,14 +2,15 @@
 #=t41368_test_compiler_insertFILE_insertLINE_insertFUNC
 ##
 ## gen output:
-## String(1) Arg: "A.ulam"  (+ assert)
-## Unsigned Arg: 9          (+ assert)
+## String(1) Arg: "A.ulam"   (+ assert)
+## String(9) Arg: "./A.ulam" (+ assert)
+## Unsigned Arg: 12          (+ assert)
 ## String(9) Arg: "test"
-## String(9) Arg: "test"    (+ assert)
+## String(9) Arg: "test"     (+ assert)
 ##
 #!
-Exit status: 10
-Ue_A { Bool(1) b(true);  Int(32) test() {  SystemU3 su3;  su3 ( "A.ulam" )print . su3 ( "A.ulam" 0 [] 65u == )assert . su3 ( 9u cast )print . Unsigned(32) lno = 10u cast;  self b . lno 10u cast == = su3 ( self b . )assert . su3 ( "test" )print . constant String(32) c_fn = "test";  su3 ( "test" )print . su3 ( "test" 0 [] 116u == )assert . lno cast return } }
+Exit status: 13
+Ue_A { Bool(1) b(true);  Int(32) test() {  SystemU3 su3;  su3 ( "A.ulam" )print . su3 ( "A.ulam" 0 [] 65u == )assert . su3 ( "./A.ulam" )print . su3 ( "./A.ulam" 0 [] 46u == )assert . su3 ( 12u cast )print . Unsigned(32) lno = 13u cast;  self b . lno 13u cast == = su3 ( self b . )assert . su3 ( "test" )print . constant String(32) c_fn = "test";  su3 ( "test" )print . su3 ( "test" 0 [] 116u == )assert . lno cast return } }
 Uq_SystemU3 : System { :System<> <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
@@ -23,16 +24,21 @@ element A {
  Int test() {
    SystemU3 su3;
    su3.print(__FILE__);
-   su3.assert(__FILE__[0] == 'A');
-   su3.print(__LINE__); //9, blanks count
-   Unsigned lno = __LINE__; // 1 line after 9
-   b = (lno == 10u);
+   su3.assert(__FILE__[0] == 'A'); //square brackets ok
+   su3.print(__FILEPATH__);
+   su3.assert(__FILEPATH__[0] == '.');
+
+   su3.print(__LINE__); //12, blanks count
+   Unsigned lno = __LINE__; // 1 line after
+   b = (lno == 13u);
    su3.assert(b);
+
    su3.print(__FUNC__);
    constant String c_fn = __FUNC__;
    su3.print(c_fn);
-   su3.assert(__FUNC__[0] == 't');
-   return (Int) lno; //9
+   su3.assert(__FUNC__[0] == 't'); //square brackets ok
+
+   return (Int) lno; //13
  }
 }
 
