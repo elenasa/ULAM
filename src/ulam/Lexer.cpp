@@ -221,6 +221,20 @@ namespace MFM {
 
     // build an identifier
     // index to data in map, vector
+    // Type/Identifier length must be less than 256 (ulam-5)
+    u32 slen = aname.length();
+    if(slen > MAX_IDENTIFIER_LENGTH)
+      {
+	std::ostringstream errmsg;
+	errmsg << "Lexer could not complete ";
+	if(Token::isUpper(aname.at(0)))
+	  errmsg << "Type ";
+	errmsg << "Identifier <" << aname;
+	errmsg << ">; Must be less than " << MAX_IDENTIFIER_LENGTH + 1;
+	errmsg << " length, not " << slen;
+	return m_state.m_pool.getIndexForDataString(errmsg.str());
+      }
+
     u32 idx = m_state.m_pool.getIndexForDataString(aname);
 
     // if Capitalized, then TYPE_IDENT
@@ -768,7 +782,7 @@ namespace MFM {
 	return m_state.m_pool.getIndexForDataString(errmsg.str());
       }
 
-    if(runningtotal < 256)
+    if(runningtotal <= MAX_NUMERICSTRING_LENGTH)
       {
 	rtn = (u8) runningtotal;
 	return 0;
@@ -853,7 +867,7 @@ namespace MFM {
 	return m_state.m_pool.getIndexForDataString(errmsg.str());
       }
 
-    if(runningtotal < 256)
+    if(runningtotal <= MAX_NUMERICSTRING_LENGTH)
       {
 	rtn = (u8) runningtotal;
 	return 0;
@@ -869,11 +883,12 @@ namespace MFM {
   {
     //format user string; length must be less than 256
     u32 slen = astring.length();
-    if(slen >= 256)
+    if(slen > MAX_USERSTRING_LENGTH)
       {
 	std::ostringstream errmsg;
 	errmsg << "Lexer could not complete double quoted string <" << astring;
-	errmsg << ">; Must be less than 256 length";
+	errmsg << ">; Must be less than " << MAX_USERSTRING_LENGTH + 1;
+	errmsg << " length, not " << slen;
 	return m_state.m_pool.getIndexForDataString(errmsg.str());
       }
 

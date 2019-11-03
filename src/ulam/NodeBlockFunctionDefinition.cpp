@@ -270,7 +270,8 @@ namespace MFM {
 
   bool NodeBlockFunctionDefinition::checkParameterNodeTypes()
   {
-    return m_nodeParameterList->checkAndLabelType();
+    UTI puti = m_nodeParameterList->checkAndLabelType();
+    return m_state.okUTItoContinue(puti);
   }
 
   void NodeBlockFunctionDefinition::addParameterNode(Node * nodeArg)

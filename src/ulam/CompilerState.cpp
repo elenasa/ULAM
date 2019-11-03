@@ -4204,7 +4204,15 @@ namespace MFM {
     // e.g. used to get function name as a string for ulam programmer (t41368);
     // format user string; length must be less than 256. similar to Lexer.
     u32 slen = astring.length();
-    assert(slen < 256);
+    if(slen > MAX_USERSTRING_LENGTH)
+      {
+	std::ostringstream errmsg;
+	errmsg << "Could not complete user string <" << astring;
+	errmsg << ">; Must be less than " << MAX_USERSTRING_LENGTH + 1;
+	errmsg << " length, not " << slen;
+	MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), errmsg.str().c_str(), ERR);
+	return 0; //t41370
+      }
 
     std::ostringstream newstr;
     if(slen == 0)
