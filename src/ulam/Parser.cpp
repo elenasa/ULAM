@@ -4116,6 +4116,10 @@ namespace MFM {
 	    typeNode = NULL;
 	  }
       }
+    else
+      {
+	rtnNode = parseRestOfFactor(rtnNode);  //any more? t41375
+      }
     return rtnNode; //rtnNode could be NULL!
   } //parseFactorStartingWithAType
 
