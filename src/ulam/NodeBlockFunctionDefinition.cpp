@@ -13,7 +13,7 @@ namespace MFM {
     assert(m_nodeParameterList);
   }
 
-  NodeBlockFunctionDefinition::NodeBlockFunctionDefinition(const NodeBlockFunctionDefinition& ref) : NodeBlock(ref), m_funcSymbol(NULL), m_isDefinition(ref.m_isDefinition), m_maxDepth(ref.m_maxDepth), m_native(ref.m_native)
+  NodeBlockFunctionDefinition::NodeBlockFunctionDefinition(const NodeBlockFunctionDefinition& ref) : NodeBlock(ref), m_funcSymbol(NULL), m_isDefinition(ref.m_isDefinition), m_maxDepth(ref.m_maxDepth), m_native(ref.m_native), m_nodeTypeDesc(NULL)
  {
    m_nodeParameterList = (NodeList *) ref.m_nodeParameterList->instantiate();
    if(ref.m_nodeTypeDesc)
