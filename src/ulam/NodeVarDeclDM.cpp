@@ -1131,7 +1131,7 @@ namespace MFM {
     fp->write(m_state.getUlamTypeByIndex(dmclass)->getUlamTypeMangledName().c_str());
     fp->write("\", ");
     fp->write_decimal(m_varSymbol->getPosOffset() + dmclassrelpos);
-    fp->write("u); return i; }"); GCNL;
+    fp->write("u); return i; }\n");
 
     dmcount++; //increment data member count
   } //generateUlamClassInfo

@@ -127,10 +127,10 @@ namespace MFM {
     return tok_special[ttype];
   } //static
 
-OperatorOverloadableFlag Token::getTokenOperatorOverloadableFlag(TokenType ttype)
-{
-  return tok_opol[ttype];
-} //static
+  OperatorOverloadableFlag Token::getTokenOperatorOverloadableFlag(TokenType ttype)
+  {
+    return tok_opol[ttype];
+  } //static
 
   TokenType Token::getTokenTypeFromString(const char * aname)
   {

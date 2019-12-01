@@ -1,0 +1,246 @@
+## -*- mode:ulam -*-
+#=t41361_test_compiler_elementinheritedquarks_multibase_implicitselfpurevirtualfunccall_issue
+##
+## gen output:
+##   String(109) Arg: "Trying 0"
+##   String(119) Arg: "CouldSwap 0"
+##   String(132) Arg: "UpdateSwap 0"
+##
+#!
+Exit status: -11
+Uq_QBond +Fail { typedef Unsigned(6) SN;  +Fail<> ^SystemU3<> ^System<> <NOMAIN> }
+Uq_Fail +SystemU3 { +SystemU3<> ^System<> <NOMAIN> }
+Uq_EventWindow { typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry;  <NOMAIN> }
+Uq_Bond(Bits(32) cTYPE_TAG, Bool(1) cBOND_SIDE, Unary(4) cMAX_BOND_LENGTH = 15u) : Fail +BondUtils { typedef Unsigned(UNKNOWN) SN;  typedef Bond(cTYPE_TAG,cBOND_SIDE,cMAX_BOND_LENGTH) MatingBond;  constant Unsigned(32) cBOND_BITS = cMAX_BOND_LENGTH 4 == ?  6u :  cMAX_BOND_LENGTH 3 == ?  5u :  cMAX_BOND_LENGTH 2 == ?  4u :  3u;  typedef Unsigned(UNKNOWN) BondSite;  Unsigned(UNKNOWN) mBondSite(notready);  :Fail<> +BondUtils< EventWindow ew( typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry; );  typedef Unsigned(6) SN; > <NOMAIN> }
+Uq_BondUtils { EventWindow ew( typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry; );  typedef Unsigned(6) SN;  <NOMAIN> }
+Uq_Bondo : QBond +SystemU3 { EventWindow ew( typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry; );  typedef Unsigned(6) SN;  :QBond< typedef Unsigned(6) SN; > +SystemU3<> ^Fail<> ^System<> <NOMAIN> }
+Uq_SystemU3 : System { :System<> <NOMAIN> }
+Ue_MidBondo : Bondo +Bond(0xb0d0,true,3) +Bond(0xb0d0,false,3) { :Bondo< typedef Unsigned(6) SN;  EventWindow ew( typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry; );  :QBond< typedef Unsigned(6) SN;  +Fail< +SystemU3< :System<>> ^System<>> ^SystemU3< :System<>> ^System<>> +SystemU3< :System<>> ^Fail< +SystemU3< :System<>> ^System<>> ^System<>> +Bond(0xb0d0,true,3)< typedef Unsigned(6) SN;  constant Bits(32) cTYPE_TAG = 45264u;  constant Bool(1) cBOND_SIDE = true;  constant Unary(4) cMAX_BOND_LENGTH = 7u;  typedef Bond(0xb0d0,false,3) MatingBond;  constant Unsigned(32) cBOND_BITS = 5u;  typedef Unsigned(5) BondSite;  Unsigned(5) mBondSite(0u);  :Fail< +SystemU3< :System<>> ^System<>> +BondUtils< typedef Unsigned(6) SN;  EventWindow ew( typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry; ); > ^SystemU3< :System<>> ^System<>> +Bond(0xb0d0,false,3)< typedef Unsigned(6) SN;  constant Bits(32) cTYPE_TAG = 45264u;  constant Bool(1) cBOND_SIDE = false;  constant Unary(4) cMAX_BOND_LENGTH = 7u;  typedef Bond(0xb0d0,true,3) MatingBond;  constant Unsigned(32) cBOND_BITS = 5u;  typedef Unsigned(5) BondSite;  Unsigned(5) mBondSite(0u);  :Fail< +SystemU3< :System<>> ^System<>> +BondUtils< typedef Unsigned(6) SN;  EventWindow ew( typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry; ); > ^SystemU3< :System<>> ^System<>> ^QBond< typedef Unsigned(6) SN;  +Fail< +SystemU3< :System<>> ^System<>> ^SystemU3< :System<>> ^System<>> ^Fail< +SystemU3< :System<>> ^System<>> ^BondUtils< typedef Unsigned(6) SN;  EventWindow ew( typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry; ); > ^SystemU3< :System<>> ^System<> Int(32) test() {  System s;  self Bondo . ( )behave . 0 cast return } }
+Uq_System { <NOMAIN> }
+Uq_C2D { Int(6) m_width( 9);  Int(6) m_height( 4);  <NOMAIN> }
+##
+## informed by Dave ish 10/19/19; cannot recreate with this simplified test.
+## nor with this more complicated version. what is missing?
+## eval fails, but gen code is fine.
+##
+#>QBond.ulam
+ ulam 5;
+quark QBond + Fail {
+  typedef EventWindow.SiteNum SN;
+  virtual Void updateForSwapAll(Atom& obj, Bool force) ; //pure
+  virtual Int couldSwapAll(Atom& obj) ;
+ }
+
+#:Bond.ulam
+  ulam 3;
+quark Bond(Bits cTYPE_TAG, Bool cBOND_SIDE, Unary(4) cMAX_BOND_LENGTH=4) : Fail+BondUtils {
+    typedef EventWindow.SiteNum SN;
+    typedef Bond(cTYPE_TAG,!cBOND_SIDE,cMAX_BOND_LENGTH) MatingBond;
+
+    constant Unsigned cBOND_BITS =
+      cMAX_BOND_LENGTH == 4 ? 6u :
+      (cMAX_BOND_LENGTH == 3 ? 5u :
+       (cMAX_BOND_LENGTH == 2 ? 4u :
+	3u ));
+    typedef Unsigned(cBOND_BITS) BondSite;
+
+    BondSite mBondSite;
+
+    Int couldSwap(Atom& obj) {
+      SN mysn = ew.getSiteNumber((Atom&) self,0u);
+      if (mysn == SN.maxof) return -1;    // Umm, I'm inaccessible yo
+
+      SN bdsn = mBondSite;
+      if (bdsn == 0u) return +1;  // Unconnected bond ready to go anywhere
+
+      SN tgsn = ew.getSiteNumber((Atom&) obj,0u);
+      if (tgsn == SN.maxof) return -1; // Inaccessible destination
+
+      if (bdsn == tgsn) return +1;  // Swapping with me this bond can handle
+
+      Unsigned dist = siteDistance(tgsn, bdsn);
+      if (dist > cMAX_BOND_LENGTH) return 0; // Would have to use force to do this
+      return +1;  // Otherwise good to go here
+    }
+
+    Void updateForSwap(Atom& obj, Bool force) {
+      SN mysn = ew.getSiteNumber((Atom&) self,0u);
+      if (mysn == SN.maxof) fail("updateForSwap:inacc mysn");
+
+      SN bdsn = mBondSite;
+      if (bdsn == 0u) return;  // Unconnected bond is UDPATED!
+
+      if (!(ew[bdsn] is MatingBond)) fail("updateForSwap:incon bondsite");
+      MatingBond & mb = (MatingBond&) ew[bdsn];
+
+      SN tgsn = ew.getSiteNumber((Atom&) obj,0u);
+      if (tgsn == SN.maxof) fail("updateForSwap:nonex targ");
+
+      if (bdsn == tgsn) { // self is swapping with bond dest
+	self.mBondSite = (BondSite) oppositeSN(self.mBondSite); // so negate both
+	mb.mBondSite = (BondSite) oppositeSN(mb.mBondSite);
+	return;
+      }
+
+      // Self is swapping with something other than the bond dest
+      Unsigned dist = siteDistance(tgsn, bdsn); // Get length of resulting bond
+
+      if (dist > cMAX_BOND_LENGTH) {  // Is it longer than we can represent?
+	if (!force) fail("updateForSwap:need force");
+	// They want to force it: Break the bond
+	self.mBondSite = 0u;
+	mb.mBondSite = 0u;
+	return;
+      }
+
+      // self moves to tgsn, mb stays at bdsn.
+      //    C2D newBondc = intersiteVector(tgsn, bdsn);
+      //SN newbdsn = getSN(newBondc);
+      //SN newreversesn = oppositeSN(newbdsn);
+      //self.mBondSite = (BondSite) newbdsn;
+      //mb.mBondSite = (BondSite) newreversesn;
+      return;
+    }
+}
+
+#:Bondo.ulam
+  ulam 5;
+quark Bondo : QBond + SystemU3{
+  EventWindow ew;
+  typedef EventWindow.SiteNum SN;
+
+  Void doEvent() {
+    //ByteStreamLogger log;
+    //assertConsistentAll("Bondo consistency");
+    SN candidate = 0; //(SN) between(1,24);
+    //log.printf("Trying %d\n",candidate);
+    print("Trying 0");
+    Atom & catom = ew[candidate];
+    if(couldSwapAll(catom) > 0)
+    {
+      //log.printf("CouldSwap %d\n",candidate);
+      print("CouldSwap 0");
+      updateForSwapAll(catom, false);
+      //log.printf("UpdateSwap %d\n",candidate);
+      print("UpdateSwap 0");
+      //ew.swap(0u, candidate);
+      //log.printf("DID Swap %d\n",candidate);
+    }
+  }
+
+  Void behave() {
+    doEvent();
+  }
+}
+
+#:MidBondo.ulam
+  ulam 5;
+
+local typedef Bond(0xb0d0,true,3u) BondoFrom;
+local typedef Bond(0xb0d0,false,3u) BondoTo;
+
+element MidBondo : Bondo + BondoFrom + BondoTo
+{
+  Int test()
+  {
+    System s;
+    self.Bondo.behave(); //same problem!! so simple too..
+    return 0;
+  }
+
+  @Override
+  Void updateForSwapAll(Atom& obj,Bool force) {
+    self.BondoFrom.updateForSwap(obj,force);
+    self.BondoTo.updateForSwap(obj,force);
+  }
+
+  @Override
+  Int couldSwapAll(Atom& obj) {
+    return minInt(self.BondoFrom.couldSwap(obj),
+                  self.BondoTo.couldSwap(obj));
+  }
+}
+
+#:BondUtils.ulam
+  ulam 5;
+quark BondUtils {
+  Int minInt(Int x, Int y) {
+    return (x < y) ? x : y;
+  }
+
+  EventWindow ew;
+  typedef EventWindow.SiteNum SN;
+  Unsigned siteDistance(SN sn1, SN sn2) {
+    //    C2D c1(1,2); // = ew.getCoord(sn1);
+    //C2D c2(2,4); // = ew.getCoord(sn2);
+    return 4; //c1.manhattanDistance(c2);
+  }
+
+  SN oppositeSN(SN n) {
+    if (n == 0) return 0;
+    return n; //ew.getSiteNumberRaw(-ew.getCoordRaw(n));
+  }
+
+  SN getSN(C2D c) {
+    return 0; //ew.getSiteNumberRaw(c);
+  }
+}
+
+#:C2D.ulam
+  ulam 1;
+quark C2D {
+  Int(6) m_width = 9;
+  Int(6) m_height = 4;
+  Void init(Int x, Int y) {
+    m_width = (Int(6)) x;
+    m_height = (Int(6)) y;
+    return;
+  }
+  Int getIndex(Int a, Int b){
+    return ((m_height-b) * m_width + (m_height-a));
+  }
+}
+
+#:EventWindow.ulam
+  ulam 3;
+quark EventWindow{
+  typedef Unsigned(6) SiteNum;
+  typedef Unsigned(3) Symmetry;
+
+  Atom& aref(Int index) native;
+  SiteNum getSiteNumber(Atom& ar, Symmetry sym){
+    return 1; //stub
+  }
+}
+
+#:Fail.ulam
+  ulam 5;
+quark Fail + SystemU3 {
+  Void fail() { assert(false); }
+  Void fail(Int code) {print(code); assert(true); /*true for testing purposes only!!!*/ }
+  Void fail(Bits bits) { fail((Int) bits); }
+  Void fail(String string) {
+    print(string);
+    fail();
+  }
+}
+
+#:SystemU3.ulam
+  ulam 3;
+quark SystemU3 : System {
+  Void print(String s) native;
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

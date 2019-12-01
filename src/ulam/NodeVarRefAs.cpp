@@ -110,6 +110,8 @@ namespace MFM {
     ((SymbolVariableStack *) m_varSymbol)->setAutoStorageTypeForEval(autostgtype); //for future virtual function call eval uses
 
     //m_state.m_funcCallStack.storeUlamValueInSlot(pluv, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex()); //doesn't seem to matter..
+    m_state.m_currentAutoObjPtr = UlamValue(); //wipeout
+    m_state.m_currentAutoStorageType = Nouti; //clear (was Nav)
 
     return NORMAL;
   } //eval
@@ -206,14 +208,11 @@ namespace MFM {
 	    fp->write(", ");
 	  } //else (element, t3637) (atomref, t3639)
 
-	//note: needs effective self of the atom, not simply the RHS type.
+	//note: needs eff self of the atom, not simply the RHS type (t3835)
 	fp->write(m_state.getHiddenContextArgName());
 	fp->write(".LookupUlamElementTypeFromContext(");
 	fp->write(m_state.getTmpVarAsString(Int, tmpVarType, TMPREGISTER).c_str()); //3636
 	fp->write(")");
-	if(vclasstype == UC_QUARK)
-	  fp->write(", UlamRef<EC>::ELEMENTAL"); //becomes elemental, t3835
-
 	if(!stgcosut->isReference()) //not isAltRefType
 	  fp->write(", uc"); //t3249
 
@@ -221,7 +220,7 @@ namespace MFM {
       }
     else if(stgcosut->isReference()) //not isAltRefType,
       {
-	//for references (t41011, t41012), use the effself to get relpos at runtime;
+	//for refs (t41011,t41012) use the effself to get relpos at runtime;
 	//must be good pos since is-method passed
 	s32 tmpVarPos = m_state.getNextTmpVarNumber();
 	m_state.indentUlamCode(fp);
@@ -232,9 +231,11 @@ namespace MFM {
 	fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str()); //3826
 	fp->write(".GetEffectiveSelf()->");
 	fp->write(m_state.getGetRelPosMangledFunctionName(stgcosuti)); //UlamClass Method
-	fp->write("(&");
-	fp->write(m_state.getTheInstanceMangledNameByIndex(vuti).c_str());
-	fp->write(")); //relpos"); GCNL;
+	fp->write("(");
+	fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(vuti)); //efficiency
+	fp->write("u");
+	fp->write(")); //relpos of ");
+	fp->write(m_state.getUlamTypeNameBriefByIndex(vuti).c_str()); GCNL;
 
 	s32 tmpVarPosToEff = m_state.getNextTmpVarNumber();
 	m_state.indentUlamCode(fp);
@@ -257,10 +258,7 @@ namespace MFM {
 	fp->write(", ");
 	//note: needs effective self of the atom, not simply the RHS type.
 	fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str());
-	fp->write(".GetEffectiveSelf()");
-	if((stgclasstype == UC_ELEMENT) && (vclasstype == UC_QUARK))
-	  fp->write(", UlamRef<EC>::ELEMENTAL"); //becomes elemental, t3835
-	//else stays implicitly classic (i.e. quark, or transient stg t3836, t3754)
+	fp->write(".GetEffectiveSelf()"); //t3835,6,t3754, CLASSIC
 	fp->write("); //shadows lhs of 'as'"); GCNL;
       }
     else
@@ -293,10 +291,6 @@ namespace MFM {
 
 	    //must be same as look up for elements only Sat Jun 18 17:30:17 2016
 	    fp->write(m_state.getTheInstanceMangledNameByIndex(stgcosuti).c_str());
-
-	    if(vclasstype == UC_QUARK)
-	      fp->write(", UlamRef<EC>::ELEMENTAL"); //stays elemental
-
 	    fp->write(", uc"); //t3249
 	    fp->write("); //shadows lhs of 'as'"); GCNL;
 	  }
@@ -315,10 +309,6 @@ namespace MFM {
 
 	    fp->write("&"); //t3822
 	    fp->write(m_state.getTheInstanceMangledNameByIndex(stgcosuti).c_str());
-
-	    if(vclasstype == UC_QUARK)
-	      fp->write(", UlamRef<EC>::CLASSIC"); //stays classic
-
 	    fp->write(", uc"); //t3249
 	    fp->write("); //shadows lhs of 'as'"); GCNL;
 	  }
@@ -333,8 +323,6 @@ namespace MFM {
 	    fp->write(m_state.getTheInstanceMangledNameByIndex(stgcosuti).c_str());
 
 	    assert(vclasstype == UC_QUARK);
-	    fp->write(", UlamRef<EC>::CLASSIC"); //stays classic
-
 	    fp->write(", uc"); //t3249
 	    fp->write("); //shadows lhs of 'as'"); GCNL;
 	  }
@@ -364,8 +352,12 @@ namespace MFM {
     fp->write(stgcos->getMangledName().c_str()); //ur
     fp->write(".GetEffectiveSelf()->");
     fp->write(m_state.getGetRelPosMangledFunctionName(vuti)); //nonatom
-    fp->write("(&");
-    fp->write(m_state.getTheInstanceMangledNameByIndex(vuti).c_str());
+    fp->write("(");
+    fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(vuti)); //efficiency
+    fp->write("u ");
+    fp->write("/* ");
+    fp->write(m_state.getUlamTypeNameBriefByIndex(vuti).c_str());
+    fp->write(" */");
     fp->write(") - ");
     fp->write(stgcos->getMangledName().c_str()); //ur
     fp->write(".GetPosToEffectiveSelf()");

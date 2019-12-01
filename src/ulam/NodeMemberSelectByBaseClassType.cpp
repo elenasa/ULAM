@@ -207,12 +207,15 @@ namespace MFM {
 
     UTI subclass = luv.getPtrTargetType();
     UTI basetype = m_nodeRight->getNodeType();
+    s32 baselen = m_state.getBaseClassBitSize(basetype);
     u32 basepos = UNRELIABLEPOS;
     if(m_state.getABaseClassRelativePositionInAClass(subclass, basetype, basepos))
       {
 	u32 subpos = luv.getPtrPos();
 	rtnUV.setPtrPos(subpos+basepos);
+	rtnUV.setPtrLen(baselen);
 	rtnUV.setPtrTargetType(basetype);
+	rtnUV.setPtrNameId(0);
       }
     else
       {
@@ -241,7 +244,7 @@ namespace MFM {
 
     //UPDATE selected member (i.e. element or quark) before eval of rhs
     // (i.e. data member or func call)
-    UlamValue newCurrentObjectPtr = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(1); //e.g. Ptr to atom
+    UlamValue newCurrentObjectPtr = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(1); //e.g. Ptr to atom, or uvself
     UTI newobjtype = newCurrentObjectPtr.getUlamValueTypeIdx();
     if(!m_state.isPtr(newobjtype))
       {
@@ -254,15 +257,18 @@ namespace MFM {
     UlamValue ruvPtr;
     ruvPtr = newCurrentObjectPtr;
 
+    //works like NodeIdent makeUlamValue for "manufactured super"
     UTI subclass = ruvPtr.getPtrTargetType();
-    assert(subclass != 11);
+    assert(!m_state.isPtr(subclass)); //was != 11
     UTI basetype = m_nodeRight->getNodeType();
+    s32 baselen = m_state.getBaseClassBitSize(basetype);
     u32 basepos = UNRELIABLEPOS;
     if(m_state.getABaseClassRelativePositionInAClass(subclass, basetype, basepos))
       {
 	u32 subpos = newCurrentObjectPtr.getPtrPos();
 	ruvPtr.setPtrPos(subpos+basepos);
-	ruvPtr.setPtrTargetType(basetype);
+	ruvPtr.setPtrTargetType(m_state.getUlamTypeAsDeref(basetype));
+	ruvPtr.setPtrLen(baselen);
 	ruvPtr.setPtrNameId(0);
       }
     else
@@ -270,7 +276,7 @@ namespace MFM {
 	evs = ERROR;
       }
 
-    m_state.m_currentObjPtr = newCurrentObjectPtr;
+    m_state.m_currentObjPtr = saveCurrentObjectPtr; //was newCurrentObjectPtr;
 
     Node::assignReturnValuePtrToStack(ruvPtr);
 

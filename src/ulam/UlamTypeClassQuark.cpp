@@ -222,9 +222,7 @@ namespace MFM {
     fp->write(automangledName.c_str());
     fp->write("(BitStorage<EC>& targ, u32 idx, const UlamClass<EC>* effself, const UlamContext<EC>& uc) : UlamRef<EC>");
     fp->write("(idx, "); //the real pos!!!
-    if(!isScalar())
-      fp->write_decimal_unsigned(len); //includes arraysize
-    else if(len > 0)
+    if(len != baselen)
       {
 	fp->write("&Us::THE_INSTANCE==effself ? ");
 	fp->write_decimal_unsigned(len); //includes arraysize
@@ -232,7 +230,7 @@ namespace MFM {
 	fp->write_decimal_unsigned(baselen); //base class
       }
     else
-      fp->write_decimal_unsigned(0);
+      fp->write_decimal_unsigned(len); //includes arraysize
 
     fp->write("u, targ, effself, ");
     if(!isScalar())
@@ -245,11 +243,11 @@ namespace MFM {
     //element (t3617, t3735);
     m_state.indent(fp);
     fp->write(automangledName.c_str());
-    fp->write("(BitStorage<EC>& targ, u32 idx, u32 postoeff, const UlamClass<EC>* effself, const typename UlamRef<EC>::UsageType usage, const UlamContext<EC>& uc) : UlamRef<EC>");
+    fp->write("(BitStorage<EC>& targ, u32 idx, u32 postoeff, const UlamClass<EC>* effself, const UlamContext<EC>& uc) : UlamRef<EC>");
     fp->write("(idx, "); //the real pos!!!
     fp->write_decimal_unsigned(baselen); //baseclass
     fp->write("u, postoeff, targ, effself, ");
-    fp->write("usage"); //controlled by caller
+    fp->write("UlamRef<EC>::CLASSIC");
     fp->write(", uc) { }"); GCNL;
 
     //short-hand from immediate to ref of same type
@@ -269,10 +267,8 @@ namespace MFM {
     //constructor for chain of refs (e.g. memberselect with array item)
     m_state.indent(fp);
     fp->write(automangledName.c_str());
-    fp->write("(const UlamRef<EC>& arg, s32 idx, const UlamClass<EC>* effself) : UlamRef<EC>(arg, idx, ");
-    if(!isScalar())
-      fp->write_decimal_unsigned(len); //includes arraysize
-    else if(len > 0)
+    fp->write("(const UlamRef<EC>& arg, s32 incr, const UlamClass<EC>* effself) : UlamRef<EC>(arg, incr, ");
+    if(len != baselen)
       {
 	fp->write("& Us::THE_INSTANCE==effself ? ");
 	fp->write_decimal_unsigned(len); //includes arraysize
@@ -280,7 +276,7 @@ namespace MFM {
 	fp->write_decimal_unsigned(baselen); //base class
       }
     else
-      fp->write_decimal_unsigned(0);
+      fp->write_decimal_unsigned(len);
 
     fp->write("u, effself, ");
     if(!isScalar())
@@ -289,53 +285,18 @@ namespace MFM {
       fp->write("UlamRef<EC>::CLASSIC");
     fp->write(") { }"); GCNL;
 
-    //constructor for chain of autorefs
-    m_state.indent(fp);
-    fp->write(automangledName.c_str());
-    fp->write("(const UlamRef<EC>& arg, s32 idx, const UlamClass<EC>* effself, const typename UlamRef<EC>::UsageType usage) : UlamRef<EC>(arg, idx, ");
-    if(!isScalar())
-      fp->write_decimal_unsigned(len); //includes arraysize
-    else if(len > 0)
-      {
-	fp->write("&Us::THE_INSTANCE==effself ? ");
-	fp->write_decimal_unsigned(len); //includes arraysize
-	fp->write("u : ");
-	fp->write_decimal_unsigned(baselen); //base class
-      }
-    else
-      fp->write_decimal_unsigned(0);
-
-    fp->write("u, effself, ");
-    fp->write("usage"); //controlled by caller
-    fp->write(") { }"); GCNL;
-
     //(general) copy constructor here; pos relative to existing (i.e. same). t3788, t41153
     m_state.indent(fp);
     fp->write(automangledName.c_str());
     fp->write("(const UlamRef");
-    fp->write("<EC>& r) : UlamRef<EC>(r,0,");
-    if(!isScalar())
-      fp->write_decimal_unsigned(len); //includes arraysize
-    else if(len > 0)
-      {
-	fp->write("&Us::THE_INSTANCE==r.GetEffectiveSelfPointer() ? ");
-	fp->write_decimal_unsigned(len); //includes arraysize
-	fp->write("u : ");
-	fp->write_decimal_unsigned(baselen); //base class
-      }
-    else
-      fp->write_decimal_unsigned(0);
-
-    fp->write("u) { }"); GCNL;
+    fp->write("<EC>& r) : UlamRef<EC>(r,0,r.GetLen()) {}"); GCNL;
 
     //(general) copy constructor here; base pos relative to existing (t3697)
     m_state.indent(fp);
     fp->write(automangledName.c_str());
     fp->write("(const UlamRef");
-    fp->write("<EC>& r, s32 idx) : UlamRef<EC>(r, idx, ");
-    if(!isScalar())
-      fp->write_decimal_unsigned(len); //includes arraysize
-    else if(len > 0)
+    fp->write("<EC>& r, s32 incr) : UlamRef<EC>(r, incr, ");
+    if(len != baselen)
       {
 	fp->write("&Us::THE_INSTANCE==r.GetEffectiveSelfPointer() ? ");
 	fp->write_decimal_unsigned(len); //includes arraysize
@@ -343,9 +304,14 @@ namespace MFM {
 	fp->write_decimal_unsigned(baselen); //base class
       }
     else
-      fp->write_decimal_unsigned(0);
+      fp->write_decimal_unsigned(len);
 
-    fp->write("u) { }"); GCNL; //want applydelta, true ???
+    fp->write("u, r.GetEffectiveSelf(), ");
+    if(!isScalar())
+      fp->write("UlamRef<EC>::ARRAY");
+    else
+      fp->write("UlamRef<EC>::CLASSIC");
+    fp->write(") { }"); GCNL;
 
     //(exact) copy constructor; pos relative to existing (i.e. same).
     //t3617, t3631, t3668, t3669, t3672, t3689, t3692, t3693, t3697, t3746
@@ -354,9 +320,7 @@ namespace MFM {
     fp->write("(const ");
     fp->write(automangledName.c_str());
     fp->write("<EC>& r) : UlamRef<EC>(r,0,");
-    if(!isScalar())
-      fp->write("r.GetLen()");
-    else if(len > 0)
+    if(len != baselen)
       {
 	fp->write("&Us::THE_INSTANCE==r.GetEffectiveSelfPointer() ? ");
 	fp->write("r.GetLen() : ");
@@ -364,11 +328,7 @@ namespace MFM {
 	fp->write("u");
       }
     else
-      {
-	fp->write_decimal_unsigned(0);
-	fp->write("u");
-      }
-
+      fp->write("r.GetLen()");
     fp->write(") { }"); GCNL;
 
     //default destructor (intentially left out)
@@ -380,11 +340,11 @@ namespace MFM {
     fp->write(automangledName.c_str());
     fp->write("& rhs); //declare away"); GCNL;
 
-    // aref/aset calls generated inline for immediates.
+    // aref calls generated inline for immediates.
     if(isCustomArray())
       {
 	m_state.indent(fp);
-	fp->write("/* a custom array ('Us' has aref, aset methods) */"); GCNL;
+	fp->write("/* a custom array ('Us' has aref method) */"); GCNL;
       }
 
     m_state.m_currentIndentLevel--;
@@ -405,7 +365,7 @@ namespace MFM {
   {
     if(isScalar() || WritePacked(getPackable()))
       {
-	// ref param to avoid excessive copying; (ulam-5) use deref copy constr
+	//ref param to avoid excessive copying; (ulam-5) use deref copy cnstr
 	// when a different effSelf (may be spread out).
 	m_state.indent(fp);
 	fp->write(getTmpStorageTypeAsString().c_str()); //u32, u64, or BV96
@@ -758,7 +718,7 @@ namespace MFM {
 		//	    fp->write("u)-d.GetPosToEffectiveSelf(),");
 		fp->write("u),");
 		fp->write_decimal_unsigned(blen);
-		fp->write("u,true).Read()); /*");
+		fp->write("u, UlamRef<EC>::CLASSIC, true).Read()); /*"); //(always true!)
 		fp->write(m_state.getUlamTypeNameBriefByIndex(baseuti).c_str());
 		fp->write(" */ ");
 	      }

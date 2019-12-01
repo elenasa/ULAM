@@ -1,0 +1,62 @@
+## -*- mode:ulam -*-
+#=t41368_test_compiler_insertFILE_insertLINE_insertFUNC
+##
+## gen output:
+## String(1) Arg: "A.ulam"   (+ assert)
+## String(9) Arg: "./A.ulam" (+ assert)
+## Unsigned Arg: 12          (+ assert)
+## String(9) Arg: "test"
+## String(9) Arg: "test"     (+ assert)
+##
+#!
+Exit status: 13
+Ue_A { Bool(1) b(true);  Int(32) test() {  SystemU3 su3;  su3 ( "A.ulam" )print . su3 ( "A.ulam" 0 [] 65u == )assert . su3 ( "./A.ulam" )print . su3 ( "./A.ulam" 0 [] 46u == )assert . su3 ( 12u cast )print . Unsigned(32) lno = 13u cast;  self b . lno 13u cast == = su3 ( self b . )assert . su3 ( "test" )print . constant String(32) c_fn = "test";  su3 ( "test" )print . su3 ( "test" 0 [] 116u == )assert . lno cast return } }
+Uq_SystemU3 : System { :System<> <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## requests by Dave Fri Nov  1 10:31:20 2019; (see error t41369)
+##
+#>A.ulam
+  ulam 5;
+element A {
+  Bool b;
+
+ Int test() {
+   SystemU3 su3;
+   su3.print(__FILE__);
+   su3.assert(__FILE__[0] == 'A'); //square brackets ok
+   su3.print(__FILEPATH__);
+   su3.assert(__FILEPATH__[0] == '.');
+
+   su3.print(__LINE__); //12, blanks count
+   Unsigned lno = __LINE__; // 1 line after
+   b = (lno == 13u);
+   su3.assert(b);
+
+   su3.print(__FUNC__);
+   constant String c_fn = __FUNC__;
+   su3.print(c_fn);
+   su3.assert(__FUNC__[0] == 't'); //square brackets ok
+
+   return (Int) lno; //13
+ }
+}
+
+#:SystemU3.ulam
+  ulam 3;
+quark SystemU3 : System {
+  Void print(String s) native;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

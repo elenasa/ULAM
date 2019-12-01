@@ -95,8 +95,6 @@ namespace MFM{
 
     virtual void genCodeReadIntoATmpVar(File * fp, UVPass & uvpass);
 
-    virtual u32 getLengthOfMemberClassForHiddenArg(UTI cosuti);
-
   protected:
     //helper methods override Node read/write
     virtual void genMemberNameOfMethod(File * fp);

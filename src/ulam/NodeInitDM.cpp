@@ -637,7 +637,7 @@ namespace MFM {
 	//avoid when empty since no "self" defined within initialization scope. t41170
 	rtnstgidx = loadStorageAndCurrentObjectSymbols(stgcos, cos);
 	assert(stgcos && cos);
-	assert(cosSize == m_state.m_currentObjSymbolsForCodeGen.size()); //???
+	assert(cosSize == m_state.m_currentObjSymbolsForCodeGen.size()); //??
       }
     assert(rtnstgidx <= 0 || useLocalVar);
 
@@ -701,7 +701,7 @@ namespace MFM {
 	fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum4, cstor).c_str());
 	fp->write(");"); GCNL;
 
-	UVPass uvpass2 = UVPass::makePass(tmpVarNum2, cstor, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //default class data member as immediate
+	UVPass uvpass2 = UVPass::makePass(tmpVarNum2, TMPBITVAL, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //default class data member as immediate
 
 	assert(m_nodeExpr);
 	if(nut->isScalar())

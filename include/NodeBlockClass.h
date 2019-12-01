@@ -263,14 +263,17 @@ namespace MFM{
     void genCodeBodyLocalsFilescope(File * fp, UVPass& uvpass);  //specific for this class
 
     void generateCodeForBuiltInClassFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
-
     void genCodeBuiltInFunctionIsMethodRelatedInstance(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
     void genCodeBuiltInIsMethodByRegistrationNumber(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
-    void genCodeBuildIsBVByRegistrationNumberHelper(File * fp, UTI cuti);
+    void generateInternalIsMethodForElement(File * fp, bool declOnly);
 
     void genCodeBuiltInFunctionGetRelPosMethodRelatedInstance(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
     void genCodeBuiltInFunctionGetRelPosMethodRelatedInstanceByRegistrationNumber(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
     void genCodeBuiltInFunctionGetRelPosRelatedInstanceByRegistrationNumber(File * fp);
+
+    void genCodeBuiltInFunctionNumberOfBases(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
+    void genCodeBuiltInFunctionGetOrderedBaseClass(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
+    void generateBuiltInFunctionGetOrderedBaseClassEntry(File * fp); //helper
 
     void genCodeBuiltInFunctionGetClassLength(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
     void genCodeBuiltInFunctionGetClassRegistrationNumber(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
@@ -283,7 +286,6 @@ namespace MFM{
     void genCodeBuiltInVirtualTable(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
     void genCodeBuiltInVirtualTableStartOffsetHelper(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
 
-    void generateInternalIsMethodForElement(File * fp, bool declOnly);
     void generateInternalTypeAccessorsForElement(File * fp, bool declOnly);
     void generateGetPosForQuark(File * fp, bool declOnly);
 

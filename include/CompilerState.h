@@ -121,6 +121,8 @@ namespace MFM{
     std::map<u32, NodeBlockLocals *> m_localsPerFilePath; //holds block of local constants and typedefs
     bool m_parsingLocalDef; //used for populating m_localsPerFilePath
     Token m_currentLocalDefToken; //used to identify current file path when m_parsingLocalDef is true
+    u32 m_parsingFUNCid; //used for __FUNC__ used within a function definition; 0 is none.
+    Token m_parsingFuncDefToken; //valid when m_parsingFUNCid > 0.
 
     SYMBOLTYPEFLAG m_parsingVariableSymbolTypeFlag;
 
@@ -410,6 +412,7 @@ namespace MFM{
     const std::string & getDataAsUnFormattedUserString(u32 combinedidx);
     bool isValidUserStringIndex(u32 combinedidx);
     u32 getUserStringLength(u32 combinedidx);
+    u32 formatAndGetIndexForDataUserString(std::string& astring);
 
     bool countNavHzyNoutiNodesPass();
     void countNavNodesForLocals(u32& navcount, u32& hzycount, u32& unsetcount);
@@ -442,7 +445,10 @@ namespace MFM{
     const char * getIsMangledFunctionName(UTI ltype);
     const char * getAsMangledFunctionName(UTI ltype, UTI rtype);
     const char * getGetRelPosMangledFunctionName(UTI ltype);
+    const char * getNumberOfBasesFunctionName(UTI ltype);
+    const char * getOrderedBaseClassFunctionName(UTI ltype);
     const char * getClassLengthFunctionName(UTI ltype);
+    const char * getBaseClassLengthFunctionName(UTI ltype);
     const char * getClassRegistrationNumberFunctionName(UTI ltype);
     const char * getGetStringFunctionName();
     const char * getGetStringLengthFunctionName();
@@ -572,7 +578,6 @@ namespace MFM{
     NodeBlockLocals * findALocalsScopeByNodeNo(NNO n);
     Node * findNodeNoInALocalsScope(Locator loc, NNO n);
     Node * findNodeNoInALocalsScope(UTI luti, NNO n);
-    Node * findNodeNoInAncestorsLocalsScope(NNO n, UTI cuti);
 
     u32 getRegistrationNumberForClassOrLocalsScope(UTI cuti); //ulam-4
     u32 getAClassRegistrationNumber(UTI cuti); //ulam-4

@@ -959,7 +959,13 @@ namespace MFM {
 	      }
 	    else if(m_state.isClassASubclassOf(auti, atomPtr.getPtrTargetType()))
 	      {
+		UTI baseuti = atomPtr.getPtrTargetType();
 		atomPtr.setPtrTargetType(auti); //t3746
+		u32 relposofbase = 0; //t41364
+		AssertBool gotpos = m_state.getABaseClassRelativePositionInAClass(auti, baseuti, relposofbase);
+		assert(gotpos);
+		atomPtr.setPtrPos(atomPtr.getPtrPos() - relposofbase);
+		atomPtr.setPtrLen(m_state.getTotalBitSize(auti)); //as complete object
 	      }
 	  }
       } //else can't be an autolocal
@@ -985,7 +991,7 @@ namespace MFM {
 
 	NodeBlockClass * memberClassNode = vtcsym->getClassBlockNode();
 	assert(memberClassNode);  //e.g. forgot the closing brace on quark definition
-	//set up compiler state to use the member class block for symbol searches
+	//setup compilerstate to use the member class block for symbol search
 	m_state.pushClassContextUsingMemberClassBlock(memberClassNode);
 
 	u32 funcid = m_state.getTokenDataAsStringId(m_functionNameTok); //t41087
@@ -1039,6 +1045,7 @@ namespace MFM {
       } //end lookup virtual function
     else
       {
+	//t41361 cannot go by vtclass when it needs its subclass' table
 	if(m_funcSymbol->isPureVirtualFunction())
 	  {
 	    std::ostringstream msg;
@@ -1067,19 +1074,24 @@ namespace MFM {
 	return;
       }
 
+    UTI nuti = getNodeType();
+
     // The Call:
-    if((uvpass.getPassStorage() == TMPAUTOREF))
+    //    if((uvpass.getPassStorage() == TMPAUTOREF))
+    //treat atom/ref as tmpbitval (t41143)
+    if((uvpass.getPassStorage() == TMPAUTOREF) && !m_state.isAtom(nuti))
       genCodeAReferenceIntoABitValue(fp, uvpass);
     else
       genCodeIntoABitValue(fp, uvpass);
 
     // Result:
-    if(getNodeType() != Void)
+    if(nuti != Void)
       {
 	UTI vuti = uvpass.getPassTargetType();
 	// skip reading classes and atoms
 	if(m_state.getUlamTypeByIndex(vuti)->isPrimitiveType())
 	  {
+	    //e.g. t3653, t3946, t41001,7,34,71,73, t41333,6, t41351,3, t41358,9
 	    Node::genCodeConvertABitVectorIntoATmpVar(fp, uvpass); //inc uvpass slot
 	  }
 	//else class or atom stays as a tmpbitval (e.g. t41143)
@@ -1101,6 +1113,7 @@ namespace MFM {
     // generate for value
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    TMPSTORAGE nstor = nut->isReference() ? TMPAUTOREF : TMPBITVAL; //not TMPREGISTER for primitives (t3114) or quarks (t3272)
 
     UTI vownuti = (m_funcSymbol->isVirtualFunction() ? m_funcSymbol->getVirtualMethodOriginatingClassUTI() : (UTI) Nouti);
     UTI futi = m_funcSymbol->getDataMemberClass();
@@ -1160,15 +1173,15 @@ namespace MFM {
 	    //else local var or arg, including references and model parameter, customarray (t3223)
 	  }
 
-	uvpass = UVPass::makePass(rtntmpnum, TMPBITVAL, nuti, m_state.determinePackable(nuti), m_state, pos, selfid); //POS adjusted for BitVector, justified; self id in Pass;
+	uvpass = UVPass::makePass(rtntmpnum, nstor, nuti, m_state.determinePackable(nuti), m_state, pos, selfid); //POS adjusted for BitVector, justified; self id in Pass;
 
 	// put result of function call into a variable;
 	// (C turns it into the copy constructor)
 	if(getStoreIntoAble() == TBOOL_FALSE)
 	  fp->write("const ");
-	fp->write(nut->getLocalStorageTypeAsString().c_str()); //e.g. BitVector<32>
+	fp->write(nut->getLocalStorageTypeAsString().c_str()); //e.g. Ui_
 	fp->write(" ");
-	fp->write(m_state.getTmpVarAsString(nuti, rtntmpnum, TMPBITVAL).c_str());
+	fp->write(m_state.getTmpVarAsString(nuti, rtntmpnum, nstor).c_str());
 	fp->write(" = ");
       } //not void return
 
@@ -1203,14 +1216,18 @@ namespace MFM {
   {
     UVPass rtnuvpass;
     // generate for value
-    UTI nuti = getNodeType();
+    UTI nuti = getNodeType(); //func return type
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    TMPSTORAGE nstor = nut->getTmpStorageTypeForTmpVar(); //tmpautoref
 
     u32 urtmpnum = 0;
-    std::string hiddenarg2str = genHiddenArg2ForARef(fp, uvpass, urtmpnum);
+    //    if(m_state.m_currentObjSymbolsForCodeGen.empty() || m_state.m_currentObjSymbolsForCodeGen[0]->isSelf())
+      {
+	std::string hiddenarg2str = genHiddenArg2ForARef(fp, uvpass, urtmpnum);
 
-    m_state.indentUlamCode(fp);
-    fp->write(hiddenarg2str.c_str()); GCNL;
+	m_state.indentUlamCode(fp);
+	fp->write(hiddenarg2str.c_str()); GCNL;
+      }
 
     u32 tvfpnum = m_state.getNextTmpVarNumber();
     if(m_funcSymbol->isVirtualFunction())
@@ -1247,14 +1264,14 @@ namespace MFM {
 	else
 	  selfid = m_state.m_currentObjSymbolsForCodeGen[0]->getId();
 
-	rtnuvpass = UVPass::makePass(rtnSlot, TMPBITVAL, nuti, m_state.determinePackable(nuti), m_state, pos, selfid); //POS adjusted for BitVector, justified; self id in Pass;
+	rtnuvpass = UVPass::makePass(rtnSlot, nstor, nuti, m_state.determinePackable(nuti), m_state, pos, selfid); //POS adjusted for BitVector, justified; self id in Pass;
 
 	// put result of function call into a variable;
 	// (C turns it into the copy constructor)
 	fp->write("const ");
 	fp->write(nut->getLocalStorageTypeAsString().c_str()); //e.g. BitVector<32>
 	fp->write(" ");
-	fp->write(m_state.getTmpVarAsString(nuti, rtnSlot, TMPBITVAL).c_str());
+	fp->write(m_state.getTmpVarAsString(nuti, rtnSlot, nstor).c_str());
 	fp->write(" = ");
       } //not void return
 
@@ -1423,17 +1440,21 @@ namespace MFM {
 	fp->write(m_state.getTmpVarAsString(Int, tmpvarpos, TMPREGISTER).c_str());
 	fp->write(" >= 0, PURE_VIRTUAL_CALLED);"); GCNL; //t41095, t41163 (fail tests)
 
+	// since lookup is into a baseclass' vtable, use baseclass length of override class, since it cannot be the effself;
 	s32 tmpvarlen = m_state.getNextTmpVarNumber();
 	m_state.indentUlamCode(fp);
 	fp->write("const u32 ");
 	fp->write(m_state.getTmpVarAsString(Unsigned, tmpvarlen, TMPREGISTER).c_str());
 	fp->write(" = ");
+
 	fp->write(m_state.getUlamClassTmpVarAsString(tmpvarclassptr).c_str());
 	fp->write("->");
-	fp->write(m_state.getClassLengthFunctionName(decosuti));
-	fp->write("(); //len of override class"); GCNL; //reading into a separate len tmp var
+	fp->write(m_state.getBaseClassLengthFunctionName(decosuti));
+	fp->write("(); //baselen of override class"); GCNL; //reading into a separate len tmp var
 
-	//Create UlamRef for this vfunc call:
+	//Create UlamRef for this vfunc call: t3743,4,5,6,t41097,t41161,
+	//t41298,9, t41304,7,8,9,10,11,14,15,16,17,18, t41320,1,2,3,7,8,
+	//t41333,6,8,t41351,3,t41361,3,4,6
 	urtmpnumvfc = m_state.getNextTmpVarNumber();
 	m_state.indentUlamCode(fp);
 	fp->write("UlamRef<EC> ");
@@ -1447,7 +1468,9 @@ namespace MFM {
 	fp->write(m_state.getTmpVarAsString(Int, tmpvarpos, TMPREGISTER).c_str());
 	fp->write(", ");
 	fp->write(m_state.getTmpVarAsString(Unsigned, tmpvarlen, TMPREGISTER).c_str());
-	fp->write(", true");
+	fp->write(", ");
+	fp->write(Node::genUlamRefUsageAsString(decosuti).c_str());
+	fp->write(", true"); //(always true!)
 	fp->write(");"); GCNL;
       }
     else
@@ -1502,7 +1525,9 @@ namespace MFM {
 	      fp->write_decimal(verelpos); //override pos
 	      fp->write(", ");
 	      fp->write_decimal_unsigned(veut->getSizeofUlamType()); //override len
-	      fp->write("u, true");
+	      fp->write("u, ");
+	      fp->write(Node::genUlamRefUsageAsString(veuti).c_str()); //usage
+	      fp->write(", true"); //(always true!)
 	      fp->write(");"); GCNL;
 	    }
 	  else
@@ -1572,7 +1597,7 @@ namespace MFM {
     fp->write_decimal_unsigned(vownregnum);
     fp->write("u /*");
     fp->write(m_state.getUlamTypeNameBriefByIndex(vownuti).c_str());
-    fp->write("*/, true, ");
+    fp->write("*/, true, "); //usage based on override class, (always true!)
     fp->write(m_state.getVFuncPtrTmpNumAsString(tvfpnum).c_str()); //Uf_tvfpNNN
     fp->write(");"); GCNL;
 
@@ -1611,7 +1636,9 @@ namespace MFM {
     //   t41158, t41160, t41094, safe t41161
     // too limiting (ulam-5) to limit to 'super' special case:
     //   t3606, t3608, t3774, t3779, t3788, t3794, t3795, t3967, t41131
-    if(m_state.getUlamTypeAsDeref(cosuti) != cvfuti) //multiple bases possible (ulam-5)
+    // once cos is a ref, all bets off! unclear effSelf, e.g. cos is 'self'
+    //    if(m_state.getUlamTypeAsDeref(cosuti) != cvfuti) //multiple bases possible (ulam-5)
+    if(!m_state.isAltRefType(cosuti) && (m_state.getUlamTypeAsDeref(cosuti) != cvfuti)) //multiple bases possible (ulam-5); issue +(t41361 TODO)
       {
 	SymbolClass * cvfsym = NULL;
 	AssertBool iscvfDefined = m_state.alreadyDefinedSymbolClass(cvfuti, cvfsym);
@@ -1690,26 +1717,44 @@ namespace MFM {
     //vuti may not be a ref (e.g. t3668, a QW that was deref'd by [].)
     bool isaref = m_state.isAltRefType(vuti);
 
+    bool usePassVal = m_state.m_currentObjSymbolsForCodeGen.empty();
+    Symbol * stgcos = !usePassVal ? m_state.m_currentObjSymbolsForCodeGen[0] : NULL;
+
     //use possible dereference type for mangled name
     UTI derefuti = m_state.getUlamTypeAsDeref(vuti);
     assert(m_state.isAClass(derefuti));
 
-   u32 tmpvarnum = uvpass.getPassVarNum();
    u32 tmpvarur = m_state.getNextTmpVarNumber();
-
     std::ostringstream hiddenarg2;
     //new ur to reflect "effective" self and the ref storage, for this funccall
     hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvarur).c_str() << "(";
-    hiddenarg2 << m_state.getTmpVarAsString(derefuti, tmpvarnum, TMPAUTOREF).c_str();
-    if(isaref)
-      hiddenarg2 << ", 0u"; //references already offset t3811
-    else
-      hiddenarg2 << ", " << uvpass.getPassPos() << "u"; //element refs already +25
 
-    hiddenarg2 << ", " << getLengthOfMemberClassForHiddenArg(derefuti) << "u, "; //len t3370
-    hiddenarg2 << "&";
-    hiddenarg2 << m_state.getTheInstanceMangledNameByIndex(derefuti).c_str();
-    hiddenarg2 << ", " << genUlamRefUsageAsString(derefuti).c_str();
+    if(isaref)
+      {
+	if(usePassVal)
+	  hiddenarg2 << uvpass.getTmpVarAsString(m_state).c_str();
+	else
+	  hiddenarg2 << stgcos->getMangledName().c_str();
+	hiddenarg2 << ", 0u"; //references already offset t3811
+      }
+    else
+      hiddenarg2 << uvpass.getPassPos() << "u"; //element refs already +25
+
+    hiddenarg2 << ", " << getLengthOfMemberClassForHiddenArg(derefuti) << "u"; //len t3370
+
+    if(!isaref)
+      {
+	hiddenarg2 << ", ";
+	if(usePassVal)
+	  hiddenarg2 << uvpass.getTmpVarAsString(m_state).c_str();
+	else
+	  hiddenarg2 << stgcos->getMangledName().c_str();
+	hiddenarg2 << ", &";
+	hiddenarg2 << m_state.getTheInstanceMangledNameByIndex(derefuti).c_str();
+	hiddenarg2 << ", " << Node::genUlamRefUsageAsString(derefuti).c_str();
+	hiddenarg2 << ", uc";
+      }
+
     hiddenarg2 << ");";
 
     urtmpnumref = tmpvarur;
@@ -1906,17 +1951,5 @@ void NodeFunctionCall::genLocalMemberNameOfMethod(File * fp)
     fp->write(fut->getUlamTypeMangledName().c_str()); //e.g. t3605
     fp->write("<EC>::THE_INSTANCE.");
   } //genLocalMemberNameOfMethod
-
-  u32 NodeFunctionCall::getLengthOfMemberClassForHiddenArg(UTI cosuti)
-  {
-    //both virtuals and non- (original)
-    UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
-    return cosut->getTotalBitSize();
-
-    //change len.. (new, unused)
-    UTI futi = m_funcSymbol->getDataMemberClass();
-    UlamType * fut = m_state.getUlamTypeByIndex(futi);
-    return fut->getTotalBitSize();
-  }
 
 } //end MFM

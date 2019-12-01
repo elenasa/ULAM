@@ -125,6 +125,11 @@ namespace MFM {
     return m_nodeCondition->isAConstant(); //t41280
   }
 
+  bool NodeQuestionColon::isTernaryExpression()
+  {
+    return true; //for NodeCast
+  }
+
   UTI NodeQuestionColon::calcNodeType(UTI lt, UTI rt)
   {
     if(!m_state.neitherNAVokUTItoContinue(lt, rt))
@@ -508,6 +513,8 @@ namespace MFM {
 	fp->write(luvpass.getTmpVarAsString(m_state).c_str());
 	if(luvpass.getPassStorage() == TMPBITVAL)
 	  fp->write(".read()");
+	if(luvpass.getPassStorage() == TMPAUTOREF)
+	  m_state.abortShouldntGetHere(); //not a ref!
 	fp->write(";"); GCNL;
       }
 
@@ -533,6 +540,8 @@ namespace MFM {
 	fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
 	if(ruvpass.getPassStorage() == TMPBITVAL)
 	  fp->write(".read()");
+	if(ruvpass.getPassStorage() == TMPAUTOREF)
+	  m_state.abortShouldntGetHere(); //not a ref!
 	fp->write(";"); GCNL;
       }
 
@@ -556,6 +565,8 @@ namespace MFM {
 	  {
 	    Node::genCodeConvertABitVectorIntoATmpVar(fp, uvpass); //inc uvpass slot
 	  }
+	else if(uvpass.getPassStorage() == TMPAUTOREF)
+	  m_state.abortShouldntGetHere(); //not a ref!
 	//else ok
       }
 
@@ -566,13 +577,7 @@ namespace MFM {
   {
     assert(m_nodeCondition && m_nodeLeft && m_nodeRight);
     UTI nuti = getNodeType();
-#if 0
-    if(!m_state.isReference(nuti))
-      {
-	//pure virtual error when reference code used on non-ref (t41065)
-	return genCode(fp,uvpass); //e.g. called by NodeCast t41071
-      }
-#endif
+    //pure virtual error when reference code used on non-ref (t41065)
 
     if(m_state.getReferenceType(nuti) != ALT_REF)
       nuti = m_state.getUlamTypeAsRef(nuti); //e.g. called by NodeCast t41071

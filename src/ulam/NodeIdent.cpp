@@ -388,7 +388,7 @@ namespace MFM {
       }
 
     if(m_state.okUTItoContinue(it) && m_varSymbol)
-    it = specifyimplicitselfexplicitly();
+      it = specifyimplicitselfexplicitly();
 
     if(m_state.okUTItoContinue(it) && m_varSymbol)
       it = checkUsedBeforeDeclared();
@@ -802,6 +802,8 @@ namespace MFM {
 	assert(gotpos);
 	selfuvp.setPtrPos(selfuvp.getPtrPos() + relposofsuper);
 	selfuvp.setPtrTargetType(m_state.getUlamTypeAsDeref(supertype));
+	selfuvp.setPtrLen(m_state.getBaseClassBitSize(supertype));
+	selfuvp.setPtrNameId(0);
 	return selfuvp; //now superuvp.
       } //done
 
@@ -1497,8 +1499,12 @@ namespace MFM {
 
   void NodeIdent::genCodeToStoreInto(File * fp, UVPass& uvpass)
   {
-    if(uvpass.getPassStorage() == TMPAUTOREF)
-      Node::genCodeConvertATmpVarAutoRefIntoAutoRef(fp, uvpass); //uvpass becomes the autoref, and clears stack
+    // an empty dot chain indicates uvpass has the info (e.g. casting);
+    // keep 'self' (t3185); keep if tmpvarSymbol BaseType (t41321);
+    if((uvpass.getPassStorage()==TMPAUTOREF) && !((uvpass.getPassNameId()==m_state.m_pool.getIndexForDataString("self")) || uvpass.getPassApplyDelta()))
+      {
+	Node::genCodeConvertATmpVarAutoRefIntoAutoRef(fp, uvpass); //uvpass becomes the autoref, and clears stack
+      }
 
     //e.g. return the ptr for an array;
     //square bracket will resolve down to the immediate data

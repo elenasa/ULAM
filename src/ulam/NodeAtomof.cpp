@@ -280,7 +280,7 @@ namespace MFM {
 	m_state.indentUlamCode(fp); //non-const
 	fp->write(nut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
 	fp->write(" ");
-	fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPBITVAL).c_str());
+	fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPAUTOREF).c_str());
 	fp->write("(");
 
 	fp->write(stgcos->getMangledName().c_str()); //ur for self
@@ -292,17 +292,17 @@ namespace MFM {
 	fp->write(" - T::ATOM_FIRST_STATE_BIT"); //must be an effective element ref (e.g.t3684, t3663)
 	fp->write("); //atomof"); GCNL;
 
-	uvpass = UVPass::makePass(tmpVarNum, TMPBITVAL, nuti, UNPACKED, m_state, uvpass.getPassPos(), uvpass.getPassNameId());
+	uvpass = UVPass::makePass(tmpVarNum, TMPAUTOREF, nuti, UNPACKED, m_state, uvpass.getPassPos(), uvpass.getPassNameId());
       }
     else
       {
-	//lhs
+	//lhs: t3223,t3684,t3907,8,9,t41033,42,43,46,51,62
 	assert(getStoreIntoAble() == TBOOL_TRUE);
 	assert(m_nodeOf);
 	m_nodeOf->genCodeToStoreInto(fp, uvpass); //does it handle array item members selected?
 	assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
 
-	uvpass = UVPass::makePass(uvpass.getPassVarNum(), TMPTATOM, getNodeType(), UNPACKED, m_state, uvpass.getPassPos(), uvpass.getPassNameId());
+	uvpass = UVPass::makePass(uvpass.getPassVarNum(), TMPAUTOREF /*TMPTATOM*/, getNodeType(), UNPACKED, m_state, uvpass.getPassPos(), uvpass.getPassNameId());
       }
   } //genCodeToStoreInto
 

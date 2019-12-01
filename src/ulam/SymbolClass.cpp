@@ -385,11 +385,11 @@ namespace MFM {
       }
 
     if(isQuarkUnion())
-      totalbits = classNode->getMaxBitSizeOfVariableSymbolsInTable(); //data members only
+      totalbits = classNode->getMaxBitSizeOfVariableSymbolsInTable();
     else
-      totalbits = classNode->getBitSizesOfVariableSymbolsInTable(); //data members only
+      totalbits = classNode->getBitSizesOfVariableSymbolsInTable();
 
-    //check to avoid setting EMPTYSYMBOLTABLE instead of 0 for zero-sized classes
+    //avoid setting EMPTYSYMBOLTABLE instead of 0 for zero-sized classes
     if(totalbits == CYCLEFLAG)  // was < 0
       {
 	std::ostringstream msg;

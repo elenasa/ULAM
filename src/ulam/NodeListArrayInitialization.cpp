@@ -554,7 +554,7 @@ namespace MFM{
 	fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum4, scalarcstor).c_str());
 	fp->write(");"); GCNL;
 
-	uvpass2 = UVPass::makePass(tmpVarNum, scalarcstor, scalaruti, m_state.determinePackable(scalaruti), m_state, 0, 0); //default class data member as immediate
+	uvpass2 = UVPass::makePass(tmpVarNum, TMPBITVAL, scalaruti, m_state.determinePackable(scalaruti), m_state, 0, 0); //default class data member as immediate
 
 	genCodeClassInitArrayItem(fp, uvpass, i, i, uvpass2);
       }

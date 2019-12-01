@@ -1,10 +1,6 @@
 ## -*- mode:ulam -*-
 #=t3792_test_compiler_transientandquark_assignreftosub_error
 #!
-./R.ulam:10:18: ERROR: Cannot explicitly cast Qbase& to type: TW.
-./R.ulam:10:5: ERROR: Initial value expression for: tapple, initialization is invalid.
-./R.ulam:14:16: ERROR: Cannot explicitly cast Qbase& to type: TW.
-./R.ulam:14:13: ERROR: Assignment is invalid; LHS: TW; RHS: erroneous.
 ./R.ulam:18:5: ERROR: Incompatible class types TW& and Qbase& used to initialize reference 'twref'.
 ./R.ulam:21:19: ERROR: Cannot cast an atom to transient TW.
 ./R.ulam:21:19: ERROR: Cannot explicitly cast Atom(96)& to type: TW.

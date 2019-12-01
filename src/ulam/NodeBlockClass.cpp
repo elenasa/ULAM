@@ -419,7 +419,7 @@ namespace MFM {
     //called when superclass of an oversized class instance
     //UTI nuti = getNodeType(); //maybe Hzy, use arg instead
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    s32 nsize = nut->getBitsizeAsBaseClass();
+    s32 nsize = nut->getBitsizeAsBaseClass(); //never an element
 
     std::ostringstream note;
     note << "(" << nsize << " of ";
@@ -1911,6 +1911,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	if(baseuti != Nouti)
 	  {
 	    s32 bs = m_state.getBitSize(baseuti); //may contain shared bits!
+	    //s32 bs = m_state.getBaseClassBitSize(baseuti); //only dm bits!
 	    if(bs < 0)
 	      return bs; //error if any base class size is negative
 	    else
@@ -2245,7 +2246,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	      }
 
 	    s32 baseoffset = m_state.getBaseClassBitSize(baseuti);
-	    assert(baseoffset >= 0); //t3318
+	    assert(baseoffset >= 0); //t3318,t3755
 	    csym->setBaseClassRelativePosition(i, reloffset); //t3102, t3536 before updating reloffset
 	    reloffset += baseoffset;
 	  }
@@ -2448,42 +2449,28 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     if(csym->isQuarkUnion())
       accumsize = totalsize; //i.e. max dm bitsize, not cummulative
 
-    UTI superuti = csym->getBaseClass(0);
-    if(m_state.okUTItoContinue(superuti)) //no skip UrSelf here
-      {
-	NodeBlockClass * superblock = getBaseClassBlockPointer(0);
-	if(!isBaseClassLinkReady(cuti,0))
-	  {
-	    //use SCN instead of SC in case of stub (use template's classblock)
-	    SymbolClassName * supercnsym = NULL;
-	    AssertBool isDefined = m_state.alreadyDefinedSymbolClassNameByUTI(superuti, supercnsym);
-	    assert(isDefined);
-	    superblock = supercnsym->getClassBlockNode();
-	  }
-	assert(superblock);
-	s32 pos = csym->getBaseClassRelativePosition(0);
-	superblock->genBaseClassTypeAndNameEntryAsComment(fp, superuti, pos, accumsize, 0); //no recursion
-      }
-
-    //ulam-5 supports multiple base classes; superclass optional
+    //ulam-5 supports multiple base classes; superclass optional.
     u32 basecount = csym->getBaseClassCount() + 1; //include super
-    u32 i = 1;
+    u32 i = 0;
     while(i < basecount)
       {
 	UTI baseuti = csym->getBaseClass(i);
-	NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
-
-	if(!isBaseClassLinkReady(cuti, i))
+	if(m_state.okUTItoContinue(baseuti)) //skips implicit/default super here
 	  {
-	    //use SCN instead of SC in case of stub (use template's classblock)
-	    SymbolClassName * basecnsym = NULL;
-	    AssertBool isDefined = m_state.alreadyDefinedSymbolClassNameByUTI(baseuti, basecnsym);
-	    assert(isDefined);
-	    basecblock = basecnsym->getClassBlockNode();
+	    NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
+
+	    if(!isBaseClassLinkReady(cuti, i))
+	      {
+		//use SCN instead of SC in case of stub (use template's classblock)
+		SymbolClassName * basecnsym = NULL;
+		AssertBool isDefined = m_state.alreadyDefinedSymbolClassNameByUTI(baseuti, basecnsym);
+		assert(isDefined);
+		basecblock = basecnsym->getClassBlockNode();
+	      }
+	    assert(basecblock);
+	    s32 pos = csym->getBaseClassRelativePosition(i);
+	    basecblock->genBaseClassTypeAndNameEntryAsComment(fp, baseuti, pos, accumsize, i); //no recursion
 	  }
-	assert(basecblock);
-	s32 pos = csym->getBaseClassRelativePosition(i);
-	basecblock->genBaseClassTypeAndNameEntryAsComment(fp, baseuti, pos, accumsize, i); //no recursion
 	i++;
       } //end while
 
@@ -3132,6 +3119,10 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     // returns relative position of baseclass or self; -1 if unrelated.
     genCodeBuiltInFunctionGetRelPosMethodRelatedInstance(fp, declOnly, classtype);
     genCodeBuiltInFunctionGetRelPosMethodRelatedInstanceByRegistrationNumber(fp, declOnly, classtype);
+
+    genCodeBuiltInFunctionNumberOfBases(fp, declOnly, classtype);
+    genCodeBuiltInFunctionGetOrderedBaseClass(fp, declOnly, classtype);
+
     // 'is' is only for element/classes
     if(classtype == UC_ELEMENT)
       {
@@ -3192,16 +3183,100 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.m_currentIndentLevel++;
 
     m_state.indent(fp);
-    fp->write("return ");
-    fp->write(m_state.getIsMangledFunctionName(cuti));
+    fp->write("return (");
+    fp->write(m_state.getGetRelPosMangledFunctionName(cuti));
     fp->write("(cptrarg->");
     fp->write(m_state.getClassRegistrationNumberFunctionName(cuti));
-    fp->write("());"); GCNL;
+    fp->write("()) >= 0);"); GCNL;
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
     fp->write("} //is-related\n\n");
   } //genCodeBuiltInFunctionIsMethodRelatedInstance
+
+  void NodeBlockClass::genCodeBuiltInIsMethodByRegistrationNumber(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
+  {
+    if(classtype == UC_LOCALSFILESCOPE)
+      return;
+
+    UTI cuti = m_state.getCompileThisIdx();
+    UlamType * cut = m_state.getUlamTypeByIndex(cuti);
+
+    if(declOnly)
+      {
+	//VTable accessor method
+	m_state.indent(fp);
+	fp->write("virtual bool ");
+	fp->write(m_state.getIsMangledFunctionName(cuti));
+	fp->write("(u32 rn) const;"); GCNL;
+	fp->write("\n");
+	return;
+      } //done w h-file
+
+    //isbyregnum BV accessor method
+    m_state.indent(fp);
+    fp->write("template<class EC>\n"); //same for elements and quarks
+
+    m_state.indent(fp);
+    fp->write("bool ");
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write("<EC>::"); //same for elements and quarks
+    fp->write(m_state.getIsMangledFunctionName(cuti));
+    fp->write("(u32 rn) const"); GCNL;
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+
+    m_state.indent(fp);
+    fp->write("return (");
+    fp->write(m_state.getGetRelPosMangledFunctionName(cuti));
+    fp->write("(rn) >= 0);"); GCNL;
+
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("} //is-related\n\n");
+  }//genCodeBuiltInIsMethodByRegistrationNumber
+
+  void NodeBlockClass::generateInternalIsMethodForElement(File * fp, bool declOnly)
+  {
+    UTI cuti = getNodeType();
+
+    if(declOnly)
+      {
+	m_state.indent(fp);
+	fp->write("//helper method not called directly\n");
+
+	m_state.indent(fp);
+	fp->write("bool ");
+	fp->write(m_state.getIsMangledFunctionName(cuti));
+	fp->write("(const T& targ) const;"); GCNL;
+	fp->write("\n");
+	return;
+      }
+
+    m_state.indent(fp);
+    fp->write("template<class EC>\n");
+    m_state.indent(fp);
+    fp->write("bool "); //return pos offset, or -1 if not found
+
+    //include the mangled class::
+    fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
+
+    fp->write("<EC>::");
+    fp->write(m_state.getIsMangledFunctionName(cuti));
+    fp->write("(const T& targ) const\n");
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+    m_state.indent(fp);
+    fp->write("return (ELEMENT_TYPE == targ.GetType());"); GCNL;
+
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("} //isMethod\n\n");
+  } //generateInternalIsMethodForElement
 
   void NodeBlockClass::genCodeBuiltInFunctionGetRelPosMethodRelatedInstance(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
@@ -3320,37 +3395,220 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(nuti, csym);
     assert(isDefined);
 
-    //ulam-5 supports multiple base classes; superclass optional
-    //ulam-5 supports shared base classes; all bases are shared!
+    //build temporary map to output switch in regnum order
+    std::map<u32, u32> tmpmapbyrn;
+
+    u32 myregnum = m_state.getAClassRegistrationNumber(nuti);
+    tmpmapbyrn.insert(std::pair<u32, u32>(myregnum, 0));
+
     u32 basecount = csym->getSharedBaseClassCount();
     u32 j = 0;
     while(j < basecount)
       {
-	UTI baseuti = csym->getSharedBaseClass(j);
+	UTI baseuti = csym->getSharedBaseClass(j); //unordered
 	//skip the ancestor of a template
 	if((baseuti != Nouti))
 	  {
 	    u32 regnum = m_state.getAClassRegistrationNumber(baseuti);
-	    u32 relpos = csym->getSharedBaseClassRelativePosition(j);
-	    m_state.indent(fp);
-	    fp->write("case ");
-	    fp->write_decimal_unsigned(regnum);
-	    fp->write(": return(");
-	    fp->write_decimal_unsigned(relpos);
-	    fp->write("); //position of ");
-	    fp->write(m_state.getUlamTypeNameBriefByIndex(baseuti).c_str()); GCNL;
+	    tmpmapbyrn.insert(std::pair<u32, u32>(regnum,j + 1));
 	  }
 	j++;
       } //end while
 
-    u32 myregnum = m_state.getAClassRegistrationNumber(nuti);
-    m_state.indent(fp);
-    fp->write("case ");
-    fp->write_decimal_unsigned(myregnum);
-    fp->write(": return(0); //position of ");
-    fp->write(m_state.getUlamTypeNameBriefByIndex(nuti).c_str()); GCNL;
+    //ulam-5 supports multiple base classes; superclass optional
+    //ulam-5 supports shared base classes; all bases are shared!
+    std::map<u32, u32>::iterator it;
+    for(it = tmpmapbyrn.begin(); it != tmpmapbyrn.end(); it++)
+      {
+	u32 regnum = it->first;
+	u32 k = it->second;
+	if(k == 0)
+	  {
+	    m_state.indent(fp);
+	    fp->write("case ");
+	    fp->write_decimal_unsigned(myregnum);
+	    fp->write(": return (0); //position of ");
+	    fp->write(m_state.getUlamTypeNameBriefByIndex(nuti).c_str());
+	    fp->write(" (self) ");
+	    GCNL;
+	  }
+	else
+	  {
+	    k--;
+	    UTI baseuti = csym->getSharedBaseClass(k); //unordered
+	    u32 relpos = csym->getSharedBaseClassRelativePosition(k);
+	    m_state.indent(fp);
+	    fp->write("case ");
+	    fp->write_decimal_unsigned(regnum);
+	    fp->write(": return (");
+	    fp->write_decimal_unsigned(relpos);
+	    fp->write("); //position of ");
+	    fp->write(m_state.getUlamTypeNameBriefByIndex(baseuti).c_str());
+	    fp->write("\n");
+	  }
+      } //forloop
+  } //genCodeBuiltInFunctionGetRelPosRelatedInstanceByRegistrationNumber
 
-  } //genCodeBuiltInFunctionGetRelPosOfRelatedInstanceByRegistrationNumber
+  void NodeBlockClass::genCodeBuiltInFunctionNumberOfBases(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
+  {
+    UTI cuti = m_state.getCompileThisIdx();
+    if(declOnly)
+      {
+	m_state.indent(fp);
+	fp->write("virtual u32 ");
+	fp->write(m_state.getNumberOfBasesFunctionName(cuti));
+	fp->write("() const;"); GCNL;
+	fp->write("\n");
+	return;
+      }
+
+    SymbolClass * csym = NULL;
+    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cuti, csym);
+    assert(isDefined);
+
+    m_state.indent(fp);
+    fp->write("template<class EC>\n");
+
+    m_state.indent(fp);
+    fp->write("u32 "); //returns number of (shared) bases
+
+    //include the mangled class::
+    UlamType * cut = m_state.getUlamTypeByIndex(cuti);
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write("<EC>");
+
+    fp->write("::");
+    fp->write(m_state.getNumberOfBasesFunctionName(cuti));
+    fp->write("( ) const\n");
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+
+    m_state.indent(fp);
+    fp->write("return ");
+    fp->write_decimal_unsigned(csym->getSharedBaseClassCount() + 1); //add self
+    fp->write("; //including self"); GCNL;
+
+    m_state.m_currentIndentLevel--;
+
+    m_state.indent(fp);
+    fp->write("} //");
+    fp->write(m_state.getNumberOfBasesFunctionName(cuti));
+    fp->write("\n\n");
+  } //genCodeBuiltInFunctionNumberOfBases
+
+  void NodeBlockClass::genCodeBuiltInFunctionGetOrderedBaseClass(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
+  {
+    UTI cuti = m_state.getCompileThisIdx();
+    if(declOnly)
+      {
+	m_state.indent(fp);
+	fp->write("virtual UlamClass<EC> * ");
+	fp->write(m_state.getOrderedBaseClassFunctionName(cuti));
+	fp->write("(u32 ith) const;"); GCNL;
+	fp->write("\n");
+	return;
+      }
+
+    m_state.indent(fp);
+    fp->write("template<class EC>\n");
+
+    m_state.indent(fp);
+    fp->write("UlamClass<EC> * "); //returns the instance of ith baseclass
+
+    //include the mangled class::
+    UlamType * cut = m_state.getUlamTypeByIndex(cuti);
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write("<EC>");
+
+    fp->write("::");
+    fp->write(m_state.getOrderedBaseClassFunctionName(cuti));
+    fp->write("(u32 ith) const\n");
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+    m_state.indent(fp);
+    fp->write("switch (ith)\n");
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+
+    //cases:
+    generateBuiltInFunctionGetOrderedBaseClassEntry(fp);
+
+    m_state.indent(fp);
+    fp->write("default: ;\n");
+
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("}; //end switch"); GCNL;
+
+    m_state.indent(fp);
+    fp->write("return (NULL); //not found"); GCNL;
+
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("} //");
+    fp->write(m_state.getOrderedBaseClassFunctionName(cuti));
+    fp->write("\n\n");
+  } //genCodeBuiltInFunctionGetOrderedBaseClass
+
+  void NodeBlockClass::generateBuiltInFunctionGetOrderedBaseClassEntry(File * fp)
+  {
+    UTI cuti = m_state.getCompileThisIdx();
+    SymbolClass * csym = NULL;
+    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cuti, csym);
+    assert(isDefined);
+
+    // zero-th entry is thyself
+    m_state.indent(fp);
+    fp->write("case 0: return (& ");
+    fp->write(m_state.getTheInstanceMangledNameByIndex(cuti).c_str());
+    fp->write("); //self\n");
+
+    //ulam-5 supports multiple base classes; superclass optional, default UrSelf.
+    u32 basecount = csym->getBaseClassCount() + 1; //include super
+    u32 i = 0;
+    u32 next = 1; //includes self
+
+    while(i < basecount)
+      {
+	UTI baseuti = csym->getBaseClass(i);
+	if(m_state.okUTItoContinue(baseuti)) //skips default super
+	  {
+	    m_state.indent(fp);
+	    fp->write("case ");
+	    fp->write_decimal_unsigned(next++);
+	    fp->write(": return (& ");
+	    fp->write(m_state.getTheInstanceMangledNameByIndex(baseuti).c_str());
+	    fp->write(");\n");
+	  }
+	i++;
+      } //end while
+
+    //ulam-5 supports shared base classes;
+    u32 shbasecount = csym->getSharedBaseClassCount();
+    u32 j = 0;
+    while(j < shbasecount)
+      {
+	UTI baseuti = csym->getSharedBaseClass(j);
+	s32 bitem = csym->isABaseClassItem(baseuti);
+	if(bitem < 0) //not a direct shared base
+	  {
+	    m_state.indent(fp);
+	    fp->write("case ");
+	    fp->write_decimal_unsigned(next++);
+	    fp->write(": return (& ");
+	    fp->write(m_state.getTheInstanceMangledNameByIndex(baseuti).c_str());
+	    fp->write(");\n");
+	  } //else skip
+	j++;
+      } //end while
+    return;
+  } //generateBuiltInFunctionGetOrderedBaseClassEntry (helper)
 
   void NodeBlockClass::genCodeBuiltInFunctionGetClassLength(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
@@ -3362,6 +3620,15 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	fp->write(m_state.getClassLengthFunctionName(cuti));
 	fp->write("() const;"); GCNL;
 	fp->write("\n");
+
+	if(classtype != UC_ELEMENT)
+	  {
+	    m_state.indent(fp);
+	    fp->write("virtual u32 ");
+	    fp->write(m_state.getBaseClassLengthFunctionName(cuti));
+	    fp->write("() const;"); GCNL;
+	    fp->write("\n");
+	  }
 	return;
       }
 
@@ -3392,11 +3659,48 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.m_currentIndentLevel--;
 
     m_state.indent(fp);
-    fp->write("} //getClassLength\n\n");
+    fp->write("} //");
+    fp->write(m_state.getClassLengthFunctionName(cuti));
+    fp->write("\n\n");
+
+    //elements are never a baseclass, fail.
+    if(classtype == UC_ELEMENT) return;
+
+    //next, returns base class size:
+    m_state.indent(fp);
+    fp->write("template<class EC>\n");
+
+    m_state.indent(fp);
+    fp->write("u32 ");
+
+    //include the mangled class::
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write("<EC>");
+
+    fp->write("::");
+    fp->write(m_state.getBaseClassLengthFunctionName(cuti));
+    fp->write("( ) const\n");
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+
+    m_state.indent(fp);
+    fp->write("return ");
+    fp->write_decimal_unsigned(cut->getBitsizeAsBaseClass());
+    fp->write(";"); GCNL;
+
+    m_state.m_currentIndentLevel--;
+
+    m_state.indent(fp);
+    fp->write("} //");
+    fp->write(m_state.getBaseClassLengthFunctionName(cuti));
+    fp->write("\n\n");
   } //genCodeBuiltInFunctionGetClassLength
 
   void NodeBlockClass::genCodeBuiltInFunctionGetClassRegistrationNumber(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
+    //returns class registry number(replaces UlamClass.tcc in MFM virtually)
     UTI cuti = m_state.getCompileThisIdx();
     if(declOnly)
       {
@@ -3414,7 +3718,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("template<class EC>\n");
 
     m_state.indent(fp);
-    fp->write("u32 "); //returns class registry number(replaces UlamClass.tcc in MFM virtually)
+    fp->write("u32 ");
 
     //include the mangled class::
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
@@ -3814,7 +4118,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	fp->write(veut->getUlamTypeMangledName().c_str());
 	fp->write("<EC>::"); //same for elements and quarks
 	fp->write(csym->getMangledFunctionNameWithTypesForVTableEntry(i).c_str());
-	fp->write(") &");
+	fp->write(") & ");
 	fp->write(veut->getUlamTypeMangledName().c_str());
 	fp->write("<EC>::"); //same for elements and quarks
 	fp->write(csym->getMangledFunctionNameForVTableEntry(i).c_str());
@@ -3986,61 +4290,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("}\n\n");
   }//genCodeBuiltInVirtualTableStartOffsetHelper
 
-  void NodeBlockClass::genCodeBuiltInIsMethodByRegistrationNumber(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
-  {
-    if(classtype == UC_LOCALSFILESCOPE)
-      return;
-
-    UTI cuti = m_state.getCompileThisIdx();
-    UlamType * cut = m_state.getUlamTypeByIndex(cuti);
-
-    if(declOnly)
-      {
-	//VTable accessor method
-	m_state.indent(fp);
-	fp->write("virtual bool ");
-	fp->write(m_state.getIsMangledFunctionName(cuti));
-	fp->write("(u32 rn) const;"); GCNL;
-	fp->write("\n");
-	return;
-      } //done w h-file
-
-    //isbyregnum BV accessor method
-    m_state.indent(fp);
-    fp->write("template<class EC>\n"); //same for elements and quarks
-
-    m_state.indent(fp);
-    fp->write("bool ");
-    fp->write(cut->getUlamTypeMangledName().c_str());
-    fp->write("<EC>::"); //same for elements and quarks
-    fp->write(m_state.getIsMangledFunctionName(cuti));
-    fp->write("(u32 rn) const"); GCNL;
-    m_state.indent(fp);
-    fp->write("{\n");
-
-    m_state.m_currentIndentLevel++;
-
-    m_state.indent(fp);
-    fp->write("//Insure 'rn' within max number of registered classes (");
-    fp->write_decimal_unsigned(m_state.getMaxNumberOfRegisteredUlamClasses());
-    fp->write(")\n");
-    m_state.indent(fp);
-    fp->write("if(rn >= ");
-    fp->write_decimal_unsigned(m_state.getMaxNumberOfRegisteredUlamClasses());
-    fp->write(") FAIL(ARRAY_INDEX_OUT_OF_BOUNDS);"); GCNL;
-    fp->write("\n");
-
-    genCodeBuildIsBVByRegistrationNumberHelper(fp, cuti);
-
-    m_state.indent(fp);
-    fp->write("//the rn-th bit is 'on', iff related\n");
-    m_state.indent(fp);
-    fp->write("return m_isbyregnumBV.ReadBit(rn);"); GCNL;
-    m_state.m_currentIndentLevel--;
-    m_state.indent(fp);
-    fp->write("} //is-related\n\n");
-  }//genCodeBuiltInIsMethodByRegistrationNumber
-
+#if 0
   void NodeBlockClass::genCodeBuildIsBVByRegistrationNumberHelper(File * fp, UTI cuti)
   {
     BV8K bitvec;
@@ -4091,46 +4341,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("}"); GCNL;
     fp->write("\n");
   }//genCodeBuiltInIsMethodByRegistrationNumberHelper
-
-  void NodeBlockClass::generateInternalIsMethodForElement(File * fp, bool declOnly)
-  {
-    UTI cuti = getNodeType();
-
-    if(declOnly)
-      {
-	m_state.indent(fp);
-	fp->write("//helper method not called directly\n");
-
-	m_state.indent(fp);
-	fp->write("bool ");
-	fp->write(m_state.getIsMangledFunctionName(cuti));
-	fp->write("(const T& targ) const;"); GCNL;
-	fp->write("\n");
-	return;
-      }
-
-    m_state.indent(fp);
-    fp->write("template<class EC>\n");
-    m_state.indent(fp);
-    fp->write("bool "); //return pos offset, or -1 if not found
-
-    //include the mangled class::
-    fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
-
-    fp->write("<EC>::");
-    fp->write(m_state.getIsMangledFunctionName(cuti));
-    fp->write("(const T& targ) const\n");
-    m_state.indent(fp);
-    fp->write("{\n");
-
-    m_state.m_currentIndentLevel++;
-    m_state.indent(fp);
-    fp->write("return (ELEMENT_TYPE == targ.GetType());"); GCNL;
-
-    m_state.m_currentIndentLevel--;
-    m_state.indent(fp);
-    fp->write("} //isMethod\n\n");
-  } //generateInternalIsMethodForElement
+#endif
 
   void NodeBlockClass::generateInternalTypeAccessorsForElement(File * fp, bool declOnly)
   {
@@ -4197,7 +4408,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     if(declOnly)
       {
 	m_state.indent(fp);
-	fp->write("__inline__ const u32 GetPos() const { return 0u; }\n"); //?????
+	fp->write("__inline__ const u32 GetPos() const { return 0u; }\n"); //?
       }
   } //generateGetPosForQuark
 
@@ -4259,6 +4470,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	m_state.m_currentIndentLevel++;
 
 	generateUlamClassInfo(fp, declOnly, dmcount);
+
+	m_state.indent(fp);
+	fp->write("default: ;\n");
 
 	m_state.m_currentIndentLevel--;
 	m_state.indent(fp);
@@ -4647,7 +4861,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.indent(fp);
     fp->write("UlamRef<EC> ur(EC::ATOM_CONFIG::ATOM_TYPE::ATOM_FIRST_STATE_BIT, "); //e.g. t3255
     fp->write_decimal_unsigned(sut->getTotalBitSize()); //t3655
-    fp->write("u, atbs, &");
+    fp->write("u, atbs, & ");
     fp->write(m_state.getTheInstanceMangledNameByIndex(suti).c_str());
     fp->write(", UlamRef<EC>::ELEMENTAL, uc);"); GCNL;
 

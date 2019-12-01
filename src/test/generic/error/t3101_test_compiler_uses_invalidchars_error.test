@@ -1,20 +1,25 @@
 ## -*- mode:ulam -*-
 #=t3101_test_compiler_uses_invalidchars_error
 #!
-./D.ulam:2:3: ERROR: Weird Lex! <@> does not precede a valid flag keyword.
-./D.ulam:4:8: ERROR: Weird Lex! <@> does not precede a valid flag keyword.
-./D.ulam:4:13: ERROR: Weird Lex! <@> does not precede a valid flag keyword.
-./D.ulam:4:5: ERROR: Right operand of binary = is missing; Assignment deleted.
+./D.ulam:3:4: ERROR: Weird Lex! <@> does not precede a valid flag keyword.
+./D.ulam:5:10: ERROR: Weird Lex! <@> does not precede a valid flag keyword.
+./D.ulam:5:15: ERROR: Weird Lex! <@> does not precede a valid flag keyword.
+./D.ulam:5:7: ERROR: Right operand of binary = is missing; Assignment deleted.
+./D.ulam:6:16: ERROR: Weird Lex! <_> does not precede a valid flag keyword.
+./D.ulam:6:17: ERROR: Invalid Statement (possible missing semicolon).
 Unrecoverable Program Parse FAILURE: <D.ulam>
 ##
 ##  //recovers from invalid character
+##
 #>D.ulam
+  ulam 5;
 element D {
- @ Int a;
- Int test() {
-  a = @3 + @2;
- return a;
- }
+  @ Int a;
+  Int test() {
+    a = @3 + @2;
+    Int b = 3 _ 2;
+    return a;
+  }
 }
 
 #.

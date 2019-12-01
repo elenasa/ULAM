@@ -81,7 +81,11 @@ namespace MFM {
   static const char * GETRELPOS_MANGLED_FUNC_NAME = "internalCMethodImplementingGetRelativePositionOfBaseClass"; //Uf_2is
   static const char * GETRELPOS_MANGLED_FUNC_NAME_FOR_ATOM = "UlamClass<EC>::GetRelativePositionOfBaseClass"; //Uf_2is
 
+  static const char * GETNUMBEROFBASES_FUNCNAME = "GetBaseClassCount";
+  static const char * GETORDEREDBASE_FUNCNAME = "GetOrderedBaseClassAsUlamClass";
+
   static const char * GETCLASSLENGTH_FUNCNAME = "GetClassLength";
+  static const char * GETBASECLASSLENGTH_FUNCNAME = "GetClassDataMembersSize";
   static const char * GETCLASSREGISTRATIONNUMBER_FUNCNAME = "GetRegistrationNumber";
 
   static const char * GETSTRING_FUNCNAME = "GetStringPointerFromGlobalStringPool";
@@ -123,7 +127,7 @@ namespace MFM {
     "*/\n\n";
 
   //use of this in the initialization list seems to be okay;
-  CompilerState::CompilerState(): m_linesForDebug(false), m_programDefST(*this), m_parsingLocalDef(false), m_parsingVariableSymbolTypeFlag(STF_NEEDSATYPE), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_pendingArgStubContext(0), m_pendingArgTypeStubContext(0), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0), m_urSelfUTI(Nouti), m_emptyElementUTI(Nouti), m_registeredUlamClassCount(0)
+  CompilerState::CompilerState(): m_linesForDebug(false), m_programDefST(*this), m_parsingLocalDef(false), m_parsingFUNCid(0), m_parsingVariableSymbolTypeFlag(STF_NEEDSATYPE), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_pendingArgStubContext(0), m_pendingArgTypeStubContext(0), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0), m_urSelfUTI(Nouti), m_emptyElementUTI(Nouti), m_registeredUlamClassCount(0)
   {
     m_err.init(this, debugOn, infoOn, noteOn, warnOn, waitOn, NULL);
     Token::initTokenMap(*this);
@@ -1539,7 +1543,8 @@ namespace MFM {
 
   s32 CompilerState::getBaseClassBitSize(UTI utiArg)
   {
-    UlamType * ut = getUlamTypeByIndex(utiArg);
+    UTI deref = getUlamTypeAsDeref(utiArg);
+    UlamType * ut = getUlamTypeByIndex(deref);
     ULAMCLASSTYPE classtype = ut->getUlamClassType();
     if((classtype == UC_ELEMENT) || (classtype == UC_NOTACLASS))
       return 0; //not a base class
@@ -1816,7 +1821,6 @@ namespace MFM {
 	    return false;
 	  }
       }
-
     ut->setBitsizeAsBaseClass(basebitsize);
     return true;
   } //setBaseClassBitSize
@@ -2089,7 +2093,9 @@ namespace MFM {
     if(alreadyDefinedSymbolClass(subuti, csym))
       {
 	count = csym->getBaseClassCount(); //added bases
-	if(csym->getBaseClass(0) != Nouti) //super optional
+	//super optional, UrSelf is default superclass
+	UTI superuti = csym->getBaseClass(0);
+	if((superuti != Nouti) && !isUrSelf(superuti))
 	  count++; //Hzy if UNSEEN counts here
       }
     return (count > 0);
@@ -4193,6 +4199,29 @@ namespace MFM {
     return m_upool.getStringLength(sidx);
   }
 
+  u32 CompilerState::formatAndGetIndexForDataUserString(std::string& astring)
+  {
+    // e.g. used to get function name as a string for ulam programmer (t41368);
+    // format user string; length must be less than 256. similar to Lexer.
+    u32 slen = astring.length();
+    if(slen > MAX_USERSTRING_LENGTH)
+      {
+	std::ostringstream errmsg;
+	errmsg << "Could not complete user string <" << astring;
+	errmsg << ">; Must be less than " << MAX_USERSTRING_LENGTH + 1;
+	errmsg << " length, not " << slen;
+	MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), errmsg.str().c_str(), ERR);
+	return 0; //t41370
+      }
+
+    std::ostringstream newstr;
+    if(slen == 0)
+      newstr << (u8) 0;
+    else
+      newstr << (u8) slen << astring << (u8) 0; //slen doesn't include itself or terminating byte; see StringPoolUser.
+    return m_upool.getIndexForDataString(newstr.str());
+  } //formatAndGetIndexForDataUserString
+
   std::string CompilerState::getDataAsStringMangled(u32 dataindex)
   {
     std::ostringstream mangled;
@@ -4416,10 +4445,28 @@ namespace MFM {
     return GETRELPOS_MANGLED_FUNC_NAME;
   }
 
+  const char * CompilerState::getNumberOfBasesFunctionName(UTI ltype)
+  {
+    assert(okUTItoContinue(ltype)); //if atom?
+    return GETNUMBEROFBASES_FUNCNAME;
+  }
+
+  const char * CompilerState::getOrderedBaseClassFunctionName(UTI ltype)
+  {
+    assert(okUTItoContinue(ltype)); //if atom?
+    return GETORDEREDBASE_FUNCNAME;
+  }
+
   const char * CompilerState::getClassLengthFunctionName(UTI ltype)
   {
     assert(okUTItoContinue(ltype));
     return GETCLASSLENGTH_FUNCNAME;
+  }
+
+  const char * CompilerState::getBaseClassLengthFunctionName(UTI ltype)
+  {
+    assert(okUTItoContinue(ltype));
+    return GETBASECLASSLENGTH_FUNCNAME;
   }
 
   const char * CompilerState::getClassRegistrationNumberFunctionName(UTI ltype)
@@ -4886,7 +4933,6 @@ namespace MFM {
     assert(lptr.isPtr());
     assert(rptr.isPtr());
 
-
     assert(UlamType::compare(lptr.getPtrTargetType(), rptr.getPtrTargetType(), *this) == UTIC_SAME);
 
     STORAGE place = lptr.getPtrStorage();
@@ -5193,40 +5239,55 @@ namespace MFM {
     PACKFIT packed = determinePackable(uti);
     bool isLoadableRegister = (packed == PACKEDLOADABLE);
 
-    if((stg == TMPREGISTER) || (stg == TMPARRAYIDX))
+    switch(stg)
       {
-	if(isLoadableRegister)
-	  tmpVar << "Uh_5tlreg" ; //tmp loadable register
-	else
-	  tmpVar << "Uh_5tureg" ; //tmp unpacked register
-      }
-    else if(stg == TMPBITVAL)
-      {
-	if(isLoadableRegister)
-	  tmpVar << "Uh_5tlval" ; //tmp loadable value
-	else
-	  tmpVar << "Uh_5tuval" ; //tmp unpacked value
-      }
-    else if(stg == TMPAUTOREF)
-      {
-	if(isLoadableRegister)
-	  tmpVar << "Uh_6tlref" ; //tmp loadable autoref
-	else
-	  tmpVar << "Uh_6turef" ; //tmp unpacked autoref
-      }
-    else if(stg == TMPTATOM)
-      {
-	tmpVar << "Uh_3tut" ; //tmp unpacked atom T
-      }
-    else if(stg == TMPATOMBS)
-      {
-	tmpVar << "Uh_4tabs" ; //tmp atombitstorage
-      }
-    else
-      abortShouldntGetHere(); //removes assumptions about tmpbitval.
-
+      case TMPREGISTER:
+      case TMPARRAYIDX:
+	{
+	  if(isLoadableRegister)
+	    tmpVar << "Uh_5tlreg" ; //tmp loadable register
+	  else
+	    tmpVar << "Uh_5tureg" ; //tmp unpacked register
+	}
+	break;
+      case TMPBITVAL:
+	{
+	  if(isLoadableRegister)
+	    tmpVar << "Uh_5tlval" ; //tmp loadable value
+	  else
+	    tmpVar << "Uh_5tuval" ; //tmp unpacked value
+	}
+	break;
+      case TMPAUTOREF:
+	{
+	  if(isLoadableRegister)
+	    tmpVar << "Uh_6tlref" ; //tmp loadable autoref
+	  else
+	    tmpVar << "Uh_6turef" ; //tmp unpacked autoref
+	}
+	break;
+      case TMPTATOM:
+	{
+	  tmpVar << "Uh_3tut" ; //tmp unpacked atom T
+	}
+	break;
+      case TMPATOMBS:
+	{
+	  tmpVar << "Uh_4tabs" ; //tmp atombitstorage
+	}
+	break;
+      case TMPTBV:
+	{
+	  if(isLoadableRegister)
+	    tmpVar << "Uh_3tlbv" ; //tmp loadable bitvector
+	  else
+	    tmpVar << "Uh_3tubv" ; //tmp unpacked bitvector
+	}
+	break;
+      default:
+	abortShouldntGetHere(); //removes assumptions about tmpbitval.
+      };
     tmpVar << ToLeximitedNumber(num);
-
     return tmpVar.str();
   } //getTmpVarAsString
 
@@ -5638,28 +5699,6 @@ namespace MFM {
       localsblock->findNodeNo(n, rtnNode);
     return rtnNode;
   }
-
-  Node * CompilerState::findNodeNoInAncestorsLocalsScope(NNO n, UTI cuti)
-  {
-    Node * rtnNode = NULL;
-    UTI superuti = isClassASubclass(cuti);
-    if(okUTItoContinue(superuti))
-      {
-	SymbolClassName * supcnsym = NULL;
-	AssertBool isDefined = alreadyDefinedSymbolClassNameByUTI(superuti, supcnsym);
-	assert(isDefined);
-	//local def, using (possible) template's local scope
-	if(!rtnNode)
-	  rtnNode = findNodeNoInALocalsScope(supcnsym->getLoc(), n);
-
-	if(!rtnNode)
-	  {
-	    if(isClassASubclass(superuti))
-	      rtnNode = findNodeNoInAncestorsLocalsScope(n, superuti); //recurse
-	  }
-      }
-    return rtnNode;
-  } //findNodeNoInAncestorsLocalsScope
 
   u32 CompilerState::getRegistrationNumberForClassOrLocalsScope(UTI cuti)
   {

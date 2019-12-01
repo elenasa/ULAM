@@ -1,10 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3735_test_compiler_atomreffromsuperquarkrefintransient
 ##
-##   gencode output: (interleaved asserts)
-##	 Unsigned Arg: 3
-##       Unsigned Arg: 3
-##       Unsigned Arg: 3
+##   gencode output: (1 assert)
 ##
 #!
 Exit status: -11
@@ -15,7 +12,7 @@ Uq_Typo(Int(32) a) : Bar { /* empty class block */ }
 Uq_Bar { Unsigned(3) bu( 7u);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
-## informed loosely by 3588
+## informed loosely by 3588 (see also t41363)
 ##
 #>R.ulam
   ulam 2;

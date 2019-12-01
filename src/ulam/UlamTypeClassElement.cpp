@@ -145,7 +145,9 @@ namespace MFM {
 
   TMPSTORAGE UlamTypeClassElement::getTmpStorageTypeForTmpVar()
   {
-    return TMPTATOM; //per array item/per atom-based element
+    if(isScalar())
+      return TMPTATOM; //per array item/per atom-based element
+    return TMPTBV;
   }
 
   const std::string UlamTypeClassElement::castMethodForCodeGen(UTI nodetype)
@@ -321,7 +323,7 @@ namespace MFM {
     //constructor for chain of autorefs (e.g. memberselect with array item)
     m_state.indent(fp);
     fp->write(automangledName.c_str());
-    fp->write("(const UlamRef<EC>& arg, s32 idx, const UlamClass<EC>* effself) : UlamRef<EC>(arg, idx, ");
+    fp->write("(const UlamRef<EC>& arg, s32 incr, const UlamClass<EC>* effself) : UlamRef<EC>(arg, incr, ");
     fp->write_decimal_unsigned(len); //includes arraysize (t3670)
     fp->write("u, effself, ");
     if(!isScalar())

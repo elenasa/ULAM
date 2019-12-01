@@ -1,10 +1,8 @@
 ## -*- mode:ulam -*-
 #=t3793_test_compiler_elementandquark_assignreftosub_error
 #!
-./A.ulam:11:16: ERROR: Cannot explicitly cast Qbase& to type: A.
-./A.ulam:11:5: ERROR: Initial value expression for: apple, initialization is invalid.
-./A.ulam:15:15: ERROR: Cannot explicitly cast Qbase& to type: A.
-./A.ulam:15:12: ERROR: Assignment is invalid; LHS: A; RHS: erroneous.
+./A.ulam:11:5: ERROR: Use explicit cast to convert Qbase& to A for variable initialization.
+./A.ulam:15:12: ERROR: Use explicit cast to convert Qbase& to A for =.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t3756
@@ -20,11 +18,11 @@ element A : QW {
     Qbase& qref = self;
 
     //case 2: (init) genCodeCastAncestorQuarkAsSubElement
-    A apple = (A) qref; //unused var (qref read)
+    A apple = qref; //unused var (qref read)
 
     //case 3: (assign) genCodeCastAncestorQuarkAsSubElement
     A apple2;
-    apple2 = (A) qref; //unused var (qref read)
+    apple2 = qref; //unused var (qref read)
     return 0;
   }
 }

@@ -144,6 +144,8 @@ namespace MFM{
 
     u32 getPtrPos();
 
+    void setPtrLen(s32 len);
+
     s32 getPtrLen();
 
     UTI getPtrTargetType();

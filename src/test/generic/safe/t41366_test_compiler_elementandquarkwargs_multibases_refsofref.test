@@ -1,0 +1,84 @@
+## -*- mode:ulam -*-
+#=t41366_test_compiler_elementandquarkwargs_multibases_refsofref
+##
+##   gencode output:
+##	 Unsigned Arg: 4 (+ 3 asserts)
+##       Unsigned Arg: 7 (+ 1 assert)
+##       Unsigned Arg: 4 (+ 2 asserts)
+#!
+Exit status: 4
+Uq_Typo(Int(32) a) : Bar { Bool(3) spt(false);  :Bar< Unsigned(3) bu( 7u); > <NOMAIN> }
+Uq_Bar { Unsigned(3) bu( 7u);  <NOMAIN> }
+Ue_Eltypo : Typo(1) +Bar { Unsigned(3) first(4u);  Unsigned(3) second(4u);  Typo(1) t( constant Int(32) a = 1;  Bool(3) spt(false);  :Bar< Unsigned(3) bu(7u); >);  :Typo(1)< constant Int(32) a = 1;  Bool(3) spt(false);  :Bar< Unsigned(3) bu(7u); >> +Bar< Unsigned(3) bu(7u); > Int(32) test() {  System s;  Eltypo elf;  Eltypo& elfref = elf cast;  Bar& barref = elfref t . cast;  barref ( 3u cast )func . s ( barref bu . cast )print . s ( barref bu . cast 4 == )assert . self first . barref bu . = s ( elfref t . spt . cast )assert . s ( elfref spt . ! cast )assert . s ( elfref bu . cast )print . s ( elfref bu . cast 7 == )assert . s ( self first . cast )print . s ( self first . cast 4 == )assert . self second . elfref t . bu . = s ( self second . 4u == )assert . self second . cast return } }
+Uq_System { <NOMAIN> }
+##
+## informed by t41364 (and t41363), except elt is a ref instead.
+##
+#:Typo.ulam
+  ulam 5;
+use Bar;
+quark Typo(Int a) : Bar{
+  Bool(3) spt;
+  virtual Void func(Unsigned u)
+  {
+    spt = true;
+    self.Bar.func(u + 1u);
+  }
+}
+
+#:Bar.ulam
+  ulam 2;
+quark Bar
+{
+  Unsigned(3) bu = 7u;
+  virtual Void func(Unsigned u)
+  {
+    bu = (Unsigned(3)) u;
+  }
+}
+
+#>Eltypo.ulam
+  ulam 5;
+use Typo;
+use System;
+element Eltypo : Typo(1) + Bar {
+  Unsigned(3) first;
+  Unsigned(3) second;
+  Typo(1) t;
+
+  Int test(){
+    System s;
+    Eltypo elf;
+    Eltypo& elfref = elf;
+    Bar& barref = elfref.t; //effself is Typo
+
+    barref.func(3u);
+    s.print(barref.bu);
+    s.assert(barref.bu == 4);
+    first = barref.bu; //4u, from 7u
+
+    s.assert(elfref.t.spt);
+    s.assert(!elfref.spt);
+
+    s.print(elfref.bu);
+    s.assert(elfref.bu == 7); //no change
+    s.print(first);
+    s.assert(first == 4);
+    second = elfref.t.bu; //4u, from 7u
+    s.assert(second == 4u);
+    return second;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

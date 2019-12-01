@@ -33,6 +33,7 @@ namespace MFM {
   s32 UlamTypeClass::getBitsizeAsBaseClass()
   {
     assert(isScalar());
+    assert(!isReference()); //t41366
     //assert(m_bitsizeAsBaseClass >= 0); //t3318
     return m_bitsizeAsBaseClass;
   }
@@ -108,7 +109,8 @@ namespace MFM {
 	  {
 	    //even though it may fail at runtime:
 	    //(down)casting fm super to sub..only if fm-ref && to-ref
-	    if(!isfmref || !isAltRefType())
+	    //	    if(!isfmref || !isAltRefType())
+	    if(!isfmref) //only if fm-ref???
 	      scr = CAST_BAD; //t3756, t3757
 	  }
 	else if(m_state.isClassASubclassOf(fmderef, cuti))
@@ -198,11 +200,13 @@ namespace MFM {
       {
 	//when array or ref, the kuti is the scalar/deref uti, the aliasuti is same as cuti;
 	//stubs get here via printPostfix on template classes;
-	assert(isref || !isScalar() || m_state.isClassAStub(cuti) || (aliasuti == kuti)); //sanity:t3363(stub),t3757,t3806 (stub),3814 (array)
+	//sanity:t3363(stub),t3757,t3806 (stub),3814 (array)
+	assert(isref || !isScalar() || m_state.isClassAStub(cuti) || (aliasuti == kuti));
       }
     else
       {
-	assert(isref || !isScalar() || !isComplete() || (cuti == kuti)); //debug:t3862,t41209,t3143,t3327
+	//debug:t3862,t41209,t3143,t3327
+	assert(isref || !isScalar() || !isComplete() || (cuti == kuti));
       }
 #endif
 
@@ -282,6 +286,13 @@ namespace MFM {
     return UlamType::isComplete();
   }
 
+  PACKFIT UlamTypeClass::getPackable()
+  {
+    //if(isCustomArray())
+    //  return m_state.getUlamTypeByIndex(getCustomArrayType())->getPackable(); //t41143
+    return UlamType::getPackable();
+  } //getPackable
+
   const std::string UlamTypeClass::readMethodForCodeGen()
   {
     return "Illiterate";
@@ -341,10 +352,6 @@ namespace MFM {
 
   TMPSTORAGE UlamTypeClass::getTmpStorageTypeForTmpVar()
   {
-    if(isCustomArray())
-      return m_state.getUlamTypeByIndex(getCustomArrayType())->getTmpStorageTypeForTmpVar();
-    if(isReference())
-      return TMPBITVAL; //eg t41302
     return UlamType::getTmpStorageTypeForTmpVar();
   }
 
