@@ -27,7 +27,7 @@
 
 /**
   \file NodeMemberSelect.h -  Node for handling Class Instance Member Selection for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
   \date (C) 2014-2019  All rights reserved.
   \gpl

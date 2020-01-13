@@ -3677,7 +3677,40 @@ namespace MFM {
 	    NodeTypeDescriptor * nextmembertypeNode = parseTypeDescriptor(typeargs, true); //isaclass
 	    assert(nextmembertypeNode);
 
-	    NodeMemberSelect * ms = new NodeMemberSelectByBaseClassType(rtnNode, nextmembertypeNode, m_state);
+	    Node * vtrnNode = NULL;
+	    Token vtrnTok;
+	    getNextToken(vtrnTok);
+	    if(vtrnTok.m_type == TOK_OPEN_SQUARE)
+	      {
+		vtrnNode = parseExpression();
+		if(vtrnNode == NULL)
+		  {
+		    std::ostringstream msg;
+		    msg << "Expecting ClassId for VTtable lookup";
+		    MSG(&vtrnTok, msg.str().c_str(), ERR);
+		    delete rtnNode; //also deletes leftNode
+		    rtnNode = NULL;
+		    delete nextmembertypeNode;
+		    nextmembertypeNode = NULL;
+		    return rtnNode; //NULL
+		  }
+
+		Token eTok; //non quietly, t41294
+		if(!getExpectedToken(TOK_CLOSE_SQUARE, eTok))
+		  {
+		    delete rtnNode; //also deletes leftNode
+		    rtnNode = NULL;
+		    delete nextmembertypeNode;
+		    nextmembertypeNode = NULL;
+		    delete vtrnNode;
+		    vtrnNode = NULL;
+		    return rtnNode; //NULL
+		  }
+	      }
+	    else
+	      unreadToken();
+
+	    NodeMemberSelect * ms = new NodeMemberSelectByBaseClassType(rtnNode, nextmembertypeNode, vtrnNode, m_state);
 	    assert(ms);
 	    ms->setNodeLocation(iTok.m_locator);
 	    rtnNode = ms;

@@ -3005,6 +3005,16 @@ namespace MFM {
     UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
     ULAMCLASSTYPE stgclasstype = stgcosut->getUlamClassType();
     UTI cosuti = cos->getUlamTypeIdx();
+
+    bool cosIsVTableClassOrId = cos->isTmpVarSymbol() && (((SymbolTmpVar *) cos)->isBaseClassRef() || ((SymbolTmpVar *) cos)->isBaseClassRegNum());
+
+    if(m_state.isAPrimitiveType(cosuti))
+      {
+	//primitive cannot own a func, so must be VTtable special case syntax w regid (ulam-5)
+	cos = stgcos;
+	cosuti = stgcosuti;
+      }
+
     bool askEffSelf = askEffectiveSelfAtRuntimeForRelPosOfBase(funcclassarg);
     UTI skipfuncclass = Nouti; //not funcclassarg; consider funcs of a base separately (e.g. t3831)
     //cos precedes .func()
@@ -3186,14 +3196,13 @@ namespace MFM {
 		    hiddenarg2 << "0u, "; //UlamRef extra arg for pos-to-Eff??
 		    hiddenarg2 << stgcos->getMangledName().c_str() << ", &"; //storage
 		    hiddenarg2 << m_state.getTheInstanceMangledNameByIndex(stgcosuti).c_str(); //effself
-		    hiddenarg2 << ", " << genUlamRefUsageAsString(cosuti).c_str(); //usage may change Sat Oct 26 16:12:46 2019
+		    hiddenarg2 << ", " << genUlamRefUsageAsString(stgcosuti).c_str();
 		    hiddenarg2 << ", uc";
-		    hiddenarg2 << "); "; //line wraps
+		    hiddenarg2 << "); "; //line wraps (ugly)
 
 		    //virtual func: 2nd ulamref based on existing stg
-		    // ulamref; no implicit 'self' anymore, hence
-		    // testing "dot-chain" size > 1;
-		    if(m_state.m_currentObjSymbolsForCodeGen.size() > 1)
+		    // ulamref; no implicit 'self' anymore, "dot-chain" size > 1;
+		    if((m_state.m_currentObjSymbolsForCodeGen.size() > 1) && !cosIsVTableClassOrId)
 		      {
 			hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvar).c_str() << "(";
 			hiddenarg2 << m_state.getUlamRefTmpVarAsString(tmpvarstg).c_str() << ", "; //existing
@@ -3203,6 +3212,7 @@ namespace MFM {
 
 			if(!cos->isDataMember())
 			  {
+			    m_state.abortShouldntGetHere();
 			    //e.g. cos is a BaseType: t41307,8,9,10,16,21,27
 			    //virtual func call keeps the eff self of stg,
 			    // unless dm of local stg (e.g. t3804)
