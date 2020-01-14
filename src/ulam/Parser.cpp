@@ -44,6 +44,7 @@
 #include "NodeBlockInvisible.h"
 #include "NodeBreakStatement.h"
 #include "NodeCast.h"
+#include "NodeClassId.h"
 #include "NodeConditionalAs.h"
 #include "NodeConditionalIs.h"
 #include "NodeConstant.h"
@@ -3783,7 +3784,6 @@ namespace MFM {
 	  }
 	else
 	  unreadToken();
-
 	}
 	break;
       case TOK_KW_ATOMOF:
@@ -3806,6 +3806,10 @@ namespace MFM {
 	break;
       case TOK_KW_LENGTHOF:
 	rtnNode = new NodeTerminalProxy(memberNode, utype, fTok, nodetype, m_state);
+	break;
+      case TOK_KW_CLASSID:
+	rtnNode = new NodeClassId(memberNode, nodetype, m_state);
+	rtnNode->setNodeLocation(fTok.m_locator);
 	break;
       default:
 	unreadToken();

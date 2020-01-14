@@ -1,13 +1,13 @@
 ## -*- mode:ulam -*-
 #=t41376_test_compiler_elementandquark_multibases_specificbasevariablevirtualfunccall
 ##
-## gen output:
+## gen output: (+1 assert)
 ##  Int Arg: 510 (+ 4 asserts)
 ##  Int Arg: 16 (+ 2 assert)
 ##
 #!
 Exit status: -11
-Ue_Foo +System { Int(32) m_c4(0);  Int(32) m_a4(0);  +System<> Int(32) test() {  typedef QBase2 QB2;  typedef QBase1 QB1;  E4 e4;  Unsigned(32) qbase1rn = 6 cast;  self m_a4 . e4 QBase1 qbase1rn 1u cast +b .[] ( )vfunca . = self ( self m_a4 . )print . self ( self m_a4 . 510 cast == )assert . self ( e4 m_b1 . )assert . self ( e4 QB2 . m_b1 . )assert . self ( e4 QBaseLast . m_b1 . )assert . self ( e4 m_blast . cast )print . self ( e4 m_blast . 16 cast == )assert . self ( e4 m_b4 . ! )assert . 0 cast return } }
+Ue_Foo +System { Int(32) m_c4(0);  Int(32) m_a4(0);  +System<> Int(32) test() {  typedef QBase2 QB2;  typedef QBase1 QB1;  E4 e4;  Unsigned(32) qbase1rn = QBase1[6];  self ( qbase1rn 6u cast == )assert . self m_a4 . e4 QBase1 qbase1rn 1u cast +b .[] ( )vfunca . = self ( self m_a4 . )print . self ( self m_a4 . 510 cast == )assert . self ( e4 m_b1 . )assert . self ( e4 QB2 . m_b1 . )assert . self ( e4 QBaseLast . m_b1 . )assert . self ( e4 m_blast . cast )print . self ( e4 m_blast . 16 cast == )assert . self ( e4 m_b4 . ! )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 Ue_E4 : QBase3 +QBase2 +QBaseLast { Bool(1) m_b4(false);  typedef QBase2 QB2;  :QBase3< Bool(1) m_b3(false); > +QBase2< Bool(1) m_b2(false);  Bits(1) m_bit(0); > +QBaseLast< Int(7) m_blast(0); > ^QBase1< Bool(1) m_b1(false); > <NOMAIN> }
 Uq_QBase3 : QBase1 { Bool(1) m_b3(false);  :QBase1< Bool(1) m_b1(false); > <NOMAIN> }
@@ -15,7 +15,8 @@ Uq_QBase1 { Bool(1) m_b1(false);  <NOMAIN> }
 Uq_QBaseLast : QBase1 { Int(7) m_blast(0);  :QBase1< Bool(1) m_b1(false); > <NOMAIN> }
 Uq_QBase2 +QBase1 { Bool(1) m_b2(false);  Bits(1) m_bit(0);  +QBase1< Bool(1) m_b1(false); > <NOMAIN> }
 ##
-##       informed by t41321, using variable Regnum for specific class VTtable
+##       informed by t41321, using variable Regnum for specific class VTtable;
+##                           and new .classid.
 ##
 #>Foo.ulam
   ulam 5;
@@ -29,9 +30,11 @@ element Foo +System {
     typedef QBase3.Super QB1;
 
     E4 e4;
-    Unsigned qbase1rn = 6; //might need to run t41321 to verify this RegistrationNumber!
+    Unsigned qbase1rn = QBase1.classid; //non-constant, may also use var or ref
+    assert(qbase1rn==6u); //=6 might need to run t41321 to verify this RegistrationNumber!
+
     //m_a4 = e4.QBaseLast.vfunca(); //explicitly changed
-    m_a4 = e4.QBase1[qbase1rn+1u].vfunca(); //equivalent
+    m_a4 = e4.QBase1[qbase1rn+1u].vfunca(); //equivalent to QBaseLast
     print(m_a4);
     assert(m_a4==510);
 
