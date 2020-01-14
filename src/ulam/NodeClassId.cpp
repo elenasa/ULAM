@@ -4,15 +4,11 @@
 
 namespace MFM {
 
-  NodeClassId::NodeClassId(Node * ofnode, NodeTypeDescriptor * nodetype, CompilerState & state) : NodeStorageof(ofnode, nodetype, state), m_tmpvarSymbol(NULL) { }
+  NodeClassId::NodeClassId(Node * ofnode, NodeTypeDescriptor * nodetype, CompilerState & state) : NodeStorageof(ofnode, nodetype, state) { }
 
-  NodeClassId::NodeClassId(const NodeClassId& ref) : NodeStorageof(ref), m_tmpvarSymbol(NULL) { }
+  NodeClassId::NodeClassId(const NodeClassId& ref) : NodeStorageof(ref) { }
 
-  NodeClassId::~NodeClassId()
-  {
-    delete m_tmpvarSymbol;
-    m_tmpvarSymbol = NULL;
-  }
+  NodeClassId::~NodeClassId() { }
 
   Node * NodeClassId::instantiate()
   {
@@ -21,10 +17,6 @@ namespace MFM {
 
   void NodeClassId::printPostfix(File * fp)
   {
-    std::ostringstream cidstr;
-    cidstr << "[" << getClassId() << "]";
-    u32 cid = m_state.m_pool.getIndexForDataString(cidstr.str());
-
     if(m_nodeOf)
       m_nodeOf->printPostfix(fp);
     else
@@ -32,12 +24,14 @@ namespace MFM {
 	fp->write(" ");
 	fp->write(m_state.getUlamTypeNameBriefByIndex(getOfType()).c_str());
       }
-    fp->write(m_state.m_pool.getDataAsString(cid).c_str());
+    fp->write("[");
+    fp->write_decimal_unsigned(getClassId());
+    fp->write("u]");
   }
 
   const char * NodeClassId::getName()
   {
-    return ".classid";
+    return ".classid"; //for error msgs
   }
 
   const std::string NodeClassId::prettyNodeName()
@@ -54,12 +48,20 @@ namespace MFM {
   u32 NodeClassId::getClassId()
   {
     assert(getNodeType()==Unsigned);
-
     UTI oftype = NodeStorageof::getOfType();
     assert(m_state.okUTItoContinue(oftype));
-
     return m_state.getAClassRegistrationNumber(oftype); //assigned after c&l by culam
   } //getClassId
+
+  u32 NodeClassId::getClassIdAsStringIndex()
+  {
+    u32 cid = getClassId();
+
+    std::ostringstream num;
+    num << cid; //without u
+    u32 cididx = m_state.m_pool.getIndexForDataString(num.str());
+    return cididx; //like NodeTerminal
+  } //getClassIdAsStringId
 
   UTI NodeClassId::checkAndLabelType()
   {
@@ -117,14 +119,13 @@ namespace MFM {
 
   EvalStatus NodeClassId::evalToStoreInto()
   {
-    return Node::evalToStoreInto();
+    return Node::evalToStoreInto(); //stub
   }
 
   void NodeClassId::genCode(File * fp, UVPass& uvpass)
   {
     UTI nuti = getNodeType();
     u32 classid = getClassId();
-
     s32 tmpVarNum = m_state.getNextTmpVarNumber();
     m_state.indentUlamCode(fp);
     fp->write("const ");
@@ -133,31 +134,21 @@ namespace MFM {
     fp->write(m_state.getTmpVarAsString(Unsigned, tmpVarNum, TMPREGISTER).c_str());
     fp->write(" = ");
     fp->write_decimal_unsigned(classid);
-    fp->write(";");
+    fp->write("u;");
     GCNL;
 
     uvpass = UVPass::makePass(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //POS 0 rightjustified (atom-based).
-
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCode
 
-
   void NodeClassId::genCodeToStoreInto(File * fp, UVPass& uvpass)
   {
-    m_state.abortNotImplementedYet(); //when here??? see below..
-
-    //lhs
-    assert(getStoreIntoAble() == TBOOL_TRUE); //not so..why not!
-    genCode(fp, uvpass); //t41085
-
-    //tmp variable becomes the object of the constructor call (t41085)
-    m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, NULL);
-    m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
+    m_state.abortNotImplementedYet(); //when here??? see NodeInstanceof..
   } //genCodeToStoreInto
 
   UlamValue NodeClassId::makeUlamValuePtr()
   {
-    return Node::makeUlamValuePtr();
+    return Node::makeUlamValuePtr(); //stub
   }
 
 } //end MFM

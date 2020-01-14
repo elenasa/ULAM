@@ -4290,59 +4290,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("}\n\n");
   }//genCodeBuiltInVirtualTableStartOffsetHelper
 
-#if 0
-  void NodeBlockClass::genCodeBuildIsBVByRegistrationNumberHelper(File * fp, UTI cuti)
-  {
-    BV8K bitvec;
-    SymbolClass * csym = NULL;
-    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cuti, csym);
-    assert(isDefined);
-    csym->buildIsBitVectorByRegNum(bitvec);
-
-    u32 maxregistry = m_state.getMaxNumberOfRegisteredUlamClasses();
-    assert(maxregistry < MAX_REGISTRY_NUMBER);  //UlamClassRegistry<EC>::TABLE_SIZE
-
-    std::string dhex;
-    SymbolWithValue::getHexValueAsString(maxregistry, bitvec, dhex);
-
-    //build static constant array of u32's for BV8K:
-    m_state.indent(fp);
-    fp->write("static const u32 isbyregnum[(");
-    fp->write_decimal_unsigned(maxregistry);
-    fp->write(" + 31)/32] = { ");
-    fp->write(dhex.c_str());
-    fp->write(" };"); GCNL;
-
-    // declare perfect size BV with constant array of regnumbitvector BV8K
-    m_state.indent(fp);
-    fp->write("static BitVector<");
-    fp->write_decimal_unsigned(maxregistry);
-    fp->write("> m_isbyregnumBV;"); GCNL;
-
-    m_state.indent(fp);
-    fp->write("static bool initdone;\n\n");
-
-    m_state.indent(fp);
-    fp->write("if(!initdone)\n");
-    m_state.indent(fp);
-    fp->write("{\n");
-
-    m_state.m_currentIndentLevel++;
-
-    m_state.indent(fp);
-    fp->write("initdone = true;\n");
-
-    m_state.indent(fp);
-    fp->write("m_isbyregnumBV.FromArray(isbyregnum);"); GCNL;
-
-    m_state.m_currentIndentLevel--;
-
-    m_state.indent(fp);
-    fp->write("}"); GCNL;
-    fp->write("\n");
-  }//genCodeBuiltInIsMethodByRegistrationNumberHelper
-#endif
-
   void NodeBlockClass::generateInternalTypeAccessorsForElement(File * fp, bool declOnly)
   {
     if(declOnly)

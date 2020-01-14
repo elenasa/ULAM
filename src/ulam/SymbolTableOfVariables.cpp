@@ -306,23 +306,6 @@ namespace MFM {
     return;
   } //initializeElementDefaultsForEval
 
-#if 0
-  //replaced with parse tree method to preserve order of declaration
-  void SymbolTableOfVariables::genCodeForTableOfVariableDataMembers(File * fp, ULAMCLASSTYPE classtype)
-  {
-    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
-    while(it != m_idToSymbolPtr.end())
-      {
-	Symbol * sym = it->second;
-	if(!sym->isTypedef() && !sym->isConstant() && sym->isDataMember()) //including model parameters
-	  {
-	    ((SymbolVariable *) sym)->generateCodedVariableDeclarations(fp, classtype);
-	  }
-	it++;
-      }
-  } //genCodeForTableOfVariableDataMembers (unused)
-#endif
-
   void SymbolTableOfVariables::genModelParameterImmediateDefinitionsForTableOfVariableDataMembers(File *fp)
   {
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();

@@ -2,7 +2,7 @@
 #=t41378_test_compiler_elementandquark_multibases_specificbasevariablevirtualfunccall_error
 ##
 #!
-./Foo.ulam:14:33: ERROR: (2) 'vfunca' is not a defined function, or cannot be safely called in this context.
+./Foo.ulam:14:30: ERROR: (2) 'vfunca' is not a defined function, or cannot be safely called in this context.
 ./Foo.ulam:14:10: ERROR: Assignment is invalid; LHS: Int(32); RHS: erroneous.
 Unrecoverable Program Type Label FAILURE.
 ##
@@ -21,9 +21,9 @@ element Foo +System {
     typedef QBase3.Super QB1;
 
     E4 e4;
-    Unsigned qbase1rn = 6; //might need to run t41321 to verify this RegistrationNumber!
+    Unsigned qbase1rn = QBaseLast.classid;
     //m_a4 = e4.QBaseLast.vfunca(); //explicitly changed
-    m_a4 = e4.QBad[qbase1rn+1u].vfunca(); //ERROR!! should be QBase1
+    m_a4 = e4.QBad[qbase1rn].vfunca(); //ERROR!! should be QBase1, not QBad
     print(m_a4);
     assert(m_a4==510);
 

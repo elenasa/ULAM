@@ -65,19 +65,19 @@ namespace MFM{
 
     virtual EvalStatus eval();
 
-    virtual EvalStatus evalToStoreInto();
+    virtual EvalStatus evalToStoreInto(); //stub
 
     virtual void genCode(File * fp, UVPass& uvpass);
 
     virtual void genCodeToStoreInto(File * fp, UVPass& uvpass);
 
   protected:
-    virtual UlamValue makeUlamValuePtr();
+    virtual UlamValue makeUlamValuePtr(); //stub
 
   private:
-    SymbolTmpVar * m_tmpvarSymbol;
-
     u32 getClassId();
+    u32 getClassIdAsStringIndex();
+
   };
 
 }
