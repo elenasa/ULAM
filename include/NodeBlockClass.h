@@ -27,7 +27,7 @@
 
 /**
   \file NodeBlockClass.h - Basic Node for handling Classes for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
   \date (C) 2014-2019 All rights reserved.
   \gpl

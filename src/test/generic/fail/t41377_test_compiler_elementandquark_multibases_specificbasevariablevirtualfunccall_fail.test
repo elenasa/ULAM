@@ -6,7 +6,7 @@
 ##
 #!
 Exit status: -11
-Ue_Foo +System { Int(32) m_c4(0);  Int(32) m_a4(0);  +System<> Int(32) test() {  typedef QBase2 QB2;  typedef QBase1 QB1;  E4 e4;  Unsigned(32) qbase1rn = QBaseLast[6u];  self m_a4 . e4 QBase2 qbase1rn .[] ( )vfunca . = self ( self m_a4 . )print . self ( self m_a4 . 510 cast == )assert . self ( e4 m_b1 . )assert . self ( e4 QB2 . m_b1 . )assert . self ( e4 QBaseLast . m_b1 . )assert . self ( e4 m_blast . cast )print . self ( e4 m_blast . 16 cast == )assert . self ( e4 m_b4 . ! )assert . 0 cast return } }
+Ue_Foo +System { Int(32) m_c4(0);  Int(32) m_a4(0);  +System<> Int(32) test() {  typedef QBase2 QB2;  typedef QBase1 QB1;  E4 e4;  Unsigned(32) qbase1rn = QBaseLast[1u];  self m_a4 . e4 QBase2 qbase1rn .[] ( )vfunca . = self ( self m_a4 . )print . self ( self m_a4 . 510 cast == )assert . self ( e4 m_b1 . )assert . self ( e4 QB2 . m_b1 . )assert . self ( e4 QBaseLast . m_b1 . )assert . self ( e4 m_blast . cast )print . self ( e4 m_blast . 16 cast == )assert . self ( e4 m_b4 . ! )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 Ue_E4 : QBase3 +QBase2 +QBaseLast { Bool(1) m_b4(false);  typedef QBase2 QB2;  :QBase3< Bool(1) m_b3(false); > +QBase2< Bool(1) m_b2(false);  Bits(1) m_bit(0); > +QBaseLast< Int(7) m_blast(0); > ^QBase1< Bool(1) m_b1(false); > <NOMAIN> }
 Uq_QBase3 : QBase1 { Bool(1) m_b3(false);  :QBase1< Bool(1) m_b1(false); > <NOMAIN> }
@@ -29,7 +29,7 @@ element Foo +System {
     typedef QBase3.Super QB1;
 
     E4 e4;
-    Unsigned qbase1rn = QBaseLast.classid;
+    Unsigned qbase1rn = QBaseLast.classidof;
     //m_a4 = e4.QBaseLast.vfunca(); //explicitly changed
     m_a4 = e4.QBase2[qbase1rn].vfunca(); //ERROR!! should be QBase1, not QBase2
     print(m_a4);

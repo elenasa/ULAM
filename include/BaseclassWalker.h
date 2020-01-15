@@ -42,8 +42,6 @@
 
 namespace MFM
 {
-  //  class SymbolClass; //forward
-
   class BaseclassWalker
   {
   public:

@@ -16,7 +16,7 @@ Uq_QBaseLast : QBase1 { Int(7) m_blast(0);  :QBase1< Bool(1) m_b1(false); > <NOM
 Uq_QBase2 +QBase1 { Bool(1) m_b2(false);  Bits(1) m_bit(0);  +QBase1< Bool(1) m_b1(false); > <NOMAIN> }
 ##
 ##       informed by t41376, using variable Regnum for specific class VTtable;
-##                           and new CONSTANT .classid (see t41379)
+##                           and new CONSTANT .classidof (see t41379)
 ##
 #>Foo.ulam
   ulam 5;
@@ -30,8 +30,8 @@ element Foo +System {
     typedef QBase3.Super QB1;
 
     E4 e4;
-    constant Unsigned qbase1rn = QBase1.classid; //constant, may also use var or ref
-    assert(qbase1rn+1u==QBaseLast.classid);
+    constant Unsigned qbase1rn = QBase1.classidof; //constant, may also use var or ref
+    assert(qbase1rn+1u==QBaseLast.classidof);
 
     //m_a4 = e4.QBaseLast.vfunca(); //explicitly changed
     m_a4 = e4.QBase1[qbase1rn+1u].vfunca(); //equivalent to QBaseLast

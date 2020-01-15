@@ -2950,8 +2950,9 @@ namespace MFM {
 	  //assert(cuti == locuti); //not same number
 	  //use pre-assigned registration number in tmp class (ulam-4)
 	  u32 localrn = localsblock->getRegistrationNumberForLocalsBlock(); //modified, so..
+	  cnsym->assignRegistryNumber(localrn);
 	  u32 tmpclassid = cnsym->getRegistryNumber(); //..minor scope, t3852
-	  assert(tmpclassid==localrn);
+	  assert((tmpclassid != UNINITTED_REGISTRY_NUMBER) && (tmpclassid==localrn)); //t41167
 	}
 
 	//populate with NodeConstantDefs clones (ptr to same symbol),

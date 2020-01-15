@@ -67,7 +67,20 @@ namespace MFM {
   {
     fp->write(" ");
     if(isReadyConstant())
-      fp->write(NodeTerminal::getName());
+      {
+	if(m_funcTok.m_type == TOK_KW_CLASSIDOF)
+	  {
+	    if(m_nodeOf)
+	      fp->write(m_nodeOf->getName());
+	    else
+	      fp->write(m_state.getUlamTypeNameBriefByIndex(m_uti).c_str());
+	    fp->write("[");
+	    fp->write(NodeTerminal::getName());
+	    fp->write("]");
+	  }
+	else
+	  fp->write(NodeTerminal::getName());
+      }
     else
       {
 	if(m_nodeOf)
@@ -393,7 +406,6 @@ namespace MFM {
   {
     if(m_funcTok.m_type == TOK_KW_LENGTHOF)
       {
-
 	if(m_nodeOf && m_state.isAStringType(m_uti))
 	  {
 	    //String or String array item (t3933, t3949)
@@ -517,6 +529,24 @@ namespace MFM {
 	    }
 	}
 	break;
+      case TOK_KW_CLASSIDOF:
+	{
+	  if(m_state.isAClass(m_uti))
+	    {
+	      m_constant.uval = m_state.getAClassRegistrationNumber(m_uti);
+	      rtnB = true;
+	    }
+	  else
+	    {
+	      std::ostringstream msg;
+	      msg << "Proxy Type '" << m_funcTok.getTokenString() << "' is not supported ";
+	      msg << "for non-class: ";
+	      msg << m_state.getUlamTypeNameBriefByIndex(m_uti).c_str();
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	      rtnB = false; //not allowed (e.g. primitives..)
+	    }
+	}
+	break;
       default:
 	m_state.abortShouldntGetHere();
 	break;
@@ -532,6 +562,7 @@ namespace MFM {
       {
       case TOK_KW_LENGTHOF:
       case TOK_KW_SIZEOF:
+      case TOK_KW_CLASSIDOF:
 	newType = Unsigned;
 	break;
       case TOK_KW_MAXOF:

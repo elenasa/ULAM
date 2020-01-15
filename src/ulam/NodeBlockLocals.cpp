@@ -156,7 +156,7 @@ namespace MFM {
     if(m_registryNumberLocalsSafe == UNINITTED_REGISTRY_NUMBER)
       {
 	UTI luti = getNodeType();
-	if(m_state.okUTItoContinue(luti) && m_state.isComplete(luti))
+	if(m_state.okUTItoContinue(luti))// && m_state.isComplete(luti))
 	  {
 	    u32 n = m_state.assignClassId(luti);
 	    AssertBool rnset = assignRegistrationNumberToLocalsBlock(n);

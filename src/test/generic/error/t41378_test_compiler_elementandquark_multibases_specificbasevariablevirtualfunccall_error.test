@@ -21,7 +21,7 @@ element Foo +System {
     typedef QBase3.Super QB1;
 
     E4 e4;
-    Unsigned qbase1rn = QBaseLast.classid;
+    Unsigned qbase1rn = QBaseLast.classidof;
     //m_a4 = e4.QBaseLast.vfunca(); //explicitly changed
     m_a4 = e4.QBad[qbase1rn].vfunca(); //ERROR!! should be QBase1, not QBad
     print(m_a4);
