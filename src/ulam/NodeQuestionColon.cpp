@@ -374,7 +374,7 @@ namespace MFM {
 	m_nodeLeft = NULL; //recycling
       }
 
-    AssertBool isSwap = Node::exchangeNodeWithParent(newnode, m_state.getCurrentBlock());
+    AssertBool isSwap = Node::exchangeNodeWithParent(newnode);
     assert(isSwap);
 
     m_state.setGoAgain();

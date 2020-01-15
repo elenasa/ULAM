@@ -384,11 +384,10 @@ namespace MFM {
   }
 
   //common to NodeIdent, NodeTerminalProxy, NodeSquareBracket
-  bool Node::exchangeNodeWithParent(Node * newnode, NodeBlock * currBlock)
+  bool Node::exchangeNodeWithParent(Node * newnode)
   {
     UTI cuti = m_state.getCompileThisIdx(); //for error messages
-    assert(currBlock != NULL); //t41376 now an argument (in NodeIdent, getBlock())
-    //currBlock = m_state.getCurrentBlock(); //in NodeIdent, getBlock())
+    NodeBlock * currBlock = m_state.getCurrentBlock(); //in NodeIdent, getBlock())
 
     NNO pno = Node::getYourParentNo();
 

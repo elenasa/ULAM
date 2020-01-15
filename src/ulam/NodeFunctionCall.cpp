@@ -559,7 +559,7 @@ namespace MFM {
     NodeMemberSelect * newnode = new NodeMemberSelect(explicitself, this, m_state);
     assert(newnode);
 
-    AssertBool swapOk = Node::exchangeNodeWithParent(newnode, m_state.getCurrentBlock());
+    AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
     assert(swapOk);
 
     //redo look-up given explicit self

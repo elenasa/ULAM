@@ -188,7 +188,7 @@ enum EvalStatus {ERROR, NOTREADY, NORMAL, RETURN, BREAK, CONTINUE, UNEVALUABLE};
 
     virtual UTI checkAndLabelType();
 
-    bool exchangeNodeWithParent(Node * newnode, NodeBlock * currBlock);
+    bool exchangeNodeWithParent(Node * newnode);
 
     virtual bool trimToTheElement(Node ** fromleftnode, Node *& rtnnodeptr);
 

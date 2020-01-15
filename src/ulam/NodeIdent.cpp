@@ -422,7 +422,7 @@ namespace MFM {
 	  newnode = new NodeConstantArray(m_token, (SymbolWithValue *) symptr, NULL, m_state);
 	assert(newnode);
 
-	AssertBool swapOk = Node::exchangeNodeWithParent(newnode, getBlock());
+	AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
 	assert(swapOk);
 
 	rtnb = true;
@@ -434,7 +434,7 @@ namespace MFM {
 	NodeModelParameter * newnode = new NodeModelParameter(m_token, (SymbolModelParameterValue*) symptr, NULL, m_state);
 	assert(newnode);
 
-	AssertBool swapOk = Node::exchangeNodeWithParent(newnode, getBlock());
+	AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
 	assert(swapOk);
 
 	rtnb = true;
@@ -556,7 +556,7 @@ namespace MFM {
     assert(newnode);
     NNO newnodeno = newnode->getNodeNo(); //for us after swap
 
-    AssertBool swapOk = Node::exchangeNodeWithParent(newnode, getBlock());
+    AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
     assert(swapOk);
 
     resetNodeNo(newnodeno); //moved before update lineage (t3337)

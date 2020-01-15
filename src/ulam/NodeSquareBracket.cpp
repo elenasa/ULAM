@@ -266,7 +266,7 @@ namespace MFM {
 		  {
 		    //replace node with func call to 'aref' (t41000, t41001)
 		    Node * newnode = buildArefFuncCallNode();
-		    AssertBool swapOk = Node::exchangeNodeWithParent(newnode, m_state.getCurrentBlock());
+		    AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
 		    assert(swapOk);
 
 		    m_nodeRight = NULL; //recycled

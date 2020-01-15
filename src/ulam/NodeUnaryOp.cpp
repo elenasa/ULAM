@@ -143,7 +143,7 @@ namespace MFM {
 	Node * newnode = buildOperatorOverloadFuncCallNode();
 	if(newnode)
 	  {
-	    AssertBool swapOk = Node::exchangeNodeWithParent(newnode, m_state.getCurrentBlock());
+	    AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
 	    assert(swapOk);
 
 	    m_node = NULL; //recycle as memberselect
