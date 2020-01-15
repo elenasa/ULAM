@@ -329,7 +329,7 @@ namespace MFM {
 	  newnode = new NodeConstantClassArray(m_token, (SymbolConstantValue *) symptr, m_nodeTypeDesc, m_state); //t41261
 
 	assert(newnode);
-	AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+	AssertBool swapOk = Node::exchangeNodeWithParent(newnode, getBlock());
 	assert(swapOk);
 
 	m_nodeTypeDesc = NULL; //tfr to new node
@@ -340,7 +340,7 @@ namespace MFM {
 	NodeConstantArray * newnode = new NodeConstantArray(m_token, (SymbolConstantValue *) symptr, m_nodeTypeDesc, m_state);
 	assert(newnode);
 
-	AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+	AssertBool swapOk = Node::exchangeNodeWithParent(newnode, getBlock());
 	assert(swapOk);
 
 	m_nodeTypeDesc = NULL; //tfr to new node
@@ -353,7 +353,7 @@ namespace MFM {
 	NodeModelParameter * newnode = new NodeModelParameter(m_token, (SymbolModelParameterValue*) symptr, m_nodeTypeDesc, m_state);
 	assert(newnode);
 
-	AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+	AssertBool swapOk = Node::exchangeNodeWithParent(newnode, getBlock());
 	assert(swapOk);
 
 	m_nodeTypeDesc = NULL; //tfr to new node

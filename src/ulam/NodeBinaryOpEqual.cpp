@@ -234,7 +234,7 @@ namespace MFM {
 	  }
 	else if(newnode)
 	  {
-	    AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+	    AssertBool swapOk = Node::exchangeNodeWithParent(newnode, m_state.getCurrentBlock());
 	    assert(swapOk);
 
 	    m_nodeLeft = NULL; //recycle as memberselect

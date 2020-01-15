@@ -1796,7 +1796,7 @@ namespace MFM {
       }
   } //testForClassInstances
 
-  void SymbolClassNameTemplate::assignRegistrationNumberForClassInstances(u32& count)
+  void SymbolClassNameTemplate::assignRegistrationNumberForClassInstances()
   {
     std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
     while(it != m_scalarClassArgStringsToSymbolPtr.end())
@@ -1806,7 +1806,8 @@ namespace MFM {
 	UTI suti = csym->getUlamTypeIdx();
 	if(m_state.isComplete(suti))
 	  {
-	    csym->assignRegistryNumber(count++); //this instance
+	    u32 n = csym->getRegistryNumber();
+	    assert(n != UNINITTED_REGISTRY_NUMBER); //sanity
 	  }
 	else
 	  {

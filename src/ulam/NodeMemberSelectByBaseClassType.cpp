@@ -21,6 +21,30 @@ namespace MFM {
     m_tmpvarSymbolVTclassrn = NULL;
   }
 
+  void NodeMemberSelectByBaseClassType::updateLineage(NNO pno)
+  {
+    NodeBinaryOp::updateLineage(pno);
+    if(m_nodeVTclassrn)
+      m_nodeVTclassrn->updateLineage(getNodeNo());
+  }
+
+  bool NodeMemberSelectByBaseClassType::exchangeKids(Node * oldnptr, Node * newnptr)
+  {
+    if(m_nodeVTclassrn == oldnptr)
+      {
+	m_nodeVTclassrn = newnptr;
+	return true;
+      }
+    return NodeBinaryOp::exchangeKids(oldnptr,newnptr);
+  }
+
+  bool NodeMemberSelectByBaseClassType::findNodeNo(NNO n, Node *& foundNode)
+  {
+    if(m_nodeVTclassrn && m_nodeVTclassrn->findNodeNo(n, foundNode))
+      return true;
+    return NodeBinaryOp::findNodeNo(n, foundNode);
+  } //findNodeNo
+
   Node * NodeMemberSelectByBaseClassType::instantiate()
   {
     return new NodeMemberSelectByBaseClassType(*this);

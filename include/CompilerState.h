@@ -2,8 +2,8 @@
 /**                                        -*- mode:C++ -*-
  * CompilerState.h - Global Compiler State for ULAM
  *
- * Copyright (C) 2014-2019 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2019 Ackleyshack LLC.
+ * Copyright (C) 2014-2020 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2020 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -28,9 +28,9 @@
 
 /**
   \file CompilerState.h - Global Compiler State for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2019 All rights reserved.
+  \date (C) 2014-2020 All rights reserved.
   \gpl
 */
 
@@ -155,6 +155,8 @@ namespace MFM{
     std::set<u32> m_unseenClasses; //name id of possible classes (no longer SymbolClassName *)
 
     std::vector<UTI> m_unionRootUTI; //UTI's root UTI to manage holder/aliases
+
+    std::vector<UTI> m_classIdRegistryUTI; //UTI registry index for complete class types (ulam-5)
 
     std::vector<NodeReturnStatement *> m_currentFunctionReturnNodes; //nodes of return nodes in a function; verify type
     UTI m_currentFunctionReturnType;  //used during type labeling to check return types
@@ -584,6 +586,7 @@ namespace MFM{
     u32 getALocalsScopeRegistrationNumber(UTI cuti); //ulam-4
     ELE_TYPE getAClassElementType(UTI cuti); //ulam-4
     ELE_TYPE getNextElementType(); //ulam-4 incrementally
+    u32 assignClassId(UTI cuti);
 
     NodeBlockClass * getAClassBlock(UTI cuti);
     NNO getAClassBlockNo(UTI cuti);
@@ -669,7 +672,6 @@ namespace MFM{
 
   private:
     ClassContextStack m_classContextStack; // the current subject of this compilation
-    u32 m_registeredUlamClassCount; //borrowed from UlamClass in MFM
     ElementTypeGenerator m_elementTypeGenerator; //ulam-4 increment version
 
   };

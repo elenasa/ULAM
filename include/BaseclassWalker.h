@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * BaseclassWalker.h - Traverse a family tree for ULAM
  *
- * Copyright (C) 2019 The Regents of the University of New Mexico.
- * Copyright (C) 2019 Ackleyshack LLC.
+ * Copyright (C) 2019-2020 The Regents of the University of New Mexico.
+ * Copyright (C) 2019-2020 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +27,9 @@
 
 /**
   \file BaseclassWalker.h -  Traverse a family tree for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2019 All rights reserved.
+  \date (C) 2019-2020 All rights reserved.
   \gpl
 */
 
@@ -42,7 +42,8 @@
 
 namespace MFM
 {
-  class SymbolClass; //forward
+  //  class SymbolClass; //forward
+
   class BaseclassWalker
   {
   public:

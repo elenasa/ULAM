@@ -1011,9 +1011,18 @@ namespace MFM {
     return m_elementType;
   }
 
-  u32 SymbolClass::getRegistryNumber() const
+  u32 SymbolClass::getRegistryNumber()
   {
-    assert(m_registryNumber != UNINITTED_REGISTRY_NUMBER);
+    if(m_registryNumber == UNINITTED_REGISTRY_NUMBER)
+      {
+	UTI suti = getUlamTypeIdx();
+	if(m_state.okUTItoContinue(suti) && m_state.isComplete(suti))
+	  {
+	    u32 n = m_state.assignClassId(suti);
+	    AssertBool rnset = assignRegistryNumber(n);
+	    assert(rnset);
+	  }
+      }
     return m_registryNumber;
   }
 

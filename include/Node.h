@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * Node.h - Basic Node of Nodes for ULAM
  *
- * Copyright (C) 2014-2019 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2019 Ackleyshack LLC.
+ * Copyright (C) 2014-2020 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2020 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +27,9 @@
 
 /**
   \file Node.h - Basic Node of Nodes for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2019 All rights reserved.
+  \date (C) 2014-2020 All rights reserved.
   \gpl
 */
 
@@ -54,12 +54,13 @@
 
 namespace MFM{
 
-  enum EVALS { EVAL_RHS, EVAL_LHS, EVAL_SIDEEFFECTS};
-  enum EvalStatus {ERROR, NOTREADY, NORMAL, RETURN, BREAK, CONTINUE, UNEVALUABLE};
+enum EVALS { EVAL_RHS, EVAL_LHS, EVAL_SIDEEFFECTS};
+enum EvalStatus {ERROR, NOTREADY, NORMAL, RETURN, BREAK, CONTINUE, UNEVALUABLE};
 
   struct CompilerState; //forward
   struct TypeArgs; //forward
   class NodeFunctionCall; //forward
+  class NodeBlock; //forward
 
   class Node
   {
@@ -187,7 +188,7 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
-    virtual bool exchangeNodeWithParent(Node * newnode);
+    bool exchangeNodeWithParent(Node * newnode, NodeBlock * currBlock);
 
     virtual bool trimToTheElement(Node ** fromleftnode, Node *& rtnnodeptr);
 

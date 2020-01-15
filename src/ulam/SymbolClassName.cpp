@@ -406,9 +406,10 @@ namespace MFM {
     SymbolClass::testThisClass(fp);
   } //testForClassInstances
 
-  void SymbolClassName::assignRegistrationNumberForClassInstances(u32& count)
+  void SymbolClassName::assignRegistrationNumberForClassInstances()
   {
-    SymbolClass::assignRegistryNumber(count++);
+    u32 n = SymbolClass::getRegistryNumber();
+    assert(n != UNINITTED_REGISTRY_NUMBER); //sanity
   } //assignRegistrationNumberForClassInstances
 
   void SymbolClassName::generateCodeForClassInstances(FileManager * fm)

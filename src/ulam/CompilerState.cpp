@@ -127,11 +127,13 @@ namespace MFM {
     "*/\n\n";
 
   //use of this in the initialization list seems to be okay;
-  CompilerState::CompilerState(): m_linesForDebug(false), m_programDefST(*this), m_parsingLocalDef(false), m_parsingFUNCid(0), m_parsingVariableSymbolTypeFlag(STF_NEEDSATYPE), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_pendingArgStubContext(0), m_pendingArgTypeStubContext(0), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0), m_urSelfUTI(Nouti), m_emptyElementUTI(Nouti), m_registeredUlamClassCount(0)
+  CompilerState::CompilerState(): m_linesForDebug(false), m_programDefST(*this), m_parsingLocalDef(false), m_parsingFUNCid(0), m_parsingVariableSymbolTypeFlag(STF_NEEDSATYPE), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_pendingArgStubContext(0), m_pendingArgTypeStubContext(0), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0), m_urSelfUTI(Nouti), m_emptyElementUTI(Nouti)
   {
+    m_classIdRegistryUTI.push_back(0); //initialize 0 for UrSelf
     m_err.init(this, debugOn, infoOn, noteOn, warnOn, waitOn, NULL);
     Token::initTokenMap(*this);
     //m_constantStack.addFrameSlots(1); //initialize for incremental update; init instead.
+
   }
 
   CompilerState::~CompilerState()
@@ -160,6 +162,8 @@ namespace MFM {
     m_currentFunctionReturnNodes.clear();
 
     m_unionRootUTI.clear(); //aliasUTIs
+
+    m_classIdRegistryUTI.clear();
 
     m_unseenClasses.clear();
   } //clearAllDefinedUlamTypes
@@ -1862,7 +1866,6 @@ namespace MFM {
       }
   }
 
-
   void CompilerState::mergeClassUTI(UTI olduti, UTI cuti)
   {
     UlamKeyTypeSignature key1 = getUlamKeyTypeSignatureByIndex(olduti);
@@ -2894,13 +2897,14 @@ namespace MFM {
 
   u32 CompilerState::getMaxNumberOfRegisteredUlamClasses()
   {
-    return m_registeredUlamClassCount;
+    return m_classIdRegistryUTI.size();
   }
 
   void CompilerState::defineRegistrationNumberForUlamClasses()
   {
-    m_registeredUlamClassCount = m_programDefST.defineRegistrationNumberForTableOfClasses();
-    defineRegistrationNumberForLocals(); //updates m_registeredUlamClassCount
+    //post c&l, fill in those that are missing..
+    m_programDefST.defineRegistrationNumberForTableOfClasses();
+    defineRegistrationNumberForLocals();
   }
 
   void CompilerState::defineRegistrationNumberForLocals()
@@ -2910,7 +2914,7 @@ namespace MFM {
       {
 	NodeBlockLocals * localsblock = it->second;
 	assert(localsblock);
-	localsblock->assignRegistrationNumberToLocalsBlock(m_registeredUlamClassCount++);
+	localsblock->getRegistrationNumberForLocalsBlock();
       }
   }
 
@@ -2943,9 +2947,11 @@ namespace MFM {
 	assert(isReplaced);
 
 	{
+	  //assert(cuti == locuti); //not same number
 	  //use pre-assigned registration number in tmp class (ulam-4)
-	  u32 tmpLocalsRegNum = localsblock->getRegistrationNumberForLocalsBlock(); //modified, so..
-	  cnsym->assignRegistrationNumberForClassInstances(tmpLocalsRegNum); //..minor scope
+	  u32 localrn = localsblock->getRegistrationNumberForLocalsBlock(); //modified, so..
+	  u32 tmpclassid = cnsym->getRegistryNumber(); //..minor scope, t3852
+	  assert(tmpclassid==localrn);
 	}
 
 	//populate with NodeConstantDefs clones (ptr to same symbol),
@@ -5742,6 +5748,17 @@ namespace MFM {
   {
     return m_elementTypeGenerator.makeNextType();
   }
+
+  u32 CompilerState::assignClassId(UTI cuti)
+  {
+    if(isUrSelf(cuti))
+      {
+	m_classIdRegistryUTI[0] = cuti;  //assigned at last
+	return 0;
+      }
+    m_classIdRegistryUTI.push_back(cuti);
+    return m_classIdRegistryUTI.size() - 1;
+  } //assignClassId
 
   NodeBlockClass * CompilerState::getAClassBlock(UTI cuti)
   {

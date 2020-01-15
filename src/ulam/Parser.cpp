@@ -3695,6 +3695,7 @@ namespace MFM {
 		    nextmembertypeNode = NULL;
 		    return rtnNode; //NULL
 		  }
+		vtrnNode->setNodeLocation(vtrnTok.m_locator); //t41376
 
 		Token eTok; //non quietly, t41294
 		if(!getExpectedToken(TOK_CLOSE_SQUARE, eTok))

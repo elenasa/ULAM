@@ -486,6 +486,8 @@ namespace MFM {
 	    msg << ": ";
 	    msg << m_state.m_pool.getDataAsString(m_cid).c_str();
 	    msg << ", is not a constant";
+	    if(m_constSymbol && m_state.isAClass(suti))
+	      msg << "; Suggest '= {};' for default values"; //t41300
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //t3893 wrong loc!!
 	    setNodeType(Nav);
 	    return Nav; //short-circuit (error/t3453) after possible empty array init is deleted (t41202)

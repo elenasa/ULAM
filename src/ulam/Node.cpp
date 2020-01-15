@@ -1,6 +1,7 @@
 #include <iostream>
 #include "Node.h"
 #include "CompilerState.h"
+#include "NodeBlock.h"
 #include "NodeBlockFunctionDefinition.h"
 #include "NodeFunctionCall.h"
 #include "NodeIdent.h"
@@ -383,10 +384,11 @@ namespace MFM {
   }
 
   //common to NodeIdent, NodeTerminalProxy, NodeSquareBracket
-  bool Node::exchangeNodeWithParent(Node * newnode)
+  bool Node::exchangeNodeWithParent(Node * newnode, NodeBlock * currBlock)
   {
     UTI cuti = m_state.getCompileThisIdx(); //for error messages
-    NodeBlock * currBlock = m_state.getCurrentBlock(); //in NodeIdent, getBlock();
+    assert(currBlock != NULL); //t41376 now an argument (in NodeIdent, getBlock())
+    //currBlock = m_state.getCurrentBlock(); //in NodeIdent, getBlock())
 
     NNO pno = Node::getYourParentNo();
 

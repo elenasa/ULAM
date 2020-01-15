@@ -719,6 +719,18 @@ namespace MFM {
     // check that a 'alengthof' function returns Unsigned (ulam convention)
     checkCustomArrayLengthofFunctionReturnType();
 
+#if 0
+    UTI nuti = getNodeType();
+    if(m_state.okUTItoContinue(nuti) && m_state.isComplete(nuti))
+      {
+	u32 regnum = m_state.getAClassRegistrationNumber(nuti);
+	std::ostringstream msg;
+	msg << "ClassId for '";
+	msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+	msg << "' (UTI " << nuti << ") is: " << regnum;
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+      }
+#endif
     // type already set during parsing
     return getNodeType();
   } //checkAndLabelType

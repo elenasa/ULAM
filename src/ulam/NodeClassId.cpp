@@ -39,6 +39,19 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
+  bool NodeClassId::isAConstant()
+  {
+    //    if(m_nodeOf)
+    //  return m_nodeOf->isAConstant();
+    //else
+    return true; //for class type
+  }
+
+  bool NodeClassId::isReadyConstant()
+  {
+    return true;
+  }
+
   FORECAST NodeClassId::safeToCastTo(UTI newType)
   {
     UTI nuti = getNodeType(); //UAtom for references; ow type of class/atom
