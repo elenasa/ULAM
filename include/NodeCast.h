@@ -27,7 +27,7 @@
 
 /**
   \file NodeCast.h - Basic Node for handling Type Casting for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
   \date (C) 2014-2019 All rights reserved.
   \gpl

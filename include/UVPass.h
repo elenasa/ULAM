@@ -27,7 +27,7 @@
 
 /**
   \file UVPass.h -  Basic handling of Passing Tmp Variables for ULAM Code Gen
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
   \date (C) 2016-2019 All rights reserved.
   \gpl

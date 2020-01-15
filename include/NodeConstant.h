@@ -27,7 +27,7 @@
 
 /**
   \file NodeConstant.h - Node handling Named Constants for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
   \date (C) 2015-2019 All rights reserved.
   \gpl

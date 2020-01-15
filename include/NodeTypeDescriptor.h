@@ -27,7 +27,7 @@
 
 /**
   \file NodeTypeDescriptor.h - Basic Node Type descriptor for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
   \date (C) 2015-2018 All rights reserved.
   \gpl

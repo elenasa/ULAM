@@ -28,7 +28,7 @@
 
 /**
   \file NodeSquareBracket.h - Basic Node for handling Array Subscripts for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
   \date (C) 2014-2018  All rights reserved.
   \gpl

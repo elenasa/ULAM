@@ -27,7 +27,7 @@
 
 /**
   \file TestCase.h -  Basic handling of Test Cases for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
   \date (C) 2014-2017 All rights reserved.
   \gpl

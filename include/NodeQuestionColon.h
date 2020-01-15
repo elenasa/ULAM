@@ -27,7 +27,7 @@
 
 /**
   \file NodeQuestionColon.h - Question Colon Expression Node for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
   \date (C) 2017-2019 All rights reserved.
   \gpl

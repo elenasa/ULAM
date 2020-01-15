@@ -27,7 +27,7 @@
 
 /**
   \file NodeBinaryOpEqualArithPreDecr.h - Node for handling Plus Equal for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
   \date (C) 2017 All rights reserved.
   \gpl

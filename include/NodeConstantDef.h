@@ -27,7 +27,7 @@
 
 /**
   \file NodeConstantDef.h - Node handling Constant Definition for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
   \date (C) 2015-2019 All rights reserved.
   \gpl

@@ -27,7 +27,7 @@
 
 /**
   \file NodeMemberSelectOnConstructionCall.h -  Node for handling Class Constructor Member Selection for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
   \date (C) 2017  All rights reserved.
   \gpl
