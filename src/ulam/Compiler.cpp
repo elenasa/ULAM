@@ -132,6 +132,7 @@ namespace MFM {
 
     if(!perrs)
       {
+	m_state.defineClassNamesAsUserStrings(); //ulam-5
 	m_state.generateCodeForUlamClasses(outfm);
 	perrs = m_state.m_err.getErrorCount();
 	if(perrs > 0)

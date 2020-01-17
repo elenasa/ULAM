@@ -927,6 +927,7 @@ namespace MFM {
     return args.str();
   } //formatAnInstancesArgValuesAsCommaDelimitedString
 
+#if 0
   std::string SymbolClassNameTemplate::generateUlamClassSignature()
   {
     std::ostringstream sig;
@@ -957,6 +958,122 @@ namespace MFM {
     m_state.popClassContext(); //restore
     return sig.str();
   } //generateUlamClassSignature
+#endif
+
+  void SymbolClassNameTemplate::generatePrettyNameAndSignatureOfClassInstancesAsUserStrings()
+  {
+    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
+    while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
+      {
+	SymbolClass * csym = it->second;
+	UTI cuti = csym->getUlamTypeIdx();
+
+	assert(cuti != getUlamTypeIdx()); //no template
+
+	if(!csym->isStub())
+	  {
+	    m_state.m_upool.getIndexForDataString(generatePrettyNameOrSignature(cuti, true, false)); //do instance signature only
+	    m_state.m_upool.getIndexForDataString(generatePrettyNameOrSignature(cuti, true, true)); //do instance fancy signature
+	    m_state.m_upool.getIndexForDataString(generatePrettyNameOrSignature(cuti, false, true)); //do instance simple name
+	  }
+	else
+	  {
+	    NodeBlockClass * classNode = csym->getClassBlockNode();
+	    assert(classNode);
+
+	    std::ostringstream msg;
+	    msg << " Class instance '";
+	    msg << m_state.getUlamTypeNameByIndex(cuti).c_str();
+	    msg << "' is still a stub; No pretty name error";
+	    MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	  }
+	it++;
+      }
+  } //generatePrettyNameAndSignatureOfClassInstancesAsUserStrings
+
+  std::string SymbolClassNameTemplate::generatePrettyNameOrSignature(UTI instance, bool signa, bool argvals)
+  {
+    u32 pcnt = 0;
+    std::ostringstream sig;
+
+    SymbolClass * csym = NULL;
+    if(findClassInstanceByUTI(instance,csym))
+      {
+	NodeBlockClass * classNode = csym->getClassBlockNode();
+	assert(classNode);
+	m_state.pushClassContext(csym->getUlamTypeIdx(), classNode, classNode, false, NULL);
+
+	sig << m_state.m_pool.getDataAsString(getId()).c_str(); //class name
+	sig << "(";
+
+	//format parameters type and name and value into stream
+	std::vector<SymbolConstantValue *>::iterator pit = m_parameterSymbols.begin();
+	while(pit != m_parameterSymbols.end())
+	  {
+	    SymbolConstantValue * psym = *pit;
+	    assert(psym->isClassParameter());
+
+	    if(pcnt > 0)
+	      sig << ",";
+
+	    //get 'instance's arg value
+	    bool isok = false;
+	    Symbol * asym = NULL;
+	    bool hazyKin = false; //don't care
+	    AssertBool isDefined = m_state.alreadyDefinedSymbol(psym->getId(), asym, hazyKin);
+	    assert(isDefined);
+	    UTI auti = asym->getUlamTypeIdx();
+	    UlamType * aut = m_state.getUlamTypeByIndex(auti);
+
+	    if(signa)
+	      {
+		sig << m_state.getUlamTypeNameBriefByIndex(asym->getUlamTypeIdx()).c_str();
+		sig << " " << m_state.m_pool.getDataAsString(asym->getId()).c_str(); //param name
+	      }
+
+	    if(argvals)
+	      {
+		if(signa)
+		  sig << "=";
+
+		if(aut->isComplete())
+		  {
+		    if(!aut->isScalar())
+		      {
+			std::string arrvalstr;
+			if((isok = ((SymbolConstantValue *) asym)->getArrayValueAsString(arrvalstr)))
+			  sig << arrvalstr;  //lex'd array of u32's
+		      }
+		    else if(m_state.isAClass(auti))
+		      {
+			std::string ccvalstr;
+			if((isok = ((SymbolConstantValue *)asym)->getValueAsHexString(ccvalstr)))
+			  sig << "0x" << ccvalstr; //t41209
+		      }
+		    else
+		      {
+			std::string valstr;
+			if((isok = ((SymbolConstantValue *) asym)->getScalarValueAsString(valstr)))
+			  sig << valstr;    //pretty
+		      } //isscalar
+		  } //iscomplete
+
+		if(!isok)
+		  {
+		    sig << "BAD_VALUE";
+		  }
+	      } //argvals
+
+	    pcnt++;
+	    pit++;
+	  } //next param
+
+	sig << ")";
+
+	m_state.popClassContext(); //restore
+      }
+    return sig.str();
+  } //generatePrettyName
 
   bool SymbolClassNameTemplate::hasInstanceMappedUTI(UTI instance, UTI auti, UTI& mappedUTI)
   {

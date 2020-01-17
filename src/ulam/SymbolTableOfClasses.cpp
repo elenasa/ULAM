@@ -661,6 +661,29 @@ namespace MFM {
     return;
   } //defineRegistrationNumberForTableOfClasses
 
+  void SymbolTableOfClasses::defineClassNamesAsUserStringsForTableOfClasses()
+  {
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	assert(sym->isClass());
+	UTI cuti = sym->getUlamTypeIdx();
+	//skip anonymous classes
+	if(!m_state.isAnonymousClass(cuti) && m_state.isASeenClass(cuti))
+	  {
+	    //if not already, add 3 class names for this class to GlobalStringPool:
+	    // mangled, signature, pretty & full
+	    UlamType * cut = m_state.getUlamTypeByIndex(cuti);
+	    m_state.m_upool.getIndexForDataString(cut->getUlamTypeMangledName());
+
+	    ((SymbolClassName *) sym)->generatePrettyNameAndSignatureOfClassInstancesAsUserStrings();
+	  }
+	it++;
+      } //while
+    return;
+  } //defineClassNamesAsUserStringsForTableOfClasses
+
   void SymbolTableOfClasses::genCodeForTableOfClasses(FileManager * fm)
   {
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();

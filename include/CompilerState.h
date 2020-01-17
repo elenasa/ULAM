@@ -168,7 +168,6 @@ namespace MFM{
 
     std::vector<Symbol *> m_currentObjSymbolsForCodeGen;  //used in code generation;
     Symbol * m_currentSelfSymbolForCodeGen; //used in code gen; parallels m_currentSelf
-    //bool m_gencodingAVirtualFunctionDefinedInAQuark; //uses less efficient read/write without POS template arg (unused)
     UTI m_gencodingAVirtualFunctionInThisOriginatingClass; //helps determine relpos of dm variable; Nouti if non-virtual
 
     u32 m_currentIndentLevel; //used in code generation: func def, blocks, control body
@@ -403,6 +402,7 @@ namespace MFM{
     void defineRegistrationNumberForUlamClasses(); //ulam-4
     void defineRegistrationNumberForLocals(); //ulam-4
 
+    void defineClassNamesAsUserStrings(); //ulam-5
     void generateCodeForUlamClasses(FileManager * fm);
     void generateUlamClassForLocals(FileManager * fm);
 

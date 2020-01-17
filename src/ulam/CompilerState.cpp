@@ -2918,6 +2918,12 @@ namespace MFM {
       }
   }
 
+  void CompilerState::defineClassNamesAsUserStrings()
+  {
+    //post c&l, 3 names per class accessible to ulam programmer (locals?)
+    m_programDefST.defineClassNamesAsUserStringsForTableOfClasses();
+  }
+
   void CompilerState::generateCodeForUlamClasses(FileManager * fm)
   {
     m_programDefST.genCodeForTableOfClasses(fm);
