@@ -277,6 +277,11 @@ namespace MFM{
     void genCodeBuiltInFunctionGetOrderedBaseClass(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
     void generateBuiltInFunctionGetOrderedBaseClassEntry(File * fp); //helper
 
+
+    void genCodeBuiltInFunctionIsDirectBaseClass(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
+    void genCodeBuiltInFunctionIsDirectBaseClassByRegistrationNumber(File * fp); //helper
+
+
     void genCodeBuiltInFunctionGetClassLength(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
     void genCodeBuiltInFunctionGetClassRegistrationNumber(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
     void genCodeBuiltInFunctionGetElementType(File * fp, bool declOnly, ULAMCLASSTYPE classtype);

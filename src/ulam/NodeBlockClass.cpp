@@ -3125,6 +3125,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     genCodeBuiltInFunctionNumberOfBases(fp, declOnly, classtype);
     genCodeBuiltInFunctionNumberOfDirectBases(fp, declOnly, classtype);
     genCodeBuiltInFunctionGetOrderedBaseClass(fp, declOnly, classtype);
+    genCodeBuiltInFunctionIsDirectBaseClass(fp, declOnly, classtype);
+
 
     // 'is' is only for element/classes
     if(classtype == UC_ELEMENT)
@@ -3661,6 +3663,129 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       } //end while
     return;
   } //generateBuiltInFunctionGetOrderedBaseClassEntry (helper)
+
+  void NodeBlockClass::genCodeBuiltInFunctionIsDirectBaseClass(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
+  {
+    if(classtype == UC_LOCALSFILESCOPE) return;
+
+    UTI cuti = m_state.getCompileThisIdx();
+
+    if(declOnly)
+      {
+	m_state.indent(fp);
+	fp->write("bool IsDirectBaseClass");
+	fp->write("(const u32 regid) const;"); GCNL; //overloade
+	fp->write("\n");
+	return;
+      }
+
+    m_state.indent(fp);
+    fp->write("template<class EC>\n"); //same for elements and quarks
+
+    m_state.indent(fp);
+    fp->write("bool ");
+
+    //include the mangled class::
+    fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
+    fp->write("<EC>::");
+    fp->write("IsDirectBaseClass(const u32 regid) const\n");
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+
+    m_state.indent(fp);
+    fp->write("switch(regid)\n");
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+
+    //cases:
+    genCodeBuiltInFunctionIsDirectBaseClassByRegistrationNumber(fp);
+
+    m_state.indent(fp);
+    fp->write("default: ;\n");
+
+    m_state.m_currentIndentLevel--;
+
+    m_state.indent(fp);
+    fp->write("}; //end switch"); GCNL;
+    fp->write("\n");
+
+    m_state.indent(fp);
+    fp->write("FAIL(ILLEGAL_ARGUMENT); //unrelated"); GCNL;
+
+    m_state.indent(fp);
+    fp->write("return ");
+    fp->write("(false); //for compiler"); GCNL;
+
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("} //IsDirectBaseClass\n\n");
+  } //genCodeBuiltInFunctionIsDirectBaseClass
+
+  void NodeBlockClass::genCodeBuiltInFunctionIsDirectBaseClassByRegistrationNumber(File * fp)
+  {
+    UTI nuti = getNodeType();
+
+    SymbolClass * csym = NULL;
+    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(nuti, csym);
+    assert(isDefined);
+
+    //build temporary map to output switch in regnum order
+    std::map<u32, u32> tmpmapbyrn;
+
+    u32 myregnum = m_state.getAClassRegistrationNumber(nuti);
+    tmpmapbyrn.insert(std::pair<u32, u32>(myregnum, 0));
+
+    u32 basecount = csym->getSharedBaseClassCount();
+    u32 j = 0;
+    while(j < basecount)
+      {
+	UTI baseuti = csym->getSharedBaseClass(j); //unordered
+	//skip the ancestor of a template
+	if((baseuti != Nouti))
+	  {
+	    u32 regnum = m_state.getAClassRegistrationNumber(baseuti);
+	    tmpmapbyrn.insert(std::pair<u32, u32>(regnum,j + 1));
+	  }
+	j++;
+      } //end while
+
+    //ulam-5 supports multiple base classes; superclass optional
+    std::map<u32, u32>::iterator it;
+    for(it = tmpmapbyrn.begin(); it != tmpmapbyrn.end(); it++)
+      {
+	u32 regnum = it->first;
+	u32 k = it->second;
+	if(k == 0)
+	  {
+	    m_state.indent(fp);
+	    fp->write("case ");
+	    fp->write_decimal_unsigned(myregnum);
+	    fp->write(": return (false); //");
+	    fp->write(m_state.getUlamTypeNameBriefByIndex(nuti).c_str());
+	    fp->write(" (self) ");
+	    GCNL;
+	  }
+	else
+	  {
+	    k--;
+	    UTI baseuti = csym->getSharedBaseClass(k); //unordered
+	    bool isdirectbase = csym->isDirectSharedBase(k);
+	    m_state.indent(fp);
+	    fp->write("case ");
+	    fp->write_decimal_unsigned(regnum);
+	    if(isdirectbase)
+	      fp->write(": return (true); //direct,");
+	    else
+	      fp->write(": return (false); //shared,");
+	    fp->write(m_state.getUlamTypeNameBriefByIndex(baseuti).c_str());
+	    fp->write("\n");
+	  }
+      } //forloop
+  } //genCodeBuiltInFunctionIsDirectBaseClassByRegistrationNumber (helper)
 
   void NodeBlockClass::genCodeBuiltInFunctionGetClassLength(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
