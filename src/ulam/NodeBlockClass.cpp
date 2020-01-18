@@ -3714,11 +3714,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("\n");
 
     m_state.indent(fp);
-    fp->write("FAIL(ILLEGAL_ARGUMENT); //unrelated"); GCNL;
-
-    m_state.indent(fp);
     fp->write("return ");
-    fp->write("(false); //for compiler"); GCNL;
+    fp->write("(false); //unrelated"); GCNL;
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
@@ -3773,7 +3770,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	  {
 	    k--;
 	    UTI baseuti = csym->getSharedBaseClass(k); //unordered
-	    bool isdirectbase = csym->isDirectSharedBase(k);
+	    s32 bitem = csym->isABaseClassItem(baseuti);
+	    bool isdirectbase = (bitem >= 0);
 	    m_state.indent(fp);
 	    fp->write("case ");
 	    fp->write_decimal_unsigned(regnum);
