@@ -450,6 +450,31 @@ namespace MFM {
 		    tok.init(ttype, firstloc, 0);
 		    return 0;
 		  }
+		else if(ttype == TOK_KW_FLAG_INSERTCLASS)
+		  {
+		    tok.init(ttype, firstloc, 0);
+		    return 0;
+		  }
+		else if(ttype == TOK_KW_FLAG_INSERTCLASSSIGNATURE)
+		  {
+		    tok.init(ttype, firstloc, 0);
+		    return 0;
+		  }
+		else if(ttype == TOK_KW_FLAG_INSERTCLASSNAMEPRETTY)
+		  {
+		    tok.init(ttype, firstloc, 0);
+		    return 0;
+		  }
+		else if(ttype == TOK_KW_FLAG_INSERTCLASSNAMESIMPLE)
+		  {
+		    tok.init(ttype, firstloc, 0);
+		    return 0;
+		  }
+		else if(ttype == TOK_KW_FLAG_INSERTCLASSNAMEMANGLED)
+		  {
+		    tok.init(ttype, firstloc, 0);
+		    return 0;
+		  }
 		// else not defined..fall thru
 	      }
 	  }

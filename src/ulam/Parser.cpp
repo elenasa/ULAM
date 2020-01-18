@@ -4011,6 +4011,26 @@ namespace MFM {
 	    }
 	}
 	break;
+      case TOK_KW_FLAG_INSERTCLASS:
+	{
+	  u32 cid = m_state.getCompileThisId();
+	  std::string cname = m_state.m_pool.getDataAsString(cid);
+	  u32 stringidx = m_state.formatAndGetIndexForDataUserString(cname);
+	  rtnNode = new NodeTerminal((u64) stringidx, String, m_state);
+	  assert(rtnNode);
+	  rtnNode->setNodeLocation(pTok.m_locator);
+	  rtnNode = parseRestOfFactor(rtnNode); //supports [] after
+	}
+	break;
+      case TOK_KW_FLAG_INSERTCLASSSIGNATURE:
+      case TOK_KW_FLAG_INSERTCLASSNAMESIMPLE:
+      case TOK_KW_FLAG_INSERTCLASSNAMEPRETTY:
+      case TOK_KW_FLAG_INSERTCLASSNAMEMANGLED:
+	{
+	  UTI cuti = m_state.getCompileThisIdx();
+	  rtnNode = new NodeTerminalProxy(NULL, cuti, pTok, NULL, m_state);
+	}
+	break;
       case TOK_NUMBER_FLOAT:
 	{
 	  std::ostringstream msg;
@@ -4537,6 +4557,11 @@ Node * Parser::wrapFactor(Node * leftNode)
       case TOK_NUMBER_FLOAT:
       case TOK_OPEN_PAREN:
       case TOK_KW_FLAG_INSERTFUNC:
+      case TOK_KW_FLAG_INSERTCLASS:
+      case TOK_KW_FLAG_INSERTCLASSSIGNATURE:
+      case TOK_KW_FLAG_INSERTCLASSNAMESIMPLE:
+      case TOK_KW_FLAG_INSERTCLASSNAMEPRETTY:
+      case TOK_KW_FLAG_INSERTCLASSNAMEMANGLED:
 	rtnNode = parseFactor();
 	rtnNode = parseRestOfFactor(rtnNode);
 	break;

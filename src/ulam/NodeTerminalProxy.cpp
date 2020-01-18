@@ -531,19 +531,57 @@ namespace MFM {
 	break;
       case TOK_KW_CLASSIDOF:
 	{
-	  if(m_state.isAClass(m_uti))
+	  if((rtnB = checkForClassType()))
 	    {
 	      m_constant.uval = m_state.getAClassRegistrationNumber(m_uti);
-	      rtnB = true;
 	    }
-	  else
+	  break;
+	}
+      case TOK_KW_FLAG_INSERTCLASSSIGNATURE:
+	{
+	  if((rtnB = checkForClassType()))
 	    {
-	      std::ostringstream msg;
-	      msg << "Proxy Type '" << m_funcTok.getTokenString() << "' is not supported ";
-	      msg << "for non-class: ";
-	      msg << m_state.getUlamTypeNameBriefByIndex(m_uti).c_str();
-	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	      rtnB = false; //not allowed (e.g. primitives..)
+	      u32 cid = m_state.getUlamTypeNameIdByIndex(m_uti);
+	      SymbolClassName * cnsym = (SymbolClassName *) m_state.m_programDefST.getSymbolPtr(cid);
+	      assert(cnsym);
+
+	      std::string sig = cnsym->generatePrettyNameOrSignature(m_uti,true,false);
+	      m_constant.uval = m_state.formatAndGetIndexForDataUserString(sig);
+	    }
+	  break;
+	}
+      case TOK_KW_FLAG_INSERTCLASSNAMESIMPLE:
+	{
+	  if((rtnB = checkForClassType()))
+	    {
+	      u32 cid = m_state.getUlamTypeNameIdByIndex(m_uti);
+	      SymbolClassName * cnsym = (SymbolClassName *) m_state.m_programDefST.getSymbolPtr(cid);
+	      assert(cnsym);
+
+	      std::string simple = cnsym->generatePrettyNameOrSignature(m_uti,false,true);
+	      m_constant.uval = m_state.formatAndGetIndexForDataUserString(simple);
+	    }
+	  break;
+	}
+      case TOK_KW_FLAG_INSERTCLASSNAMEPRETTY:
+	{
+	  if((rtnB = checkForClassType()))
+	    {
+	      u32 cid = m_state.getUlamTypeNameIdByIndex(m_uti);
+	      SymbolClassName * cnsym = (SymbolClassName *) m_state.m_programDefST.getSymbolPtr(cid);
+	      assert(cnsym);
+
+	      std::string pretty = cnsym->generatePrettyNameOrSignature(m_uti,true,true);
+	      m_constant.uval = m_state.formatAndGetIndexForDataUserString(pretty);
+	    }
+	  break;
+	}
+      case TOK_KW_FLAG_INSERTCLASSNAMEMANGLED:
+	{
+	  if((rtnB = checkForClassType()))
+	    {
+	      std::string mangled = m_state.getUlamTypeByIndex(m_uti)->getUlamTypeMangledName();
+	      m_constant.uval = m_state.formatAndGetIndexForDataUserString(mangled);
 	    }
 	}
 	break;
@@ -568,6 +606,13 @@ namespace MFM {
       case TOK_KW_MAXOF:
       case TOK_KW_MINOF:
 	newType = m_uti; // use type of the lhs
+	break;
+      case TOK_KW_FLAG_INSERTCLASS:
+      case TOK_KW_FLAG_INSERTCLASSSIGNATURE:
+      case TOK_KW_FLAG_INSERTCLASSNAMESIMPLE:
+      case TOK_KW_FLAG_INSERTCLASSNAMEPRETTY:
+      case TOK_KW_FLAG_INSERTCLASSNAMEMANGLED:
+	newType = String;
 	break;
       default:
 	m_state.abortShouldntGetHere();
@@ -629,5 +674,20 @@ namespace MFM {
       }
     return rtnb;
   } //updateProxy
+
+  bool NodeTerminalProxy::checkForClassType()
+  {
+    assert(m_state.okUTItoContinue(m_uti)); //is complete too!
+    if(!m_state.isAClass(m_uti))
+      {
+	std::ostringstream msg;
+	msg << "Proxy Type '" << m_funcTok.getTokenString() << "' is not supported ";
+	msg << "for non-class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(m_uti).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	return false; //not allowed (e.g. primitives..)
+      }
+    return true;
+  } //checkForClassType
 
 } //end MFM

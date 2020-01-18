@@ -100,6 +100,8 @@ namespace MFM{
     Node* constantFoldLengthofConstantString();
 
     void genCodeForUserStringLength(File * fp, UVPass& uvpass);
+    bool checkForClassType();
+
   };
 
 } //MFM
