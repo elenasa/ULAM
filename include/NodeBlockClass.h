@@ -272,6 +272,8 @@ namespace MFM{
     void genCodeBuiltInFunctionGetRelPosRelatedInstanceByRegistrationNumber(File * fp);
 
     void genCodeBuiltInFunctionNumberOfBases(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
+    void genCodeBuiltInFunctionNumberOfDirectBases(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
+
     void genCodeBuiltInFunctionGetOrderedBaseClass(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
     void generateBuiltInFunctionGetOrderedBaseClassEntry(File * fp); //helper
 

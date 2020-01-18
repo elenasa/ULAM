@@ -82,6 +82,7 @@ namespace MFM {
   static const char * GETRELPOS_MANGLED_FUNC_NAME_FOR_ATOM = "UlamClass<EC>::GetRelativePositionOfBaseClass"; //Uf_2is
 
   static const char * GETNUMBEROFBASES_FUNCNAME = "GetBaseClassCount";
+  static const char * GETNUMBEROFDIRECTBASES_FUNCNAME = "GetDirectBaseClassCount";
   static const char * GETORDEREDBASE_FUNCNAME = "GetOrderedBaseClassAsUlamClass";
 
   static const char * GETCLASSLENGTH_FUNCNAME = "GetClassLength";
@@ -4462,6 +4463,12 @@ namespace MFM {
   {
     assert(okUTItoContinue(ltype)); //if atom?
     return GETNUMBEROFBASES_FUNCNAME;
+  }
+
+  const char * CompilerState::getNumberOfDirectBasesFunctionName(UTI ltype)
+  {
+    assert(okUTItoContinue(ltype)); //if atom?
+    return GETNUMBEROFDIRECTBASES_FUNCNAME;
   }
 
   const char * CompilerState::getOrderedBaseClassFunctionName(UTI ltype)

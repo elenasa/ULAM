@@ -3125,6 +3125,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     genCodeBuiltInFunctionGetRelPosMethodRelatedInstanceByRegistrationNumber(fp, declOnly, classtype);
 
     genCodeBuiltInFunctionNumberOfBases(fp, declOnly, classtype);
+    genCodeBuiltInFunctionNumberOfDirectBases(fp, declOnly, classtype);
     genCodeBuiltInFunctionGetOrderedBaseClass(fp, declOnly, classtype);
 
     // 'is' is only for element/classes
@@ -3501,6 +3502,55 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write(m_state.getNumberOfBasesFunctionName(cuti));
     fp->write("\n\n");
   } //genCodeBuiltInFunctionNumberOfBases
+
+  void NodeBlockClass::genCodeBuiltInFunctionNumberOfDirectBases(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
+  {
+    UTI cuti = m_state.getCompileThisIdx();
+    if(declOnly)
+      {
+	m_state.indent(fp);
+	fp->write("virtual u32 ");
+	fp->write(m_state.getNumberOfDirectBasesFunctionName(cuti));
+	fp->write("() const;"); GCNL;
+	fp->write("\n");
+	return;
+      }
+
+    SymbolClass * csym = NULL;
+    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cuti, csym);
+    assert(isDefined);
+
+    m_state.indent(fp);
+    fp->write("template<class EC>\n");
+
+    m_state.indent(fp);
+    fp->write("u32 "); //returns number of direct bases
+
+    //include the mangled class::
+    UlamType * cut = m_state.getUlamTypeByIndex(cuti);
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write("<EC>");
+
+    fp->write("::");
+    fp->write(m_state.getNumberOfDirectBasesFunctionName(cuti));
+    fp->write("( ) const\n");
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+
+    m_state.indent(fp);
+    fp->write("return ");
+    fp->write_decimal_unsigned(csym->countDirectSharedBases() + 1); //add self
+    fp->write("; //including self"); GCNL;
+
+    m_state.m_currentIndentLevel--;
+
+    m_state.indent(fp);
+    fp->write("} //");
+    fp->write(m_state.getNumberOfDirectBasesFunctionName(cuti));
+    fp->write("\n\n");
+  } //genCodeBuiltInFunctionNumberOfDirectBases
 
   void NodeBlockClass::genCodeBuiltInFunctionGetOrderedBaseClass(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
