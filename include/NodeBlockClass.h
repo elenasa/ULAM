@@ -296,9 +296,7 @@ namespace MFM{
     void generateUlamClassInfoCount(File * fp, bool declOnly, u32 dmcount);
     void generateUlamClassGetMangledName(File * fp, bool declOnly);
     void generateUlamClassGetMangledNameAsStringIndex(File * fp, bool declOnly);
-    void generateUlamClassGetSignatureAsStringIndex(File * fp, bool declOnly);
-    void generateUlamClassGetPrettyNameAsStringIndex(File * fp, bool declOnly);
-    void generateUlamClassGetSimpleNameAsStringIndex(File * fp, bool declOnly);
+    void generateUlamClassGetNameAsStringIndex(File * fp, bool declOnly);
 
     std::string removePunct(std::string str);
 

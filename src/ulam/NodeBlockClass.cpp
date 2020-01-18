@@ -3102,9 +3102,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     generateUlamClassInfoCount(fp, declOnly, dmcount); //after dmcount is updated by nodes
     generateUlamClassGetMangledName(fp, declOnly);
     generateUlamClassGetMangledNameAsStringIndex(fp, declOnly);
-    generateUlamClassGetSignatureAsStringIndex(fp, declOnly);
-    generateUlamClassGetPrettyNameAsStringIndex(fp, declOnly);
-    generateUlamClassGetSimpleNameAsStringIndex(fp, declOnly);
+    generateUlamClassGetNameAsStringIndex(fp, declOnly);
 
     genCodeBuiltInFunctionGetClassLength(fp, declOnly, classtype);
 
@@ -4704,7 +4702,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       }
   } //generateUlamClassGetMangledNameAsStringIndex
 
-  void NodeBlockClass::generateUlamClassGetSignatureAsStringIndex(File * fp, bool declOnly)
+  void NodeBlockClass::generateUlamClassGetNameAsStringIndex(File * fp, bool declOnly)
   {
     UTI cuti = getNodeType();
     assert(m_state.okUTItoContinue(cuti));
@@ -4728,149 +4726,82 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	fp->write("<EC>::"); //same for elements and quarks
       }
 
-    fp->write("GetUlamClassSignatureAsStringIndex() const"); //method name!!!
+    fp->write("GetUlamClassNameAsStringIndex(bool templateParameters, bool templateValues) const"); //method name!!!
 
     if(!declOnly)
       {
+	u32 id = cut->getUlamTypeNameId();
+	SymbolClassName * cnsym = (SymbolClassName *) m_state.m_programDefST.getSymbolPtr(id);
+	assert(cnsym);
+	bool isTemplateClass = cnsym->isClassTemplate();
+
 	fp->write("\n");
 
 	m_state.indent(fp);
 	fp->write("{\n");
 
 	m_state.m_currentIndentLevel++;
-	m_state.indent(fp);
 
+	if(isTemplateClass)
+	  {
+	    m_state.indent(fp);
+	    fp->write("if(templateParameters && templateValues)\n");
+
+	    m_state.m_currentIndentLevel++;
+	    m_state.indent(fp);
+	    fp->write("return ");
+	    std::string pretty = cnsym->generatePrettyNameOrSignature(cuti,true,true);
+	    fp->write_decimal_unsigned(m_state.formatAndGetIndexForDataUserString(pretty));
+	    fp->write("u; //");
+	    fp->write(pretty.c_str()); GCNL;
+	    m_state.m_currentIndentLevel--;
+
+	    m_state.indent(fp);
+	    fp->write("if(templateParameters && !templateValues)\n");
+
+	    m_state.m_currentIndentLevel++;
+	    m_state.indent(fp);
+	    fp->write("return ");
+	    std::string sig = cnsym->generatePrettyNameOrSignature(cuti,true,false);
+	    fp->write_decimal_unsigned(m_state.formatAndGetIndexForDataUserString(sig));
+	    fp->write("u; //");
+	    fp->write(sig.c_str()); GCNL;
+	    m_state.m_currentIndentLevel--;
+
+
+	    m_state.indent(fp);
+	    fp->write("if(!templateParameters && templateValues)\n");
+
+	    m_state.m_currentIndentLevel++;
+	    m_state.indent(fp);
+	    fp->write("return ");
+	    std::string simple = cnsym->generatePrettyNameOrSignature(cuti,false,true);
+	    fp->write_decimal_unsigned(m_state.formatAndGetIndexForDataUserString(simple));
+	    fp->write("u; //");
+	    fp->write(simple.c_str()); GCNL;
+	    m_state.m_currentIndentLevel--;
+
+	    m_state.indent(fp);
+	    fp->write("//if(!templateParameters && !templateValues)\n");
+	  }
+
+	m_state.indent(fp);
 	fp->write("return ");
-	u32 id = cut->getUlamTypeNameId();
-	SymbolClassName * cnsym = (SymbolClassName *) m_state.m_programDefST.getSymbolPtr(id);
-	std::string sig = cnsym->generatePrettyNameOrSignature(cuti,true,false); //unfancy
-	fp->write_decimal_unsigned(m_state.formatAndGetIndexForDataUserString(sig));
+	std::string plain = cnsym->generatePrettyNameOrSignature(cuti,false,false);
+	fp->write_decimal_unsigned(m_state.formatAndGetIndexForDataUserString(plain));
 	fp->write("u; //");
-	fp->write(sig.c_str());
-	GCNL;
+	fp->write(plain.c_str()); GCNL;
 
 	m_state.m_currentIndentLevel--;
 	m_state.indent(fp);
-	fp->write("} //GetUlamClassSignatureAsStringIndex\n\n");
+	fp->write("} //GetUlamClassNameAsStringIndex\n\n");
       }
     else
       {
 	fp->write(";"); GCNL;
 	fp->write("\n");
       }
-  } //generateUlamClassGetSignatureAsStringIndex
-
-  void NodeBlockClass::generateUlamClassGetPrettyNameAsStringIndex(File * fp, bool declOnly)
-  {
-    UTI cuti = getNodeType();
-    assert(m_state.okUTItoContinue(cuti));
-    UlamType * cut = m_state.getUlamTypeByIndex(cuti);
-
-    if(!declOnly)
-      {
-	m_state.indent(fp);
-	fp->write("template<class EC>\n"); //same for elements and quarks
-	m_state.indent(fp);
-      }
-    else
-      m_state.indent(fp);
-
-    fp->write("u32 "); //return type
-
-    if(!declOnly)
-      {
-	//include the mangled class::
-	fp->write(cut->getUlamTypeMangledName().c_str());
-	fp->write("<EC>::"); //same for elements and quarks
-      }
-
-    fp->write("GetUlamClassPrettyNameAsStringIndex() const"); //method name!!!
-
-    if(!declOnly)
-      {
-	fp->write("\n");
-
-	m_state.indent(fp);
-	fp->write("{\n");
-
-	m_state.m_currentIndentLevel++;
-	m_state.indent(fp);
-
-	fp->write("return ");
-	u32 id = cut->getUlamTypeNameId();
-	SymbolClassName * cnsym = (SymbolClassName *) m_state.m_programDefST.getSymbolPtr(id);
-	std::string pretty = cnsym->generatePrettyNameOrSignature(cuti,true,true); //fancy
-	fp->write_decimal_unsigned(m_state.formatAndGetIndexForDataUserString(pretty));
-	fp->write("u; //");
-	fp->write(pretty.c_str());
-	GCNL;
-
-	m_state.m_currentIndentLevel--;
-	m_state.indent(fp);
-	fp->write("} //GetUlamClassPrettyNameAsStringIndex\n\n");
-      }
-    else
-      {
-	fp->write(";"); GCNL;
-	fp->write("\n");
-      }
-  } //generateUlamClassGetPrettyClassNameAsStringIndex
-
-void NodeBlockClass::generateUlamClassGetSimpleNameAsStringIndex(File * fp, bool declOnly)
-  {
-    UTI cuti = getNodeType();
-    assert(m_state.okUTItoContinue(cuti));
-    UlamType * cut = m_state.getUlamTypeByIndex(cuti);
-
-    if(!declOnly)
-      {
-	m_state.indent(fp);
-	fp->write("template<class EC>\n"); //same for elements and quarks
-	m_state.indent(fp);
-      }
-    else
-      m_state.indent(fp);
-
-    fp->write("u32 "); //return type
-
-    if(!declOnly)
-      {
-	//include the mangled class::
-	fp->write(cut->getUlamTypeMangledName().c_str());
-	fp->write("<EC>::"); //same for elements and quarks
-      }
-
-    fp->write("GetUlamClassSimpleNameAsStringIndex() const"); //method name!!!
-
-    if(!declOnly)
-      {
-	fp->write("\n");
-
-	m_state.indent(fp);
-	fp->write("{\n");
-
-	m_state.m_currentIndentLevel++;
-	m_state.indent(fp);
-
-	fp->write("return ");
-	u32 id = cut->getUlamTypeNameId();
-	SymbolClassName * cnsym = (SymbolClassName *) m_state.m_programDefST.getSymbolPtr(id);
-	std::string pretty = cnsym->generatePrettyNameOrSignature(cuti,false,true); //argvals
-	fp->write_decimal_unsigned(m_state.formatAndGetIndexForDataUserString(pretty));
-	fp->write("u; //");
-	fp->write(pretty.c_str());
-	GCNL;
-
-	m_state.m_currentIndentLevel--;
-	m_state.indent(fp);
-	fp->write("} //GetUlamClassSimpleNameAsStringIndex\n\n");
-      }
-    else
-      {
-	fp->write(";"); GCNL;
-	fp->write("\n");
-      }
-  } //generateUlamClassGetSimpleClassNameAsStringIndex
+  } //generateUlamClassGetClassNameAsStringIndex
 
   std::string NodeBlockClass::removePunct(std::string str)
   {

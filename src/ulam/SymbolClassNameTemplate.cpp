@@ -980,6 +980,10 @@ namespace MFM {
 
 	    std::string simple = generatePrettyNameOrSignature(cuti, false, true); //do instance simple name
 	    m_state.formatAndGetIndexForDataUserString(simple);
+
+	    std::string plain = generatePrettyNameOrSignature(cuti, false, false); //do instance plain name
+	    m_state.formatAndGetIndexForDataUserString(plain);
+
 	  }
 	else
 	  {
@@ -1009,7 +1013,8 @@ namespace MFM {
 	m_state.pushClassContext(csym->getUlamTypeIdx(), classNode, classNode, false, NULL);
 
 	sig << m_state.m_pool.getDataAsString(getId()).c_str(); //class name
-	sig << "(";
+	if(signa || argvals)
+	  sig << "(";
 
 	//format parameters type and name and value into stream
 	std::vector<SymbolConstantValue *>::iterator pit = m_parameterSymbols.begin();
@@ -1018,7 +1023,7 @@ namespace MFM {
 	    SymbolConstantValue * psym = *pit;
 	    assert(psym->isClassParameter());
 
-	    if(pcnt > 0)
+	    if((signa || argvals) && (pcnt > 0))
 	      sig << ",";
 
 	    //get 'instance's arg value
@@ -1033,7 +1038,7 @@ namespace MFM {
 	    if(signa)
 	      {
 		sig << m_state.getUlamTypeNameBriefByIndex(asym->getUlamTypeIdx()).c_str();
-		sig << " " << m_state.m_pool.getDataAsString(asym->getId()).c_str(); //param name
+		sig << " " << m_state.m_pool.getDataAsString(asym->getId()).c_str(); //param
 	      }
 
 	    if(argvals)
@@ -1073,7 +1078,8 @@ namespace MFM {
 	    pit++;
 	  } //next param
 
-	sig << ")";
+	if(signa || argvals)
+	  sig << ")";
 
 	m_state.popClassContext(); //restore
       }
