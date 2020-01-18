@@ -672,10 +672,11 @@ namespace MFM {
 	//skip anonymous classes
 	if(!m_state.isAnonymousClass(cuti) && m_state.isASeenClass(cuti))
 	  {
-	    //if not already, add 3 class names for this class to GlobalStringPool:
-	    // mangled, signature, pretty & full
+	    //if not already, add 4 class names for this class to GlobalStringPool:
+	    // mangled, signature, pretty, simple
 	    UlamType * cut = m_state.getUlamTypeByIndex(cuti);
-	    m_state.m_upool.getIndexForDataString(cut->getUlamTypeMangledName());
+	    std::string mangled = cut->getUlamTypeMangledName();
+	    m_state.formatAndGetIndexForDataUserString(mangled);
 
 	    ((SymbolClassName *) sym)->generatePrettyNameAndSignatureOfClassInstancesAsUserStrings();
 	  }

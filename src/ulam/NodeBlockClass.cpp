@@ -4688,7 +4688,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
 	fp->write("return ");
 	std::string mangled = cut->getUlamTypeMangledName();
-	fp->write_decimal_unsigned(m_state.m_upool.getIndexForDataString(mangled));
+	fp->write_decimal_unsigned(m_state.formatAndGetIndexForDataUserString(mangled));
 	fp->write("u; //");
 	fp->write(mangled.c_str());
 	GCNL;
@@ -4744,7 +4744,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	u32 id = cut->getUlamTypeNameId();
 	SymbolClassName * cnsym = (SymbolClassName *) m_state.m_programDefST.getSymbolPtr(id);
 	std::string sig = cnsym->generatePrettyNameOrSignature(cuti,true,false); //unfancy
-	fp->write_decimal_unsigned(m_state.m_upool.getIndexForDataString(sig));
+	fp->write_decimal_unsigned(m_state.formatAndGetIndexForDataUserString(sig));
 	fp->write("u; //");
 	fp->write(sig.c_str());
 	GCNL;
@@ -4800,7 +4800,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	u32 id = cut->getUlamTypeNameId();
 	SymbolClassName * cnsym = (SymbolClassName *) m_state.m_programDefST.getSymbolPtr(id);
 	std::string pretty = cnsym->generatePrettyNameOrSignature(cuti,true,true); //fancy
-	fp->write_decimal_unsigned(m_state.m_upool.getIndexForDataString(pretty));
+	fp->write_decimal_unsigned(m_state.formatAndGetIndexForDataUserString(pretty));
 	fp->write("u; //");
 	fp->write(pretty.c_str());
 	GCNL;
@@ -4856,7 +4856,7 @@ void NodeBlockClass::generateUlamClassGetSimpleNameAsStringIndex(File * fp, bool
 	u32 id = cut->getUlamTypeNameId();
 	SymbolClassName * cnsym = (SymbolClassName *) m_state.m_programDefST.getSymbolPtr(id);
 	std::string pretty = cnsym->generatePrettyNameOrSignature(cuti,false,true); //argvals
-	fp->write_decimal_unsigned(m_state.m_upool.getIndexForDataString(pretty));
+	fp->write_decimal_unsigned(m_state.formatAndGetIndexForDataUserString(pretty));
 	fp->write("u; //");
 	fp->write(pretty.c_str());
 	GCNL;

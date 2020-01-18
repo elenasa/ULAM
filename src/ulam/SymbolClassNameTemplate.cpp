@@ -972,9 +972,14 @@ namespace MFM {
 
 	if(!csym->isStub())
 	  {
-	    m_state.m_upool.getIndexForDataString(generatePrettyNameOrSignature(cuti, true, false)); //do instance signature only
-	    m_state.m_upool.getIndexForDataString(generatePrettyNameOrSignature(cuti, true, true)); //do instance fancy signature
-	    m_state.m_upool.getIndexForDataString(generatePrettyNameOrSignature(cuti, false, true)); //do instance simple name
+	    std::string sigonly = generatePrettyNameOrSignature(cuti, true, false); //do instance signature only;
+	    m_state.formatAndGetIndexForDataUserString(sigonly);
+
+	    std::string fancysig = generatePrettyNameOrSignature(cuti, true, true); //do instance fancy signature
+	    m_state.formatAndGetIndexForDataUserString(fancysig);
+
+	    std::string simple = generatePrettyNameOrSignature(cuti, false, true); //do instance simple name
+	    m_state.formatAndGetIndexForDataUserString(simple);
 	  }
 	else
 	  {

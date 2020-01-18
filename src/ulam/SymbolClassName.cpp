@@ -124,7 +124,8 @@ namespace MFM {
 
   void SymbolClassName::generatePrettyNameAndSignatureOfClassInstancesAsUserStrings()
   {
-    m_state.m_upool.getIndexForDataString(generatePrettyNameOrSignature(getUlamTypeIdx(), false, false));
+    std::string signame = generatePrettyNameOrSignature(getUlamTypeIdx(), false, false);
+    m_state.formatAndGetIndexForDataUserString(signame);
     return;
   }
 
