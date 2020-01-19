@@ -55,13 +55,13 @@ element P {
     SystemU3 s;
     s.print(__CLASS__);
     s.print(__CLASSSIGNATURE__);
-    s.print(__CLASSNAMEPRETTY__);
-    s.print(__CLASSNAMESIMPLE__);
-    s.print(__CLASSNAMEMANGLED__);
+    s.print(__CLASSPRETTY__);
+    s.print(__CLASSSIMPLE__);
+    s.print(__CLASSMANGLED__);
 
-    String nameP = __CLASSNAMEPRETTY__;
+    String nameP = __CLASSPRETTY__;
     s.assert(nameP.lengthof == 1);
-    String mangledP = __CLASSNAMEMANGLED__;
+    String mangledP = __CLASSMANGLED__;
     s.print(mangledP.lengthof);
     s.assert(mangledP.lengthof==11);
 
@@ -95,8 +95,8 @@ quark Q(Int b = 3, Unsigned(b) s = 1u) {
     sq.print(signaQ.lengthof);
     sq.assert(signaQ.lengthof==26);
 
-    sq.print(__CLASSNAMEPRETTY__);
-    String prettyQ = __CLASSNAMEPRETTY__;
+    sq.print(__CLASSPRETTY__);
+    String prettyQ = __CLASSPRETTY__;
     sq.print(prettyQ.lengthof);
     sq.assert(prettyQ.lengthof==31);
     sq.assert(prettyQ[9]==' ');
@@ -104,13 +104,13 @@ quark Q(Int b = 3, Unsigned(b) s = 1u) {
     sq.assert(prettyQ[11]=='=');
     sq.assert(prettyQ[27]=='=');
 
-    sq.print(__CLASSNAMESIMPLE__);
-    String simpleQ = __CLASSNAMESIMPLE__;
+    sq.print(__CLASSSIMPLE__);
+    String simpleQ = __CLASSSIMPLE__;
     sq.print(simpleQ.lengthof);
     sq.assert(simpleQ.lengthof==7);
 
-    sq.print(__CLASSNAMEMANGLED__);
-    String mangledQ = __CLASSNAMEMANGLED__;
+    sq.print(__CLASSMANGLED__);
+    String mangledQ = __CLASSMANGLED__;
     sq.print(mangledQ.lengthof);
     sq.assert(mangledQ.lengthof==28);
 
