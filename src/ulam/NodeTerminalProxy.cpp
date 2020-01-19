@@ -221,7 +221,8 @@ namespace MFM {
 
 		return Hzy;
 	      }
-	    //else keep it
+	    else
+	      nodeType = getNodeType(); //t41382
 	  }
       }
     return nodeType; //getNodeType(); //updated to Unsigned, hopefully
@@ -244,13 +245,15 @@ namespace MFM {
     else if(isAConstant() && isReadyConstant())
       {
 	//constantFold, like NodeBinaryOp (e.g. t3985)
-	//replace with a NodeTerminal; might not be ready (t41065)
+	//replace with a NodeTerminal; might not be ready (t41065, t41382)
 	Node * newnode = constantFoldLengthofConstantString();
-	assert(newnode);
-	AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
-	assert(swapOk);
+	if(newnode)
+	  {
+	    AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+	    assert(swapOk);
 
-	rtnb = true;
+	    rtnb = true;
+	  } //else t41382
       }
     //else didn't replace us
     return rtnb;

@@ -4029,6 +4029,7 @@ namespace MFM {
 	{
 	  UTI cuti = m_state.getCompileThisIdx();
 	  rtnNode = new NodeTerminalProxy(NULL, cuti, pTok, NULL, m_state);
+	  rtnNode = parseRestOfFactor(rtnNode); //supports [] after
 	}
 	break;
       case TOK_NUMBER_FLOAT:
