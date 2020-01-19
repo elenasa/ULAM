@@ -69,33 +69,47 @@ namespace MFM {
 
   static const char * HIDDEN_ARG_NAME = "ur"; //was Uv_4self, then Uv_4atom
   static const char * HIDDEN_CONTEXT_ARG_NAME = "uc"; //unmangled
-  static const char * CUSTOMARRAY_GET_FUNC_NAME = "aref"; //unmangled
-  static const char * CUSTOMARRAY_SET_FUNC_NAME = "aset"; //unmangled (deprecated)
+  static const char * CUSTOMARRAY_GET_FUNCNAME = "aref"; //unmangled
+  static const char * CUSTOMARRAY_SET_FUNCNAME = "aset"; //unmangled (deprecated)
   static const char * CUSTOMARRAY_GET_MANGLEDNAME = "Uf_4aref";
-  static const char * CUSTOMARRAY_LENGTHOF_FUNC_NAME = "alengthof"; //unmangled
+  static const char * CUSTOMARRAY_LENGTHOF_FUNCNAME = "alengthof"; //unmangled
   static const char * CUSTOMARRAY_LENGTHOF_MANGLEDNAME = "Uf_919alengthof";
 
-  static const char * IS_MANGLED_FUNC_NAME = "internalCMethodImplementingIs"; //Uf_2is
-  static const char * IS_MANGLED_FUNC_NAME_FOR_ATOM = "UlamClass<EC>::IsMethod"; //Uf_2is
+  static const char * IS_MANGLED_FUNCNAME = "internalCMethodImplementingIs"; //Uf_2is
+  static const char * IS_MANGLED_FUNCNAME_FOR_ATOM = "UlamClass<EC>::IsMethod"; //Uf_2is
 
-  static const char * GETRELPOS_MANGLED_FUNC_NAME = "internalCMethodImplementingGetRelativePositionOfBaseClass"; //Uf_2is
-  static const char * GETRELPOS_MANGLED_FUNC_NAME_FOR_ATOM = "UlamClass<EC>::GetRelativePositionOfBaseClass"; //Uf_2is
+  static const char * GETRELPOS_MANGLED_FUNCNAME = "internalCMethodImplementingGetRelativePositionOfBaseClass"; //Uf_2is
+  static const char * GETRELPOS_MANGLED_FUNCNAME_FOR_ATOM = "UlamClass<EC>::GetRelativePositionOfBaseClass"; //Uf_2is
+
+  static const char * GETDATAMEMBERINFO_FUNCNAME = "GetDataMemberInfo";
+  static const char * GETDATAMEMBERCOUNT_FUNCNAME = "GetDataMemberCount";
 
   static const char * GETNUMBEROFBASES_FUNCNAME = "GetBaseClassCount";
   static const char * GETNUMBEROFDIRECTBASES_FUNCNAME = "GetDirectBaseClassCount";
   static const char * GETORDEREDBASE_FUNCNAME = "GetOrderedBaseClassAsUlamClass";
+  static const char * GETISDIRECTBASECLASS_FUNCNAME = "IsDirectBaseClass";
+
+  static const char * GETCLASSMANGLEDNAME_FUNCNAME = "GetMangledClassName";
+  static const char * GETCLASSMANGLEDNAMESTRINGINDEX_FUNCNAME = "GetMangledClassNameAsStringIndex";
+  static const char * GETCLASSNAMESTRINGINDEX_FUNCNAME = "GetUlamClassNameAsStringIndex";
 
   static const char * GETCLASSLENGTH_FUNCNAME = "GetClassLength";
   static const char * GETBASECLASSLENGTH_FUNCNAME = "GetClassDataMembersSize";
   static const char * GETCLASSREGISTRATIONNUMBER_FUNCNAME = "GetRegistrationNumber";
-
-  static const char * GETSTRING_FUNCNAME = "GetStringPointerFromGlobalStringPool";
-  static const char * GETSTRINGLENGTH_FUNCNAME = "GetStringLengthFromGlobalStringPool";
+  static const char * GETELEMENTTYPE_FUNCNAME = "GetTypeFromThisElement";
+  static const char * READTYPEFIELD_FUNCNAME = "ReadTypeField";
+  static const char * WRITETYPEFIELD_FUNCNAME = "WriteTypeField";
 
   static const char * BUILD_DEFAULT_ATOM_FUNCNAME = "BuildDefaultAtom";
   static const char * BUILD_DEFAULT_QUARK_FUNCNAME = "getDefaultQuark";
   static const char * BUILD_DEFAULT_TRANSIENT_FUNCNAME = "getDefaultTransient";
 
+  static const char * GETVTABLEENTRY_FUNCNAME = "getVTableEntry";
+  static const char * GETVTABLEENTRYCLASSPTR_FUNCNAME = "getVTableEntryUlamClassPtr";
+  static const char * GETVTABLEENTRYSTARTOFFSETFORCLASS_FUNCNAME = "GetVTStartOffsetForClassByRegNum";
+
+  static const char * GETSTRING_FUNCNAME = "GetStringPointerFromGlobalStringPool";
+  static const char * GETSTRINGLENGTH_FUNCNAME = "GetStringLengthFromGlobalStringPool";
   static const char * USERSTRINGPOOL_MANGLEDNAME = "Ug_globalStringPoolData";
   static const char * USERSTRINGPOOL_SIZEDEFINENAME = "Ug_globalStringPoolSize";
   static const char * USERSTRINGPOOL_FILENAME = "GlobalStringPool"; //also used by ulam.tmpl
@@ -4400,14 +4414,14 @@ namespace MFM {
 
   u32 CompilerState::getCustomArrayGetFunctionNameId()
   {
-    std::string str(CUSTOMARRAY_GET_FUNC_NAME);
+    std::string str(CUSTOMARRAY_GET_FUNCNAME);
     return m_pool.getIndexForDataString(str);
   }
 
   u32 CompilerState::getCustomArraySetFunctionNameId()
   {
     //kept for backward-compatible error msg
-    std::string str(CUSTOMARRAY_SET_FUNC_NAME);
+    std::string str(CUSTOMARRAY_SET_FUNCNAME);
     return m_pool.getIndexForDataString(str);
   }
 
@@ -4418,7 +4432,7 @@ namespace MFM {
 
   u32 CompilerState::getCustomArrayLengthofFunctionNameId()
   {
-    std::string str(CUSTOMARRAY_LENGTHOF_FUNC_NAME);
+    std::string str(CUSTOMARRAY_LENGTHOF_FUNCNAME);
     return m_pool.getIndexForDataString(str);
   }
 
@@ -4430,9 +4444,9 @@ namespace MFM {
   const char * CompilerState::getIsMangledFunctionName(UTI ltype)
   {
     if(isAtom(ltype))
-      return IS_MANGLED_FUNC_NAME_FOR_ATOM;
+      return IS_MANGLED_FUNCNAME_FOR_ATOM;
 
-    return IS_MANGLED_FUNC_NAME;
+    return IS_MANGLED_FUNCNAME;
   }
 
   const char * CompilerState::getAsMangledFunctionName(UTI ltype, UTI rtype)
@@ -4442,9 +4456,9 @@ namespace MFM {
     if(rclasstype == UC_QUARK)
       return getIsMangledFunctionName(ltype);
     else if (rclasstype == UC_ELEMENT)
-      return IS_MANGLED_FUNC_NAME;
+      return IS_MANGLED_FUNCNAME;
     else if (rclasstype == UC_TRANSIENT)
-      return IS_MANGLED_FUNC_NAME;
+      return IS_MANGLED_FUNCNAME;
     else
       abortUndefinedUlamClassType();
 
@@ -4454,9 +4468,21 @@ namespace MFM {
   const char * CompilerState::getGetRelPosMangledFunctionName(UTI ltype)
   {
     if(isAtom(ltype))
-      return GETRELPOS_MANGLED_FUNC_NAME_FOR_ATOM;
+      return GETRELPOS_MANGLED_FUNCNAME_FOR_ATOM;
 
-    return GETRELPOS_MANGLED_FUNC_NAME;
+    return GETRELPOS_MANGLED_FUNCNAME;
+  }
+
+  const char * CompilerState::getDataMemberInfoFunctionName(UTI ltype)
+  {
+    assert(okUTItoContinue(ltype)); //if atom?
+    return GETDATAMEMBERINFO_FUNCNAME;
+  }
+
+  const char * CompilerState::getDataMemberCountFunctionName(UTI ltype)
+  {
+    assert(okUTItoContinue(ltype)); //if atom?
+    return GETDATAMEMBERCOUNT_FUNCNAME;
   }
 
   const char * CompilerState::getNumberOfBasesFunctionName(UTI ltype)
@@ -4477,6 +4503,30 @@ namespace MFM {
     return GETORDEREDBASE_FUNCNAME;
   }
 
+  const char * CompilerState::getIsDirectBaseClassFunctionName(UTI ltype)
+  {
+    assert(okUTItoContinue(ltype)); //if atom?
+    return GETISDIRECTBASECLASS_FUNCNAME;
+  }
+
+  const char * CompilerState::getClassMangledNameFunctionName(UTI ltype)
+  {
+    assert(okUTItoContinue(ltype));
+    return GETCLASSMANGLEDNAME_FUNCNAME;
+  }
+
+  const char * CompilerState::getClassMangledNameAsStringIndexFunctionName(UTI ltype)
+  {
+    assert(okUTItoContinue(ltype));
+    return GETCLASSMANGLEDNAMESTRINGINDEX_FUNCNAME;
+  }
+
+  const char * CompilerState::getClassNameAsStringIndexFunctionName(UTI ltype)
+  {
+    assert(okUTItoContinue(ltype));
+    return GETCLASSNAMESTRINGINDEX_FUNCNAME;
+  }
+
   const char * CompilerState::getClassLengthFunctionName(UTI ltype)
   {
     assert(okUTItoContinue(ltype));
@@ -4495,14 +4545,22 @@ namespace MFM {
     return GETCLASSREGISTRATIONNUMBER_FUNCNAME;
   }
 
-  const char * CompilerState::getGetStringFunctionName()
+  const char * CompilerState::getElementTypeFunctionName(UTI ltype)
   {
-    return GETSTRING_FUNCNAME;
+    assert(okUTItoContinue(ltype));
+    return GETELEMENTTYPE_FUNCNAME;
   }
 
-  const char * CompilerState::getGetStringLengthFunctionName()
+  const char * CompilerState::getReadTypeFieldFunctionName(UTI ltype)
   {
-    return GETSTRINGLENGTH_FUNCNAME;
+    assert(okUTItoContinue(ltype));
+    return READTYPEFIELD_FUNCNAME;
+  }
+
+  const char * CompilerState::getWriteTypeFieldFunctionName(UTI ltype)
+  {
+    assert(okUTItoContinue(ltype));
+    return WRITETYPEFIELD_FUNCNAME;
   }
 
   const char * CompilerState::getBuildDefaultAtomFunctionName(UTI ltype)
@@ -4523,6 +4581,24 @@ namespace MFM {
   const char * CompilerState::getDefaultQuarkFunctionName()
   {
     return BUILD_DEFAULT_QUARK_FUNCNAME;
+  }
+
+  const char * CompilerState::getVTableEntryFunctionName(UTI ltype)
+  {
+    assert(okUTItoContinue(ltype));
+    return GETVTABLEENTRY_FUNCNAME;
+  }
+
+  const char * CompilerState::getVTableEntryClassPtrFunctionName(UTI ltype)
+  {
+    assert(okUTItoContinue(ltype));
+    return GETVTABLEENTRYCLASSPTR_FUNCNAME;
+  }
+
+  const char * CompilerState::getVTableEntryStartOffsetForClassFunctionName(UTI ltype)
+  {
+    assert(okUTItoContinue(ltype));
+    return GETVTABLEENTRYSTARTOFFSETFORCLASS_FUNCNAME;
   }
 
   std::string CompilerState::getFileNameForAClassHeader(UTI cuti, bool wSubDir)
@@ -4643,6 +4719,16 @@ namespace MFM {
     std::ostringstream f;
     f << "_l" << m_pool.getDataAsString(classid).c_str();// "_l" prepended to be distinct "temporary" class name.
     return m_pool.getIndexForDataString(f.str());
+  }
+
+  const char * CompilerState::getGetStringFunctionName()
+  {
+    return GETSTRING_FUNCNAME;
+  }
+
+  const char * CompilerState::getGetStringLengthFunctionName()
+  {
+    return GETSTRINGLENGTH_FUNCNAME;
   }
 
   const std::string CompilerState::getStringMangledName()

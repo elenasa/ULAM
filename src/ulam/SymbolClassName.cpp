@@ -113,14 +113,6 @@ namespace MFM {
     assert((rootbasicuti == getUlamTypeIdx()) || (m_state.isARefTypeOfUlamType(rootbasicuti, getUlamTypeIdx()) == UTIC_SAME)); //or could be a reference
     return "10"; //zero args
   } //formatAnInstancesArgValuesAsAString
-#if 0
-  std::string SymbolClassName::generateUlamClassSignature()
-  {
-    std::ostringstream sig;
-    sig << m_state.m_pool.getDataAsString(getId()).c_str(); //class name
-    return sig.str();
-  } //generateUlamClassSignature
-#endif
 
   void SymbolClassName::generatePrettyNameAndSignatureOfClassInstancesAsUserStrings()
   {

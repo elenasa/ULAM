@@ -447,16 +447,28 @@ namespace MFM{
     const char * getIsMangledFunctionName(UTI ltype);
     const char * getAsMangledFunctionName(UTI ltype, UTI rtype);
     const char * getGetRelPosMangledFunctionName(UTI ltype);
+    const char * getDataMemberInfoFunctionName(UTI ltype);
+    const char * getDataMemberCountFunctionName(UTI ltype);
     const char * getNumberOfBasesFunctionName(UTI ltype);
     const char * getNumberOfDirectBasesFunctionName(UTI ltype);
     const char * getOrderedBaseClassFunctionName(UTI ltype);
+    const char * getIsDirectBaseClassFunctionName(UTI ltype);
+    const char * getClassMangledNameFunctionName(UTI ltype);
+    const char * getClassMangledNameAsStringIndexFunctionName(UTI ltype);
+    const char * getClassNameAsStringIndexFunctionName(UTI ltype);
     const char * getClassLengthFunctionName(UTI ltype);
     const char * getBaseClassLengthFunctionName(UTI ltype);
     const char * getClassRegistrationNumberFunctionName(UTI ltype);
-    const char * getGetStringFunctionName();
-    const char * getGetStringLengthFunctionName();
+    const char * getElementTypeFunctionName(UTI ltype);
+    const char * getReadTypeFieldFunctionName(UTI ltype);
+    const char * getWriteTypeFieldFunctionName(UTI ltype);
+
     const char * getBuildDefaultAtomFunctionName(UTI ltype);
     const char * getDefaultQuarkFunctionName();
+
+    const char * getVTableEntryFunctionName(UTI ltype);
+    const char * getVTableEntryClassPtrFunctionName(UTI ltype);
+    const char * getVTableEntryStartOffsetForClassFunctionName(UTI ltype);
 
     std::string getFileNameForAClassHeader(UTI cuti, bool wSubDir = false);
     std::string getFileNameForThisClassHeader(bool wSubDir = false);
@@ -470,6 +482,8 @@ namespace MFM{
     u32 getMangledClassNameIdForUlamLocalsFilescope(UTI locuti);
     u32 getClassNameIdForUlamLocalsFilescope(UTI locuti);
 
+    const char * getGetStringFunctionName();
+    const char * getGetStringLengthFunctionName();
     const std::string getStringMangledName();
     const char * getMangledNameForUserStringPool();
     const char * getDefineNameForUserStringPoolSize();

@@ -3673,7 +3673,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     if(declOnly)
       {
 	m_state.indent(fp);
-	fp->write("bool IsDirectBaseClass");
+	fp->write("bool ");
+	fp->write(m_state.getIsDirectBaseClassFunctionName(cuti));
 	fp->write("(const u32 regid) const;"); GCNL; //overloade
 	fp->write("\n");
 	return;
@@ -3688,7 +3689,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     //include the mangled class::
     fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
     fp->write("<EC>::");
-    fp->write("IsDirectBaseClass(const u32 regid) const\n");
+    fp->write(m_state.getIsDirectBaseClassFunctionName(cuti));
+    fp->write("(const u32 regid) const\n");
     m_state.indent(fp);
     fp->write("{\n");
 
@@ -3719,7 +3721,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
-    fp->write("} //IsDirectBaseClass\n\n");
+    fp->write("} //");
+    fp->write(m_state.getIsDirectBaseClassFunctionName(cuti)); //IsDirectBaseClass
+    fp->write("\n\n");
   } //genCodeBuiltInFunctionIsDirectBaseClass
 
   void NodeBlockClass::genCodeBuiltInFunctionIsDirectBaseClassByRegistrationNumber(File * fp)
@@ -3928,7 +3932,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     if(declOnly)
       {
 	m_state.indent(fp);
-	fp->write("virtual u32 GetTypeFromThisElement() const;"); GCNL;
+	fp->write("virtual u32 ");
+	fp->write(m_state.getElementTypeFunctionName(cuti));
+	fp->write("() const;"); GCNL;
 	fp->write("\n");
 	return;
       }
@@ -3942,7 +3948,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     //include the mangled class::
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
     fp->write(cut->getUlamTypeMangledName().c_str());
-    fp->write("<EC>::GetTypeFromThisElement( ) const\n");
+    fp->write("<EC>::");
+    fp->write(m_state.getElementTypeFunctionName(cuti));
+    fp->write("( ) const\n");
     m_state.indent(fp);
     fp->write("{\n");
 
@@ -3954,7 +3962,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.m_currentIndentLevel--;
 
     m_state.indent(fp);
-    fp->write("} //GetTypeFromThisElement\n\n");
+    fp->write("} //");
+    fp->write(m_state.getElementTypeFunctionName(cuti));
+    fp->write("\n\n");
   } //genCodeBuiltInFunctionGetElementType
 
   void NodeBlockClass::genCodeBuiltInFunctionBuildDefaultAtom(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
@@ -4233,11 +4243,15 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
 	//VTable accessor methods
 	m_state.indent(fp);
-	fp->write("virtual VfuncPtr getVTableEntry(u32 idx) const;"); GCNL;
+	fp->write("virtual VfuncPtr ");
+	fp->write(m_state.getVTableEntryFunctionName(cuti));
+	fp->write("(u32 idx) const;"); GCNL;
 	fp->write("\n");
 
 	m_state.indent(fp);
-	fp->write("virtual const UlamClass<EC> * getVTableEntryUlamClassPtr(u32 idx) const;"); GCNL;
+	fp->write("virtual const UlamClass<EC> * ");
+	fp->write(m_state.getVTableEntryClassPtrFunctionName(cuti));
+	fp->write("(u32 idx) const;"); GCNL;
 	fp->write("\n");
 	return;
       } //done w h-file
@@ -4320,7 +4334,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("VfuncPtr ");
     fp->write(cut->getUlamTypeMangledName().c_str());
     fp->write("<EC>::"); //same for elements and quarks
-    fp->write("getVTableEntry(u32 idx) const\n");
+    fp->write(m_state.getVTableEntryFunctionName(cuti));
+    fp->write("(u32 idx) const\n");
     m_state.indent(fp);
     fp->write("{\n");
 
@@ -4344,7 +4359,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("const UlamClass<EC> * ");
     fp->write(cut->getUlamTypeMangledName().c_str());
     fp->write("<EC>::"); //same for elements and quarks
-    fp->write("getVTableEntryUlamClassPtr(u32 idx) const\n");
+    fp->write(m_state.getVTableEntryClassPtrFunctionName(cuti));
+    fp->write("(u32 idx) const\n");
     m_state.indent(fp);
     fp->write("{\n");
 
@@ -4395,7 +4411,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
 	//VTable accessor method
 	m_state.indent(fp);
-	fp->write("virtual u32 GetVTStartOffsetForClassByRegNum(u32 rn) const;"); GCNL;
+	fp->write("virtual u32 ");
+	fp->write(m_state.getVTableEntryStartOffsetForClassFunctionName(cuti));
+	fp->write("(u32 rn) const;"); GCNL;
 	fp->write("\n");
 	return;
       } //done w h-file
@@ -4447,7 +4465,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("u32 ");
     fp->write(cut->getUlamTypeMangledName().c_str());
     fp->write("<EC>::"); //same for elements and quarks
-    fp->write("GetVTStartOffsetForClassByRegNum(u32 rn) const\n");
+    fp->write(m_state.getVTableEntryStartOffsetForClassFunctionName(cuti));
+    fp->write("(u32 rn) const\n");
     m_state.indent(fp);
     fp->write("{\n");
 
@@ -4467,19 +4486,24 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
   void NodeBlockClass::generateInternalTypeAccessorsForElement(File * fp, bool declOnly)
   {
+    UTI cuti = getNodeType();
+    UlamType * cut = m_state.getUlamTypeByIndex(cuti);
+
     if(declOnly)
       {
 	m_state.indent(fp);
-	fp->write("const u32 ReadTypeField(const BV bv);"); GCNL;
+	fp->write("const u32 ");
+	fp->write(m_state.getReadTypeFieldFunctionName(cuti));
+	fp->write("(const BV bv);"); GCNL;
 	fp->write("\n");
 	m_state.indent(fp);
-	fp->write("void WriteTypeField(BV& bv, const u32 v);"); GCNL;
+	fp->write("void ");
+	fp->write(m_state.getWriteTypeFieldFunctionName(cuti));
+	fp->write("(BV& bv, const u32 v);"); GCNL;
 	fp->write("\n");
 	return;
       }
 
-    UTI cuti = getNodeType();
-    UlamType * cut = m_state.getUlamTypeByIndex(cuti);
 
     m_state.indent(fp);
     fp->write("template<class EC>\n");
@@ -4490,7 +4514,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write(cut->getUlamTypeMangledName().c_str());
 
     fp->write("<EC>::");
-    fp->write("ReadTypeField(const BV bv)\n");
+    fp->write(m_state.getReadTypeFieldFunctionName(cuti));
+    fp->write("(const BV bv)\n");
     m_state.indent(fp);
     fp->write("{\n");
 
@@ -4500,7 +4525,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
-    fp->write("} //ReadTypeField\n\n");
+    fp->write("} //");
+    fp->write(m_state.getReadTypeFieldFunctionName(cuti));
+    fp->write("\n\n");
 
 
     m_state.indent(fp);
@@ -4512,7 +4539,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write(cut->getUlamTypeMangledName().c_str());
 
     fp->write("<EC>::");
-    fp->write("WriteTypeField(BV& bv, const u32 v)\n");
+    fp->write(m_state.getWriteTypeFieldFunctionName(cuti));
+    fp->write("(BV& bv, const u32 v)\n");
     m_state.indent(fp);
     fp->write("{\n");
 
@@ -4522,7 +4550,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
-    fp->write("} //WriteTypeField\n\n");
+    fp->write("} //");
+    fp->write(m_state.getWriteTypeFieldFunctionName(cuti));
+    fp->write("\n\n");
   } //generateInternalTypeAccessorsForElement
 
   void NodeBlockClass::generateGetPosForQuark(File * fp, bool declOnly)
@@ -4575,7 +4605,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	fp->write("<EC>::"); //same for elements and quarks
       }
 
-    fp->write("GetDataMemberInfo(u32 dataMemberNumber) const"); //method name!!!
+    fp->write(m_state.getDataMemberInfoFunctionName(cuti));
+    fp->write("(u32 dataMemberNumber) const"); //method name!!!
 
     if(!declOnly)
       {
@@ -4605,7 +4636,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
 	m_state.m_currentIndentLevel--;
 	m_state.indent(fp);
-	fp->write("} //GetDataMemberInfo\n\n"); //end of func
+	fp->write("} //"); //end of func
+	fp->write(m_state.getDataMemberInfoFunctionName(cuti));
+	fp->write("\n\n");
       }
     else
       {
@@ -4693,7 +4726,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	fp->write("<EC>::"); //same for elements and quarks
       }
 
-    fp->write("GetDataMemberCount() const"); //method name!!!
+    fp->write(m_state.getDataMemberCountFunctionName(cuti));  //method name!!!
+    fp->write("() const");
 
     if(!declOnly)
       {
@@ -4711,7 +4745,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
 	m_state.m_currentIndentLevel--;
 	m_state.indent(fp);
-	fp->write("} //GetDataMemberCount\n\n");
+	fp->write("} //");
+	fp->write(m_state.getDataMemberCountFunctionName(cuti));  //method name!!!
+	fp->write("\n\n");
       }
     else
       {
@@ -4744,7 +4780,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	fp->write("<EC>::"); //same for elements and quarks
       }
 
-    fp->write("GetMangledClassName() const"); //method name!!!
+    fp->write(m_state.getClassMangledNameFunctionName(cuti));
+    fp->write("() const"); //method name!!!
 
     if(!declOnly)
       {
@@ -4762,7 +4799,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
 	m_state.m_currentIndentLevel--;
 	m_state.indent(fp);
-	fp->write("} //GetMangledClassName\n\n");
+	fp->write("} //");
+	fp->write(m_state.getClassMangledNameFunctionName(cuti));
+	fp->write("\n\n");
       }
     else
       {
@@ -4795,7 +4834,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	fp->write("<EC>::"); //same for elements and quarks
       }
 
-    fp->write("GetMangledClassNameAsStringIndex() const"); //method name!!!
+    fp->write(m_state.getClassMangledNameAsStringIndexFunctionName(cuti));
+    fp->write("() const"); //method name!!!
 
     if(!declOnly)
       {
@@ -4816,7 +4856,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
 	m_state.m_currentIndentLevel--;
 	m_state.indent(fp);
-	fp->write("} //GetMangledClassNameAsStringIndex\n\n");
+	fp->write("} //");
+	fp->write(m_state.getClassMangledNameAsStringIndexFunctionName(cuti));
+	fp->write("\n\n");
       }
     else
       {
@@ -4849,7 +4891,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	fp->write("<EC>::"); //same for elements and quarks
       }
 
-    fp->write("GetUlamClassNameAsStringIndex(bool templateParameters, bool templateValues) const"); //method name!!!
+    fp->write(m_state.getClassNameAsStringIndexFunctionName(cuti));
+    fp->write("(bool templateParameters, bool templateValues) const"); //method name!!!
 
     if(!declOnly)
       {
@@ -4917,7 +4960,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
 	m_state.m_currentIndentLevel--;
 	m_state.indent(fp);
-	fp->write("} //GetUlamClassNameAsStringIndex\n\n");
+	fp->write("} //");
+	fp->write(m_state.getClassNameAsStringIndexFunctionName(cuti));
+	fp->write("\n\n");
       }
     else
       {

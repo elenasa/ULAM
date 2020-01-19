@@ -927,39 +927,6 @@ namespace MFM {
     return args.str();
   } //formatAnInstancesArgValuesAsCommaDelimitedString
 
-#if 0
-  std::string SymbolClassNameTemplate::generateUlamClassSignature()
-  {
-    std::ostringstream sig;
-    sig << m_state.m_pool.getDataAsString(getId()).c_str(); //class name
-
-    u32 numparams = getNumberOfParameters();
-    assert(numparams > 0);
-
-    sig << "(";
-
-    NodeBlockClass * classNode = getClassBlockNode();
-    assert(classNode);
-    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
-    //format parameters type and name into stream
-    for(u32 i = 0; i < numparams; i++)
-      {
-	if(i > 0)
-	  sig << ", ";
-
-	Node * pnode = classNode->getParameterNode(i);
-	assert(pnode);
-	sig << m_state.m_pool.getDataAsString(pnode->getTypeNameId()).c_str();
-	sig << " " << pnode->getName(); //arg name
-      }
-
-    sig << ")";
-
-    m_state.popClassContext(); //restore
-    return sig.str();
-  } //generateUlamClassSignature
-#endif
-
   void SymbolClassNameTemplate::generatePrettyNameAndSignatureOfClassInstancesAsUserStrings()
   {
     std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();

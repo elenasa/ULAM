@@ -70,7 +70,6 @@ namespace MFM{
     virtual Node * findNodeNoInAClassInstance(UTI instance, NNO n);
 
     virtual std::string formatAnInstancesArgValuesAsAString(UTI instance, bool dereftypes = false);
-    //virtual std::string generateUlamClassSignature();
     virtual void generatePrettyNameAndSignatureOfClassInstancesAsUserStrings();
     virtual std::string generatePrettyNameOrSignature(UTI instance, bool signa, bool argvals);
 
