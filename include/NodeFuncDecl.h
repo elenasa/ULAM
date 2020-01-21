@@ -73,7 +73,7 @@ namespace MFM{
 
     virtual TBOOL packBitsInOrderOfDeclaration(u32& offset);
 
-    virtual void calcMaxIndexOfVirtualFunctionInOrderOfDeclaration(SymbolClass* csym, s32& maxidx);
+    virtual void calcMaxIndexOfVirtualFunctionInOrderOfDeclaration(SymbolClass* csym, s32& maxidx); //!!!
 
     virtual bool buildDefaultValue(u32 wlen, BV8K& dvref);
 
@@ -88,6 +88,8 @@ namespace MFM{
     virtual void addMemberDescriptionToInfoMap(UTI classType, ClassMemberMap& classmembers);
 
     virtual void genCode(File * fp, UVPass& uvpass);
+
+    virtual void generateFunctionInDeclarationOrder(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
 
   protected:
 

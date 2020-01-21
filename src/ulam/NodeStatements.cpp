@@ -308,6 +308,13 @@ namespace MFM {
       m_nodeNext->genCodeToStoreInto(fp, uvpass);
   }
 
+  void NodeStatements::generateFunctionInDeclarationOrder(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
+  {
+    m_node->generateFunctionInDeclarationOrder(fp, declOnly, classtype);
+    if(m_nodeNext)
+      m_nodeNext->generateFunctionInDeclarationOrder(fp, declOnly, classtype);
+  }
+
   void NodeStatements::genCodeExtern(File * fp, bool declOnly)
   {
     if(m_node)

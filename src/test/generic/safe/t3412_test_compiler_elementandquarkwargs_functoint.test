@@ -35,11 +35,11 @@ use C2D;
 quark Q {
   C2D(4,7) c;
   C2D(2,5) d;
-  C2D(4,7) func(){
-    return c;
-  }
   C2D(2,5) func2(){
     return d;
+  }
+  C2D(4,7) func(){
+    return c;
   }
 }
 #:C2D.ulam

@@ -234,6 +234,8 @@ enum EvalStatus {ERROR, NOTREADY, NORMAL, RETURN, BREAK, CONTINUE, UNEVALUABLE};
 
     virtual void genCodeToStoreInto(File * fp, UVPass& uvpass);
 
+    virtual void generateFunctionInDeclarationOrder(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
+
     virtual void genCodeReadIntoATmpVar(File * fp, UVPass& uvpass);
 
     virtual void genCodeWriteFromATmpVar(File * fp, UVPass& luvpass, UVPass& ruvpass);

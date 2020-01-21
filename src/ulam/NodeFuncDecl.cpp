@@ -74,6 +74,7 @@ namespace MFM {
 
   void NodeFuncDecl::calcMaxIndexOfVirtualFunctionInOrderOfDeclaration(SymbolClass* csym, s32& maxidx)
   {
+    assert(m_funcSymbolPtr);
     m_funcSymbolPtr->calcMaxIndexOfVirtualFunction(csym, maxidx); //entire reason for existing!
   }
 
@@ -93,16 +94,6 @@ namespace MFM {
   void NodeFuncDecl::generateBuiltinConstantClassOrArrayInitializationFunction(File * fp, bool declOnly)
   {}
 
-#if 0
-  void NodeFuncDecl::cloneAndAppendNode(std::vector<Node *> & cloneVec)
-  {
-    //for comment purposes (e.g. t3883)
-    NodeFuncDecl * cloneofme = (NodeFuncDecl *) this->instantiate();
-    assert(cloneofme);
-    cloneVec.push_back(cloneofme);
-  }
-#endif
-
   void NodeFuncDecl::generateTestInstance(File * fp, bool runtest)
   { /* noop */ }
 
@@ -115,5 +106,11 @@ namespace MFM {
   {
     //not done here..
   } //genCode
+
+  void NodeFuncDecl::generateFunctionInDeclarationOrder(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
+  {
+    assert(m_funcSymbolPtr);
+    m_funcSymbolPtr->generateFunctionDeclaration(fp, declOnly, classtype); //2nd purpose
+  }
 
 } //end MFM

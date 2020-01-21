@@ -108,6 +108,8 @@ namespace MFM{
 
     virtual void genCodeToStoreInto(File * fp, UVPass& uvpass);
 
+    virtual void generateFunctionInDeclarationOrder(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
+
     virtual void genCodeExtern(File * fp, bool declOnly);
 
     virtual void genCodeConstantArrayInitialization(File * fp);

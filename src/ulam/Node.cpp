@@ -5,6 +5,7 @@
 #include "NodeBlockFunctionDefinition.h"
 #include "NodeFunctionCall.h"
 #include "NodeIdent.h"
+#include "NodeFuncDecl.h"
 #include "NodeMemberSelect.h"
 #include "NodeVarDecl.h"
 #include "SymbolVariableDataMember.h"
@@ -729,6 +730,11 @@ namespace MFM {
     MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
     m_state.abortShouldntGetHere();
     return;
+  }
+
+  void Node::generateFunctionInDeclarationOrder(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
+  {
+    return; //work done by NodeFuncDecl
   }
 
   void Node::genCodeReadIntoATmpVar(File * fp, UVPass & uvpass)
@@ -2621,6 +2627,14 @@ namespace MFM {
 	fblock->appendNextNode(returnNode);
 	fblock->setDefinition();
 	fblock->setMaxDepth(0); //no local variables, except params
+
+	//append this little guy to tree to preserve order of declaration for virtual funcs, ulam-5
+	NodeFuncDecl * funcdecl = new NodeFuncDecl(fsymptr,m_state); //t3412
+	assert(funcdecl);
+	funcdecl->setNodeLocation(loc);
+	m_state.pushCurrentBlock(currClassBlock); //class
+	m_state.appendNodeToCurrentBlock(funcdecl);
+	m_state.popClassContext();
       }
 
     //this block's ST is no longer in scope
