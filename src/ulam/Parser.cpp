@@ -49,6 +49,7 @@
 #include "NodeConstant.h"
 #include "NodeConstantArray.h"
 #include "NodeContinueStatement.h"
+#include "NodeFuncDecl.h"
 #include "NodeInitDM.h"
 #include "NodeLabel.h"
 #include "NodeListEmpty.h"
@@ -297,6 +298,7 @@ namespace MFM {
     //set class type in UlamType (through its class symbol) since we know it;
     //UC_UNSEEN if unseen so far.
     m_state.resetUnseenClass(cnSym, iTok);
+    m_state.resetFunctionOrderNumber();
 
     switch(pTok.m_type)
       {
@@ -1015,7 +1017,18 @@ namespace MFM {
 	    //eats the '(' when found; NULL if error occurred
 	    NodeBlockFunctionDefinition * funcdefNode = makeFunctionSymbol(typeargs, iTok, typeNode, isVirtual, insureVirtualOverride, isConstr); //with params
 	    if(funcdefNode)
-	      brtn = true; //funcdefNode belongs to the symbolFunction; not appended to tree
+	      {
+		SymbolFunction * funcsym = funcdefNode->getFuncSymbolPtr();
+		assert(funcsym);
+
+		//append this little guy to tree to preserve order of declaration for virtual funcs
+		NodeFuncDecl * funcdecl = new NodeFuncDecl(funcsym,m_state);
+		assert(funcdecl);
+		funcdecl->setNodeLocation(iTok.m_locator);
+		m_state.appendNodeToCurrentBlock(funcdecl);
+
+		brtn = true; //funcdefNode belongs to the symbolFunction; not appended to tree
+	      }
 	    else
 	      //MSG(&pTok, "INCOMPLETE Function Definition", ERR);
 	      m_state.clearStructuredCommentToken();

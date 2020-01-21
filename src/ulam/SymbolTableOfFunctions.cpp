@@ -228,6 +228,7 @@ namespace MFM {
 
     csym->initVTable(maxidx);
 
+#if 0
     s32 vownedcount = 0;
 
     //first reorder: sort all funcs by mangledname string
@@ -255,6 +256,7 @@ namespace MFM {
 
     maxidx += vownedcount; //update ref arg
     mangledFuncs.clear(); //tmp
+#endif
     return;
   } //calcMaxIndexForVirtualTableOfFunctions
 

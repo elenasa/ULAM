@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * SymbolFunction.h -  Function Symbol handling for ULAM
  *
- * Copyright (C) 2014-2019 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2019 Ackleyshack LLC.
+ * Copyright (C) 2014-2020 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2020 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file SymbolFunction.h -  Function Symbol handling for ULAM
   \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2019   All rights reserved.
+  \date (C) 2014-2020   All rights reserved.
   \gpl
 */
 
@@ -72,6 +72,7 @@ namespace MFM{
     virtual bool isFunction();
     void setFunctionNode(NodeBlockFunctionDefinition * func);
     NodeBlockFunctionDefinition *  getFunctionNode();
+    u32 getOrderNumber();
 
     virtual const std::string getMangledPrefix();
 
@@ -123,6 +124,7 @@ namespace MFM{
   private:
     std::vector<Symbol *> m_parameterSymbols;  // variable or function can be an args
     NodeBlockFunctionDefinition * m_functionNode;
+    u32 m_declOrderNum;
     bool m_hasVariableArgs;
     bool m_isVirtual; //overloaded funcs may have different virtual status
     bool m_pureVirtual; //overloaded funcs may have different pure virtual status

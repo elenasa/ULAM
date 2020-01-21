@@ -254,6 +254,15 @@ namespace MFM {
     return rtntb;
   }
 
+  void NodeStatements::calcMaxIndexOfVirtualFunctionInOrderOfDeclaration(SymbolClass* csym, s32& maxidx)
+  {
+    m_node->calcMaxIndexOfVirtualFunctionInOrderOfDeclaration(csym, maxidx); //updates maxidx
+    if(m_nodeNext)
+      {
+	m_nodeNext->calcMaxIndexOfVirtualFunctionInOrderOfDeclaration(csym, maxidx);
+      }
+  }
+
   void NodeStatements::printUnresolvedVariableDataMembers()
   {
     m_node->printUnresolvedVariableDataMembers(); //updates offset

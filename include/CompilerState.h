@@ -123,6 +123,7 @@ namespace MFM{
     Token m_currentLocalDefToken; //used to identify current file path when m_parsingLocalDef is true
     u32 m_parsingFUNCid; //used for __FUNC__ used within a function definition; 0 is none.
     Token m_parsingFuncDefToken; //valid when m_parsingFUNCid > 0.
+    u32 m_nextFunctionOrderNumber; //one per SymbolFunction per class in order of declaration
 
     SYMBOLTYPEFLAG m_parsingVariableSymbolTypeFlag;
 
@@ -160,6 +161,7 @@ namespace MFM{
 
     std::vector<NodeReturnStatement *> m_currentFunctionReturnNodes; //nodes of return nodes in a function; verify type
     UTI m_currentFunctionReturnType;  //used during type labeling to check return types
+
     UlamValue m_currentObjPtr; //used in eval of members: data or funcs; updated at each '.'
     UlamValue m_currentSelfPtr; //used in eval of func calls: updated after args,
                                 // becomes currentObjPtr for args
@@ -329,6 +331,9 @@ namespace MFM{
     bool isFuncIdInClassScope(u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
     bool isFuncIdInClassScopeNNO(NNO cnno, u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
     bool isFuncIdInAClassScopeOrAncestor(UTI cuti, u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
+
+    u32 getNextFunctionOrderNumber();
+    void resetFunctionOrderNumber();
 
     bool findMatchingFunctionStrictlyByTypesInClassScope(u32 fid, std::vector<UTI> typeVec, SymbolFunction*& fsymref);
     bool findOverrideMatchingVirtualFunctionStrictlyByTypesInAncestorOf(UTI cuti, u32 fid, std::vector<UTI> typeVec, bool virtualInSub, SymbolFunction*& fsymref, UTI& foundInAncestor);

@@ -1436,6 +1436,12 @@ void NodeBlockClass::checkTestFunctionReturnType()
 	// adds up each base classes vowned indexes, entire ancestory tree, for maxidx
 	m_functionST.calcMaxIndexForVirtualTableOfFunctions(maxidx);
 
+	//in order declared..
+	s32 vownedcount = 0;
+	if(m_nodeNext) m_nodeNext->calcMaxIndexOfVirtualFunctionInOrderOfDeclaration(csym, vownedcount);
+
+	maxidx += vownedcount; //update ref arg
+
 	setVirtualMethodMaxIdx(maxidx);
       }
   } //calcMaxIndexOfVirtualFunctions

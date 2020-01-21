@@ -61,6 +61,7 @@ enum EvalStatus {ERROR, NOTREADY, NORMAL, RETURN, BREAK, CONTINUE, UNEVALUABLE};
   struct TypeArgs; //forward
   class NodeFunctionCall; //forward
   class NodeBlock; //forward
+  class SymbolClass; //forward
 
   class Node
   {
@@ -226,6 +227,8 @@ enum EvalStatus {ERROR, NOTREADY, NORMAL, RETURN, BREAK, CONTINUE, UNEVALUABLE};
     virtual void printUnresolvedLocalVariables(u32 fid);
 
     virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);
+
+    virtual void calcMaxIndexOfVirtualFunctionInOrderOfDeclaration(SymbolClass* csym, s32& maxidx);
 
     virtual void genCode(File * fp, UVPass& uvpass);
 

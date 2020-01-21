@@ -693,6 +693,11 @@ namespace MFM {
     return TBOOL_FALSE;
   }
 
+  void Node::calcMaxIndexOfVirtualFunctionInOrderOfDeclaration(SymbolClass* csym, s32& maxidx)
+  {
+    return; //only NodeBlockFunctionDefinition does work!
+  }
+
   void Node::printUnresolvedVariableDataMembers()
   {
     m_state.abortShouldntGetHere();

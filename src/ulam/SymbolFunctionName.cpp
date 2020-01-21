@@ -90,6 +90,23 @@ namespace MFM {
     return m_mangledFunctionNames.size();
   }
 
+  SymbolFunction * SymbolFunctionName::getFunctionSymbolByOrderNumber(u32 ordernumarg)
+  {
+    SymbolFunction * foundFSym = NULL;
+    std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
+    while(it != m_mangledFunctionNames.end())
+      {
+	SymbolFunction * fsym = it->second;
+	if(fsym->getOrderNumber() == ordernumarg)
+	  {
+	    foundFSym = fsym;
+	    break;
+	  }
+	++it;
+      }
+    return foundFSym;
+  }
+
   u32 SymbolFunctionName::findMatchingFunctionStrictlyVoid(SymbolFunction *& funcSymbol)
   {
     std::vector<UTI> voidVector;

@@ -476,6 +476,11 @@ namespace MFM {
     m_state.popClassContext();
   } //calcMaxDepth
 
+  void NodeBlockFunctionDefinition::calcMaxIndexOfVirtualFunctionInOrderOfDeclaration(SymbolClass* csym, s32& maxidx)
+  {
+    m_state.abortShouldntGetHere(); //not in parse tree..see NodeFuncDecl
+  }
+
   void NodeBlockFunctionDefinition::setNative()
   {
     m_native = true;

@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
- * NodeStatements.h - Node linking Statements for ULAM
+ * NodeFuncDecl.h - Node handling the Function Declaration Order for ULAM
  *
- * Copyright (C) 2014-2020 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2020 Ackleyshack LLC.
+ * Copyright (C) 2020 The Regents of the University of New Mexico.
+ * Copyright (C) 2020 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -26,41 +26,34 @@
  */
 
 /**
-  \file NodeStatements.h - Node linking Statements for ULAM
+  \file NodeFuncDecl.h - Node handling the Function Declaration Order for ULAM
   \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2020 All rights reserved.
+  \date (C) 2020 All rights reserved.
   \gpl
 */
 
 
-#ifndef NODESTATEMENTS_H
-#define NODESTATEMENTS_H
+#ifndef NODEFUNCDECL_H
+#define NODEFUNCDECL_H
 
-#include "File.h"
 #include "Node.h"
 
 namespace MFM{
 
-  class NodeStatements : public Node
+  class SymbolFunction; //forward
+
+  class NodeFuncDecl : public Node
   {
   public:
 
-    NodeStatements(Node * s, CompilerState & state);
+    NodeFuncDecl(SymbolFunction * symfunc, CompilerState & state);
 
-    NodeStatements(const NodeStatements& ref);
+    NodeFuncDecl(const NodeFuncDecl& ref);
 
-    virtual ~NodeStatements();
+    virtual ~NodeFuncDecl();
 
     virtual Node * instantiate();
-
-    virtual void updateLineage(NNO pno);
-
-    virtual bool exchangeKids(Node * oldnptr, Node * newnptr);
-
-    virtual bool findNodeNo(NNO n, Node *& foundNode);
-
-    virtual void checkAbstractInstanceErrors();
 
     virtual void print(File * fp);
 
@@ -70,25 +63,9 @@ namespace MFM{
 
     virtual void genTypeAndNameEntryAsComment(File * fp, s32 totalsize, u32& accumsize);
 
-    virtual bool isAConstant();
-
-    virtual bool isFunctionCall();
-
-    virtual bool isArrayItem();
-
-    virtual bool isExplicitReferenceCast(); //only NodeCast may return true
-
     virtual UTI checkAndLabelType();
 
-    virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
-
-    virtual bool buildDefaultValue(u32 wlen, BV8K& dvref);
-
-    virtual bool buildDefaultValueForClassConstantDefs();
-
     virtual EvalStatus eval();
-
-    virtual void setNextNode(NodeStatements * s);
 
     virtual const char * getName();
 
@@ -96,25 +73,13 @@ namespace MFM{
 
     virtual TBOOL packBitsInOrderOfDeclaration(u32& offset);
 
-    virtual void printUnresolvedVariableDataMembers();
-
-    virtual void printUnresolvedLocalVariables(u32 fid);
-
-    virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);
-
     virtual void calcMaxIndexOfVirtualFunctionInOrderOfDeclaration(SymbolClass* csym, s32& maxidx);
 
-    virtual void genCode(File * fp, UVPass& uvpass);
-
-    virtual void genCodeToStoreInto(File * fp, UVPass& uvpass);
-
-    virtual void genCodeExtern(File * fp, bool declOnly);
+    virtual bool buildDefaultValue(u32 wlen, BV8K& dvref);
 
     virtual void genCodeConstantArrayInitialization(File * fp);
 
     virtual void generateBuiltinConstantClassOrArrayInitializationFunction(File * fp, bool declOnly);
-
-    virtual void cloneAndAppendNode(std::vector<Node *> & cloneVec);
 
     virtual void generateTestInstance(File * fp, bool runtest);
 
@@ -122,15 +87,17 @@ namespace MFM{
 
     virtual void addMemberDescriptionToInfoMap(UTI classType, ClassMemberMap& classmembers);
 
+    virtual void genCode(File * fp, UVPass& uvpass);
+
   protected:
-    Node * m_node;
-    NodeStatements * m_nodeNext;
 
   private:
-
+    u32 m_fid; //to instantiate, fm symbol
+    u32 m_ordernum;  //to instantiate, fm symbol
+    SymbolFunction * m_funcSymbolPtr; //not owner
 
   };
 
 }
 
-#endif //end NODESTATEMENTS_H
+#endif //end NODEFUNCDECL_H
