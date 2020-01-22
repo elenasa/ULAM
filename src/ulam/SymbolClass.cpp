@@ -577,21 +577,6 @@ namespace MFM {
     return m_isreadyDefaultValue;
   } //getDefaultValue
 
-  bool SymbolClass::buildClassConstantDefaultValues()
-  {
-    UTI suti = getUlamTypeIdx();
-    NodeBlockClass * classblock = getClassBlockNode();
-    assert(classblock);
-    m_state.pushClassContext(suti, classblock, classblock, false, NULL);
-
-    AssertBool ccbuilt = classblock->buildDefaultValueForClassConstantDefs(); //side-effect
-    assert(ccbuilt);
-
-    m_state.popClassContext();
-
-    return true;
-  } //buildClassConstantDefaultValues (unused?)
-
   TBOOL SymbolClass::packBitsForClassVariableDataMembers()
   {
     if(m_bitsPacked)

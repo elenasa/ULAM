@@ -1051,7 +1051,7 @@ namespace MFM {
 	m_state.popClassContext(); //restore
       }
     return sig.str();
-  } //generatePrettyName
+  } //generatePrettyNameOrSignature
 
   bool SymbolClassNameTemplate::hasInstanceMappedUTI(UTI instance, UTI auti, UTI& mappedUTI)
   {
@@ -1863,21 +1863,6 @@ namespace MFM {
 	it++;
       }
   } //buildDefaultValueForClassInstances
-
-  void SymbolClassNameTemplate::buildClassConstantDefaultValuesForClassInstances()
-  {
-    std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
-    while(it != m_scalarClassArgStringsToSymbolPtr.end())
-      {
-	SymbolClass * csym = it->second;
-	UTI suti = csym->getUlamTypeIdx(); //this instance
-	if(m_state.isComplete(suti))
-	  {
-	    csym->buildClassConstantDefaultValues(); //this instance
-	  }
-	it++;
-      }
-  } //buildClassConstantDefaultValuesForClassInstances (unused?)
 
   void SymbolClassNameTemplate::testForClassInstances(File * fp)
   {

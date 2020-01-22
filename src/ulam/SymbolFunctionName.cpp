@@ -685,36 +685,6 @@ namespace MFM {
     return count;
   } //countNativeFuncDecls
 
-  void SymbolFunctionName::generateCodedFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
-  {
-    std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
-
-    while(it != m_mangledFunctionNames.end())
-      {
-	SymbolFunction * fsym = it->second;
-	fsym->generateFunctionDeclaration(fp, declOnly, classtype);
-	++it;
-      }
-  } //generateCodedFunctions (unused)
-
-  void SymbolFunctionName::addFunctionDescriptionsToClassMemberMap(UTI classType, ClassMemberMap & classmembers)
-  {
-    std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
-
-    while(it != m_mangledFunctionNames.end())
-      {
-	SymbolFunction * fsym = it->second;
-	FunctionDesc * descptr = new FunctionDesc(fsym, classType, m_state);
-	assert(descptr);
-
-	//concat mangled class and parameter names to avoid duplicate keys into map
-	std::ostringstream fullMangledName;
-	fullMangledName << descptr->m_mangledClassName << "_" << descptr->m_mangledMemberName;
-	classmembers.insert(std::pair<std::string, struct ClassMemberDesc *>(fullMangledName.str(), descptr));
-	++it;
-      }
-  } //addFunctionDescriptionsToClassMemberMap (unused)
-
   //private method:
   bool SymbolFunctionName::isDefined(std::string mangledFName, SymbolFunction * & foundSym)
   {

@@ -2319,7 +2319,7 @@ namespace MFM {
 
   void Node::addMemberDescriptionToInfoMap(UTI classType, ClassMemberMap& classmembers)
   {
-    //fufilled by NodeVarDecl and NodeConstDef; bypassed by NodeTypedef
+    //fufilled by NodeVarDecl, NodeConstDef, NodeFuncDecl; bypassed by NodeTypedef
     m_state.abortShouldntGetHere();
   }
 
@@ -2628,8 +2628,8 @@ namespace MFM {
 	fblock->setDefinition();
 	fblock->setMaxDepth(0); //no local variables, except params
 
-	//append this little guy to tree to preserve order of declaration for virtual funcs, ulam-5
-	NodeFuncDecl * funcdecl = new NodeFuncDecl(fsymptr,m_state); //t3412
+	//append this little guy to tree to preserve order of function declarations, ulam-5
+	NodeFuncDecl * funcdecl = new NodeFuncDecl(fsymptr, m_state); //t3412
 	assert(funcdecl);
 	funcdecl->setNodeLocation(loc);
 	m_state.pushCurrentBlock(currClassBlock); //class

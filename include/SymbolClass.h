@@ -125,8 +125,6 @@ namespace MFM{
     bool getPackedDefaultValue(u64& dpkref);
     bool getDefaultValue(BV8K& dvref); //return true if ready
 
-    bool buildClassConstantDefaultValues();
-
     TBOOL packBitsForClassVariableDataMembers();
 
     void testThisClass(File * fp); //eval-land

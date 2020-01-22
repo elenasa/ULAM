@@ -298,7 +298,6 @@ namespace MFM {
     //set class type in UlamType (through its class symbol) since we know it;
     //UC_UNSEEN if unseen so far.
     m_state.resetUnseenClass(cnSym, iTok);
-    m_state.resetFunctionOrderNumber();
 
     switch(pTok.m_type)
       {
@@ -1021,7 +1020,7 @@ namespace MFM {
 		SymbolFunction * funcsym = funcdefNode->getFuncSymbolPtr();
 		assert(funcsym);
 
-		//append this little guy to tree to preserve order of declaration for virtual funcs
+		//append this little guy to tree to preserve order of function declarations (ulam-5)
 		NodeFuncDecl * funcdecl = new NodeFuncDecl(funcsym,m_state);
 		assert(funcdecl);
 		funcdecl->setNodeLocation(iTok.m_locator);
@@ -3621,19 +3620,6 @@ namespace MFM {
       }
     return rtnNode;
   } //parseIdentExpr
-
-  Node * Parser::parseMemberSelectExpr(const Token& memberTok)
-  {
-    //arg is an instance of a class, it will be/was
-    //declared as a variable, either as a data member or locally,
-    //WAIT To  search back through the block symbol tables during type labeling
-    m_state.pushClassContextUsingMemberClassBlock(NULL); //oddly =true
-
-    Node * classInstanceNode = parseIdentExpr(memberTok); //incl array item, func call, etc.
-    m_state.popClassContext();
-
-    return parseRestOfMemberSelectExpr(classInstanceNode);
-  } //(unused????)
 
   Node * Parser::parseRestOfMemberSelectExpr(Node * classInstanceNode)
   {

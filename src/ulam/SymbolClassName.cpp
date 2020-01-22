@@ -404,11 +404,6 @@ namespace MFM {
     SymbolClass::getDefaultValue(dval); //this instance
   } //buildDefaultValueForClassInstances
 
-  void SymbolClassName::buildClassConstantDefaultValuesForClassInstances()
-  {
-    SymbolClass::buildClassConstantDefaultValues(); //this instance
-  } // (unused?)
-
   void SymbolClassName::testForClassInstances(File * fp)
   {
     SymbolClass::testThisClass(fp);

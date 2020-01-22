@@ -100,8 +100,6 @@ namespace MFM{
 
     virtual void buildDefaultValueForClassInstances();
 
-    virtual void buildClassConstantDefaultValuesForClassInstances();
-
     virtual void testForClassInstances(File * fp);
 
     virtual void assignRegistrationNumberForClassInstances(); //ulam-4,ulam-5

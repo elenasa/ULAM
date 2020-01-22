@@ -95,7 +95,7 @@ namespace MFM{
 
   private:
     u32 m_fid; //to instantiate, fm symbol
-    u32 m_ordernum;  //to instantiate, fm symbol
+    u32 m_ordernum;  //to instantiate, must be unique among ea fid, fm symbol
     SymbolFunction * m_funcSymbolPtr; //not owner
 
   };

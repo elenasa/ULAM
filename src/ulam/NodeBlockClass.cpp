@@ -2340,8 +2340,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
   {
     // done earlier so that problems can be caught before continuing
     // check all the function names for duplicate definitions
-    //m_functionST.genCodeForTableOfFunctions(fp, declOnly, classtype);
-
     //in parse tree order, the order of appearance (ulam-5)
     if(m_nodeNext)
       m_nodeNext->generateFunctionInDeclarationOrder(fp, declOnly, classtype);

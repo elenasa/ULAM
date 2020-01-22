@@ -72,7 +72,7 @@ namespace MFM{
     virtual bool isFunction();
     void setFunctionNode(NodeBlockFunctionDefinition * func);
     NodeBlockFunctionDefinition *  getFunctionNode();
-    u32 getOrderNumber();
+    const u32 getOrderNumber() const;
 
     virtual const std::string getMangledPrefix();
 
@@ -124,7 +124,7 @@ namespace MFM{
   private:
     std::vector<Symbol *> m_parameterSymbols;  // variable or function can be an args
     NodeBlockFunctionDefinition * m_functionNode;
-    u32 m_declOrderNum;
+    const u32 m_declOrderNum; //must be unique among overloaded funcs of same name
     bool m_hasVariableArgs;
     bool m_isVirtual; //overloaded funcs may have different virtual status
     bool m_pureVirtual; //overloaded funcs may have different pure virtual status

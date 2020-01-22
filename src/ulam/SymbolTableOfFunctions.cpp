@@ -31,19 +31,6 @@ namespace MFM {
     return totalsizes;
   } //getTotalSymbolSize
 
-  void SymbolTableOfFunctions::addClassMemberFunctionDescriptionsToMap(UTI classType, ClassMemberMap& classmembers)
-  {
-    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
-    while(it != m_idToSymbolPtr.end())
-      {
-	Symbol * sym = it->second;
-	assert(sym->isFunction());
-
-	((SymbolFunctionName *) sym)->addFunctionDescriptionsToClassMemberMap(classType, classmembers);
-	it++;
-      }
-  } //addClassMemberFunctionDescriptionsToMap (unused)
-
   //convert UTI to mangled strings to insure overload uniqueness
   void SymbolTableOfFunctions::checkTableOfFunctions(FSTable& mangledFunctionMap, u32& probcount)
   {
@@ -356,20 +343,5 @@ namespace MFM {
       }
     return nativeCount;
   } //countNativeFuncDeclsForTableOfFunctions
-
-  void SymbolTableOfFunctions::genCodeForTableOfFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
-  {
-    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
-    while(it != m_idToSymbolPtr.end())
-      {
-	Symbol * sym = it->second;
-	if(sym->isFunction())
-	  {
-	    ((SymbolFunctionName *) sym)->generateCodedFunctions(fp, declOnly, classtype);
-	  }
-	it++;
-      }
-  } //genCodeForTableOfFunctions (unused)
-
 
 } //end MFM

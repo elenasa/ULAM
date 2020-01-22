@@ -115,7 +115,7 @@ namespace MFM {
 
   void NodeFuncDecl::genCode(File * fp, UVPass& uvpass)
   {
-    //not done here..
+    //not done here..see NodeBlockFunctionDefinition
   } //genCode
 
   void NodeFuncDecl::generateFunctionInDeclarationOrder(File * fp, bool declOnly, ULAMCLASSTYPE classtype)

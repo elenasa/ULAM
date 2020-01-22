@@ -117,10 +117,6 @@ namespace MFM{
 
     u32 countNativeFuncDecls();
 
-    void generateCodedFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
-
-    void addFunctionDescriptionsToClassMemberMap(UTI classType, ClassMemberMap & classmembers);
-
   protected:
 
   private:
