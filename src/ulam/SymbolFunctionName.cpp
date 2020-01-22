@@ -695,7 +695,7 @@ namespace MFM {
 	fsym->generateFunctionDeclaration(fp, declOnly, classtype);
 	++it;
       }
-  } //generateCodedFunctions
+  } //generateCodedFunctions (unused)
 
   void SymbolFunctionName::addFunctionDescriptionsToClassMemberMap(UTI classType, ClassMemberMap & classmembers)
   {
@@ -713,7 +713,7 @@ namespace MFM {
 	classmembers.insert(std::pair<std::string, struct ClassMemberDesc *>(fullMangledName.str(), descptr));
 	++it;
       }
-  } //addFunctionDescriptionsToClassMemberMap
+  } //addFunctionDescriptionsToClassMemberMap (unused)
 
   //private method:
   bool SymbolFunctionName::isDefined(std::string mangledFName, SymbolFunction * & foundSym)

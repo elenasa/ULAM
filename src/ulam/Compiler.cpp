@@ -432,7 +432,7 @@ namespace MFM {
 
   void Compiler::testClassMemberMap()
   {
-    //matches code in main.cpp
+    //matches code in main.cpp; output in t*errlog.txt
     ClassMemberMap cmm = getMangledClassMembersMap();
     std::cerr << "Size of class members map is " << cmm.size() << std::endl;
     for(ClassMemberMap::const_iterator i = cmm.begin(); i != cmm.end(); ++i)

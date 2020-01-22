@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include "MapFunctionDesc.h"
 #include "NodeFuncDecl.h"
 #include "SymbolFunctionName.h"
 #include "CompilerState.h"
@@ -100,7 +101,17 @@ namespace MFM {
   void NodeFuncDecl::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
   {}
 
-  void NodeFuncDecl::addMemberDescriptionToInfoMap(UTI classType, ClassMemberMap& classmembers) { }
+  void NodeFuncDecl::addMemberDescriptionToInfoMap(UTI classType, ClassMemberMap& classmembers)
+  {
+    assert(m_funcSymbolPtr);
+    FunctionDesc * descptr = new FunctionDesc(m_funcSymbolPtr, classType, m_state);
+    assert(descptr);
+
+    //concat mangled class and parameter names to avoid duplicate keys into map
+    std::ostringstream fullMangledName;
+    fullMangledName << descptr->m_mangledClassName << "_" << descptr->m_mangledMemberName;
+    classmembers.insert(std::pair<std::string, struct ClassMemberDesc *>(fullMangledName.str(), descptr));
+  }
 
   void NodeFuncDecl::genCode(File * fp, UVPass& uvpass)
   {

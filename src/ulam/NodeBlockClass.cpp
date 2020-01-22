@@ -5047,7 +5047,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
   void NodeBlockClass::addMemberDescriptionsToInfoMap(ClassMemberMap& classmembers)
   {
     NodeBlock::addMemberDescriptionsToInfoMap(classmembers); //Table of Variables request
-    m_functionST.addClassMemberFunctionDescriptionsToMap(this->getNodeType(), classmembers); //Table of Classes request
+
+    //work done by NodeFuncDecl (ulam-5)
+    //m_functionST.addClassMemberFunctionDescriptionsToMap(this->getNodeType(), classmembers); //Table of Classes request
   }
 
   void NodeBlockClass::generateTestInstance(File * fp, bool runtest)

@@ -42,7 +42,7 @@ namespace MFM {
 	((SymbolFunctionName *) sym)->addFunctionDescriptionsToClassMemberMap(classType, classmembers);
 	it++;
       }
-  } //addClassMemberFunctionDescriptionsToMap
+  } //addClassMemberFunctionDescriptionsToMap (unused)
 
   //convert UTI to mangled strings to insure overload uniqueness
   void SymbolTableOfFunctions::checkTableOfFunctions(FSTable& mangledFunctionMap, u32& probcount)
@@ -369,7 +369,7 @@ namespace MFM {
 	  }
 	it++;
       }
-  } //genCodeForTableOfFunctions
+  } //genCodeForTableOfFunctions (unused)
 
 
 } //end MFM
