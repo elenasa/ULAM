@@ -6,20 +6,27 @@
 
 namespace MFM {
 
-  NodeFuncDecl::NodeFuncDecl(SymbolFunction * symfunc, CompilerState & state) : Node(state), m_funcSymbolPtr(symfunc)
-  {
-    assert(symfunc);
-    m_fid = symfunc->getId();
-    m_ordernum = symfunc->getOrderNumber();
-  }
+  NodeFuncDecl::NodeFuncDecl(SymbolFunction * symfunc, CompilerState & state) : Node(state), m_funcSymbolPtr(symfunc), m_fid(getfunctionid()), m_ordernum(getfunctionordernum()) { }
 
-  NodeFuncDecl::NodeFuncDecl(const NodeFuncDecl& ref) : Node(ref), m_fid(ref.m_fid), m_ordernum(ref.m_ordernum), m_funcSymbolPtr(NULL) {}
+  NodeFuncDecl::NodeFuncDecl(const NodeFuncDecl& ref) : Node(ref), m_funcSymbolPtr(NULL), m_fid(ref.m_fid), m_ordernum(ref.m_ordernum) {}
 
   NodeFuncDecl::~NodeFuncDecl() {}
 
   Node * NodeFuncDecl::instantiate()
   {
     return new NodeFuncDecl(*this);
+  }
+
+  u32 NodeFuncDecl::getfunctionid() const
+  {
+    assert(m_funcSymbolPtr);
+    return m_funcSymbolPtr->getId();
+  }
+
+  u32 NodeFuncDecl::getfunctionordernum() const
+  {
+    assert(m_funcSymbolPtr);
+    return m_funcSymbolPtr->getOrderNumber();
   }
 
   void NodeFuncDecl::print(File * fp) { }
@@ -34,6 +41,7 @@ namespace MFM {
   {
     if(!m_funcSymbolPtr)
       {
+	//template instance: find cloned function symbol ptr with function id and order number
 	bool hazykin = false;
 	Symbol * fnsymptr = NULL;
 	if(m_state.isFuncIdInClassScope(m_fid, fnsymptr, hazykin))
@@ -41,17 +49,19 @@ namespace MFM {
 	    assert(fnsymptr->isFunction()); //t41084, t41332
 	    m_funcSymbolPtr = ((SymbolFunctionName *) fnsymptr)->getFunctionSymbolByOrderNumber(m_ordernum);
 	  }
-	else
-	  {
-	    std::ostringstream msg;
-	    msg << "Function symbol '";
-	    msg << m_state.m_pool.getDataAsString(m_fid).c_str();
-	    msg << "' cannot be found";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    setNodeType(Nav);
-	    return Nav;
-	  }
       }
+
+    if(!m_funcSymbolPtr)
+      {
+	std::ostringstream msg;
+	msg << "Function symbol '";
+	msg << m_state.m_pool.getDataAsString(m_fid).c_str();
+	msg << "' cannot be found";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	setNodeType(Nav);
+	return Nav;
+      }
+
     assert(m_funcSymbolPtr);
     UTI nodeType = m_funcSymbolPtr->getUlamTypeIdx();
     setNodeType(nodeType);

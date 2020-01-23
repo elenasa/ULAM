@@ -94,7 +94,7 @@ class NodeBlockFunctionDefinition : public NodeBlock
     virtual const std::string prettyNodeName();
 
     void setDefinition();
-    bool isDefinition();
+    bool isDefinition() const;
 
     // for framestack
     void setMaxDepth(u32 depth);
@@ -104,7 +104,7 @@ class NodeBlockFunctionDefinition : public NodeBlock
 
     // for keyword 'native'; has empty block (i.e. not defined in Ulam); eval skipped
     void setNative();
-    bool isNative();
+    bool isNative() const;
 
     SymbolFunction * getFuncSymbolPtr();
     void setFuncSymbolPtr(SymbolFunction * fsymptr); //during instantiation

@@ -115,7 +115,7 @@ namespace MFM{
   protected:
 
   private:
-    Token m_token;
+    const Token m_token;
     SymbolVariable * m_varSymbol;
     NNO m_currBlockNo;
     NodeBlock * m_currBlockPtr;

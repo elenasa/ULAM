@@ -442,7 +442,7 @@ namespace MFM {
     m_isDefinition = true;
   }
 
-  bool NodeBlockFunctionDefinition::isDefinition()
+  bool NodeBlockFunctionDefinition::isDefinition() const
   {
     return m_isDefinition;
   }
@@ -486,7 +486,7 @@ namespace MFM {
     m_native = true;
   }
 
-  bool NodeBlockFunctionDefinition::isNative()
+  bool NodeBlockFunctionDefinition::isNative() const
   {
     return m_native;
   }

@@ -94,9 +94,12 @@ namespace MFM{
   protected:
 
   private:
-    u32 m_fid; //to instantiate, fm symbol
-    u32 m_ordernum;  //to instantiate, must be unique among ea fid, fm symbol
     SymbolFunction * m_funcSymbolPtr; //not owner
+    const u32 m_fid; //to instantiate, fm symbol
+    const u32 m_ordernum;  //to instantiate, must be unique among ea fid, fm symbol
+
+    u32 getfunctionid() const; //helper to set constant dm
+    u32 getfunctionordernum() const; //helper to set contant dm
 
   };
 

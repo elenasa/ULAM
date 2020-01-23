@@ -2632,7 +2632,7 @@ namespace MFM {
 	NodeFuncDecl * funcdecl = new NodeFuncDecl(fsymptr, m_state); //t3412
 	assert(funcdecl);
 	funcdecl->setNodeLocation(loc);
-	m_state.pushCurrentBlock(currClassBlock); //class
+	m_state.pushCurrentBlock(currClassBlock); //class scope
 	m_state.appendNodeToCurrentBlock(funcdecl);
 	m_state.popClassContext();
       }
@@ -2658,7 +2658,6 @@ namespace MFM {
     mfuncselectNode->setNodeLocation(loc);
     mfuncselectNode->updateLineage(node->getYourParentNo()); //t3190
 
-    //rtnNode = funccall;
     rtnNode = mfuncselectNode;
 
     //redo check and type labeling; error msg if not same

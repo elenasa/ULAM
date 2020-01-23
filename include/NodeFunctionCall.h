@@ -107,7 +107,7 @@ namespace MFM{
 
   private:
 
-    Token m_functionNameTok;
+    const Token m_functionNameTok;
     SymbolFunction * m_funcSymbol;
     NodeList * m_argumentNodes;
     SymbolTmpVar * m_tmpvarSymbol;
