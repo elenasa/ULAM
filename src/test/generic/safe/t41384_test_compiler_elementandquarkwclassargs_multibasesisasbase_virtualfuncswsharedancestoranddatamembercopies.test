@@ -1,0 +1,124 @@
+## -*- mode:ulam -*-
+#=t41384_test_compiler_elementandquarkwclassargs_multibasesisasbase_virtualfuncswsharedancestoranddatamembercopies
+##
+## gen output:
+## Int Arg: 410 (+ 7 asserts)
+## Int Arg: 410 (+ 6 asserts)
+##
+#!
+Exit status: -11
+Ue_Foo +System { Int(32) m_c4(0);  Int(32) m_a4(0);  +System<> Int(32) test() {  typedef QBase2 QB2;  typedef QBase1(true) QB1;  Atom(96) a = E4.instanceof cast;  { a QBase2 as cond { QBase2& a;  self m_a4 . a ( )vfunca . = self ( self m_a4 . )print . self ( self m_a4 . 410 cast == )assert . self ( a m_b1 . )assert . } if } E4& e4ref = a cast;  self ( e4ref m_b1 . )assert . self ( e4ref QB2 . m_b1 . )assert . self ( e4ref QBase3 . m_b1 . )assert . self ( e4ref QBaseLast . m_b1 . )assert . self ( e4ref m_b4 . )assert . Atom(96) b = E4.instanceof cast;  QBase2& qb2ref = b cast;  self m_c4 . qb2ref ( )vfunca . = self ( self m_c4 . )print . self ( self m_c4 . 410 cast == )assert . E4& e4bref = b cast;  self ( e4bref m_b1 . )assert . self ( e4bref QB2 . m_b1 . )assert . self ( e4bref QBase3 . m_b1 . )assert . self ( e4bref QBaseLast . m_b1 . )assert . self ( e4bref m_b4 . )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+Ue_E4 : QBase3 +QBase2 +QBaseLast(7u) { Bool(1) m_b4(false);  typedef QBase2 QB2;  :QBase3< Bool(1) m_b3(false); > +QBase2< Bool(1) m_b2(false);  Bits(1) m_bit(0); > +QBaseLast(7u)< Bool(7) m_blast(false); > ^QBase1(true)< Bool(1) m_b1( false); > <NOMAIN> }
+Uq_QBase3 : QBase1(true) { Bool(1) m_b3(false);  :QBase1(true)< Bool(1) m_b1( false); > <NOMAIN> }
+Uq_QBase2 +QBase1(true) { Bool(1) m_b2(false);  Bits(1) m_bit(0);  +QBase1(true)< Bool(1) m_b1( false); > <NOMAIN> }
+Uq_QBaseLast(Unsigned(32) s) : QBase1(b1) { Bool(UNKNOWN) m_blast(notready);  :QBase111< Bool(1) m_b1(notready); > <NOMAIN> }
+Uq_QBase1(Bool(1) b1) { Bool(1) m_b1(notready);  <NOMAIN> }
+##
+##       informed by t41318: except with templates
+##
+#>Foo.ulam
+  ulam 5;
+element Foo +System {
+  Int m_c4;
+  Int m_a4;
+
+  Int test()
+  {
+    typedef E4.QB2 QB2;
+    typedef QBase3.Super QB1;
+
+    Atom a = E4.instanceof;
+
+    if(a as QBase2)
+    {
+      m_a4 = a.vfunca(); //410
+      print(m_a4);
+      assert(m_a4==410);
+
+      //multiple copies of QBase1: SHARED
+      assert(a.m_b1); //changed
+    }
+
+    E4& e4ref = (E4&) a;
+    assert(e4ref.m_b1); //shared, changed
+    assert(e4ref.QB2.m_b1); //shared, touched
+    assert(e4ref.QBase3.m_b1); //equivalent dm, in order
+    assert(e4ref.QBaseLast(7u).m_b1); //explicitly changed
+    assert(e4ref.m_b4); //m_b4 not defined within as-block
+
+
+    //COMPARE GEN CODE: as- with ref-
+    Atom b = E4.instanceof;
+    QBase2& qb2ref = (QBase2&) b;
+
+    m_c4 = qb2ref.vfunca(); //410
+    print(m_c4);
+    assert(m_c4==410);
+
+    //multiple copies of QBase1: SHARED
+    E4& e4bref = (E4&) b;
+    assert(e4bref.m_b1); //changed
+    assert(e4bref.QB2.m_b1); //untouched
+    assert(e4bref.QBase3.m_b1); //equivalent dm, in order
+    assert(e4bref.QBaseLast(7u).m_b1); //explicitly changed
+    assert(e4bref.m_b4);
+    return 0;
+  }
+}
+
+
+#:E4.ulam
+  ulam 5;
+element E4 : QBase3 +QBase2 +QBaseLast(7u) {
+  Bool m_b4;
+  virtual Int vfuncc() { return 412; }
+  virtual Int vfunca() { m_b1 = true; m_b4 = true; self.QBaseLast(7u).m_b1 = true; return 410; }
+  virtual Void behave() { }
+  typedef QBase2 QB2;
+}
+
+#:QBase1.ulam
+    ulam 4;
+quark QBase1(Bool b1) {
+  Bool m_b1 = !b1;
+  Void funcNotVirtualSoIrrelevantHere() { }
+  virtual Int vfunca() { m_b1 = true; return 110; }
+}
+
+#:QBase2.ulam
+  ulam 5;
+quark QBase2 +QBase1(true) {
+  Bool m_b2;
+  Bits(1) m_bit; //so that len of QBase2 is different than its pos in E4.
+  virtual ARGB getColor(Unsigned s) { return super.getColor(s); }
+  virtual Int vfuncc() { m_b2 = true; return 212; }
+}
+
+#:QBase3.ulam
+  ulam 4;
+quark QBase3 : QBase1(true) {
+  Bool m_b3;
+  virtual Int vfuncb() { return 311; }
+}
+
+#:QBaseLast.ulam
+  ulam 4;
+quark QBaseLast(Unsigned s) : QBase1(s%2==1) {
+  Bool(s) m_blast; //was 7
+}
+
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

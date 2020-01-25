@@ -42,6 +42,9 @@
 
 namespace MFM
 {
+
+  struct CompilerState; //forward
+
   class BaseclassWalker
   {
   public:
@@ -56,8 +59,8 @@ namespace MFM
     void addAncestorsOf(SymbolClass * csymptr);
     void addAncestorPairsOf(SymbolClass * csymptr, UTI basehead);
 
-    bool getNextBase(UTI& nextbase);
-    bool getNextBasePair(UTI& nextbase, UTI& basehead);
+    bool getNextBase(UTI& nextbase, CompilerState& state);
+    bool getNextBasePair(UTI& nextbase, UTI& basehead, CompilerState& state);
 
   private:
 

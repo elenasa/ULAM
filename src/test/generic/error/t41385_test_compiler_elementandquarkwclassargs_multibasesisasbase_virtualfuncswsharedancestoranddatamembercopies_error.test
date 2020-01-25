@@ -1,0 +1,113 @@
+## -*- mode:ulam -*-
+#=t41385_test_compiler_elementandquarkwclassargs_multibasesisasbase_virtualfuncswsharedancestoranddatamembercopies_error
+#!
+./QBase1.ulam:5:15: ERROR: Virtual Function: vfunca() has conflicting Originating declarations in multiple base classes, QBase1(false) and QBase1(true) while compiling E4.
+Unrecoverable Program Type Label FAILURE.
+##
+##       informed by t41384: except with different QBase1 base for QBaseLast
+##
+#>Foo.ulam
+  ulam 5;
+element Foo +System {
+  Int m_c4;
+  Int m_a4;
+
+  Int test()
+  {
+    typedef E4.QB2 QB2;
+    typedef QBase3.Super QB1;
+
+    Atom a = E4.instanceof;
+
+    if(a as QBase2)
+    {
+      m_a4 = a.vfunca(); //410
+      print(m_a4);
+      assert(m_a4==410);
+
+      //multiple copies of QBase1: SHARED
+      assert(a.m_b1); //changed
+    }
+
+    E4& e4ref = (E4&) a;
+    assert(e4ref.m_b1); //shared, changed
+    assert(e4ref.QB2.m_b1); //shared, touched
+    assert(e4ref.QBase3.m_b1); //equivalent dm, in order
+    assert(e4ref.QBaseLast(7u).m_b1); //explicitly changed
+    assert(e4ref.m_b4); //m_b4 not defined within as-block
+
+
+    //COMPARE GEN CODE: as- with ref-
+    Atom b = E4.instanceof;
+    QBase2& qb2ref = (QBase2&) b;
+
+    m_c4 = qb2ref.vfunca(); //410
+    print(m_c4);
+    assert(m_c4==410);
+
+    //multiple copies of QBase1: SHARED
+    E4& e4bref = (E4&) b;
+    assert(e4bref.m_b1); //changed
+    assert(e4bref.QB2.m_b1); //untouched
+    assert(e4bref.QBase3.m_b1); //equivalent dm, in order
+    assert(e4bref.QBaseLast(7u).m_b1); //explicitly changed
+    assert(e4bref.m_b4);
+    return 0;
+  }
+}
+
+
+#:E4.ulam
+  ulam 5;
+element E4 : QBase3 +QBase2 +QBaseLast(7u) {
+  Bool m_b4;
+  virtual Int vfuncc() { return 412; }
+  virtual Int vfunca() { self.QBase1(true).m_b1 = true; m_b4 = true; self.QBaseLast(7u).m_b1 = true; return 410; }
+  virtual Void behave() { }
+  typedef QBase2 QB2;
+}
+
+#:QBase1.ulam
+    ulam 4;
+quark QBase1(Bool b1) {
+  Bool m_b1 = !b1;
+  Void funcNotVirtualSoIrrelevantHere() { }
+  virtual Int vfunca() { m_b1 = true; return 110; }
+}
+
+#:QBase2.ulam
+  ulam 5;
+quark QBase2 +QBase1(true) {
+  Bool m_b2;
+  Bits(1) m_bit; //so that len of QBase2 is different than its pos in E4.
+  virtual ARGB getColor(Unsigned s) { return super.getColor(s); }
+  virtual Int vfuncc() { m_b2 = true; return 212; }
+}
+
+#:QBase3.ulam
+  ulam 4;
+quark QBase3 : QBase1(true) {
+  Bool m_b3;
+  virtual Int vfuncb() { return 311; }
+}
+
+#:QBaseLast.ulam
+  ulam 4;
+quark QBaseLast(Unsigned s) : QBase1(s%2==0) {
+  Bool(s) m_blast; //was 7
+}
+
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

@@ -1333,7 +1333,7 @@ void NodeBlockClass::checkTestFunctionReturnType()
 	walker.init(nuti);
 
 	UTI baseuti = Nouti;
-	while(walker.getNextBase(baseuti))
+	while(walker.getNextBase(baseuti, m_state))
 	  {
 	    SymbolClass * basecsym = NULL;
 	    if(m_state.alreadyDefinedSymbolClass(baseuti, basecsym))

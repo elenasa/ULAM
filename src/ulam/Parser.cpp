@@ -2839,7 +2839,7 @@ namespace MFM {
 
     if(pTok.m_type != TOK_OPEN_PAREN)
       {
-	//regular class, not a template, OR Self (unless a constructor)
+	//regular class, not a template OR Self constructor
 	unreadToken();
 
 	SymbolClassName * cnsym = NULL;
@@ -2991,7 +2991,7 @@ namespace MFM {
 	msg << m_state.m_pool.getDataAsString(ctsym->getId()).c_str() ;
 	msg << ", additional errors are unlikely to be useful";
 	MSG(&typeargs.m_typeTok, msg.str().c_str(), ERR);
-	return Nav; //t41166
+	return Nav; //needs a test, was t41166
       }
 
     stubcsym->setContextForPendingArgValues(m_state.getCompileThisIdx());
@@ -3344,7 +3344,9 @@ namespace MFM {
     SymbolClass * csym = NULL;
     if(cnsym->isClassTemplate() && (args.m_classInstanceIdx != Nouti))
       {
-	if(! ((SymbolClassNameTemplate *)cnsym)->findClassInstanceByUTI(args.m_classInstanceIdx, csym))
+	if(args.m_classInstanceIdx == cnsym->getUlamTypeIdx())
+	  csym = cnsym; //t41383
+	else if(! ((SymbolClassNameTemplate *)cnsym)->findClassInstanceByUTI(args.m_classInstanceIdx, csym))
 	  {
 	    std::ostringstream msg;
 	    msg << "Trying to use typedef from another class template '";
@@ -3366,7 +3368,7 @@ namespace MFM {
       {
 	//hail mary pass..possibly a sizeof of unseen class
 	getNextToken(nTok);
-	if((nTok.m_type != TOK_KW_SIZEOF) && (nTok.m_type != TOK_KW_INSTANCEOF) && (nTok.m_type != TOK_KW_ATOMOF))
+	if((nTok.m_type != TOK_KW_SIZEOF) && (nTok.m_type != TOK_KW_INSTANCEOF) && (nTok.m_type != TOK_KW_ATOMOF) && (nTok.m_type != TOK_KW_CLASSIDOF))
 	  {
 	    std::ostringstream msg;
 	    msg << "Trying to use typedef from another class '";

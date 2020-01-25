@@ -164,14 +164,21 @@ namespace MFM {
 	  {
 	    if(isDirectSharedBase(i))
 	      {
-		BasesTableTypeMap::iterator it = svbmapref.find(baseuti);
+		UTI rootuti = baseuti;
+		if(!m_state.isARootUTI(baseuti))
+		  {
+		    AssertBool gotroot = m_state.findaUTIAlias(baseuti, rootuti); //t3652
+		    assert(gotroot); //note: not mapped in resolver
+		  }
+
+		BasesTableTypeMap::iterator it = svbmapref.find(rootuti);
 		if(it != svbmapref.end())
 		  {
 		    it->second++; //increment
 		  }
 		else
 		  {
-		    svbmapref.insert(std::pair<UTI, u32>(baseuti, 1));
+		    svbmapref.insert(std::pair<UTI, u32>(rootuti, 1));
 		  }
 		count++;
 	      }
@@ -182,8 +189,15 @@ namespace MFM {
 
   void SymbolClass::appendBaseClass(UTI baseclass, bool sharedbase)
   {
+    UTI rootuti = baseclass;
+    if(!m_state.isARootUTI(baseclass))
+      {
+	AssertBool gotroot = m_state.findaUTIAlias(baseclass, rootuti); //t3652
+	assert(gotroot); //note: not mapped in resolver
+      }
+
     BaseClassEntry bentry;
-    bentry.m_base = baseclass;
+    bentry.m_base = rootuti;
     bentry.m_numbaseshared = (sharedbase ? 1 : 0); //=true, all shared virtual ^base
     bentry.m_basepos = UNKNOWNSIZE; //pos unknown
     m_basestable.push_back(bentry);
@@ -191,6 +205,7 @@ namespace MFM {
 
   void SymbolClass::updateBaseClass(UTI oldclasstype, u32 item, UTI newbaseclass)
   {
+    assert(m_state.isARootUTI(newbaseclass)); //t3652
     assert(!m_state.isUrSelf(getUlamTypeIdx()));
     assert(item < m_basestable.size());
     assert(m_basestable[item].m_base == oldclasstype);
@@ -199,6 +214,7 @@ namespace MFM {
 
   void SymbolClass::setBaseClass(UTI baseclass, u32 item, bool sharedbase)
   {
+    assert(m_state.isARootUTI(baseclass)); //t3652
     if(item == 0)
       {
 	if(!m_state.isUrSelf(getUlamTypeIdx()))
@@ -287,8 +303,15 @@ namespace MFM {
 
   void SymbolClass::appendSharedBaseClass(UTI baseclass, u32 numshared)
   {
+    UTI rootuti = baseclass;
+    if(!m_state.isARootUTI(baseclass))
+      {
+	AssertBool gotroot = m_state.findaUTIAlias(baseclass, rootuti); //t3652
+	assert(gotroot); //note: not mapped in resolver
+      }
+
     BaseClassEntry bentry;
-    bentry.m_base = baseclass;
+    bentry.m_base = rootuti;
     bentry.m_numbaseshared = numshared; //shared virtual ^base
     bentry.m_basepos = UNKNOWNSIZE; //pos unknown
     m_sharedbasestable.push_back(bentry);
@@ -296,6 +319,7 @@ namespace MFM {
 
   void SymbolClass::updateSharedBaseClass(UTI oldclasstype, u32 item, UTI newbaseclass)
   {
+    assert(m_state.isARootUTI(newbaseclass)); //t3652
     assert(!m_state.isUrSelf(getUlamTypeIdx()));
     assert(item < m_sharedbasestable.size());
     assert(m_sharedbasestable[item].m_base == oldclasstype);
@@ -879,7 +903,7 @@ namespace MFM {
     walker.init(cuti);
 
     UTI baseuti = Nouti;
-    while(!rtnb && walker.getNextBase(baseuti))
+    while(!rtnb && walker.getNextBase(baseuti, m_state))
       {
 	SymbolClass * basecsym = NULL;
 	if(m_state.alreadyDefinedSymbolClass(baseuti, basecsym))
@@ -1650,7 +1674,7 @@ namespace MFM {
 
     //ulam-5 supports multiple base classes; superclass optional;
     UTI baseuti;
-    while(walker.getNextBase(baseuti))
+    while(walker.getNextBase(baseuti, m_state))
       {
 	SymbolClass * basecsym = NULL;
 	if(m_state.alreadyDefinedSymbolClass(baseuti, basecsym))
@@ -1769,6 +1793,7 @@ namespace MFM {
 
   u32 SymbolClass::getVTstartoffsetOfRelatedOriginatingClass(UTI origuti)
   {
+    assert(m_state.isARootUTI(origuti)); //t3652
     u32 startoffset = UNRELIABLEPOS;
     BasesTableTypeMap::iterator it = m_basesVTstart.find(origuti);
     if(it != m_basesVTstart.end())
@@ -1778,8 +1803,14 @@ namespace MFM {
 
   bool SymbolClass::setVTstartoffsetOfRelatedOriginatingClass(UTI origuti, u32 startoffset)
   {
+    UTI rootuti = origuti;
+    if(!m_state.isARootUTI(origuti))
+      {
+	AssertBool gotroot = m_state.findaUTIAlias(origuti, rootuti); //t3652
+	assert(gotroot); //note: not mapped in resolver
+      }
     std::pair<BasesTableTypeMap::iterator, bool> reti;
-    reti = m_basesVTstart.insert(std::pair<UTI,u32>(origuti, startoffset)); //quick access
+    reti = m_basesVTstart.insert(std::pair<UTI,u32>(rootuti, startoffset)); //quick access
     //assert(reti.second);
     return reti.second;  //false if already existed (e.g. shared base), i.e. not added again
   }
@@ -1887,7 +1918,7 @@ namespace MFM {
     walker.init(cuti);
 
     UTI baseuti = Nouti;
-    while(walker.getNextBase(baseuti))
+    while(walker.getNextBase(baseuti, m_state))
       {
 	SymbolClass * basecsym = NULL;
 	if(m_state.alreadyDefinedSymbolClass(baseuti, basecsym))

@@ -2135,7 +2135,7 @@ namespace MFM {
 
     //ulam-5 supports multiple base classes; superclass optional;
     UTI baseuti = Nouti;
-    while(!hasbase && walker.getNextBase(baseuti))
+    while(!hasbase && walker.getNextBase(baseuti, *this))
       {
 	SymbolClass * basecsym = NULL;
 	if(alreadyDefinedSymbolClass(baseuti, basecsym))
@@ -2178,7 +2178,7 @@ namespace MFM {
 
     //ulam-5 supports multiple base classes; superclass optional;
     UTI baseuti = Nouti;
-    while(walker.getNextBase(baseuti))
+    while(walker.getNextBase(baseuti, *this))
       {
 	SymbolClass * basecsym = NULL;
 	if(alreadyDefinedSymbolClass(baseuti, basecsym))
@@ -2207,7 +2207,7 @@ namespace MFM {
 
     //ulam-5 supports multiple base classes; superclass optional;
     UTI baseuti = Nouti;
-    while(walker.getNextBase(baseuti))
+    while(walker.getNextBase(baseuti, *this))
       {
 	SymbolClass * basecsym = NULL;
 	if(alreadyDefinedSymbolClass(baseuti, basecsym))
@@ -2252,7 +2252,7 @@ namespace MFM {
 
     //ulam-5 supports multiple base classes; superclass optional; all bases are shared;
     UTI baseuti = Nouti;
-    while(walker.getNextBase(baseuti) && !hasbase)
+    while(walker.getNextBase(baseuti, *this) && !hasbase)
       {
 	SymbolClass * basecsym = NULL;
 	if(alreadyDefinedSymbolClass(baseuti, basecsym))
@@ -2338,7 +2338,7 @@ namespace MFM {
 
     UTI baseuti = Nouti;
     //ulam-5 supports multiple base classes; superclass optional;
-    while(!hasstub && walker.getNextBase(baseuti))
+    while(!hasstub && walker.getNextBase(baseuti, *this))
       {
 	SymbolClass * basecsym = NULL;
 	if(alreadyDefinedSymbolClass(baseuti, basecsym))
@@ -2414,7 +2414,7 @@ namespace MFM {
 
     UTI baseuti = Nouti;
     //ulam-5 supports multiple base classes; superclass optional;
-    while(!hasCA && walker.getNextBase(baseuti))
+    while(!hasCA && walker.getNextBase(baseuti, *this))
       {
 	if(okUTItoContinue(baseuti))
 	  {
@@ -3312,7 +3312,7 @@ namespace MFM {
 
     bool kinhadit = false;
     UTI baseuti = Nouti;
-    while(!kinhadit && walker.getNextBase(baseuti))
+    while(!kinhadit && walker.getNextBase(baseuti, *this))
       {
 	SymbolClass * basecsym = NULL;
 	if(alreadyDefinedSymbolClass(baseuti, basecsym))
@@ -3348,7 +3348,7 @@ namespace MFM {
       walker.addAncestorsOf(csym);
 
     UTI baseuti = Nouti;
-    while(walker.getNextBase(baseuti))
+    while(walker.getNextBase(baseuti, *this))
       {
 	SymbolClass * basecsym = NULL;
 	if(alreadyDefinedSymbolClass(baseuti, basecsym))
@@ -3387,7 +3387,7 @@ namespace MFM {
     //for defined name (and not a Holder?)
     bool kinhadit = false;
     UTI baseuti = Nouti;
-    while(!kinhadit && walker.getNextBase(baseuti))
+    while(!kinhadit && walker.getNextBase(baseuti, *this))
       {
 	SymbolClass * basecsym = NULL;
 	if(alreadyDefinedSymbolClass(baseuti, basecsym))
@@ -3558,7 +3558,7 @@ namespace MFM {
     walker.init(cuti);
 
     UTI baseuti = Nouti;
-    while(!rtnb && walker.getNextBase(baseuti))
+    while(!rtnb && walker.getNextBase(baseuti, *this))
       {
 	SymbolClass * basecsym = NULL;
 	if(alreadyDefinedSymbolClass(baseuti, basecsym))
@@ -3634,7 +3634,7 @@ namespace MFM {
     walker.addAncestorsOf(csym);
 
     UTI baseuti = Nouti;
-    while(!rtnb && walker.getNextBase(baseuti))
+    while(!rtnb && walker.getNextBase(baseuti, *this))
       {
 	SymbolClass * basecsym = NULL;
 	if(alreadyDefinedSymbolClass(baseuti, basecsym))
@@ -3696,7 +3696,7 @@ namespace MFM {
     walker.addAncestorsOf(csym);
 
     UTI baseuti = Nouti;
-    while(walker.getNextBase(baseuti) && (foundOriginator != Nav))
+    while(walker.getNextBase(baseuti, *this) && (foundOriginator != Nav))
       {
 	SymbolClass * basecsym = NULL;
 	if(alreadyDefinedSymbolClass(baseuti, basecsym))
@@ -3824,7 +3824,7 @@ namespace MFM {
     //Like in C++, exact matches in a subclass overrides any possible exact matches
     //in base classes; ow, use baseclass w exact match, assuming no ambiguity among others.
     UTI baseuti = Nouti;
-    while(!exactlyone && walker.getNextBase(baseuti))
+    while(!exactlyone && walker.getNextBase(baseuti, *this))
       {
 	SymbolClass * basecsym = NULL;
 	if(alreadyDefinedSymbolClass(baseuti, basecsym))
@@ -3914,7 +3914,7 @@ namespace MFM {
     walker.init(cuti);
 
     UTI baseuti = Nouti;
-    while(!rtnb && walker.getNextBase(baseuti))
+    while(!rtnb && walker.getNextBase(baseuti, *this))
       {
 	SymbolClass * basecsym = NULL;
 	if(alreadyDefinedSymbolClass(baseuti, basecsym))
@@ -4014,7 +4014,7 @@ namespace MFM {
 
     u32 count = 0;
     UTI baseuti = Nouti;
-    while(walker.getNextBase(baseuti))
+    while(walker.getNextBase(baseuti, *this))
       {
 	SymbolClass * basecsym = NULL;
 	if(alreadyDefinedSymbolClass(baseuti, basecsym))
@@ -4103,7 +4103,7 @@ namespace MFM {
 
     UTI baseuti = Nouti;
     UTI headuti = Nouti;
-    while(!rtnb && walkerpair.getNextBasePair(baseuti, headuti))
+    while(!rtnb && walkerpair.getNextBasePair(baseuti, headuti, *this))
       {
 	SymbolClass * basecsym = NULL;
 	if(alreadyDefinedSymbolClass(baseuti, basecsym))
@@ -5148,7 +5148,7 @@ namespace MFM {
 
     //ulam-5 supports multiple base classes; superclass optional;
     UTI baseuti = Nouti;
-    while(walker.getNextBase(baseuti))
+    while(walker.getNextBase(baseuti, *this))
       {
 	SymbolClass * basecsym = NULL;
 	if(alreadyDefinedSymbolClass(baseuti, basecsym))
