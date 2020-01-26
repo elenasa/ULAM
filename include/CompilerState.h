@@ -556,6 +556,7 @@ namespace MFM{
     const std::string getUlamRefTmpVarAsString(s32 num);
     const std::string getUlamRefMutTmpVarAsString(s32 num);
     const std::string getUlamClassTmpVarAsString(s32 num);
+    const std::string getUlamClassRegistryTmpVarAsString(s32 num);
     const std::string getAtomBitStorageTmpVarAsString(s32 num);
     const std::string getLabelNumAsString(s32 num);
     const std::string getSwitchConditionNumAsString(s32 num);

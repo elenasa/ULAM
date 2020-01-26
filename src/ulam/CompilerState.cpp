@@ -5425,6 +5425,13 @@ namespace MFM {
     return labelname.str();
   }
 
+  const std::string CompilerState::getUlamClassRegistryTmpVarAsString(s32 num)
+  {
+    std::ostringstream labelname; //into
+    labelname << "Uh_4tucr" << ToLeximitedNumber(num);
+    return labelname.str();
+  }
+
   const std::string CompilerState::getAtomBitStorageTmpVarAsString(s32 num)
   {
     std::ostringstream labelname; //into

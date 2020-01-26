@@ -1505,7 +1505,7 @@ namespace MFM {
     vtindexstring << vownut->getUlamTypeMangledName().c_str();
     vtindexstring << "<EC>::"; //orignating class
     vtindexstring << "VOWNED_IDX_"; //== m_funcSymbol->getVirtualMethodIdx()
-    vtindexstring <<m_funcSymbol->getMangledNameWithTypes().c_str();
+    vtindexstring << m_funcSymbol->getMangledNameWithTypes().c_str();
 
     //requires runtime lookup for virtual function pointer
     m_state.indentUlamCode(fp);
@@ -1517,13 +1517,18 @@ namespace MFM {
     s32 tmpvtclass = m_state.getNextTmpVarNumber();
     if(tmpvtclassrn > 0)
       {
+	s32 tmpucr = m_state.getNextTmpVarNumber();
 	//get UlamClass ptr from regid via the registry
 	m_state.indentUlamCode(fp);
-	fp->write("const UlamClassRegistry<EC> & ucr = uc.GetUlamClassRegistry();\n");
+	fp->write("const UlamClassRegistry<EC> & ");
+	fp->write(m_state.getUlamClassRegistryTmpVarAsString(tmpucr).c_str());
+	fp->write(" = uc.GetUlamClassRegistry();\n");
 	m_state.indentUlamCode(fp);
 	fp->write("const UlamClass<EC> * ");
 	fp->write(m_state.getUlamClassTmpVarAsString(tmpvtclass).c_str());
-	fp->write(" = ucr.GetUlamClassOrNullByIndex(");
+	fp->write(" = ");
+	fp->write(m_state.getUlamClassRegistryTmpVarAsString(tmpucr).c_str());
+	fp->write(".GetUlamClassOrNullByIndex(");
 	fp->write(m_state.getTmpVarAsString(Unsigned,tmpvtclassrn,TMPREGISTER).c_str()); //vtable class regnum
 	fp->write(");"); GCNL;
 
