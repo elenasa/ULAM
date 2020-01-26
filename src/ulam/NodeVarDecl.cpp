@@ -593,7 +593,17 @@ namespace MFM {
 		    //arraysize specified, may have fewer initializers
 		    //support no initializers (t41201)
 		    s32 arraysize = m_state.getArraySize(vit);
-		    assert(arraysize >= 0); //t3847
+		    //assert(arraysize >= 0); //t3847
+		    if(arraysize < 0)
+		      {
+			//error scalar with {} error (ish-1/26/2020)
+			std::ostringstream msg;
+			msg << "Scalar variable '";
+			msg << getName() << "' has improper {} initialization";
+			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+			setNodeType(Nav);
+			return Nav;
+		      }
 		    u32 n = ((NodeList *) m_nodeInitExpr)->getNumberOfNodes();
 		    if((n > (u32) arraysize) && (arraysize > 0))
 		      {
