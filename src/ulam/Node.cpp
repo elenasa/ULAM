@@ -3037,7 +3037,7 @@ namespace MFM {
     bool askEffSelf = askEffectiveSelfAtRuntimeForRelPosOfBase(funcclassarg);
     UTI skipfuncclass = Nouti; //not funcclassarg; consider funcs of a base separately (e.g. t3831)
     //cos precedes .func()
-    bool funcinbase = m_state.isClassASubclassOf(cosuti, funcclassarg);
+    bool funcinbase = m_state.isClassASubclassOf(cosuti, funcclassarg); //not same
     u32 funcclassrelpos = 0;
     if(funcinbase)
       {
@@ -3097,8 +3097,8 @@ namespace MFM {
 	  }
 	else //super, and specific bases, i think (t41311, t41322, t41338)
 	  {
-	    // just for non-virtuals (t41338, t41322)
-	    if(vownarg == Nouti)
+	    // just for non-virtuals (t41338, t41322, t41386?)
+	    if((vownarg == Nouti) && !funcinbase && !askEffSelf)
 	      {
 		sameur = false;
 		hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvar).c_str() << "(";
@@ -3263,7 +3263,7 @@ namespace MFM {
 
     u32 tmpvarbasefunc = m_state.getNextTmpVarNumber();
     //non-virtual functions that are in base classes
-    if(funcinbase && (vownarg == Nouti))
+    if((askEffSelf || funcinbase) && (vownarg == Nouti))
       {
 	if(!sameur)
 	  hiddenarg2 << " "; //readability btn wrapping UlamRefs
@@ -3301,7 +3301,7 @@ namespace MFM {
       } //else funcinbase && virtual: t3600,1 3743,5,7, t3986,
     //t41005,6,7,11,12, t41153,61, t41298,9, t41304,7,18,19,20,22,23,25.
 
-    if(funcinbase && (vownarg == Nouti))
+    if((askEffSelf || funcinbase) && (vownarg == Nouti))
       urtmpnumref = tmpvarbasefunc;
     else if(!sameur)
       urtmpnumref = tmpvar; //update arg
@@ -4200,6 +4200,7 @@ namespace MFM {
 
   // true means we can't know rel pos of 'stg' until runtime; o.w. known at compile time.
   // invarients: pos points to the 'stg' type, refs cannot be dm.
+  // argument is the owner of the function (may or maynot be virtual);
   bool Node::askEffectiveSelfAtRuntimeForRelPosOfBase(UTI funcclassarg)
   {
     bool askEffSelf = false;
@@ -4242,8 +4243,8 @@ namespace MFM {
       }
     else //default
       {
-	//funcs not included in stack (t3735); arrayitems are refs (t3832)
-	askEffSelf = m_state.isReference(stgcos->getUlamTypeIdx()) && ((cosSize > 1) || (funcclassarg != Nouti));
+	//funcs not included in dot-chain stack (t3735); arrayitems are refs (t3832), and so is 'self';
+	askEffSelf = m_state.isReference(stgcos->getUlamTypeIdx()) && ((cosSize > 1) || ((funcclassarg != Nouti) && (UlamType::compare(funcclassarg, derefstguti, m_state) != UTIC_SAME)));
       }
     return askEffSelf;
   } //askEffectiveSelfAtRuntimeForRelPosOfBase
