@@ -2753,6 +2753,7 @@ namespace MFM {
 
     if(cos->isTmpVarSymbol())
       {
+	assert(!((SymbolTmpVar *) cos)->isBaseClassRegNum());
 	fp->write(cos->getMangledName().c_str());
 	fp->write(".");
 	return; //done
@@ -3030,6 +3031,8 @@ namespace MFM {
     if(m_state.isAPrimitiveType(cosuti))
       {
 	//primitive cannot own a func, so must be VTtable special case syntax w regid (ulam-5)
+	assert(vownarg != Nouti); //error caught by NodeMemberSelect c&l t41388
+
 	cos = stgcos;
 	cosuti = stgcosuti;
       }
@@ -3348,6 +3351,7 @@ namespace MFM {
 
     if(cos->isTmpVarSymbol())
       {
+	assert(!((SymbolTmpVar *) cos)->isBaseClassRegNum());
 	fp->write(cos->getMangledName().c_str());
 	fp->write(".");
 	return; //done
@@ -3994,6 +3998,25 @@ namespace MFM {
     return indexOfLastBT;
   } //isCurrentObjectsContainingABaseTypeTmpSymbol
 
+  // returns the index to the last object that's a Sub/Base ClassId (RegNum)
+  //  selector; o.w. -1 none found; preceding object is its baseclass
+  //  type, stg at 0 is the "owner"; used for virtual function calls.
+  s32 Node::isCurrentObjectsContainingABaseRegNumTmpSymbol()
+  {
+    s32 indexOfLastBT = -1;
+    u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
+    for(s32 i = cosSize - 1; i >= 0; i--)
+      {
+	Symbol * bsym = m_state.m_currentObjSymbolsForCodeGen[i];
+	if(bsym->isTmpVarSymbol() && ((SymbolTmpVar *) bsym)->isBaseClassRegNum())
+	  {
+	    indexOfLastBT = i;
+	    break;
+	  }
+      }
+    return indexOfLastBT;
+  } //isCurrentObjectsContainingABaseRegNumTmpSymbol
+
   // returns the index to the last object that's a tmp var symbol (not base type); o.w. -1 none found;
   // preceding object is the "owner", others before it are irrelevant;
   s32 Node::isCurrentObjectsContainingATmpVarSymbol()
@@ -4003,8 +4026,7 @@ namespace MFM {
     for(s32 i = cosSize - 1; i >= 0; i--)
       {
 	Symbol * bsym = m_state.m_currentObjSymbolsForCodeGen[i];
-	//if(bsym->isTmpVarSymbol())
-	if(bsym->isTmpVarSymbol() && !((SymbolTmpVar *) bsym)->isBaseClassRef())
+	if(bsym->isTmpVarSymbol() && !(((SymbolTmpVar *) bsym)->isBaseClassRef() || ((SymbolTmpVar *) bsym)->isBaseClassRegNum()))
 	  {
 	    indexOfLastTmp = i;
 	    break;
@@ -4042,6 +4064,8 @@ namespace MFM {
 
     if(uvpass.getPassApplyDelta())
       {
+	assert(!(cos->isTmpVarSymbol() && ((SymbolTmpVar *) cos)->isBaseClassRegNum()));
+
 	//handling specific baseclass type here, shared don't add up correctly (t41316)
 	if(cos->isTmpVarSymbol() && ((SymbolTmpVar *) cos)->isBaseClassRef())
 	  {
@@ -4132,6 +4156,7 @@ namespace MFM {
 	    //local stg (t3541), tmpvar funccall result, or BaseType (t41319)
 	    if(sym->isTmpVarSymbol())
 	      {
+		assert(!((SymbolTmpVar *) sym)->isBaseClassRegNum());
 		if(((SymbolTmpVar *) sym)->isBaseClassRef())
 		  suti = cuti; //bypass
 	      }
@@ -4144,6 +4169,7 @@ namespace MFM {
 	      {
 		if(sym->isTmpVarSymbol())
 		  {
+		    assert(!((SymbolTmpVar *) sym)->isBaseClassRegNum());
 		    if(!((SymbolTmpVar *) sym)->isBaseClassRef())
 		      {
 			u32 tmprelpos; //error/t41313

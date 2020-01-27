@@ -315,6 +315,9 @@ enum EvalStatus {ERROR, NOTREADY, NORMAL, RETURN, BREAK, CONTINUE, UNEVALUABLE};
     //index of last selected Base Type tmp symbol object; o.w.-1
     s32 isCurrentObjectsContainingABaseTypeTmpSymbol();
 
+    //index of last selected Sub/Base ClassId tmp symbol object; o.w.-1
+    s32 isCurrentObjectsContainingABaseRegNumTmpSymbol();
+
     //index of last tmp symbol object; o.w.-1
     s32 isCurrentObjectsContainingATmpVarSymbol();
 

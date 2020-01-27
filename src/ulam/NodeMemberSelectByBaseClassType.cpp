@@ -129,8 +129,8 @@ namespace MFM {
 		else
 		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		if(nuti != Nav)
-		  nuti = vtuti;
-	      }
+		  nuti = vtuti; //Hzy only
+	      } //else
 	  }
 
 #if 0
@@ -171,6 +171,11 @@ namespace MFM {
   bool NodeMemberSelectByBaseClassType::belongsToVOWN(UTI vown)
   {
     return false; //specific base class is based on eff self pos
+  }
+
+  bool NodeMemberSelectByBaseClassType::isAMemberSelectByRegNum()
+  {
+    return (m_nodeVTclassrn != NULL);
   }
 
   bool NodeMemberSelectByBaseClassType::isArrayItem()

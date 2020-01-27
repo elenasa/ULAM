@@ -75,6 +75,8 @@ namespace MFM{
 
     virtual bool belongsToVOWN(UTI vown);
 
+    virtual bool isAMemberSelectByRegNum();
+
     virtual bool isArrayItem();
 
     virtual EvalStatus eval();

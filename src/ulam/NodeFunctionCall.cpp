@@ -318,14 +318,24 @@ namespace MFM {
 
 	it = specifyimplicitselfexplicitly();
 
-	if(m_state.okUTItoContinue(it) && m_state.isComplete(it))
-	  setNodeType(it);
+	if(m_state.okUTItoContinue(it))
+	  {
+	    if(m_state.isComplete(it))
+	      setNodeType(it);
+	    else
+	      {
+		//Sun Aug 11 2019 Dave issue w Bounce.ulam: nodeType stays incomplete
+		setNodeType(Hzy);
+		m_state.setGoAgain(); //for compier counts
+		return Hzy; //short circuit
+	      }
+	  }
 	else
 	  {
-	    //Sun Aug 11 2019 Dave issue w Bounce.ulam: nodeType stays incomplete
-	    setNodeType(Hzy);
-	    m_state.setGoAgain(); //for compier counts
-	    return Hzy; //short circuit
+	    setNodeType(it); //t41388 error
+	    if(it == Hzy)
+	      m_state.setGoAgain();
+	    return it;
 	  }
 
 	// insert safe casts of complete arg types, now that we have a "matching" function symbol
@@ -1077,7 +1087,6 @@ namespace MFM {
     UTI nuti = getNodeType();
 
     // The Call:
-    //    if((uvpass.getPassStorage() == TMPAUTOREF))
     //treat atom/ref as tmpbitval (t41143)
     if((uvpass.getPassStorage() == TMPAUTOREF) && !m_state.isAtom(nuti))
       genCodeAReferenceIntoABitValue(fp, uvpass);
@@ -1389,7 +1398,7 @@ namespace MFM {
 	fp->write("const u32 ");
 	fp->write(m_state.getTmpVarAsString(Unsigned, tmpvtclassrn, TMPREGISTER).c_str());
 	fp->write(" = ");
-	fp->write(lhsstr.str().c_str()); //cos
+	fp->write(lhsstr.str().c_str()); //cos is Unsigned classid tmpvar
 	fp->write(";"); GCNL;
 
 	return genCodeVirtualFunctionCallVTableEntryUsingSpecifiedVTable(fp,Nouti,tmpvtclassrn,tvfpnum,urtmpnum,urtmpnumvfc);
