@@ -1,0 +1,121 @@
+ulam 5;
+
+local typedef Unsigned ClassId; // Known as the 'regid' internally; ClassId.maxof -> illegal or uninitted
+
+transient PrimitiveTypeInfo {
+  typedef Unsigned(8) PrimitiveType;
+  typedef Unsigned(8) BitSize;
+  typedef Unsigned(16) ArrayLength;
+
+  ///// WARNING: THESE DEFS MUST TRACK MFM/src/core/include/UlamTypeInfo.h
+  constant PrimitiveType cVOID =     0u;
+  constant PrimitiveType cINT =      1u+cVOID;
+  constant PrimitiveType cUNSIGNED = 1u+cINT;
+  constant PrimitiveType cBOOL =     1u+cUNSIGNED;
+  constant PrimitiveType cUNARY =    1u+cBOOL;
+  constant PrimitiveType cBITS =     1u+cUNARY;
+  constant PrimitiveType cSTRING =   1u+cBITS;
+  constant PrimitiveType cATOM =     1u+cSTRING;
+
+  PrimitiveType mPrimitiveType;
+  BitSize mBitSize;
+  ArrayLength mArrayLength;
+
+  Bool initFrom(ByteStreamReader & mangledName) native;
+
+  Void printMangled(ByteStreamWriter & to) native;
+
+  Void printPretty(ByteStreamWriter & to) native;
+}
+
+transient ClassInfo {
+  constant Unsigned cMAX_NAME_LENGTH = 400; // Note this length includes all template parameters if need be...
+  constant Unsigned cMAX_CLASS_PARAMETERS = 16; 
+  typedef ByteStreamArray(cMAX_NAME_LENGTH) NameString;
+  ClassId mClassId;
+  NameString mNamePretty;
+  NameString mNameMangled;
+  Unsigned mClassParameterCount;
+  Unsigned mModelParameterCount;
+
+  PrimitiveTypeInfo mClassParameters[cMAX_CLASS_PARAMETERS];
+
+  Bool initFor(ClassId id) native;
+}
+
+quark ClassUtils {
+  typedef Unsigned ClassId;
+  constant ClassId cILLEGAL_ID = ClassId.maxof;
+
+  Bool isBase(UrSelf& ur, ClassId id) { return isBase(getClassId(ur), id); }
+
+  ClassId getBaseClassId(UrSelf& ur, Unsigned baseIdx) { return getBaseClassId(getClassId(ur), baseIdx); }
+
+  ClassId getClassId(UrSelf& ur) native;
+
+  ClassId getClassId(Atom& atom) native;
+
+  Bool isBase(ClassId classId, ClassId baseId) native;
+
+  Bool isDirectBase(ClassId classId, ClassId directBaseId) native;
+
+  Unsigned getBaseClassCount(ClassId classId) native;
+
+  Unsigned getDirectBaseClassCount(ClassId classId) native;
+
+  ClassId getBaseClassId(ClassId classId, Unsigned baseIdx) native;
+
+  Bool getClassInfo(ClassId classId, ClassInfo & info) native;
+
+  String getMangledClassName(ClassId classId) native;
+
+  String getClassName(ClassId classId, Bool templateParameters, Bool templateValues) native ;
+
+}
+
+transient ClassBaseIterator + Fail {
+  typedef ClassUtils.ClassId ClassId;
+  ClassUtils cu;
+  ClassId mInstanceClassId;
+  ClassId mBaseClassId;
+  Int mInstanceBaseCount;
+  Int mCurrentIndex;
+  Unsigned mNextBase;
+
+  Self(UrSelf& object) { initFrom(cu.getClassId(object), UrSelf.classidof); }
+  Self(UrSelf& object, UrSelf& base) { initFrom(cu.getClassId(object), cu.getClassId(base)); }
+  Self(UrSelf& object, ClassId baseClassId) { initFrom(cu.getClassId(object), baseClassId); }
+
+  Self(Atom& object) { initFrom(cu.getClassId(object), UrSelf.classidof); }
+  Self(Atom& object, UrSelf& base) { initFrom(cu.getClassId(object), cu.getClassId(base)); }
+  Self(Atom& object, ClassId baseClassId) { initFrom(cu.getClassId(object), baseClassId); }
+
+  Self(ClassId objectClassId, ClassId baseClassId) { initFrom(objectClassId, baseClassId); }
+
+  Void initFrom(ClassId instanceClassId, ClassId baseId) {
+    Bool includeSelf = true;
+    mBaseClassId = baseId;
+    mInstanceClassId = instanceClassId;
+    mInstanceBaseCount = (Int) cu.getBaseClassCount(mInstanceClassId);
+    mCurrentIndex = includeSelf ? -1 : 0;
+    mNextBase = mNextBase.maxof;
+  }
+
+  Int currentIndex() { return mCurrentIndex; }
+
+  Bool hasNext() {
+    while (mNextBase == mNextBase.maxof) {
+      if (mCurrentIndex+1 >= mInstanceBaseCount) return false;
+      ClassId ci = cu.getBaseClassId(mInstanceClassId,(ClassId) ++mCurrentIndex);
+      if (cu.isBase(ci,mBaseClassId)) mNextBase = ci;
+    }
+    return true;
+  }
+
+  ClassId next() {
+    if (!hasNext()) fail("No next item");
+    ClassId ret = mNextBase;
+    mNextBase = mNextBase.maxof;
+    return ret;
+  }
+}
