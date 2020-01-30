@@ -124,6 +124,14 @@
     return dot(other);
   }
 
+  Self operator*(Coord scalar) {
+    return make((Coord) (x * scalar), (Coord) (y * scalar));
+  }
+
+  Self operator/(Coord scalar) {
+    return make((Coord) (x / scalar), (Coord) (y / scalar));
+  }
+
   Self add(Self other) {
     return make((Coord) (x + other.x), (Coord) (y + other.y));
   }
