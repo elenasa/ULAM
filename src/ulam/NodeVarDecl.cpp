@@ -596,7 +596,7 @@ namespace MFM {
 		    //assert(arraysize >= 0); //t3847
 		    if(arraysize < 0)
 		      {
-			//error scalar with {} error (ish-1/26/2020)
+			//error scalar with {} error (t41387)
 			std::ostringstream msg;
 			msg << "Scalar variable '";
 			msg << getName() << "' has improper {} initialization";

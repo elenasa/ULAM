@@ -342,7 +342,17 @@ namespace MFM {
 	    else
 	      {
 		//only possible if array type with initializers;
-		assert(!m_state.okUTItoContinue(suti) || !m_state.isScalar(suti));
+		//assert(!m_state.okUTItoContinue(suti) || !m_state.isScalar(suti));
+		if(m_state.okUTItoContinue(suti) && m_state.isScalar(suti))
+		  {
+		    //error scalar with {} error (t41389, t41390)
+		    std::ostringstream msg;
+		    msg << "Scalar constant '";
+		    msg << getName() << "' has improper {} initialization";
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    setNodeType(Nav);
+		    return Nav;
+		  }
 
 		if(!m_state.okUTItoContinue(suti) && m_nodeTypeDesc)
 		  {
@@ -350,7 +360,7 @@ namespace MFM {
 		    UlamType * dut = m_state.getUlamTypeByIndex(duti);
 		    if(m_state.okUTItoContinue(duti) && !dut->isComplete())
 		      {
-			assert(!dut->isScalar());
+			assert(!dut->isScalar()); //t41390
 			//assert(dut->isPrimitiveType()); t41261
 
 			//if here, assume arraysize depends on number of initializers
