@@ -208,7 +208,7 @@ quark EventWindow {
   SiteNum getSiteNumber(UrSelf& ref, Symmetry sym) { 
     AtomUtils au;
     if (!au.hasAtomof(ref)) return SiteNum.maxof;
-    return getSiteNumber(ref.atomof, sym);
+    return getSiteNumber((Atom&) ref, sym);
   }
 
   /**
