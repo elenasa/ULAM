@@ -3,7 +3,7 @@
 #!
 ./Foo.ulam:16:14: ERROR: Right operand of binary = is missing; Assignment deleted.
 ./Foo.ulam:17:2: ERROR: Invalid Statement (possible missing semicolon).
-./UrSelf.ulam:21:0: ERROR: Invalid Statement (possible missing semicolon).
+./UrSelf.ulam:22:0: ERROR: Invalid Statement (possible missing semicolon).
 ./Foo.ulam:8:5: ERROR: Incomplete true block; for-loop.
 ./Foo.ulam:5:5: ERROR: Not close curly.
 ./Foo.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'Check2'; Possible missing ending curly brace.
