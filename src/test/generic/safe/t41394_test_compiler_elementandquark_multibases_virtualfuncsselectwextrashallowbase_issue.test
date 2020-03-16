@@ -1,0 +1,318 @@
+## -*- mode:ulam -*-
+#=t41332_test_compiler_gencodefailfunccallreturntypeoftemplateinstance_issue
+## gen output: (+ assert)
+##    Unsigned Arg: 255
+##
+#!
+Exit status: 0
+Ue_Foo { Int(32) m_c4(0);  Int(32) m_a4(0);  Int(32) test() {  Bounce ball;  ball ( )behave . 0 cast return } }
+Ue_Bounce : QBases +Random { :QBases<> +Random<> ^QSuperBase<> ^QSuperDuperBase< constant Unsigned(8)[4] cBLACK = { }; > <NOMAIN> }
+Uq_QBases : QSuperBase { /* empty class block */ }
+Uq_Random { <NOMAIN> }
+Uq_System { <NOMAIN> }
+Uq_QSuperBase : QSuperDuperBase { /* empty class block */ }
+Uq_QSuperDuperBase { constant Unsigned(8)[4] cBLACK = { };  <NOMAIN> }
+##
+## Dave surprised when UrSelf getColor was used after adding
+##                a shallow base class, random;
+##                Works as expected w random as a data member.
+##
+#>Foo.ulam
+  ulam 5;
+element Foo {
+  Int m_c4;
+  Int m_a4;
+
+  Int test()
+  {
+    Bounce ball;
+
+    ball.behave();
+    return 0;
+  }
+}
+
+
+#:Bounce.ulam
+  ulam 4;
+element Bounce : QBases + Random {
+  //  Random m_rand; WORKS.
+    Void behave() {
+      System s;
+      UrSelf.ARGB mycolor = getColor(1);
+      s.print(mycolor[0]);
+      s.assert(mycolor[0]==0);
+    }
+}
+
+
+#:QBases.ulam
+  ulam 5;
+quark QBases : QSuperBase
+{ }
+
+quark QSuperBase : QSuperDuperBase
+{ }
+
+quark QSuperDuperBase
+{
+  constant UrSelf.ARGB cBLACK = { };
+  virtual UrSelf.ARGB getColor(Unsigned selector) {
+    return cBLACK;
+  }
+}
+
+#:Random.ulam
+  ulam 1;
+quark Random {
+  Unsigned create(Unsigned max) {return max/2u; }// native;
+  Bool oddsOf(Unsigned thisMany, Unsigned outOfThisMany) {
+    //return create(outOfThisMany) < thisMany;
+    return true;
+  }
+
+  Bool oneIn(Unsigned odds) { return oddsOf((Unsigned) 1, odds); }
+
+  Int between(Int min, Int max) { return (min + max)/2; } //not so randowm
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+
+#:C2D.inc
+//{
+
+  typedef Unsigned(3) Dir;
+
+  Coord x = 0;
+  Coord y = 0;
+
+  Self(Coord ax, Coord ay) {
+    x = ax;
+    y = ay;
+  }
+
+  Self(Self s) {
+    x = s.x;
+    y = s.y;
+  }
+
+  Void set(Int ax, Int ay) {
+    x = (Coord) ax;
+    y = (Coord) ay;
+  }
+
+  Void set(Self c) {
+    set(c.x, c.y);
+  }
+
+  Self & operator=(Self other) {
+    set(other);
+    return self;
+  }
+
+  Self & operator+=(Self other) {
+    // This single statement should work..
+    // return self = self + other;
+    self = self + other;
+    return self;
+  }
+
+  Self & operator-=(Self other) {
+    self = self - other;
+    return self;
+  }
+
+  Self clamp(Self below, Self above) {
+    return (self | below) & above;
+  }
+
+  Int getX() { return (Int) x; }
+  Int getY() { return (Int) y; }
+
+  Void setX(Int ax) { x = (Coord) ax; }
+  Void setY(Int ay) { y = (Coord) ay; }
+
+  Self make(Int x, Int y)
+  {
+    Self ret;
+    ret.set(x,y);
+    return ret;
+  }
+
+  Bool equals(Self other) {
+    return x == other.x && y == other.y;
+  }
+
+  Bool operator==(Self other) {
+    return equals(other);
+  }
+
+//Bool operator!=(Self other) {
+//    return !equals(other);
+//  }
+
+  Self max(Self other) {
+    if (other.x < self.x) other.x = self.x;
+    if (other.y < self.y) other.y = self.y;
+    return other;
+  }
+
+  Self operator|(Self other) {
+    return max(other);
+  }
+
+  Self& operator|=(Self other) {
+    self = self | other;
+    return self;
+  }
+
+  Self min(Self other) {
+    if (other.x > self.x) other.x = self.x;
+    if (other.y > self.y) other.y = self.y;
+    return other;
+  }
+
+  Self operator&(Self other) {
+    return min(other);
+  }
+
+  Self& operator&=(Self other) {
+    self = self & other;
+    return self;
+  }
+
+  /** True if each dimension of \c other is between 0 and our
+      dimension's value - 1. Always false if self.x or self.y
+      is <= 0.
+
+      \since v2.1
+   */
+  Bool contains(Self other) {
+    Int sx = self.getX();
+    Int sy = self.getY();
+    Int ox = other.getX();
+    Int oy = other.getY();
+    if (ox < 0 || ox >= sx) return false;
+    if (oy < 0 || oy >= sy) return false;
+    return true;
+  }
+
+  Int dot(Self other) {
+    return x * other.x + y * other.y;
+  }
+
+  Int operator*(Self other) {
+    return dot(other);
+  }
+
+  Self add(Self other) {
+    return make((Coord) (x + other.x), (Coord) (y + other.y));
+  }
+
+  Self operator+(Self other) {
+    return add(other);
+  }
+
+  Self subtract(Self other) {
+    return make((Coord) (x - other.x), (Coord) (y - other.y));
+  }
+
+  Self operator-(Self other) {
+    return subtract(other);
+  }
+
+  Self negate() {
+    return make((Coord) -(Int) x, (Coord) -(Int) y);
+  }
+
+  Self operator-() {
+    return negate();
+  }
+
+  Self operator+() {
+    return self;
+  }
+
+  /**
+     Return the von Neumann neighbor in the direction d
+   */
+  Self neighbor(Dir d) {
+    if (d==0) return make( 0, 1);
+    if (d==1) return make( 1, 1);
+    if (d==2) return make( 1, 0);
+    if (d==3) return make( 1,-1);
+    if (d==4) return make( 0,-1);
+    if (d==5) return make(-1,-1);
+    if (d==6) return make(-1, 0);
+    /* d==7*/ return make(-1, 1);
+  }
+
+  /**
+     Return the event window point at distance 4 in the direction d.
+   */
+  Self corner(Dir d) {
+    if (d==0) return make( 0, 4);
+    if (d==1) return make( 2, 2);
+    if (d==2) return make( 4, 0);
+    if (d==3) return make( 2,-2);
+    if (d==4) return make( 0,-4);
+    if (d==5) return make(-2,-2);
+    if (d==6) return make(-4, 0);
+    /* d==7*/ return make(-2, 2);
+  }
+
+  Unsigned length() {
+    Self origin;
+    return origin.manhattanDistance(self);
+  }
+
+  Bool isOrigin() {
+    return x == 0 && y == 0;
+  }
+
+  Self abs() {
+    return abs(self);
+  }
+
+  Self abs(Self of) {
+    if (of.x < 0) of.x = -of.x;
+    if (of.y < 0) of.y = -of.y;
+    return of;
+  }
+
+  Unsigned manhattanDistance(Self other) {
+    Self a = abs(self-other);
+    return (Unsigned) (a.x + a.y);
+  }
+
+  /**
+    \since v2.1
+  */
+  Unsigned euclideanSquaredDistance(Self other) {
+    Self diff = self-other;
+    return diff.euclideanSquaredLength();
+  }
+
+  /**
+    \since v2.1
+  */
+  Unsigned euclideanSquaredLength() {
+    return (Unsigned) (self * self);
+  }
+
+//}
+
+
+
+#.

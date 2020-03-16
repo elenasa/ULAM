@@ -3667,9 +3667,23 @@ namespace MFM {
 		  }
 		else
 		  {
-		    foundinbase = baseuti;
-		    fsymref = tmpfsym;
-		    rtnb = true; //(t41325,19) stop ok since breadth-first search
+		    if(foundinbase == Nouti)
+		      {
+			foundinbase = baseuti;
+			fsymref = tmpfsym;
+			//rtnb = true; //(t41325,19) stop ok since breadth-first search
+		      }
+		    else if(isClassASubclassOf(baseuti, foundinbase))
+		      {
+			//baseuti is a subclass of foundinbase,
+			// hence baseuti is "more specific" (t41394)
+			foundinbase = baseuti;
+			fsymref = tmpfsym;
+		      }
+		    else if(!isClassASubclassOf(foundinbase, baseuti))
+		      {
+			//siblings, keep "most specific", i.e. "first-seen" (breadth) t41391
+		      }
 		  }
 	      } //gotmatch
 	    walker.addAncestorsOf(basecsym); //chk all bases until found (t3602))
@@ -3677,6 +3691,7 @@ namespace MFM {
       } //end while
 
     foundInAncestor = foundinbase;
+    rtnb = fsymref && okUTItoContinue(foundInAncestor); //neither Nav, nor Nouti
     return rtnb;
   } //findOverrideMatchingVirtualFunctionStrictlyByTypesInAncestorOf
 
