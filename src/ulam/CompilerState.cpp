@@ -4188,7 +4188,7 @@ namespace MFM {
     return tok.getTokenStringId();
   }
 
-  const std::string CompilerState::getTokenDataAsString(const Token & tok)
+  const std::string & CompilerState::getTokenDataAsString(const Token & tok)
   {
     if(tok.m_dataindex > 0)
       {

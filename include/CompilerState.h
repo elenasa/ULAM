@@ -431,7 +431,7 @@ namespace MFM{
 
     /** helper method, uses string pool */
     u32 getTokenDataAsStringId(const Token & tok);
-    const std::string getTokenDataAsString(const Token & tok);
+    const std::string & getTokenDataAsString(const Token & tok);
     std::string getDataAsStringMangled(u32 dataindex);
     const std::string getTokenAsATypeName(const Token& tok);
     u32 getTokenAsATypeNameId(const Token& tok);

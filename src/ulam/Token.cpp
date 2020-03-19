@@ -71,6 +71,10 @@ namespace MFM {
 #define XX(a,b,c,d) tok_nameid[TOK_##a] = state.m_pool.getIndexForDataString(std::string(tok_name[TOK_##a]));
 #include "Token.inc"
 #undef XX
+
+    //special case: EOF
+    tok_stringid[TOK_EOF] = state.m_pool.getIndexForDataString("EOF");
+    tok_nameid[TOK_EOF] = state.m_pool.getIndexForDataString("EOF");
   } //initTokenMap (static)
 
   void Token::init(TokenType t, Locator l, u32 d)
@@ -90,19 +94,19 @@ namespace MFM {
     return tok_stringid[m_type];
   }
 
-  const std::string Token::getTokenStringFromPool(CompilerState * state) const
+  const std::string & Token::getTokenStringFromPool(CompilerState * state) const
   {
     assert(state);
-    if(m_type == TOK_EOF)
-      return "EOF";
+    //if(m_type == TOK_EOF)
+    //  return "EOF";
     return state->m_pool.getDataAsString(tok_stringid[m_type]);
   }
 
-  const std::string Token::getTokenAsStringFromPool(TokenType ttype, CompilerState * state)
+  const std::string & Token::getTokenAsStringFromPool(TokenType ttype, CompilerState * state)
   {
     assert(state);
-    if(ttype == TOK_EOF)
-      return "EOF";
+    //if(ttype == TOK_EOF)
+    //  return "EOF";
     return state->m_pool.getDataAsString(tok_stringid[ttype]);
   } //static
 
@@ -116,7 +120,7 @@ namespace MFM {
     return tok_nameid[m_type];
   }
 
-  const std::string Token::getTokenEnumNameFromPool(CompilerState * state) const
+  const std::string & Token::getTokenEnumNameFromPool(CompilerState * state) const
   {
     assert(state);
     return state->m_pool.getDataAsString(tok_nameid[m_type]);
@@ -194,18 +198,20 @@ namespace MFM {
     return state->m_pool.getIndexForDataString(opname.str());
   } //static
 
-const std::string Token::getOperatorHexName(const Token & tok, CompilerState * state)
+const std::string & Token::getOperatorHexName(const Token & tok, CompilerState * state)
 {
   assert(Token::getTokenOperatorOverloadableFlag(tok.m_type) == OPOL_IS);
-  return Token::getOperatorHexNameFromString(Token::getTokenAsStringFromPool(tok.m_type, state));
+  return Token::getOperatorHexNameFromString(Token::getTokenAsStringFromPool(tok.m_type, state), state);
 } //static
 
-const std::string Token::getOperatorHexNameFromString(const std::string opname)
+  const std::string & Token::getOperatorHexNameFromString(const std::string & opname, CompilerState * state)
 {
   std::ostringstream ophex;
   for(u32 i = 0; i < opname.length(); i++)
     ophex << std::hex << (u32) opname.at(i);
-  return ophex.str();
+  //return ophex.str();
+  u32 ophexid = state->m_pool.getIndexForDataString(ophex.str());
+  return state->m_pool.getDataAsString(ophexid);
 } //static
 
 bool Token::isOperatorOverloadIdentToken(CompilerState * state) const
