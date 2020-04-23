@@ -74,7 +74,7 @@ namespace MFM {
 
     //special case: EOF
     tok_stringid[TOK_EOF] = state.m_pool.getIndexForDataString("EOF");
-    tok_nameid[TOK_EOF] = state.m_pool.getIndexForDataString("EOF");
+    tok_nameid[TOK_EOF] = state.m_pool.getIndexForDataString("TOK_EOF");
   } //initTokenMap (static)
 
   void Token::init(TokenType t, Locator l, u32 d)
@@ -198,11 +198,11 @@ namespace MFM {
     return state->m_pool.getIndexForDataString(opname.str());
   } //static
 
-const std::string & Token::getOperatorHexName(const Token & tok, CompilerState * state)
-{
-  assert(Token::getTokenOperatorOverloadableFlag(tok.m_type) == OPOL_IS);
-  return Token::getOperatorHexNameFromString(Token::getTokenAsStringFromPool(tok.m_type, state), state);
-} //static
+  const std::string & Token::getOperatorHexName(const Token & tok, CompilerState * state)
+  {
+    assert(Token::getTokenOperatorOverloadableFlag(tok.m_type) == OPOL_IS);
+    return Token::getOperatorHexNameFromString(Token::getTokenAsStringFromPool(tok.m_type, state), state);
+  } //static
 
   const std::string & Token::getOperatorHexNameFromString(const std::string & opname, CompilerState * state)
 {

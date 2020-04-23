@@ -944,8 +944,18 @@ namespace MFM {
 	    s32 e = m_SS.read();
 	    if( e == '*')
 	      {
-		isStructuredComment = true;
-		return makeStructuredCommentToken(rtnTok);
+		s32 f = m_SS.read();
+		if(f == '/')
+		  {
+		    //found end of empty c-style comment; return next byte;
+		    return m_SS.read();
+		  }
+		else
+		  {
+		    unread(); //wasn't end of empty c-style comment
+		    isStructuredComment = true;
+		    return makeStructuredCommentToken(rtnTok);
+		  }
 	      }
 	    else
 	      {
