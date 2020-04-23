@@ -1,0 +1,94 @@
+## -*- mode:ulam -*-
+#=t41395_test_compiler_transientclassdminitwithconstructor_localvar
+##
+## gen output: (+ 2 asserts)
+## String(1) Arg: "foo"
+## Int Arg: 102
+##
+#!
+Exit status: -11
+Ue_A { Int(32) test() {  SystemU3 su3;  SiteIterator it = it ( "foo" )Self .;  su3 ( it mStream . m_string . )print . su3 ( 32u cast 3 cast == )assert . su3 ( it mNext . )print . su3 ( it mNext . 102 cast == )assert . 0 cast return } }
+Uq_SystemU3 : System { :System<> <NOMAIN> }
+Un_SiteIterator { ByteStreamString mStream( String(32) m_string( "");  Unsigned(32) m_index( 0u); );  Int(32) mNext(0);  <NOMAIN> }
+Un_ByteStreamString { String(32) m_string( "");  Unsigned(32) m_index( 0u);  <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## informed by Dave ish 20200422 #1, see also t41184, t3715 with transient
+##
+#>A.ulam
+  ulam 3;
+local constant String c_str = "foo";
+element A {
+
+  Int test() {
+    SystemU3 su3;
+
+    SiteIterator it(c_str);
+    su3.print(it.mStream.m_string);
+    su3.assert(it.mStream.m_string.lengthof==3);
+    su3.print(it.mNext);
+    su3.assert(it.mNext==102); // 'f'
+    return 0;
+ }
+}
+
+#:SiteIterator.ulam
+  ulam 5;
+transient SiteIterator {
+  ByteStreamString mStream;
+  Int mNext;
+
+  Self(String sites)
+  {
+    ByteStreamString bss(sites);
+    mStream = bss;
+    mNext = mStream.readByte();
+  }
+}
+
+
+#:ByteStreamString.ulam
+  ulam 3;
+transient ByteStreamString {
+  String m_string = "";
+  Unsigned m_index = 0;
+
+  Self(String s) {
+    readFrom(s);
+  }
+
+  Void readFrom(String s)
+  {
+    m_string = s;
+    m_index = 0;
+  }
+
+  Void reread()
+  {
+    m_index = 0;
+  }
+
+  Int readByte() {
+    if (m_index >= m_string.lengthof) return -1;
+    return m_string[m_index++];
+  }
+}
+
+#:SystemU3.ulam
+  ulam 3;
+quark SystemU3 : System {
+  Void print(String s) native;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

@@ -1303,8 +1303,15 @@ namespace MFM {
 
     m_state.indentUlamCode(fp);
 
-    //local
-    genLocalMemberNameOfMethod(fp, luvpass);
+    if(!isCurrentObjectALocalVariableOrArgument())
+      {
+	genMemberNameOfMethod(fp, luvpass);  //t41395
+      }
+    else
+      {
+	//local
+	genLocalMemberNameOfMethod(fp, luvpass);
+      }
 
     fp->write(writeMethodForCodeGen(cosuti, luvpass).c_str()); //t3739
     if(cosSize > 1)
