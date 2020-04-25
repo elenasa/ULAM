@@ -662,7 +662,7 @@ namespace MFM {
 	UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
 	//t3913, t3915 tmpref may not be a ref, but may need adjusting (i.e. anonymous element returned)
 	// t3706 not isAltRefType; t41307,9,10 isBaseClassRef (ulam-5); t41314 pass if self;
-	rtnb = cossym->isSelf() || (!cosut->isReference() && (!cossym->isTmpVarSymbol() || Node::needAdjustToStateBits(cosuti) || ((SymbolTmpVar *) cossym)->isBaseClassRef()));
+	rtnb = cossym->isSelf() || (!cosut->isReference() && (!cossym->isTmpVarSymbol() || Node::needAdjustToStateBits(cosuti) || ((SymbolTmpVar *) cossym)->isBaseClassRef())) || (cosut->getReferenceType() == ALT_AS) /* AS, but not ARRAYITEM (t41396, t3706) */  ;
       }
     return rtnb;
   }
