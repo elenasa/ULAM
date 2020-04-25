@@ -4282,6 +4282,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     //generate each VT entry:
     for(s32 i = 0; i < maxidx; i++)
       {
+	UTI origclass = csym->getOriginatingClassForVTableEntry(i);
+
 	if(i > 0)
 	  fp->write(",\n");
 
@@ -4294,9 +4296,15 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	    UTI emptyinstead = m_state.getEmptyElementUTI();
 	    fp->write(m_state.getUlamTypeByIndex(emptyinstead)->getUlamTypeMangledName().c_str());
 	    fp->write("<EC>::THE_INSTANCE"); //instead of NULL  (e,g, t41301)
-	    fp->write(" } /* override class ");
+	    fp->write(" } /* ");
+	    fp->write(m_state.m_pool.getDataAsString(csym->getVFuncNameSignatureIdForVTableEntry(i)).c_str()); //helpful..
+	    fp->write(" (vfidx:");
+	    fp->write_decimal_unsigned(csym->getVFuncIndexForVTableEntry(i));
+	    fp->write(", origclass:");
+	    fp->write(m_state.getUlamTypeNameBriefByIndex(origclass).c_str());
+	    fp->write(", override:");
 	    fp->write(m_state.getUlamTypeNameBriefByIndex(emptyinstead).c_str());
-	    fp->write(" instead */");
+	    fp->write(") */");
 	    continue;
 	  }
 
@@ -4322,10 +4330,15 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	fp->write("), & ");
 	fp->write(veut->getUlamTypeMangledName().c_str());
 	fp->write("<EC>::THE_INSTANCE"); //same for elements and quarks
-
-	fp->write(" } /* override class ");
+	fp->write(" } /* ");
+	fp->write(m_state.m_pool.getDataAsString(csym->getVFuncNameSignatureIdForVTableEntry(i)).c_str()); //helpful..
+	fp->write(" (vfidx:");
+	fp->write_decimal_unsigned(csym->getVFuncIndexForVTableEntry(i));
+	fp->write(", origclass:");
+	fp->write(m_state.getUlamTypeNameBriefByIndex(origclass).c_str());
+	fp->write(", override:");
 	fp->write(m_state.getUlamTypeNameBriefByIndex(veuti).c_str());
-	fp->write(" */");
+	fp->write(") */");
       } //next vt entry
 
     fp->write("\n");

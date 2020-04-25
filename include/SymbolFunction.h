@@ -117,7 +117,8 @@ namespace MFM{
 
     virtual void setStructuredComment();
 
-    const std::string generateUlamFunctionSignature(); //for UlamInfo
+    u32 getUlamFunctionSignatureId(); //for UlamInfo, and VTable comments
+
   protected:
 
 
@@ -133,7 +134,9 @@ namespace MFM{
     UTI m_virtualOrigUTI;
     bool m_isConstructor;
     bool m_definedinaQuark;
+    u32 m_signatureid;
     void generateFunctionDeclarationVirtualTypedef(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
+    const std::string generateUlamFunctionSignature(); //for UlamInfo
 
     void initFSEntry(FSEntry& entry);
   };

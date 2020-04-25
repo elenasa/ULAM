@@ -189,6 +189,8 @@ namespace MFM{
     void notePureFunctionSignatures();
     std::string getMangledFunctionNameForVTableEntry(u32 idx);
     std::string getMangledFunctionNameWithTypesForVTableEntry(u32 idx);
+    u32 getVFuncIndexForVTableEntry(u32 idx);
+    u32 getVFuncNameSignatureIdForVTableEntry(u32 idx);
     struct VTEntry getVTableEntry(u32 idx);
     struct VTEntry getOrigVTableEntry(u32 idx);
 

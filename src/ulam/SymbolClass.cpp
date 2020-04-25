@@ -1868,6 +1868,18 @@ namespace MFM {
     return m_vtable[idx].m_funcPtr->getMangledNameWithTypes();
   }
 
+  u32 SymbolClass::getVFuncIndexForVTableEntry(u32 idx)
+  {
+    assert(idx < m_vtable.size());
+    return m_vtable[idx].m_funcPtr->getVirtualMethodIdx();
+  }
+
+  u32 SymbolClass::getVFuncNameSignatureIdForVTableEntry(u32 idx)
+  {
+    assert(idx < m_vtable.size());
+    return m_vtable[idx].m_funcPtr->getUlamFunctionSignatureId();
+  }
+
   struct VTEntry SymbolClass::getVTableEntry(u32 idx)
   {
     assert(idx < m_vtable.size());
