@@ -1745,7 +1745,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
   EvalStatus NodeBlockClass::eval()
   {
-    //#define _DEBUG_SKIP_EVAL
+    //    #define _DEBUG_SKIP_EVAL
 #ifndef _DEBUG_SKIP_EVAL
     if(isEmpty())
 #endif
@@ -2443,7 +2443,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("| \n"); //blank
 
     m_state.indent(fp);
-    fp->write("| Pos\t| Bits\t| Name\t| Type\n");
+    fp->write("| Pos\t| Bits\t| Name\t| Type (classid)\n");
 
     //ulam-5 data members precede base classes
     if(m_nodeNext)
@@ -2520,7 +2520,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     s32 nsize = nut->getBitsizeAsBaseClass();
 
-    // "// | Position\t| Bitsize\t| Name\t| Type"
+    // "// | Position\t| Bitsize\t| Name\t| Type (classid)"
     m_state.indent(fp);
     fp->write("| ");
     fp->write_decimal_unsigned(atpos); //at
@@ -2531,6 +2531,13 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     else
       fp->write("\t| base\t| "); //name
     fp->write(nut->getUlamTypeClassNameBrief(nuti).c_str());
+    SymbolClass * csym = NULL;
+    if(m_state.alreadyDefinedSymbolClass(nuti, csym))
+      {
+	fp->write(" (");
+	fp->write_decimal_unsigned(csym->getRegistryNumber());
+	fp->write(")");
+      }
     fp->write("\n");
 
     //quarkunions don't accumulate sizes of dm, they use max dm size;
@@ -2675,6 +2682,14 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
     fp->write("};"); GCNL;
+
+    if(m_state.isEmptyElement(cuti))
+      {
+	fp->write("\n");
+	m_state.indent(fp);
+	fp->write("virtual bool IsTheEmptyClass() const { return true; }");
+	GCNL;
+      }
 
     // any constant array class arguments
     if(m_nodeArgumentList)
