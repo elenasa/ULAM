@@ -3675,6 +3675,24 @@ namespace MFM {
 		MSG(&iTok, msg.str().c_str(), ERR);
 	      }
 
+	    ULAMTYPE etyp = m_state.getBaseTypeFromToken(iTok);
+	    if(etyp != Class)
+	      {
+		std::ostringstream msg;
+		msg << "Member Select followed by a Type: ";
+		msg << m_state.getTokenDataAsString(iTok).c_str();
+		msg << " must be a Class type";
+		if((etyp == Hzy) || (etyp == Holder))
+		  MSG(&iTok, msg.str().c_str(), DEBUG); //t41399,t41400
+		else
+		  {
+		    MSG(&iTok, msg.str().c_str(), ERR);
+		    delete rtnNode; //also deletes leftNode
+		    rtnNode = NULL;
+		    return rtnNode; //NULL (t41398)
+		  }
+	      } //else t41401
+
 	    NodeTypeDescriptor * nextmembertypeNode = parseTypeDescriptor(typeargs, true); //isaclass
 	    assert(nextmembertypeNode);
 
