@@ -456,8 +456,12 @@ namespace MFM {
     UTI tmputi = Nav;
     UTI tmpforscalaruti = Nouti;
     u32 tokid = getTokenDataAsStringId(typeTok);
-    AssertBool isDef = getUlamTypeByTypedefName(tokid, tmputi, tmpforscalaruti);
-    assert(!isDef);
+    if(getUlamTypeByTypedefName(tokid, tmputi, tmpforscalaruti))
+      {
+	//no assert, return uti instead
+	return tmpforscalaruti; //t41398-t41401
+      }
+    //else continue..
 
     //is this name already a typedef for a complex type?
     ULAMTYPE bUT = getBaseTypeFromToken(typeTok);
