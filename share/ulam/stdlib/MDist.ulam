@@ -59,7 +59,8 @@ local constant String cUnsigned6To32TimesSqrt =
    originally stood for 'Manhattan distance', but it now includes
    other functions, such as angles and conversions between site
    numbers and C2D, and other metrics, such as 'ESL' for 'Euclidean
-   Squared Length')
+   Squared Length'.  In addition, since ulam 5, access to PSym point
+   symmetry methods is provided.)
 
    Often some higher-level interface (such as WindowServices) might be
    preferable to this.  MDist is particularly useful because it does
@@ -74,6 +75,7 @@ quark MDist {
   typedef Unsigned(3) Radius;
   typedef Unsigned(5) ESLRadius;
   typedef Unsigned(6) Index;
+  typedef Unsigned(3) Symmetry;
 
   Index getFirstIndex(Radius radius) native;
 
@@ -84,6 +86,14 @@ quark MDist {
   Index getLastESLIndex(ESLRadius eslRadius) native;
 
   C2D getSiteCoord(Index siteNumber) native;
+
+  C2D symMap(C2D pt, Symmetry sym) native; //{ C2D ret(sym,2); return ret; }
+
+  Index symMap(Index siteNumber, Symmetry sym) {
+    C2D c = getSiteCoord(siteNumber);
+    C2D m = symMap(c, sym);
+    return getSiteNumber(m);
+  }
 
   Index getSiteNumber(C2D coord) native;
 
