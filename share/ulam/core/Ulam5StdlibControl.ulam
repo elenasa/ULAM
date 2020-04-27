@@ -6,6 +6,6 @@ element Ulam5StdlibControl {
   /** Enable ByteStreamLogger output */
   parameter Bool pLOG_ENABLED = false;
 
-  /** Draw QBonds */
-  parameter Bool pRENDER_QBONDS = true;
+  /** Render custom graphics */
+  parameter Bool pRENDER_GRAPHICS = true;
 }
