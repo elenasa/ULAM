@@ -11,8 +11,19 @@ quark Drawable {
                         onColor,
                         offColor,
                         mask32,
-                        cUNITS_PER_SITE/32);
+                        cUNITS_PER_SITE/32,
+                        1u);
+  }
+  Void drawMaskedLine(C2D startUnits, C2D endUnits, ARGB onColor, ARGB offColor, Bits mask32, Unsigned width) {
+    drawMaskedLineUnits(startUnits,
+                        endUnits,
+                        onColor,
+                        offColor,
+                        mask32,
+                        cUNITS_PER_SITE/32,
+                        width);
   }
   //  Void drawMaskedLineDit(C2D startDit, C2D endDit, ARGB color, Bits mask32, Unsigned maskDits) native;
-  Void drawMaskedLineUnits(C2D startUnits, C2D endUnits, ARGB onColor, ARGB offColor, Bits mask32, Unsigned maskUnits) native;
+  //Void drawMaskedLineUnits(C2D startUnits, C2D endUnits, ARGB onColor, ARGB offColor, Bits mask32, Unsigned maskUnits) native;
+  Void drawMaskedLineUnits(C2D startUnits, C2D endUnits, ARGB onColor, ARGB offColor, Bits mask32, Unsigned maskUnits, Unsigned width) native;
 }

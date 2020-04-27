@@ -31,7 +31,8 @@ namespace MFM{
                                                           Ui_Ut_14181u<EC>& Uv_7onColor,
                                                           Ui_Ut_14181u<EC>& Uv_8offColor,
                                                           Ui_Ut_102321t<EC>& Uv_6mask32,
-                                                          Ui_Ut_102321u<EC>& Uv_919maskUnits) const
+                                                          Ui_Ut_102321u<EC>& Uv_919maskUnits,
+                                                          Ui_Ut_102321u<EC>& Uv_5width) const //native
   {
     const EventWindowRenderer<EC> & ewr = uc.GetEventWindowRenderer();
     Drawable * d = ewr.getDrawableOrNull();
@@ -48,6 +49,7 @@ namespace MFM{
     const u32 offColor = Uv_8offColor.read();
     const u32 mask = Uv_6mask32.read();
     const u32 maskUnits = Uv_919maskUnits.read();
+    const u32 widthUnits = Uv_5width.read();
 
     d->DrawScaledMaskedLineDitColor(dps*sx/ups,
                                     dps*sy/ups,
@@ -56,7 +58,8 @@ namespace MFM{
                                     onColor,
                                     offColor,
                                     mask,
-                                    MAX(1u,((u32)dps)*maskUnits/1024u/4u));
+                                    MAX(1u,((u32)dps)*maskUnits/1024u/4u),
+                                    MAX(1u,((u32)dps)*widthUnits/1024u/4u));
     
   }
 
