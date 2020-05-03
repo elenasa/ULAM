@@ -69,4 +69,18 @@ namespace MFM {
     return ret;
   }
 
+  template<class EC>
+  Ui_Uq_102323C2D10<EC> Uq_10105MDist10<EC>::Uf_6symMap(const UlamContext<EC>& uc, UlamRef<EC>& ur, Ui_Uq_102323C2D10<EC>& Uv_2pt, Ui_Ut_10131u<EC>& Uv_3sym) const
+  {
+    const s32 x = _SignExtend32(UlamRef<EC>(0u, 16u, Uv_2pt, NULL, UlamRef<EC>::PRIMITIVE, uc).Read(), 16);
+    const s32 y = _SignExtend32(UlamRef<EC>(16u, 16u, Uv_2pt, NULL, UlamRef<EC>::PRIMITIVE, uc).Read(), 16);
+    const SPoint loc(x,y);
+    u32 sym = Uv_3sym.read(); //gcnl:Node.cpp:832
+    SPoint pt = SymMap(loc, (const PointSymmetry) sym, loc);
+    Ui_Uq_102323C2D10<EC> ret;
+    UlamRef<EC>(0u, 16u, ret, NULL, UlamRef<EC>::PRIMITIVE, uc).Write(pt.GetX());
+    UlamRef<EC>(16u, 16u, ret, NULL, UlamRef<EC>::PRIMITIVE, uc).Write(pt.GetY());
+    return ret;
+  } // Uf_6symMap
+
 } //MFM
