@@ -2430,12 +2430,18 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     u32 accumsize = 0;
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
     s32 totalsize = cut->getTotalBitSize(); //actual for elements(as in mangled name)
+    SymbolClass * csym = NULL;
+    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cuti, csym);
+    assert(isDefined);
 
     m_state.indent(fp);
     fp->write("/*__________________________________________________\n");
     m_state.indent(fp);
     fp->write("| COMPONENTS of ");
     fp->write(cut->getUlamTypeClassNameBrief(cuti).c_str());
+    fp->write(" (");
+    fp->write_decimal_unsigned(csym->getRegistryNumber());
+    fp->write(")");
     fp->write(" (");
     fp->write_decimal(totalsize);
     fp->write(" bits total) are: \n");
@@ -2450,10 +2456,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       m_nodeNext->genTypeAndNameEntryAsComment(fp, totalsize, accumsize); //dm vardecls
 
     //ulam-5 supports multiple base classes; superclass optional
-    SymbolClass * csym = NULL;
-    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cuti, csym);
-    assert(isDefined);
-
     if(csym->isQuarkUnion())
       accumsize = totalsize; //i.e. max dm bitsize, not cummulative
 
