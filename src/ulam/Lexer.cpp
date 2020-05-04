@@ -60,9 +60,7 @@ namespace MFM {
 
     if(c < -1)
       {
-	std::ostringstream errmsg;
-	errmsg << "Invalid read";
-	u32 idx = m_state.m_pool.getIndexForDataString(errmsg.str());
+	u32 idx = m_state.m_pool.getIndexForDataString("Invalid read");
 	returnTok.init(TOK_ERROR_LOWLEVEL, m_SS.getLocator(), idx); //is locator ok?
 	m_lastToken = returnTok; //NEEDS SOME KIND OF TOK_ERROR
 	return false; //error case
@@ -1023,15 +1021,25 @@ namespace MFM {
 		    return m_SS.read(); //found end of comment; return next byte
 		  }
 		else
-		  unread(); //to re-read; in case d is *, for example
+		  {
+		    unread(); //to re-read; in case d is *, for example
+		    scstr.push_back(c); //dont lose c's *
+		  }
 	      }
 	    else
-	      return d; // d error or eof
+	      unread(); //to re-read as c, d error or eof
 	  } // c is not *, get the next byte
 	else
 	  scstr.push_back(c);
       } //end while
-    return c;
+
+    //no proper end to structured comment, make error token instead
+    if(c < 0)
+      {
+	u32 idx = m_state.m_pool.getIndexForDataString("Malformed Structured Comment");
+	tok.init(TOK_ERROR_LOWLEVEL, firstloc, idx); //t41404
+      }
+    return c; //to unread..
   } //makeStructuredCommentToken
 
   TokenType Lexer::getTokenTypeFromString(std::string str)
