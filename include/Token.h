@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * Token.h -  Basic handling of Tokens for ULAM
  *
- * Copyright (C) 2014-2019 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2019 Ackleyshack LLC.
+ * Copyright (C) 2014-2020 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2020 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +27,9 @@
 
 /**
   \file Token.h -  Basic handling of Tokens for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2019 All rights reserved.
+  \date (C) 2014-2020 All rights reserved.
   \gpl
 */
 
@@ -84,9 +84,9 @@ namespace MFM{
     const char * getTokenString();
     const char * getTokenEnumName();
 
-    const std::string getTokenStringFromPool(CompilerState * state) const;
-    static const std::string getTokenAsStringFromPool(TokenType ttype, CompilerState * state);
-    const std::string getTokenEnumNameFromPool(CompilerState * state) const;
+    const std::string & getTokenStringFromPool(CompilerState * state) const;
+    static const std::string & getTokenAsStringFromPool(TokenType ttype, CompilerState * state);
+    const std::string & getTokenEnumNameFromPool(CompilerState * state) const;
 
     static SpecialTokenWork getSpecialTokenWork(TokenType ttype);
     static OperatorOverloadableFlag getTokenOperatorOverloadableFlag(TokenType ttype);
@@ -110,8 +110,8 @@ namespace MFM{
 
   private:
 
-    static const std::string getOperatorHexName(const Token & tok, CompilerState * state);
-    static const std::string getOperatorHexNameFromString(const std::string opname);
+    static const std::string & getOperatorHexName(const Token & tok, CompilerState * state);
+    static const std::string & getOperatorHexNameFromString(const std::string & opname, CompilerState * state);
 
   };
 }

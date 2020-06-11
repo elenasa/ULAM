@@ -149,11 +149,20 @@ namespace MFM {
 
     m_registryNumberLocalsSafe = n;
     return true;
-  } //assignRegistryNumberToLocalsBlock
+  } //assignRegistrationNumberToLocalsBlock
 
-  u32 NodeBlockLocals::getRegistrationNumberForLocalsBlock() const
+  u32 NodeBlockLocals::getRegistrationNumberForLocalsBlock()
   {
-    assert(m_registryNumberLocalsSafe != UNINITTED_REGISTRY_NUMBER);
+    if(m_registryNumberLocalsSafe == UNINITTED_REGISTRY_NUMBER)
+      {
+	UTI luti = getNodeType();
+	if(m_state.okUTItoContinue(luti))// && m_state.isComplete(luti))
+	  {
+	    u32 n = m_state.assignClassId(luti);
+	    AssertBool rnset = assignRegistrationNumberToLocalsBlock(n);
+	    assert(rnset);
+	  }
+      }
     return m_registryNumberLocalsSafe;
   }
 

@@ -27,4 +27,9 @@ transient ByteStreamString : ByteStreamReader {
     return m_string[m_index++];
   }
 
+  Self & operator=(Self& rhs) {
+    m_string = rhs.m_string;
+    m_index = rhs.m_index;
+    return self;
+  }
 }

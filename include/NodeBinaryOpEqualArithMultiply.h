@@ -27,7 +27,7 @@
 
 /**
   \file NodeBinaryOpEqualArithMultiply.h - Node for handling Multiply Equal for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
   \date (C) 2014-2017 All rights reserved.
   \gpl

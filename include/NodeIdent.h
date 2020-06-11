@@ -27,7 +27,7 @@
 
 /**
   \file NodeIdent.h - Node handling Identifiers for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
   \date (C) 2014-2019 All rights reserved.
   \gpl
@@ -115,7 +115,7 @@ namespace MFM{
   protected:
 
   private:
-    Token m_token;
+    const Token m_token;
     SymbolVariable * m_varSymbol;
     NNO m_currBlockNo;
     NodeBlock * m_currBlockPtr;

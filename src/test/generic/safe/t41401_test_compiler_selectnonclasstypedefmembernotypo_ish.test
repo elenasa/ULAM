@@ -1,0 +1,57 @@
+## -*- mode:ulam -*-
+#=t41401_test_compiler_selectnonclasstypedefmembernotypo_ish
+## genoutput:
+##  assert
+##  Unsigned Arg: 3
+##
+#!
+Exit status: 3
+Ue_A { typedef Unsigned(3) Stage;  Int(32) test() {  System s;  A a;  Unsigned(3) stg = a ( )stage .;  s ( stg cast 3 cast == )assert . s ( a ( )stage . cast )print . stg cast return } }
+Uq_QBase(Unsigned(32) bits) { typedef Unsigned(UNKNOWN) Stage;  <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## Based on Dave ish 04262020: t41399, Without typo.
+## (see also t41398, t41399, t41400 for Unsigned, Holder and Hzy variations, respectively)
+##
+#>A.ulam
+  ulam 5;
+local constant Unsigned cstagelen = 3u;
+element A {
+  typedef QBase(cstagelen).Stage Stage; //causes a Holder to be made for Stage..
+
+  Stage stage()
+  {
+    return 3;
+  }
+
+  Int test() {
+    System s;
+    A a;
+    Stage stg = a.stage();
+    s.assert(stg==3);
+    s.print(a.stage()); //NO TYPO!!
+
+    return (Int) stg;
+  }
+}
+
+#:QBase.ulam
+  ulam 5;
+quark QBase(Unsigned bits) {
+  typedef Unsigned(bits) Stage;
+}
+
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

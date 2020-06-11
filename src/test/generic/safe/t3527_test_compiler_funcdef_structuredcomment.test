@@ -41,6 +41,7 @@ element A {
   }
 
   Int times() {
+    /**/
     return 0;
   }
   /** DM: d, results goes here */

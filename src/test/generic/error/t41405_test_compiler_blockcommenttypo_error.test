@@ -1,0 +1,28 @@
+## -*- mode:ulam -*-
+#=t41405_test_compiler_blockcommenttypo_error
+#!
+./UrSelf.ulam:22:0: ERROR: Expecting Type of data member/function (or, in the midst of errors); Got <EOF>.
+./Boundary.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'Boundary'; Possible missing ending curly brace.
+./Boundary.ulam:2:9: ERROR: Invalid Type: Boundary.
+ ERROR: No parse tree for This Class: Boundary.
+Unrecoverable Program Parse FAILURE: <Boundary.ulam>
+##
+## informed by t41404. Less specific error message than for Structured Comment typo.
+## Structured Comments, unlike other comments (line or block), are kept (not eaten).
+##
+#>A.ulam
+  ulam 1;
+element A {
+  Int test() {
+    Boundary b;
+    return -1;
+  }
+}
+
+#:Boundary.ulam
+  ulam 1;
+element Boundary {
+  /* unended block comment *
+}
+
+#.

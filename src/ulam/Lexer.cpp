@@ -60,9 +60,7 @@ namespace MFM {
 
     if(c < -1)
       {
-	std::ostringstream errmsg;
-	errmsg << "Invalid read";
-	u32 idx = m_state.m_pool.getIndexForDataString(errmsg.str());
+	u32 idx = m_state.m_pool.getIndexForDataString("Invalid read");
 	returnTok.init(TOK_ERROR_LOWLEVEL, m_SS.getLocator(), idx); //is locator ok?
 	m_lastToken = returnTok; //NEEDS SOME KIND OF TOK_ERROR
 	return false; //error case
@@ -446,6 +444,31 @@ namespace MFM {
 		    return 0;
 		  }
 		else if(ttype == TOK_KW_FLAG_INSERTFUNC)
+		  {
+		    tok.init(ttype, firstloc, 0);
+		    return 0;
+		  }
+		else if(ttype == TOK_KW_FLAG_INSERTCLASS)
+		  {
+		    tok.init(ttype, firstloc, 0);
+		    return 0;
+		  }
+		else if(ttype == TOK_KW_FLAG_INSERTCLASSSIGNATURE)
+		  {
+		    tok.init(ttype, firstloc, 0);
+		    return 0;
+		  }
+		else if(ttype == TOK_KW_FLAG_INSERTCLASSNAMEPRETTY)
+		  {
+		    tok.init(ttype, firstloc, 0);
+		    return 0;
+		  }
+		else if(ttype == TOK_KW_FLAG_INSERTCLASSNAMESIMPLE)
+		  {
+		    tok.init(ttype, firstloc, 0);
+		    return 0;
+		  }
+		else if(ttype == TOK_KW_FLAG_INSERTCLASSNAMEMANGLED)
 		  {
 		    tok.init(ttype, firstloc, 0);
 		    return 0;
@@ -919,8 +942,18 @@ namespace MFM {
 	    s32 e = m_SS.read();
 	    if( e == '*')
 	      {
-		isStructuredComment = true;
-		return makeStructuredCommentToken(rtnTok);
+		s32 f = m_SS.read();
+		if(f == '/')
+		  {
+		    //found end of empty c-style comment; return next byte;
+		    return m_SS.read();
+		  }
+		else
+		  {
+		    unread(); //wasn't end of empty c-style comment
+		    isStructuredComment = true;
+		    return makeStructuredCommentToken(rtnTok);
+		  }
 	      }
 	    else
 	      {
@@ -988,15 +1021,25 @@ namespace MFM {
 		    return m_SS.read(); //found end of comment; return next byte
 		  }
 		else
-		  unread(); //to re-read; in case d is *, for example
+		  {
+		    unread(); //to re-read; in case d is *, for example
+		    scstr.push_back(c); //dont lose c's *
+		  }
 	      }
 	    else
-	      return d; // d error or eof
+	      unread(); //to re-read as c, d error or eof
 	  } // c is not *, get the next byte
 	else
 	  scstr.push_back(c);
       } //end while
-    return c;
+
+    //no proper end to structured comment, make error token instead
+    if(c < 0)
+      {
+	u32 idx = m_state.m_pool.getIndexForDataString("Malformed Structured Comment");
+	tok.init(TOK_ERROR_LOWLEVEL, firstloc, idx); //t41404
+      }
+    return c; //to unread..
   } //makeStructuredCommentToken
 
   TokenType Lexer::getTokenTypeFromString(std::string str)

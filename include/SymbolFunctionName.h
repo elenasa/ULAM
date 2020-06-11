@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * SymbolFunctionName.h -  Function Symbol Name handling for ULAM
  *
- * Copyright (C) 2014-2019 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2019 Ackleyshack LLC.
+ * Copyright (C) 2014-2020 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2020 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +27,9 @@
 
 /**
   \file SymbolFunctionName.h -  Function Symbol Name handling for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2019   All rights reserved.
+  \date (C) 2014-2020   All rights reserved.
   \gpl
 */
 
@@ -70,6 +70,8 @@ namespace MFM{
     bool overloadFunction(SymbolFunction * fsym);
 
     u32 addFunctionsToThisTable(std::map<std::string, SymbolFunction *>& mapref); //for virtual index calc
+
+    SymbolFunction * getFunctionSymbolByOrderNumber(u32 ordernumarg);
 
     u32 findMatchingFunctionStrictlyByTypes(std::vector<UTI> argTypes, SymbolFunction *& funcSymbol, bool& hasHazyArgs);
 
@@ -114,10 +116,6 @@ namespace MFM{
     void printUnresolvedLocalVariablesInFunctionDefs();
 
     u32 countNativeFuncDecls();
-
-    void generateCodedFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
-
-    void addFunctionDescriptionsToClassMemberMap(UTI classType, ClassMemberMap & classmembers);
 
   protected:
 

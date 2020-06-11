@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeMemberSelectByBaseClassType.h -  Node for handling Base Class Selection for ULAM
  *
- * Copyright (C) 2019 The Regents of the University of New Mexico.
- * Copyright (C) 2019 Ackleyshack LLC.
+ * Copyright (C) 2019-2020 The Regents of the University of New Mexico.
+ * Copyright (C) 2019-2020 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +27,9 @@
 
 /**
   \file NodeMemberSelectByBaseClassType.h -  Node for handling Base Class Selection for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2019  All rights reserved.
+  \date (C) 2019-2020  All rights reserved.
   \gpl
 */
 
@@ -43,12 +43,17 @@ namespace MFM{
   class NodeMemberSelectByBaseClassType : public NodeMemberSelect
   {
   public:
-
-    NodeMemberSelectByBaseClassType(Node * left, Node * right, CompilerState & state);
+    NodeMemberSelectByBaseClassType(Node * left, Node * right, Node * vtrn, CompilerState & state);
 
     NodeMemberSelectByBaseClassType(const NodeMemberSelectByBaseClassType& ref);
 
     virtual ~NodeMemberSelectByBaseClassType();
+
+    virtual void updateLineage(NNO pno);
+
+    virtual bool exchangeKids(Node * oldnptr, Node * newnptr);
+
+    virtual bool findNodeNo(NNO n, Node *& foundNode);
 
     virtual Node * instantiate();
 
@@ -70,6 +75,8 @@ namespace MFM{
 
     virtual bool belongsToVOWN(UTI vown);
 
+    virtual bool isAMemberSelectByRegNum();
+
     virtual bool isArrayItem();
 
     virtual EvalStatus eval();
@@ -88,6 +95,9 @@ namespace MFM{
     virtual TBOOL checkStoreIntoAble();
 
   private:
+
+    Node * m_nodeVTclassrn; //runtime var: class VTable Registration Number
+    SymbolTmpVar * m_tmpvarSymbolVTclassrn;
 
     void makeUVPassForCodeGen(UVPass& uvpass);
   };

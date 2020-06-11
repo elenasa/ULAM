@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeBlockFunctionDefinition.h - Node for handling Function Definitions for ULAM
  *
- * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2017 Ackleyshack LLC.
+ * Copyright (C) 2014-2020 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2020 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +27,9 @@
 
 /**
   \file NodeBlockFunctionDefinition.h - Node for handling Function Definitions for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2017 All rights reserved.
+  \date (C) 2014-2020 All rights reserved.
   \gpl
 */
 
@@ -94,16 +94,17 @@ class NodeBlockFunctionDefinition : public NodeBlock
     virtual const std::string prettyNodeName();
 
     void setDefinition();
-    bool isDefinition();
+    bool isDefinition() const;
 
     // for framestack
     void setMaxDepth(u32 depth);
     u32 getMaxDepth();
     virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);
+    virtual void calcMaxIndexOfVirtualFunctionInOrderOfDeclaration(SymbolClass* csym, s32& maxidx);
 
     // for keyword 'native'; has empty block (i.e. not defined in Ulam); eval skipped
     void setNative();
-    bool isNative();
+    bool isNative() const;
 
     SymbolFunction * getFuncSymbolPtr();
     void setFuncSymbolPtr(SymbolFunction * fsymptr); //during instantiation

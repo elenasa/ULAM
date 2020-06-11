@@ -1,4 +1,5 @@
 #include "BaseclassWalker.h"
+#include "CompilerState.h"
 
 namespace MFM {
 
@@ -49,14 +50,14 @@ namespace MFM {
       }
   } //addAncestorPairsOf
 
-  bool BaseclassWalker::getNextBase(UTI& nextbase)
+  bool BaseclassWalker::getNextBase(UTI& nextbase, CompilerState& state)
   {
     UTI tmpbasehead; //unused
-    bool rtnb = getNextBasePair(nextbase, tmpbasehead);
+    bool rtnb = getNextBasePair(nextbase, tmpbasehead, state);
     return rtnb;
   } //getNextBase (helper)
 
-  bool BaseclassWalker::getNextBasePair(UTI& nextbase, UTI& basehead)
+  bool BaseclassWalker::getNextBasePair(UTI& nextbase, UTI& basehead, CompilerState& state)
   {
     bool rtnb = false;
     UTI baseuti = Nouti;
@@ -70,11 +71,19 @@ namespace MFM {
 	baseuti = base.first;
 	headuti = base.second;
 	m_bases.pop_front();
-	ret = m_seenset.insert(baseuti);
+
+	UTI rootuti = baseuti;
+	if(!state.isARootUTI(baseuti))
+	  {
+	    AssertBool gotroot = state.findaUTIAlias(baseuti, rootuti); //t41384
+	    assert(gotroot);
+	  }
+
+	ret = m_seenset.insert(rootuti);
 	if(ret.second)
 	  {
 	    rtnb = true; //first-sighting
-	    nextbase = baseuti;
+	    nextbase = rootuti;
 	    basehead = headuti;
 	  } //else already-seen, try next one..
       } //end while

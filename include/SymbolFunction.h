@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * SymbolFunction.h -  Function Symbol handling for ULAM
  *
- * Copyright (C) 2014-2019 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2019 Ackleyshack LLC.
+ * Copyright (C) 2014-2020 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2020 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +27,9 @@
 
 /**
   \file SymbolFunction.h -  Function Symbol handling for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2019   All rights reserved.
+  \date (C) 2014-2020   All rights reserved.
   \gpl
 */
 
@@ -72,6 +72,7 @@ namespace MFM{
     virtual bool isFunction();
     void setFunctionNode(NodeBlockFunctionDefinition * func);
     NodeBlockFunctionDefinition *  getFunctionNode();
+    const u32 getOrderNumber() const;
 
     virtual const std::string getMangledPrefix();
 
@@ -116,13 +117,15 @@ namespace MFM{
 
     virtual void setStructuredComment();
 
-    const std::string generateUlamFunctionSignature(); //for UlamInfo
+    u32 getUlamFunctionSignatureId(); //for UlamInfo, and VTable comments
+
   protected:
 
 
   private:
     std::vector<Symbol *> m_parameterSymbols;  // variable or function can be an args
     NodeBlockFunctionDefinition * m_functionNode;
+    const u32 m_declOrderNum; //must be unique among overloaded funcs of same name
     bool m_hasVariableArgs;
     bool m_isVirtual; //overloaded funcs may have different virtual status
     bool m_pureVirtual; //overloaded funcs may have different pure virtual status
@@ -131,7 +134,9 @@ namespace MFM{
     UTI m_virtualOrigUTI;
     bool m_isConstructor;
     bool m_definedinaQuark;
+    u32 m_signatureid;
     void generateFunctionDeclarationVirtualTypedef(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
+    const std::string generateUlamFunctionSignature(); //for UlamInfo
 
     void initFSEntry(FSEntry& entry);
   };

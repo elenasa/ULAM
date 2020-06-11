@@ -31,19 +31,6 @@ namespace MFM {
     return totalsizes;
   } //getTotalSymbolSize
 
-  void SymbolTableOfFunctions::addClassMemberFunctionDescriptionsToMap(UTI classType, ClassMemberMap& classmembers)
-  {
-    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
-    while(it != m_idToSymbolPtr.end())
-      {
-	Symbol * sym = it->second;
-	assert(sym->isFunction());
-
-	((SymbolFunctionName *) sym)->addFunctionDescriptionsToClassMemberMap(classType, classmembers);
-	it++;
-      }
-  } //addClassMemberFunctionDescriptionsToMap
-
   //convert UTI to mangled strings to insure overload uniqueness
   void SymbolTableOfFunctions::checkTableOfFunctions(FSTable& mangledFunctionMap, u32& probcount)
   {
@@ -195,7 +182,7 @@ namespace MFM {
     walker.addAncestorsOf(csym);
 
     UTI baseuti = Nouti;
-    while(walker.getNextBase(baseuti))
+    while(walker.getNextBase(baseuti, m_state))
       {
 	SymbolClass * basecsym = NULL;
 	if(m_state.alreadyDefinedSymbolClass(baseuti, basecsym))
@@ -227,34 +214,7 @@ namespace MFM {
       }
 
     csym->initVTable(maxidx);
-
-    s32 vownedcount = 0;
-
-    //first reorder: sort all funcs by mangledname string
-    std::map<std::string, SymbolFunction *> mangledFuncs; //mangled func name -> symbol function ptr
-    u32 vfc = 0;
-    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
-    while(it != m_idToSymbolPtr.end())
-      {
-	Symbol * sym = it->second;
-	assert(sym && sym->isFunction());
-
-	vfc += ((SymbolFunctionName *) sym)->addFunctionsToThisTable(mangledFuncs);
-	it++;
-      }
-    assert(vfc == mangledFuncs.size()); //sanity
-
-    std::map<std::string, SymbolFunction *>::iterator it2 = mangledFuncs.begin();
-    while(it2 != mangledFuncs.end())
-      {
-	SymbolFunction * fsym = it2->second;
-	assert(fsym);
-	fsym->calcMaxIndexOfVirtualFunction(csym, vownedcount);
-	it2++;
-      }
-
-    maxidx += vownedcount; //update ref arg
-    mangledFuncs.clear(); //tmp
+    //return and use NodeFuncDecl in parse tree order to assign new vowned indexes (ulam-5)
     return;
   } //calcMaxIndexForVirtualTableOfFunctions
 
@@ -383,20 +343,5 @@ namespace MFM {
       }
     return nativeCount;
   } //countNativeFuncDeclsForTableOfFunctions
-
-  void SymbolTableOfFunctions::genCodeForTableOfFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
-  {
-    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
-    while(it != m_idToSymbolPtr.end())
-      {
-	Symbol * sym = it->second;
-	if(sym->isFunction())
-	  {
-	    ((SymbolFunctionName *) sym)->generateCodedFunctions(fp, declOnly, classtype);
-	  }
-	it++;
-      }
-  } //genCodeForTableOfFunctions
-
 
 } //end MFM

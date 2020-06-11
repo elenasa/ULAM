@@ -27,7 +27,7 @@
 
 /**
   \file UlamTypeClassElement.h -  Basic handling of the Eleemnt Class UlamType for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
   \date (C) 2014-2019 All rights reserved.
   \gpl

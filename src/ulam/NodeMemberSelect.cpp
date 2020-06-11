@@ -104,6 +104,12 @@ namespace MFM {
     return true;
   }
 
+  bool NodeMemberSelect::isAMemberSelectByRegNum()
+  {
+    assert(isAMemberSelect());
+    return false;
+  }
+
   const std::string NodeMemberSelect::methodNameForCodeGen()
   {
     return "_MemberSelect_Stub";
@@ -151,6 +157,21 @@ namespace MFM {
 	else if(stor == TBOOL_HAZY)
 	  nuti = Hzy; //t3607
       }
+    else
+      {
+	//data members cannot be shadowed by relatives, t.f. selection
+	//by classId of related subclasses doesn't make sense!
+	if(m_nodeLeft->isAMemberSelect() && ((NodeMemberSelect *) m_nodeLeft)->isAMemberSelectByRegNum())
+	  {
+	    std::ostringstream msg;
+	    msg << "Member selected by classId must be a virtual function, ";
+	    msg << "not data member '" << m_nodeRight->getName() << "'";
+	    msg << "; data members cannot be shadowed by related subclasses";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    setNodeType(Nav);
+	    return Nav; //t41388
+	  } //done
+      }
 
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
     ULAMCLASSTYPE lclasstype = lut->getUlamClassType();
@@ -169,6 +190,7 @@ namespace MFM {
 	setNodeType(Nav);
 	return Nav;
       } //done
+
 
     std::string className = m_state.getUlamTypeNameBriefByIndex(luti); //help me debug
 
@@ -215,6 +237,25 @@ namespace MFM {
     if(m_state.okUTItoContinue(rightType))
       {
 	setStoreIntoAbleAndReferenceAble();
+	if(m_nodeRight->isFunctionCall())
+	  {
+	    if(m_nodeLeft->isAMemberSelect() && ((NodeMemberSelect *) m_nodeLeft)->isAMemberSelectByRegNum())
+	      {
+		Symbol * fsymptr = NULL;
+		AssertBool gotfunc = m_nodeRight->getSymbolPtr(fsymptr);
+		assert(gotfunc);
+		assert(fsymptr->isFunction());
+		if(!((SymbolFunction *) fsymptr)->isVirtualFunction())
+		  {
+		    std::ostringstream msg;
+		    msg << "Member selected by classId must be a VIRTUAL function, ";
+		    msg << "not '" << m_nodeRight->getName() << "'";
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    setNodeType(Nav);
+		    return Nav; //t41388
+		  }
+	      }
+	  }
       }
     return getNodeType();
   } //checkAndLabelType
@@ -621,7 +662,7 @@ namespace MFM {
 	UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
 	//t3913, t3915 tmpref may not be a ref, but may need adjusting (i.e. anonymous element returned)
 	// t3706 not isAltRefType; t41307,9,10 isBaseClassRef (ulam-5); t41314 pass if self;
-	rtnb = cossym->isSelf() || (!cosut->isReference() && (!cossym->isTmpVarSymbol() || Node::needAdjustToStateBits(cosuti) || ((SymbolTmpVar *) cossym)->isBaseClassRef()));
+	rtnb = cossym->isSelf() || (!cosut->isReference() && (!cossym->isTmpVarSymbol() || Node::needAdjustToStateBits(cosuti) || ((SymbolTmpVar *) cossym)->isBaseClassRef())) || (cosut->getReferenceType() == ALT_AS) /* AS, but not ARRAYITEM (t41396, t3706) */  ;
       }
     return rtnb;
   }

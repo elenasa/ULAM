@@ -27,7 +27,7 @@
 
 /**
   \file NodeConstant.h - Node handling Named Constants for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
   \date (C) 2015-2019 All rights reserved.
   \gpl
@@ -94,7 +94,7 @@ namespace MFM{
     virtual void genCodeToStoreInto(File * fp, UVPass& uvpass);
 
   protected:
-    Token m_token;
+    const Token m_token;
     NodeTypeDescriptor * m_nodeTypeDesc; //can be NULL
     SymbolWithValue * m_constSymbol;
     bool m_ready;

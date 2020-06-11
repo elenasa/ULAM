@@ -927,36 +927,131 @@ namespace MFM {
     return args.str();
   } //formatAnInstancesArgValuesAsCommaDelimitedString
 
-  std::string SymbolClassNameTemplate::generateUlamClassSignature()
+  void SymbolClassNameTemplate::generatePrettyNameAndSignatureOfClassInstancesAsUserStrings()
   {
-    std::ostringstream sig;
-    sig << m_state.m_pool.getDataAsString(getId()).c_str(); //class name
-
-    u32 numparams = getNumberOfParameters();
-    assert(numparams > 0);
-
-    sig << "(";
-
-    NodeBlockClass * classNode = getClassBlockNode();
-    assert(classNode);
-    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
-    //format parameters type and name into stream
-    for(u32 i = 0; i < numparams; i++)
+    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
+    while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
       {
-	if(i > 0)
-	  sig << ", ";
+	SymbolClass * csym = it->second;
+	UTI cuti = csym->getUlamTypeIdx();
 
-	Node * pnode = classNode->getParameterNode(i);
-	assert(pnode);
-	sig << m_state.m_pool.getDataAsString(pnode->getTypeNameId()).c_str();
-	sig << " " << pnode->getName(); //arg name
+	assert(cuti != getUlamTypeIdx()); //no template
+
+	if(!csym->isStub())
+	  {
+	    std::string sigonly = generatePrettyNameOrSignature(cuti, true, false); //do instance signature only;
+	    m_state.formatAndGetIndexForDataUserString(sigonly);
+
+	    std::string fancysig = generatePrettyNameOrSignature(cuti, true, true); //do instance fancy signature
+	    m_state.formatAndGetIndexForDataUserString(fancysig);
+
+	    std::string simple = generatePrettyNameOrSignature(cuti, false, true); //do instance simple name
+	    m_state.formatAndGetIndexForDataUserString(simple);
+
+	    std::string plain = generatePrettyNameOrSignature(cuti, false, false); //do instance plain name
+	    m_state.formatAndGetIndexForDataUserString(plain);
+
+	  }
+	else
+	  {
+	    NodeBlockClass * classNode = csym->getClassBlockNode();
+	    assert(classNode);
+
+	    std::ostringstream msg;
+	    msg << " Class instance '";
+	    msg << m_state.getUlamTypeNameByIndex(cuti).c_str();
+	    msg << "' is still a stub; No pretty name error";
+	    MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	  }
+	it++;
       }
+  } //generatePrettyNameAndSignatureOfClassInstancesAsUserStrings
 
-    sig << ")";
+  std::string SymbolClassNameTemplate::generatePrettyNameOrSignature(UTI instance, bool signa, bool argvals)
+  {
+    u32 pcnt = 0;
+    std::ostringstream sig;
 
-    m_state.popClassContext(); //restore
+    SymbolClass * csym = NULL;
+    if(findClassInstanceByUTI(instance,csym))
+      {
+	NodeBlockClass * classNode = csym->getClassBlockNode();
+	assert(classNode);
+	m_state.pushClassContext(csym->getUlamTypeIdx(), classNode, classNode, false, NULL);
+
+	sig << m_state.m_pool.getDataAsString(getId()).c_str(); //class name
+	if(signa || argvals)
+	  sig << "(";
+
+	//format parameters type and name and value into stream
+	std::vector<SymbolConstantValue *>::iterator pit = m_parameterSymbols.begin();
+	while(pit != m_parameterSymbols.end())
+	  {
+	    SymbolConstantValue * psym = *pit;
+	    assert(psym->isClassParameter());
+
+	    if((signa || argvals) && (pcnt > 0))
+	      sig << ",";
+
+	    //get 'instance's arg value
+	    bool isok = false;
+	    Symbol * asym = NULL;
+	    bool hazyKin = false; //don't care
+	    AssertBool isDefined = m_state.alreadyDefinedSymbol(psym->getId(), asym, hazyKin);
+	    assert(isDefined);
+	    UTI auti = asym->getUlamTypeIdx();
+	    UlamType * aut = m_state.getUlamTypeByIndex(auti);
+
+	    if(signa)
+	      {
+		sig << m_state.getUlamTypeNameBriefByIndex(asym->getUlamTypeIdx()).c_str();
+		sig << " " << m_state.m_pool.getDataAsString(asym->getId()).c_str(); //param
+	      }
+
+	    if(argvals)
+	      {
+		if(signa)
+		  sig << "=";
+
+		if(aut->isComplete())
+		  {
+		    if(!aut->isScalar())
+		      {
+			std::string arrvalstr;
+			if((isok = ((SymbolConstantValue *) asym)->getArrayValueAsString(arrvalstr)))
+			  sig << arrvalstr;  //lex'd array of u32's
+		      }
+		    else if(m_state.isAClass(auti))
+		      {
+			std::string ccvalstr;
+			if((isok = ((SymbolConstantValue *)asym)->getValueAsHexString(ccvalstr)))
+			  sig << "0x" << ccvalstr; //t41209
+		      }
+		    else
+		      {
+			std::string valstr;
+			if((isok = ((SymbolConstantValue *) asym)->getScalarValueAsString(valstr)))
+			  sig << valstr;    //pretty
+		      } //isscalar
+		  } //iscomplete
+
+		if(!isok)
+		  {
+		    sig << "BAD_VALUE";
+		  }
+	      } //argvals
+
+	    pcnt++;
+	    pit++;
+	  } //next param
+
+	if(signa || argvals)
+	  sig << ")";
+
+	m_state.popClassContext(); //restore
+      }
     return sig.str();
-  } //generateUlamClassSignature
+  } //generatePrettyNameOrSignature
 
   bool SymbolClassNameTemplate::hasInstanceMappedUTI(UTI instance, UTI auti, UTI& mappedUTI)
   {
@@ -1769,21 +1864,6 @@ namespace MFM {
       }
   } //buildDefaultValueForClassInstances
 
-  void SymbolClassNameTemplate::buildClassConstantDefaultValuesForClassInstances()
-  {
-    std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
-    while(it != m_scalarClassArgStringsToSymbolPtr.end())
-      {
-	SymbolClass * csym = it->second;
-	UTI suti = csym->getUlamTypeIdx(); //this instance
-	if(m_state.isComplete(suti))
-	  {
-	    csym->buildClassConstantDefaultValues(); //this instance
-	  }
-	it++;
-      }
-  } //buildClassConstantDefaultValuesForClassInstances (unused?)
-
   void SymbolClassNameTemplate::testForClassInstances(File * fp)
   {
     std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
@@ -1796,7 +1876,7 @@ namespace MFM {
       }
   } //testForClassInstances
 
-  void SymbolClassNameTemplate::assignRegistrationNumberForClassInstances(u32& count)
+  void SymbolClassNameTemplate::assignRegistrationNumberForClassInstances()
   {
     std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
     while(it != m_scalarClassArgStringsToSymbolPtr.end())
@@ -1806,7 +1886,8 @@ namespace MFM {
 	UTI suti = csym->getUlamTypeIdx();
 	if(m_state.isComplete(suti))
 	  {
-	    csym->assignRegistryNumber(count++); //this instance
+	    u32 n = csym->getRegistryNumber();
+	    assert(n != UNINITTED_REGISTRY_NUMBER); //sanity
 	  }
 	else
 	  {

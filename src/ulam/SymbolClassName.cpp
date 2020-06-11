@@ -114,12 +114,20 @@ namespace MFM {
     return "10"; //zero args
   } //formatAnInstancesArgValuesAsAString
 
-  std::string SymbolClassName::generateUlamClassSignature()
+  void SymbolClassName::generatePrettyNameAndSignatureOfClassInstancesAsUserStrings()
   {
+    std::string signame = generatePrettyNameOrSignature(getUlamTypeIdx(), false, false);
+    m_state.formatAndGetIndexForDataUserString(signame);
+    return;
+  }
+
+  std::string SymbolClassName::generatePrettyNameOrSignature(UTI instance, bool signa, bool argvals)
+  {
+    //same fancy, signature, or simple
     std::ostringstream sig;
     sig << m_state.m_pool.getDataAsString(getId()).c_str(); //class name
     return sig.str();
-  } //generateUlamClassSignature
+  }
 
   bool SymbolClassName::hasInstanceMappedUTI(UTI instance, UTI auti, UTI& mappedUTI)
   {
@@ -396,19 +404,15 @@ namespace MFM {
     SymbolClass::getDefaultValue(dval); //this instance
   } //buildDefaultValueForClassInstances
 
-  void SymbolClassName::buildClassConstantDefaultValuesForClassInstances()
-  {
-    SymbolClass::buildClassConstantDefaultValues(); //this instance
-  } // (unused?)
-
   void SymbolClassName::testForClassInstances(File * fp)
   {
     SymbolClass::testThisClass(fp);
   } //testForClassInstances
 
-  void SymbolClassName::assignRegistrationNumberForClassInstances(u32& count)
+  void SymbolClassName::assignRegistrationNumberForClassInstances()
   {
-    SymbolClass::assignRegistryNumber(count++);
+    u32 n = SymbolClass::getRegistryNumber();
+    assert(n != UNINITTED_REGISTRY_NUMBER); //sanity
   } //assignRegistrationNumberForClassInstances
 
   void SymbolClassName::generateCodeForClassInstances(FileManager * fm)

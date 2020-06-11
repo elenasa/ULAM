@@ -27,7 +27,7 @@
 
 /**
   \file FunctionSignatureTable.h -  Table of function signatures for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
   \date (C) 2019 All rights reserved.
   \gpl

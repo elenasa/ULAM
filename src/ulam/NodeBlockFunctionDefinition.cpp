@@ -442,7 +442,7 @@ namespace MFM {
     m_isDefinition = true;
   }
 
-  bool NodeBlockFunctionDefinition::isDefinition()
+  bool NodeBlockFunctionDefinition::isDefinition() const
   {
     return m_isDefinition;
   }
@@ -476,12 +476,17 @@ namespace MFM {
     m_state.popClassContext();
   } //calcMaxDepth
 
+  void NodeBlockFunctionDefinition::calcMaxIndexOfVirtualFunctionInOrderOfDeclaration(SymbolClass* csym, s32& maxidx)
+  {
+    m_state.abortShouldntGetHere(); //not in parse tree..see NodeFuncDecl
+  }
+
   void NodeBlockFunctionDefinition::setNative()
   {
     m_native = true;
   }
 
-  bool NodeBlockFunctionDefinition::isNative()
+  bool NodeBlockFunctionDefinition::isNative() const
   {
     return m_native;
   }

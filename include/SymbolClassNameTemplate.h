@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * SymbolClassNameTemplate.h -  Class Symbol "Template" for ULAM
  *
- * Copyright (C) 2015-2019 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2019 Ackleyshack LLC.
+ * Copyright (C) 2015-2020 The Regents of the University of New Mexico.
+ * Copyright (C) 2015-2020 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +27,9 @@
 
 /**
   \file SymbolClassNameTemplate.h -  Class Symbol "Template" for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2019 All rights reserved.
+  \date (C) 2015-2020 All rights reserved.
   \gpl
 */
 
@@ -93,7 +93,8 @@ namespace MFM{
 
     virtual std::string formatAnInstancesArgValuesAsAString(UTI instance, bool dereftypes = false);
     std::string formatAnInstancesArgValuesAsCommaDelimitedString(UTI instance);
-    virtual std::string generateUlamClassSignature();
+    virtual void generatePrettyNameAndSignatureOfClassInstancesAsUserStrings();
+    virtual std::string generatePrettyNameOrSignature(UTI instance, bool signa, bool argvals);
 
     //helpers while deep instantiation
     virtual bool hasInstanceMappedUTI(UTI instance, UTI auti, UTI& mappedUTI);
@@ -123,11 +124,9 @@ namespace MFM{
 
     virtual void buildDefaultValueForClassInstances();
 
-    virtual void buildClassConstantDefaultValuesForClassInstances();
-
     virtual void testForClassInstances(File * fp);
 
-    virtual void assignRegistrationNumberForClassInstances(u32& count);
+    virtual void assignRegistrationNumberForClassInstances();
 
     virtual void generateCodeForClassInstances(FileManager * fm);
 

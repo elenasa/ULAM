@@ -69,32 +69,47 @@ namespace MFM {
 
   static const char * HIDDEN_ARG_NAME = "ur"; //was Uv_4self, then Uv_4atom
   static const char * HIDDEN_CONTEXT_ARG_NAME = "uc"; //unmangled
-  static const char * CUSTOMARRAY_GET_FUNC_NAME = "aref"; //unmangled
-  static const char * CUSTOMARRAY_SET_FUNC_NAME = "aset"; //unmangled (deprecated)
+  static const char * CUSTOMARRAY_GET_FUNCNAME = "aref"; //unmangled
+  static const char * CUSTOMARRAY_SET_FUNCNAME = "aset"; //unmangled (deprecated)
   static const char * CUSTOMARRAY_GET_MANGLEDNAME = "Uf_4aref";
-  static const char * CUSTOMARRAY_LENGTHOF_FUNC_NAME = "alengthof"; //unmangled
+  static const char * CUSTOMARRAY_LENGTHOF_FUNCNAME = "alengthof"; //unmangled
   static const char * CUSTOMARRAY_LENGTHOF_MANGLEDNAME = "Uf_919alengthof";
 
-  static const char * IS_MANGLED_FUNC_NAME = "internalCMethodImplementingIs"; //Uf_2is
-  static const char * IS_MANGLED_FUNC_NAME_FOR_ATOM = "UlamClass<EC>::IsMethod"; //Uf_2is
+  static const char * IS_MANGLED_FUNCNAME = "internalCMethodImplementingIs"; //Uf_2is
+  static const char * IS_MANGLED_FUNCNAME_FOR_ATOM = "UlamClass<EC>::IsMethod"; //Uf_2is
 
-  static const char * GETRELPOS_MANGLED_FUNC_NAME = "internalCMethodImplementingGetRelativePositionOfBaseClass"; //Uf_2is
-  static const char * GETRELPOS_MANGLED_FUNC_NAME_FOR_ATOM = "UlamClass<EC>::GetRelativePositionOfBaseClass"; //Uf_2is
+  static const char * GETRELPOS_MANGLED_FUNCNAME = "internalCMethodImplementingGetRelativePositionOfBaseClass"; //Uf_2is
+  static const char * GETRELPOS_MANGLED_FUNCNAME_FOR_ATOM = "UlamClass<EC>::GetRelativePositionOfBaseClass"; //Uf_2is
+
+  static const char * GETDATAMEMBERINFO_FUNCNAME = "GetDataMemberInfo";
+  static const char * GETDATAMEMBERCOUNT_FUNCNAME = "GetDataMemberCount";
 
   static const char * GETNUMBEROFBASES_FUNCNAME = "GetBaseClassCount";
+  static const char * GETNUMBEROFDIRECTBASES_FUNCNAME = "GetDirectBaseClassCount";
   static const char * GETORDEREDBASE_FUNCNAME = "GetOrderedBaseClassAsUlamClass";
+  static const char * GETISDIRECTBASECLASS_FUNCNAME = "IsDirectBaseClass";
+
+  static const char * GETCLASSMANGLEDNAME_FUNCNAME = "GetMangledClassName";
+  static const char * GETCLASSMANGLEDNAMESTRINGINDEX_FUNCNAME = "GetMangledClassNameAsStringIndex";
+  static const char * GETCLASSNAMESTRINGINDEX_FUNCNAME = "GetUlamClassNameAsStringIndex";
 
   static const char * GETCLASSLENGTH_FUNCNAME = "GetClassLength";
   static const char * GETBASECLASSLENGTH_FUNCNAME = "GetClassDataMembersSize";
   static const char * GETCLASSREGISTRATIONNUMBER_FUNCNAME = "GetRegistrationNumber";
-
-  static const char * GETSTRING_FUNCNAME = "GetStringPointerFromGlobalStringPool";
-  static const char * GETSTRINGLENGTH_FUNCNAME = "GetStringLengthFromGlobalStringPool";
+  static const char * GETELEMENTTYPE_FUNCNAME = "GetTypeFromThisElement";
+  static const char * READTYPEFIELD_FUNCNAME = "ReadTypeField";
+  static const char * WRITETYPEFIELD_FUNCNAME = "WriteTypeField";
 
   static const char * BUILD_DEFAULT_ATOM_FUNCNAME = "BuildDefaultAtom";
   static const char * BUILD_DEFAULT_QUARK_FUNCNAME = "getDefaultQuark";
   static const char * BUILD_DEFAULT_TRANSIENT_FUNCNAME = "getDefaultTransient";
 
+  static const char * GETVTABLEENTRY_FUNCNAME = "getVTableEntry";
+  static const char * GETVTABLEENTRYCLASSPTR_FUNCNAME = "getVTableEntryUlamClassPtr";
+  static const char * GETVTABLEENTRYSTARTOFFSETFORCLASS_FUNCNAME = "GetVTStartOffsetForClassByRegNum";
+
+  static const char * GETSTRING_FUNCNAME = "GetStringPointerFromGlobalStringPool";
+  static const char * GETSTRINGLENGTH_FUNCNAME = "GetStringLengthFromGlobalStringPool";
   static const char * USERSTRINGPOOL_MANGLEDNAME = "Ug_globalStringPoolData";
   static const char * USERSTRINGPOOL_SIZEDEFINENAME = "Ug_globalStringPoolSize";
   static const char * USERSTRINGPOOL_FILENAME = "GlobalStringPool"; //also used by ulam.tmpl
@@ -127,11 +142,13 @@ namespace MFM {
     "*/\n\n";
 
   //use of this in the initialization list seems to be okay;
-  CompilerState::CompilerState(): m_linesForDebug(false), m_programDefST(*this), m_parsingLocalDef(false), m_parsingFUNCid(0), m_parsingVariableSymbolTypeFlag(STF_NEEDSATYPE), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_pendingArgStubContext(0), m_pendingArgTypeStubContext(0), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0), m_urSelfUTI(Nouti), m_emptyElementUTI(Nouti), m_registeredUlamClassCount(0)
+  CompilerState::CompilerState(): m_linesForDebug(false), m_programDefST(*this), m_parsingLocalDef(false), m_parsingFUNCid(0), m_nextFunctionOrderNumber(1), m_parsingVariableSymbolTypeFlag(STF_NEEDSATYPE), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_pendingArgStubContext(0), m_pendingArgTypeStubContext(0), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0), m_urSelfUTI(Nouti), m_emptyElementUTI(Nouti)
   {
+    m_classIdRegistryUTI.push_back(0); //initialize 0 for UrSelf
     m_err.init(this, debugOn, infoOn, noteOn, warnOn, waitOn, NULL);
     Token::initTokenMap(*this);
     //m_constantStack.addFrameSlots(1); //initialize for incremental update; init instead.
+
   }
 
   CompilerState::~CompilerState()
@@ -160,6 +177,8 @@ namespace MFM {
     m_currentFunctionReturnNodes.clear();
 
     m_unionRootUTI.clear(); //aliasUTIs
+
+    m_classIdRegistryUTI.clear();
 
     m_unseenClasses.clear();
   } //clearAllDefinedUlamTypes
@@ -437,8 +456,12 @@ namespace MFM {
     UTI tmputi = Nav;
     UTI tmpforscalaruti = Nouti;
     u32 tokid = getTokenDataAsStringId(typeTok);
-    AssertBool isDef = getUlamTypeByTypedefName(tokid, tmputi, tmpforscalaruti);
-    assert(!isDef);
+    if(getUlamTypeByTypedefName(tokid, tmputi, tmpforscalaruti))
+      {
+	//no assert, return uti instead
+	return tmpforscalaruti; //t41398-t41401
+      }
+    //else continue..
 
     //is this name already a typedef for a complex type?
     ULAMTYPE bUT = getBaseTypeFromToken(typeTok);
@@ -1862,7 +1885,6 @@ namespace MFM {
       }
   }
 
-
   void CompilerState::mergeClassUTI(UTI olduti, UTI cuti)
   {
     UlamKeyTypeSignature key1 = getUlamKeyTypeSignatureByIndex(olduti);
@@ -2117,7 +2139,7 @@ namespace MFM {
 
     //ulam-5 supports multiple base classes; superclass optional;
     UTI baseuti = Nouti;
-    while(!hasbase && walker.getNextBase(baseuti))
+    while(!hasbase && walker.getNextBase(baseuti, *this))
       {
 	SymbolClass * basecsym = NULL;
 	if(alreadyDefinedSymbolClass(baseuti, basecsym))
@@ -2160,7 +2182,7 @@ namespace MFM {
 
     //ulam-5 supports multiple base classes; superclass optional;
     UTI baseuti = Nouti;
-    while(walker.getNextBase(baseuti))
+    while(walker.getNextBase(baseuti, *this))
       {
 	SymbolClass * basecsym = NULL;
 	if(alreadyDefinedSymbolClass(baseuti, basecsym))
@@ -2189,7 +2211,7 @@ namespace MFM {
 
     //ulam-5 supports multiple base classes; superclass optional;
     UTI baseuti = Nouti;
-    while(walker.getNextBase(baseuti))
+    while(walker.getNextBase(baseuti, *this))
       {
 	SymbolClass * basecsym = NULL;
 	if(alreadyDefinedSymbolClass(baseuti, basecsym))
@@ -2234,7 +2256,7 @@ namespace MFM {
 
     //ulam-5 supports multiple base classes; superclass optional; all bases are shared;
     UTI baseuti = Nouti;
-    while(walker.getNextBase(baseuti) && !hasbase)
+    while(walker.getNextBase(baseuti, *this) && !hasbase)
       {
 	SymbolClass * basecsym = NULL;
 	if(alreadyDefinedSymbolClass(baseuti, basecsym))
@@ -2320,7 +2342,7 @@ namespace MFM {
 
     UTI baseuti = Nouti;
     //ulam-5 supports multiple base classes; superclass optional;
-    while(!hasstub && walker.getNextBase(baseuti))
+    while(!hasstub && walker.getNextBase(baseuti, *this))
       {
 	SymbolClass * basecsym = NULL;
 	if(alreadyDefinedSymbolClass(baseuti, basecsym))
@@ -2396,7 +2418,7 @@ namespace MFM {
 
     UTI baseuti = Nouti;
     //ulam-5 supports multiple base classes; superclass optional;
-    while(!hasCA && walker.getNextBase(baseuti))
+    while(!hasCA && walker.getNextBase(baseuti, *this))
       {
 	if(okUTItoContinue(baseuti))
 	  {
@@ -2894,13 +2916,14 @@ namespace MFM {
 
   u32 CompilerState::getMaxNumberOfRegisteredUlamClasses()
   {
-    return m_registeredUlamClassCount;
+    return m_classIdRegistryUTI.size();
   }
 
   void CompilerState::defineRegistrationNumberForUlamClasses()
   {
-    m_registeredUlamClassCount = m_programDefST.defineRegistrationNumberForTableOfClasses();
-    defineRegistrationNumberForLocals(); //updates m_registeredUlamClassCount
+    //post c&l, fill in those that are missing..
+    m_programDefST.defineRegistrationNumberForTableOfClasses();
+    defineRegistrationNumberForLocals();
   }
 
   void CompilerState::defineRegistrationNumberForLocals()
@@ -2910,8 +2933,14 @@ namespace MFM {
       {
 	NodeBlockLocals * localsblock = it->second;
 	assert(localsblock);
-	localsblock->assignRegistrationNumberToLocalsBlock(m_registeredUlamClassCount++);
+	localsblock->getRegistrationNumberForLocalsBlock();
       }
+  }
+
+  void CompilerState::defineClassNamesAsUserStrings()
+  {
+    //post c&l, 3 names per class accessible to ulam programmer (locals?)
+    m_programDefST.defineClassNamesAsUserStringsForTableOfClasses();
   }
 
   void CompilerState::generateCodeForUlamClasses(FileManager * fm)
@@ -2943,9 +2972,12 @@ namespace MFM {
 	assert(isReplaced);
 
 	{
+	  //assert(cuti == locuti); //not same number
 	  //use pre-assigned registration number in tmp class (ulam-4)
-	  u32 tmpLocalsRegNum = localsblock->getRegistrationNumberForLocalsBlock(); //modified, so..
-	  cnsym->assignRegistrationNumberForClassInstances(tmpLocalsRegNum); //..minor scope
+	  u32 localrn = localsblock->getRegistrationNumberForLocalsBlock(); //modified, so..
+	  cnsym->assignRegistryNumber(localrn);
+	  u32 tmpclassid = cnsym->getRegistryNumber(); //..minor scope, t3852
+	  assert((tmpclassid != UNINITTED_REGISTRY_NUMBER) && (tmpclassid==localrn)); //t41167
 	}
 
 	//populate with NodeConstantDefs clones (ptr to same symbol),
@@ -3284,7 +3316,7 @@ namespace MFM {
 
     bool kinhadit = false;
     UTI baseuti = Nouti;
-    while(!kinhadit && walker.getNextBase(baseuti))
+    while(!kinhadit && walker.getNextBase(baseuti, *this))
       {
 	SymbolClass * basecsym = NULL;
 	if(alreadyDefinedSymbolClass(baseuti, basecsym))
@@ -3320,7 +3352,7 @@ namespace MFM {
       walker.addAncestorsOf(csym);
 
     UTI baseuti = Nouti;
-    while(walker.getNextBase(baseuti))
+    while(walker.getNextBase(baseuti, *this))
       {
 	SymbolClass * basecsym = NULL;
 	if(alreadyDefinedSymbolClass(baseuti, basecsym))
@@ -3359,7 +3391,7 @@ namespace MFM {
     //for defined name (and not a Holder?)
     bool kinhadit = false;
     UTI baseuti = Nouti;
-    while(!kinhadit && walker.getNextBase(baseuti))
+    while(!kinhadit && walker.getNextBase(baseuti, *this))
       {
 	SymbolClass * basecsym = NULL;
 	if(alreadyDefinedSymbolClass(baseuti, basecsym))
@@ -3530,7 +3562,7 @@ namespace MFM {
     walker.init(cuti);
 
     UTI baseuti = Nouti;
-    while(!rtnb && walker.getNextBase(baseuti))
+    while(!rtnb && walker.getNextBase(baseuti, *this))
       {
 	SymbolClass * basecsym = NULL;
 	if(alreadyDefinedSymbolClass(baseuti, basecsym))
@@ -3559,6 +3591,12 @@ namespace MFM {
       } //end while
     return rtnb;
   } //isFuncIdInAClassScopeOrAncestor
+
+  u32 CompilerState::getNextFunctionOrderNumber()
+  {
+    assert(m_nextFunctionOrderNumber > 0); //no more than U32_MAX please.
+    return m_nextFunctionOrderNumber++;
+  }
 
   bool CompilerState::findMatchingFunctionStrictlyByTypesInClassScope(u32 fid, std::vector<UTI> typeVec, SymbolFunction*& fsymref)
   {
@@ -3600,7 +3638,7 @@ namespace MFM {
     walker.addAncestorsOf(csym);
 
     UTI baseuti = Nouti;
-    while(!rtnb && walker.getNextBase(baseuti))
+    while(!rtnb && walker.getNextBase(baseuti, *this))
       {
 	SymbolClass * basecsym = NULL;
 	if(alreadyDefinedSymbolClass(baseuti, basecsym))
@@ -3633,9 +3671,23 @@ namespace MFM {
 		  }
 		else
 		  {
-		    foundinbase = baseuti;
-		    fsymref = tmpfsym;
-		    rtnb = true; //(t41325,19) stop ok since breadth-first search
+		    if(foundinbase == Nouti)
+		      {
+			foundinbase = baseuti;
+			fsymref = tmpfsym;
+			//rtnb = true; //(t41325,19) stop ok since breadth-first search
+		      }
+		    else if(isClassASubclassOf(baseuti, foundinbase))
+		      {
+			//baseuti is a subclass of foundinbase,
+			// hence baseuti is "more specific" (t41394)
+			foundinbase = baseuti;
+			fsymref = tmpfsym;
+		      }
+		    else if(!isClassASubclassOf(foundinbase, baseuti))
+		      {
+			//siblings, keep "most specific", i.e. "first-seen" (breadth) t41391
+		      }
 		  }
 	      } //gotmatch
 	    walker.addAncestorsOf(basecsym); //chk all bases until found (t3602))
@@ -3643,6 +3695,7 @@ namespace MFM {
       } //end while
 
     foundInAncestor = foundinbase;
+    rtnb = fsymref && okUTItoContinue(foundInAncestor); //neither Nav, nor Nouti
     return rtnb;
   } //findOverrideMatchingVirtualFunctionStrictlyByTypesInAncestorOf
 
@@ -3662,7 +3715,7 @@ namespace MFM {
     walker.addAncestorsOf(csym);
 
     UTI baseuti = Nouti;
-    while(walker.getNextBase(baseuti) && (foundOriginator != Nav))
+    while(walker.getNextBase(baseuti, *this) && (foundOriginator != Nav))
       {
 	SymbolClass * basecsym = NULL;
 	if(alreadyDefinedSymbolClass(baseuti, basecsym))
@@ -3790,7 +3843,7 @@ namespace MFM {
     //Like in C++, exact matches in a subclass overrides any possible exact matches
     //in base classes; ow, use baseclass w exact match, assuming no ambiguity among others.
     UTI baseuti = Nouti;
-    while(!exactlyone && walker.getNextBase(baseuti))
+    while(!exactlyone && walker.getNextBase(baseuti, *this))
       {
 	SymbolClass * basecsym = NULL;
 	if(alreadyDefinedSymbolClass(baseuti, basecsym))
@@ -3880,7 +3933,7 @@ namespace MFM {
     walker.init(cuti);
 
     UTI baseuti = Nouti;
-    while(!rtnb && walker.getNextBase(baseuti))
+    while(!rtnb && walker.getNextBase(baseuti, *this))
       {
 	SymbolClass * basecsym = NULL;
 	if(alreadyDefinedSymbolClass(baseuti, basecsym))
@@ -3980,7 +4033,7 @@ namespace MFM {
 
     u32 count = 0;
     UTI baseuti = Nouti;
-    while(walker.getNextBase(baseuti))
+    while(walker.getNextBase(baseuti, *this))
       {
 	SymbolClass * basecsym = NULL;
 	if(alreadyDefinedSymbolClass(baseuti, basecsym))
@@ -4069,7 +4122,7 @@ namespace MFM {
 
     UTI baseuti = Nouti;
     UTI headuti = Nouti;
-    while(!rtnb && walkerpair.getNextBasePair(baseuti, headuti))
+    while(!rtnb && walkerpair.getNextBasePair(baseuti, headuti, *this))
       {
 	SymbolClass * basecsym = NULL;
 	if(alreadyDefinedSymbolClass(baseuti, basecsym))
@@ -4139,7 +4192,7 @@ namespace MFM {
     return tok.getTokenStringId();
   }
 
-  const std::string CompilerState::getTokenDataAsString(const Token & tok)
+  const std::string & CompilerState::getTokenDataAsString(const Token & tok)
   {
     if(tok.m_dataindex > 0)
       {
@@ -4386,14 +4439,14 @@ namespace MFM {
 
   u32 CompilerState::getCustomArrayGetFunctionNameId()
   {
-    std::string str(CUSTOMARRAY_GET_FUNC_NAME);
+    std::string str(CUSTOMARRAY_GET_FUNCNAME);
     return m_pool.getIndexForDataString(str);
   }
 
   u32 CompilerState::getCustomArraySetFunctionNameId()
   {
     //kept for backward-compatible error msg
-    std::string str(CUSTOMARRAY_SET_FUNC_NAME);
+    std::string str(CUSTOMARRAY_SET_FUNCNAME);
     return m_pool.getIndexForDataString(str);
   }
 
@@ -4404,7 +4457,7 @@ namespace MFM {
 
   u32 CompilerState::getCustomArrayLengthofFunctionNameId()
   {
-    std::string str(CUSTOMARRAY_LENGTHOF_FUNC_NAME);
+    std::string str(CUSTOMARRAY_LENGTHOF_FUNCNAME);
     return m_pool.getIndexForDataString(str);
   }
 
@@ -4416,9 +4469,9 @@ namespace MFM {
   const char * CompilerState::getIsMangledFunctionName(UTI ltype)
   {
     if(isAtom(ltype))
-      return IS_MANGLED_FUNC_NAME_FOR_ATOM;
+      return IS_MANGLED_FUNCNAME_FOR_ATOM;
 
-    return IS_MANGLED_FUNC_NAME;
+    return IS_MANGLED_FUNCNAME;
   }
 
   const char * CompilerState::getAsMangledFunctionName(UTI ltype, UTI rtype)
@@ -4428,9 +4481,9 @@ namespace MFM {
     if(rclasstype == UC_QUARK)
       return getIsMangledFunctionName(ltype);
     else if (rclasstype == UC_ELEMENT)
-      return IS_MANGLED_FUNC_NAME;
+      return IS_MANGLED_FUNCNAME;
     else if (rclasstype == UC_TRANSIENT)
-      return IS_MANGLED_FUNC_NAME;
+      return IS_MANGLED_FUNCNAME;
     else
       abortUndefinedUlamClassType();
 
@@ -4440,9 +4493,21 @@ namespace MFM {
   const char * CompilerState::getGetRelPosMangledFunctionName(UTI ltype)
   {
     if(isAtom(ltype))
-      return GETRELPOS_MANGLED_FUNC_NAME_FOR_ATOM;
+      return GETRELPOS_MANGLED_FUNCNAME_FOR_ATOM;
 
-    return GETRELPOS_MANGLED_FUNC_NAME;
+    return GETRELPOS_MANGLED_FUNCNAME;
+  }
+
+  const char * CompilerState::getDataMemberInfoFunctionName(UTI ltype)
+  {
+    assert(okUTItoContinue(ltype)); //if atom?
+    return GETDATAMEMBERINFO_FUNCNAME;
+  }
+
+  const char * CompilerState::getDataMemberCountFunctionName(UTI ltype)
+  {
+    assert(okUTItoContinue(ltype)); //if atom?
+    return GETDATAMEMBERCOUNT_FUNCNAME;
   }
 
   const char * CompilerState::getNumberOfBasesFunctionName(UTI ltype)
@@ -4451,10 +4516,40 @@ namespace MFM {
     return GETNUMBEROFBASES_FUNCNAME;
   }
 
+  const char * CompilerState::getNumberOfDirectBasesFunctionName(UTI ltype)
+  {
+    assert(okUTItoContinue(ltype)); //if atom?
+    return GETNUMBEROFDIRECTBASES_FUNCNAME;
+  }
+
   const char * CompilerState::getOrderedBaseClassFunctionName(UTI ltype)
   {
     assert(okUTItoContinue(ltype)); //if atom?
     return GETORDEREDBASE_FUNCNAME;
+  }
+
+  const char * CompilerState::getIsDirectBaseClassFunctionName(UTI ltype)
+  {
+    assert(okUTItoContinue(ltype)); //if atom?
+    return GETISDIRECTBASECLASS_FUNCNAME;
+  }
+
+  const char * CompilerState::getClassMangledNameFunctionName(UTI ltype)
+  {
+    assert(okUTItoContinue(ltype));
+    return GETCLASSMANGLEDNAME_FUNCNAME;
+  }
+
+  const char * CompilerState::getClassMangledNameAsStringIndexFunctionName(UTI ltype)
+  {
+    assert(okUTItoContinue(ltype));
+    return GETCLASSMANGLEDNAMESTRINGINDEX_FUNCNAME;
+  }
+
+  const char * CompilerState::getClassNameAsStringIndexFunctionName(UTI ltype)
+  {
+    assert(okUTItoContinue(ltype));
+    return GETCLASSNAMESTRINGINDEX_FUNCNAME;
   }
 
   const char * CompilerState::getClassLengthFunctionName(UTI ltype)
@@ -4475,14 +4570,22 @@ namespace MFM {
     return GETCLASSREGISTRATIONNUMBER_FUNCNAME;
   }
 
-  const char * CompilerState::getGetStringFunctionName()
+  const char * CompilerState::getElementTypeFunctionName(UTI ltype)
   {
-    return GETSTRING_FUNCNAME;
+    assert(okUTItoContinue(ltype));
+    return GETELEMENTTYPE_FUNCNAME;
   }
 
-  const char * CompilerState::getGetStringLengthFunctionName()
+  const char * CompilerState::getReadTypeFieldFunctionName(UTI ltype)
   {
-    return GETSTRINGLENGTH_FUNCNAME;
+    assert(okUTItoContinue(ltype));
+    return READTYPEFIELD_FUNCNAME;
+  }
+
+  const char * CompilerState::getWriteTypeFieldFunctionName(UTI ltype)
+  {
+    assert(okUTItoContinue(ltype));
+    return WRITETYPEFIELD_FUNCNAME;
   }
 
   const char * CompilerState::getBuildDefaultAtomFunctionName(UTI ltype)
@@ -4503,6 +4606,24 @@ namespace MFM {
   const char * CompilerState::getDefaultQuarkFunctionName()
   {
     return BUILD_DEFAULT_QUARK_FUNCNAME;
+  }
+
+  const char * CompilerState::getVTableEntryFunctionName(UTI ltype)
+  {
+    assert(okUTItoContinue(ltype));
+    return GETVTABLEENTRY_FUNCNAME;
+  }
+
+  const char * CompilerState::getVTableEntryClassPtrFunctionName(UTI ltype)
+  {
+    assert(okUTItoContinue(ltype));
+    return GETVTABLEENTRYCLASSPTR_FUNCNAME;
+  }
+
+  const char * CompilerState::getVTableEntryStartOffsetForClassFunctionName(UTI ltype)
+  {
+    assert(okUTItoContinue(ltype));
+    return GETVTABLEENTRYSTARTOFFSETFORCLASS_FUNCNAME;
   }
 
   std::string CompilerState::getFileNameForAClassHeader(UTI cuti, bool wSubDir)
@@ -4623,6 +4744,16 @@ namespace MFM {
     std::ostringstream f;
     f << "_l" << m_pool.getDataAsString(classid).c_str();// "_l" prepended to be distinct "temporary" class name.
     return m_pool.getIndexForDataString(f.str());
+  }
+
+  const char * CompilerState::getGetStringFunctionName()
+  {
+    return GETSTRING_FUNCNAME;
+  }
+
+  const char * CompilerState::getGetStringLengthFunctionName()
+  {
+    return GETSTRINGLENGTH_FUNCNAME;
   }
 
   const std::string CompilerState::getStringMangledName()
@@ -5036,7 +5167,7 @@ namespace MFM {
 
     //ulam-5 supports multiple base classes; superclass optional;
     UTI baseuti = Nouti;
-    while(walker.getNextBase(baseuti))
+    while(walker.getNextBase(baseuti, *this))
       {
 	SymbolClass * basecsym = NULL;
 	if(alreadyDefinedSymbolClass(baseuti, basecsym))
@@ -5211,6 +5342,7 @@ namespace MFM {
 
   s32 CompilerState::getNextTmpVarNumber()
   {
+    assert(m_nextTmpVarNumber < S32_MAX);
     return ++m_nextTmpVarNumber;
   }
 
@@ -5309,6 +5441,13 @@ namespace MFM {
   {
     std::ostringstream labelname; //into
     labelname << "Uh_7tuclass" << ToLeximitedNumber(num);
+    return labelname.str();
+  }
+
+  const std::string CompilerState::getUlamClassRegistryTmpVarAsString(s32 num)
+  {
+    std::ostringstream labelname; //into
+    labelname << "Uh_4tucr" << ToLeximitedNumber(num);
     return labelname.str();
   }
 
@@ -5742,6 +5881,17 @@ namespace MFM {
   {
     return m_elementTypeGenerator.makeNextType();
   }
+
+  u32 CompilerState::assignClassId(UTI cuti)
+  {
+    if(isUrSelf(cuti))
+      {
+	m_classIdRegistryUTI[0] = cuti;  //assigned at last
+	return 0;
+      }
+    m_classIdRegistryUTI.push_back(cuti);
+    return m_classIdRegistryUTI.size() - 1;
+  } //assignClassId
 
   NodeBlockClass * CompilerState::getAClassBlock(UTI cuti)
   {

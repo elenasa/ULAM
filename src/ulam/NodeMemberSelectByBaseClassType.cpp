@@ -3,11 +3,47 @@
 
 namespace MFM {
 
-  NodeMemberSelectByBaseClassType::NodeMemberSelectByBaseClassType(Node * left, Node * right, CompilerState & state) : NodeMemberSelect(left,right,state) { }
+  NodeMemberSelectByBaseClassType::NodeMemberSelectByBaseClassType(Node * left, Node * right, Node * vtrn, CompilerState & state) : NodeMemberSelect(left,right,state), m_nodeVTclassrn(vtrn), m_tmpvarSymbolVTclassrn(NULL) { }
 
-  NodeMemberSelectByBaseClassType::NodeMemberSelectByBaseClassType(const NodeMemberSelectByBaseClassType& ref) : NodeMemberSelect(ref) { }
+  NodeMemberSelectByBaseClassType::NodeMemberSelectByBaseClassType(const NodeMemberSelectByBaseClassType& ref) : NodeMemberSelect(ref), m_tmpvarSymbolVTclassrn(NULL)
+  {
+    if(ref.m_nodeVTclassrn)
+      m_nodeVTclassrn = ref.m_nodeVTclassrn->instantiate();
+    else
+      m_nodeVTclassrn = NULL;
+  }
 
-  NodeMemberSelectByBaseClassType::~NodeMemberSelectByBaseClassType() { }
+  NodeMemberSelectByBaseClassType::~NodeMemberSelectByBaseClassType()
+  {
+    delete m_nodeVTclassrn;
+    m_nodeVTclassrn = NULL;
+    delete m_tmpvarSymbolVTclassrn;
+    m_tmpvarSymbolVTclassrn = NULL;
+  }
+
+  void NodeMemberSelectByBaseClassType::updateLineage(NNO pno)
+  {
+    NodeBinaryOp::updateLineage(pno);
+    if(m_nodeVTclassrn)
+      m_nodeVTclassrn->updateLineage(getNodeNo());
+  }
+
+  bool NodeMemberSelectByBaseClassType::exchangeKids(Node * oldnptr, Node * newnptr)
+  {
+    if(m_nodeVTclassrn == oldnptr)
+      {
+	m_nodeVTclassrn = newnptr;
+	return true;
+      }
+    return NodeBinaryOp::exchangeKids(oldnptr,newnptr);
+  }
+
+  bool NodeMemberSelectByBaseClassType::findNodeNo(NNO n, Node *& foundNode)
+  {
+    if(m_nodeVTclassrn && m_nodeVTclassrn->findNodeNo(n, foundNode))
+      return true;
+    return NodeBinaryOp::findNodeNo(n, foundNode);
+  } //findNodeNo
 
   Node * NodeMemberSelectByBaseClassType::instantiate()
   {
@@ -16,6 +52,8 @@ namespace MFM {
 
   const char * NodeMemberSelectByBaseClassType::getName()
   {
+    if(m_nodeVTclassrn)
+      return ".[]";
     return ".";
   }
 
@@ -27,6 +65,9 @@ namespace MFM {
     fp->write(" ");
     assert(m_nodeRight);
     m_nodeRight->printPostfix(fp);
+
+    if(m_nodeVTclassrn)
+      m_nodeVTclassrn->printPostfix(fp);
 
     printOp(fp); //operators last
   }
@@ -70,6 +111,28 @@ namespace MFM {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    nuti = Nav; //t41308
 	  }
+
+	if(m_nodeVTclassrn)
+	  {
+	    UTI vtuti = m_nodeVTclassrn->checkAndLabelType(); //Unsigned
+	    if(!m_state.okUTItoContinue(vtuti))
+	      {
+		std::ostringstream msg;
+		msg << "Selected Base Class Registry Number for ";
+		msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+
+		msg << " is not valid with ";
+		msg << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
+		msg << " and cannot be used in this context";
+		if(vtuti == Hzy)
+		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+		else
+		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		if(nuti != Nav)
+		  nuti = vtuti; //Hzy only
+	      } //else
+	  }
+
 #if 0
 	// right node is type descriptor, can't test here!! BUT WHERE??
 	if(!m_nodeRight->isFunctionCall())
@@ -110,6 +173,11 @@ namespace MFM {
     return false; //specific base class is based on eff self pos
   }
 
+  bool NodeMemberSelectByBaseClassType::isAMemberSelectByRegNum()
+  {
+    return (m_nodeVTclassrn != NULL);
+  }
+
   bool NodeMemberSelectByBaseClassType::isArrayItem()
   {
     return false;
@@ -122,6 +190,9 @@ namespace MFM {
     if(nuti == Nav) return evalErrorReturn();
 
     if(nuti == Hzy) return evalStatusReturnNoEpilog(NOTREADY);
+
+    if(m_nodeVTclassrn)
+      return evalStatusReturnNoEpilog(UNEVALUABLE); //requires MFM Registry
 
     if(m_nodeLeft->isAConstant())
       {
@@ -234,6 +305,9 @@ namespace MFM {
 
     if(nuti == Hzy) return evalStatusReturnNoEpilog(NOTREADY);
 
+    if(m_nodeVTclassrn)
+      return evalStatusReturnNoEpilog(UNEVALUABLE); //requires MFM Registry!!
+
     evalNodeProlog(0);
 
     UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*************
@@ -309,8 +383,23 @@ namespace MFM {
     //build tmpvar symbol for virtual function ur (t41307)
     makeUVPassForCodeGen(uvpass);
     uvpass.setPassApplyDelta(true); //always
-
     m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol); //*********UPDATED GLOBAL;
+
+    //second tmpvar for regid in [] after the base
+    if(m_nodeVTclassrn)
+      {
+	std::vector<Symbol *> saveCOSVector = m_state.m_currentObjSymbolsForCodeGen;
+	m_state.clearCurrentObjSymbolsForCodeGen(); //*************
+
+	UVPass vtuvpass;
+	m_nodeVTclassrn->genCode(fp,vtuvpass); //clears stack
+
+	m_tmpvarSymbolVTclassrn = Node::makeTmpVarSymbolForCodeGen(vtuvpass, NULL);
+	m_tmpvarSymbolVTclassrn->setBaseClassRegNum();
+
+	m_state.m_currentObjSymbolsForCodeGen = saveCOSVector; //restore first ****
+	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbolVTclassrn); //*********UPDATED GLOBAL;
+      }
   } //genCodeToStoreInto
 
   bool NodeMemberSelectByBaseClassType::passalongUVPass()

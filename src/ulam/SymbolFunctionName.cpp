@@ -90,6 +90,23 @@ namespace MFM {
     return m_mangledFunctionNames.size();
   }
 
+  SymbolFunction * SymbolFunctionName::getFunctionSymbolByOrderNumber(u32 ordernumarg)
+  {
+    SymbolFunction * foundFSym = NULL;
+    std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
+    while(it != m_mangledFunctionNames.end())
+      {
+	SymbolFunction * fsym = it->second;
+	if(fsym->getOrderNumber() == ordernumarg)
+	  {
+	    foundFSym = fsym;
+	    break;
+	  }
+	++it;
+      }
+    return foundFSym;
+  }
+
   u32 SymbolFunctionName::findMatchingFunctionStrictlyVoid(SymbolFunction *& funcSymbol)
   {
     std::vector<UTI> voidVector;
@@ -667,36 +684,6 @@ namespace MFM {
       }
     return count;
   } //countNativeFuncDecls
-
-  void SymbolFunctionName::generateCodedFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
-  {
-    std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
-
-    while(it != m_mangledFunctionNames.end())
-      {
-	SymbolFunction * fsym = it->second;
-	fsym->generateFunctionDeclaration(fp, declOnly, classtype);
-	++it;
-      }
-  } //generateCodedFunctions
-
-  void SymbolFunctionName::addFunctionDescriptionsToClassMemberMap(UTI classType, ClassMemberMap & classmembers)
-  {
-    std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
-
-    while(it != m_mangledFunctionNames.end())
-      {
-	SymbolFunction * fsym = it->second;
-	FunctionDesc * descptr = new FunctionDesc(fsym, classType, m_state);
-	assert(descptr);
-
-	//concat mangled class and parameter names to avoid duplicate keys into map
-	std::ostringstream fullMangledName;
-	fullMangledName << descptr->m_mangledClassName << "_" << descptr->m_mangledMemberName;
-	classmembers.insert(std::pair<std::string, struct ClassMemberDesc *>(fullMangledName.str(), descptr));
-	++it;
-      }
-  } //addFunctionDescriptionsToClassMemberMap
 
   //private method:
   bool SymbolFunctionName::isDefined(std::string mangledFName, SymbolFunction * & foundSym)

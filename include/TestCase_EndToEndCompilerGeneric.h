@@ -27,7 +27,7 @@
 
 /**
   \file TestCase_EndToEndCompilerGeneric.h -  Load ULAM compiler test details from a file
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
   \date (C) 2015-2018 All rights reserved.
   \gpl

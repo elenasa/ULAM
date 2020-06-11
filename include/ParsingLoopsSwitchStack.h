@@ -27,7 +27,7 @@
 
 /**
   \file ParsingLoopsSwitchStack.h -  Parsing Control Loops and Switches in ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
   \date (C) 2017 All rights reserved.
   \gpl

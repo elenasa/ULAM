@@ -27,7 +27,7 @@
 
 /**
   \file NodeListEmpty.h - Empty List of nodes for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
   \date (C) 2018 All rights reserved.
   \gpl

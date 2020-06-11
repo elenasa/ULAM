@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * SymbolClassName.h -  Basic Class Symbol Name for ULAM
  *
- * Copyright (C) 2015-2019 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2019 Ackleyshack LLC.
+ * Copyright (C) 2015-2020 The Regents of the University of New Mexico.
+ * Copyright (C) 2015-2020 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +27,9 @@
 
 /**
   \file SymbolClassName.h -  Basic Class Symbol Name for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2019 All rights reserved.
+  \date (C) 2015-2020 All rights reserved.
   \gpl
 */
 
@@ -70,7 +70,8 @@ namespace MFM{
     virtual Node * findNodeNoInAClassInstance(UTI instance, NNO n);
 
     virtual std::string formatAnInstancesArgValuesAsAString(UTI instance, bool dereftypes = false);
-    virtual std::string generateUlamClassSignature();
+    virtual void generatePrettyNameAndSignatureOfClassInstancesAsUserStrings();
+    virtual std::string generatePrettyNameOrSignature(UTI instance, bool signa, bool argvals);
 
     virtual bool hasInstanceMappedUTI(UTI instance, UTI auti, UTI& mappedUTI);
     virtual bool mapInstanceUTI(UTI instance, UTI auti, UTI mappeduti);
@@ -99,11 +100,9 @@ namespace MFM{
 
     virtual void buildDefaultValueForClassInstances();
 
-    virtual void buildClassConstantDefaultValuesForClassInstances();
-
     virtual void testForClassInstances(File * fp);
 
-    virtual void assignRegistrationNumberForClassInstances(u32& count); //ulam-4
+    virtual void assignRegistrationNumberForClassInstances(); //ulam-4,ulam-5
 
     virtual void generateCodeForClassInstances(FileManager * fm);
 

@@ -27,7 +27,7 @@
 
 /**
   \file MapTypedefDesc.h -  Map of Typedefs for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
   \date (C) 2015-2017 All rights reserved.
   \gpl

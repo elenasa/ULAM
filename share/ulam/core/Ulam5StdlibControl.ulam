@@ -1,0 +1,11 @@
+/** ulam-5 era controllers for stdlib services
+ \symbol U5
+ \color #444
+*/
+element Ulam5StdlibControl {
+  /** Enable ByteStreamLogger output */
+  parameter Bool pLOG_ENABLED = false;
+
+  /** Render custom graphics */
+  parameter Bool pRENDER_GRAPHICS = true;
+}

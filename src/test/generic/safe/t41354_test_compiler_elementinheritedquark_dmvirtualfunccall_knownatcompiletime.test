@@ -58,6 +58,7 @@ element Foo {
     System s;
     QMemBase m2;
     QSubBase3 q3;
+
     //case 1: DM
     brtn[0] = (m1.vfunc() == 3);
     s.assert(brtn[0]);

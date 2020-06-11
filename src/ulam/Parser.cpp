@@ -49,6 +49,7 @@
 #include "NodeConstant.h"
 #include "NodeConstantArray.h"
 #include "NodeContinueStatement.h"
+#include "NodeFuncDecl.h"
 #include "NodeInitDM.h"
 #include "NodeLabel.h"
 #include "NodeListEmpty.h"
@@ -1015,7 +1016,18 @@ namespace MFM {
 	    //eats the '(' when found; NULL if error occurred
 	    NodeBlockFunctionDefinition * funcdefNode = makeFunctionSymbol(typeargs, iTok, typeNode, isVirtual, insureVirtualOverride, isConstr); //with params
 	    if(funcdefNode)
-	      brtn = true; //funcdefNode belongs to the symbolFunction; not appended to tree
+	      {
+		SymbolFunction * funcsym = funcdefNode->getFuncSymbolPtr();
+		assert(funcsym);
+
+		//append this little guy to tree to preserve order of function declarations (ulam-5)
+		NodeFuncDecl * funcdecl = new NodeFuncDecl(funcsym,m_state);
+		assert(funcdecl);
+		funcdecl->setNodeLocation(iTok.m_locator);
+		m_state.appendNodeToCurrentBlock(funcdecl);
+
+		brtn = true; //funcdefNode belongs to the symbolFunction; not appended to tree
+	      }
 	    else
 	      //MSG(&pTok, "INCOMPLETE Function Definition", ERR);
 	      m_state.clearStructuredCommentToken();
@@ -2827,7 +2839,7 @@ namespace MFM {
 
     if(pTok.m_type != TOK_OPEN_PAREN)
       {
-	//regular class, not a template, OR Self (unless a constructor)
+	//regular class, not a template OR Self constructor
 	unreadToken();
 
 	SymbolClassName * cnsym = NULL;
@@ -2979,7 +2991,7 @@ namespace MFM {
 	msg << m_state.m_pool.getDataAsString(ctsym->getId()).c_str() ;
 	msg << ", additional errors are unlikely to be useful";
 	MSG(&typeargs.m_typeTok, msg.str().c_str(), ERR);
-	return Nav; //t41166
+	return Nav; //needs a test, was t41166
       }
 
     stubcsym->setContextForPendingArgValues(m_state.getCompileThisIdx());
@@ -3332,7 +3344,9 @@ namespace MFM {
     SymbolClass * csym = NULL;
     if(cnsym->isClassTemplate() && (args.m_classInstanceIdx != Nouti))
       {
-	if(! ((SymbolClassNameTemplate *)cnsym)->findClassInstanceByUTI(args.m_classInstanceIdx, csym))
+	if(args.m_classInstanceIdx == cnsym->getUlamTypeIdx())
+	  csym = cnsym; //t41383
+	else if(! ((SymbolClassNameTemplate *)cnsym)->findClassInstanceByUTI(args.m_classInstanceIdx, csym))
 	  {
 	    std::ostringstream msg;
 	    msg << "Trying to use typedef from another class template '";
@@ -3354,7 +3368,7 @@ namespace MFM {
       {
 	//hail mary pass..possibly a sizeof of unseen class
 	getNextToken(nTok);
-	if((nTok.m_type != TOK_KW_SIZEOF) && (nTok.m_type != TOK_KW_INSTANCEOF) && (nTok.m_type != TOK_KW_ATOMOF))
+	if((nTok.m_type != TOK_KW_SIZEOF) && (nTok.m_type != TOK_KW_INSTANCEOF) && (nTok.m_type != TOK_KW_ATOMOF) && (nTok.m_type != TOK_KW_CLASSIDOF))
 	  {
 	    std::ostringstream msg;
 	    msg << "Trying to use typedef from another class '";
@@ -3609,19 +3623,6 @@ namespace MFM {
     return rtnNode;
   } //parseIdentExpr
 
-  Node * Parser::parseMemberSelectExpr(const Token& memberTok)
-  {
-    //arg is an instance of a class, it will be/was
-    //declared as a variable, either as a data member or locally,
-    //WAIT To  search back through the block symbol tables during type labeling
-    m_state.pushClassContextUsingMemberClassBlock(NULL); //oddly =true
-
-    Node * classInstanceNode = parseIdentExpr(memberTok); //incl array item, func call, etc.
-    m_state.popClassContext();
-
-    return parseRestOfMemberSelectExpr(classInstanceNode);
-  } //(unused????)
-
   Node * Parser::parseRestOfMemberSelectExpr(Node * classInstanceNode)
   {
     Node * rtnNode = classInstanceNode; //first one
@@ -3674,10 +3675,62 @@ namespace MFM {
 		MSG(&iTok, msg.str().c_str(), ERR);
 	      }
 
+	    ULAMTYPE etyp = m_state.getBaseTypeFromToken(iTok);
+	    if(etyp != Class)
+	      {
+		std::ostringstream msg;
+		msg << "Member Select followed by a Type: ";
+		msg << m_state.getTokenDataAsString(iTok).c_str();
+		msg << " must be a Class type";
+		if((etyp == Hzy) || (etyp == Holder))
+		  MSG(&iTok, msg.str().c_str(), DEBUG); //t41399,t41400
+		else
+		  {
+		    MSG(&iTok, msg.str().c_str(), ERR);
+		    delete rtnNode; //also deletes leftNode
+		    rtnNode = NULL;
+		    return rtnNode; //NULL (t41398)
+		  }
+	      } //else t41401
+
 	    NodeTypeDescriptor * nextmembertypeNode = parseTypeDescriptor(typeargs, true); //isaclass
 	    assert(nextmembertypeNode);
 
-	    NodeMemberSelect * ms = new NodeMemberSelectByBaseClassType(rtnNode, nextmembertypeNode, m_state);
+	    Node * vtrnNode = NULL;
+	    Token vtrnTok;
+	    getNextToken(vtrnTok);
+	    if(vtrnTok.m_type == TOK_OPEN_SQUARE)
+	      {
+		vtrnNode = parseExpression();
+		if(vtrnNode == NULL)
+		  {
+		    std::ostringstream msg;
+		    msg << "Expecting ClassId for VTtable lookup";
+		    MSG(&vtrnTok, msg.str().c_str(), ERR);
+		    delete rtnNode; //also deletes leftNode
+		    rtnNode = NULL;
+		    delete nextmembertypeNode;
+		    nextmembertypeNode = NULL;
+		    return rtnNode; //NULL
+		  }
+		vtrnNode->setNodeLocation(vtrnTok.m_locator); //t41376
+
+		Token eTok; //non quietly, t41294
+		if(!getExpectedToken(TOK_CLOSE_SQUARE, eTok))
+		  {
+		    delete rtnNode; //also deletes leftNode
+		    rtnNode = NULL;
+		    delete nextmembertypeNode;
+		    nextmembertypeNode = NULL;
+		    delete vtrnNode;
+		    vtrnNode = NULL;
+		    return rtnNode; //NULL
+		  }
+	      }
+	    else
+	      unreadToken();
+
+	    NodeMemberSelect * ms = new NodeMemberSelectByBaseClassType(rtnNode, nextmembertypeNode, vtrnNode, m_state);
 	    assert(ms);
 	    ms->setNodeLocation(iTok.m_locator);
 	    rtnNode = ms;
@@ -3750,7 +3803,6 @@ namespace MFM {
 	  }
 	else
 	  unreadToken();
-
 	}
 	break;
       case TOK_KW_ATOMOF:
@@ -3772,6 +3824,9 @@ namespace MFM {
 	}
 	break;
       case TOK_KW_LENGTHOF:
+	rtnNode = new NodeTerminalProxy(memberNode, utype, fTok, nodetype, m_state);
+	break;
+      case TOK_KW_CLASSIDOF:
 	rtnNode = new NodeTerminalProxy(memberNode, utype, fTok, nodetype, m_state);
 	break;
       default:
@@ -3973,6 +4028,27 @@ namespace MFM {
 	      rtnNode->setNodeLocation(pTok.m_locator);
 	      rtnNode = parseRestOfFactor(rtnNode); //supports [] after (t41368)
 	    }
+	}
+	break;
+      case TOK_KW_FLAG_INSERTCLASS:
+	{
+	  u32 cid = m_state.getCompileThisId();
+	  std::string cname = m_state.m_pool.getDataAsString(cid);
+	  u32 stringidx = m_state.formatAndGetIndexForDataUserString(cname);
+	  rtnNode = new NodeTerminal((u64) stringidx, String, m_state);
+	  assert(rtnNode);
+	  rtnNode->setNodeLocation(pTok.m_locator);
+	  rtnNode = parseRestOfFactor(rtnNode); //supports [] after
+	}
+	break;
+      case TOK_KW_FLAG_INSERTCLASSSIGNATURE:
+      case TOK_KW_FLAG_INSERTCLASSNAMESIMPLE:
+      case TOK_KW_FLAG_INSERTCLASSNAMEPRETTY:
+      case TOK_KW_FLAG_INSERTCLASSNAMEMANGLED:
+	{
+	  UTI cuti = m_state.getCompileThisIdx();
+	  rtnNode = new NodeTerminalProxy(NULL, cuti, pTok, NULL, m_state);
+	  rtnNode = parseRestOfFactor(rtnNode); //supports [] after
 	}
 	break;
       case TOK_NUMBER_FLOAT:
@@ -4501,6 +4577,11 @@ Node * Parser::wrapFactor(Node * leftNode)
       case TOK_NUMBER_FLOAT:
       case TOK_OPEN_PAREN:
       case TOK_KW_FLAG_INSERTFUNC:
+      case TOK_KW_FLAG_INSERTCLASS:
+      case TOK_KW_FLAG_INSERTCLASSSIGNATURE:
+      case TOK_KW_FLAG_INSERTCLASSNAMESIMPLE:
+      case TOK_KW_FLAG_INSERTCLASSNAMEPRETTY:
+      case TOK_KW_FLAG_INSERTCLASSNAMEMANGLED:
 	rtnNode = parseFactor();
 	rtnNode = parseRestOfFactor(rtnNode);
 	break;

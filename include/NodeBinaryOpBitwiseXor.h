@@ -28,7 +28,7 @@
 
 /**
   \file NodeBinaryOpBitwiseXor.h - Node for handling Bitwise Xor for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
   \date (C) 2014-2017 All rights reserved.
   \gpl

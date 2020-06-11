@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * Node.h - Basic Node of Nodes for ULAM
  *
- * Copyright (C) 2014-2019 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2019 Ackleyshack LLC.
+ * Copyright (C) 2014-2020 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2020 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +27,9 @@
 
 /**
   \file Node.h - Basic Node of Nodes for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2019 All rights reserved.
+  \date (C) 2014-2020 All rights reserved.
   \gpl
 */
 
@@ -54,12 +54,14 @@
 
 namespace MFM{
 
-  enum EVALS { EVAL_RHS, EVAL_LHS, EVAL_SIDEEFFECTS};
-  enum EvalStatus {ERROR, NOTREADY, NORMAL, RETURN, BREAK, CONTINUE, UNEVALUABLE};
+enum EVALS { EVAL_RHS, EVAL_LHS, EVAL_SIDEEFFECTS};
+enum EvalStatus {ERROR, NOTREADY, NORMAL, RETURN, BREAK, CONTINUE, UNEVALUABLE};
 
   struct CompilerState; //forward
   struct TypeArgs; //forward
   class NodeFunctionCall; //forward
+  class NodeBlock; //forward
+  class SymbolClass; //forward
 
   class Node
   {
@@ -187,7 +189,7 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
-    virtual bool exchangeNodeWithParent(Node * newnode);
+    bool exchangeNodeWithParent(Node * newnode);
 
     virtual bool trimToTheElement(Node ** fromleftnode, Node *& rtnnodeptr);
 
@@ -226,9 +228,13 @@ namespace MFM{
 
     virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);
 
+    virtual void calcMaxIndexOfVirtualFunctionInOrderOfDeclaration(SymbolClass* csym, s32& maxidx);
+
     virtual void genCode(File * fp, UVPass& uvpass);
 
     virtual void genCodeToStoreInto(File * fp, UVPass& uvpass);
+
+    virtual void generateFunctionInDeclarationOrder(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
 
     virtual void genCodeReadIntoATmpVar(File * fp, UVPass& uvpass);
 
@@ -308,6 +314,9 @@ namespace MFM{
 
     //index of last selected Base Type tmp symbol object; o.w.-1
     s32 isCurrentObjectsContainingABaseTypeTmpSymbol();
+
+    //index of last selected Sub/Base ClassId tmp symbol object; o.w.-1
+    s32 isCurrentObjectsContainingABaseRegNumTmpSymbol();
 
     //index of last tmp symbol object; o.w.-1
     s32 isCurrentObjectsContainingATmpVarSymbol();

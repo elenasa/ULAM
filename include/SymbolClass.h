@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * SymbolClass.h -  Basic handling of Class Symbols for ULAM
  *
- * Copyright (C) 2014-2019 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2019 Ackleyshack LLC.
+ * Copyright (C) 2014-2020 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2020 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +27,9 @@
 
 /**
   \file SymbolClass.h -  Basic handling of Class Symbols for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2019 All rights reserved.
+  \date (C) 2014-2020 All rights reserved.
   \gpl
 */
 
@@ -125,8 +125,6 @@ namespace MFM{
     bool getPackedDefaultValue(u64& dpkref);
     bool getDefaultValue(BV8K& dvref); //return true if ready
 
-    bool buildClassConstantDefaultValues();
-
     TBOOL packBitsForClassVariableDataMembers();
 
     void testThisClass(File * fp); //eval-land
@@ -159,7 +157,7 @@ namespace MFM{
     bool hasMappedUTI(UTI auti, UTI& mappedUTI);
 
     bool assignRegistryNumber(u32 n); //ulam-4
-    u32 getRegistryNumber() const; //ulam-4
+    u32 getRegistryNumber(); //ulam-4, assign when UTI is ok ulam-5
     bool assignElementType(ELE_TYPE n); //ulam-4
     bool assignEmptyElementType(); //ulam-4
     ELE_TYPE getElementType(); //ulam-4
@@ -191,6 +189,8 @@ namespace MFM{
     void notePureFunctionSignatures();
     std::string getMangledFunctionNameForVTableEntry(u32 idx);
     std::string getMangledFunctionNameWithTypesForVTableEntry(u32 idx);
+    u32 getVFuncIndexForVTableEntry(u32 idx);
+    u32 getVFuncNameSignatureIdForVTableEntry(u32 idx);
     struct VTEntry getVTableEntry(u32 idx);
     struct VTEntry getOrigVTableEntry(u32 idx);
 

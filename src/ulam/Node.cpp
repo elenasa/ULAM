@@ -1,9 +1,11 @@
 #include <iostream>
 #include "Node.h"
 #include "CompilerState.h"
+#include "NodeBlock.h"
 #include "NodeBlockFunctionDefinition.h"
 #include "NodeFunctionCall.h"
 #include "NodeIdent.h"
+#include "NodeFuncDecl.h"
 #include "NodeMemberSelect.h"
 #include "NodeVarDecl.h"
 #include "SymbolVariableDataMember.h"
@@ -386,7 +388,7 @@ namespace MFM {
   bool Node::exchangeNodeWithParent(Node * newnode)
   {
     UTI cuti = m_state.getCompileThisIdx(); //for error messages
-    NodeBlock * currBlock = m_state.getCurrentBlock(); //in NodeIdent, getBlock();
+    NodeBlock * currBlock = m_state.getCurrentBlock(); //in NodeIdent, getBlock())
 
     NNO pno = Node::getYourParentNo();
 
@@ -692,6 +694,11 @@ namespace MFM {
     return TBOOL_FALSE;
   }
 
+  void Node::calcMaxIndexOfVirtualFunctionInOrderOfDeclaration(SymbolClass* csym, s32& maxidx)
+  {
+    return; //only NodeBlockFunctionDefinition does work!
+  }
+
   void Node::printUnresolvedVariableDataMembers()
   {
     m_state.abortShouldntGetHere();
@@ -723,6 +730,11 @@ namespace MFM {
     MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
     m_state.abortShouldntGetHere();
     return;
+  }
+
+  void Node::generateFunctionInDeclarationOrder(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
+  {
+    return; //work done by NodeFuncDecl
   }
 
   void Node::genCodeReadIntoATmpVar(File * fp, UVPass & uvpass)
@@ -1291,8 +1303,15 @@ namespace MFM {
 
     m_state.indentUlamCode(fp);
 
-    //local
-    genLocalMemberNameOfMethod(fp, luvpass);
+    if(!isCurrentObjectALocalVariableOrArgument())
+      {
+	genMemberNameOfMethod(fp, luvpass);  //t41395
+      }
+    else
+      {
+	//local
+	genLocalMemberNameOfMethod(fp, luvpass);
+      }
 
     fp->write(writeMethodForCodeGen(cosuti, luvpass).c_str()); //t3739
     if(cosSize > 1)
@@ -2307,7 +2326,7 @@ namespace MFM {
 
   void Node::addMemberDescriptionToInfoMap(UTI classType, ClassMemberMap& classmembers)
   {
-    //fufilled by NodeVarDecl and NodeConstDef; bypassed by NodeTypedef
+    //fufilled by NodeVarDecl, NodeConstDef, NodeFuncDecl; bypassed by NodeTypedef
     m_state.abortShouldntGetHere();
   }
 
@@ -2615,6 +2634,14 @@ namespace MFM {
 	fblock->appendNextNode(returnNode);
 	fblock->setDefinition();
 	fblock->setMaxDepth(0); //no local variables, except params
+
+	//append this little guy to tree to preserve order of function declarations, ulam-5
+	NodeFuncDecl * funcdecl = new NodeFuncDecl(fsymptr, m_state); //t3412
+	assert(funcdecl);
+	funcdecl->setNodeLocation(loc);
+	m_state.pushCurrentBlock(currClassBlock); //class scope
+	m_state.appendNodeToCurrentBlock(funcdecl);
+	m_state.popClassContext();
       }
 
     //this block's ST is no longer in scope
@@ -2638,7 +2665,6 @@ namespace MFM {
     mfuncselectNode->setNodeLocation(loc);
     mfuncselectNode->updateLineage(node->getYourParentNo()); //t3190
 
-    //rtnNode = funccall;
     rtnNode = mfuncselectNode;
 
     //redo check and type labeling; error msg if not same
@@ -2734,6 +2760,7 @@ namespace MFM {
 
     if(cos->isTmpVarSymbol())
       {
+	assert(!((SymbolTmpVar *) cos)->isBaseClassRegNum());
 	fp->write(cos->getMangledName().c_str());
 	fp->write(".");
 	return; //done
@@ -3005,10 +3032,22 @@ namespace MFM {
     UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
     ULAMCLASSTYPE stgclasstype = stgcosut->getUlamClassType();
     UTI cosuti = cos->getUlamTypeIdx();
+
+    bool cosIsVTableClassOrId = cos->isTmpVarSymbol() && (((SymbolTmpVar *) cos)->isBaseClassRef() || ((SymbolTmpVar *) cos)->isBaseClassRegNum());
+
+    if(m_state.isAPrimitiveType(cosuti))
+      {
+	//primitive cannot own a func, so must be VTtable special case syntax w regid (ulam-5)
+	assert(vownarg != Nouti); //error caught by NodeMemberSelect c&l t41388
+
+	cos = stgcos;
+	cosuti = stgcosuti;
+      }
+
     bool askEffSelf = askEffectiveSelfAtRuntimeForRelPosOfBase(funcclassarg);
     UTI skipfuncclass = Nouti; //not funcclassarg; consider funcs of a base separately (e.g. t3831)
     //cos precedes .func()
-    bool funcinbase = m_state.isClassASubclassOf(cosuti, funcclassarg);
+    bool funcinbase = m_state.isClassASubclassOf(cosuti, funcclassarg); //not same
     u32 funcclassrelpos = 0;
     if(funcinbase)
       {
@@ -3068,8 +3107,8 @@ namespace MFM {
 	  }
 	else //super, and specific bases, i think (t41311, t41322, t41338)
 	  {
-	    // just for non-virtuals (t41338, t41322)
-	    if(vownarg == Nouti)
+	    // just for non-virtuals (t41338, t41322, t41386?)
+	    if((vownarg == Nouti) && !funcinbase && !askEffSelf)
 	      {
 		sameur = false;
 		hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvar).c_str() << "(";
@@ -3186,14 +3225,13 @@ namespace MFM {
 		    hiddenarg2 << "0u, "; //UlamRef extra arg for pos-to-Eff??
 		    hiddenarg2 << stgcos->getMangledName().c_str() << ", &"; //storage
 		    hiddenarg2 << m_state.getTheInstanceMangledNameByIndex(stgcosuti).c_str(); //effself
-		    hiddenarg2 << ", " << genUlamRefUsageAsString(cosuti).c_str(); //usage may change Sat Oct 26 16:12:46 2019
+		    hiddenarg2 << ", " << genUlamRefUsageAsString(stgcosuti).c_str();
 		    hiddenarg2 << ", uc";
-		    hiddenarg2 << "); "; //line wraps
+		    hiddenarg2 << "); "; //line wraps (ugly)
 
 		    //virtual func: 2nd ulamref based on existing stg
-		    // ulamref; no implicit 'self' anymore, hence
-		    // testing "dot-chain" size > 1;
-		    if(m_state.m_currentObjSymbolsForCodeGen.size() > 1)
+		    // ulamref; no implicit 'self' anymore, "dot-chain" size > 1;
+		    if((m_state.m_currentObjSymbolsForCodeGen.size() > 1) && !cosIsVTableClassOrId)
 		      {
 			hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvar).c_str() << "(";
 			hiddenarg2 << m_state.getUlamRefTmpVarAsString(tmpvarstg).c_str() << ", "; //existing
@@ -3203,6 +3241,7 @@ namespace MFM {
 
 			if(!cos->isDataMember())
 			  {
+			    m_state.abortShouldntGetHere();
 			    //e.g. cos is a BaseType: t41307,8,9,10,16,21,27
 			    //virtual func call keeps the eff self of stg,
 			    // unless dm of local stg (e.g. t3804)
@@ -3234,7 +3273,7 @@ namespace MFM {
 
     u32 tmpvarbasefunc = m_state.getNextTmpVarNumber();
     //non-virtual functions that are in base classes
-    if(funcinbase && (vownarg == Nouti))
+    if((askEffSelf || funcinbase) && (vownarg == Nouti))
       {
 	if(!sameur)
 	  hiddenarg2 << " "; //readability btn wrapping UlamRefs
@@ -3272,7 +3311,7 @@ namespace MFM {
       } //else funcinbase && virtual: t3600,1 3743,5,7, t3986,
     //t41005,6,7,11,12, t41153,61, t41298,9, t41304,7,18,19,20,22,23,25.
 
-    if(funcinbase && (vownarg == Nouti))
+    if((askEffSelf || funcinbase) && (vownarg == Nouti))
       urtmpnumref = tmpvarbasefunc;
     else if(!sameur)
       urtmpnumref = tmpvar; //update arg
@@ -3319,6 +3358,7 @@ namespace MFM {
 
     if(cos->isTmpVarSymbol())
       {
+	assert(!((SymbolTmpVar *) cos)->isBaseClassRegNum());
 	fp->write(cos->getMangledName().c_str());
 	fp->write(".");
 	return; //done
@@ -3965,6 +4005,25 @@ namespace MFM {
     return indexOfLastBT;
   } //isCurrentObjectsContainingABaseTypeTmpSymbol
 
+  // returns the index to the last object that's a Sub/Base ClassId (RegNum)
+  //  selector; o.w. -1 none found; preceding object is its baseclass
+  //  type, stg at 0 is the "owner"; used for virtual function calls.
+  s32 Node::isCurrentObjectsContainingABaseRegNumTmpSymbol()
+  {
+    s32 indexOfLastBT = -1;
+    u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
+    for(s32 i = cosSize - 1; i >= 0; i--)
+      {
+	Symbol * bsym = m_state.m_currentObjSymbolsForCodeGen[i];
+	if(bsym->isTmpVarSymbol() && ((SymbolTmpVar *) bsym)->isBaseClassRegNum())
+	  {
+	    indexOfLastBT = i;
+	    break;
+	  }
+      }
+    return indexOfLastBT;
+  } //isCurrentObjectsContainingABaseRegNumTmpSymbol
+
   // returns the index to the last object that's a tmp var symbol (not base type); o.w. -1 none found;
   // preceding object is the "owner", others before it are irrelevant;
   s32 Node::isCurrentObjectsContainingATmpVarSymbol()
@@ -3974,8 +4033,7 @@ namespace MFM {
     for(s32 i = cosSize - 1; i >= 0; i--)
       {
 	Symbol * bsym = m_state.m_currentObjSymbolsForCodeGen[i];
-	//if(bsym->isTmpVarSymbol())
-	if(bsym->isTmpVarSymbol() && !((SymbolTmpVar *) bsym)->isBaseClassRef())
+	if(bsym->isTmpVarSymbol() && !(((SymbolTmpVar *) bsym)->isBaseClassRef() || ((SymbolTmpVar *) bsym)->isBaseClassRegNum()))
 	  {
 	    indexOfLastTmp = i;
 	    break;
@@ -4013,6 +4071,8 @@ namespace MFM {
 
     if(uvpass.getPassApplyDelta())
       {
+	assert(!(cos->isTmpVarSymbol() && ((SymbolTmpVar *) cos)->isBaseClassRegNum()));
+
 	//handling specific baseclass type here, shared don't add up correctly (t41316)
 	if(cos->isTmpVarSymbol() && ((SymbolTmpVar *) cos)->isBaseClassRef())
 	  {
@@ -4103,6 +4163,7 @@ namespace MFM {
 	    //local stg (t3541), tmpvar funccall result, or BaseType (t41319)
 	    if(sym->isTmpVarSymbol())
 	      {
+		assert(!((SymbolTmpVar *) sym)->isBaseClassRegNum());
 		if(((SymbolTmpVar *) sym)->isBaseClassRef())
 		  suti = cuti; //bypass
 	      }
@@ -4115,6 +4176,7 @@ namespace MFM {
 	      {
 		if(sym->isTmpVarSymbol())
 		  {
+		    assert(!((SymbolTmpVar *) sym)->isBaseClassRegNum());
 		    if(!((SymbolTmpVar *) sym)->isBaseClassRef())
 		      {
 			u32 tmprelpos; //error/t41313
@@ -4171,6 +4233,7 @@ namespace MFM {
 
   // true means we can't know rel pos of 'stg' until runtime; o.w. known at compile time.
   // invarients: pos points to the 'stg' type, refs cannot be dm.
+  // argument is the owner of the function (may or maynot be virtual);
   bool Node::askEffectiveSelfAtRuntimeForRelPosOfBase(UTI funcclassarg)
   {
     bool askEffSelf = false;
@@ -4213,8 +4276,8 @@ namespace MFM {
       }
     else //default
       {
-	//funcs not included in stack (t3735); arrayitems are refs (t3832)
-	askEffSelf = m_state.isReference(stgcos->getUlamTypeIdx()) && ((cosSize > 1) || (funcclassarg != Nouti));
+	//funcs not included in dot-chain stack (t3735); arrayitems are refs (t3832), and so is 'self';
+	askEffSelf = m_state.isReference(stgcos->getUlamTypeIdx()) && ((cosSize > 1) || ((funcclassarg != Nouti) && (UlamType::compare(funcclassarg, derefstguti, m_state) != UTIC_SAME)));
       }
     return askEffSelf;
   } //askEffectiveSelfAtRuntimeForRelPosOfBase

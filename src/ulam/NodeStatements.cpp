@@ -254,6 +254,15 @@ namespace MFM {
     return rtntb;
   }
 
+  void NodeStatements::calcMaxIndexOfVirtualFunctionInOrderOfDeclaration(SymbolClass* csym, s32& maxidx)
+  {
+    m_node->calcMaxIndexOfVirtualFunctionInOrderOfDeclaration(csym, maxidx); //updates maxidx
+    if(m_nodeNext)
+      {
+	m_nodeNext->calcMaxIndexOfVirtualFunctionInOrderOfDeclaration(csym, maxidx);
+      }
+  }
+
   void NodeStatements::printUnresolvedVariableDataMembers()
   {
     m_node->printUnresolvedVariableDataMembers(); //updates offset
@@ -297,6 +306,13 @@ namespace MFM {
     m_node->genCodeToStoreInto(fp, uvpass);
     if(m_nodeNext)
       m_nodeNext->genCodeToStoreInto(fp, uvpass);
+  }
+
+  void NodeStatements::generateFunctionInDeclarationOrder(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
+  {
+    m_node->generateFunctionInDeclarationOrder(fp, declOnly, classtype);
+    if(m_nodeNext)
+      m_nodeNext->generateFunctionInDeclarationOrder(fp, declOnly, classtype);
   }
 
   void NodeStatements::genCodeExtern(File * fp, bool declOnly)
