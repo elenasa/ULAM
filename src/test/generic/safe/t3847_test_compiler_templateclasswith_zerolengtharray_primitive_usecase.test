@@ -7,7 +7,7 @@
 ##
 #!
 Exit status: 0
-Ue_A { System s();  Int(32) test() {  QW(0u) qwz;  Unsigned(32) az = qwz ( )getID .;  s ( az )print . s ( az 0u cast == )assert . QW(10u) qwt;  Unsigned(32) at = qwt ( )getID .;  s ( at )print . s ( at 10u cast == )assert . 0u cast return } }
+Ue_A { System s();  Int(32) test() {  QW(0u) qwz;  Unsigned(32) az = qwz ( )getID .;  self s . ( az )print . self s . ( az 0u cast == )assert . QW(10u) qwt;  Unsigned(32) at = qwt ( )getID .;  self s . ( at )print . self s . ( at 10u cast == )assert . 0u cast return } }
 Uq_QW(Unsigned(5) arrsizearg) { typedef Unsigned(1) NIDE[UNKNOWN];  Unsigned(1) m_idearr[UNKNOWN](notready);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

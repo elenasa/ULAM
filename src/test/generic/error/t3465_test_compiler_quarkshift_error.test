@@ -1,25 +1,31 @@
 ## -*- mode:ulam -*-
 #=t3465_test_compiler_quarkshift_error
 #!
-./A.ulam:5:8: ERROR: (2) <operator<<> is not a defined function, or cannot be safely called in this context.
-./A.ulam:5:4: ERROR: Assignment is invalid; LHS: Bar; RHS: erroneous.
-./A.ulam:6:8: ERROR: Unsigned is the supported type for shift distance, operation <<; Suggest casting Bar to Unsigned.
-./A.ulam:6:4: ERROR: Assignment is invalid; LHS: Bar; RHS: erroneous.
+./A.ulam:6:11: ERROR: (2) 'operator<<' is not a defined function, or cannot be safely called in this context.
+./A.ulam:6:7: ERROR: Assignment is invalid; LHS: Bar; RHS: erroneous.
+./A.ulam:7:7: ERROR: (2) 'operator=' is not a defined function, or cannot be safely called in this context.
 Unrecoverable Program Type Label FAILURE.
+##
+## changed shift distance to unsigned to get these errors instead,
+## since surgery returns hazy now  9/6/19.
+##
 #>A.ulam
+  ulam 1;
 use Bar;
- element A {
-Int test() {
- Bar a, b;
- b = a << 1;
- b = 1 << a;
- return -1;
- }
- }
+element A {
+  Int test() {
+    Bar a, b;
+    b = a << 1u;
+    b = 1 << (Unsigned) a;
+    return -1;
+  }
+}
 
 #:Bar.ulam
+  ulam 1;
 quark Bar {
- Int toInt() { return 1;
+  Int toInt() {
+    return 1;
+  }
 }
- }
 #.

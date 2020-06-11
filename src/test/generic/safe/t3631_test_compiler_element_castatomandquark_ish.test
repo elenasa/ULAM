@@ -5,7 +5,7 @@
 ## eval: b is false; should be true
 #!
 Exit status: -11
-Ue_Foo : QPerc { :<> Bool(1) b(false);  Int(32) test() {  System s;  b ( )check = s ( b )assert . b ! cast return } }
+Ue_Foo : QPerc { Bool(1) b(false);  :QPerc<> Int(32) test() {  System s;  self b . self ( )check . = s ( self b . )assert . self b . ! cast return } }
 Uq_QPerc { <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

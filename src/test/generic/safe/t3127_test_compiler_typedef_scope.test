@@ -2,7 +2,7 @@
 #=t3127_test_compiler_typedef_scope
 #!
 Exit status: 1
-Ue_A { typedef Int(16) Bar[2];  Int(16) d[2](1,0);  Int(32) test() {  Int(16) myb[2];  myb 0 [] 1 cast = myb 1 [] 0 cast = d ( myb )bar = d 0 [] cast return } }
+Ue_A { typedef Int(16) Bar[2];  Int(16) d[2](1,0);  Int(32) test() {  Int(16) myb[2];  myb 0 [] 1 cast = myb 1 [] 0 cast = self d . self ( myb )bar . = self d . 0 [] cast return } }
 #>A.ulam
   ulam 1;
 element A {

@@ -6,8 +6,8 @@
 ##
 #!
 Exit status: 3
-Ue_P { Bool(1) b(true);  Int(32) test() {  System s;  Q(3u,3) w;  s ( 3u )print . b true = s ( b )assert . 3u cast return } }
-Uq_Q(Unsigned(32) s = NONREADYCONST, Int(32) b = NONREADYCONST) : W { :< constant Int(32) we = 3; > constant Int(32) myb = 3;  typedef Unsigned(UNKNOWN) Foo;  Unsigned(UNKNOWN) f(notready);  <NOMAIN> }
+Ue_P { Bool(1) b(true);  Int(32) test() {  System s;  Q(3u,3) w;  s ( 3u )print . self b . true = s ( self b . )assert . 3u cast return } }
+Uq_Q(Unsigned(32) s = NONREADYCONST, Int(32) b = NONREADYCONST) : W { constant Int(32) myb = 3;  typedef Unsigned(UNKNOWN) Foo;  Unsigned(UNKNOWN) f(notready);  :W< constant Int(32) we = 3; > <NOMAIN> }
 Uq_V(Int(32) a) { Unsigned(UNKNOWN) vfoo(notready);  <NOMAIN> }
 Uq_W { constant Int(32) we = 3;  <NOMAIN> }
 Uq_System { <NOMAIN> }

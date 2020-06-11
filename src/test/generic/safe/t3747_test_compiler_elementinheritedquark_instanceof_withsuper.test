@@ -6,9 +6,9 @@
 #!
 Exit status: -11
 Uq_Base { Bits(4) bits( 12u);  <NOMAIN> }
-Uq_Sub1 : Base { :< Bits(4) bits( 12u); > Int(3) sint( -1);  <NOMAIN> }
-Ue_E2 : Sub1 { :< :< Bits(4) bits( 12u); > Int(3) sint( -1); > Bool(7) esp( true);  <NOMAIN> }
-Ue_Test : System { :<> Bool(1) brtn[3](false,false,false);  Int(32) test() {  E2 e2;  e2 esp . false cast = e2 sint . 2 = e2 bits . 1u cast = Atom(96) sb1 = e2 ( )func .;  { sb1 Sub1 as cond { Sub1& sb1;  brtn 0 [] sb1 sint . -1 cast == = brtn 1 [] sb1 bits . 12u cast == = sb1 bits . 3u cast = Atom(96) base = sb1 ( )func .;  { base Base as cond { Base& base;  brtn 2 [] base bits . 12u cast == = } if } } if } ( brtn 0 [] )assert ( brtn 1 [] )assert ( brtn 2 [] )assert 0 cast return } }
+Uq_Sub1 : Base { Int(3) sint( -1);  :Base< Bits(4) bits( 12u); > <NOMAIN> }
+Ue_E2 : Sub1 { Bool(7) esp( true);  :Sub1< Int(3) sint( -1); > ^Base< Bits(4) bits( 12u); > <NOMAIN> }
+Ue_Test : System { Bool(1) brtn[3](false,false,false);  :System<> Int(32) test() {  E2 e2;  e2 esp . false cast = e2 sint . 2 = e2 bits . 1u cast = Atom(96) sb1 = e2 ( )func .;  { sb1 Sub1 as cond { Sub1& sb1;  self brtn . 0 [] sb1 sint . -1 cast == = self brtn . 1 [] sb1 bits . 12u cast == = sb1 bits . 3u cast = Atom(96) base = sb1 ( )func .;  { base Base as cond { Base& base;  self brtn . 2 [] base bits . 12u cast == = } if } } if } self ( self brtn . 0 [] )assert . self ( self brtn . 1 [] )assert . self ( self brtn . 2 [] )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## instanceof is a virtual function; it behaves differently with objects and references;

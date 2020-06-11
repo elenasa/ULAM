@@ -6,10 +6,10 @@
 ##
 #!
 Exit status: 5
-Ue_Foo : QW { :< Int(32) qint(0); > Bool(1) first(false);  Int(32) opfint(5);  Int(32) test() {  System s;  Foo foo;  foo qint . 2 cast = Too too;  too qint . 3 cast = opfint too ( foo cast )operator+ . = s ( opfint )print . s ( opfint 5 cast == )assert . opfint return } }
+Ue_Foo : QW { Bool(1) first(false);  Int(32) opfint(5);  :QW< Int(32) qint(0); > Int(32) test() {  System s;  Foo foo;  foo qint . 2 cast = Too too;  too qint . 3 cast = self opfint . too ( foo cast )operator+ . = s ( self opfint . )print . s ( self opfint . 5 cast == )assert . self opfint . return } }
 Uq_QW { Int(32) qint(0);  <NOMAIN> }
 Uq_System { <NOMAIN> }
-Un_Too : QW { :< Int(32) qint(0); > Int(32) topint(0);  <NOMAIN> }
+Un_Too : QW { Int(32) topint(0);  :QW< Int(32) qint(0); > <NOMAIN> }
 ##
 ## informed by t41106; test of overloaded inherited operator+ with class ref as arg
 ##

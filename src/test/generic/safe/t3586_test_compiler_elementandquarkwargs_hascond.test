@@ -1,6 +1,5 @@
 ## -*- mode:ulam -*-
 #=t3586_test_compiler_elementandquarkwargs_hascond
-#!
 ##
 ##   gencode output (interleaved asserts):
 ##	 Unsigned Arg: 3
@@ -9,10 +8,11 @@
 ##       Unsigned Arg: 7
 ##
 ##
+#!
 Exit status: 7
-Uq_Typo(Int(32) a) : Bar { :< Bool(1) b(false);  Unsigned(3) bu( 7u); > Bool(1) by(false);  <NOMAIN> }
+Uq_Typo(Int(32) a) : Bar { Bool(1) by(false);  :Bar< Bool(1) b(false);  Unsigned(3) bu( 7u); > <NOMAIN> }
 Uq_Bar { Bool(1) b(false);  Unsigned(3) bu( 7u);  <NOMAIN> }
-Ue_Eltypo : Typo(1) { :< :< Bool(1) b(false);  Unsigned(3) bu(7u); > constant Int(32) a = 1;  Bool(1) by(false); > System s();  Unsigned(3) first(3u);  Unsigned(3) second(7u);  Typo(1) t( :< Bool(1) b(false);  Unsigned(3) bu(7u); > constant Int(32) a = 1;  Bool(1) by(false); );  Int(32) test() {  Eltypo elf;  { elf Bar as cond { Bar& elf;  elf ( 3u cast )func . s ( elf bu . cast )print . s ( elf bu . cast 3 cast == )assert . first elf bu . = } if s ( false )assert . else } s ( elf bu . cast )print . s ( elf bu . cast 3 cast == )assert . s ( first cast )print . s ( first cast 3 cast == )assert . s ( elf t . bu . cast )print . s ( elf t . bu . cast 7 == )assert . second elf t . bu . = second cast return } }
+Ue_Eltypo : Typo(1) { System s();  Unsigned(3) first(3u);  Unsigned(3) second(7u);  Typo(1) t( constant Int(32) a = 1;  Bool(1) by(false);  :Bar< Bool(1) b(false);  Unsigned(3) bu(7u); >);  :Typo(1)< constant Int(32) a = 1;  Bool(1) by(false);  :Bar< Bool(1) b(false);  Unsigned(3) bu(7u); >> ^Bar< Bool(1) b(false);  Unsigned(3) bu(7u); > Int(32) test() {  Eltypo elf;  { elf Bar as cond { Bar& elf;  elf ( 3u cast )func . self s . ( elf bu . cast )print . self s . ( elf bu . cast 3 cast == )assert . self first . elf bu . = } if self s . ( false )assert . else } self s . ( elf bu . cast )print . self s . ( elf bu . cast 3 cast == )assert . self s . ( self first . cast )print . self s . ( self first . cast 3 cast == )assert . self s . ( elf t . bu . cast )print . self s . ( elf t . bu . cast 7 == )assert . self second . elf t . bu . = self second . cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## 'has' deprecated, change Eltyp to inherit from Typo(1), and use 'as' on local

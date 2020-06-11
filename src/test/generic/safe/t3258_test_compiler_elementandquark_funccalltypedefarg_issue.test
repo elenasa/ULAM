@@ -2,7 +2,7 @@
 #=t3258_test_compiler_elementandquark_funccalltypedefarg_issue
 #!
 Exit status: 1
-Ue_TypedefIssue { typedef Unsigned(3) Symmetry;  Bool(1) b(true);  Vector t( typedef Unsigned(3) Symmetry;  Unsigned(3) m(1u);  Unsigned(3) n(1u); );  Int(32) test() {  { t ( 0 cast 1 cast )set . cond b true = if } { t ( 1 cast 1 cast )set . cond b true = if } t m . cast return } }
+Ue_TypedefIssue { typedef Unsigned(3) Symmetry;  Bool(1) b(true);  Vector t( typedef Unsigned(3) Symmetry;  Unsigned(3) m(1u);  Unsigned(3) n(1u); );  Int(32) test() {  { self t . ( 0 cast 1 cast )set . cond self b . true = if } { self t . ( 1 cast 1 cast )set . cond self b . true = if } self t . m . cast return } }
 Uq_Vector { typedef Unsigned(3) Symmetry;  Unsigned(3) m(0);  Unsigned(3) n(0);  <NOMAIN> }
 #>TypedefIssue.ulam
   ulam 1;

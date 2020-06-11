@@ -2,7 +2,7 @@
 #=t3104_test_compiler_bitwisexor
 #!
 Exit status: 1
-Ue_A { Int(3) b(2);  System s();  Bool(1) d(true);  Int(3) a(1);  Int(32) test() {  a 3 = b 2 = a a cast b cast ^ cast = s ( a )print . d a 1 cast == = a cast return } }
+Ue_A { Int(3) b(2);  System s();  Bool(1) d(true);  Int(3) a(1);  Int(32) test() {  self a . 3 = self b . 2 = self a . self a . cast self b . cast ^ cast = self s . ( self a . )print . self d . self a . 1 cast == = self a . cast return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
   ulam 1;

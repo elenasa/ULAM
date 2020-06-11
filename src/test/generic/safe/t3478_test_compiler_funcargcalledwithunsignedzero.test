@@ -2,7 +2,7 @@
 #=t3478_test_compiler_funcargcalledwithunsignedzero
 #!
 Exit status: 0
-Ue_Tu { typedef Unsigned(3) I;  Int(32) test() {  ( 0 cast )func cast return } }
+Ue_Tu { typedef Unsigned(3) I;  Int(32) test() {  self ( 0 cast )func . cast return } }
 ##
 ##      // working toward this to work! needs to try safe casts when matching func args.
 ##

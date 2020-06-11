@@ -1,11 +1,11 @@
 ## -*- mode:ulam -*-
 #=t3909_test_compiler_elementandquark_atomofmemberselectarrayitemlval_clobberingType
-#!
 ##      gen code output: 3 asserts
 ##         Int Arg: 96
 ##
+#!
 Exit status: -11
-Ue_R { Int(32) ans(0);  Int(32) test() {  System s;  T tr[2];  tr 1 [] m_earr 2 [] . b . true = Atom(96)& me = tr 1 [] m_earr 2 [] ..atomof;  { me A as cond { A& me;  s ( me b . )assert . } if s ( false )assert . else } B be;  tr 1 [] m_earr 2 [] ..atomof be cast = Atom(96)& metoo = tr 1 [] m_earr 2 [] ..atomof;  { metoo B as cond { B& metoo;  ans metoo m_i . = s ( ans )print . s ( ans 96 cast == )assert . s ( metoo bb . ! )assert . } if s ( false )assert . else } 0 cast return } }
+Ue_R { Int(32) ans(0);  Int(32) test() {  System s;  T tr[2];  tr 1 [] m_earr 2 [] . b . true = Atom(96)& me = tr 1 [] m_earr 2 [] ..atomof;  { me A as cond { A& me;  s ( me b . )assert . } if s ( false )assert . else } B be;  tr 1 [] m_earr 2 [] ..atomof be cast = Atom(96)& metoo = tr 1 [] m_earr 2 [] ..atomof;  { metoo B as cond { B& metoo;  self ans . metoo m_i . = s ( self ans . )print . s ( self ans . 96 cast == )assert . s ( metoo bb . ! )assert . } if s ( false )assert . else } 0 cast return } }
 Uq_System { <NOMAIN> }
 Un_T { Bool(1) b(false);  A m_earr[3]( Bool(1) b(false);  QW m_q[4]( Unary(3) m_y(0); ), ( Unary(3) m_y(0); ), ( Unary(3) m_y(0); ), ( Unary(3) m_y(0); ); ), ( Bool(1) b(false);  QW m_q[4]( Unary(3) m_y(0); ), ( Unary(3) m_y(0); ), ( Unary(3) m_y(0); ), ( Unary(3) m_y(0); ); ), ( Bool(1) b(false);  QW m_q[4]( Unary(3) m_y(0); ), ( Unary(3) m_y(0); ), ( Unary(3) m_y(0); ), ( Unary(3) m_y(0); ); );  <NOMAIN> }
 Ue_A { Bool(1) b(false);  QW m_q[4]( Unary(3) m_y(0); ), ( Unary(3) m_y(0); ), ( Unary(3) m_y(0); ), ( Unary(3) m_y(0); );  <NOMAIN> }

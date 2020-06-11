@@ -2,7 +2,7 @@
 #=t3107_test_compiler_minusequal
 #!
 Exit status: -1
-Ue_A { Int(3) b(2);  System s();  Bool(1) l(false);  Int(3) a(-1);  Int(32) test() {  a 1 cast = b 2 = a b -= s ( a )print . a cast return } }
+Ue_A { Int(3) b(2);  System s();  Bool(1) l(false);  Int(3) a(-1);  Int(32) test() {  self a . 1 cast = self b . 2 = self a . self b . -= self s . ( self a . )print . self a . cast return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
   ulam 1;

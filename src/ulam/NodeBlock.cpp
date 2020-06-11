@@ -254,12 +254,6 @@ namespace MFM {
     return &m_ST;
   }
 
-  void NodeBlock::genCodeDeclsForVariableDataMembers(File * fp, ULAMCLASSTYPE classtype)
-  {
-    m_state.abortShouldntGetHere(); //using the NodeVarDecl:genCode approach instead.
-    m_ST.genCodeForTableOfVariableDataMembers(fp, classtype);
-  }
-
   void NodeBlock::genModelParameterImmediateDefinitions(File * fp)
   {
     m_ST.genModelParameterImmediateDefinitionsForTableOfVariableDataMembers(fp);

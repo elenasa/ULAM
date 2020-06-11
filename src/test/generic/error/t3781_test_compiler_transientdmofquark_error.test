@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3781_test_compiler_transientdmofquark_error
 #!
-./Soo.ulam:5:3: ERROR: Data member <m_cu> of type: Coo, is a transient, and is NOT permitted; Local variables, do not have this restriction.
+./Soo.ulam:5:3: ERROR: Data member 'm_cu' of type: Coo, is a transient, and is NOT permitted; Local variables, do not have this restriction.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## transient not valid data member of quark (from t3780)

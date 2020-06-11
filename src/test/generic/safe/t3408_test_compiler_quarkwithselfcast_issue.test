@@ -1,6 +1,5 @@
 ## -*- mode:ulam -*-
 #=t3408_test_compiler_quarkwithselfcast_issue
-#!
 ##      /* gen code output (interleaved asserts):
 ##         Int(3) Arg: 0x0
 ##        Int(4) Arg: 0x0
@@ -18,14 +17,13 @@
 ##      //eval self doesn't reflect correctly (y should be 2) (see gen output): is an atom for quark's function call hidden arg
 ##        unevaluable without assuming atoms as elements
 ##
+#!
 Exit status: -11
-Ue_Foo : IntXY(3u,4u) { :< Int(3) x(2);  Int(4) y(3);  constant Unsigned(32) xbits = 3u;  constant Unsigned(32) ybits = 4u;  typedef Int(3) XCoord;  typedef Int(4) YCoord; > Int(32) test() {  System s;  Foo m;  s ( x )print . s ( y )print . s ( x 0 cast == )assert . s ( y 0 cast == )assert . s ( m x . )print . s ( m y . )print . s ( m x . 0 cast == )assert . s ( m y . 0 cast == )assert . m ( 1 cast 2 cast )make = s ( m x . )print . s ( m y . )print . s ( m x . 1 cast == )assert . s ( m y . 2 cast == )assert . m ( 1 cast 2 cast )makeAs = s ( m x . )print . s ( m y . )print . s ( m x . 1 cast == )assert . s ( m y . 2 cast == )assert . m ( 2 cast 3 cast )fromXY cast = s ( m x . )print . s ( m y . )print . s ( m x . 2 == )assert . s ( m y . 3 cast == )assert . ( 2 cast 2 cast )init s ( self x . )print . s ( self y . )print . s ( self x . 2 == )assert . s ( self y . 2 cast == )assert . 0 cast return } }
+Ue_Foo : IntXY(3u,4u) { :IntXY(3u,4u)< Int(3) x(2);  Int(4) y(3);  constant Unsigned(32) xbits = 3u;  constant Unsigned(32) ybits = 4u;  typedef Int(3) XCoord;  typedef Int(4) YCoord; > Int(32) test() {  System s;  Foo m;  s ( self x . )print . s ( self y . )print . s ( self x . 0 cast == )assert . s ( self y . 0 cast == )assert . s ( m x . )print . s ( m y . )print . s ( m x . 0 cast == )assert . s ( m y . 0 cast == )assert . m self ( 1 cast 2 cast )make . = s ( m x . )print . s ( m y . )print . s ( m x . 1 cast == )assert . s ( m y . 2 cast == )assert . m self ( 1 cast 2 cast )makeAs . = s ( m x . )print . s ( m y . )print . s ( m x . 1 cast == )assert . s ( m y . 2 cast == )assert . m self ( 2 cast 3 cast )fromXY . cast = s ( m x . )print . s ( m y . )print . s ( m x . 2 == )assert . s ( m y . 3 cast == )assert . self ( 2 cast 2 cast )init . s ( self x . )print . s ( self y . )print . s ( self x . 2 == )assert . s ( self y . 2 cast == )assert . 0 cast return } }
 Uq_IntXY(Unsigned(32) xbits, Unsigned(32) ybits) { typedef Int(UNKNOWN) XCoord;  typedef Int(UNKNOWN) YCoord;  Int(UNKNOWN) x(notready);  Int(UNKNOWN) y(notready);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 #>Foo.ulam
   ulam 1;
-//use IntXY;
-//use System;
 element Foo : IntXY(3u,4u){
   Int test() {
     System s;
@@ -93,7 +91,6 @@ element Foo : IntXY(3u,4u){
 #:IntXY.ulam
   ulam 1;
 quark IntXY(Unsigned xbits, Unsigned ybits) {
-  //typedef IntXY(xbits, ybits) Self;
   typedef Int(xbits) XCoord;
   typedef Int(ybits) YCoord;
   XCoord x;

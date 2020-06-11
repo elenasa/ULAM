@@ -1,0 +1,114 @@
+## -*- mode:ulam -*-
+#=t41382_test_compiler_elementandquarkswclassargs_wdefaultparamvalueandtype_insertCLASS
+##
+## gen output:
+##
+##   String(4) Arg: "P"
+##   String(4) Arg: "P"
+##   String(4) Arg: "P"
+##   String(4) Arg: "P"
+##   String(7) Arg: "Ue_10111P10" (+ 3 asserts)
+##   String(1) Arg: "Q" (+ assert)
+##   String(120) Arg: "Q(Int(32) b,Unsigned(4) s)" (+ assert)
+##   String(220) Arg: "Q(Int(32) b=4,Unsigned(4) s=2u)" (+ 5 asserts)
+##   String(253) Arg: "Q(4,2u)" (+ assert)
+##   String(262) Arg: "Uq_10121Q12102321i1410141u12" (+ 2 asserts)
+##   String(1) Arg: "Q" (+ assert)
+##   String(20) Arg: "Q(Int(32) b,Unsigned(3) s)" (+ assert)
+##   String(48) Arg: "Q(Int(32) b=3,Unsigned(3) s=1u)" (+ 5 asserts)
+##   String(81) Arg: "Q(3,1u)" (+ assert)
+##   String(90) Arg: "Uq_10111Q12102321i1310131u11" (+ 2 asserts)
+##   String(1) Arg: "Q" (+ assert)
+##   String(120) Arg: "Q(Int(32) b,Unsigned(4) s)" (+ assert)
+##   String(148) Arg: "Q(Int(32) b=4,Unsigned(4) s=1u)" (+ 5 asserts)
+##   String(181) Arg: "Q(4,1u)" (+ assert)
+##   String(190) Arg: "Uq_10111Q12102321i1410141u11" (+ assert)
+##
+#!
+Exit status: 4
+Ue_P { Bool(1) b(false);  Int(32) test() {  SystemU3 s;  s ( "P" )print . s ( "P" )print . s ( "P" )print . s ( "P" )print . s ( "Ue_10111P10" )print . s ( true )assert . s ( true )assert . Q(4,2u) z;  s ( true )assert . z ( )printclassnames . Q(3,1u) q;  s ( true )assert . q ( )printclassnames . Q(4,1u) w;  s ( true )assert . w ( )printclassnames . 4u cast return } }
+Uq_Q(Int(32) b = 3, Unsigned(UNKNOWN) s = NONREADYCONST) { typedef Unsigned(UNKNOWN) Foo;  Unsigned(UNKNOWN) f(notready);  <NOMAIN> }
+Uq_SystemU3 : System { :System<> <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## informed by t3526, and t41368
+##
+#>P.ulam
+  ulam 1;
+use Q;
+element P {
+  Bool b;
+  Int test() {
+    SystemU3 s;
+    s.print(__CLASS__);
+    s.print(__CLASS_SIGNATURE__);
+    s.print(__CLASS_PRETTY__);
+    s.print(__CLASS_SIMPLE__);
+    s.print(__CLASS_MANGLED__);
+    s.assert(__CLASS_PRETTY__.lengthof == 1);
+    s.assert(__CLASS_MANGLED__.lengthof==11);
+
+    Q(4, 2) z;
+    s.assert(z.sizeof == 2);
+    z.printclassnames();
+
+    Q() q; //ok
+    s.assert(q.sizeof == 1);
+    q.printclassnames();
+
+    Q(4) w; //ok, 2nd arg is default
+    s.assert(w.sizeof == 1);
+    w.printclassnames();
+
+    return (Int) (w.sizeof + q.sizeof + z.sizeof);
+  }
+}
+
+#:Q.ulam
+  ulam 1;
+quark Q(Int b = 3, Unsigned(b) s = 1u) {
+  typedef Unsigned(s) Foo;
+  Foo f;
+  Void printclassnames()
+  {
+    SystemU3 sq;
+    sq.print(__CLASS__);
+    sq.assert(__CLASS__.lengthof==1);
+
+    sq.print(__CLASS_SIGNATURE__);
+    sq.assert(__CLASS_SIGNATURE__.lengthof==26);
+
+    sq.print(__CLASS_PRETTY__);
+    sq.assert(__CLASS_PRETTY__.lengthof==31);
+    sq.assert(__CLASS_PRETTY__[9]==' ');
+    sq.assert(__CLASS_PRETTY__[25]==__CLASS_PRETTY__[9]);
+    sq.assert(__CLASS_PRETTY__[11]=='=');
+    sq.assert(__CLASS_PRETTY__[27]==__CLASS_PRETTY__[11]);
+
+    sq.print(__CLASS_SIMPLE__);
+    sq.assert(__CLASS_SIMPLE__.lengthof==7);
+
+    sq.print(__CLASS_MANGLED__);
+    sq.assert(__CLASS_MANGLED__.lengthof==28);
+  }
+}
+
+#:SystemU3.ulam
+  ulam 3;
+quark SystemU3 : System {
+  Void print(String s) native;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

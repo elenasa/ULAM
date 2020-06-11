@@ -5,8 +5,8 @@
 ##
 #!
 Exit status: 0
-Ue_A : ConstantLabel("foobar") { :< :< typedef Unsigned(8) StringIndex;  Unsigned(8) mStringIndex(17u); > constant String(32) fstring = "foobar"; > Int(32) test() {  ( )behave 0 cast return } }
-Uq_ConstantLabel(String(32) fstring) : Label { :< typedef Unsigned(8) StringIndex;  Unsigned(8) mStringIndex( 0u); > <NOMAIN> }
+Ue_A : ConstantLabel("foobar") { :ConstantLabel("foobar")< constant String(32) fstring = "foobar";  :Label< typedef Unsigned(8) StringIndex;  Unsigned(8) mStringIndex(17u); >> ^Label< typedef Unsigned(8) StringIndex;  Unsigned(8) mStringIndex(17u); > Int(32) test() {  self ( )behave . 0 cast return } }
+Uq_ConstantLabel(String(32) fstring) : Label { :Label< typedef Unsigned(8) StringIndex;  Unsigned(8) mStringIndex( 0u); > <NOMAIN> }
 Uq_Label { typedef Unsigned(8) StringIndex;  Unsigned(8) mStringIndex( 0u);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

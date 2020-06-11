@@ -1,16 +1,17 @@
 ## -*- mode:ulam -*-
 #=t3311_test_compiler_boolarrays
-#!
 ##      // constant fold: a 1 3 +b
+#!
 Exit status: 0
-Ue_A { Bool(1) a[5](false,false,false,false,true);  Int(32) test() {  a 4 [] true = 0 cast return } }
+Ue_A { Bool(1) a[5](false,false,false,false,true);  Int(32) test() {  self a . 4 [] true = 0 cast return } }
 #>A.ulam
+  ulam 1;
 element A {
- Bool a[5];
- Int test() {
- a[1+3] = true;
- return 0;
+  Bool a[5];
+  Int test() {
+    a[1+3] = true;
+    return 0;
+  }
 }
- }
 
 #.

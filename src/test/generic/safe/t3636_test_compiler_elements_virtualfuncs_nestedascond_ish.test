@@ -1,6 +1,5 @@
 ## -*- mode:ulam -*-
 #=t3636_test_compiler_element_virtualfuncs_nestedascond_ish
-#!
 ##
 ## gen code output:
 ## assert: arg is 1
@@ -8,8 +7,9 @@
 ##
 ##        unevaluable without assuming atoms as elements
 ##
+#!
 Exit status: 0
-Ue_Ish5 : System { :<> Int(32) test() {  E1 e1;  E2 e2;  Atom(96) a1 = e1 cast;  Atom(96) a2 = e2 cast;  { a1 E1 as cond { E1& a1;  { a2 E2 as cond { E2& a2;  ( a1 ( )func . 1 cast == )assert } if } } if } 0 cast return } }
+Ue_Ish5 : System { :System<> Int(32) test() {  E1 e1;  E2 e2;  Atom(96) a1 = e1 cast;  Atom(96) a2 = e2 cast;  { a1 E1 as cond { E1& a1;  { a2 E2 as cond { E2& a2;  self ( a1 ( )func . 1 cast == )assert . } if } } if } 0 cast return } }
 Ue_E1 { <NOMAIN> }
 Ue_E2 { <NOMAIN> }
 Uq_System { <NOMAIN> }

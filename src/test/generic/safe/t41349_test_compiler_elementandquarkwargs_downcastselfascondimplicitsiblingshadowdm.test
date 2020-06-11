@@ -1,0 +1,93 @@
+## -*- mode:ulam -*-
+#=t41349_test_compiler_elementandquarkwargs_downcastselfascondimplicitsiblingshadowdm
+##   gencode output:
+##       assert: arg is 1
+##       after asserts abort: arg is 1
+##	 Unsigned Arg: 3 (+ 1 assert)
+##       Unsigned Arg: 3 (+ 1 assert)
+##       Unsigned Arg: 3 (+ 1 assert)
+##
+#!
+Exit status: 7
+Uq_Typo(Int(32) a) : Bar { Bool(1) typool(false);  :Bar< Unsigned(3) bu( 7u);  Unsigned(3) first( 1u); > <NOMAIN> }
+Ue_Eltypo +QFoo +Typo(1) { System s();  Unsigned(3) second(7u);  Typo(1) t( constant Int(32) a = 1;  Bool(1) typool(false);  :Bar< Unsigned(3) bu(3u);  Unsigned(3) first(1u); >);  +QFoo< Unsigned(3) first(3u); > +Typo(1)< constant Int(32) a = 1;  Bool(1) typool(true);  :Bar< Unsigned(3) bu(7u);  Unsigned(3) first(1u); >> ^Bar< Unsigned(3) bu(7u);  Unsigned(3) first(1u); > Int(32) test() {  self ( )functest . self s . ( self t . bu . cast )print . self s . ( self t . bu . cast 3 cast == )assert . self s . ( self first . cast )print . self s . ( self first . cast 3 cast == )assert . self second . self bu . = self second . cast return } }
+Uq_System { <NOMAIN> }
+Uq_QFoo { Unsigned(3) first(0);  <NOMAIN> }
+Uq_Bar { Unsigned(3) bu( 7u);  Unsigned(3) first( 1u);  <NOMAIN> }
+##
+## "conditional downcast"
+## informed by 41344, except data member 'first' shadowed by siblings;
+##  default search order applies, QFoo comes first.
+##
+#:Typo.ulam
+  ulam 4;
+use Eltypo;
+quark Typo(Int a) : Bar{
+  Bool typool;
+  Void functest()
+  {
+    System s;
+    if(self as Eltypo){
+      typool = true; //found here, an Eltypo ancestor
+      s.assert(typool);
+      t.func(3u); //modifies ElTypo datamember 'bu' in Bar
+      s.print(t.bu);
+      s.assert(t.bu == 3);
+      first = t.bu; //sibiling dm used here
+    }
+    else
+      s.assert(false);
+  }
+}
+
+#:Bar.ulam
+  ulam 2;
+quark Bar
+{
+  Unsigned(3) bu = 7u;
+  Unsigned(3) first = 1u;
+  Void func(Unsigned u)
+  {
+    bu = (Unsigned(3)) u;
+  }
+}
+
+#>Eltypo.ulam
+  ulam 5;
+use Typo;
+use System;
+element Eltypo + QFoo +Typo(1) {
+  System s;
+  Unsigned(3) second;
+  Typo(1) t;
+  Int test(){
+    functest();
+    s.print(t.bu);
+    s.assert(t.bu == 3);
+    s.print(first);
+    s.assert(first == 3); //local var in base changed
+    second = self.bu; //still 7
+    return second;
+  }
+}
+
+#:QFoo.ulam
+  ulam 4;
+quark QFoo
+{
+  Unsigned(3) first;
+}
+
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

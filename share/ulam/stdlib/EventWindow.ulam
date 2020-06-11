@@ -75,6 +75,18 @@ quark EventWindow {
   Bool isLegal(SiteNum index) { return index < size(); }
   Bool isLegal(C2D coord) { return isLegal(getSiteNumberRaw(coord)); }
 
+  /** Determine the accessibility of index, considering the following three factors:
+
+      (1) Is index a legal SiteNum under any circumstances?  
+      (2) If so, does index fit inside the currently accessible EventWindow radius?
+      (3) If so, is the indicated site live?
+
+      \returns false if the answer to any of those questions is 'no', otherwise true.
+
+      \sa getAccessibleSize()
+      \sa isLive(SiteNum)
+  */
+
   Bool isAccessible(SiteNum index) { return index < getAccessibleSize() && isLive(index); }
   Bool isAccessible(C2D coord) { return isLegal(coord) && isAccessible(getSiteNumberRaw(coord)); }
 
@@ -130,6 +142,87 @@ quark EventWindow {
       symmetry was cSYMMETRY_000L).
   */
   SiteNum getSiteNumberRaw(C2D coord) native;
+
+  /**
+     Access the SiteNum of the Atom referred to by ar, if that atom is
+     actually stored in an accessible location within the EventWindow,
+     or else returns SiteNum.maxof.  The sn returned is relative to
+     symmetry sym.  The following code always returns its argument:
+
+       Atom& func(Atom & ar) {
+         EventWindow.SiteNum sn = ew.getSiteNumber(ar,ew.getSymmetry());
+         if (sn == EventWindow.SiteNum.maxof) return ar;
+         return ew[sn];
+       }
+
+     Note that SiteNum.maxof may be returned for two possible reasons:
+
+     (1) The Atom may have nothing to do with the EventWindow, as in:
+
+         Atom a;           // In local storage
+         Atom & ar = (Atom &) a;
+         EventWindow.SiteNum sn = ew.getSiteNumber(ar,ew.getSymmetry()); // sn gets SiteNum.maxof
+
+     (2) The underlying atom storage may actually be in the
+         EventWindow but the atom may not be accessible due to limited
+         event radius.  In other words, ew.getSN(ar,sym) will never
+         return a SiteNum sn unless ew.isAccessible(sn) is true under
+         symmetry sym.
+
+     \return The SiteNum where the atom referred to by ar can be
+     found, or SiteNum.maxof if ar does not refer to an accessible Atom
+     in the EventWindow.
+
+     \since 4.1
+   */
+  SiteNum getSiteNumber(Atom& ar, Symmetry sym) native;
+
+  /**
+     Convenience form to access the SiteNum of the atom referred to by
+     ref, if possible, relative to the current symmetry.  Equivalent
+     to ew.getSiteNumber(ref, ew.getSymmetry())
+
+     \sa getSiteNumber(Atom&,Symmetry)
+
+     \since 5.0
+  */
+  SiteNum getSiteNumber(Atom& ref) {
+    return getSiteNumber(ref, getSymmetry());
+  }
+
+  /**
+     Access the SiteNum of the class instance referred to by ref, if
+     possible, relative to the symmetry sym.  Returns SiteNum.maxof if:
+
+     (1) ref does not have atom storage backing it, or
+
+     (2) The atom backing ref is not in the event window, or
+
+     (3) The eventwindow atom backing ref is not accessible
+
+     \sa getSiteNumber(Atom&,Symmetry)
+     \sa AtomUtils.hasAtomof(UrSelf&)
+
+     \since 4.1
+  */
+  SiteNum getSiteNumber(UrSelf& ref, Symmetry sym) { 
+    AtomUtils au;
+    if (!au.hasAtomof(ref)) return SiteNum.maxof;
+    return getSiteNumber((Atom&) ref, sym);
+  }
+
+  /**
+     Convenience form to access the SiteNum of the class instance
+     referred to by ref, if possible, relative to the current
+     symmetry.  Equivalent to ew.getSiteNumber(ref, ew.getSymmetry())
+
+     \sa getSiteNumber(UrSelf&,Symmetry)
+
+     \since 5.0
+  */
+  SiteNum getSiteNumber(UrSelf& ref) {
+    return getSiteNumber(ref, getSymmetry());
+  }
 
   /** Set the EventWindow symmetry to \c newSym, and return its
       previous value.  The prevailing EventWindow symmetry affects the

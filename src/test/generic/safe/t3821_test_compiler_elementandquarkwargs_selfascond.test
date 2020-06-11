@@ -1,15 +1,15 @@
 ## -*- mode:ulam -*-
 #=t3821_test_compiler_elementandquarkwargs_selfascond
-#!
 ##   gencode output (interleaved asserts):
 ##	 Unsigned Arg: 3
 ##       Unsigned Arg: 3
 ##       Unsigned Arg: 3
 ##
+#!
 Exit status: 3
 Uq_Typo(Int(32) a) : Bar { /* empty class block */ }
 Uq_Bar { Unsigned(3) bu( 7u);  <NOMAIN> }
-Ue_Eltypo : Typo(1) { :< :< Unsigned(3) bu(3u); > constant Int(32) a = 1; > System s();  Unsigned(3) first(3u);  Unsigned(3) second(3u);  Typo(1) t( :< Unsigned(3) bu(7u); > constant Int(32) a = 1; );  Int(32) test() {  { self Bar as cond { Bar& self;  ( 3u cast )func s ( bu cast )print . s ( bu cast 3 cast == )assert . first bu = } if s ( false )assert . else } s ( self bu . cast )print . s ( self bu . cast 3 cast == )assert . s ( first cast )print . s ( first cast 3 cast == )assert . second self bu . = second cast return } }
+Ue_Eltypo : Typo(1) { Unsigned(3) first(3u);  Unsigned(3) second(3u);  Typo(1) t( constant Int(32) a = 1;  :Bar< Unsigned(3) bu(7u); >);  :Typo(1)< constant Int(32) a = 1;  :Bar< Unsigned(3) bu(3u); >> ^Bar< Unsigned(3) bu(3u); > Int(32) test() {  System s;  Eltypo& me = self;  { self Bar as cond { Bar& self;  self ( 3u cast )func . s ( self bu . cast )print . s ( self bu . cast 3 cast == )assert . me first . self bu . = } if s ( false )assert . else } s ( self bu . cast )print . s ( self bu . cast 3 cast == )assert . s ( self first . cast )print . s ( self first . cast 3 cast == )assert . self second . self bu . = self second . cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by 3589, except as 'self', instead of local variable 'elf'
@@ -36,16 +36,19 @@ quark Bar
 use Typo;
 use System;
 element Eltypo : Typo(1) {
-  System s;
   Unsigned(3) first;
   Unsigned(3) second;
   Typo(1) t;
+
   Int test(){
+    System s;
+    Eltypo & me = self;
+
     if(self as Bar){
       func(3u); //modifies 'bu'
       s.print(bu);
       s.assert(bu == 3);
-      first = bu; //3u, from 7u
+      me.first = bu; //3u, from 7u
     }
     else
       s.assert(false);

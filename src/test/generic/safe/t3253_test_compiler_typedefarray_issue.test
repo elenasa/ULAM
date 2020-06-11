@@ -2,7 +2,7 @@
 #=t3253_test_compiler_typedefarray_issue
 #!
 Exit status: 0
-Ue_B { Bool(7) b(false);  System s();  typedef Unsigned(8) Index;  typedef Unsigned(8) NIdx;  typedef Unsigned(8) IndArr[4];  typedef Unsigned(8) IArray[4];  Unsigned(8) arr[4](1u,0u,0u,0u);  Int(32) test() {  arr 0 [] 1 cast = arr 0 [] cast 0 cast == cast return } }
+Ue_B { Bool(7) b(false);  System s();  typedef Unsigned(8) Index;  typedef Unsigned(8) NIdx;  typedef Unsigned(8) IndArr[4];  typedef Unsigned(8) IArray[4];  Unsigned(8) arr[4](1u,0u,0u,0u);  Int(32) test() {  self arr . 0 [] 1 cast = self arr . 0 [] cast 0 cast == cast return } }
 Uq_System { <NOMAIN> }
 #>B.ulam
   ulam 1;

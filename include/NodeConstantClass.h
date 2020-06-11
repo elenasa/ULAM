@@ -27,7 +27,7 @@
 
 /**
   \file NodeConstantClass.h - Node handling Named Constant classes for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
   \date (C) 2018 All rights reserved.
   \gpl

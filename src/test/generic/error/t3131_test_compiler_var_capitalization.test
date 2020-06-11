@@ -1,25 +1,26 @@
 ## -*- mode:ulam -*-
 #=t3131_test_compiler_var_capitalization
 #!
-./D.ulam:2:5: ERROR: Name of variable/function <T>: Identifier must begin with a lower-case letter.
-./D.ulam:1:1: ERROR: Empty/Incomplete Class Definition 'D'; Possible missing ending curly brace.
-./D.ulam:2:5: ERROR: Invalid Class Type <T>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
-./D.ulam:1:9: ERROR: Invalid Type: D.
+./D.ulam:3:7: ERROR: Name of variable/function 'T': Identifier must begin with a lower-case letter.
+./D.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'D'; Possible missing ending curly brace.
+./D.ulam:3:7: ERROR: Invalid Class Type <T>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+./D.ulam:2:9: ERROR: Invalid Type: D.
  ERROR: No parse tree for This Class: D.
 Unrecoverable Program Parse FAILURE: <D.ulam>
 ##
 #>D.ulam
+ ulam 1;
 element D {
-Int T;
-Int times(Int m, Int n) {
-Int e;
-while( m-=1 )
-  e += n;
-return e;
-}
-Int test()
-{
-  T = times(4,5); return T;
-}
+  Int T;
+  Int times(Int m, Int n) {
+    Int e;
+    while( m-=1 )
+      e += n;
+    return e;
+  }
+  Int test()
+  {
+    T = times(4,5); return T;
+  }
 }
 #.

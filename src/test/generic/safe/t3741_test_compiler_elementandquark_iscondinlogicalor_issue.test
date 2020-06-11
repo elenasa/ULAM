@@ -1,6 +1,5 @@
 ## -*- mode:ulam -*-
 #=t3741_test_compiler_elementandquark_iscondinlogicalor_issue
-#!
 ##
 ##   gencode output: (+ assert)
 ##	 Int Arg: 3
@@ -8,10 +7,11 @@
 ## FIX in NodeConditionalIs to clear stack of symbols
 ## culamtest: NodeBinaryOpCompare.cpp:272: virtual void MFM::NodeBinaryOpCompare::genCode(MFM::File*, MFM::UVPass&): Assertion \`m_state.m_currentObjSymbolsForCodeGen.empty()\' failed.
 ##
+#!
 Exit status: -11
 Uq_Typo(Int(32) a) : Bar { /* empty class block */ }
 Uq_Bar { Unsigned(3) bu( 7u);  <NOMAIN> }
-Ue_Eltypo : Typo(1) { :< :< Unsigned(3) bu(7u); > constant Int(32) a = 1; > System s();  Unsigned(3) first(0u);  Int(32) test() {  Eltypo elf;  Atom(96) other = elf cast;  { other Bar as cond { Bar& other;  Int(32) slot = 3 cast;  { other Eltypo is slot 2 cast > || cond { s ( slot )print . s ( slot 2 cast > )assert . } if { s ( 0u cast )print . s ( true )assert . } else } } if } 0 cast return } }
+Ue_Eltypo : Typo(1) { System s();  Unsigned(3) first(0u);  :Typo(1)< constant Int(32) a = 1;  :Bar< Unsigned(3) bu(7u); >> ^Bar< Unsigned(3) bu(7u); > Int(32) test() {  Eltypo elf;  Atom(96) other = elf cast;  { other Bar as cond { Bar& other;  Int(32) slot = 3 cast;  { other Eltypo is slot 2 cast > || cond { self s . ( slot )print . self s . ( slot 2 cast > )assert . } if { self s . ( 0u cast )print . self s . ( true )assert . } else } } if } 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by \'Burn\' issue 5/19/2016

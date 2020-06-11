@@ -1,0 +1,58 @@
+## -*- mode:ulam -*-
+#=t3683_test_compiler_elementandquark_quarkinstanceoffunccallarg_fail
+##      gen code output: (1 assert)
+##        include/Uq_10102QW10.tcc:26: FAILED: NOT_AN_ELEMENT
+##        unevaluable without assuming atoms as elements
+##
+#!
+Exit status: -1
+Ue_A : QW { Bool(1) b(false);  :QW<> Int(32) test() {  System s;  Atom(96) a = self ( QW.instanceof )func .;  { a QW is cond s ( false )assert . if s ( true )assert . else } 0 cast return } }
+Uq_System { <NOMAIN> }
+Uq_QW { <NOMAIN> }
+##
+## Dave requested a way to get default values for Self (within a quark);
+## a loophole, since a quark would be an undefined atom, but as a ref, its done (t3679)
+## As of ulam-3, loophole no longer needed; now it is a runtime check, rather than compile time restriction.
+##
+#>A.ulam
+  ulam 2;
+use System;
+use QW;
+element A : QW {
+  Bool b;
+  Int test(){
+    System s;
+    Atom a = func(QW.instanceof);
+
+    if(a is QW)
+      s.assert(false); //fails
+    else
+      s.assert(true); //correct
+
+    return 0;
+  }
+}
+
+#:QW.ulam
+  ulam 2;
+quark QW {
+  Atom func(QW qwarg)
+  {
+    QW& iref = qwarg;
+    Atom ia = iref.atomof;
+    return ia;
+  }
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

@@ -1,28 +1,28 @@
 ## -*- mode:ulam -*-
 #=t3295_test_compiler_sizeofclass_bytype
-#!
 ##      /* gen output:
 ##	 Int Arg: 0
 ##	 Int Arg: 96
 ##      */
 ##
 ##      //node terminal proxy
+#!
 Exit status: 96
-Ue_Fu { System s();  Int(32) u(0);  Int(32) v(96);  Int(32) test() {  u 0u cast = s ( u )print . v 96u cast = s ( v )print . v return } }
+Ue_Fu { System s();  Int(32) u(0);  Int(32) v(96);  Int(32) test() {  self u . 0u cast = self s . ( self u . )print . self v . 96u cast = self s . ( self v . )print . self v . return } }
 Uq_System { <NOMAIN> }
 #>Fu.ulam
-ulam 1;
+  ulam 1;
 use System;
 element Fu {
-System s;
-Int u, v;
-Int test(){
-u = System.sizeof;
-s.print(u);
-  v = Fu.sizeof;
-s.print(v);
- return v;
-}
+  System s;
+  Int u, v;
+  Int test(){
+    u = System.sizeof;
+    s.print(u);
+    v = Fu.sizeof;
+    s.print(v);
+    return v;
+  }
 }
 
 ##

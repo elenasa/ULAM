@@ -1,9 +1,9 @@
 ## -*- mode:ulam -*-
-#=t3883_test_compiler_constantarrayinit_localdef
+#=t3883_test_compiler_constantarrayinit_localdefwrite_error
 #!
-./A.ulam:10:13: ERROR: Unmodifiable lefthand side of assignment expression <[]>, type: Unsigned(8).
-./A.ulam:11:13: ERROR: Unmodifiable lefthand side of assignment expression <[]>, type: Unsigned(16).
-./A.ulam:12:13: ERROR: Unmodifiable lefthand side of assignment expression <[]>, type: Unsigned(33).
+./A.ulam:10:13: ERROR: Unmodifiable lefthand side of assignment expression '[]', type: Unsigned(8).
+./A.ulam:11:13: ERROR: Unmodifiable lefthand side of assignment expression '[]', type: Unsigned(16).
+./A.ulam:12:13: ERROR: Unmodifiable lefthand side of assignment expression '[]', type: Unsigned(33).
 Unrecoverable Program Type Label FAILURE.
 ##
 ## error write test of constant arrays

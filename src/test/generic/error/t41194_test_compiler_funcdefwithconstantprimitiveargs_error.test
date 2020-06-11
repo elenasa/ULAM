@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t41194_test_compiler_funcdefwithconstantprimitiveargs_error
 #!
-./A.ulam:5:12: ERROR: Unmodifiable lefthand side of assignment expression <m>, type: Int(32).
+./A.ulam:5:12: ERROR: Unmodifiable lefthand side of assignment expression 'm', type: Int(32).
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t3115, except with two constant args, one which is modified

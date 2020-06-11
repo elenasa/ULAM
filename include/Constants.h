@@ -27,7 +27,7 @@
 
 /**
   \file Constants.h Useful common constants for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
   \date (C) 2014-2018 All rights reserved.
   \gpl
@@ -78,6 +78,18 @@ namespace MFM {
 #define MAX_FILENAME_LENGTH (255 - 8)
 #endif //MAX_FILENAME_LENGTH
 
+#ifndef MAX_IDENTIFIER_LENGTH
+#define MAX_IDENTIFIER_LENGTH (255)
+#endif //MAX_IDENTIFIER_LENGTH
+
+#ifndef MAX_USERSTRING_LENGTH
+#define MAX_USERSTRING_LENGTH (255)
+#endif //MAX_USERSTRING_LENGTH
+
+#ifndef MAX_NUMERICSTRING_LENGTH
+#define MAX_NUMERICSTRING_LENGTH (255)
+#endif //MAX_NUMERICSTRING_LENGTH
+
 #ifndef ELE_TYPE
 #define ELE_TYPE u16
 #endif
@@ -100,6 +112,9 @@ namespace MFM {
 
   enum STORAGE { IMMEDIATE = 0, EVENTWINDOW, STACK, EVALRETURN, UNPACKEDSTRUCT, CNSTSTACK};
 
+  /**
+      TMPSTORAGE: in uvpass, primarily used to name tmp variables, also to test for tmpbitval and tmpautoref, immediate types, that could need write/read(); terminal is a number; the rest are based on UlamType* and total bitsize (e.g. transients, element, atom are virtually special cases)
+   */
   enum TMPSTORAGE { TERMINAL = 0, TMPREGISTER, TMPBITVAL, TMPAUTOREF, TMPTATOM, TMPATOMBS, TMPTBV, TMPARRAYIDX };
 
   enum PACKFIT { UNPACKED = 0, PACKED, PACKEDLOADABLE};

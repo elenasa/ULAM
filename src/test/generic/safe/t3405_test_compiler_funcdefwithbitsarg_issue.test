@@ -2,7 +2,7 @@
 #=t3405_test_compiler_funcdefwithbitsarg_issue
 #!
 Exit status: 3
-Ue_Foo { Bool(1) b(true);  Bits(7) s(3);  Int(32) test() {  s 3u cast = b self ( s )check . = s cast return } }
+Ue_Foo { Bool(1) b(true);  Bits(7) s(3);  Int(32) test() {  self s . 3u cast = self b . self ( self s . )check . = self s . cast return } }
 #>Foo.ulam
   ulam 1;
 element Foo {

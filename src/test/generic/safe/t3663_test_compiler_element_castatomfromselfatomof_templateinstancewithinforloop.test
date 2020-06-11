@@ -4,7 +4,7 @@
 ## gen code: 2 asserts
 #!
 Exit status: -11
-Ue_Foo : QPerc(3u) { :< constant Unsigned(32) c = 3u;  Bool(1) bb(true); > typedef QPerc(3u) QPerc3;  Int(32) test() {  System s;  QPerc(3u) qp;  qp bb . true = Atom(96) b = ( )func;  { b Foo as cond { Foo& b;  s ( b bb . )assert . } if } s ( bb )assert . 0 cast return } }
+Ue_Foo : QPerc(3u) { typedef QPerc(3u) QPerc3;  :QPerc(3u)< constant Unsigned(32) c = 3u;  Bool(1) bb(true); > Int(32) test() {  System s;  QPerc(3u) qp;  qp bb . true = Atom(96) b = self ( )func .;  { b Foo as cond { Foo& b;  s ( b bb . )assert . } if } s ( self bb . )assert . 0 cast return } }
 Uq_QPerc(Unsigned(32) c) { Bool(1) bb(false);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

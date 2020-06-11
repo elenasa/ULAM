@@ -2,7 +2,7 @@
 #=t3252_test_compiler_typedef_issue
 #!
 Exit status: 0
-Ue_A { Bool(7) b(false);  typedef Unsigned(8) Byte;  Unsigned(8) arr[2](1u,0u);  Int(32) test() {  arr 0 [] 1 cast = arr 0 [] cast 0 cast == cast return } }
+Ue_A { Bool(7) b(false);  typedef Unsigned(8) Byte;  Unsigned(8) arr[2](1u,0u);  Int(32) test() {  self arr . 0 [] 1 cast = self arr . 0 [] cast 0 cast == cast return } }
 #>A.ulam
   ulam 1;
 element A {

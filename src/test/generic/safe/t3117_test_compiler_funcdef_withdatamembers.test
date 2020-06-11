@@ -2,7 +2,7 @@
 #=t3117_test_compiler_funcdef_withdatamembers
 #!
 Exit status: 9
-Ue_A { Int(4) b(5);  System s();  Int(4) a(4);  Bool(7) d(false);  Int(32) test() {  a 4 = b 5 = s ( a cast b cast +b cast )print . a cast b cast +b cast return } }
+Ue_A { Int(4) b(5);  System s();  Int(4) a(4);  Bool(7) d(false);  Int(32) test() {  self a . 4 = self b . 5 = self s . ( self a . cast self b . cast +b cast )print . self a . cast self b . cast +b cast return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
 use System;

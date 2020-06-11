@@ -1,0 +1,105 @@
+## -*- mode:ulam -*-
+#=t41314_test_compiler_elementandquark_multibases_virtualfuncsselectwself_seenorder
+##
+## gen output: (w interleaved asserts )
+## Int Arg: 212 (+ 1 assert)
+## Int Arg: 310 (+ 2 asserts)
+## Int Arg: 110 (+ 2 asserts)
+## Int Arg: 110 (+ 2 asserts)
+##
+#!
+Exit status: 0
+Ue_E4 : QBase3 +QBase2 +QBase1 { Int(32) m_c4(212);  Int(32) m_a4(310);  :QBase3< typedef QBase1 QB1;  Bool(1) m_b3(true);  +QBase1< Bool(1) m_b1(true); >> +QBase2< typedef QBase2 QB2;  Bool(1) m_b2(true); > +QBase1< Bool(1) m_b1(false); > Int(32) test() {  System s;  self m_c4 . self QB2 . ( )vfuncc . = s ( self m_c4 . )print . s ( self m_c4 . 212 cast == )assert . self m_a4 . self Super . ( )vfunca . = s ( self m_a4 . )print . s ( self m_a4 . 310 cast == )assert . s ( self m_b1 . ! )assert . Int(32) a4 = self QBase1 . ( )vfunca .;  s ( a4 )print . s ( a4 110 cast == )assert . s ( self m_b1 . )assert . self m_b1 . false = Int(32) sa4 = super QB1 . ( )vfunca .;  s ( sa4 )print . s ( sa4 110 cast == )assert . s ( self m_b1 . )assert . 0 cast return } }
+Uq_QBase3 +QBase1 { typedef QBase1 QB1;  Bool(1) m_b3(false);  +QBase1< Bool(1) m_b1(false); > <NOMAIN> }
+Uq_QBase1 { Bool(1) m_b1(false);  <NOMAIN> }
+Uq_QBase2 { typedef QBase2 QB2;  Bool(1) m_b2(false);  <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+##       informed by t41311; do we inherit typedefs in base classes that are seen before used? Yes.
+##       tests using super with implied self with specific base types and virtual func calls.
+##
+#>E4.ulam
+  ulam 5;
+use QBase3;
+use QBase2;
+element E4 : QBase3 +QBase2 +QBase1 {
+  Int m_c4;
+  Int m_a4;
+
+  virtual Int vfuncc() { return 412; }
+  virtual Int vfunca() { return 410; }
+  virtual Void behave() { }
+
+  Int test()
+  {
+    System s;
+
+    m_c4 = self.QB2.vfuncc(); //212
+    s.print(m_c4);
+    s.assert(m_c4==212);
+
+    m_a4 = self.Super.vfunca(); //310
+    s.print(m_a4);
+    s.assert(m_a4==310);
+    s.assert(!self.m_b1); //shared, unchanged
+
+    Int a4 = self.QBase1.vfunca(); //110
+    s.print(a4);
+    s.assert(a4==110);
+    s.assert(self.m_b1);
+
+    m_b1 = false; //reset
+    Int sa4 = super.QB1.vfunca(); //110
+    s.print(sa4);
+    s.assert(sa4==110);
+    s.assert(self.m_b1); //shared
+
+    return 0;
+  }
+}
+
+#:QBase1.ulam
+    ulam 4;
+quark QBase1 {
+  Bool m_b1;
+  Void funcNotVirtualSoIrrelevantHere() { }
+  virtual Int vfuncb() { return 111; }   //ambiguous (see t41305); ok now..
+  virtual Int vfunca() { m_b1 = true; return 110; }
+}
+
+#:QBase2.ulam
+  ulam 4;
+quark QBase2 {
+  typedef QBase2 QB2;
+
+  Bool m_b2;
+  //  typedef Unsigned(8) ARGB[4]; INHERITED!!
+  virtual ARGB getColor(Unsigned s) { return super.getColor(s); }
+  //virtual Int vfunca() { return 210; } //ambiguous (see t41312)
+  virtual Int vfuncc() { m_b2 = true; return 212; }
+}
+
+#:QBase3.ulam
+  ulam 5;
+use QBase1;
+quark QBase3 +QBase1 {
+  typedef QBase1 QB1;
+  Bool m_b3;
+  virtual Int vfuncb() { return 311; }
+  virtual Int vfunca() { m_b3 = true; return 310; }
+}
+
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

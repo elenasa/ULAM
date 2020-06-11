@@ -1,6 +1,5 @@
 ## -*- mode:ulam -*-
 #=t3305_test_compiler_multiplestmts_binaryops
-#!
 ##      /* gen code output:
 ##	 Int Arg: 2
 ##	 Int Arg: 0
@@ -9,34 +8,36 @@
 ##	 Int Arg: 1
 ##      */
 ##
+#!
 Exit status: 1
-Ue_A { System s();  Bool(7) spb(false);  Int(32) c(0);  Int(32) d(1);  Int(32) test() {  Int(32) a;  Int(32) b;  a b c 1 cast = = = c a b +b = s ( c )print . c c a -b b -b = s ( c )print . a c b * = s ( a )print . b b b / = s ( b )print . d a b +b c +b = s ( d )print . a b +b c +b return } }
+Ue_A { System s();  Bool(7) spb(false);  Int(32) c(0);  Int(32) d(1);  Int(32) test() {  Int(32) a;  Int(32) b;  a b self c . 1 cast = = = self c . a b +b = self s . ( self c . )print . self c . self c . a -b b -b = self s . ( self c . )print . a self c . b * = self s . ( a )print . b b b / = self s . ( b )print . self d . a b +b self c . +b = self s . ( self d . )print . a b +b self c . +b return } }
 Uq_System { <NOMAIN> }
 ##      // multiple statements, each of the binary ops, where all idents == 1
 ##      // when using the same variable for each result, the final value is returned throughout.
 ##      // to see intermediate results use different variables:
 #>A.ulam
+  ulam 1;
 use System;
 element A{
-System s;
-Bool(7) spb;
-Int c, d;
- Int test() {
- Int a, b;
- a = b = c = 1;
- c = a + b;
-s.print(c);
- c = c - a - b;
- s.print(c);
-a = c * b;
-s.print(a);
- b = b / b;
- s.print(b);
-d = (a + b + c);
-s.print(d);
- return (a + b + c);
- }
- }
+  System s;
+  Bool(7) spb;
+  Int c, d;
+  Int test() {
+    Int a, b;
+    a = b = c = 1;
+    c = a + b;
+    s.print(c);
+    c = c - a - b;
+    s.print(c);
+    a = c * b;
+    s.print(a);
+    b = b / b;
+    s.print(b);
+    d = (a + b + c);
+    s.print(d);
+    return (a + b + c);
+  }
+}
 ##      //bool rtn1 = fms->add("A.ulam","element A{\nInt c, d;\n Int test() {\n Int a, b;\n a = b = c = 1;\n c = a + b;\n c = c - a - b;\n a = c * b;\n b = b / b;\n d = (a + b + c);\n return (a + b + c);\n }\n }\n");
 
 #:System.ulam

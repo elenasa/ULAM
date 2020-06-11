@@ -1,6 +1,5 @@
 ## -*- mode:ulam -*-
 #=t3841_test_compiler_zerolengtharrayreference_element
-#!
 ##   gen code output: 2 asserts + interleaved asserts
 ##	 Int Arg: 0
 ##	 Int Arg: 1
@@ -14,8 +13,9 @@
 ##	 Int Arg: 9
 ##       Unsigned Arg: 960
 ##
+#!
 Exit status: 10
-Ue_A { System s();  typedef EW NoSite[0];  typedef EW& NoRef[0];  typedef EW& NRR[0];  typedef EW BigSite[10];  typedef EW& BSRef[10];  typedef EW& BRR[10];  Int(32) test() {  EW nosite[0];  EW& nositeref[0] = nosite cast;  EW& nrr[0] = nositeref;  s ( true )assert . s ( true )assert . EW site[10];  EW& siteref[10] = site cast;  EW& brr[10] = siteref;  EW ew;  EW ewread;  { Int(32) i = 0 cast;  i 10 cast < cond { siteref i [] ew = siteref i [] ( 1 cast i )set . s ( brr i [] ( 1 cast )get . )print . ewread siteref i [] = s ( ewread EW is )assert . EW ewr2 = siteref i [];  s ( ewr2 EW is )assert . } _1: i 1 += while } s ( 960u )print . s ( true )assert . 10 cast return } }
+Ue_A { System s();  typedef EW NoSite[0];  typedef EW& NoRef[0];  typedef EW& NRR[0];  typedef EW BigSite[10];  typedef EW& BSRef[10];  typedef EW& BRR[10];  Int(32) test() {  EW nosite[0];  EW& nositeref[0] = nosite cast;  EW& nrr[0] = nositeref;  self s . ( true )assert . self s . ( true )assert . EW site[10];  EW& siteref[10] = site cast;  EW& brr[10] = siteref;  EW ew;  EW ewread;  { Int(32) i = 0 cast;  i 10 cast < cond { siteref i [] ew = siteref i [] ( 1 cast i )set . self s . ( brr i [] ( 1 cast )get . )print . ewread siteref i [] = self s . ( ewread EW is )assert . EW ewr2 = siteref i [];  self s . ( ewr2 EW is )assert . } _1: i 1 += while } self s . ( 960u )print . self s . ( true )assert . 10 cast return } }
 Ue_EW { Bool(1) bw(false);  Int(8) iwarr[3](0,0,0);  Bits(9) tw(0);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

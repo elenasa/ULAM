@@ -1,0 +1,108 @@
+## -*- mode:ulam -*-
+#=t41381_test_compiler_elementandquark_multibases_specificbasevariablevirtualfunccallusingconstantclassidofref
+##
+## gen output: (+1 assert)
+##  Int Arg: 510 (+ 4 asserts)
+##  Int Arg: 16 (+ 2 assert)
+##
+#!
+Exit status: -11
+Ue_Foo +System { Int(32) m_c4(0);  Int(32) m_a4(0);  +System<> Int(32) test() {  typedef QBase2 QB2;  typedef QBase1 QB1;  E4 e4;  QBase1 q1;  QBase1& q1ref = q1 cast;  constant Unsigned(32) qbase1rn = 1u;  self ( true )assert . self m_a4 . e4 QBase1 2u .[] ( )vfunca . = self ( self m_a4 . )print . self ( self m_a4 . 510 cast == )assert . self ( e4 m_b1 . )assert . self ( e4 QB2 . m_b1 . )assert . self ( e4 QBaseLast . m_b1 . )assert . self ( e4 m_blast . cast )print . self ( e4 m_blast . 16 cast == )assert . self ( e4 m_b4 . ! )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+Ue_E4 : QBase3 +QBase2 +QBaseLast { Bool(1) m_b4(false);  typedef QBase2 QB2;  :QBase3< Bool(1) m_b3(false); > +QBase2< Bool(1) m_b2(false);  Bits(1) m_bit(0); > +QBaseLast< Int(7) m_blast(0); > ^QBase1< Bool(1) m_b1(false); > <NOMAIN> }
+Uq_QBase3 : QBase1 { Bool(1) m_b3(false);  :QBase1< Bool(1) m_b1(false); > <NOMAIN> }
+Uq_QBase1 { Bool(1) m_b1(false);  <NOMAIN> }
+Uq_QBaseLast : QBase1 { Int(7) m_blast(0);  :QBase1< Bool(1) m_b1(false); > <NOMAIN> }
+Uq_QBase2 +QBase1 { Bool(1) m_b2(false);  Bits(1) m_bit(0);  +QBase1< Bool(1) m_b1(false); > <NOMAIN> }
+##
+##       informed by t41379, using variable Regnum for specific class VTtable;
+##                           and new CONSTANT .classidof on a ref.
+##
+#>Foo.ulam
+  ulam 5;
+element Foo +System {
+  Int m_c4;
+  Int m_a4;
+
+  Int test()
+  {
+    typedef E4.QB2 QB2;
+    typedef QBase3.Super QB1;
+
+    E4 e4;
+    QBase1 q1;
+    QBase1 & q1ref = q1;
+    constant Unsigned qbase1rn = q1ref.classidof; //constant, may also use var or Type
+    assert(qbase1rn+1u==QBaseLast.classidof);
+
+    //m_a4 = e4.QBaseLast.vfunca(); //explicitly changed
+    m_a4 = e4.QBase1[qbase1rn+1u].vfunca(); //equivalent to QBaseLast
+    print(m_a4);
+    assert(m_a4==510);
+
+    assert(e4.m_b1); //shared, changed
+    assert(e4.QB2.m_b1); //shared, changed
+    assert(e4.QBaseLast.m_b1); //shared, explicitly changed
+    print(e4.m_blast);
+    assert(e4.m_blast == 16);
+    assert(!e4.m_b4); //untouched
+    return 0;
+  }
+}
+
+
+#:E4.ulam
+  ulam 5;
+element E4 : QBase3 +QBase2 +QBaseLast {
+  Bool m_b4;
+  virtual Int vfuncc() { return 412; }
+  virtual Int vfunca() { m_b1 = true; m_b4 = true; return 410; }
+  virtual Void behave() { }
+  typedef QBase2 QB2;
+}
+
+#:QBase1.ulam
+    ulam 4;
+quark QBase1 {
+  Bool m_b1;
+  Void funcNotVirtualSoIrrelevantHere() { }
+  virtual Int vfunca() { m_b1 = true; return 110; }
+}
+
+#:QBase2.ulam
+  ulam 5;
+quark QBase2 +QBase1 {
+  Bool m_b2;
+  Bits(1) m_bit; //so that len of QBase2 is different than its pos in E4.
+  virtual ARGB getColor(Unsigned s) { return super.getColor(s); }
+  virtual Int vfuncc() { m_b2 = true; return 212; }
+}
+
+#:QBase3.ulam
+  ulam 4;
+quark QBase3 : QBase1 {
+  Bool m_b3;
+  virtual Int vfuncb() { return 311; }
+}
+
+#:QBaseLast.ulam
+  ulam 4;
+quark QBaseLast : QBase1 {
+  Int(7) m_blast;
+  virtual Int vfunca() { m_b1 = true; m_blast = 16; self.QBaseLast.m_b1 = true; return 510; }
+}
+
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

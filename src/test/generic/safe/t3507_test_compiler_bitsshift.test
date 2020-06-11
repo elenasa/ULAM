@@ -2,7 +2,7 @@
 #=t3507_test_compiler_bitsshift
 #!
 Exit status: 7
-Ue_A { Unsigned(3) u(7u);  Unsigned(3) v(4u);  Int(32) test() {  u 12 cast = v 12u cast = u cast return } }
+Ue_A { Unsigned(3) u(7u);  Unsigned(3) v(4u);  Int(32) test() {  self u . 12 cast = self v . 12u cast = self u . cast return } }
 ##
 ##      // the example in the reference manual:
 ##      //./A.ulam:4:3: ERROR: Use explicit cast to convert Int(7) to Unsigned(3) for operator=.

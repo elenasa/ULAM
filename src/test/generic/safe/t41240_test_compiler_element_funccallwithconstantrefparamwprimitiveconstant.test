@@ -7,7 +7,7 @@
 ##
 #!
 Exit status: 3
-Ue_Foo { System s();  Int(4) m_i(3);  Bool(3) m_b(true);  Int(32) test() {  m_i 3 cast = ( 7u cast )check s ( m_b )print . s ( m_b cast )assert . s ( m_i )print . s ( m_i 3 cast == )assert . m_i cast return } }
+Ue_Foo { System s();  Int(4) m_i(3);  Bool(3) m_b(true);  Int(32) test() {  self m_i . 3 cast = self ( 7u cast )check . self s . ( self m_b . )print . self s . ( self m_b . cast )assert . self s . ( self m_i . )print . self s . ( self m_i . 3 cast == )assert . self m_i . cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t41190, and t41238, testing the constant ref function parameter;

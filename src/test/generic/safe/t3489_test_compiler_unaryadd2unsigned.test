@@ -1,6 +1,5 @@
 ## -*- mode:ulam -*-
 #=t3489_test_compiler_unaryadd2unsigned
-#!
 ##      /* gencode output:
 ##	 Unary(3) Arg: 0x3
 ##       assert: arg is 1
@@ -9,8 +8,9 @@
 ##       assert: arg is 1
 ##       after assert's abort: arg is 1
 ##      */
+#!
 Exit status: 3
-Ue_A { constant Unsigned(3) b = 5u;  System s();  constant Unsigned(3) a = 7u;  constant Unary(3) c = 7u;  Unsigned(4) d(12u);  Int(32) test() {  d 12u = s ( 7u )print . s ( true )assert . s ( d cast )print . s ( d cast 12 == )assert . 7u cast return } }
+Ue_A { constant Unsigned(3) b = 5u;  System s();  constant Unsigned(3) a = 7u;  constant Unary(3) c = 7u;  Unsigned(4) d(12u);  Int(32) test() {  self d . 12u = self s . ( 7u )print . self s . ( true )assert . self s . ( self d . cast )print . self s . ( self d . cast 12 == )assert . 7u cast return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
   ulam 1;

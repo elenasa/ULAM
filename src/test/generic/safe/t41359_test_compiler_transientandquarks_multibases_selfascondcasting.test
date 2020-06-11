@@ -1,0 +1,106 @@
+## -*- mode:ulam -*-
+#=t41359_test_compiler_transientandquarks_multibases_selfascondcasting
+##
+## gen output:
+## Unsigned Arg: 7  (+5 asserts)
+## Unsigned Arg: 7  (+6 asserts)
+##
+## big transients are  unevaluable
+#!
+Exit status: -11
+Ue_RS { Int(32) test() {  T3 wow;  wow ( )behave . 0 cast return } }
+Un_T3 : T2 +T0 +T1 { T2 mT3_T2( T1 mT2_T1( T0 mT1_T0( Unsigned(5) mT0[2]( { 0u, 1u }); );  Unsigned(5) mT1[1]( { 3u });  :T0< Unsigned(5) mT0[2]( { 0u, 1u }); >);  T0 mT2_T0( Unsigned(5) mT0[2]( { 0u, 1u }); );  Unsigned(5) mT2[5]( { 7u, 8u, 9u, 10u, 11u });  :T1< T0 mT1_T0( Unsigned(5) mT0[2]( { 0u, 1u }); );  Unsigned(5) mT1[1]( { 3u }); > +T0< Unsigned(5) mT0[2]( { 0u, 1u }); >);  T1 mT3_T1( T0 mT1_T0( Unsigned(5) mT0[2]( { 0u, 1u }); );  Unsigned(5) mT1[1]( { 3u });  :T0< Unsigned(5) mT0[2]( { 0u, 1u }); >);  T0 mT3_T0( Unsigned(5) mT0[2]( { 0u, 1u }); );  Unsigned(5) mT3[6]( { 12u, 13u, 14u, 15u, 16u, 17u });  :T2< T1 mT2_T1( T0 mT1_T0( Unsigned(5) mT0[2]( { 0u, 1u }); );  Unsigned(5) mT1[1]( { 3u });  :T0< Unsigned(5) mT0[2]( { 0u, 1u }); >);  T0 mT2_T0( Unsigned(5) mT0[2]( { 0u, 1u }); );  Unsigned(5) mT2[5]( { 7u, 8u, 9u, 10u, 11u }); > +T0< Unsigned(5) mT0[2]( { 0u, 1u }); > +T1< T0 mT1_T0( Unsigned(5) mT0[2]( { 0u, 1u }); );  Unsigned(5) mT1[1]( { 3u }); > <NOMAIN> }
+Uq_T0 { Unsigned(5) mT0[2]( { 0u, 1u });  <NOMAIN> }
+Uq_T1 : T0 { T0 mT1_T0( Unsigned(5) mT0[2]( { 0u, 1u }); );  Unsigned(5) mT1[1]( { 3u });  :T0< Unsigned(5) mT0[2]( { 0u, 1u }); > <NOMAIN> }
+Un_T2 : T1 +T0 { T1 mT2_T1( T0 mT1_T0( Unsigned(5) mT0[2]( { 0u, 1u }); );  Unsigned(5) mT1[1]( { 3u });  :T0< Unsigned(5) mT0[2]( { 0u, 1u }); >);  T0 mT2_T0( Unsigned(5) mT0[2]( { 0u, 1u }); );  Unsigned(5) mT2[5]( { 7u, 8u, 9u, 10u, 11u });  :T1< T0 mT1_T0( Unsigned(5) mT0[2]( { 0u, 1u }); );  Unsigned(5) mT1[1]( { 3u }); > +T0< Unsigned(5) mT0[2]( { 0u, 1u }); > <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+##  informed by t41358, except 'self', instead of local var 'wow',
+##                      within as-conditionals
+##
+#>RS.ulam
+  ulam 4;
+element RS {
+  Int test()
+  {
+    T3 wow;
+    wow.behave();
+    return 0;
+  }
+}
+
+
+#:T3.ulam
+  ulam 5;
+local typedef Unsigned(5) Uint;
+
+quark T0 {
+  Uint mT0[2] = {0,1};
+}
+quark T1 : T0 {
+  T0 mT1_T0;
+  Uint mT1[1] = {3};
+}
+transient T2 : T1 + T0 {
+  T1 mT2_T1;
+  T0 mT2_T0;
+  Uint mT2[5] = { 7,8,9,10,11};
+}
+transient T3 : T2 + T0 + T1 {
+  T2 mT3_T2;
+  T1 mT3_T1;
+  T0 mT3_T0;
+  Uint mT3[6] = { 12, 13, 14, 15, 16, 17 };
+
+  Void behave()
+  {
+    System s;
+    constant Uint cT0[2] = {7,6};
+    mT0 = cT0; //modify base dm, implicit self
+    s.print(mT0[0]);
+    s.assert(self.mT0[0] == 7); //changed
+
+    if(self as T1)
+    {
+      T1 t1 = self;
+      t1.mT0[1] = 3;
+      t1.mT1[0] = 8;
+      self = t1; //T1 & T0 bases change
+      s.assert(mT0[1] == 3);
+      s.assert(self.mT1[0] == 8);
+    }
+    s.assert(self.mT0[1] == 3); //also changed?
+    s.assert(mT1[0] == 8); //also changed?
+
+    s.print(mT0[0]); //separator
+
+    if(self as T2)
+    {
+      T2 t2 = self;
+      t2.mT0[0] = 1;
+      t2.mT2[1] = 4;
+      t2.mT1[0] = 11;
+      self = t2; //T2,T1,T0 bases change?
+      s.assert(self.mT0[0] == 1);
+      s.assert(mT2[1] == 4);
+      s.assert(self.mT1[0] == 11);
+    }
+    s.assert(mT0[0] == 1); //also changed?
+    s.assert(self.mT2[1] == 4);
+    s.assert(mT1[0] == 11);
+  }
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

@@ -3,7 +3,7 @@
 ##      // removed 1-bit bool cast from constant
 #!
 Exit status: 2
-Ue_A { Bool(1) b(true);  Int(32) a(2);  Int(32) test() {  b true = { b ! cond a 1 cast = if a 2 cast = else } a return } }
+Ue_A { Bool(1) b(true);  Int(32) a(2);  Int(32) test() {  self b . true = { self b . ! cond self a . 1 cast = if self a . 2 cast = else } self a . return } }
 #>A.ulam
   ulam 1;
 element A {

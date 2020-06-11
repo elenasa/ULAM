@@ -11,7 +11,7 @@
 ##
 #!
 Exit status: 5
-Ue_Foo : QW { :<> Bool(1) first(true);  Int(32) fint(0);  Int(32) opfint(5);  Int(32) test() {  System s;  QW qw;  Int(32) qint = qw ( qw ( )toInt . )operator+ .;  s ( qint )print . s ( qint 4 cast == )assert . Int(32) qint2 = qw ( )operator+ .;  s ( qint2 )print . s ( qint2 5 cast == )assert . Foo foo;  foo fint . 2 cast = opfint foo ( )operator+ . = s ( opfint )print . s ( opfint 5 cast == )assert . opfint foo ( )operator- . = s ( opfint )print . s ( opfint -1 cast == )assert . first foo ( )operator! . = s ( first cast )print . s ( first )assert . opfint foo ( )operator+ . = s ( opfint )print . s ( opfint 5 cast == )assert . opfint return } }
+Ue_Foo : QW { Bool(1) first(true);  Int(32) fint(0);  Int(32) opfint(5);  :QW<> Int(32) test() {  System s;  QW qw;  Int(32) qint = qw ( qw ( )toInt . )operator+ .;  s ( qint )print . s ( qint 4 cast == )assert . Int(32) qint2 = qw ( )operator+ .;  s ( qint2 )print . s ( qint2 5 cast == )assert . Foo foo;  foo fint . 2 cast = self opfint . foo ( )operator+ . = s ( self opfint . )print . s ( self opfint . 5 cast == )assert . self opfint . foo ( )operator- . = s ( self opfint . )print . s ( self opfint . -1 cast == )assert . self first . foo ( )operator! . = s ( self first . cast )print . s ( self first . )assert . self opfint . foo ( )operator+ . = s ( self opfint . )print . s ( self opfint . 5 cast == )assert . self opfint . return } }
 Uq_QW { <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

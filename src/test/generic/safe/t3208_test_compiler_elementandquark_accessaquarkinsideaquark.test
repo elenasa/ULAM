@@ -9,7 +9,7 @@
 ##      //constant fold minus
 #!
 Exit status: 0
-Ue_Foo { Bool(1) b(false);  System m_s();  Int(4) i(0);  Int(4) j(6);  Bar m_bar( Bool(1) b(false);  System m_s();  Unsigned(4) x(0u);  Unsigned(4) y(0u);  Gah m_gah( Bool(1) b(false);  System m_s();  Int(4) a(2);  Int(4) d(-2); ); );  Int(32) test() {  m_bar m_gah . ( 2 cast -2 cast )set . j m_bar m_gah . ( )toInt . cast = m_s ( j )print . 0 cast return } }
+Ue_Foo { Bool(1) b(false);  System m_s();  Int(4) i(0);  Int(4) j(6);  Bar m_bar( Bool(1) b(false);  System m_s();  Unsigned(4) x(0u);  Unsigned(4) y(0u);  Gah m_gah( Bool(1) b(false);  System m_s();  Int(4) a(2);  Int(4) d(-2); ); );  Int(32) test() {  self m_bar . m_gah . ( 2 cast -2 cast )set . self j . self m_bar . m_gah . ( )toInt . cast = self m_s . ( self j . )print . 0 cast return } }
 Uq_Bar { System m_s();  Bool(1) b(false);  Unsigned(4) x(0);  Unsigned(4) y(0);  Gah m_gah( System m_s();  Bool(1) b(false);  Int(4) a(0);  Int(4) d(0); );  <NOMAIN> }
 Uq_System { <NOMAIN> }
 Uq_Gah { System m_s();  Bool(1) b(false);  Int(4) a(0);  Int(4) d(0);  <NOMAIN> }

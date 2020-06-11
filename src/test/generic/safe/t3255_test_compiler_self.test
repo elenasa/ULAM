@@ -9,7 +9,7 @@
 ##        unevaluable without assuming atoms as elements
 #!
 Exit status: 1
-Ue_S { System s();  Bool(1) sp(false);  Bool(3) b1(true);  Bool(3) b2(true);  Int(32) test() {  Atom(96) a;  Atom(96) t;  a self cast = { a S as cond { S& a;  b2 a ( )func . cast = } if } s ( b2 )print . s ( b2 cast )assert . b1 ( a )func cast = s ( b1 )print . s ( b1 cast )assert . b1 ( t )func cast = s ( b1 )print . s ( b1 ! cast )assert . b2 cast return } }
+Ue_S { System s();  Bool(1) sp(false);  Bool(3) b1(true);  Bool(3) b2(true);  Int(32) test() {  Atom(96) a;  Atom(96) t;  a self cast = { a S as cond { S& a;  self b2 . a ( )func . cast = } if } self s . ( self b2 . )print . self s . ( self b2 . cast )assert . self b1 . self ( a )func . cast = self s . ( self b1 . )print . self s . ( self b1 . cast )assert . self b1 . self ( t )func . cast = self s . ( self b1 . )print . self s . ( self b1 . ! cast )assert . self b2 . cast return } }
 Uq_System { <NOMAIN> }
 #>S.ulam
  ulam 1;

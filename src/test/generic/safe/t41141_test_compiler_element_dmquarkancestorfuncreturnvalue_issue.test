@@ -7,8 +7,8 @@
 ##   + assert
 #!
 Exit status: -11
-Ue_MyElement { Bool(1) sp(false);  MySub mSub( :< Unsigned(1) spq(1u); > Unsigned(3) sppp(7u); );  Int(32) test() {  System s;  mSub sppp . 7u = mSub spq . 1u = s ( mSub spq . cast )print . s ( mSub spq . 1u == )assert . MyQuark& qref = ( )func;  s ( qref spq . cast )print . s ( qref spq . 1u == )assert . s ( qref MySub is )assert . 0 cast return } }
-Uq_MySub : MyQuark { :< Unsigned(1) spq(0); > Unsigned(3) sppp(0);  <NOMAIN> }
+Ue_MyElement { Bool(1) sp(false);  MySub mSub( Unsigned(3) sppp(7u);  :MyQuark< Unsigned(1) spq(1u); >);  Int(32) test() {  System s;  self mSub . sppp . 7u = self mSub . spq . 1u = s ( self mSub . spq . cast )print . s ( self mSub . spq . 1u == )assert . MyQuark& qref = self ( )func .;  s ( qref spq . cast )print . s ( qref spq . 1u == )assert . s ( qref MySub is )assert . 0 cast return } }
+Uq_MySub : MyQuark { Unsigned(3) sppp(0);  :MyQuark< Unsigned(1) spq(0); > <NOMAIN> }
 Uq_System { <NOMAIN> }
 Uq_MyQuark { Unsigned(1) spq(0);  <NOMAIN> }
 ##

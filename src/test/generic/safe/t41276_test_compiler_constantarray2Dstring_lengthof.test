@@ -8,8 +8,8 @@
 ##
 #!
 Exit status: 0
-Ue_Eltypo { Bool(1) b1(true);  Bool(1) b2(true);  String(32) m_sarr[2]("mama","bar");  Int(32) test() {  SystemU3 s;  m_sarr c_sarr = Unsigned(32) len1 = 3u;  s ( c_sarr 1 [] )print . s ( len1 )print . b1 len1 3u cast == = s ( b1 )assert . Unsigned(32) len2 = 2u;  s ( len2 )print . b2 len2 2u cast == = s ( b2 )assert . 0 cast return } }
-Uq_SystemU3 : System { :<> <NOMAIN> }
+Ue_Eltypo { Bool(1) b1(true);  Bool(1) b2(true);  String(32) m_sarr[2]("mama","bar");  Int(32) test() {  SystemU3 s;  self m_sarr . c_sarr = Unsigned(32) len1 = 3u;  s ( c_sarr 1 [] )print . s ( len1 )print . self b1 . len1 3u cast == = s ( self b1 . )assert . Unsigned(32) len2 = 2u;  s ( len2 )print . self b2 . len2 2u cast == = s ( self b2 . )assert . 0 cast return } }
+Uq_SystemU3 : System { :System<> <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 ## Informed by t3949 except constant array; how many times isFixed?

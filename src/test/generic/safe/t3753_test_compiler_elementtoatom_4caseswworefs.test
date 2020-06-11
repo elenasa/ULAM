@@ -1,6 +1,5 @@
 ## -*- mode:ulam -*-
 #=t3753_test_compiler_elementtoatom_4caseswworefs
-#!
 ## gen code output: (interleaved asserts)
 ## Int Arg: 4
 ## Int Arg: 4
@@ -9,8 +8,9 @@
 ##
 ## eval fails on elements refs (first and third tests)
 ##
+#!
 Exit status: 0
-Ue_Ish5 : System { :<> Bool(1) brtn[4](true,true,true,true);  Int(32) test() {  E1 e1;  E1& e1ref = e1 cast;  Atom(96)& a1ref = e1ref cast;  { a1ref E1 as cond { E1& a1ref;  ( a1ref m_b . ( )func . )print brtn 0 [] a1ref m_b . ( )func . 4 cast == = ( brtn 0 [] )assert } if } Atom(96)& a2ref = e1 cast;  { a2ref E1 as cond { E1& a2ref;  ( a2ref m_b . ( )func . )print brtn 1 [] a2ref m_b . ( )func . 4 cast == = ( brtn 1 [] )assert } if } Atom(96) a1 = e1ref cast;  { a1ref E1 as cond { E1& a1ref;  ( a1ref m_b . ( )func . )print brtn 2 [] a1ref m_b . ( )func . 4 cast == = ( brtn 2 [] )assert } if } Atom(96) a2 = e1 cast;  { a2 E1 as cond { E1& a2;  ( a2 m_b . ( )func . )print brtn 3 [] a2 m_b . ( )func . 4 cast == = ( brtn 3 [] )assert } if } 0 cast return } }
+Ue_Ish5 : System { Bool(1) brtn[4](true,true,true,true);  :System<> Int(32) test() {  E1 e1;  E1& e1ref = e1 cast;  Atom(96)& a1ref = e1ref cast;  { a1ref E1 as cond { E1& a1ref;  self ( a1ref m_b . ( )func . )print . self brtn . 0 [] a1ref m_b . ( )func . 4 cast == = self ( self brtn . 0 [] )assert . } if } Atom(96)& a2ref = e1 cast;  { a2ref E1 as cond { E1& a2ref;  self ( a2ref m_b . ( )func . )print . self brtn . 1 [] a2ref m_b . ( )func . 4 cast == = self ( self brtn . 1 [] )assert . } if } Atom(96) a1 = e1ref cast;  { a1ref E1 as cond { E1& a1ref;  self ( a1ref m_b . ( )func . )print . self brtn . 2 [] a1ref m_b . ( )func . 4 cast == = self ( self brtn . 2 [] )assert . } if } Atom(96) a2 = e1 cast;  { a2 E1 as cond { E1& a2;  self ( a2 m_b . ( )func . )print . self brtn . 3 [] a2 m_b . ( )func . 4 cast == = self ( self brtn . 3 [] )assert . } if } 0 cast return } }
 Uq_System { <NOMAIN> }
 Ue_E1 : Sub { /* empty class block */ }
 Uq_Sub { QBase m_b();  <NOMAIN> }

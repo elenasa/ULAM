@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * VirtualTable.h - Table of virtual functions for ULAM
  *
- * Copyright (C) 2015-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2017 Ackleyshack LLC.
+ * Copyright (C) 2015-2019 The Regents of the University of New Mexico.
+ * Copyright (C) 2015-2019 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +27,9 @@
 
 /**
   \file VirtualTable.h -  Table of virtual functions for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2017 All rights reserved.
+  \date (C) 2015-2019 All rights reserved.
   \gpl
 */
 
@@ -46,11 +46,14 @@ namespace MFM
   {
     SymbolFunction * m_funcPtr;
     UTI m_ofClassUTI;
+    UTI m_origClassUTI;
+    u32 m_origvidx;
     bool m_isPure;
   };
 
-  // key is virtual index
+  // key is virtual index in originating class + start index of originating base class
   typedef std::vector<struct VTEntry> VT;
+
 }
 
 #endif  /* VIRTUALTABLE_H */

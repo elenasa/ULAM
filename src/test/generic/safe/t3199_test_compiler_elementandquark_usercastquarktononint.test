@@ -1,6 +1,5 @@
 ## -*- mode:ulam -*-
 #=t3199_test_compiler_elementandquark_usercastquarktononint
-#!
 ##      //notes: double cast needed to cast quarks into anything other
 ##      //than Int (see t3198 for the error test); m_j is saturated
 ##      //(i.e. 7 bits into bitsize 4 is 4); and it's Bits that sees the
@@ -12,49 +11,50 @@
 ##      //Unsigned Arg: 4
 ##      //Unsigned Arg: 7
 ##      //Unsigned Arg: 7
+#!
 Exit status: 3
-Ue_Foo { System s();  Unary(4) m_i(3u);  Unary(4) m_j(4u);  Bits(4) m_bits(7);  Int(4) m_k(7);  Bar m_bar( Bool(1) val_b[3](false,true,false); );  Int(32) test() {  m_bar ( 1 cast )check = m_i m_bar ( )toInt . cast cast = m_j 7 cast = m_bits m_i cast = m_k m_bits cast = s ( m_i cast )print . s ( m_j cast )print . s ( m_bits cast )print . s ( m_k cast )print . m_i cast return } }
+Ue_Foo { System s();  Unary(4) m_i(3u);  Unary(4) m_j(4u);  Bits(4) m_bits(7);  Int(4) m_k(7);  Bar m_bar( Bool(1) val_b[3](false,true,false); );  Int(32) test() {  self m_bar . self ( 1 cast )check . = self m_i . self m_bar . ( )toInt . cast cast = self m_j . 7 cast = self m_bits . self m_i . cast = self m_k . self m_bits . cast = self s . ( self m_i . cast )print . self s . ( self m_j . cast )print . self s . ( self m_bits . cast )print . self s . ( self m_k . cast )print . self m_i . cast return } }
 Uq_Bar { Bool(1) val_b[3](false,false,false);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 #>Foo.ulam
-ulam 1;
+  ulam 1;
 use Bar;
 use System;
 element Foo {
-System s;
-Unary(4) m_i;
-Unary(4) m_j;
-Bits(4) m_bits;
-Int(4) m_k;
-Bar m_bar;
-Bar check(Int v) {
-Bar b;
-b.val_b[1] = true;
-return b; }
-Int test() {
-m_bar = check(1);
-m_i = (Unary(4))((Int) m_bar);
-m_j = (Unary(4)) 7;
-m_bits = m_i;
-m_k = (Int(4)) m_bits;
-s.print((Unsigned) m_i);
-s.print((Unsigned) m_j);
-s.print((Unsigned) m_bits);
-s.print((Unsigned) m_k);
-return m_i;}
+  System s;
+  Unary(4) m_i;
+  Unary(4) m_j;
+  Bits(4) m_bits;
+  Int(4) m_k;
+  Bar m_bar;
+  Bar check(Int v) {
+    Bar b;
+    b.val_b[1] = true;
+    return b; }
+  Int test() {
+    m_bar = check(1);
+    m_i = (Unary(4))((Int) m_bar);
+    m_j = (Unary(4)) 7;
+    m_bits = m_i;
+    m_k = (Int(4)) m_bits;
+    s.print((Unsigned) m_i);
+    s.print((Unsigned) m_j);
+    s.print((Unsigned) m_bits);
+    s.print((Unsigned) m_k);
+    return m_i;}
 }
 
 ##
 ##      //simplified test() for debug..
 ##
 #:Bar.ulam
-ulam 1;
+  ulam 1;
 quark Bar {
-Bool val_b[3];
-Void reset(Bool b) {
-b = false; }
-Int toInt(){
-return 3;}
+  Bool val_b[3];
+  Void reset(Bool b) {
+    b = false; }
+  Int toInt(){
+    return 3;}
 }
 ##      // test system quark with native overloaded print funcs; assert
 #:System.ulam

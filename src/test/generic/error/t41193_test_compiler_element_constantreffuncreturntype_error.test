@@ -3,7 +3,7 @@
 ##
 #!
 ./Foo.ulam:6:22: ERROR: Variable symbol 'funcme' cannot be a reference.
-./Foo.ulam:6:12: ERROR: Invalid variable declaration of base type <Bool> and name <funcme> (missing symbol).
+./Foo.ulam:6:12: ERROR: Invalid variable declaration of base type <Bool> and name 'funcme' (missing symbol).
 ./Foo.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'Foo'; Possible missing ending curly brace.
 ./Foo.ulam:6:28: ERROR: Invalid Class Type <(>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 ./Foo.ulam:2:9: ERROR: Invalid Type: Foo.

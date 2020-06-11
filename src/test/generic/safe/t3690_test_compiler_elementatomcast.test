@@ -5,7 +5,7 @@
 ##
 #!
 Exit status: 0
-Ue_Foo { System s();  Bool(1) sp(false);  Bool(3) bi(true);  Bool(3) bh(true);  Int(32) d(0);  Int(32) test() {  Atom(96) a;  Foo f;  Foo g;  a f cast = bi a Foo is cast = s ( bi cast )assert . g a cast = bh g Foo is cast = s ( bh cast )assert . 0 cast return } }
+Ue_Foo { System s();  Bool(1) sp(false);  Bool(3) bi(true);  Bool(3) bh(true);  Int(32) d(0);  Int(32) test() {  Atom(96) a;  Foo f;  Foo g;  a f cast = self bi . a Foo is cast = self s . ( self bi . cast )assert . g a cast = self bh . g Foo is cast = self s . ( self bh . cast )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## taken from t3247 without using has

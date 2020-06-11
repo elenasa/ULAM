@@ -106,7 +106,7 @@ namespace MFM {
     fp->write("; ");
   } //printPostfix
 
-  void NodeConstantDef::noteTypeAndName(s32 totalsize, u32& accumsize)
+  void NodeConstantDef::noteTypeAndName(UTI cuti, s32 totalsize, u32& accumsize)
   {
     return; //bypass
   }
@@ -342,7 +342,17 @@ namespace MFM {
 	    else
 	      {
 		//only possible if array type with initializers;
-		assert(!m_state.okUTItoContinue(suti) || !m_state.isScalar(suti));
+		//assert(!m_state.okUTItoContinue(suti) || !m_state.isScalar(suti));
+		if(m_state.okUTItoContinue(suti) && m_state.isScalar(suti))
+		  {
+		    //error scalar with {} error (t41389, t41390)
+		    std::ostringstream msg;
+		    msg << "Scalar constant '";
+		    msg << getName() << "' has improper {} initialization";
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    setNodeType(Nav);
+		    return Nav;
+		  }
 
 		if(!m_state.okUTItoContinue(suti) && m_nodeTypeDesc)
 		  {
@@ -350,7 +360,7 @@ namespace MFM {
 		    UlamType * dut = m_state.getUlamTypeByIndex(duti);
 		    if(m_state.okUTItoContinue(duti) && !dut->isComplete())
 		      {
-			assert(!dut->isScalar());
+			assert(!dut->isScalar()); //t41390
 			//assert(dut->isPrimitiveType()); t41261
 
 			//if here, assume arraysize depends on number of initializers
@@ -429,20 +439,50 @@ namespace MFM {
 	      }
 	  } //end array initializers or empty class init (eit == Void)
 
-	if(m_state.okUTItoContinue(nuti) && m_state.okUTItoContinue(suti) && (m_state.isScalar(nuti) ^ m_state.isScalar(suti)))
+	if(m_state.okUTItoContinue(nuti) && m_state.okUTItoContinue(suti))
+	  {
+	    if(m_state.isScalar(nuti) ^ m_state.isScalar(suti))
+	      {
+		std::ostringstream msg;
+		msg << "Constant value expression for";
+		if(m_constSymbol && m_constSymbol->isClassArgument())
+		  msg << " class argument";
+		else if(m_constSymbol && m_constSymbol->isClassParameter())
+		  msg << " class parameter";
+		msg << ": ";
+		msg << m_state.m_pool.getDataAsString(m_cid).c_str();
+		msg << ", array/scalar mismatch";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		setNodeType(Nav);
+		return Nav; //short-circuit (t3446, t3898)
+	      }
+	  }
+	else
 	  {
 	    std::ostringstream msg;
 	    msg << "Constant value expression for";
 	    if(m_constSymbol && m_constSymbol->isClassArgument())
 	      msg << " class argument";
 	    else if(m_constSymbol && m_constSymbol->isClassParameter())
-	  msg << " class parameter";
+	      msg << " class parameter";
 	    msg << ": ";
 	    msg << m_state.m_pool.getDataAsString(m_cid).c_str();
-	    msg << ", array/scalar mismatch";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    setNodeType(Nav);
-	    return Nav; //short-circuit (t3446, t3898)
+	    msg << ", is ";
+	    if(nuti == Nav || suti == Nav)
+	      {
+		msg << "invalid";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		setNodeType(Nav);
+		return Nav;
+	      }
+	    else
+	      {
+		msg << "not ready";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+		setNodeType(Hzy);
+		m_state.setGoAgain();
+		return Hzy; //short-circuit (t3893)
+	      }
 	  }
 
 	if(m_nodeExpr && !m_nodeExpr->isAConstant() && !m_state.isConstantRefType(suti))
@@ -456,7 +496,9 @@ namespace MFM {
 	    msg << ": ";
 	    msg << m_state.m_pool.getDataAsString(m_cid).c_str();
 	    msg << ", is not a constant";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    if(m_constSymbol && m_state.isAClass(suti))
+	      msg << "; Suggest '= {};' for default values"; //t41300
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //t3893 wrong loc!!
 	    setNodeType(Nav);
 	    return Nav; //short-circuit (error/t3453) after possible empty array init is deleted (t41202)
 	  }
@@ -583,16 +625,16 @@ namespace MFM {
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "(1) <" << m_state.m_pool.getDataAsString(m_cid).c_str();
-	    msg << "> is not a constant, and cannot be used as one";
+	    msg << "(1) '" << m_state.m_pool.getDataAsString(m_cid).c_str();
+	    msg << "' is not a constant, and cannot be used as one";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
       }
     else
       {
 	std::ostringstream msg;
-	msg << "(2) Named Constant <" << m_state.m_pool.getDataAsString(m_cid).c_str();
-	msg << "> is not defined, and cannot be used";
+	msg << "(2) Named Constant '" << m_state.m_pool.getDataAsString(m_cid).c_str();
+	msg << "' is not defined, and cannot be used";
 	if(!hazyKin)
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	else

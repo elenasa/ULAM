@@ -182,6 +182,43 @@ namespace MFM{
   } // Uf_6mapSym
 
 
+  //! EventWindow.ulam:178:   SiteNum getSiteNumber(Atom& ar, Symmetry sym) {
+  template<class EC>
+  Ui_Ut_10161u<EC> Uq_10109211EventWindow10<EC>::Uf_9213getSiteNumber(const UlamContext<EC>& uc, UlamRef<EC>& ur, Ui_Ut_r102961a<EC>& Ur_2ar, Ui_Ut_10131u<EC>& Uv_3sym) const
+  {
+
+    const u32 maxof = 63u;
+    Ui_Ut_10161u<EC> failret(maxof); 
+
+    if (!uc.HasEventWindow()) return failret;
+
+    BitStorage<EC> * ptrstg = &(Ur_2ar.GetStorage());
+    const EventWindow<EC> & ew = uc.GetEventWindow();
+
+    enum { R = EC::EVENT_WINDOW_RADIUS };
+    const MDist<R> & md = MDist<R>::get();
+
+    u32 rad = ew.GetBoundary();
+    if (rad > 0) --rad; // radius is one less than boundary
+
+    u32 lastIdx = md.GetFirstIndex(rad + 1u);
+
+    const AtomBitStorage<EC> * first = &(ew.GetAtomBitStorage(0));
+    const AtomBitStorage<EC> * last = first + lastIdx;
+
+    if (ptrstg < first || ptrstg >= last) return failret;
+
+    // if ptrstg pointed at a const AtomBitStorage<EC> in ew, which one would it be?
+    u32 rawsn = (u32) (((const AtomBitStorage<EC> *) ptrstg) - first);
+
+    PointSymmetry sym = (PointSymmetry) Uv_3sym.read();
+    u32 mappedsn = ew.MapIndexToIndexSymValid(rawsn,SymInverse(sym));
+
+    Ui_Ut_10161u<EC> ret(mappedsn);
+    return ret;
+
+  } // Uf_9213getSiteNumber
+
   template<class EC>
   void Uq_10109211EventWindow10<EC>::Uf_7diffuse(const UlamContext<EC> & uc,
                                                    UlamRef<EC>& ur) const	 //native

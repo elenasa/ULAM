@@ -223,15 +223,19 @@ namespace MFM {
     fp->write(nut->getTmpStorageTypeAsString().c_str()); //bool
     fp->write(" ");
     fp->write(m_state.getTmpVarAsString(nuti, tmpVarIs, TMPREGISTER).c_str());
-    fp->write(" = ");
+    fp->write(" = (");
 
     //is a class
     fp->write(m_state.getTheInstanceMangledNameByIndex(luti).c_str());
     fp->write(".");
     fp->write(m_state.getIsMangledFunctionName(luti)); //UlamElement IsMethod
-    fp->write("(&"); //one arg
-    fp->write(m_state.getTheInstanceMangledNameByIndex(ruti).c_str());
-    fp->write(");"); GCNL;
+    fp->write("("); //one arg
+    fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(ruti)); //efficiency
+    fp->write("u));");
+    fp->write(" /* ");
+    fp->write(m_state.getUlamTypeNameBriefByIndex(ruti).c_str());
+    fp->write(" */");
+    GCNL;
 
     //update uvpass
     uvpass = UVPass::makePass(tmpVarIs, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //POS 0 rightjustified (atom-based).
@@ -265,15 +269,21 @@ namespace MFM {
 
     if(rut->getUlamClassType() == UC_ELEMENT)
       {
-	//reversed call to rhs' overloaded c-implemented 'Is' method;
+	//reversed call to rhs' overloaded c-implemented 'Is' method; rtn bool (t3255)
 	// using lhs' T as argument; required for EMPTY-ELEMENT special case
 	fp->write(m_state.getTheInstanceMangledNameByIndex(ruti).c_str());
 	fp->write(".");
 	fp->write(m_state.getIsMangledFunctionName(ruti)); //UlamElement IsMethod
 	fp->write("(");
 	fp->write(luvpass.getTmpVarAsString(m_state).c_str()); //from tmpvar T or ABS
-	if(m_state.isAtomRef(luti) && (luvpass.getPassStorage() == TMPBITVAL))
-	  fp->write(".read()"); //t3920, not for t3921
+	if(m_state.isAtomRef(luti))
+	  {
+	    if(luvpass.getPassStorage() == TMPBITVAL)
+	      fp->write(".read()"); //t3920, not for t3921
+	    else if(luvpass.getPassStorage() == TMPAUTOREF)
+	      fp->write(".GetEffectiveSelf()"); //t3505
+	    //else just tmpvar
+	  }
 	fp->write(");"); GCNL;
       }
     else
@@ -325,9 +335,13 @@ namespace MFM {
     fp->write(stgcos->getMangledName().c_str());
     fp->write(".GetEffectiveSelf()->");
     fp->write(m_state.getIsMangledFunctionName(luti)); //UlamClass IsMethod
-    fp->write("(&");
-    fp->write(m_state.getTheInstanceMangledNameByIndex(ruti).c_str());
-    fp->write(");"); GCNL;
+    fp->write("(");
+    fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(ruti)); //efficiency
+    fp->write("u);");
+    fp->write(" /* ");
+    fp->write(m_state.getUlamTypeNameBriefByIndex(ruti).c_str());
+    fp->write(" */ \n");
+    GCNL; //3255
 
     //update uvpass
     uvpass = UVPass::makePass(tmpVarIs, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //POS 0 rightjustified (atom-based).

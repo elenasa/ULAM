@@ -1,12 +1,12 @@
 ## -*- mode:ulam -*-
 #=t3736_test_compiler_atomofsupersuperquark_issue
-#!
 ##
 ##   gencode output: (1 asserts)
 ##
+#!
 Exit status: -11
-Ue_AtomOfIsh : QM { :< :<>> Int(32) test() {  self ( )qmfunc . 0 cast return } }
-Uq_QM : QB { :<> <NOMAIN> }
+Ue_AtomOfIsh : QM { :QM< :QB<>> ^QB<> Int(32) test() {  self ( )qmfunc . 0 cast return } }
+Uq_QM : QB { :QB<> <NOMAIN> }
 Uq_QB { <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

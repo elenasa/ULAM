@@ -1,12 +1,15 @@
 ## -*- mode:ulam -*-
 #=t3790_test_compiler_transientandtransient_assignreftosub
+##
+## gen output: (+ 4 asserts)
+##   Unsigned : 5
 #!
 Exit status: -11
-Ue_R { Int(32) test() {  System s;  TW tw;  Base& ref = tw cast;  TW& tapple = ref cast;  0 cast return } }
+Ue_R { Int(32) test() {  System s;  TW tw;  tw m_five . 5 cast = s ( tw m_five . cast )print . s ( tw m_five . cast 5 == )assert . Base& ref = tw cast;  s ( ref m_five . cast 5 == )assert . TW& tapple = ref cast;  s ( tapple m_five . cast 5 == )assert . TW tapple2;  tapple2 ref cast = s ( tapple2 m_five . cast 5 == )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
-Un_TW : W { :< :< Unary(5) m_five(0); > Bool(1) bw(false); > Bool(1) b(false);  Bool(1) c(false);  <NOMAIN> }
+Un_TW : W { Bool(1) b(false);  Bool(1) c(false);  :W< Bool(1) bw(false); > ^Base< Unary(5) m_five(0); > <NOMAIN> }
 Uq_Base { Unary(5) m_five(0);  <NOMAIN> }
-Un_W : Base { :< Unary(5) m_five(0); > Bool(1) bw(false);  <NOMAIN> }
+Un_W : Base { Bool(1) bw(false);  :Base< Unary(5) m_five(0); > <NOMAIN> }
 ##
 ## informed by t3756
 ##
@@ -16,11 +19,22 @@ element R {
   Int test(){
     System s;
     TW tw;
+    tw.m_five = 5;
+    s.print((Unsigned) tw.m_five);
+    s.assert(tw.m_five == 5);
+
     //case 1: CastDecendentTransient
     Base& ref = tw;
+    s.assert(ref.m_five == 5);
 
     //case 2:  (init) CastAncestorQuarkAsSubTransient
     TW& tapple = (TW&) ref; //unused var (qref read)
+    s.assert(tapple.m_five == 5);
+
+    //case 3: (assignment) CastAncestorQuarkAsSubTransient
+    TW tapple2;
+    tapple2 = (TW) ref; //unused var (ref read)
+    s.assert(tapple2.m_five == 5);
 
     return 0;
   }

@@ -9,7 +9,7 @@
 ##	 unevaluable because eval is unable to return a non-void native function in an empty block
 #!
 Exit status: -11
-Ue_A { Math math();  Int(32) test() {  System s;  Unsigned(3) uarr[3] = { 2u };  Int(32) m = math ( 1 -4 uarr 1 [] cast )max .;  s ( m )print . s ( m 2 cast == )assert . m return } }
+Ue_A { Math math();  Int(32) test() {  System s;  Unsigned(3) uarr[3] = { 2u };  Int(32) m = self math . ( 1 -4 uarr 1 [] cast )max .;  s ( m )print . s ( m 2 cast == )assert . m return } }
 Uq_Math { <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

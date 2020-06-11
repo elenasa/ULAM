@@ -1,13 +1,13 @@
 ## -*- mode:ulam -*-
 #=t3719_test_compiler_transientinheritancewithfunc_nonlocaluse
-#!
 ## gencode output (+assert):
 ## Int Arg: 7
 ##
+#!
 Exit status: 39
-Ue_R { System s();  Int(32) h(39);  Int(32) test() {  Foo f;  f ( )behave . h f size . = s ( h )print . s ( h 39 cast == )assert . h return } }
-Un_Foo { Bool(1) first(false);  Soo su( :< Bool(3) cb( true); > Unsigned(3) us( 4u); );  Int(32) size(0);  <NOMAIN> }
-Un_Soo : Coo { :< Bool(3) cb( true); > Unsigned(3) us( 4u);  <NOMAIN> }
+Ue_R { System s();  Int(32) h(39);  Int(32) test() {  Foo f;  f ( )behave . self h . f size . = self s . ( self h . )print . self s . ( self h . 39 cast == )assert . self h . return } }
+Un_Foo { Bool(1) first(false);  Soo su( Unsigned(3) us( 4u);  :Coo< Bool(3) cb( true); >);  Int(32) size(0);  <NOMAIN> }
+Un_Soo : Coo { Unsigned(3) us( 4u);  :Coo< Bool(3) cb( true); > <NOMAIN> }
 Un_Coo { Bool(3) cb( true);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

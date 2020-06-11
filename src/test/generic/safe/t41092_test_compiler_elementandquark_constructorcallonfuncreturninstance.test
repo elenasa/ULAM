@@ -1,12 +1,12 @@
 ## -*- mode:ulam -*-
 #=t41092_test_compiler_elementandquark_constructorcallonfuncreturninstance
-#!
 ##      gen code output: 1 asserts
 ##
 ## cast element as atom unevaluable, element type lost
 ##
+#!
 Exit status: -11
-Ue_A : QW { :<> Bool(1) b(false);  QW m_q();  Int(32) test() {  System s;  A a;  Atom(96) me = ( )makeAcopy.instanceof ( true )Self . ( )func .;  { me A as cond { A& me;  b me b . = s ( me b . )assert . } if s ( false )assert . else } 0 cast return } }
+Ue_A : QW { Bool(1) b(false);  QW m_q();  :QW<> Int(32) test() {  System s;  A a;  Atom(96) me = self ( )makeAcopy ..instanceof ( true )Self . ( )func .;  { me A as cond { A& me;  self b . me b . = s ( me b . )assert . } if s ( false )assert . else } 0 cast return } }
 Uq_QW { <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

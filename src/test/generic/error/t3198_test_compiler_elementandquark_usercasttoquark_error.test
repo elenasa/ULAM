@@ -3,7 +3,7 @@
 #!
 ./Foo.ulam:8:14: ERROR: Cannot cast Bool(3) to Bar.
 ./Foo.ulam:8:14: ERROR: Cannot explicitly cast Bool(3) to type: Bar.
-./Foo.ulam:8:11: ERROR: Assignment is invalid; LHS: Bar; RHS: erroneous.
+./Foo.ulam:8:11: ERROR: Assignment is invalid; LHS: unresolved; RHS: erroneous.
 Unrecoverable Program Type Label FAILURE.
 ##
 #>Foo.ulam

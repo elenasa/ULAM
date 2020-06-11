@@ -1,0 +1,46 @@
+## -*- mode:ulam -*-
+#=t41375_test_compiler_elementandquark_memberselectoninstanceof_issue
+##      gen code output: 1 asserts
+##          Unsigned Arg: 6
+##
+#!
+Exit status: 6
+Ue_A : System { Bool(1) b(false);  :System<> Int(32) test() {  self ( Parameters.instanceof 6u . )print . self ( Parameters.instanceof 6u . 6u cast == )assert . Parameters.instanceof 6u . cast return } }
+Uq_System { <NOMAIN> }
+Ue_Parameters { constant Unsigned(32) cp = 6u;  <NOMAIN> }
+##
+## informed by Daves ish/wish 20191118, and t41091:
+##        parser skipped parseRestOfFactor after factor started with a Type.
+##
+#>A.ulam
+  ulam 5;
+element A : System {
+  Bool b;
+
+  Int test(){
+
+    //immediate element
+    print(Parameters.instanceof.cp);
+    assert(Parameters.instanceof.cp == 6u);
+    return Parameters.instanceof.cp;
+  }
+}
+
+#:Parameters.ulam
+  ulam 5;
+element Parameters {
+  constant Unsigned cp = 6;
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

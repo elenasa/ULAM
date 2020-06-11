@@ -1,13 +1,13 @@
 ## -*- mode:ulam -*-
 #=t3640_test_compiler_elementandquarks_calcmaxdepth_ish
-#!
 ##
 ## gen code output:
 ## assert: arg is 1
 ##after asserts abort: arg is 1
 ##
+#!
 Exit status: 0
-Ue_Ish6 : QMoCo(0xdadd1e0,1u) { :< :< constant Bits(32) speciesTag = 229495264u;  constant Unsigned(5) objectTagBits = 1u; > constant Bits(32) speciesTag = 229495264u;  constant Unsigned(5) objectTagBits = 1u; > Int(32) test() {  0 cast return } }
+Ue_Ish6 : QMoCo(0xdadd1e0,1u) { :QMoCo(0xdadd1e0,1u)< constant Bits(32) speciesTag = 229495264u;  constant Unsigned(5) objectTagBits = 1u;  :QTag(0xdadd1e0,1u)< constant Bits(32) speciesTag = 229495264u;  constant Unsigned(5) objectTagBits = 1u; >> ^QTag(0xdadd1e0,1u)< constant Bits(32) speciesTag = 229495264u;  constant Unsigned(5) objectTagBits = 1u; > Int(32) test() {  0 cast return } }
 Uq_QMoCo(Bits(32) speciesTag, Unsigned(5) objectTagBits) : QTag(speciesTag,objectTagBits) { /* empty class block */ }
 Uq_QTag(Bits(32) speciesTag, Unsigned(5) objectTagBits) { /* empty class block */ }
 ##

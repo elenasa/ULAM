@@ -1,10 +1,10 @@
 ## -*- mode:ulam -*-
 #=t3687_test_compiler_elementandquark_Selfrefofselfdm_ish
-#!
 ##      gen code output: (1 asserts)
 ##
+#!
 Exit status: 1
-Ue_A : QW { :< Bool(1) bw(false); > Bool(1) b(true);  Bool(1) c(false);  QW m_q( Bool(1) bw(true); );  Int(32) test() {  System s;  m_q bw . true = QW q = m_q ( )func .;  b q bw . = s ( q bw . )assert . q bw . cast return } }
+Ue_A : QW { Bool(1) b(true);  Bool(1) c(false);  QW m_q( Bool(1) bw(true); );  :QW< Bool(1) bw(false); > Int(32) test() {  System s;  self m_q . bw . true = QW q = self m_q . ( )func .;  self b . q bw . = s ( q bw . )assert . q bw . cast return } }
 Uq_System { <NOMAIN> }
 Uq_QW { Bool(1) bw(false);  <NOMAIN> }
 ##

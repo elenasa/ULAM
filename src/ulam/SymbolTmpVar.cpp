@@ -3,7 +3,7 @@
 
 namespace MFM {
 
-  SymbolTmpVar::SymbolTmpVar(const Token& id, UTI utype, u32 offset, CompilerState & state) : Symbol(id, utype, state), m_posOffsetCopy(offset), m_divinedByConstantClass(false) {}
+  SymbolTmpVar::SymbolTmpVar(const Token& id, UTI utype, u32 offset, CompilerState & state) : Symbol(id, utype, state), m_posOffsetCopy(offset), m_divinedByConstantClass(false), m_baseclassref(false), m_baseclassregnum(false) {}
 
   SymbolTmpVar::~SymbolTmpVar() {}
 
@@ -49,6 +49,26 @@ namespace MFM {
     //helps determine if an element data member of a transient TmpVar
     //needs its MFM Typefield fixed (t41267)
     return m_divinedByConstantClass;
+  }
+
+  void SymbolTmpVar::setBaseClassRef()
+  {
+    m_baseclassref = true;
+  }
+
+  bool SymbolTmpVar::isBaseClassRef()
+  {
+    return m_baseclassref;
+  }
+
+  void SymbolTmpVar::setBaseClassRegNum()
+  {
+    m_baseclassregnum = true;
+  }
+
+  bool SymbolTmpVar::isBaseClassRegNum()
+  {
+    return m_baseclassregnum;
   }
 
 } //end MFM

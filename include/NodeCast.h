@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeCast.h - Basic Node for handling Type Casting for ULAM
  *
- * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2017 Ackleyshack LLC.
+ * Copyright (C) 2014-2019 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2019 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +27,9 @@
 
 /**
   \file NodeCast.h - Basic Node for handling Type Casting for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2017 All rights reserved.
+  \date (C) 2014-2019 All rights reserved.
   \gpl
 */
 
@@ -125,12 +125,18 @@ namespace MFM{
     void genCodeReadNonPrimitiveIntoATmpVar(File * fp, UVPass &uvpass);
 
     void genCodeCastAtomAndElement(File * fp, UVPass & uvpass);
+    void genCodeCastAtomToElement(File * fp, UVPass & uvpass, s32 tmpvarstg, bool usePassVal);
+    void genCodeCastElementToAtom(File * fp, UVPass & uvpass, s32 tmpvarstg, bool usePassVal);
+    void genCodeCastLikeKindElements(File * fp, UVPass & uvpass, s32 tmpvarstg, bool usePassVal);
+
     void genCodeCastAtomAndQuark(File * fp, UVPass & uvpass);
-    void genCodeCastDescendantTransient(File * fp, UVPass & uvpass);
-    void genCodeCastAncestorQuarkAsSubTransient(File * fp, UVPass & uvpass);
-    void genCodeCastDescendantElement(File * fp, UVPass & uvpass);
-    void genCodeCastAncestorQuarkAsSubElement(File * fp, UVPass & uvpass);
-    void genCodeCastDescendantQuark(File * fp, UVPass & uvpass);
+    void genCodeCastAtomToQuark(File * fp, UVPass & uvpass, s32 tmpvarstg, bool usePassVal);
+    void genCodeCastQuarkRefToAtom(File * fp, UVPass & uvpass, s32 tmpvarstg, bool usePassVal);
+
+    void genCodeCastDescendant(File * fp, UVPass & uvpass);
+    void genCodeCastAncestorQuarkAsSub(File * fp, UVPass & uvpass);
+
+    void genPositionOfBaseIntoATmpVar(File * fp, u32 tmpvarpos, UVPass & uvpass, Symbol * stgcos, Symbol * cos); //helper
 
     void genCodeCastAsReference(File * fp, UVPass & uvpass);
     void genCodeCastFromAReference(File * fp, UVPass & uvpass);

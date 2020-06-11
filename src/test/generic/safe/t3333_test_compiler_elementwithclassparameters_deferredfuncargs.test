@@ -1,14 +1,14 @@
 ## -*- mode:ulam -*-
 #=t3333_test_compiler_elementwithclassparameters_deferredfuncargs
-#!
 ##      /* gen code output:
 ##	 Int Arg: 7
 ##	 Int Arg: 3
 ##      */
 ##      //Constants have explicit types
 ##
+#!
 Exit status: 7
-Ue_T { Int(32) i(7);  Int(32) j(3);  System s();  Int(32) test() {  Int(3) a;  Int(4) b;  S(3,1) m;  i m ( b )func . = s ( i )print . j m ( a )func . = s ( j )print . i return } }
+Ue_T { Int(32) i(7);  Int(32) j(3);  System s();  Int(32) test() {  Int(3) a;  Int(4) b;  S(3,1) m;  self i . m ( b )func . = self s . ( self i . )print . self j . m ( a )func . = self s . ( self j . )print . self i . return } }
 Uq_S(Int(32) x, Int(32) y) { Int(UNKNOWN) i(notready);  Int(UNKNOWN) j(notready);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##    //informed by t3332
@@ -21,35 +21,36 @@ Uq_System { <NOMAIN> }
  ulam 1;
 use S;
 use System;
- element T{
-System s;
-Int i,j;
-Int test(){
-Int(3) a;
-Int(4) b;
-S(3,1) m;
-i = m.func(b);
-s.print(i);
- j = m.func(a);
-s.print(j);
- return i;
+element T{
+  System s;
+  Int i,j;
+  Int test(){
+    Int(3) a;
+    Int(4) b;
+    S(3,1) m;
+    i = m.func(b);
+    s.print(i);
+    j = m.func(a);
+    s.print(j);
+    return i;
+  }
 }
- }
 
 #:S.ulam
-ulam 1;
+  ulam 1;
 quark S(Int x, Int y){
-Int(x+y) i,j;
- Int func(Int(x+y) arg){
-return arg.maxof;
+  Int(x+y) i,j;
+  Int func(Int(x+y) arg){
+    return arg.maxof;
+  }
+  Int func(Int(x) arg){
+    return arg.maxof;
+  }
+  Int func(Int(y) arg){
+    return arg.maxof;
+  }
 }
-Int func(Int(x) arg){
-return arg.maxof;
-}
-Int func(Int(y) arg){
-return arg.maxof;
-}
- }
+
 #:System.ulam
 ulam 1;
 quark System {

@@ -1,0 +1,88 @@
+## -*- mode:ulam -*-
+#=t41354_test_compiler_elementinheritedquark_dmvirtualfunccall_knownatcompiletime
+##
+## gen output: (times 3) requires quark vtable support
+##assert: arg is 1
+##after asserts abort: arg is 1
+##
+#!
+Exit status: 0
+Uq_QMemBase { Int(3) bmem(0);  <NOMAIN> }
+Uq_QSubBase1 : QMemBase { /* empty class block */ }
+Uq_QSubBase2 : QMemBase { :QMemBase< Int(3) bmem(0); > <NOMAIN> }
+Uq_QSubBase3 { QMemBase m_qmem( Int(3) bmem(0); );  <NOMAIN> }
+Ue_Foo { Bool(1) brtn[4](true,true,true,false);  QMemBase m1( Int(3) bmem(1); );  Int(32) test() {  System s;  QMemBase m2;  QSubBase3 q3;  self brtn . 0 [] self m1 . ( )vfunc . 3 cast == = s ( self brtn . 0 [] )assert . self brtn . 1 [] m2 ( )vfunc . 3 cast == = s ( self brtn . 1 [] )assert . self brtn . 2 [] q3 m_qmem . ( )vfunc . 3 cast == = s ( self brtn . 2 [] )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+##
+## informed by t3604..looking for a test knownatcompiletime vfunc call
+##
+#:QMemBase.ulam
+  ulam 2;
+quark QMemBase {
+  Int(3) bmem;
+  Int func() {
+    return vfunc();
+  }
+  virtual Int vfunc() {
+    bmem = 1;
+    return 3;
+  }
+}
+
+#:QSubBase1.ulam
+  ulam 2;
+quark QSubBase1 : QMemBase { }
+
+#:QSubBase2.ulam
+  ulam 2;
+quark QSubBase2 : QMemBase {
+  virtual Int vfunc() {
+    bmem = 2;
+    return 4;
+  }
+}
+
+#:QSubBase3.ulam
+  ulam 2;
+quark QSubBase3 {
+  QMemBase m_qmem;
+}
+
+#>Foo.ulam
+  ulam 2;
+element Foo {
+  Bool brtn[4];
+  QMemBase m1;
+
+  Int test() {
+    System s;
+    QMemBase m2;
+    QSubBase3 q3;
+
+    //case 1: DM
+    brtn[0] = (m1.vfunc() == 3);
+    s.assert(brtn[0]);
+
+    //case 2: local var
+    brtn[1] = (m2.vfunc() == 3);
+    s.assert(brtn[1]);
+
+    //case 3: local var's dm
+    brtn[2] = (q3.m_qmem.vfunc() == 3);
+    s.assert(brtn[2]);
+    return 0;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

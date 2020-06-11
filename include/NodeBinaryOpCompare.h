@@ -27,7 +27,7 @@
 
 /**
   \file NodeBinaryOpCompare.h - Basic Node for handling Binary Comparisons for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
   \date (C) 2014-2017 All rights reserved.
   \gpl
@@ -71,6 +71,9 @@ namespace MFM{
     virtual UTI calcNodeType(UTI lt, UTI rt);
 
     virtual Node * buildOperatorOverloadFuncCallNode();
+
+  private:
+
   };
 
 }

@@ -1,12 +1,12 @@
 ## -*- mode:ulam -*-
 #=t3819_test_compiler_transientwithelementdmwithquarkarrayref_typedefref
-#!
 ##      gen code output: (2 asserts)
 ##
+#!
 Exit status: -11
-Ue_R { Bool(1) b(false);  Bool(1) c(false);  Int(32) test() {  System s;  QW qw;  A ar[3];  ar 1 [] mFoo . ( 2u cast )setTre . b qw ( ar 1 [] mFoo . cast )eunc . = s ( b )assert . typedef QW& QWR[4];  QW& qwr[4] = ar 1 [] mFoo . mQW . cast;  QW qw2 = qwr 2 [];  qw2 mqb . true = c qw2 ( )qunc . = s ( c )assert . 0 cast return } }
+Ue_R { Bool(1) b(false);  Bool(1) c(false);  Int(32) test() {  System s;  QW qw;  A ar[3];  ar 1 [] mFoo . ( 2u cast )setTre . self b . qw ( ar 1 [] mFoo . cast )eunc . = s ( self b . )assert . typedef QW& QWR[4];  QW& qwr[4] = ar 1 [] mFoo . mQW . cast;  QW qw2 = qwr 2 [];  qw2 mqb . true = self c . qw2 ( )qunc . = s ( self c . )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
-Un_A : QW { :< typedef Unary(3) Coord;  Bool(1) mqb(false); > Bool(7) sp(false);  Foo mFoo( typedef Unary(3) Coord;  Unary(3) mTre( 1u);  Unary(3) mCoo[3](0,0,0);  typedef QW QWR[4];  QW mQW[4]( typedef Unary(3) Coord;  Bool(1) mqb(false); ), ( typedef Unary(3) Coord;  Bool(1) mqb(false); ), ( typedef Unary(3) Coord;  Bool(1) mqb(false); ), ( typedef Unary(3) Coord;  Bool(1) mqb(false); ); );  <NOMAIN> }
+Un_A : QW { Bool(7) sp(false);  Foo mFoo( typedef Unary(3) Coord;  Unary(3) mTre( 1u);  Unary(3) mCoo[3](0,0,0);  typedef QW QWR[4];  QW mQW[4]( typedef Unary(3) Coord;  Bool(1) mqb(false); ), ( typedef Unary(3) Coord;  Bool(1) mqb(false); ), ( typedef Unary(3) Coord;  Bool(1) mqb(false); ), ( typedef Unary(3) Coord;  Bool(1) mqb(false); ); );  :QW< typedef Unary(3) Coord;  Bool(1) mqb(false); > <NOMAIN> }
 Uq_QW { typedef Unary(3) Coord;  Bool(1) mqb(false);  <NOMAIN> }
 Ue_Foo { typedef Unary(3) Coord;  Unary(3) mTre( 1u);  Unary(3) mCoo[3](0,0,0);  typedef QW QWR[4];  QW mQW[4]( typedef Unary(3) Coord;  Bool(1) mqb(false); ), ( typedef Unary(3) Coord;  Bool(1) mqb(false); ), ( typedef Unary(3) Coord;  Bool(1) mqb(false); ), ( typedef Unary(3) Coord;  Bool(1) mqb(false); );  <NOMAIN> }
 ##

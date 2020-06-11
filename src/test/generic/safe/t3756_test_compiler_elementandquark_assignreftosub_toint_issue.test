@@ -1,9 +1,9 @@
 ## -*- mode:ulam -*-
 #=t3756_test_compiler_elementandquark_assignreftosub_toint_issue
 #!
-Exit status: -1
-Ue_A : QW { :< :< Unary(5) m_five(0u); > Bool(1) bw(false); > Bool(1) b(false);  Bool(1) c(false);  Int(32) test() {  System s;  Qbase& qref = self cast;  A apple3 = qref.atomof cast;  A& appleref = qref cast;  Atom(96)& atr = qref.atomof;  Atom(96) a = qref.atomof cast;  0 cast return } }
-Uq_QW : Qbase { :< Unary(5) m_five(0); > Bool(1) bw(false);  <NOMAIN> }
+Exit status: -11
+Ue_A : QW { Bool(1) b(false);  Bool(1) c(false);  :QW< Bool(1) bw(false);  :Qbase< Unary(5) m_five(0u); >> ^Qbase< Unary(5) m_five(0u); > Int(32) test() {  System s;  Qbase& qref = self cast;  A apple = qref cast;  A apple3 = qref.atomof cast;  A& appleref = qref cast;  Atom(96)& atr = qref.atomof;  Atom(96) a = qref.atomof cast;  0 cast return } }
+Uq_QW : Qbase { Bool(1) bw(false);  :Qbase< Unary(5) m_five(0); > <NOMAIN> }
 Uq_System { <NOMAIN> }
 Uq_Qbase { Unary(5) m_five(0);  <NOMAIN> }
 ##
@@ -25,7 +25,7 @@ element A : QW {
 
     //case 2: (init) genCodeCastAncestorQuarkAsSubElement
     //./A.ulam:11:16: ERROR: Cannot explicitly cast Qbase& to type: A.
-    //A apple = (A) qref; //unused var (qref read)
+    A apple = (A) qref; //unused var (qref read)
 
     //case 3: (assign) genCodeCastAncestorQuarkAsSubElement
     //./A.ulam:15:15: ERROR: Cannot explicitly cast Qbase& to type: A.

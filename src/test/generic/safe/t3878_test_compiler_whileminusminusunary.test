@@ -6,7 +6,7 @@
 ##
 #!
 Exit status: 0
-Ue_A { System s();  Int(32) test() {  Unary(3) j = 3 cast;  { j 1 cast -= cast 0 cast > cond { s ( j )print . } _1: while } s ( j cast 0 cast == )assert . j cast return } }
+Ue_A { System s();  Int(32) test() {  Unary(3) j = 3 cast;  { j 1 cast -= cast 0 cast > cond { self s . ( j )print . } _1: while } self s . ( j cast 0 cast == )assert . j cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t3877

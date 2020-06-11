@@ -1,12 +1,12 @@
 ## -*- mode:ulam -*-
 #=t3304_test_compiler_unaryminus
-#!
 ##      /* gen code output:
 ##	 Int Arg: -18
 ##      */
 ##
+#!
 Exit status: -18
-Ue_A { Bool(7) b(false);  System s();  Int(32) bar(-18);  Int(32) test() {  bar -18 cast = Int(32) ar = bar - -;  s ( bar )print . bar + return } }
+Ue_A { Bool(7) b(false);  System s();  Int(32) bar(-18);  Int(32) test() {  self bar . -18 cast = Int(32) ar = self bar . - -;  self s . ( self bar . )print . self bar . + return } }
 Uq_System { <NOMAIN> }
 ##
 ##      // use unary plus on return, and added 'ar' to avoid unused variable warning from g++ on generated code.

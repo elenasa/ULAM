@@ -4,7 +4,7 @@
 ## gen output: assert
 #!
 Exit status: 1
-Ue_Foo { Unsigned(1) m_array[71](0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,1u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u);  Int(32) test() {  System s;  C2D c;  c ( 0 cast 0 cast )func = m_array c ( )toInt . [] 1 cast = s ( m_array 40 [] cast )assert . m_array c ( )toInt . [] cast return } }
+Ue_Foo { Unsigned(1) m_array[71](0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,1u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u);  Int(32) test() {  System s;  C2D c;  c self ( 0 cast 0 cast )func . = self m_array . c ( )toInt . [] 1 cast = s ( self m_array . 40 [] cast )assert . self m_array . c ( )toInt . [] cast return } }
 Uq_C2D { typedef Int(8) IE;  Int(8) m_width(0);  Int(8) m_height(0);  Int(8) m_x(0);  Int(8) m_y(0);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##./Foo.ulam:4:2: ERROR: Data member <m_array> of type: Unsigned(1)[71], total size: 71 MUST fit into 64 bits; Local variables do not have this restriction.

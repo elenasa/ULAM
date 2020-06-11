@@ -2,7 +2,7 @@
 #=t3641_test_compiler_element_initlocalvarwithfunccallvalue_ish
 #!
 Exit status: 87
-Ue_Ish9 : QMoCo(0x57) { :< :< constant Bits(32) t = 87u; > constant Bits(32) speciesTag = 87u; > Int(32) test() {  Bits(32) b1 = ( )getTag;  b1 cast return } }
+Ue_Ish9 : QMoCo(0x57) { :QMoCo(0x57)< constant Bits(32) speciesTag = 87u;  :QT(0x57)< constant Bits(32) t = 87u; >> ^QT(0x57)< constant Bits(32) t = 87u; > Int(32) test() {  Bits(32) b1 = self ( )getTag .;  b1 cast return } }
 Uq_QMoCo(Bits(32) speciesTag) : QT(t) { /* empty class block */ }
 Uq_QT(Bits(32) t) { <NOMAIN> }
 ##

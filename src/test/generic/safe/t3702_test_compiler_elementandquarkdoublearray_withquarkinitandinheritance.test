@@ -1,14 +1,14 @@
 ## -*- mode:ulam -*-
 #=t3702_test_compiler_elementandquarkdoublearray_withquarkinitandinheritance
-#!
 ##
 ## gencode output (assert after):
 ## Bool(3) Arg: 0x7 (true)
 ##
+#!
 Exit status: 0
-Ue_Foo { Bool(3) b(true);  typedef Car Pop[2];  System s();  Car m_bar2[2]( :< Bool(1) val_b[3](false,false,false); > Bool(1) cb(true);  :< Bool(1) val_b[3](false,true,false); > Bool(1) cb(true); );  Int(32) test() {  Unary(1) i = 1u cast;  m_bar2 i cast [] val_b i cast [] . true = b m_bar2 i cast [] val_b i cast [] . cast = s ( b )print . s ( b cast )assert . 0 cast return } }
+Ue_Foo { Bool(3) b(true);  typedef Car Pop[2];  System s();  Car m_bar2[2]( Bool(1) cb(true);  :Bar< Bool(1) val_b[3](false,false,false); > Bool(1) cb(true);  :Bar< Bool(1) val_b[3](false,true,false); >);  Int(32) test() {  Unary(1) i = 1u cast;  self m_bar2 . i cast [] val_b i cast [] . true = self b . self m_bar2 . i cast [] val_b i cast [] . cast = self s . ( self b . )print . self s . ( self b . cast )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
-Uq_Car : Bar { :< Bool(1) val_b[3](false,false,false); > Bool(1) cb( true);  <NOMAIN> }
+Uq_Car : Bar { Bool(1) cb( true);  :Bar< Bool(1) val_b[3](false,false,false); > <NOMAIN> }
 Uq_Bar { Bool(1) val_b[3](false,false,false);  <NOMAIN> }
 ##
 ## informed by 3543

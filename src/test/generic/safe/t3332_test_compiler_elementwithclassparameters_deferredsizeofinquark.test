@@ -1,9 +1,9 @@
 ## -*- mode:ulam -*-
 #=t3332_test_compiler_elementwithclassparameters_deferredsizeofinquark
-#!
 ##    //Constants have explicit types
+#!
 Exit status: 6
-Ue_T { Int(32) i(6);  Int(32) test() {  S(1,2) m;  i m ( )func . = i return } }
+Ue_T { Int(32) i(6);  Int(32) test() {  S(1,2) m;  self i . m ( )func . = self i . return } }
 Uq_S(Int(32) x, Int(32) y) { Int(UNKNOWN) i(notready);  Int(UNKNOWN) j(notready);  <NOMAIN> }
 ##
 ##    //informed by t3331
@@ -11,27 +11,27 @@ Uq_S(Int(32) x, Int(32) y) { Int(UNKNOWN) i(notready);  Int(UNKNOWN) j(notready)
 #>T.ulam
  ulam 1;
 use S;
- element T{
-Int i;
-Int test(){
-S(1,2) m;
-i = m.func();
- return i;
+element T{
+  Int i;
+  Int test(){
+    S(1,2) m;
+    i = m.func();
+    return i;
+  }
 }
- }
 
 ##      //infinite loop 'S(x+y,1) s;' with x+y as class arg!
 ##      //note: quark self.sizeof returns 96 (an atom's size).
 ##      //they all work now!!
 ##
 #:S.ulam
-ulam 1;
+  ulam 1;
 quark S(Int x, Int y){
-Int(x+y) i,j;
- Int func(){
-return /* (x + y) */  S(x,y).sizeof  /* Int(x+y).sizeof*/  /* i.sizeof */ ;
+  Int(x+y) i,j;
+  Int func(){
+    return /* (x + y) */  S(x,y).sizeof  /* Int(x+y).sizeof*/  /* i.sizeof */ ;
+  }
 }
- }
 ##
 ##      // simplify for debugging
 ##      //bool rtn1 = fms->add("S.ulam"," ulam 1;\nquark S(Int x, Int y){\nInt(x+y) i,j;\n Int func(){\nreturn (x + y);\n}\n }\n");

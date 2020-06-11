@@ -8,30 +8,31 @@
 ##      */
 #!
 Exit status: 1
-Ue_A { System s();  Bool(1) sp(false);  Bool(3) d(false);  Bool(3) e(false);  Bool(3) f(false);  Bool(3) g(true);  Int(32) test() {  Bool(3) a;  Bool(3) b;  a false cast = b false cast = d a b && = s ( d )print . b true cast = e a b && = s ( e )print . f b a && = s ( f )print . a true cast = g a b && = s ( g )print . b cast return } }
+Ue_A { System s();  Bool(1) sp(false);  Bool(3) d(false);  Bool(3) e(false);  Bool(3) f(false);  Bool(3) g(true);  Int(32) test() {  Bool(3) a;  Bool(3) b;  a false cast = b false cast = self d . a b && = self s . ( self d . )print . b true cast = self e . a b && = self s . ( self e . )print . self f . b a && = self s . ( self f . )print . a true cast = self g . a b && = self s . ( self g . )print . b cast return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
+  ulam 1;
 use System;
 element A {
-System s;
-Bool sp;
-Bool(3) d,e,f,g;
-Int test(){Bool(3) a,b;
-a = false;
-b = false;
-d = a && b;
-s.print(d);
-b = true;
-e = a && b;
-s.print(e);
-f = b && a;
-s.print(f);
-a = true;
-g = a && b;
-s.print(g);
-return (Int) b;
- }
- }
+  System s;
+  Bool sp;
+  Bool(3) d,e,f,g;
+  Int test(){Bool(3) a,b;
+    a = false;
+    b = false;
+    d = a && b;
+    s.print(d);
+    b = true;
+    e = a && b;
+    s.print(e);
+    f = b && a;
+    s.print(f);
+    a = true;
+    g = a && b;
+    s.print(g);
+    return (Int) b;
+  }
+}
 
 #:System.ulam
 ulam 1;

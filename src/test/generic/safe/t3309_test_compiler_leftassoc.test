@@ -1,26 +1,27 @@
 ## -*- mode:ulam -*-
 #=t3309_test_compiler_leftassoc
-#!
 ##      /* gen code output:
 ##	 Int Arg: 2
 ##       */
 ##      // constant folded: a 2 2 / 2 * = s
 ##
+#!
 Exit status: 2
-Ue_A { Bool(7) b(false);  System s();  Int(32) a(2);  Int(32) test() {  a 2 cast = s ( a )print . a return } }
+Ue_A { Bool(7) b(false);  System s();  Int(32) a(2);  Int(32) test() {  self a . 2 cast = self s . ( self a . )print . self a . return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
+  ulam 1;
 use System;
 element A {
-System s;
-Bool(7) b;
-Int a;
- Int test() {
- a = 2 / 2 * 2;
-s.print(a);
- return a;
- }
- }
+  System s;
+  Bool(7) b;
+  Int a;
+  Int test() {
+    a = 2 / 2 * 2;
+    s.print(a);
+    return a;
+  }
+}
 
 #:System.ulam
 ulam 1;

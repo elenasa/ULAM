@@ -8,10 +8,10 @@
 #!
 Exit status: 0
 Uq_Base { <NOMAIN> }
-Uq_Sub1 : Base { :<> <NOMAIN> }
-Ue_E1 : Base { :<> <NOMAIN> }
-Ue_E2 : Sub1 { :< :<>> <NOMAIN> }
-Ue_Test : System { :<> Bool(1) brtn[13](true,true,true,true,true,true,true,true,true,true,true,true,true);  Int(32) test() {  E1 e1;  brtn 6 [] e1 ( )afunc . 1 cast == = ( brtn 6 [] )assert brtn 7 [] e1 ( 1 cast )afunc . 7 cast == = ( brtn 7 [] )assert brtn 8 [] e1 ( )bfunc . 8 cast == = ( brtn 8 [] )assert E2 e2;  brtn 9 [] e2 ( )afunc . 4 cast == = ( brtn 9 [] )assert brtn 10 [] e2 ( 1 cast )afunc . 9 cast == = ( brtn 10 [] )assert brtn 11 [] e2 ( )bfunc . 5 cast == = ( brtn 11 [] )assert brtn 12 [] e2 ( )cfunc . 10 cast == = ( brtn 12 [] )assert Base b;  brtn 0 [] b ( )afunc . 1 cast == = ( brtn 0 [] )assert brtn 1 [] b ( 1 cast )afunc . 2 cast == = ( brtn 1 [] )assert Sub1 s1;  brtn 2 [] s1 ( )afunc . 4 cast == = ( brtn 2 [] )assert brtn 3 [] s1 ( 1 cast )afunc . 2 cast == = ( brtn 3 [] )assert brtn 4 [] s1 ( )bfunc . 5 cast == = ( brtn 4 [] )assert brtn 5 [] s1 ( )cfunc . 6 cast == = ( brtn 5 [] )assert 0 cast return } }
+Uq_Sub1 : Base { :Base<> <NOMAIN> }
+Ue_E1 : Base { :Base<> <NOMAIN> }
+Ue_E2 : Sub1 { :Sub1<> ^Base<> <NOMAIN> }
+Ue_Test : System { Bool(1) brtn[13](true,true,true,true,true,true,true,true,true,true,true,true,true);  :System<> Int(32) test() {  E1 e1;  self brtn . 6 [] e1 ( )afunc . 1 cast == = self ( self brtn . 6 [] )assert . self brtn . 7 [] e1 ( 1 cast )afunc . 7 cast == = self ( self brtn . 7 [] )assert . self brtn . 8 [] e1 ( )bfunc . 8 cast == = self ( self brtn . 8 [] )assert . E2 e2;  self brtn . 9 [] e2 ( )afunc . 4 cast == = self ( self brtn . 9 [] )assert . self brtn . 10 [] e2 ( 1 cast )afunc . 9 cast == = self ( self brtn . 10 [] )assert . self brtn . 11 [] e2 ( )bfunc . 5 cast == = self ( self brtn . 11 [] )assert . self brtn . 12 [] e2 ( )cfunc . 10 cast == = self ( self brtn . 12 [] )assert . Base b;  self brtn . 0 [] b ( )afunc . 1 cast == = self ( self brtn . 0 [] )assert . self brtn . 1 [] b ( 1 cast )afunc . 2 cast == = self ( self brtn . 1 [] )assert . Sub1 s1;  self brtn . 2 [] s1 ( )afunc . 4 cast == = self ( self brtn . 2 [] )assert . self brtn . 3 [] s1 ( 1 cast )afunc . 2 cast == = self ( self brtn . 3 [] )assert . self brtn . 4 [] s1 ( )bfunc . 5 cast == = self ( self brtn . 4 [] )assert . self brtn . 5 [] s1 ( )cfunc . 6 cast == = self ( self brtn . 5 [] )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by vtable-example 11/17/15

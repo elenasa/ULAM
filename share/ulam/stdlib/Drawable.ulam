@@ -1,0 +1,29 @@
+ulam 5;
+
+quark Drawable {
+  constant Int cUNITS_PER_SITE = 1024;
+  Bool canDraw() native;
+  //  Unsigned getDitsPerSite() native;
+  //  C2D mapUnitsToDits(C2D u) { return (u*(C2D.Coord) getDitsPerSite())/(C2D.Coord) cUNITS_PER_SITE; }
+  Void drawMaskedLine(C2D startUnits, C2D endUnits, ARGB onColor, ARGB offColor, Bits mask32) {
+    drawMaskedLineUnits(startUnits,
+                        endUnits,
+                        onColor,
+                        offColor,
+                        mask32,
+                        cUNITS_PER_SITE/32,
+                        1u);
+  }
+  Void drawMaskedLine(C2D startUnits, C2D endUnits, ARGB onColor, ARGB offColor, Bits mask32, Unsigned width) {
+    drawMaskedLineUnits(startUnits,
+                        endUnits,
+                        onColor,
+                        offColor,
+                        mask32,
+                        cUNITS_PER_SITE/32,
+                        width);
+  }
+  //  Void drawMaskedLineDit(C2D startDit, C2D endDit, ARGB color, Bits mask32, Unsigned maskDits) native;
+  //Void drawMaskedLineUnits(C2D startUnits, C2D endUnits, ARGB onColor, ARGB offColor, Bits mask32, Unsigned maskUnits) native;
+  Void drawMaskedLineUnits(C2D startUnits, C2D endUnits, ARGB onColor, ARGB offColor, Bits mask32, Unsigned maskUnits, Unsigned width) native;
+}

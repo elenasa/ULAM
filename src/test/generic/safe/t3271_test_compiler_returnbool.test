@@ -2,18 +2,19 @@
 #=t3271_test_compiler_returnbool
 #!
 Exit status: 7
-Ue_A { typedef Unsigned(6) SiteNum;  Bool(1) sp(true);  Int(32) test() {  sp ( 7 cast )dup = 7 cast return } }
+Ue_A { typedef Unsigned(6) SiteNum;  Bool(1) sp(true);  Int(32) test() {  self sp . self ( 7 cast )dup . = 7 cast return } }
 #>A.ulam
+  ulam 1;
 element A {
-typedef Unsigned(6) SiteNum;
- Bool dup(SiteNum m) {
-Bool b = m != 0;
- return b;
+  typedef Unsigned(6) SiteNum;
+  Bool dup(SiteNum m) {
+    Bool b = m != 0;
+    return b;
+  }
+  Bool sp;
+  Int test(){ sp = dup((SiteNum) 7);
+    return 7;
+  }
 }
-Bool sp;
-Int test(){ sp = dup((SiteNum) 7);
- return 7;
- }
- }
 
 #.

@@ -2,7 +2,7 @@
 #=t3927_test_compiler_string_assign
 #!
 Exit status: 0
-Ue_A { String(32) m_s("bar");  Int(32) test() {  String(32) mt = "";  m_s mt = String(32) s = "foo";  s "bar" = m_s s = 0 cast return } }
+Ue_A { String(32) m_s("bar");  Int(32) test() {  String(32) mt = "";  self m_s . mt = String(32) s = "foo";  s "bar" = self m_s . s = 0 cast return } }
 #>A.ulam
   ulam 3;
 element A {

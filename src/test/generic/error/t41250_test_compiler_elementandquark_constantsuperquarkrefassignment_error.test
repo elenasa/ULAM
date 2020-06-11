@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t41250_test_compiler_elementandquark_constantsuperquarkrefassignment_error
 #!
-./Foo.ulam:7:16: ERROR: Unmodifiable lefthand side of assignment expression <.>, type: Bool(1); may be a constant function parameter.
+./Foo.ulam:7:16: ERROR: Unmodifiable lefthand side of assignment expression 'r.val_b', type: Bool(1); may be a constant function parameter.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t41249, except r is a constant ref (and not writeable)

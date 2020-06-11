@@ -1,6 +1,5 @@
 ## -*- mode:ulam -*-
 #=t3637_test_compiler_elementandquarkwargs_nestedshadowingasconds
-#!
 ##
 ##   gencode output (+asserts):
 ##	 Unsigned Arg: 3
@@ -8,11 +7,13 @@
 ##       Unsigned Arg: 3
 ##
 ##        unevaluable without assuming atoms as elements
+##        second fails eval
 ##
+#!
 Exit status: 3
 Uq_Typo(Int(32) a) : Bar { /* empty class block */ }
 Uq_Bar { Unsigned(3) bu( 7u);  <NOMAIN> }
-Ue_Eltypo : Typo(1) { :< :< Unsigned(3) bu(7u); > constant Int(32) a = 1; > System s();  Unsigned(3) first(3u);  Unsigned(3) second(3u);  Typo(1) t( :< Unsigned(3) bu(7u); > constant Int(32) a = 1; );  Int(32) test() {  Eltypo elf;  Atom(96) a = elf cast;  { a Eltypo as cond { Eltypo& a;  { a Bar as cond { Bar& a;  a ( 3u cast )func . s ( a bu . cast )print . s ( a bu . cast 3 cast == )assert . first a bu . = } if s ( false )assert . else } s ( a bu . cast )print . s ( a bu . cast 3 cast == )assert . s ( first cast )print . s ( first cast 3 cast == )assert . second a bu . = } if } second cast return } }
+Ue_Eltypo : Typo(1) { System s();  Unsigned(3) first(3u);  Unsigned(3) second(3u);  Typo(1) t( constant Int(32) a = 1;  :Bar< Unsigned(3) bu(7u); >);  :Typo(1)< constant Int(32) a = 1;  :Bar< Unsigned(3) bu(7u); >> ^Bar< Unsigned(3) bu(7u); > Int(32) test() {  Eltypo elf;  Atom(96) a = elf cast;  { a Eltypo as cond { Eltypo& a;  { a Bar as cond { Bar& a;  a ( 3u cast )func . self s . ( a bu . cast )print . self s . ( a bu . cast 3 cast == )assert . self first . a bu . = } if self s . ( false )assert . else } self s . ( a bu . cast )print . self s . ( a bu . cast 3 cast == )assert . self s . ( self first . cast )print . self s . ( self first . cast 3 cast == )assert . self second . a bu . = } if } self second . cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by 3589, 3636

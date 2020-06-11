@@ -4,6 +4,16 @@
 
 namespace MFM {
 
+  //! AtomUtils.ulam:21:   Bool hasAtomof(UrSelf& ref) native;
+  template<class EC>
+  Ui_Ut_10111b<EC> Uq_1010919AtomUtils10<EC>::Uf_919hasAtomof(const UlamContext<EC>& uc, UlamRef<EC>& ur, Ui_Uq_r10106UrSelf10<EC>& Ur_3ref) const
+  {
+    const u32 hasRealType = (Ur_3ref.GetType() != T::ATOM_UNDEFINED_TYPE);
+    Ui_Ut_10111b<EC> ubool(hasRealType);
+    return ubool;
+  } // Uf_919hasAtomof
+
+
   //! AtomUtils.ulam:10:   Type getType(Atom a) {
   template<class EC>
   Ui_Ut_102321i<EC> Uq_1010919AtomUtils10<EC>::Uf_7getType(const UlamContext<EC> & uc, UlamRef<EC>& ur, Ui_Ut_102961a<EC>& Uv_1a) const

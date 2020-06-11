@@ -1,10 +1,13 @@
 ## -*- mode:ulam -*-
 #=t3701_test_compiler_elementandquark_castclassreftoatomref
+##
+##  gen output: 2 asserts
+##
 #!
 Exit status: -1
-Ue_A : QW { :< :< Unary(5) m_five(3u); > Bool(1) bw(false); > Bool(1) c(false);  Int(32) test() {  System s;  Qbase& qref = self cast;  qref m_five . 3u cast = Atom(96)& aref = self cast;  aref qref.atomof = qref m_five . 5u cast = A apple = aref cast;  c apple m_five . cast 5u == = s ( c )assert . c cast return } }
+Ue_A : QW { Bool(1) c(true);  Bool(1) d(false);  :QW< Bool(1) bw(false);  :Qbase< Unary(5) m_five(5u); >> ^Qbase< Unary(5) m_five(5u); > Int(32) test() {  System s;  Qbase& qref = self cast;  qref m_five . 3u cast = Atom(96)& aref = qref cast;  qref m_five . 5u cast = A apple = aref cast;  self c . apple m_five . cast 5u == = s ( self c . )assert . Atom(96)& aref2 = qref.atomof;  qref m_five . 4u cast = A apple2 = aref2 cast;  self d . apple2 m_five . cast 4u == = s ( self d . )assert . self c . cast return } }
 Uq_System { <NOMAIN> }
-Uq_QW : Qbase { :< Unary(5) m_five(0); > Bool(1) bw(false);  <NOMAIN> }
+Uq_QW : Qbase { Bool(1) bw(false);  :Qbase< Unary(5) m_five(0); > <NOMAIN> }
 Uq_Qbase { Unary(5) m_five(0);  <NOMAIN> }
 ##
 ## informed by t3697
@@ -14,19 +17,25 @@ Uq_Qbase { Unary(5) m_five(0);  <NOMAIN> }
 use System;
 use QW;
 element A : QW {
-  Bool c;
+  Bool c,d;
   Int test(){
     System s;
     Qbase& qref = self;
     qref.m_five = 0x3;
 
-    Atom & aref = self; //ERROR for NOW.
-    //aref = (Atom&) qref.atomof; //atom ref assignment
-    aref = qref.atomof; //atom ref assignment
+    //Atom & aref = self; //ERROR for NOW.
+    Atom & aref = (Atom&) qref; //atom ref assignment
     qref.m_five = 0x5;
     A apple = (A) aref;
     c = (apple.m_five == 0x5);
     s.assert(c);
+
+    //Second way to go from qref to atomref, gencode different
+    Atom & aref2 = qref.atomof; //atomof ref assignment
+    qref.m_five = 0x4;
+    A apple2 = (A) aref2;
+    d = (apple2.m_five == 0x4);
+    s.assert(d);
 
     return (Int) c;
   }

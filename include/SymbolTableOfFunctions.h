@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * SymbolTableOfFunctions.h - Handling of Table of Function Symbols for ULAM
  *
- * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2017 Ackleyshack LLC.
+ * Copyright (C) 2014-2020 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2020 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +27,9 @@
 
 /**
   \file SymbolTableOfFunctions.h - Handling of Table of Function Symbols for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2017 All rights reserved.
+  \date (C) 2014-2020 All rights reserved.
   \gpl
 */
 
@@ -39,6 +39,8 @@
 
 #include "SymbolTable.h"
 #include "MapClassMemberDesc.h"
+#include "FunctionSignatureTable.h"
+#include "SymbolFunction.h"
 
 namespace MFM{
 
@@ -53,10 +55,9 @@ namespace MFM{
     virtual u32 getTotalSymbolSize();
 
     //Table Of Functions:
-    void addClassMemberFunctionDescriptionsToMap(UTI classType, ClassMemberMap& classmembers);
+    void checkTableOfFunctions(FSTable& mangledFunctionMap, u32& probcount);
 
-    void checkTableOfFunctions(std::map<std::string, UTI>& mangledFunctionMap, u32& probcount);
-    void checkTableOfFunctionsInAncestor(std::map<std::string, UTI>& mangledFunctionMap, u32& probcount);
+    void checkTableOfFunctionsSignatureReturnTypes(FSTable& mangledFunctionMap, u32& probcount);
 
     void linkToParentNodesAcrossTableOfFunctions(NodeBlockClass * p);
 
@@ -85,8 +86,6 @@ namespace MFM{
     void calcMaxIndexForVirtualTableOfFunctions(s32& maxidx);
 
     void checkAbstractInstanceErrorsAcrossTableOfFunctions();
-
-    void genCodeForTableOfFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
 
   protected:
 

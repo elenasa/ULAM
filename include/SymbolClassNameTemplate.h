@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * SymbolClassNameTemplate.h -  Class Symbol "Template" for ULAM
  *
- * Copyright (C) 2015-2018 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2018 Ackleyshack LLC.
+ * Copyright (C) 2015-2020 The Regents of the University of New Mexico.
+ * Copyright (C) 2015-2020 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +27,9 @@
 
 /**
   \file SymbolClassNameTemplate.h -  Class Symbol "Template" for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2018 All rights reserved.
+  \date (C) 2015-2020 All rights reserved.
   \gpl
 */
 
@@ -65,6 +65,11 @@ namespace MFM{
     virtual void setSuperClassForClassInstance(UTI superclass, UTI instance);
     virtual UTI getSuperClassForClassInstance(UTI instance);
 
+    virtual void appendBaseClassForClassInstance(UTI baseclass, UTI instance, bool sharedbase);
+    virtual u32 getBaseClassCountForClassInstance(UTI instance);
+    virtual UTI getBaseClassForClassInstance(UTI instance, u32 item);
+    virtual bool updateBaseClassforClassInstance(UTI instance, UTI oldbase, UTI newbaseuti);
+
     bool findClassInstanceByUTI(UTI uti, SymbolClass * & symptrref);
     bool findClassInstanceByArgString(UTI cuti, SymbolClass *& csymptr);
 
@@ -76,7 +81,7 @@ namespace MFM{
     SymbolClass * makeAStubClassInstance(const Token& typeTok, UTI cuti); //to hold class args, and cUTI
     SymbolClass * copyAStubClassInstance(UTI instance, UTI newuti, UTI argvaluecontext, UTI argtypecontext, Locator newloc);
 
-    bool checkTemplateAncestorBeforeAStubInstantiation(SymbolClass * stubcsym); //or private?
+    bool checkTemplateAncestorsBeforeAStubInstantiation(SymbolClass * stubcsym); //or private?
 
     void mergeClassInstancesFromTEMP();
 
@@ -86,9 +91,10 @@ namespace MFM{
 
     bool statusNonreadyClassArgumentsInStubClassInstances();
 
-    virtual std::string formatAnInstancesArgValuesAsAString(UTI instance);
+    virtual std::string formatAnInstancesArgValuesAsAString(UTI instance, bool dereftypes = false);
     std::string formatAnInstancesArgValuesAsCommaDelimitedString(UTI instance);
-    virtual std::string generateUlamClassSignature();
+    virtual void generatePrettyNameAndSignatureOfClassInstancesAsUserStrings();
+    virtual std::string generatePrettyNameOrSignature(UTI instance, bool signa, bool argvals);
 
     //helpers while deep instantiation
     virtual bool hasInstanceMappedUTI(UTI instance, UTI auti, UTI& mappedUTI);
@@ -118,11 +124,9 @@ namespace MFM{
 
     virtual void buildDefaultValueForClassInstances();
 
-    virtual void buildClassConstantDefaultValuesForClassInstances();
-
     virtual void testForClassInstances(File * fp);
 
-    virtual void assignRegistrationNumberForClassInstances(u32& count);
+    virtual void assignRegistrationNumberForClassInstances();
 
     virtual void generateCodeForClassInstances(FileManager * fm);
 
@@ -145,10 +149,10 @@ namespace MFM{
     std::map<std::string, SymbolClass* > m_scalarClassArgStringsToSymbolPtr; //merged set
     std::map<UTI, std::map<UTI,UTI> > m_mapOfTemplateUTIToInstanceUTIPerClassInstance;
 
-    //    bool checkTemplateAncestorBeforeAStubInstantiation(SymbolClass * stubcsym);
     bool takeAnInstancesArgValues(SymbolClass * fm, SymbolClass * to);
     bool copyAnInstancesArgValues(SymbolClass * fm, SymbolClass * to);
     void cloneAnInstancesUTImap(SymbolClass * fm, SymbolClass * to);
+    void initBaseClassListForAStubClassInstance(SymbolClass * & newclassinstance);
 
     bool checkSFINAE(SymbolClass * sym);
 

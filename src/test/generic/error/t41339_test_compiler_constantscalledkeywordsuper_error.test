@@ -1,0 +1,30 @@
+## -*- mode:ulam -*-
+#=t41339_test_compiler_constantcalledkeywordsuper_error
+#!
+./Su.ulam:4:15: ERROR: Invalid constant definition Alias 'super', Constant Identifier (2nd arg) must not be a reserved keyword.
+./Su.ulam:3:1: ERROR: Empty/Incomplete Class Definition 'Su'; Possible missing ending curly brace.
+./Su.ulam:4:21: ERROR: Invalid Class Type <=>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+./Su.ulam:3:9: ERROR: Invalid Type: Su.
+ ERROR: No parse tree for This Class: Su.
+Unrecoverable Program Parse FAILURE: <Su.ulam>
+##
+## quits after finding this error (see t41340 for self)
+##
+#>Su.ulam
+  ulam 1;
+use Qu;
+element Su {
+  constant Qu super = Qu.instanceof;
+
+  Int test(){
+    return 0;
+  }
+}
+
+
+#:Qu.ulam
+  ulam 1;
+quark Qu {
+}
+
+#.

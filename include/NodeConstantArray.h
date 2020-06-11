@@ -27,7 +27,7 @@
 
 /**
   \file NodeConstantArray.h - Node handling Named Constant arrays for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
   \date (C) 2016-2018 All rights reserved.
   \gpl

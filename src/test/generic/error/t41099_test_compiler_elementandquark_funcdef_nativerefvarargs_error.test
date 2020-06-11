@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t41099_test_compiler_elementandquark_funcdef_nativerefvarargs_error
 #!
-./A.ulam:8:18: ERROR: Reference Vararg: arg_1 to function <max>; type Int(32)& is currently unsupported.
+./A.ulam:8:18: ERROR: Reference Vararg: arg_1 to function 'max'; type Int(32)& is currently unsupported.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t3250

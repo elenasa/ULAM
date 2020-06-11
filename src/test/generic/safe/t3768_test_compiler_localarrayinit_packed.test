@@ -8,7 +8,7 @@
 ##
 #!
 Exit status: 5
-Ue_A { Int(32) a(5);  Int(32) d(-1);  System s();  Int(32) test() {  Int(32) b = 1 cast;  Int(32) c[2] = { -1, 5 };  s ( 64u )print . s ( true )assert . a c 1 [] = s ( a )print . s ( a 5 cast == )assert . d c 0 [] = s ( d )print . s ( d -1 cast == )assert . a return } }
+Ue_A { Int(32) a(5);  Int(32) d(-1);  System s();  Int(32) test() {  Int(32) b = 1 cast;  Int(32) c[2] = { -1, 5 };  self s . ( 64u )print . self s . ( true )assert . self a . c 1 [] = self s . ( self a . )print . self s . ( self a . 5 cast == )assert . self d . c 0 [] = self s . ( self d . )print . self s . ( self d . -1 cast == )assert . self a . return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t3128

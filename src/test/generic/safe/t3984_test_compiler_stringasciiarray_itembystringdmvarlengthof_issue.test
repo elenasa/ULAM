@@ -6,7 +6,7 @@
 ##
 #!
 Exit status: 0
-Ue_FString { String(32) mfoo("");  Int(3) goofy(2);  Unsigned(3) sleepy(0u);  Int(2) naughty(-1);  Bool(1) b1(true);  Int(32) test() {  System s;  mfoo "" = String(32) gstr = ( glyphsRadonX 0u cast 1 cast +b [] 0 cast )init;  Int(32) slen = 13u cast;  s ( slen )print . b1 slen 13 cast == = s ( b1 )assert . s ( gstr 0 [] 33u == )assert . 0 cast return } }
+Ue_FString { String(32) mfoo("");  Int(3) goofy(2);  Unsigned(3) sleepy(0u);  Int(2) naughty(-1);  Bool(1) b1(true);  Int(32) test() {  System s;  self mfoo . "" = String(32) gstr = self ( glyphsRadonX 0u cast 1 cast +b [] 0 cast )init .;  Int(32) slen = 13u cast;  s ( slen )print . self b1 . slen 13 cast == = s ( self b1 . )assert . s ( gstr 0 [] 33u == )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by Font issue by Dave 20170102, t3958

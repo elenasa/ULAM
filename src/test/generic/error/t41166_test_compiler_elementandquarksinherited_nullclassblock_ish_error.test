@@ -1,22 +1,11 @@
 ## -*- mode:ulam -*-
 #=t41166_test_compiler_elementandquarksinherited_nullclassblock_ish_error
 #!
-./QID.ulam:7:12: ERROR: Trying to use typedef from another class template 'QID', but instance cannot be found.
-./QID.ulam:9:1: ERROR: Invalid Statement (possible missing semicolon).
-./QID.ulam:7:5: ERROR: Not close curly.
-./QID.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'QID'; Possible missing ending curly brace.
-./QID.ulam:2:7: ERROR: Invalid Type: QID.
- ERROR: No parse tree for This Class: QID.
-Unrecoverable Program Parse FAILURE: <QID.ulam>
-./QSwapLine.ulam:2:38: ERROR: While parsing a class ancestor for QSwapLine11: due to unrecoverable problems in template: QID, additional errors are unlikely to be useful.
-./QSwapLine.ulam:2:42: ERROR: Unexpected token <TOK_IDENTIFIER>; Expected {.
-./QSwapLine.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'QSwapLine'; Possible missing ending curly brace.
-./QSwapLine.ulam:2:42: ERROR: Invalid Class Type <itagBits>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
-./QSwapLine.ulam:2:7: ERROR: Invalid Type: QSwapLine.
- ERROR: No parse tree for This Class: QSwapLine.
-Unrecoverable Program Parse FAILURE: <QSwapLine.ulam>
+./QID.ulam:5:16: ERROR: Check overloaded function 'getme' with different return types (QSwapLine(4), QID(4)), in QSwapLine(4).
+Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by user ish 11/19/2017, t3652; replace assert with error message.."While parsing a..."
+## 1/25/2020 that problem was fixed, so now we test virtual returning Self error.
 ##
 #>IshD.ulam
   ulam 2;
@@ -33,7 +22,7 @@ element IshD {
 quark QID(Unary(5) myTagBits) {
   constant Unsigned cQID_TAG_BITS = myTagBits;
   Bits(1) mArray[cQID_TAG_BITS];
-  Self baderror()
+  virtual Self getme()
   {
     return Self.instanceof; //like dominos falling..
   }
@@ -43,7 +32,11 @@ quark QID(Unary(5) myTagBits) {
   ulam 2;
 quark QSwapLine(Unary(5) itagBits) : QID(itagBits) {
   Int(7) mPhase;
+  virtual Self getme()
+  {
+    return Self.instanceof; //like dominos falling..
+  }
 }
-use QID;
+//use QID;
 
 #.

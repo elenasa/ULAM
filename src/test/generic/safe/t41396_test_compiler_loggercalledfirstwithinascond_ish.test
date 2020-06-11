@@ -1,0 +1,56 @@
+## -*- mode:ulam -*-
+#=t41396_test_compiler_loggercalledfirstwithinascond_ish
+##
+## gen code output:
+## String(1): "die"
+##
+#!
+Exit status: 9
+Ue_MyElement { Int(32) test() {  SystemU3 log;  Atom(96)& a = self.atomof;  { a MyElement as cond { MyElement& a;  log ( "die" )prints . { a ( )funcccc . cond 9 cast return if } } if } 0 cast return } }
+Uq_SystemU3 : System { :System<> <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## informed by Daves ish 04/24/2020, gencode c++ error: Convolution of conditions:
+##  1. within an as-cond, first, a "fluent" print func is called returning Self& but dropped,
+##  2. this is followed by a func call on the as-variable within an if condition.
+##
+#>MyElement.ulam
+  ulam 5;
+element MyElement {
+  Int test() {
+    SystemU3 log;
+    Atom & a = self.atomof;
+    if (a as Self) {
+      //SystemU3 tmpself = log.prints("die"); WORKS fluent programming..
+      //log.print("die"); //WORKS fine with this call
+      log.prints("die"); //WORKS fine without this call
+
+      if (a.funcccc()) return 9;
+      //a.funcccc(); //WORKS
+      }
+    return 0;
+  }
+
+  Bool funcccc() { return true; }
+}
+
+#:SystemU3.ulam
+  ulam 3;
+quark SystemU3 : System {
+  Self & prints(String s) { print(s); return self; }
+  Void print(String s) native;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+
+#.

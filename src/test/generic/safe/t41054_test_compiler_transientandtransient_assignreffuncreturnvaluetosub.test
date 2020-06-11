@@ -3,9 +3,9 @@
 #!
 Exit status: -11
 Ue_R { Int(32) test() {  TW tw;  Base& ref = tw ( )func . cast;  TW& tapple = tw ( )funcself . cast;  0 cast return } }
-Un_TW : W { :< :< Unary(5) m_five(0); > Bool(1) bw(false); > Bool(1) b(false);  Bool(1) c(false);  <NOMAIN> }
+Un_TW : W { Bool(1) b(false);  Bool(1) c(false);  :W< Bool(1) bw(false); > ^Base< Unary(5) m_five(0); > <NOMAIN> }
 Uq_Base { Unary(5) m_five(0);  <NOMAIN> }
-Un_W : Base { :< Unary(5) m_five(0); > Bool(1) bw(false);  <NOMAIN> }
+Un_W : Base { Bool(1) bw(false);  :Base< Unary(5) m_five(0); > <NOMAIN> }
 ##
 ## informed by t3790, t41053
 ##

@@ -1,14 +1,14 @@
 ## -*- mode:ulam -*-
 #=t3291_test_compiler_typedefarray_minmaxsizeof
-#!
 ##      /* gen code output: array size (8 x 4), 3 ways:
 ##	 Unsigned Arg: 32
 ##	 Unsigned Arg: 32
 ##	 Unsigned Arg: 32
 ##      */
 ##
+#!
 Exit status: 0
-Ue_B { Bool(7) b(false);  System s();  typedef Unsigned(8) Index;  typedef Unsigned(8) NIdx;  typedef Unsigned(8) IndArr[4];  typedef Unsigned(8) IArray[4];  Unsigned(8) arr[4](0u,0u,0u,0u);  Int(32) test() {  s ( 32u )print . s ( 32u )print . s ( 32u )print . 0 cast return } }
+Ue_B { Bool(7) b(false);  System s();  typedef Unsigned(8) Index;  typedef Unsigned(8) NIdx;  typedef Unsigned(8) IndArr[4];  typedef Unsigned(8) IArray[4];  Unsigned(8) arr[4](0u,0u,0u,0u);  Int(32) test() {  self s . ( 32u )print . self s . ( 32u )print . self s . ( 32u )print . 0 cast return } }
 Uq_System { <NOMAIN> }
 #>B.ulam
   ulam 1;

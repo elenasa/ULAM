@@ -2,7 +2,7 @@
 #=t3467_test_compiler_bitsshift
 #!
 Exit status: 0
-Ue_A { Bits(3) u(6);  Bits(3) v(3);  Int(32) test() {  v 7u cast = u v 1 cast << cast = v v 1 cast >> = 0 cast return } }
+Ue_A { Bits(3) u(6);  Bits(3) v(3);  Int(32) test() {  self v . 7u cast = self u . self v . 1 cast << cast = self v . self v . 1 cast >> = 0 cast return } }
 #>A.ulam
   ulam 1;
 element A {

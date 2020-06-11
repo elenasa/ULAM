@@ -105,7 +105,7 @@ namespace MFM {
 
 	if(lut->isScalar())
 	  {
-	    m_isCustomArray = m_state.isClassACustomArray(leftType);
+	    m_isCustomArray = m_state.isClassACustomArray(leftType); //e.g. t3653
 
 	    if(lut->isHolder())
 	      {
@@ -122,20 +122,12 @@ namespace MFM {
 	    else
 	      {
 		assert(lut->getUlamTypeEnum() == Class);
-
 		//overload operator[] supercedes custom array (t41129)
-		Node * newnode = buildOperatorOverloadFuncCallNode();
-		if(newnode)
+		if(NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode())
 		  {
-		    AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
-		    assert(swapOk);
-
-		    m_nodeLeft = NULL; //recycle as memberselect
-		    m_nodeRight = NULL; //recycle as func call arg
-
+		    m_state.setGoAgain();
 		    delete this; //suicide is painless..
-
-		    return newnode->checkAndLabelType(); //done
+		    return Hzy;
 		  }
 		else if(!m_isCustomArray)
 		  {
@@ -280,9 +272,11 @@ namespace MFM {
 		    m_nodeRight = NULL; //recycled
 		    m_nodeLeft = NULL; //recycled
 
+		    m_state.setGoAgain();
+
 		    delete this; //suicide is painless..
 
-		    return newnode->checkAndLabelType();
+		    return Hzy;
 		  }
 	      }
 	    else
@@ -394,7 +388,6 @@ namespace MFM {
   Node * NodeSquareBracket::buildOperatorOverloadFuncCallNode()
   {
     UTI leftType = m_nodeLeft->getNodeType();
-    Token identTok;
     TokenType opTokType = Token::getTokenTypeFromString(getName());
     assert(opTokType != TOK_LAST_ONE);
     Token opTok(opTokType, getNodeLocation(), 0);
@@ -402,53 +395,25 @@ namespace MFM {
     if(opolId == 0)
       {
 	std::ostringstream msg;
-	msg << "Overload for operator <" << getName();
-	msg << "> is not supported as operand for class: ";
+	msg << "Overload for operator " << getName();
+	msg << " is not supported as operand for class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(leftType).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	return NULL;
       }
 
-    identTok.init(TOK_IDENTIFIER, getNodeLocation(), opolId);
-
     //may need to fall back to a custom array
-    SymbolClass * csym = NULL;
-    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(leftType, csym);
-    assert(isDefined);
-
-    NodeBlockClass * memberClassNode = csym->getClassBlockNode();
-    assert(memberClassNode);  //e.g. forgot the closing brace on quark definition
-
-    assert(m_state.okUTItoContinue(memberClassNode->getNodeType()));
-
-    //set up compiler state to use the member class block for symbol searches
-    m_state.pushClassContextUsingMemberClassBlock(memberClassNode);
-
-    Node * rtnNode = NULL;
     Symbol * fnsymptr = NULL;
     bool hazyKin = false;
-
-    if(m_state.isFuncIdInClassScope(opolId, fnsymptr, hazyKin) && !hazyKin)
+    if(m_state.isFuncIdInAClassScopeOrAncestor(leftType, opolId, fnsymptr, hazyKin) && !hazyKin)
       {
 	// ambiguous (>1) overload will produce an error later
 	//fill in func symbol during type labeling;
-	NodeFunctionCall * fcallNode = new NodeFunctionCall(identTok, NULL, m_state);
-	assert(fcallNode);
-	fcallNode->setNodeLocation(identTok.m_locator);
-
-	fcallNode->addArgument(m_nodeRight);
-
-	NodeMemberSelect * mselectNode = new NodeMemberSelect(m_nodeLeft, fcallNode, m_state);
-	assert(mselectNode);
-	mselectNode->setNodeLocation(identTok.m_locator);
-	rtnNode = mselectNode;
+	return Node::buildOperatorOverloadFuncCallNodeHelper(m_nodeLeft, m_nodeRight, getName());
       }//else use default struct equal, or wait for hazy arg
 
-    //clear up compiler state to no longer use the member class block for symbol searches
-    m_state.popClassContext();
-
     //redo check and type labeling done by caller!!
-    return rtnNode; //replace right node with new branch
+    return NULL; //replace right node with new branch
   } //buildOperatorOverloadFuncCallNode
 
   Node * NodeSquareBracket::buildArefFuncCallNode()

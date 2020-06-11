@@ -7,7 +7,7 @@
 ##
 #!
 Exit status: 0
-Ue_A { Bool(1) b(true);  Int(6) c[10](-1,5,4,4,4,4,4,4,4,4);  System s();  Int(32) test() {  s ( 60u )print . s ( true )assert . b c 9 [] 4 cast == = s ( b cast )print . s ( b )assert . 0 cast return } }
+Ue_A { Bool(1) b(true);  Int(6) c[10](-1,5,4,4,4,4,4,4,4,4);  System s();  Int(32) test() {  self s . ( 60u )print . self s . ( true )assert . self b . self c . 9 [] 4 cast == = self s . ( self b . cast )print . self s . ( self b . )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t3772

@@ -2,9 +2,9 @@
 #=t41301_test_compiler_casttmpvarreftosuperref_issue
 #!
 Exit status: -11
-Ue_Foo { Int(32) test() {  SystemDU du;  typedef ByteStreamArray(250u) MsgBuf;  ByteStreamArray(250u) buf;  du ( buf cast cast )print . 0 cast return } }
-Uq_SystemDU : System { :<> <NOMAIN> }
-Un_ByteStreamArray(Unsigned(32) len) : ByteStream { :<> Unsigned(32) mWrite( 0u);  Unsigned(32) mRead( 0u);  Unsigned(8) mData[UNKNOWN](notready);  <NOMAIN> }
+Ue_Foo { Int(32) test() {  SystemU3 du;  typedef ByteStreamArray(250u) MsgBuf;  ByteStreamArray(250u) buf;  du ( buf cast cast )print . 0 cast return } }
+Uq_SystemU3 : System { :System<> <NOMAIN> }
+Un_ByteStreamArray(Unsigned(32) len) : ByteStream { Unsigned(32) mWrite(notready);  Unsigned(32) mRead(notready);  Unsigned(8) mData[UNKNOWN](notready);  :ByteStream<> <NOMAIN> }
 Uq_ByteStream { <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
@@ -16,7 +16,7 @@ Uq_System { <NOMAIN> }
 element Foo {
   Int test()
   {
-    SystemDU du;
+    SystemU3 du;
     typedef ByteStreamArray(250u) MsgBuf;
     MsgBuf buf;
     du.print((ByteStream&) buf);
@@ -93,7 +93,7 @@ quark ByteStream {
    */
   virtual Int readByte()
   {
-    SystemDU f;
+    SystemU3 f;
     f.print("UNSUPPORTED_OPERATION");
     f.assert(false);
     return -3;
@@ -114,7 +114,7 @@ quark ByteStream {
    */
   virtual Int writeByte(ASCII x)
   {
-    SystemDU f;
+    SystemU3 f;
     f.print("UNSUPPORTED_OPERATION");
     f.assert(false);
     return -3;
@@ -197,9 +197,9 @@ quark ByteStream {
   // Self & printf(String format, ...) native ;
 }
 
-#:SystemDU.ulam
+#:SystemU3.ulam
   ulam 4;
-quark SystemDU : System {
+quark SystemU3 : System {
   Void print(String s) native;
   Void print(Atom& aref) { /* tbd */ }
   Void print(UrSelf& bsref) { /* tbd */ }

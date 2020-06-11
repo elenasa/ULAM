@@ -19,15 +19,15 @@
 #!
 ./Foo.ulam:11:12: ERROR: DEPRECATED keyword <has>.
 ./Foo.ulam:11:14: ERROR: Unexpected token <TOK_TYPE_IDENTIFIER>; Expected ).
-./Foo.ulam:11:20: ERROR: Name of variable <)>: Identifier must begin with a lower-case letter.
+./Foo.ulam:11:20: ERROR: Name of variable ')': Identifier must begin with a lower-case letter.
 ./Foo.ulam:11:20: ERROR: Invalid Statement (possible missing semicolon).
 ./Foo.ulam:17:12: ERROR: DEPRECATED keyword <has>.
 ./Foo.ulam:17:14: ERROR: Unexpected token <TOK_TYPE_IDENTIFIER>; Expected ).
-./Foo.ulam:17:20: ERROR: Name of variable <)>: Identifier must begin with a lower-case letter.
+./Foo.ulam:17:20: ERROR: Name of variable ')': Identifier must begin with a lower-case letter.
 ./Foo.ulam:17:20: ERROR: Invalid Statement (possible missing semicolon).
 ./Foo.ulam:21:12: ERROR: DEPRECATED keyword <has>.
 ./Foo.ulam:21:14: ERROR: Unexpected token <TOK_TYPE_IDENTIFIER>; Expected ).
-./Foo.ulam:21:20: ERROR: Name of variable <)>: Identifier must begin with a lower-case letter.
+./Foo.ulam:21:20: ERROR: Name of variable ')': Identifier must begin with a lower-case letter.
 ./Foo.ulam:21:20: ERROR: Invalid Statement (possible missing semicolon).
 Unrecoverable Program Parse FAILURE: <Foo.ulam>
 #>Foo.ulam

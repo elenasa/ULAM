@@ -2,7 +2,7 @@
 #=t3619_test_compiler_funccallasarg
 #!
 Exit status: 5
-Ue_Ish { Int(32) p(5);  Int(32) test() {  Unsigned(32) n = 3 cast;  Unsigned(32) m = 4 cast;  Int(32) o = 5 cast;  p ( ( n m )max o )max = p return } }
+Ue_Ish { Int(32) p(5);  Int(32) test() {  Unsigned(32) n = 3 cast;  Unsigned(32) m = 4 cast;  Int(32) o = 5 cast;  self p . self ( self ( n m )max . o )max . = self p . return } }
 ##
 #>Ish.ulam
   ulam 1;

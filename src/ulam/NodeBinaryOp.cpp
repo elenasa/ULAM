@@ -168,24 +168,13 @@ namespace MFM {
     //replace node with func call to matching function overload operator for class
     // of left, with argument of right (t41104);
     // quark toInt must be used on rhs of operators (t3191, t3200, t3513, t3648,9)
-    UlamType * lut = m_state.getUlamTypeByIndex(leftType);
-    if((lut->getUlamTypeEnum() == Class))
+    if(buildandreplaceOperatorOverloadFuncCallNode())
       {
-	Node * newnode = buildOperatorOverloadFuncCallNode();
-	if(newnode)
-	  {
-	    AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
-	    assert(swapOk);
-
-	    m_nodeLeft = NULL; //recycle as memberselect
-	    m_nodeRight = NULL; //recycle as func call arg
-
-	    delete this; //suicide is painless..
-
-	    return newnode->checkAndLabelType();
-	  }
-	//else should fail again as non-primitive;
-      } //done
+	m_state.setGoAgain();
+	delete this; //suicide is painless..
+	return Hzy;
+      }
+    //else should fail again as non-primitive;
 
     UTI newType = calcNodeType(leftType, rightType); //does safety check
 
@@ -213,45 +202,37 @@ namespace MFM {
     //before constant folding; if needed (e.g. Remainder, Divide)
     castThyselfToResultType(rightType, leftType, newType);
 
-    if((newType != Nav) && isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
+    if(m_state.okUTItoContinue(newType) && isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
       return constantFold();
 
     return newType;
   } //checkAndLabelType
 
+  bool NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode()
+  {
+    assert(m_nodeLeft && m_nodeRight);
+    UTI lt = m_nodeLeft->getNodeType();
+    if(!m_state.isAClass(lt))
+      return false;
+
+    Node * newnode = buildOperatorOverloadFuncCallNode();
+    if(newnode)
+      {
+	AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+	assert(swapOk);
+
+	m_nodeLeft = NULL; //recycle as memberselect
+	m_nodeRight = NULL; //recycle as func call arg
+
+	return true; //return Hzy;
+      }
+    return false;
+  } //buildandreplaceOperatorOverloadFuncCallNode
+
   //no existence checking; error if overload doesn't exist for class and this binary op.
   Node * NodeBinaryOp::buildOperatorOverloadFuncCallNode()
   {
-    Token identTok;
-    TokenType opTokType = Token::getTokenTypeFromString(getName());
-    assert(opTokType != TOK_LAST_ONE);
-    Token opTok(opTokType, getNodeLocation(), 0);
-    u32 opolId = Token::getOperatorOverloadFullNameId(opTok, &m_state);
-    if(opolId == 0)
-      {
-	std::ostringstream msg;
-	msg << "Overload for operator <" << getName();
-	msg << "> is not supported as operand for class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_nodeLeft->getNodeType()).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	return NULL;
-      }
-
-    identTok.init(TOK_IDENTIFIER, getNodeLocation(), opolId);
-
-    //fill in func symbol during type labeling;
-    NodeFunctionCall * fcallNode = new NodeFunctionCall(identTok, NULL, m_state);
-    assert(fcallNode);
-    fcallNode->setNodeLocation(identTok.m_locator);
-
-    fcallNode->addArgument(m_nodeRight);
-
-    NodeMemberSelect * mselectNode = new NodeMemberSelect(m_nodeLeft, fcallNode, m_state);
-    assert(mselectNode);
-    mselectNode->setNodeLocation(identTok.m_locator);
-
-    //redo check and type labeling done by caller!!
-    return mselectNode; //replace right node with new branch
+    return Node::buildOperatorOverloadFuncCallNodeHelper(m_nodeLeft, m_nodeRight, getName());
   } //buildOperatorOverloadFuncCallNode
 
   UTI NodeBinaryOp::castThyselfToResultType(UTI rt, UTI lt, UTI newType)
@@ -539,8 +520,8 @@ namespace MFM {
     u64 val = 0;
     UTI nuti = getNodeType();
 
-    if(nuti == Nav) return Nav; //nothing to do yet
-    //if(nuti == Hzy) return Hzy; //nothing to do yet TRY?
+    //t3323,t3489,t3509,t3849,50,51,t41145
+    assert(m_state.okUTItoContinue(nuti)); //nothing to do yet
 
     // if here, must be a constant..
     assert(isAConstant());
@@ -609,9 +590,11 @@ namespace MFM {
     newnode->setYourParentNo(pno); //a leaf
     newnode->resetNodeNo(getNodeNo());
 
+    m_state.setGoAgain();
+
     delete this; //suicide is painless..
 
-    return newnode->checkAndLabelType();
+    return Hzy;
   } //constantFold
 
   bool NodeBinaryOp::assignClassArgValueInStubCopy()

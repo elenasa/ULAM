@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t41253_test_compiler_element_funccallwithconstantrefparamwprimitiveconstant_differentsizes_error
 #!
-./Foo.ulam:19:5: ERROR: (1) <check> has no defined function with 1 matching argument type: Bool(1), and cannot be called.
+./Foo.ulam:19:5: ERROR: (1) 'check' has no defined function with 1 matching argument type: Bool(1), and cannot be called.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t41240, testing the constant ref function parameter;

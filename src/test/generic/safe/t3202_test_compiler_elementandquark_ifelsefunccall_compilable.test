@@ -2,56 +2,57 @@
 #=t3202_test_compiler_elementandquark_ifelsefunccall_compilable
 #!
 Exit status: 0
-Ue_Foo { System s();  Bar bar1( Bool(1) b(true);  Unsigned(3) x(1u);  Unsigned(3) y(2u); );  Bar bar2( Bool(1) b(false);  Unsigned(3) x(3u);  Unsigned(3) y(0u); );  Int(4) i(2);  Int(4) j(0);  Int(32) test() {  Int(32) d;  d 1 cast = bar1 ( d 2 cast )set . bar2 ( 3 cast 0 cast )set . i bar1 ( )toInt . cast = j bar2 ( )toInt . cast = s ( i )print . s ( j )print . 0 cast return } }
+Ue_Foo { System s();  Bar bar1( Bool(1) b(true);  Unsigned(3) x(1u);  Unsigned(3) y(2u); );  Bar bar2( Bool(1) b(false);  Unsigned(3) x(3u);  Unsigned(3) y(0u); );  Int(4) i(2);  Int(4) j(0);  Int(32) test() {  Int(32) d;  d 1 cast = self bar1 . ( d 2 cast )set . self bar2 . ( 3 cast 0 cast )set . self i . self bar1 . ( )toInt . cast = self j . self bar2 . ( )toInt . cast = self s . ( self i . )print . self s . ( self j . )print . 0 cast return } }
 Uq_Bar { Bool(1) b(false);  Unsigned(3) x(0);  Unsigned(3) y(0);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 #>Foo.ulam
-ulam 1;
+  ulam 1;
 use Bar;
 use System;
 element Foo {
-System s;
-Bar bar1;
-Bar bar2;
-Int(4) i, j;
-Int test(){
-Int d;
-d = 1;
-bar1.set(d,2);
-bar2.set(3,0);
-i = (Int(4)) bar1;
-j = (Int(4)) bar2;
-s.print(i);
-s.print(j);
-return 0;}
+  System s;
+  Bar bar1;
+  Bar bar2;
+  Int(4) i, j;
+  Int test(){
+    Int d;
+    d = 1;
+    bar1.set(d,2);
+    bar2.set(3,0);
+    i = (Int(4)) bar1;
+    j = (Int(4)) bar2;
+    s.print(i);
+    s.print(j);
+    return 0;}
 }
 
 ##      //note: don't have <<2, so substituted *4; got it now! changes the answer too..
 ##      // use set function; test bool to avoid divide by zero
 ##      //note: don't have <<2, so substituted *4; use 3 bits so not to cross word boundary
 #:Bar.ulam
-ulam 1;
+  ulam 1;
 quark Bar {
-Bool b;
-Unsigned(3) x, y;
-Int toInt(){
-if(b)
-return (Int) (x << 2) / y;
-else
-return 0;
+  Bool b;
+  Unsigned(3) x, y;
+  Int toInt(){
+    if(b)
+      return (Int) (x << 2) / y;
+    else
+      return 0;
+  }
+  Void set(Int xarg, Int yarg){
+    x=(Unsigned(3)) xarg;
+    y=(Unsigned(3)) yarg;
+    if(yarg!=0){
+      b=true;
+    }
+    else{
+      b=false;
+    }
+  }
 }
-Void set(Int xarg, Int yarg){
-x=(Unsigned(3)) xarg;
-y=(Unsigned(3)) yarg;
-if(yarg!=0){
-b=true;
-}
-else{
-b=false;
-}
-}
-}
+
 #:System.ulam
 ulam 1;
 quark System {

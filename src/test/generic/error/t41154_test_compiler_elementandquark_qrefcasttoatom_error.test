@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t41154_test_compiler_elementandquark_qrefcasttoatom_error
 #!
-./MyElement.ulam:21:20: ERROR: <q> is a quark and cannot be used with .atomof; try a reference or self.
+./MyElement.ulam:21:20: ERROR: 'q' is a quark and cannot be used with .atomof; try a reference or self.
 ./MyElement.ulam:21:5: ERROR: Initial value expression for: bref, initialization is invalid.
 ./MyElement.ulam:21:5: ERROR: Storage expression for: bref, is invalid.
 Unrecoverable Program Type Label FAILURE.

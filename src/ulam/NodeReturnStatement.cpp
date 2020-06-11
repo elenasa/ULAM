@@ -114,7 +114,6 @@ namespace MFM {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    nodeType = Nav;
 	  }
-	//else if(UlamType::compareForArgumentMatching(nodeType, rtnType, m_state) != UTIC_SAME)
 	else if(UlamType::compareForAssignment(nodeType, rtnType, m_state) != UTIC_SAME)
 	  {
 	    if(UlamType::compare(rtnType, Void, m_state) == UTIC_NOTSAME)
@@ -421,7 +420,9 @@ namespace MFM {
 	    m_state.indentUlamCode(fp);
 	    fp->write("if(_IsLocal((void *) &");
 	    fp->write(cossym->getMangledName().c_str());
-	    if(m_state.isAltRefType(cosuti))
+	    // test if storage a ref is pointing to is on the stack, not the ref itself;
+	    // use isReference (not isAltRefType) to include ALT_ARRAYITEM which aref's return.
+	    if(m_state.isReference(cosuti)) //t3653, t3916, t3942, t41071,3,4, t41289
 	      fp->write(".GetStorage()");
 	    fp->write("))"); GCNL;
 
@@ -431,7 +432,7 @@ namespace MFM {
 	    m_state.m_currentIndentLevel--;
 	  }
 
-	//no need to make a tmp symbol if the symbol already is one
+	//still need to make a tmp symbol if the symbol already is one
 	// e.g. func call ref returned (t41030-35)
 	//if(!cossym->isTmpVarSymbol()) makes ulamexports EVentWindow very unhappy!
 	{

@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeConstant.h - Node handling NamedConstants for ULAM
  *
- * Copyright (C) 2015-2018 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2018 Ackleyshack LLC.
+ * Copyright (C) 2015-2019 The Regents of the University of New Mexico.
+ * Copyright (C) 2015-2019 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +27,9 @@
 
 /**
   \file NodeConstant.h - Node handling Named Constants for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2018 All rights reserved.
+  \date (C) 2015-2019 All rights reserved.
   \gpl
 */
 
@@ -94,7 +94,7 @@ namespace MFM{
     virtual void genCodeToStoreInto(File * fp, UVPass& uvpass);
 
   protected:
-    Token m_token;
+    const Token m_token;
     NodeTypeDescriptor * m_nodeTypeDesc; //can be NULL
     SymbolWithValue * m_constSymbol;
     bool m_ready;
@@ -114,6 +114,7 @@ namespace MFM{
     NodeBlock * m_currBlockPtr; //could be NULL
     SymbolTmpVar * m_tmpvarSymbol;
 
+    bool replaceOurselves(Symbol * symptr);
     UTI checkUsedBeforeDeclared();
     UlamValue makeUlamValuePtr();
 

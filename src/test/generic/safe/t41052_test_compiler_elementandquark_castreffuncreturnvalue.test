@@ -7,8 +7,8 @@
 ##
 #!
 Exit status: -11
-Ue_Foo : QFoo { :< :<>> Int(32) test() {  System s;  Foo& fooref = ( )func cast;  s ( fooref Foo is )assert . Foo& qfooref = ( )funcq cast;  s ( qfooref Foo is )assert . QBar& qbarref = ( )funcq cast;  s ( qbarref QBar is )assert . 0 cast return } }
-Uq_QFoo : QBar { :<> <NOMAIN> }
+Ue_Foo : QFoo { :QFoo< :QBar<>> ^QBar<> Int(32) test() {  System s;  Foo& fooref = self ( )func . cast;  s ( fooref Foo is )assert . Foo& qfooref = self ( )funcq . cast;  s ( qfooref Foo is )assert . QBar& qbarref = self ( )funcq . cast;  s ( qbarref QBar is )assert . 0 cast return } }
+Uq_QFoo : QBar { :QBar<> <NOMAIN> }
 Uq_System { <NOMAIN> }
 Uq_QBar { /* empty class block */ }
 ##

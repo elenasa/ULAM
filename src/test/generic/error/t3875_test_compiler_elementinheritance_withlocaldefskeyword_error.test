@@ -2,6 +2,14 @@
 #=t3875_test_compiler_elementinheritance_withlocaldefskeyword_error
 #!
 ./Foo.ulam:2:9: ERROR: Subclass 'Foo' inherits from 'Moo', an unresolved local filescope typedef.
+./Foo.ulam:6:5: ERROR: Incomplete descriptor for type: Foo (UTI 29).
+./Foo.ulam:6:5: ERROR: Incomplete Variable Decl for type: Foo, used with variable symbol name 'f'.
+./Foo.ulam:7:9: ERROR: Incomplete identifier for type: Foo, used with list symbol name 'f'.
+./Foo.ulam:7:11: ERROR: Member selected is incomplete class: unresolved, check and label fails this time around.
+./Foo.ulam:8:9: ERROR: Incomplete descriptor for type: 31 (UTI 31).
+./Foo.ulam:8:13: ERROR: Proxy Type: unresolved is still incomplete and unknown for its 'sizeof' while compiling class: Foo.
+./Foo.ulam:9:5: ERROR: Incomplete identifier for type: Foo&, used with list symbol name 'self'.
+./Foo.ulam:9:5: ERROR: Member selected is incomplete class: unresolved, check and label fails this time around.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## test of local defs errors, mis-using local keyword as forward decl
@@ -10,8 +18,8 @@ Unrecoverable Program Type Label FAILURE.
   ulam 3;
 element Foo : local.Moo {
   Bool(7) sp;
-  Unsigned a = 73;
   Int test() {
+    Unsigned a = 73;
     Foo f;
     a = f.us;
     a = Moo.sizeof;

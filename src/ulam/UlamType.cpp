@@ -344,7 +344,12 @@ namespace MFM {
 
   TMPSTORAGE UlamType::getTmpStorageTypeForTmpVar()
   {
-    return TMPREGISTER; //unpacked arrays reflected in tmp name.
+    //references are read into the same underlying bitstorage as non-refs.
+    TMPSTORAGE rtnStgType = TMPREGISTER;
+    u32 sizebyints = getTotalWordSize();
+    if(sizebyints > 64)
+      rtnStgType = TMPTBV;
+    return rtnStgType; //unpacked arrays reflected in tmp name.
   }
 
   const char * UlamType::getUlamTypeAsSingleLowercaseLetter()
@@ -457,6 +462,17 @@ namespace MFM {
   u32 UlamType::getSizeofUlamType()
   {
     return getTotalBitSize(); //by default
+  }
+
+  s32 UlamType::getBitsizeAsBaseClass()
+  {
+    m_state.abortShouldntGetHere();
+    return UNKNOWNSIZE;
+  }
+
+  void UlamType::setBitsizeAsBaseClass(s32 bs)
+  {
+    m_state.abortShouldntGetHere(); //only classes
   }
 
   ALT UlamType::getReferenceType()

@@ -1,6 +1,7 @@
-ulam 3;
+//ulam 5;
+use ByteStream;
 
-transient ByteStreamString : ByteStream {
+transient ByteStreamString : ByteStreamReader {
   String m_string = "";
   Unsigned m_index = 0;
 
@@ -14,16 +15,11 @@ transient ByteStreamString : ByteStream {
     m_index = 0;
   }
 
-  Void reset() 
+  @Override
+  Void reread() 
   {
     m_index = 0;
   }
-
-  @Override
-  Bool canRead() { return true; }
-
-  @Override
-  Bool canWrite() { return false; }
 
   @Override
   Int readByte() {
@@ -31,4 +27,9 @@ transient ByteStreamString : ByteStream {
     return m_string[m_index++];
   }
 
+  Self & operator=(Self& rhs) {
+    m_string = rhs.m_string;
+    m_index = rhs.m_index;
+    return self;
+  }
 }

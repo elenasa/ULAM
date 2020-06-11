@@ -27,7 +27,7 @@
 
 /**
   \file NodeTypedef.h - Basic Node handling Typedefs for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
   \date (C) 2014-2019 All rights reserved.
   \gpl
@@ -62,7 +62,7 @@ namespace MFM{
 
     virtual void printPostfix(File * f);
 
-    virtual void noteTypeAndName(s32 totalsize, u32& accumsize);
+    virtual void noteTypeAndName(UTI cuti, s32 totalsize, u32& accumsize);
 
     virtual void genTypeAndNameEntryAsComment(File * fp, s32 totalsize, u32& accumsize);
 

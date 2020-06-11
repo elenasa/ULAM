@@ -1,11 +1,11 @@
 ## -*- mode:ulam -*-
 #=t3330_test_compiler_elementwithclassparameters_deferred
-#!
 ##      //Constants have explicit types
 ##      //note: in eval, last case, uninitialized atom case is wrong!!
 ##
+#!
 Exit status: 0
-Ue_T { S(1,2) m( constant Int(32) x = 1;  constant Int(32) y = 2; );  Int(32) test() {  m ( )func . 0 cast return } }
+Ue_T { S(1,2) m( constant Int(32) x = 1;  constant Int(32) y = 2; );  Int(32) test() {  self m . ( )func . 0 cast return } }
 Uq_S(Int(32) x, Int(32) y) { <NOMAIN> }
 ##
 ##    //informed by t3255

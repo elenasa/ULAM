@@ -8,7 +8,7 @@
 ##
 #!
 Exit status: 41
-Ue_Foo { System s();  Unsigned(1) m_array[64](0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,1u,1u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u);  Int(32) test() {  C2D c;  c ( 0u cast 0 cast )func = m_array 1 cast c ( )toInt . +b [] 1 cast = m_array c ( )toInt . [] 1 cast = s ( c m_width . cast )print . s ( c m_height . cast )print . s ( 1 cast c ( )toInt . +b cast )print . s ( m_array c ( )toInt . [] cast )print . s ( c m_width . 9 cast == )assert . s ( c m_height . 4 cast == )assert . s ( 1 cast c ( )toInt . +b 41 cast == )assert . s ( m_array c ( )toInt . [] cast 1 == )assert . 1 cast c ( )toInt . +b cast return } }
+Ue_Foo { System s();  Unsigned(1) m_array[64](0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,1u,1u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u);  Int(32) test() {  C2D c;  c self ( 0u cast 0 cast )func . = self m_array . 1 cast c ( )toInt . +b [] 1 cast = self m_array . c ( )toInt . [] 1 cast = self s . ( c m_width . cast )print . self s . ( c m_height . cast )print . self s . ( 1 cast c ( )toInt . +b cast )print . self s . ( self m_array . c ( )toInt . [] cast )print . self s . ( c m_width . 9 cast == )assert . self s . ( c m_height . 4 cast == )assert . self s . ( 1 cast c ( )toInt . +b 41 cast == )assert . self s . ( self m_array . c ( )toInt . [] cast 1 == )assert . 1 cast c ( )toInt . +b cast return } }
 Uq_C2D { typedef Int(8) IE;  Int(8) m_width( 9);  Int(8) m_height( 4);  Int(8) m_x(0);  Int(8) m_y(0);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

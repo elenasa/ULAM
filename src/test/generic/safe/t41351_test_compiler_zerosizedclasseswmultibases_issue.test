@@ -1,0 +1,122 @@
+## -*- mode:ulam -*-
+#=t41351_test_compiler_zerosizedclasseswmultibases_issue
+##
+## gen output: (no asserts, inspection)
+##  String(53) Arg: "Printable: "
+##  String(1) Arg: "DemoBase"
+##  String(53) Arg: "Printable: "
+##  String(41) Arg: "MIBondable"
+##  String(53) Arg: "Printable: "
+##  String(21) Arg: "BondDemoBond"
+##
+#!
+Exit status: 0
+Ue_BondDemoBond : DemoBase +MIBondable +Printable { :DemoBase< :Printable<>> +MIBondable< typedef Int(32) Tag;  +Printable<>> +Printable<> Int(32) test() {  self ( )printSelf . 0 cast return } }
+Uq_DemoBase : Printable { :Printable<> <NOMAIN> }
+Uq_Printable { <NOMAIN> }
+Uq_DemoBond : Bond +Printable { typedef Unsigned(6) SiteNum;  Unsigned(6) mNearSN( 63u);  Unsigned(6) mFarSN( 63u);  :Bond< typedef Unsigned(6) SiteNum; > +Printable<> <NOMAIN> }
+Uq_Bond +Printable { typedef Unsigned(6) SiteNum;  +Printable<> <NOMAIN> }
+Uq_MIBondable +Printable { typedef Int(32) Tag;  +Printable<> <NOMAIN> }
+Uq_Fail +System { +System<> <NOMAIN> }
+Uq_SystemU3 : System { :System<> <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## Issue reported by Dave 9/14/19: gencode assert did not account for no data members.
+## culamtest: NodeMemberSelectByBaseClassType.cpp:345: void MFM::NodeMemberSelectByBaseClassType::makeUVPassForCodeGen(MFM::UVPass&): Assertion `basepos < uvpass.getPassLen() failed.
+##
+##
+#>BondDemoBond.ulam
+  ulam 5;
+quark DemoBase : Printable {
+  Void printSelf() { print("DemoBase"); }
+}
+
+quark DemoBond : Bond + Printable {
+  typedef Unsigned(6) SiteNum;
+  SiteNum mNearSN = SiteNum.maxof;
+  SiteNum mFarSN = SiteNum.maxof;
+  virtual SiteNum getNearSN() { return mNearSN; }
+  virtual SiteNum getFarSN() { return mFarSN; }
+  Void printSelf() { super.printSelf(); print("DemoBond"); }
+}
+
+element BondDemoBond : DemoBase + MIBondable + Printable {
+  //self.MIBondable.printSelf() hit gencode assert!
+  Void printSelf() { super.printSelf(); self.MIBondable.printSelf(); print("BondDemoBond"); }
+  Bool hasBondFor(Int tag) { return false; }
+  Int test() {
+    printSelf();
+    return 0;
+  }
+}
+
+#:MIBondable.ulam
+  ulam 5;
+quark Bond + Printable {
+  typedef Unsigned(6) SiteNum;
+
+  /** The site I am currently in
+      \return SiteNum.maxof if unbonded
+  */
+  virtual SiteNum getNearSN() ;
+
+  /** The site of the thing I'm bonded to
+      \return SiteNum.maxof if unbonded
+  */
+  virtual SiteNum getFarSN() ;
+
+  virtual Bool couldBond(Bond& other) ;
+
+  virtual Void updateBond(SiteNum myNewSN) {
+    Fail f;
+    f.fail();
+  }
+
+  Void printSelf() { print("Bond"); }
+}
+
+quark MIBondable + Printable {
+  typedef Int Tag;
+  virtual Bool hasBondFor(Tag tag) ;
+  Void printSelf() { print("MIBondable"); }
+}
+
+
+#:Printable.ulam
+  ulam 4;
+quark Printable {
+  Void print(String msg) {
+    SystemU3 du;
+    du.print("Printable: ");
+    du.print(msg);
+  }
+  virtual Void printSelf() ;
+}
+
+#:SystemU3.ulam
+  ulam 3;
+quark SystemU3 : System {
+  Void print(String s) native;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+
+#:Fail.ulam
+  ulam 5;
+quark Fail + System {
+  Void fail()
+  {
+    assert(false);
+  }
+}
+#.

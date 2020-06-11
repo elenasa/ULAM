@@ -1,0 +1,89 @@
+## -*- mode:ulam -*-
+#=t41360_test_compiler_elementandquarks_multibases_atomofcasting_issue
+##
+## gen output: (1 assert at the end)
+##   String(1) Arg: "Foo1"
+##   String(7) Arg: "Foo2"
+##   String(13) Arg: "Foo2.5"
+##   String(21) Arg: "Foo3"
+##   Int Arg: 0
+##   String(27) Arg: "Foo4"
+##   String(33) Arg: "Foo5"
+##
+## atoms are unevaluable, and unprintable
+#!
+Exit status: -11
+Ue_Foo +Intermediate { +Intermediate< +Base(true)< Bool(1) m_b(true);  constant Bool(1) flag = true;  typedef Base(false) NotBase; >> ^Base(true)< Bool(1) m_b(true);  constant Bool(1) flag = true;  typedef Base(false) NotBase; > Int(32) test() {  SystemU3 du;  du ( "Foo1" )print . EventWindow ew;  Foo foo;  ew ( 0 cast )aref . foo cast = Intermediate& i = ew ( 0 cast )aref . cast;  du ( "Foo2" )print . Atom(96)& ar = i cast;  du ( "Foo2.5" )print . Atom(96)& ar2 = i.atomof cast;  du ( "Foo3" )print . du ( i ( )funcb . )print . du ( "Foo4" )print . du ( "Foo5" )print . du ( i m_b . )assert . 0 cast return } }
+Uq_Intermediate +Base(true) { +Base(true)< Bool(1) m_b( 1u);  typedef Base(false) NotBase; > <NOMAIN> }
+Uq_SystemU3 : System { :System<> <NOMAIN> }
+Uq_EventWindow { <NOMAIN> }
+Uq_Base(Bool(1) flag) { Bool(1) m_b(notready);  typedef Base(flag) NotBase;  <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+##  informed by Dave 10/19/19. Bonds/worms fail:
+##          The problem somehow involves like 'foo.atomof',
+##          and the workaround is doing '(Atom&) foo' instead.
+##
+#>Foo.ulam
+  ulam 5;
+element Foo + Intermediate {
+  Int test() {
+    SystemU3 du;
+    du.print("Foo1");
+    EventWindow ew;
+    Foo foo;
+    ew[0] = foo;
+    Intermediate& i = (Intermediate&) ew[0];
+    du.print("Foo2");
+    Atom& ar = (Atom&) i;
+    du.print("Foo2.5");
+    Atom& ar2 = (Atom&) i.atomof; // Dies here
+    du.print("Foo3");
+    du.print(i.funcb());
+    du.print("Foo4");
+    //    du.print(ar); not supported in test code
+    du.print("Foo5");
+    du.assert(i.m_b);
+    return 0;
+  }
+}
+
+#:Base.ulam
+  ulam 5;
+quark Base(Bool flag) {
+  Bool m_b = flag;
+  typedef Base(!flag) NotBase;
+  Int funcb() { return 0; }
+}
+
+#:Intermediate.ulam
+  ulam 5;
+quark Intermediate + Base(true) {
+  virtual Int funci() { return 1; }
+}
+
+#:EventWindow.ulam
+  ulam 3;
+quark EventWindow{
+  Atom& aref(Int index) native;
+}
+
+#:SystemU3.ulam
+  ulam 3;
+quark SystemU3 : System {
+  Void print(String s) native;
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

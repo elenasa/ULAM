@@ -5,7 +5,7 @@
 ##
 #!
 Exit status: 0
-Ue_Foo : Qbar { :< Int(3) m_q(2); > Qbar m_qbar( Int(3) m_q(1); );  Int(32) test() {  System s;  m_q 2 = Qbar myqbar = ( true )func;  s ( myqbar m_q . 2 == )assert . Qbar qbar1 = m_q 1 cast == ?  m_qbar :  myqbar;  s ( qbar1 m_q . 2 == )assert . Qbar qbar2 = m_q 2 == ?  m_qbar :  myqbar;  s ( qbar2 m_q . 1 cast == )assert . 0 cast return } }
+Ue_Foo : Qbar { Qbar m_qbar( Int(3) m_q(1); );  :Qbar< Int(3) m_q(2); > Int(32) test() {  System s;  self m_q . 2 = Qbar myqbar = self ( true )func .;  s ( myqbar m_q . 2 == )assert . Qbar qbar1 = self m_q . 1 cast == ?  self m_qbar . :  myqbar;  s ( qbar1 m_q . 2 == )assert . Qbar qbar2 = self m_q . 2 == ?  self m_qbar . :  myqbar;  s ( qbar2 m_q . 1 cast == )assert . 0 cast return } }
 Uq_Qbar { Int(3) m_q( 1);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

@@ -3,20 +3,20 @@
 #!
 ./SPLATInstance.ulam:64:0: ERROR: Trying to exceed allotted bit size (8192) for transient SPLATRuleSet with 17061 bits.
 ./SPLATRuleSet.ulam:2:11: NOTE: Components of SPLATRuleSet are..
-./SPLATInstance.ulam:2:7: NOTE: (1 of 17061 bits, at 0) from superclass: SPLATInstance.
-./SPLATRuleSet.ulam:4:3: NOTE: (0 of 17061 bits, at 1) SPLATControl splatControl.
-./SPLATRuleSet.ulam:7:3: NOTE: (3316 of 17061 bits, at 1) SPLATKeyStateSelf m_keyStateSelf.
-./SPLATRuleSet.ulam:8:3: NOTE: (3316 of 17061 bits, at 3317) SPLATKeyStateEmpty m_keyStateEmpty.
-./SPLATRuleSet.ulam:9:3: NOTE: (3316 of 17061 bits, at 6633) SPLATKeyStateAny m_keyStateAny.
-./SPLATRuleSet.ulam:10:3: NOTE: (3316 of 17061 bits, at 9949) SPLATKeyStateOccupied m_keyStateOccupied.
-./SPLATRuleSet.ulam:11:3: NOTE: (3316 of 17061 bits, at 13265) SPLATKeyStateInvalid m_keyStateInvalid.
-./SPLATRuleSet.ulam:15:3: NOTE: (320 of 17061 bits, at 16581) Int(32) m_scratchVars[10].
-./SPLATRuleSet.ulam:19:3: NOTE: (64 of 17061 bits, at 16901) Bits(64) m_givenTrueForNode.
+./SPLATRuleSet.ulam:4:3: NOTE: (0 of 17061 bits, at 0) SPLATControl splatControl.
+./SPLATRuleSet.ulam:7:3: NOTE: (3316 of 17061 bits, at 0) SPLATKeyStateSelf m_keyStateSelf.
+./SPLATRuleSet.ulam:8:3: NOTE: (3316 of 17061 bits, at 3316) SPLATKeyStateEmpty m_keyStateEmpty.
+./SPLATRuleSet.ulam:9:3: NOTE: (3316 of 17061 bits, at 6632) SPLATKeyStateAny m_keyStateAny.
+./SPLATRuleSet.ulam:10:3: NOTE: (3316 of 17061 bits, at 9948) SPLATKeyStateOccupied m_keyStateOccupied.
+./SPLATRuleSet.ulam:11:3: NOTE: (3316 of 17061 bits, at 13264) SPLATKeyStateInvalid m_keyStateInvalid.
+./SPLATRuleSet.ulam:15:3: NOTE: (320 of 17061 bits, at 16580) Int(32) m_scratchVars[10].
+./SPLATRuleSet.ulam:19:3: NOTE: (64 of 17061 bits, at 16900) Bits(64) m_givenTrueForNode.
+./SPLATInstance.ulam:2:7: NOTE: (1 of 17061 bits, at 16964) from super base class: SPLATInstance.
 ./SPLATRuleSet.ulam:2:11: ERROR: CLASS (regular) 'SPLATRuleSet' SIZED 17061 FAILED.
 ./SPLATRuleSet.ulam:22:11: ERROR: Subclass 'SPLATRuleSet_13QMembrane' inherits from illegal 'SPLATRuleSet'.
 Unrecoverable Program Type Label FAILURE.
 ##
-## informed by Dave 3/6/19, t41013 (Unhelpful 0Hzy type shown for class data members sometimes).
+## informed by Dave 3/6/19, t41013 (Unhelpful 0Hzy type shown for class data members sometimes)
 ##
 #>R.ulam
   ulam 4;

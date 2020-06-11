@@ -2,7 +2,7 @@
 #=t3232_test_compiler_expressionwithparens_issue
 #!
 Exit status: 72
-Ue_Foo { typedef Unsigned(8) ARGB[4];  typedef Unsigned(8) Channel;  Unsigned(3) m_lastTouch(2u);  Int(32) test() {  Unsigned(8) tmp[4];  m_lastTouch 2 cast = tmp 1 [] m_lastTouch cast 36u cast * cast = tmp 1 [] cast return } }
+Ue_Foo { typedef Unsigned(8) ARGB[4];  typedef Unsigned(8) Channel;  Unsigned(3) m_lastTouch(2u);  Int(32) test() {  Unsigned(8) tmp[4];  self m_lastTouch . 2 cast = tmp 1 [] self m_lastTouch . cast 36u cast * cast = tmp 1 [] cast return } }
 #>Foo.ulam
   ulam 1;
 element Foo {

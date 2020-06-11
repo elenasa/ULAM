@@ -10,7 +10,7 @@
 ##
 #!
 Exit status: 5
-Ue_Foo { Bool(1) first(true);  Int(32) fint(0);  Int(32) opfint(5);  Int(32) test() {  System s;  Foo foo;  foo fint . 2 cast = opfint foo ( )operator+ . = s ( opfint )print . s ( opfint 5 cast == )assert . opfint foo ( )operator- . = s ( opfint )print . s ( opfint -1 cast == )assert . first foo ( )operator! . = s ( first cast )print . s ( first )assert . first foo ( )operator! . ! ! = s ( first cast )print . s ( first )assert . opfint foo ( )operator+ . = s ( opfint )print . s ( opfint 5 cast == )assert . opfint return } }
+Ue_Foo { Bool(1) first(true);  Int(32) fint(0);  Int(32) opfint(5);  Int(32) test() {  System s;  Foo foo;  foo fint . 2 cast = self opfint . foo ( )operator+ . = s ( self opfint . )print . s ( self opfint . 5 cast == )assert . self opfint . foo ( )operator- . = s ( self opfint . )print . s ( self opfint . -1 cast == )assert . self first . foo ( )operator! . = s ( self first . cast )print . s ( self first . )assert . self first . foo ( )operator! . ! ! = s ( self first . cast )print . s ( self first . )assert . self opfint . foo ( )operator+ . = s ( self opfint . )print . s ( self opfint . 5 cast == )assert . self opfint . return } }
 Uq_System { <NOMAIN> }
 ##
 ## first test to parse unary operator+,-,! for an element

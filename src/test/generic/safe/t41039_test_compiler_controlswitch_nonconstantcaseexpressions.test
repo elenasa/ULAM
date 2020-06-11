@@ -6,7 +6,7 @@
 ##
 #!
 Exit status: 4
-Ue_A { System s();  Int(32) x(4);  Int(32) test() {  Int(32) y = 4 cast;  Int(32) z = -1 cast;  { typedef Int(32) _SWITCHTYPEDEF12;  Int(32) Uh_switchcond12 = y;  Uh_switchcond12 x 3 cast += == cond { z 2 cast = } if Uh_switchcond12 x 1 ++ == cond { z 3 cast = } if Uh_switchcond12 x 0 cast +b == cond { z 4 cast = } if true cond { z 5 cast = } if else else else _1: } s ( z )print . s ( z 4 cast == )assert . z return } }
+Ue_A { System s();  Int(32) x(4);  Int(32) test() {  Int(32) y = 4 cast;  Int(32) z = -1 cast;  { typedef Int(32) _SWITCHTYPEDEF12;  Int(32) Uh_switchcond12 = y;  Uh_switchcond12 self x . 3 cast += == cond { z 2 cast = } if Uh_switchcond12 self x . 1 ++ == cond { z 3 cast = } if Uh_switchcond12 self x . 0 cast +b == cond { z 4 cast = } if true cond { z 5 cast = } if else else else _1: } self s . ( z )print . self s . ( z 4 cast == )assert . z return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by Dave: different than C, ulam allows non-constant case expressions

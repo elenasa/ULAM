@@ -1,11 +1,11 @@
 ## -*- mode:ulam -*-
 #=t3535_test_compiler_elementinheritance_MP_nonlocaluse_fail
-#!
 ##
 ## (gencode) NULL_POINTER due to model parameter
 ##
+#!
 Exit status: 3
-Ue_Foo : Soo { :< Unsigned(3) us(4u); > Bool(7) sp(false);  Int(32) a(73);  parameter Unary(4) mp = 7u;  Int(32) test() {  mp(7u) cast return } }
+Ue_Foo : Soo { Bool(7) sp(false);  Int(32) a(73);  parameter Unary(4) mp = 7u;  :Soo< Unsigned(3) us(4u); > Int(32) test() {  mp(7u) cast return } }
 Uq_Soo { Unsigned(3) us( 4u);  <NOMAIN> }
 ##
 ##  test of class inheritance, regular (non-template), with Model Parameter

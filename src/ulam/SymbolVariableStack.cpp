@@ -55,12 +55,6 @@ namespace MFM {
     Symbol::printPostfixValuesOfVariableDeclarations(fp, slot, startpos, classtype); //pure in SymbolWithValue
   }
 
-  void SymbolVariableStack::generateCodedVariableDeclarations(File * fp, ULAMCLASSTYPE classtype)
-  {
-    m_state.abortShouldntGetHere();
-    //not sure what this should do for local variables, if anything,
-  }
-
   UlamValue SymbolVariableStack::getAutoPtrForEval()
   {
     return m_autoPtrForEval;

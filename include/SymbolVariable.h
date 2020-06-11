@@ -67,8 +67,6 @@ namespace MFM{
 
     virtual u32 getPosOffset();
 
-    virtual void generateCodedVariableDeclarations(File * fp, ULAMCLASSTYPE classtype) = 0;
-
   protected:
 
   private:

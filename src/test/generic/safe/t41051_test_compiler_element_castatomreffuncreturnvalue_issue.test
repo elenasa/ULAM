@@ -7,7 +7,7 @@
 ##
 #!
 Exit status: -11
-Ue_Foo : QFoo { :<> Int(32) test() {  System s;  Foo& fooref = ( )func cast;  s ( fooref Foo is )assert . QFoo& qfooref = ( )func cast;  s ( qfooref QFoo is )assert . Foo f;  Foo& ffooref = f ( )func . cast;  s ( ffooref Foo is )assert . 0 cast return } }
+Ue_Foo : QFoo { :QFoo<> Int(32) test() {  System s;  Foo& fooref = self ( )func . cast;  s ( fooref Foo is )assert . QFoo& qfooref = self ( )func . cast;  s ( qfooref QFoo is )assert . Foo f;  Foo& ffooref = f ( )func . cast;  s ( ffooref Foo is )assert . 0 cast return } }
 Uq_QFoo { /* empty class block */ }
 Uq_System { <NOMAIN> }
 ##

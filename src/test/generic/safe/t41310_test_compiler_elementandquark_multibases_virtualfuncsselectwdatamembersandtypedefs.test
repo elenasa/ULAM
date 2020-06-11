@@ -1,0 +1,99 @@
+## -*- mode:ulam -*-
+#=t41310_test_compiler_elementandquark_multibases_virtualfuncsselectwdatamembersandtypedefs
+##
+## gen output:
+## Int Arg: 212 (+ 1 assert)
+## Int Arg: 110 (+ 2 asserts)
+## Int Arg: 110 (+ 2 asserts)
+##
+#!
+Exit status: 0
+Ue_Foo +System { Int(32) m_c4(212);  Int(32) m_a4(110);  +System<> Int(32) test() {  E4 e4;  typedef QBase2 QB2;  self m_c4 . e4 QB2 . ( )vfuncc . = self ( self m_c4 . )print . self ( self m_c4 . 212 cast == )assert . typedef QBase1 QB1;  self m_a4 . e4 QB1 . ( )vfunca . = self ( self m_a4 . )print . self ( self m_a4 . 110 cast == )assert . self ( e4 m_b1 . )assert . e4 m_b1 . false = Int(32) a4 = e4 QBase1 . ( )vfunca .;  self ( a4 )print . self ( a4 110 cast == )assert . self ( e4 m_b1 . )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+Ue_E4 : QBase3 +QBase2 +QBase1 { typedef QBase2 QB2;  :QBase3< Bool(1) m_b3(false); > +QBase2< Bool(1) m_b2(false); > +QBase1< Bool(1) m_b1(false); > <NOMAIN> }
+Uq_QBase3 : QBase1 { Bool(1) m_b3(false);  :QBase1< Bool(1) m_b1(false); > <NOMAIN> }
+Uq_QBase1 { Bool(1) m_b1(false);  <NOMAIN> }
+Uq_QBase2 { Bool(1) m_b2(false);  <NOMAIN> }
+##
+##       informed by t41309; here we want to pick a base class' 'override instead,
+##       and change its data member (but which one? SHARED!); using typedefs
+##
+#>Foo.ulam
+  ulam 5;
+element Foo +System {
+  Int m_c4;
+  Int m_a4;
+
+  Int test()
+  {
+    E4 e4;
+
+    typedef E4.QB2 QB2;
+    m_c4 = e4.QB2.vfuncc(); //212
+    print(m_c4);
+    assert(m_c4==212);
+
+    typedef QBase3.Super QB1;
+    m_a4 = e4.QB1.vfunca(); //110
+    print(m_a4);
+    assert(m_a4==110);
+    assert(e4.m_b1); //changed, even with extra +QBase1
+
+    e4.m_b1 = false; //reset
+    Int a4 = e4.QBase1.vfunca(); //110
+    print(a4);
+    assert(a4==110);
+    assert(e4.m_b1);
+
+    return 0;
+  }
+}
+
+
+#:E4.ulam
+  ulam 5;
+element E4 : QBase3 +QBase2 +QBase1 {
+  virtual Int vfuncc() { return 412; }
+  virtual Int vfunca() { return 410; }
+  virtual Void behave() { }
+  typedef QBase2 QB2;
+}
+
+#:QBase1.ulam
+    ulam 4;
+quark QBase1 {
+  Bool m_b1;
+  Void funcNotVirtualSoIrrelevantHere() { }
+  virtual Int vfunca() { m_b1 = true; return 110; }
+}
+
+#:QBase2.ulam
+  ulam 4;
+quark QBase2 {
+  Bool m_b2;
+  virtual ARGB getColor(Unsigned s) { return super.getColor(s); }
+  virtual Int vfuncc() { m_b2 = true; return 212; }
+}
+
+#:QBase3.ulam
+  ulam 4;
+quark QBase3 : QBase1 {
+  Bool m_b3;
+  virtual Int vfuncb() { return 311; }
+  virtual Int vfunca() { m_b3 = true; return 310; }
+}
+
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

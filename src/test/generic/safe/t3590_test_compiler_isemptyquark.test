@@ -5,7 +5,7 @@
 ##
 #!
 Exit status: 0
-Ue_Foo { Unary(6) energy(0u);  Int(32) test() {  Atom(96) a;  { a Empty is cond { { energy cast 63u cast == cond { 1 cast return } if { energy cast 0u cast == cond { 0 cast return } if } else } } if } -1 cast return } }
+Ue_Foo { Unary(6) energy(0u);  Int(32) test() {  Atom(96) a;  { a Empty is cond { { self energy . cast 63u cast == cond { 1 cast return } if { self energy . cast 0u cast == cond { 0 cast return } if } else } } if } -1 cast return } }
 ##
 ## formerly error t3402
 ##

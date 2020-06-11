@@ -2,7 +2,7 @@
 #=t3111_test_compiler_bitwisexorequal
 #!
 Exit status: 2
-Ue_A { Unary(3) b(1u);  System s();  Bool(1) l(false);  Bits(3) a(2);  Int(32) test() {  a 3 cast = b 1 cast = a b cast ^= s ( a cast )print . a cast return } }
+Ue_A { Unary(3) b(1u);  System s();  Bool(1) l(false);  Bits(3) a(2);  Int(32) test() {  self a . 3 cast = self b . 1 cast = self a . self b . cast ^= self s . ( self a . cast )print . self a . cast return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
   ulam 1;

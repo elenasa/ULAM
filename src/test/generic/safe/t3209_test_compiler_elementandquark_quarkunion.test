@@ -9,7 +9,7 @@
 ##      */
 #!
 Exit status: 1
-Ue_Foo { Bool(3) b(false);  Bool(1) e(false);  System s();  Int(4) i(1);  Gah m_gah( Bool(3) b(true);  Int(4) a(-1);  Unary(7) c(4u);  Unsigned(6) d(60u);  Bits(2) e(3);  Bool(1) f(true); );  Int(32) test() {  i 1 cast = m_gah ( i cast )set . s ( m_gah a . )print . s ( m_gah b . )print . m_gah ( true )set . s ( m_gah a . )print . s ( m_gah b . )print . i cast return } }
+Ue_Foo { Bool(3) b(false);  Bool(1) e(false);  System s();  Int(4) i(1);  Gah m_gah( Bool(3) b(true);  Int(4) a(-1);  Unary(7) c(4u);  Unsigned(6) d(60u);  Bits(2) e(3);  Bool(1) f(true); );  Int(32) test() {  self i . 1 cast = self m_gah . ( self i . cast )set . self s . ( self m_gah . a . )print . self s . ( self m_gah . b . )print . self m_gah . ( true )set . self s . ( self m_gah . a . )print . self s . ( self m_gah . b . )print . self i . cast return } }
 Uq_Gah { Bool(3) b(false);  Int(4) a(0);  Unary(7) c(0);  Unsigned(6) d(0);  Bits(2) e(0);  Bool(1) f(false);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 #>Foo.ulam

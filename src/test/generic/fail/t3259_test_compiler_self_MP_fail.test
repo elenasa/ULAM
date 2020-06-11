@@ -1,23 +1,25 @@
 ## -*- mode:ulam -*-
 #=t3259_test_compiler_self_MP_fail
-#!
 ##
 ##include/Ue_10161S10_Types.h:224: FAILED: NULL_POINTER
 ##
 ##        unevaluable without assuming atoms as elements
 ##
+#!
 Exit status: 1
-Ue_S { Bool(3) b1(false);  Bool(3) b2(true);  parameter Bool(3) iep = true;  Int(32) test() {  Atom(96) a = self cast;  { a S as cond { S& a;  b2 a iep(7u) . = } if } b2 cast return } }
+Ue_S { Bool(3) b0(true);  Bool(3) b1(true);  Bool(3) b2(true);  parameter Bool(3) iep = true;  Int(32) test() {  Atom(96) a = self cast;  { a S as cond { S& a;  self b2 . a iep(7u) . = } if } self b1 . self iep(7u) . = self b0 . iep(7u) = self b2 . cast return } }
 #>S.ulam
- ulam 1;
- element S{
- Bool(3) b1, b2;
- parameter Bool(3) iep = true;
- Int test() {
- Atom a = self;
- if(a as S)
-    b2 = a.iep;
- return (Int) b2;
- }
- }
+  ulam 1;
+element S{
+  Bool(3) b0, b1, b2;
+  parameter Bool(3) iep = true;
+  Int test() {
+    Atom a = self;
+    if(a as S)
+      b2 = a.iep;
+    b1 = self.iep; //explicit self c++ compilation error;
+    b0 = iep; //implicit ok
+    return (Int) b2;
+  }
+}
 #.

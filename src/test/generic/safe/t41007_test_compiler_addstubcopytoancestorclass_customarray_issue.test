@@ -7,8 +7,8 @@
 Exit status: 0
 Ue_R { Int(32) test() {  A ela;  ela ( )behave . 0 cast return } }
 Ue_A : ConstantLabelAndFont("foobar",33u) { /* empty class block */ }
-Uq_ConstantLabelAndFont(String(32) fstring, Unsigned(32) fn) : ConstantLabel(fstring) { :< :< Unsigned(8) mStringIndex( 0u); >> Unsigned(3) mFont(unknown);  <NOMAIN> }
-Uq_ConstantLabel(String(32) fstring) : Label { :< Unsigned(8) mStringIndex( 0u); > <NOMAIN> }
+Uq_ConstantLabelAndFont(String(32) fstring, Unsigned(32) fn) : ConstantLabel(fstring) { Unsigned(3) mFont(notready);  :ConstantLabel11<> <NOMAIN> }
+Uq_ConstantLabel(String(32) fstring) : Label { :Label< Unsigned(8) mStringIndex( 0u); > <NOMAIN> }
 Uq_Label { Unsigned(8) mStringIndex( 0u);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

@@ -7,7 +7,7 @@
 ##
 #!
 Exit status: 3
-Ue_Foo { System s();  Bool(7) sp(true);  Int(32) m_i(4);  Int(32) test() {  Foo f;  f m_i . 3 cast = s ( f m_i . )print . s ( f m_i . 3 cast == )assert . sp f ( 1 cast )check . cast = s ( sp cast )assert . m_i 4 cast = s ( m_i )print . s ( m_i 4 cast == )assert . f m_i . return } }
+Ue_Foo { System s();  Bool(7) sp(true);  Int(32) m_i(4);  Int(32) test() {  Foo f;  f m_i . 3 cast = self s . ( f m_i . )print . self s . ( f m_i . 3 cast == )assert . self sp . f ( 1 cast )check . cast = self s . ( self sp . cast )assert . self m_i . 4 cast = self s . ( self m_i . )print . self s . ( self m_i . 4 cast == )assert . f m_i . return } }
 Uq_System { <NOMAIN> }
 #>Foo.ulam
   ulam 1;

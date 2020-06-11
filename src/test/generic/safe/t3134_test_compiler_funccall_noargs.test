@@ -5,7 +5,7 @@
 ##  Int Arg: 1
 #!
 Exit status: 1
-Ue_A { Bool(7) b(true);  System s();  Int(32) a(1);  Int(32) test() {  a ( )foo = s ( a )print . b a 1 cast == cast = s ( b cast )assert . a return } }
+Ue_A { Bool(7) b(true);  System s();  Int(32) a(1);  Int(32) test() {  self a . self ( )foo . = self s . ( self a . )print . self b . self a . 1 cast == cast = self s . ( self b . cast )assert . self a . return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
 use System;

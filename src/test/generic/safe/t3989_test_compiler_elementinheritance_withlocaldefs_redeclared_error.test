@@ -5,7 +5,7 @@
 ##
 #!
 Exit status: 3
-Ue_Foo : Soo(3u) { :< Unsigned(3) us(1u);  constant Unsigned(3) v = 3u; > constant Unsigned(3) soosize = 1u;  Bool(7) sp(false);  Unsigned(32) a(3u);  Int(32) test() {  System s;  Foo f;  a f us . cast = a 3u = sp a 1u cast == cast = s ( sp ! cast )assert . typedef Soo(1u) Soo3;  s ( true )assert . a cast return } }
+Ue_Foo : Soo(3u) { constant Unsigned(3) soosize = 1u;  Bool(7) sp(false);  Unsigned(32) a(3u);  :Soo(3u)< Unsigned(3) us(1u);  constant Unsigned(3) v = 3u; > Int(32) test() {  System s;  Foo f;  self a . f us . cast = self a . 3u = self sp . self a . 1u cast == cast = s ( self sp . ! cast )assert . typedef Soo(1u) Soo3;  s ( true )assert . self a . cast return } }
 Uq_Soo(Unsigned(3) v) { Unsigned(UNKNOWN) us(notready);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

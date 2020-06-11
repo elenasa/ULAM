@@ -2,7 +2,7 @@
 #=t3646_test_compiler_elementsubclass_caarray_ish
 #!
 Exit status: 0
-Ue_IshC : Q(0x7) { :< constant Bits(32) b = 7u; > Int(32) test() {  IshC moco;  Atom(96) a;  a moco ( 1 cast )aref . = 0 cast return } }
+Ue_IshC : Q(0x7) { :Q(0x7)< constant Bits(32) b = 7u; > Int(32) test() {  IshC moco;  Atom(96) a;  a moco ( 1 cast )aref . = 0 cast return } }
 Uq_Q(Bits(32) b) { /* empty class block */ }
 ##
 ## informed by a Dave ish 1/18/2016; (order matters)

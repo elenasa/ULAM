@@ -13,10 +13,10 @@
 ##
 #!
 Exit status: 0
-Ue_A { Bool(1) b(true);  Bool(1) b2(false);  QBar m_bar( Unsigned(3) r(1u);  Bool(1) sp(false); );  QStr m_s( String(32) m_str("hello world"); );  Int(32) test() {  SystemU3 su3;  A mya = mya ( "bar" 3 cast )Self .;  Unsigned(8) fasc = mya m_s . m_str 0 [] .;  b fasc 98u == = su3 ( mya m_s . m_str . )print . su3 ( b )assert . Unsigned(3) chkr = mya m_bar . r .;  su3 ( chkr cast )print . su3 ( mya m_bar . r . cast )print . su3 ( mya m_bar . r . cast 3 cast == )assert . su3 ( mya m_bar . sp . cast )print . su3 ( mya m_bar . sp . )assert . A a = { .m_s = { .m_str = "foo" }, .m_bar = { .r = 7u, .sp = true } };  Unsigned(8) fasc2 = a m_s . m_str 0 [] .;  b2 fasc2 102u == = su3 ( a m_s . m_str . )print . su3 ( b2 )assert . Unsigned(3) chkr2 = a m_bar . r .;  su3 ( chkr2 cast )print . su3 ( a m_bar . r . cast )print . su3 ( a m_bar . r . cast 7 == )assert . su3 ( a m_bar . sp . cast )print . su3 ( a m_bar . sp . )assert . 0 cast return } }
+Ue_A { Bool(1) b(true);  Bool(1) b2(false);  QBar m_bar( Unsigned(3) r(1u);  Bool(1) sp(false); );  QStr m_s( String(32) m_str("hello world"); );  Int(32) test() {  SystemU3 su3;  A mya = mya ( "bar" 3 cast )Self .;  Unsigned(8) fasc = mya m_s . m_str 0 [] .;  self b . fasc 98u == = su3 ( mya m_s . m_str . )print . su3 ( self b . )assert . Unsigned(3) chkr = mya m_bar . r .;  su3 ( chkr cast )print . su3 ( mya m_bar . r . cast )print . su3 ( mya m_bar . r . cast 3 cast == )assert . su3 ( mya m_bar . sp . cast )print . su3 ( mya m_bar . sp . )assert . A a = { .m_s = { .m_str = "foo" }, .m_bar = { .r = 7u, .sp = true } };  Unsigned(8) fasc2 = a m_s . m_str 0 [] .;  self b2 . fasc2 102u == = su3 ( a m_s . m_str . )print . su3 ( self b2 . )assert . Unsigned(3) chkr2 = a m_bar . r .;  su3 ( chkr2 cast )print . su3 ( a m_bar . r . cast )print . su3 ( a m_bar . r . cast 7 == )assert . su3 ( a m_bar . sp . cast )print . su3 ( a m_bar . sp . )assert . 0 cast return } }
 Uq_QBar { Bool(1) sp(false);  Unsigned(3) r( 1u);  <NOMAIN> }
 Uq_QStr { String(32) m_str( "hello world");  <NOMAIN> }
-Uq_SystemU3 : System { :<> <NOMAIN> }
+Uq_SystemU3 : System { :System<> <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t41183, except without inheritance

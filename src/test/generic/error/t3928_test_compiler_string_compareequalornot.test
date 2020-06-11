@@ -4,9 +4,9 @@
 ##Exit status: 0
 ##Ue_A { Bool(1) b1(true);  Bool(1) b2(true);  Int(32) test() {  String(32) s = "foo";  s "bar" = b1 s "bar" == = b2 s "foo" != = 0 cast return } }
 ./A.ulam:7:12: ERROR: Incompatible types for binary == : String(32), String(32); Suggest casting to a numeric type first.
-./A.ulam:7:7: ERROR: Assignment is invalid; LHS: Bool(1); RHS: erroneous.
+./A.ulam:7:7: ERROR: Assignment is invalid; LHS: unresolved; RHS: erroneous.
 ./A.ulam:8:12: ERROR: Incompatible types for binary != : String(32), String(32); Suggest casting to a numeric type first.
-./A.ulam:8:7: ERROR: Assignment is invalid; LHS: Bool(1); RHS: erroneous.
+./A.ulam:8:7: ERROR: Assignment is invalid; LHS: unresolved; RHS: erroneous.
 Unrecoverable Program Type Label FAILURE.
 #>A.ulam
   ulam 3;

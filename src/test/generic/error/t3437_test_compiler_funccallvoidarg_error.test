@@ -2,7 +2,7 @@
 #=t3437_test_compiler_funccallvoidarg_error
 #!
 ./Tu.ulam:4:1: ERROR: Invalid use of type Void with variable symbol name 'me'.
-./Tu.ulam:5:3: ERROR: (2) <func> is not a defined function, or cannot be safely called in this context.
+./Tu.ulam:5:3: ERROR: (2) 'func' is not a defined function, or cannot be safely called in this context.
 Unrecoverable Program Type Label FAILURE.
 ##
 #>Tu.ulam

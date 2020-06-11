@@ -10,8 +10,8 @@
 ##
 #!
 Exit status: 0
-Ue_A { Bool(1) b(false);  Int(32) test() {  SystemU3 su3;  QBar bar = { .r = 7u, .sp = true };  String(32) m_str = "foo";  QStr m_s = { .m_str = "bar" };  Unsigned(8) fasc = m_str 0 [];  b fasc 102u == = su3 ( m_str )print . su3 ( b )assert . Unsigned(8) qasc = m_s m_str 1 [] .;  b qasc 97u == = su3 ( m_s m_str . )print . su3 ( b )assert . Unary(3) chkr = bar r .;  su3 ( chkr )print . su3 ( bar r . )print . su3 ( bar r . cast 3 == )assert . su3 ( bar sp . cast )print . su3 ( bar sp . )assert . 0 cast return } }
-Uq_SystemU3 : System { :<> <NOMAIN> }
+Ue_A { Bool(1) b(false);  Int(32) test() {  SystemU3 su3;  QBar bar = { .r = 7u, .sp = true };  String(32) m_str = "foo";  QStr m_s = { .m_str = "bar" };  Unsigned(8) fasc = m_str 0 [];  self b . fasc 102u == = su3 ( m_str )print . su3 ( self b . )assert . Unsigned(8) qasc = m_s m_str 1 [] .;  self b . qasc 97u == = su3 ( m_s m_str . )print . su3 ( self b . )assert . Unary(3) chkr = bar r .;  su3 ( chkr )print . su3 ( bar r . )print . su3 ( bar r . cast 3 == )assert . su3 ( bar sp . cast )print . su3 ( bar sp . )assert . 0 cast return } }
+Uq_SystemU3 : System { :System<> <NOMAIN> }
 Uq_QBar { Bool(1) sp(false);  Unary(3) r( 1u);  <NOMAIN> }
 Uq_QStr { String(32) m_str( "hello world");  <NOMAIN> }
 Uq_System { <NOMAIN> }

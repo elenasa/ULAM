@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3413_test_compiler_elementandquark_caarray_funcreturn_error
 #!
-./EventWindowTest.ulam:15:12: ERROR: Unmodifiable lefthand side of assignment expression <func>, type: Atom(96); may be a function call.
+./EventWindowTest.ulam:15:12: ERROR: Unmodifiable lefthand side of assignment expression 'self.func', type: Atom(96); may be a function call.
 Unrecoverable Program Type Label FAILURE.
 #>EventWindowTest.ulam
   ulam 1;

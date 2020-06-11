@@ -1,8 +1,8 @@
 ## -*- mode:ulam -*-
 #=t41195_test_compiler_element_constantrefargfunccall_localvarsdmclass_error
 #!
-./Foo.ulam:9:15: ERROR: Unmodifiable lefthand side of assignment expression <.>, type: Unary(3); may be a constant function parameter.
-./Foo.ulam:11:15: ERROR: Unmodifiable lefthand side of assignment expression <.>, type: Unary(3); may be a constant function parameter.
+./Foo.ulam:9:15: ERROR: Unmodifiable lefthand side of assignment expression 'qok.mun', type: Unary(3); may be a constant function parameter.
+./Foo.ulam:11:15: ERROR: Unmodifiable lefthand side of assignment expression 'qok.mun', type: Unary(3); may be a constant function parameter.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t3801, except with constant ref function parameter

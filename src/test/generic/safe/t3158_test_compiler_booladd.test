@@ -1,12 +1,12 @@
 ## -*- mode:ulam -*-
 #=t3158_test_compiler_booladd
-#!
 ##      /* gencode output:
 ##	 Bool(3) Arg: 0x7 (true)
 ##	 Unary(3) Arg: 0x1
 ##      */
+#!
 Exit status: 1
-Ue_A { Bool(3) b(false);  System s();  Bool(3) a(true);  Bool(3) c(true);  Unary(3) d(1u);  Int(32) test() {  a true cast = b false cast = c a cast cast b cast cast +b 0u cast > cast = s ( c )print . d c cast = s ( d )print . c cast return } }
+Ue_A { Bool(3) b(false);  System s();  Bool(3) a(true);  Bool(3) c(true);  Unary(3) d(1u);  Int(32) test() {  self a . true cast = self b . false cast = self c . self a . cast cast self b . cast cast +b 0u cast > cast = self s . ( self c . )print . self d . self c . cast = self s . ( self d . )print . self c . cast return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
   ulam 1;

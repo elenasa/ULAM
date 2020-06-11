@@ -1,15 +1,15 @@
 ## -*- mode:ulam -*-
 #=t41111_test_compiler_elementandtrasient_inconsistentcomparisonoperatoroverloadequalequal_fail
 ##
-## gen output: (2 asserts, one fails)
+## gen output: (2 asserts, one should fail)
 ##    Bool(3) Arg: 0x0 (false)
 ##    Bool(3) Arg: 0x0 (false)
 #!
 Exit status: 1
-Ue_Foo : QW { :< Int(32) qint(0); > Bool(1) first(false);  Bool(1) second(false);  Int(32) test() {  System s;  Foo foo;  foo qint . 2 cast = Too too;  too qint . 3 cast = first too ( foo cast )operator== . = s ( first cast )print . s ( first ! )assert . second too ( foo cast )operator!= . = s ( second cast )print . s ( second first == )assert . too ( foo cast )operator- . return } }
+Ue_Foo : QW { Bool(1) first(false);  Bool(1) second(false);  :QW< Int(32) qint(0); > Int(32) test() {  System s;  Foo foo;  foo qint . 2 cast = Too too;  too qint . 3 cast = self first . too ( foo cast )operator== . = s ( self first . cast )print . s ( self first . ! )assert . self second . too ( foo cast )operator!= . = s ( self second . cast )print . s ( self second . self first . == )assert . too ( foo cast )operator- . return } }
 Uq_QW { Int(32) qint(0);  <NOMAIN> }
 Uq_System { <NOMAIN> }
-Un_Too : QW { :< Int(32) qint(0); > Int(32) topint(0);  <NOMAIN> }
+Un_Too : QW { Int(32) topint(0);  :QW< Int(32) qint(0); > <NOMAIN> }
 ##
 ## informed by t41109; test of inconsistent overloaded compare operator== and operator!= with class ref as arg
 ## WE CANNOT CATCH THIS PROBLEM!!

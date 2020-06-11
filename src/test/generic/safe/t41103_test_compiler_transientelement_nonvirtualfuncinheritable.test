@@ -7,10 +7,10 @@
 ##
 #!
 Exit status: 3
-Ue_Foo : Qbar { :<> Bool(1) first(false);  Int(32) fint(3);  Int(32) cint(3);  Int(32) test() {  System s;  Foo foo;  fint foo ( )func . = s ( fint )print . s ( fint 3 cast == )assert . Coo coo;  cint coo ( )func . = s ( cint )print . s ( cint 3 cast == )assert . cint return } }
+Ue_Foo : Qbar { Bool(1) first(false);  Int(32) fint(3);  Int(32) cint(3);  :Qbar<> Int(32) test() {  System s;  Foo foo;  self fint . foo ( )func . = s ( self fint . )print . s ( self fint . 3 cast == )assert . Coo coo;  self cint . coo ( )func . = s ( self cint . )print . s ( self cint . 3 cast == )assert . self cint . return } }
 Uq_Qbar { <NOMAIN> }
 Uq_System { <NOMAIN> }
-Un_Coo : Qbar { :<> Bool(3) cb( true);  <NOMAIN> }
+Un_Coo : Qbar { Bool(3) cb( true);  :Qbar<> <NOMAIN> }
 ##
 ## informed by t41102 (toInt special func; not the same)
 ##

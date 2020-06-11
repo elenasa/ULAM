@@ -1,13 +1,13 @@
 ## -*- mode:ulam -*-
 #=t41062_test_compiler_element_atomreffuncreturnvalue_questioncolon
 ##
-## gen output: assert
+## gen output: 2 asserts
 ##
 ## cannot eval caller2 atom ref return type that is element Foo, too
 ##
 #!
-Exit status: 0
-Ue_Foo { Int(32) test() {  System s;  Atom(96) f3;  Atom(96)& r = ( f3 cast false )caller2;  s ( r Foo is ! )assert . 0 cast return } }
+Exit status: -11
+Ue_Foo { Int(32) test() {  System s;  Atom(96) f3;  Atom(96)& r = self ( f3 cast false )caller2 .;  s ( r Foo is ! )assert . Atom(96) a = self ( f3 cast true )caller3 .;  s ( a Foo is )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t41033, Dave email 2/10/2017 and t41031
@@ -28,12 +28,23 @@ element Foo
     return func(r2, a1, barg);  // Safe or not?  Can't know til runtime.
   }
 
+  Atom caller3(Atom& a1, Bool barg)
+  {
+    Foo f2;
+    Atom & r2 = f2.atomof;
+    return func(r2, a1, barg);  // Safe or not?  Can't know til runtime.
+  }
+
   Int test() {
     System s;
 
     Atom f3;
     Atom & r = caller2(f3, false);
     s.assert(!(r is Foo));
+
+    Atom a = caller3(f3, true);
+    s.assert((a is Foo));
+
     return 0;
   }
 }

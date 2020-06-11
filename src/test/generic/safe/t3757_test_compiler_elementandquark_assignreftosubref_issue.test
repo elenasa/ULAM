@@ -2,8 +2,8 @@
 #=t3757_test_compiler_elementandquark_assignreftosubref_issue
 #!
 Exit status: -11
-Ue_A : QW { :< :< Unary(5) m_five(0u); > Bool(1) bw(false); > Bool(1) b(false);  Bool(1) c(false);  Int(32) test() {  System s;  Qbase& qref = self cast;  A& appleref = qref cast;  QW& qwref = qref cast;  Qbase& qref2 = qwref cast;  Qbase qb = qwref cast;  0 cast return } }
-Uq_QW : Qbase { :< Unary(5) m_five(0); > Bool(1) bw(false);  <NOMAIN> }
+Ue_A : QW { Bool(1) b(false);  Bool(1) c(false);  :QW< Bool(1) bw(false);  :Qbase< Unary(5) m_five(0u); >> ^Qbase< Unary(5) m_five(0u); > Int(32) test() {  System s;  Qbase& qref = self cast;  A& appleref = qref cast;  QW& qwref = qref cast;  Qbase& qref2 = qwref cast;  Qbase qb = qwref cast;  0 cast return } }
+Uq_QW : Qbase { Bool(1) bw(false);  :Qbase< Unary(5) m_five(0); > <NOMAIN> }
 Uq_System { <NOMAIN> }
 Uq_Qbase { Unary(5) m_five(0);  <NOMAIN> }
 ##

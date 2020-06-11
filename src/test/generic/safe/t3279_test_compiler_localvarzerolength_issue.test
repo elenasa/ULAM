@@ -1,11 +1,11 @@
 ## -*- mode:ulam -*-
 #=t3279_test_compiler_localvarzerolength_issue
-#!
 ##      /* gen code output:
 ##	 Int Arg: 2
 ##      */
+#!
 Exit status: 2
-Ue_Tu { Int(32) me(2);  Int(32) test() {  System s;  me 2 cast = s ( me )print . me return } }
+Ue_Tu { Int(32) me(2);  Int(32) test() {  System s;  self me . 2 cast = s ( self me . )print . self me . return } }
 Uq_System { <NOMAIN> }
 #>Tu.ulam
   ulam 1;

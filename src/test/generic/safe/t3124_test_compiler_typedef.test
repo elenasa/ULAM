@@ -2,7 +2,7 @@
 #=t3124_test_compiler_typedef
 #!
 Exit status: 1
-Ue_A { typedef Int(16) Bar[2];  Int(16) d[2](1,0);  Int(32) test() {  Bool(1) mybool;  mybool true = d ( mybool )bar = d 0 [] cast return } }
+Ue_A { typedef Int(16) Bar[2];  Int(16) d[2](1,0);  Int(32) test() {  Bool(1) mybool;  mybool true = self d . self ( mybool )bar . = self d . 0 [] cast return } }
 #>A.ulam
 element A {
  typedef Int(16) Bar [2];

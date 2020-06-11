@@ -7,7 +7,7 @@
 #!
 Exit status: 99
 Ue_T { Bool(1) m_sp(false);  Int(32) m_i(0);  <NOMAIN> }
-Ue_R { Int(32) m_ri(99);  Int(32) test() {  System sys;  constant T& tref = cet cast;  Int(32) it = ( tref )func;  sys ( it )print . sys ( it 99 cast == )assert . m_ri return } }
+Ue_R { Int(32) m_ri(99);  Int(32) test() {  System sys;  constant T& tref = cet cast;  Int(32) it = self ( tref )func .;  sys ( it )print . sys ( it 99 cast == )assert . self m_ri . return } }
 Uq_System { <NOMAIN> }
 ##
 ##    //informed by t41238 and t41242, named contant class ref

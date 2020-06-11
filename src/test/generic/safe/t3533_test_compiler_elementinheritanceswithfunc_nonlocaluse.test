@@ -5,8 +5,8 @@
 ## <blank>
 #!
 Exit status: 77
-Ue_Foo : Soo { :< :< Bool(3) cb(true); > Unsigned(3) us(4u); > Bool(7) sp(false);  Int(32) a(73);  Int(32) test() {  System s;  { ( )check cond us cast a +b return if } s ( false )assert . 0 cast return } }
-Uq_Soo : Coo { :< Bool(3) cb( true); > Unsigned(3) us( 4u);  <NOMAIN> }
+Ue_Foo : Soo { Bool(7) sp(false);  Int(32) a(73);  :Soo< Unsigned(3) us(4u);  :Coo< Bool(3) cb(true); >> ^Coo< Bool(3) cb(true); > Int(32) test() {  System s;  { self ( )check . cond self us . cast self a . +b return if } s ( false )assert . 0 cast return } }
+Uq_Soo : Coo { Unsigned(3) us( 4u);  :Coo< Bool(3) cb( true); > <NOMAIN> }
 Uq_Coo { Bool(3) cb( true);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

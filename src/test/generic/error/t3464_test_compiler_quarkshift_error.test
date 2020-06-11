@@ -1,27 +1,26 @@
 ## -*- mode:ulam -*-
 #=t3464_test_compiler_quarkshift_error
 #!
-./A.ulam:6:7: ERROR: Non-primitive type <Bar> is not supported as right operand type for binary <<.
-./A.ulam:6:3: ERROR: Assignment is invalid; LHS: Int(32); RHS: erroneous.
-./A.ulam:7:8: ERROR: (2) <operator<<> is not a defined function, or cannot be safely called in this context.
-./A.ulam:7:4: ERROR: Assignment is invalid; LHS: Int(32); RHS: erroneous.
+./A.ulam:7:11: ERROR: Non-primitive type <Bar> is not supported as right operand type for binary <<.
+./A.ulam:7:7: ERROR: Assignment is invalid; LHS: Int(32); RHS: erroneous.
 Unrecoverable Program Type Label FAILURE.
 ##
 ##      //quark has no toInt method: ulam-3 looks for overload operator when class on lhs
 ##
 #>A.ulam
+  ulam 1;
 use Bar;
- element A {
- Int b, c;
- Int test() {
- Bar a;
-b = 1 << a;
- c = a << 2;
- return 0;
- }
- }
+element A {
+  Int b, c;
+  Int test() {
+    Bar a;
+    b = 1 << a;
+    c = a << 2;
+    return 0;
+  }
+}
 
 #:Bar.ulam
-quark Bar {
-  }
+  ulam 1;
+quark Bar { }
 #.

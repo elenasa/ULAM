@@ -2,7 +2,7 @@
 #=t3116_test_compiler_funcdef_maxdepth_edit
 #!
 Exit status: 1
-Ue_A { Bool(1) c(true);  Int(32) test() {  c ( 1 cast true )foo = c cast return } }
+Ue_A { Bool(1) c(true);  Int(32) test() {  self c . self ( 1 cast true )foo . = self c . cast return } }
 #>A.ulam
 element A {
  Bool foo(Int m, Bool b) {

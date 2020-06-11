@@ -1,0 +1,122 @@
+## -*- mode:ulam -*-
+#=t41328_test_compiler_multiinheritance_siblingshadowdatamember_breadthfirst
+##
+## gen output:
+## Int Arg: 411 (+5 asserts)
+## Int Arg: 911 (+1 assert)
+##
+#!
+Exit status: 0
+Ue_Foo +System { Int(32) m_c4(411);  Int(32) m_a4(911);  +System<> Int(32) test() {  E4 e4;  self m_c4 . e4 ( )vfunca . = self ( self m_c4 . )print . self ( self m_c4 . 411 cast == )assert . self ( e4 m_b1 . )assert . { 0u cond self ( e4 QBaseLast . m_b1 . )assert . if self ( e4 QBaseLast . m_b1 . ! )assert . else } { 0u cond self ( e4 QBase3 . m_b1 . ! )assert . if self ( e4 QBase3 . m_b1 . )assert . else } { 0u cond self ( e4 QBase1 . m_b1 . ! )assert . if self ( e4 QBase1 . m_b1 . )assert . else } self m_a4 . e4 QBaseLast . ( )funcb . = self ( self m_a4 . )print . self ( self m_a4 . 911 cast == )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+Ue_E4 : QBase3 +QBase2 +QBaseLast { Bool(1) m_b4(false);  typedef QBase2 QB2;  :QBase3< Bool(1) m_boo(false); > +QBase2< Bool(1) m_boo(false);  Bits(1) m_bit(0); > +QBaseLast< Bool(1) m_b1(false); > ^QBase1< Bool(1) m_b1(false); > <NOMAIN> }
+Uq_QBaseLast { Bool(1) m_b1(false);  <NOMAIN> }
+Uq_QBase3 : QBase1 { Bool(1) m_boo(false);  :QBase1< Bool(1) m_b1(false); > <NOMAIN> }
+Uq_QBase1 { Bool(1) m_b1(false);  <NOMAIN> }
+Uq_QBase2 +QBase1 { Bool(1) m_boo(false);  Bits(1) m_bit(0);  +QBase1< Bool(1) m_b1(false); > <NOMAIN> }
+##
+##  siblings may share the same data member names; Bases can be accessed specifically;
+##  overriding function uses its dm copy; In search for a dm name...
+##  WHEN, default is breadth-first order of bases as declared,
+##  great-grandparents come after last base (see BaseclassWalker.cpp);
+##  OR, WHEN, default is depth-first order of bases as declared,
+##  great-grandparents come BEFORE last base;
+##
+##  also, siblings may have non-virtual functions with same name, requiring
+##  specific base when called to disambiguate. (see error/t41329)
+##
+#>Foo.ulam
+  ulam 5;
+local constant Bool cBREADTHFIRST = false;
+element Foo +System {
+  Int m_c4;
+  Int m_a4;
+
+  Int test()
+  {
+    E4 e4;
+
+    m_c4 = e4.vfunca(); //411
+    print(m_c4);
+    assert(m_c4==411);
+    assert(e4.m_b1); //changed defaults, QBaseLast's
+    if(cBREADTHFIRST)
+      assert(e4.QBaseLast.m_b1); //changed last's when breadth-first
+    else
+      assert(!e4.QBaseLast.m_b1); //unchanged last's when depth-first
+
+    if(cBREADTHFIRST)
+      assert(!e4.QBase3.m_b1); //not in sibling's super
+    else
+      assert(e4.QBase3.m_b1); //in super's super
+
+    if(cBREADTHFIRST)
+      assert(!e4.QBase1.m_b1); //not grandparent
+    else
+      assert(e4.QBase1.m_b1); //in grandparent
+
+    //must specify which base for ambiguous non-virtual funcb
+    m_a4 = e4.QBaseLast.funcb(); //911
+    print(m_a4);
+    assert(m_a4==911);
+
+    return 0;
+  }
+}
+
+
+#:E4.ulam
+  ulam 5;
+element E4 : QBase3 +QBase2 +QBaseLast {
+  Bool m_b4;
+  virtual Int vfunca() { m_b1 = true; return 411; }
+  virtual Int vfuncc() { m_boo = true; return 412; }
+  virtual Void behave() { }
+  typedef QBase2 QB2;
+}
+
+#:QBase1.ulam
+    ulam 4;
+quark QBase1 {
+  Bool m_b1;
+  Void funcNotVirtualSoIrrelevantHere() { }
+  virtual Int vfunca() { m_b1 = true; return 110; }
+}
+
+#:QBase2.ulam
+  ulam 5;
+quark QBase2 +QBase1 {
+  Bool m_boo;
+  Bits(1) m_bit; //so that len of QBase2 is different than its pos in E4.
+  virtual ARGB getColor(Unsigned s) { return super.getColor(s); }
+  virtual Int vfuncc() { m_boo = true; return 212; }
+}
+
+#:QBase3.ulam
+  ulam 4;
+quark QBase3 : QBase1 {
+  Bool m_boo;
+  Int funcb() { return 311; }
+}
+
+#:QBaseLast.ulam
+  ulam 4;
+quark QBaseLast {
+  Bool m_b1;
+  Int funcb() { return 911; }
+}
+
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

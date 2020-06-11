@@ -1,15 +1,15 @@
 ## -*- mode:ulam -*-
 #=t3561_test_compiler_elementinheritances_as
-#!
 ## gencode output (+ assert):
 ## Bool(3) Arg: 0x7 (true)
 ##
 ## eval answer wrong when lhs of 'as Coo' is an atom since it doesnt checkout. use 'Foo as Coo' here.
 ##
+#!
 Exit status: 1
-Ue_Foo : Soo { :< :< Bool(3) cb(true); > Unsigned(3) us(4u); > Bool(7) sp(false);  Int(32) a(71);  Int(32) test() {  System s;  Foo f;  { f Coo as cond { Coo& f;  { f cb . cond { s ( f cb . )print . s ( f cb . cast )assert . 1 cast return } if } } if } 0 cast return } }
+Ue_Foo : Soo { Bool(7) sp(false);  Int(32) a(71);  :Soo< Unsigned(3) us(4u);  :Coo< Bool(3) cb(true); >> ^Coo< Bool(3) cb(true); > Int(32) test() {  System s;  Foo f;  { f Coo as cond { Coo& f;  { f cb . cond { s ( f cb . )print . s ( f cb . cast )assert . 1 cast return } if } } if } 0 cast return } }
 Uq_System { <NOMAIN> }
-Uq_Soo : Coo { :< Bool(3) cb( true); > Unsigned(3) us( 4u);  <NOMAIN> }
+Uq_Soo : Coo { Unsigned(3) us( 4u);  :Coo< Bool(3) cb( true); > <NOMAIN> }
 Uq_Coo { Bool(3) cb( true);  <NOMAIN> }
 ##
 ## chained class inheritance, regular (non-template), with conditional-as

@@ -5,6 +5,7 @@
 ./A.ulam:9:7: ERROR: Unexpected token <TOK_KW_TYPE_INT>; Expected }.
 ./A.ulam:10:5: ERROR: Invalid Statement (possible missing semicolon).
 ./A.ulam:13:2: ERROR: Break statement not within loop or which-control.
+./A.ulam:15:5: ERROR: Expecting Type of data member/function (or, in the midst of errors); Got <case>.
 ./A.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'A'; Possible missing ending curly brace.
 ./A.ulam:15:5: ERROR: Invalid Class Type <case>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 ./A.ulam:2:9: ERROR: Invalid Type: A.

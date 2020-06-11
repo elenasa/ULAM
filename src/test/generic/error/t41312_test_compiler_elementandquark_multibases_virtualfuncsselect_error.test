@@ -1,0 +1,85 @@
+## -*- mode:ulam -*-
+#=t41312_test_compiler_elementandquark_multibases_virtualfuncsselect_error
+#!
+./QBase2.ulam:5:15: ERROR: Virtual Function: vfunca() has conflicting Originating declarations in multiple base classes, QBase2 and QBase1 while compiling E4.
+Unrecoverable Program Type Label FAILURE.
+##
+##       informed by t41311; ambiguous virtual func caused seg fault due to the
+##       order of the m_basesVTstart table order (needed to be depth-first), so that
+##       a subclass with no vowned vfuncs would share start offset with its base.
+##
+##       test modified for shared bases:
+##  ./E4.ulam:20:23: ERROR: Member Select By Base Type: QB1 is redundant; All base classes are shared. Pick one!.
+##  ./E4.ulam:24:26: ERROR: Member Select By Base Type: QBase1 is redundant; All base classes are shared. Pick one!.
+##
+#>E4.ulam
+  ulam 5;
+element E4 : QBase3 +QBase2 +QBase1 {
+  Int m_c4;
+  Int m_a4;
+
+  virtual Int vfuncc() { return 412; }
+  virtual Int vfunca() { return 410; }
+  virtual Void behave() { }
+  typedef QBase2 QB2;
+
+  Int test()
+  {
+    System s;
+
+    m_c4 = self.QB2.vfuncc(); //212
+    s.print(m_c4);
+    s.assert(m_c4==212);
+
+    typedef Super.Super QB1;
+    m_a4 = self.QB1.vfunca(); //110 //self.Super.QB1.vfunca(); //110
+    s.print(m_a4);
+    s.assert(m_a4==110);
+    s.assert(self.m_b1);
+    //    s.assert(self.QBase3.QBase1.m_b1); //equivalent dm
+    s.assert(self.QBase1.m_b1); //changed also
+
+    return 0;
+  }
+}
+
+#:QBase1.ulam
+    ulam 4;
+quark QBase1 {
+  Bool m_b1;
+  Void funcNotVirtualSoIrrelevantHere() { }
+  virtual Int vfuncb() { return 111; }   //ambiguous (see t41305)
+  virtual Int vfunca() { m_b1 = true; return 110; }
+}
+
+#:QBase2.ulam
+  ulam 4;
+quark QBase2 {
+  Bool m_b2;
+  virtual ARGB getColor(Unsigned s) { return super.getColor(s); }
+  virtual Int vfunca() { return 210; } //<-------SEG FAULT test
+  virtual Int vfuncc() { m_b2 = true; return 212; }
+}
+
+#:QBase3.ulam
+  ulam 4;
+quark QBase3 : QBase1 {
+  Bool m_b3;
+  virtual Int vfuncb() { return 311; }
+  virtual Int vfunca() { m_b3 = true; return 310; }
+}
+
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

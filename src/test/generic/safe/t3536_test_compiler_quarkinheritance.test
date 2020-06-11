@@ -1,15 +1,15 @@
 ## -*- mode:ulam -*-
 #=t3536_test_compiler_quarkinheritance
-#!
 ## gencode output:
 ## Bool(3) Arg: 0x7 (true)
 ## assert: arg is 1
 ## after asserts abort: arg is 1
 ##
 ##
+#!
 Exit status: 96
-Ue_Foo { System s();  Bool(1) first(false);  Soo su( :< Bool(3) cb(true); > Unsigned(3) us(4u); );  Int(32) test() {  Foo f;  { f su . cb . cond { s ( f su . cb . )print . s ( f su . cb . cast )assert . 96u cast return } if } 0 cast return } }
-Uq_Soo : Coo { :< Bool(3) cb( true); > Unsigned(3) us( 4u);  <NOMAIN> }
+Ue_Foo { System s();  Bool(1) first(false);  Soo su( Unsigned(3) us(4u);  :Coo< Bool(3) cb(true); >);  Int(32) test() {  Foo f;  { f su . cb . cond { self s . ( f su . cb . )print . self s . ( f su . cb . cast )assert . 96u cast return } if } 0 cast return } }
+Uq_Soo : Coo { Unsigned(3) us( 4u);  :Coo< Bool(3) cb( true); > <NOMAIN> }
 Uq_Coo { Bool(3) cb( true);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

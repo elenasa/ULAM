@@ -1,11 +1,11 @@
 ## -*- mode:ulam -*-
 #=t3752_test_compiler_elements_funccallasarg_ascond_doubledot_issue
-#!
 ## gen code output: (+assert)
 ## Int Arg: 4
 ##
+#!
 Exit status: 0
-Ue_Ish5 : System { :<> Bool(1) brtn(true);  Int(32) test() {  E1 e1;  E1& e1ref = e1 cast;  Atom(96) a1 = e1ref cast;  { a1 E1 as cond { E1& a1;  ( a1 m_b . ( )func . )print brtn a1 m_b . ( )func . 4 cast == = ( brtn )assert } if } 0 cast return } }
+Ue_Ish5 : System { Bool(1) brtn(true);  :System<> Int(32) test() {  E1 e1;  E1& e1ref = e1 cast;  Atom(96) a1 = e1ref cast;  { a1 E1 as cond { E1& a1;  self ( a1 m_b . ( )func . )print . self brtn . a1 m_b . ( )func . 4 cast == = self ( self brtn . )assert . } if } 0 cast return } }
 Uq_System { <NOMAIN> }
 Ue_E1 : Sub { /* empty class block */ }
 Uq_Sub { QBase m_b();  <NOMAIN> }

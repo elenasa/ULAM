@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t41258_test_compiler_element_constantrefprimitivefuncparam_vardifferentsizecast_error
 #!
-./Foo.ulam:17:5: ERROR: (1) <func> has no defined function with 1 matching argument type: Int(32), and cannot be called.
+./Foo.ulam:17:5: ERROR: (1) 'func' has no defined function with 1 matching argument type: Int(32), and cannot be called.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t41256, variable argument to  constant ref function parameter, uncastable

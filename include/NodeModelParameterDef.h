@@ -27,7 +27,7 @@
 
 /**
   \file NodeModelParameterDef.h - Node handling Model Parameter Definition for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
   \date (C) 2015-2018 All rights reserved.
   \gpl

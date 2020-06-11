@@ -2,7 +2,7 @@
 #=t41055_test_compiler_castedmaxofexprinfunccall_issue
 #!
 Exit status: 0
-Ue_Foo { typedef Unsigned(8) Channel;  typedef Unsigned(8) Tag;  constant Int(32) cGENERATIONS = 11;  Unsigned(8) m_tag(0u);  Unary(11) m_gen(0u);  Int(32) test() {  Unsigned(8) tmp[4];  tmp ( 2u cast )getColor = tmp 1 [] cast return } }
+Ue_Foo { typedef Unsigned(8) Channel;  typedef Unsigned(8) Tag;  constant Int(32) cGENERATIONS = 11;  Unsigned(8) m_tag(0u);  Unary(11) m_gen(0u);  Int(32) test() {  Unsigned(8) tmp[4];  tmp self ( 2u cast )getColor . = tmp 1 [] cast return } }
 Uq_ColorUtils { typedef Unsigned(8) Channel;  typedef Unsigned(8) Byte;  typedef Unsigned(8) ARGB[4];  <NOMAIN> }
 ##
 ## informed by Dave ish 03222017, and t3232

@@ -1,0 +1,52 @@
+## -*- mode:ulam -*-
+#=t41305_test_compiler_elementandquark_multibases_virtualfuncsambiguous_error
+#!
+./QBase1.ulam:5:15: Warning: Virtual Function: vfuncb() has conflicting declarations in multiple base classes, QBase3 and QBase1 while compiling E4.
+./Foo.ulam:8:17: ERROR: Ambiguous matches (2) of function 'vfuncb' called without arguments.
+./QBase3.ulam:4:15: NOTE: Match (1 of 2) : Int(32) vfuncb().
+./QBase1.ulam:5:15: NOTE: Match (2 of 2) : Int(32) vfuncb().
+./Foo.ulam:8:5: ERROR: Initial value expression for: b4, initialization is invalid.
+Unrecoverable Program Type Label FAILURE.
+##
+##       //informed by t41304
+##
+#>Foo.ulam
+  ulam 4;
+element Foo {
+
+  Int test()
+  {
+    E4 e4;
+
+    Int b4 = e4.vfuncb(); // 311 or 111? ambigous!
+    return 0;
+  }
+}
+
+
+#:E4.ulam
+  ulam 5;
+element E4 : QBase3 +QBase1 {
+  virtual Int vfuncc() { return 412; }
+  virtual Int vfunca() { return 410; }
+  virtual Void behave() { }
+}
+
+#:QBase1.ulam
+    ulam 4;
+quark QBase1 {
+  Bool m_b1;
+  Void funcNotVirtualSoIrrelevantHere() { }
+  virtual Int vfuncb() { return 111; }   //ambiguous
+  virtual Int vfunca() { return 110; }
+}
+
+
+#:QBase3.ulam
+  ulam 4;
+quark QBase3 {
+  Bool m_b3;
+  virtual Int vfuncb() { return 311; }
+}
+
+#.

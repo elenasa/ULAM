@@ -8,7 +8,7 @@
 ##      */
 #!
 Exit status: 16
-Ue_A { Bool(7) b(true);  System s();  Unsigned(32) d(16u);  Int(32) test() {  Int(32) a;  a 8 cast = d 1 cast = { a 0 cast != cond { d d cast 1 cast << cast = s ( d )print . a a cast 1 cast >> cast = } _1: while } b 1 cast d << cast a > cast = d cast return } }
+Ue_A { Bool(7) b(true);  System s();  Unsigned(32) d(16u);  Int(32) test() {  Int(32) a;  a 8 cast = self d . 1 cast = { a 0 cast != cond { self d . self d . cast 1 cast << cast = self s . ( self d . )print . a a cast 1 cast >> cast = } _1: while } self b . 1 cast self d . << cast a > cast = self d . cast return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
   ulam 1;

@@ -5,7 +5,7 @@
 ##
 #!
 Exit status: -11
-Ue_EventWindowTest { EventWindow ew();  Int(32) test() {  System s;  Int(32) rtn = -1 cast;  Atom(96) a = ( )func;  Atom(96) aw = self.instanceof;  { aw EventWindowTest is cond rtn 0 cast = if rtn 1 cast = else } s ( rtn 0 cast == )assert . rtn return } }
+Ue_EventWindowTest { EventWindow ew();  Int(32) test() {  System s;  Int(32) rtn = -1 cast;  Atom(96) a = self ( )func .;  Atom(96) aw = self.instanceof;  { aw EventWindowTest is cond rtn 0 cast = if rtn 1 cast = else } s ( rtn 0 cast == )assert . rtn return } }
 Uq_EventWindow { <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

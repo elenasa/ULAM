@@ -4,7 +4,7 @@
 ##./Foo.ulam:18:13: ERROR: Custom Array subscript requires aref/aset function call; Unsupported for eval.
 #!
 Exit status: 0
-Ue_Foo { Bool(3) b(false);  typedef Bar Pop[2];  Int(4) m_i(0);  Bar m_bar2[2]( typedef Unsigned(6) Index;  Bool(1) val_b[3](false,false,false);  typedef Unsigned(6) Index;  Bool(1) val_b[3](false,false,false); );  Bar sbar( typedef Unsigned(6) Index;  Bool(1) val_b[3](false,false,false); );  Int(32) test() {  Atom(96) a;  a sbar ( 4 cast )aref . = a sbar ( 2 cast )aref . = Gah g;  a sbar ( g )aref . = 0 cast return } }
+Ue_Foo { Bool(3) b(false);  typedef Bar Pop[2];  Int(4) m_i(0);  Bar m_bar2[2]( typedef Unsigned(6) Index;  Bool(1) val_b[3](false,false,false);  typedef Unsigned(6) Index;  Bool(1) val_b[3](false,false,false); );  Bar sbar( typedef Unsigned(6) Index;  Bool(1) val_b[3](false,false,false); );  Int(32) test() {  Atom(96) a;  a self sbar . ( 4 cast )aref . = a self sbar . ( 2 cast )aref . = Gah g;  a self sbar . ( g )aref . = 0 cast return } }
 Uq_Bar { typedef Unsigned(6) Index;  Bool(1) val_b[3](false,false,false);  <NOMAIN> }
 Uq_Gah { /* empty class block */ }
 ##

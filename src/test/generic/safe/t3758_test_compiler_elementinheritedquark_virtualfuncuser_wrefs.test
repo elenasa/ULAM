@@ -8,10 +8,10 @@
 #!
 Exit status: 0
 Uq_Base { <NOMAIN> }
-Uq_Sub1 : Base { :<> <NOMAIN> }
-Ue_E1 : Base { :<> <NOMAIN> }
-Ue_E2 : Sub1 { :< :<>> <NOMAIN> }
-Ue_Test : System { :<> Bool(1) brtn[5](true,true,false,false,true);  Int(32) test() {  E1 e1;  Base& bref1 = e1 cast;  brtn 2 [] bref1 ( )vuser . 7 cast == = ( brtn 2 [] )assert E2 e2;  Base& bref2 = e2 cast;  brtn 3 [] bref2 ( )vuser . 9 cast == = ( brtn 3 [] )assert Base b;  Base& bref3 = b cast;  brtn 0 [] bref3 ( )vuser . 2 cast == = ( brtn 0 [] )assert Sub1 s1;  Base& bref4 = s1 cast;  brtn 1 [] bref4 ( )vuser . 2 cast == = ( brtn 1 [] )assert brtn 4 [] bref1 ( )bfunc . 8 cast == = ( brtn 4 [] )assert 0 cast return } }
+Uq_Sub1 : Base { :Base<> <NOMAIN> }
+Ue_E1 : Base { :Base<> <NOMAIN> }
+Ue_E2 : Sub1 { :Sub1<> ^Base<> <NOMAIN> }
+Ue_Test : System { Bool(1) brtn[5](true,true,false,false,true);  :System<> Int(32) test() {  E1 e1;  Base& bref1 = e1 cast;  self brtn . 2 [] bref1 ( )vuser . 7 cast == = self ( self brtn . 2 [] )assert . E2 e2;  Base& bref2 = e2 cast;  self brtn . 3 [] bref2 ( )vuser . 9 cast == = self ( self brtn . 3 [] )assert . Base b;  Base& bref3 = b cast;  self brtn . 0 [] bref3 ( )vuser . 2 cast == = self ( self brtn . 0 [] )assert . Sub1 s1;  Base& bref4 = s1 cast;  self brtn . 1 [] bref4 ( )vuser . 2 cast == = self ( self brtn . 1 [] )assert . self brtn . 4 [] bref1 ( )bfunc . 8 cast == = self ( self brtn . 4 [] )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by 3602, vtable-example 11/19/15

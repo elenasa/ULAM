@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * SymbolFunction.h -  Function Symbol handling for ULAM
  *
- * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2017 Ackleyshack LLC.
+ * Copyright (C) 2014-2020 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2020 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +27,9 @@
 
 /**
   \file SymbolFunction.h -  Function Symbol handling for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2017   All rights reserved.
+  \date (C) 2014-2020   All rights reserved.
   \gpl
 */
 
@@ -41,11 +41,13 @@
 #include "Symbol.h"
 #include "UlamTypeClass.h"
 #include "Node.h"
+#include "FunctionSignatureTable.h"
 
 namespace MFM{
 
-  class NodeBlockFunctionDefinition;  //forward
-  class CompilerState;   //forward
+  class NodeBlockFunctionDefinition; //forward
+  class CompilerState; //forward
+  class SymbolClass; //forward
 
   class SymbolFunction : public Symbol
   {
@@ -58,6 +60,7 @@ namespace MFM{
 
     void addParameterSymbol(Symbol * argSym);
     u32 getNumberOfParameters();
+    void getVectorOfParameterTypes(std::vector<UTI>& pTypesref);
     u32 getTotalParameterSlots();
 
     Symbol * getParameterSymbolPtr(u32 n);
@@ -69,11 +72,12 @@ namespace MFM{
     virtual bool isFunction();
     void setFunctionNode(NodeBlockFunctionDefinition * func);
     NodeBlockFunctionDefinition *  getFunctionNode();
+    const u32 getOrderNumber() const;
 
     virtual const std::string getMangledPrefix();
 
     const std::string getFunctionNameWithTypes();
-    const std::string getMangledNameWithTypes();
+    const std::string getMangledNameWithTypes(bool dereftypes = false);
     const std::string getMangledNameWithUTIparameters();
 
     bool checkParameterTypes();
@@ -81,6 +85,8 @@ namespace MFM{
     bool matchingTypesStrictly(std::vector<Node *> argNodes, bool& hasHazyArgs);
     bool matchingTypesStrictly(std::vector<UTI> argTypes, bool& hasHazyArgs);
     bool matchingTypes(std::vector<Node *> argNodes, bool& hasHazyArgs, u32& numUTmatch);
+
+    bool checkFunctionSignatureTable(FSTable & fst);
 
     u32 isNativeFunctionDeclaration();
 
@@ -96,6 +102,11 @@ namespace MFM{
     u32 getVirtualMethodIdx();
     void setVirtualMethodIdx(u32 idx);
 
+    u32 getVirtualMethodOriginatingClassUTI();
+    void setVirtualMethodOriginatingClassUTI(UTI uti);
+
+    void calcMaxIndexOfVirtualFunction(SymbolClass * csym, s32& maxidx);
+
     bool isConstructorFunction();
     void setConstructorFunction();
 
@@ -106,22 +117,28 @@ namespace MFM{
 
     virtual void setStructuredComment();
 
-    const std::string generateUlamFunctionSignature(); //for UlamInfo
+    u32 getUlamFunctionSignatureId(); //for UlamInfo, and VTable comments
+
   protected:
 
 
   private:
     std::vector<Symbol *> m_parameterSymbols;  // variable or function can be an args
     NodeBlockFunctionDefinition * m_functionNode;
+    const u32 m_declOrderNum; //must be unique among overloaded funcs of same name
     bool m_hasVariableArgs;
     bool m_isVirtual; //overloaded funcs may have different virtual status
     bool m_pureVirtual; //overloaded funcs may have different pure virtual status
     bool m_insureVirtualOverride;
     u32 m_virtualIdx;
+    UTI m_virtualOrigUTI;
     bool m_isConstructor;
     bool m_definedinaQuark;
+    u32 m_signatureid;
     void generateFunctionDeclarationVirtualTypedef(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
+    const std::string generateUlamFunctionSignature(); //for UlamInfo
 
+    void initFSEntry(FSEntry& entry);
   };
 
 }
