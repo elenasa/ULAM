@@ -1,16 +1,16 @@
 ## -*- mode:ulam -*-
 #=t41091_test_compiler_elementandquark_memberselectoninstanceofconstructorcallresult
-#!
-##      gen code output: 1 asserts
+##      gen code output: 2 asserts
 ##
 ## cast element as atom unevaluable, element type lost
 ##
+#!
 Exit status: -11
-Ue_A : QW { :<> Bool(1) b(false);  QW m_q();  Int(32) test() {  System s;  A a;  Atom(96) me = a.instanceof ( true )Self . ( )func .;  { me A as cond { A& me;  b me b . = s ( me b . )assert . } if s ( false )assert . else } 0 cast return } }
+Ue_A : QW { Bool(1) b(false);  QW m_q();  :QW<> Int(32) test() {  System s;  A a;  Atom(96) me = a.instanceof ( true )Self . ( )func .;  { me A as cond { A& me;  self b . me b . = s ( me b . )assert . } if s ( false )assert . else } Atom(96) me2 = A.instanceof ( true )Self . ( )func .;  { me2 A as cond { A& me2;  self b . me2 b . = s ( me2 b . )assert . } if s ( false )assert . else } 0 cast return } }
 Uq_QW { <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
-## informed by t3913, t41089
+## informed by t3913, t41089; see also t41375
 ##
 #>A.ulam
   ulam 3;
@@ -20,7 +20,7 @@ element A : QW {
   Int test(){
     System s;
 
-    //immediate element
+    //immediate element (or Type)
     A a;
     Atom me = a.instanceof(true).func();
 
@@ -28,6 +28,16 @@ element A : QW {
     {
       b = me.b; //uneval-ed, b still false in postfix output
       s.assert(me.b);
+    }
+    else
+      s.assert(false);
+
+    //by Type (wish fixed 20191118)
+    Atom me2 = A.instanceof(true).func();
+    if(me2 as A)
+    {
+      b = me2.b; //uneval-ed, b still false in postfix output
+      s.assert(me2.b);
     }
     else
       s.assert(false);

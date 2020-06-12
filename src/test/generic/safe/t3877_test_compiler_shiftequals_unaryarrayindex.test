@@ -13,7 +13,7 @@
 ##
 #!
 Exit status: 16
-Ue_A { Bool(7) b(true);  System s();  Unsigned(32) d(16u);  Int(32) test() {  typedef Bits(32) BA[4];  Int(32) a = 8 cast;  { a 0 cast != cond { Bits(32) dits[4];  Unary(3) i = 0 cast;  dits 1 [] d cast = dits i 1 cast += cast [] 1 cast <<= d dits i cast [] cast = s ( d )print . s ( i cast 1 cast == )assert . dits 2 [] a cast = dits i 1 cast += cast [] 1 cast >>= a dits i cast [] cast = s ( a )print . s ( i cast 2 == )assert . } _1: while } b 1 cast d << cast a > cast = d cast return } }
+Ue_A { Bool(7) b(true);  System s();  Unsigned(32) d(16u);  Int(32) test() {  typedef Bits(32) BA[4];  Int(32) a = 8 cast;  { a 0 cast != cond { Bits(32) dits[4];  Unary(3) i = 0 cast;  dits 1 [] self d . cast = dits i 1 cast += cast [] 1 cast <<= self d . dits i cast [] cast = self s . ( self d . )print . self s . ( i cast 1 cast == )assert . dits 2 [] a cast = dits i 1 cast += cast [] 1 cast >>= a dits i cast [] cast = self s . ( a )print . self s . ( i cast 2 == )assert . } _1: while } self b . 1 cast self d . << cast a > cast = self d . cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t3246, except with shift equals. Exposed issue with unary index greater than 2 (see t3591)

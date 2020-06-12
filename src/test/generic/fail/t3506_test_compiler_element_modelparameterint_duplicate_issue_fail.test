@@ -1,11 +1,11 @@
 ## -*- mode:ulam -*-
 #=t3506_test_compiler_element_modelparameterint_duplicate_issue_fail
-#!
 ## generate code NULL POINTER (due to model parameter)
 ## include/Ue_102323Foo10_Types.h:351: FAILED: NULL_POINTER
 ##
+#!
 Exit status: 1
-Ue_Foo { System s();  parameter Int(32) chance = 1;  Int(32) a(1);  Int(32) test() {  Foo2 f;  s ( chance(1) )print . s ( f chance(1) . )print . a f chance(1) . = a return } }
+Ue_Foo { System s();  parameter Int(32) chance = 1;  Int(32) a(1);  Int(32) test() {  Foo2 f;  self s . ( chance(1) )print . self s . ( f chance(1) . )print . self a . f chance(1) . = self a . return } }
 Uq_System { <NOMAIN> }
 Ue_Foo2 { System s(); parameter Int(32) chance = 1;  Int(32) a(0);  <NOMAIN> }
 #>Foo.ulam

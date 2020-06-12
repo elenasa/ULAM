@@ -1,6 +1,5 @@
 ## -*- mode:ulam -*-
 #=t3289_test_compiler_primitive_minmaxsizeof_bytype
-#!
 ##      /* gen code output:
 ##	 Unsigned Arg: 4
 ##	 Int(4) Arg: 0x8
@@ -18,8 +17,9 @@
 ##      */
 ##      // minof, maxof related to lhs type ; sizeof always unsigned
 ##      //constant fold minus
+#!
 Exit status: 0
-Ue_Fu { System s();  Int(32) test() {  s ( 4u )print . ; s ( -8 )print . s ( 7 )print . s ( 32u )print . s ( 0u )print . s ( 4294967295u )print . s ( 3u )print . s ( 0u )print . s ( 7u )print . s ( 3u )print . s ( 0u )print . s ( 7u )print . s ( 2u )print . 0 cast return } }
+Ue_Fu { System s();  Int(32) test() {  self s . ( 4u )print . ; self s . ( -8 )print . self s . ( 7 )print . self s . ( 32u )print . self s . ( 0u )print . self s . ( 4294967295u )print . self s . ( 3u )print . self s . ( 0u )print . self s . ( 7u )print . self s . ( 3u )print . self s . ( 0u )print . self s . ( 7u )print . self s . ( 2u )print . 0 cast return } }
 Uq_System { <NOMAIN> }
 #>Fu.ulam
   ulam 1;

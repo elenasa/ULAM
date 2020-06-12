@@ -1,0 +1,95 @@
+## -*- mode:ulam -*-
+#=t41327_test_compiler_multiinheritance_siblingshadowdatamember
+##
+## gen output:
+## Int Arg: 212 (+4 asserts)
+## Int Arg: 412 (+3 asserts)
+##
+#!
+Exit status: 0
+Ue_Foo +System { Int(32) m_c4(212);  Int(32) m_a4(412);  +System<> Int(32) test() {  E4 e4;  self m_c4 . e4 QBase2 . ( )vfuncc . = self ( self m_c4 . )print . self ( self m_c4 . 212 cast == )assert . self ( e4 QBase2 . m_boo . )assert . self ( e4 m_boo . ! )assert . self ( e4 QBase3 . m_boo . ! )assert . self m_a4 . e4 ( )vfuncc . = self ( self m_a4 . )print . self ( self m_a4 . 412 cast == )assert . self ( e4 m_boo . )assert . self ( e4 QBase3 . m_boo . )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+Ue_E4 : QBase3 +QBase2 +QBase1 { Bool(1) m_b4(false);  typedef QBase2 QB2;  :QBase3< Bool(1) m_boo(false); > +QBase2< Bool(1) m_boo(false);  Bits(1) m_bit(0); > +QBase1< Bool(1) m_b1(false); > <NOMAIN> }
+Uq_QBase2 +QBase1 { Bool(1) m_boo(false);  Bits(1) m_bit(0);  +QBase1< Bool(1) m_b1(false); > <NOMAIN> }
+Uq_QBase3 : QBase1 { Bool(1) m_boo(false);  :QBase1< Bool(1) m_b1(false); > <NOMAIN> }
+Uq_QBase1 { Bool(1) m_b1(false);  <NOMAIN> }
+##
+##  siblings may share the same data member names; Bases can be accessed specifically;
+##  overriding function uses its copy; default is breadth-first order of bases as declared.
+##
+#>Foo.ulam
+  ulam 5;
+element Foo +System {
+  Int m_c4;
+  Int m_a4;
+
+  Int test()
+  {
+    E4 e4;
+
+    //here, specific base (QBase2) changes its m_boo DM; (effSelf remains E4)
+    m_c4 = e4.QBase2.vfuncc(); //212
+    print(m_c4);
+    assert(m_c4==212);
+    assert(e4.QBase2.m_boo); //changed its copy
+    assert(!e4.m_boo); //not default one
+    assert(!e4.QBase3.m_boo); //not default one
+
+    //here, default order is applied
+    m_a4 = e4.vfuncc(); //412
+    print(m_a4);
+    assert(m_a4==412);
+    assert(e4.m_boo); //changed default one in QBase3
+    assert(e4.QBase3.m_boo); //not default one
+    return 0;
+  }
+}
+
+
+#:E4.ulam
+  ulam 5;
+element E4 : QBase3 +QBase2 +QBase1 {
+  Bool m_b4;
+  virtual Int vfuncc() { m_boo = true; return 412; }
+  virtual Void behave() { }
+  typedef QBase2 QB2;
+}
+
+#:QBase1.ulam
+    ulam 4;
+quark QBase1 {
+  Bool m_b1;
+  Void funcNotVirtualSoIrrelevantHere() { }
+  virtual Int vfunca() { m_b1 = true; return 110; }
+}
+
+#:QBase2.ulam
+  ulam 5;
+quark QBase2 +QBase1 {
+  Bool m_boo;
+  Bits(1) m_bit; //so that len of QBase2 is different than its pos in E4.
+  virtual ARGB getColor(Unsigned s) { return super.getColor(s); }
+  virtual Int vfuncc() { m_boo = true; return 212; }
+}
+
+#:QBase3.ulam
+  ulam 4;
+quark QBase3 : QBase1 {
+  Bool m_boo;
+  virtual Int vfuncb() { return 311; }
+}
+
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

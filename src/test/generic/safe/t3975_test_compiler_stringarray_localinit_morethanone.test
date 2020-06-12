@@ -11,7 +11,7 @@
 #!
 Exit status: 0
 Ue_A { Int(32) test() {  SystemU3 su3;  String(32) sarr[3] = { "fool", "bar", "foobar" };  String(32) sarr2[3] = { "oh", "my", "three" };  sarr sarr2 = su3 ( sarr 0 [] )print . Unsigned(32) slen = 2u;  su3 ( slen )print . su3 ( slen 2u cast == )assert . Unsigned(32) ssize = 32u;  su3 ( ssize )print . su3 ( ssize 32u cast == )assert . Unsigned(32) ssz = 3u;  su3 ( ssz )print . su3 ( " array items" )print . su3 ( true )assert . 0 cast return } }
-Uq_SystemU3 : System { :<> <NOMAIN> }
+Uq_SystemU3 : System { :System<> <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t3974 with 2 function local variable string arrays (gen code issues);

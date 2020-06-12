@@ -10,7 +10,7 @@
 ##
 #!
 Exit status: 5
-Ue_Foo : QW { :< Int(4) m_i(0); > Bool(1) first(false);  Int(32) fint(0);  Int(32) opfint(0);  Int(32) test() {  System s;  Foo f;  f m_i . 5 = s ( f ( 1 )operator++ . )print . s ( f m_i . 6 == )assert . s ( f ( )operator++ . )print . s ( f m_i . 7 == )assert . s ( f ( )operator++ . )print . s ( f m_i . 7 == )assert . s ( f ( )operator-- . )print . s ( f m_i . 6 == )assert . s ( f ( 1 )operator-- . )print . s ( f m_i . 5 == )assert . f m_i . cast return } }
+Ue_Foo : QW { Bool(1) first(false);  Int(32) fint(0);  Int(32) opfint(0);  :QW< Int(4) m_i(0); > Int(32) test() {  System s;  Foo f;  f m_i . 5 = s ( f ( 1 )operator++ . )print . s ( f m_i . 6 == )assert . s ( f ( )operator++ . )print . s ( f m_i . 7 == )assert . s ( f ( )operator++ . )print . s ( f m_i . 7 == )assert . s ( f ( )operator-- . )print . s ( f m_i . 6 == )assert . s ( f ( 1 )operator-- . )print . s ( f m_i . 5 == )assert . f m_i . cast return } }
 Uq_QW { Int(4) m_i(0);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

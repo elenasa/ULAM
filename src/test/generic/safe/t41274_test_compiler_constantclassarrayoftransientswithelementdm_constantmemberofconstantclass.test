@@ -12,7 +12,7 @@ Exit status: 0
 Ue_KeyExprRep { Int(32) test() {  SystemU3 s;  constant Elfoo celfooe = melfoo;  s ( celfooe esp . ! )assert . s ( celfooe estr 0 [] . )print . s ( 2u )print . s ( true )assert . constant Elfoo celfoof = keyexpr_x13 4 [] melfoo .;  s ( celfoof esp . ! )assert . s ( celfoof estr 0 [] . )print . s ( 2u )print . s ( true )assert . 0 cast return } }
 Ue_Elfoo { Bool(1) esp( true);  String(32) estr[2]( { "melt", "let" });  constant String(32) c_str = "reunion";  <NOMAIN> }
 Un_KeyExprNode { typedef Unsigned(8) Byte;  Unsigned(8) m_leftIndex(0);  Unsigned(8) m_rightIndex(0);  Unsigned(8) m_keyCode(0);  Unsigned(8) m_op(0);  Elfoo m_elfoo( celfoo);  constant Elfoo melfoo = { .esp = false, .estr = { "ha", "oh" } };  <NOMAIN> }
-Uq_SystemU3 : System { :<> <NOMAIN> }
+Uq_SystemU3 : System { :System<> <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t41273: a constant member_select of a constant class (melfoo)

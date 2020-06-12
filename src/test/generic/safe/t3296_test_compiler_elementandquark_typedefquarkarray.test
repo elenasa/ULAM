@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3296_test_compiler_elementandquark_typedefquarkarray
-#!
 ##      //node terminal proxy
+#!
 Exit status: 0
 Ue_Foo { typedef Bar Pop[2];  Bar m_bar2[2]( Bool(1) val_b[3](false,false,false);  Bool(1) val_b[3](false,false,false); );  Int(32) test() {  0 cast return } }
 Uq_Bar { Bool(1) val_b[3](false,false,false);  <NOMAIN> }

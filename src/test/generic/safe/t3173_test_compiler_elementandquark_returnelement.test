@@ -5,29 +5,29 @@ Exit status: 7
 Ue_Foo { Int(4) m_i(0);  Bar m_bar( Bool(1) val_b[3](false,false,false); );  Int(32) test() {  Foo f;  f f ( 7 cast )check . = f m_i . cast return } }
 Uq_Bar { Bool(1) val_b[3](false,false,false);  <NOMAIN> }
 #>Foo.ulam
-ulam 1;
- use Bar;
- element Foo {
- Int(4) m_i;
- Bar m_bar;
- Foo check(Int i) {
- Foo f;
- f.m_i = (Int(4)) i;
- return f;
- }
- Int test() {
- Foo f;
- f = f.check(7);
- return f.m_i;
- }
- }
+  ulam 1;
+use Bar;
+element Foo {
+  Int(4) m_i;
+  Bar m_bar;
+  Foo check(Int i) {
+    Foo f;
+    f.m_i = (Int(4)) i;
+    return f;
+  }
+  Int test() {
+    Foo f;
+    f = f.check(7);
+    return f.m_i;
+  }
+}
 
 #:Bar.ulam
-ulam 1;
- quark Bar {
- Bool val_b[3];
+  ulam 1;
+quark Bar {
+  Bool val_b[3];
   Void reset(Bool b) {
- b = false;
- }
- }
+    b = false;
+  }
+}
 #.

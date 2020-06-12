@@ -2,7 +2,7 @@
 #=t3487_test_compiler_ulamversion_error
 #!
 ./Foo.ulam:3:1: ERROR: Decimal point illegal in an ulam version number.
-./NoParms.ulam:2:7: ERROR: Conflicting class args previously seen for class with no parameters <NoParms>.
+./NoParms.ulam:2:7: ERROR: Conflicting class args previously seen for class with no parameters 'NoParms'.
 Unrecoverable Program Parse FAILURE: <Foo.ulam>
 ./Foo.ulam:2:1: ERROR: No class 'NoParms' in <NoParms.ulam>.
 ##

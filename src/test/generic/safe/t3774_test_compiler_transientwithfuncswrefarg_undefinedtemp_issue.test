@@ -7,7 +7,7 @@
 ##
 #!
 Exit status: -11
-Ue_Mob : WindowScanner { :< typedef Unsigned(6) SiteNum; > typedef Unsigned(6) SiteNum;  Int(32) test() {  WindowServices ws;  ws ( self cast 1 cast 3 cast )scan . 0 cast return } }
+Ue_Mob : WindowScanner { typedef Unsigned(6) SiteNum;  :WindowScanner< typedef Unsigned(6) SiteNum; > Int(32) test() {  WindowServices ws;  ws ( self cast 1 cast 3 cast )scan . 0 cast return } }
 Uq_WindowScanner { typedef Unsigned(6) SiteNum;  <NOMAIN> }
 Uq_EventWindow { typedef Unsigned(6) SiteNum;  <NOMAIN> }
 Un_WindowServices { typedef Unary(4) Radius;  typedef Unsigned(6) SiteNum;  typedef Unsigned(4) Category;  constant Unsigned(32) cCATEGORY_COUNT = 16u;  Bool(1) status(false);  Unary(4) m_inner(0);  Unary(4) m_outer(0);  Unsigned(6) m_sn( 2u);  Unsigned(6) mSites[16](0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0);  EventWindow ew( typedef Unsigned(6) SiteNum; );  <NOMAIN> }

@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3133_test_compiler_invalidlhs_funccall_error
 #!
-./D.ulam:8:11: ERROR: Unmodifiable lefthand side of assignment expression <foo>, type: Int(8); may be a function call.
+./D.ulam:8:11: ERROR: Unmodifiable lefthand side of assignment expression 'self.foo', type: Int(8); may be a function call.
 Unrecoverable Program Type Label FAILURE.
 ##
 #>D.ulam

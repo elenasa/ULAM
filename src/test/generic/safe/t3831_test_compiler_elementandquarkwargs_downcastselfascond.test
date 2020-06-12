@@ -1,6 +1,5 @@
 ## -*- mode:ulam -*-
 #=t3821_test_compiler_elementandquarkwargs_selfascond
-#!
 ##   gencode output (3 interleaved asserts):
 ##       assert: arg is 1
 ##       after asserts abort: arg is 1
@@ -8,9 +7,10 @@
 ##       Unsigned Arg: 3
 ##       Unsigned Arg: 3
 ##
+#!
 Exit status: 7
-Uq_Typo(Int(32) a) : Bar { :< Unsigned(3) bu( 7u); > Bool(1) typool(false);  <NOMAIN> }
-Ue_Eltypo : Typo(1) { :< :< Unsigned(3) bu(7u); > constant Int(32) a = 1;  Bool(1) typool(true); > System s();  Unsigned(3) first(3u);  Unsigned(3) second(7u);  Typo(1) t( :< Unsigned(3) bu(3u); > constant Int(32) a = 1;  Bool(1) typool(false); );  Int(32) test() {  ( )functest s ( t bu . cast )print . s ( t bu . cast 3 cast == )assert . s ( first cast )print . s ( first cast 3 cast == )assert . second self bu . = second cast return } }
+Uq_Typo(Int(32) a) : Bar { Bool(1) typool(false);  :Bar< Unsigned(3) bu( 7u); > <NOMAIN> }
+Ue_Eltypo : Typo(1) { System s();  Unsigned(3) first(3u);  Unsigned(3) second(7u);  Typo(1) t( constant Int(32) a = 1;  Bool(1) typool(false);  :Bar< Unsigned(3) bu(3u); >);  :Typo(1)< constant Int(32) a = 1;  Bool(1) typool(true);  :Bar< Unsigned(3) bu(7u); >> ^Bar< Unsigned(3) bu(7u); > Int(32) test() {  self ( )functest . self s . ( self t . bu . cast )print . self s . ( self t . bu . cast 3 cast == )assert . self s . ( self first . cast )print . self s . ( self first . cast 3 cast == )assert . self second . self bu . = self second . cast return } }
 Uq_System { <NOMAIN> }
 Uq_Bar { Unsigned(3) bu( 7u);  <NOMAIN> }
 ##

@@ -1,12 +1,12 @@
 ## -*- mode:ulam -*-
 #=t3187_test_compiler_elementandquark_twoargscast
-#!
 ## gencode output:
 ## Int Arg: 40
 ## Int Arg: 36
 ##      //36 saturates to 31; NO LONGER!!
+#!
 Exit status: 36
-Ue_Foo { System s();  Int(32) m_idx(40);  Int(6) m_x(9);  Int(6) m_spare(0);  Int(6) m_y(4);  Int(32) test() {  m_idx ( m_x cast m_y cast )func = s ( m_idx )print . s ( m_x cast m_y cast * cast )print . m_x cast m_y cast * cast return } }
+Ue_Foo { System s();  Int(32) m_idx(40);  Int(6) m_x(9);  Int(6) m_spare(0);  Int(6) m_y(4);  Int(32) test() {  self m_idx . self ( self m_x . cast self m_y . cast )func . = self s . ( self m_idx . )print . self s . ( self m_x . cast self m_y . cast * cast )print . self m_x . cast self m_y . cast * cast return } }
 Uq_C2D { Int(6) m_width( 9);  Int(6) m_height( 4);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 #>Foo.ulam

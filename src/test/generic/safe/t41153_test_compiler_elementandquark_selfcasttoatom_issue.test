@@ -2,7 +2,7 @@
 #=t41153_test_compiler_elementandquark_selfcasttoatom_issue_error
 #!
 Exit status: -11
-Ue_MyElement : QOne(10u) { :< constant Unsigned(32) num = 10u; > Bool(1) sp(false);  Int(32) test() {  Atom(96) abc = self cast;  ( )behave 0 cast return } }
+Ue_MyElement : QOne(10u) { Bool(1) sp(false);  :QOne(10u)< constant Unsigned(32) num = 10u; > Int(32) test() {  Atom(96) abc = self cast;  self ( )behave . 0 cast return } }
 Uq_QOne(Unsigned(32) num) { <NOMAIN> }
 ##
 ## informed by user ish 11/5/2017:
@@ -23,6 +23,11 @@ element MyElement : QOne(10)
 
 quark QOne(Unsigned num)
 {
+  //check lexical order (zi, one, vendo) of vowned_idx enum in .h
+  virtual Void vendo() { return; }
+  virtual Int one() { return 1; }
+  virtual Void zi() { return; }
+
   Void behave(){
     // ALL GOOD!!
 

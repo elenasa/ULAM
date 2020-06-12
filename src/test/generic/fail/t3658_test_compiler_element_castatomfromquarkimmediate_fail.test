@@ -1,0 +1,34 @@
+## -*- mode:ulam -*-
+#=t3658_test_compiler_element_castatomfromquarkimmediate_fail
+##
+## gen output:
+##  include/Ue_10113Foo10.tcc:31: FAILED: NOT_AN_ELEMENT
+##
+#!
+Exit status: -1
+Ue_Foo : QPerc { :QPerc< Bool(1) b(false); > Int(32) test() {  QPerc q;  QPerc& qref = q cast;  self.atomof qref.atomof = 1 cast return } }
+Uq_QPerc { Bool(1) b(false);  <NOMAIN> }
+##
+## informed by a Dave ish 2/19/2016; should this be allowed, or error?
+##
+#>Foo.ulam
+  ulam 2;
+use QPerc;
+element Foo : QPerc {
+
+  Int test() {
+    QPerc q;
+    QPerc & qref = q;
+    //self.storageof = q.storageof; //.storageof can't be used with q
+    self.atomof = qref.atomof; //(Atom) q; //clobbers storage!!
+    return 1;
+  }
+}
+
+#:QPerc.ulam
+  ulam 2;
+quark QPerc {
+  Bool b;
+}
+
+#.

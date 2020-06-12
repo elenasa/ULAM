@@ -5,7 +5,7 @@
 ##   Int Arg: 24
 #!
 Exit status: 24
-Ue_A { System s();  Bool(7) d(false);  Int(32) a(24);  Int(32) test() {  a ( 4 cast )fact = s ( a )print . s ( a 24 cast == )assert . a return } }
+Ue_A { System s();  Bool(7) d(false);  Int(32) a(24);  Int(32) test() {  self a . self ( 4 cast )fact . = self s . ( self a . )print . self s . ( self a . 24 cast == )assert . self a . return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t3118

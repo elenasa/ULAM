@@ -1,14 +1,14 @@
 ## -*- mode:ulam -*-
 #=t3277_test_compiler_castatom2element_issue
-#!
 ##      /* gen code output:
 ##	 Int Arg: 0
 ##      */
 ##      //problem with eval answer is that an atom type appears the same as tu.
 ##        unevaluable without assuming atoms as elements
 ##
+#!
 Exit status: 2
-Ue_Tu { System s();  Int(32) me(2);  Int(32) test() {  Tu t;  Atom(96) a;  { a Tu is cond { t a cast = me 2 cast = } if } s ( me )print . me return } }
+Ue_Tu { System s();  Int(32) me(2);  Int(32) test() {  Tu t;  Atom(96) a;  { a Tu is cond { t a cast = self me . 2 cast = } if } self s . ( self me . )print . self me . return } }
 Uq_System { <NOMAIN> }
 #>Tu.ulam
   ulam 1;

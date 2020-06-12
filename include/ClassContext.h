@@ -27,7 +27,7 @@
 
 /**
   \file ClassContext.h - Data for Class Context changes for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
   \date (C) 2014-2017 All rights reserved.
   \gpl
@@ -43,6 +43,7 @@
 #include "NodeBlockContext.h"
 #include "Constants.h"
 #include <string.h>
+
 namespace MFM{
 
 class ClassContext

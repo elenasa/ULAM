@@ -6,7 +6,7 @@
 ##
 #!
 Exit status: 5
-Ue_Foo { constant Int(32) cx = 7;  typedef Bar(4) Tar;  Bool(1) sp(false);  Bar(4) tar[4]( constant Int(32) x = 4;  Bits(4) m_bits(1);  constant Int(32) x = 4;  Bits(4) m_bits(1);  constant Int(32) x = 4;  Bits(4) m_bits(5);  constant Int(32) x = 4;  Bits(4) m_bits(1); );  Int(32) test() {  System s;  tar 2 [] ( 5 cast )set . s ( tar 2 [] ( )toInt . )print . s ( 5 cast tar 2 [] ( )toInt . == )assert . tar 2 [] ( )toInt . return } }
+Ue_Foo { constant Int(32) cx = 7;  typedef Bar(4) Tar;  Bool(1) sp(false);  Bar(4) tar[4]( constant Int(32) x = 4;  Bits(4) m_bits(1);  constant Int(32) x = 4;  Bits(4) m_bits(1);  constant Int(32) x = 4;  Bits(4) m_bits(5);  constant Int(32) x = 4;  Bits(4) m_bits(1); );  Int(32) test() {  System s;  self tar . 2 [] ( 5 cast )set . s ( self tar . 2 [] ( )toInt . )print . s ( 5 cast self tar . 2 [] ( )toInt . == )assert . self tar . 2 [] ( )toInt . return } }
 Uq_System { <NOMAIN> }
 Uq_Bar(Int(32) x) { Bits(UNKNOWN) m_bits(notready);  <NOMAIN> }
 ##

@@ -228,7 +228,7 @@ sub main
 		}
 	    } else {
 		if($SRC_DIR =~ /error/) {
-		    `./bin/culamtest $f 1> $log`;  ##outputs errlog to stderr
+		    `./bin/culamtest $f 1>/dev/null`;  ##outputs errlog to stderr
 		} else {
 		    `./bin/culamtest $f 1> $log 2> $errlog`;
 		}

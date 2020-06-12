@@ -1,10 +1,9 @@
 ## -*- mode:ulam -*-
 #=t3121_test_compiler_arrays_add_error
 #!
-./D.ulam:1:56: ERROR: Incompatible (nonscalar) types Int(16)[3] and Int(16) for binary + ; Suggest writing a loop.
-./D.ulam:1:30: ERROR: By convention, Function 'test''s Return type must be 'Int', not Int(16).
+./D.ulam:1:52: ERROR: Incompatible (nonscalar) types Int(16)[3] and Int(16) for binary + ; Suggest writing a loop.
 Unrecoverable Program Type Label FAILURE.
 ##
 #>D.ulam
-element D { Int(16) a[3], b; Int(16) test() {return (a + b);} }
+element D { Int(16) a[3], b; Int test() {return (a + b);} }
 #.

@@ -1,12 +1,12 @@
 ## -*- mode:ulam -*-
 #=t3816_test_compiler_transientarraywithelementarrayref_typedefref
-#!
 ##      gen code output: (2 asserts)
 ##
+#!
 Exit status: -11
-Ue_R { Bool(1) b(false);  Bool(1) c(false);  Int(32) test() {  System s;  QW qw;  A ar[3];  typedef Foo& FA3[3];  Foo& faar1[3] = ar 1 [] mFoo . cast;  faar1 2 [] ( 1u cast )setTre . b qw ( faar1 2 [] cast )eunc . = s ( b )assert . Foo& faar2[3] = ar 2 [] mFoo . cast;  Foo& fr = faar2 1 [] cast;  fr ( 2u cast )setTre . c qw ( fr )eunc . = s ( c )assert . 0 cast return } }
+Ue_R { Bool(1) b(false);  Bool(1) c(false);  Int(32) test() {  System s;  QW qw;  A ar[3];  typedef Foo& FA3[3];  Foo& faar1[3] = ar 1 [] mFoo . cast;  faar1 2 [] ( 1u cast )setTre . self b . qw ( faar1 2 [] cast )eunc . = s ( self b . )assert . Foo& faar2[3] = ar 2 [] mFoo . cast;  Foo& fr = faar2 1 [] cast;  fr ( 2u cast )setTre . self c . qw ( fr )eunc . = s ( self c . )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
-Un_A : QW { :<> Bool(7) sp(false);  Foo mFoo[3]( Unary(3) mTre(0); ), ( Unary(3) mTre(0); ), ( Unary(3) mTre(0); );  <NOMAIN> }
+Un_A : QW { Bool(7) sp(false);  Foo mFoo[3]( Unary(3) mTre(0); ), ( Unary(3) mTre(0); ), ( Unary(3) mTre(0); );  :QW<> <NOMAIN> }
 Uq_QW { <NOMAIN> }
 Ue_Foo { Unary(3) mTre(0);  <NOMAIN> }
 ##

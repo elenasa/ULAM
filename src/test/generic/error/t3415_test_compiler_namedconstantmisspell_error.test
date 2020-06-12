@@ -1,8 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3415_test_compiler_namedconstantmisspell_error
 #!
-./A.ulam:4:46: ERROR: Variable <c_PRINT_VALUE> is not defined, or was used before declared in a function.
-./A.ulam:4:11: ERROR: Constant value expression for: cPRINT_ALL, is invalid.
+./A.ulam:4:46: ERROR: Variable 'c_PRINT_VALUE' is not defined, or was used before declared in a function.
 Unrecoverable Program Type Label FAILURE.
 ##
 ##      //informed by 3314, except misspelled c_PRINT_VALUE

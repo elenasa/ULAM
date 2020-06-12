@@ -49,10 +49,12 @@
 #include "NodeConstant.h"
 #include "NodeConstantArray.h"
 #include "NodeContinueStatement.h"
+#include "NodeFuncDecl.h"
 #include "NodeInitDM.h"
 #include "NodeLabel.h"
 #include "NodeListEmpty.h"
 #include "NodeMemberSelect.h"
+#include "NodeMemberSelectByBaseClassType.h"
 #include "NodeMemberSelectOnConstructorCall.h"
 #include "NodeModelParameter.h"
 #include "NodeQuestionColon.h"
@@ -248,8 +250,8 @@ namespace MFM {
 	    else if(cnSym->isClassTemplate())
 	      {
 		std::ostringstream msg;
-		msg << "Conflicting class args previously seen for class with no parameters <";
-		msg << m_state.m_pool.getDataAsString(cnSym->getId()).c_str() << ">";
+		msg << "Conflicting class args previously seen for class with no parameters '";
+		msg << m_state.m_pool.getDataAsString(cnSym->getId()).c_str() << "'";
 		MSG(&iTok, msg.str().c_str(), ERR);
 		m_state.clearStructuredCommentToken();
 		return  true; //we're done unless we can gobble the rest up?
@@ -392,8 +394,8 @@ namespace MFM {
     m_state.pushClassContext(utype, rtnNode, rtnNode, false, NULL);
 
     //automatically create a Self typedef symbol for this class type
-    u32 selfid = m_state.m_pool.getIndexForDataString("Self");
-    Token SelfTok(TOK_TYPE_IDENTIFIER, identTok.m_locator, selfid);
+    assert(!m_state.isReference(utype)); //for the record.
+    Token SelfTok(TOK_KW_TYPE_SELF, identTok.m_locator, 0);
     SymbolTypedef * symtypedef = new SymbolTypedef(SelfTok, utype, utype, m_state); //selftype
     assert(symtypedef);
     m_state.addSymbolToCurrentScope(symtypedef);
@@ -412,6 +414,17 @@ namespace MFM {
 
     if(qTok.m_type == TOK_COLON)
       {
+	if(m_state.isClassAQuarkUnion(utype))
+	  {
+	    std::ostringstream msg;
+	    msg << "Inheritance for quark-union identifier '";
+	    msg << m_state.getUlamTypeNameBriefByIndex(utype).c_str();
+	    msg << "' currently unsupported";
+	    MSG(&qTok, msg.str().c_str(), ERR); //t41334
+	    delete rtnNode;
+	    return NULL;
+	  }
+
 	SymbolClass * supercsym = NULL;
 	UTI superuti = Nouti;
 	inherits = parseRestOfClassInheritance(cnsym, supercsym, superuti);
@@ -420,17 +433,37 @@ namespace MFM {
 	    setupSuperClassHelper(supercsym, cnsym);
 	    //reset super block pointer since it will change if temporary (e.g. t3874)
 	    if(supercsym->isStub() || m_state.isHolder(superuti) || (supercsym->getUlamClass() == UC_UNSEEN))
-	      rtnNode->setSuperBlockPointer(NULL); //wait for c&l
+	      rtnNode->setBaseClassBlockPointer(NULL,0); //wait for c&l
 	  }
       }
     else
       {
 	unreadToken();
-	cnsym->setSuperClass(Nouti); //clear
+	cnsym->setBaseClass(Nouti, 0); //clear
 
 	//earliest ancestor when none designated; for all classes except UrSelf,
 	if(!m_state.isUrSelf(cnsym->getUlamTypeIdx()))
 	  setupSuperClassHelper(cnsym);
+      }
+
+    //ulam5 offers inheritance from multiple classes; superclass optional.
+    Token rTok;
+    getNextToken(rTok);
+    unreadToken();
+
+    if((rTok.m_type == TOK_PLUS))
+      {
+	if(m_state.isClassAQuarkUnion(utype))
+	  {
+	    std::ostringstream msg;
+	    msg << "Multiple Inheritance for quark-union identifier '";
+	    msg << m_state.getUlamTypeNameBriefByIndex(utype).c_str();
+	    msg << "' currently unsupported";
+	    MSG(&rTok, msg.str().c_str(), ERR); //t41334
+	    delete rtnNode;
+	    return NULL;
+	  }
+	parseMultipleClassInheritances(cnsym);
       }
 
     if(!getExpectedToken(TOK_OPEN_CURLY, pTok))
@@ -488,7 +521,7 @@ namespace MFM {
     assert(supercsym);
     UTI superuti = supercsym->getUlamTypeIdx();
     assert(cnsym);
-    cnsym->setSuperClass(superuti);
+    cnsym->setBaseClass(superuti, 0);
 
     NodeBlockClass * classblock = cnsym->getClassBlockNode();
     assert(classblock); //rtnNode in caller
@@ -499,7 +532,7 @@ namespace MFM {
     //set super class' block after any parameters parsed;
     // (separate from previous block which might be pointing to template in case of a stub)
     //classblock->setSuperBlockPointer(NULL); //wait for c&l
-    classblock->setSuperBlockPointer(superclassblock);
+    classblock->setBaseClassBlockPointer(superclassblock, 0);
 
     if(superclassblock)
       {
@@ -507,14 +540,13 @@ namespace MFM {
 	m_state.popClassContext(); //m_currentBlock = prevBlock;
 	m_state.pushClassContext(superuti, superclassblock, superclassblock, false, NULL);
 	m_state.pushClassContext(cnsym->getUlamTypeIdx(), classblock, classblock, false, NULL); //redo
-
 	//automatically create a Super typedef symbol for this class' super type;
 	// avoids assuming "Super" is a class name (t41150)
 	u32 superid = m_state.m_pool.getIndexForDataString("Super");
 	Symbol * symtypedef = NULL;
 	if(!classblock->isIdInScope(superid, symtypedef))
 	  {
-	    Token superTok(TOK_TYPE_IDENTIFIER, superclassblock->getNodeLocation(), superid);
+	    Token superTok(TOK_KW_TYPE_SUPER, superclassblock->getNodeLocation(), 0);
 	    symtypedef = new SymbolTypedef(superTok, superuti, superuti, m_state);
 	    assert(symtypedef);
 	    m_state.addSymbolToCurrentScope(symtypedef);
@@ -523,8 +555,12 @@ namespace MFM {
 	  {
 	    assert(symtypedef->getId() == superid);
 	    UTI stuti = symtypedef->getUlamTypeIdx();
-	    if(stuti != superuti)
-	      m_state.updateUTIAliasForced(stuti, superuti); //t3808, t3806, t3807
+	    if(stuti != superuti) //t3808, t3806, t3807
+	      {
+		m_state.updateUTIAliasForced(stuti, superuti);
+		cnsym->setBaseClass(superuti, 0);
+		symtypedef->resetUlamType(superuti);
+	      }
 	  }
       }
     else
@@ -615,9 +651,9 @@ namespace MFM {
     else
       {
 	std::ostringstream msg;
-	msg << "Expected a 'Type' Token!! got Token '";
+	msg << "Expected a 'Type' Token!! got Token <";
 	msg << m_state.getTokenDataAsString(pTok).c_str();
-	msg << "' instead for class parameter declaration";
+	msg << "> instead for class parameter declaration";
 	MSG(&pTok, msg.str().c_str(), ERR);
 	return;
       }
@@ -648,15 +684,16 @@ namespace MFM {
 	m_state.pushClassContext(localsblock->getNodeType(), localsblock, localsblock, false, NULL);
 
 	getNextToken(iTok);
-	if(iTok.m_type == TOK_TYPE_IDENTIFIER)
+	if(iTok.m_type == TOK_TYPE_IDENTIFIER) //t41312
 	  {
+	    u32 tokid = m_state.getTokenDataAsStringId(iTok);
 	    SymbolClassName * supercnsym = NULL;
-	    if(!m_state.alreadyDefinedSymbolClassName(iTok.m_dataindex, supercnsym))
+	    if(!m_state.alreadyDefinedSymbolClassName(tokid, supercnsym))
 	      {
 		//check if aleady a typedef..else make one
 		UTI tduti = Nav;
 		UTI tdscalaruti = Nouti;
-		if(!m_state.getUlamTypeByTypedefName(iTok.m_dataindex, tduti, tdscalaruti))
+		if(!m_state.getUlamTypeByTypedefName(tokid, tduti, tdscalaruti))
 		  {
 		    //make a typedef holder for a class
 		    UTI huti = m_state.makeUlamTypeHolder();
@@ -699,7 +736,7 @@ namespace MFM {
 	return rtninherits;
       } //done w explicit local. scope
 
-    //o.w. implicit localdef typedefs and constants
+    //o.w. implicit localdef typedefs and constants t41312
     if(iTok.m_type == TOK_TYPE_IDENTIFIER)
       {
 	TypeArgs typeargs;
@@ -749,6 +786,80 @@ namespace MFM {
       }
     return rtninherits;
   } //parseRestOfClassInheritance
+
+  bool Parser::parseMultipleClassInheritances(SymbolClassName * cnsym)
+  {
+    bool rtninherits = false;
+    assert(cnsym);
+
+    //ulam5 offers inheritance of multiple classes
+    Token rTok;
+    getNextToken(rTok);
+
+    while((rTok.m_type == TOK_PLUS))
+      {
+	rtninherits = parseRestOfMultiClassInheritance(cnsym, true); //all bases are shared
+	getNextToken(rTok);
+      }
+
+    unreadToken();
+    return rtninherits;
+  } //parseMultipleClassInheritances
+
+  bool Parser::parseRestOfMultiClassInheritance(SymbolClassName * cnsym, bool sharedVirtualBase)
+  {
+    bool rtninherits = false;
+    assert(cnsym);
+    //inheritance
+    Token iTok;
+    getNextToken(iTok);
+    if(iTok.m_type == TOK_TYPE_IDENTIFIER)
+      {
+	TypeArgs typeargs;
+	typeargs.init(iTok);
+
+	m_state.m_parsingVariableSymbolTypeFlag = STF_CLASSINHERITANCE;
+
+	bool isaclass = true;
+	UTI baseuti = parseClassArguments(typeargs, isaclass);
+	if(baseuti != Nav)
+	  {
+	    u32 baseid = m_state.getUlamTypeNameIdByIndex(baseuti);
+
+	    UTI instance = cnsym->getUlamTypeIdx();
+	    u32 instanceid = m_state.getUlamTypeNameIdByIndex(instance);
+
+	    if(baseid == instanceid)
+	      {
+		std::ostringstream msg;
+		msg << "Class Definition '";
+		msg << m_state.getUlamTypeNameBriefByIndex(instance).c_str(); //t3900, t3901
+		msg << "'; Provides an invalid Class '";
+		msg << m_state.getTokenDataAsString(iTok).c_str() << "'";
+		MSG(&iTok, msg.str().c_str(), ERR);
+	      }
+	    else
+	      {
+		cnsym->appendBaseClassForClassInstance(baseuti, instance, sharedVirtualBase); //set here!!
+		SymbolClass * basecsym = NULL;
+		AssertBool isDefined = m_state.alreadyDefinedSymbolClass(baseuti, basecsym);
+		assert(isDefined);
+		rtninherits = true;
+	      }
+	  }
+	m_state.m_parsingVariableSymbolTypeFlag = STF_NEEDSATYPE; //reset
+      }
+    else
+      {
+	std::ostringstream msg;
+	msg << "Class Definition '";
+	msg << m_state.getUlamTypeNameBriefByIndex(cnsym->getUlamTypeIdx()).c_str(); //t3786
+	msg << "'; Provides an invalid Class identifier '";
+	msg << m_state.getTokenDataAsString(iTok).c_str() << "'";
+	MSG(&iTok, msg.str().c_str(), ERR);
+      }
+    return rtninherits;
+  } //parseRestOfMultiClassInheritance
 
   bool Parser::parseLocalDef()
   {
@@ -853,8 +964,14 @@ namespace MFM {
 
 	if(typeNode == NULL)
 	  {
+	    std::ostringstream msg;
+	    msg << "Expecting Type of data member/function";
+	    msg << " (or, in the midst of errors); Got <";
+	    msg << m_state.getTokenDataAsString(pTok).c_str() << ">";
+	    MSG(&pTok, msg.str().c_str(), ERR);
+
 	    m_state.clearStructuredCommentToken(); //missing
-	    return false; //expecting a type, not sizeof, probably an error! (t3856)
+	    return false; //expecting a type, not sizeof, probably an error! (t3856,t41350)
 	  }
 
 	bool isConstr = false;
@@ -863,24 +980,27 @@ namespace MFM {
 	getNextToken(iTok);
 	if(iTok.m_type != TOK_IDENTIFIER)
 	  {
-	    if((iTok.m_type == TOK_OPEN_PAREN) && (pTok.m_dataindex == m_state.m_pool.getIndexForDataString("Self")))
+	    if((iTok.m_type == TOK_OPEN_PAREN) && (pTok.m_type == TOK_KW_TYPE_SELF))
 	      {
 		unreadToken();
-		isConstr = true;
+		isConstr = true; //special case!
 		iTok = pTok;
 		delete typeNode;
 		typeNode = NULL;
 	      }
 	    else
 	      {
-		//user error!
+		//user error! (t41341,2)
+		Token eTok = iTok;
+		if(iTok.m_type == TOK_OPEN_PAREN)
+		  eTok = pTok;
 		std::ostringstream msg;
-		msg << "Name of variable/function <";
-		msg << m_state.getTokenDataAsString(iTok).c_str();
-		if((Token::getSpecialTokenWork(iTok.m_type) == TOKSP_KEYWORD))
-		  msg << ">: Identifier must not be a reserved keyword";
+		msg << "Name of variable/function '";
+		msg << m_state.getTokenDataAsString(eTok).c_str();
+		if((Token::getSpecialTokenWork(eTok.m_type) == TOKSP_KEYWORD))
+		  msg << "': Identifier must not be a reserved keyword";
 		else
-		  msg << ">: Identifier must begin with a lower-case letter";
+		  msg << "': Identifier must begin with a lower-case letter";
 		MSG(&iTok, msg.str().c_str(), ERR);
 		m_state.clearStructuredCommentToken();
 		delete typeNode;
@@ -896,7 +1016,18 @@ namespace MFM {
 	    //eats the '(' when found; NULL if error occurred
 	    NodeBlockFunctionDefinition * funcdefNode = makeFunctionSymbol(typeargs, iTok, typeNode, isVirtual, insureVirtualOverride, isConstr); //with params
 	    if(funcdefNode)
-	      brtn = true; //funcdefNode belongs to the symbolFunction; not appended to tree
+	      {
+		SymbolFunction * funcsym = funcdefNode->getFuncSymbolPtr();
+		assert(funcsym);
+
+		//append this little guy to tree to preserve order of function declarations (ulam-5)
+		NodeFuncDecl * funcdecl = new NodeFuncDecl(funcsym,m_state);
+		assert(funcdecl);
+		funcdecl->setNodeLocation(iTok.m_locator);
+		m_state.appendNodeToCurrentBlock(funcdecl);
+
+		brtn = true; //funcdefNode belongs to the symbolFunction; not appended to tree
+	      }
 	    else
 	      //MSG(&pTok, "INCOMPLETE Function Definition", ERR);
 	      m_state.clearStructuredCommentToken();
@@ -1089,8 +1220,7 @@ namespace MFM {
 
   NodeFunctionCall * Parser::parseConstructorCall(const Token& identTok)
   {
-    u32 selfid = m_state.m_pool.getIndexForDataString("Self");
-    Token SelfTok(TOK_TYPE_IDENTIFIER, identTok.m_locator, selfid);
+    Token SelfTok(TOK_KW_TYPE_SELF, identTok.m_locator, 0);
     //if here, must be constructor used to initialize class-type variable!! (t41077)
     NodeFunctionCall * constrNode = (NodeFunctionCall *) parseFunctionCall(SelfTok); //type of variable known later
 
@@ -2108,8 +2238,8 @@ namespace MFM {
       {
 	//eat error token, t41098
 	std::ostringstream msg;
-	msg << "Statement starts with flag keyword <";
-	msg << m_state.getTokenDataAsString(pTok).c_str() << ">";
+	msg << "Statement starts with flag keyword '";
+	msg << m_state.getTokenDataAsString(pTok).c_str() << "'";
 	MSG(&pTok, msg.str().c_str(), ERR);
       }
     else if(pTok.m_type == TOK_ERROR_LOWLEVEL)
@@ -2177,7 +2307,11 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Invalid typedef Alias <" << m_state.getTokenDataAsString(iTok).c_str();
-	    msg << ">, Type Identifier (2nd arg) requires capitalization";
+	    msg << ">, Type Identifier (2nd arg) ";
+	    if((Token::getSpecialTokenWork(iTok.m_type) == TOKSP_TYPEKEYWORD))
+	      msg << "must not be a reserved keyword";
+	    else
+	      msg << "requires capitalization";
 	    MSG(&iTok, msg.str().c_str(), ERR);
 	    delete typeNode;
 	    typeNode = NULL;
@@ -2251,7 +2385,11 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Invalid constant definition Alias '";
 	    msg << m_state.getTokenDataAsString(iTok).c_str();
-	    msg << "', Constant Identifier (2nd arg) requires lower-case";
+	    msg << "', Constant Identifier (2nd arg) ";
+	    if((Token::getSpecialTokenWork(iTok.m_type) == TOKSP_KEYWORD))
+	      msg << "must not be a reserved keyword";
+	    else
+	      msg << "requires lower-case";
 	    MSG(&iTok, msg.str().c_str(), ERR);
 	    delete typeNode;
 	    typeNode = NULL;
@@ -2368,9 +2506,9 @@ namespace MFM {
 	    else
 	      {
 		std::ostringstream msg;
-		msg << "Invalid Model Parameter Name <";
+		msg << "Invalid Model Parameter Name '";
 		msg << m_state.getTokenDataAsString(iTok).c_str();
-		msg << ">, Parameter Identifier requires lower-case";
+		msg << "', Parameter Identifier requires lower-case";
 		MSG(&iTok, msg.str().c_str(), ERR);
 		delete typeNode;
 		typeNode = NULL;
@@ -2379,9 +2517,8 @@ namespace MFM {
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "Invalid Model Parameter Type <";
-	    msg << m_state.getTokenDataAsString(pTok).c_str();
-	    msg << ">";
+	    msg << "Invalid Model Parameter Type '";
+	    msg << m_state.getTokenDataAsString(pTok).c_str() << "'";
 	    MSG(&pTok, msg.str().c_str(), ERR);
 	  }
       }
@@ -2436,11 +2573,11 @@ namespace MFM {
       {
 	//user error!
 	std::ostringstream msg;
-	msg << "Name of variable <" << m_state.getTokenDataAsString(iTok).c_str();
+	msg << "Name of variable '" << m_state.getTokenDataAsString(iTok).c_str();
 	if((Token::getSpecialTokenWork(iTok.m_type) == TOKSP_KEYWORD))
-	  msg << ">: Identifier must not be a reserved keyword";
+	  msg << "': Identifier must not be a reserved keyword";
 	else
-	  msg << ">: Identifier must begin with a lower-case letter";
+	  msg << "': Identifier must begin with a lower-case letter";
 	MSG(&iTok, msg.str().c_str(), ERR);
 	unreadToken();
 	delete typeNode;
@@ -2557,7 +2694,8 @@ namespace MFM {
 
     if(!Token::isTokenAType(pTok))
       {
-	//note: this means it can't be a typedef from another class; might be a class constructor (t41077)
+	//note: this means it can't be a typedef from another class;
+	//might be a class constructor (t41077)
 	unreadToken();
 	return NULL;
       }
@@ -2595,9 +2733,10 @@ namespace MFM {
 	    m_state.makeAnonymousClassFromHolder(huti, pTok.m_locator); //don't need cnsym here
 	  }
 
-	//not sure what to do with the UTI? could be a declref type; both args are refs!
-	//	UTI cuti = parseClassArguments(pTok, maybeAClassType);
+	//what to do with the UTI? could be a declref type; both args are refs!
 	UTI cuti = parseClassArguments(typeargs, maybeAClassType);
+	//if(!m_state.okUTItoContinue(cuti)) return NULL; (continue, for better error messages..)
+
 	if(maybeAClassType)
 	  {
 	    if(m_state.isAltRefType(cuti)) //e.g. refofSelf, ref to array of classes
@@ -2644,6 +2783,9 @@ namespace MFM {
 	  typeNode->linkConstantExpressionBitsize(bitsizeNode); //tfr ownership
       }
 
+    if(typeargs.m_forMemberSelect)
+     return typeNode; //t41310
+
     Token dTok;
     getNextToken(dTok);
     if(dTok.m_type == TOK_DOT)
@@ -2657,7 +2799,9 @@ namespace MFM {
 		typeNode = NULL;
 	      }
 	    else
-	      getNextToken(dTok); //?
+	      {
+		getNextToken(dTok); //?
+	      }
 	  }
 	else
 	  {
@@ -2687,25 +2831,26 @@ namespace MFM {
     return typeNode;
   } //parseTypeDescriptor
 
-  //  UTI Parser::parseClassArguments(Token& typeTok, bool& isaclass)
   UTI Parser::parseClassArguments(TypeArgs& typeargs, bool& isaclass)
   {
     Token pTok;
     getNextToken(pTok);
+    u32 tokid = m_state.getTokenDataAsStringId(typeargs.m_typeTok);
+
     if(pTok.m_type != TOK_OPEN_PAREN)
       {
-	//regular class, not a template, OR Self (unless a constructor)
+	//regular class, not a template OR Self constructor
 	unreadToken();
 
 	SymbolClassName * cnsym = NULL;
-	if(!m_state.alreadyDefinedSymbolClassName(typeargs.m_typeTok.m_dataindex, cnsym))
+	if(!m_state.alreadyDefinedSymbolClassName(tokid, cnsym))
 	  {
 	    UTI tduti = Nav;
 	    UTI tdscalaruti = Nouti;
 	    //check if a typedef first..look localdefs first when parsing class inheritance
 	    if(((m_state.m_parsingVariableSymbolTypeFlag == STF_CLASSINHERITANCE)
-		&& m_state.getUlamTypeByTypedefNameinLocalsScope(typeargs.m_typeTok.m_dataindex, tduti, tdscalaruti))
-	       || m_state.getUlamTypeByTypedefName(typeargs.m_typeTok.m_dataindex, tduti, tdscalaruti))
+		&& m_state.getUlamTypeByTypedefNameinLocalsScope(tokid, tduti, tdscalaruti))
+	       || m_state.getUlamTypeByTypedefName(tokid, tduti, tdscalaruti))
 	      {
 		ULAMTYPE bUT = m_state.getUlamTypeByIndex(tduti)->getUlamTypeEnum();
 		isaclass |= (bUT == Class); //or Hzy or Holder?
@@ -2730,7 +2875,7 @@ namespace MFM {
 
 			// set contains possible unseen classes (ulamexports);
 			// see if they exist without being too liberal about guessing
-			m_state.m_unseenClasses.insert(typeargs.m_typeTok.m_dataindex); //possible class
+			m_state.m_unseenClasses.insert(tokid); //possible class
 		      }
 		    else //not yet defined in local file scope; add a holder (t3873)
 		      {
@@ -2760,17 +2905,24 @@ namespace MFM {
 	assert(cnsym);
 	return cnsym->getUlamTypeIdx();
       } //not open paren
-    else if(typeargs.m_typeTok.m_dataindex == m_state.m_pool.getIndexForDataString("Self"))
+    else if(tokid == m_state.m_pool.getIndexForDataString("Self"))
       {
 	//this is a constructor
 	unreadToken();
 	isaclass = true; //reset
 	return m_state.getCompileThisIdx(); //or Void?
       }
+    else if(tokid == m_state.m_pool.getIndexForDataString("Super"))
+      {
+	//this is an error!
+	unreadToken();
+	isaclass = true; //reset
+	return Nav; //t41341
+      }
 
     //must be a template class
     SymbolClassNameTemplate * ctsym = NULL;
-    if(!m_state.alreadyDefinedSymbolClassNameTemplate(typeargs.m_typeTok.m_dataindex, ctsym))
+    if(!m_state.alreadyDefinedSymbolClassNameTemplate(tokid, ctsym))
       {
 	if(ctsym == NULL) //was undefined, template; will fix instances' argument names later
 	  m_state.addIncompleteTemplateClassSymbolToProgramTable(typeargs.m_typeTok, ctsym);
@@ -2839,7 +2991,7 @@ namespace MFM {
 	msg << m_state.m_pool.getDataAsString(ctsym->getId()).c_str() ;
 	msg << ", additional errors are unlikely to be useful";
 	MSG(&typeargs.m_typeTok, msg.str().c_str(), ERR);
-	return Nav; //t41166
+	return Nav; //needs a test, was t41166
       }
 
     stubcsym->setContextForPendingArgValues(m_state.getCompileThisIdx());
@@ -2939,17 +3091,18 @@ namespace MFM {
 	    SymbolConstantValue * paramSym = ctsym->getParameterSymbolPtr(parmIdx);
 	    assert(paramSym);
 	    Token argTok(TOK_IDENTIFIER, pTok.m_locator, paramSym->getId()); //use current locator
-
 	    UTI auti = m_state.mapIncompleteUTIForAClassInstance(csym->getUlamTypeIdx(), paramSym->getUlamTypeIdx(), pTok.m_locator);
 
-	    argSym = new SymbolConstantValue(argTok, auti, m_state); //like param, not clone t3526, t3862, t3615, t3892; error msg loc (error/t3893)
+	    //like param, not clone t3526, t3862, t3615, t3892; error msg loc (error/t3893)
+	    argSym = new SymbolConstantValue(argTok, auti, m_state);
 	    if(m_state.isHolder(auti))
 	      {
 		//does auti get added to this class, or its template?
+		//t41216, also in fixAnyUnseen for templates seen afterwards;
 		if(m_state.m_parsingVariableSymbolTypeFlag == STF_CLASSPARAMETER)
-		  m_state.addUnknownTypeTokenToThisClassResolver(argTok, auti); //t41216, also in fixAnyUnseen for templates seen afterwards;
+		  m_state.addUnknownTypeTokenToThisClassResolver(argTok, auti);
 		else
-		  m_state.addUnknownTypeTokenToAClassResolver(csym->getUlamTypeIdx(), argTok, auti); //t41216, also in fixAnyUnseen for templates seen afterwards;
+		  m_state.addUnknownTypeTokenToAClassResolver(csym->getUlamTypeIdx(), argTok, auti);
 	      }
 	    if(m_state.isAClass(auti) && m_state.isClassAStub(auti))
 	      {
@@ -2978,7 +3131,9 @@ namespace MFM {
 	if( m_state.m_parsingVariableSymbolTypeFlag == STF_CLASSPARAMETER)
 	  argSym->setClassParameterFlag(); //as well?
 
-	m_state.addSymbolToCurrentScope(argSym); //scope updated to new class instance in parseClassArguments
+	//scope updated to new class instance in parseClassArguments
+	m_state.addSymbolToCurrentScope(argSym);
+
 	//make Node with argument symbol wo trying to fold const expr;
 	// add to list of unresolved for this uti
 	// NULL node type descriptor, no token, yet known uti
@@ -3118,7 +3273,8 @@ namespace MFM {
     SymbolClassName * cnsym = NULL;
     Symbol * asym = NULL; //or a typedef that we've already seen
     bool hazyKin = false; //don't care
-    if(!(m_state.alreadyDefinedSymbolClassName(args.m_typeTok.m_dataindex, cnsym) || m_state.alreadyDefinedSymbol(args.m_typeTok.m_dataindex, asym, hazyKin)))
+    u32 tokid = m_state.getTokenDataAsStringId(args.m_typeTok); //t41312
+    if(!(m_state.alreadyDefinedSymbolClassName(tokid, cnsym) || m_state.alreadyDefinedSymbol(tokid, asym, hazyKin)))
       {
 	//if here, the last typedef might have been a holder for some unknown type
 	// now we know (thanks to the dot and subsequent type token) that its a holder
@@ -3188,7 +3344,9 @@ namespace MFM {
     SymbolClass * csym = NULL;
     if(cnsym->isClassTemplate() && (args.m_classInstanceIdx != Nouti))
       {
-	if(! ((SymbolClassNameTemplate *)cnsym)->findClassInstanceByUTI(args.m_classInstanceIdx, csym))
+	if(args.m_classInstanceIdx == cnsym->getUlamTypeIdx())
+	  csym = cnsym; //t41383
+	else if(! ((SymbolClassNameTemplate *)cnsym)->findClassInstanceByUTI(args.m_classInstanceIdx, csym))
 	  {
 	    std::ostringstream msg;
 	    msg << "Trying to use typedef from another class template '";
@@ -3210,7 +3368,7 @@ namespace MFM {
       {
 	//hail mary pass..possibly a sizeof of unseen class
 	getNextToken(nTok);
-	if((nTok.m_type != TOK_KW_SIZEOF) && (nTok.m_type != TOK_KW_INSTANCEOF) && (nTok.m_type != TOK_KW_ATOMOF))
+	if((nTok.m_type != TOK_KW_SIZEOF) && (nTok.m_type != TOK_KW_INSTANCEOF) && (nTok.m_type != TOK_KW_ATOMOF) && (nTok.m_type != TOK_KW_CLASSIDOF))
 	  {
 	    std::ostringstream msg;
 	    msg << "Trying to use typedef from another class '";
@@ -3240,7 +3398,9 @@ namespace MFM {
 	UTI tduti;
 	UTI tdscalaruti = Nav;
 	bool isclasstd = false;
-	if(!m_state.getUlamTypeByTypedefName(pTok.m_dataindex, tduti, tdscalaruti))
+	u32 ptokid = m_state.getTokenDataAsStringId(pTok); //t41312
+
+	if(!m_state.getUlamTypeByTypedefName(ptokid, tduti, tdscalaruti))
 	  {
 	    //make one up!! if UN_SEEN class
 	    UTI mcuti = memberClassBlock->getNodeType();
@@ -3253,12 +3413,13 @@ namespace MFM {
 		symtypedef->setBlockNoOfST(memberClassBlock->getNodeNo());
 		m_state.addSymbolToCurrentMemberClassScope(symtypedef); //not locals scope
 		m_state.addUnknownTypeTokenToAClassResolver(mcuti, pTok, huti);
-		//these will fail: t3373-8, t3380-1,5, t3764, and t3379
-		//m_state.addUnknownTypeTokenToThisClassResolver(pTok, huti); //also, compiling this one
+
+		if(pTok.m_type==TOK_KW_TYPE_SUPER)
+		  m_state.makeAnonymousClassFromHolder(huti, pTok.m_locator); //t41312??
 	      }
 	  } //end make one up, now fall through
 
-	if(m_state.getUlamTypeByTypedefName(pTok.m_dataindex, tduti, tdscalaruti))
+	if(m_state.getUlamTypeByTypedefName(ptokid, tduti, tdscalaruti))
 	  {
 	    UlamType * tdut = m_state.getUlamTypeByIndex(tduti);
 	    if(!tdut->isComplete())
@@ -3386,7 +3547,8 @@ namespace MFM {
     // may continue when symbol not defined yet (e.g. Decl)
     // don't return a NodeConstant, instead of NodeIdent, without arrays
     // even if already defined as one. lazy evaluate.
-    bool isDefined = m_state.isIdInCurrentScope(identTok.m_dataindex, asymptr); //t3887
+    // handle 'super' and 'self' as KEYWORDS instead of identifiers (ulam-5) t41337
+    bool isDefined = m_state.isIdInCurrentScope(m_state.getTokenDataAsStringId(identTok), asymptr); //t3887
     if(!isDefined && (identTok.m_type == TOK_IDENTIFIER) && m_state.m_parsingVariableSymbolTypeFlag == STF_CLASSINHERITANCE)
       {
 	bool locDefined = m_state.isIdInLocalFileScope(identTok.m_dataindex, asymptr);
@@ -3432,8 +3594,8 @@ namespace MFM {
 	if(asymptr && !asymptr->isFunction())
 	  {
 	    std::ostringstream msg;
-	    msg << "Undefined function <" << m_state.getTokenDataAsString(identTok).c_str();
-	    msg << "> has already been declared as a variable at: ."; //..
+	    msg << "Undefined function '" << m_state.getTokenDataAsString(identTok).c_str();
+	    msg << "' has already been declared as a variable at: ."; //..
 	    MSG(&identTok, msg.str().c_str(), ERR);
 
 	    std::ostringstream imsg;
@@ -3461,31 +3623,23 @@ namespace MFM {
     return rtnNode;
   } //parseIdentExpr
 
-  Node * Parser::parseMemberSelectExpr(const Token& memberTok)
-  {
-    //arg is an instance of a class, it will be/was
-    //declared as a variable, either as a data member or locally,
-    //WAIT To  search back through the block symbol tables during type labeling
-    m_state.pushClassContextUsingMemberClassBlock(NULL); //oddly =true
-
-    Node * classInstanceNode = parseIdentExpr(memberTok); //incl array item, func call, etc.
-    m_state.popClassContext();
-
-    return parseRestOfMemberSelectExpr(classInstanceNode);
-  }
-
   Node * Parser::parseRestOfMemberSelectExpr(Node * classInstanceNode)
   {
     Node * rtnNode = classInstanceNode; //first one
     Token pTok;
 
-    //use loop rather than recursion to get a left-justified tree;
+    TypeArgs typeargs;
+    typeargs.m_forMemberSelect = true;
+
+    bool hasOneBaseTypeSelector = false; //one is sufficient, all bases shared (ulam-5)
+
+    //use loop rather than recursion to get a left-associated tree;
     // needed to support, for example: a.b.c.atomof (t3905)
     while(getExpectedToken(TOK_DOT, pTok, QUIETLY)) //if not, quietly unreads
       {
 	Token iTok;
 	getNextToken(iTok);
-	if(iTok.m_type == TOK_IDENTIFIER)
+	if((iTok.m_type == TOK_IDENTIFIER) || (iTok.m_type == TOK_KW_SELF) || (iTok.m_type == TOK_KW_SUPER))
 	  {
 	    //set up compiler state to NOT use the current class block
 	    //for symbol searches; may be unknown until type label
@@ -3507,6 +3661,92 @@ namespace MFM {
 	    //clear up compiler state to no longer use the member class block
 	    // for symbol searches (e.g. t3262)
 	    m_state.popClassContext(); //restore
+	  }
+	else if(Token::isTokenAType(iTok)) //t41314 m_a4 = self.Super.vfunca();
+	  {
+	    unreadToken();
+
+	    if(hasOneBaseTypeSelector)
+	      {
+		std::ostringstream msg;
+		msg << "Member Select By Base Type: ";
+		msg << m_state.getTokenDataAsString(iTok).c_str();
+		msg << " is redundant; All base classes are shared. Pick one!";
+		MSG(&iTok, msg.str().c_str(), ERR);
+	      }
+
+	    ULAMTYPE etyp = m_state.getBaseTypeFromToken(iTok);
+	    if(etyp != Class)
+	      {
+		std::ostringstream msg;
+		msg << "Member Select followed by a Type: ";
+		msg << m_state.getTokenDataAsString(iTok).c_str();
+		msg << " must be a Class type";
+		if((etyp == Hzy) || (etyp == Holder))
+		  MSG(&iTok, msg.str().c_str(), DEBUG); //t41399,t41400
+		else
+		  {
+		    MSG(&iTok, msg.str().c_str(), ERR);
+		    delete rtnNode; //also deletes leftNode
+		    rtnNode = NULL;
+		    return rtnNode; //NULL (t41398)
+		  }
+	      } //else t41401
+
+	    NodeTypeDescriptor * nextmembertypeNode = parseTypeDescriptor(typeargs, true); //isaclass
+	    assert(nextmembertypeNode);
+
+	    Node * vtrnNode = NULL;
+	    Token vtrnTok;
+	    getNextToken(vtrnTok);
+	    if(vtrnTok.m_type == TOK_OPEN_SQUARE)
+	      {
+		vtrnNode = parseExpression();
+		if(vtrnNode == NULL)
+		  {
+		    std::ostringstream msg;
+		    msg << "Expecting ClassId for VTtable lookup";
+		    MSG(&vtrnTok, msg.str().c_str(), ERR);
+		    delete rtnNode; //also deletes leftNode
+		    rtnNode = NULL;
+		    delete nextmembertypeNode;
+		    nextmembertypeNode = NULL;
+		    return rtnNode; //NULL
+		  }
+		vtrnNode->setNodeLocation(vtrnTok.m_locator); //t41376
+
+		Token eTok; //non quietly, t41294
+		if(!getExpectedToken(TOK_CLOSE_SQUARE, eTok))
+		  {
+		    delete rtnNode; //also deletes leftNode
+		    rtnNode = NULL;
+		    delete nextmembertypeNode;
+		    nextmembertypeNode = NULL;
+		    delete vtrnNode;
+		    vtrnNode = NULL;
+		    return rtnNode; //NULL
+		  }
+	      }
+	    else
+	      unreadToken();
+
+	    NodeMemberSelect * ms = new NodeMemberSelectByBaseClassType(rtnNode, nextmembertypeNode, vtrnNode, m_state);
+	    assert(ms);
+	    ms->setNodeLocation(iTok.m_locator);
+	    rtnNode = ms;
+	    hasOneBaseTypeSelector = true;
+
+	    Token tmpTok;
+	    getNextToken(tmpTok);
+	    unreadToken();
+	    if(tmpTok.m_type != TOK_DOT)
+	      {
+		std::ostringstream msg;
+		msg << "Expected data member or function call to follow member select by type '";
+		msg << m_state.getTokenDataAsString(iTok).c_str();
+		msg << "'";
+		MSG(&iTok, msg.str().c_str(), ERR); //t41356
+	      }
 	  }
 	else
 	  {
@@ -3563,7 +3803,6 @@ namespace MFM {
 	  }
 	else
 	  unreadToken();
-
 	}
 	break;
       case TOK_KW_ATOMOF:
@@ -3585,6 +3824,9 @@ namespace MFM {
 	}
 	break;
       case TOK_KW_LENGTHOF:
+	rtnNode = new NodeTerminalProxy(memberNode, utype, fTok, nodetype, m_state);
+	break;
+      case TOK_KW_CLASSIDOF:
 	rtnNode = new NodeTerminalProxy(memberNode, utype, fTok, nodetype, m_state);
 	break;
       default:
@@ -3744,8 +3986,10 @@ namespace MFM {
     switch(pTok.m_type)
       {
       case TOK_IDENTIFIER:
+      case TOK_KW_SELF:
+      case TOK_KW_SUPER:
 	{
-	  m_state.saveIdentTokenForPendingConditionalAs(pTok); //always prepared for As-condition
+	  m_state.saveIdentTokenForPendingConditionalAs(pTok); //always prepared for As-condition (t41337 super invalid as-cond)
 	  rtnNode = parseIdentExpr(pTok);
 	  //test ahead for UNOP_EXPRESSION so that any consecutive binary
 	  //ops aren't misinterpreted as a unary operator (e.g. +,-).
@@ -3764,6 +4008,48 @@ namespace MFM {
 	rtnNode = new NodeTerminal(pTok, m_state);
 	assert(rtnNode);
 	rtnNode = parseRestOfFactor(rtnNode); //t3941
+	break;
+      case TOK_KW_FLAG_INSERTFUNC:
+	{
+	  if(m_state.m_parsingFUNCid == 0)
+	    {
+	      std::ostringstream msg;
+	      msg << "Keyword <" << m_state.getTokenDataAsString(pTok).c_str();
+	      msg << "> must be in a function";
+	      MSG(&pTok, msg.str().c_str(), ERR); //t41369
+	    }
+	  else
+	    {
+	      assert(m_state.m_parsingFUNCid == m_state.getTokenDataAsStringId(m_state.m_parsingFuncDefToken));
+	      std::string fname = m_state.getTokenDataAsString(m_state.m_parsingFuncDefToken);
+	      u32 stringidx = m_state.formatAndGetIndexForDataUserString(fname);
+	      rtnNode = new NodeTerminal((u64) stringidx, String, m_state);
+	      assert(rtnNode);
+	      rtnNode->setNodeLocation(pTok.m_locator);
+	      rtnNode = parseRestOfFactor(rtnNode); //supports [] after (t41368)
+	    }
+	}
+	break;
+      case TOK_KW_FLAG_INSERTCLASS:
+	{
+	  u32 cid = m_state.getCompileThisId();
+	  std::string cname = m_state.m_pool.getDataAsString(cid);
+	  u32 stringidx = m_state.formatAndGetIndexForDataUserString(cname);
+	  rtnNode = new NodeTerminal((u64) stringidx, String, m_state);
+	  assert(rtnNode);
+	  rtnNode->setNodeLocation(pTok.m_locator);
+	  rtnNode = parseRestOfFactor(rtnNode); //supports [] after
+	}
+	break;
+      case TOK_KW_FLAG_INSERTCLASSSIGNATURE:
+      case TOK_KW_FLAG_INSERTCLASSNAMESIMPLE:
+      case TOK_KW_FLAG_INSERTCLASSNAMEPRETTY:
+      case TOK_KW_FLAG_INSERTCLASSNAMEMANGLED:
+	{
+	  UTI cuti = m_state.getCompileThisIdx();
+	  rtnNode = new NodeTerminalProxy(NULL, cuti, pTok, NULL, m_state);
+	  rtnNode = parseRestOfFactor(rtnNode); //supports [] after
+	}
 	break;
       case TOK_NUMBER_FLOAT:
 	{
@@ -3905,6 +4191,10 @@ namespace MFM {
 	    delete typeNode;
 	    typeNode = NULL;
 	  }
+      }
+    else
+      {
+	rtnNode = parseRestOfFactor(rtnNode);  //any more? t41375
       }
     return rtnNode; //rtnNode could be NULL!
   } //parseFactorStartingWithAType
@@ -4286,6 +4576,12 @@ Node * Parser::wrapFactor(Node * leftNode)
       case TOK_DQUOTED_STRING:
       case TOK_NUMBER_FLOAT:
       case TOK_OPEN_PAREN:
+      case TOK_KW_FLAG_INSERTFUNC:
+      case TOK_KW_FLAG_INSERTCLASS:
+      case TOK_KW_FLAG_INSERTCLASSSIGNATURE:
+      case TOK_KW_FLAG_INSERTCLASSNAMESIMPLE:
+      case TOK_KW_FLAG_INSERTCLASSNAMEPRETTY:
+      case TOK_KW_FLAG_INSERTCLASSNAMEMANGLED:
 	rtnNode = parseFactor();
 	rtnNode = parseRestOfFactor(rtnNode);
 	break;
@@ -4620,8 +4916,8 @@ Node * Parser::wrapFactor(Node * leftNode)
       {
 	//assignments required for references
 	std::ostringstream msg;
-	msg << "Must assign to reference <" << m_state.getTokenDataAsString(identTok).c_str();
-	msg << "> at the time of its declaration";
+	msg << "Must assign to reference '" << m_state.getTokenDataAsString(identTok).c_str();
+	msg << "' at the time of its declaration";
 	MSG(&eTok, msg.str().c_str(), ERR);
 	getTokensUntil(TOK_SEMICOLON); //rest of statement is ignored.
 	unreadToken();
@@ -4629,17 +4925,17 @@ Node * Parser::wrapFactor(Node * leftNode)
       }
     else if(eTok.m_type == TOK_OPEN_PAREN)
       {
-	if(Token::getSpecialTokenWork(args.m_typeTok.m_type) == TOKSP_TYPEKEYWORD)
+	if((Token::getSpecialTokenWork(args.m_typeTok.m_type) == TOKSP_TYPEKEYWORD) && (args.m_typeTok.m_type != TOK_KW_TYPE_SELF) && (args.m_typeTok.m_type != TOK_KW_TYPE_SUPER))
 	  {
 	    std::ostringstream msg;
 	    msg << "Unexpected token <" << m_state.getTokenDataAsString(eTok).c_str();
-	    msg << "> indicates a constructor function call or function definition; neither are valid ";
-	    msg << "here for primitive variable '";
+	    msg << "> indicates a constructor function call or function definition; ";
+	    msg << "neither are valid here for primitive variable '";
 	    msg << m_state.getTokenDataAsString(identTok).c_str() << "'";
 	    MSG(&eTok, msg.str().c_str(), ERR); //t41082
 	    unreadToken();
 	    return false; //done
-	  }
+	  } //else returning special keyword type Self, or Super (t41084)
       }
 
     //continuing..
@@ -4838,8 +5134,8 @@ Node * Parser::wrapFactor(Node * leftNode)
 
 	    std::ostringstream msg;
 	    msg << "Unexpected input!! Token <" << m_state.getTokenDataAsString(aTok).c_str();
-	    msg << "> while parsing class variable " << m_state.m_pool.getDataAsString(classvarId).c_str();
-	    msg << ", init item " << (n + 1);
+	    msg << "> while parsing class variable '" << m_state.m_pool.getDataAsString(classvarId).c_str();
+	    msg << "', init item " << (n + 1);
 	    MSG(&aTok, msg.str().c_str(), ERR);
 	    return false; //original caller owns rtnList, should delete if empty!
 	  }
@@ -4854,8 +5150,8 @@ Node * Parser::wrapFactor(Node * leftNode)
 
 	    std::ostringstream msg;
 	    msg << "Unexpected input!! Token <" << m_state.getTokenDataAsString(aTok).c_str();
-	    msg << "> while parsing class variable " << m_state.m_pool.getDataAsString(classvarId).c_str();
-	    msg << ", init item " << (n + 1);
+	    msg << "> while parsing class variable '" << m_state.m_pool.getDataAsString(classvarId).c_str();
+	    msg << "', init item " << (n + 1);
 	    MSG(&aTok, msg.str().c_str(), ERR);
 	    return false; //original caller owns rtnList, should delete if empty!
 	  }
@@ -4869,8 +5165,8 @@ Node * Parser::wrapFactor(Node * leftNode)
       {
 	std::ostringstream msg;
 	msg << "Unexpected input!! Token <" << m_state.getTokenDataAsString(iTok).c_str();
-	msg << "> while parsing class variable " << m_state.m_pool.getDataAsString(classvarId).c_str();
-	msg << ", init item " << (n + 1) << ", expected a data member identifier";
+	msg << "> while parsing class variable '" << m_state.m_pool.getDataAsString(classvarId).c_str();
+	msg << "', init item " << (n + 1) << ", expected a data member identifier";
 	MSG(&iTok, msg.str().c_str(), ERR);
 	return false; //original caller owns rtnList, should delete if empty!
       }
@@ -4881,8 +5177,8 @@ Node * Parser::wrapFactor(Node * leftNode)
       {
 	std::ostringstream msg;
 	msg << "Unexpected input!! Token <" << m_state.getTokenDataAsString(pTok).c_str();
-	msg << "> while parsing class variable " << m_state.m_pool.getDataAsString(classvarId).c_str();
-	msg << ", init item " << (n + 1) << ", expected '='";
+	msg << "> while parsing class variable '" << m_state.m_pool.getDataAsString(classvarId).c_str();
+	msg << "', init item " << (n + 1) << ", expected '='";
 	MSG(&pTok, msg.str().c_str(), ERR);
 	return false; //original caller owns rtnList, should delete if empty!
       }
@@ -5051,7 +5347,7 @@ Node * Parser::wrapFactor(Node * leftNode)
       {
 	std::ostringstream msg;
 	msg << "Sanity check failed. Likely an error caught before '";
-	msg << m_state.m_pool.getDataAsString(identTok.m_dataindex).c_str() << "'";
+	msg << m_state.getTokenDataAsString(identTok).c_str() << "'";
 	msg << " function block";
 	MSG(&identTok, msg.str().c_str(), ERR);
 
@@ -5087,10 +5383,14 @@ Node * Parser::wrapFactor(Node * leftNode)
     //symbol will have pointer to body (or just decl for 'use');
     fsymptr->setFunctionNode(rtnNode); //tfr ownership
 
+    u32 ftokid = m_state.getTokenDataAsStringId(identTok); //t41077,t41134,t41314
+    m_state.m_parsingFUNCid = ftokid;
+    m_state.m_parsingFuncDefToken = identTok;
+
     //set class type to custom array; the current class block
     //node type was set to its class symbol type after checkAndLabelType
     // caType is the return type of the 'aget' method (set here).
-    if(m_state.getCustomArrayGetFunctionNameId() == identTok.m_dataindex)
+    if(m_state.getCustomArrayGetFunctionNameId() == ftokid)
       {
 	UTI cuti = currClassBlock->getNodeType(); //prevBlock
 	UlamType * cut = m_state.getUlamTypeByIndex(cuti);
@@ -5100,7 +5400,7 @@ Node * Parser::wrapFactor(Node * leftNode)
     //Here before push to get correct class block NodeNo
     //Now, look specifically for a function with the same given name defined
     Symbol * fnSym = NULL;
-    if(!currClassBlock->isFuncIdInScope(identTok.m_dataindex, fnSym))
+    if(!currClassBlock->isFuncIdInScope(ftokid, fnSym))
       {
 	//first time name used as a function..add symbol function name/typeNav
 	fnSym = new SymbolFunctionName(identTok, Nav, m_state);
@@ -5127,10 +5427,9 @@ Node * Parser::wrapFactor(Node * leftNode)
 
     //create "self" symbol for the class type; btw, it's really a ref.
     //belongs to the function definition scope.
-    u32 selfid = m_state.m_pool.getIndexForDataString("self");
     UTI cuti = currClassBlock->getNodeType(); //luckily we know this now for each class used
     assert(m_state.okUTItoContinue(cuti));
-    Token selfTok(TOK_IDENTIFIER, identTok.m_locator, selfid);
+    Token selfTok(TOK_KW_SELF, identTok.m_locator, 0);
     SymbolVariableStack * selfsym = new SymbolVariableStack(selfTok, m_state.getUlamTypeAsRef(cuti, ALT_REF), m_state);
     selfsym->setAutoLocalType(ALT_REF);
     selfsym->setIsSelf();
@@ -5197,8 +5496,8 @@ Node * Parser::wrapFactor(Node * leftNode)
 	      {
 		fsymptr->markForVariableArgs(false);
 		std::ostringstream msg;
-		msg << "Variable args (...) supported for native functions only; not <";
-		msg << m_state.m_pool.getDataAsString(fsymptr->getId()).c_str() << ">";
+		msg << "Variable args (...) supported for native functions only; not '";
+		msg << m_state.m_pool.getDataAsString(fsymptr->getId()).c_str() << "'";
 		MSG(rtnNode->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	      }
 	  }
@@ -5212,6 +5511,7 @@ Node * Parser::wrapFactor(Node * leftNode)
     //this block's ST is no longer in scope
     m_state.popClassContext(); //= prevBlock;
     m_state.m_parsingVariableSymbolTypeFlag = STF_NEEDSATYPE;
+    m_state.m_parsingFUNCid = 0;
     return rtnNode;
   } //makeFunctionBlock
 
@@ -5261,9 +5561,9 @@ Node * Parser::wrapFactor(Node * leftNode)
 	    if(fsym->takesVariableArgs() && argSym)
 	      {
 		std::ostringstream msg;
-		msg << "Parameter <";
+		msg << "Parameter '";
 		msg << m_state.m_pool.getDataAsString(argSym->getId()).c_str();
-		msg << "> appears after ellipses (...)";
+		msg << "' appears after ellipses (...)";
 		MSG(&pTok, msg.str().c_str(), ERR);
 	      }
 	  }
@@ -5320,13 +5620,13 @@ Node * Parser::wrapFactor(Node * leftNode)
       {
 	//user error!
 	std::ostringstream msg;
-	msg << "Function parameter <" << m_state.getTokenDataAsString(iTok).c_str();
+	msg << "Function parameter '" << m_state.getTokenDataAsString(iTok).c_str();
 	if((Token::getSpecialTokenWork(iTok.m_type) == TOKSP_KEYWORD))
-	  msg << ">: Name must not be a reserved keyword";
+	  msg << "': Name must not be a reserved keyword";
 	else
-	  msg << ">: Name must begin with a lower-case letter";
+	  msg << "': Name must begin with a lower-case letter";
 	MSG(&iTok, msg.str().c_str(), ERR);
-	unreadToken();
+	//unreadToken();
 	delete typeNode;
 	typeNode = NULL;
       }
@@ -5399,7 +5699,7 @@ Node * Parser::wrapFactor(Node * leftNode)
 	    fsymFromDef->setPureVirtualFunction();
 
 	    std::ostringstream msg;
-	    msg << "Pure Virtual Function <" << funcNode->getName() << ">";
+	    msg << "Pure Virtual Function '" << funcNode->getName() << "'";
 	    MSG(&qTok, msg.str().c_str(), INFO);
 
 	    unreadToken();
@@ -5431,8 +5731,8 @@ Node * Parser::wrapFactor(Node * leftNode)
     if(!isConstr && Token::isTokenAType(identTok))
       {
 	std::ostringstream msg;
-	msg << "Function <" << m_state.getTokenDataAsString(identTok).c_str();
-	msg << "> is not a valid (lower case) name";
+	msg << "Function '" << m_state.getTokenDataAsString(identTok).c_str();
+	msg << "' is not a valid (lower case) name";
 	MSG(&identTok, msg.str().c_str(), ERR);
 
 	//eat tokens until end of definition ?
@@ -5456,11 +5756,10 @@ Node * Parser::wrapFactor(Node * leftNode)
 	msg << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str();
 	msg << " " << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << "'";
 	MSG(&args.m_typeTok, msg.str().c_str(), ERR);
-
 	//eat tokens until end of definition? which ending brace?
-	delete nodetype;
-	return NULL;
-      }
+	//delete nodetype;
+	//return NULL;
+      } //keep going..more errors (t3284)
 
     //not in scope, or not yet defined, or possible overloading
     //o.w. build symbol for function: return type + name + parameter symbols
@@ -5488,14 +5787,6 @@ Node * Parser::wrapFactor(Node * leftNode)
   {
     assert(!Token::isTokenAType(identTok)); //capitalization check done by Lexer
 
-    if(identTok.m_dataindex == m_state.m_pool.getIndexForDataString("self"))
-      {
-	std::ostringstream msg;
-	msg << "The keyword 'self' may not be used as a variable name";
-	MSG(&identTok, msg.str().c_str(), ERR);
-	//return NULL;  keep going?
-      }
-
     NodeVarDecl * rtnNode = NULL;
     Node * lvalNode = parseLvalExpr(identTok); //for optional [] array size
     if(lvalNode)
@@ -5521,8 +5812,8 @@ Node * Parser::wrapFactor(Node * leftNode)
 		// rtnNode is NULL; (t3255)
 		std::ostringstream msg;
 		msg << "Invalid variable declaration of base type <";
-		msg << m_state.getTokenAsATypeName(args.m_typeTok).c_str() << "> and name <";
-		msg << m_state.getTokenDataAsString(identTok).c_str() << "> (missing symbol)";
+		msg << m_state.getTokenAsATypeName(args.m_typeTok).c_str() << "> and name '";
+		msg << m_state.getTokenDataAsString(identTok).c_str() << "' (missing symbol)";
 		MSG(&args.m_typeTok, msg.str().c_str(), ERR);
 	      }
 	  }
@@ -5609,8 +5900,8 @@ Node * Parser::wrapFactor(Node * leftNode)
 		std::ostringstream msg;
 		msg << "Invalid typedef of base type <";
 		msg << m_state.getTokenAsATypeName(args.m_typeTok).c_str();
-		msg << "> and name <" << m_state.getTokenDataAsString(identTok).c_str();
-		msg << "> (missing symbol)";
+		msg << "> and name '" << m_state.getTokenDataAsString(identTok).c_str();
+		msg << "' (missing symbol)";
 		MSG(&identTok, msg.str().c_str(), ERR);
 	      }
 	    m_state.clearStructuredCommentToken();
@@ -5679,8 +5970,7 @@ Node * Parser::wrapFactor(Node * leftNode)
 		std::ostringstream msg;
 		msg << "Invalid constant definition of type <";
 		msg << m_state.getTokenAsATypeName(args.m_typeTok).c_str();
-		msg << "> and name <" << m_state.getTokenDataAsString(identTok).c_str();
-		msg << ">";
+		msg << "> and name '" << m_state.getTokenDataAsString(identTok).c_str() << "'";
 		MSG(&identTok, msg.str().c_str(), ERR);
 	      }
 
@@ -5818,7 +6108,7 @@ Node * Parser::wrapFactor(Node * leftNode)
 
     TypeArgs typeargs;
 
-    //allow types with preceeding dots (e.g. from another class)
+    //allow types with preceding dots (e.g. from another class)
     //t3407, 3826,27,30; t3868,61,62
     NodeTypeDescriptor * typeNode = parseTypeDescriptorIncludingLocalsScope(typeargs, true, false);
 
@@ -6427,7 +6717,8 @@ Node * Parser::wrapFactor(Node * leftNode)
 	if(!quietly)
 	  {
 	    std::ostringstream msg;
-	    msg << "Unexpected token <" << pTok.getTokenEnumNameFromPool(&m_state).c_str() << ">; Expected ";
+	    msg << "Unexpected token <" << pTok.getTokenEnumNameFromPool(&m_state).c_str();
+	    msg << ">; Expected ";
 	    msg << Token::getTokenAsStringFromPool(eTokType, &m_state).c_str();
 	    MSG(&pTok, msg.str().c_str(), ERR);
 	  }

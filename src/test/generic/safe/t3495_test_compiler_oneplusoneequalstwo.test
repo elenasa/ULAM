@@ -2,7 +2,7 @@
 #=t3495_test_compiler_oneplusoneequalstwo
 #!
 Exit status: 2
-Ue_A { Int(4) j(2);  Int(4) k(0);  Int(4) m(1);  Int(4) n(1);  Int(32) test() {  j 2 cast = k 0 cast = m 1 = n 1 cast = j cast return } }
+Ue_A { Int(4) j(2);  Int(4) k(0);  Int(4) m(1);  Int(4) n(1);  Int(32) test() {  self j . 2 cast = self k . 0 cast = self m . 1 = self n . 1 cast = self j . cast return } }
 ##
 ##      //picked lhs of equal so no casting would be asked for!
 #>A.ulam

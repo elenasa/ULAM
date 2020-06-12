@@ -1,6 +1,5 @@
 ## -*- mode:ulam -*-
 #=t3527_test_compiler_funcdef_structuredcomment
-#!
 ## In Compiler, define TESTCLASSMEMBERMAP, for ULAM INFO:
 ##Size of class members map is 10
 ##ULAM INFO: CONSTANT ./A.ulam:7:15: Ue_102321A10 Ut_10181i tries Uc_5tries 0x7f /**%20CONSTANT:%20structured%20comment%20*/
@@ -14,8 +13,9 @@
 ##ULAM INFO: PARAMETER ./A.ulam:10:16: Ue_102321A10 Ut_10181i pyes Up_4pyes 0x7f /**%20MODEL%20P:%20pyes%20is%20max%20tries%20*/
 ##ULAM INFO: TYPEDEF ./A.ulam:4:18: Ue_102321A10 Ut_10181i I8 Ut_2I8 /**%20TYPEDEF:%20structured%20comment%20*/
 ##
+#!
 Exit status: 15
-Ue_A { typedef Int(8) I8;  Int(8) ano(0);  constant Int(8) tries = 127;  Int(8) bno(127);  parameter Int(8) pyes = 127;  Int(8) d(15);  Int(8) e(3);  Int(32) test() {  d ( 4 cast 5 cast )times cast = d cast return } }
+Ue_A { typedef Int(8) I8;  Int(8) ano(0);  constant Int(8) tries = 127;  Int(8) bno(127);  parameter Int(8) pyes = 127;  Int(8) d(15);  Int(8) e(3);  Int(32) test() {  self d . self ( 4 cast 5 cast )times . cast = self d . cast return } }
 ##
 ##informed by t3115
 ##
@@ -41,6 +41,7 @@ element A {
   }
 
   Int times() {
+    /**/
     return 0;
   }
   /** DM: d, results goes here */

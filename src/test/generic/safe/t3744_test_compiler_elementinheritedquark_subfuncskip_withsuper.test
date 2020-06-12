@@ -8,9 +8,9 @@
 #!
 Exit status: 0
 Uq_Base { <NOMAIN> }
-Uq_Sub1 : Base { :<> <NOMAIN> }
-Ue_E2 : Sub1 { :< :<>> <NOMAIN> }
-Ue_Test : System { :<> Bool(1) brtn(true);  Int(32) test() {  E2 e2;  brtn e2 ( )cfunc . 6 cast == = ( brtn )assert 0 cast return } }
+Uq_Sub1 : Base { :Base<> <NOMAIN> }
+Ue_E2 : Sub1 { :Sub1<> ^Base<> <NOMAIN> }
+Ue_Test : System { Bool(1) brtn(true);  :System<> Int(32) test() {  E2 e2;  self brtn . e2 ( )cfunc . 6 cast == = self ( self brtn . )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t3743, t3602, vtable-example 11/19/15

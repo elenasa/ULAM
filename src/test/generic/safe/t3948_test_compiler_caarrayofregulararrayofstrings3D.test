@@ -7,7 +7,7 @@
 ## custom arrays are unevaluable
 #!
 Exit status: -11
-Ue_Eltypo { typedef String(32) IArr[3];  Unsigned(8) m_i(0u);  Unsigned(8) m_j(0u);  Int(32) test() {  System s;  TEventWindows tvt;  String(32)& ia[3] = tvt ( 2 cast )aref .;  String(32) i = ia 1 [];  m_i i 2 [] = m_j tvt ( 2 cast )aref . 1 [] 2 [] = s ( m_i cast )print . s ( m_j 120u == )assert . s ( m_j m_i == )assert . 0 cast return } }
+Ue_Eltypo { typedef String(32) IArr[3];  Unsigned(8) m_i(0u);  Unsigned(8) m_j(0u);  Int(32) test() {  System s;  TEventWindows tvt;  String(32)& ia[3] = tvt ( 2 cast )aref .;  String(32) i = ia 1 [];  self m_i . i 2 [] = self m_j . tvt ( 2 cast )aref . 1 [] 2 [] = s ( self m_i . cast )print . s ( self m_j . 120u == )assert . s ( self m_j . self m_i . == )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 Un_TEventWindows { TWindow m_TW( typedef String(32) IArr[3];  String(32) m_arr0[3]( { "zero", "zero", "zero" });  String(32) m_arr1[3]( { "one", "two", "three" });  String(32) m_arr2[3]( { "two", "four", "six" });  String(32) m_arr3[3]( { "three", "six", "nine" }); );  typedef String(32) IArr[3];  <NOMAIN> }
 Un_TWindow { typedef String(32) IArr[3];  String(32) m_arr0[3]( { "zero", "zero", "zero" });  String(32) m_arr1[3]( { "one", "two", "three" });  String(32) m_arr2[3]( { "two", "four", "six" });  String(32) m_arr3[3]( { "three", "six", "nine" });  <NOMAIN> }

@@ -6,7 +6,7 @@
 ##
 #!
 Exit status: 4
-Ue_Foo { Int(32) test() {  System s;  ( )caller1 Unsigned(32) f3 = 4 cast;  Unsigned(32)& r = ( f3 cast false )caller2;  s ( r cast )print . s ( r cast 4u cast == )assert . r cast return } }
+Ue_Foo { Int(32) test() {  System s;  self ( )caller1 . Unsigned(32) f3 = 4 cast;  Unsigned(32)& r = self ( f3 cast false )caller2 .;  s ( r cast )print . s ( r cast 4u cast == )assert . r cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by Dave email 2/10/2017 and t41035

@@ -6,7 +6,7 @@
 ## (cant eval atom casts)
 #!
 Exit status: -11
-Ue_Stretch { Bool(1) c(false);  Int(32) test() {  System s;  EventWindow ew;  AUtil au;  Int(32) type = au ( ew ( 0 cast )aref . cast )getTypeFunc .;  s ( type 1 cast == )assert . Int(32) typer = au ( ew ( 0 cast )aref . cast )getTypeFunc .;  s ( typer 1 cast == )assert . Int(32) typestretch = ( self cast )getTypeFunc;  s ( typestretch 2 cast == )assert . Int(32) typestretchr = ( self cast )getTypeFunc;  s ( typestretchr 2 cast == )assert . type return } }
+Ue_Stretch { Bool(1) c(false);  Int(32) test() {  System s;  EventWindow ew;  AUtil au;  Int(32) type = au ( ew ( 0 cast )aref . cast )getTypeFunc .;  s ( type 1 cast == )assert . Int(32) typer = au ( ew ( 0 cast )aref . cast )getTypeFunc .;  s ( typer 1 cast == )assert . Int(32) typestretch = self ( self cast )getTypeFunc .;  s ( typestretch 2 cast == )assert . Int(32) typestretchr = self ( self cast )getTypeFunc .;  s ( typestretchr 2 cast == )assert . type return } }
 Uq_System { <NOMAIN> }
 Uq_EventWindow { <NOMAIN> }
 Uq_AUtil { <NOMAIN> }

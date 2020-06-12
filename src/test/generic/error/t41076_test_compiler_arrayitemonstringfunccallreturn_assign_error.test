@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t41076_test_compiler_arrayitemonstringfunccallreturn_assign_error
 #!
-./A.ulam:12:11: ERROR: Unmodifiable lefthand side of assignment expression <[]>, type: Unsigned(8).
+./A.ulam:12:11: ERROR: Unmodifiable lefthand side of assignment expression '[]', type: Unsigned(8).
 Unrecoverable Program Type Label FAILURE.
 ##
 ## based on t41075

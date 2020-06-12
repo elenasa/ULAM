@@ -1,15 +1,15 @@
 ## -*- mode:ulam -*-
 #=t41069_test_compiler_castquarkref_questioncolon
-#!
 ##   gen code output: (+ interleaved asserts)
 ##	 Int(3) Arg: 0x1
 ##	 Int(3) Arg: 0x7
 ##
+#!
 Exit status: 0
-Ue_Tu : Qbar { :< Int(3) mq(1); > System s();  Bool(1) b(false);  Int(32) me(1);  Int(32) test() {  Qbar q1;  mq 1 cast = Qbar& qref = b ?  q1 cast :  self cast;  s ( qref mq . )print . s ( qref mq . 1 cast == )assert . Tbar t1;  t1 mq . -1 cast = Qbar& qtref = t1 Qbar is ?  t1 cast :  qref cast;  s ( qtref mq . )print . s ( qtref mq . -1 cast == )assert . 0 cast return } }
+Ue_Tu : Qbar { System s();  Bool(1) b(false);  Int(32) me(1);  :Qbar< Int(3) mq(1); > Int(32) test() {  Qbar q1;  self mq . 1 cast = Qbar& qref = self b . ?  q1 cast :  self cast;  self s . ( qref mq . )print . self s . ( qref mq . 1 cast == )assert . Tbar t1;  t1 mq . -1 cast = Qbar& qtref = t1 Qbar is ?  t1 cast :  qref cast;  self s . ( qtref mq . )print . self s . ( qtref mq . -1 cast == )assert . 0 cast return } }
 Uq_Qbar { Int(3) mq( 2);  <NOMAIN> }
 Uq_System { <NOMAIN> }
-Un_Tbar : Qbar { :< Int(3) mq( 2); > Int(32) mt( -1);  <NOMAIN> }
+Un_Tbar : Qbar { Int(32) mt( -1);  :Qbar< Int(3) mq( 2); > <NOMAIN> }
 ##
 ## informed by t3277
 ##

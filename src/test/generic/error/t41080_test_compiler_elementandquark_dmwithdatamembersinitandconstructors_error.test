@@ -1,17 +1,16 @@
 ## -*- mode:ulam -*-
 #=t41080_test_compiler_elementandquark_dmwithdatamembersinitandconstructors_error
 #!
-./A.ulam:3:15: ERROR: Function parameter <sizeof>: Name must not be a reserved keyword.
-./A.ulam:3:15: ERROR: Expected 'A Type' Token!! got Token <sizeof> instead.
-./A.ulam:3:21: ERROR: Unexpected input!! Token <)> after function declaration.
+./A.ulam:3:15: ERROR: Function parameter 'sizeof': Name must not be a reserved keyword.
+./A.ulam:3:22: ERROR: Unexpected input!! Token <;> after non-virtual function declaration.
 ./A.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'A'; Possible missing ending curly brace.
-./A.ulam:3:22: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+./A.ulam:4:3: ERROR: Invalid Class Type <Int>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 ./A.ulam:2:9: ERROR: Invalid Type: A.
  ERROR: No parse tree for This Class: A.
 Unrecoverable Program Parse FAILURE: <A.ulam>
-./A.ulam:4:3: ERROR: Invalid Class Type <Int>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
-Unrecoverable Program Parse FAILURE: <Bar.ulam>
 ./A.ulam:4:7: ERROR: Invalid Class Type <test>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+Unrecoverable Program Parse FAILURE: <Bar.ulam>
+./A.ulam:4:11: ERROR: Invalid Class Type <(>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 Unrecoverable Program Parse FAILURE: <System.ulam>
 ##
 ## first parsing test of constructors and data members!! will not support. sorry.

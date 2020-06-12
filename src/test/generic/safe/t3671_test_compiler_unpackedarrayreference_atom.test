@@ -1,10 +1,10 @@
 ## -*- mode:ulam -*-
 #=t3671_test_compiler_unpackedarrayreference_atom
-#!
 ##      gen code output: 10 asserts
 ##
+#!
 Exit status: -11
-Ue_A { System s();  typedef Atom(96) BigSite[10];  typedef Atom(96) & BSRef[10];  typedef Atom(96) & BRR[10];  Int(32) test() {  Atom(96) site[10];  Atom(96)& siteref[10] = site cast;  Atom(96)& brr[10] = siteref;  Atom(96) a = self.atomof cast;  { Int(32) i = 0 cast;  i 10 cast < cond { siteref i [] a = s ( brr i [] A is )assert . } _1: i 1 += while } 10 cast return } }
+Ue_A { System s();  typedef Atom(96) BigSite[10];  typedef Atom(96) & BSRef[10];  typedef Atom(96) & BRR[10];  Int(32) test() {  Atom(96) site[10];  Atom(96)& siteref[10] = site cast;  Atom(96)& brr[10] = siteref;  Atom(96) a = self.atomof cast;  { Int(32) i = 0 cast;  i 10 cast < cond { siteref i [] a = self s . ( brr i [] A is )assert . } _1: i 1 += while } 10 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t3670

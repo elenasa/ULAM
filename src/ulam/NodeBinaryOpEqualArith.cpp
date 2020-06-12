@@ -79,22 +79,17 @@ namespace MFM {
       }
 
     UTI newType = leftType;
+
+
     UlamType * lut = m_state.getUlamTypeByIndex(leftType);
     if(lut->getUlamTypeEnum() == Class)
       {
 	//try for operator overload first (e.g. (pre) +=,-=, (post) ++,-- ) t41117,8
-	Node * newnode = buildOperatorOverloadFuncCallNode(); //virtual
-	if(newnode)
+	if(NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode())
 	  {
-	    AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
-	    assert(swapOk);
-
-	    m_nodeLeft = NULL; //recycle as memberselect
-	    m_nodeRight = NULL; //recycle as func call arg
-
+	    m_state.setGoAgain();
 	    delete this; //suicide is painless..
-
-	    return newnode->checkAndLabelType();
+	    return Hzy;
 	  }
 	else
 	  {
@@ -111,15 +106,7 @@ namespace MFM {
     else
       {
 	//LHS not class; cast RHS if necessary and safe (t3388)
-	if(UlamType::compareForAssignment(newType, rightType, m_state) != UTIC_SAME)
-	  {
-	    UTI derefLeft = m_state.getUlamTypeAsDeref(leftType); //tmp deref type
-	    if(checkSafeToCastTo(rightType, derefLeft))
-	      {
-		if(!Node::makeCastingNode(m_nodeRight, derefLeft, m_nodeRight))
-		  newType = Nav; //error
-	      } //else not safe, error msg, newType changed
-	  } //else the same
+	NodeBinaryOpEqual::makeDefaultStructAssignment(leftType, rightType, newType);
       }
 
     //specifically for equal arith's, no classes left at this point..

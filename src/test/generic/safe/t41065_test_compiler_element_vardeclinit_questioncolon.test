@@ -1,15 +1,16 @@
 ## -*- mode:ulam -*-
 #=t41065_test_compiler_element_vardeclinit_questioncolon
 ##
-## gen output: 2 asserts + 4 interleaved asserts
+## gen output: 2 asserts + 5 interleaved asserts
 ## Int Arg: 4
+## Int(3) Arg: 0x3
 ## Int(3) Arg: 0x3
 ## Int(3) Arg: 0x3
 ## Int(3) Arg: 0x3
 ##
 #!
 Exit status: 0
-Ue_Foo : Qbar { :< Int(3) m_q(3);  Bool(1) qsp(false); > Bool(1) sp(true);  Int(32) test() {  System s;  s ( sp )assert . Bool(1) notsp = sp ?  false :  true;  s ( notsp ! )assert . Int(32) i = sp ?  4u cast :  m_q cast;  s ( i )print . s ( i 4 cast == )assert . Qbar j = sp ?  ( i )func :  self cast;  s ( j m_q . )print . s ( j m_q . 3 == )assert . Int(6) k = j ( )getq . cast;  s ( k cast )print . s ( k 3 cast == )assert . Foo dq;  Qbar m = sp ?  ( )foofunc :  dq cast;  s ( m m_q . )print . s ( m m_q . 3 == )assert . 0 cast return } }
+Ue_Foo : Qbar { Bool(1) sp(true);  :Qbar< Int(3) m_q(3);  Bool(1) qsp(false); > Int(32) test() {  System s;  s ( self sp . )assert . Bool(1) notsp = self sp . ?  false :  true;  s ( notsp ! )assert . Int(32) i = self sp . ?  4u cast :  self m_q . cast;  s ( i )print . s ( i 4 cast == )assert . Qbar j = self sp . ?  self ( i )func . :  self cast;  s ( j m_q . )print . s ( j m_q . 3 == )assert . Int(6) k = j ( )getq . cast;  s ( k cast )print . s ( k 3 cast == )assert . Foo fdq;  Foo& fdr = fdq cast;  Qbar n = self sp . ?  self ( )foofuncref . :  fdr cast;  s ( n m_q . )print . s ( n m_q . 3 == )assert . Foo dq;  Qbar m = self sp . ?  self ( )foofunc . :  dq cast;  s ( m m_q . )print . s ( m m_q . 3 == )assert . 0 cast return } }
 Uq_Qbar { Bool(1) qsp(false);  Int(3) m_q( 1);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
@@ -21,6 +22,7 @@ element Foo : Qbar
   Int test() {
     System s;
     s.assert(sp);
+
     Bool notsp = sp ? false : true; //local
     s.assert(!notsp);
     Int i = sp ? (Int) Qbar.sizeof : m_q;
@@ -35,14 +37,26 @@ element Foo : Qbar
     s.print((Int(3)) k);
     s.assert(k == 3);
 
+    Foo fdq;
+    Foo& fdr = fdq;
+    Qbar n = sp ? foofuncref() : fdr; //safe cast after ?:
+    s.print(n.m_q);
+    s.assert(n.m_q == 3);
+
     Foo dq;
     Qbar m = sp ? foofunc() : dq; //safe cast after ?:
     s.print(m.m_q);
     s.assert(m.m_q == 3);
+
     return 0;
   }
 
   Self foofunc()
+  {
+    return self;
+  }
+
+  Self& foofuncref()
   {
     return self;
   }

@@ -1,0 +1,53 @@
+## -*- mode:ulam -*-
+#=t41306_test_compiler_constantfunctioncallish_error
+#!
+./QFoo.ulam:10:30: ERROR: (1) 'treeID' is not a constant, and cannot be used as one with type: TreeID.
+./QFoo.ulam:10:45: ERROR: Named Constant 'geneID' is not defined, or was used before declared in a function.
+Unrecoverable Program Type Label FAILURE.
+##
+## 5/19/19 user Spencer Harmon submitted ish: culam asserted due to
+## poorly formed function call; revealed bugs in NodeConstant.cpp c&l
+##
+#>Test.ulam
+ulam 4;
+element Test{
+  Int test() {
+    QFoo qf;
+    //poorly formed function call..
+    qf.getRootGene(1);
+    return -1;
+  }
+}
+
+#:QFoo.ulam
+  ulam 4;
+quark QFoo {
+  typedef Unsigned(6)  TreeID;
+  typedef Unsigned(6)  GeneID;
+
+  GeneID getRootGene(TreeID treeID)
+  {
+    if(treeID > 0)
+    {
+      requestTreeGene(TreeID treeID, GeneID geneID); //poorly formed function call
+    }
+    Empty e;
+    return e.atomof;
+  }
+
+  Void requestTreeGene(TreeID treeID, GeneID geneID)
+  {
+    //side-effects
+    return;
+  }
+}
+
+
+
+
+#.
+
+
+/*
+culam: NodeConstant.cpp:156: virtual MFM::u16 MFM::NodeConstant::checkAndLabelType(): Assertion `m_state.getUlamTypeByIndex(duti)->getUlamTypeEnum() == Class' failed.
+*/

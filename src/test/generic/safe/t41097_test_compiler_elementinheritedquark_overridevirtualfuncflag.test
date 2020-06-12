@@ -6,9 +6,9 @@
 #!
 Exit status: 0
 Uq_Base { <NOMAIN> }
-Uq_Sub1 : Base { :<> <NOMAIN> }
-Ue_E2 : Sub1 { :< :<>> <NOMAIN> }
-Ue_Test : System { :<> Bool(1) brtn[4](true,false,false,false);  Int(32) test() {  E2 e2;  brtn 0 [] e2 ( 7 cast )afunc . 2 cast == = ( brtn 0 [] )assert 0 cast return } }
+Uq_Sub1 : Base { :Base<> <NOMAIN> }
+Ue_E2 : Sub1 { :Sub1<> ^Base<> <NOMAIN> }
+Ue_Test : System { Bool(1) brtn[4](true,false,false,false);  :System<> Int(32) test() {  E2 e2;  self brtn . 0 [] e2 ( 7 cast )afunc . 2 cast == = self ( self brtn . 0 [] )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by error/t41096

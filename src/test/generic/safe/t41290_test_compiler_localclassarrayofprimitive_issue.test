@@ -4,7 +4,7 @@
 ## gen output: 1 assert
 #!
 Exit status: 1
-Ue_Foo { Int(4) pair[2](1,2);  Int(32) test() {  System s;  Int(5) diff;  Int(4) x = 1 cast;  Int(4) y = 2 cast;  pair 0 [] x = pair 1 [] y = diff pair 1 [] cast pair 0 [] cast -b = s ( diff 1 cast == )assert . diff cast return } }
+Ue_Foo { Int(4) pair[2](1,2);  Int(32) test() {  System s;  Int(5) diff;  Int(4) x = 1 cast;  Int(4) y = 2 cast;  self pair . 0 [] x = self pair . 1 [] y = diff self pair . 1 [] cast self pair . 0 [] cast -b = s ( diff 1 cast == )assert . diff cast return } }
 Uq_Other { typedef Int(4) C2D2[2];  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

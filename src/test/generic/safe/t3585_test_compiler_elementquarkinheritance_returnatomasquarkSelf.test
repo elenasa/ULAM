@@ -7,8 +7,8 @@
 ##
 #!
 Exit status: -11
-Ue_Foo : Soo { :< :< Unsigned(3) us(2u);  Bool(3) cb(true); > Unsigned(3) sus(4u); > Bool(1) first(false);  Unsigned(3) cus(6u);  Int(32) test() {  System s;  Coo c = ( )func;  cus c us . = s ( c us . cast )print . s ( c us . cast 1 cast == )assert . c us . cast return } }
-Uq_Soo : Coo { :< Unsigned(3) us( 2u);  Bool(3) cb( true); > Unsigned(3) sus( 4u);  <NOMAIN> }
+Ue_Foo : Soo { Bool(1) first(false);  Unsigned(3) cus(6u);  :Soo< Unsigned(3) sus(4u);  :Coo< Unsigned(3) us(2u);  Bool(3) cb(true); >> ^Coo< Unsigned(3) us(2u);  Bool(3) cb(true); > Int(32) test() {  System s;  Coo c = self ( )func .;  self cus . c us . = s ( c us . cast )print . s ( c us . cast 1 cast == )assert . c us . cast return } }
+Uq_Soo : Coo { Unsigned(3) sus( 4u);  :Coo< Unsigned(3) us( 2u);  Bool(3) cb( true); > <NOMAIN> }
 Uq_Coo { Unsigned(3) us( 2u);  Bool(3) cb( true);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

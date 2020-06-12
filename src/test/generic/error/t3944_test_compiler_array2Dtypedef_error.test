@@ -2,7 +2,7 @@
 #=t3944_test_compiler_array2Dtypedef_error
 #!
 ./Eltypo.ulam:4:16: ERROR: Array size [] is included in typedef 'IArr', and cannot be redefined by typedef 'I2DArr'.
-./Eltypo.ulam:4:16: ERROR: Invalid typedef of base type <Int> and name <I2DArr> (missing symbol).
+./Eltypo.ulam:4:16: ERROR: Invalid typedef of base type <Int> and name 'I2DArr' (missing symbol).
 ./Eltypo.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'Eltypo'; Possible missing ending curly brace.
 ./Eltypo.ulam:4:25: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 ./Eltypo.ulam:2:9: ERROR: Invalid Type: Eltypo.

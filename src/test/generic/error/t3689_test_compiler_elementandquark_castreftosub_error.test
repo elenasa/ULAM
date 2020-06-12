@@ -1,18 +1,9 @@
 ## -*- mode:ulam -*-
 #=t3689_test_compiler_elementandquark_castreftosub_error
 #!
-##      gen code output: (4 asserts)
-##
-./A.ulam:15:15: ERROR: Cannot explicitly cast Qbase& to type: A.
-./A.ulam:15:12: ERROR: Assignment is invalid; LHS: A; RHS: erroneous.
-./A.ulam:20:16: ERROR: Cannot explicitly cast Qbase& to type: A.
-./A.ulam:20:5: ERROR: Initial value expression for: apple, initialization is invalid.
+./A.ulam:15:12: ERROR: Use explicit cast to convert Qbase& to A for =.
+./A.ulam:20:5: ERROR: Use explicit cast to convert Qbase& to A for variable initialization.
 Unrecoverable Program Type Label FAILURE.
-##Exit status: -11
-##Ue_A : QW { :< :< Unary(5) m_five(5u); > Bool(1) bw(false); > Bool(1) b(false);  Bool(1) c(true);  Int(32) test() {  System s;  Qbase& qref = self cast;  m_five 5 cast = c qref m_five . cast 5 == = s ( c )assert . A apple2;  c apple2 m_five . cast 5 != = s ( c )assert . apple2 qref cast = c apple2 m_five . cast 5 == = s ( c )assert . qref m_five . 3 cast = A apple = qref cast;  b apple m_five . cast 3 cast == = s ( b )assert . b cast return } }
-##Uq_System { <NOMAIN> }
-##Uq_QW : Qbase { :< Unary(5) m_five(0); > Bool(1) bw(false);  <NOMAIN> }
-##Uq_Qbase { Unary(5) m_five(0);  <NOMAIN> }
 ##
 ## Dave requested a way to get default values for Self (within a quark);
 ## a loophole, since a quark would be an undefined atom, but as a ref, its done (t3679)
@@ -33,12 +24,12 @@ element A : QW {
     A apple2;
     c = (apple2.m_five != 0x5);
     s.assert(c);
-    apple2 = (A) qref; //assignment: unused var (qref read)
+    apple2 = qref; //assignment: unused var (qref read)
     c = (apple2.m_five == 0x5);
     s.assert(c);
 
     qref.m_five = 0x3;
-    A apple = (A) qref; //init: unused var (qref read)
+    A apple = qref; //init: unused var (qref read)
     b = (apple.m_five == 0x3);
     s.assert(b);
 

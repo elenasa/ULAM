@@ -3,9 +3,10 @@
 #!
 ./System.ulam:10:1: ERROR: Trying to exceed allotted bit size (32) for quark ConstantLabelAndFont("foobar",33u) with 35 bits.
 ./A.ulam:6:7: NOTE: Components of ConstantLabelAndFont("foobar",33u) are..
-./A.ulam:17:7: NOTE: (25 of 35 bits, at 0) from superclass: ConstantLabel("foobar").
-./A.ulam:8:3: NOTE: (3 of 35 bits, at 25) Unsigned(3) mFont.
-./A.ulam:9:3: NOTE: (7 of 35 bits, at 28) Unsigned(7) mFreshness.
+./A.ulam:8:3: NOTE: (3 of 35 bits, at 0) Unsigned(3) mFont.
+./A.ulam:9:3: NOTE: (7 of 35 bits, at 3) Unsigned(7) mFreshness.
+./A.ulam:17:7: NOTE: (6 of 35 bits, at 10) from super base class: ConstantLabel("foobar").
+./A.ulam:32:7: NOTE: (19 of 35 bits, at 16) from shared base: Label.
 ./A.ulam:6:7: ERROR: CLASS INSTANCE 'ConstantLabelAndFont("foobar",33u)' SIZED 35 FAILED.
 ./A.ulam:2:9: ERROR: Subclass 'A' inherits from illegal 'ConstantLabelAndFont("foobar",33u)'.
 Unrecoverable Program Type Label FAILURE.

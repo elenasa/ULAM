@@ -2,7 +2,7 @@
 #=t3177_test_compiler_elementandquark_argassignexpr
 #!
 Exit status: 1
-Ue_Foo { Int(4) m_i(1);  Bar m_bar( Bool(1) val_b[3](false,false,false); );  Bool(1) m_b(true);  Int(32) test() {  Foo f;  f m_bar . ( )reset . m_i ( m_b f m_bar . val_b 1 [] . = )check cast = m_i cast return } }
+Ue_Foo { Int(4) m_i(1);  Bar m_bar( Bool(1) val_b[3](false,false,false); );  Bool(1) m_b(true);  Int(32) test() {  Foo f;  f m_bar . ( )reset . self m_i . self ( self m_b . f m_bar . val_b 1 [] . = )check . cast = self m_i . cast return } }
 Uq_Bar { Bool(1) val_b[3](false,false,false);  <NOMAIN> }
 #>Foo.ulam
   ulam 1;

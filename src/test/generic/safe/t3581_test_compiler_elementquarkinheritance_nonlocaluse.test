@@ -5,8 +5,8 @@
 ##
 #!
 Exit status: 96
-Ue_Foo : Soo { :< :< Bool(3) cb(true); > Unsigned(3) us(4u); > System s();  Bool(1) first(false);  Int(32) test() {  { cb cond { s ( cb )print . 96u cast return } if } s ( false )assert . 0 cast return } }
-Uq_Soo : Coo { :< Bool(3) cb( true); > Unsigned(3) us( 4u);  <NOMAIN> }
+Ue_Foo : Soo { System s();  Bool(1) first(false);  :Soo< Unsigned(3) us(4u);  :Coo< Bool(3) cb(true); >> ^Coo< Bool(3) cb(true); > Int(32) test() {  { self cb . cond { self s . ( self cb . )print . 96u cast return } if } self s . ( false )assert . 0 cast return } }
+Uq_Soo : Coo { Unsigned(3) us( 4u);  :Coo< Bool(3) cb( true); > <NOMAIN> }
 Uq_Coo { Bool(3) cb( true);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

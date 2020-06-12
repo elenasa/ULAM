@@ -1,0 +1,59 @@
+## -*- mode:ulam -*-
+#=t41399_test_compiler_selectnonclassHoldertypedefmembertypo_ish_error
+#!
+./A.ulam:16:15: ERROR: Expected data member or function call to follow member select by type 'Stage'.
+Unrecoverable Program Parse FAILURE: <A.ulam>
+./QBase.ulam:3:26: ERROR: Typedef alias 'Stage' already exists as an unseen class type: Stage, first noticed at: ..
+./A.ulam:16:15: ERROR: .. Another typedef for 'Stage' visible from here might clear the ambiguity.
+./QBase.ulam:3:26: ERROR: Invalid typedef of base type <Unsigned> and name 'Stage' (missing symbol).
+./QBase.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'QBase'; Possible missing ending curly brace.
+./QBase.ulam:3:31: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+./QBase.ulam:2:7: ERROR: Invalid Type: QBase.
+ ERROR: No parse tree for This Class: QBase.
+Unrecoverable Program Parse FAILURE: <QBase.ulam>
+./QBase.ulam:4:1: ERROR: Invalid Class Type <}>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+Unrecoverable Program Parse FAILURE: <System.ulam>
+##
+## informed by t41398, except typo Stage is a Holder when parsed
+##
+#>A.ulam
+  ulam 5;
+local constant Unsigned cstagelen = 3u;
+element A {
+  typedef QBase(cstagelen).Stage Stage; //causes a Holder to be made for Stage..
+
+  Stage stage()
+  {
+    return 3;
+  }
+
+  Int test() {
+    System s;
+    A a;
+    Stage stg = a.stage();
+    s.assert(stg==3);
+    s.print(a.Stage()); //TYPO!! is a Holder..
+
+    return (Int) stg;
+  }
+}
+
+#:QBase.ulam
+  ulam 5;
+quark QBase(Unsigned bits) {
+  typedef Unsigned(bits) Stage;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

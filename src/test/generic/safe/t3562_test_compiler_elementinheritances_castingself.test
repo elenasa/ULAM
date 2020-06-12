@@ -1,19 +1,19 @@
 ## -*- mode:ulam -*-
 #=t3562_test_compiler_elementinheritances_castingself
-#!
 ## gencode output (asserts interleaved):
 ##Unsigned Arg: 3
 ##Unsigned Arg: 3
 ##Unsigned Arg: 7
 ##
+#!
 Exit status: 10
-Ue_Foo : Soo { :< :< Unsigned(3) us(3u);  Bool(3) cb(true); > Unsigned(3) sus(4u); > Bool(7) sp(false);  Int(32) a(73);  Int(32) test() {  System s;  ( 3u cast )setus Coo cc = self cast;  s ( cc us . cast )print . s ( cc us . cast 3 cast == )assert . cc ( 7u )setus . { cc cb . cond { s ( us cast )print . s ( us cast 3 cast == )assert . s ( cc us . cast )print . s ( cc us . cast 7 == )assert . us cast cc us . cast +b cast return } if } 0 cast return } }
+Ue_Foo : Soo { Bool(7) sp(false);  Int(32) a(73);  :Soo< Unsigned(3) sus(4u);  :Coo< Unsigned(3) us(3u);  Bool(3) cb(true); >> ^Coo< Unsigned(3) us(3u);  Bool(3) cb(true); > Int(32) test() {  System s;  self ( 3u cast )setus . Coo cc = self cast;  s ( cc us . cast )print . s ( cc us . cast 3 cast == )assert . cc ( 7u )setus . { cc cb . cond { s ( self us . cast )print . s ( self us . cast 3 cast == )assert . s ( cc us . cast )print . s ( cc us . cast 7 == )assert . self us . cast cc us . cast +b cast return } if } 0 cast return } }
 Uq_System { <NOMAIN> }
-Uq_Soo : Coo { :< Unsigned(3) us( 2u);  Bool(3) cb( true); > Unsigned(3) sus( 4u);  <NOMAIN> }
+Uq_Soo : Coo { Unsigned(3) sus( 4u);  :Coo< Unsigned(3) us( 2u);  Bool(3) cb( true); > <NOMAIN> }
 Uq_Coo { Unsigned(3) us( 2u);  Bool(3) cb( true);  <NOMAIN> }
 ##
 ## chained class inheritance, regular (non-template), with casting self
-## informed by t3559, t3229
+## informed by t3559, t3229; safe cast function matching (see t41302 for exact match version)
 ##
 #>Foo.ulam
   ulam 2;

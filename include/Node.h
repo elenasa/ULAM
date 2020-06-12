@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * Node.h - Basic Node of Nodes for ULAM
  *
- * Copyright (C) 2014-2019 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2019 Ackleyshack LLC.
+ * Copyright (C) 2014-2020 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2020 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +27,9 @@
 
 /**
   \file Node.h - Basic Node of Nodes for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2019 All rights reserved.
+  \date (C) 2014-2020 All rights reserved.
   \gpl
 */
 
@@ -54,12 +54,14 @@
 
 namespace MFM{
 
-  enum EVALS { EVAL_RHS, EVAL_LHS, EVAL_SIDEEFFECTS};
-  enum EvalStatus {ERROR, NOTREADY, NORMAL, RETURN, BREAK, CONTINUE, UNEVALUABLE};
+enum EVALS { EVAL_RHS, EVAL_LHS, EVAL_SIDEEFFECTS};
+enum EvalStatus {ERROR, NOTREADY, NORMAL, RETURN, BREAK, CONTINUE, UNEVALUABLE};
 
   struct CompilerState; //forward
   struct TypeArgs; //forward
   class NodeFunctionCall; //forward
+  class NodeBlock; //forward
+  class SymbolClass; //forward
 
   class Node
   {
@@ -93,7 +95,7 @@ namespace MFM{
 
     virtual void printPostfix(File * fp) = 0;
 
-    virtual void noteTypeAndName(s32 totalsize, u32& accumsize);
+    virtual void noteTypeAndName(UTI cuti, s32 totalsize, u32& accumsize);
 
     virtual void genTypeAndNameEntryAsComment(File * fp, s32 totalsize, u32& accumsize);
 
@@ -149,6 +151,8 @@ namespace MFM{
 
     virtual bool hasASymbolReferenceConstant();
 
+    virtual bool belongsToVOWN(UTI vown);
+
     virtual bool isAConstant();
 
     virtual bool isAConstantClass();
@@ -175,13 +179,17 @@ namespace MFM{
 
     virtual bool asConditionalNode(); //only NodeConditionalAs returns true
 
+    virtual bool isAMemberSelect();
+
+    virtual bool isTernaryExpression();
+
     virtual bool getConstantValue(BV8K& bval);
 
     virtual FORECAST safeToCastTo(UTI newType);
 
     virtual UTI checkAndLabelType();
 
-    virtual bool exchangeNodeWithParent(Node * newnode);
+    bool exchangeNodeWithParent(Node * newnode);
 
     virtual bool trimToTheElement(Node ** fromleftnode, Node *& rtnnodeptr);
 
@@ -220,9 +228,13 @@ namespace MFM{
 
     virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);
 
+    virtual void calcMaxIndexOfVirtualFunctionInOrderOfDeclaration(SymbolClass* csym, s32& maxidx);
+
     virtual void genCode(File * fp, UVPass& uvpass);
 
     virtual void genCodeToStoreInto(File * fp, UVPass& uvpass);
+
+    virtual void generateFunctionInDeclarationOrder(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
 
     virtual void genCodeReadIntoATmpVar(File * fp, UVPass& uvpass);
 
@@ -300,7 +312,24 @@ namespace MFM{
     //index of first element or ele ref object; o.w. -1
     s32 isCurrentObjectsContainingAnElement();
 
-    std::string calcPosOfCurrentObjectClassesAsString(const UVPass& uvpass);
+    //index of last selected Base Type tmp symbol object; o.w.-1
+    s32 isCurrentObjectsContainingABaseTypeTmpSymbol();
+
+    //index of last selected Sub/Base ClassId tmp symbol object; o.w.-1
+    s32 isCurrentObjectsContainingABaseRegNumTmpSymbol();
+
+    //index of last tmp symbol object; o.w.-1
+    s32 isCurrentObjectsContainingATmpVarSymbol();
+
+    // used by genHiddenArg2 for function calls;
+    std::string calcPosOfCurrentObjectClassesAsString(const UVPass& uvpass, bool adjstEle, bool askeffselfarg, UTI funcclassarg);
+
+    //called when (implicit self) data member is a complete class;
+    //pos known at compile time (e.g. t3541)
+    u32 calcDataMemberPosOfCurrentObjectClasses(bool askingeffself, UTI funcclassarg);
+
+    //true means we can't know rel pos of 'stg' until runtime; o.w. known at compile time.
+    bool askEffectiveSelfAtRuntimeForRelPosOfBase(UTI funcclassarg = Nouti);
 
     //false means its the entire array or not an array at all
     bool isCurrentObjectAnArrayItem(UTI cosuti, const UVPass& uvpass);
@@ -314,9 +343,7 @@ namespace MFM{
     //true if a non-ref, scalar element
     bool needAdjustToStateBits(UTI cuti);
 
-    void adjustUVPassForElements(UVPass & uvpass);
-
-    SymbolTmpVar * makeTmpVarSymbolForCodeGen(UVPass& uvpass, Symbol * sym);
+    SymbolTmpVar * makeTmpVarSymbolForCodeGen(UVPass& uvpass, Symbol * symarg);
 
     std::string genUlamRefUsageAsString(UTI uti);
 
@@ -340,16 +367,12 @@ namespace MFM{
 
     void genCodeReadFromAConstantClassIntoATmpVar(File * fp, UVPass& uvpass);
 
-    //void genCodeReadArrayItemFromAConstantClassIntoATmpVarWithConstantIndex(File * fp, UVPass & luvpass, s32 rindex);
-
     void genCodeReadArrayItemFromAConstantClassIntoATmpVar(File * fp, UVPass & luvpass, UVPass & ruvpass);
 
     virtual void checkForSymbol();
 
     void genCodeReadElementTypeField(File * fp, UVPass & uvpass);
     void restoreElementTypeForAncestorCasting(File * fp, UVPass & uvpass);
-    //void genFixForElementTypeFieldInTmpVarOfConstantClass(File * fp, const UVPass & uvpass);
-    //void genFixForStringRegNumInTmpVarOfConstantClass(File * fp, const UVPass & uvpass);
 
     //common helpers for safe casting
     bool buildCastingFunctionCallNode(Node * node, UTI tobeType, Node*& rtnNode);
@@ -357,9 +380,13 @@ namespace MFM{
     Node * newCastingNode(Node * node, UTI tobeType);
     bool newCastingNodeWithCheck(Node * node, UTI tobeType, Node*& rtnNode);
 
-    //used for function calls second arg, including custom array accessors
-    std::string genHiddenArg2(const UVPass& uvpass, u32& urtmpnumref);
-    virtual u32 getLengthOfMemberClassForHiddenArg(UTI cosuti);
+    //helper for Operator OVerload Function Calls
+    Node * buildOperatorOverloadFuncCallNodeHelper(Node * selectNode, Node * argNode, const char * nameForTok);
+
+    //used for function calls second arg, including custom array accessors, and virtual funcso
+    std::string genHiddenArg2(const UVPass& uvpass, u32& urtmpnumref, UTI vownarg, UTI funcclassarg);
+    u32 getLengthOfMemberClassForHiddenArg(UTI uti);
+    u32 getBaseLengthOfMemberClassForHiddenArg(UTI uti);
 
   private:
     UTI m_utype;

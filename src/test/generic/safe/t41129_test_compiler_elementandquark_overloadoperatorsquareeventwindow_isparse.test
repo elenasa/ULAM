@@ -8,7 +8,7 @@
 ##
 #!
 Exit status: -11
-Ue_EventWindowTest { EventWindow ew( Bool(1) sp(false); );  Int(32) test() {  System s;  Int(32) rtn = -1 cast;  EventWindowTest ewt;  ew ( 0 cast )operator[] . ewt cast = Atom(96) aw = ew ( 0 cast )operator[] . cast;  Atom(96) a = ewt cast;  { a EventWindowTest is cond rtn 0 cast = if rtn 1 cast = else } s ( rtn )print . s ( rtn 0 cast == )assert . rtn return } }
+Ue_EventWindowTest { EventWindow ew( Bool(1) sp(false); );  Int(32) test() {  System s;  Int(32) rtn = -1 cast;  EventWindowTest ewt;  self ew . ( 0 cast )operator[] . ewt cast = Atom(96) aw = self ew . ( 0 cast )operator[] . cast;  Atom(96) a = ewt cast;  { a EventWindowTest is cond rtn 0 cast = if rtn 1 cast = else } s ( rtn )print . s ( rtn 0 cast == )assert . rtn return } }
 Uq_EventWindow { Bool(1) sp(false);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

@@ -1,13 +1,13 @@
 ## -*- mode:ulam -*-
 #=t3266_test_compiler_forloop_scope_issue
-#!
 ##      /* gen code output:
 ##	 Int Arg: 2
 ##	 Int Arg: 1
 ##	 Int Arg: 0
 ##      */
+#!
 Exit status: 0
-Ue_A { Bool(7) b(true);  System s();  Int(32) d(0);  Int(32) test() {  d 3 cast = { Int(32) index = 0 cast;  index d < cond b index 0 cast != cast = _1: index 1 cast += while } { Unsigned(32) index = 0 cast;  index 3u cast < cond { d 1 cast -= s ( d )print . } _2: index 1 cast += while } d return } }
+Ue_A { Bool(7) b(true);  System s();  Int(32) d(0);  Int(32) test() {  self d . 3 cast = { Int(32) index = 0 cast;  index self d . < cond self b . index 0 cast != cast = _1: index 1 cast += while } { Unsigned(32) index = 0 cast;  index 3u cast < cond { self d . 1 cast -= self s . ( self d . )print . } _2: index 1 cast += while } self d . return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
   ulam 1;

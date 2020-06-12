@@ -3,7 +3,7 @@
 #!
 Exit status: 1
 Uq_A { /* empty class block */ }
-Ue_F { Bool(3) f[2](true,false);  Int(32) test() {  f 0 [] true cast = { f 0 [] cond f 0 [] cast return if } 0 cast return } }
+Ue_F { Bool(3) f[2](true,false);  Int(32) test() {  self f . 0 [] true cast = { self f . 0 [] cond self f . 0 [] cast return if } 0 cast return } }
 Ue_E { typedef Bool(3) X;  <NOMAIN> }
 Ue_D { typedef Bool(3) X;  <NOMAIN> }
 #>A.ulam

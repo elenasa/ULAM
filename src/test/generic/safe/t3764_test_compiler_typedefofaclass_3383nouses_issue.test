@@ -1,12 +1,12 @@
 ## -*- mode:ulam -*-
 #=t3764_test_compiler_typedefofaclass_3383nouses_issue
-#!
 ##
 ## without uses Colony has 0Holder types.
 ## [this does not change the gencode results]
 ##      //test bug fix: typedef of a class' typedef
 ##      //Ish2.ulam:6:16: ERROR: Invalid Class Type: <Tail>; KEYWORD should be: 'element', 'quark', or 'union'.
 ##      //							    ERROR: No parse tree for This Class: Ish2.
+#!
 Exit status: 3
 Ue_R { Ish2 ish( Colony(3u) colony( constant Unsigned(32) widthc = 3u;  typedef Telomeree(3u) Telo;  typedef Unsigned(3) TeloTail;  Telomeree(3u) t( typedef Unsigned(3) Tail;  constant Unsigned(32) width = 3u;  Unsigned(3) age(0u); ); ); );  Int(32) test() {  3u cast return } }
 Uq_Ish2 { Colony(3u) colony( typedef Telomeree(3u) Telo;  typedef Unsigned(3) TeloTail;  Telomeree(3u) t( typedef Unsigned(3) Tail;  Unsigned(3) age(0); ); );  <NOMAIN> }

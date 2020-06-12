@@ -9,14 +9,13 @@ Unrecoverable Program Type Label FAILURE.
 ## culam: NodeVarRefAs.cpp:236: virtual void MFM::NodeVarRefAs::genCode(MFM::File*, MFM::UVPass&): Assertion `vclasstype == UC_QUARK' failed.'
 ##
 #>Foo.ulam
-  ulam 4;
-element Foo {
+  ulam 5;
+element Foo +System {
   Int m_c4;
   Int m_a4;
 
   Int test()
   {
-    System s;
     E4 e4;
     QBase2& qb2ref = (QBase2 &) e4;
 
@@ -24,10 +23,11 @@ element Foo {
     if(qb2ref as E4)
     {
       m_c4 = qb2ref.vfunca(); //110
-      s.print(m_c4);
-      s.assert(m_c4==110);
+      print(m_c4);
+      assert(m_c4==110);
 
-      s.assert(qb2ref.m_b1);
+      //multiple copies of QBase1: ALL SHARED
+      assert(qb2ref.m_b1);
     }
 
     //error case: non-ref quark (should not assert)
@@ -35,19 +35,21 @@ element Foo {
     if(qb2 as E4)
     {
       m_a4 = qb2.vfunca(); //110
-      s.print(m_a4);
-      s.assert(m_a4==110);
+      print(m_a4);
+      assert(m_a4==110);
 
-      s.assert(qb2.m_b1);
+      //multiple copies of QBase1: ALL SHARED
+      assert(qb2.m_b1);
     }
+
     return 0;
   }
 }
 
 
 #:E4.ulam
-  ulam 4;
-element E4 : QBase2 {
+  ulam 5;
+element E4 : QBase3 +QBase2 +QBase1 {
   Bool m_b4;
   virtual Int vfuncc() { return 412; }
   virtual Void behave() { }
@@ -63,8 +65,8 @@ quark QBase1 {
 }
 
 #:QBase2.ulam
-  ulam 4;
-quark QBase2 : QBase1 {
+  ulam 5;
+quark QBase2 +QBase1 {
   Bool m_b2;
   Bits(1) m_bit; //so that len of QBase2 is different than its pos in E4.
   virtual ARGB getColor(Unsigned s) { return super.getColor(s); }

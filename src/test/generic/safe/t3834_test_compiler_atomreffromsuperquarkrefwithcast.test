@@ -8,7 +8,7 @@
 Exit status: 2
 Ue_R { Int(32) test() {  System s;  Eltypo elt;  Typo(1)& poref = elt cast;  poref ( 2u cast )func . Atom(96)& a = poref cast;  Eltypo ell = a cast;  s ( ell bu . cast )print . s ( ell bu . 2u cast == )assert . ell bu . cast return } }
 Uq_System { <NOMAIN> }
-Ue_Eltypo : Typo(1) { :< :< Unsigned(3) bu( 7u); >> Unsigned(3) first(0);  Unsigned(3) second(0);  <NOMAIN> }
+Ue_Eltypo : Typo(1) { Unsigned(3) first(0);  Unsigned(3) second(0);  :Typo(1)<> ^Bar< Unsigned(3) bu( 7u); > <NOMAIN> }
 Uq_Typo(Int(32) a) : Bar { /* empty class block */ }
 Uq_Bar { Unsigned(3) bu( 7u);  <NOMAIN> }
 ##

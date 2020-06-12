@@ -7,9 +7,9 @@
 ##
 #!
 Exit status: 0
-Ue_Foo { Bool(1) first(false);  Int(32) sint(4);  Int(32) cint(4);  Int(32) test() {  System s;  Soo su;  Int(32) sfoo = su ( 0 cast )foo .;  s ( sfoo )print . s ( sfoo 40 cast == )assert . Coo& cref = su cast;  Int(32) cfoo = cref ( 1 cast )foo .;  s ( cfoo )print . s ( cfoo 40 cast == )assert . sint su ( 0 cast )aref . = s ( sint )print . s ( sint 4 cast == )assert . cint cref ( 1 cast )aref . = s ( cint )print . s ( cint 4 cast == )assert . 0 cast return } }
+Ue_Foo { Bool(1) first(false);  Int(32) sint(4);  Int(32) cint(4);  Int(32) test() {  System s;  Soo su;  Int(32) sfoo = su ( 0 cast )foo .;  s ( sfoo )print . s ( sfoo 40 cast == )assert . Coo& cref = su cast;  Int(32) cfoo = cref ( 1 cast )foo .;  s ( cfoo )print . s ( cfoo 40 cast == )assert . self sint . su ( 0 cast )aref . = s ( self sint . )print . s ( self sint . 4 cast == )assert . self cint . cref ( 1 cast )aref . = s ( self cint . )print . s ( self cint . 4 cast == )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
-Un_Soo : Coo { :< Bool(3) cb( true); > Unsigned(3) us( 4u);  <NOMAIN> }
+Un_Soo : Coo { Unsigned(3) us( 4u);  :Coo< Bool(3) cb( true); > <NOMAIN> }
 Uq_Coo { Bool(3) cb( true);  <NOMAIN> }
 ##
 ## transient and quark custom arrays (aref, virtual)

@@ -2,8 +2,8 @@
 /**                                        -*- mode:C++ -*-
  * CompilerState.h - Global Compiler State for ULAM
  *
- * Copyright (C) 2014-2019 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2019 Ackleyshack LLC.
+ * Copyright (C) 2014-2020 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2020 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -28,9 +28,9 @@
 
 /**
   \file CompilerState.h - Global Compiler State for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2019 All rights reserved.
+  \date (C) 2014-2020 All rights reserved.
   \gpl
 */
 
@@ -39,10 +39,12 @@
 
 #include <string>
 #include <string.h>
-#include <vector>
 #include <map>
 #include <set>
+#include <vector>
+#include <queue>
 #include "itype.h"
+#include "BaseclassWalker.h"
 #include "CallStack.h"
 #include "Constants.h"
 #include "ClassContextStack.h"
@@ -70,6 +72,7 @@
 #include "TypeArgs.h"
 #include "UlamType.h"
 #include "UlamUtil.h"
+#include "FunctionSignatureTable.h"
 
 
 namespace MFM{
@@ -118,6 +121,9 @@ namespace MFM{
     std::map<u32, NodeBlockLocals *> m_localsPerFilePath; //holds block of local constants and typedefs
     bool m_parsingLocalDef; //used for populating m_localsPerFilePath
     Token m_currentLocalDefToken; //used to identify current file path when m_parsingLocalDef is true
+    u32 m_parsingFUNCid; //used for __FUNC__ used within a function definition; 0 is none.
+    Token m_parsingFuncDefToken; //valid when m_parsingFUNCid > 0.
+    u32 m_nextFunctionOrderNumber; //one per SymbolFunction per class in order of declaration
 
     SYMBOLTYPEFLAG m_parsingVariableSymbolTypeFlag;
 
@@ -151,8 +157,11 @@ namespace MFM{
 
     std::vector<UTI> m_unionRootUTI; //UTI's root UTI to manage holder/aliases
 
+    std::vector<UTI> m_classIdRegistryUTI; //UTI registry index for complete class types (ulam-5)
+
     std::vector<NodeReturnStatement *> m_currentFunctionReturnNodes; //nodes of return nodes in a function; verify type
     UTI m_currentFunctionReturnType;  //used during type labeling to check return types
+
     UlamValue m_currentObjPtr; //used in eval of members: data or funcs; updated at each '.'
     UlamValue m_currentSelfPtr; //used in eval of func calls: updated after args,
                                 // becomes currentObjPtr for args
@@ -161,7 +170,7 @@ namespace MFM{
 
     std::vector<Symbol *> m_currentObjSymbolsForCodeGen;  //used in code generation;
     Symbol * m_currentSelfSymbolForCodeGen; //used in code gen; parallels m_currentSelf
-    bool m_gencodingAVirtualFunctionDefinedInAQuark; //uses less efficient read/write without POS template arg
+    UTI m_gencodingAVirtualFunctionInThisOriginatingClass; //helps determine relpos of dm variable; Nouti if non-virtual
 
     u32 m_currentIndentLevel; //used in code generation: func def, blocks, control body
     s32 m_nextTmpVarNumber; //used in code gen when a "slot index" is not available
@@ -248,6 +257,7 @@ namespace MFM{
     bool isScalar(UTI utArg);
     s32 getArraySize(UTI utArg);
     s32 getBitSize(UTI utArg);
+    s32 getBaseClassBitSize(UTI utiArg);
     ALT getReferenceType(UTI utArg);
     bool isReference(UTI utArg);
     bool isAltRefType(UTI utiArg);
@@ -260,8 +270,10 @@ namespace MFM{
     bool isHolder(UTI utArg);
     bool setBitSize(UTI utArg, s32 total);
     bool setUTISizes(UTI utArg, s32 bitsize, s32 arraysize);
+    bool setBaseClassBitSize(UTI utiArg, s32 basebitsize);
     void noteClassDataMembersTypeAndName(UTI cuti, s32 totalsize); //for errors
     void verifyZeroSizeUrSelf();
+    void verifyZeroRegistryIdForUrSelf();
     void mergeClassUTI(UTI olduti, UTI cuti);
     bool isARootUTI(UTI auti);
     bool findaUTIAlias(UTI auti, UTI& aliasuti);
@@ -276,12 +288,18 @@ namespace MFM{
     u32 getTotalWordSize(UTI utArg);
     s32 slotsNeeded(UTI uti);
     bool isClassATemplate(UTI cuti);
-    UTI isClassASubclass(UTI cuti); //returns super UTI, or Nav if no inheritance
-    bool findClassAncestorWithMatchingNameid(UTI cuti, u32 nameid, UTI& superp);
-    void resetClassSuperclass(UTI cuti, UTI superuti);
+    bool isClassASubclass(UTI cuti); //fromerly returned super UTI, or Nav if no inheritance
+    u32 findClassAncestorWithMatchingNameid(UTI cuti, u32 nameid, UTI& superp);
+    u32 findTheSharedVirtualBasesInAClassHierarchy(UTI cuti, std::map<UTI, u32>& svbmapref);
+
     bool isClassASubclassOf(UTI cuti, UTI superp);
+    bool isBaseClassADirectAncestorOf(UTI cuti, UTI basep);
+    void resetABaseClassType(UTI cuti, UTI olduti, UTI newuti);
+    bool getABaseClassRelativePositionInAClass(UTI cuti, UTI basep, u32& relposref);
+    bool getASharedBaseClassRelativePositionInAClass(UTI cuti, UTI basep, u32& relposref);
+
     bool isClassAStub(UTI cuti);
-    bool hasClassAStub(UTI cuti);
+    bool hasClassAStubInHierarchy(UTI cuti);
     bool isClassAQuarkUnion(UTI cuti);
     bool isClassACustomArray(UTI cuti);
     UTI getAClassCustomArrayType(UTI cuti);
@@ -291,18 +309,42 @@ namespace MFM{
 
     bool hasAClassCustomArrayLengthof(UTI cuti);
 
+    bool hasCustomArrayInAClassOrAncestor(UTI cuti);
+
     /** return true and the Symbol pointer in 2nd arg if found;
 	search SymbolTables LIFO order; o.w. return false
     */
-    bool alreadyDefinedSymbolByAncestor(u32 dataindex, Symbol *& symptr, bool& hasHazyKin);
     bool alreadyDefinedSymbol(u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
+    bool alreadyDefinedSymbolByAncestorOf(UTI cuti, u32 dataindex, Symbol *& symptr, bool& hasHazyKin);
+    bool alreadyDefinedSymbolByAncestorsOf(UTI cuti, u32 dataindex, std::set<UTI>& kinsetref, bool& hasHazyKin);
+    bool alreadyDefinedSymbolByAClassOrAncestor(UTI cuti, u32 dataindex, Symbol *& symptr, bool& hasHazyKin);
+
+    /** searches linked blocks (e.g. within a function), then data
+	members of current class (including local filescope), and
+	finally, other function names; as of ulam-5 ancestors are not
+	included (see alreadyDefinedSymbol).
+    */
+    bool alreadyDefinedSymbolHere(u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
     bool isDataMemberIdInClassScope(u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
     bool isIdInLocalFileScope(u32 id, Symbol *& symptr);
 
     bool isFuncIdInClassScope(u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
     bool isFuncIdInClassScopeNNO(NNO cnno, u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
-    bool isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
-    bool findMatchingFunctionInAncestor(UTI cuti, u32 fid, std::vector<UTI> typeVec, SymbolFunction*& fsymref, UTI& foundInAncestor);
+    bool isFuncIdInAClassScopeOrAncestor(UTI cuti, u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
+
+    u32 getNextFunctionOrderNumber();
+
+    bool findMatchingFunctionStrictlyByTypesInClassScope(u32 fid, std::vector<UTI> typeVec, SymbolFunction*& fsymref);
+    bool findOverrideMatchingVirtualFunctionStrictlyByTypesInAncestorOf(UTI cuti, u32 fid, std::vector<UTI> typeVec, bool virtualInSub, SymbolFunction*& fsymref, UTI& foundInAncestor);
+    bool findOriginatingMatchingVirtualFunctionStrictlyByTypesInAncestorOf(UTI cuti, u32 fid, std::vector<UTI> typeVec, SymbolFunction*& origfsymref, UTI& firstInAncestor);
+
+    u32 findMatchingFunctionInClassScope(u32 fid, std::vector<Node *> nodeArgs, SymbolFunction*& fsymref, bool& hasHazyArgs);
+    bool findMatchingFunctionInAClassScopeOrAncestor(UTI cuti, u32 fid, std::vector<Node *> nodeArgs, SymbolFunction*& fsymref, bool& hasHazyArgs, UTI& foundInAncestor);
+
+    u32 findMatchingFunctionWithSafeCastsInClassScope(u32 fid, std::vector<Node *> nodeArgs, SymbolFunction*& fsymref, bool& hasHazyArgs, FSTable & fstable);
+    u32 findMatchingFunctionWithSafeCastsInAClassScopeOrAncestor(UTI cuti, u32 fid, std::vector<Node *> argNodes, SymbolFunction*& fsymref, bool& hasHazyArgs, UTI& foundInAncestor);
+    void noteAmbiguousFunctionSignaturesInAClassHierarchy(UTI cuti, u32 fid, std::vector<Node *> argNodes, u32 matchingFuncCount); //helper
+
 
     bool isIdInCurrentScope(u32 id, Symbol *& asymptr);
     void addSymbolToCurrentScope(Symbol * symptr); //ownership goes to the block
@@ -312,8 +354,8 @@ namespace MFM{
     void replaceSymbolInCurrentScope(Symbol * oldsym, Symbol * newsym); //same id, new symbol
     bool takeSymbolFromCurrentScope(u32 id, Symbol *& rtnsymptr); //ownership to the caller
 
-    /** does a member class search for id */
-    bool findSymbolInAClass(u32 id, UTI inClassUTI, Symbol *& rtnsymptr, bool& isHazy);
+    /** does breadth-first search for ancestor in a base class (ulam-5) */
+    bool findNearestBaseClassToAnAncestor(UTI cuti, UTI auti, UTI& foundInBase);
 
     /** return true and the SymbolClassName pointer in 2nd arg if found; */
     bool alreadyDefinedSymbolClassName(u32 dataindex, SymbolClassName * & symptr);
@@ -359,10 +401,12 @@ namespace MFM{
     void updateLineageAndFirstCheckAndLabelPass();
     void updateLineageAndFirstCheckAndLabelPassForLocals();
     bool checkAndLabelPassForLocals();
+
+    u32 getMaxNumberOfRegisteredUlamClasses();
     void defineRegistrationNumberForUlamClasses(); //ulam-4
     void defineRegistrationNumberForLocals(); //ulam-4
-    //void defineElementTypesForUlamClasses();
 
+    void defineClassNamesAsUserStrings(); //ulam-5
     void generateCodeForUlamClasses(FileManager * fm);
     void generateUlamClassForLocals(FileManager * fm);
 
@@ -374,6 +418,7 @@ namespace MFM{
     const std::string & getDataAsUnFormattedUserString(u32 combinedidx);
     bool isValidUserStringIndex(u32 combinedidx);
     u32 getUserStringLength(u32 combinedidx);
+    u32 formatAndGetIndexForDataUserString(std::string& astring);
 
     bool countNavHzyNoutiNodesPass();
     void countNavNodesForLocals(u32& navcount, u32& hzycount, u32& unsetcount);
@@ -385,7 +430,8 @@ namespace MFM{
     const std::string getFullPathFromLocator(const Locator& loc);
 
     /** helper method, uses string pool */
-    const std::string getTokenDataAsString(const Token & tok);
+    u32 getTokenDataAsStringId(const Token & tok);
+    const std::string & getTokenDataAsString(const Token & tok);
     std::string getDataAsStringMangled(u32 dataindex);
     const std::string getTokenAsATypeName(const Token& tok);
     u32 getTokenAsATypeNameId(const Token& tok);
@@ -404,12 +450,29 @@ namespace MFM{
 
     const char * getIsMangledFunctionName(UTI ltype);
     const char * getAsMangledFunctionName(UTI ltype, UTI rtype);
+    const char * getGetRelPosMangledFunctionName(UTI ltype);
+    const char * getDataMemberInfoFunctionName(UTI ltype);
+    const char * getDataMemberCountFunctionName(UTI ltype);
+    const char * getNumberOfBasesFunctionName(UTI ltype);
+    const char * getNumberOfDirectBasesFunctionName(UTI ltype);
+    const char * getOrderedBaseClassFunctionName(UTI ltype);
+    const char * getIsDirectBaseClassFunctionName(UTI ltype);
+    const char * getClassMangledNameFunctionName(UTI ltype);
+    const char * getClassMangledNameAsStringIndexFunctionName(UTI ltype);
+    const char * getClassNameAsStringIndexFunctionName(UTI ltype);
     const char * getClassLengthFunctionName(UTI ltype);
+    const char * getBaseClassLengthFunctionName(UTI ltype);
     const char * getClassRegistrationNumberFunctionName(UTI ltype);
-    const char * getGetStringFunctionName();
-    const char * getGetStringLengthFunctionName();
+    const char * getElementTypeFunctionName(UTI ltype);
+    const char * getReadTypeFieldFunctionName(UTI ltype);
+    const char * getWriteTypeFieldFunctionName(UTI ltype);
+
     const char * getBuildDefaultAtomFunctionName(UTI ltype);
     const char * getDefaultQuarkFunctionName();
+
+    const char * getVTableEntryFunctionName(UTI ltype);
+    const char * getVTableEntryClassPtrFunctionName(UTI ltype);
+    const char * getVTableEntryStartOffsetForClassFunctionName(UTI ltype);
 
     std::string getFileNameForAClassHeader(UTI cuti, bool wSubDir = false);
     std::string getFileNameForThisClassHeader(bool wSubDir = false);
@@ -423,6 +486,8 @@ namespace MFM{
     u32 getMangledClassNameIdForUlamLocalsFilescope(UTI locuti);
     u32 getClassNameIdForUlamLocalsFilescope(UTI locuti);
 
+    const char * getGetStringFunctionName();
+    const char * getGetStringLengthFunctionName();
     const std::string getStringMangledName();
     const char * getMangledNameForUserStringPool();
     const char * getDefineNameForUserStringPoolSize();
@@ -469,6 +534,8 @@ namespace MFM{
 
     bool hasThisClassStringDataMembers();
 
+    void extractQuarkBaseFromSubclassForEval(UlamValue fmuvarg, UTI buti, UlamValue& touvref);
+
     void setupCenterSiteForTesting();
     void setupCenterSiteForGenCode();
     void generateTestInstancesForLocalsFilescopes(File * fp);
@@ -484,9 +551,12 @@ namespace MFM{
     void outputLineNumberForDebugging(File * fp, Locator nodeloc);
 
     s32 getNextTmpVarNumber();
+    bool isStringATmpVar(u32 id);
     const std::string getTmpVarAsString(UTI uti, s32 num, TMPSTORAGE stg);
     const std::string getUlamRefTmpVarAsString(s32 num);
+    const std::string getUlamRefMutTmpVarAsString(s32 num);
     const std::string getUlamClassTmpVarAsString(s32 num);
+    const std::string getUlamClassRegistryTmpVarAsString(s32 num);
     const std::string getAtomBitStorageTmpVarAsString(s32 num);
     const std::string getLabelNumAsString(s32 num);
     const std::string getSwitchConditionNumAsString(s32 num);
@@ -530,13 +600,13 @@ namespace MFM{
     NodeBlockLocals * findALocalsScopeByNodeNo(NNO n);
     Node * findNodeNoInALocalsScope(Locator loc, NNO n);
     Node * findNodeNoInALocalsScope(UTI luti, NNO n);
-    Node * findNodeNoInAncestorsLocalsScope(NNO n, UTI cuti);
 
     u32 getRegistrationNumberForClassOrLocalsScope(UTI cuti); //ulam-4
     u32 getAClassRegistrationNumber(UTI cuti); //ulam-4
     u32 getALocalsScopeRegistrationNumber(UTI cuti); //ulam-4
     ELE_TYPE getAClassElementType(UTI cuti); //ulam-4
     ELE_TYPE getNextElementType(); //ulam-4 incrementally
+    u32 assignClassId(UTI cuti);
 
     NodeBlockClass * getAClassBlock(UTI cuti);
     NNO getAClassBlockNo(UTI cuti);
@@ -594,6 +664,8 @@ namespace MFM{
     bool isAtomRef(UTI auti);
     bool isThisLocalsFileScope();
     bool isALocalsFileScope(UTI uti);
+    bool isAPrimitiveType(UTI uti);
+    bool isAStringType(UTI uti);
     bool isAClass(UTI uti);
     bool isASeenClass(UTI cuti);
     bool isASeenElement(UTI cuti);
@@ -620,7 +692,6 @@ namespace MFM{
 
   private:
     ClassContextStack m_classContextStack; // the current subject of this compilation
-    u32 m_registeredUlamClassCount; //borrowed from UlamClass in MFM
     ElementTypeGenerator m_elementTypeGenerator; //ulam-4 increment version
 
   };

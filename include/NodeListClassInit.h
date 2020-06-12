@@ -27,7 +27,7 @@
 
 /**
   \file NodeListClassInit.h - List of class init nodes for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
   \date (C) 2018 All rights reserved.
   \gpl

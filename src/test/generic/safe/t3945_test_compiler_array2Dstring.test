@@ -5,7 +5,7 @@
 ##
 #!
 Exit status: 0
-Ue_Eltypo { typedef String(32) SArr[2];  String(32) m_sarr[2]( ,"bar");  Bool(1) b1(true);  Int(32) test() {  System s;  m_sarr 1 [] "bar" = b1 m_sarr 1 [] 2 [] 114u == = s ( b1 )assert . 0 cast return } }
+Ue_Eltypo { typedef String(32) SArr[2];  String(32) m_sarr[2]( ,"bar");  Bool(1) b1(true);  Int(32) test() {  System s;  self m_sarr . 1 [] "bar" = self b1 . self m_sarr . 1 [] 2 [] 114u == = s ( self b1 . )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## To answer question posed by Dave 11/22/2016, 2d-custom array?

@@ -9,7 +9,7 @@
 ##
 #!
 Exit status: 7
-Ue_A { Int(4) a(7);  Int(4) d(-2);  Int(4) e(-3);  constant Int(32) cCONSTANT = -1;  System s();  Int(32) test() {  Int(32) c[3] = { -2, 10, -3 };  s ( 96u )print . s ( true )assert . a c 1 [] cast = s ( a )print . s ( a 7 == )assert . d c 0 [] cast = s ( d )print . s ( d -2 cast == )assert . e c 2 [] cast = s ( e )print . s ( e -3 cast == )assert . a cast return } }
+Ue_A { Int(4) a(7);  Int(4) d(-2);  Int(4) e(-3);  constant Int(32) cCONSTANT = -1;  System s();  Int(32) test() {  Int(32) c[3] = { -2, 10, -3 };  self s . ( 96u )print . self s . ( true )assert . self a . c 1 [] cast = self s . ( self a . )print . self s . ( self a . 7 == )assert . self d . c 0 [] cast = self s . ( self d . )print . self s . ( self d . -2 cast == )assert . self e . c 2 [] cast = self s . ( self e . )print . self s . ( self e . -3 cast == )assert . self a . cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t3776

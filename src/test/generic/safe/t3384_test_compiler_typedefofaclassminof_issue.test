@@ -1,12 +1,12 @@
 ## -*- mode:ulam -*-
 #=t3384_test_compiler_typedefofaclassminof_issue
-#!
 ##      //test bug fix: typedef of a class' typedef
 ##      //Ish2.ulam:6:16: ERROR: Invalid Class Type: <Tail>; KEYWORD should be: 'element', 'quark', or 'union'.
 ##      //							    ERROR: No parse tree for This Class: Ish2.
 ##
+#!
 Exit status: 7
-Ue_R { Ish3 ish( Colony(3u) colony( constant Unsigned(32) widthc = 3u;  typedef Telomeree(3u) Telo; ); );  Int(32) test() {  ish colony . ( )foo . cast return } }
+Ue_R { Ish3 ish( Colony(3u) colony( constant Unsigned(32) widthc = 3u;  typedef Telomeree(3u) Telo; ); );  Int(32) test() {  self ish . colony . ( )foo . cast return } }
 Uq_Ish3 { Colony(3u) colony( typedef Telomeree(3u) Telo; );  <NOMAIN> }
 Uq_Colony(Unsigned(32) widthc) { typedef Telomeree(width) Telo;  <NOMAIN> }
 Uq_Telomeree(Unsigned(32) width) { typedef Unsigned(UNKNOWN) Tail;  Unsigned(UNKNOWN) age(notready);  <NOMAIN> }

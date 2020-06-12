@@ -3,7 +3,7 @@
 ##
 #!
 Exit status: 0
-Ue_Foo : System { :<> Int(32) m_c4(0);  Int(32) m_a4(0);  Int(32) test() {  Bounce ball;  ball ( )behave . 0 cast return } }
+Ue_Foo +System { Int(32) m_c4(0);  Int(32) m_a4(0);  +System<> Int(32) test() {  Bounce ball;  ball ( )behave . 0 cast return } }
 Uq_System { <NOMAIN> }
 Ue_Bounce { constant Int(32) cBITS = 4;  typedef Int(4) SCoord;  typedef C2DT(4u) S2D;  C2DT(4u) mAt( typedef Int(4) Coord;  typedef Unsigned(3) Dir;  Int(4) x( 0);  Int(4) y( 0); );  C2DT(4u) mDelta( typedef Int(4) Coord;  typedef Unsigned(3) Dir;  Int(4) x( 0);  Int(4) y( 0); );  Random random();  EventWindow ew();  <NOMAIN> }
 Uq_C2DT(Unsigned(32) coordBits) { typedef Int(UNKNOWN) Coord;  typedef Unsigned(3) Dir;  Int(UNKNOWN) x(notready);  Int(UNKNOWN) y(notready);  <NOMAIN> }
@@ -14,8 +14,8 @@ Uq_C2D { typedef Int(16) Coord;  typedef Unsigned(3) Dir;  Int(16) x( 0);  Int(1
 ## Dave issue 8/11/19: generated code should compile! NodeFuncCall complete return type delayed when returning Self, a template instance. (zero sized 'C2D' is bad);
 ##
 #>Foo.ulam
-  ulam 4;
-element Foo : System {
+  ulam 5;
+element Foo +System {
   Int m_c4;
   Int m_a4;
 

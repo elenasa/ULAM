@@ -27,7 +27,7 @@
 
 /**
   \file NodeVarDeclDM.h -  Data Member Variable Declarations for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
   \date (C) 2015-2019 All rights reserved.
   \gpl
@@ -59,7 +59,7 @@ namespace MFM{
 
     virtual void printPostfix(File * f);
 
-    virtual void noteTypeAndName(s32 totalsize, u32& accumsize);
+    virtual void noteTypeAndName(UTI cuti, s32 totalsize, u32& accumsize);
 
     virtual void genTypeAndNameEntryAsComment(File * fp, s32 totalsize, u32& accumsize);
 
@@ -122,6 +122,7 @@ namespace MFM{
     void foldDefaultClass();
     void genCodedBitFieldTypedef(File * fp, UVPass& uvpass);
 
+    TBOOL checkForNoShadowingSubclass(UTI cuti); //during c&l
     bool checkDataMemberSizeConstraints(); //during c&l
   };
 } //MFM

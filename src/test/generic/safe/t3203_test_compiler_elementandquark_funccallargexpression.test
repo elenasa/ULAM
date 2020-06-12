@@ -2,7 +2,7 @@
 #=t3203_test_compiler_elementandquark_funccallargexpression
 #!
 Exit status: 0
-Ue_Foo { System s();  Bar bar1( Bool(1) b(true);  Unsigned(3) x(1u);  Unsigned(3) y(2u); );  Bar bar2( Bool(1) b(false);  Unsigned(3) x(3u);  Unsigned(3) y(0u); );  Int(4) i(2);  Int(4) j(7);  Int(32) test() {  Int(32) d;  d 1 cast = bar1 ( d 2 cast )set . bar2 ( 3 cast 0 cast )set . i bar1 ( )toInt . cast = s ( i )print . j bar2 ( )toInt . cast = s ( j )print . j ( i cast 7 cast +b cast )update = s ( j )print . 0 cast return } }
+Ue_Foo { System s();  Bar bar1( Bool(1) b(true);  Unsigned(3) x(1u);  Unsigned(3) y(2u); );  Bar bar2( Bool(1) b(false);  Unsigned(3) x(3u);  Unsigned(3) y(0u); );  Int(4) i(2);  Int(4) j(7);  Int(32) test() {  Int(32) d;  d 1 cast = self bar1 . ( d 2 cast )set . self bar2 . ( 3 cast 0 cast )set . self i . self bar1 . ( )toInt . cast = self s . ( self i . )print . self j . self bar2 . ( )toInt . cast = self s . ( self j . )print . self j . self ( self i . cast 7 cast +b cast )update . = self s . ( self j . )print . 0 cast return } }
 Uq_System { <NOMAIN> }
 Uq_Bar { Bool(1) b(false);  Unsigned(3) x(0);  Unsigned(3) y(0);  <NOMAIN> }
 #>Foo.ulam

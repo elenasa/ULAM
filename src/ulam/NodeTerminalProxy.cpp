@@ -67,7 +67,20 @@ namespace MFM {
   {
     fp->write(" ");
     if(isReadyConstant())
-      fp->write(NodeTerminal::getName());
+      {
+	if(m_funcTok.m_type == TOK_KW_CLASSIDOF)
+	  {
+	    if(m_nodeOf)
+	      fp->write(m_nodeOf->getName());
+	    else
+	      fp->write(m_state.getUlamTypeNameBriefByIndex(m_uti).c_str());
+	    fp->write("[");
+	    fp->write(NodeTerminal::getName());
+	    fp->write("]");
+	  }
+	else
+	  fp->write(NodeTerminal::getName());
+      }
     else
       {
 	if(m_nodeOf)
@@ -100,7 +113,7 @@ namespace MFM {
 	//lengthof a scalar String variable is not constant, t3984; but,
 	//lengthof a String array is, t3985;
 	UTI ofnodeType = m_nodeOf->getNodeType();
-	if((UlamType::compareForString(ofnodeType, m_state) == UTIC_SAME) && m_state.isScalar(ofnodeType))
+	if(m_state.isAStringType(ofnodeType) && m_state.isScalar(ofnodeType))
 	  return m_nodeOf->isAConstant();
       }
     //else, e.g. length of String type has null m_nodeOf, and is constant 32u (t3933).
@@ -123,7 +136,7 @@ namespace MFM {
   {
     //when minmaxsizeof a selected member; and for clones,
     //when m_uti is a String, we must c&l m_nodeOf to find its symbol (t3960)
-    if((!m_state.okUTItoContinue(m_uti) || (UlamType::compareForString(m_uti, m_state) == UTIC_SAME)) && m_nodeOf)
+    if((!m_state.okUTItoContinue(m_uti) || m_state.isAStringType(m_uti)) && m_nodeOf)
       {
 	UTI ofuti = m_nodeOf->checkAndLabelType();
 	if(m_state.okUTItoContinue(ofuti))
@@ -200,37 +213,51 @@ namespace MFM {
 	nodeType = setConstantTypeForNode(m_funcTok); //enough info to set this constant node's type
 	if((m_funcTok.m_type == TOK_KW_LENGTHOF))
 	  {
-	    if(m_state.isAClass(m_uti) && m_state.isClassACustomArray(m_uti) && m_state.hasAClassCustomArrayLengthof(m_uti))
+	    if(replaceOurselvesLengthOf())
 	      {
-		//replace node with func call to 'alengthof'
-		Node * newnode = buildAlengthofFuncCallNode();
-		AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
-		assert(swapOk);
-
-		m_nodeOf = NULL; //recycled
+		m_state.setGoAgain();
 
 		delete this; //suicide is painless..
 
-		return newnode->checkAndLabelType();
+		return Hzy;
 	      }
-	    //else if(isAConstant())
-	    else if(isAConstant() && isReadyConstant())
-	      {
-		//constantFold, like NodeBinaryOp (e.g. t3985)
-		//replace with a NodeTerminal; might not be ready (t41065)
-		Node * newnode = constantFoldLengthofConstantString();
-		assert(newnode);
-		AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
-		assert(swapOk);
-
-		delete this; //suicide is painless..
-
-		return newnode->checkAndLabelType();
-	      }
+	    else
+	      nodeType = getNodeType(); //t41382
 	  }
       }
     return nodeType; //getNodeType(); //updated to Unsigned, hopefully
   } //checkandLabelType
+
+  bool NodeTerminalProxy::replaceOurselvesLengthOf()
+  {
+    bool rtnb = false;
+    if(m_state.isAClass(m_uti) && m_state.isClassACustomArray(m_uti) && m_state.hasAClassCustomArrayLengthof(m_uti))
+      {
+	//replace node with func call to 'alengthof'
+	Node * newnode = buildAlengthofFuncCallNode();
+	assert(newnode);
+	AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+	assert(swapOk);
+
+	m_nodeOf = NULL; //recycled
+	rtnb = true;
+      }
+    else if(isAConstant() && isReadyConstant())
+      {
+	//constantFold, like NodeBinaryOp (e.g. t3985)
+	//replace with a NodeTerminal; might not be ready (t41065, t41382)
+	Node * newnode = constantFoldLengthofConstantString();
+	if(newnode)
+	  {
+	    AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+	    assert(swapOk);
+
+	    rtnb = true;
+	  } //else t41382
+      }
+    //else didn't replace us
+    return rtnb;
+  } //replaceOurselvesLengthOf
 
   Node * NodeTerminalProxy::buildAlengthofFuncCallNode()
   {
@@ -332,7 +359,7 @@ namespace MFM {
 
     if((m_funcTok.m_type == TOK_KW_LENGTHOF))
       {
-	if(m_nodeOf && (UlamType::compareForString(m_nodeOf->getNodeType(), m_state) == UTIC_SAME))
+	if(m_nodeOf && m_state.isAStringType(m_nodeOf->getNodeType()))
 	  {
 	    //String or String array item (t3933, t3949, t3984)
 	    evalNodeProlog(0); //new current frame pointer
@@ -382,8 +409,7 @@ namespace MFM {
   {
     if(m_funcTok.m_type == TOK_KW_LENGTHOF)
       {
-
-	if(m_nodeOf && (UlamType::compareForString(m_uti, m_state) == UTIC_SAME))
+	if(m_nodeOf && m_state.isAStringType(m_uti))
 	  {
 	    //String or String array item (t3933, t3949)
 	    return genCodeForUserStringLength(fp, uvpass); //t3929
@@ -408,13 +434,11 @@ namespace MFM {
 
   void NodeTerminalProxy::genCodeForUserStringLength(File * fp, UVPass& uvpass)
   {
-    assert(UlamType::compareForString(m_uti, m_state) == UTIC_SAME);
+    assert(m_state.isAStringType(m_uti));
     assert(m_nodeOf);
     UTI nuti = getNodeType();
     UVPass ofpass;
     m_nodeOf->genCode(fp, ofpass);
-
-    //TMPSTORAGE ofstor = ofpass.getPassStorage();
 
     s32 tmpVarNum = m_state.getNextTmpVarNumber();
     m_state.indentUlamCode(fp);
@@ -508,6 +532,62 @@ namespace MFM {
 	    }
 	}
 	break;
+      case TOK_KW_CLASSIDOF:
+	{
+	  if((rtnB = checkForClassType()))
+	    {
+	      m_constant.uval = m_state.getAClassRegistrationNumber(m_uti);
+	    }
+	  break;
+	}
+      case TOK_KW_FLAG_INSERTCLASSSIGNATURE:
+	{
+	  if((rtnB = checkForClassType()))
+	    {
+	      u32 cid = m_state.getUlamTypeNameIdByIndex(m_uti);
+	      SymbolClassName * cnsym = (SymbolClassName *) m_state.m_programDefST.getSymbolPtr(cid);
+	      assert(cnsym);
+
+	      std::string sig = cnsym->generatePrettyNameOrSignature(m_uti,true,false);
+	      m_constant.uval = m_state.formatAndGetIndexForDataUserString(sig);
+	    }
+	  break;
+	}
+      case TOK_KW_FLAG_INSERTCLASSNAMESIMPLE:
+	{
+	  if((rtnB = checkForClassType()))
+	    {
+	      u32 cid = m_state.getUlamTypeNameIdByIndex(m_uti);
+	      SymbolClassName * cnsym = (SymbolClassName *) m_state.m_programDefST.getSymbolPtr(cid);
+	      assert(cnsym);
+
+	      std::string simple = cnsym->generatePrettyNameOrSignature(m_uti,false,true);
+	      m_constant.uval = m_state.formatAndGetIndexForDataUserString(simple);
+	    }
+	  break;
+	}
+      case TOK_KW_FLAG_INSERTCLASSNAMEPRETTY:
+	{
+	  if((rtnB = checkForClassType()))
+	    {
+	      u32 cid = m_state.getUlamTypeNameIdByIndex(m_uti);
+	      SymbolClassName * cnsym = (SymbolClassName *) m_state.m_programDefST.getSymbolPtr(cid);
+	      assert(cnsym);
+
+	      std::string pretty = cnsym->generatePrettyNameOrSignature(m_uti,true,true);
+	      m_constant.uval = m_state.formatAndGetIndexForDataUserString(pretty);
+	    }
+	  break;
+	}
+      case TOK_KW_FLAG_INSERTCLASSNAMEMANGLED:
+	{
+	  if((rtnB = checkForClassType()))
+	    {
+	      std::string mangled = m_state.getUlamTypeByIndex(m_uti)->getUlamTypeMangledName();
+	      m_constant.uval = m_state.formatAndGetIndexForDataUserString(mangled);
+	    }
+	}
+	break;
       default:
 	m_state.abortShouldntGetHere();
 	break;
@@ -523,11 +603,19 @@ namespace MFM {
       {
       case TOK_KW_LENGTHOF:
       case TOK_KW_SIZEOF:
+      case TOK_KW_CLASSIDOF:
 	newType = Unsigned;
 	break;
       case TOK_KW_MAXOF:
       case TOK_KW_MINOF:
 	newType = m_uti; // use type of the lhs
+	break;
+      case TOK_KW_FLAG_INSERTCLASS:
+      case TOK_KW_FLAG_INSERTCLASSSIGNATURE:
+      case TOK_KW_FLAG_INSERTCLASSNAMESIMPLE:
+      case TOK_KW_FLAG_INSERTCLASSNAMEPRETTY:
+      case TOK_KW_FLAG_INSERTCLASSNAMEMANGLED:
+	newType = String;
 	break;
       default:
 	m_state.abortShouldntGetHere();
@@ -589,5 +677,20 @@ namespace MFM {
       }
     return rtnb;
   } //updateProxy
+
+  bool NodeTerminalProxy::checkForClassType()
+  {
+    assert(m_state.okUTItoContinue(m_uti)); //is complete too!
+    if(!m_state.isAClass(m_uti))
+      {
+	std::ostringstream msg;
+	msg << "Proxy Type '" << m_funcTok.getTokenString() << "' is not supported ";
+	msg << "for non-class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(m_uti).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	return false; //not allowed (e.g. primitives..)
+      }
+    return true;
+  } //checkForClassType
 
 } //end MFM

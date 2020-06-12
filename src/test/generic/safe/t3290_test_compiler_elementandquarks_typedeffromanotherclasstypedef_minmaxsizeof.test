@@ -1,10 +1,10 @@
 ## -*- mode:ulam -*-
 #=t3290_test_compiler_elementandquarks_typedeffromanotherclasstypedef_minmaxsizeof
-#!
 ##      /* no gen code output */
 ##      // several casts unneeded.
+#!
 Exit status: 3
-Ue_P { Bool(1) b(false);  Unsigned(3) x(0u);  Unsigned(3) y(7u);  Unsigned(3) z(3u);  Unsigned(3) i(0u);  Unsigned(3) j(7u);  Unsigned(3) k(3u);  Int(32) test() {  Unsigned(3) var = 3 cast;  x 0u = y 7u = z 3u cast = i 0u = j 7u = k 3u cast = var cast return } }
+Ue_P { Bool(1) b(false);  Unsigned(3) x(0u);  Unsigned(3) y(7u);  Unsigned(3) z(3u);  Unsigned(3) i(0u);  Unsigned(3) j(7u);  Unsigned(3) k(3u);  Int(32) test() {  Unsigned(3) var = 3 cast;  self x . 0u = self y . 7u = self z . 3u cast = self i . 0u = self j . 7u = self k . 3u cast = var cast return } }
 Uq_Q { typedef Unsigned(3) Foo;  <NOMAIN> }
 Uq_V { typedef Q Woof;  <NOMAIN> }
 #>P.ulam

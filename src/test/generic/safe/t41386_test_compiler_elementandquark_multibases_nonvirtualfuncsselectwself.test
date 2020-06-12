@@ -1,0 +1,134 @@
+## -*- mode:ulam -*-
+#=t41386_test_compiler_elementandquark_multibases_nonvirtualfuncsselectwself
+##
+## gen output: (w interleaved asserts )
+##   Bool(3) Arg: 0x0 (false)
+##   Bool(3) Arg: 0x0 (false)
+##   Bool(3) Arg: 0x0 (false)
+##   Bool(3) Arg: 0x7 (true)
+##   Bool(3) Arg: 0x7 (true)
+##   Bool(3) Arg: 0x7 (true)
+##
+#!
+Exit status: 0
+Ue_E4 +QBase4 { Bool(1) m_c4(true);  Bool(1) m_a4(true);  Bool(1) m_d4(true);  +QBase4< Bool(1) m_b4(false);  +QBase2< Bool(1) m_b2(false);  Unsigned(6) m_site2(4u);  +QBase1< Bool(1) m_b1(true); >> +QBase3< Bool(1) m_b3(true);  Unsigned(6) m_site3(5u);  :QBase2< Bool(1) m_b2(true);  Unsigned(6) m_site2(0u);  +QBase1< Bool(1) m_b1(false); >> ^QBase1< Bool(1) m_b1(false); >> ^QBase1< Bool(1) m_b1(true); >> ^QBase2< Bool(1) m_b2(false);  Unsigned(6) m_site2(9u);  +QBase1< Bool(1) m_b1(false); >> ^QBase3< Bool(1) m_b3(false);  Unsigned(6) m_site3(11u);  :QBase2< Bool(1) m_b2(false);  Unsigned(6) m_site2(0u);  +QBase1< Bool(1) m_b1(false); >> ^QBase1< Bool(1) m_b1(false); >> ^QBase1< Bool(1) m_b1(false); > Int(32) test() {  System s;  self m_c4 . self QBase2 . ( )isConnected . = s ( self m_c4 . cast )print . s ( self m_c4 . ! )assert . self m_a4 . self QBase3 . ( )isConnected . = s ( self m_a4 . cast )print . s ( self m_a4 . ! )assert . self m_d4 . self QBase4 . ( )isConnected . = s ( self m_d4 . cast )print . s ( self m_d4 . ! )assert . self QBase4 . ( )initSites . self m_c4 . self QBase2 . ( )isConnected . = s ( self m_c4 . cast )print . s ( self m_c4 . )assert . self m_a4 . self QBase3 . ( )isConnected . = s ( self m_a4 . cast )print . s ( self m_a4 . )assert . self m_d4 . self QBase4 . ( )isConnected . = s ( self m_d4 . cast )print . s ( self m_d4 . )assert . 0 cast return } }
+Uq_QBase4 +QBase2 +QBase3 { Bool(1) m_b4(false);  +QBase2< Bool(1) m_b2(false);  Unsigned(6) m_site2( 63u); > +QBase3< Bool(1) m_b3(false);  Unsigned(6) m_site3( 63u); > ^QBase1< Bool(1) m_b1(false); > <NOMAIN> }
+Uq_System { <NOMAIN> }
+Uq_QBase2 +QBase1 { Bool(1) m_b2(false);  Unsigned(6) m_site2( 63u);  +QBase1< Bool(1) m_b1(false); > <NOMAIN> }
+Uq_QBase3 : QBase2 { Bool(1) m_b3(false);  Unsigned(6) m_site3( 63u);  :QBase2< Bool(1) m_b2(false);  Unsigned(6) m_site2( 63u); > ^QBase1< Bool(1) m_b1(false); > <NOMAIN> }
+Uq_QBase1 { Bool(1) m_b1(false);  <NOMAIN> }
+##
+##       informed by t41311; here we want to pick a base class func instead,
+##       and change its data member (but which one? SHARED!); using self.
+##
+#>E4.ulam
+  ulam 5;
+element E4 +QBase4{
+  Bool m_c4;
+  Bool m_a4;
+  Bool m_d4;
+
+  virtual Void behave() { }
+
+  Int test()
+  {
+    System s;
+
+    m_c4 = self.QBase2.isConnected();
+    s.print(m_c4);
+    s.assert(!m_c4);
+
+    m_a4 = self.QBase3.isConnected();
+    s.print(m_a4);
+    s.assert(!m_a4);
+
+    m_d4 = self.QBase4.isConnected();
+    s.print(m_d4);
+    s.assert(!m_d4);
+
+    self.QBase4.initSites();
+
+    m_c4 = self.QBase2.isConnected();
+    s.print(m_c4);
+    s.assert(m_c4);
+
+    m_a4 = self.QBase3.isConnected();
+    s.print(m_a4);
+    s.assert(m_a4);
+
+    m_d4 = self.QBase4.isConnected();
+    s.print(m_d4);
+    s.assert(m_d4);
+
+    return 0;
+  }
+
+}
+
+#:QBase1.ulam
+    ulam 4;
+quark QBase1 {
+  Bool m_b1;
+  Bool isConnected(Unsigned(6) site)
+  {
+    return site != Unsigned(6).maxof && site != 0;
+  }
+
+
+}
+
+#:QBase2.ulam
+  ulam 4;
+quark QBase2 +QBase1 {
+  Bool m_b2;
+  virtual ARGB getColor(Unsigned s) { return super.getColor(s); }
+  Unsigned(6) m_site2 = Unsigned(6).maxof;
+  Bool isConnected()
+  {
+    return self.QBase1.isConnected(m_site2);
+  }
+}
+
+#:QBase3.ulam
+  ulam 4;
+quark QBase3 : QBase2{
+  Bool m_b3;
+  Unsigned(6) m_site3 = Unsigned(6).maxof;
+  Bool isConnected()
+  {
+    return self.QBase1.isConnected(m_site3);
+  }
+}
+
+#:QBase4.ulam
+  ulam 4;
+quark QBase4 + QBase2 + QBase3{
+  Bool m_b4;
+  Bool isConnected()
+  {
+    return self.QBase3.isConnected() && self.QBase2.isConnected();
+  }
+
+  Void initSites()
+  {
+    self.QBase3.m_site3 = 5;
+    self.QBase2.m_site2 = 4;
+  }
+}
+
+
+
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

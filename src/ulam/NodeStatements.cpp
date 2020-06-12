@@ -108,13 +108,13 @@ namespace MFM {
       m_nodeNext->printPostfix(fp);
   } //printPostfix
 
-  void NodeStatements::noteTypeAndName(s32 totalsize, u32& accumsize)
+  void NodeStatements::noteTypeAndName(UTI cuti, s32 totalsize, u32& accumsize)
   {
     assert(m_node);    //e.g. bad decl
-    m_node->noteTypeAndName(totalsize, accumsize);
+    m_node->noteTypeAndName(cuti, totalsize, accumsize);
 
     if(m_nodeNext)
-      m_nodeNext->noteTypeAndName(totalsize, accumsize);
+      m_nodeNext->noteTypeAndName(cuti, totalsize, accumsize);
   }
 
   void NodeStatements::genTypeAndNameEntryAsComment(File * fp, s32 totalsize, u32& accumsize)
@@ -254,6 +254,15 @@ namespace MFM {
     return rtntb;
   }
 
+  void NodeStatements::calcMaxIndexOfVirtualFunctionInOrderOfDeclaration(SymbolClass* csym, s32& maxidx)
+  {
+    m_node->calcMaxIndexOfVirtualFunctionInOrderOfDeclaration(csym, maxidx); //updates maxidx
+    if(m_nodeNext)
+      {
+	m_nodeNext->calcMaxIndexOfVirtualFunctionInOrderOfDeclaration(csym, maxidx);
+      }
+  }
+
   void NodeStatements::printUnresolvedVariableDataMembers()
   {
     m_node->printUnresolvedVariableDataMembers(); //updates offset
@@ -297,6 +306,13 @@ namespace MFM {
     m_node->genCodeToStoreInto(fp, uvpass);
     if(m_nodeNext)
       m_nodeNext->genCodeToStoreInto(fp, uvpass);
+  }
+
+  void NodeStatements::generateFunctionInDeclarationOrder(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
+  {
+    m_node->generateFunctionInDeclarationOrder(fp, declOnly, classtype);
+    if(m_nodeNext)
+      m_nodeNext->generateFunctionInDeclarationOrder(fp, declOnly, classtype);
   }
 
   void NodeStatements::genCodeExtern(File * fp, bool declOnly)

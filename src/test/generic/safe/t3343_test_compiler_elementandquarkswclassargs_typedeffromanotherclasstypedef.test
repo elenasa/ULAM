@@ -1,6 +1,5 @@
 ## -*- mode:ulam -*-
 #=t3343_test_compiler_elementandquarkswclassargs_typedeffromanotherclasstypedef
-#!
 ##
 ## gen output: (interleaved asserts)
 ## Unsigned Arg: 3
@@ -10,8 +9,9 @@
 ##
 ##      //Constants have explicit types
 ##
+#!
 Exit status: 3
-Ue_P { Unsigned(3) m_vwf(3u);  Bool(1) b1(true);  Bool(1) b2(true);  Int(32) test() {  System s;  Unsigned(3) var = ( )func;  s ( var cast )print . b1 var 3u cast == = s ( b1 )assert . Unsigned(3) var2 = ( var var )func;  s ( var2 cast )print . b2 var2 6u == = s ( b2 )assert . var cast return } }
+Ue_P { Unsigned(3) m_vwf(3u);  Bool(1) b1(true);  Bool(1) b2(true);  Int(32) test() {  System s;  Unsigned(3) var = self ( )func .;  s ( var cast )print . self b1 . var 3u cast == = s ( self b1 . )assert . Unsigned(3) var2 = self ( var var )func .;  s ( var2 cast )print . self b2 . var2 6u == = s ( self b2 . )assert . var cast return } }
 Uq_V { typedef Q(3) Woof;  <NOMAIN> }
 Uq_System { <NOMAIN> }
 Uq_Q(Int(32) s) { typedef Unsigned(UNKNOWN) Foo;  <NOMAIN> }

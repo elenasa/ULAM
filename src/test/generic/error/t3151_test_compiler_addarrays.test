@@ -2,7 +2,7 @@
 #=t3151_test_compiler_addarrays
 #!
 ./A.ulam:11:11: ERROR: Incompatible (nonscalar) types Int(32)[2] and Int(32)[2] for binary + ; Suggest writing a loop.
-./A.ulam:11:7: ERROR: Assignment is invalid; LHS: Int(32)[2]; RHS: erroneous.
+./A.ulam:11:7: ERROR: Assignment is invalid; LHS: unresolved; RHS: erroneous.
 Unrecoverable Program Type Label FAILURE.
 ##
 #>A.ulam

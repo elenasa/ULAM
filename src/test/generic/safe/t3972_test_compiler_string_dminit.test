@@ -6,8 +6,8 @@
 ##
 #!
 Exit status: 0
-Ue_A { Bool(1) b(true);  String(32) m_s("bar");  Int(32) test() {  SystemU3 su3;  Unsigned(8) asc = m_s 1 [];  b asc 97u == = su3 ( m_s )print . su3 ( b )assert . 0 cast return } }
-Uq_SystemU3 : System { :<> <NOMAIN> }
+Ue_A { Bool(1) b(true);  String(32) m_s("bar");  Int(32) test() {  SystemU3 su3;  Unsigned(8) asc = self m_s . 1 [];  self b . asc 97u == = su3 ( self m_s . )print . su3 ( self b . )assert . 0 cast return } }
+Uq_SystemU3 : System { :System<> <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t3927 except data member

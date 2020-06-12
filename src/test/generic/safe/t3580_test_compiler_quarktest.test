@@ -1,10 +1,10 @@
 ## -*- mode:ulam -*-
 #=t3580_test_compiler_quarktest
-#!
 ##
 ## 2 Exit Status when 2 test() methods; name quark's method something else for 1 Exit Status.
 ##
 ##
+#!
 Exit status: 0
 Exit status: 0
 Ue_R { Int(32) test() {  Ish myish;  myish ( )test . return } }

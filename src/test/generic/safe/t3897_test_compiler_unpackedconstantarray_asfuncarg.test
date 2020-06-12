@@ -6,7 +6,7 @@
 ##
 #!
 Exit status: 9
-Ue_A { Int(32) nineth(9);  typedef Int(32) BigSite[10];  constant Int(32)[10] cSite = { 0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9 };  Int(32) test() {  System s;  Int(32) site2[10] = cSite;  nineth ( cSite )func = s ( nineth )print . s ( nineth 9 cast == )assert . nineth return } }
+Ue_A { Int(32) nineth(9);  typedef Int(32) BigSite[10];  constant Int(32)[10] cSite = { 0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9 };  Int(32) test() {  System s;  Int(32) site2[10] = cSite;  self nineth . self ( cSite )func . = s ( self nineth . )print . s ( self nineth . 9 cast == )assert . self nineth . return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by 3896, passing a constant array as argument to func

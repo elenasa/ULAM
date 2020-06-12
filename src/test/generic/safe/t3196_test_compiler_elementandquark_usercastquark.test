@@ -1,11 +1,11 @@
 ## -*- mode:ulam -*-
 #=t3196_test_compiler_elementandquark_usercastquark
-#!
 ##      /* gen code output:
 ##	 Int(4) Arg: 0x7
 ##      */
+#!
 Exit status: 7
-Ue_Foo { System s();  Int(4) m_i(7);  Bar m_bar( Bool(1) val_b[3](false,true,false); );  Int(32) test() {  m_bar ( 1 cast )check = m_i m_bar ( )toInt . cast = s ( m_i )print . m_i cast return } }
+Ue_Foo { System s();  Int(4) m_i(7);  Bar m_bar( Bool(1) val_b[3](false,true,false); );  Int(32) test() {  self m_bar . self ( 1 cast )check . = self m_i . self m_bar . ( )toInt . cast = self s . ( self m_i . )print . self m_i . cast return } }
 Uq_System { <NOMAIN> }
 Uq_Bar { Bool(1) val_b[3](false,false,false);  <NOMAIN> }
 #>Foo.ulam

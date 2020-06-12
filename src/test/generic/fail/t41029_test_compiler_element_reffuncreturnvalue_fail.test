@@ -6,7 +6,7 @@
 ##
 #!
 Exit status: -1
-Ue_Foo { Int(4) m_i(3);  Bool(3) m_b(false);  Int(32) test() {  System s;  m_i 3 cast = Bool(3)& bref = ( )getanMB;  ( bref )check m_i cast return } }
+Ue_Foo { Int(4) m_i(3);  Bool(3) m_b(false);  Int(32) test() {  System s;  self m_i . 3 cast = Bool(3)& bref = self ( )getanMB .;  self ( bref )check . self m_i . cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t3630

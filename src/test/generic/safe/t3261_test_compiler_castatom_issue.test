@@ -2,7 +2,7 @@
 #=t3261_test_compiler_castatom_issue
 #!
 Exit status: 0
-Ue_Tu { Int(32) test() {  Tu t;  Atom(96) a = t cast;  ( t cast )func return } }
+Ue_Tu { Int(32) test() {  Tu t;  Atom(96) a = t cast;  self ( t cast )func . return } }
 #>Tu.ulam
   ulam 1;
 element Tu {

@@ -1,6 +1,5 @@
 ## -*- mode:ulam -*-
 #=t3328_test_compiler_elementwithclassparameters_self
-#!
 ##      // gen output:
 ##      //    Bool(3) Arg: 0x7 (true)
 ##      //    Bool(3) Arg: 0x0 (false)
@@ -8,8 +7,9 @@
 ##
 ##        unevaluable without assuming atoms as elements
 ##
+#!
 Exit status: 1
-Ue_R { System s();  Int(32) test() {  Atom(96) a;  S(1,2) s12;  s12 b2 . s12 ( )func . cast = s ( s12 b2 . )print . s12 b1 . s12 ( a )func . cast = s ( s12 b1 . )print . s12 b2 . cast return } }
+Ue_R { System s();  Int(32) test() {  Atom(96) a;  S(1,2) s12;  s12 b2 . s12 ( )func . cast = self s . ( s12 b2 . )print . s12 b1 . s12 ( a )func . cast = self s . ( s12 b1 . )print . s12 b2 . cast return } }
 Uq_System { <NOMAIN> }
 Ue_S(Int(32) x, Int(32) y) { Bool(UNKNOWN) b1(notready);  Bool(UNKNOWN) b2(notready);  <NOMAIN> }
 ##    //informed by t3255

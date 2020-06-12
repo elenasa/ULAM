@@ -11,7 +11,7 @@
 ##
 #!
 Exit status: 2
-Ue_Foo { Bool(1) first(false);  Int(32) fint(2);  Int(32) opfint(2);  Int(32) test() {  System s;  opfint ( )funcfoo ( 3 cast )operator+ . = s ( opfint )print . s ( opfint 5 cast == )assert . opfint ( )funcfoo ( 3 cast )operator- . = s ( opfint )print . s ( opfint -1 cast == )assert . opfint ( )funcfoo ( 4 cast )operator* . = s ( opfint )print . s ( opfint 8 cast == )assert . opfint ( )funcfoo ( 2 cast )operator/ . = s ( opfint )print . s ( opfint 1 cast == )assert . opfint ( )funcfoo ( 3 cast )operator+ . = s ( opfint )print . s ( opfint 5 cast == )assert . opfint ( )funcfoo ( 3 cast )operator% . = s ( opfint )print . s ( opfint 2 cast == )assert . opfint return } }
+Ue_Foo { Bool(1) first(false);  Int(32) fint(2);  Int(32) opfint(2);  Int(32) test() {  System s;  self opfint . self ( )funcfoo . ( 3 cast )operator+ . = s ( self opfint . )print . s ( self opfint . 5 cast == )assert . self opfint . self ( )funcfoo . ( 3 cast )operator- . = s ( self opfint . )print . s ( self opfint . -1 cast == )assert . self opfint . self ( )funcfoo . ( 4 cast )operator* . = s ( self opfint . )print . s ( self opfint . 8 cast == )assert . self opfint . self ( )funcfoo . ( 2 cast )operator/ . = s ( self opfint . )print . s ( self opfint . 1 cast == )assert . self opfint . self ( )funcfoo . ( 3 cast )operator+ . = s ( self opfint . )print . s ( self opfint . 5 cast == )assert . self opfint . self ( )funcfoo . ( 3 cast )operator% . = s ( self opfint . )print . s ( self opfint . 2 cast == )assert . self opfint . return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t41136, except lhs is a classref returned by a func call

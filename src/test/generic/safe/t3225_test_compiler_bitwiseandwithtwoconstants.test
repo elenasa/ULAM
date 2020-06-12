@@ -2,16 +2,16 @@
 #=t3225_test_compiler_bitwiseandwithtwoconstants
 #!
 Exit status: 2
-Ue_A { typedef Int(3) I;  Int(3) b(2);  Int(32) test() {  b 2u cast = b cast return } }
+Ue_A { typedef Int(3) I;  Int(3) b(2);  Int(32) test() {  self b . 2u cast = self b . cast return } }
 #>A.ulam
-ulam 1;
- element A {
-typedef Int(3) I;
- I b;
- Int test() {
-b = (I) (3 & 2);
-return b;
-}
+  ulam 1;
+element A {
+  typedef Int(3) I;
+  I b;
+  Int test() {
+    b = (I) (3 & 2);
+    return b;
+  }
 }
 
 ##      // as two constants (see t3227 for one constant)

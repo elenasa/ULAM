@@ -27,7 +27,7 @@
 
 /**
   \file NodeUnaryOp.h -  Basic Node handling Unary Operations for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
   \date (C) 2014-2017   All rights reserved.
   \gpl

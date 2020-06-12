@@ -27,7 +27,7 @@
 
 /**
   \file SymbolTableOfVariables.h - Handling of Table of Variable, Typedef and Constant Symbols for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
   \date (C) 2014-2018 All rights reserved.
   \gpl
@@ -70,14 +70,9 @@ namespace MFM{
 
     //void packBitsForTableOfVariableDataMembers();  //after type labeling, before code gen
 
-    s32 findPosOfUlamTypeInTable(UTI utype, UTI& insidecuti);
-
-    void genCodeForTableOfVariableDataMembers(File * fp, ULAMCLASSTYPE classtype);  //(unused)
-
     void genModelParameterImmediateDefinitionsForTableOfVariableDataMembers(File *fp);
 
     void printPostfixValuesForTableOfVariableDataMembers(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype);
-
 
   protected:
 

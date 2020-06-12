@@ -6,15 +6,21 @@
 
 namespace MFM {
 
-  UVPass::UVPass() : m_varNum(0), m_posInStorage(0), m_bitlenInStorage(0), m_storagetype(TMPREGISTER), m_packed(UNPACKED), m_targetType(Nouti), m_nameid(0) { }
+  UVPass::UVPass() : m_varNum(0), m_posInStorage(0), m_applyDelta(false), m_bitlenInStorage(0), m_storagetype(TMPREGISTER), m_packed(UNPACKED), m_targetType(Nouti), m_nameid(0) { }
 
   UVPass::~UVPass() { }
 
   UVPass UVPass::makePass(u32 varnum, TMPSTORAGE storage, UTI targetType, PACKFIT packed, CompilerState& state, u32 pos, u32 id)
   {
+    return UVPass::makePass(varnum, storage, targetType, packed, state, pos, false, id);
+  }
+
+  UVPass UVPass::makePass(u32 varnum, TMPSTORAGE storage, UTI targetType, PACKFIT packed, CompilerState& state, u32 pos, bool applydelta, u32 id)
+  {
     UVPass rtnUV; //static method
     rtnUV.m_varNum = varnum;
     rtnUV.m_posInStorage = pos;
+    rtnUV.m_applyDelta = applydelta;
 
     //NOTE: 'len' of a packed-array,
     //       becomes the total size (bits * arraysize);
@@ -66,6 +72,13 @@ namespace MFM {
     return;
   }
 
+  void UVPass::setPassPosForced(u32 pos)
+  {
+    //assert((pos <= getPassLen()));
+    m_posInStorage = pos;
+    return;
+  }
+
   void UVPass::setPassPosForElementType(u32 pos, CompilerState& state)
   {
     //t3968 element dm in transient can have pos > 96
@@ -83,6 +96,16 @@ namespace MFM {
   u32 UVPass::getPassLen() const
   {
     return m_bitlenInStorage;
+  }
+
+  bool UVPass::getPassApplyDelta() const
+  {
+    return m_applyDelta;
+  }
+
+  void UVPass::setPassApplyDelta(bool apply)
+  {
+    m_applyDelta = apply;
   }
 
   UTI UVPass::getPassTargetType() const

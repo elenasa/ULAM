@@ -28,7 +28,7 @@
 
 /**
   \file NodeSquareBracket.h - Basic Node for handling Array Subscripts for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
   \date (C) 2014-2018  All rights reserved.
   \gpl
@@ -98,6 +98,8 @@ namespace MFM{
 
   protected:
 
+    virtual Node * buildOperatorOverloadFuncCallNode();
+
   private:
     bool m_isCustomArray;
     SymbolTmpVar * m_tmpvarSymbol;
@@ -114,8 +116,6 @@ namespace MFM{
     virtual UTI calcNodeType(UTI lt, UTI rt); //stub
 
     void genCodeAUserStringByte(File * fp, UVPass& uvpass);
-
-    virtual Node * buildOperatorOverloadFuncCallNode();
 
     bool getConstantArrayItemValue(BV8K& bvitem);
   };

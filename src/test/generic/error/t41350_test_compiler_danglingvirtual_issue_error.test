@@ -1,0 +1,23 @@
+## -*- mode:ulam -*-
+#=t41350_test_compiler_danglingvirtual_issue_error
+#!
+./MIBondable.ulam:3:3: ERROR: Expecting Type of data member/function (or, in the midst of errors); Got <virtual>.
+Unrecoverable Program Parse FAILURE: <MIBondable.ulam>
+##
+## Issue reported by Dave 9/14/19: There was no error. Normal?
+##
+#>Bond.ulam
+  ulam 4;
+element Bond {
+  Int test() {
+    return 0;
+  }
+}
+
+#:MIBondable.ulam
+  ulam 4;
+quark MIBondable {
+  virtual
+    }
+
+#.

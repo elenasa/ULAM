@@ -343,8 +343,22 @@ namespace MFM {
 
     UlamValue pluv = m_state.m_nodeEvalStack.popArg();
     assert(m_state.isPtr(pluv.getUlamValueTypeIdx()));
-    ((SymbolVariableStack *) m_varSymbol)->setAutoPtrForEval(pluv); //for future ident eval uses
-    ((SymbolVariableStack *) m_varSymbol)->setAutoStorageTypeForEval(m_nodeInitExpr->getNodeType()); //for future virtual function call eval uses
+
+    UTI autostgtype = m_state.m_currentAutoStorageType; //if not Nouti, pre-cast type to sub
+    if(m_state.okUTItoContinue(autostgtype))
+      {
+	UlamValue autopluv = m_state.m_currentAutoObjPtr;  //pre-cast ptr to subclass
+	((SymbolVariableStack *) m_varSymbol)->setAutoPtrForEval(autopluv); //for future ident eval uses
+	((SymbolVariableStack *) m_varSymbol)->setAutoStorageTypeForEval(autostgtype); //for future virtual function call eval uses
+
+	m_state.m_currentAutoObjPtr = UlamValue(); //wipeout
+	m_state.m_currentAutoStorageType = Nouti; //clear
+      }
+    else
+      {
+	((SymbolVariableStack *) m_varSymbol)->setAutoPtrForEval(pluv); //for future ident eval uses
+	((SymbolVariableStack *) m_varSymbol)->setAutoStorageTypeForEval(m_nodeInitExpr->getNodeType()); //for future virtual function call eval uses
+      }
 
     m_state.m_funcCallStack.storeUlamValueInSlot(pluv, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex()); //doesn't seem to matter..
 
@@ -385,6 +399,9 @@ namespace MFM {
     //reference always has initial value, unless func param
     assert(m_varSymbol->isAutoLocal());
     assert(m_varSymbol->getAutoLocalType() != ALT_AS);
+
+    UVPass uvpass2clear;
+    uvpass = uvpass2clear; //refresh (t3804);
 
     if(hasInitExpr())
       {

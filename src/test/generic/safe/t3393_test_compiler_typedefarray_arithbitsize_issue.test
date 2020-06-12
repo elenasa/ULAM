@@ -2,7 +2,7 @@
 #=t3393_test_compiler_typedefarray_arithbitsize_issue
 #!
 Exit status: 7
-Ue_B { typedef Unsigned(2) Slot;  typedef Unsigned(8) Index;  typedef Unsigned(8) IndArr[4];  Unsigned(8) arr[4](0u,7u,0u,0u);  Int(32) test() {  ( 1 cast 7u cast )hit arr 1 [] cast return } }
+Ue_B { typedef Unsigned(2) Slot;  typedef Unsigned(8) Index;  typedef Unsigned(8) IndArr[4];  Unsigned(8) arr[4](0u,7u,0u,0u);  Int(32) test() {  self ( 1 cast 7u cast )hit . self arr . 1 [] cast return } }
 ##
 ##      // with renames of typedefs, and arrays based on typedef
 #>B.ulam

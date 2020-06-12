@@ -1,0 +1,66 @@
+## -*- mode:ulam -*-
+#=t41343_test_compiler_elementandquarkwargs_selfascond_error
+#!
+./Eltypo.ulam:14:7: ERROR: Variable 'first' is not defined, or was used before declared in a function.
+./Eltypo.ulam:14:13: ERROR: Assignment is invalid; LHS: erroneous; RHS: Unsigned(3).
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by 3821, as 'self' when implicit self provided
+##
+#:Typo.ulam
+  ulam 2;
+use Bar;
+quark Typo(Int a) : Bar{
+}
+
+#:Bar.ulam
+  ulam 2;
+quark Bar
+{
+  Unsigned(3) bu = 7u;
+  Void func(Unsigned u)
+  {
+    bu = (Unsigned(3)) u;
+  }
+}
+
+#>Eltypo.ulam
+  ulam 2;
+use Typo;
+use System;
+element Eltypo : Typo(1) {
+  Unsigned(3) first;
+  Unsigned(3) second;
+  Typo(1) t;
+  Int test(){
+    System s;
+    if(self as Bar){
+      func(3u); //modifies 'bu'
+      s.print(bu);
+      s.assert(bu == 3);
+      first = bu; //first not in Bar <--
+    }
+    else
+      s.assert(false);
+
+    s.print(self.bu);
+    s.assert(self.bu == 3);
+    s.print(first);
+    s.assert(first == 3);
+    second = self.bu; //3u, from 7u
+    return second;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

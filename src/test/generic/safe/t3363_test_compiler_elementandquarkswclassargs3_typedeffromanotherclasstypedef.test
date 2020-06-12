@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3363_test_compiler_elementandquarkswclassargs3_typedeffromanotherclasstypedef
-#!
 ##      //Constants have explicit types
+#!
 Exit status: 96
 Ue_R { Int(32) test() {  typedef P(3) Foo;  P(3) pvar;  96u cast return } }
 Uq_V { typedef Q(3) Woof;  <NOMAIN> }

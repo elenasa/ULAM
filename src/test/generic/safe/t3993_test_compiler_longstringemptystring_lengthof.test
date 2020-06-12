@@ -7,7 +7,7 @@
 ##
 #!
 Exit status: 255
-Ue_Foo { Bool(1) sp(false);  Unsigned(32) slen(0u);  Unsigned(32) slen2(255u);  Int(32) test() {  System s;  String(32) lstr = "";  slen 0u = s ( slen )print . s ( slen 0u cast == )assert . slen2 255u = s ( slen2 )print . s ( slen2 255u cast == )assert . 255u cast return } }
+Ue_Foo { Bool(1) sp(false);  Unsigned(32) slen(0u);  Unsigned(32) slen2(255u);  Int(32) test() {  System s;  String(32) lstr = "";  self slen . 0u = s ( self slen . )print . s ( self slen . 0u cast == )assert . self slen2 . 255u = s ( self slen2 . )print . s ( self slen2 . 255u cast == )assert . 255u cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t3992

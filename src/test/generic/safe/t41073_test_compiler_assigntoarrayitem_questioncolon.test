@@ -8,7 +8,7 @@
 ##
 #!
 Exit status: 0
-Ue_A { Bool(1) ok(true);  Int(3) a[4](0,0,0,2);  Int(32) d(0);  Int(32) test() {  System s;  Int(3) b[4];  ok ?  a 1 [] :  b 2 [] 1 cast = s ( b 2 [] )print . s ( b 2 [] 1 cast == )assert . ok true = ok ?  a 3 [] :  b 0 [] 2 = s ( a 3 [] )print . s ( a 3 [] 2 == )assert . Qbar qb;  ok ?  qb ( 0 cast )aref . :  qb ( 1 cast )aref . 3 = s ( qb ( 0 cast )aref . cast )print . s ( qb ( 0 cast )aref . cast 3 == )assert . 0 cast return } }
+Ue_A { Bool(1) ok(true);  Int(3) a[4](0,0,0,2);  Int(32) d(0);  Int(32) test() {  System s;  Int(3) b[4];  self ok . ?  self a . 1 [] :  b 2 [] 1 cast = s ( b 2 [] )print . s ( b 2 [] 1 cast == )assert . self ok . true = self ok . ?  self a . 3 [] :  b 0 [] 2 = s ( self a . 3 [] )print . s ( self a . 3 [] 2 == )assert . Qbar qb;  self ok . ?  qb ( 0 cast )aref . :  qb ( 1 cast )aref . 3 = s ( qb ( 0 cast )aref . cast )print . s ( qb ( 0 cast )aref . cast 3 == )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 Uq_Qbar { Int(3) c[4](0,0,0,0);  <NOMAIN> }
 ##

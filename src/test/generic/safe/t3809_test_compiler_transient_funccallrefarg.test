@@ -1,12 +1,12 @@
 ## -*- mode:ulam -*-
 #=t3809_test_compiler_transient_funccallrefarg
-#!
 ##      gen code output: (1 asserts)
 ##
+#!
 Exit status: 0
-Ue_R { Bool(1) b(true);  Int(32) test() {  System s;  A at;  QW qw;  b qw ( at cast )func . = s ( b )assert . 0 cast return } }
+Ue_R { Bool(1) b(true);  Int(32) test() {  System s;  A at;  QW qw;  self b . qw ( at cast )func . = s ( self b . )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
-Un_A : QW { :<> Bool(7) sp(false);  <NOMAIN> }
+Un_A : QW { Bool(7) sp(false);  :QW<> <NOMAIN> }
 Uq_QW { <NOMAIN> }
 ##
 ## Dave requested a way to get default values for Self (within a quark);

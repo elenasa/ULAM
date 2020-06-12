@@ -2,9 +2,10 @@
 #=t3280_test_compiler_voidfuncreturnsbool_error
 #!
 ./Tu.ulam:5:5: ERROR: Cannot return non-void expression in a function returning void, unless explicit cast is used for side-effects.
-./Tu.ulam:8:8: ERROR: Void is not a supported type for binary |=.
-./Tu.ulam:9:5: ERROR: Use explicit cast to return Bool(3) as Int(32).
 Unrecoverable Program Type Label FAILURE.
+##
+##./Tu.ulam:8:8: ERROR: Void is not a supported type for binary |=.
+##./Tu.ulam:9:5: ERROR: Use explicit cast to return Bool(3) as Int(32).
 ##
 #>Tu.ulam
   ulam 1;

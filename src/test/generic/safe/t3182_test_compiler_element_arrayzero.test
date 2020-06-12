@@ -1,28 +1,28 @@
 ## -*- mode:ulam -*-
 #=t3182_test_compiler_element_arrayzero
-#!
 ##      /* gen code output:
 ##	 Bool(3) Arg: 0x7 (true)
 ##      */
+#!
 Exit status: 1
-Ue_Foo { System s();  Bool(3) m_b(true);  Int(4) m_i[0]( );  Int(32) test() {  m_b ( true )check cast = s ( m_b )print . m_b cast return } }
+Ue_Foo { System s();  Bool(3) m_b(true);  Int(4) m_i[0]( );  Int(32) test() {  self m_b . self ( true )check . cast = self s . ( self m_b . )print . self m_b . cast return } }
 Uq_System { <NOMAIN> }
 #>Foo.ulam
-ulam 1;
+  ulam 1;
 use System;
- element Foo {
-System s;
- Bool(3) m_b;
- Int(4) m_i[0];
- Bool check(Bool b) {
- return b /* true */;
- }
- Int test() {
- m_b = check(true);
-s.print(m_b);
- return (Int) m_b;
- }
- }
+element Foo {
+  System s;
+  Bool(3) m_b;
+  Int(4) m_i[0];
+  Bool check(Bool b) {
+    return b /* true */;
+  }
+  Int test() {
+    m_b = check(true);
+    s.print(m_b);
+    return (Int) m_b;
+  }
+}
 
 #:System.ulam
 ulam 1;

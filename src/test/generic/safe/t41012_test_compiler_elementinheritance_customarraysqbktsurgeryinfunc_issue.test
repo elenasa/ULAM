@@ -7,8 +7,8 @@
 Exit status: -11
 Ue_R { Int(32) test() {  System s;  Foo f;  f ( )behave . 0 cast return } }
 Uq_System { <NOMAIN> }
-Ue_Foo : Intermediate("woof") { :< :<>> Bool(7) sp(false);  System s();  <NOMAIN> }
-Uq_Intermediate(String(32) string) : Base { :<> <NOMAIN> }
+Ue_Foo : Intermediate("woof") { Bool(7) sp(false);  System s();  :Intermediate("woof")<> ^Base<> <NOMAIN> }
+Uq_Intermediate(String(32) string) : Base { :Base<> <NOMAIN> }
 Uq_EventWindow { <NOMAIN> }
 Uq_Base { <NOMAIN> }
 ##

@@ -7,7 +7,7 @@
 ##
 #!
 Exit status: 3
-Ue_Foo : QW { :< Int(4) m_i(0); > Bool(1) first(false);  Int(32) fint(0);  Int(32) opfint(0);  Int(32) test() {  System s;  Foo f;  f m_i . 4 = s ( f ( 2 cast )operator+= . )print . s ( f m_i . 6 == )assert . s ( f ( 3 cast )operator-= . )print . s ( f m_i . 3 cast == )assert . f m_i . cast return } }
+Ue_Foo : QW { Bool(1) first(false);  Int(32) fint(0);  Int(32) opfint(0);  :QW< Int(4) m_i(0); > Int(32) test() {  System s;  Foo f;  f m_i . 4 = s ( f ( 2 cast )operator+= . )print . s ( f m_i . 6 == )assert . s ( f ( 3 cast )operator-= . )print . s ( f m_i . 3 cast == )assert . f m_i . cast return } }
 Uq_QW { Int(4) m_i(0);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

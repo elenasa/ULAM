@@ -1,22 +1,23 @@
 ## -*- mode:ulam -*-
 #=t3293_test_compiler_typebitsize_minmaxsizeof
-#!
 ##      /* gen code output: array size (3 x 3):
 ##	 Unsigned Arg: 9
 ##      */
 ##
+#!
 Exit status: 0
-Ue_B { System s();  Int(32) test() {  Int(3) arr[3];  s ( 9u )print . 0 cast return } }
+Ue_B { System s();  Int(32) test() {  Int(3) arr[3];  self s . ( 9u )print . 0 cast return } }
 Uq_System { <NOMAIN> }
 #>B.ulam
+  ulam 1;
 use System;
 element B {
-System s;
-Int test(){
-  Int(Int(3).maxof) arr[Int(3).maxof];
-  s.print(arr.sizeof);
-  return 0;
-}
+  System s;
+  Int test(){
+    Int(Int(3).maxof) arr[Int(3).maxof];
+    s.print(arr.sizeof);
+    return 0;
+  }
 }
 
 ##

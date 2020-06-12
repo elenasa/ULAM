@@ -2,7 +2,7 @@
 #=t3123_test_compiler_funcdef_returnsarray
 #!
 Exit status: 1
-Ue_A { typedef Int(16) Foo[2];  Int(16) d[2](1,0);  Int(32) test() {  Bool(1) mybool;  mybool true = d ( mybool )foo = d 0 [] cast return } }
+Ue_A { typedef Int(16) Foo[2];  Int(16) d[2](1,0);  Int(32) test() {  Bool(1) mybool;  mybool true = self d . self ( mybool )foo . = self d . 0 [] cast return } }
 #>A.ulam
   ulam 1;
 element A {

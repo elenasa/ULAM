@@ -1,8 +1,8 @@
 ## -*- mode:ulam -*-
 #=t3230_test_compiler_elementandquarkarray_elementLocal
-#!
 ## Note: An array of Bars does not use custom array methods in Bar
 ##
+#!
 Exit status: -11
 Ue_Foo { Bool(1) b[3](false,false,false);  System s();  Int(4) m_i(0);  Int(32) test() {  Poo spoon;  Bar boo;  boo spoon mbar 0 [] . = spoon mbar 1 [] . boo = Atom(96) a;  a spoon sbar ( 0 cast )aref . . = spoon sbar ( 1 cast )aref . . a = 0 cast return } }
 Uq_System { <NOMAIN> }

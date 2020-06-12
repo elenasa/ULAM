@@ -1,0 +1,106 @@
+## -*- mode:ulam -*-
+#=t41388_test_compiler_elementandquark_multibases_nonvirtualfuncandDMselectwselfandclassid_error
+#!
+./E4.ulam:13:42: ERROR: Member selected by classId must be a VIRTUAL function, not 'isConnected'.
+./E4.ulam:13:10: ERROR: Assignment is invalid; LHS: Bool(1); RHS: erroneous.
+./E4.ulam:15:43: ERROR: Member selected by classId must be a virtual function, not data member 'm_site2'; data members cannot be shadowed by related subclasses.
+./E4.ulam:15:7: ERROR: Argument 1 has a problem.
+Unrecoverable Program Type Label FAILURE.
+##
+##       informed by t41386; except using non-virtual func and data member
+##
+#>E4.ulam
+  ulam 5;
+element E4 +QBase4{
+  Bool m_c4;
+  Bool m_a4;
+  Bool m_d4;
+
+  virtual Void behave() { }
+
+  Int test()
+  {
+    System s;
+    //m_c4 = self.QBase2.isConnected();
+    m_c4 = self.QBase1[QBase2.classidof].isConnected();
+
+    s.print(self.QBase1[QBase2.classidof].m_site2);
+
+    return 0;
+  }
+
+}
+
+#:QBase1.ulam
+    ulam 4;
+quark QBase1 {
+  Bool m_b1;
+
+  //included for error test purposes; o.w. not defined error supercedes.
+  Bool isConnected()
+  {
+    return false;
+  }
+
+  Bool isConnected(Unsigned(6) site)
+  {
+    return site != Unsigned(6).maxof && site != 0;
+  }
+}
+
+#:QBase2.ulam
+  ulam 4;
+quark QBase2 +QBase1 {
+  Bool m_b2;
+  virtual ARGB getColor(Unsigned s) { return super.getColor(s); }
+  Unsigned(6) m_site2 = Unsigned(6).maxof;
+
+  Bool isConnected()
+  {
+    return self.QBase1.isConnected(m_site2);
+  }
+}
+
+#:QBase3.ulam
+  ulam 4;
+quark QBase3 : QBase2{
+  Bool m_b3;
+  Unsigned(6) m_site3 = Unsigned(6).maxof;
+
+  Bool isConnected()
+  {
+    return self.QBase1.isConnected(m_site3);
+  }
+}
+
+#:QBase4.ulam
+  ulam 4;
+quark QBase4 + QBase2 + QBase3{
+  Bool m_b4;
+
+  Bool isConnected()
+  {
+    return self.QBase3.isConnected() && self.QBase2.isConnected();
+  }
+
+  Void initSites()
+  {
+    self.QBase3.m_site3 = 5;
+    self.QBase2.m_site2 = 4;
+  }
+}
+
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

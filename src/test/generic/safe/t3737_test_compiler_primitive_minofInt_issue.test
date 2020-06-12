@@ -1,10 +1,10 @@
 ## -*- mode:ulam -*-
 #=t3737_test_compiler_primitive_minofInt_issue
-#!
 ##  gen code output: (+ asserts)
 ##    Int Arg: -2147483648
 ##    Unsigned Arg: 1
 ##
+#!
 Exit status: 32
 Ue_Fu { Int(32) test() {  System s;  Int(32) mini = -2147483648;  s ( mini )print . s ( mini cast HexU64(0xffffffff, 0x80000000) == )assert . Int(1) zero = 0u cast;  s ( 1u )print . s ( true )assert . 32u cast return } }
 Uq_System { <NOMAIN> }

@@ -1,6 +1,21 @@
-ulam 3;
+ulam 5;
 
+/**
+   ByteStream, an ulam-5 multiple-inheritance-based byte stream abstraction
+ */
 quark ByteStream {
+
+  /* There isn't much here at present, but IO-agnostic format controls
+     and such could eventually go here */
+
+  Fail mFail; //< An object everybody can fail on
+
+  constant String cFAIL_UNSUP = "UNSUPPORTED OPERATION";
+  constant String cFAIL_ILARG = "ILLEGAL ARGUMENT";
+
+}
+
+quark ByteStreamReader +ByteStream {
 
   /**
      Attempt to read the next byte from the stream.  Return value >= 0
@@ -8,19 +23,19 @@ quark ByteStream {
      value of -2 means no bytes are immediately available (but some
      might be later), and a return value <= -3 means some (reasonably)
      permanent error condition occurred.
-
-     Subclasses of ByteStream that do not support input will FAIL with
-     UNSUPPORTED_OPERATION if this method is invoked.  canRead() can
-     be called to determine if that will happen.
    */
-  virtual Int readByte() 
-  {
-    Fail f;
-    f.fail("UNSUPPORTED_OPERATION");
-    return -3;
-  }
+  virtual Int readByte() ;
 
-  virtual Bool canRead() ;
+  virtual Bool canReread() { return false; }
+
+  virtual Void reread() { mFail.fail(cFAIL_UNSUP); }
+}
+
+quark ByteStreamWriter +ByteStream {
+
+  virtual Bool canRewrite() { return false; }
+
+  virtual Void rewrite() { mFail.fail(cFAIL_UNSUP); }
 
   /**
      Attempt to write the byte x to the stream.  Return value == 0
@@ -29,22 +44,17 @@ quark ByteStream {
      now (but output might be possible later), and a return value <=
      -3 means some (reasonably) permanent error condition occurred.
 
-     Subclasses of ByteStream that do not support output will FAIL
-     with UNSUPPORTED_OPERATION if this method is invoked.  canWrite()
-     can be called to determine if that will happen.
    */
-  virtual Int writeByte(ASCII x) 
-  {
-    Fail f;
-    f.fail("UNSUPPORTED_OPERATION");
-    return -3;
-  }
-
-  virtual Bool canWrite() ;
+  virtual Int writeByte(ASCII x) ;
 
   /////
   // OUTPUT ROUTINES
   //
+
+  Self & printChar(ASCII byte) {
+    writeByte(byte);
+    return self;
+  }
 
   Self & print(String s)
   {
@@ -64,17 +74,22 @@ quark ByteStream {
     return self;
   }
 
+  Self & print(Unsigned n)
+  {
+    return print(n,10u);
+  }
+
   Self & print(Unsigned n, Unsigned base)
   {
     if (n == 0u) return print("0");
     if (base == 0u) base = 10u;
 
     String c = "0123456789abcdefghijklmnopqrstuvwxyz";
-    if (base < 2u || base >= c.lengthof) { Fail f; f.fail(); }
+    if (base < 2u || base >= c.lengthof) mFail.fail(cFAIL_ILARG);
 
     if (n >= base) print(n/base,base);
 
-    writeByte(c[n]);
+    writeByte(c[n%base]);
 
     return self;
   }
@@ -89,15 +104,13 @@ quark ByteStream {
     return print((Unsigned) n, 10u);
   }
 
-  virtual Unsigned writeBytes(ByteStream & r)
+  virtual Unsigned writeBytes(ByteStreamReader & r)
   {
     return writeBytes(r, Unsigned.maxof);
   }
 
-  virtual Unsigned writeBytes(ByteStream & r, Unsigned max)
+  virtual Unsigned writeBytes(ByteStreamReader & r, Unsigned max)
   {
-    if (!r.canRead()) return 0;
-
     for (Unsigned i = 0; i < max; ++i)
     {
       Int ch = r.readByte();
@@ -116,4 +129,24 @@ quark ByteStream {
 
   Self & printf(String format, ...) native ;
 
+}
+
+quark ByteStreamReaderWriter +ByteStreamReader +ByteStreamWriter {
+}
+
+
+quark ByteStreamNull + ByteStreamReaderWriter {
+
+  @Override
+  virtual Int readByte() { return -1; } // immediate EOF
+
+  @Override
+  virtual Bool canRewrite() { return true; } // can rewrite but does nothing
+
+  @Override
+  virtual Void rewrite() {  } // ignored
+
+  @Override
+  virtual Int writeByte(ASCII x) { return 0; } // 0 == 'byte written'
+  
 }

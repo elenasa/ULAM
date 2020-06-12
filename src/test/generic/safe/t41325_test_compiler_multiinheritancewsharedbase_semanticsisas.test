@@ -1,0 +1,155 @@
+## -*- mode:ulam -*-
+#=t41325_test_compiler_multiinheritancewsharedbase_semanticsisas
+##
+## gen output
+## Int(3) Arg: 0x7
+## assert: arg is 1
+## after asserts abort: arg is 1
+## assert: arg is 1
+## after asserts abort: arg is 1
+## Int(4) Arg: 0x2
+## assert: arg is 1
+## after asserts abort: arg is 1
+## Int(4) Arg: 0xc
+## assert: arg is 1
+## after asserts abort: arg is 1
+## Int(3) Arg: 0x1
+## assert: arg is 1
+## after asserts abort: arg is 1
+## Int(3) Arg: 0x7
+## Int(3) Arg: 0x7
+## Int(3) Arg: 0x1
+## Int(3) Arg: 0x1
+## Int(4) Arg: 0x4
+## assert: arg is 1
+## after asserts abort: arg is 1
+## Int(3) Arg: 0x2
+## assert: arg is 1
+## after asserts abort: arg is 1
+## Int(3) Arg: 0x2
+## Int(3) Arg: 0x2
+## Int(3) Arg: 0x7
+## Int(3) Arg: 0x7
+##
+#!
+Exit status: -11
+Ue_R { Int(32) test() {  System s;  Foo f;  f ( )behave . 0 cast return } }
+Uq_System { <NOMAIN> }
+Ue_Foo : Secondary +Intermediate { Bool(7) sp(false);  System s();  :Secondary< Bool(1) m_b2(false); > +Intermediate< Int(4) m_i4( 2);  Int(4) m_a4( 3); > ^Base< Bool(1) bsp( true);  Int(3) m_i3( -1); > <NOMAIN> }
+Uq_Secondary +Base { Bool(1) m_b2(false);  +Base< Bool(1) bsp( true);  Int(3) m_i3( -1); > <NOMAIN> }
+Uq_Intermediate +Base { Int(4) m_i4( 2);  Int(4) m_a4( 3);  +Base< Bool(1) bsp( true);  Int(3) m_i3( -1); > <NOMAIN> }
+Uq_Base { Bool(1) bsp( true);  Int(3) m_i3( -1);  <NOMAIN> }
+##
+## informed by t41319, with shared bases
+##
+#>R.ulam
+  ulam 3;
+element R {
+  Int test() {
+    System s;
+    Foo f;
+    f.behave();
+    return 0;
+  }
+}
+
+#:Foo.ulam
+  ulam 5;
+element Foo : Secondary +Intermediate {
+  Bool(7) sp;
+  System s;
+  Void behave()
+  {
+    Foo other;
+
+    s.print(self.Intermediate.m_i3); //shared ==-1 (0x7)
+    s.assert(self.Intermediate.m_i3==-1); //shared ==-1 (0x7)
+    s.assert(m_i3==-1); //shared ==-1 (0x7)
+
+    s.print(m_i4); //Intermediate ==2, default
+    s.assert(m_i4 == 2);
+
+    if(!checkis(other)) //should absolute be true, right?
+      s.assert(false);
+
+    s.print(m_i4); //Intermediate ==-4 (0xc)unchanged
+    s.assert(m_i4 == -4);
+
+    s.print(other.m_i3); //shared changed == 1
+    s.assert(other.m_i3 == 1);
+
+    s.print(self.Secondary.m_i3); //in shared Base, unchanged == -1 (0x7)
+    s.print(self.Intermediate.m_i3); //in shared Base, unchanged == -1 (0x7)
+    s.print(other.Secondary.m_i3); //shared changed == 1
+    s.print(other.Intermediate.m_i3); //shared changed == 1
+
+
+    if(!checkas(other)) //should absolute be true, right?
+      s.assert(false);
+    s.print(m_a4);
+    s.assert(m_a4 == 4);
+
+    s.print(other.m_i3); //shared changed == 2
+    s.assert(other.Intermediate.m_i3 == 2);
+
+    s.print(other.Secondary.m_i3); //shared changed ==2
+    s.print(other.Intermediate.m_i3); //shared changed == 2
+    s.print(self.Secondary.m_i3); //in shared Base, unchanged == -1 (0x7)
+    s.print(self.Intermediate.m_i3); //in shared Base, unchanged == -1 (0x7)
+  }
+}
+
+#:Intermediate.ulam
+  ulam 5;
+quark Intermediate +Base
+{
+  Int(4) m_i4 = 2;
+  Int(4) m_a4 = 3;
+  virtual Bool checkis(Base& base) {
+    if (base is Self) {
+      m_i4 = -4;
+      base.m_i3 = 1;
+      return true;
+    }
+    return false;
+  }
+
+  virtual Bool checkas(Base& base) {
+    if (base as Self) {
+      m_a4 = 4;
+      base.m_i3 = 2;
+      return true;
+    }
+    return false;
+  }
+}
+
+#:Secondary.ulam
+  ulam 5;
+quark Secondary +Base
+{
+  Bool m_b2;
+}
+
+#:Base.ulam
+  ulam 3;
+quark Base
+{
+  Bool bsp = true;
+  Int(3) m_i3 = -1;
+  virtual Bool checkis(Base& base) { return false; }
+  virtual Bool checkas(Base& base) { return false; }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

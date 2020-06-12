@@ -1,19 +1,19 @@
 ## -*- mode:ulam -*-
 #=t3207_test_compiler_elementandquark_inside_a_quark
-#!
 ## output of generated code compiled with:
 ## g++ -ansi -Wall -pedantic -c Ue_102283Foo_main.cpp
 ## g++ -ansi -Wall -pedantic -o main Ue_102283Foo_main.cpp
 ## ./main
 ##
-##Int Arg: -1
-##Int(4) Arg: 0xf
-##Unsigned Arg: 3
-##Unsigned Arg: 0
-##Int(4) Arg: 0x4    (changed from 3 to 4 with modification to Int(4) and <<2
-##Int Arg: 4
+## Int Arg: -1
+## Int(4) Arg: 0xf
+## Unsigned Arg: 3
+## Unsigned Arg: 0
+## Int(4) Arg: 0x4    (changed from 3 to 4 with modification to Int(4) and <<2
+## Int Arg: 4
+#!
 Exit status: -1
-Ue_Foo { Bool(1) b(false);  System m_s();  Gah m_gah( Bool(1) b(false);  System m_s();  Int(4) a(4);  Int(4) d(4); );  Int(4) i(0);  Int(4) j(-1);  Bar m_bar( Bool(1) b(true);  System m_s();  Unsigned(3) x(3u);  Unsigned(3) y(0u);  Gah m_gah( Bool(1) b(false);  System m_s();  Int(4) a(0);  Int(4) d(0); ); );  Int(32) test() {  i 0 cast = j ( i cast 1 cast -b cast )update = m_s ( j cast )print . m_s ( j )print . m_bar ( 3 cast -1 cast )set . m_gah ( 4 cast 4 cast )set . j cast return } }
+Ue_Foo { Bool(1) b(false);  System m_s();  Gah m_gah( Bool(1) b(false);  System m_s();  Int(4) a(4);  Int(4) d(4); );  Int(4) i(0);  Int(4) j(-1);  Bar m_bar( Bool(1) b(true);  System m_s();  Unsigned(3) x(3u);  Unsigned(3) y(0u);  Gah m_gah( Bool(1) b(false);  System m_s();  Int(4) a(0);  Int(4) d(0); ); );  Int(32) test() {  self i . 0 cast = self j . self ( self i . cast 1 cast -b cast )update . = self m_s . ( self j . cast )print . self m_s . ( self j . )print . self m_bar . ( 3 cast -1 cast )set . self m_gah . ( 4 cast 4 cast )set . self j . cast return } }
 Uq_Bar { System m_s();  Bool(1) b(false);  Unsigned(3) x(0);  Unsigned(3) y(0);  Gah m_gah( System m_s();  Bool(1) b(false);  Int(4) a(0);  Int(4) d(0); );  <NOMAIN> }
 Uq_System { <NOMAIN> }
 Uq_Gah { System m_s();  Bool(1) b(false);  Int(4) a(0);  Int(4) d(0);  <NOMAIN> }
@@ -23,24 +23,24 @@ use Bar;
 use Gah;
 use System;
 element Foo {
-System m_s;
-Bool b;
-Int(4) i, j;
-Gah m_gah;
-Bar m_bar;
-Int(4) update(Int(4) x)
-{
-return x;
-}
-Int test(){
-i = 0;
-j = update((Int(4))(i - 1));
-m_s.print((Int) j);
-m_s.print(j);
-m_bar.set(3,-1);
-m_gah.set(4,4);
-return j;
-}
+  System m_s;
+  Bool b;
+  Int(4) i, j;
+  Gah m_gah;
+  Bar m_bar;
+  Int(4) update(Int(4) x)
+  {
+    return x;
+  }
+  Int test(){
+    i = 0;
+    j = update((Int(4))(i - 1));
+    m_s.print((Int) j);
+    m_s.print(j);
+    m_bar.set(3,-1);
+    m_gah.set(4,4);
+    return j;
+  }
 }
 
 ##note: unexpected, yet correct: 4 as Int(3) prints as -4 (Gah); -1 cast to Unsigned prints as 0 (Bar);
@@ -50,31 +50,53 @@ ulam 1;
 use System;
 use Gah;
 quark Bar{
-System m_s;
-Bool b;
-Unsigned(3) x, y;
-Gah m_gah;
-Int toInt(){
-if(b)
-return (Int) (x << 2) / y;
-else
-return 0;
-}
-Void set(Int xarg, Int yarg){
-x=(Unsigned(3)) xarg;
-y=(Unsigned(3)) yarg;
-m_s.print(x);
-m_s.print(y);
+  System m_s;
+  Bool b;
+  Unsigned(3) x, y;
+  Gah m_gah;
+  Int toInt(){
+    if(b)
+      return (Int) (x << 2) / y;
+    else
+      return 0;
+  }
+  Void set(Int xarg, Int yarg){
+    x=(Unsigned(3)) xarg;
+    y=(Unsigned(3)) yarg;
+    m_s.print(x);
+    m_s.print(y);
 
-if(yarg!=0)
-{
-b=true;
+    if(yarg!=0)
+    {
+      b=true;
+    }
+    else{
+      b=false;
+    }
+  }
 }
-else{
-b=false;
+
+##explicit casting required with shift, and bitwise |.
+#:Gah.ulam
+ulam 1;
+use System;
+quark Gah{
+  System m_s;
+  Bool b;
+  Int(4) a, d;
+  Int toInt(){
+    if((a | 1) !=0 )
+      return (Int) ((a + 4) << (Unsigned) d);
+    return (Int) a;
+  }
+  Void set(Int xarg, Int yarg){
+    a=(Int(4)) xarg;
+    d=(Int(4)) yarg;
+    m_s.print(a);
+    m_s.print((Int) d);
+  }
 }
-}
-}
+
 ## test system quark with native overloaded print funcs; assert
 #:System.ulam
 ulam 1;
@@ -86,25 +108,5 @@ Void print(Int(3) arg) native;
 Void print(Unary(3) arg) native;
 Void print(Bool(3) arg) native;
 Void assert(Bool b) native;
-}
-##explicit casting required with shift, and bitwise |.
-#:Gah.ulam
-ulam 1;
-use System;
-quark Gah{
-System m_s;
-Bool b;
-Int(4) a, d;
-Int toInt(){
-if((a | 1) !=0 )
-return (Int) ((a + 4) << (Unsigned) d);
-return (Int) a;
-}
-Void set(Int xarg, Int yarg){
-a=(Int(4)) xarg;
-d=(Int(4)) yarg;
-m_s.print(a);
-m_s.print((Int) d);
-}
 }
 #.

@@ -7,7 +7,7 @@
 ## transients are unevaluable.
 #!
 Exit status: -11
-Ue_Test { Bool(1) m_testb(false);  Int(32) m_testi(0);  Int(32) test() {  System sys;  T est = ctt;  m_testb est m_sp . = sys ( m_testb )assert . m_testi est m_i . = sys ( m_testi )print . sys ( m_testi 99 cast == )assert . 225u cast return } }
+Ue_Test { Bool(1) m_testb(false);  Int(32) m_testi(0);  Int(32) test() {  System sys;  T est = ctt;  self m_testb . est m_sp . = sys ( self m_testb . )assert . self m_testi . est m_i . = sys ( self m_testi . )print . sys ( self m_testi . 99 cast == )assert . 225u cast return } }
 Un_T { Bool(1) m_sp(false);  Int(32) m_i(0);  Atom(96) m_a(Atom(96));  R m_rele( cer);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 Ue_R { Bool(1) m_rb(false);  Int(32) m_ri(0);  <NOMAIN> }

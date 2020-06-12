@@ -2,7 +2,7 @@
 #=t3449_test_compiler_bitwisefunccallreturns
 #!
 Exit status: 5
-Ue_T { typedef Unary(7) B;  typedef Bits(7) C;  Unary(7) m(5u);  Unary(7) n(2u);  Unary(7) r(5u);  Unary(7) a(2u);  Unary(7) h(3u);  Int(32) test() {  m ( )func1 = n ( )func2 = r ( )func1 cast ( )func2 cast | cast = a ( )func1 cast ( )func2 cast & cast = h ( )func1 cast ( )func2 cast ^ cast = r cast return } }
+Ue_T { typedef Unary(7) B;  typedef Bits(7) C;  Unary(7) m(5u);  Unary(7) n(2u);  Unary(7) r(5u);  Unary(7) a(2u);  Unary(7) h(3u);  Int(32) test() {  self m . self ( )func1 . = self n . self ( )func2 . = self r . self ( )func1 . cast self ( )func2 . cast | cast = self a . self ( )func1 . cast self ( )func2 . cast & cast = self h . self ( )func1 . cast self ( )func2 . cast ^ cast = self r . cast return } }
 #>T.ulam
   ulam 1;
 element T{

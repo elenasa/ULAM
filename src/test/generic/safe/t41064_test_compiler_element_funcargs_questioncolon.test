@@ -5,7 +5,7 @@
 ##
 #!
 Exit status: 0
-Ue_Foo : Qbar { :< Int(3) m_q(1); > Bool(1) sp(true);  Int(32) test() {  System s;  sp true = m_q 2 = Qbar myqbar = ( sp ?  1 cast :  2 )func;  s ( myqbar m_q . 1 cast == )assert . 0 cast return } }
+Ue_Foo : Qbar { Bool(1) sp(true);  :Qbar< Int(3) m_q(1); > Int(32) test() {  System s;  self sp . true = self m_q . 2 = Qbar myqbar = self ( self sp . ?  1 cast :  2 )func .;  s ( myqbar m_q . 1 cast == )assert . 0 cast return } }
 Uq_Qbar { Int(3) m_q( 1);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

@@ -11,10 +11,10 @@
 ##
 #!
 Exit status: 0
-Ue_A { Bool(1) b0(true);  Bool(1) b1(true);  Bool(1) b2(true);  QBar m_bar( Unary(3) r(3u);  Bool(1) sp(true); );  String(32) m_str("foo");  QStr m_s( String(32) m_str("bar"); );  Int(32) test() {  SystemU3 su3;  QStr solo;  Unsigned(8) sasc = solo m_str 0 [] .;  b0 sasc 104u == = su3 ( solo m_str . )print . su3 ( b0 )assert . Unsigned(8) fasc = m_str 0 [];  b1 fasc 102u == = su3 ( m_str )print . su3 ( b1 )assert . Unsigned(8) qasc = m_s m_str 1 [] .;  b2 qasc 97u == = su3 ( m_s m_str . )print . su3 ( b2 )assert . Unary(3) chkr = m_bar r .;  su3 ( chkr )print . su3 ( m_bar r . )print . su3 ( m_bar r . cast 3 == )assert . su3 ( m_bar sp . cast )print . su3 ( m_bar sp . )assert . 0 cast return } }
+Ue_A { Bool(1) b0(true);  Bool(1) b1(true);  Bool(1) b2(true);  QBar m_bar( Unary(3) r(3u);  Bool(1) sp(true); );  String(32) m_str("foo");  QStr m_s( String(32) m_str("bar"); );  Int(32) test() {  SystemU3 su3;  QStr solo;  Unsigned(8) sasc = solo m_str 0 [] .;  self b0 . sasc 104u == = su3 ( solo m_str . )print . su3 ( self b0 . )assert . Unsigned(8) fasc = self m_str . 0 [];  self b1 . fasc 102u == = su3 ( self m_str . )print . su3 ( self b1 . )assert . Unsigned(8) qasc = self m_s . m_str 1 [] .;  self b2 . qasc 97u == = su3 ( self m_s . m_str . )print . su3 ( self b2 . )assert . Unary(3) chkr = self m_bar . r .;  su3 ( chkr )print . su3 ( self m_bar . r . )print . su3 ( self m_bar . r . cast 3 == )assert . su3 ( self m_bar . sp . cast )print . su3 ( self m_bar . sp . )assert . 0 cast return } }
 Uq_QBar { Bool(1) sp(false);  Unary(3) r( 1u);  <NOMAIN> }
 Uq_QStr { String(32) m_str( "hello world");  <NOMAIN> }
-Uq_SystemU3 : System { :<> <NOMAIN> }
+Uq_SystemU3 : System { :System<> <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 ## first test of C-99 class instance initialization

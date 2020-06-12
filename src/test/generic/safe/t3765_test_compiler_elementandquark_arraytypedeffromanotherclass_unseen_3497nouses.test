@@ -1,6 +1,6 @@
 ## -*- mode:ulam -*-
 #=t3765_test_compiler_elementandquark_arraytypedeffromanotherclass_unseen_3497nouses
-#!
+##
 ##      //No error about zero bitsize!!
 ## [does not change the gencode]
 ## t3497 with proper odered uses Wed Jun  1 16:36:26 2016
@@ -8,6 +8,7 @@
 ## here, without uses:
 ## Ue_TypedefIssue(Unsigned(32) tif) { typedef 0Holder(UNKNOWN) Symmetry;  0Holder(UNKNOWN) x(notready);  Bool(1) b(false);  Vector(vec) t(notready);  <NOMAIN> }
 ##
+#!
 Exit status: 12
 Ue_R { Int(32) test() {  TypedefIssue(2u) ish;  ish ( )foo2 . return } }
 Ue_TypedefIssue(Unsigned(32) tif) { typedef 0Holder(UNKNOWN) Symmetry;  0Holder(UNKNOWN) x(notready);  Bool(1) b(false);  Vector(vec) t(notready);  <NOMAIN> }

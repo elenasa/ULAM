@@ -2,7 +2,7 @@
 #=t3436_test_compiler_unpackedarrayelements
 #!
 Exit status: 10
-Ue_A { Bool(1) first(true);  Int(32) test() {  System s;  A site[10];  first true = { Int(32) i = 0 cast;  i 10 cast < cond { site i [] self = s ( site i [] first . )assert . } _1: i 1 += while } 10 cast return } }
+Ue_A { Bool(1) first(true);  Int(32) test() {  System s;  A site[10];  self first . true = { Int(32) i = 0 cast;  i 10 cast < cond { site i [] self = s ( site i [] first . )assert . } _1: i 1 += while } 10 cast return } }
 Uq_System { <NOMAIN> }
 ## (was)
 ##./A.ulam:4:5: ERROR: Invalid non-scalar type: A. Requires a custom array.

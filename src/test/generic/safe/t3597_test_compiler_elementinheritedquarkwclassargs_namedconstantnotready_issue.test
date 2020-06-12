@@ -1,9 +1,9 @@
 ## -*- mode:ulam -*-
 #=t3597_test_compiler_elementinheritedquarkwclassargs_namedconstantnotready_issue
-#!
 ##
+#!
 Exit status: 2
-Ue_CLife : QSync(1) { :< Unary(2) phase(2u);  constant Unary(5) stateCount = 1u;  typedef Unary(2) Phase;  constant Unary(2) cBLUE = 0u;  constant Unary(2) cRED = 1u;  constant Unary(2) cGREEN = 3u; > Int(32) test() {  phase ( phase )prev = phase cast return } }
+Ue_CLife : QSync(1) { :QSync(1)< Unary(2) phase(2u);  constant Unary(5) stateCount = 1u;  typedef Unary(2) Phase;  constant Unary(2) cBLUE = 0u;  constant Unary(2) cRED = 1u;  constant Unary(2) cGREEN = 3u; > Int(32) test() {  self phase . self ( self phase . )prev . = self phase . cast return } }
 Uq_QSync(Unary(5) stateCount) { typedef Unary(2) Phase;  Unary(2) phase(0);  constant Unary(2) cBLUE = 0u;  constant Unary(2) cRED = 1u;  constant Unary(2) cGREEN = 3u;  <NOMAIN> }
 ##
 ## informed by CLife issue.

@@ -1,36 +1,49 @@
 ## -*- mode:ulam -*-
 #=t3652_test_compiler_elementandquarksinherited_unseentypedef_unaryclassarg_ish
+##
+##  gen output: 1 assert
 #!
 Exit status: 11
-Ue_IshD { typedef QSwapLine(4) OurSwapLine;  Int(32) test() {  11u cast return } }
-Uq_QSwapLine(Unary(5) itagBits) : QID(myTagBits) { :< constant Unsigned(32) cQID_TAG_BITS = myTagBits;  Bits(1) mArray[UNKNOWN](notready); > Int(UNKNOWN) mPhase(unknown);  <NOMAIN> }
+Ue_IshD { typedef QSwapLine(4) OurSwapLine;  Int(32) test() {  System s;  QSwapLine(4) tmp;  QID(4) qidme = tmp ( )getme .;  s ( true )assert . 11u cast return } }
+Uq_QSwapLine(Unary(5) itagBits) : QID(myTagBits) { Int(7) mPhase(0);  :QID11< constant Unsigned(32) cQID_TAG_BITS = myTagBits;  Bits(1) mArray[UNKNOWN](notready); > <NOMAIN> }
+Uq_System { <NOMAIN> }
 Uq_QID(Unary(5) myTagBits) { constant Unsigned(32) cQID_TAG_BITS = myTagBits;  Bits(1) mArray[UNKNOWN](notready);  <NOMAIN> }
 ##
-## informed by Dave ish 1/24/2016, (order matters)
+## informed by Dave ish 1/24/2016, (order matters? see t41383, 3 years later and fixed?)
 ##
 #>IshD.ulam
-  ulam 2;
+  ulam 5;
 element IshD {
   typedef QSwapLine(4) OurSwapLine;
   Int test() {
+    System s;
+    OurSwapLine tmp;
+    QID(4) qidme = tmp.getme();
+    s.assert(qidme.classidof == QID(4).classidof);
     return OurSwapLine.sizeof;
   }
 }
-use QSwapLine;
+//use QSwapLine;
 
 #:QID.ulam
   ulam 2;
 quark QID(Unary(5) myTagBits) {
   constant Unsigned cQID_TAG_BITS = myTagBits;
   Bits(1) mArray[cQID_TAG_BITS];
+  virtual Self getme() //virtual of template base caused growing pains..
+  {
+    //returns a QID type.
+    return Self.instanceof; //like dominos falling..(no longer error/t41166)
+  }
 }
 
 #:QSwapLine.ulam
   ulam 2;
 quark QSwapLine(Unary(5) itagBits) : QID(itagBits) {
   Int(7) mPhase;
+  //./QID.ulam:5:16: ERROR: Check overloaded function 'getme' with different return types (QSwapLine(4), QID(4)), in QSwapLine(4).
 }
-use QID;
+//use QID;
 
 /* returns:
 ./IshD.ulam:14:0: ERROR: Trying to exceed allotted bit size (32) for quark QSwapLine(4) with 38 bits.
@@ -38,4 +51,17 @@ use QID;
 ./IshD.ulam:11:7: ERROR: 2 Nodes with erroneous types detected after type labeling class: QSwapLine11.
 Unrecoverable Program Type Label FAILURE.
 */
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
 #.

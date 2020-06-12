@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3483_test_compiler_elementandquarkunseen_noparamswargs_error
 #!
-./NoParms.ulam:2:7: ERROR: Conflicting class args previously seen for class with no parameters <NoParms>.
+./NoParms.ulam:2:7: ERROR: Conflicting class args previously seen for class with no parameters 'NoParms'.
 Unrecoverable Program Parse FAILURE: <Foo.ulam>
 ./Foo.ulam:3:2: ERROR: No class 'NoParms' in <NoParms.ulam>.
 ##

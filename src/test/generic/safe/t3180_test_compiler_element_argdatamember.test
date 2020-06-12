@@ -1,35 +1,35 @@
 ## -*- mode:ulam -*-
 #=t3180_test_compiler_element_argdatamember
-#!
 ##      /* gen code output:
 ##	 Int(4) Arg: 0x0
 ##	 Int(4) Arg: 0x3
 ##      */
+#!
 Exit status: 3
-Ue_Foo { System s();  Bits(2) sp(0);  Bool(1) m_b(false);  Int(4) m_i(0);  Int(32) test() {  Foo f;  f m_b . true = m_b f ( m_b )check . = s ( m_i )print . s ( f m_i . )print . f m_i . cast return } }
+Ue_Foo { System s();  Bits(2) sp(0);  Bool(1) m_b(false);  Int(4) m_i(0);  Int(32) test() {  Foo f;  f m_b . true = self m_b . f ( self m_b . )check . = self s . ( self m_i . )print . self s . ( f m_i . )print . f m_i . cast return } }
 Uq_System { <NOMAIN> }
 #>Foo.ulam
-ulam 1;
+  ulam 1;
 use System;
- element Foo {
-System s;
-Bits(2) sp;
-Bool m_b;
- Int(4) m_i;
+element Foo {
+  System s;
+  Bits(2) sp;
+  Bool m_b;
+  Int(4) m_i;
   Bool check(Bool b) {
- if(b) m_i = 4;
- else m_i = 3;
- return b;
- }
- Int test() {
- Foo f;
- f.m_b = true;
- m_b = f.check(m_b);
-s.print(m_i);
-s.print(f.m_i);
- return f.m_i;
- }
- }
+    if(b) m_i = 4;
+    else m_i = 3;
+    return b;
+  }
+  Int test() {
+    Foo f;
+    f.m_b = true;
+    m_b = f.check(m_b);
+    s.print(m_i);
+    s.print(f.m_i);
+    return f.m_i;
+  }
+}
 
 #:System.ulam
 ulam 1;

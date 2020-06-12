@@ -18,9 +18,10 @@
 ##
 ./Test.ulam:17:14: ERROR: DEPRECATED keyword <has>.
 ./Test.ulam:17:16: ERROR: Unexpected token <TOK_TYPE_IDENTIFIER>; Expected ).
-./Test.ulam:17:20: ERROR: Name of variable <)>: Identifier must begin with a lower-case letter.
+./Test.ulam:17:20: ERROR: Name of variable ')': Identifier must begin with a lower-case letter.
 ./Test.ulam:17:20: ERROR: Invalid Statement (possible missing semicolon).
 ./Test.ulam:20:14: ERROR: DEPRECATED keyword <has>.
+./Test.ulam:52:5: ERROR: Expecting Type of data member/function (or, in the midst of errors); Got <return>.
 ./Test.ulam:7:1: ERROR: Empty/Incomplete Class Definition 'Test'; Possible missing ending curly brace.
 ./Test.ulam:52:5: ERROR: Invalid Class Type <return>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 ./Test.ulam:7:9: ERROR: Invalid Type: Test.

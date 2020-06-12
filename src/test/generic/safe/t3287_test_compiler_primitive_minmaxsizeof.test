@@ -1,6 +1,5 @@
 ## -*- mode:ulam -*-
 #=t3287_test_compiler_primitive_minmaxsizeof
-#!
 ##      /* gen code output:
 ##	 Unsigned Arg: 4
 ##	 Int(4) Arg: 0x8
@@ -18,8 +17,9 @@
 ##      */
 ##
 ##      //constant fold minus; constants of lhs type; return sizeof Void (== 0u)
+#!
 Exit status: 0
-Ue_Fu { System s();  Int(32) test() {  Int(4) z;  s ( 4u )print . s ( -8 )print . s ( 7 )print . Unsigned(32) y;  s ( 32u )print . s ( 0u )print . s ( 4294967295u )print . Unary(3) x;  s ( 3u )print . s ( 0u )print . s ( 7u )print . Bool(3) v;  s ( 3u )print . s ( 0u )print . s ( 7u )print . Bits(2) t;  s ( 2u )print . 0u cast return } }
+Ue_Fu { System s();  Int(32) test() {  Int(4) z;  self s . ( 4u )print . self s . ( -8 )print . self s . ( 7 )print . Unsigned(32) y;  self s . ( 32u )print . self s . ( 0u )print . self s . ( 4294967295u )print . Unary(3) x;  self s . ( 3u )print . self s . ( 0u )print . self s . ( 7u )print . Bool(3) v;  self s . ( 3u )print . self s . ( 0u )print . self s . ( 7u )print . Bits(2) t;  self s . ( 2u )print . 0u cast return } }
 Uq_System { <NOMAIN> }
 #>Fu.ulam
   ulam 1;

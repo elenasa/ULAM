@@ -1,6 +1,5 @@
 ## -*- mode:ulam -*-
 #=t41067_test_compiler_castatom2element_questioncolon
-#!
 ##   gen code output: (+ interleaved asserts)
 ##	 Int Arg: 2
 ##	 Int Arg: 1
@@ -8,8 +7,9 @@
 ##
 ## atom and element types unevaluable
 ##
+#!
 Exit status: -11
-Ue_Tu { System s();  Int(32) me(1);  Int(32) test() {  Atom(96) a = self.atomof cast;  Tu t = a Tu is ?  a cast :  self cast;  t me . 2 cast = s ( t me . )print . s ( t me . 2 cast == )assert . s ( me )print . s ( me 1 cast == )assert . Tu& tref = a Tu is ?  a cast :  t cast;  s ( tref me . )print . s ( tref me . 1 cast == )assert . me return } }
+Ue_Tu { System s();  Int(32) me(1);  Int(32) test() {  Atom(96) a = self.atomof cast;  Tu t = a Tu is ?  a cast :  self cast;  t me . 2 cast = self s . ( t me . )print . self s . ( t me . 2 cast == )assert . self s . ( self me . )print . self s . ( self me . 1 cast == )assert . Tu& tref = a Tu is ?  a cast :  t cast;  self s . ( tref me . )print . self s . ( tref me . 1 cast == )assert . self me . return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t3277

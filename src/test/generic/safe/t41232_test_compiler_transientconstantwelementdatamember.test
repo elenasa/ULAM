@@ -10,7 +10,7 @@
 ## transients are unevaluable.
 #!
 Exit status: -11
-Ue_Test { Bool(1) m_testb(false);  Int(32) m_testi(0);  Int(32) test() {  System sys;  constant T ctt = { .m_rele = cer };  R relc = ctt m_rele .;  Int(32) relci = relc m_ri .;  sys ( relci )print . sys ( relci 77 cast == )assert . T est = ctt;  m_testi est m_rele . m_ri . = sys ( m_testi )print . sys ( m_testi 77 cast == )assert . m_testb est m_rele . m_rb . = sys ( m_testb )assert . R rel = est m_rele .;  Int(32) reli = rel m_ri .;  sys ( reli )print . sys ( reli 77 cast == )assert . 225u cast return } }
+Ue_Test { Bool(1) m_testb(false);  Int(32) m_testi(0);  Int(32) test() {  System sys;  constant T ctt = { .m_rele = cer };  R relc = ctt m_rele .;  Int(32) relci = relc m_ri .;  sys ( relci )print . sys ( relci 77 cast == )assert . T est = ctt;  self m_testi . est m_rele . m_ri . = sys ( self m_testi . )print . sys ( self m_testi . 77 cast == )assert . self m_testb . est m_rele . m_rb . = sys ( self m_testb . )assert . R rel = est m_rele .;  Int(32) reli = rel m_ri .;  sys ( reli )print . sys ( reli 77 cast == )assert . 225u cast return } }
 Ue_R { Bool(1) m_rb(false);  Int(32) m_ri(0);  <NOMAIN> }
 Un_T { Bool(1) m_sp(false);  Int(32) m_i(0);  Atom(96) m_a(Atom(96));  R m_rele( Bool(1) m_rb(false);  Int(32) m_ri(0); );  <NOMAIN> }
 Uq_System { <NOMAIN> }

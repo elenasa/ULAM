@@ -2,7 +2,7 @@
 #=t3734_test_compiler_bitsshift_issue
 #!
 Exit status: 2
-Ue_A { Unsigned(2) m_lastRcvAge(2u);  Int(32) test() {  m_lastRcvAge 1 cast = ( )update m_lastRcvAge cast return } }
+Ue_A { Unsigned(2) m_lastRcvAge(2u);  Int(32) test() {  self m_lastRcvAge . 1 cast = self ( )update . self m_lastRcvAge . cast return } }
 ##
 ##
 #>A.ulam

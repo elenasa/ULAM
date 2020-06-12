@@ -1,29 +1,35 @@
 ## -*- mode:ulam -*-
 #=t3684_test_compiler_elementandquark_elementatomoffunccallarg
+##
+##  gen code output: (3 asserts)
+##
+##  unevaluable without assuming atoms as elements (c should be false)
 #!
-##      gen code output: (2 asserts)
-##
-##        unevaluable without assuming atoms as elements (c should be false)
-##
 Exit status: 0
-Ue_A : QW { :<> Bool(1) b(true);  Bool(1) c(true);  Int(32) test() {  System s;  b ( self.atomof )func = s ( b )assert . Atom(96) a;  c ( a cast )func = s ( c ! )assert . 0 cast return } }
+Ue_A : QW { Bool(1) b(true);  Bool(1) c(true);  Bool(1) d(true);  :QW<> Int(32) test() {  System s;  self b . self ( self.atomof )func . = s ( self b . )assert . self d . self ( self cast )func . = s ( self d . )assert . Atom(96) a;  self c . self ( a cast )func . = s ( self c . ! )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 Uq_QW { <NOMAIN> }
 ##
 ## Dave requested a way to get default values for Self (within a quark);
-## a loophole, since a quark would be an undefined atom, but as a ref, its done (t3679)
-## As of ulam-3, loophole no longer needed; now it is a runtime check, rather than compile time restriction.
+## a loophole, since a quark would be an undefined atom, but as a ref,
+## its done (t3679).
+## As of ulam-3, loophole no longer needed; now it is a runtime check,
+## rather than compile time restriction.
 ##
 #>A.ulam
   ulam 2;
 use System;
 use QW;
 element A : QW {
-  Bool b, c;
+  Bool b, c, d;
   Int test(){
     System s;
     b = func(self.atomof);
     s.assert(b);
+
+    d = func((Atom&) self); //another way
+    s.assert(d);
+
     Atom a;
     c = func(a);
     s.assert(!c);

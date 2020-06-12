@@ -1,13 +1,13 @@
 ## -*- mode:ulam -*-
 #=t3582_test_compiler_elementquarkinheritance_as
-#!
 ## gencode output (interleaved asserts):
 ## Bool(3) Arg: 0x7 (true)
 ## Unsigned Arg: 3
 ##
+#!
 Exit status: 3
-Ue_Foo : Soo { :< :< Bool(3) cb(true); > Unsigned(3) us(4u); > System s();  Bool(1) first(true);  Int(32) test() {  Foo f;  { f Coo as cond { Coo& f;  first f cb . cast = s ( first cast )print . s ( first )assert . s ( 3u )print . s ( true )assert . 3u cast return } if } s ( false )assert . 0 cast return } }
-Uq_Soo : Coo { :< Bool(3) cb( true); > Unsigned(3) us( 4u);  <NOMAIN> }
+Ue_Foo : Soo { System s();  Bool(1) first(true);  :Soo< Unsigned(3) us(4u);  :Coo< Bool(3) cb(true); >> ^Coo< Bool(3) cb(true); > Int(32) test() {  Foo f;  { f Coo as cond { Coo& f;  self first . f cb . cast = self s . ( self first . cast )print . self s . ( self first . )assert . self s . ( 3u )print . self s . ( true )assert . 3u cast return } if } self s . ( false )assert . 0 cast return } }
+Uq_Soo : Coo { Unsigned(3) us( 4u);  :Coo< Bool(3) cb( true); > <NOMAIN> }
 Uq_Coo { Bool(3) cb( true);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

@@ -8,7 +8,7 @@
 ##      Bool(3) Arg: 0x7 (true)
 #!
 Exit status: 2
-Ue_Foo { System s();  Int(4) m_i(0);  QW m_q( Unary(3) mun(2u); );  Int(32) test() {  Foo f;  QW& qref = f m_q . cast;  Bool(1) b = ( qref cast )check;  s ( f m_q . mun . )print . s ( f m_q . mun . cast 2u == )assert . s ( b cast )print . s ( b ! )assert . QW qw;  Bool(1) bqw = ( qw cast )check;  s ( qw mun . )print . s ( qw mun . cast 3u == )assert . s ( bqw cast )print . s ( bqw )assert . f m_q . mun . cast return } }
+Ue_Foo { System s();  Int(4) m_i(0);  QW m_q( Unary(3) mun(2u); );  Int(32) test() {  Foo f;  QW& qref = f m_q . cast;  Bool(1) b = self ( qref cast )check .;  self s . ( f m_q . mun . )print . self s . ( f m_q . mun . cast 2u == )assert . self s . ( b cast )print . self s . ( b ! )assert . QW qw;  Bool(1) bqw = self ( qw cast )check .;  self s . ( qw mun . )print . self s . ( qw mun . cast 3u == )assert . self s . ( bqw cast )print . self s . ( bqw )assert . f m_q . mun . cast return } }
 Uq_System { <NOMAIN> }
 Uq_QW { Unary(3) mun( 7u);  <NOMAIN> }
 ##

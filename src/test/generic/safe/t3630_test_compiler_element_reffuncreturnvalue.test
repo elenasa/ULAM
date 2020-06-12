@@ -5,7 +5,7 @@
 ##
 #!
 Exit status: 3
-Ue_Foo { Int(4) m_i(3);  Bool(3) m_b(true);  Int(32) test() {  System s;  m_i 3 cast = ( ( )getMB )check s ( m_b cast )assert . m_i cast return } }
+Ue_Foo { Int(4) m_i(3);  Bool(3) m_b(true);  Int(32) test() {  System s;  self m_i . 3 cast = self ( self ( )getMB . )check . s ( self m_b . cast )assert . self m_i . cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t3629, maybe later..now.

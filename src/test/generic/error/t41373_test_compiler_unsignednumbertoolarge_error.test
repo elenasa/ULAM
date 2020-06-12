@@ -1,0 +1,26 @@
+## -*- mode:ulam -*-
+#=t41373_test_compiler_unsignednumbertoolarge_error
+#!
+./Foo.ulam:9:28: ERROR: Invalid unsigned constant '111111111111111111111u': Number too large.
+./Foo.ulam:10:32: ERROR: Invalid unsigned constant '111111111111111111111u': Number too large.
+Unrecoverable Program Parse FAILURE: <Foo.ulam>
+##
+## informed by t41370,1,2; seems like 20 digits is the most any unsigned var can be.
+##
+#>Foo.ulam
+  ulam 5;
+element Foo {
+  Int test() {
+    Unsigned(64) var64 = 11111111111111111111u; //20 digits + u is 64-bits OK
+    //./Foo.ulam:6:5: ERROR: Use explicit cast to convert Unsigned(64) to Unsigned(32) for variable initialization.
+    Unsigned var32 = 11111111111111111111u; //20 digits + u is 64-bits OK (needs a cast!)
+
+    //error msg for var32 doesn't show when these two are present:
+    Unsigned toobigvar32 = 111111111111111111111u; //21 digits + u is 64-bits
+    Unsigned(64) toobigvar64 = 111111111111111111111u; //21 digits + u is 64-bits
+
+    return var32; //also needs a cast!
+  }
+}
+
+#.

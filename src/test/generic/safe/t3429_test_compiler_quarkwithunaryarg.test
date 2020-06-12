@@ -2,7 +2,7 @@
 #=t3429_test_compiler_quarkwithunaryarg
 #!
 Exit status: 1
-Ue_Foo { Bar(3) bar( constant Unary(7) s = 7u;  typedef Unsigned(3) US[3];  Bool(1) b(true); );  Int(32) test() {  Bool(1) bs = bar ( )check .;  bs cast return } }
+Ue_Foo { Bar(3) bar( constant Unary(7) s = 7u;  typedef Unsigned(3) US[3];  Bool(1) b(true); );  Int(32) test() {  Bool(1) bs = self bar . ( )check .;  bs cast return } }
 Uq_Bar(Unary(7) s) { typedef Unsigned(UNKNOWN) US[UNKNOWN];  Bool(1) b(false);  <NOMAIN> }
 ##
 ##      //informed by 3405

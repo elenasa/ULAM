@@ -4,6 +4,7 @@
 ./A.ulam:3:7: ERROR: Weird Lex! <@> does not precede a valid flag keyword.
 ./A.ulam:3:12: ERROR: Weird Lex! <@> does not precede a valid flag keyword.
 ./A.ulam:3:4: ERROR: Right operand of binary = is missing; Assignment deleted.
+./A.ulam:5:2: ERROR: Expecting Type of data member/function (or, in the midst of errors); Got <return>.
 ./A.ulam:1:1: ERROR: Empty/Incomplete Class Definition 'A'; Possible missing ending curly brace.
 ./A.ulam:5:2: ERROR: Invalid Class Type <return>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 ./A.ulam:1:9: ERROR: Invalid Type: A.

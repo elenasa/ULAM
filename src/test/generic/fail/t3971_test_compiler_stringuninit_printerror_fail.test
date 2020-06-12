@@ -6,8 +6,8 @@
 ##
 #!
 Exit status: 0
-Ue_A { String(32) m_s( );  Int(32) m_total(0);  Int(32) test() {  SystemU3 su3;  String(32) s;  m_s s = su3 ( m_s )print . 0 cast return } }
-Uq_SystemU3 : System { :<> <NOMAIN> }
+Ue_A { String(32) m_s( );  Int(32) m_total(0);  Int(32) test() {  SystemU3 su3;  String(32) s;  self m_s . s = su3 ( self m_s . )print . 0 cast return } }
+Uq_SystemU3 : System { :System<> <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 ## SystemU3 subclasses System for backward compatibility (all tests that use System.ulam)

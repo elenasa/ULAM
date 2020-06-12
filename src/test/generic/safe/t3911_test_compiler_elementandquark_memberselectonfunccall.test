@@ -1,10 +1,10 @@
 ## -*- mode:ulam -*-
 #=t3911_test_compiler_elementandquark_memberselectonfunccall
-#!
 ##      gen code output: 2 asserts
 ##
+#!
 Exit status: -11
-Ue_A : QW { :<> Bool(1) b(true);  QW m_q();  Int(32) test() {  System s;  b true = Atom(96) metoo = ( )func;  { metoo A as cond { A& metoo;  s ( metoo b . )assert . } if } A a;  a b . true = Atom(96) me = a ( )func .;  { me A as cond { A& me;  s ( me b . )assert . } if } 0 cast return } }
+Ue_A : QW { Bool(1) b(true);  QW m_q();  :QW<> Int(32) test() {  System s;  self b . true = Atom(96) metoo = self ( )func .;  { metoo A as cond { A& metoo;  s ( metoo b . )assert . } if } A a;  a b . true = Atom(96) me = a ( )func .;  { me A as cond { A& me;  s ( me b . )assert . } if } 0 cast return } }
 Uq_System { <NOMAIN> }
 Uq_QW { <NOMAIN> }
 ##

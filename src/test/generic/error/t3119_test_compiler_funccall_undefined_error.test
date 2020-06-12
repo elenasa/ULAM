@@ -1,8 +1,8 @@
 ## -*- mode:ulam -*-
 #=t3119_test_compiler_funccall_undefined_error
 #!
-./D.ulam:1:30: ERROR: (2) <fact> is not a defined function, or cannot be safely called in this context.
-./D.ulam:1:28: ERROR: Assignment is invalid; LHS: Int(32); RHS: erroneous.
+./D.ulam:1:30: ERROR: (2) 'fact' is not a defined function, or cannot be safely called in this context.
+./D.ulam:1:28: ERROR: Assignment is invalid; LHS: unresolved; RHS: erroneous.
 Unrecoverable Program Type Label FAILURE.
 ##
 #>D.ulam

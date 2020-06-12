@@ -27,7 +27,7 @@
 
 /**
   \file UlamType.h -  Basic handling of UlamTypes for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
   \date (C) 2014-2017 All rights reserved.
   \gpl
@@ -149,6 +149,10 @@ namespace MFM{
     u32 getTotalBitSize(); //bitsize * arraysize, accounting for constants and scalars
 
     virtual u32 getSizeofUlamType();
+
+    virtual s32 getBitsizeAsBaseClass();
+
+    virtual void setBitsizeAsBaseClass(s32 bs);
 
     ALT getReferenceType();
 

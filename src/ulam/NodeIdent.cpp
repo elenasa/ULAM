@@ -6,6 +6,7 @@
 #include "NodeIdent.h"
 #include "CompilerState.h"
 #include "NodeBlockClass.h"
+#include "NodeMemberSelect.h"
 #include "NodeModelParameter.h"
 #include "NodeTypeBitsize.h"
 #include "SymbolVariableDataMember.h"
@@ -169,6 +170,19 @@ namespace MFM {
     return m_token;
   }
 
+  bool NodeIdent::belongsToVOWN(UTI vown)
+  {
+    if(vown == Nouti)
+       return true; //non-virtual func, like vown, doesnt apply delta
+
+    if(hasASymbolDataMember())
+      {
+	UTI dmclass = m_varSymbol->getDataMemberClass();
+	return (UlamType::compare(dmclass, vown, m_state) == UTIC_SAME);
+      }
+    return false;
+  }
+
   bool NodeIdent::isAConstant()
   {
     bool rtn = false;
@@ -183,7 +197,8 @@ namespace MFM {
 
 	Symbol * asymptr = NULL;
 	bool hazyKin = false;
-	if(m_state.alreadyDefinedSymbol(m_token.m_dataindex, asymptr, hazyKin))
+	u32 tokid = m_state.getTokenDataAsStringId(m_token);
+	if(m_state.alreadyDefinedSymbol(tokid, asymptr, hazyKin))
 	  {
 	    rtn = asymptr->isConstant();
 	  }
@@ -222,141 +237,103 @@ namespace MFM {
 
 	if(m_state.useMemberBlock())
 	  {
-	    m_state.pushCurrentBlock(currBlock); //e.g. memberselect needed for already defined
-	    cuti = m_state.getCurrentMemberClassBlock()->getNodeType();
+	    m_state.pushCurrentBlock(currBlock); //e.g. memberselect needed for already defined symbol
+	    NodeBlockClass * memberblock = m_state.getCurrentMemberClassBlock();
+	    assert(memberblock);
+	    cuti = memberblock->getNodeType();
 	  }
 	else
 	  m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
 
 	Symbol * asymptr = NULL;
 	bool hazyKin = false;
-	// must capture symbol ptr even if part of incomplete chain to do any necessary surgery (e.g. stub class args t3526, t3525)
-	if(m_state.alreadyDefinedSymbol(m_token.m_dataindex, asymptr, hazyKin))
+	u32 tokid = m_state.getTokenDataAsStringId(m_token);
+	// must capture symbol ptr even if part of incomplete chain to do any necessary surgery
+	// (e.g. stub class args t3526, t3525, inherited dm t3408), wait if hazyKin (t3572)?;
+	if(m_state.alreadyDefinedSymbol(tokid, asymptr, hazyKin))
 	  {
 	    if(!asymptr->isFunction() && !asymptr->isTypedef() && !asymptr->isConstant() && !asymptr->isModelParameter())
 	      {
-		setSymbolPtr((SymbolVariable *) asymptr);
-		//assert(asymptr->getBlockNoOfST() == m_currBlockNo); not necessarily true
-		// e.g. var used before defined, and then is a data member outside current func block.
-		setBlockNo(asymptr->getBlockNoOfST()); //refined
-		setBlock(currBlock);
-	      }
-	    else if(asymptr->isConstant())
-	      {
-		UTI auti = asymptr->getUlamTypeIdx();
-		// replace ourselves with a constant node instead;
-		// same node no, and loc (e.g. t3573)
-		Node * newnode = NULL;
-		if(m_state.isAClass(auti))
+		//check hazyiness after determined no surgery required
+		if(!hazyKin)
 		  {
-		    if(m_state.isScalar(auti))
-		      newnode = new NodeConstantClass(m_token, (SymbolWithValue *) asymptr, NULL, m_state);
-		    else
-		      newnode = new NodeConstantClassArray(m_token, (SymbolWithValue *) asymptr, NULL, m_state); //t41261
+		    setSymbolPtr((SymbolVariable *) asymptr);
+		    //assert(asymptr->getBlockNoOfST() == m_currBlockNo); not necessarily true
+		    // e.g. var used before defined, and then is a data member outside current func block.
+		    setBlockNo(asymptr->getBlockNoOfST()); //refined
+		    setBlock(currBlock);
 		  }
-		else if(m_state.isScalar(auti))
-		  newnode = new NodeConstant(m_token, (SymbolWithValue *) asymptr, NULL, m_state);
 		else
-		  newnode = new NodeConstantArray(m_token, (SymbolWithValue *) asymptr, NULL, m_state);
-		assert(newnode);
-
-		AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
-		assert(swapOk);
-
-		m_state.popClassContext(); //restore
-
-		delete this; //suicide is painless..
-
-		return newnode->checkAndLabelType();
-	      }
-	    else if(asymptr->isModelParameter())
-	      {
-		// replace ourselves with a parameter node instead;
-		// same node no, and loc
-		NodeModelParameter * newnode = new NodeModelParameter(m_token, (SymbolModelParameterValue*) asymptr, NULL, m_state);
-		assert(newnode);
-
-		AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
-		assert(swapOk);
-
-		m_state.popClassContext(); //restore
-
-		delete this; //suicide is painless..
-
-		return newnode->checkAndLabelType();
+		  {
+		    std::ostringstream msg;
+		    msg << "Identifier '" << m_state.getTokenDataAsString(m_token).c_str();
+		    msg << "' was used while still undeclared";
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+		    it = Hzy; //t3572, t3597, t41183, and ulamexports QBox
+		    errCnt++;
+		  }
+		m_state.popClassContext(); //restore t3102
 	      }
 	    else
 	      {
-		std::ostringstream msg;
-		msg << "(1) <" << m_state.getTokenDataAsString(m_token).c_str();
-		msg << "> is not a variable, and cannot be used as one with class: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		it = Nav;
-		errCnt++;
+		if(replaceOurselves(asymptr))
+		  {
+		    m_state.popClassContext(); //restore
+		    m_state.setGoAgain();
+
+		    delete this; //suicide is painless..
+
+		    return Hzy;
+		  }
+		else
+		  {
+		    std::ostringstream msg;
+		    msg << "(1) '" << m_state.getTokenDataAsString(m_token).c_str();
+		    msg << "' is not a variable, and cannot be used as one with class: ";
+		    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    it = Nav;
+		    errCnt++;
+		    m_state.popClassContext(); //restore
+		  }
 	      }
-	    m_state.popClassContext(); //restore
 	  }
 	else
 	  {
-	    std::ostringstream msg;
-	    msg << "Variable <" << m_state.getTokenDataAsString(m_token).c_str();
-	    msg << "> is not defined, or was used before declared in a function";
-	    if(!hazyKin)
+	    //not found, look again...(t41344,5)
+	    TBOOL foundit = lookagainincaseimplicitselfchanged(); //TBOOL_HAZY is good!
+	    if(foundit != TBOOL_TRUE)
 	      {
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		it = Nav;
+		std::ostringstream msg;
+		msg << "Variable '" << m_state.getTokenDataAsString(m_token).c_str();
+		msg << "' is not defined, or was used before declared in a function";
+		if((foundit != TBOOL_HAZY))
+		  {
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    it = Nav;
+		  }
+		else
+		  {
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+		    it = Hzy;
+		  }
+		errCnt++;
+		//m_state.popClassContext(); //restore
 	      }
-	    else
-	      {
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-		it = Hzy;
-	      }
-	    errCnt++;
 	    m_state.popClassContext(); //restore
 	  }
       } //lookup symbol done
-    //else if(m_varSymbol->isConstant())
-    else if(m_varSymbol->isConstant() && !m_state.isConstantRefType(m_varSymbol->getUlamTypeIdx()))
+    else
       {
-	UTI vuti = m_varSymbol->getUlamTypeIdx();
-
-	// replace ourselves with a constant node instead;
-	// same node no, and loc (e.g. t3573, t3526)
-	Node * newnode = NULL;
-	if(m_state.isAClass(vuti))
+	if(replaceOurselves(m_varSymbol))
 	  {
-	    if(m_state.isScalar(vuti))
-	      newnode = new NodeConstantClass(m_token, (SymbolWithValue *) m_varSymbol, NULL, m_state);
-	    else
-	      newnode = new NodeConstantClassArray(m_token, (SymbolWithValue *) m_varSymbol, NULL, m_state);
+	    m_state.setGoAgain();
+
+	    delete this; //suicide is painless..
+
+	    return Hzy;
 	  }
-	else if(m_state.isScalar(vuti))
-	  newnode = new NodeConstant(m_token, (SymbolWithValue *) m_varSymbol, NULL, m_state);
-	else
-	  newnode = new NodeConstantArray(m_token, (SymbolWithValue *) m_varSymbol, NULL, m_state);
-	assert(newnode);
-
-	AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
-	assert(swapOk);
-
-	delete this; //suicide is painless..
-
-	return newnode->checkAndLabelType();
-      }
-    else if(m_varSymbol->isModelParameter())
-      {
-	// replace ourselves with a parameter node instead;
-	// same node no, and loc
-	NodeModelParameter * newnode = new NodeModelParameter(m_token, (SymbolModelParameterValue*) m_varSymbol, NULL, m_state);
-	assert(newnode);
-
-	AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
-	assert(swapOk);
-
-	delete this; //suicide is painless..
-
-	return newnode->checkAndLabelType();
+	//else continue
       }
 
     if(!errCnt && m_varSymbol)
@@ -411,6 +388,9 @@ namespace MFM {
       }
 
     if(m_state.okUTItoContinue(it) && m_varSymbol)
+      it = specifyimplicitselfexplicitly();
+
+    if(m_state.okUTItoContinue(it) && m_varSymbol)
       it = checkUsedBeforeDeclared();
 
     setNodeType(it);
@@ -418,10 +398,186 @@ namespace MFM {
     return it;
   } //checkAndLabelType
 
+  bool NodeIdent::replaceOurselves(Symbol * symptr)
+  {
+    assert(symptr);
+
+    bool rtnb = false;
+    UTI suti = symptr->getUlamTypeIdx();
+    if(symptr->isConstant() && !m_state.isConstantRefType(suti))
+      {
+	// replace ourselves with a constant node instead;
+	// same node no, and loc (e.g. t3573)
+	Node * newnode = NULL;
+	if(m_state.isAClass(suti))
+	  {
+	    if(m_state.isScalar(suti))
+	      newnode = new NodeConstantClass(m_token, (SymbolWithValue *) symptr, NULL, m_state);
+	    else
+	      newnode = new NodeConstantClassArray(m_token, (SymbolWithValue *) symptr, NULL, m_state); //t41261
+	  }
+	else if(m_state.isScalar(suti))
+	  newnode = new NodeConstant(m_token, (SymbolWithValue *) symptr, NULL, m_state);
+	else
+	  newnode = new NodeConstantArray(m_token, (SymbolWithValue *) symptr, NULL, m_state);
+	assert(newnode);
+
+	AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+	assert(swapOk);
+
+	rtnb = true;
+      }
+    else if(symptr->isModelParameter())
+      {
+	// replace ourselves with a parameter node instead;
+	// same node no, and loc
+	NodeModelParameter * newnode = new NodeModelParameter(m_token, (SymbolModelParameterValue*) symptr, NULL, m_state);
+	assert(newnode);
+
+	AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+	assert(swapOk);
+
+	rtnb = true;
+      }
+    //else did not replace ourselves
+    return rtnb;
+  } //replaceOurselves
+
+  TBOOL NodeIdent::lookagainincaseimplicitselfchanged()
+  {
+    TBOOL rtn = TBOOL_FALSE;
+
+    Symbol * symptr = NULL;
+    bool hazyKin = false;
+
+    if(!m_state.useMemberBlock())
+      {
+	//not found in current context, perhaps 'self' has changed scope (t41344)
+	u32 selfid = m_state.m_pool.getIndexForDataString("self");
+	Symbol * selfsym = NULL;
+	bool hazykin = false; //unused
+	bool gotSelf = m_state.alreadyDefinedSymbolHere(selfid, selfsym, hazykin);
+	if(gotSelf)
+	  {
+	    UTI selfuti = selfsym->getUlamTypeIdx();
+	    SymbolClass * csym = NULL;
+	    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(selfuti, csym);
+	    assert(isDefined);
+
+	    NodeBlockClass * memberClassNode = csym->getClassBlockNode();
+	    assert(memberClassNode);
+
+	    UTI selfblockuti = memberClassNode->getNodeType();
+	    if(m_state.okUTItoContinue(selfblockuti))
+	      {
+		//set up compiler state to use the member class block for variable
+		m_state.pushClassContextUsingMemberClassBlock(memberClassNode);
+
+		u32 tokid = m_state.getTokenDataAsStringId(m_token);
+		bool foundit = m_state.alreadyDefinedSymbol(tokid, symptr, hazyKin);
+		if(foundit)
+		  rtn = TBOOL_TRUE;
+
+		m_state.popClassContext(); //restore
+	      }
+	    else if(selfblockuti == Nav)
+	      rtn = TBOOL_FALSE;
+	    else if(selfblockuti == Hzy)
+	      rtn = TBOOL_HAZY;
+	    else if(selfblockuti == Nouti)
+	      rtn = TBOOL_HAZY;
+	    //else
+	  } //ends gotself (t3415,t3431,t3455,t3460,t41283)
+      } //ends not using memberblock
+
+    if(rtn == TBOOL_TRUE)
+      {
+	setSymbolPtr((SymbolVariable *) symptr);
+	setBlockNo(symptr->getBlockNoOfST()); //refined
+	setBlock(NULL);
+	UTI it = specifyimplicitselfexplicitly(); //returns Hzy
+	if(it == Hzy)
+	  rtn = TBOOL_HAZY;
+	else if(!m_state.okUTItoContinue(it))
+	  rtn = TBOOL_FALSE;
+	//else still TBOOL_TRUE
+      }
+    return rtn;
+  } //lookagainincaseimplicitselfchanged
+
+  UTI NodeIdent::specifyimplicitselfexplicitly()
+  {
+    assert(m_varSymbol);
+    UTI vuti = m_varSymbol->getUlamTypeIdx();
+    if(!m_varSymbol->isDataMember())
+      return vuti; //no change
+
+    if(m_varSymbol->isTmpVarSymbol())
+      return vuti; //no change
+
+    if(m_state.useMemberBlock())
+      {
+	return vuti; //t3337 (e.g. t.m_arr[1]) parent is sqbkt, parent's parent is '.'
+      }
+
+    //a data member/func call needs to be rhs of member select "."
+    NodeBlock * currBlock = getBlock();
+
+    NNO pno = Node::getYourParentNo();
+
+    m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock); //push again
+
+    Node * parentNode = m_state.findNodeNoInThisClassForParent(pno);
+    assert(parentNode);
+
+    m_state.popClassContext(); //restore
+
+    bool implicitself = true;
+
+    if(parentNode->isAMemberSelect())
+      {
+	Symbol * rhsym = NULL;
+	if(!parentNode->getSymbolPtr(rhsym))
+	  vuti = Hzy; //t41152
+
+	implicitself = (rhsym != m_varSymbol); //rhsym null wont match
+      }
+    //else
+
+    if(!implicitself)
+      return vuti; //done
+
+    Token selfTok(TOK_KW_SELF, m_token.m_locator, 0);
+    NodeIdent * explicitself = new NodeIdent(selfTok, NULL, m_state);
+    assert(explicitself);
+    explicitself->setNodeLocation(getNodeLocation());
+
+    NodeMemberSelect * newnode = new NodeMemberSelect(explicitself, this, m_state);
+    assert(newnode);
+    NNO newnodeno = newnode->getNodeNo(); //for us after swap
+
+    AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+    assert(swapOk);
+
+    resetNodeNo(newnodeno); //moved before update lineage (t3337)
+
+    //redo look-up given explicit self
+    m_varSymbol = NULL;
+    m_currBlockNo = 0;
+
+    //reusing this, no suicide
+    return Hzy;
+  } //specifyimplicitselfexplicitly
+
   UTI NodeIdent::checkUsedBeforeDeclared()
   {
     assert(m_varSymbol);
     UTI rtnuti = m_varSymbol->getUlamTypeIdx();
+
+    if(m_varSymbol->isSuper())
+      {
+	return rtnuti; //short circuit as-cond super (t41338)
+      }
 
     if(!m_varSymbol->isDataMember() && (((SymbolVariableStack *) m_varSymbol)->getDeclNodeNo() > getNodeNo()))
       {
@@ -583,14 +739,13 @@ namespace MFM {
 
     //the first reason for ALT_CONSTREF when called from evalArgumentsInReverseOrder
     // allow constant classes (t41198)
-    //if((stor != TBOOL_TRUE) && (alt != ALT_CONSTREF) && (etyp != Class)) //i.e. an MP
     if((stor != TBOOL_TRUE) && !m_state.isConstantRefType(nuti)) //i.e. an MP
       {
 	if(m_varSymbol->isDataMember() || !((SymbolVariableStack *) m_varSymbol)->isConstantFunctionParameter())
 	  {
 	    std::ostringstream msg;
 	    msg << "Variable '";
-	    msg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str();
+	    msg << m_state.getTokenDataAsString(m_token).c_str();
 	    msg << "' is not a valid lefthand side. Eval FAILS";
 	    if(stor == TBOOL_HAZY)
 	      {
@@ -627,7 +782,7 @@ namespace MFM {
   {
     if(m_varSymbol->isSelf())
       {
-	//when "self" is a quark, we're inside a func called on a quark (e.g. dm or local)
+	// when "self" is a quark, we're inside a func called on a quark (e.g. dm or local)
 	//'atomof' gets entire atom/element containing this quark; including its type!
 	//'self' gets type/pos/len of the quark from which 'atom' can be extracted
 	UlamValue selfuvp = m_state.m_currentSelfPtr;
@@ -635,20 +790,43 @@ namespace MFM {
 	assert(m_state.okUTItoContinue(ttype));
 	return selfuvp;
       } //done
+    else if(m_varSymbol->isSuper())
+      {
+	// manufactured super for self as-cond. (t41338)
+	UlamValue selfuvp = m_state.m_currentSelfPtr;
+	UTI selfttype = selfuvp.getPtrTargetType();
+	assert(m_state.okUTItoContinue(selfttype));
+	UTI supertype = m_varSymbol->getUlamTypeIdx(); //ALT_AS
+	u32 relposofsuper = 0;
+	AssertBool gotpos = m_state.getABaseClassRelativePositionInAClass(selfttype, supertype, relposofsuper);
+	assert(gotpos);
+	selfuvp.setPtrPos(selfuvp.getPtrPos() + relposofsuper);
+	selfuvp.setPtrTargetType(m_state.getUlamTypeAsDeref(supertype));
+	selfuvp.setPtrLen(m_state.getBaseClassBitSize(supertype));
+	selfuvp.setPtrNameId(0);
+	return selfuvp; //now superuvp.
+      } //done
 
-    //can't use global m_currentAutoObjPtr, since there might be nested as conditional blocks.
-    // NodeVarDecl for this autolocal sets AutoPtrForEval during its eval.
-    // ALT_REF, ALT_CONSTREF, ALT_ARRAYITEM cannot guarantee its NodeVarRef init was last encountered, like ALT_AS.
+    // can't use global m_currentAutoObjPtr, since there might be nested as conditional blocks.
+    // NodeVarDecl for this autolocal sets AutoPtrForEval during its eval. Unlike ALT_AS,
+    // ALT_REF, ALT_CONSTREF, ALT_ARRAYITEM cannot guarantee its NodeVarRef init was last encountered.
     if(m_varSymbol->getAutoLocalType() == ALT_AS)
       return ((SymbolVariableStack *) m_varSymbol)->getAutoPtrForEval(); //haha! we're done.
 
     UlamValue ptr;
     if(m_varSymbol->isDataMember())
       {
-	assert((UlamType::compareForUlamValueAssignment(m_varSymbol->getDataMemberClass(), m_state.m_currentObjPtr.getPtrTargetType(), m_state) == UTIC_SAME) || m_state.isClassASubclassOf(m_state.m_currentObjPtr.getPtrTargetType(), m_varSymbol->getDataMemberClass())); //sanity, right? t3915
+	UTI objclass = m_state.m_currentObjPtr.getPtrTargetType();
+	UTI dmclass = m_varSymbol->getDataMemberClass();
+	assert((UlamType::compareForUlamValueAssignment(dmclass, objclass, m_state) == UTIC_SAME) || m_state.isClassASubclassOf(objclass, dmclass)); //sanity, right? t3915
 	// return ptr to this data member within the m_currentObjPtr
-	// 'pos' modified by this data member symbol's packed bit position
-	ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset(), m_varSymbol->getId());
+	// 'pos' modified by this data member symbol's packed bit position;
+	// and relative position of its class in m_currentObjPtr (ulam-5);
+	u32 relposofbase = 0;
+	AssertBool gotpos = m_state.getABaseClassRelativePositionInAClass(objclass, dmclass, relposofbase);
+	assert(gotpos);
+
+	ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset() + relposofbase, m_varSymbol->getId());
 
 	ptr.checkForAbsolutePtr(m_state.m_currentObjPtr); //t3810
       }
@@ -675,21 +853,24 @@ namespace MFM {
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     assert(UlamType::compare(nuti, m_varSymbol->getUlamTypeIdx(), m_state) == UTIC_SAME);
 
-    u32 pos = 0;
+    u32 pos = uvpass.getPassPos(); //t41184
     if(m_varSymbol->isDataMember())
       {
-	pos = uvpass.getPassPos();
 	// 'pos' modified by this data member symbol's packed bit position;
 	// except for array items, i.e. tmprefsymbols (t3910)
+	// adjusted if dm of (unshared) base class by rel pos (t41320)
 	if(!m_varSymbol->isTmpVarSymbol())
 	  pos += m_varSymbol->getPosOffset();
 
-	uvpass = UVPass::makePass(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, pos, m_varSymbol->getId());
+	//might already be true when MemberSelectByBaseType; don't clobber.
+	bool applydelta = uvpass.getPassApplyDelta(); //t41318
+
+	uvpass = UVPass::makePass(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, pos, applydelta, m_varSymbol->getId());
       }
     else
       {
 	//local variable on the stack; could be array ptr!
-	uvpass = UVPass::makePass(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, pos, m_varSymbol->getId());
+	uvpass = UVPass::makePass(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, pos, false, m_varSymbol->getId());
       }
   } //makeUVPassForCodeGen
 
@@ -701,6 +882,7 @@ namespace MFM {
     // ask current scope block if this variable name is there;
     // if so, nothing to install return symbol and false
     // function names also checked when currentBlock is the classblock.
+    assert(m_token.m_type == TOK_TYPE_IDENTIFIER);
     if(m_state.isIdInCurrentScope(m_token.m_dataindex, asymptr))
       {
 	tduti = asymptr->getUlamTypeIdx();
@@ -760,16 +942,11 @@ namespace MFM {
 		  }
 		brtn = true;
 	      } //holder done
-	    else if(asymptr->getId() == m_state.m_pool.getIndexForDataString("Self"))
-	      brtn = false; //e.g. error/t3391, error/t3698
-	    else if(asymptr->getId() == m_state.m_pool.getIndexForDataString("Super"))
-	      brtn = false;
 	    else
 	      brtn = true;
 	  } //a typedef already there
 	return brtn; //already there, and updated
       }
-    //    else
 
     SymbolClassName * prematureclass = NULL;
     bool isUnseenClass = false;
@@ -810,7 +987,7 @@ namespace MFM {
 	    brtn = true;
 	  }
       }
-    else if(m_state.getUlamTypeByTypedefName(args.m_typeTok.m_dataindex, tduti, tdscalaruti))
+    else if(m_state.getUlamTypeByTypedefName(m_state.getTokenDataAsStringId(args.m_typeTok), tduti, tdscalaruti)) //t3674 Self;
       {
 	args.m_declListOrTypedefScalarType = tdscalaruti; //not Nav when tduti is an array
 	if(checkTypedefOfTypedefSizes(args, tduti)) //ref
@@ -916,7 +1093,7 @@ namespace MFM {
 	    brtn = true;
 	  }
       }
-    else if(m_state.getUlamTypeByTypedefName(args.m_typeTok.m_dataindex, uti, tdscalaruti))
+    else if(m_state.getUlamTypeByTypedefName(m_state.getTokenDataAsStringId(args.m_typeTok), uti, tdscalaruti))
       {
 	args.m_declListOrTypedefScalarType = tdscalaruti; //not Nav when tduti is an array
 	if(checkConstantTypedefSizes(args, uti))
@@ -1021,7 +1198,7 @@ namespace MFM {
 	    uti = args.m_anothertduti;
 	  }
       }
-    else if(m_state.getUlamTypeByTypedefName(args.m_typeTok.m_dataindex, uti, tdscalaruti))
+    else if(m_state.getUlamTypeByTypedefName(m_state.getTokenDataAsStringId(args.m_typeTok), uti, tdscalaruti))
       {
 	args.m_declListOrTypedefScalarType = tdscalaruti; //not Nav when tduti is an array
 	if(checkConstantTypedefSizes(args, uti))
@@ -1076,7 +1253,8 @@ namespace MFM {
     // ask current scope block if this variable name is there;
     // if so, nothing to install return symbol and false
     // function names also checked when currentBlock is the classblock.
-    if(m_state.isIdInCurrentScope(m_token.m_dataindex, asymptr))
+    u32 tokid = m_state.getTokenDataAsStringId(m_token); //3821 as-cond uses lhs token
+    if(m_state.isIdInCurrentScope(tokid, asymptr))
       {
 	if(!(asymptr->isFunction()) && !(asymptr->isTypedef()) && !(asymptr->isConstant()) && !(asymptr->isModelParameter()))
 	  setSymbolPtr((SymbolVariable *) asymptr); //updates Node's symbol, if is variable
@@ -1102,7 +1280,7 @@ namespace MFM {
 	  }
 	brtn = true;
       }
-    else if(m_state.getUlamTypeByTypedefName(args.m_typeTok.m_dataindex, auti, tdscalaruti))
+    else if(m_state.getUlamTypeByTypedefName(m_state.getTokenDataAsStringId(args.m_typeTok), auti, tdscalaruti))
       {
 	args.m_declListOrTypedefScalarType = tdscalaruti; //not Nav when tduti is an array
 	// check typedef types here..
@@ -1161,7 +1339,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Variable symbol '";
-	    msg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str();
+	    msg << m_state.getTokenDataAsString(m_token).c_str();
 	    msg << "' cannot be a reference";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    brtn = false;
@@ -1321,8 +1499,12 @@ namespace MFM {
 
   void NodeIdent::genCodeToStoreInto(File * fp, UVPass& uvpass)
   {
-    if(uvpass.getPassStorage() == TMPAUTOREF)
-      Node::genCodeConvertATmpVarAutoRefIntoAutoRef(fp, uvpass); //uvpass becomes the autoref, and clears stack
+    // an empty dot chain indicates uvpass has the info (e.g. casting);
+    // keep 'self' (t3185); keep if tmpvarSymbol BaseType (t41321);
+    if((uvpass.getPassStorage()==TMPAUTOREF) && !((uvpass.getPassNameId()==m_state.m_pool.getIndexForDataString("self")) || uvpass.getPassApplyDelta()))
+      {
+	Node::genCodeConvertATmpVarAutoRefIntoAutoRef(fp, uvpass); //uvpass becomes the autoref, and clears stack
+      }
 
     //e.g. return the ptr for an array;
     //square bracket will resolve down to the immediate data

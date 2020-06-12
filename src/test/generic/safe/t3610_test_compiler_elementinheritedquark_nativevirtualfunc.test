@@ -4,7 +4,7 @@
 ##
 #!
 Exit status: 0
-Ue_Test : System { :<> Int(32) test() {  Bool(1) b = true;  ( b )print 0 cast return } }
+Ue_Test : System { :System<> Int(32) test() {  Bool(1) b = true;  self ( b )print . 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ##

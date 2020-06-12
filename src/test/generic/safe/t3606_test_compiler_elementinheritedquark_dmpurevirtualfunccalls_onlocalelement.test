@@ -8,10 +8,10 @@
 #!
 Exit status: 0
 Uq_QMemBase { Int(3) bmem(0);  <NOMAIN> }
-Uq_QSubBase1 : QMemBase { :< Int(3) bmem(0); > <NOMAIN> }
-Uq_QSubBase2 : QMemBase { :< Int(3) bmem(0); > <NOMAIN> }
-Ue_Foo { QSubBase1 m1( :< Int(3) bmem(0); >);  QSubBase2 m2( :< Int(3) bmem(0); >);  <NOMAIN> }
-Ue_Test : System { :<> Bool(1) brtn[4](true,true,true,true);  Int(32) test() {  Foo f;  brtn 0 [] f m1 . ( )func . 3 cast == = ( brtn 0 [] )assert brtn 1 [] f m2 . ( )func . 4 cast == = ( brtn 1 [] )assert brtn 2 [] f m1 . bmem . 1 cast == = ( brtn 2 [] )assert brtn 3 [] f m2 . bmem . 2 == = ( brtn 3 [] )assert 0 cast return } }
+Uq_QSubBase1 : QMemBase { :QMemBase< Int(3) bmem(0); > <NOMAIN> }
+Uq_QSubBase2 : QMemBase { :QMemBase< Int(3) bmem(0); > <NOMAIN> }
+Ue_Foo { QSubBase1 m1( :QMemBase< Int(3) bmem(0); >);  QSubBase2 m2( :QMemBase< Int(3) bmem(0); >);  <NOMAIN> }
+Ue_Test : System { Bool(1) brtn[4](true,true,true,true);  :System<> Int(32) test() {  Foo f;  self brtn . 0 [] f m1 . ( )func . 3 cast == = self ( self brtn . 0 [] )assert . self brtn . 1 [] f m2 . ( )func . 4 cast == = self ( self brtn . 1 [] )assert . self brtn . 2 [] f m1 . bmem . 1 cast == = self ( self brtn . 2 [] )assert . self brtn . 3 [] f m2 . bmem . 2 == = self ( self brtn . 3 [] )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by vtable-example 11/25/15, t3604

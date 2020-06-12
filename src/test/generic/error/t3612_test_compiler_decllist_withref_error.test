@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3612_test_compiler_decllist_withref_error
 #!
-./A.ulam:6:14: ERROR: Must assign to reference <d> at the time of its declaration.
+./A.ulam:6:14: ERROR: Must assign to reference 'd' at the time of its declaration.
 Unrecoverable Program Parse FAILURE: <A.ulam>
 #>A.ulam
   ulam 2;

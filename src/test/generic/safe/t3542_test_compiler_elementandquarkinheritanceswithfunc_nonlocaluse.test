@@ -1,6 +1,5 @@
 ## -*- mode:ulam -*-
 #=t3542_test_compiler_elementandquarkinheritanceswithfunc_nonlocaluse
-#!
 ## gencode output (asserts interleaved):
 ##Bool(3) Arg: 0x7 (true)
 ##Bool(3) Arg: 0x7 (true)
@@ -9,12 +8,13 @@
 ##Int Arg: 1
 ##Unsigned Arg: 96
 ##
+#!
 Exit status: 96
-Ue_Foo : Basel { :< :< Soo su( :< :< Int(5) lu(1); > Bool(3) cb(true); > Unsigned(3) us(4u); ); > Bool(1) ba(false); > System s();  Bool(1) first(true);  Int(32) test() {  s ( su cb . )print . s ( su cb . cast )assert . first su cb . cast = s ( first cast )print . s ( first )assert . first su ( )check . = s ( first cast )print . s ( first )assert . { su ( )check . cond { s ( su lu . cast )print . s ( su lu . -1 cast == )assert . su lu . 1u cast = s ( su lu . cast )print . s ( su lu . 1 cast == )assert . s ( 96u )print . s ( true )assert . 96u cast return } if } -1 cast return } }
-Uq_Basel : Casel { :< Soo su( :< :< Int(5) lu( -1); > Bool(3) cb( true); > Unsigned(3) us( 4u); ); > Bool(1) ba(false);  <NOMAIN> }
-Uq_Casel { Soo su( :< :< Int(5) lu( -1); > Bool(3) cb( true); > Unsigned(3) us( 4u); );  <NOMAIN> }
-Uq_Soo : Coo { :< :< Int(5) lu( -1); > Bool(3) cb( true); > Unsigned(3) us( 4u);  <NOMAIN> }
-Uq_Coo : Loo { :< Int(5) lu( -1); > Bool(3) cb( true);  <NOMAIN> }
+Ue_Foo : Basel { System s();  Bool(1) first(true);  :Basel< Bool(1) ba(false);  :Casel< Soo su( Unsigned(3) us(4u);  :Coo< Bool(3) cb(true);  :Loo< Int(5) lu(1); >> ^Loo< Int(5) lu(1); >); >> ^Casel< Soo su( Unsigned(3) us(4u);  :Coo< Bool(3) cb(true);  :Loo< Int(5) lu(1); >> ^Loo< Int(5) lu(1); >); > Int(32) test() {  self s . ( self su . cb . )print . self s . ( self su . cb . cast )assert . self first . self su . cb . cast = self s . ( self first . cast )print . self s . ( self first . )assert . self first . self su . ( )check . = self s . ( self first . cast )print . self s . ( self first . )assert . { self su . ( )check . cond { self s . ( self su . lu . cast )print . self s . ( self su . lu . -1 cast == )assert . self su . lu . 1u cast = self s . ( self su . lu . cast )print . self s . ( self su . lu . 1 cast == )assert . self s . ( 96u )print . self s . ( true )assert . 96u cast return } if } -1 cast return } }
+Uq_Basel : Casel { Bool(1) ba(false);  :Casel< Soo su( Unsigned(3) us( 4u);  :Coo< Bool(3) cb( true); > ^Loo< Int(5) lu( -1); >); > <NOMAIN> }
+Uq_Casel { Soo su( Unsigned(3) us( 4u);  :Coo< Bool(3) cb( true); > ^Loo< Int(5) lu( -1); >);  <NOMAIN> }
+Uq_Soo : Coo { Unsigned(3) us( 4u);  :Coo< Bool(3) cb( true); > ^Loo< Int(5) lu( -1); > <NOMAIN> }
+Uq_Coo : Loo { Bool(3) cb( true);  :Loo< Int(5) lu( -1); > <NOMAIN> }
 Uq_Loo { Int(5) lu( -1);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

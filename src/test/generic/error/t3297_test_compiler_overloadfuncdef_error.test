@@ -1,16 +1,18 @@
 ## -*- mode:ulam -*-
 #=t3297_test_compiler_overloadfuncdef_error
 #!
-./Tu.ulam:8:7: ERROR: Check overloaded function <chk> has a duplicate definition (Uf_3chk1110131i), while compiling class: Tu.
+./Tu.ulam:10:7: ERROR: Check overloaded function 'chk' has a duplicate definition (Uf_3chk1110131i), while compiling class: Tu.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## un-called.
 ##
 #>Tu.ulam
   ulam 1;
+local constant Int(3) cThree = 3;
 element Tu {
   Bool(3) sp;
-  Int chk(Int(sp.sizeof) i){
+
+  Int chk(Int(cThree.sizeof) i){
     return 0;
   }
   typedef Int(3) Poo;

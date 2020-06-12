@@ -8,7 +8,7 @@
 ##
 #!
 Exit status: 0
-Ue_FString { String(32) mfoo[2]("","");  Bool(1) b1(true);  Int(32) test() {  System s;  mfoo 0 [] "" = mfoo 1 [] "" = String(32) gstr = ( glyphsRadonX 3 [] 0 cast )init;  Int(32) slen = 13u cast;  s ( slen )print . b1 slen 13 cast == = s ( b1 )assert . s ( gstr 0 [] 35u == )assert . s ( 13u )print . s ( true )assert . s ( 14 )print . s ( true )assert . 0 cast return } }
+Ue_FString { String(32) mfoo[2]("","");  Bool(1) b1(true);  Int(32) test() {  System s;  self mfoo . 0 [] "" = self mfoo . 1 [] "" = String(32) gstr = self ( glyphsRadonX 3 [] 0 cast )init .;  Int(32) slen = 13u cast;  s ( slen )print . self b1 . slen 13 cast == = s ( self b1 . )assert . s ( gstr 0 [] 35u == )assert . s ( 13u )print . s ( true )assert . s ( 14 )print . s ( true )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t3984 (see also t3949)

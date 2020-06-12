@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * Parser.h -  Basic Parse handling for ULAM
  *
- * Copyright (C) 2014-2018 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2018 Ackleyshack LLC.
+ * Copyright (C) 2014-2020 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2020 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +27,9 @@
 
 /**
   \file Parser.h -  Basic Parse handling for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2018   All rights reserved.
+  \date (C) 2014-2020   All rights reserved.
   \gpl
 */
 
@@ -108,6 +108,10 @@ namespace MFM{
     void parseRestOfClassParameters(SymbolClassNameTemplate * ctsym, NodeBlockClass * cblock);
 
     bool parseRestOfClassInheritance(SymbolClassName * cnsym, SymbolClass *& supercsym, UTI& superuti);
+
+    //ulam 5 supports multiple inheritance
+    bool parseMultipleClassInheritances(SymbolClassName * cnsym);
+    bool parseRestOfMultiClassInheritance(SymbolClassName * cnsym, bool sharedVirtualBase);
 
     void setupSuperClassHelper(SymbolClassName * cnsym);
     void setupSuperClassHelper(SymbolClass * supercsym, SymbolClassName * cnsym);
@@ -277,11 +281,6 @@ namespace MFM{
        <IDENT_EXPRESSION> := <LVAL_EXPRESSION> | <MEMBER_SELECT_EXPRESSION> | <FUNC_CALL>
     */
     Node * parseIdentExpr(const Token& identTok);
-
-    /**
-	<MEMBER_SELECT_EXPRESSION> := <IDENT_EXPRESSION> + '.' + <IDENT_EXPRESSION>
-    */
-    Node * parseMemberSelectExpr(const Token& memberTok);
 
     Node * parseRestOfMemberSelectExpr(Node * classInstanceNode);
 

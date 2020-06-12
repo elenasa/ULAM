@@ -4,7 +4,7 @@
 ## gen code (1 assert)
 #!
 Exit status: 3
-Ue_A { Bool(1) sp(false);  Int(3) it(3);  Int(32) test() {  System s;  Int(3)& e = it cast;  it 3 = s ( e cast 3 == )assert . e cast return } }
+Ue_A { Bool(1) sp(false);  Int(3) it(3);  Int(32) test() {  System s;  Int(3)& e = self it . cast;  self it . 3 = s ( e cast 3 == )assert . e cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by error/t3694

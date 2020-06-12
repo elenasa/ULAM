@@ -7,7 +7,7 @@
 ##
 #!
 Exit status: 4
-Ue_Foo : QW { :< Int(4) m_i(0);  Bool(1) first(true); > Int(32) fint(0);  Int(32) opfint(0);  Int(32) test() {  System s;  Foo f;  Foo g;  Foo h;  f m_i . 4 = QW qw;  QW qw2;  qw2 ( qw )operator= . s ( qw2 first . ! )assert . qw ( f cast )operator= . s ( qw first . ! )assert . g ( f cast )operator= . s ( g first . ! )assert . s ( g m_i . )print . s ( f m_i . g m_i . == )assert . h ( f cast )func . s ( h first . ! )assert . s ( h m_i . )print . s ( f m_i . h m_i . == )assert . f m_i . cast return } }
+Ue_Foo : QW { Int(32) fint(0);  Int(32) opfint(0);  :QW< Int(4) m_i(0);  Bool(1) first(true); > Int(32) test() {  System s;  Foo f;  Foo g;  Foo h;  f m_i . 4 = QW qw;  QW qw2;  qw2 ( qw )operator= . s ( qw2 first . ! )assert . qw ( f cast )operator= . s ( qw first . ! )assert . g ( f cast )operator= . s ( g first . ! )assert . s ( g m_i . )print . s ( f m_i . g m_i . == )assert . h ( f cast )func . s ( h first . ! )assert . s ( h m_i . )print . s ( f m_i . h m_i . == )assert . f m_i . cast return } }
 Uq_QW { Bool(1) first( true);  Int(4) m_i(0);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

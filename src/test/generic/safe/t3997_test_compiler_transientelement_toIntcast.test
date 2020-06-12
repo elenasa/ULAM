@@ -7,7 +7,7 @@
 ##
 #!
 Exit status: 47
-Ue_Foo { Bool(1) first(false);  Unsigned(32) fint(3u);  Unsigned(32) cint(44u);  Int(32) test() {  System s;  Foo foo;  fint foo ( )toInt . cast = s ( fint )print . s ( fint 3u cast == )assert . Coo coo;  cint coo ( )toInt . cast = s ( cint )print . s ( cint 44u cast == )assert . cint fint +b cast return } }
+Ue_Foo { Bool(1) first(false);  Unsigned(32) fint(3u);  Unsigned(32) cint(44u);  Int(32) test() {  System s;  Foo foo;  self fint . foo ( )toInt . cast = s ( self fint . )print . s ( self fint . 3u cast == )assert . Coo coo;  self cint . coo ( )toInt . cast = s ( self cint . )print . s ( self cint . 44u cast == )assert . self cint . self fint . +b cast return } }
 Uq_System { <NOMAIN> }
 Un_Coo { Bool(3) cb( true);  <NOMAIN> }
 ##

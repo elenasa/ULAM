@@ -2,19 +2,19 @@
 #=t3227_test_compiler_bitwiseandwithconstant
 #!
 Exit status: 2
-Ue_A { typedef Int(3) I;  typedef Bits(3) B;  Int(3) a(3);  Int(3) b(2);  Int(32) test() {  a 3 = b a cast 2 cast & cast = b cast return } }
+Ue_A { typedef Int(3) I;  typedef Bits(3) B;  Int(3) a(3);  Int(3) b(2);  Int(32) test() {  self a . 3 = self b . self a . cast 2 cast & cast = self b . cast return } }
 ##      // as a Int cast to Bits and a constant
 #>A.ulam
-ulam 1;
- element A {
-typedef Int(3) I;
- typedef Bits(3) B;
- I a, b;
- Int test() {
-a = 3;
-b = (I) (a & 2);
-return b;
-}
+  ulam 1;
+element A {
+  typedef Int(3) I;
+  typedef Bits(3) B;
+  I a, b;
+  Int test() {
+    a = 3;
+    b = (I) (a & 2);
+    return b;
+  }
 }
 
 #.

@@ -9,7 +9,7 @@
 ##
 #!
 Exit status: 7
-Ue_T { typedef Int(7) B;  Int(7) m(-64);  Int(7) n(63);  Int(7) p(7);  Int(7) q(11);  Int(32) test() {  System s;  m -64 = s ( m cast )print . s ( m cast -64 == )assert . n 63 = s ( n cast )print . s ( n 63 == )assert . p 7u cast = s ( p cast )print . s ( p 7 cast == )assert . q 11u cast = s ( q cast )print . s ( q 11 cast == )assert . 7u cast return } }
+Ue_T { typedef Int(7) B;  Int(7) m(-64);  Int(7) n(63);  Int(7) p(7);  Int(7) q(11);  Int(32) test() {  System s;  self m . -64 = s ( self m . cast )print . s ( self m . cast -64 == )assert . self n . 63 = s ( self n . cast )print . s ( self n . 63 == )assert . self p . 7u cast = s ( self p . cast )print . s ( self p . 7 cast == )assert . self q . 11u cast = s ( self q . cast )print . s ( self q . 11 cast == )assert . 7u cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## opens door to expecting to put 'dot' after function call; that ship has already sailed!

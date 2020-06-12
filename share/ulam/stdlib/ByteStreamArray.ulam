@@ -1,4 +1,7 @@
-transient ByteStreamArray(Unsigned len) : ByteStream {
+ulam 5;
+use ByteStream;
+
+transient ByteStreamArray(Unsigned len) : ByteStreamReaderWriter {
 
   Unsigned mWrite = 0;
   Unsigned mRead = 0;
@@ -7,10 +10,10 @@ transient ByteStreamArray(Unsigned len) : ByteStream {
   Bool stillRoom() { return mWrite < len; }
 
   @Override
-  Bool canRead() { return true; }
+  Bool canReread() { return true; }
 
   @Override
-  Bool canWrite() { return true; }
+  Bool canRewrite() { return true; }
 
   @Override
   Int writeByte(ASCII x) 
@@ -36,11 +39,13 @@ transient ByteStreamArray(Unsigned len) : ByteStream {
     rewrite();
   }
 
+  @Override
   Void reread() 
   {
     mRead = 0;
   }
 
+  @Override
   Void rewrite() 
   {
     mWrite = 0;

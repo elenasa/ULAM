@@ -14,7 +14,7 @@ Exit status: -11
 Ue_KeyExprRep { Int(32) test() {  SystemU3 s;  Int(32) var = 1 cast;  String(32) mystrv = keyexpr_x13 4 [] m_elfoo . estr var [] .;  s ( mystrv )print . s ( mystrv 0 [] 108u == )assert . String(32) mystr1 = keyexpr_x13 4 [] m_elfoo . estr 1 [] .;  s ( mystr1 )print . s ( mystr1 0 [] 108u == )assert . constant Elfoo celfood = { };  String(32) mystrcd = celfood estr 1 [] .;  s ( mystrcd )print . s ( mystrcd 0 [] 108u == )assert . constant Elfoo celfoo = keyexpr_x13 4 [] m_elfoo .;  String(32) mystrc = celfoo estr 1 [] .;  s ( mystrc )print . s ( mystrc 0 [] 108u == )assert . constant String(32) c_reunion = "reunion";  s ( "reunion" )print . s ( true )assert . 0 cast return } }
 Ue_Elfoo { Bool(1) esp( true);  String(32) estr[2]( { "melt", "let" });  constant String(32) c_str = "reunion";  <NOMAIN> }
 Un_KeyExprNode { typedef Unsigned(8) Byte;  Unsigned(8) m_leftIndex(0);  Unsigned(8) m_rightIndex(0);  Unsigned(8) m_keyCode(0);  Unsigned(8) m_op(0);  Elfoo m_elfoo( celfoo);  <NOMAIN> }
-Uq_SystemU3 : System { :<> <NOMAIN> }
+Uq_SystemU3 : System { :System<> <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t41267: except element data member has array of 2 strings, accessed 4 ways;

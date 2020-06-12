@@ -2,8 +2,8 @@
 #=t3986_test_compiler_atomofvirtualselfquarkSelf_issue
 #!
 Exit status: -11
-Ue_HelloWorldString : FString("Hello World") { :< :<> constant String(32) fstring = "Hello World"; > Int(32) test() {  self ( )behave . 0 cast return } }
-Uq_FString(String(32) fstring) : FontString { :<> <NOMAIN> }
+Ue_HelloWorldString : FString("Hello World") { :FString("Hello World")< constant String(32) fstring = "Hello World";  :FontString<>> ^FontString<> Int(32) test() {  self ( )behave . 0 cast return } }
+Uq_FString(String(32) fstring) : FontString { :FontString<> <NOMAIN> }
 Uq_FontString { <NOMAIN> }
 ##
 ## informed by ish 1/5/2017: atomref no longer inherits from UlamRef, cast needs getUlamRef() call generated.

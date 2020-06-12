@@ -1,0 +1,76 @@
+## -*- mode:ulam -*-
+#=t41402_test_compiler_classidtemplatearg_ish
+## gen output: (+ asserts)
+## Unsigned Arg: 1
+## Unsigned Arg: 2
+## Unsigned Arg: 3
+## Unsigned Arg: 4
+##
+#!
+Exit status: 0
+Ue_R { Int(32) test() {  System s;  A(1u) a1;  Unsigned(32) a1cid = a1 ( )getClassid .;  s ( a1cid )print . s ( a1cid 1u cast == )assert . Unsigned(32) a2cid = A(2u).instanceof ( )getClassid .;  s ( a2cid )print . s ( a2cid 2u cast == )assert . Unsigned(32) a1rn = a1[3u];  s ( a1rn )print . s ( a1rn 3u cast == )assert . Unsigned(32) a2rn = A(2u)[4u];  s ( a2rn )print . s ( a2rn 4u cast == )assert . 0 cast return } }
+Ue_Ele2 { /* empty class block */ }
+Uq_System { <NOMAIN> }
+Ue_A(Unsigned(32) cid) { constant Unsigned(32) c_cid = cid;  <NOMAIN> }
+Ue_Ele1 { /* empty class block */ }
+##
+## Based on Dave question 04292020: can a classid be a template arg? Yes.
+##             Using constants (a1), or driveby (a2)..
+##
+#>R.ulam
+  ulam 5;
+local constant Unsigned c_ele2 = Ele2.classidof;
+element R
+{
+  Int test() {
+    System s;
+    A(Ele1.classidof) a1;
+
+    Unsigned a1cid = a1.getClassid();
+    s.print(a1cid);
+    s.assert(a1cid == 1u);
+    Unsigned a2cid = A(Ele2.classidof).instanceof.getClassid(); //or driveby templated class func call
+    s.print(a2cid);
+    s.assert(a2cid == 2u);
+
+    Unsigned a1rn = a1.classidof;
+    s.print(a1rn);
+    s.assert(a1rn == 3u);
+    Unsigned a2rn = A(c_ele2).classidof; //or driveby templated classid of
+    s.print(a2rn);
+    s.assert(a2rn == 4u);
+    return 0;
+  }
+}
+
+#:A.ulam
+  ulam 5;
+element A(Unsigned cid)
+{
+  constant Unsigned c_cid = cid;
+  Unsigned getClassid()  { return c_cid; }
+}
+
+#:Ele1.ulam
+  ulam 5;
+element Ele1 {
+}
+
+#:Ele2.ulam
+  ulam 5;
+element Ele2 {
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

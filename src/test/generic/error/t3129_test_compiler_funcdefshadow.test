@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3129_test_compiler_funcdefshadow
 #!
-./D.ulam:12:11: ERROR: Undefined function <times> has already been declared as a variable at: ..
+./D.ulam:12:11: ERROR: Undefined function 'times' has already been declared as a variable at: ..
 ./D.ulam:11:11: ERROR: .. this location.
 ./D.ulam:12:9: ERROR: Right operand of binary = is missing; Assignment deleted.
 ./D.ulam:12:17: ERROR: Invalid Statement (possible missing semicolon).

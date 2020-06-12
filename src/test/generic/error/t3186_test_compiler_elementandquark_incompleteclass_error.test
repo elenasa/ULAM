@@ -1,6 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3186_test_compiler_elementandquark_incompleteclass_error
 #!
+./Foo.ulam:3:1: ERROR: Expecting Type of data member/function (or, in the midst of errors); Got <element>.
 ./C2D.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'C2D'; Possible missing ending curly brace.
 Unrecoverable Program Parse FAILURE: <Foo.ulam>
 ./Foo.ulam:13:0: ERROR: No class 'C2D' in <C2D.ulam>.

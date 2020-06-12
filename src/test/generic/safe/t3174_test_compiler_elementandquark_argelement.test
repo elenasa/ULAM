@@ -2,7 +2,7 @@
 #=t3174_test_compiler_elementandquark_argelement
 #!
 Exit status: 5
-Ue_Foo { Int(4) m_i(0);  Bar m_bar( Bool(1) val_b[3](false,false,false); );  Int(32) test() {  Int(32) i;  Foo f;  f m_i . 5 = i ( f )check = i return } }
+Ue_Foo { Int(4) m_i(0);  Bar m_bar( Bool(1) val_b[3](false,false,false); );  Int(32) test() {  Int(32) i;  Foo f;  f m_i . 5 = i self ( f )check . = i return } }
 Uq_Bar { Bool(1) val_b[3](false,false,false);  <NOMAIN> }
 #>Foo.ulam
 ulam 1;

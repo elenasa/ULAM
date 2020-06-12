@@ -5,7 +5,7 @@
 ##
 #!
 Exit status: 0
-Ue_D { Bool(1) mb(true);  Int(32) test() {  System s;  { ( D.instanceof ( true )Self . )isOurBackFill cond { mb true = s ( true )assert . } if s ( false )assert . else } 0 cast return } }
+Ue_D { Bool(1) mb(true);  Int(32) test() {  System s;  { self ( D.instanceof ( true )Self . )isOurBackFill . cond { self mb . true = s ( true )assert . } if s ( false )assert . else } 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by error/t41087

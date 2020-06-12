@@ -86,7 +86,7 @@ namespace MFM {
     fp->write("; ");
   } //printPostfix
 
-  void NodeTypedef::noteTypeAndName(s32 totalsize, u32& accumsize)
+  void NodeTypedef::noteTypeAndName(UTI cuti, s32 totalsize, u32& accumsize)
   {
     return; //bypass
   }
@@ -134,7 +134,7 @@ namespace MFM {
 		std::ostringstream msg;
 		msg << "Incomplete Typedef for class type: ";
 		msg << m_state.getUlamTypeNameByIndex(it).c_str();
-		msg << ", used with variable symbol name <" << getName() << ">";
+		msg << ", used with variable symbol name '" << getName() << "'";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	      }
 	    else
@@ -207,16 +207,16 @@ namespace MFM {
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "(1) <" << m_state.m_pool.getDataAsString(m_tdid).c_str();
-	    msg << "> is not a typedef, and cannot be used as one";
+	    msg << "(1) '" << m_state.m_pool.getDataAsString(m_tdid).c_str();
+	    msg << "' is not a typedef, and cannot be used as one";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
       }
     else
       {
 	std::ostringstream msg;
-	msg << "(2) Typedef <" << m_state.m_pool.getDataAsString(m_tdid).c_str();
-	msg << "> is not defined, and cannot be used";
+	msg << "(2) Typedef '" << m_state.m_pool.getDataAsString(m_tdid).c_str();
+	msg << "' is not defined, and cannot be used";
 	if(!hazyKin)
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	else

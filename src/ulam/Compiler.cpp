@@ -121,6 +121,7 @@ namespace MFM {
     if(!perrs)
       {
 	m_state.defineRegistrationNumberForUlamClasses(); //ulam-4
+	m_state.verifyZeroRegistryIdForUrSelf(); //ulam-5
 	perrs = m_state.m_err.getErrorCount();
 	if(perrs > 0)
 	  {
@@ -131,6 +132,7 @@ namespace MFM {
 
     if(!perrs)
       {
+	m_state.defineClassNamesAsUserStrings(); //ulam-5
 	m_state.generateCodeForUlamClasses(outfm);
 	perrs = m_state.m_err.getErrorCount();
 	if(perrs > 0)
@@ -430,7 +432,7 @@ namespace MFM {
 
   void Compiler::testClassMemberMap()
   {
-    //matches code in main.cpp
+    //matches code in main.cpp; output in t*errlog.txt
     ClassMemberMap cmm = getMangledClassMembersMap();
     std::cerr << "Size of class members map is " << cmm.size() << std::endl;
     for(ClassMemberMap::const_iterator i = cmm.begin(); i != cmm.end(); ++i)

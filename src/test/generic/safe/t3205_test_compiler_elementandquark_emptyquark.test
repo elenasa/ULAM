@@ -1,12 +1,12 @@
 ## -*- mode:ulam -*-
 #=t3205_test_compiler_elementandquark_emptyquark
-#!
 ##      /* gen code output:
 ##	 Int Arg: -1
 ##	 Int(4) Arg: 0xf
 ##      */
+#!
 Exit status: -1
-Ue_Foo { Bool(3) b(false);  System s();  Int(4) i(0);  Int(4) j(-1);  Int(32) test() {  Empty e;  i 0 cast = j ( i cast 1 cast -b cast )update = s ( j cast )print . s ( j )print . j cast return } }
+Ue_Foo { Bool(3) b(false);  System s();  Int(4) i(0);  Int(4) j(-1);  Int(32) test() {  Empty e;  self i . 0 cast = self j . self ( self i . cast 1 cast -b cast )update . = self s . ( self j . cast )print . self s . ( self j . )print . self j . cast return } }
 Uq_System { <NOMAIN> }
 #>Foo.ulam
   ulam 1;

@@ -1,0 +1,79 @@
+## -*- mode:ulam -*-
+#=t41397_test_compiler_elementandquarks_supervfunccall_ish
+##   gencode output (1 assert)
+#!
+./Computonium.ulam:6:8: ERROR: (2) Virtual function 'Uf_5phase10' is pure; cannot be called for eval.
+Exit status: -1
+Unrecoverable Program Test FAILURE.
+##
+## informed by Dave ish 4/25/2020, virtuals, pure, and super;
+## revealed think-o in UlamRef search for non-dominating, most-specific class in call stack
+##
+#:ReversingThreads.ulam
+  ulam 5;
+quark ReversingThreads : SpatialThreads{
+
+  Void behave()
+  {
+    update();
+  }
+
+  virtual Bool phase()
+  {
+    return true;
+  }
+}
+
+#:SpatialThreads.ulam
+  ulam 5;
+quark SpatialThreads: Computonium
+{
+  Bool sp;
+  virtual Void update()
+  {
+    super.update();
+  }
+
+  //virtual Bool phase();
+}
+
+#:Computonium.ulam
+  ulam 5;
+quark Computonium {
+
+  virtual Void update()
+  {
+    if(phase())
+    {
+      System s;
+      s.assert(true); //do stuff
+    }
+  }
+
+  virtual Bool phase();
+}
+
+
+#>Std12.ulam
+  ulam 5;
+element Std12 : ReversingThreads {
+
+  Int test(){
+
+    behave();
+    return 0;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

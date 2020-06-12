@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3347_test_compiler_elementandquarkswclassargs2_typedeffromanotherclasstypedef
-#!
 ##      //Constants have explicit types
+#!
 Exit status: 3
 Ue_R { Int(32) test() {  P(1u) pel;  pel var . 3u cast = pel var . cast return } }
 Ue_P(Unsigned(32) a) { Bool(UNKNOWN) b(notready);  Unsigned(UNKNOWN) var(notready);  <NOMAIN> }

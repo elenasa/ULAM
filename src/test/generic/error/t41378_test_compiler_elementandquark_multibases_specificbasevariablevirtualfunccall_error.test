@@ -1,0 +1,101 @@
+## -*- mode:ulam -*-
+#=t41378_test_compiler_elementandquark_multibases_specificbasevariablevirtualfunccall_error
+##
+#!
+./Foo.ulam:14:30: ERROR: (2) 'vfunca' is not a defined function, or cannot be safely called in this context.
+./Foo.ulam:14:10: ERROR: Assignment is invalid; LHS: Int(32); RHS: erroneous.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by t41376, QBad, is not related to vfunca originating class, not found.
+## (compiletime error)
+##
+#>Foo.ulam
+  ulam 5;
+element Foo +System {
+  Int m_c4;
+  Int m_a4;
+
+  Int test()
+  {
+    typedef E4.QB2 QB2;
+    typedef QBase3.Super QB1;
+
+    E4 e4;
+    Unsigned qbase1rn = QBaseLast.classidof;
+    //m_a4 = e4.QBaseLast.vfunca(); //explicitly changed
+    m_a4 = e4.QBad[qbase1rn].vfunca(); //ERROR!! should be QBase1, not QBad
+    print(m_a4);
+    assert(m_a4==510);
+
+    assert(e4.m_b1); //shared, changed
+    assert(e4.QB2.m_b1); //shared, changed
+    assert(e4.QBaseLast.m_b1); //shared, explicitly changed
+    print(e4.m_blast);
+    assert(e4.m_blast == 16);
+    assert(!e4.m_b4); //untouched
+    return 0;
+  }
+}
+
+
+#:E4.ulam
+  ulam 5;
+element E4 : QBase3 +QBase2 +QBaseLast +QBad {
+  Bool m_b4;
+  virtual Int vfuncc() { return 412; }
+  virtual Int vfunca() { m_b1 = true; m_b4 = true; return 410; }
+  virtual Void behave() { }
+  typedef QBase2 QB2;
+}
+
+#:QBase1.ulam
+    ulam 4;
+quark QBase1 {
+  Bool m_b1;
+  Void funcNotVirtualSoIrrelevantHere() { }
+  virtual Int vfunca() { m_b1 = true; return 110; }
+}
+
+#:QBase2.ulam
+  ulam 5;
+quark QBase2 +QBase1 {
+  Bool m_b2;
+  Bits(1) m_bit; //so that len of QBase2 is different than its pos in E4.
+  virtual ARGB getColor(Unsigned s) { return super.getColor(s); }
+  virtual Int vfuncc() { m_b2 = true; return 212; }
+}
+
+#:QBase3.ulam
+  ulam 4;
+quark QBase3 : QBase1 {
+  Bool m_b3;
+  virtual Int vfuncb() { return 311; }
+}
+
+#:QBaseLast.ulam
+  ulam 4;
+quark QBaseLast : QBase1 {
+  Int(7) m_blast;
+  virtual Int vfunca() { m_b1 = true; m_blast = 16; self.QBaseLast.m_b1 = true; return 510; }
+}
+
+#:QBad.ulam
+  ulam 4;
+quark QBad {
+  //Int vfunca() { return 666; } gets warnings for non-virtual
+}
+
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

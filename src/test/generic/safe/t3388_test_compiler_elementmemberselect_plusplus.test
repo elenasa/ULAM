@@ -1,6 +1,5 @@
 ## -*- mode:ulam -*-
 #=t3388_test_compiler_elementmemberselect_plusplus
-#!
 ##  gen code output: (+ interleaved asserts)
 ##	 Int(4) Arg: 0x5
 ##	 Int(4) Arg: 0x7
@@ -8,8 +7,9 @@
 ##	 Int(4) Arg: 0x6
 ##	 Int(4) Arg: 0x6
 ##
+#!
 Exit status: 5
-Ue_Foo { System s();  Int(4) m_i(0);  Int(32) test() {  Foo f;  f m_i . 5 = s ( f m_i . 1 cast ++ )print . s ( f m_i . 6 == )assert . s ( f m_i . 1 cast += )print . s ( f m_i . 7 == )assert . s ( f m_i . 1 cast += )print . s ( f m_i . 7 == )assert . s ( f m_i . 1 cast -= )print . s ( f m_i . 6 == )assert . s ( f m_i . 1 cast -- )print . s ( f m_i . 5 == )assert . f m_i . cast return } }
+Ue_Foo { System s();  Int(4) m_i(0);  Int(32) test() {  Foo f;  f m_i . 5 = self s . ( f m_i . 1 cast ++ )print . self s . ( f m_i . 6 == )assert . self s . ( f m_i . 1 cast += )print . self s . ( f m_i . 7 == )assert . self s . ( f m_i . 1 cast += )print . self s . ( f m_i . 7 == )assert . self s . ( f m_i . 1 cast -= )print . self s . ( f m_i . 6 == )assert . self s . ( f m_i . 1 cast -- )print . self s . ( f m_i . 5 == )assert . f m_i . cast return } }
 Uq_System { <NOMAIN> }
 ##
 ##      //informed by 3146; tests saturation and prefix and postfix plus plus, minus minus, on member selected

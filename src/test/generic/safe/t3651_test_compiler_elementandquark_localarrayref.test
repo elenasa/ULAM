@@ -4,7 +4,7 @@
 ## gen output: 2 asserts
 #!
 Exit status: 7
-Ue_Foo : Bar { :< typedef Int(7) Tar;  constant Int(32) cx = 7;  Int(7) m_tar(1); > Int(32) test() {  System s;  Int(7) tar[4];  Int(32) i = 3 cast;  Int(7)& tref = tar i [] cast;  tref 7 cast = s ( tref cast 7 cast == )assert . s ( tar i [] 7 cast == )assert . tref cast return } }
+Ue_Foo : Bar { :Bar< typedef Int(7) Tar;  constant Int(32) cx = 7;  Int(7) m_tar(1); > Int(32) test() {  System s;  Int(7) tar[4];  Int(32) i = 3 cast;  Int(7)& tref = tar i [] cast;  tref 7 cast = s ( tref cast 7 cast == )assert . s ( tar i [] 7 cast == )assert . tref cast return } }
 Uq_System { <NOMAIN> }
 Uq_Bar { constant Int(32) cx = 7;  typedef Int(7) Tar;  Int(7) m_tar( 1);  <NOMAIN> }
 ##

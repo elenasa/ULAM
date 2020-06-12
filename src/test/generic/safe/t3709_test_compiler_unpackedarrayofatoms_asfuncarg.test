@@ -6,7 +6,7 @@
 ##
 #!
 Exit status: 9
-Ue_A { Int(32) nineth(9);  typedef Atom(96) BigSite[10];  Int(32) test() {  System s;  Atom(96) site[10] = ( )func2;  Atom(96) site2[10];  site2 ( )func2 = nineth ( site )func = s ( nineth )print . s ( nineth 9 cast == )assert . ( site )func return } }
+Ue_A { Int(32) nineth(9);  typedef Atom(96) BigSite[10];  Int(32) test() {  System s;  Atom(96) site[10] = self ( )func2 .;  Atom(96) site2[10];  site2 self ( )func2 . = self nineth . self ( site )func . = s ( self nineth . )print . s ( self nineth . 9 cast == )assert . self ( site )func . return } }
 Uq_System { <NOMAIN> }
 ##
 ## ok with BitStorage (see t3704)

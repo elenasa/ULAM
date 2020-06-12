@@ -1,16 +1,17 @@
 ## -*- mode:ulam -*-
 #=t3307_test_compiler_simple
-#!
 ##      // constant folded 1 3 +b, and 2 4 *
+#!
 Exit status: 8
-Ue_A { Int(16) a[2](4,8);  Int(32) test() {  a 0 [] 4 cast = a 1 [] 8 cast = a 1 [] cast return } }
+Ue_A { Int(16) a[2](4,8);  Int(32) test() {  self a . 0 [] 4 cast = self a . 1 [] 8 cast = self a . 1 [] cast return } }
 #>A.ulam
+  ulam 1;
 element A {
- Int(16) a[2];
- Int test() {
- a[0] = 1 + 3;
- a[1] = 2 * 4;
- return a[1];
- }
- }
+  Int(16) a[2];
+  Int test() {
+    a[0] = 1 + 3;
+    a[1] = 2 * 4;
+    return a[1];
+  }
+}
 #.

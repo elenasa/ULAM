@@ -2,7 +2,7 @@
 #=t3118_test_compiler_funcdef_recursion
 #!
 Exit status: 24
-Ue_A { System s();  Bool(7) d(false);  Int(32) a(24);  Int(32) test() {  a ( 4 cast )fact = s ( a )print . a return } }
+Ue_A { System s();  Bool(7) d(false);  Int(32) a(24);  Int(32) test() {  self a . self ( 4 cast )fact . = self s . ( self a . )print . self a . return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
   ulam 1;

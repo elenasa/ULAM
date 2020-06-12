@@ -1,8 +1,8 @@
 ## -*- mode:ulam -*-
 #=t3983_test_compiler_funcdef_incomplete_error
 #!
-./UrSelf.ulam:21:0: ERROR: Expected 'A Type' Token!! got Token <EOF> instead.
-./UrSelf.ulam:21:0: ERROR: Unexpected input!! Token <EOF> after function declaration.
+./UrSelf.ulam:22:0: ERROR: Expected 'A Type' Token!! got Token <EOF> instead.
+./UrSelf.ulam:22:0: ERROR: Unexpected input!! Token <EOF> after function declaration.
 ./D.ulam:1:1: ERROR: Empty/Incomplete Class Definition 'D'; Possible missing ending curly brace.
 ./D.ulam:1:7: ERROR: Invalid Type: D.
  ERROR: No parse tree for This Class: D.

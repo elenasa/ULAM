@@ -1,10 +1,11 @@
 ## -*- mode:ulam -*-
 #=t3503_test_compiler_arraywithMPindex
-#!
+##
 ## generated code: NULL POINTER
 ##
+#!
 Exit status: 1
-Ue_A { Bool(1) a[5](false,false,false,false,true);  parameter Int(6) mpi = 4;  Int(32) test() {  a mpi(4) [] true = a mpi(4) [] cast return } }
+Ue_A { Bool(1) a[5](false,false,false,false,true);  parameter Int(6) mpi = 4;  Int(32) test() {  self a . mpi(4) [] true = self a . mpi(4) [] cast return } }
 ##
 ##      //informed by t3311
 ##

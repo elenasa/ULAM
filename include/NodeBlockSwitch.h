@@ -27,7 +27,7 @@
 
 /**
   \file NodeBlockSwitch.h - Node for handling Switch Blocks for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
   \date (C) 2017 All rights reserved.
   \gpl

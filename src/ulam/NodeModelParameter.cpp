@@ -72,8 +72,8 @@ namespace MFM {
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "(1) <" << m_state.getTokenDataAsString(m_token).c_str();
-	    msg << "> is not a model parameter, and cannot be used as one with class: ";
+	    msg << "(1) '" << m_state.getTokenDataAsString(m_token).c_str();
+	    msg << "' is not a model parameter, and cannot be used as one with class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
@@ -81,8 +81,8 @@ namespace MFM {
     else
       {
 	std::ostringstream msg;
-	msg << "(2) Model Parameter <" << m_state.getTokenDataAsString(m_token).c_str();
-	msg << "> is not defined, and cannot be used with class: ";
+	msg << "(2) Model Parameter '" << m_state.getTokenDataAsString(m_token).c_str();
+	msg << "' is not defined, and cannot be used with class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	if(!hazyKin)
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);

@@ -1,21 +1,18 @@
 ## -*- mode:ulam -*-
 #=t3735_test_compiler_atomreffromsuperquarkrefintransient
+##
+##   gencode output: (1 assert)
+##
 #!
-##
-##   gencode output: (interleaved asserts)
-##	 Unsigned Arg: 3
-##       Unsigned Arg: 3
-##       Unsigned Arg: 3
-##
 Exit status: -11
 Ue_R { Int(32) test() {  System s;  Trans t;  Typo(1)& poref = t elt . cast;  poref ( 2u cast )func . Atom(96)& a = poref.atomof;  Eltypo ell = a cast;  s ( ell bu . 2u cast == )assert . ell bu . cast return } }
-Un_Trans { Bool(7) sp(false);  Eltypo elt( :< :< Unsigned(3) bu( 7u); >> Unsigned(3) first(0);  Unsigned(3) second(0); );  <NOMAIN> }
-Ue_Eltypo : Typo(1) { :< :< Unsigned(3) bu( 7u); >> Unsigned(3) first(0);  Unsigned(3) second(0);  <NOMAIN> }
+Un_Trans { Bool(7) sp(false);  Eltypo elt( Unsigned(3) first(0);  Unsigned(3) second(0);  :Typo(1)<> ^Bar< Unsigned(3) bu( 7u); >);  <NOMAIN> }
+Ue_Eltypo : Typo(1) { Unsigned(3) first(0);  Unsigned(3) second(0);  :Typo(1)<> ^Bar< Unsigned(3) bu( 7u); > <NOMAIN> }
 Uq_Typo(Int(32) a) : Bar { /* empty class block */ }
 Uq_Bar { Unsigned(3) bu( 7u);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
-## informed loosely by 3588
+## informed loosely by 3588 (see also t41363)
 ##
 #>R.ulam
   ulam 2;

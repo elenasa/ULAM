@@ -10,11 +10,11 @@
 ## FAILED: ILLEGAL_ARGUMENT
 #!
 Exit status: 7
-Ue_T { Int(4) cpi(7);  Int(4) dmi(2);  Int(32) test() {  System sys;  E(true) et;  cpi et 7 . = sys ( cpi )print . sys ( cpi 7 == )assert . dmi et i . = sys ( dmi )print . sys ( dmi 2 cast == )assert . sys ( et v . b . cast )print . sys ( et v . b . )assert . sys ( et b . )assert . et 7 . cast return } }
+Ue_T { Int(4) cpi(7);  Int(4) dmi(2);  Int(32) test() {  System sys;  E(true) et;  self cpi . et 7 . = sys ( self cpi . )print . sys ( self cpi . 7 == )assert . self dmi . et i . = sys ( self dmi . )print . sys ( self dmi . 2 cast == )assert . sys ( et v . b . cast )print . sys ( et v . b . )assert . sys ( et b . )assert . et 7 . cast return } }
 Uq_System { <NOMAIN> }
 Ue_E(Bool(1) p) : S(v,bp) { /* empty class block */ }
-Uq_S(Q(flag) v, Bool(1) bp) : Q(flag) { :< Bool(1) b(notready);  Int(4) i( 2); > constant Int(UNKNOWN) csi = v i .;  <NOMAIN> }
-Uq_Q(Bool(1) flag) { Bool(1) b(notready);  Int(4) i( 2);  <NOMAIN> }
+Uq_S(Q(flag) v, Bool(1) bp) : Q(flag) { constant Int(4) csi = v i .;  :Q11< Bool(1) b(notready);  Int(4) i(notready); > <NOMAIN> }
+Uq_Q(Bool(1) flag) { Bool(1) b(notready);  Int(4) i(notready);  <NOMAIN> }
 ##
 ##    //informed by t41226, except S has two class params, AND inheritance!
 ##

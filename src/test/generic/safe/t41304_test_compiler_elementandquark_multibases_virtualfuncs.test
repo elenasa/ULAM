@@ -1,0 +1,103 @@
+## -*- mode:ulam -*-
+#=t41304_test_compiler_elementandquark_multibases_virtualfuncs
+##
+## gen output: (interleaved asserts)
+## Int Arg: 510
+## Int Arg: 410
+## Int Arg: 412
+## Int Arg: 311
+##
+#!
+Exit status: 0
+Ue_Foo +System { +System<> Int(32) test() {  E5 e5;  E4 e4;  Int(32) a5 = e5 ( )vfunca .;  self ( a5 )print . self ( a5 510 cast == )assert . Int(32) a4 = e4 ( )vfunca .;  self ( a4 )print . self ( a4 410 cast == )assert . Int(32) c4 = e4 ( )vfuncc .;  self ( c4 )print . self ( c4 412 cast == )assert . Int(32) b4 = e4 ( )vfuncb .;  self ( b4 )print . self ( b4 311 cast == )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+Ue_E5 : QBase2 { :QBase2< Bool(1) m_b2(false); > <NOMAIN> }
+Ue_E4 : QBase3 +QBase1 { :QBase3< Bool(1) m_b3(false); > +QBase1< Bool(1) m_b1(false); > <NOMAIN> }
+Uq_QBase3 +QBase1 { Bool(1) m_b3(false);  +QBase1< Bool(1) m_b1(false); > <NOMAIN> }
+Uq_QBase1 { Bool(1) m_b1(false);  <NOMAIN> }
+Uq_QBase2 { Bool(1) m_b2(false);  <NOMAIN> }
+##
+##       //first test of multiple base classes and virtual functions based on Dave's notes
+##
+#>Foo.ulam
+  ulam 5;
+element Foo +System {
+
+  Int test()
+  {
+    E5 e5;
+    E4 e4;
+
+    Int a5 = e5.vfunca(); //510
+    print(a5);
+    assert(a5 == 510);
+
+    Int a4 = e4.vfunca(); //410
+    print(a4);
+    assert(a4==410);
+
+    Int c4 = e4.vfuncc(); //412
+    print(c4);
+    assert(c4==412);
+
+    Int b4 = e4.vfuncb(); //311
+    print(b4);
+    assert(b4==311);
+    return 0;
+  }
+}
+
+
+#:E4.ulam
+  ulam 5;
+element E4 : QBase3 +QBase1 {
+  virtual Int vfuncc() { return 412; }
+  virtual Int vfunca() { return 410; }
+  virtual Void behave() { }
+}
+
+#:E5.ulam
+  ulam 4;
+element E5 : QBase2 {
+  virtual Int vfunca() { return 510; }
+}
+
+#:QBase1.ulam
+    ulam 4;
+quark QBase1 {
+  Bool m_b1;
+  Void funcNotVirtualSoIrrelevantHere() { }
+  //virtual Int vfuncb() { return 111; }   ambiguous (see t41305)
+  virtual Int vfunca() { return 110; }
+}
+
+#:QBase2.ulam
+  ulam 4;
+quark QBase2 {
+  Bool m_b2;
+  virtual ARGB getColor(Unsigned s) { return super.getColor(s); }
+  virtual Int vfunca() { return 210; }
+  virtual Int vfuncc() { return 212; }
+}
+
+#:QBase3.ulam
+  ulam 5;
+quark QBase3 +QBase1 {
+  Bool m_b3;
+  virtual Int vfuncb() { return 311; }
+}
+
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

@@ -6,7 +6,7 @@
 #!
 Exit status: 4
 Ue_R { Int(32) test() {  Tu(1) tu;  tu mi(4) . return } }
-Ue_Tu(Int(32) x) : Foo { :<>parameter Int(32) mi = 4;  <NOMAIN> }
+Ue_Tu(Int(32) x) : Foo {parameter Int(32) mi = 4;  :Foo<> <NOMAIN> }
 Uq_Foo { /* empty class block */ }
 ##
 ##       //template classes can inherit from a regular class

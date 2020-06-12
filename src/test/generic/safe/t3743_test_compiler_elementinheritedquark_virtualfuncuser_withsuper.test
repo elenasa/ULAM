@@ -8,11 +8,11 @@
 #!
 Exit status: 0
 Uq_Base { <NOMAIN> }
-Uq_Sub1 : Base { :<> <NOMAIN> }
-Ue_E1 : Base { :<> <NOMAIN> }
-Ue_E2 : Sub1 { :< :<>> <NOMAIN> }
-Ue_E3 : Sub1 { :< :<>> <NOMAIN> }
-Ue_Test : System { :<> Bool(1) brtn[5](true,true,true,true,true);  Int(32) test() {  E1 e1;  brtn 2 [] e1 ( )bfunc . 8 cast == = ( brtn 2 [] )assert E2 e2;  brtn 3 [] e2 ( )bfunc . 13 cast == = ( brtn 3 [] )assert Base b;  brtn 0 [] b ( )bfunc . 3 cast == = ( brtn 0 [] )assert Sub1 s1;  brtn 1 [] s1 ( )bfunc . 13 cast == = ( brtn 1 [] )assert E3 e3;  brtn 4 [] e3 ( )bfunc . 39 cast == = ( brtn 4 [] )assert 0 cast return } }
+Uq_Sub1 : Base { :Base<> <NOMAIN> }
+Ue_E1 : Base { :Base<> <NOMAIN> }
+Ue_E2 : Sub1 { :Sub1<> ^Base<> <NOMAIN> }
+Ue_E3 : Sub1 { :Sub1<> ^Base<> <NOMAIN> }
+Ue_Test : System { Bool(1) brtn[5](true,true,true,true,true);  :System<> Int(32) test() {  E1 e1;  self brtn . 2 [] e1 ( )bfunc . 8 cast == = self ( self brtn . 2 [] )assert . E2 e2;  self brtn . 3 [] e2 ( )bfunc . 13 cast == = self ( self brtn . 3 [] )assert . Base b;  self brtn . 0 [] b ( )bfunc . 3 cast == = self ( self brtn . 0 [] )assert . Sub1 s1;  self brtn . 1 [] s1 ( )bfunc . 13 cast == = self ( self brtn . 1 [] )assert . E3 e3;  self brtn . 4 [] e3 ( )bfunc . 39 cast == = self ( self brtn . 4 [] )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t3602, vtable-example 11/19/15

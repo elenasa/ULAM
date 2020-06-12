@@ -1,0 +1,92 @@
+## -*- mode:ulam -*-
+#=t41363_test_compiler_atomreffrommultibasequarkrefintransient
+##
+##   gencode output: (2 asserts)
+##
+#!
+Exit status: -11
+Ue_R +System { +System<> Int(32) test() {  Trans t;  Trans& tref = t cast;  Typo(1)& poref = tref elt . cast;  poref ( 2u cast )func . Atom(96)& a = poref.atomof;  Eltypo ell = a cast;  self ( ell bu . 2u cast == )assert . self ( tref elt . spt . )assert . ell bu . cast return } }
+Un_Trans { Bool(7) sp(false);  Eltypo elt( Unsigned(3) first(0);  Unsigned(3) second(0);  :Typo(1)< Bool(1) spt(false); > +Bar< Unsigned(3) bu( 7u); >);  <NOMAIN> }
+Ue_Eltypo : Typo(1) +Bar { Unsigned(3) first(0);  Unsigned(3) second(0);  :Typo(1)< Bool(1) spt(false); > +Bar< Unsigned(3) bu( 7u); > <NOMAIN> }
+Uq_Typo(Int(32) a) : Bar { Bool(1) spt(false);  :Bar< Unsigned(3) bu( 7u); > <NOMAIN> }
+Uq_Bar { Unsigned(3) bu( 7u);  <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## informed by 3735, except multi-inheritance, plus a Trans ref,
+##                   and virtual func; breaks when Eltypo also inherits
+##                   from Bar (with size > 0);
+##
+#>R.ulam
+  ulam 5;
+use Trans;
+use System;
+element R + System {
+  Int test(){
+    Trans t;
+    Trans & tref = t;
+
+    Typo(1)& poref = tref.elt; //this has to do both steps:
+                               //Eltypo& elref = tref.elt;
+                               //Typo(1)& poref = elref;
+    poref.func(2u);
+    Atom & a = poref.atomof; //poref without .atomof is incompatible type
+    Eltypo ell = (Eltypo) a; //use explicit case
+    assert(ell.bu == 2u);
+    assert(tref.elt.spt);
+    return ell.bu;
+  }
+}
+
+#:Trans.ulam
+  ulam 2;
+use Eltypo;
+transient Trans {
+  Bool(7) sp;
+  Eltypo elt;
+}
+
+#:Eltypo.ulam
+  ulam 5;
+use Typo;
+element Eltypo : Typo(1) + Bar {
+//element Eltypo : Typo(1) {
+  Unsigned(3) first;
+  Unsigned(3) second;
+}
+
+#:Typo.ulam
+  ulam 5;
+use Bar;
+quark Typo(Int a) : Bar {
+  Bool spt;
+
+  virtual Void func(Unsigned u)
+  {
+    spt = true;
+    self.Bar.func(u);
+  }
+}
+
+#:Bar.ulam
+  ulam 2;
+quark Bar
+{
+  Unsigned(3) bu = 7u;
+  virtual Void func(Unsigned u)
+  {
+    bu = (Unsigned(3)) u;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

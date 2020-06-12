@@ -32,7 +32,7 @@ namespace MFM {
 
   u32 Symbol::getId()
   {
-    return m_idtok.m_dataindex;
+    return m_state.getTokenDataAsStringId(m_idtok);
   }
 
   Locator Symbol::getLoc()
@@ -65,7 +65,7 @@ namespace MFM {
   u32 Symbol::getPosOffset()
   {
     m_state.abortShouldntGetHere();
-    return 0; //data members only, incl. symbolparametervalue, and tmprefsymbol
+    return 0; //data members only, incl.symbolparametervalue,tmprefsymbol
   }
 
   bool Symbol::isPosOffsetReliable()
@@ -199,7 +199,8 @@ namespace MFM {
   const std::string Symbol::getMangledName()
   {
     std::ostringstream mangled;
-    if(isSelf())
+    //if(isSelf()) t41359
+    if(isSelf() && (getAutoLocalType() != ALT_AS))
       {
 	mangled << m_state.getHiddenArgName(); // ur
       }

@@ -9,11 +9,11 @@
 ##
 #!
 Exit status: 96
-Ue_Foo : Basel { :< :< Soo su( :< :< Int(5) lu(-1); > Bool(3) cb(true); > Unsigned(3) us(4u); ); > Bool(1) ba(false); > System s();  Bool(1) first(false);  Int(32) test() {  Foo f;  f first . su cb . cast = s ( f first . cast )print . s ( f first . )assert . { f su . ( )check . cond { s ( f su . lu . cast )print . s ( f su . lu . -1 cast == )assert . f su . lu . 1u cast = s ( f su . lu . cast )print . s ( f su . lu . 1 cast == )assert . s ( f su . us . cast )print . s ( f su . us . cast 4 == )assert . s ( 96u )print . s ( true )assert . 96u cast return } if } 0 cast return } }
-Uq_Basel : Casel { :< Soo su( :< :< Int(5) lu( -1); > Bool(3) cb( true); > Unsigned(3) us( 4u); ); > Bool(1) ba(false);  <NOMAIN> }
-Uq_Casel { Soo su( :< :< Int(5) lu( -1); > Bool(3) cb( true); > Unsigned(3) us( 4u); );  <NOMAIN> }
-Uq_Soo : Coo { :< :< Int(5) lu( -1); > Bool(3) cb( true); > Unsigned(3) us( 4u);  <NOMAIN> }
-Uq_Coo : Loo { :< Int(5) lu( -1); > Bool(3) cb( true);  <NOMAIN> }
+Ue_Foo : Basel { System s();  Bool(1) first(false);  :Basel< Bool(1) ba(false);  :Casel< Soo su( Unsigned(3) us(4u);  :Coo< Bool(3) cb(true);  :Loo< Int(5) lu(-1); >> ^Loo< Int(5) lu(-1); >); >> ^Casel< Soo su( Unsigned(3) us(4u);  :Coo< Bool(3) cb(true);  :Loo< Int(5) lu(-1); >> ^Loo< Int(5) lu(-1); >); > Int(32) test() {  Foo f;  f first . self su . cb . cast = self s . ( f first . cast )print . self s . ( f first . )assert . { f su . ( )check . cond { self s . ( f su . lu . cast )print . self s . ( f su . lu . -1 cast == )assert . f su . lu . 1u cast = self s . ( f su . lu . cast )print . self s . ( f su . lu . 1 cast == )assert . self s . ( f su . us . cast )print . self s . ( f su . us . cast 4 == )assert . self s . ( 96u )print . self s . ( true )assert . 96u cast return } if } self s . ( false )assert . 0 cast return } }
+Uq_Basel : Casel { Bool(1) ba(false);  :Casel< Soo su( Unsigned(3) us( 4u);  :Coo< Bool(3) cb( true); > ^Loo< Int(5) lu( -1); >); > <NOMAIN> }
+Uq_Casel { Soo su( Unsigned(3) us( 4u);  :Coo< Bool(3) cb( true); > ^Loo< Int(5) lu( -1); >);  <NOMAIN> }
+Uq_Soo : Coo { Unsigned(3) us( 4u);  :Coo< Bool(3) cb( true); > ^Loo< Int(5) lu( -1); > <NOMAIN> }
+Uq_Coo : Loo { Bool(3) cb( true);  :Loo< Int(5) lu( -1); > <NOMAIN> }
 Uq_Loo { Int(5) lu( -1);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
@@ -45,6 +45,7 @@ element Foo : Basel {
       s.assert(f.sizeof == 96);
       return f.sizeof;
     }
+    s.assert(false); //failed
     return 0;
   }
 }

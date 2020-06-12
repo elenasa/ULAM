@@ -2,7 +2,7 @@
 #=t3108_test_compiler_multiplyequal
 #!
 Exit status: 3
-Ue_A { Int(3) b(3);  System s();  Bool(1) l(false);  Int(3) a(3);  Int(32) test() {  a 2 = b 3 = a b *= s ( a )print . a cast return } }
+Ue_A { Int(3) b(3);  System s();  Bool(1) l(false);  Int(3) a(3);  Int(32) test() {  self a . 2 = self b . 3 = self a . self b . *= self s . ( self a . )print . self a . cast return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
   ulam 1;

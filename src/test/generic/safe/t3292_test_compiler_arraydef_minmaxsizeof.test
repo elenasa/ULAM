@@ -1,23 +1,24 @@
 ## -*- mode:ulam -*-
 #=t3292_test_compiler_arraydef_minmaxsizeof
-#!
 ##      /* gen code output: array size (3 x 3):
 ##	 Unsigned Arg: 9
 ##      */
 ##
+#!
 Exit status: 0
-Ue_B { System s();  Int(32) test() {  Int(3) arr[3];  s ( 9u )print . 0 cast return } }
+Ue_B { System s();  Int(32) test() {  Int(3) arr[3];  self s . ( 9u )print . 0 cast return } }
 Uq_System { <NOMAIN> }
 #>B.ulam
+  ulam 1;
 use System;
 element B {
-System s;
-Int test(){
-  Int(3) arr[Int(3).maxof];
-  s.print(arr.sizeof);
-  return 0;
+  System s;
+  Int test(){
+    Int(3) arr[Int(3).maxof];
+    s.print(arr.sizeof);
+    return 0;
+  }
 }
- }
 
 ##
 ##      // test system quark with native overloaded print funcs; assert

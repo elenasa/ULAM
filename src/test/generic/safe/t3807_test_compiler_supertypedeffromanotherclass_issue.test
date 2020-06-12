@@ -1,12 +1,12 @@
 ## -*- mode:ulam -*-
 #=t3807_test_compiler_supertypedeffromanotherclass_issue
-#!
 ##  gen code output (+ assert):
 ##  Unsigned Arg: 5
 ##
+#!
 Exit status: 5
-Ue_GenBlock { typedef Bits(5) MyTag;  Unsigned(32) tagsize(5u);  Int(32) test() {  System s;  tagsize 5u = s ( 5u )print . s ( tagsize 5u cast == )assert . tagsize cast return } }
-Uq_Content : QID(0xfeedf00d,5u,4u,15u) { :< constant Bits(32) cSPECIES_ID = 4277006349u;  constant Unsigned(5) cQID_TAG_BITS = 5u;  typedef Bits(5) MyTag;  Bits(5) mTag(0); > constant Unsigned(32) cQID_TAG_BITS = 5u;  constant Unsigned(32) cQID_DOG_BITS = 4u;  constant Unsigned(32) cQID_DOG_TRIGGER = 15u;  <NOMAIN> }
+Ue_GenBlock { typedef Bits(5) MyTag;  Unsigned(32) tagsize(5u);  Int(32) test() {  System s;  self tagsize . 5u = s ( 5u )print . s ( self tagsize . 5u cast == )assert . self tagsize . cast return } }
+Uq_Content : QID(0xfeedf00d,5u,4u,15u) { constant Unsigned(32) cQID_TAG_BITS = 5u;  constant Unsigned(32) cQID_DOG_BITS = 4u;  constant Unsigned(32) cQID_DOG_TRIGGER = 15u;  :QID(0xfeedf00d,5u,4u,15u)< constant Bits(32) cSPECIES_ID = 4277006349u;  constant Unsigned(5) cQID_TAG_BITS = 5u;  typedef Bits(5) MyTag;  Bits(5) mTag(0); > <NOMAIN> }
 Uq_System { <NOMAIN> }
 Uq_Block : Content { /* empty class block */ }
 Uq_QID(Bits(32) speciesID, Unsigned(5) myTagBits, Unsigned(5) myProgressBits, Unsigned(32) triggerLevel) { constant Bits(32) cSPECIES_ID = speciesID;  constant Unsigned(5) cQID_TAG_BITS = myTagBits;  typedef Bits(UNKNOWN) MyTag;  Bits(UNKNOWN) mTag(notready);  <NOMAIN> }

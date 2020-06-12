@@ -1,12 +1,12 @@
 ## -*- mode:ulam -*-
 #=t3545_test_compiler_quarkinheritancewithfuncoverload
-#!
 ## gencode output:
 ## <blank>
 ##
+#!
 Exit status: 0
-Ue_Foo { System s();  Bool(1) first(false);  Soo su( :< Bool(3) cb(true); > Unsigned(3) us(4u);  Bool(3) cbs(false); );  Int(32) test() {  Foo f;  first f su . ( 1 cast )check . = { first cond { s ( first cast )print . 96u cast return } if } 0 cast return } }
-Uq_Soo : Coo { :< Bool(3) cb( true); > Unsigned(3) us( 4u);  Bool(3) cbs(false);  <NOMAIN> }
+Ue_Foo { System s();  Bool(1) first(false);  Soo su( Unsigned(3) us(4u);  Bool(3) cbs(false);  :Coo< Bool(3) cb(true); >);  Int(32) test() {  Foo f;  self first . f su . ( 1 cast )check . = { self first . cond { self s . ( self first . cast )print . 96u cast return } if } 0 cast return } }
+Uq_Soo : Coo { Unsigned(3) us( 4u);  Bool(3) cbs(false);  :Coo< Bool(3) cb( true); > <NOMAIN> }
 Uq_Coo { Bool(3) cb( true);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

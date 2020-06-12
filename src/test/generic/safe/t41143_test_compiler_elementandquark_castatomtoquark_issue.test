@@ -2,7 +2,7 @@
 #=t41143_test_compiler_elementandquark_castatomtoquark_issue
 #!
 Exit status: -11
-Ue_A : QW { :< Int(3) m_i(3); > Bool(1) c(false);  Int(32) test() {  System s;  EventWindow ew;  Int(32) rtn = 0 cast;  ew ( 1 cast )aref . self.atomof = { ew ( 1 cast )aref . QW is cond { QW q = ew ( 1 cast )aref . cast;  rtn q m_i . cast = } if } s ( rtn 3 cast == )assert . rtn return } }
+Ue_A : QW { Bool(1) c(false);  :QW< Int(3) m_i(3); > Int(32) test() {  System s;  EventWindow ew;  Int(32) rtn = 0 cast;  ew ( 1 cast )aref . self.atomof = { ew ( 1 cast )aref . QW is cond { QW q = ew ( 1 cast )aref . cast;  rtn q m_i . cast = } if } s ( rtn 3 cast == )assert . rtn return } }
 Uq_QW { Int(3) m_i( 3);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 Uq_EventWindow { <NOMAIN> }

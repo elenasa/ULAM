@@ -1,6 +1,5 @@
 ## -*- mode:ulam -*-
 #=t3822_test_compiler_transientinheritance_ascond
-#!
 ## gencode output:
 ## Bool(3) Arg: 0x7 (true)
 ## assert: arg is 1
@@ -9,9 +8,10 @@
 ## after asserts abort: arg is 1
 ##
 ##
+#!
 Exit status: 3
-Ue_Foo { System s();  Bool(1) first(true);  Int(32) test() {  Soo su;  { su Coo as cond { Coo& su;  su cb . true cast = s ( su cb . )print . s ( su cb . cast )assert . first true = s ( first )assert . 3u cast return } if } 0 cast return } }
-Un_Soo : Coo { :< Bool(3) cb(false); > Unsigned(3) us( 4u);  <NOMAIN> }
+Ue_Foo { System s();  Bool(1) first(true);  Int(32) test() {  Soo su;  { su Coo as cond { Coo& su;  su cb . true cast = self s . ( su cb . )print . self s . ( su cb . cast )assert . self first . true = self s . ( self first . )assert . 3u cast return } if } 0 cast return } }
+Un_Soo : Coo { Unsigned(3) us( 4u);  :Coo< Bool(3) cb(false); > <NOMAIN> }
 Un_Coo { Bool(3) cb(false);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

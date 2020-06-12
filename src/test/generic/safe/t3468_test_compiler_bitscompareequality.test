@@ -2,7 +2,7 @@
 #=t3468_test_compiler_bitscompareequality
 #!
 Exit status: 0
-Ue_A { Bool(1) a(false);  Bool(1) b(true);  Bits(3) u(1);  Bits(3) v(7);  Int(32) test() {  v 7u cast = u 9u cast = a u v == = b u v != = u 7u cast == cast return } }
+Ue_A { Bool(1) a(false);  Bool(1) b(true);  Bits(3) u(1);  Bits(3) v(7);  Int(32) test() {  self v . 7u cast = self u . 9u cast = self a . self u . self v . == = self b . self u . self v . != = self u . 7u cast == cast return } }
 ##
 ##      //Bits do not saturate!!
 #>A.ulam

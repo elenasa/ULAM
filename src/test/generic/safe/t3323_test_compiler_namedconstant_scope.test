@@ -1,6 +1,5 @@
 ## -*- mode:ulam -*-
 #=t3323_test_compiler_namedconstant_scope
-#!
 ##      /* gen code output:
 ##	 Int Arg: 4
 ##	 Int Arg: 7
@@ -10,8 +9,9 @@
 ##      //fewer casts since Constants have explicit types
 ##      // constant fold: j 1 3 +b =, and j 2 4 *
 ##
+#!
 Exit status: 7
-Ue_A { System s();  Int(32) j(7);  Int(32) i(7);  Int(32) test() {  constant Int(32) cOW = 3;  j 4 = s ( j )print . { j j 3 +b = s ( j )print . Int(32) j;  constant Int(32) cOW = 4;  j 8 = s ( j )print . } i j = s ( i )print . j return } }
+Ue_A { System s();  Int(32) j(7);  Int(32) i(7);  Int(32) test() {  constant Int(32) cOW = 3;  self j . 4 = self s . ( self j . )print . { self j . self j . 3 +b = self s . ( self j . )print . Int(32) j;  constant Int(32) cOW = 4;  j 8 = self s . ( j )print . } self i . self j . = self s . ( self i . )print . self j . return } }
 Uq_System { <NOMAIN> }
 ##      //requires new grammar: tests scope
 ##

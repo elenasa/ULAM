@@ -1,0 +1,85 @@
+## -*- mode:ulam -*-
+#=t41322_test_compiler_elementandquark_multibases_refbasecallsoverridebaseclassvirtualfunc_issue
+##
+## gen output:
+##  String(1) Arg: "DEBUG: starting Mid.vfunc"
+##  String(28) Arg: "DEBUG: Ending Mid.vfunc"
+##  Int Arg: -3 (+ assert)
+##
+#!
+Exit status: 0
+Ue_Foo +System { +System<> Int(32) test() {  E4 e4;  e4 ( 3 cast )vfunc . self ( e4 m_foo . )print . self ( e4 m_foo . -3 cast == )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+Ue_E4 : Mid { :Mid<> ^Top< Int(32) m_foo(0); > <NOMAIN> }
+Uq_Mid : Top { :Top< Int(32) m_foo(0); > <NOMAIN> }
+Uq_Top { Int(32) m_foo(0);  <NOMAIN> }
+Uq_SystemU3 : System { :System<> <NOMAIN> }
+##
+##       informed by t41321, t41161, and Daves java example 6/13/19
+##
+#>Foo.ulam
+  ulam 5;
+element Foo  +System {
+  Int test()
+  {
+    E4 e4;
+    e4.vfunc(3);
+    print(e4.m_foo);
+    assert(e4.m_foo == -3);
+    return 0;
+  }
+}
+
+
+#:E4.ulam
+  ulam 4;
+element E4 : Mid {
+  virtual Int transform(Int a) { return -1 * a; }
+  virtual Void behave() { }
+}
+
+#:Mid.ulam
+  ulam 4;
+quark Mid : Top {
+  @Override virtual Void vfunc(Int a) {
+    SystemU3 su;
+    su.print("DEBUG: starting Mid.vfunc");
+    super.vfunc(a);
+    su.print("DEBUG: Ending Mid.vfunc");
+  }
+}
+
+#:Top.ulam
+  ulam 4;
+quark Top {
+  Int m_foo;
+  virtual Void vfunc(Int a) {
+    m_foo = transform(a);
+  }
+  virtual Int transform(Int a) {
+    SystemU3 su;
+    su.print("Unsupported Operation");
+    su.assert(false);
+    return -9999;
+  }
+}
+
+#:SystemU3.ulam
+  ulam 3;
+quark SystemU3 : System {
+  Void print(String s) native;
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

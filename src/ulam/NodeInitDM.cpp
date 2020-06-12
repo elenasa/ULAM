@@ -357,7 +357,7 @@ namespace MFM {
 
     Symbol * asymptr = NULL;
     bool hazyKin = false;
-    if(m_state.findSymbolInAClass(m_cid, m_ofClassUTI, asymptr, hazyKin))
+    if(m_state.alreadyDefinedSymbolByAClassOrAncestor(m_ofClassUTI, m_cid, asymptr, hazyKin)) //(e.g. t41182)
       {
 	assert(asymptr);
 	UTI auti = asymptr->getUlamTypeIdx();
@@ -370,8 +370,8 @@ namespace MFM {
     else
       {
 	std::ostringstream msg;
-	msg << "Data Member <" << m_state.m_pool.getDataAsString(m_cid).c_str();
-	msg << "> is not defined, and cannot be initialized for this instance of class ";
+	msg << "Data Member '" << m_state.m_pool.getDataAsString(m_cid).c_str();
+	msg << "' is not defined, and cannot be initialized for this instance of class ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_ofClassUTI).c_str();
 	if(!hazyKin)
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
@@ -430,13 +430,19 @@ namespace MFM {
     //need updated POS for genCode after c&l
     Symbol * symptr = NULL;
     bool hazyKin = false;
-    AssertBool gotIt = m_state.findSymbolInAClass(m_cid, m_ofClassUTI, symptr, hazyKin);
+    AssertBool gotIt = m_state.alreadyDefinedSymbolByAClassOrAncestor(m_ofClassUTI, m_cid, symptr, hazyKin);
     assert(gotIt);
 
     if(!symptr->isPosOffsetReliable())
       return false;
 
     u32 pos = symptr->getPosOffset();
+
+    // check if by ancestor for base relative position (ulam-5)
+    UTI dmclass = symptr->getDataMemberClass();
+    u32 baserelpos = 0;
+    if(m_state.getABaseClassRelativePositionInAClass(m_ofClassUTI, dmclass, baserelpos))
+      pos += baserelpos; //t41183 m_str
 
     m_posOfDM = pos; //don't include the element adjustment (t41176)
 
@@ -612,7 +618,7 @@ namespace MFM {
 	//refresh 'pos' when a local variable (t41172)
 	Symbol * asymptr = NULL;
 	bool hazyKin = false;
-	AssertBool isDef = m_state.findSymbolInAClass(m_cid, m_ofClassUTI, asymptr, hazyKin);
+	AssertBool isDef = m_state.alreadyDefinedSymbolByAClassOrAncestor(m_ofClassUTI, m_cid, asymptr, hazyKin);
 	assert(isDef);
 	pos = asymptr->getPosOffset();
 	m_posOfDM = pos; //no adjust for elements here (t41230, t41184)
@@ -631,6 +637,7 @@ namespace MFM {
 	//avoid when empty since no "self" defined within initialization scope. t41170
 	rtnstgidx = loadStorageAndCurrentObjectSymbols(stgcos, cos);
 	assert(stgcos && cos);
+	assert(cosSize == m_state.m_currentObjSymbolsForCodeGen.size()); //??
       }
     assert(rtnstgidx <= 0 || useLocalVar);
 
@@ -694,7 +701,7 @@ namespace MFM {
 	fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum4, cstor).c_str());
 	fp->write(");"); GCNL;
 
-	UVPass uvpass2 = UVPass::makePass(tmpVarNum2, cstor, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //default class data member as immediate
+	UVPass uvpass2 = UVPass::makePass(tmpVarNum2, TMPBITVAL, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //default class data member as immediate
 
 	assert(m_nodeExpr);
 	if(nut->isScalar())

@@ -130,16 +130,29 @@ namespace MFM {
     if(m_state.isComplete(huti))
       return true; //short-circuit, known (t41287,8)
 
+    u32 tokid = m_state.getTokenDataAsStringId(tok);
     UTI kuti = Nav;
     if(etyp == Class)
       {
 	SymbolClassName * cnsym = NULL; //no way a template or stub
-	if(!m_state.alreadyDefinedSymbolClassName(tok.m_dataindex, cnsym))
+	if(!m_state.alreadyDefinedSymbolClassName(tokid, cnsym))
 	  {
 	    SymbolClass * csym = NULL;
 	    if(m_state.alreadyDefinedSymbolClassAsHolder(huti, csym))
 	      {
 		aok = false; //still a holder
+		UTI mappedUTI;
+		if(m_state.findaUTIAlias(huti, mappedUTI))
+		  {
+		    if(m_state.alreadyDefinedSymbolClass(mappedUTI, csym))
+		      {
+			u32 cid = csym->getId();
+			AssertBool isDefined = m_state.alreadyDefinedSymbolClassName(cid, cnsym);
+			assert(isDefined);
+		      }
+
+		    kuti = mappedUTI; //t3862
+		  }
 	      }
 	    else if(m_state.alreadyDefinedSymbolClass(huti, csym))
 	      {
@@ -190,9 +203,8 @@ namespace MFM {
       {
 	//a typedef (e.g. t3379, 3381)
 	UTI tmpscalar = Nouti;
-	if(m_state.getUlamTypeByTypedefName(tok.m_dataindex, kuti, tmpscalar))
-	  if(!m_state.isHolder(kuti))
-	    aok = true;
+	if(m_state.getUlamTypeByTypedefName(tokid, kuti, tmpscalar))
+	  aok = !m_state.isHolder(kuti);
       }
 
     if(aok)
@@ -222,9 +234,10 @@ namespace MFM {
     assert(templateclassblock);
     m_state.pushClassContext(tuti, templateclassblock, templateclassblock, false, NULL);
 
+    u32 tokid = m_state.getTokenDataAsStringId(tok);
     Symbol * argSym = NULL;
     bool hazykin = false;
-    if(m_state.alreadyDefinedSymbol(tok.m_dataindex, argSym, hazykin))
+    if(m_state.alreadyDefinedSymbol(tokid, argSym, hazykin))
       {
 	m_state.popClassContext(); //restore before another check call
 
@@ -373,8 +386,8 @@ namespace MFM {
 	NodeConstantDef * ceNode = *vit;
 	if(ceNode)
 	  {
-	    //ceNode->fixPendingArgumentNode(); //possibly renames if arg unseen tmp name.
-	    defaultval = ceNode->hasDefaultSymbolValue();
+	    //use default value if there is one AND there isn't a constant expression (t3893)
+	    defaultval = ceNode->hasDefaultSymbolValue() && !ceNode->hasConstantExpr();
 
 	    //OMG! if this was a default value for class arg, t3891,
 	    // we want to use the class stub/template as the 'context' rather than where the
@@ -385,7 +398,8 @@ namespace MFM {
 		SymbolClassNameTemplate * templateparent = stubcsym->getParentClassTemplate();
 		assert(templateparent);
 		NodeBlockClass * templateclassblock = templateparent->getClassBlockNode();
-		stubclassblock->resetNodeLocations(templateclassblock->getNodeLocation()); //temporarily change stub loc, in case of local filescope, including arg/params
+		//temporarily change stub loc, in case of local filescope, incl arg/params
+		stubclassblock->resetNodeLocations(templateclassblock->getNodeLocation());
 
 		m_state.pushClassContext(m_classUTI, stubclassblock, stubclassblock, false, NULL);
 		pushedtemplate = true;

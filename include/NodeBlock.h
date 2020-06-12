@@ -27,7 +27,7 @@
 
 /**
   \file NodeBlock.h - Basic Node for handling Blocks for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
   \date (C) 2014-2017 All rights reserved.
   \gpl
@@ -121,7 +121,7 @@ namespace MFM{
   protected:
     SymbolTableOfVariables m_ST;
 
-    void genCodeDeclsForVariableDataMembers(File * fp, ULAMCLASSTYPE classtype);
+    //void genCodeDeclsForVariableDataMembers(File * fp, ULAMCLASSTYPE classtype);
 
   private:
     NodeBlock * m_prevBlockNode;

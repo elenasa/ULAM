@@ -33,24 +33,13 @@ namespace MFM {
     //replace node with func call to matching function overload operator for class
     // of left, with argument of right (t41104);
     // quark toInt must be used on rhs of operators (t3191, t3200, t3513, t3648,9)
-    UlamType * lut = m_state.getUlamTypeByIndex(leftType);
-    if((lut->getUlamTypeEnum() == Class))
+    if(NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode())
       {
-	Node * newnode = buildOperatorOverloadFuncCallNode();
-	if(newnode)
-	  {
-	    AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
-	    assert(swapOk);
-
-	    m_nodeLeft = NULL; //recycle as memberselect
-	    m_nodeRight = NULL; //recycle as func call arg
-
-	    delete this; //suicide is painless..
-
-	    return newnode->checkAndLabelType();
-	  }
-	//else should fail again as non-primitive;
-      } //done
+	m_state.setGoAgain();
+	delete this; //suicide is painless..
+	return Hzy;
+      }
+    //else should fail again as non-primitive;
 
     UTI newType = calcNodeType(leftType, rightType); //does safety check
 
@@ -75,7 +64,7 @@ namespace MFM {
     //before constant folding; if needed (e.g. Remainder, Divide)
     castThyselfToResultType(rightType, leftType, newType);
 
-    if((newType != Nav) && isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
+    if(m_state.okUTItoContinue(newType) && isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
       newType = constantFold();
 
     UTI nodeType = newType;

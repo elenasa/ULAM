@@ -1,10 +1,10 @@
 ## -*- mode:ulam -*-
 #=t3907_test_compiler_elementandquark_atomofmemberselectlval
-#!
 ##      gen code output: 4 asserts
 ##
+#!
 Exit status: 0
-Ue_A : QW { :<> Bool(1) b(false);  QW m_q();  Int(32) test() {  System s;  A a2;  b true = Atom(96)& metoo = self.atomof;  { metoo A as cond { A& metoo;  s ( metoo b . )assert . } if } self.atomof a2 cast = { metoo A as cond { A& metoo;  s ( metoo b . ! )assert . } if } A a;  a b . true = Atom(96)& me = a.atomof;  { me A as cond { A& me;  s ( me b . )assert . } if } a.atomof a2 cast = { me A as cond { A& me;  s ( me b . ! )assert . } if } 0 cast return } }
+Ue_A : QW { Bool(1) b(false);  QW m_q();  :QW<> Int(32) test() {  System s;  A a2;  self b . true = Atom(96)& metoo = self.atomof;  { metoo A as cond { A& metoo;  s ( metoo b . )assert . } if } self.atomof a2 cast = { metoo A as cond { A& metoo;  s ( metoo b . ! )assert . } if } A a;  a b . true = Atom(96)& me = a.atomof;  { me A as cond { A& me;  s ( me b . )assert . } if } a.atomof a2 cast = { me A as cond { A& me;  s ( me b . ! )assert . } if } 0 cast return } }
 Uq_System { <NOMAIN> }
 Uq_QW { <NOMAIN> }
 ##

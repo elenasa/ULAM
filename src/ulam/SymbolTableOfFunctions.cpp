@@ -31,21 +31,8 @@ namespace MFM {
     return totalsizes;
   } //getTotalSymbolSize
 
-  void SymbolTableOfFunctions::addClassMemberFunctionDescriptionsToMap(UTI classType, ClassMemberMap& classmembers)
-  {
-    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
-    while(it != m_idToSymbolPtr.end())
-      {
-	Symbol * sym = it->second;
-	assert(sym->isFunction());
-
-	((SymbolFunctionName *) sym)->addFunctionDescriptionsToClassMemberMap(classType, classmembers);
-	it++;
-      }
-  } //addClassMemberFunctionDescriptionsToMap
-
   //convert UTI to mangled strings to insure overload uniqueness
-  void SymbolTableOfFunctions::checkTableOfFunctions(std::map<std::string, UTI>& mangledFunctionMap, u32& probcount)
+  void SymbolTableOfFunctions::checkTableOfFunctions(FSTable& mangledFunctionMap, u32& probcount)
   {
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
     while(it != m_idToSymbolPtr.end())
@@ -60,7 +47,7 @@ namespace MFM {
     return;
   } //checkTableOfFunctions
 
-  void SymbolTableOfFunctions::checkTableOfFunctionsInAncestor(std::map<std::string, UTI>& mangledFunctionMap, u32& probcount)
+  void SymbolTableOfFunctions::checkTableOfFunctionsSignatureReturnTypes(FSTable& mangledFunctionMap, u32& probcount)
   {
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
     while(it != m_idToSymbolPtr.end())
@@ -68,12 +55,12 @@ namespace MFM {
 	Symbol * sym = it->second;
 	if(sym->isFunction())
 	  {
-	    ((SymbolFunctionName *) sym)->checkFunctionNamesInAncestor(mangledFunctionMap, probcount);
+	    ((SymbolFunctionName *) sym)->checkFunctionSignatureReturnTypes(mangledFunctionMap, probcount);
 	  }
 	it++;
       }
     return;
-  } //checkTableOfFunctionsInAncestor
+  } //checkTableOfFunctionsSignatureReturnTypes
 
   void SymbolTableOfFunctions::linkToParentNodesAcrossTableOfFunctions(NodeBlockClass * p)
   {
@@ -180,29 +167,54 @@ namespace MFM {
   void SymbolTableOfFunctions::calcMaxIndexForVirtualTableOfFunctions(s32& maxidx)
   {
     UTI cuti = m_state.getCompileThisIdx();
-    UTI superuti = m_state.isClassASubclass(cuti);
+    u32 accummaxes = 0;
+    bool uninitbases = false;
 
-    if(m_idToSymbolPtr.empty() && (superuti == Nouti))
-      {
-	assert(maxidx <= 0);
-    	maxidx = 0; //use zero when empty
-      }
+    BaseclassWalker walker;
 
     //initialize this classes VTable to super classes' VTable, or empty
     // some entries may be modified; or table may expand
     SymbolClass * csym = NULL;
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cuti, csym);
     assert(isDefined);
-    csym->initVTable(maxidx);
 
-    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
-    while(it != m_idToSymbolPtr.end())
+    // get ancestors accumulated max index of originating virtual funcs (entire tree)
+    walker.addAncestorsOf(csym);
+
+    UTI baseuti = Nouti;
+    while(walker.getNextBase(baseuti, m_state))
       {
-	Symbol * sym = it->second;
-	assert(sym && sym->isFunction());
-	((SymbolFunctionName *) sym)->calcMaxIndexOfVirtualFunctions(maxidx);
-	it++;
+	SymbolClass * basecsym = NULL;
+	if(m_state.alreadyDefinedSymbolClass(baseuti, basecsym))
+	  {
+	    s32 mymax = basecsym->getOrigVTableSize(); //originating only
+
+	    if(mymax == UNKNOWNSIZE)
+	      uninitbases = true;
+	    else
+	      accummaxes += mymax;
+
+	    if(uninitbases)
+	      {
+		maxidx = UNKNOWNSIZE;
+		return; //short-circuit
+	      }
+	    walker.addAncestorsOf(basecsym); // visit all bases
+	  }
+      } //end while
+
+    if(m_idToSymbolPtr.empty() && (accummaxes == 0))
+      {
+	assert(maxidx <= 0);
+    	maxidx = 0; //use zero when empty
       }
+    else
+      {
+	maxidx = accummaxes;
+      }
+
+    csym->initVTable(maxidx);
+    //return and use NodeFuncDecl in parse tree order to assign new vowned indexes (ulam-5)
     return;
   } //calcMaxIndexForVirtualTableOfFunctions
 
@@ -331,20 +343,5 @@ namespace MFM {
       }
     return nativeCount;
   } //countNativeFuncDeclsForTableOfFunctions
-
-  void SymbolTableOfFunctions::genCodeForTableOfFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
-  {
-    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
-    while(it != m_idToSymbolPtr.end())
-      {
-	Symbol * sym = it->second;
-	if(sym->isFunction())
-	  {
-	    ((SymbolFunctionName *) sym)->generateCodedFunctions(fp, declOnly, classtype);
-	  }
-	it++;
-      }
-  } //genCodeForTableOfFunctions
-
 
 } //end MFM
