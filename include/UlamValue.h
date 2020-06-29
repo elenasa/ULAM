@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * UlamValue.h -  Basic handling of UlamValues for ULAM
  *
- * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2017 Ackleyshack LLC.
+ * Copyright (C) 2014-2017,2020 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2017,2020 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file UlamValue.h -  Basic handling of UlamValues for ULAM
   \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2017 All rights reserved.
+  \date (C) 2014-2017,2020 All rights reserved.
   \gpl
 */
 
@@ -78,6 +78,7 @@ namespace MFM{
 
 
     UlamValue(); //requires init to avoid Null ptr for type
+    UlamValue(const UlamValue &); //explicit copy ctr needed for c++11
     ~UlamValue();
 
     void clear();
