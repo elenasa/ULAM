@@ -12,6 +12,11 @@ namespace MFM {
     clear(); //default type is Nouti == 0
   }
 
+  UlamValue::UlamValue(const UlamValue & uv)
+  {
+    memcpy(this, &uv, sizeof(UlamValue)); //explicit copy ctr needed for c++11
+  }
+
   UlamValue::~UlamValue()
   {
     //do not do this automatically; up to Symbol
