@@ -16,7 +16,8 @@ CFLAGS+= -Wno-unused-variable -Wno-unused-but-set-variable
 #CFLAGS+= -Winline
 CFLAGS+= --param inline-unit-growth=1000 --param large-function-growth=50000
 CFLAGS+= -Wextra -Wno-unused-parameter -Wno-ignored-qualifiers
-CFLAGS+=-Wno-parentheses
+CFLAGS+= -Wno-parentheses
+#CFLAGS+= -std=c++11
 
 
 default: all
