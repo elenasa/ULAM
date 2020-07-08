@@ -3,6 +3,7 @@
  *
  * Copyright (C) 2016-2020 The Regents of the University of New Mexico.
  * Copyright (C) 2016-2020 Ackleyshack LLC.
+ * Copyright (C) 2020 The Living Computation Foundation.
  *
  * This file is part of the ULAM programming language compilation system.
  *
