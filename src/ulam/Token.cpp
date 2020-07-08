@@ -186,6 +186,14 @@ namespace MFM {
     return (m_dataindex < tok2.m_dataindex);
   }
 
+  Token& Token::operator=(const Token& tokref)
+  {
+    m_type = tokref.m_type;
+    m_locator = tokref.m_locator;
+    m_dataindex = tokref.m_dataindex;
+    return *this;
+  }
+
   u32 Token::getOperatorOverloadFullNameId(const Token & tok, CompilerState * state)
   {
     if(Token::getTokenOperatorOverloadableFlag(tok.m_type) == OPOL_NOT)
