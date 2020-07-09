@@ -1,7 +1,7 @@
 /**                                        -*- mode:C++ -*-
  * SymbolWithValue.h - Basic handling of symbols with values for ULAM
  *
- * Copyright (C) 2015-2109 The Regents of the University of New Mexico.
+ * Copyright (C) 2015-2019 The Regents of the University of New Mexico.
  * Copyright (C) 2015-2019 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.

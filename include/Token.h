@@ -3,6 +3,7 @@
  *
  * Copyright (C) 2014-2020 The Regents of the University of New Mexico.
  * Copyright (C) 2014-2020 Ackleyshack LLC.
+ * Copyright (C) 2020 The Living Computation Foundation.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -102,6 +103,7 @@ namespace MFM{
     void print(File * fp, CompilerState * state);
 
     bool operator<(const Token & tok2) const;
+    Token& operator=(const Token&); //explicit for c++11
 
     static u32 getOperatorOverloadFullNameId(const Token & tok, CompilerState * state);
 
