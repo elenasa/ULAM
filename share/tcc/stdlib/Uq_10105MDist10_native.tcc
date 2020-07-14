@@ -83,4 +83,14 @@ namespace MFM {
     return ret;
   } // Uf_6symMap
 
+  //! MDist.ulam:92:   Symmetry symInverse(Symmetry sym) native;
+  template<class EC>
+  Ui_Ut_10131u<EC> Uq_10105MDist10<EC>::Uf_9210symInverse(const UlamContext<EC>& uc, UlamRef<EC>& ur, Ui_Ut_10131u<EC>& Uv_3sym) const //native
+  { 
+    u32 sym = Uv_3sym.read(); //gcnl:Node.cpp:832
+    u32 invsym = SymInverse((const PointSymmetry) sym);
+    Ui_Ut_10131u<EC> rtn(invsym);
+    return rtn;
+  } //Uf_9210symInverse
+
 } //MFM
