@@ -220,7 +220,7 @@ namespace MFM {
 	if(!hazyKin)
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	else
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //t41408
       }
     m_state.popClassContext(); //restore
   } //toinstantiate

@@ -172,7 +172,7 @@ namespace MFM {
       }
 
     //eval for bit size constant:
-
+    bool evalrtn = false;
     evalNodeProlog(0); //new current frame pointer
     makeRoomForNodeType(getNodeType()); //offset a constant expression
     if(m_node->eval() == NORMAL)
@@ -190,20 +190,21 @@ namespace MFM {
 	      {
 		u32 wordsize = bitut->getTotalWordSize();
 		if(wordsize <= MAXBITSPERINT)
-		  newbitsize = bitUV.getImmediateData(m_state);
+		  newbitsize = bitUV.getImmediateData(m_state); //u32 into s32? t41408
 		else if(wordsize <= MAXBITSPERLONG)
 		  newbitsize = (s32) bitUV.getImmediateDataLong(m_state);
 		else
 		  m_state.abortGreaterThanMaxBitsPerLong();
 	      }
 	    //prepare bitsize into C-format:
-	    newbitsize = bitut->getDataAsCs32(newbitsize);
+	    newbitsize = bitut->getDataAsCs32(newbitsize); //arg expects u32
+	    evalrtn = true; //t41408 compensates for overloaded constant
 	  }
       }
 
     evalNodeEpilog();
 
-    if(newbitsize == UNKNOWNSIZE)
+    if(!evalrtn && (newbitsize == UNKNOWNSIZE)) //overloaded constant (-2)
       {
 	std::ostringstream msg;
 	msg << "Type Bitsize specifier for base type: ";
