@@ -212,6 +212,19 @@ namespace MFM {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		errorsFound++;
 	      }
+	    else if((nut->getUlamTypeEnum() == Bits) && (tclasstype == UC_QUARK))
+	      {
+		if(tobe->getBitSize() != nut->getBitSize()) //t41413
+		  {
+		    std::ostringstream msg;
+		    msg << "Cannot cast "; //Bits
+		    msg << nut->getUlamTypeNameBrief().c_str(); //non-constructor void
+		    msg << " to quark " << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str();
+		    msg << "(" << tobe->getBitSize() << "); Must be same bitsize";
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    errorsFound++;
+		  }
+	      }
 	    else if(!m_state.isAtom(nodeType))
 	      {
 		std::ostringstream msg;
@@ -330,8 +343,22 @@ namespace MFM {
       {
 	ULAMCLASSTYPE nodeClass = nut->getUlamClassType();
 	ULAMCLASSTYPE tobeClass = tobe->getUlamClassType();
+	if(nodeClass == UC_QUARK && tobe->getUlamTypeEnum() == Bits)
+	  {
+	    if(tobe->getBitSize() != nut->getBitSize()) //t41412
+	      {
+		std::ostringstream msg;
+		msg << "Cannot cast quark ";
+		msg << nut->getUlamTypeNameBrief().c_str(); //class
+		msg << "(" << nut->getBitSize();
+		msg << ") to " << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str(); //Bits
+		msg << "; Must be same bitsize";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		errorsFound++;
+	      }
+	  }
 	//avoid assuming casting to a quark is numeric, might be a ref (t3650)
-	if(nodeClass == UC_QUARK && tobe->isNumericType() && (tobeClass == UC_NOTACLASS))
+	else if(nodeClass == UC_QUARK && tobe->isNumericType() && (tobeClass == UC_NOTACLASS))
 	  {
 	    // special case: user casting a quark to an Int;
 	    if(!m_state.quarkHasAToIntMethod(nodeType))
@@ -803,8 +830,18 @@ namespace MFM {
 
     //only to be quark makes sense!!! check first, one might be element.
     //UNLESS quark ref -> atom, handled separately.
+    // lest we forget Bits-to-Quark, Quark-to-Bits (Wed Feb 24 14:04:03 2021)
     if((tclasstype == UC_QUARK) || (vclasstype == UC_QUARK))
-      return genCodeCastAtomAndQuark(fp, uvpass);
+      {
+	ULAMTYPE tobeTypeEnum = tobe->getUlamTypeEnum();
+	ULAMTYPE fmTypeEnum = vut->getUlamTypeEnum();
+	if(tobeTypeEnum == Bits)
+	  return m_node->genCodeReadIntoATmpVar(fp, uvpass); //t41409
+	else if(fmTypeEnum == Bits)
+	  return m_node->genCodeReadIntoATmpVar(fp,uvpass); //t41410
+	else
+	  return genCodeCastAtomAndQuark(fp, uvpass);
+      }
 
     if((tclasstype == UC_ELEMENT) || (vclasstype == UC_ELEMENT))
       return genCodeCastAtomAndElement(fp, uvpass);

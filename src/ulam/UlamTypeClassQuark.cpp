@@ -60,6 +60,13 @@ namespace MFM {
   {
     FORECAST scr = UlamTypeClass::explicitlyCastable(typidx);
     // as of updated ulam-3: atom or atomref, possibly ok when inherited (runtime)
+    if(scr != CAST_CLEAR)
+      {
+	UlamType * fmut = m_state.getUlamTypeByIndex(typidx);
+	ULAMTYPE fetyp = fmut->getUlamTypeEnum();
+	if(fetyp == Bits)
+	  scr = CAST_CLEAR; //t41410
+      }
     return scr;
   } //explicitlyCastable
 
