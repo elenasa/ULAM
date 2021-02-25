@@ -1,0 +1,75 @@
+## -*- mode:ulam -*-
+#=t41406_test_compiler_customarraysqbktsurgeryinfunccall_issue
+##
+## gen output: (+assert)
+##  Unsigned Arg: 4
+#!
+Exit status: -11
+Ue_R { Int(32) test() {  System s;  Foo f;  f ( )behave . 0 cast return } }
+Uq_System { <NOMAIN> }
+Ue_Foo { typedef Unsigned(6) SN;  Bool(7) m_backLeft( true);  System s();  <NOMAIN> }
+Uq_EventWindow { typedef Unsigned(6) SiteNum;  <NOMAIN> }
+##
+## Dave issue 7/15/2020, event window custom array, with a function call index;
+## implicit self surgery, leaves rhs still Hzy.
+## (see also t41012)
+##
+#>R.ulam
+  ulam 3;
+element R {
+  Int test() {
+    System s;
+    Foo f;
+    f.behave();
+    return 0;
+  }
+}
+
+#:Foo.ulam
+  ulam 5;
+element Foo {
+  typedef EventWindow.SiteNum SN;
+  Bool(7) m_backLeft = true;
+  System s;
+
+  Void behave()
+  {
+    Foo other;
+    EventWindow ew;
+    m_backLeft = ew[behind(left(0))] is Self; //COMPILER ASSERTION HIT!!!
+    s.assert(!m_backLeft);
+    s.print(behind(left(0))); //fyi
+  }
+
+  SN behind(SN sn) { return relativeSN(sn, 3u); } // Northbound view
+  SN left(SN sn) { return relativeSN(sn, 1u); } // Northbound view
+
+  SN relativeSN(SN fromHere, SN relativeMove) {
+    //MDist mdist;
+    //C2D base = mdist.getSiteCoord(fromHere);
+    //C2D offset = mdist.getSiteCoord(relativeMove);
+    //C2D rotOff = mdist.symMap(offset,effectiveRot());
+    //return mdist.getSiteNumber(base+rotOff);
+    return (SN) (fromHere + relativeMove); //simplification for test!!
+  }
+}
+
+#:EventWindow.ulam
+  ulam 3;
+quark EventWindow{
+  typedef Unsigned(6) SiteNum;
+  Atom& aref(Int index) native;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

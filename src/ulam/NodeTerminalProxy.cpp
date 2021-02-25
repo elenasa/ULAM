@@ -521,6 +521,14 @@ namespace MFM {
 	      m_constant.uval = cut->getMax();
 	      rtnB = true;
 	    }
+	  else
+	    {
+	      std::ostringstream msg;
+	      msg << "Proxy Type '" << m_funcTok.getTokenString() << "' is not supported ";
+	      msg << "for type: ";
+	      msg << m_state.getUlamTypeNameBriefByIndex(m_uti).c_str();
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //t41407
+	    }
 	}
 	break;
       case TOK_KW_MINOF:
@@ -529,6 +537,14 @@ namespace MFM {
 	    {
 	      m_constant.sval = cut->getMin();
 	      rtnB = true;
+	    }
+	  else
+	    {
+	      std::ostringstream msg;
+	      msg << "Proxy Type '" << m_funcTok.getTokenString() << "' is not supported ";
+	      msg << "for type: ";
+	      msg << m_state.getUlamTypeNameBriefByIndex(m_uti).c_str();
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //t41407
 	    }
 	}
 	break;

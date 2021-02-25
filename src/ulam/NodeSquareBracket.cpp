@@ -97,6 +97,26 @@ namespace MFM {
     m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock); //currblock doesn't change
     UTI rightType = m_nodeRight->checkAndLabelType();
 
+    //Dave ish07152020: RHS (a customarray arg) function call
+    // exchanges itself for implicit self, and returns Hzy type for the new
+    // NodeMemberSelect 'self' node (still Nouti) that has yet to be c&l'd.
+    if(!m_state.isComplete(rightType))
+      {
+	std::ostringstream msg;
+	msg << "Incomplete RH Type: " << m_state.getUlamTypeNameBriefByIndex(rightType).c_str();
+	msg << " used with " << getName();
+	if(rightType==Hzy)
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	    hazyCount++; //t41406
+	  }
+	else //Nav
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    errorCount++; //needs a test
+	  }
+      }
+
     m_state.popClassContext();
 
     if(m_state.isComplete(leftType))
@@ -215,7 +235,7 @@ namespace MFM {
 	  }
 
 	//set up idxuti..RHS
-	//cant proceed with custom array subscript if lhs is incomplete
+	//cant proceed with custom array subscript if lhs, or rhs, is incomplete
 	if((errorCount == 0) && (hazyCount == 0))
 	  {
 	    if(m_isCustomArray)
