@@ -169,7 +169,7 @@ namespace MFM {
 	  //must be Quark! treat as Int if it has a toInt method
 	  if(fmut->isNumericType())
 	    brtn = (bitsize >= MAXBITSPERINT);
-	  else //Quark to Bits requires explicit cast.
+	  else //Quark or Transient to Bits requires explicit cast.
 	    brtn = false; //t41412; t41131 called by matching args (no error msg please)
 	}
 	break;

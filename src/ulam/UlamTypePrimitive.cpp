@@ -53,7 +53,8 @@ namespace MFM {
 	if(valtypEnum == Class)
 	  {
 	    ULAMCLASSTYPE vclasstype = fmut->getUlamClassType();
-	    if(vclasstype != UC_QUARK)
+	    //allow quarks and transients to be cast to Bits (ulam-5) t41410,t41416
+	    if((vclasstype != UC_QUARK) && (vclasstype != UC_TRANSIENT))
 	      scr = CAST_BAD;
 	  }
       }

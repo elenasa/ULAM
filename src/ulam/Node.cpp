@@ -1169,6 +1169,7 @@ namespace MFM {
     UTI luti = luvpass.getPassTargetType();
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
     UTI ruti = ruvpass.getPassTargetType();
+    UlamType * rut = m_state.getUlamTypeByIndex(ruti);
 
     // No split if custom array, that requires an 'aref' function call;
     // handled as genCodeConvertATmpVarIntoCustomArrayAutoRef t41006
@@ -1237,7 +1238,21 @@ namespace MFM {
     TMPSTORAGE rstor = ruvpass.getPassStorage();
     if((rstor == TMPBITVAL) || (rstor == TMPAUTOREF))
       fp->write(".read()");
-
+    else if((rstor == TMPTBV) && rut->isScalar()) //t41416 Transient in tmpvar..used without WriteBV.
+      {
+	u32 rlen = ruvpass.getPassLen();
+	if(rlen <= MAXBITSPERINT)
+	  fp->write(".Read(");
+	else if(rlen <= MAXBITSPERLONG)
+	  fp->write(".ReadLong(");
+	else
+	  m_state.abortShouldntGetHere();
+	fp->write_decimal_unsigned(ruvpass.getPassPos());
+	fp->write(",");
+	fp->write_decimal_unsigned(rlen);
+	fp->write(")");
+      } //else //t3975,t3896 (big arrays)
+    //else fall-thru
     fp->write(");"); GCNL;
 
     // inheritance cast needs the lhs type restored after the generated write

@@ -133,7 +133,8 @@ namespace MFM {
 
   TMPSTORAGE UlamTypeClassTransient::getTmpStorageTypeForTmpVar()
   {
-    return UlamType::getTmpStorageTypeForTmpVar();
+    //return UlamType::getTmpStorageTypeForTmpVar();
+    return TMPTBV; //t41416
   } //getTmpStorageTypeForTmpVar
 
   const std::string UlamTypeClassTransient::castMethodForCodeGen(UTI nodetype)

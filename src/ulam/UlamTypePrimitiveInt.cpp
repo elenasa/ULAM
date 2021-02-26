@@ -224,6 +224,19 @@ namespace MFM {
     return aok ? CAST_CLEAR : CAST_BAD;
   } //safeCast
 
+  FORECAST UlamTypePrimitiveInt::explicitlyCastable(UTI typidx)
+  {
+    FORECAST scr = UlamTypePrimitive::explicitlyCastable(typidx);
+    if(scr == CAST_CLEAR)
+      {
+	UlamType * fmut = m_state.getUlamTypeByIndex(typidx);
+	ULAMCLASSTYPE vclasstype = fmut->getUlamClassType();
+	if(vclasstype == UC_TRANSIENT)
+	  scr = CAST_BAD;
+      }
+    return scr;
+  }
+
   void UlamTypePrimitiveInt::getDataAsString(const u32 data, char * valstr, char prefix)
   {
     s32 sdata = getDataAsCs32(data);

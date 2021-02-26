@@ -212,14 +212,21 @@ namespace MFM {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		errorsFound++;
 	      }
-	    else if((nut->getUlamTypeEnum() == Bits) && (tclasstype == UC_QUARK))
+	    else if((nut->getUlamTypeEnum() == Bits) && ( (tclasstype == UC_QUARK) || (tclasstype == UC_TRANSIENT)))
 	      {
-		if(tobe->getBitSize() != nut->getBitSize()) //t41413
+		if(tobe->getBitSize() != nut->getBitSize()) //t41413,6
 		  {
 		    std::ostringstream msg;
 		    msg << "Cannot cast "; //Bits
-		    msg << nut->getUlamTypeNameBrief().c_str(); //non-constructor void
-		    msg << " to quark " << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str();
+		    msg << nut->getUlamTypeNameBrief().c_str() << " to "; //non-constructor void
+		    if(tclasstype == UC_QUARK)
+		      msg << "quark ";
+		    else if(tclasstype == UC_TRANSIENT)
+		      msg << "transient ";
+		    else
+		      m_state.abortShouldntGetHere();
+
+		    msg << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str();
 		    msg << "(" << tobe->getBitSize() << "); Must be same bitsize";
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		    errorsFound++;
@@ -349,6 +356,20 @@ namespace MFM {
 	      {
 		std::ostringstream msg;
 		msg << "Cannot cast quark ";
+		msg << nut->getUlamTypeNameBrief().c_str(); //class
+		msg << "(" << nut->getBitSize();
+		msg << ") to " << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str(); //Bits
+		msg << "; Must be same bitsize";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		errorsFound++;
+	      }
+	  }
+	else if(nodeClass == UC_TRANSIENT && tobe->getUlamTypeEnum() == Bits)
+	  {
+	    if(tobe->getBitSize() != nut->getBitSize()) //t41416,7
+	      {
+		std::ostringstream msg;
+		msg << "Cannot cast transient ";
 		msg << nut->getUlamTypeNameBrief().c_str(); //class
 		msg << "(" << nut->getBitSize();
 		msg << ") to " << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str(); //Bits
@@ -841,6 +862,17 @@ namespace MFM {
 	  return m_node->genCodeReadIntoATmpVar(fp,uvpass); //t41410
 	else
 	  return genCodeCastAtomAndQuark(fp, uvpass);
+      }
+
+    if((tclasstype == UC_TRANSIENT) || (vclasstype == UC_TRANSIENT))
+      {
+	ULAMTYPE tobeTypeEnum = tobe->getUlamTypeEnum();
+	ULAMTYPE fmTypeEnum = vut->getUlamTypeEnum();
+	if(tobeTypeEnum == Bits)
+	  return m_node->genCodeReadIntoATmpVar(fp, uvpass); //t41416
+	else if(fmTypeEnum == Bits)
+	  return m_node->genCodeReadIntoATmpVar(fp,uvpass); //t41416
+	//else fall-thru
       }
 
     if((tclasstype == UC_ELEMENT) || (vclasstype == UC_ELEMENT))
