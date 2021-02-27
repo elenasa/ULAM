@@ -307,7 +307,8 @@ namespace MFM {
 		std::ostringstream msg;
 		if(etyp == Bool)
 		  msg << "Use a comparison operation";
-		else if((fmetyp == String) ^ (etyp == String)) //both String valid t41419
+		//else if((fmetyp == String) ^ (etyp == String)) //both String valid t41419
+		else if((fmetyp == String) || (etyp == String)) //both String valid t41419
 		  msg << "Invalid";
 		else if(!m_state.isScalar(newType) || !m_state.isScalar(nuti))
 		  msg << "Not possible";

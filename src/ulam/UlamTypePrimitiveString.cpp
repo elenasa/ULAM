@@ -53,10 +53,15 @@ namespace MFM {
 
   const std::string UlamTypePrimitiveString::castMethodForCodeGen(UTI nodetype)
   {
-    //_String32ToString32 undefined in CastOps.h
-    m_state.abortShouldntGetHere();
-    return "invalidStringCastMethodForCodeGen";
-  }
+    //_Bits32ToString32 (and vis versa) defined in CastOps.h
+    //return "invalidStringCastMethodForCodeGen";
+    UlamType * nut = m_state.getUlamTypeByIndex(nodetype);
+    //base type i.e. Bits only
+    if(nut->getUlamTypeEnum() != Bits)
+      m_state.abortShouldntGetHere();
+
+    return UlamTypePrimitive::castMethodForCodeGen(nodetype);
+  } //castMethodForCodeGen
 
   bool UlamTypePrimitiveString::cast(UlamValue & val, UTI typidx)
   {
@@ -157,6 +162,20 @@ namespace MFM {
       };
     return brtn ? CAST_CLEAR : CAST_BAD;
   } //safeCast
+
+  FORECAST UlamTypePrimitiveString::explicitlyCastable(UTI typidx)
+  {
+    FORECAST scr = UlamTypePrimitive::explicitlyCastable(typidx);
+
+    UlamType * fmut = m_state.getUlamTypeByIndex(typidx);
+    ULAMTYPE valtypEnum = fmut->getUlamTypeEnum();
+
+    //allow Bits to be cast to consecutive String index (ulam-5);
+    if(valtypEnum == Bits)
+      scr = CAST_CLEAR; //t41422
+
+    return scr;
+  } //explicitlyCastable
 
   void UlamTypePrimitiveString::getDataAsString(const u32 data, char * valstr, char prefix)
   {

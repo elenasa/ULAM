@@ -1,8 +1,8 @@
 ## -*- mode:ulam -*-
 #=t41419_test_compiler_castingbitstotransientwstring_error
 #!
-./Anchor10.ulam:20:22: ERROR: Cannot explicitly cast Bits(32) to type: String(32).
-./Anchor10.ulam:20:5: ERROR: Initial value expression for: tmpstr, initialization is invalid.
+./Anchor10.ulam:19:22: ERROR: Cannot explicitly cast Unsigned(5) to type: String(32).
+./Anchor10.ulam:19:5: ERROR: Initial value expression for: tmpstr, initialization is invalid.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by Dave's ish 2/24/2021: Transient and Bit casting new (see t41416).
@@ -28,8 +28,8 @@ element Anchor10 : QSegX {
     mMessageBuffer.mPayload = (MPayload) pkt;
     s.print((Unsigned) mMessageBuffer.mPayload);
     s.print(pkt.mStr);
-    mMessageBuffer.mPayload = 31; //clobber string index
-    String tmpstr = (String) mMessageBuffer.mPayload; //CANNOT CAST STRINGS!!
+    String tmpstr = (String) 31u; //CANNOT CAST Unsigned->String!!
+    mMessageBuffer.mPayload = (MPayload) tmpstr; //clobber string index
     SegPkt11 pkt2 = (SegPkt11) mMessageBuffer.mPayload;
     s.print((Unsigned) mMessageBuffer.mPayload);
     s.print(pkt2.mStr); //fails in gencode
