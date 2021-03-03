@@ -1,9 +1,9 @@
 /**                                        -*- mode:C++ -*-
  * NodeBlockClass.h - Basic Node for handling Classes for ULAM
  *
- * Copyright (C) 2014-2020 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2020 Ackleyshack LLC.
- * Copyright (C) 2020 The Living Computation Foundation.
+ * Copyright (C) 2014-2021 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2021 Ackleyshack LLC.
+ * Copyright (C) 2021 The Living Computation Foundation.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -30,7 +30,7 @@
   \file NodeBlockClass.h - Basic Node for handling Classes for ULAM
   \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2020 All rights reserved.
+  \date (C) 2014-2021 All rights reserved.
   \gpl
 */
 
@@ -173,9 +173,9 @@ namespace MFM{
 
     virtual u32 getSizeOfSymbolsInTable();
 
-    virtual s32 getBitSizesOfVariableSymbolsInTable();
+    virtual s32 getBitSizesOfVariableSymbolsInTable(s32& basebits, s32& mybits);
 
-    virtual s32 getMaxBitSizeOfVariableSymbolsInTable();
+    virtual s32 getMaxBitSizeOfVariableSymbolsInTable(s32& basebits, s32& mybits);
 
     virtual bool isFuncIdInScope(u32 id, Symbol * & symptrref);
 

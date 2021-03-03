@@ -1695,6 +1695,8 @@ namespace MFM {
 	UTI uti = it->first; //this instance entry; may not match Symbol class' uti
 	s32 totalbits = 0;
 	s32 sharedbits = UNKNOWNSIZE;
+	s32 basebits = 0; //overstated, no sharing
+	s32 mybits = 0; //main goal of trySetBitsize..
 
 	if(checkSFINAE(csym))
 	  {
@@ -1715,10 +1717,11 @@ namespace MFM {
 	else
 	  {
 	    UlamType * cut = m_state.getUlamTypeByIndex(cuti);
-	    if(cuti != uti && cut->isComplete())
+
+	    if(cut->isComplete()) //uti != cuti
 	      {
 		totalbits = cut->getBitSize();
-		aok = true;
+		mybits = m_state.getBaseClassBitSize(cuti); // Element is noop
 	      }
 	    else
 	      {
@@ -1726,27 +1729,33 @@ namespace MFM {
 		assert(classNode);
 		m_state.pushClassContext(cuti, classNode, classNode, false, NULL);
 
-		aok = csym->trySetBitsizeWithUTIValues(totalbits);
+		aok = csym->trySetBitsizeWithUTIValues(basebits, mybits);
 		m_state.popClassContext(); //restore
-	      }
-	  }
 
-	if(aok)
-	  {
-	    s32 sharedbitssaved = UNKNOWNSIZE;
-	    aok = csym->determineSharedBasesAndTotalBitsize(sharedbitssaved, sharedbits);
+		if(aok)
+		  {
+		    s32 sharedbitssaved = UNKNOWNSIZE;
+		    aok = csym->determineSharedBasesAndTotalBitsize(sharedbitssaved, sharedbits);
+		    if(aok)
+		      {
+			assert(sharedbits >= 0);
+			assert(sharedbitssaved >= sharedbits);
+			//totalbits = (totalbits - sharedbitssaved + sharedbits); //updates total here!!
+			totalbits = (mybits + sharedbits); //updates total here!!
+		      }
+		  }
+	      }
+
 	    if(aok)
 	      {
-		assert(sharedbits >= 0);
-		assert(sharedbits <= totalbits);
-		assert(sharedbitssaved >= sharedbits);
-		totalbits = (totalbits - sharedbitssaved + sharedbits); //updates total here!!
+		m_state.setBitSize(uti, totalbits); //"scalar" Class bitsize  KEY ADJUSTED
+		//after setBitSize so not to clobber it.
+		m_state.setBaseClassBitSize(uti, mybits); //noop for elements
 	      }
 	  }
 
 	if(aok)
 	  {
-	    m_state.setBitSize(uti, totalbits); //"scalar" Class bitsize  KEY ADJUSTED
 	    if(m_state.getBitSize(uti) != totalbits)
 	      {
 		std::ostringstream msg;
@@ -1763,12 +1772,10 @@ namespace MFM {
 		msg << "CLASS INSTANCE '" << m_state.getUlamTypeNameByIndex(uti).c_str();
 		msg << "' UTI" << uti << ", SIZED: " << totalbits;
 		MSG(Symbol::getTokPtr(), msg.str().c_str(), DEBUG);
-		//after setBitSize so not to clobber it.
-		m_state.setBaseClassBitSize(cuti, totalbits - sharedbits); //noop for elements
 	      }
 	  }
 	else
-	  lostClasses.push_back(cuti); //track classes that fail to be sized.
+	  lostClasses.push_back(uti); //track classes that fail to be sized.
 
 	aok = true; //reset for next class
 	it++;

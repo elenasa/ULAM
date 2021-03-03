@@ -41,7 +41,12 @@ namespace MFM {
   void UlamTypeClass::setBitsizeAsBaseClass(s32 bs)
   {
     assert(isScalar());
-    m_bitsizeAsBaseClass = bs;
+    if(m_bitsizeAsBaseClass > 0)
+      {
+	assert(bs == m_bitsizeAsBaseClass); //don't clobber!
+      }
+    else
+      m_bitsizeAsBaseClass = bs;
   }
 
   bool UlamTypeClass::cast(UlamValue & val, UTI typidx)

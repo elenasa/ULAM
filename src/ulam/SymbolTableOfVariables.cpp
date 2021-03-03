@@ -458,10 +458,12 @@ namespace MFM {
 
 		    bool aok = true;
 		    s32 sharedbits = UNKNOWNSIZE;
+		    s32 basebits = 0; //overstated, no sharing
+		    s32 mybits = 0; //main goal of trySetBitsize..
 
 		    m_state.pushClassContext(csym->getUlamTypeIdx(), classblock, classblock, false, NULL);
 
-		    aok = csym->trySetBitsizeWithUTIValues(csize);
+		    aok = csym->trySetBitsizeWithUTIValues(basebits, mybits);
 		    if(aok)
 		      {
 			s32 sharedbitssaved = UNKNOWNSIZE;
@@ -469,11 +471,11 @@ namespace MFM {
 			if(aok)
 			  {
 			    assert(sharedbits >= 0);
-			    assert(sharedbits <= csize);
 			    assert(sharedbitssaved >= sharedbits);
-			    csize = (csize - sharedbitssaved + sharedbits); //updates total here!!
+			    //csize = (csize - sharedbitssaved + sharedbits); //updates total here!!
+			    csize = (mybits + sharedbits); //updates total here!!
 			    //before setUTIsizes, restored later (t3755)
-			    aok = m_state.setBaseClassBitSize(cuti, csize - sharedbits); //noop for elements
+			    aok = m_state.setBaseClassBitSize(cuti, mybits); //noop for elements
 			  }
 		      }
 		    m_state.popClassContext(); //restore

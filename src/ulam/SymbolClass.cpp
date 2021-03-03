@@ -390,7 +390,7 @@ namespace MFM {
     return classNode->hasCustomArrayLengthofFunction();
   }
 
-  bool SymbolClass::trySetBitsizeWithUTIValues(s32& totalbits)
+  bool SymbolClass::trySetBitsizeWithUTIValues(s32& basebits, s32& mybits)
   {
     NodeBlockClass * classNode = getClassBlockNode(); //instance
     bool aok = true;
@@ -407,11 +407,11 @@ namespace MFM {
 	MSG(Symbol::getTokPtr(), msg.str().c_str(),DEBUG);
 	aok = false; //moved here;
       }
-
+    s32 totalbits;
     if(isQuarkUnion())
-      totalbits = classNode->getMaxBitSizeOfVariableSymbolsInTable();
+      totalbits = classNode->getMaxBitSizeOfVariableSymbolsInTable(basebits, mybits);
     else
-      totalbits = classNode->getBitSizesOfVariableSymbolsInTable();
+      totalbits = classNode->getBitSizesOfVariableSymbolsInTable(basebits, mybits);
 
     //avoid setting EMPTYSYMBOLTABLE instead of 0 for zero-sized classes
     if(totalbits == CYCLEFLAG)  // was < 0
@@ -423,7 +423,7 @@ namespace MFM {
       }
     else if(totalbits == EMPTYSYMBOLTABLE)
       {
-	totalbits = 0;
+	basebits = mybits = totalbits = 0;
 	aok = true;
       }
     else if(totalbits != UNKNOWNSIZE)
@@ -465,8 +465,8 @@ namespace MFM {
 	it++;
       } //while
 
-    sharedbitsize = totalsharedbasebitsize;
-    sharedbitssaved = bitssaved;
+    sharedbitsize = totalsharedbasebitsize; //one of each base, all shared
+    sharedbitssaved = bitssaved; //no confidence
     svbmap.clear();
     return true;
   } //determineSharedBasesAndTotalBitsize

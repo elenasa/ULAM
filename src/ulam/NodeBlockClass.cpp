@@ -1898,7 +1898,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     return supers + m_ST.getTotalSymbolSize();
   } //getSizeOfSymbolsInTable
 
-  s32 NodeBlockClass::getBitSizesOfVariableSymbolsInTable()
+  s32 NodeBlockClass::getBitSizesOfVariableSymbolsInTable(s32& basebits, s32& mybits)
   {
     UTI cuti = m_state.getCompileThisIdx(); //getNodeType() maybe Hzy
     s32 superbs = 0;
@@ -1933,11 +1933,15 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     if(mybs < 0)
       return mybs; //error
 
+    basebits = superbs;
+    mybits = mybs;
+
     return superbs + mybs;
   } //getBitSizesOfVariableSymbolsInTable
 
-  s32 NodeBlockClass::getMaxBitSizeOfVariableSymbolsInTable()
+  s32 NodeBlockClass::getMaxBitSizeOfVariableSymbolsInTable(s32& basebits, s32& mybits)
   {
+    // max of union for only its data members, no bases Wed Mar  3 11:35:11 2021
     UTI cuti = m_state.getCompileThisIdx(); //getNodeType() maybe Hzy
     s32 superbs = 0;
 
@@ -1954,11 +1958,13 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	UTI baseuti = csym->getBaseClass(i);
 	if((baseuti != Nouti))
 	  {
+	    s32 bbits, mymax;
 	    NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
 	    assert(basecblock);
 	    m_state.pushClassContext(baseuti, basecblock, basecblock, false, NULL); //use baseuti, not cuti (t3451)
-	    s32 bs = basecblock->getMaxBitSizeOfVariableSymbolsInTable();
+	    s32 bs = basecblock->getMaxBitSizeOfVariableSymbolsInTable(bbits,mymax);
 	    m_state.popClassContext(); //restore
+	    assert(mymax==bs); //sanity
 
 	    if(bs < 0)
 	      return bs; //error if any base class size is negative
@@ -1969,12 +1975,14 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       } //end while
 
     if(m_ST.getTableSize() == 0 && superbs == 0)
-      return EMPTYSYMBOLTABLE; //should allow no variable data members
+      return EMPTYSYMBOLTABLE; //should allow no variable data members in union
 
     s32 mybs = m_ST.getMaxVariableSymbolsBitSize();
     if(mybs < 0)
-      return mybs; //error
+      return mybs; //negative size is error
 
+    basebits = superbs;
+    mybits = mybs;
     return (superbs > mybs ? superbs : mybs); //return max
   } //getMaxBitSizeOfVariableSymbolsInTable
 
