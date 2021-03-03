@@ -205,9 +205,9 @@ namespace MFM{
 	    else
 	      msg << "Use explicit cast";
 	    msg << " to use ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(foldeduti).c_str();
+	    msg << m_state.getUlamTypeNameByIndex(foldeduti).c_str();
 	    msg << " array item " << n + 1 << " as ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(scalaruti).c_str();
+	    msg << m_state.getUlamTypeNameByIndex(scalaruti).c_str();
 	    if(scr == CAST_BAD)
 	      {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);

@@ -140,12 +140,7 @@ namespace MFM {
     note << "(" << nsize << " of ";
     note << totalsize << " bits, at " << accumsize << ") ";
 
-    //like NodeVarDecl::printNameAndType
-    if(nut->getUlamTypeEnum() != Class)
-      note << vkey.getUlamKeyTypeSignatureNameAndBitSize(&m_state).c_str();
-    else
-      note << nut->getUlamTypeClassNameBrief(nuti).c_str();
-
+    note << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
     note << " " << getName();
 
     s32 arraysize = nut->getArraySize();
@@ -172,7 +167,6 @@ namespace MFM {
     UlamKeyTypeSignature vkey = m_state.getUlamKeyTypeSignatureByIndex(nuti);
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     s32 nsize = nut->getSizeofUlamType(); //e.g. 96 for elements
-
     s32 pos = m_varSymbol->getPosOffset(); //better data (e.g. quarkunion)
 
     // "| Position\t| Bitsize\t| Name\t| Type\t| "
@@ -197,11 +191,8 @@ namespace MFM {
 
     fp->write("\t| "); //type
     //like NodeVarDecl::printNameAndType
-    if(nut->getUlamTypeEnum() != Class)
-      fp->write(vkey.getUlamKeyTypeSignatureNameAndBitSize(&m_state).c_str());
-    else
-      fp->write(nut->getUlamTypeClassNameBrief(nuti).c_str());;
 
+    fp->write(m_state.getUlamTypeNameBriefByIndex(nuti).c_str());
     fp->write("\n"); //end
 
     accumsize += nsize;

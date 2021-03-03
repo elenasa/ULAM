@@ -273,8 +273,8 @@ namespace MFM {
 	      {
 		std::ostringstream msg;
 		msg << "Cannot explicitly cast ";
-		msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
-		msg << " to type: " << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str();
+		msg << m_state.getUlamTypeNameByIndex(nodeType).c_str(); //t3956 String(20)?
+		msg << " to type: " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
 		if((tobe->getUlamTypeEnum() == Bool) && !tobe->isAltRefType()) //t41197, t3962
 		  msg << "; Consider using a comparison operation";
 		else if(m_state.isAtom(tobeType) && (nclasstype == UC_QUARK))
@@ -295,9 +295,9 @@ namespace MFM {
 	      {
 		std::ostringstream msg;
 		msg << "Cannot explicitly cast a constant, " << m_node->getName() << ", type ";
-		msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
+		msg << m_state.getUlamTypeNameByIndex(nodeType).c_str();
 		msg << ", to a reference type, ";
-		msg << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str();
+		msg << m_state.getUlamTypeNameByIndex(tobeType).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		errorsFound++; //t3962
 	      }

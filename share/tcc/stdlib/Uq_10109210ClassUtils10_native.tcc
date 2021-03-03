@@ -4,7 +4,7 @@ namespace MFM {
   template<class EC>
 
   Ui_Ut_10111b<EC> Uq_10109210ClassUtils10<EC>::Uf_6isBase(const UlamContext<EC>& uc, UlamRef<EC>& ur, Ui_Ut_102321u<EC>& Uv_7classId, Ui_Ut_102321u<EC>& Uv_6baseId) const //native
-  { 
+  {
     Ui_Ut_10111b<EC> rtn;
 
     u32 classId = Uv_7classId.read();
@@ -51,7 +51,7 @@ namespace MFM {
     const UlamClassRegistry<EC> & ucr = uc.GetUlamClassRegistry();
     const UlamClass<EC>* theClass = ucr.GetUlamClassOrNullByIndex(classId);
     MFM_API_ASSERT_NONNULL(theClass);
-    Ui_Ut_102321u<EC> ret(theClass->GetBaseClassCount()); 
+    Ui_Ut_102321u<EC> ret(theClass->GetBaseClassCount());
     return ret;
   } // Uf_9217getBaseClassCount
 
@@ -62,7 +62,7 @@ namespace MFM {
     const UlamClassRegistry<EC> & ucr = uc.GetUlamClassRegistry();
     const UlamClass<EC>* theClass = ucr.GetUlamClassOrNullByIndex(classId);
     MFM_API_ASSERT_NONNULL(theClass);
-    Ui_Ut_102321u<EC> ret(theClass->GetDirectBaseClassCount()); 
+    Ui_Ut_102321u<EC> ret(theClass->GetDirectBaseClassCount());
     return ret;
   } // Uf_9217getBaseClassCount
 
@@ -80,7 +80,7 @@ namespace MFM {
   Ui_Ut_102321u<EC> Uq_10109210ClassUtils10<EC>::Uf_9210getClassId(const UlamContext<EC>& uc, UlamRef<EC>& ur, Ui_Ut_r102961a<EC>& Ur_4atom) const
   {
     u32 atomType = Ur_4atom.GetType();
-    Ui_Ut_102321u<EC> rtn; 
+    Ui_Ut_102321u<EC> rtn;
     const Element<EC> * eltptr = uc.LookupElementTypeFromContext(atomType);
     if (eltptr) {
       const UlamElement<EC> * ue = eltptr->AsUlamElement();
@@ -122,7 +122,7 @@ namespace MFM {
   } // Uf_9214getBaseClassId
 
   template<class EC>
-  Ui_Ut_102321s<EC> Uq_10109210ClassUtils10<EC>::Uf_9219getMangledClassName(const UlamContext<EC>& uc, UlamRef<EC>& ur, Ui_Ut_102321u<EC>& ci) const
+  Ui_Ut_102201s<EC> Uq_10109210ClassUtils10<EC>::Uf_9219getMangledClassName(const UlamContext<EC>& uc, UlamRef<EC>& ur, Ui_Ut_102321u<EC>& ci) const
   {
     const UlamClassRegistry<EC> & ucr = uc.GetUlamClassRegistry();
     u32 classId = ci.read();
@@ -130,13 +130,13 @@ namespace MFM {
     MFM_API_ASSERT_NONNULL(ulamClass);
 
     u32 idx = ulamClass->GetMangledClassNameAsStringIndex();
-    Ui_Ut_102321s<EC> ret(idx);
+    Ui_Ut_102201s<EC> ret(idx);
 
     return ret;
   } // Uf_9219getMangledClassName
 
   template<class EC>
-  Ui_Ut_102321s<EC> Uq_10109210ClassUtils10<EC>::Uf_9212getClassName(const UlamContext<EC>& uc, UlamRef<EC>& ur, Ui_Ut_102321u<EC>& ci, Ui_Ut_10111b<EC>& tmplParms, Ui_Ut_10111b<EC>& tmplVals) const
+  Ui_Ut_102201s<EC> Uq_10109210ClassUtils10<EC>::Uf_9212getClassName(const UlamContext<EC>& uc, UlamRef<EC>& ur, Ui_Ut_102321u<EC>& ci, Ui_Ut_10111b<EC>& tmplParms, Ui_Ut_10111b<EC>& tmplVals) const
 
   {
     const UlamClassRegistry<EC> & ucr = uc.GetUlamClassRegistry();
@@ -149,7 +149,7 @@ namespace MFM {
 
     u32 idx = ulamClass->GetUlamClassNameAsStringIndex(parms,vals);
 
-    Ui_Ut_102321s<EC> ret(idx);
+    Ui_Ut_102201s<EC> ret(idx);
     return ret;
   }
 
@@ -196,7 +196,7 @@ namespace MFM {
 //! ClassUtils.ulam:54:   ClassId getBaseClassId(UrSelf& ur, Unsigned baseIdx) native;
   template<class EC>
   Ui_Ut_102321u<EC> Uq_10109210ClassUtils10<EC>::Uf_9214getBaseClassId(const UlamContext<EC>& uc, UlamRef<EC>& ur, Ui_Uq_r10106UrSelf10<EC>& Ur_2ur, Ui_Ut_102321u<EC>& Uv_7baseIdx) const //native
-  { 
+  {
     const UlamClassRegistry<EC> & ucr = uc.GetUlamClassRegistry();
     const UlamClass<EC> * effSelf = Ur_2ur.GetEffectiveSelf();
     MFM_API_ASSERT_NONNULL(effSelf);
@@ -211,14 +211,14 @@ namespace MFM {
     }
 
     return rtn;
-  } //Uf_9214getBaseClassId 
+  } //Uf_9214getBaseClassId
 #endif
 
   template<class EC>
   Ui_Ut_10111b<EC> Uq_10109210ClassUtils10<EC>::Uf_9212getClassInfo(const UlamContext<EC>& uc, UlamRef<EC>& ur, Ui_Ut_102321u<EC>& Uv_5idnum, Ui_Un_r1047136919ClassInfo10<EC>& Ur_4info) const //native
-  { 
+  {
     Ui_Ut_10111b<EC> rtn;
     return rtn;
-  } //Uf_9212getClassInfo 
+  } //Uf_9212getClassInfo
 
 }

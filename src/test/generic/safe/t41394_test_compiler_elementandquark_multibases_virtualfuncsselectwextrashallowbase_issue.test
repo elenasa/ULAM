@@ -6,12 +6,12 @@
 #!
 Exit status: 0
 Ue_Foo { Int(32) m_c4(0);  Int(32) m_a4(0);  Int(32) test() {  Bounce ball;  ball ( )behave . 0 cast return } }
-Ue_Bounce : QBases +Random { :QBases<> +Random<> ^QSuperBase<> ^QSuperDuperBase< constant Unsigned(8)[4] cBLACK = { }; > <NOMAIN> }
+Ue_Bounce : QBases +Random { :QBases<> +Random<> ^QSuperBase<> ^QSuperDuperBase< constant Unsigned(8) cBLACK[4] = { }; > <NOMAIN> }
 Uq_QBases : QSuperBase { /* empty class block */ }
 Uq_Random { <NOMAIN> }
 Uq_System { <NOMAIN> }
 Uq_QSuperBase : QSuperDuperBase { /* empty class block */ }
-Uq_QSuperDuperBase { constant Unsigned(8)[4] cBLACK = { };  <NOMAIN> }
+Uq_QSuperDuperBase { constant Unsigned(8) cBLACK[4] = { };  <NOMAIN> }
 ##
 ## Dave surprised when UrSelf getColor was used after adding
 ##                a shallow base class, random;

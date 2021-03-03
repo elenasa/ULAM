@@ -58,7 +58,7 @@ namespace MFM{
 
     UlamType * getUlamType(); //returns a pointer to self
 
-    const std::string getUlamTypeName();
+    virtual const std::string getUlamTypeName();
 
     virtual const std::string getUlamTypeNameBrief();
 
@@ -234,7 +234,7 @@ namespace MFM{
     static ULAMTYPECOMPARERESULTS compareWithWildArrayItemALTKey(UTI u1, UTI u2, CompilerState& state);
     static ULAMTYPECOMPARERESULTS compareWithWildALTKey(UTI u1, UTI u2, CompilerState& state);
 
-    bool checkArrayCast(UTI typidx);
+    virtual bool checkArrayCast(UTI typidx);
   };
 
 }

@@ -256,11 +256,11 @@ namespace MFM {
 	else
 	  msg << "Use explicit cast";
 	msg << " to convert "; // the real converting-message
-	msg << m_state.getUlamTypeNameBriefByIndex(m_nodeLeft->getNodeType()).c_str();
+	msg << m_state.getUlamTypeNameByIndex(m_nodeLeft->getNodeType()).c_str();
 	msg << " and ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_nodeRight->getNodeType()).c_str();
+	msg << m_state.getUlamTypeNameByIndex(m_nodeRight->getNodeType()).c_str();
 	msg << " to ";
-	msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
+	msg << m_state.getUlamTypeNameByIndex(newType).c_str();
 	msg << " for binary " << getName();
 	if(lsafe == CAST_HAZY || rsafe == CAST_HAZY)
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
@@ -384,8 +384,8 @@ namespace MFM {
 	    //array op scalar: defer since the question of matrix operations is unclear.
 	    std::ostringstream msg;
 	    msg << "Incompatible (nonscalar) types ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(lt).c_str();
-	    msg << " and " << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
+	    msg << m_state.getUlamTypeNameByIndex(lt).c_str();
+	    msg << " and " << m_state.getUlamTypeNameByIndex(rt).c_str();
 	    msg << " for binary ";
 	    msg << getName() << " ; Suggest writing a loop";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);

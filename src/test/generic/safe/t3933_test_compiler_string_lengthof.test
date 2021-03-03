@@ -4,11 +4,11 @@
 ##  gen output: (asserts interleaved)
 ##  Int Arg: 0
 ##  Int Arg: 3
-##  Int Arg: 32
+##  Int Arg: 20
 ##
 #!
 Exit status: 0
-Ue_A { Int(8) m_s1(0);  Int(8) m_s2(3);  Int(8) m_s3(32);  Int(32) test() {  System s;  String(32) mt = "";  self m_s1 . 0u cast = s ( self m_s1 . cast )print . s ( self m_s1 . 0 cast == )assert . String(32) str = "foo";  self m_s2 . 3u cast = s ( self m_s2 . cast )print . s ( self m_s2 . 3 cast == )assert . self m_s3 . 32u cast = s ( self m_s3 . cast )print . s ( self m_s3 . 32 cast == )assert . 0 cast return } }
+Ue_A { Int(8) m_s1(0);  Int(8) m_s2(3);  Int(8) m_s3(20);  Int(32) test() {  System s;  String mt = "";  self m_s1 . 0u cast = s ( self m_s1 . cast )print . s ( self m_s1 . 0 cast == )assert . String str = "foo";  self m_s2 . 3u cast = s ( self m_s2 . cast )print . s ( self m_s2 . 3 cast == )assert . self m_s3 . 20u cast = s ( self m_s3 . cast )print . s ( self m_s3 . 20 cast == )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t3929
@@ -32,9 +32,9 @@ element A {
    s.print(m_s2);
    s.assert(m_s2 == 3);
 
-   m_s3 = String.lengthof; //=32
+   m_s3 = String.lengthof; //=20
    s.print(m_s3);
-   s.assert(m_s3 == 32);
+   s.assert(m_s3 == 20);
    return 0;
  }
 }

@@ -35,14 +35,15 @@ namespace MFM {
 
   const std::string UlamType::getUlamTypeName()
   {
-    return m_key.getUlamKeyTypeSignatureAsString(&m_state);
+    //return m_key.getUlamKeyTypeSignatureAsString(&m_state);
+    return m_key.getUlamKeyTypeSignatureNameAndSize(&m_state); //wo classinstance,w bits&arrays (t3137)
     // REMINDER!! error due to disappearing string:
     //    return m_key.getUlamKeyTypeSignatureAsString().c_str();
   }
 
   const std::string UlamType::getUlamTypeNameBrief()
   {
-    return m_key.getUlamKeyTypeSignatureNameAndSize(&m_state);
+    return m_key.getUlamKeyTypeSignatureNameAndBitSize(&m_state); //no arrays, nor ref w Bit-Size
   }
 
   const std::string UlamType::getUlamTypeClassNameBrief(UTI cuti)
@@ -123,9 +124,9 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Casting different Array sizes: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(typidx).c_str();
+	msg << m_state.getUlamTypeNameByIndex(typidx).c_str();
 	msg << " TO " ;
-	msg << getUlamTypeNameBrief().c_str();
+	msg << getUlamTypeName().c_str();
 	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 	bOK = false;
       }
@@ -133,9 +134,9 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Casting (nonScalar) Array: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(typidx).c_str();
+	msg << m_state.getUlamTypeNameByIndex(typidx).c_str();
 	msg << " TO " ;
-	msg << getUlamTypeNameBrief().c_str();
+	msg << getUlamTypeName().c_str();
 	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
       }
     return bOK;

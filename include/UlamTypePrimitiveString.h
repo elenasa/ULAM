@@ -56,6 +56,10 @@ namespace MFM{
 
     virtual bool isNumericType();
 
+    virtual const std::string getUlamTypeName();
+
+    virtual const std::string getUlamTypeNameBrief();
+
     virtual const std::string getUlamTypeImmediateMangledName();
 
     virtual const std::string castMethodForCodeGen(UTI nodetype);
@@ -79,6 +83,14 @@ namespace MFM{
     virtual u64 getDataAsCu64(const u64 data);
 
     virtual s32 bitsizeToConvertTypeTo(ULAMTYPE tobUT);
+
+    virtual const std::string getTmpStorageTypeAsString();
+
+    virtual TMPSTORAGE getTmpStorageTypeForTmpVar();
+
+    virtual const std::string readMethodForCodeGen();
+
+    virtual const std::string writeMethodForCodeGen();
 
     virtual void genUlamTypeAutoReadDefinitionForC(File * fp);
 

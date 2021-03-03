@@ -2126,13 +2126,21 @@ namespace MFM {
       {
 	SymbolConstantValue * psym = *pit;
 	assert(psym->isClassParameter());
+	UTI puti = psym->getUlamTypeIdx();
 
 	if(pcnt > 0)
 	  fp->write(", ");
 
-	fp->write(m_state.getUlamTypeNameBriefByIndex(psym->getUlamTypeIdx()).c_str());
+	fp->write(m_state.getUlamTypeNameBriefByIndex(puti).c_str());
 	fp->write(" ");
 	fp->write(m_state.m_pool.getDataAsString(psym->getId()).c_str());
+
+	if(!m_state.isScalar(puti))
+	  {
+	    fp->write("[");
+	    fp->write_decimal(m_state.getArraySize(puti));
+	    fp->write("]");
+	  }
 
 	if(parameterHasDefaultValue(pcnt))
 	  {

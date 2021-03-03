@@ -178,11 +178,11 @@ namespace MFM {
 #endif //REGNUMBITS
 
 #ifndef STRINGIDXBITS
-#define STRINGIDXBITS (32)
+#define STRINGIDXBITS (20)
 #endif //STRINGIDXBITS
 
 #ifndef STRINGIDXMASK
-#define STRINGIDXMASK (U32_MAX)
+#define STRINGIDXMASK (calcBitsizeUnsignedMax(STRINGIDXBITS))
 #endif //STRINGIDXMASK
 
 #ifndef UNKNOWNSIZE

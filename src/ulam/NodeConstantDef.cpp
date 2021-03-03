@@ -98,6 +98,19 @@ namespace MFM {
     fp->write(" ");
     fp->write(m_state.m_pool.getDataAsString(m_cid).c_str());
 
+    s32 arraysize = m_state.getArraySize(suti);
+    //output the arraysize (optional) t3958
+    if(arraysize > NONARRAYSIZE)
+      {
+	fp->write("[");
+	fp->write_decimal(arraysize);
+	fp->write("]");
+      }
+    else if(arraysize == UNKNOWNSIZE)
+      {
+	fp->write("[UNKNOWN]");
+      }
+
     if(m_nodeExpr)
       {
 	fp->write(" =");
@@ -264,7 +277,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Incomplete " << prettyNodeName().c_str() << " for type: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
+	msg << m_state.getUlamTypeNameByIndex(suti).c_str();
 	msg << ", used with symbol name '" << getName() << "'";
 	if(m_state.okUTItoContinue(suti) || m_state.isStillHazy(suti)) //41288?
 	  {
@@ -278,10 +291,10 @@ namespace MFM {
     ULAMTYPE etyp = m_state.getUlamTypeByIndex(suti)->getUlamTypeEnum();
     if(etyp == Void)
       {
-	//void only valid use is as a func return type
+	//void only valid use is as a func return type (t3389)
 	std::ostringstream msg;
 	msg << "Invalid use of type ";
-	msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
+	msg << m_state.getUlamTypeNameByIndex(suti).c_str();
 	msg << " with symbol name '" << getName() << "'";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(Nav); //could be clobbered by Hazy node expr
@@ -572,7 +585,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Problem in " << prettyNodeName().c_str() << " for type: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
+	    msg << m_state.getUlamTypeNameByIndex(suti).c_str();
 	    msg << ", used with symbol name '" << getName() << "', after folding attempt";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    setNodeType(Nav);
@@ -581,7 +594,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Incomplete " << prettyNodeName().c_str() << " for type: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
+	    msg << m_state.getUlamTypeNameByIndex(suti).c_str();
 	    msg << ", used with symbol name '" << getName() << "', after folding";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    setNodeType(Hzy);
@@ -1195,7 +1208,7 @@ namespace MFM {
       }
     else //not a list, not packedloadable
       {
-	assert(m_constSymbol->isClassArgument()); //??
+	assert(m_constSymbol->isClassArgument() || !nut->isScalar()); //?? t41277 String array;
 	//m_nodeExpr is NodeConstantArray, access items like a NodeSquareBracket
 	u32 baseslot =  ((SymbolConstantValue *) m_constSymbol)->getConstantStackFrameAbsoluteSlotIndex();
 

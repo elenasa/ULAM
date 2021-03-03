@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t41418_test_compiler_castingbitstobigtransientarray_error
 #!
-./QIMsg.ulam:4:11: ERROR: Type Bitsize specifier for base type: Bits, has a constant value of 132 that exceeds the maximum bitsize 64.
+./QIMsg.ulam:4:11: ERROR: Type Bitsize specifier for base type: Bits, has a constant value of 120 that exceeds the maximum bitsize 64.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by Dave's ish 2/24/2021: Transient array and Bit casting new (see t41416).

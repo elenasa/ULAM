@@ -108,7 +108,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Invalid Class type used with symbol name '" << getName() << "'";
 	msg << "; cannot init data member in ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_ofClassUTI).c_str();
+	msg << m_state.getUlamTypeNameByIndex(m_ofClassUTI).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	return Nav;
       }
@@ -121,7 +121,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Incomplete " << prettyNodeName().c_str() << " for type: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
+	msg << m_state.getUlamTypeNameByIndex(suti).c_str();
 	msg << ", used with symbol name '" << getName() << "'";
 	if(m_state.okUTItoContinue(suti) || m_state.isStillHazy(suti))
 	  {
@@ -138,7 +138,7 @@ namespace MFM {
 	//void only valid use is as a func return type
 	std::ostringstream msg;
 	msg << "Invalid use of type ";
-	msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
+	msg << m_state.getUlamTypeNameByIndex(suti).c_str();
 	msg << " with symbol name '" << getName() << "'";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(Nav); //could be clobbered by Hazy node expr
@@ -293,7 +293,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Invalid initialization of class type ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
+	    msg << m_state.getUlamTypeNameByIndex(suti).c_str();
 	    msg << " with symbol name '" << getName() << "'";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    setNodeType(Nav); //t41180, t41232
@@ -310,7 +310,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Incomplete " << prettyNodeName().c_str() << " for type: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
+	    msg << m_state.getUlamTypeNameByIndex(suti).c_str();
 	    msg << ", used with symbol name '" << getName() << "', after folding";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    setNodeType(Hzy);

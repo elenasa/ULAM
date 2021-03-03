@@ -1,29 +1,35 @@
 ## -*- mode:ulam -*-
 #=t41276_test_compiler_constantarray2Dstring_lengthof
 ##
-## gen output: (+ 2 interleaved asserts)
+## gen output: (+ 4 interleaved asserts)
 ## String(7) Arg: "bar"
 ## Unsigned Arg: 3
 ## Unsigned Arg: 2
+## String(5) Arg: "riding"
+## Unsigned Arg: 6
+## Unsigned Arg: 7
 ##
 #!
 Exit status: 0
-Ue_Eltypo { Bool(1) b1(true);  Bool(1) b2(true);  String(32) m_sarr[2]("mama","bar");  Int(32) test() {  SystemU3 s;  self m_sarr . c_sarr = Unsigned(32) len1 = 3u;  s ( c_sarr 1 [] )print . s ( len1 )print . self b1 . len1 3u cast == = s ( self b1 . )assert . Unsigned(32) len2 = 2u;  s ( len2 )print . self b2 . len2 2u cast == = s ( self b2 . )assert . 0 cast return } }
+Ue_Eltypo { Bool(1) b1(true);  Bool(1) b2(true);  String m_sarr[2]("mama","bar");  Int(32) test() {  SystemU3 s;  self m_sarr . c_sarr = Unsigned(32) len1 = 3u;  s ( c_sarr 1 [] )print . s ( len1 )print . self b1 . len1 3u cast == = s ( self b1 . )assert . Unsigned(32) len2 = 2u;  s ( len2 )print . self b2 . len2 2u cast == = s ( self b2 . )assert . String bigsarr[7];  bigsarr c_bigsarr = Unsigned(32) len3 = 6u;  s ( bigsarr 2 [] )print . s ( len3 )print . self b1 . len3 6u cast == = s ( self b1 . )assert . Unsigned(32) len4 = 7u;  s ( len4 )print . self b2 . len4 7u cast == = s ( self b2 . )assert . 0 cast return } }
 Uq_SystemU3 : System { :System<> <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 ## Informed by t3949 except constant array; how many times isFixed?
+## Note: a data member and local var; small and big String arrays
 ##
 #>Eltypo.ulam
   ulam 3;
 local  typedef String SArr[2];
 local constant SArr c_sarr = { "mama", "bar" };
+local  typedef String BigSArr[7];
+local constant BigSArr c_bigsarr = { "little", "red", "riding", "hood", "big", "bad", "wolf"  };
 element Eltypo {
   Bool b1, b2;
   SArr m_sarr;
   Int test(){
     SystemU3 s;
-    m_sarr = c_sarr;
+    m_sarr = c_sarr; //data member, small array of strings
 
     Unsigned len1 = c_sarr[1].lengthof; //3 letters
     s.print(c_sarr[1]); //bar
@@ -34,6 +40,20 @@ element Eltypo {
     Unsigned len2 = c_sarr.lengthof; //two items
     s.print(len2);
     b2 = (len2 == 2u);
+    s.assert(b2);
+
+    BigSArr bigsarr; //local var, big array of strings
+    bigsarr = c_bigsarr;
+
+    Unsigned len3 = bigsarr[2].lengthof; //6 letters
+    s.print(bigsarr[2]); //riding
+    s.print(len3);
+    b1 = (len3 == 6u);
+    s.assert(b1);
+
+    Unsigned len4 = bigsarr.lengthof; //7 items
+    s.print(len4);
+    b2 = (len4 == 7u);
     s.assert(b2);
     return 0;
   }

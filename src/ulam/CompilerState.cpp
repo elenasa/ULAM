@@ -1058,7 +1058,8 @@ namespace MFM {
     UlamType * ut = NULL;
     AssertBool isDef = isDefined(m_indexToUlamKey[uti], ut);
     assert(isDef);
-    return ut->getUlamTypeName();
+
+    return ut->getUlamTypeName(); //prettier names for internal types(error/t3113); String arrays(t3976)
   }
 
   // returns effective self name of the scalar dereferenced uti arg.
@@ -2007,9 +2008,9 @@ namespace MFM {
 	//Void with zero bitsize
 	if((bUT == Void) && (arraysize != NONARRAYSIZE))
 	  {
-	    // disallow an array of Void(0)'s
+	    // disallow an array of Void(0)'s (t3389)
 	    std::ostringstream msg;
-	    msg << "Invalid Void type array: " << ut->getUlamTypeNameBrief().c_str();
+	    msg << "Invalid Void type array: " << ut->getUlamTypeName().c_str();
 	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 	    return false;
 	  }
@@ -2213,7 +2214,7 @@ namespace MFM {
 
     //ulam-5 supports multiple base classes; superclass optional;
     UTI baseuti = Nouti;
-    while(walker.getNextBase(baseuti, *this))
+    while(walker.getNextBase(baseuti, *this) )
       {
 	SymbolClass * basecsym = NULL;
 	if(alreadyDefinedSymbolClass(baseuti, basecsym))

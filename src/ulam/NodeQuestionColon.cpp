@@ -148,9 +148,9 @@ namespace MFM {
 	//neither same, nor primitive (or void), requires explicit cast
 	std::ostringstream msg;
 	msg << "Use explicit cast to convert ";
-	msg << m_state.getUlamTypeNameBriefByIndex(lt).c_str();
+	msg << m_state.getUlamTypeNameByIndex(lt).c_str();
 	msg << " and ";
-	msg << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
+	msg << m_state.getUlamTypeNameByIndex(rt).c_str();
 	msg << " to be same type for binary " << getName();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	return Nav;

@@ -123,11 +123,7 @@ namespace MFM {
     UlamKeyTypeSignature vkey = vut->getUlamKeyTypeSignature();
 
     fp->write(" ");
-    if(vut->getUlamTypeEnum() != Class)
-      fp->write(vkey.getUlamKeyTypeSignatureNameAndBitSize(&m_state).c_str());
-    else
-      fp->write(vut->getUlamTypeClassNameBrief(vuti).c_str());
-
+    fp->write(m_state.getUlamTypeNameBriefByIndex(vuti).c_str());
     fp->write(" ");
     fp->write(getName());
 
@@ -307,7 +303,6 @@ namespace MFM {
 		std::ostringstream msg;
 		if(etyp == Bool)
 		  msg << "Use a comparison operation";
-		//else if((fmetyp == String) ^ (etyp == String)) //both String valid t41419
 		else if((fmetyp == String) || (etyp == String)) //both String valid t41419
 		  msg << "Invalid";
 		else if(!m_state.isScalar(newType) || !m_state.isScalar(nuti))
@@ -315,9 +310,9 @@ namespace MFM {
 		else
 		  msg << "Use explicit cast";
 		msg << " to convert "; // the real converting-message
-		msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
+		msg << m_state.getUlamTypeNameByIndex(newType).c_str();
 		msg << " to ";
-		msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+		msg << m_state.getUlamTypeNameByIndex(nuti).c_str();
 		msg << " for variable initialization";
 		if(rscr == CAST_BAD)
 		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
@@ -467,7 +462,7 @@ namespace MFM {
 	//void only valid use is as a func return type
 	std::ostringstream msg;
 	msg << "Invalid use of type ";
-	msg << m_state.getUlamTypeNameBriefByIndex(vit).c_str();
+	msg << m_state.getUlamTypeNameByIndex(vit).c_str();
 	msg << " with variable symbol name '" << getName() << "'";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(Nav); //could be clobbered by Hazy node expr

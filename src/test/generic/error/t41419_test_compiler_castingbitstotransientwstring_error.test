@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t41419_test_compiler_castingbitstotransientwstring_error
 #!
-./Anchor10.ulam:19:22: ERROR: Cannot explicitly cast Unsigned(5) to type: String(32).
+./Anchor10.ulam:19:22: ERROR: Cannot explicitly cast Unsigned(5) to type: String.
 ./Anchor10.ulam:19:5: ERROR: Initial value expression for: tmpstr, initialization is invalid.
 Unrecoverable Program Type Label FAILURE.
 ##

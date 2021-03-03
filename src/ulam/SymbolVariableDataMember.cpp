@@ -85,11 +85,7 @@ namespace MFM {
     ULAMTYPE vetyp = vut->getUlamTypeEnum();
 
     fp->write(" ");
-    if(vclasstype == UC_NOTACLASS)
-      fp->write(vkey.getUlamKeyTypeSignatureNameAndBitSize(&m_state).c_str());
-    else
-      fp->write(vut->getUlamTypeClassNameBrief(vuti).c_str());
-
+    fp->write(m_state.getUlamTypeNameBriefByIndex(vuti).c_str());
     fp->write(" ");
     fp->write(m_state.m_pool.getDataAsString(getId()).c_str());
 

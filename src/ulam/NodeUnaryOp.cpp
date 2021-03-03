@@ -127,7 +127,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Incompatible (nonscalar) type: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(uti).c_str();
+	msg << m_state.getUlamTypeNameByIndex(uti).c_str();
 	msg << ", for unary " << getName();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(Nav);
@@ -200,9 +200,9 @@ namespace MFM {
 	else
 	  msg << "Use explicit cast";
 	msg << " to convert "; // the real converting-message
-	msg << m_state.getUlamTypeNameBriefByIndex(m_node->getNodeType()).c_str();
+	msg << m_state.getUlamTypeNameByIndex(m_node->getNodeType()).c_str();
 	msg << " to ";
-	msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
+	msg << m_state.getUlamTypeNameByIndex(newType).c_str();
 	msg << " for unary " << getName();
 	if(scr == CAST_HAZY)
 	  {

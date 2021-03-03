@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t41164_test_compiler_stringascii_safecasting_error
 #!
-./A.ulam:6:5: ERROR: Invalid to convert String(32) to Unsigned(32) for variable initialization.
+./A.ulam:6:5: ERROR: Invalid to convert String to Unsigned(32) for variable initialization.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by Dave ish 11/16/2017, t3956
