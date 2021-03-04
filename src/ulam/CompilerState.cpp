@@ -6188,7 +6188,8 @@ namespace MFM {
 
   bool CompilerState::isAStringType(UTI uti)
   {
-    return UlamType::compareForString(uti, *this) == UTIC_SAME;
+    //    return UlamType::compareForString(uti, *this) == UTIC_SAME; //arrays not detected
+    return (getUlamTypeByIndex(uti)->getUlamTypeEnum() == String); //also includes arrays
   }
 
   bool CompilerState::isAClass(UTI uti)

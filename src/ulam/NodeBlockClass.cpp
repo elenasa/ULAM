@@ -1013,6 +1013,7 @@ UTI NodeBlockClass::checkMultipleInheritances()
 	{
 	  ULAMCLASSTYPE baseclasstype = m_state.getUlamTypeByIndex(baseuti)->getUlamClassType();
 	  ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(nuti)->getUlamClassType();
+#if 0
 	  if(m_state.isClassAQuarkUnion(baseuti))
 	    {
 	      std::ostringstream msg;
@@ -1024,7 +1025,10 @@ UTI NodeBlockClass::checkMultipleInheritances()
 	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	      errs = true;
 	    }
-	  else if(classtype == UC_TRANSIENT)
+	  else
+#endif
+
+	    if(classtype == UC_TRANSIENT)
 	    {
 	      //allow transients to inherit from either transients or quarks (t3723,t3725);
 	      // but not quark-union (t41352)
@@ -1082,6 +1086,7 @@ UTI NodeBlockClass::checkMultipleInheritances()
 	{
 	  ULAMCLASSTYPE baseclasstype = m_state.getUlamTypeByIndex(baseuti)->getUlamClassType();
 	  ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(nuti)->getUlamClassType();
+#if 0
 	  if(m_state.isClassAQuarkUnion(baseuti))
 	    {
 	      std::ostringstream msg;
@@ -1093,7 +1098,9 @@ UTI NodeBlockClass::checkMultipleInheritances()
 	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	      errs = true;
 	    }
-	  else if(classtype == UC_TRANSIENT)
+	  else
+#endif
+	    if(classtype == UC_TRANSIENT)
 	    {
 	      //allow transients to inherit from either transients or quarks (t3723,t3725)
 	      if((baseclasstype != UC_TRANSIENT) && (baseclasstype != UC_QUARK))
@@ -1936,12 +1943,12 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     basebits = superbs;
     mybits = mybs;
 
-    return superbs + mybs;
+    return superbs + mybs; //unused, legacy total
   } //getBitSizesOfVariableSymbolsInTable
 
   s32 NodeBlockClass::getMaxBitSizeOfVariableSymbolsInTable(s32& basebits, s32& mybits)
   {
-    // max of union for only its data members, no bases Wed Mar  3 11:35:11 2021
+    // max of union for only its data members, not bases Wed Mar  3 11:35:11 2021
     UTI cuti = m_state.getCompileThisIdx(); //getNodeType() maybe Hzy
     s32 superbs = 0;
 
@@ -1956,8 +1963,11 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     while(i < basecount)
       {
 	UTI baseuti = csym->getBaseClass(i);
+	assert(baseuti != Hzy);
 	if((baseuti != Nouti))
 	  {
+	    s32 bs = m_state.getBitSize(baseuti); //may contain shared bits!
+#if 0
 	    s32 bbits, mymax;
 	    NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
 	    assert(basecblock);
@@ -1970,12 +1980,17 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	      return bs; //error if any base class size is negative
 	    else if(bs > superbs)
 	      superbs = bs;  //max of all base class maxes
+#endif
+	    if(bs < 0)
+	      return bs; //error if any base class size is negative
+	    else
+	      superbs += bs;
 	  }
 	i++;
       } //end while
 
-    if(m_ST.getTableSize() == 0 && superbs == 0)
-      return EMPTYSYMBOLTABLE; //should allow no variable data members in union
+    if(m_ST.getTableSize() == 0) // && superbs == 0)
+      return EMPTYSYMBOLTABLE; //variable data members required in union
 
     s32 mybs = m_ST.getMaxVariableSymbolsBitSize();
     if(mybs < 0)
@@ -1983,7 +1998,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     basebits = superbs;
     mybits = mybs;
-    return (superbs > mybs ? superbs : mybs); //return max
+    return (superbs > mybs ? superbs : mybs); //return max, legacy unused.
   } //getMaxBitSizeOfVariableSymbolsInTable
 
   bool NodeBlockClass::isFuncIdInScope(u32 id, Symbol * & symptrref)
@@ -4132,7 +4147,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     m_state.m_currentIndentLevel++;
 
-    if(hasStringDataMembers())
+    //Strings cannot be initialized in Unions (t41093)
+    if(hasStringDataMembers() && !m_state.isClassAQuarkUnion(cuti))
       {
 	//must by the only data member then (max size Quark == size of String) t41167
 	genCodeBuiltInFunctionBuildingDefaultDataMembers(fp);

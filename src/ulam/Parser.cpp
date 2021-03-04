@@ -414,6 +414,7 @@ namespace MFM {
 
     if(qTok.m_type == TOK_COLON)
       {
+#if 0
 	if(m_state.isClassAQuarkUnion(utype))
 	  {
 	    std::ostringstream msg;
@@ -424,6 +425,7 @@ namespace MFM {
 	    delete rtnNode;
 	    return NULL;
 	  }
+#endif
 
 	SymbolClass * supercsym = NULL;
 	UTI superuti = Nouti;
@@ -453,6 +455,7 @@ namespace MFM {
 
     if((rTok.m_type == TOK_PLUS))
       {
+#if 0
 	if(m_state.isClassAQuarkUnion(utype))
 	  {
 	    std::ostringstream msg;
@@ -463,6 +466,7 @@ namespace MFM {
 	    delete rtnNode;
 	    return NULL;
 	  }
+#endif
 	parseMultipleClassInheritances(cnsym);
       }
 

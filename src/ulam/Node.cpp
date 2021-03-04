@@ -771,7 +771,7 @@ namespace MFM {
     if((cosut->getUlamClassType() == UC_TRANSIENT))
       return genCodeReadTransientIntoATmpVar(fp, uvpass);
 
-    if((cosut->getUlamTypeEnum() == String) && (cstor == TMPTBV))
+    if(m_state.isAStringType(cosuti) && (cstor == TMPTBV))
       return genCodeReadStringArrayIntoATmpVar(fp, uvpass); //t41277
 
     s32 tmpVarNum = m_state.getNextTmpVarNumber();
@@ -1206,7 +1206,7 @@ namespace MFM {
     if((cosut->getUlamClassType() == UC_TRANSIENT))
       return genCodeWriteToTransientFromATmpVar(fp, luvpass, ruvpass);
 
-    if((rut->getUlamTypeEnum() == String) && !rut->isScalar())
+    if(m_state.isAStringType(ruti) && !rut->isScalar())
       return genCodeWriteToStringArrayFromATmpVar(fp, luvpass, ruvpass); //t41276
 
     bool isElementAncestorCast = (lut->getUlamClassType() == UC_ELEMENT) && m_state.isClassASubclassOf(ruti, luti);

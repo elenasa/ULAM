@@ -1208,7 +1208,7 @@ namespace MFM {
       }
     else //not a list, not packedloadable
       {
-	assert(m_constSymbol->isClassArgument() || !nut->isScalar()); //?? t41277 String array;
+	assert(m_constSymbol->isClassArgument() || !nut->isScalar()); //?? t41277 String array
 	//m_nodeExpr is NodeConstantArray, access items like a NodeSquareBracket
 	u32 baseslot =  ((SymbolConstantValue *) m_constSymbol)->getConstantStackFrameAbsoluteSlotIndex();
 

@@ -416,8 +416,7 @@ namespace MFM {
 
     UTI tuti = getUlamTypeIdx();
     UlamType * tut = m_state.getUlamTypeByIndex(tuti);
-    bool isString = (tut->getUlamTypeEnum() == String); //t3953
-    assert(isString);
+    assert(m_state.isAStringType(tuti)); //t3953
 
     if(!oktoprint)
       {
@@ -462,8 +461,7 @@ namespace MFM {
     if(!oktoprint) return false;
 
     UTI tuti = getUlamTypeIdx();
-    UlamType * tut = m_state.getUlamTypeByIndex(tuti);
-    s32 tbs = tut->getTotalBitSize();
+    s32 tbs = m_state.getTotalBitSize(tuti);
 
     if(tbs == 0)
       {
