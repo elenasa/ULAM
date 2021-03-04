@@ -391,6 +391,9 @@ namespace MFM {
     std::string dhex;
     bool nonZero = SymbolWithValue::getHexValueAsString(tbs, dval, dhex);
 
+    // if(tut->getUlamTypeEnum() == String)
+    //  nonZero = SymbolWithValue::getArrayValueAsHexString(dhex); //t3953 fails codegen
+
     //short-circuit if all zeros
     if(!nonZero)
       {
@@ -424,28 +427,29 @@ namespace MFM {
 	return;
       }
 
-    //like the code generated in CS::genCodeClassDefaultConstantArray
-    u32 uvals[ARRAY_LEN8K];
-    dval.ToArray(uvals);
-
-    u32 nwords = tut->getTotalNumberOfWords();
+    u32 arraysize = tut->getArraySize();
+    u32 bitsize = tut->getBitSize();
+    assert(bitsize == STRINGIDXBITS); //sanity.
 
     //indented comments of string value items (one per line); e.g. t3953,4
-    for(u32 w = 0; w < nwords; w++)
+    for(u32 w = 0; w < arraysize; w++)
       {
+	u32 stridx = 0;
+	stridx = dval.Read(w * bitsize, bitsize);
+
 	m_state.indent(fp);
 	fp->write("// ");
 	fp->write("[");
 	fp->write_decimal_unsigned(w);
 	fp->write("] = ");
-	fp->write(m_state.getDataAsFormattedUserString(uvals[w]).c_str());
+	fp->write(m_state.getDataAsFormattedUserString(stridx).c_str());
 	fp->write("\n");
       }
     m_state.indent(fp);
     fp->write("// = ");
     fp->write(getMangledName().c_str());
     fp->write("[");
-    fp->write_decimal_unsigned(nwords);
+    fp->write_decimal_unsigned(arraysize);
     fp->write("]");
     GCNL;
   } //printPostfixValueArrayStringAsComment
@@ -519,7 +523,43 @@ namespace MFM {
       }
     vstr = tovstr.str();
     return true;
-  } //getArrayValueAsString
+  } //getArrayValueAsString (lex)
+
+  bool SymbolWithValue::getStringArrayValueAsString(std::string& vstr)
+  {
+    BV8K dval;
+    bool oktoprint = getValueReadyToPrint(dval);
+
+    if(!oktoprint) return false;
+
+    UTI tuti = getUlamTypeIdx();
+    UlamType * tut = m_state.getUlamTypeByIndex(tuti);
+
+    if(tut->getTotalBitSize() == 0)
+      {
+	vstr = " "; //empty array
+	return true;
+      }
+
+    //get the number of bits for this type into u64
+    // convert to a hex-number as a string, applying type specifics
+    // return the completed string of all the array values in arg vstr.
+    std::ostringstream tovstr;
+    s32 bs = tut->getBitSize();
+    s32 arraysize = tut->getArraySize();
+    arraysize = arraysize == NONARRAYSIZE ? 1 : arraysize;
+
+    for(s32 i=0; i < arraysize; i++)
+      {
+	u64 thisval = dval.ReadLong(i * bs, bs); //pos and len
+	if(i > 0)
+	  tovstr << ", ";
+
+	tovstr << m_state.m_upool.getDataAsFormattedString(thisval,&m_state).c_str(); //has dbl quotes
+      }
+    vstr = tovstr.str();
+    return true;
+  } //getStringArrayValueAsString
 
   bool SymbolWithValue::getScalarValueAsString(std::string& vstr)
   {

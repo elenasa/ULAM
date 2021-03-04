@@ -355,9 +355,9 @@ namespace MFM {
 	else
 	  msg << "Use explicit cast";
 	msg << " to convert "; // the real converting-message
-	msg << m_state.getUlamTypeNameBriefByIndex(fromType).c_str();
+	msg << m_state.getUlamTypeNameByIndex(fromType).c_str();
 	msg << " to ";
-	msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
+	msg << m_state.getUlamTypeNameByIndex(newType).c_str();
 	msg << " for '" << getName() << "'";
 	if(scr == CAST_HAZY)
 	  {
@@ -771,6 +771,9 @@ namespace MFM {
     if((cosut->getUlamClassType() == UC_TRANSIENT))
       return genCodeReadTransientIntoATmpVar(fp, uvpass);
 
+    if((cosut->getUlamTypeEnum() == String) && (cstor == TMPTBV))
+      return genCodeReadStringArrayIntoATmpVar(fp, uvpass); //t41277
+
     s32 tmpVarNum = m_state.getNextTmpVarNumber();
     m_state.indentUlamCode(fp);
     fp->write(tmpStorageTypeForRead(cosuti, uvpass).c_str());
@@ -1072,6 +1075,12 @@ namespace MFM {
     return;
   } //genSelfNameOfMethod
 
+  void Node::genCodeReadStringArrayIntoATmpVar(File * fp, UVPass & uvpass)
+  {
+    //a String array is just like reading a transient (t41277)
+    return genCodeReadTransientIntoATmpVar(fp, uvpass);
+  }
+
   void Node::genCodeReadTransientIntoATmpVar(File * fp, UVPass & uvpass)
   {
     Symbol * cos = NULL;
@@ -1169,6 +1178,7 @@ namespace MFM {
     UTI luti = luvpass.getPassTargetType();
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
     UTI ruti = ruvpass.getPassTargetType();
+    UlamType * rut = m_state.getUlamTypeByIndex(ruti);
 
     // No split if custom array, that requires an 'aref' function call;
     // handled as genCodeConvertATmpVarIntoCustomArrayAutoRef t41006
@@ -1195,6 +1205,9 @@ namespace MFM {
 
     if((cosut->getUlamClassType() == UC_TRANSIENT))
       return genCodeWriteToTransientFromATmpVar(fp, luvpass, ruvpass);
+
+    if((rut->getUlamTypeEnum() == String) && !rut->isScalar())
+      return genCodeWriteToStringArrayFromATmpVar(fp, luvpass, ruvpass); //t41276
 
     bool isElementAncestorCast = (lut->getUlamClassType() == UC_ELEMENT) && m_state.isClassASubclassOf(ruti, luti);
 
@@ -1233,11 +1246,26 @@ namespace MFM {
     //VALUE TO BE WRITTEN:
     // with immediate quarks, they are read into a tmpreg as other immediates
     // with immediate elements, too! value is not a terminal
-    fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
     TMPSTORAGE rstor = ruvpass.getPassStorage();
+    fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
+
     if((rstor == TMPBITVAL) || (rstor == TMPAUTOREF))
       fp->write(".read()");
-
+    else if((rstor == TMPTBV) && rut->isScalar()) //t41416 Transient in tmpvar..used without WriteBV.
+      {
+	u32 rlen = ruvpass.getPassLen();
+	if(rlen <= MAXBITSPERINT)
+	  fp->write(".Read(");
+	else if(rlen <= MAXBITSPERLONG)
+	  fp->write(".ReadLong(");
+	else
+	  m_state.abortShouldntGetHere();
+	fp->write_decimal_unsigned(ruvpass.getPassPos());
+	fp->write(",");
+	fp->write_decimal_unsigned(rlen);
+	fp->write(")");
+      } //else //t3975,t3896 (big arrays)
+    //else fall-thru
     fp->write(");"); GCNL;
 
     // inheritance cast needs the lhs type restored after the generated write
@@ -1285,6 +1313,11 @@ namespace MFM {
 
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeWriteToSelfFromATmpVar
+
+  void Node::genCodeWriteToStringArrayFromATmpVar(File * fp, UVPass & luvpass, UVPass & ruvpass)
+  {
+    return Node::genCodeWriteToTransientFromATmpVar(fp, luvpass, ruvpass); //t41276
+  }
 
   void Node::genCodeWriteToTransientFromATmpVar(File * fp, UVPass & luvpass, UVPass & ruvpass)
   {

@@ -46,19 +46,20 @@ namespace MFM {
     if(scr != CAST_CLEAR)
       {
 	ULAMTYPE etyp = m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum();
+	UTI ruti =  m_nodeRight->getNodeType();
 	std::ostringstream msg;
 	if(etyp == Bool)
 	  msg << "Use a comparison operation";
 	else if(etyp == String)
 	  msg << "Invalid";
-	else if(!m_state.isScalar(newType) || !m_state.isScalar(m_nodeRight->getNodeType()))
+	else if(!m_state.isScalar(newType) || !m_state.isScalar(ruti))
 	  msg << "Not possible";
 	else
 	  msg << "Use explicit cast";
 	msg << " to convert "; // the real converting-message
-	msg << m_state.getUlamTypeNameBriefByIndex(m_nodeRight->getNodeType()).c_str();
+	msg << m_state.getUlamTypeNameByIndex(ruti).c_str();
 	msg << " to ";
-	msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
+	msg << m_state.getUlamTypeNameByIndex(newType).c_str();
 	msg << " for " << getName();
 	if(scr == CAST_HAZY)
 	  {
@@ -95,9 +96,9 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Assignment is invalid";
 	msg << "; LHS: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(leftType);
+	msg << m_state.getUlamTypeNameByIndex(leftType);
 	msg << "; RHS: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(rightType);
+	msg << m_state.getUlamTypeNameByIndex(rightType);
 
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(Nav);
@@ -142,9 +143,9 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Incompatible (nonscalar) types: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(leftType).c_str();
+	msg << m_state.getUlamTypeNameByIndex(leftType).c_str();
 	msg << " and ";
-	msg << m_state.getUlamTypeNameBriefByIndex(rightType).c_str();
+	msg << m_state.getUlamTypeNameByIndex(rightType).c_str();
 	msg << " used with binary " << getName();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(Nav);
@@ -333,7 +334,7 @@ namespace MFM {
 	  }
 	else
 	  msg << m_nodeLeft->getName();
-	msg << "', type: " << m_state.getUlamTypeNameBriefByIndex(lt).c_str();
+	msg << "', type: " << m_state.getUlamTypeNameByIndex(lt).c_str(); //t41186
 	if(m_nodeLeft->isFunctionCall())
 	  msg << "; may be a function call";
 	else if(m_nodeLeft->hasASymbolReference() && m_nodeLeft->hasASymbolReferenceConstant())

@@ -18,7 +18,7 @@ namespace MFM{
                                                              UlamRef<EC>& ur,
                                                              Ui_Ut_102321t<EC>& Uv_5flags) const
   {
-    
+
     if (!uc.HasEventWindow()) return;
 
     OString512 buff;
@@ -48,7 +48,7 @@ namespace MFM{
   }
 
   template<class EC>
-  void Uq_10109210DebugUtils10<EC>::Uf_5print(const UlamContext<EC> & uc, UlamRef<EC>& ur, Ui_Ut_102321s<EC>& Uv_3arg) const //native
+  void Uq_10109210DebugUtils10<EC>::Uf_5print(const UlamContext<EC> & uc, UlamRef<EC>& ur, Ui_Ut_102201s<EC>& Uv_3arg) const //native
   {
     const u32 strval = Uv_3arg.read();
     LOG.Message("print: %S", GetStringPointerFromGlobalStringPool(strval));
@@ -209,9 +209,9 @@ namespace MFM{
         ((typename Uq_10109216ByteStreamReader10<EC>::Uf_8readByte10) (readbyteptr)) (uc, vfur); // Make the call
       const s32 ch = ret.read();                                                   // Unbox the result
 
-      if(ch < 0) break; 
+      if(ch < 0) break;
       buff.WriteByte((u8) ch);
-      
+
     } // end while
     LOG.Message("%s",buff.GetZString());
   } // Uf_5print

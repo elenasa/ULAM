@@ -41,7 +41,12 @@ namespace MFM {
   void UlamTypeClass::setBitsizeAsBaseClass(s32 bs)
   {
     assert(isScalar());
-    m_bitsizeAsBaseClass = bs;
+    if(m_bitsizeAsBaseClass > 0)
+      {
+	assert(bs == m_bitsizeAsBaseClass); //don't clobber!
+      }
+    else
+      m_bitsizeAsBaseClass = bs;
   }
 
   bool UlamTypeClass::cast(UlamValue & val, UTI typidx)
@@ -97,10 +102,13 @@ namespace MFM {
 	UlamType * fmut = m_state.getUlamTypeByIndex(typidx);
 	ULAMTYPE fetyp = fmut->getUlamTypeEnum();
 	//no casting from primitive to class; but from atom/atomref to class may be fine (e.g. t3733)
-	if((fetyp != Class) && (fetyp != UAtom))
+	//except allow casting from Bits to class if exact same bitsize (t41416)
+	if((fetyp != Class) && (fetyp != UAtom) && (fetyp != Bits))
 	  return CAST_BAD;
 	else if(m_state.isAtom(typidx))
 	  return CAST_CLEAR;
+	else if(fetyp == Bits)
+	  return CAST_CLEAR; //t41416, bitsize check in NodeCast c&l.
 	//check when casting from class to class
 	bool isfmref = fmut->isAltRefType();
 	UTI fmderef = m_state.getUlamTypeAsDeref(typidx);

@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * StringPoolUser.h -  Basic String Pool management for ULAM
  *
- * Copyright (C) 2016-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2016-2017 Ackleyshack LLC.
+ * Copyright (C) 2016-2021 The Regents of the University of New Mexico.
+ * Copyright (C) 2016-2021 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file StringPoolUser.h -  Basic String Pool management for ULAM
   \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2016-2017 All rights reserved.
+  \date (C) 2016-2021 All rights reserved.
   \gpl
 */
 
@@ -39,6 +39,7 @@
 
 #include "StringPool.h"
 #include "File.h"
+#include <vector>
 
 namespace MFM
 {
@@ -75,14 +76,19 @@ namespace MFM
 
     u32 getUserStringPoolSize();
 
+    u32 getUserStringCount();
+
     void generateUserStringPoolEntries(File * fp, CompilerState * state);
+
+    void generateUserStringPoolIndexes(File * fp, CompilerState * state);
 
     //used by Preparser for 'load'; returns compiler pool id.
     u32 formatDoubleQuotedFileNameUnquoted(u32 ustrid, CompilerState * state);
 
   private:
+    std::vector<u32> m_userIndexToStringPoolIndex; //<sequential user index to non-sequential string pool index >
 
-    u32 m_runningIndex; //used during parsing to assign indexes
+    u32 m_runningIndex; //used during parsing to assign string pool indexes
 
     u32 formatDoubleQuotedString(const std::string& str, CompilerState * state);
 

@@ -22,9 +22,9 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Assignment is invalid";
 	msg << "; LHS: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(leftType);
+	msg << m_state.getUlamTypeNameByIndex(leftType);
 	msg << "; RHS: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(rightType);
+	msg << m_state.getUlamTypeNameByIndex(rightType);
 
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(Nav);
@@ -69,9 +69,9 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Incompatible (nonscalar) types: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(leftType).c_str();
+	msg << m_state.getUlamTypeNameByIndex(leftType).c_str();
 	msg << " and ";
-	msg << m_state.getUlamTypeNameBriefByIndex(rightType).c_str();
+	msg << m_state.getUlamTypeNameByIndex(rightType).c_str();
 	msg << " used with binary " << getName();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(Nav);

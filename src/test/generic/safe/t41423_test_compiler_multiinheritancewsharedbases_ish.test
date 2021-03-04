@@ -1,0 +1,82 @@
+## -*- mode:ulam -*-
+#=t41423_test_compiler_multiinheritancewsharedbases_ish
+##
+## gen output (+ assert)
+## Unsigned Arg: 27
+##
+#!
+Exit status: 0
+Ue_R { Unsigned(32) m_foosize(27u);  Int(32) test() {  System s;  Foo f;  f ( )behave . self m_foosize . 27u = s ( self m_foosize . )print . s ( self m_foosize . 27u cast == )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+Un_Foo : Q5 { :Q5<> ^Q4<> ^Q< Unsigned(22) mFoo(0); > ^Q2< Unsigned(2) mBar(0); > ^Q3< Unsigned(3) mGah(0); > <NOMAIN> }
+Uq_Q5 : Q4 +Q { /* empty class block */ }
+Uq_Q4 : Q2 +Q3 { /* empty class block */ }
+Uq_Q { Unsigned(22) mFoo(0);  <NOMAIN> }
+Uq_Q2 : Q { Unsigned(2) mBar(0);  :Q< Unsigned(22) mFoo(0); > <NOMAIN> }
+Uq_Q3 : Q { Unsigned(3) mGah(0);  :Q< Unsigned(22) mFoo(0); > <NOMAIN> }
+##
+## informed by Dave's ish 3/1/2021, shared bases that were miscounted
+## (see also t3327, t3586, t41386)
+##
+#>R.ulam
+  ulam 5;
+element R {
+  Unsigned m_foosize;
+  Int test() {
+    System s;
+    Foo f;
+    f.behave();
+    m_foosize = f.sizeof;
+    s.print(m_foosize);
+    s.assert(m_foosize==27u);
+    return 0;
+  }
+}
+
+#:Foo.ulam
+  ulam 5;
+transient Foo : Q5 {
+  Void behave(){ }
+}
+
+#:Q5.ulam
+  ulam 5;
+quark Q5 : Q4 +Q { }
+
+#:Q4.ulam
+  ulam 5;
+quark Q4 : Q2 +Q3 { }
+
+#:Q3.ulam
+  ulam 5;
+quark Q3 : Q
+{
+  Unsigned(3) mGah;
+}
+
+#:Q2.ulam
+  ulam 5;
+quark Q2 : Q
+{
+  Unsigned(2) mBar;
+}
+
+#:Q.ulam
+  ulam 5;
+quark Q
+{
+  Unsigned(22) mFoo;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

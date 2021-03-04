@@ -111,7 +111,9 @@ namespace MFM {
   static const char * GETSTRING_FUNCNAME = "GetStringPointerFromGlobalStringPool";
   static const char * GETSTRINGLENGTH_FUNCNAME = "GetStringLengthFromGlobalStringPool";
   static const char * USERSTRINGPOOL_MANGLEDNAME = "Ug_globalStringPoolData";
+  static const char * USERSTRINGPOOLINDEXES_MANGLEDNAME = "Ug_globalStringIndexes";
   static const char * USERSTRINGPOOL_SIZEDEFINENAME = "Ug_globalStringPoolSize";
+  static const char * USERSTRINGPOOL_NUMBERSTRINGSDEFINENAME = "Ug_globalNumberofStrings";
   static const char * USERSTRINGPOOL_FILENAME = "GlobalStringPool"; //also used by ulam.tmpl
 
 
@@ -1056,7 +1058,8 @@ namespace MFM {
     UlamType * ut = NULL;
     AssertBool isDef = isDefined(m_indexToUlamKey[uti], ut);
     assert(isDef);
-    return ut->getUlamTypeName();
+
+    return ut->getUlamTypeName(); //prettier names for internal types(error/t3113); String arrays(t3976)
   }
 
   // returns effective self name of the scalar dereferenced uti arg.
@@ -2005,9 +2008,9 @@ namespace MFM {
 	//Void with zero bitsize
 	if((bUT == Void) && (arraysize != NONARRAYSIZE))
 	  {
-	    // disallow an array of Void(0)'s
+	    // disallow an array of Void(0)'s (t3389)
 	    std::ostringstream msg;
-	    msg << "Invalid Void type array: " << ut->getUlamTypeNameBrief().c_str();
+	    msg << "Invalid Void type array: " << ut->getUlamTypeName().c_str();
 	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 	    return false;
 	  }
@@ -2211,7 +2214,7 @@ namespace MFM {
 
     //ulam-5 supports multiple base classes; superclass optional;
     UTI baseuti = Nouti;
-    while(walker.getNextBase(baseuti, *this))
+    while(walker.getNextBase(baseuti, *this) )
       {
 	SymbolClass * basecsym = NULL;
 	if(alreadyDefinedSymbolClass(baseuti, basecsym))
@@ -3106,6 +3109,13 @@ namespace MFM {
 
 	indent(fp);
 	fp->write("const unsigned int ");
+	fp->write(getDefineNameForNumberOfUserStrings());
+	fp->write(" = ");
+	fp->write_decimal_unsigned(m_upool.getUserStringCount());
+	fp->write(";"); GCNL;
+
+	indent(fp);
+	fp->write("const unsigned int ");
 	fp->write(getDefineNameForUserStringPoolSize());
 	fp->write(" = ");
 	fp->write_decimal_unsigned(m_upool.getUserStringPoolSize());
@@ -3116,6 +3126,14 @@ namespace MFM {
 	fp->write(getMangledNameForUserStringPool());
 	fp->write("[");
 	fp->write(getDefineNameForUserStringPoolSize());
+	fp->write("];"); GCNL;
+	fp->write("\n");
+
+	indent(fp);
+	fp->write("extern const unsigned int ");
+	fp->write(getMangledNameForUserStringPoolIndexes());
+	fp->write("[");
+	fp->write(getDefineNameForNumberOfUserStrings());
 	fp->write("];"); GCNL;
 	fp->write("\n");
 
@@ -3135,14 +3153,16 @@ namespace MFM {
 
 	indent(fp);
 	fp->write("if(sidx >= ");
-	fp->write(getDefineNameForUserStringPoolSize());
+	fp->write(getDefineNameForNumberOfUserStrings());
 	fp->write(") ");
 	fp->write("FAIL(ARRAY_INDEX_OUT_OF_BOUNDS);"); GCNL;
 
 	indent(fp);
 	fp->write("return &");
 	fp->write(getMangledNameForUserStringPool());
-	fp->write("[sidx + 1];"); GCNL;
+	fp->write("[");
+	fp->write(getMangledNameForUserStringPoolIndexes());
+	fp->write("[sidx] + 1];"); GCNL;
 
 	m_currentIndentLevel--;
 
@@ -3158,6 +3178,10 @@ namespace MFM {
     //inside the .cpp
     //the user string pool table definition
     m_upool.generateUserStringPoolEntries(fp, this);
+
+    //inside the .cpp
+    //the user string pool valid string indexes
+    m_upool.generateUserStringPoolIndexes(fp, this);
 
   } //genCodeBuiltInFunctionGetString
 
@@ -3183,14 +3207,16 @@ namespace MFM {
 
 	indent(fp);
 	fp->write("if(sidx >= ");
-	fp->write(getDefineNameForUserStringPoolSize());
+	fp->write(getDefineNameForNumberOfUserStrings());
 	fp->write(") ");
 	fp->write("FAIL(ARRAY_INDEX_OUT_OF_BOUNDS);"); GCNL;
 
 	indent(fp);
 	fp->write("return ");
 	fp->write(getMangledNameForUserStringPool());
-	fp->write("[sidx];"); GCNL;
+	fp->write("[");
+	fp->write(getMangledNameForUserStringPoolIndexes());
+	fp->write("[sidx]];"); GCNL;
 
 	m_currentIndentLevel--;
 	indent(fp);
@@ -4766,9 +4792,19 @@ namespace MFM {
     return USERSTRINGPOOL_MANGLEDNAME;
   }
 
+  const char * CompilerState::getMangledNameForUserStringPoolIndexes()
+  {
+    return USERSTRINGPOOLINDEXES_MANGLEDNAME;
+  }
+
   const char * CompilerState::getDefineNameForUserStringPoolSize()
   {
     return USERSTRINGPOOL_SIZEDEFINENAME;
+  }
+
+  const char * CompilerState::getDefineNameForNumberOfUserStrings()
+  {
+    return USERSTRINGPOOL_NUMBERSTRINGSDEFINENAME;
   }
 
   std::string CompilerState::getFileNameForUserStringPoolHeader(bool wSubDir)

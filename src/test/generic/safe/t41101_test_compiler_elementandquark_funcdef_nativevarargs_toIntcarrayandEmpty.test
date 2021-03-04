@@ -14,7 +14,7 @@ Ue_A { Math math();  Int(32) test() {  System s;  QW qw;  CAQ caq;  Int(32) m = 
 Uq_Math { <NOMAIN> }
 Uq_System { <NOMAIN> }
 Uq_QW { <NOMAIN> }
-Uq_CAQ { constant Int(32)[8] cInt = { -1 cast, 1 cast, -2 cast, 2 cast, -3 cast, 3 cast, -4 cast, 4 cast };  <NOMAIN> }
+Uq_CAQ { constant Int(32) cInt[8] = { -1 cast, 1 cast, -2 cast, 2 cast, -3 cast, 3 cast, -4 cast, 4 cast };  <NOMAIN> }
 ##
 ## informed t3250; 3 More var arg cases: casted quark w toInt, custom array, and no var args
 ##

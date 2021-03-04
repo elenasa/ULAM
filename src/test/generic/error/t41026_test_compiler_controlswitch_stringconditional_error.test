@@ -1,8 +1,8 @@
 ## -*- mode:ulam -*-
 #=t41026_test_compiler_controlswitch_stringconditional_error
 #!
-./A.ulam:10:5: ERROR: Incompatible types for binary == : String(32), String(32); Suggest casting to a numeric type first.
-./A.ulam:15:5: ERROR: Incompatible types for binary == : String(32), String(32); Suggest casting to a numeric type first.
+./A.ulam:10:5: ERROR: Incompatible types for binary == : String, String; Suggest casting to a numeric type first.
+./A.ulam:15:5: ERROR: Incompatible types for binary == : String, String; Suggest casting to a numeric type first.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## Ulam strings cannot be compared; invalid for switch condition

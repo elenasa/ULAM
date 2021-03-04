@@ -2,7 +2,7 @@
 #=t3198_test_compiler_elementandquark_usercasttoquark_error
 #!
 ./Foo.ulam:8:14: ERROR: Cannot cast Bool(3) to Bar.
-./Foo.ulam:8:14: ERROR: Cannot explicitly cast Bool(3) to type: Bar.
+./Foo.ulam:8:14: ERROR: Cannot explicitly cast Bool(3) to type: Bar(3).
 ./Foo.ulam:8:11: ERROR: Assignment is invalid; LHS: unresolved; RHS: erroneous.
 Unrecoverable Program Type Label FAILURE.
 ##

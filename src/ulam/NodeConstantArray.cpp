@@ -136,7 +136,7 @@ namespace MFM {
 	      {
 		std::ostringstream msg;
 		msg << "Incomplete " << prettyNodeName().c_str() << " for type: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+		msg << m_state.getUlamTypeNameByIndex(it).c_str();
 		msg << ", used with constant symbol name '";
 		msg << m_state.getTokenDataAsString(m_token).c_str() << "'";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);

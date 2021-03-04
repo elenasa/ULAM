@@ -228,20 +228,25 @@ namespace MFM {
     return m_ST.getTotalSymbolSize();
   }
 
-  s32 NodeBlock::getBitSizesOfVariableSymbolsInTable()
+  s32 NodeBlock::getBitSizesOfVariableSymbolsInTable(s32& basebits, s32& mybits)
   {
+    basebits = 0;
+
     if(m_ST.getTableSize() == 0)
       return EMPTYSYMBOLTABLE; //should allow no variable data members
 
-    return m_ST.getTotalVariableSymbolsBitSize();
+    mybits = m_ST.getTotalVariableSymbolsBitSize();
+    return mybits;
   }
 
-  s32 NodeBlock::getMaxBitSizeOfVariableSymbolsInTable()
+  s32 NodeBlock::getMaxBitSizeOfVariableSymbolsInTable(s32& basebits, s32& mybits)
   {
+    basebits = 0;
     if(m_ST.getTableSize() == 0)
       return EMPTYSYMBOLTABLE; //should allow no variable data members
 
-    return m_ST.getMaxVariableSymbolsBitSize();
+    mybits = m_ST.getMaxVariableSymbolsBitSize();
+    return mybits;
   }
 
   u32 NodeBlock::findTypedefNameIdByType(UTI uti)

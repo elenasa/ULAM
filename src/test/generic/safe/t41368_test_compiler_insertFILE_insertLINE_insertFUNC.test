@@ -10,7 +10,7 @@
 ##
 #!
 Exit status: 13
-Ue_A { Bool(1) b(true);  Int(32) test() {  SystemU3 su3;  su3 ( "A.ulam" )print . su3 ( "A.ulam" 0 [] 65u == )assert . su3 ( "./A.ulam" )print . su3 ( "./A.ulam" 0 [] 46u == )assert . su3 ( 12u cast )print . Unsigned(32) lno = 13u cast;  self b . lno 13u cast == = su3 ( self b . )assert . su3 ( "test" )print . constant String(32) c_fn = "test";  su3 ( "test" )print . su3 ( "test" 0 [] 116u == )assert . lno cast return } }
+Ue_A { Bool(1) b(true);  Int(32) test() {  SystemU3 su3;  su3 ( "A.ulam" )print . su3 ( "A.ulam" 0 [] 65u == )assert . su3 ( "./A.ulam" )print . su3 ( "./A.ulam" 0 [] 46u == )assert . su3 ( 12u cast )print . Unsigned(32) lno = 13u cast;  self b . lno 13u cast == = su3 ( self b . )assert . su3 ( "test" )print . constant String c_fn = "test";  su3 ( "test" )print . su3 ( "test" 0 [] 116u == )assert . lno cast return } }
 Uq_SystemU3 : System { :System<> <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

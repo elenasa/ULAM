@@ -337,17 +337,19 @@ namespace MFM {
 
     s32 totalbits = 0;
     s32 sharedbits = UNKNOWNSIZE;
-    aok = SymbolClass::trySetBitsizeWithUTIValues(totalbits);
+    s32 basebits = 0; //overstated, no sharing
+    s32 mybits = 0; //main goal of trySetBitsize..
+    aok = SymbolClass::trySetBitsizeWithUTIValues(basebits, mybits);
     if(aok)
       {
-	s32 sharedbitssaved = UNKNOWNSIZE;
+	s32 sharedbitssaved = UNKNOWNSIZE; //incorrectly calculated, may miss some shared bases
 	aok = SymbolClass::determineSharedBasesAndTotalBitsize(sharedbitssaved, sharedbits);
 	if(aok) //3755 QBase not ready
 	  {
 	    assert(sharedbits >= 0);
-	    assert(sharedbits <= totalbits);
 	    assert(sharedbitssaved >= sharedbits);
-	    totalbits = (totalbits - sharedbitssaved + sharedbits); //updates total here!!
+	    // totalbits = (totalbits - sharedbitssaved + sharedbits); //updates total here!!
+	     totalbits = (mybits + sharedbits); //updates total here!!
 	  }
       }
 

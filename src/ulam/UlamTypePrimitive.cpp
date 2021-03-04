@@ -43,17 +43,13 @@ namespace MFM {
 	if(isAltRefType() && !UlamType::checkReferenceCast(typidx))
 	  scr = CAST_BAD;
 
-	// strings cannot be cast explicitly to other primitive types, except Void (t3961)
 	UlamType * fmut = m_state.getUlamTypeByIndex(typidx);
 	ULAMTYPE valtypEnum = fmut->getUlamTypeEnum();
-	if((getUlamTypeEnum() != Void) && ((valtypEnum == String) ^ (getUlamTypeEnum() == String)))
-	  scr = CAST_BAD;
-
-	//only quarks may be cast to Ints, explicitly or not; requires toInt method (t3996)
-	if(valtypEnum == Class)
+	ULAMTYPE typEnum = getUlamTypeEnum();
+	if(typEnum != Void)
 	  {
-	    ULAMCLASSTYPE vclasstype = fmut->getUlamClassType();
-	    if(vclasstype != UC_QUARK)
+	    // strings cannot be cast explicitly to other primitive types, except Void (t3961)
+	    if((valtypEnum == String) ^ (typEnum == String))
 	      scr = CAST_BAD;
 	  }
       }

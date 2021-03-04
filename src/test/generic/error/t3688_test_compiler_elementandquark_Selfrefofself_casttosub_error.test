@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3688_test_compiler_elementandquark_Selfrefofself_casttosub_error
 #!
-./A.ulam:10:16: ERROR: Cannot explicitly cast QW to type: A.
+./A.ulam:10:16: ERROR: Cannot explicitly cast QW(1) to type: A(4).
 ./A.ulam:10:5: ERROR: Initial value expression for: apple, initialization is invalid.
 Unrecoverable Program Type Label FAILURE.
 ##

@@ -169,7 +169,7 @@ namespace MFM {
 	  //must be Quark! treat as Int if it has a toInt method
 	  if(fmut->isNumericType())
 	    brtn = (bitsize >= MAXBITSPERINT);
-	  else //Quark to Bits requires explicit cast.
+	  else //Quark or Transient to Bits requires explicit cast.
 	    brtn = false; //t41412; t41131 called by matching args (no error msg please)
 	}
 	break;
@@ -180,6 +180,29 @@ namespace MFM {
       };
     return brtn ? CAST_CLEAR : CAST_BAD;
   } //safeCast
+
+  FORECAST UlamTypePrimitiveBits::explicitlyCastable(UTI typidx)
+  {
+    FORECAST scr = UlamTypePrimitive::explicitlyCastable(typidx); //default
+    //    if(scr == CAST_BAD)
+      {
+	UlamType * fmut = m_state.getUlamTypeByIndex(typidx);
+	ULAMTYPE valtypEnum = fmut->getUlamTypeEnum();
+
+	//allow String to be cast to Bits (ulam-5) t41419,t41422
+	if(valtypEnum == String)
+	  scr = CAST_CLEAR;
+
+	//allow quarks and transients to be cast to Bits (ulam-5) t41410,t41416
+	if(valtypEnum == Class)
+	  {
+	    ULAMCLASSTYPE vclasstype = fmut->getUlamClassType();
+	    if((vclasstype == UC_QUARK) || (vclasstype == UC_TRANSIENT))
+	      	  scr = CAST_CLEAR;
+	  }
+      }
+    return scr;
+  } //explicitlyCastable
 
   void UlamTypePrimitiveBits::getDataAsString(const u32 data, char * valstr, char prefix)
   {

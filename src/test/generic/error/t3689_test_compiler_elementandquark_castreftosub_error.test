@@ -1,8 +1,8 @@
 ## -*- mode:ulam -*-
 #=t3689_test_compiler_elementandquark_castreftosub_error
 #!
-./A.ulam:15:12: ERROR: Use explicit cast to convert Qbase& to A for =.
-./A.ulam:20:5: ERROR: Use explicit cast to convert Qbase& to A for variable initialization.
+./A.ulam:15:12: ERROR: Use explicit cast to convert Qbase(5)& to A(8) for =.
+./A.ulam:20:5: ERROR: Use explicit cast to convert Qbase(5)& to A(8) for variable initialization.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## Dave requested a way to get default values for Self (within a quark);

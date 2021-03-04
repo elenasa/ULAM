@@ -50,17 +50,16 @@ namespace MFM {
     UTI vuti = m_varSymbol->getUlamTypeIdx();
     UlamKeyTypeSignature vkey = m_state.getUlamKeyTypeSignatureByIndex(vuti);
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
+    ULAMTYPE vetyp = vut->getUlamTypeEnum();
+
     if(m_state.isConstantRefType(vuti))
       fp->write(" constant"); //t41242,3
 
     fp->write(" ");
-    if(vut->getUlamTypeEnum() != Class)
-      {
-	fp->write(vkey.getUlamKeyTypeSignatureNameAndBitSize(&m_state).c_str());
-	fp->write("&"); //<--the only difference!!!
-      }
-    else
-      fp->write(vut->getUlamTypeClassNameBrief(vuti).c_str()); //includes any &
+
+    fp->write(m_state.getUlamTypeNameBriefByIndex(vuti).c_str());
+    if(vetyp != Class)
+      fp->write("&"); //<--the only difference!!!
 
     fp->write(" ");
     fp->write(getName());
@@ -128,7 +127,7 @@ namespace MFM {
 	      {
 		std::ostringstream msg;
 		msg << "Reference atom variable " << getName() << "'s type ";
-		msg << nut->getUlamTypeNameBrief().c_str();
+		msg << nut->getUlamTypeName().c_str();
 		msg << ", and its initial value type ";
 		msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
 		msg << ", are incompatible";
@@ -148,9 +147,9 @@ namespace MFM {
 	      {
 		std::ostringstream msg;
 		msg << "Reference variable " << getName() << "'s type ";
-		msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+		msg << m_state.getUlamTypeNameByIndex(nuti).c_str();
 		msg << ", and its initial value type ";
-		msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
+		msg << m_state.getUlamTypeNameByIndex(newType).c_str();
 		msg << ", are incompatible";
 		if(rscr == CAST_HAZY)
 		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);

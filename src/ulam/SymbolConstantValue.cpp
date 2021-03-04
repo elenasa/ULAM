@@ -82,6 +82,7 @@ namespace MFM {
   void SymbolConstantValue::printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype)
   {
     UTI tuti = getUlamTypeIdx();
+    ULAMTYPE tetyp = m_state.getUlamTypeByIndex(tuti)->getUlamTypeEnum();
 
     fp->write(" constant");
 
@@ -89,15 +90,39 @@ namespace MFM {
     fp->write(m_state.getUlamTypeNameBriefByIndex(tuti).c_str());
     fp->write(" ");
     fp->write(m_state.m_pool.getDataAsString(getId()).c_str());
+
+    s32 arraysize = m_state.getArraySize(tuti);
+    //output the arraysize (optional) t3953
+    if(arraysize > NONARRAYSIZE)
+      {
+	fp->write("[");
+	fp->write_decimal(arraysize);
+	fp->write("]");
+      }
+    else if(arraysize == UNKNOWNSIZE)
+      {
+	fp->write("[UNKNOWN]");
+      }
+
     fp->write(" = ");
 
-    if(m_state.isAClass(tuti))
+    if(tetyp == Class)
       {
 	std::string classhexstr;
 	SymbolWithValue::getClassValueAsHexString(classhexstr); //t41277
 	fp->write("{ ");
 	fp->write(classhexstr.c_str());
 	fp->write(" }");
+      }
+    else if(tetyp == String)
+      {
+	std::string str;
+	SymbolWithValue::getStringArrayValueAsString(str); //t3995, t3941
+	if(arraysize != NONARRAYSIZE)
+	  fp->write("{ ");
+	fp->write(str.c_str());
+	if(arraysize != NONARRAYSIZE)
+	  fp->write(" }");
       }
     else
       SymbolWithValue::printPostfixValue(fp);

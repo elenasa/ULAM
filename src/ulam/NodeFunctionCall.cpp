@@ -169,7 +169,7 @@ namespace MFM {
 	    for(u32 i = 0; i < argNodes.size(); i++)
 	      {
 		UTI auti = argNodes[i]->getNodeType();
-		msg << m_state.getUlamTypeNameBriefByIndex(auti).c_str() << ", ";
+		msg << m_state.getUlamTypeNameByIndex(auti).c_str() << ", ";
 	      }
 	    msg << "and cannot be called";
 	    if(hasHazyArgs)
@@ -402,7 +402,7 @@ namespace MFM {
 			msg << " to function '";
 			msg << m_state.getTokenDataAsString(m_functionNameTok).c_str();
 			msg <<"'; type ";
-			msg << m_state.getUlamTypeNameBriefByIndex(auti).c_str();
+			msg << m_state.getUlamTypeNameByIndex(auti).c_str();
 			msg << " is currently unsupported";
 			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		      }

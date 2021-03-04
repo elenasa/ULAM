@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeBlock.h - Basic Node for handling Blocks for ULAM
  *
- * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2017 Ackleyshack LLC.
+ * Copyright (C) 2014-2021 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2021 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeBlock.h - Basic Node for handling Blocks for ULAM
   \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2017 All rights reserved.
+  \date (C) 2014-2021 All rights reserved.
   \gpl
 */
 
@@ -106,9 +106,9 @@ namespace MFM{
 
     virtual u32 getSizeOfSymbolsInTable();
 
-    virtual s32 getBitSizesOfVariableSymbolsInTable();
+    virtual s32 getBitSizesOfVariableSymbolsInTable(s32& basebits, s32& mybits);
 
-    virtual s32 getMaxBitSizeOfVariableSymbolsInTable();
+    virtual s32 getMaxBitSizeOfVariableSymbolsInTable(s32& basebits, s32& mybits);
 
     u32 findTypedefNameIdByType(UTI uti);
 

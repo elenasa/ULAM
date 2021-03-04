@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * Node.h - Basic Node of Nodes for ULAM
  *
- * Copyright (C) 2014-2020 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2020 Ackleyshack LLC.
+ * Copyright (C) 2014-2021 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2021 Ackleyshack LLC.
  * Copyright (C) 2020 The Living Computation Foundation.
  *
  * This file is part of the ULAM programming language compilation system.
@@ -30,7 +30,7 @@
   \file Node.h - Basic Node of Nodes for ULAM
   \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2020 All rights reserved.
+  \date (C) 2014-2021 All rights reserved.
   \gpl
 */
 
@@ -400,6 +400,9 @@ enum EvalStatus {ERROR, NOTREADY, NORMAL, RETURN, BREAK, CONTINUE, UNEVALUABLE};
     void genCodeReadSelfIntoATmpVar(File * fp, UVPass & uvpass);
     void genSelfNameOfMethod(File * fp);
     void genCodeWriteToSelfFromATmpVar(File * fp, UVPass& luvpass, UVPass& ruvpass);
+
+    void genCodeReadStringArrayIntoATmpVar(File * fp, UVPass & uvpass);
+    void genCodeWriteToStringArrayFromATmpVar(File * fp, UVPass & luvpass, UVPass & ruvpass);
 
     void genCodeReadTransientIntoATmpVar(File * fp, UVPass & uvpass);
     void genCodeWriteToTransientFromATmpVar(File * fp, UVPass & luvpass, UVPass & ruvpass);

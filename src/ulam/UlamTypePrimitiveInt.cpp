@@ -224,6 +224,23 @@ namespace MFM {
     return aok ? CAST_CLEAR : CAST_BAD;
   } //safeCast
 
+  FORECAST UlamTypePrimitiveInt::explicitlyCastable(UTI typidx)
+  {
+    FORECAST scr = UlamTypePrimitive::explicitlyCastable(typidx);
+
+    //only quarks may be cast to Ints, explicitly or not; requires toInt method (t3996)
+    UlamType * fmut = m_state.getUlamTypeByIndex(typidx);
+    if(fmut->getUlamTypeEnum() == Class)
+      {
+	ULAMCLASSTYPE vclasstype = fmut->getUlamClassType();
+	if(vclasstype == UC_QUARK)
+	  scr = CAST_CLEAR;
+	else
+	  scr = CAST_BAD;
+      }
+    return scr;
+  } //explicitlyCastable
+
   void UlamTypePrimitiveInt::getDataAsString(const u32 data, char * valstr, char prefix)
   {
     s32 sdata = getDataAsCs32(data);

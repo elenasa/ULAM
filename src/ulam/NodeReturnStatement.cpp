@@ -108,10 +108,10 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Returning incompatible (nonscalar) types: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
+	    msg << m_state.getUlamTypeNameByIndex(nodeType).c_str();
 	    msg << " as ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(rtnType).c_str();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    msg << m_state.getUlamTypeNameByIndex(rtnType).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //t3137
 	    nodeType = Nav;
 	  }
 	else if(UlamType::compareForAssignment(nodeType, rtnType, m_state) != UTIC_SAME)
@@ -143,9 +143,9 @@ namespace MFM {
 		    else
 		      msg << "Use explicit cast";
 		    msg << " to return ";
-		    msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
+		    msg << m_state.getUlamTypeNameByIndex(nodeType).c_str();
 		    msg << " as ";
-		    msg << m_state.getUlamTypeNameBriefByIndex(rtnType).c_str();
+		    msg << m_state.getUlamTypeNameByIndex(rtnType).c_str();
 		    if(scr == CAST_BAD)
 		      {
 			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
@@ -177,9 +177,9 @@ namespace MFM {
 		  {
 		    std::ostringstream msg;
 		    msg << "Returning incompatible (reference) types: ";
-		    msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
+		    msg << m_state.getUlamTypeNameByIndex(nodeType).c_str();
 		    msg << " as non-constant ";
-		    msg << m_state.getUlamTypeNameBriefByIndex(rtnType).c_str();
+		    msg << m_state.getUlamTypeNameByIndex(rtnType).c_str();
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		    nodeType = Nav;  //t41196
 		  }
@@ -189,7 +189,7 @@ namespace MFM {
 	      {
 		std::ostringstream msg;
 		msg << "Returning a constant as a non-constant reference type: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(rtnType).c_str();
+		msg << m_state.getUlamTypeNameByIndex(rtnType).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		nodeType = Nav;  //t3965
 	      }
@@ -209,9 +209,9 @@ namespace MFM {
 		    std::ostringstream msg;
 		    msg << "Use explicit cast";
 		    msg << " to return ";
-		    msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
+		    msg << m_state.getUlamTypeNameByIndex(nodeType).c_str();
 		    msg << " as ";
-		    msg << m_state.getUlamTypeNameBriefByIndex(rtnType).c_str();
+		    msg << m_state.getUlamTypeNameByIndex(rtnType).c_str();
 		    if(scr == CAST_BAD)
 		      {
 			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
