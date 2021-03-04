@@ -122,7 +122,7 @@ namespace MFM {
     if(m_state.isComplete(leftType))
       {
 	UlamType * lut = m_state.getUlamTypeByIndex(leftType);
-
+	ULAMTYPE letyp = lut->getUlamTypeEnum();
 	if(lut->isScalar())
 	  {
 	    m_isCustomArray = m_state.isClassACustomArray(leftType); //e.g. t3653
@@ -135,13 +135,13 @@ namespace MFM {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 		hazyCount++;
 	      }
-	    else if(lut->getUlamTypeEnum() == String)
+	    else if(letyp == String)
 	      {
 		//ok!
 	      }
 	    else
 	      {
-		assert(lut->getUlamTypeEnum() == Class);
+		assert(letyp == Class);
 		//overload operator[] supercedes custom array (t41129)
 		if(NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode())
 		  {
@@ -350,10 +350,8 @@ namespace MFM {
 
     if((errorCount == 0) && (hazyCount == 0))
       {
-	UlamType * lut = m_state.getUlamTypeByIndex(leftType);
-	bool isScalar = lut->isScalar();
 	// sq bracket purpose in life is to account for array elements;
-	if((lut->getUlamTypeEnum() == String) && isScalar)
+	if(m_state.isAStringType(leftType) && m_state.isScalar(leftType))
 	  newType = ASCII; //not storeintoable default (t41076)
 	else
 	  {
@@ -485,8 +483,7 @@ namespace MFM {
     if(nuti == Hzy) return evalStatusReturnNoEpilog(NOTREADY);
 
     UTI leftType = m_nodeLeft->getNodeType();
-    UlamType * lut = m_state.getUlamTypeByIndex(leftType);
-    if((lut->getUlamTypeEnum() == String) && (nuti == ASCII))
+    if(m_state.isAStringType(leftType) && (nuti == ASCII))
       {
 	return evalAUserStringByte();
       }
@@ -716,6 +713,12 @@ namespace MFM {
 	return false;
       }
 
+    if(m_nodeLeft->isArrayItem())
+      {
+	MSG(getNodeLocationAsString().c_str(), "Multi-dimensional array typedefs are not supported", ERR);
+	return false; //t41352
+      }
+
     if(args.m_arraysize > NONARRAYSIZE)
       {
 	MSG(getNodeLocationAsString().c_str(), "Array size specified twice for typedef", ERR);
@@ -860,11 +863,10 @@ namespace MFM {
   void NodeSquareBracket::genCode(File * fp, UVPass& uvpass)
   {
     UTI leftType = m_nodeLeft->getNodeType();
-    UlamType * lut = m_state.getUlamTypeByIndex(leftType);
-    bool isString = (lut->getUlamTypeEnum() == String); //t3973, t3953
-    if(isString && lut->isScalar())
+    bool isString = m_state.isAStringType(leftType);
+    if(isString && m_state.isScalar(leftType))
       {
-	return genCodeAUserStringByte(fp, uvpass);
+	return genCodeAUserStringByte(fp, uvpass);//t3973, t3953
       }
     else if(Node::isCurrentObjectsContainingAConstantClass() >= 0)
       {
@@ -932,7 +934,7 @@ namespace MFM {
 	uvpass = luvpass;
 	if(m_state.isAClass(cossuti))
 	  Node::genCodeConvertATmpVarIntoBitVector(fp, uvpass); //not for t41198, for t41263
-	else if(cossut->getUlamTypeEnum() == String) //t41274, t41267, t41273
+	else if(m_state.isAStringType(cossuti)) //t41274, t41267, t41273
 	  uvpass.setPassTargetType(m_state.getUlamTypeAsDeref(luvpass.getPassTargetType()));
 	m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, NULL); //dm to avoid leaks
 	m_tmpvarSymbol->setDivinedByConstantClass();
