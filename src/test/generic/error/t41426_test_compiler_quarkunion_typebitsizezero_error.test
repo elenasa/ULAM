@@ -1,0 +1,43 @@
+## -*- mode:ulam -*-
+#=t41426_test_compiler_quarkunion_typebitsizezero_error
+#!
+./QU.ulam:2:7: ERROR: Union QU(UNKNOWN) has no data members; Bitsize is 0.
+Unrecoverable Program Type Label FAILURE.
+##
+## Zero-bit DMs do not count (see QU).
+##
+#>C.ulam
+  ulam 1;
+element C {
+  Bool a;
+  Int test() {
+    QU qu;
+    return 0;
+  }
+}
+
+#:QU.ulam
+  ulam 5;
+union QU + QBase{
+  System s;
+  Int m_z[0];
+}
+
+#:QBase.ulam
+  ulam 5;
+union QBase {
+  String m_str;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

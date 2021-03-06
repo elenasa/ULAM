@@ -85,7 +85,7 @@ namespace MFM {
 	    rtnb = true; //first-sighting
 	    nextbase = rootuti;
 	    basehead = headuti;
-	  } //else already-seen, try next one..
+	  } //else already-seen, try next one..but count for bitssaved is lost, now!!
       } //end while
 
     if(!rtnb)

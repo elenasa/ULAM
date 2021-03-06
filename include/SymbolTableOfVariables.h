@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * SymbolTableOfVariables.h - Handling of Table of Variable, Typedef and Constant Symbols for ULAM
  *
- * Copyright (C) 2014-2018 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2018 Ackleyshack LLC.
+ * Copyright (C) 2014-2021 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2021 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file SymbolTableOfVariables.h - Handling of Table of Variable, Typedef and Constant Symbols for ULAM
   \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2018 All rights reserved.
+  \date (C) 2014-2021 All rights reserved.
   \gpl
 */
 #ifndef SYMBOLTABLEOFVARIABLES_H
@@ -37,6 +37,7 @@
 
 #include "SymbolTable.h"
 #include "UlamValue.h"
+#include <set>
 
 namespace MFM{
 
@@ -62,9 +63,9 @@ namespace MFM{
 
     virtual u32 getTotalSymbolSize();
 
-    s32 getTotalVariableSymbolsBitSize();
+    s32 getTotalVariableSymbolsBitSize(std::set<UTI>& seensetref);
 
-    s32 getMaxVariableSymbolsBitSize();  //for quark union
+    s32 getMaxVariableSymbolsBitSize(std::set<UTI>& seensetref);  //for quark union
 
     void initializeElementDefaultsForEval(UlamValue& uvsite, UTI cuti);
 
@@ -77,7 +78,7 @@ namespace MFM{
   protected:
 
   private:
-    s32 calcVariableSymbolTypeSize(UTI ut);
+    s32 calcVariableSymbolTypeSize(UTI ut, std::set<UTI>& seensetref);
     bool variableSymbolWithCountableSize(Symbol * sym);
 
   };

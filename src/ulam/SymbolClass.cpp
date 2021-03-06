@@ -390,7 +390,7 @@ namespace MFM {
     return classNode->hasCustomArrayLengthofFunction();
   }
 
-  bool SymbolClass::trySetBitsizeWithUTIValues(s32& basebits, s32& mybits)
+  bool SymbolClass::trySetBitsizeWithUTIValues(s32& basebits, s32& mybits, std::set<UTI>& seensetref)
   {
     NodeBlockClass * classNode = getClassBlockNode(); //instance
     bool aok = true;
@@ -398,36 +398,40 @@ namespace MFM {
     //of course they always aren't! but we know to keep looping..
     UTI suti = getUlamTypeIdx();
     if(! m_state.isComplete(suti))
-      {
-	std::ostringstream msg;
-	msg << "Incomplete Class Type: "  << m_state.getUlamTypeNameByIndex(suti).c_str();
-	msg << " (UTI" << suti << ") has 'unknown' sizes, fails sizing pre-test";
-	msg << " while compiling class: ";
-	msg  << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	MSG(Symbol::getTokPtr(), msg.str().c_str(),DEBUG);
-	aok = false; //moved here;
-      }
+      aok = false;
+
     s32 totalbits;
     if(isQuarkUnion())
-      totalbits = classNode->getMaxBitSizeOfVariableSymbolsInTable(basebits, mybits);
+      totalbits = classNode->getMaxBitSizeOfVariableSymbolsInTable(basebits, mybits, seensetref);
     else
-      totalbits = classNode->getBitSizesOfVariableSymbolsInTable(basebits, mybits);
+      totalbits = classNode->getBitSizesOfVariableSymbolsInTable(basebits, mybits, seensetref);
 
     //avoid setting EMPTYSYMBOLTABLE instead of 0 for zero-sized classes
     if(totalbits == CYCLEFLAG)  // was < 0
       {
 	std::ostringstream msg;
 	msg << "cycle error!! " << m_state.getUlamTypeNameByIndex(getUlamTypeIdx()).c_str();
-	MSG(Symbol::getTokPtr(), msg.str().c_str(),DEBUG);
-	aok = false;
+	MSG(Symbol::getTokPtr(), msg.str().c_str(),ERR);
+	aok = false; //t41427
       }
     else if(totalbits == EMPTYSYMBOLTABLE)
       {
-	basebits = mybits = totalbits = 0;
-	aok = true;
+	if(isQuarkUnion())
+	  {
+	    std::ostringstream msg;
+	    msg << "Union " << m_state.getUlamTypeNameByIndex(getUlamTypeIdx()).c_str();
+	    msg << " has no data members; Bitsize is 0";
+	    MSG(Symbol::getTokPtr(), msg.str().c_str(),ERR);
+	    aok = false; //t41426
+	  }
+	else
+	  {
+	    basebits = mybits = totalbits = 0;
+	    aok = true;
+	  }
       }
     else if(totalbits != UNKNOWNSIZE)
-      aok = true; //not UNKNOWN
+      aok = true; //KNOWN
     return aok;
   } //trySetBitSizeWithUTIValues
 
@@ -436,9 +440,11 @@ namespace MFM {
     //builds shared base table, for rel pos (later)
     std::map<UTI, u32> svbmap; //shared virtual base map
     UTI suti = getUlamTypeIdx();
+
     m_state.findTheSharedVirtualBasesInAClassHierarchy(suti, svbmap);
+
     u32 totalsharedbasebitsize = 0; //bits to add back
-    u32 bitssaved = 0; //bits to subtract fm total
+    u32 bitssaved = 0; //bits to subtract fm total?
 
     std::map<UTI, u32>::iterator it = svbmap.begin();
     while(it != svbmap.end())

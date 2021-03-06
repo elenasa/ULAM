@@ -6118,6 +6118,12 @@ namespace MFM {
     return cc.getClassContextAsString();
   }
 
+  u32 CompilerState::countClassBlockOnContextStack(const NodeBlockClass * cblock)
+  {
+    //trying to detect cycles..stop the maddness!! how many is too many?
+    return m_classContextStack.countClassContextOnStack(cblock);
+  }
+
   void CompilerState::clearGoAgain()
   {
     m_goAgainResolveLoop = false;
