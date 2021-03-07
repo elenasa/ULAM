@@ -801,6 +801,12 @@ namespace MFM {
 
    fp->write(", ");
    fp->write_decimal(tobe->getTotalBitSize()); //tobe length
+
+   if(m_state.isAStringType(vuti) && (tobe->getUlamTypeEnum() == Bool))  //validate string t41425
+     {
+       fp->write(", ");
+       fp->write_decimal_unsigned(m_state.m_upool.getUserStringCount()); //max user string index
+     }
    fp->write(");"); GCNL;
 
    //support constant function parameters using constant primitive types (t41240)

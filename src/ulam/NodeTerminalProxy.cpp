@@ -116,7 +116,7 @@ namespace MFM {
 	if(m_state.isAStringType(ofnodeType) && m_state.isScalar(ofnodeType))
 	  return m_nodeOf->isAConstant();
       }
-    //else, e.g. length of String type has null m_nodeOf, and is constant 32u (t3933).
+    //else, e.g. length of String type has null m_nodeOf, and is constant STRINGIDXBITS (t3933).
     return true;
   }
 
@@ -359,7 +359,8 @@ namespace MFM {
 
     if((m_funcTok.m_type == TOK_KW_LENGTHOF))
       {
-	if(m_nodeOf && m_state.isAStringType(m_nodeOf->getNodeType()))
+	UTI noftype;
+	if(m_nodeOf && m_state.isAStringType(noftype = m_nodeOf->getNodeType()) && m_state.isScalar(noftype))
 	  {
 	    //String or String array item (t3933, t3949, t3984)
 	    evalNodeProlog(0); //new current frame pointer
@@ -485,7 +486,7 @@ namespace MFM {
 	    }
 	  else if(cut->getUlamTypeEnum() == String)
 	    {
-	      m_constant.uval =  cut->getSizeofUlamType(); //tmp for proxy, t3985
+	      m_constant.uval = cut->getSizeofUlamType(); //tmp for proxy, t3985
 	    }
 	  else if(m_state.isClassACustomArray(m_uti))
 	    {

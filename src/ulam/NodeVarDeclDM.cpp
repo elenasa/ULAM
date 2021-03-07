@@ -295,7 +295,8 @@ namespace MFM {
 	return Nav; //short-circuit
       }
 
-    //don't allow unions to contain string data members (t41093)
+#if 0
+    //don't allow unions to contain string data members (t41093); nor String arrays (t41334)
     if(m_state.isClassAQuarkUnion(cuti) && m_state.isAStringType(nuti))
       {
 	std::ostringstream msg;
@@ -306,6 +307,7 @@ namespace MFM {
 	setNodeType(Nav);
 	return Nav; //short-circuit
       }
+#endif
 
     //don't allow a subclass to shadow a base class datamember (error/t41331)
     TBOOL shadowt = checkForNoShadowingSubclass(cuti);

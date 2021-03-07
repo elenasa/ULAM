@@ -228,24 +228,24 @@ namespace MFM {
     return m_ST.getTotalSymbolSize();
   }
 
-  s32 NodeBlock::getBitSizesOfVariableSymbolsInTable(s32& basebits, s32& mybits)
+  s32 NodeBlock::getBitSizesOfVariableSymbolsInTable(s32& basebits, s32& mybits, std::set<UTI>& seensetref)
   {
     basebits = 0;
 
     if(m_ST.getTableSize() == 0)
       return EMPTYSYMBOLTABLE; //should allow no variable data members
 
-    mybits = m_ST.getTotalVariableSymbolsBitSize();
+    mybits = m_ST.getTotalVariableSymbolsBitSize(seensetref);
     return mybits;
   }
 
-  s32 NodeBlock::getMaxBitSizeOfVariableSymbolsInTable(s32& basebits, s32& mybits)
+  s32 NodeBlock::getMaxBitSizeOfVariableSymbolsInTable(s32& basebits, s32& mybits, std::set<UTI>& seensetref)
   {
     basebits = 0;
     if(m_ST.getTableSize() == 0)
       return EMPTYSYMBOLTABLE; //should allow no variable data members
 
-    mybits = m_ST.getMaxVariableSymbolsBitSize();
+    mybits = m_ST.getMaxVariableSymbolsBitSize(seensetref);
     return mybits;
   }
 

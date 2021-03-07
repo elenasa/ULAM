@@ -414,17 +414,6 @@ namespace MFM {
 
     if(qTok.m_type == TOK_COLON)
       {
-	if(m_state.isClassAQuarkUnion(utype))
-	  {
-	    std::ostringstream msg;
-	    msg << "Inheritance for quark-union identifier '";
-	    msg << m_state.getUlamTypeNameBriefByIndex(utype).c_str();
-	    msg << "' currently unsupported";
-	    MSG(&qTok, msg.str().c_str(), ERR); //t41334
-	    delete rtnNode;
-	    return NULL;
-	  }
-
 	SymbolClass * supercsym = NULL;
 	UTI superuti = Nouti;
 	inherits = parseRestOfClassInheritance(cnsym, supercsym, superuti);
@@ -453,16 +442,6 @@ namespace MFM {
 
     if((rTok.m_type == TOK_PLUS))
       {
-	if(m_state.isClassAQuarkUnion(utype))
-	  {
-	    std::ostringstream msg;
-	    msg << "Multiple Inheritance for quark-union identifier '";
-	    msg << m_state.getUlamTypeNameBriefByIndex(utype).c_str();
-	    msg << "' currently unsupported";
-	    MSG(&rTok, msg.str().c_str(), ERR); //t41334
-	    delete rtnNode;
-	    return NULL;
-	  }
 	parseMultipleClassInheritances(cnsym);
       }
 
@@ -834,7 +813,7 @@ namespace MFM {
 		std::ostringstream msg;
 		msg << "Class Definition '";
 		msg << m_state.getUlamTypeNameBriefByIndex(instance).c_str(); //t3900, t3901
-		msg << "'; Provides an invalid Class '";
+		msg << "'; Provides an invalid Baseclass '";
 		msg << m_state.getTokenDataAsString(iTok).c_str() << "'";
 		MSG(&iTok, msg.str().c_str(), ERR);
 	      }

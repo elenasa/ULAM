@@ -1,0 +1,55 @@
+## -*- mode:ulam -*-
+#=t41352_test_compiler_multidimensionalarray_ish_error
+#!
+./Foo.ulam:4:56: ERROR: Multi-dimensional array typedefs are not supported.
+./Foo.ulam:4:23: ERROR: Invalid typedef of base type <Bits> and name 'Big' (missing symbol).
+./Foo.ulam:4:61: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+ ERROR: No parse tree for This Class: Foo.
+Unrecoverable Program Parse FAILURE: <Foo.ulam>
+Unrecoverable Program Parse FAILURE: <System.ulam>
+##
+##   informed by Dave's ish 3/3/21 : looking for an alternative to big array of strings;
+##                 found multi-multi-dimensional arrays, but only the last [333] used.
+##                 Needs an error detected.
+##
+#>Foo.ulam
+  ulam 5;
+local constant Bits gensym001[100] = {1};
+local constant Bits gensym002[100] = {1};
+local typedef Bits(8) Big[330][330][331][330][332][330][333];
+local constant Big fooo = {1};
+element Foo{
+  Int mem;
+  Void func() { }
+  Void behave() {
+    Atom a;
+    if (a is Foo) {
+      Foo & a = (Foo &) a;
+      Unsigned mem = 3;
+      a.func();
+    }
+    System s;
+    mem = Big.lengthof; //==333 (sizeof is * 8)
+    s.print(mem);
+  }
+
+  Int test(){
+    Foo f;
+    f.behave();
+    return 0;
+  }
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

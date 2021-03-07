@@ -1,0 +1,60 @@
+## -*- mode:ulam -*-
+#=t41093_test_compiler_elementandquark_quarkunionstring
+##
+## gen output: (+ 2 asserts)
+##  String(1) Arg: "hello worlds"
+##  Unsigned Arg: 16
+##
+#!
+Exit status: 12
+Ue_Foo { Gah m_gah( String str( );  Bits(32) its(16); );  Int(32) test() {  SystemU3 s;  Unsigned(32) len;  self m_gah . str . "hello worlds" = s ( self m_gah . str . )print . len 12u = s ( len 12u cast == )assert . self m_gah . its . 16 cast = s ( self m_gah . its . cast )print . s ( self m_gah . its . 16 cast == )assert . len cast return } }
+Uq_Gah { Bits(32) its(0);  String str(UNINITIALIZED_STRING);  <NOMAIN> }
+Uq_SystemU3 : System { :System<> <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## informed by t3782; Supported in ulam-5 (3/4/2021). (see also String Arrays in t41334)
+##
+#>Foo.ulam
+  ulam 3;
+element Foo {
+  Gah m_gah; //as data member
+  Int test(){
+    SystemU3 s;
+    Unsigned len;
+    m_gah.str = "hello worlds";
+    s.print(m_gah.str);
+    len = m_gah.str.lengthof;
+    s.assert(len == 12u);
+    m_gah.its = 16; //only 14 user strings, bad index.
+    s.print((Unsigned) m_gah.its);
+    s.assert(m_gah.its == 16);
+    return (Int) len;
+  }
+}
+
+#:Gah.ulam
+  ulam 3;
+union Gah{
+  Bits(32) its;
+  String str; //cannot be initialized
+}
+
+#:SystemU3.ulam
+  ulam 3;
+quark SystemU3 : System {
+  Void print(String s) native;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+
+#.

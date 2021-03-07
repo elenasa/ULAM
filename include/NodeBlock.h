@@ -41,6 +41,7 @@
 #include "NodeStatements.h"
 #include "SymbolTableOfVariables.h"
 #include "MapClassMemberDesc.h"
+#include <set>
 
 namespace MFM{
 
@@ -106,9 +107,9 @@ namespace MFM{
 
     virtual u32 getSizeOfSymbolsInTable();
 
-    virtual s32 getBitSizesOfVariableSymbolsInTable(s32& basebits, s32& mybits);
+    virtual s32 getBitSizesOfVariableSymbolsInTable(s32& basebits, s32& mybits, std::set<UTI>& seensetref);
 
-    virtual s32 getMaxBitSizeOfVariableSymbolsInTable(s32& basebits, s32& mybits);
+    virtual s32 getMaxBitSizeOfVariableSymbolsInTable(s32& basebits, s32& mybits, std::set<UTI>& seensetref);
 
     u32 findTypedefNameIdByType(UTI uti);
 

@@ -117,7 +117,7 @@ namespace MFM{
 
     bool hasCustomArrayLengthof();
 
-    bool trySetBitsizeWithUTIValues(s32& basebits, s32& mybits);
+    bool trySetBitsizeWithUTIValues(s32& basebits, s32& mybits, std::set<UTI>& seensetref);
     bool determineSharedBasesAndTotalBitsize(s32& sharedbitssaved, s32& sharedbitsize);
 
     void printBitSizeOfClass();

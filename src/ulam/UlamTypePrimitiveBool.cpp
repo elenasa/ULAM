@@ -209,6 +209,8 @@ namespace MFM {
     FORECAST scr = safeCast(typidx);
     if(((vtypEnum == Bits) && (UlamTypePrimitive::explicitlyCastable(typidx) == CAST_CLEAR)) || (scr == CAST_CLEAR))
       return CAST_CLEAR;
+    if(vtypEnum == String)
+      return CAST_CLEAR; //t41425 to validate string index
     return scr; //HAZY or UNSAFE
   } //explicitlyCastable
 

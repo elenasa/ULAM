@@ -446,7 +446,7 @@ namespace MFM{
     AssertBool aok = vsym->getValueReadyToPrint(dval);
     assert(aok);
 
-    bool isString = (nut->getUlamTypeEnum() == String);
+    bool isString = m_state.isAStringType(nuti);
     s32 tmpvarnum = m_state.getNextTmpVarNumber();
     TMPSTORAGE nstor = nut->getTmpStorageTypeForTmpVar();
     u32 nwords = nut->getTotalNumberOfWords();

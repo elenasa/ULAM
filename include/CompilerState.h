@@ -653,6 +653,8 @@ namespace MFM{
 
     std::string getClassContextAsStringForDebugging();
 
+    u32 countClassBlockOnContextStack(const NodeBlockClass * cblock);
+
     /** flag to resolving loop to go again for non-ready types (i.e. Navs) */
     void clearGoAgain();
     void setGoAgain();

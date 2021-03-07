@@ -6118,6 +6118,12 @@ namespace MFM {
     return cc.getClassContextAsString();
   }
 
+  u32 CompilerState::countClassBlockOnContextStack(const NodeBlockClass * cblock)
+  {
+    //trying to detect cycles..stop the maddness!! how many is too many?
+    return m_classContextStack.countClassContextOnStack(cblock);
+  }
+
   void CompilerState::clearGoAgain()
   {
     m_goAgainResolveLoop = false;
@@ -6188,7 +6194,8 @@ namespace MFM {
 
   bool CompilerState::isAStringType(UTI uti)
   {
-    return UlamType::compareForString(uti, *this) == UTIC_SAME;
+    //    return UlamType::compareForString(uti, *this) == UTIC_SAME; //arrays not detected
+    return (getUlamTypeByIndex(uti)->getUlamTypeEnum() == String); //also includes arrays
   }
 
   bool CompilerState::isAClass(UTI uti)

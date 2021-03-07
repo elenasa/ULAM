@@ -716,7 +716,7 @@ namespace MFM {
 
   ULAMTYPECOMPARERESULTS UlamType::compareForString(UTI u1, CompilerState& state)  //static
   {
-    //bitsize always 32; wild reference type
+    //bitsize always STRINGIDXBITS; wild reference type
     //arrays not treated as a String, per se (t3949, t3975, t3985, t3995)
     return UlamType::compareWithWildALTKey(u1, String, state);
   }

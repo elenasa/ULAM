@@ -1729,7 +1729,9 @@ namespace MFM {
 		assert(classNode);
 		m_state.pushClassContext(cuti, classNode, classNode, false, NULL);
 
-		aok = csym->trySetBitsizeWithUTIValues(basebits, mybits);
+		std::set<UTI> seenset;
+		seenset.insert(cuti);
+		aok = csym->trySetBitsizeWithUTIValues(basebits, mybits, seenset);
 		m_state.popClassContext(); //restore
 
 		if(aok)
@@ -1740,7 +1742,6 @@ namespace MFM {
 		      {
 			assert(sharedbits >= 0);
 			assert(sharedbitssaved >= sharedbits);
-			//totalbits = (totalbits - sharedbitssaved + sharedbits); //updates total here!!
 			totalbits = (mybits + sharedbits); //updates total here!!
 		      }
 		  }

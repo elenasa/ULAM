@@ -59,6 +59,8 @@ namespace MFM
 
     u32 getClassContextStackSize();
 
+    u32 countClassContextOnStack(const NodeBlockClass * cblock);
+
   private:
     std::vector<ClassContext> m_contexts;
   };

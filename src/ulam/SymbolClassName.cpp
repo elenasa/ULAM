@@ -339,7 +339,9 @@ namespace MFM {
     s32 sharedbits = UNKNOWNSIZE;
     s32 basebits = 0; //overstated, no sharing
     s32 mybits = 0; //main goal of trySetBitsize..
-    aok = SymbolClass::trySetBitsizeWithUTIValues(basebits, mybits);
+    std::set<UTI> seenset;
+    seenset.insert(cuti);
+    aok = SymbolClass::trySetBitsizeWithUTIValues(basebits, mybits, seenset);
     if(aok)
       {
 	s32 sharedbitssaved = UNKNOWNSIZE; //incorrectly calculated, may miss some shared bases
@@ -348,8 +350,7 @@ namespace MFM {
 	  {
 	    assert(sharedbits >= 0);
 	    assert(sharedbitssaved >= sharedbits);
-	    // totalbits = (totalbits - sharedbitssaved + sharedbits); //updates total here!!
-	     totalbits = (mybits + sharedbits); //updates total here!!
+	    totalbits = (mybits + sharedbits); //updates total here!!
 	  }
       }
 
