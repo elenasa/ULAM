@@ -276,7 +276,15 @@ namespace MFM {
 	      }
 	    else
 	      {
-		if(replaceOurselves(asymptr))
+		TBOOL rtb = replaceOurselves(asymptr);
+		if(rtb == TBOOL_HAZY)
+		  {
+		    m_state.popClassContext(); //restore
+		    m_state.setGoAgain();
+		    setNodeType(Hzy);
+		    return Hzy;
+		  }
+		else if(rtb == TBOOL_TRUE)
 		  {
 		    m_state.popClassContext(); //restore
 		    m_state.setGoAgain();
@@ -325,7 +333,14 @@ namespace MFM {
       } //lookup symbol done
     else
       {
-	if(replaceOurselves(m_varSymbol))
+	TBOOL rtb = replaceOurselves(m_varSymbol);
+	if(rtb == TBOOL_HAZY)
+	  {
+	    m_state.setGoAgain();
+	    setNodeType(Hzy);
+	    return Hzy;
+	  }
+	else if(rtb == TBOOL_TRUE)
 	  {
 	    m_state.setGoAgain();
 
@@ -398,11 +413,11 @@ namespace MFM {
     return it;
   } //checkAndLabelType
 
-  bool NodeIdent::replaceOurselves(Symbol * symptr)
+  TBOOL NodeIdent::replaceOurselves(Symbol * symptr)
   {
     assert(symptr);
 
-    bool rtnb = false;
+    TBOOL rtnb = TBOOL_FALSE;
     UTI suti = symptr->getUlamTypeIdx();
     if(symptr->isConstant() && !m_state.isConstantRefType(suti))
       {
@@ -411,6 +426,9 @@ namespace MFM {
 	Node * newnode = NULL;
 	if(m_state.isAClass(suti))
 	  {
+	    if(!m_state.isASeenClass(suti) || m_state.isAnonymousClass(suti))
+	      return TBOOL_HAZY; //might not be a class afterall (3/9/21 ish)
+
 	    if(m_state.isScalar(suti))
 	      newnode = new NodeConstantClass(m_token, (SymbolWithValue *) symptr, NULL, m_state);
 	    else
@@ -425,7 +443,7 @@ namespace MFM {
 	AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
 	assert(swapOk);
 
-	rtnb = true;
+	rtnb = TBOOL_TRUE;
       }
     else if(symptr->isModelParameter())
       {
@@ -437,9 +455,9 @@ namespace MFM {
 	AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
 	assert(swapOk);
 
-	rtnb = true;
+	rtnb = TBOOL_TRUE;
       }
-    //else did not replace ourselves
+    //ELSE DID NOT replace ourselves
     return rtnb;
   } //replaceOurselves
 

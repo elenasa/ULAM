@@ -166,7 +166,14 @@ namespace MFM {
 	checkForSymbol();
 	if(m_constSymbol)
 	  {
-	    if(replaceOurselves(m_constSymbol))
+	    TBOOL rtb = replaceOurselves(m_constSymbol);
+	    if(rtb == TBOOL_HAZY)
+	      {
+		m_state.setGoAgain();
+		setNodeType(Hzy);
+		return Hzy;
+	      }
+	    if(rtb == TBOOL_TRUE)
 	      {
 		m_state.setGoAgain();
 
@@ -313,15 +320,18 @@ namespace MFM {
     m_state.popClassContext(); //restore
   } //checkForSymbol
 
-  bool NodeConstant::replaceOurselves(Symbol * symptr)
+  TBOOL NodeConstant::replaceOurselves(Symbol * symptr)
   {
     assert(symptr);
 
-    bool rtnb = false;
+    TBOOL rtb = TBOOL_FALSE;
     UTI suti = symptr->getUlamTypeIdx();
 
     if(m_state.isAClass(suti))
       {
+	if(!m_state.isASeenClass(suti) || m_state.isAnonymousClass(suti))
+	  return TBOOL_HAZY;
+
 	Node * newnode = NULL;
 	if(m_state.isScalar(suti))
 	  newnode = new NodeConstantClass(m_token, (SymbolConstantValue *) symptr, m_nodeTypeDesc, m_state);
@@ -333,7 +343,7 @@ namespace MFM {
 	assert(swapOk);
 
 	m_nodeTypeDesc = NULL; //tfr to new node
-	rtnb = true;
+	rtb = TBOOL_TRUE;
       }
     else if(!m_state.isScalar(suti))
       {
@@ -344,7 +354,7 @@ namespace MFM {
 	assert(swapOk);
 
 	m_nodeTypeDesc = NULL; //tfr to new node
-	rtnb = true;
+	rtb = TBOOL_TRUE;
       }
     else if(symptr->isModelParameter())
       {
@@ -357,10 +367,10 @@ namespace MFM {
 	assert(swapOk);
 
 	m_nodeTypeDesc = NULL; //tfr to new node
-	rtnb = true;
+	rtb = TBOOL_TRUE;
       }
     //else did not replace ourselves
-    return rtnb;
+    return rtb;
   } //replaceOurselves
 
   UTI NodeConstant::checkUsedBeforeDeclared()
