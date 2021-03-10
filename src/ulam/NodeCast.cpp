@@ -978,14 +978,35 @@ namespace MFM {
     else
       {
 	assert(m_state.isAtom(cos->getUlamTypeIdx()));
-	fp->write(cos->getMangledName().c_str()); //t3754, t3408
-	fp->write(".read()");
+	bool isLocal = Node::isCurrentObjectALocalVariableOrArgument();
+	if(isLocal)
+	  {
+	    u32 cossize = m_state.m_currentObjSymbolsForCodeGen.size();
+	    if(cossize > 1)
+	      {
+		Node::genLocalMemberNameOfMethod(fp, uvpass); //t3754, t3408
+		fp->write(vut->readMethodForCodeGen().c_str());
+		fp->write("()");
+	      }
+	    else
+	      {
+		fp->write(cos->getMangledName().c_str());
+		fp->write(".read()");
+	      }
+	  }
+	else
+	  {
+	    Node::genMemberNameOfMethod(fp, uvpass); //transient dm (t41430)
+	    fp->write(vut->readMethodForCodeGen().c_str());
+	    fp->write("()");
+	  }
       }
     fp->write("))"); GCNL;
 
     m_state.m_currentIndentLevel++;
     m_state.indentUlamCode(fp);
     fp->write("FAIL(BAD_CAST);"); GCNL;
+    fp->write("\n");
     m_state.m_currentIndentLevel--;
 
     if(tobe->isReference()) //t3754 (not isAltRefType, could be ALT_AS t3835)
@@ -1664,6 +1685,7 @@ namespace MFM {
 	m_state.m_currentIndentLevel++;
 	m_state.indentUlamCode(fp);
 	fp->write("FAIL(BAD_CAST);"); GCNL;
+	fp->write("\n");
 	m_state.m_currentIndentLevel--;
       }
 
@@ -1937,6 +1959,7 @@ namespace MFM {
 	m_state.m_currentIndentLevel++;
 	m_state.indentUlamCode(fp);
 	fp->write("FAIL(BAD_CAST);"); GCNL;
+	fp->write("\n");
 	m_state.m_currentIndentLevel--;
       }
 
