@@ -1037,6 +1037,7 @@ namespace MFM {
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     ULAMTYPE netyp = nut->getUlamTypeEnum();
 
+    fp->write("//"); //no longer used (ulam-5)
     m_state.indent(fp);
     if((netyp == Class) && nut->isScalar())
       {
