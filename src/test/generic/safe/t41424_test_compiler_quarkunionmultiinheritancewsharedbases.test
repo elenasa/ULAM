@@ -1,19 +1,19 @@
 ## -*- mode:ulam -*-
 #=t41424_test_compiler_quarkunionmultiinheritancewsharedbases
 ##
-## gen output (+ assert)
+## gen output (+ 2 asserts)
 ## Unsigned Arg: 27
 ##
 #!
 Exit status: 0
-Ue_R { Unsigned(32) m_foosize(27u);  Int(32) test() {  System s;  Foo f;  f ( )behave . self m_foosize . 27u = s ( self m_foosize . )print . s ( self m_foosize . 27u cast == )assert . 0 cast return } }
+Ue_R { Unsigned(32) m_foosize(27u);  Int(32) test() {  System s;  Foo f;  f ( )behave . self m_foosize . 27u = s ( self m_foosize . )print . s ( self m_foosize . 27u cast == )assert . s ( true )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
-Un_Foo : Q5 { :Q5<> ^Q4<> ^Q< Unsigned(22) mFoo(0);  Bool(7) mB7(false); > ^Q2< Unsigned(2) mBar(0);  Bool(1) mBoo(false); > ^Q3< Unsigned(3) mGah(0);  Unary(2) mUn(0); > <NOMAIN> }
+Un_Foo : Q5 { :Q5<> ^Q3< Unsigned(3) mGah(0);  Unary(2) mUn(0); > ^Q4<> ^Q< Unsigned(22) mFoo(0);  Bool(7) mB7(false); > ^Q2< Unsigned(2) mBar(0);  Bool(1) mBoo(false); > <NOMAIN> }
+Uq_Q3 : Q { Unsigned(3) mGah(0);  Unary(2) mUn(0);  :Q< Unsigned(22) mFoo(0);  Bool(7) mB7(false); > <NOMAIN> }
 Uq_Q5 : Q4 +Q { /* empty class block */ }
 Uq_Q4 : Q2 +Q3 { /* empty class block */ }
 Uq_Q { Unsigned(22) mFoo(0);  Bool(7) mB7(false);  <NOMAIN> }
 Uq_Q2 : Q { Unsigned(2) mBar(0);  Bool(1) mBoo(false);  :Q< Unsigned(22) mFoo(0);  Bool(7) mB7(false); > <NOMAIN> }
-Uq_Q3 : Q { Unsigned(3) mGah(0);  Unary(2) mUn(0);  :Q< Unsigned(22) mFoo(0);  Bool(7) mB7(false); > <NOMAIN> }
 ##
 ## informed by Dave's ish 3/1/2021, Union max bitsize no longer include bases, only max of data members;
 ## Shared bases can count unions, thus allowing Unions to be base classes,
@@ -30,6 +30,9 @@ element R {
     m_foosize = f.sizeof;
     s.print(m_foosize);
     s.assert(m_foosize==27u);
+
+    //union inherits from another union: maxQ3 + maxQ
+    s.assert(Q3.sizeof==25u);
     return 0;
   }
 }
