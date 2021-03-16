@@ -823,6 +823,8 @@ namespace MFM {
     SymbolClass * csym = NULL;
     AssertBool isDefined = alreadyDefinedSymbolClass(cuti, csym);
     assert(isDefined);
+
+    //recursively checks ancestors, for mapped uti (ish 20210315)
     if(csym->hasMappedUTI(auti, mappedUTI))
       return true;
 
@@ -873,28 +875,6 @@ namespace MFM {
 	  }
 	//else?
       } //not a holder
-
-    //recursively check ancestors, for mapped uti
-    if(isClassASubclass(cuti))
-      {
-	bool kinhadit = false;
-	u32 basecount = csym->getBaseClassCount() + 1; //include super
-	u32 i = 0;
-	while(!kinhadit && (i < basecount))
-	  {
-	    UTI baseuti = csym->getBaseClass(i);
-	    SymbolClassName * basecsym = NULL;
-	    if(alreadyDefinedSymbolClassNameByUTI(baseuti, basecsym))
-	      {
-		pushClassContext(baseuti, basecsym->getClassBlockNode(), basecsym->getClassBlockNode(), false, NULL);
-		kinhadit = mappedIncompleteUTI(baseuti, auti, mappedUTI);
-
-		popClassContext(); //restore
-	      }
-	    i++;
-	  } //end while
-	return kinhadit;
-      }
     return false;
   } //mappedIncompleteUTI
 

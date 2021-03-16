@@ -3191,10 +3191,10 @@ namespace MFM {
 	    else if(args.m_typeTok.m_type == TOK_KW_TYPE_STRING)
 	      {
 		std::ostringstream msg;
-		msg << "String bitsize expression disregarded; size is " << MAXBITSPERINT;
+		msg << "String bitsize expression disregarded; size is " << STRINGIDXBITS;
 		MSG(&bTok, msg.str().c_str(), WARN);
 
-		args.m_bitsize = MAXBITSPERINT;
+		args.m_bitsize = STRINGIDXBITS; //t3987
 		delete bitsizeNode;
 		bitsizeNode = NULL;
 	      }
