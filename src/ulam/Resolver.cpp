@@ -168,7 +168,7 @@ namespace MFM {
 	  }
 	else
 	  {
-	    UTI cuti = cnsym->getUlamTypeIdx(); //may not be huti
+	    UTI cuti = cnsym->getUlamTypeIdx(); //may not be ==huti
 	    if(m_state.getUlamTypeByIndex(cuti)->getUlamClassType() == UC_UNSEEN)
 	      aok = false; //still unseen
 	    else

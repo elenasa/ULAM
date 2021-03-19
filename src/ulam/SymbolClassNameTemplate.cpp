@@ -1247,7 +1247,7 @@ namespace MFM {
 		//if superbaseuti is a stub of this template, we have a possible un-ending (MAX_ITERATIONS)
 		// increase in the size of m_scalarClassInstanceIdxToSymbolPtr each time we're called;
 		// never resolving; should be caught at parse time (t3901)
-		UTI newstubbaseuti = m_state.addStubCopyToAncestorClassTemplate(superbaseuti, stubcsym->getContextForPendingArgValues(), stubcsym->getContextForPendingArgTypes(), stubcsym->getLoc());
+		UTI newstubbaseuti = m_state.addStubCopyToAncestorClassTemplate(superbaseuti, stubcsym->getContextForPendingArgValues(), stubcsym->getUlamTypeIdx(), stubcsym->getLoc()); //t41431
 		stubcsym->updateBaseClass(stubbaseuti, i, newstubbaseuti); //stubcopy's type set here!!
 		rtnok &= false;
 	      }

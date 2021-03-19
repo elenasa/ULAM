@@ -1,0 +1,67 @@
+## -*- mode:ulam -*-
+#=t41431_test_compiler_elementtemplatewithinheritedclassparameterquarktemplateandancestor_asdatamember_ish
+##
+## gen output: (+ assert)
+##  Unsigned Arg: 3
+##
+#!
+Exit status: 0
+Ue_R { Int(32) test() {  System s;  Pop(0xfeed,7u,3,1u) pop;  Unsigned(32) ans = pop ( )behaving .;  s ( ans )print . s ( ans 3u cast == )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+Uq_Pop(Bits(32) speciesID, Unsigned(5) mytag, Unary(5) myProgress, Unsigned(32) triggerlevel) { typedef Foo(x,y,z) MyFoo;  Foo(x,y,z) mFoo(notready);  <NOMAIN> }
+Uq_Foo(Unary(5) x, Unsigned(4) y, Bool(1) z) : Zar(x,y,z) { /* empty class block */ }
+Uq_Zar(Unary(5) x, Unsigned(4) y, Bool(1) z) { <NOMAIN> }
+##
+## informed by Dave ish (3/18/21), not ready arg in Zar, x; 3 levels deep.
+## (see also t41221-9, t3981)
+##
+#>R.ulam
+  ulam 5;
+element R {
+  Int test()
+  {
+    System s;
+    Pop(0xfeed, 7, 3, 1) pop;
+
+    Unsigned ans = pop.behaving();
+    s.print(ans);
+    s.assert(ans==3u);
+    return 0;
+  }
+}
+
+#:Pop.ulam
+  ulam 5;
+quark Pop(Bits speciesID, Unsigned(5) mytag, Unary(5) myProgress, Unsigned triggerlevel) {
+  typedef Foo(myProgress,mytag,false) MyFoo;
+  MyFoo mFoo;
+
+  Unsigned behaving() {
+    //Foo(myProgress,mytag,false) foo; //typedef or local, same problem.
+    return mFoo.func();
+  }
+}
+
+#:Foo.ulam
+  ulam 5;
+quark Foo(Unary(5) x, Unsigned(4) y, Bool z) : Zar(x, y, z) {
+}
+
+#:Zar.ulam
+  ulam 5;
+quark Zar(Unary(5) x, Unsigned(4) y, Bool z) { //same param names not the problem!
+  Unsigned func() { return x; }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.
