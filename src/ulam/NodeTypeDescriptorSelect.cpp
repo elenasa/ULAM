@@ -162,8 +162,6 @@ namespace MFM {
 		    msg << "Not a typedef '" << m_state.getTokenDataAsString(m_typeTok).c_str();
 		    msg << "' in another class, " ;;
 		    msg << m_state.getUlamTypeNameBriefByIndex(seluti).c_str();
-		    msg <<" while compiling: ";
-		    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 		    rtnuti = Nav; //?
 		  }
@@ -175,8 +173,6 @@ namespace MFM {
 		msg << "Undefined Typedef '" << m_state.getTokenDataAsString(m_typeTok).c_str();
 		msg << "' in another class, " ;;
 		msg << m_state.getUlamTypeNameByIndex(seluti).c_str();
-		msg <<" while compiling: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 		if(!hazyKin)
 		  {
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //new
@@ -184,6 +180,8 @@ namespace MFM {
 		  }
 		else
 		  {
+		    msg <<" while compiling: ";
+		    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 		    rtnuti = Hzy;
 		  }
@@ -197,8 +195,6 @@ namespace MFM {
 	    msg << "' is NOT another class, " ;
 	    msg << m_state.getUlamTypeNameBriefByIndex(seluti).c_str();
 	    msg << ", rather a " << UlamType::getUlamTypeEnumAsString(seletyp) << " type,";
-	    msg <<" while compiling: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    rtnuti = Nav;
 	  }

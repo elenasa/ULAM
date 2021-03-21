@@ -309,8 +309,7 @@ namespace MFM {
 	msg << "Constant value expression for ";
 	msg << "proxy Type '" << m_funcTok.getTokenString() << "' for scalar constant: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_uti).c_str();
-	msg << " is erroneous while compiling class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	msg << " is erroneous";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(Nav);
 	return NULL;
@@ -322,8 +321,7 @@ namespace MFM {
 	msg << "Constant value expression for ";
 	msg << "proxy Type '" << m_funcTok.getTokenString() << "' for scalar constant: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_uti).c_str();
-	msg << " is not yet ready while compiling class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	msg << " is not yet ready";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	setNodeType(Hzy);
 	m_state.setGoAgain(); //for compiler counts
@@ -661,9 +659,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Proxy Type: " << m_state.getUlamTypeNameBriefByIndex(m_uti).c_str();
 	msg << " is still incomplete and unknown for its '";
-	msg << m_funcTok.getTokenString();
-	msg << "' while compiling class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	msg << m_funcTok.getTokenString() << "'";
 	if(m_state.okUTItoContinue(m_uti) || m_state.isStillHazy(m_uti))
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //error/t3298
 	else

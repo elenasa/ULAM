@@ -590,8 +590,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Constant value expression for data member '";
 	msg << m_state.m_pool.getDataAsString(m_varSymbol->getId()).c_str();
-	msg << "' initialization failed while compiling class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	msg << "' initialization failed";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(Nav);
 	return false;
@@ -602,8 +601,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Constant value expression for data member '";
 	msg << m_state.m_pool.getDataAsString(m_varSymbol->getId()).c_str();
-	msg << "' initialization is not yet ready while compiling class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	msg << "' initialization is not yet ready";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	setNodeType(Hzy);
 	m_state.setGoAgain(); //since not error

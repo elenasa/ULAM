@@ -2,7 +2,7 @@
 #=t3498_test_compiler_elementandquark_arraytypedeffromanotherclass_unseen_error
 #!
 ./Vector.ulam:4:36: ERROR: Possible Divide By Zero Attempt.
-./Vector.ulam:4:36: ERROR: Constant value expression for binary op/ is erroneous while compiling class: Vector(2u).
+./Vector.ulam:4:36: ERROR: Constant value expression for binary op/ is erroneous.
 Unrecoverable Program Type Label FAILURE.
 #>R.ulam
  ulam 1;

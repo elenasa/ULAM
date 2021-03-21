@@ -132,7 +132,7 @@ namespace MFM {
 		it = mappedUTI;
 	      }
 
-	    if(!m_state.isComplete(it)) //reloads to recheck
+	    if(!m_state.isComplete(it)) //reloads to recheck (t41204)
 	      {
 		std::ostringstream msg;
 		msg << "Incomplete " << prettyNodeName().c_str() << " for type: ";
@@ -140,6 +140,7 @@ namespace MFM {
 		msg << ", used with constant symbol name '";
 		msg << m_state.getTokenDataAsString(m_token).c_str() << "'";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+		//MSG(m_state.getTokenLocationAsString(&m_token).c_str(), msg.str().c_str(), WAIT);
 		//wait until updateConstant tried.
 	      }
 	  }

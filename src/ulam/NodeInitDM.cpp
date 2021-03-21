@@ -164,12 +164,10 @@ namespace MFM {
 
 	if(m_state.isStillHazy(it))
 	  {
-	    UTI cuti = m_state.getCompileThisIdx();
 	    std::ostringstream msg;
 	    msg << "Initialization value expression for: ";
 	    msg << m_state.m_pool.getDataAsString(m_cid).c_str();
-	    msg << ", is not ready, still hazy while compiling class: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	    msg << ", is not ready, still hazy";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    setNodeType(Hzy);
 	    m_state.setGoAgain();

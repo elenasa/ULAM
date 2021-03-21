@@ -610,6 +610,7 @@ namespace MFM {
 			// and make a new symbol that's like the default param
 			SymbolConstantValue * asym2 = new SymbolConstantValue(*psym);
 			assert(asym2);
+			asym2->setClassArgAsDefaultValue(); //t41431
 			cblock->addIdToScope(pid, asym2);
 
 			// possible pending value for default param
@@ -676,6 +677,7 @@ namespace MFM {
 	SymbolConstantValue * asym2 = new SymbolConstantValue(* paramSym);
 	assert(asym2);
 	asym2->setBlockNoOfST(cblock->getNodeNo()); //stub NNO same as template, at this point
+	asym2->setClassArgAsDefaultValue();
 	cblock->addIdToScope(asym2->getId(), asym2);
 
 	// possible pending value for default param

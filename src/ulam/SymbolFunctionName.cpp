@@ -318,7 +318,6 @@ namespace MFM {
   // before generating code, remove duplicate funcs to avoid "previously declared" gcc error.
   void SymbolFunctionName::checkFunctionNames(FSTable& mangledFunctionMap, u32& probcount)
   {
-    UTI cuti = m_state.getCompileThisIdx();
     std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
     while(it != m_mangledFunctionNames.end())
       {
@@ -331,8 +330,7 @@ namespace MFM {
 	    msg << m_state.m_pool.getDataAsString(fsym->getId()).c_str();
 	    msg << "' has a duplicate definition (";
 	    msg << fsym->getMangledNameWithTypes().c_str();
-	    msg << "), while compiling class: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	    msg << ")";
 	    MSG(fsym->getTokPtr(), msg.str().c_str(), ERR);  //Dave says better to start as error
 	    NodeBlockFunctionDefinition * func = fsym->getFunctionNode();
 	    assert(func);

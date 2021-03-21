@@ -387,7 +387,9 @@ namespace MFM {
 	if(ceNode)
 	  {
 	    //use default value if there is one AND there isn't a constant expression (t3893)
-	    defaultval = ceNode->hasDefaultSymbolValue() && !ceNode->hasConstantExpr();
+	    //defaultval = ceNode->hasDefaultSymbolValue() && !ceNode->hasConstantExpr();
+	    //defaultval = ceNode->hasDefaultSymbolValue() && (!ceNode->hasConstantExpr() || ceNode->isClassArgumentItsDefaultValue()); //t41431
+	    defaultval = ceNode->isClassArgumentItsDefaultValue(); //t41431
 
 	    //OMG! if this was a default value for class arg, t3891,
 	    // we want to use the class stub/template as the 'context' rather than where the
@@ -399,7 +401,8 @@ namespace MFM {
 		assert(templateparent);
 		NodeBlockClass * templateclassblock = templateparent->getClassBlockNode();
 		//temporarily change stub loc, in case of local filescope, incl arg/params
-		stubclassblock->resetNodeLocations(templateclassblock->getNodeLocation());
+		//stubclassblock->resetNodeLocations(templateclassblock->getNodeLocation());
+		stubclassblock->setNodeLocation(templateclassblock->getNodeLocation());
 
 		m_state.pushClassContext(m_classUTI, stubclassblock, stubclassblock, false, NULL);
 		pushedtemplate = true;

@@ -89,6 +89,8 @@ namespace MFM{
 
     virtual bool hasDefaultSymbolValue();
 
+    bool isClassArgumentItsDefaultValue();
+
     virtual UTI checkAndLabelType();
 
     virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
