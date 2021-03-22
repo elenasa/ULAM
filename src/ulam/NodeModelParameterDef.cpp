@@ -154,8 +154,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Constant value expression for '";
 	msg << m_state.m_pool.getDataAsString(m_constSymbol->getId()).c_str();
-	msg << "', is erronous while compiling class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	msg << "', is erronous";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	return Nav;
       }
@@ -165,8 +164,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Constant value expression for '";
 	msg << m_state.m_pool.getDataAsString(m_constSymbol->getId()).c_str();
-	msg << "', is not yet ready while compiling class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	msg << "', is not yet ready";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	return Hzy;
       }

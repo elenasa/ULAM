@@ -203,6 +203,13 @@ namespace MFM {
     return m_constSymbol->hasInitValue();
   }
 
+  bool NodeConstantDef::isClassArgumentItsDefaultValue()
+  {
+    assert(m_constSymbol);
+    assert(m_constSymbol->isClassParameter() || m_constSymbol->isClassArgument());
+    return ((SymbolConstantValue *) m_constSymbol)->isClassArgDefaultValue();
+  }
+
   bool NodeConstantDef::isDataMemberInit()
   {
     return false;
@@ -228,13 +235,14 @@ namespace MFM {
 
     UTI suti = m_constSymbol->getUlamTypeIdx();
     UTI cuti = m_state.getCompileThisIdx();
-    bool changeScope = (m_state.m_pendingArgStubContext != m_state.m_pendingArgTypeStubContext) && (m_constSymbol->isClassParameter() || m_constSymbol->isClassArgument()); //t3328, t41153, t41209, t41214,7,8, t41224
+    bool changeScope = (m_state.m_pendingArgStubContext != m_state.m_pendingArgTypeStubContext) && (m_constSymbol->isClassParameter() || m_constSymbol->isClassArgument()) && !isClassArgumentItsDefaultValue(); //t3328, t41153, t41209, t41214,7,8, t41224,t41431
 
     if(changeScope)
       {
 	//not m_pendingArgStubContext (t3328,9, t3330,2, t41153, t41209, t41214,7,8, t41224
 	UTI contextForArgTypes = m_state.m_pendingArgTypeStubContext;
 	assert(contextForArgTypes != Nouti);
+	assert(!m_state.isAClass(contextForArgTypes) || (m_state.getAClassBlock(contextForArgTypes)!=NULL));
 	m_state.pushClassOrLocalCurrentBlock(contextForArgTypes); //doesn't change compileThisIdx
       }
 
@@ -332,12 +340,10 @@ namespace MFM {
 
 	if(m_state.isStillHazy(nuti))
 	  {
-	    UTI cuti = m_state.getCompileThisIdx();
 	    std::ostringstream msg;
 	    msg << "Constant value expression for: ";
 	    msg << m_state.m_pool.getDataAsString(m_cid).c_str();
-	    msg << ", is not ready, still hazy while compiling class: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	    msg << ", is not ready, still hazy";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    setNodeType(Hzy);
 	    m_state.setGoAgain();
@@ -831,8 +837,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Constant value expression for '";
 	msg << m_state.m_pool.getDataAsString(m_constSymbol->getId()).c_str();
-	msg << "', is erronous while compiling class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	msg << "', is erronous";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	return Nav;
       }
@@ -842,8 +847,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Constant value expression for '";
 	msg << m_state.m_pool.getDataAsString(m_constSymbol->getId()).c_str();
-	msg << "', is not yet ready while compiling class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	msg << "', is not yet ready";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	return Hzy;
       }

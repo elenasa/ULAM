@@ -523,6 +523,18 @@ namespace MFM {
 	  }
 
 	UTI context = csym->getContextForPendingArgValues();
+	if(m_state.isAClass(context) && m_state.getAClassBlock(context) == NULL)
+	  {
+	    std::ostringstream msg;
+	    msg << "Context " << m_state.getUlamTypeNameByIndex(context).c_str();
+	    msg << " needed to fix any unseen class instances of template '";
+	    msg << m_state.m_pool.getDataAsString(csym->getId()).c_str(); //not a uti
+	    msg << "' is missing its class definition; Bailing..";
+	    MSG(Symbol::getTokPtr(), msg.str().c_str(),ERR);  //t41432
+	    it++;
+	    continue;
+	  }
+
 	UTI typecontext = csym->getContextForPendingArgTypes(); //t41209, t41218
 	//this is what the Parser does had it seen the template first!
 	m_state.pushClassOrLocalContextAndDontUseMemberBlock(context);
@@ -610,6 +622,7 @@ namespace MFM {
 			// and make a new symbol that's like the default param
 			SymbolConstantValue * asym2 = new SymbolConstantValue(*psym);
 			assert(asym2);
+			asym2->setClassArgAsDefaultValue(); //t41431
 			cblock->addIdToScope(pid, asym2);
 
 			// possible pending value for default param
@@ -676,6 +689,7 @@ namespace MFM {
 	SymbolConstantValue * asym2 = new SymbolConstantValue(* paramSym);
 	assert(asym2);
 	asym2->setBlockNoOfST(cblock->getNodeNo()); //stub NNO same as template, at this point
+	asym2->setClassArgAsDefaultValue();
 	cblock->addIdToScope(asym2->getId(), asym2);
 
 	// possible pending value for default param
@@ -1247,7 +1261,7 @@ namespace MFM {
 		//if superbaseuti is a stub of this template, we have a possible un-ending (MAX_ITERATIONS)
 		// increase in the size of m_scalarClassInstanceIdxToSymbolPtr each time we're called;
 		// never resolving; should be caught at parse time (t3901)
-		UTI newstubbaseuti = m_state.addStubCopyToAncestorClassTemplate(superbaseuti, stubcsym->getContextForPendingArgValues(), stubcsym->getContextForPendingArgTypes(), stubcsym->getLoc());
+		UTI newstubbaseuti = m_state.addStubCopyToAncestorClassTemplate(superbaseuti, stubcsym->getContextForPendingArgValues(), stubcsym->getUlamTypeIdx(), stubcsym->getLoc()); //t41431
 		stubcsym->updateBaseClass(stubbaseuti, i, newstubbaseuti); //stubcopy's type set here!!
 		rtnok &= false;
 	      }
@@ -1453,6 +1467,14 @@ namespace MFM {
 
   void SymbolClassNameTemplate::checkAndLabelClassInstances()
   {
+    //template data members, constants, typedefs here (t41432)
+    NodeBlockClass * classNode = getClassBlockNode();
+    assert(classNode);
+    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
+
+    ((NodeBlockContext *) classNode)->checkAndLabelType();
+    m_state.popClassContext(); //restore
+
     // only need to c&l the unique class instances that have been deeply copied
     std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
     while(it != m_scalarClassArgStringsToSymbolPtr.end())

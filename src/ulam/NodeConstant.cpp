@@ -249,11 +249,12 @@ namespace MFM {
 	msg << m_state.getTokenDataAsString(m_token).c_str() << "'";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);  //t41192
 	it = Hzy;
-	if(!stubcopy)
+	if(!stubcopy) //t41432?
 	  {
 	    m_constSymbol = NULL; //lookup again too! (e.g. inherited template instances)
 	    setBlock(NULL);
 	  }
+
       }
     setNodeType(it);
     Node::setStoreIntoAble(TBOOL_FALSE);

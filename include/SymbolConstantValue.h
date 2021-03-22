@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * SymbolConstantValue.h - Handling of Named Constant Symbols for ULAM
  *
- * Copyright (C) 2015-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2017 Ackleyshack LLC.
+ * Copyright (C) 2015-2021 The Regents of the University of New Mexico.
+ * Copyright (C) 2015-2021 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file SymbolConstantValue.h - Handling of Named Constant Symbols for ULAM
   \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2017 All rights reserved.
+  \date (C) 2015-2021 All rights reserved.
   \gpl
 */
 
@@ -69,11 +69,14 @@ namespace MFM{
     void setConstantStackFrameAbsoluteSlotIndex(u32 slot);
     u32 getConstantStackFrameAbsoluteSlotIndex();
 
+    void setClassArgAsDefaultValue();
+    bool isClassArgDefaultValue();
+
   protected:
 
   private:
     u32 m_constantStackFrameAbsoluteSlotIndex;
-
+    bool m_isClassArgDefaultValue; //t41431
   };
 } //MFM
 

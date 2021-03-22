@@ -845,7 +845,6 @@ namespace MFM {
 
   void SymbolClass::setContextForPendingArgValues(UTI context)
   {
-    //assert(m_resolver); //dangerous! when template has default parameters
     if(m_resolver)
       m_resolver->setContextForPendingArgValues(context);
   } //setContextForPendingArgValues
@@ -862,7 +861,6 @@ namespace MFM {
 
   void SymbolClass::setContextForPendingArgTypes(UTI context)
   {
-    //assert(m_resolver); //dangerous! when template has default parameters
     if(m_resolver)
       m_resolver->setContextForPendingArgTypes(context);
   } //setContextForPendingArgTypes

@@ -1,0 +1,101 @@
+## -*- mode:ulam -*-
+#=t41431_test_compiler_elementtemplatewithinheritedclassparameterquarktemplateandancestor_asdatamember_ish
+##
+## gen output:
+##  Unsigned Arg: 3 (+ 3 asserts)
+##  Unsigned Arg: 4 (+ 1 assert)
+##
+#!
+Exit status: 0
+Ue_R { Int(32) test() {  System s;  Pop(0xfeed,7u,3,1u) pop;  Unsigned(32) ans = pop ( )behaving .;  s ( ans )print . s ( ans 3u cast == )assert . s ( pop ( )samely . )assert . s ( pop ( )badly . ! )assert . Crackle(0xf00d,2u) crackle;  Unsigned(32) ans2 = crackle ( )behaving .;  s ( ans2 )print . s ( ans2 4u cast == )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+Uq_Pop(Bits(32) speciesID, Unsigned(5) mytag, Unary(5) myProgress, Unsigned(32) triggerlevel) { typedef Foo(x,y,z) MyFoo;  Foo(x,y,z) mFoo(notready);  <NOMAIN> }
+Un_Crackle(Bits(32) specId, Unsigned(2) trig = 2u) : Pop(speciesID,mytag,myProgress,triggerlevel) { constant Unsigned(32) cTrigger = 2u;  Bits(32) mId(notready);  :Pop14< typedef Foo(x,y,z) MyFoo;  Foo(x,y,z) mFoo(notready); > <NOMAIN> }
+Uq_Foo(Unary(5) x, Unsigned(4) y, Bool(1) z) : Zar(x,y,z) { Zar(x,y,z) mZar(notready);  :Zar13<> <NOMAIN> }
+Uq_Zar(Unary(5) x, Unsigned(4) y, Bool(1) z) { <NOMAIN> }
+##
+## informed by Dave ish (3/18/21), not ready arg in Zar, x; 3 levels deep.
+## (see also t41221-9, t3981; and error/t41432 for possible bug!)
+##
+#>R.ulam
+  ulam 5;
+element R {
+  Int test()
+  {
+    System s;
+    Pop(0xfeed, 7, 3, 1) pop;
+
+    Unsigned ans = pop.behaving();
+    s.print(ans);
+    s.assert(ans==3u);
+
+    s.assert(pop.samely());
+    s.assert(!pop.badly());
+
+    Crackle(0xf00d) crackle;
+    Unsigned ans2 = crackle.behaving();
+    s.print(ans2);
+    s.assert(ans2==4u);
+    return 0;
+  }
+}
+
+#:Crackle.ulam
+  ulam 5;
+local constant Unsigned(5) cTag = 3;
+local constant Unary(5) cProg = 4;
+local constant Unsigned cLevel = 2;
+//transient Crackle(Bits specId, Unsigned trig = cTrigger) : Pop(specId,cTag,cProg,cLevel)
+transient Crackle(Bits specId, Unsigned(cLevel) trig = cLevel) : Pop(specId,cTag,cProg,cLevel)
+{
+  constant Unsigned cTrigger = cLevel; //fails as default when equal to cLevel; o.w. works.
+  Bits mId = specId;
+}
+
+#:Pop.ulam
+  ulam 5;
+quark Pop(Bits speciesID, Unsigned(5) mytag, Unary(5) myProgress, Unsigned triggerlevel) {
+  typedef Foo(myProgress,mytag,false) MyFoo; //typedef
+  MyFoo mFoo; //dm
+
+  Unsigned behaving() {
+    return mFoo.func();
+  }
+
+  Bool samely() {
+    Foo(myProgress,mytag,false) foo; //local
+    return mFoo.func() == foo.func();
+  }
+
+  Bool badly() {
+    MyFoo foo;
+    return foo.z == mFoo.mZar.z;
+  }
+
+}
+
+#:Foo.ulam
+  ulam 5;
+local constant Bool cTrue = true;
+quark Foo(Unary(5) x, Unsigned(4) y, Bool z) : Zar(x, y, z) {
+  Zar(x,y,cTrue) mZar;
+}
+
+#:Zar.ulam
+  ulam 5;
+quark Zar(Unary(5) x, Unsigned(4) y, Bool z) { //same param names not the problem!
+  Unsigned func() { return x; }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

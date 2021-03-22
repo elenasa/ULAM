@@ -3,16 +3,16 @@
 
 namespace MFM {
 
-  SymbolConstantValue::SymbolConstantValue(const Token& id, UTI utype, CompilerState & state) : SymbolWithValue(id, utype, state), m_constantStackFrameAbsoluteSlotIndex(0)
+  SymbolConstantValue::SymbolConstantValue(const Token& id, UTI utype, CompilerState & state) : SymbolWithValue(id, utype, state), m_constantStackFrameAbsoluteSlotIndex(0), m_isClassArgDefaultValue(false)
   {
     NodeBlockLocals * localsblock = m_state.findALocalsScopeByNodeNo(this->getBlockNoOfST());
     if(localsblock != NULL)
       setLocalsFilescopeDef(localsblock->getNodeType());
   }
 
-  SymbolConstantValue::SymbolConstantValue(const SymbolConstantValue & sref) : SymbolWithValue(sref), m_constantStackFrameAbsoluteSlotIndex(sref.m_constantStackFrameAbsoluteSlotIndex) {}
+  SymbolConstantValue::SymbolConstantValue(const SymbolConstantValue & sref) : SymbolWithValue(sref), m_constantStackFrameAbsoluteSlotIndex(sref.m_constantStackFrameAbsoluteSlotIndex), m_isClassArgDefaultValue(sref.m_isClassArgDefaultValue) {}
 
-  SymbolConstantValue::SymbolConstantValue(const SymbolConstantValue & sref, bool keepType) : SymbolWithValue(sref, keepType), m_constantStackFrameAbsoluteSlotIndex(sref.m_constantStackFrameAbsoluteSlotIndex) {}
+  SymbolConstantValue::SymbolConstantValue(const SymbolConstantValue & sref, bool keepType) : SymbolWithValue(sref, keepType), m_constantStackFrameAbsoluteSlotIndex(sref.m_constantStackFrameAbsoluteSlotIndex), m_isClassArgDefaultValue(sref.m_isClassArgDefaultValue) {}
 
   SymbolConstantValue::~SymbolConstantValue()
   { }
@@ -150,6 +150,16 @@ namespace MFM {
   {
     // assert(!m_state.isScalar(getUlamTypeIdx()) || m_state.isAClass(getUlamTypeIdx()) );
     return m_constantStackFrameAbsoluteSlotIndex;
+  }
+
+  void SymbolConstantValue::setClassArgAsDefaultValue()
+  {
+    m_isClassArgDefaultValue = true;
+  }
+
+  bool SymbolConstantValue::isClassArgDefaultValue()
+  {
+    return m_isClassArgDefaultValue;
   }
 
 } //end MFM

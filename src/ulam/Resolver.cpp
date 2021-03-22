@@ -168,7 +168,7 @@ namespace MFM {
 	  }
 	else
 	  {
-	    UTI cuti = cnsym->getUlamTypeIdx();
+	    UTI cuti = cnsym->getUlamTypeIdx(); //may not be ==huti
 	    if(m_state.getUlamTypeByIndex(cuti)->getUlamClassType() == UC_UNSEEN)
 	      aok = false; //still unseen
 	    else
@@ -367,6 +367,7 @@ namespace MFM {
   {
     bool rtnb = true;
     UTI context = getContextForPendingArgValues();
+    assert(!m_state.isAClass(context) || (m_state.getAClassBlock(context) != NULL));
     m_state.pushClassOrLocalContextAndDontUseMemberBlock(context);
 
     m_state.m_pendingArgStubContext = m_classUTI; //set for folding surgery
@@ -387,7 +388,8 @@ namespace MFM {
 	if(ceNode)
 	  {
 	    //use default value if there is one AND there isn't a constant expression (t3893)
-	    defaultval = ceNode->hasDefaultSymbolValue() && !ceNode->hasConstantExpr();
+	    //defaultval = ceNode->hasDefaultSymbolValue() && !ceNode->hasConstantExpr();
+	    defaultval = ceNode->isClassArgumentItsDefaultValue(); //t41431
 
 	    //OMG! if this was a default value for class arg, t3891,
 	    // we want to use the class stub/template as the 'context' rather than where the
@@ -399,7 +401,8 @@ namespace MFM {
 		assert(templateparent);
 		NodeBlockClass * templateclassblock = templateparent->getClassBlockNode();
 		//temporarily change stub loc, in case of local filescope, incl arg/params
-		stubclassblock->resetNodeLocations(templateclassblock->getNodeLocation());
+		//stubclassblock->resetNodeLocations(templateclassblock->getNodeLocation());
+		stubclassblock->setNodeLocation(templateclassblock->getNodeLocation());
 
 		m_state.pushClassContext(m_classUTI, stubclassblock, stubclassblock, false, NULL);
 		pushedtemplate = true;

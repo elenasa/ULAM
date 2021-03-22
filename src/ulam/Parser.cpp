@@ -353,7 +353,7 @@ namespace MFM {
 	msg << "Empty/Incomplete Class Definition '";
 	msg << m_state.getTokenDataAsString(iTok).c_str();
 	msg << "'; Possible missing ending curly brace";
-	MSG(&pTok, msg.str().c_str(), ERR);
+	MSG(&pTok, msg.str().c_str(), ERR); //t41432
       }
 
     return false; //keep going until EOF is reached
@@ -1060,8 +1060,9 @@ namespace MFM {
     //common end processing, except for function defs
     if(isAlreadyAppended)
       {
-	if(!getExpectedToken(TOK_SEMICOLON))
-	  getTokensUntil(TOK_SEMICOLON); //does this help?
+	Token tmpTok;
+	if(!getExpectedToken(TOK_SEMICOLON, tmpTok))
+	  getTokensUntil(TOK_SEMICOLON); //does this help? t41432 bad typedef
 	else
 	  brtn = true;
       }
