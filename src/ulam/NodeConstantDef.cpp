@@ -242,6 +242,7 @@ namespace MFM {
 	//not m_pendingArgStubContext (t3328,9, t3330,2, t41153, t41209, t41214,7,8, t41224
 	UTI contextForArgTypes = m_state.m_pendingArgTypeStubContext;
 	assert(contextForArgTypes != Nouti);
+	assert(!m_state.isAClass(contextForArgTypes) || (m_state.getAClassBlock(contextForArgTypes)!=NULL));
 	m_state.pushClassOrLocalCurrentBlock(contextForArgTypes); //doesn't change compileThisIdx
       }
 

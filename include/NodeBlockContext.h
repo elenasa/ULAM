@@ -60,6 +60,8 @@ namespace MFM{
 
     virtual bool isAClassBlock() = 0;
 
+    virtual UTI checkAndLabelType();
+
     virtual bool hasStringDataMembers();
 
     bool classConstantsReady();

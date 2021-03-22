@@ -367,6 +367,7 @@ namespace MFM {
   {
     bool rtnb = true;
     UTI context = getContextForPendingArgValues();
+    assert(!m_state.isAClass(context) || (m_state.getAClassBlock(context) != NULL));
     m_state.pushClassOrLocalContextAndDontUseMemberBlock(context);
 
     m_state.m_pendingArgStubContext = m_classUTI; //set for folding surgery
@@ -388,7 +389,6 @@ namespace MFM {
 	  {
 	    //use default value if there is one AND there isn't a constant expression (t3893)
 	    //defaultval = ceNode->hasDefaultSymbolValue() && !ceNode->hasConstantExpr();
-	    //defaultval = ceNode->hasDefaultSymbolValue() && (!ceNode->hasConstantExpr() || ceNode->isClassArgumentItsDefaultValue()); //t41431
 	    defaultval = ceNode->isClassArgumentItsDefaultValue(); //t41431
 
 	    //OMG! if this was a default value for class arg, t3891,

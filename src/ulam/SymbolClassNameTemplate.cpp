@@ -523,6 +523,18 @@ namespace MFM {
 	  }
 
 	UTI context = csym->getContextForPendingArgValues();
+	if(m_state.isAClass(context) && m_state.getAClassBlock(context) == NULL)
+	  {
+	    std::ostringstream msg;
+	    msg << "Context " << m_state.getUlamTypeNameByIndex(context).c_str();
+	    msg << " needed to fix any unseen class instances of template '";
+	    msg << m_state.m_pool.getDataAsString(csym->getId()).c_str(); //not a uti
+	    msg << "' is missing its class definition; Bailing..";
+	    MSG(Symbol::getTokPtr(), msg.str().c_str(),ERR);  //t41432
+	    it++;
+	    continue;
+	  }
+
 	UTI typecontext = csym->getContextForPendingArgTypes(); //t41209, t41218
 	//this is what the Parser does had it seen the template first!
 	m_state.pushClassOrLocalContextAndDontUseMemberBlock(context);
@@ -1455,6 +1467,14 @@ namespace MFM {
 
   void SymbolClassNameTemplate::checkAndLabelClassInstances()
   {
+    //template data members, constants, typedefs here (t41432)
+    NodeBlockClass * classNode = getClassBlockNode();
+    assert(classNode);
+    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
+
+    ((NodeBlockContext *) classNode)->checkAndLabelType();
+    m_state.popClassContext(); //restore
+
     // only need to c&l the unique class instances that have been deeply copied
     std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
     while(it != m_scalarClassArgStringsToSymbolPtr.end())

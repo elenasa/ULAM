@@ -833,7 +833,7 @@ namespace MFM {
        return true; //anonymous UTI
 
     //or this? (works for template instances too)
-    if(statusUnknownTypeInAClassResolver(cuti, auti))
+    if((csym->getClassBlockNode() != NULL) && statusUnknownTypeInAClassResolver(cuti, auti))
     {
       findaUTIAlias(auti, mappedUTI); //auti no longer a holder (ish 20210315-22xx)
       return true;

@@ -49,15 +49,8 @@ namespace MFM {
 
   UTI NodeBlockLocals::checkAndLabelType()
   {
-    UTI savnuti = getNodeType();
-    assert(savnuti != Nouti);
-
     //possibly empty (e.g. error/t3875)
-    if(m_nodeNext)
-      //NodeBlock::checkAndLabelType();
-      m_nodeNext->checkAndLabelType();
-    setNodeType(savnuti);
-    return savnuti;
+    return NodeBlockContext::checkAndLabelType();
   }
 
   void NodeBlockLocals::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)

@@ -26,6 +26,19 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
+  UTI NodeBlockContext::checkAndLabelType()
+  {
+    //dup of NodeBlockLocals for now
+    UTI savnuti = getNodeType();
+    assert(savnuti != Nouti);
+
+    //possibly empty
+    if(m_nodeNext)
+        m_nodeNext->checkAndLabelType();
+    setNodeType(savnuti);
+    return savnuti;
+  }
+
   bool NodeBlockContext::hasStringDataMembers()
   {
     return m_ST.hasUlamTypeSymbolsInTable(String); //btw, does not check superclasses!!!
