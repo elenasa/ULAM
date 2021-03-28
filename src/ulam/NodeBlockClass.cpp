@@ -1452,6 +1452,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     // custom array flag set at parse time
     UTI cuti = getNodeType();
+    if(!m_state.okUTItoContinue(cuti)) return; //20210328 ish 033651
+
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
     if(((UlamTypeClass *) cut)->isCustomArray())
       m_functionST.checkCustomArrayTypeFuncs();
