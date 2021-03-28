@@ -1,0 +1,71 @@
+## -*- mode:ulam -*-
+#=t41434_test_compiler_elementtemplatewithinheritedclassparameterquarktemplateandancestorwlocalscontext_ish
+##
+## gen output:
+##  Unsigned Arg: 27 (no assert if correct)
+##
+#!
+Exit status: 0
+Ue_R { Int(32) test() {  System s;  Foo foo;  foo ( )behave . { foo ( )func . 27u cast == cond 0 cast return if } s ( false )assert . -1 cast return } }
+Uq_System { <NOMAIN> }
+Ue_Foo : T3 { /* empty class block */ }
+Uq_T1(Unsigned(32) u, Bool(1) b) { Bool(1) mb(notready);  <NOMAIN> }
+Uq_T2(Bool(1) z, Unsigned(32) q, Unsigned(32) other) : T1(u,b) { Unsigned(5) mq(notready);  :T112< Bool(1) mb(notready); > <NOMAIN> }
+Uq_T3 : T2(true,1u,27u) { :T2(true,1u,27u)< Unsigned(5) mq( 1u); > ^T1(1u,true)< Bool(1) mb( 1u); > <NOMAIN> }
+##
+## informed by Dave ish 3/24/2021. Clone argument nodes for ClassInstance assumed context was a class;
+##    But it was a locals file scope. Easy fix.
+##
+#>R.ulam
+  ulam 5;
+element R {
+  Int test()
+  {
+    System s;
+    Foo foo;
+    foo.behave();
+
+    if(foo.func() == 27u)
+      return 0;
+
+    s.assert(false); //wrong!!
+    return -1;
+  }
+}
+
+
+#:Foo.ulam
+  quark T1(Unsigned u, Bool b) {
+  Unsigned func() { return u; } // NOT virtual
+  Bool mb = b;
+}
+
+quark T2(Bool z, Unsigned q, Unsigned other) : T1(q,z) {
+  Unsigned func() { return other; }
+  Unsigned(5) mq = (Unsigned(5)) q;
+}
+
+local typedef T2(true, 1u, 27u) MyT2;
+
+quark T3 : MyT2 {
+  Void behave() {
+    System s;
+    s.print(func()); // expecting this to print 27
+  }
+}
+
+element Foo : T3 { }
+
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

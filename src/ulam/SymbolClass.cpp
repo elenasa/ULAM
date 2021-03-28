@@ -804,10 +804,6 @@ namespace MFM {
 
     if(toStub)
       {
-	SymbolClass * contextSym = NULL;
-	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(argvaluecontext, contextSym);
-	assert(isDefined);
-
 	setContextForPendingArgValues(argvaluecontext);
 	setContextForPendingArgTypes(argtypecontext); //(t41213, t41223, t3328, t41153)
 
@@ -817,7 +813,8 @@ namespace MFM {
 	//constant values in the stub copy's Resolver map.
 	//Resolution of all context-dependent arg expressions will occur
 	//during the resolving loop..
-	m_state.pushClassContext(argvaluecontext, contextSym->getClassBlockNode(), contextSym->getClassBlockNode(), false, NULL);
+	//Note: could be localsFilescope (t41434)
+	m_state.pushClassOrLocalContextAndDontUseMemberBlock(argvaluecontext);
 	assignClassArgValuesInStubCopy();
 	m_state.popClassContext(); //restore previous context
       }
