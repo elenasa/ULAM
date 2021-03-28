@@ -852,7 +852,7 @@ namespace MFM {
     if(m_resolver)
       return m_resolver->getContextForPendingArgValues();
 
-    assert(!isStub() || (getParentClassTemplate() && getParentClassTemplate()->getTotalParametersWithDefaultValues() > 0));
+    assert(!isStub() || (getParentClassTemplate() && ((getParentClassTemplate()->getTotalParametersWithDefaultValues() > 0) || (getParentClassTemplate()->getUlamClass() == UC_UNSEEN))));
     return getUlamTypeIdx(); //return self UTI, t3981
   } //getContextForPendingArgValues
 
@@ -868,7 +868,8 @@ namespace MFM {
     if(m_resolver)
       return m_resolver->getContextForPendingArgTypes();
 
-    assert(!isStub() || (getParentClassTemplate() && getParentClassTemplate()->getTotalParametersWithDefaultValues() > 0));
+    assert(!isStub() || (getParentClassTemplate() && ((getParentClassTemplate()->getTotalParametersWithDefaultValues() > 0) || (getParentClassTemplate()->getUlamClass() == UC_UNSEEN))));
+
     return getUlamTypeIdx(); //return self UTI, t3981
   } //getContextForPendingArgTypes
 

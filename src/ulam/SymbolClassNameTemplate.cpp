@@ -708,6 +708,11 @@ namespace MFM {
 
   bool SymbolClassNameTemplate::statusNonreadyClassArgumentsInStubClassInstances()
   {
+#if 0
+    if(getUlamClass() == UC_UNSEEN)
+      return false; //template not seen (e.g. typo) 20210328 ish 035039
+#endif
+
     bool aok = true;
     std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
     while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
@@ -2197,6 +2202,7 @@ namespace MFM {
   {
     //"Substitution Error Is Not A Failure"
     //bypass if template or with context of template (stub)
+    // or "unseen" template (e.g. typo stub use) 20210328 ish 035039
     return ((sym->getUlamTypeIdx() == getUlamTypeIdx()) || (sym->isStub() && m_state.isClassATemplate(sym->getContextForPendingArgValues())));
   }
 
