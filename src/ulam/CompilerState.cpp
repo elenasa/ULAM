@@ -1908,7 +1908,13 @@ namespace MFM {
 	return true;
       }
     return false;
-  } //findAClassUTIAlias
+  } //findaUTIAlias
+
+  UTI CompilerState::lookupUTIAlias(UTI auti)
+  {
+    assert(auti < m_unionRootUTI.size());
+    return m_unionRootUTI[auti];
+  } //lookupClassUTIAlias
 
   void CompilerState::updateUTIAlias(UTI auti, UTI buti)
   {

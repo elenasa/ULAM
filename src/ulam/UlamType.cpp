@@ -609,27 +609,15 @@ namespace MFM {
     if(key1.getUlamKeyTypeSignatureBitSize() != key2.getUlamKeyTypeSignatureBitSize())
       return UTIC_NOTSAME;
 
-    if(key1.getUlamKeyTypeSignatureClassInstanceIdx() != key2.getUlamKeyTypeSignatureClassInstanceIdx())
+    UTI ci1 = key1.getUlamKeyTypeSignatureClassInstanceIdx();
+    UTI ci2 = key2.getUlamKeyTypeSignatureClassInstanceIdx();
+    if(ci1 != ci2)
       {
-	UlamType * ciut1 = state.getUlamTypeByIndex(key1.getUlamKeyTypeSignatureClassInstanceIdx());
-	UlamType * ciut2 = state.getUlamTypeByIndex(key2.getUlamKeyTypeSignatureClassInstanceIdx());
-	UlamKeyTypeSignature cikey1 = ciut1->getUlamKeyTypeSignature();
-	UlamKeyTypeSignature cikey2 = ciut2->getUlamKeyTypeSignature();
-	if(cikey1.getUlamKeyTypeSignatureClassInstanceIdx() != cikey2.getUlamKeyTypeSignatureClassInstanceIdx())
-	  {
-	    if(key1.getUlamKeyTypeSignatureClassInstanceIdx()==cikey1.getUlamKeyTypeSignatureClassInstanceIdx() && key2.getUlamKeyTypeSignatureClassInstanceIdx()==cikey2.getUlamKeyTypeSignatureClassInstanceIdx())
-	      return UTIC_NOTSAME; //t3412 different class args
-	  }
-	//else related t41436 (20210328 ish 045328 template instance ancestor comparison)
-
-	if(cikey1.getUlamKeyTypeSignatureNameId() != cikey2.getUlamKeyTypeSignatureNameId())
-	  return UTIC_NOTSAME;
-
-	if(cikey1.getUlamKeyTypeSignatureArraySize() != cikey2.getUlamKeyTypeSignatureArraySize())
-	  return UTIC_NOTSAME;
-
-	if(cikey1.getUlamKeyTypeSignatureBitSize() != cikey2.getUlamKeyTypeSignatureBitSize())
-	  return UTIC_NOTSAME;
+	//related t41436 (20210328 ish 045328 template instance ancestor comparison)
+	UTI aliasci1 = state.lookupUTIAlias(ci1);
+	UTI aliasci2 = state.lookupUTIAlias(ci2);
+	if(aliasci1 != aliasci2)
+	  return UTIC_NOTSAME; //t3412 different class args
       }
 
     ALT alt1 = key1.getUlamKeyTypeSignatureReferenceType();
@@ -706,27 +694,15 @@ namespace MFM {
     if(key1.getUlamKeyTypeSignatureBitSize() != key2.getUlamKeyTypeSignatureBitSize())
       return UTIC_NOTSAME;
 
-    if(key1.getUlamKeyTypeSignatureClassInstanceIdx() != key2.getUlamKeyTypeSignatureClassInstanceIdx())
+    UTI ci1 = key1.getUlamKeyTypeSignatureClassInstanceIdx();
+    UTI ci2 = key2.getUlamKeyTypeSignatureClassInstanceIdx();
+    if(ci1 != ci2)
       {
-	UlamType * ciut1 = state.getUlamTypeByIndex(key1.getUlamKeyTypeSignatureClassInstanceIdx());
-	UlamType * ciut2 = state.getUlamTypeByIndex(key2.getUlamKeyTypeSignatureClassInstanceIdx());
-	UlamKeyTypeSignature cikey1 = ciut1->getUlamKeyTypeSignature();
-	UlamKeyTypeSignature cikey2 = ciut2->getUlamKeyTypeSignature();
-	if(cikey1.getUlamKeyTypeSignatureClassInstanceIdx() != cikey2.getUlamKeyTypeSignatureClassInstanceIdx())
-	  {
-	    if(key1.getUlamKeyTypeSignatureClassInstanceIdx()==cikey1.getUlamKeyTypeSignatureClassInstanceIdx() && key2.getUlamKeyTypeSignatureClassInstanceIdx()==cikey2.getUlamKeyTypeSignatureClassInstanceIdx())
-	      return UTIC_NOTSAME; //different class args
-	  }
-	//else related
-
-	if(cikey1.getUlamKeyTypeSignatureNameId() != cikey2.getUlamKeyTypeSignatureNameId())
-	  return UTIC_NOTSAME;
-
-	if(cikey1.getUlamKeyTypeSignatureArraySize() != cikey2.getUlamKeyTypeSignatureArraySize())
-	  return UTIC_NOTSAME;
-
-	if(cikey1.getUlamKeyTypeSignatureBitSize() != cikey2.getUlamKeyTypeSignatureBitSize())
-	  return UTIC_NOTSAME;
+	//might be related
+	UTI aliasci1 = state.lookupUTIAlias(ci1);
+	UTI aliasci2 = state.lookupUTIAlias(ci2);
+	if(aliasci1 != aliasci2)
+	  return UTIC_NOTSAME; //different class args
       }
 
     ALT alt1 = key1.getUlamKeyTypeSignatureReferenceType();

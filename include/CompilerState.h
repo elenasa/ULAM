@@ -278,6 +278,7 @@ namespace MFM{
     void mergeClassUTI(UTI olduti, UTI cuti);
     bool isARootUTI(UTI auti);
     bool findaUTIAlias(UTI auti, UTI& aliasuti);
+    UTI lookupUTIAlias(UTI auti);
     void updateUTIAlias(UTI auti, UTI buti);
     void updateUTIAliasForced(UTI auti, UTI buti);
     void initUTIAlias(UTI auti);
