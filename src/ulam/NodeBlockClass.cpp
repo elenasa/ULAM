@@ -862,7 +862,6 @@ UTI NodeBlockClass::checkMultipleInheritances()
 	  //this is a subclass.
 	  if(!isBaseClassLinkReady(nuti, i))
 	    {
-#if 1
 	      SymbolClass * basecsym = NULL;
 	      AssertBool isDefined = m_state.alreadyDefinedSymbolClass(baseuti, basecsym);
 	      assert(isDefined);
@@ -884,7 +883,7 @@ UTI NodeBlockClass::checkMultipleInheritances()
 		  basecsym->setContextForPendingArgTypes(baseuti); //NOOP no diff.
 		}
 	      //else t41225?
-#endif
+
 		if(!m_state.isComplete(baseuti))
 		  {
 		  std::ostringstream msg;
@@ -896,7 +895,6 @@ UTI NodeBlockClass::checkMultipleInheritances()
 		  if(m_state.isClassAStub(baseuti))
 		    {
 		      msg << m_state.getUlamTypeNameBriefByIndex(baseuti).c_str();
-
 		      msg << "', a class with pending arguments or ancestors";
 		      brtnhzy |= true;
 		    }
@@ -1926,47 +1924,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       } //end while
 
     return count;
-
-#if 0
-    //ulam-5 supports multiple base classes; superclass optional
-    SymbolClass * csym = NULL;
-    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(nuti, csym);
-    assert(isDefined);
-
-    u32 basecount = csym->getBaseClassCount() + 1; //include super
-    u32 i = 0;
-    while(i < basecount)
-      {
-	UTI baseuti = csym->getBaseClass(i);
-	if((baseuti != Nouti) && !csym->isDirectSharedBase(i))
-	  {
-	    NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
-	    assert(basecblock);
-	    supers += ((NodeBlock *)basecblock)->getNumberOfSymbolsInTable();
-	  }
-	i++;
-      } //end while
-
-    //ulam-5 supports shared base classes;
-    UTI cuti = m_state.getCompileThisIdx();
-    if(nuti == cuti) //count shared symbols only once!
-      {
-	u32 shbasecount = csym->getSharedBaseClassCount();
-	u32 j = 0;
-	while(j < shbasecount)
-	  {
-	    UTI baseuti = csym->getSharedBaseClass(j);
-	    if(baseuti != Nouti)
-	      {
-		NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(j);
-		assert(shbasecblock);
-		supers += ((NodeBlock *) shbasecblock)->getNumberOfSymbolsInTable();
-	      }
-	    j++;
-	  } //end while
-      }
-    return supers + NodeBlock::getNumberOfSymbolsInTable();
-#endif
   } //getNumberOfSymbolsInTable
 
   u32 NodeBlockClass::getNumberOfPotentialClassArgumentSymbols()
@@ -2145,49 +2102,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       } //end while
 
     return count;
-
-#if 0
-    //ulam-5 supports multiple base classes; superclass optional
-    SymbolClass * csym = NULL;
-    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(nuti, csym);
-    assert(isDefined);
-
-    u32 basecount = csym->getBaseClassCount() + 1; //include super
-    u32 i = 0;
-    while(i < basecount)
-      {
-	UTI baseuti = csym->getBaseClass(i);
-	if((baseuti != Nouti) && !csym->isDirectSharedBase(i))
-	  {
-	    NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
-	    assert(basecblock);
-	    superfs += basecblock->getNumberOfFuncSymbolsInTable();
-	  }
-	i++;
-      } //end while
-
-    //ulam-5 supports shared base classes;
-    UTI cuti = m_state.getCompileThisIdx();
-    if(nuti == cuti) //count shared func symbols once!
-      {
-	u32 shbasecount = csym->getSharedBaseClassCount();
-	u32 j = 0;
-	while(j < shbasecount)
-	  {
-	    UTI baseuti = csym->getSharedBaseClass(j);
-	    if(baseuti != Nouti)
-	      {
-		NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(i);
-		assert(shbasecblock);
-		superfs += shbasecblock->getNumberOfFuncSymbolsInTable();
-	      }
-	    j++;
-	  } //end while
-      }
-
-    return superfs + m_functionST.getTableSize();
-#endif
-
   } //getNumberOfFuncSymbolsInTable
 
   u32 NodeBlockClass::getSizeOfFuncSymbolsInTable()

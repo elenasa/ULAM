@@ -22,18 +22,7 @@ namespace MFM {
     if(ref.m_unknownBitsizeSubtree)
       {
 	m_unknownBitsizeSubtree = new NodeTypeBitsize(*ref.m_unknownBitsizeSubtree); //mapped UTI?
-#if 0
-	if(m_state.isComplete(ref.m_uti))
-	  {
-	    UlamType * refut = m_state.getUlamTypeByIndex(ref.m_uti);
-	    m_uti = m_state.makeUlamType(m_typeTok, UNKNOWNSIZE, refut->getArraySize(),refut->getUlamClassType()); //reset given uti
-	  }
-#endif
       }
-#if 0
-    if(m_state.isHolder(m_uti))
-	m_state.addUnknownTypeTokenToThisClassResolver(m_typeTok, m_uti); //t3565, breaks t3384
-#endif
   }
 
   //clone class parameter for pending class argument; caller (NodeConstDef) corrects type (t41223)
@@ -41,10 +30,6 @@ namespace MFM {
   {
     if(ref.m_unknownBitsizeSubtree)
       m_unknownBitsizeSubtree = new NodeTypeBitsize(*ref.m_unknownBitsizeSubtree); //mapped UTI?
-#if 0
-    if(m_state.isHolder(m_uti))
-      m_state.addUnknownTypeTokenToThisClassResolver(m_typeTok, m_uti); //consistent w t3565?
-#endif
   }
 
   NodeTypeDescriptor::~NodeTypeDescriptor()
@@ -476,53 +461,6 @@ namespace MFM {
 	//else
 	// rtnuti = Hzy;
       }
-#if 0
-    else
-      {
-	// like SCNT::setBitSizeOfClassInstances()
-	//trySetBitsizeWithUTIValues (t41440) ??
-	bool aok = false;
-	SymbolClass * csym = NULL;
-	if(m_state.alreadyDefinedSymbolClass(nuti,csym))
-	  {
-	    s32 totalbits = 0;
-	    s32 sharedbits = UNKNOWNSIZE;
-	    s32 basebits = 0; //overstated, no sharing
-	    s32 mybits = 0; //main goal of trySetBitsize..
-
-	    NodeBlockClass * classNode = csym->getClassBlockNode();
-	    assert(classNode);
-	    m_state.pushClassContext(nuti, classNode, classNode, false, NULL);
-
-	    std::set<UTI> seenset;
-	    seenset.insert(nuti);
-	    aok = csym->trySetBitsizeWithUTIValues(basebits, mybits, seenset);
-	    m_state.popClassContext(); //restore
-
-	    if(aok)
-	      {
-		s32 sharedbitssaved = UNKNOWNSIZE;
-		aok = csym->determineSharedBasesAndTotalBitsize(sharedbitssaved, sharedbits);
-		if(aok)
-		  {
-		    assert(sharedbits >= 0);
-		    assert(sharedbitssaved >= sharedbits);
-		    totalbits = (mybits + sharedbits); //updates total here!!
-		  }
-	      }
-
-	    if(aok)
-	      {
-		m_state.setBitSize(nuti, totalbits); //"scalar" Class bitsize  KEY ADJUSTED
-		//after setBitSize so not to clobber it.
-		m_state.setBaseClassBitSize(nuti, mybits); //noop for elements
-		rtnb = true;
-	      }
-	  }
-	//else
-	// rtnuti = Hzy;
-      }
-#endif
     return rtnb;
   } //resolveClassType
 

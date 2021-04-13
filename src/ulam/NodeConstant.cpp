@@ -610,26 +610,6 @@ namespace MFM {
     u64 val;
     if(!m_constSymbol)
       return false;
-#if 0
-    if(m_constSymbol->isClassParameter())
-      {
-	if(m_constSymbol->hasInitValue() && m_constSymbol->getInitValue(val))
-	  {
-	    m_constant.uval = val;
-	    return m_constSymbol->isInitValueReady(); //t41438, and t3526
-	  }
-      }
-
-    if(m_constSymbol->isDataMember())
-      {
-	//consistent w NodeConstantDef setSymbolValue ??Tue Mar 30 17:01:29 2021
-	if(m_constSymbol->hasInitValue() && m_constSymbol->getInitValue(val))
-	  {
-	    m_constant.uval = val;
-	    return m_constSymbol->isInitValueReady();
-	  }
-      }
-#endif
     if(m_constSymbol->getValue(val))
       m_constant.uval = val; //value fits type per its constantdef
     //else don't want default value here

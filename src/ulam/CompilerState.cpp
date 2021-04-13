@@ -968,7 +968,6 @@ namespace MFM {
     UlamKeyTypeSignature newkey(skey); //default constructor makes copy
     //restore from original ut; t41436: suti stub type unseen, while template was a transient
     ULAMCLASSTYPE sclasstype = bUT==Class ? cnsymOfIncomplete->getUlamClass() : sut->getUlamClassType();
-    //ULAMCLASSTYPE sclasstype = sut->getUlamClassType();
 
     UTI newuti = makeUlamType(newkey, bUT, sclasstype);
     cnsym->mapInstanceUTI(cuti, suti, newuti);
@@ -979,7 +978,7 @@ namespace MFM {
 	UlamType * newut = getUlamTypeByIndex(newuti);
 	if(sut->isCustomArray())
 	  ((UlamTypeClass *) newut)->setCustomArray();
-#if 1
+
 	if(cnsymOfIncomplete->getUlamClass() != sut->getUlamClassType())
 	  {
 	    //warning! new class type 'newuti' doesn't have its SymbolClass yet (undefined);
@@ -988,12 +987,9 @@ namespace MFM {
 	    cnsymOfIncomplete->mapUTItoUTI(newuti, suti);
 	  }
 	else
-#endif
 	  {
-#if 1
 	    //potential for unending process..
 	    //notes: sclasstype may be UNSEEN. 'cuti' may not be getCompileThis class (t41209,t41217,8)
-	    //((SymbolClassNameTemplate *)cnsymOfIncomplete)->copyAStubClassInstance(suti, newuti, getCompileThisIdx(), cuti, loc);
 	    ((SymbolClassNameTemplate *)cnsymOfIncomplete)->copyAStubClassInstance(suti, newuti, cuti, newuti, loc);
 
 	    std::ostringstream msg;
@@ -1006,23 +1002,18 @@ namespace MFM {
 	    msg << ", for incomplete class " << getUlamTypeNameByIndex(cnsymOfIncomplete->getUlamTypeIdx()).c_str();
 	    msg << "(UTI" << cnsymOfIncomplete->getUlamTypeIdx() << ")";
 	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
-#endif
 	  }
 
 	if(cuti != skey.getUlamKeyTypeSignatureNameId())
 	  {
-	    //e.g. inheritance
-	    ((SymbolClassNameTemplate *)cnsymOfIncomplete)->mergeClassInstancesFromTEMP(); //not mid-iteration!! makes alreadydefined.
+	    //e.g. inheritance; not mid-iteration!! makes alreadydefined.
+	    ((SymbolClassNameTemplate *)cnsymOfIncomplete)->mergeClassInstancesFromTEMP();
 	  }
 
       }
-    else
-      {
-	//updateUTIAliasForced(suti, newuti); //what if..
-	//updateUTIAlias(newuti, suti); //what if..
-	//Token tmpTok(TOK_TYPE_IDENTIFIER, loc, skey.getUlamKeyTypeSignatureNameId()); //use current locator
-	//cnsym->addUnknownTypeTokenToClass(tmpTok, newuti);
-      }
+    //else
+    //updateUTIAliasForced(suti, newuti); //what if..
+
     return newuti;
   } //mapIncompleteUTIForAClassInstance
 
@@ -2865,12 +2856,6 @@ namespace MFM {
     assert(superstubcopy);
 
     superctsym->mergeClassInstancesFromTEMP(); //not mid-iteration!!
-#if 0
-    if(superstubcopy && !superstubcopy->pendingClassArgumentsForClassInstance())
-      {
-	superctsym->checkTemplateAncestorsBeforeAStubInstantiation(superstubcopy);//re-CURSE???
-      }
-#endif
     return newstubcopyuti;
   } //addStubCopyToAncestorClassTemplate
 

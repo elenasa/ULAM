@@ -488,8 +488,6 @@ namespace MFM {
 
   bool Resolver::mapUTItoUTI(UTI fmuti, UTI touti)
   {
-#if 1
-    //t3361 ???
     //if fm already mapped in full instance, (e.g. unknown typedeffromanotherclass)
     //use its mapped uti as the key to touti instead
     UTI mappedfmuti = fmuti;
@@ -502,7 +500,7 @@ namespace MFM {
 	MSG("",msg.str().c_str(),DEBUG);
 	fmuti = mappedfmuti;
       }
-#endif
+
     std::pair<std::map<UTI, UTI>::iterator, bool> ret;
     ret = m_mapUTItoUTI.insert(std::pair<UTI, UTI>(fmuti,touti));
     bool notdup = ret.second; //false if already existed, i.e. not added

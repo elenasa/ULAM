@@ -295,20 +295,6 @@ namespace MFM {
 	return Nav; //short-circuit
       }
 
-#if 0
-    //don't allow unions to contain string data members (t41093); nor String arrays (t41334)
-    if(m_state.isClassAQuarkUnion(cuti) && m_state.isAStringType(nuti))
-      {
-	std::ostringstream msg;
-	msg << "Data member '";
-	msg << m_state.m_pool.getDataAsString(m_vid).c_str();
-	msg << "' belongs to a quark-union, and cannot be type String";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	setNodeType(Nav);
-	return Nav; //short-circuit
-      }
-#endif
-
     //don't allow a subclass to shadow a base class datamember (error/t41331)
     TBOOL shadowt = checkForNoShadowingSubclass(cuti);
     if(shadowt != TBOOL_TRUE)

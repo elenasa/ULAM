@@ -777,11 +777,6 @@ namespace MFM {
 	  }
       }
 
-#if 0
-    if(m_state.isClassATemplate(m_state.getCompileThisIdx()))
-      return uti; //no folding when a template (t41438)
-#endif
-
     if(!m_state.isScalar(uti))
       {
 	// similar to NodeVarDecl (t3881); constant class array (t41261,2)

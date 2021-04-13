@@ -430,22 +430,6 @@ namespace MFM {
     if(! m_state.isComplete(suti))
       aok = false;
 
-#if 0
-    u32 hazybases = 0;
-    u32 basecount = this->getBaseClassCount() + 1; //include super
-    u32 i = 0;
-    while(i < basecount)
-      {
-	UTI baseuti = this->getBaseClass(i);
-	if(baseuti == Hzy)
-	  hazybases++;
-	i++;
-      } //end while
-
-    if(hazybases > 0)
-      return false; //not aok for t41440??
-#endif
-
     s32 totalbits;
     if(isQuarkUnion())
       totalbits = classNode->getMaxBitSizeOfVariableSymbolsInTable(basebits, mybits, seensetref);
@@ -982,11 +966,6 @@ namespace MFM {
   bool SymbolClass::hasMappedUTI(UTI auti)
   {
     return resolveHasMappedUTI(auti);
-#if 0
-    UTI tmpmappedUTI; //helps with gdb debugging
-    bool rtnb = hasMappedUTI(auti, tmpmappedUTI);
-    return rtnb;
-#endif
   }
 
   bool SymbolClass::resolveHasMappedUTI(UTI auti, UTI& mappedUTI)
