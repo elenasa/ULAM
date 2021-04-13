@@ -403,7 +403,16 @@ namespace MFM {
       }
 
     if(m_state.okUTItoContinue(it) && m_varSymbol)
-      it = specifyimplicitselfexplicitly();
+      {
+	it = specifyimplicitselfexplicitly();
+	if(it == Hzy)
+	  {
+	    std::ostringstream msg;
+	    msg << "Explicit self inserted before ";
+	    msg << "symbol name '" << getName() << "'";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	  }
+      }
 
     if(m_state.okUTItoContinue(it) && m_varSymbol)
       it = checkUsedBeforeDeclared();

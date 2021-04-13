@@ -9,7 +9,6 @@
 namespace MFM {
 
   NodeBlockClass::NodeBlockClass(NodeBlock * prevBlockNode, CompilerState & state) : NodeBlockContext(prevBlockNode, state), m_functionST(state), m_virtualmethodMaxIdx(UNKNOWNSIZE), m_buildingDefaultValueInProgress(false), m_bitPackingInProgress(false), m_isEmpty(false), m_registeredForTestInstance(false)
-
   {
     m_nodeParameterList = new NodeList(state);
     assert(m_nodeParameterList);
@@ -554,7 +553,9 @@ namespace MFM {
   void NodeBlockClass::setDataMembersParseTree(UTI cuti, NodeBlockClass & fromClassBlock)
   {
     assert(cuti==getNodeType());
-    assert(m_nodeNext == NULL);
+    //    assert(m_nodeNext == NULL);
+    if(m_nodeNext != NULL)
+      return; //quietly?
     NodeStatements * fmnode = fromClassBlock.m_nodeNext;
     if(fmnode == NULL)
       return;
@@ -619,6 +620,21 @@ namespace MFM {
 	msg << " (UTI " << futi << ")";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
+  } //setDataMemberSymbolsTable
+
+  SymbolTable * NodeBlockClass::getFunctionSymbolTablePtr()
+  {
+    return &m_functionST;
+  }
+
+  void NodeBlockClass::setMemberFunctionsSymbolTable(UTI cuti, NodeBlockClass& fromClassBlock)
+  {
+    assert(cuti==getNodeType());
+    u32 fromtablesize = fromClassBlock.getNumberOfFuncSymbolsInTableHere();
+    u32 totablesize = getNumberOfFuncSymbolsInTableHere();
+    assert(totablesize==0);
+    m_functionST = *((SymbolTableOfFunctions *) fromClassBlock.getFunctionSymbolTablePtr());
+    assert(m_functionST.getTableSize()==fromtablesize);
   }
 
   NodeBlockClass * NodeBlockClass::getBaseClassBlockPointer(u32 item)
@@ -1887,9 +1903,31 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
   u32 NodeBlockClass::getNumberOfSymbolsInTable()
   {
     UTI nuti = getNodeType();
+    s32 count = 0;
 
-    s32 supers = 0;
+    BaseclassWalker walker;
+    walker.init(nuti);
 
+    //ulam-5 supports multiple base classes; superclass optional;
+    UTI baseuti = Nouti;
+    while(walker.getNextBase(baseuti, m_state) )
+      {
+	SymbolClass * basecsym = NULL;
+	if(m_state.alreadyDefinedSymbolClass(baseuti, basecsym))
+	  {
+	    NodeBlockClass * cblock = basecsym->getClassBlockNode();
+	    assert(cblock);
+
+	    u32 bcnt = cblock->NodeBlock::getNumberOfSymbolsInTable();
+	    count += bcnt;
+
+	    walker.addAncestorsOf(basecsym); //search all
+	  }
+      } //end while
+
+    return count;
+
+#if 0
     //ulam-5 supports multiple base classes; superclass optional
     SymbolClass * csym = NULL;
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(nuti, csym);
@@ -1928,6 +1966,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	  } //end while
       }
     return supers + NodeBlock::getNumberOfSymbolsInTable();
+#endif
   } //getNumberOfSymbolsInTable
 
   u32 NodeBlockClass::getNumberOfPotentialClassArgumentSymbols()
@@ -2075,11 +2114,39 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_functionST.addToTable(id, symptr);
   }
 
+  u32 NodeBlockClass::getNumberOfFuncSymbolsInTableHere()
+  {
+    return m_functionST.getTableSize();
+  }
+
   u32 NodeBlockClass::getNumberOfFuncSymbolsInTable()
   {
     UTI nuti = getNodeType();
-    s32 superfs = 0;
+    s32 count = 0;
 
+    BaseclassWalker walker;
+    walker.init(nuti);
+
+    //ulam-5 supports multiple base classes; superclass optional;
+    UTI baseuti = Nouti;
+    while(walker.getNextBase(baseuti, m_state) )
+      {
+	SymbolClass * basecsym = NULL;
+	if(m_state.alreadyDefinedSymbolClass(baseuti, basecsym))
+	  {
+	    NodeBlockClass * cblock = basecsym->getClassBlockNode();
+	    assert(cblock);
+
+	    u32 fcnt = cblock->getNumberOfFuncSymbolsInTableHere();
+	    count += fcnt;
+
+	    walker.addAncestorsOf(basecsym); //search all
+	  }
+      } //end while
+
+    return count;
+
+#if 0
     //ulam-5 supports multiple base classes; superclass optional
     SymbolClass * csym = NULL;
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(nuti, csym);
@@ -2119,6 +2186,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       }
 
     return superfs + m_functionST.getTableSize();
+#endif
+
   } //getNumberOfFuncSymbolsInTable
 
   u32 NodeBlockClass::getSizeOfFuncSymbolsInTable()

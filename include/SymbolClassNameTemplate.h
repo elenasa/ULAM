@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * SymbolClassNameTemplate.h -  Class Symbol "Template" for ULAM
  *
- * Copyright (C) 2015-2020 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2020 Ackleyshack LLC.
+ * Copyright (C) 2015-2021 The Regents of the University of New Mexico.
+ * Copyright (C) 2015-2021 Ackleyshack LLC.
  * Copyright (C) 2020 The Living Computation Foundation.
  *
  * This file is part of the ULAM programming language compilation system.
@@ -30,7 +30,7 @@
   \file SymbolClassNameTemplate.h -  Class Symbol "Template" for ULAM
   \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2020 All rights reserved.
+  \date (C) 2015-2021 All rights reserved.
   \gpl
 */
 
@@ -81,8 +81,6 @@ namespace MFM{
 
     SymbolClass * makeAStubClassInstance(const Token& typeTok, UTI cuti); //to hold class args, and cUTI
     SymbolClass * copyAStubClassInstance(UTI instance, UTI newuti, UTI argvaluecontext, UTI argtypecontext, Locator newloc);
-
-    bool checkTemplateAncestorsBeforeAStubInstantiation(SymbolClass * stubcsym); //or private?
 
     void mergeClassInstancesFromTEMP();
 
@@ -154,6 +152,10 @@ namespace MFM{
     bool copyAnInstancesArgValues(SymbolClass * fm, SymbolClass * to);
     void cloneAnInstancesUTImap(SymbolClass * fm, SymbolClass * to);
     void initBaseClassListForAStubClassInstance(SymbolClass * & newclassinstance);
+    void updateBaseClassListForAStubClassInstance(SymbolClass * & tocsym);
+    bool checkTemplateAncestorsBeforeAStubInstantiation(SymbolClass * stubcsym);
+    bool checkTemplateAncestorsAndUpdateStubBeforeAStubInstantiation(SymbolClass * stubcsym);
+
 
     bool checkSFINAE(SymbolClass * sym);
 

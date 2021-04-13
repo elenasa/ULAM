@@ -96,6 +96,10 @@ namespace MFM{
     void resetDataMembersParseTree(UTI cuti, NodeBlockClass & fromClassBlock);
     void setDataMembersSymbolTable(UTI cuti, NodeBlockClass & fromClassBlock);
 
+    SymbolTable * getFunctionSymbolTablePtr();
+
+    void setMemberFunctionsSymbolTable(UTI cuti, NodeBlockClass& fromClassBlock);
+
     void clearBaseClassBlockList();
 
     void clearSharedBaseClassBlockList();
@@ -183,6 +187,8 @@ namespace MFM{
     virtual bool isFuncIdInScope(u32 id, Symbol * & symptrref);
 
     void addFuncIdToScope(u32 id, Symbol * symptr);
+
+    u32 getNumberOfFuncSymbolsInTableHere();
 
     u32 getNumberOfFuncSymbolsInTable();
 

@@ -39,3 +39,6 @@ doc/ref
 
 # Ignore git version cache files
 *TREEVERSION.mk
+
+# ignore big files
+core

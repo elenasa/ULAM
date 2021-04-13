@@ -539,7 +539,9 @@ namespace MFM {
       {
 	UTI a = mit->first;
 	UTI b = mit->second;
-	//let classes be newly mapped. t41225,t41434,t41436
+	//let classes be newly mapped. t41225,8, t41434,t41436
+	//see also CompilerState::mapIncompleteUTIForAClassInstance for
+	// unknown token type situation, instead of copy of stub.
 	if(!m_state.isAClass(a))
 	  csym->mapUTItoUTI(a, b);
 	mit++;

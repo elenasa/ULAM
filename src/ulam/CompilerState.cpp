@@ -900,6 +900,12 @@ namespace MFM {
 	return suti; //t3526, t3892
       }
 
+    if(isUrSelf(suti))
+      return suti; //special case
+
+    if(isEmptyElement(suti))
+      return suti; //special case
+
     SymbolClassName * cnsym = NULL;
     AssertBool isDefined = alreadyDefinedSymbolClassNameByUTI(cuti, cnsym);
     assert(isDefined);
@@ -973,18 +979,20 @@ namespace MFM {
 	UlamType * newut = getUlamTypeByIndex(newuti);
 	if(sut->isCustomArray())
 	  ((UlamTypeClass *) newut)->setCustomArray();
-
-	if(cnsymOfIncomplete->getUlamClass() != sut->getUlamClassType()) //t41436
+#if 1
+	if(cnsymOfIncomplete->getUlamClass() != sut->getUlamClassType())
 	  {
 	    //warning! new class type 'newuti' doesn't have its SymbolClass yet (undefined);
 	    Token tmpTok(TOK_IDENTIFIER, loc, cnsymOfIncomplete->getId()); //use current locator
-	    cnsym->addUnknownTypeTokenToClass(tmpTok, newuti);
+	    cnsym->addUnknownTypeTokenToClass(tmpTok, newuti);  //t41436
 	    cnsymOfIncomplete->mapUTItoUTI(newuti, suti);
 	  }
 	else
+#endif
 	  {
 #if 1
 	    //potential for unending process..
+	    //notes: sclasstype may be UNSEEN. 'cuti' may not be getCompileThis class (t41209,t41217,8)
 	    //((SymbolClassNameTemplate *)cnsymOfIncomplete)->copyAStubClassInstance(suti, newuti, getCompileThisIdx(), cuti, loc);
 	    ((SymbolClassNameTemplate *)cnsymOfIncomplete)->copyAStubClassInstance(suti, newuti, cuti, newuti, loc);
 

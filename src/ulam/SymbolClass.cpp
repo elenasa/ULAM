@@ -32,7 +32,10 @@ namespace MFM {
     if(sref.m_classBlock)
       {
 	m_classBlock = (NodeBlockClass * ) sref.m_classBlock->instantiate(); //note: wasn't correct uti during cloning
+
 	// note: if superclass, the prevBlockPtr of m_classBlock hasn't been set yet!
+	// does new m_functionST op= work instead? YES.
+	//m_classBlock->setMemberFunctionsSymbolTable(m_classBlock->getNodeType(),*sref.m_classBlock);
       }
     else
       m_classBlock = NULL; //i.e. UC_UNSEEN

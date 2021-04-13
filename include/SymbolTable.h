@@ -61,6 +61,7 @@ namespace MFM{
     virtual ~SymbolTable();
 
     void copyATableHere(const SymbolTable & fmst);
+    SymbolTable& operator=(const SymbolTable& fmst);
     void mergeATableHere(const SymbolTable & fmst);
     void mergedTableDifferences(const SymbolTable & fmst, SymbolTable & diffst);
 

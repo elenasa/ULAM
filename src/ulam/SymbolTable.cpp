@@ -32,6 +32,12 @@ namespace MFM {
       }
   }
 
+  SymbolTable& SymbolTable::operator=(const SymbolTable& fmst)
+  {
+    copyATableHere(fmst);
+    return *this;
+  }
+
   void SymbolTable::mergeATableHere(const SymbolTable & fmst)
   {
     std::map<u32, Symbol* >::const_iterator it = fmst.m_idToSymbolPtr.begin();

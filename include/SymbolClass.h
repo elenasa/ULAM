@@ -76,6 +76,7 @@ namespace MFM{
 
     bool isDirectSharedBase(u32 item) const;
     u32 getNumberSharingBase(u32 item) const;
+    u32 getNumberSharingSharedBase(u32 item) const;
     u32 countDirectSharedBases() const;
     u32 findDirectSharedBases(std::map<UTI, u32>& svbmapref);
 
@@ -89,6 +90,7 @@ namespace MFM{
     s32 isASharedBaseClassItem(UTI buti);
     s32 isASharedBaseClassItemSearch(UTI buti);
     u32 getSharedBaseClassCount() const;
+    void updateSharedBaseClass(UTI oldclasstype, u32 item, UTI newbaseclass);
 
     s32 getSharedBaseClassRelativePosition(u32 item) const;
     void setSharedBaseClassRelativePosition(u32 item, u32 pos);
@@ -232,9 +234,7 @@ namespace MFM{
     void clearBaseAsShared(u32 item);
     void setNumberSharingBase(u32 item, u32 numshared);
     s32 isABaseClassItemSearch(UTI buti);
-    u32 getNumberSharingSharedBase(u32 item) const;
     void appendSharedBaseClass(UTI baseclass, u32 numshared);
-    void updateSharedBaseClass(UTI oldclasstype, u32 item, UTI newbaseclass);
 
     bool resolveHasMappedUTI(UTI auti, UTI& mappedUTI);
     bool resolveHasMappedUTI(UTI auti); //helps w debugging
