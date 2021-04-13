@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeTypedef.h - Basic Node handling Typedefs for ULAM
  *
- * Copyright (C) 2014-2019 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2019 Ackleyshack LLC.
+ * Copyright (C) 2014-2021 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2021 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeTypedef.h - Basic Node handling Typedefs for ULAM
   \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2019 All rights reserved.
+  \date (C) 2014-2021 All rights reserved.
   \gpl
 */
 
@@ -113,6 +113,9 @@ namespace MFM{
     NodeTypeDescriptor * m_nodeTypeDesc; //can be NULL
 
     NNO getBlockNo();
+    void setupBlockNo();
+    void setBlockNo(NNO n);
+
     void setBlock(NodeBlock * ptr);
     NodeBlock * getBlock();
 

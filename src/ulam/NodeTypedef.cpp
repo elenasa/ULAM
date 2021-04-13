@@ -144,8 +144,29 @@ namespace MFM {
 	  }
 
 	UTI cuti = m_state.getCompileThisIdx();
+#if 0
+	bool changeScope = (m_state.m_pendingArgStubContext != m_state.m_pendingArgTypeStubContext);
+
+	if(changeScope)
+	  {
+	    UTI context = m_state.m_pendingArgStubContext;
+	    //UTI contextForArgTypes = m_state.m_pendingArgTypeStubContext;
+	    //assert(contextForArgTypes != Nouti);
+	    //assert(!m_state.isAClass(contextForArgTypes) || (m_state.getAClassBlock(contextForArgTypes)!=NULL));
+	    //m_state.pushClassOrLocalCurrentBlock(contextForArgTypes); //doesn't change compileThisIdx
+	    m_state.pushClassOrLocalCurrentBlock(context); //doesn't change compileThisIdx
+	  }
+#endif
 	if(m_nodeTypeDesc)
 	  {
+#if 0
+	    bool changeScopeForTypesOnly = false;
+	    if(!changeScope && (m_state.m_pendingArgTypeStubContext != Nouti))
+	      {
+		m_state.pushClassOrLocalContextAndDontUseMemberBlock(m_state.m_pendingArgTypeStubContext);
+		changeScopeForTypesOnly = true; //t41446?
+	      }
+#endif
 	    UTI duti = m_nodeTypeDesc->checkAndLabelType(); //sets goagain if nav
 	    if(m_state.okUTItoContinue(duti) && (duti != it))
 	      {
@@ -159,10 +180,14 @@ namespace MFM {
 		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 		m_state.mapTypesInCurrentClass(it, duti);
-		m_state.updateUTIAliasForced(it, duti); //t3379
+		m_state.updateUTIAliasForced(it, duti); //t3379, t3668
 		m_typedefSymbol->resetUlamType(duti); //consistent! (must be same ref type)
 		it = duti;
 	      }
+#if 0
+	    if(changeScopeForTypesOnly)
+	      m_state.popClassContext(); //restore
+#endif
 	  }
 
 	if(!m_state.okUTItoContinue(it) || !m_state.isComplete(it)) //reloads
@@ -180,7 +205,12 @@ namespace MFM {
 	    else
 	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
+#if 0
+	if(changeScope)
+	  m_state.popClassContext(); //restore
+#endif
       } // got typedef symbol
+
     setNodeType(it);
     if(it == Hzy) m_state.setGoAgain(); //since not error; unlike vardecl
     return getNodeType();
@@ -196,7 +226,7 @@ namespace MFM {
 
     Symbol * asymptr = NULL;
     bool hazyKin = false;
-    if(m_state.alreadyDefinedSymbol(m_tdid, asymptr, hazyKin) && !hazyKin)
+    if(m_state.alreadyDefinedSymbol(m_tdid, asymptr, hazyKin)) // && !hazyKin) t41446?
       {
 	if(asymptr->isTypedef())
 	  {
@@ -228,6 +258,30 @@ namespace MFM {
     return m_currBlockNo;
   }
 
+  void NodeTypedef::setupBlockNo()
+  {
+    //taken from NodeIdent (t41446)?
+    //define before used, start search with current block
+    if(m_currBlockNo == 0)
+      {
+	if(m_state.useMemberBlock())
+	  {
+	    NodeBlockClass * memberclass = m_state.getCurrentMemberClassBlock();
+	    assert(memberclass);
+	    setBlockNo(memberclass->getNodeNo());
+	  }
+	else
+	  setBlockNo(m_state.getCurrentBlockNo());
+      }
+  } //setupBlockNo
+
+  void NodeTypedef::setBlockNo(NNO n)
+  {
+    //assert(n > 0);
+    m_currBlockNo = n;
+    m_currBlockPtr = NULL; //not owned, just clear
+  }
+
   void NodeTypedef::setBlock(NodeBlock * ptr)
   {
     m_currBlockPtr = ptr;
@@ -241,6 +295,15 @@ namespace MFM {
 
     NodeBlock * currBlock = (NodeBlock *) m_state.findNodeNoInThisClassOrLocalsScope(m_currBlockNo);
     assert(currBlock);
+#if 0
+    if(currBlock == NULL)
+      {
+	setBlockNo(0); //resets
+	setupBlockNo();
+	currBlock = (NodeBlock *) m_state.findNodeNoInThisClassOrLocalsScope(m_currBlockNo);
+	assert(currBlock);
+      }
+#endif
     return currBlock;
   } //getBlock
 

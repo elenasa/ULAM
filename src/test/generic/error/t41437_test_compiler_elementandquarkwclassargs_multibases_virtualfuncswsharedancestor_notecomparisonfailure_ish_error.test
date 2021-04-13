@@ -1,0 +1,133 @@
+## -*- mode:ulam -*-
+#=t41437_test_compiler_elementandquarkwclassargs_multibases_virtualfuncswsharedancestor_notecomparisonfailure_ish_error
+#!
+./PrintBase.ulam:4:18: Warning: Virtual Function: die() has conflicting declarations in multiple base classes: GeneralSpatialTree and PrintBase, while compiling Plate.
+./R.ulam:6:7: ERROR: Ambiguous matches (2) of function 'die' called without arguments.
+./GeneralSpatialTree.ulam:13:8: NOTE: Match (1 of 2) : Bool(1) die().
+./PrintBase.ulam:4:18: NOTE: Match (2 of 2) : Bool(1) die().
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by Dave ish 3/28/2021 _141743. Note ambiguous searched all ancestors,
+##           unlike find with safe casts that didnt for 1 match found.
+##           (see also t41305,t41312,t41329,t41385)
+##
+#>R.ulam
+  ulam 5;
+element R {
+  Int test()
+  {
+    Plate p;
+    p.die();
+    return 0;
+  }
+}
+
+
+#:PrintBase.ulam
+  ulam 5;
+quark PrintBase : RotateSPOT + Parms + Death {
+  ////SPOT API
+    virtual Bool die() { return mDied = true; } // Take out everything: Printing materials + content
+    Bool mDied;
+}
+
+
+#:RotateSPOT.ulam
+  ulam 5;
+quark RotateSPOT : SPOT {
+  // Local typedefs
+  typedef Unsigned(2) WindowRotation;
+    // Local data
+  WindowRotation mRot;
+  constant WindowRotation c000R = 0u;
+  constant WindowRotation c090R = 1u;
+  constant WindowRotation c180R = 2u;
+  constant WindowRotation c270R = 3u;
+}
+
+#:SPOT.ulam
+  ulam 5;
+quark SPOT : SPOTStage + Update {
+}
+
+#:SPOTStage.ulam
+  ulam 5;
+quark SPOTStage {
+  constant Unsigned cEXEUNT_OMNES = (Unsigned) (Unsigned.maxof>>2);
+  constant Unsigned cREPORT_OUT = (Unsigned) (Unsigned.maxof>>1);
+  constant Unsigned cEMERGENCY_ABORT = Unsigned.maxof;
+}
+
+#:SPOTStageBits.ulam
+  ulam 5;
+quark SPOTStageBits(Unsigned(5) bits) : SPOTStage {
+  constant Unsigned cSHIFT = Unsigned.sizeof - bits;
+  typedef Unsigned(bits) SizedStage;
+  SizedStage mStage;
+}
+
+#:Update.ulam
+  ulam 5;
+quark Update {
+  virtual Bool update() { return false; }
+}
+
+#:Printer.ulam
+  ulam 5;
+quark Printer : PrintBase + SPOTStageBits(2u) {
+  virtual Int priority() { return cPRINTER_PRIORITY; }
+  Bool mMiscarried;
+
+  Bool miscarry() { return mMiscarried = true; }        // Take out just Printer materials
+  Bool isMiscarried() { return mMiscarried; }
+}
+
+#:Utils.ulam
+  ulam 5;
+quark Utils : Parms {
+  SN reversePtr(SN od) {
+    return Parms.SN.maxof; // Illegal reverses to illegal
+  }
+}
+
+#:Parms.ulam
+  ulam 5;
+quark Parms {
+  typedef Unary(2) RGBState;
+  constant RGBState cRED_STATE =   0u;
+  constant RGBState cGREEN_STATE = 1u;
+  constant RGBState cBLUE_STATE =  2u;
+  typedef Unsigned(6) SN;
+
+  constant Int cCONTENT_PRIORITY = 1;
+  constant Int cPRINTER_PRIORITY = 10;
+  constant Int cTRUCK_PRIORITY = 20;
+}
+
+#:Death.ulam
+  ulam 5;
+quark Death {
+  virtual Bool die() ;
+}
+
+#:GeneralSpatialTree.ulam
+  ulam 5;
+quark GeneralSpatialTree : Death {
+  typedef Unsigned(2) RGBState;
+  constant RGBState cRED_STATE = 0u;
+  constant RGBState cGREEN_STATE = 1u;
+  constant RGBState cBLUE_STATE = 2u;
+  constant RGBState cDEAD_STATE = 3u;
+
+  // DATA MEMBERS
+  RGBState mRGBState = cRED_STATE;
+
+  // Death API
+  Bool die() { mRGBState = cDEAD_STATE; return true; }
+}
+
+#:Plate.ulam
+  ulam 5;
+element Plate : GeneralSpatialTree + Printer + Utils {}
+
+#.

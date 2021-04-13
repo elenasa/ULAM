@@ -514,8 +514,8 @@ namespace MFM {
 
 	if(m_state.getCurrentBlock()->isASwitchBlock())
 	  {
-	    //e.g. switch condition variable (t41016-19)
-	    UTI vit = m_varSymbol->getUlamTypeIdx(); //base type has arraysize
+	    //e.g. switch condition variable (t41016-19); reload vit (was localvar)
+	    vit = m_varSymbol->getUlamTypeIdx(); //base type has arraysize
 	    if(m_state.isHolder(vit) && m_state.isComplete(eit))
 	      {
 		m_state.cleanupExistingHolder(vit, eit);
@@ -703,7 +703,7 @@ namespace MFM {
 
     Symbol * asymptr = NULL;
     bool hazyKin = false;
-    if(m_state.alreadyDefinedSymbol(m_vid, asymptr, hazyKin) && !hazyKin)
+    if(m_state.alreadyDefinedSymbol(m_vid, asymptr, hazyKin)) // && !hazyKin) //t3328?
       {
 	if(!asymptr->isTypedef() && !asymptr->isConstant() && !asymptr->isModelParameter() && !asymptr->isFunction())
 	  {

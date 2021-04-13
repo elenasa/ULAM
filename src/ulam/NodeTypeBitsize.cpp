@@ -237,8 +237,8 @@ namespace MFM {
 	msg << "  Reduced by one to " << newbitsize << " bits" ;
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
       }
-  rtnBitSize = newbitsize;
-  return true;
-} //getTypeBitSizeInParen
+    rtnBitSize = newbitsize;
+    return true;
+  } //getTypeBitSizeInParen
 
 } //end MFM

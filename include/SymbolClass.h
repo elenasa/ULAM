@@ -94,6 +94,7 @@ namespace MFM{
     void setSharedBaseClassRelativePosition(u32 item, u32 pos);
 
     void setClassBlockNode(NodeBlockClass * node);
+    void resetClassBlockNode(NodeBlockClass * node);
 
     NodeBlockClass * getClassBlockNode();
 
@@ -156,6 +157,7 @@ namespace MFM{
 
     bool mapUTItoUTI(UTI auti, UTI mappedUTI);
     bool hasMappedUTI(UTI auti, UTI& mappedUTI);
+    bool hasMappedUTI(UTI auti); //helps w debugging
 
     bool assignRegistryNumber(u32 n); //ulam-4
     u32 getRegistryNumber(); //ulam-4, assign when UTI is ok ulam-5
@@ -200,6 +202,12 @@ namespace MFM{
 
     void buildIsBitVectorByRegNum(BV8K& bitvecref);
 
+    void assignClassArgValuesInStubCopy(); //was private.
+
+    void setTemplateBaseClassStub();
+    void clearTemplateBaseClassStub();
+    bool isTemplateBaseClassStub();
+
   protected:
     Resolver * m_resolver;
 
@@ -210,6 +218,7 @@ namespace MFM{
     SymbolClassNameTemplate * m_parentTemplate;
     bool m_quarkunion;
     bool m_stub;
+    bool m_stubbaseForTemplate; //ulam-5 (t41440)
     BV8K m_defaultValue; //BitVector
     bool m_isreadyDefaultValue;
     bool m_bitsPacked;
@@ -227,9 +236,8 @@ namespace MFM{
     void appendSharedBaseClass(UTI baseclass, u32 numshared);
     void updateSharedBaseClass(UTI oldclasstype, u32 item, UTI newbaseclass);
 
-    void assignClassArgValuesInStubCopy();
-
     bool resolveHasMappedUTI(UTI auti, UTI& mappedUTI);
+    bool resolveHasMappedUTI(UTI auti); //helps w debugging
 
     void generateHeaderPreamble(File * fp);
     void genIfndefForHeaderFile(File * fp);

@@ -175,6 +175,35 @@ namespace MFM {
     return m_cid;
   }
 
+  bool NodeConstantDef::setSymbolValue(const BV8K& bv)
+  {
+    bool rtnb = false;
+    if(m_constSymbol->isClassParameter())
+      {
+	assert(hasDefaultSymbolValue());
+	m_constSymbol->setInitValue(bv); //t41438??
+	rtnb = m_constSymbol->isInitValueReady();
+      }
+      else if(m_constSymbol->isClassArgument() && isClassArgumentItsDefaultValue())
+	{
+	  //m_constSymbol->setInitValue(bv); //t41438??
+	  //rtnb = m_constSymbol->isInitValueReady();
+	  m_constSymbol->setValue(bv); //isReady now! (e.g. ClassArgument, ModelParameter)
+	  rtnb = m_constSymbol->isReady();
+	}
+      else if(isDataMemberInit())
+	{
+	  m_constSymbol->setInitValue(bv); //(isInitValueReady now)! t41168
+	  rtnb = m_constSymbol->isInitValueReady();
+	}
+      else
+	{
+	  m_constSymbol->setValue(bv); //isReady now! (e.g. ClassArgument, ModelParameter)
+	  rtnb = m_constSymbol->isReady();
+	}
+      return rtnb;
+  } //setSymbolValue
+
   bool NodeConstantDef::getNodeTypeDescriptorPtr(NodeTypeDescriptor *& nodetypedescref)
   {
     if(m_nodeTypeDesc)
@@ -235,8 +264,11 @@ namespace MFM {
 
     UTI suti = m_constSymbol->getUlamTypeIdx();
     UTI cuti = m_state.getCompileThisIdx();
+    //use of context (pushed by Resolver), but not reflected in global m_pendingArgStubContext,
+    //doesn't help with default values, better off with type context (==stub)
     bool changeScope = (m_state.m_pendingArgStubContext != m_state.m_pendingArgTypeStubContext) && (m_constSymbol->isClassParameter() || m_constSymbol->isClassArgument()) && !isClassArgumentItsDefaultValue(); //t3328, t41153, t41209, t41214,7,8, t41224,t41431
-
+    //bool changeScope = (m_state.m_pendingArgStubContext != Nouti) && (m_state.m_pendingArgStubContext != m_state.m_pendingArgTypeStubContext) && (m_constSymbol->isClassParameter() || m_constSymbol->isClassArgument()) && isClassArgumentItsDefaultValue(); //t3328, t41153, t41209, t41214,7,8, t41224,t41431
+    //    changeScope = false; //t41225???
     if(changeScope)
       {
 	//not m_pendingArgStubContext (t3328,9, t3330,2, t41153, t41209, t41214,7,8, t41224
@@ -344,6 +376,8 @@ namespace MFM {
 	    msg << "Constant value expression for: ";
 	    msg << m_state.m_pool.getDataAsString(m_cid).c_str();
 	    msg << ", is not ready, still hazy";
+	    msg << ", while compiling " << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	    msg << " (UTI " << cuti << ")";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    setNodeType(Hzy);
 	    m_state.setGoAgain();
@@ -743,6 +777,11 @@ namespace MFM {
 	  }
       }
 
+#if 0
+    if(m_state.isClassATemplate(m_state.getCompileThisIdx()))
+      return uti; //no folding when a template (t41438)
+#endif
+
     if(!m_state.isScalar(uti))
       {
 	// similar to NodeVarDecl (t3881); constant class array (t41261,2)
@@ -806,7 +845,7 @@ namespace MFM {
 	    BV8K bvtmp;
 	    if(m_nodeExpr->getConstantValue(bvtmp))
 	      {
-		m_constSymbol->setValue(bvtmp);
+		setSymbolValue(bvtmp);
 		rtnuti = m_nodeExpr->getNodeType();
 		u32 tmpslotnum = m_state.m_constantStack.getAbsoluteTopOfStackIndexOfNextSlot();
 		assignConstantSlotIndex(tmpslotnum);
@@ -909,12 +948,7 @@ namespace MFM {
     BV8K bvtmp;
     u32 len = m_state.getTotalBitSize(uti);
     bvtmp.WriteLong(0u, len, newconst); //is newconst packed?
-    if(m_constSymbol->isClassParameter())
-      m_constSymbol->setInitValue(bvtmp); //(isInitValueReady now)!
-    else if(isDataMemberInit())
-      m_constSymbol->setInitValue(bvtmp); //(isInitValueReady now)!
-    else
-      m_constSymbol->setValue(bvtmp); //isReady now! (e.g. ClassArgument, ModelParameter)
+    setSymbolValue(bvtmp);
 
     //for primitive constants too; eval support for function constant parameters (t41240)
     u32 tmpslotnum = m_state.m_constantStack.getAbsoluteTopOfStackIndexOfNextSlot();
@@ -966,12 +1000,7 @@ namespace MFM {
 
     if(brtn)
       {
-	if(m_constSymbol->isClassParameter())
-	  m_constSymbol->setInitValue(bvtmp);
-	else if(isDataMemberInit())
-	  m_constSymbol->setInitValue(bvtmp); //t41168
-	else
-	  m_constSymbol->setValue(bvtmp); //isReady now! (e.g. ClassArgument, ModelParameter)
+	setSymbolValue(bvtmp);
       }
     return brtn;
   } //foldArrayInitExpression
@@ -1001,7 +1030,7 @@ namespace MFM {
 	//no node expression, use default value
 	if((rtnok = m_state.getDefaultClassValue(nuti, bvtmp))) //uses scalar uti
 	  {
-	    m_constSymbol->setValue(bvtmp);
+	    setSymbolValue(bvtmp);
 	  }
 	return rtnok;
       }
@@ -1010,7 +1039,7 @@ namespace MFM {
     if(m_nodeExpr->isAConstantClass())
       {
 	if((rtnok = m_nodeExpr->getConstantValue(bvtmp)))
-	  m_constSymbol->setValue(bvtmp);
+	  setSymbolValue(bvtmp);
       }
     else if(m_nodeExpr->isAList())
       {
@@ -1020,11 +1049,13 @@ namespace MFM {
 	      {
 		BV8K bvmask;
 		if((rtnok = ((NodeListClassInit *) m_nodeExpr)->initDataMembersConstantValue(bvtmp,bvmask))) //passes along default value
-		  m_constSymbol->setValue(bvtmp);
+		  setSymbolValue(bvtmp);
+		//m_constSymbol->setValue(bvtmp); ??
 	      }
 	    else
 	      {
-		m_constSymbol->setValue(bvtmp); //empty list uses default
+		//m_constSymbol->setValue(bvtmp); //empty list uses default
+		setSymbolValue(bvtmp);
 		rtnok = true;
 	      }
 	  } // else no default, perhaps not ready

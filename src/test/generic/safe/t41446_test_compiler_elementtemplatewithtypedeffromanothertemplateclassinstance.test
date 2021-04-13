@@ -1,0 +1,66 @@
+## -*- mode:ulam -*-
+#=t41446_test_compiler_elementtemplatewithtypedeffromanothertemplateclassinstance
+#!
+Exit status: 0
+Ue_R { Int(32) test() {  System s;  Foo(4,3u,false) f;  0 cast return } }
+Uq_System { <NOMAIN> }
+Uq_Foo(Unary(5) x = NONREADYCONST, Unsigned(4) y = NONREADYCONST, Bool(1) z = NONREADYCONST) : Zar(x,y,z) { /* empty class block */ }
+Uq_Pop(Bits(32) speciesID, Unsigned(5) mytag, Unary(5) myProgress, Unsigned(32) triggerlevel) { typedef Foo(x,y,z) MyFoo;  <NOMAIN> }
+Uq_Zar(Unary(5) x, Unsigned(4) y, Bool(1) z) { typedef Unary(UNKNOWN) Zary;  <NOMAIN> }
+##
+## simplier version informed by t41433
+##        turn wait message into error message check must recurse;
+##        Bug, fixed so set pendingarg context creates resolver instead of silently failing.
+##
+#>R.ulam
+  ulam 5;
+element R {
+
+  Int test()
+  {
+    System s;
+    Foo() f;
+    return 0;
+  }
+}
+
+
+#:Pop.ulam
+  ulam 5;
+quark Pop(Bits speciesID, Unsigned(5) mytag, Unary(5) myProgress, Unsigned triggerlevel) {
+  typedef Foo(myProgress,mytag,false) MyFoo; //typedef
+  //MyFoo mFoo; //dm
+}
+
+#:Foo.ulam
+  ulam 5;
+//use Zar; //WORKS WITH USE
+local constant Unsigned(4) cYTag = 3;
+local constant Unary(5) cProg = 4;
+local constant Unsigned cLevel = 2;
+local constant Bool cTrue = true;
+local constant Bool cFalse = false;
+quark Foo(Unary(5) x = cProg, Unsigned(4) y = cYTag, Bool z=cFalse) : Zar(x, y, z) {
+  //Zar(x,y,cTrue) mZar;
+}
+
+#:Zar.ulam
+  ulam 5;
+quark Zar(Unary(5) x, Unsigned(4) y, Bool z) { //same param names not the problem!
+  //  typedef Unary(y) Zary; //WORKS if precedes func, not sure why???
+  Unsigned func() { return 0 /* irrelevent, was x */;  }
+  typedef Unary(y) Zary;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

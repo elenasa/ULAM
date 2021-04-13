@@ -123,12 +123,13 @@ namespace MFM {
   bool Resolver::checkUnknownTypeToResolve(UTI huti, const Token& tok)
   {
     bool aok = false;
+
+    if(m_state.isComplete(huti))
+      return true; //short-circuit, known (t41287,8), t41436 hzy but known.
+
     ULAMTYPE etyp = m_state.getBaseTypeFromToken(tok);
     if((etyp == Hzy) || (etyp == Holder))
       return false;
-
-    if(m_state.isComplete(huti))
-      return true; //short-circuit, known (t41287,8)
 
     u32 tokid = m_state.getTokenDataAsStringId(tok);
     UTI kuti = Nav;
@@ -183,6 +184,15 @@ namespace MFM {
 		SymbolClass * csym = NULL;
 		if(m_state.alreadyDefinedSymbolClass(huti, csym))
 		  kuti = csym->getUlamTypeIdx(); //perhaps an alias
+		else if(cnsym->hasMappedUTI(huti))
+		  {
+		    UTI mappedUTI = Nouti;
+		    AssertBool gotmapped = cnsym->hasMappedUTI(huti,mappedUTI);
+		    assert(gotmapped);
+		    UTI cuti = m_state.getCompileThisIdx();
+		    ((SymbolClassNameTemplate *)cnsym)->copyAStubClassInstance(mappedUTI, huti, cuti, cuti, tok.m_locator); //t41436?
+		    kuti = huti;
+		  }
 		else
 		  {
 		    std::ostringstream msg;
@@ -368,9 +378,10 @@ namespace MFM {
     bool rtnb = true;
     UTI context = getContextForPendingArgValues();
     assert(!m_state.isAClass(context) || (m_state.getAClassBlock(context) != NULL));
+
     m_state.pushClassOrLocalContextAndDontUseMemberBlock(context);
 
-    m_state.m_pendingArgStubContext = m_classUTI; //set for folding surgery
+    m_state.m_pendingArgStubContext = m_classUTI; //t41225??m_classUTI; //set for folding surgery
     m_state.m_pendingArgTypeStubContext = getContextForPendingArgTypes(); //set for resolving types
 
     bool defaultval = false;
@@ -406,6 +417,7 @@ namespace MFM {
 
 		m_state.pushClassContext(m_classUTI, stubclassblock, stubclassblock, false, NULL);
 		pushedtemplate = true;
+		m_state.m_pendingArgStubContext = m_classUTI; //t41225??
 	      }
 	    assert(defaultval == pushedtemplate); //once a default, always a default
 
@@ -429,6 +441,7 @@ namespace MFM {
 
     m_state.m_pendingArgStubContext = Nouti; //clear flag
     m_state.m_pendingArgTypeStubContext = Nouti; //clear flag
+
     m_state.popClassContext(); //restore previous context
 
     //clean up, replace vector with vector of those still unresolved
@@ -475,6 +488,8 @@ namespace MFM {
 
   bool Resolver::mapUTItoUTI(UTI fmuti, UTI touti)
   {
+#if 1
+    //t3361 ???
     //if fm already mapped in full instance, (e.g. unknown typedeffromanotherclass)
     //use its mapped uti as the key to touti instead
     UTI mappedfmuti = fmuti;
@@ -487,7 +502,7 @@ namespace MFM {
 	MSG("",msg.str().c_str(),DEBUG);
 	fmuti = mappedfmuti;
       }
-
+#endif
     std::pair<std::map<UTI, UTI>::iterator, bool> ret;
     ret = m_mapUTItoUTI.insert(std::pair<UTI, UTI>(fmuti,touti));
     bool notdup = ret.second; //false if already existed, i.e. not added
@@ -517,17 +532,19 @@ namespace MFM {
     return brtn;
   } //findMappedUTI
 
-  void Resolver::cloneUTImap(SymbolClass * csym)
+  void Resolver::cloneUTImapForNonclasses(SymbolClass * csym)
   {
     std::map<UTI, UTI>::iterator mit = m_mapUTItoUTI.begin();
     while(mit != m_mapUTItoUTI.end())
       {
 	UTI a = mit->first;
 	UTI b = mit->second;
-	csym->mapUTItoUTI(a, b);
+	//let classes be newly mapped. t41225,t41434,t41436
+	if(!m_state.isAClass(a))
+	  csym->mapUTItoUTI(a, b);
 	mit++;
       }
-  } //cloneUTImap
+  } //cloneUTImapForNonclasses
 
   void Resolver::cloneUnknownTypesTokenMap(SymbolClass * csym)
   {

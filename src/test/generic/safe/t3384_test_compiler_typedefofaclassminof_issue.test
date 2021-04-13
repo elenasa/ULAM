@@ -11,7 +11,7 @@ Uq_Ish3 { Colony(3u) colony( typedef Telomeree(3u) Telo; );  <NOMAIN> }
 Uq_Colony(Unsigned(32) widthc) { typedef Telomeree(width) Telo;  <NOMAIN> }
 Uq_Telomeree(Unsigned(32) width) { typedef Unsigned(UNKNOWN) Tail;  Unsigned(UNKNOWN) age(notready);  <NOMAIN> }
 ##
-##       // likes Telomeree first!
+##       // likes Telomeree first! (see t3565 breaks)
 #>R.ulam
   ulam 1;
 //use Ish3;

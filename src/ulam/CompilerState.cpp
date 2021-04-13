@@ -905,8 +905,10 @@ namespace MFM {
     assert(isDefined);
 
     UTI mappedUTI;
+
     if(cnsym->hasInstanceMappedUTI(cuti, suti, mappedUTI))
-      return mappedUTI;  //e.g. decl list
+      return mappedUTI;  //e.g. decl list //t41225,t41228,t3327..etc
+
 
     if(findaUTIAlias(suti, mappedUTI))
        return mappedUTI; //anonymous UTI
@@ -922,6 +924,8 @@ namespace MFM {
 	if(!cnsymOfIncomplete->isClassTemplate())
 	  return suti;
 
+	//suti may be a template...or a stub...or a fully instantiated instance
+
 	ALT salt = getReferenceType(suti);
 	if(salt != ALT_NOT)
 	  {
@@ -929,8 +933,22 @@ namespace MFM {
 	    return getUlamTypeAsRef(asref, salt);
 	  }
 
-	if(!((SymbolClassNameTemplate *) cnsymOfIncomplete)->pendingClassArgumentsForStubClassInstance(suti))
+	//t3859, t3328, t3873
+	if(cnsymOfIncomplete->getId() == cnsym->getId())
+	  {
+	    if(isClassATemplate(suti))
+	      return cuti;
+	  }
+
+
+	if(!isClassAStub(suti))
 	  return suti;
+
+	//suti is a stub related to cuti (also not a template).
+	if(!((SymbolClassNameTemplate *) cnsymOfIncomplete)->pendingClassArgumentsForStubClassInstance(suti))
+	  return suti; //as good as an instance!
+
+	//o.w. make a stub copy...(t41436?)
       }
 
     //first time we've seen this 'incomplete' UTI for this class instance (as fully instantiated):
@@ -942,10 +960,13 @@ namespace MFM {
     //pending args.
     UlamKeyTypeSignature skey = sut->getUlamKeyTypeSignature();
     UlamKeyTypeSignature newkey(skey); //default constructor makes copy
-    ULAMCLASSTYPE sclasstype = sut->getUlamClassType(); //restore from original ut
-    UTI newuti = makeUlamType(newkey, bUT, sclasstype);
+    //restore from original ut; t41436: suti stub type unseen, while template was a transient
+    ULAMCLASSTYPE sclasstype = bUT==Class ? cnsymOfIncomplete->getUlamClass() : sut->getUlamClassType();
+    //ULAMCLASSTYPE sclasstype = sut->getUlamClassType();
 
+    UTI newuti = makeUlamType(newkey, bUT, sclasstype);
     cnsym->mapInstanceUTI(cuti, suti, newuti);
+    //cnsym->mapInstanceUTI(cuti, newuti, suti); //t41446 ? t41433?
 
     if(bUT == Class)
       {
@@ -953,27 +974,47 @@ namespace MFM {
 	if(sut->isCustomArray())
 	  ((UlamTypeClass *) newut)->setCustomArray();
 
-	//potential for unending process..
-	((SymbolClassNameTemplate *)cnsymOfIncomplete)->copyAStubClassInstance(suti, newuti, getCompileThisIdx(), cuti, loc);
+	if(cnsymOfIncomplete->getUlamClass() != sut->getUlamClassType()) //t41436
+	  {
+	    //warning! new class type 'newuti' doesn't have its SymbolClass yet (undefined);
+	    Token tmpTok(TOK_IDENTIFIER, loc, cnsymOfIncomplete->getId()); //use current locator
+	    cnsym->addUnknownTypeTokenToClass(tmpTok, newuti);
+	    cnsymOfIncomplete->mapUTItoUTI(newuti, suti);
+	  }
+	else
+	  {
+#if 1
+	    //potential for unending process..
+	    //((SymbolClassNameTemplate *)cnsymOfIncomplete)->copyAStubClassInstance(suti, newuti, getCompileThisIdx(), cuti, loc);
+	    ((SymbolClassNameTemplate *)cnsymOfIncomplete)->copyAStubClassInstance(suti, newuti, cuti, newuti, loc);
 
-	std::ostringstream msg;
-	msg << "MAPPED!! type: " << getUlamTypeNameByIndex(suti).c_str();
-	msg << "(UTI" << suti << ")";
-	msg << " TO newtype: " << getUlamTypeNameByIndex(newuti).c_str();
-	msg << "(UTI" << newuti << ")";
-	msg << " while compiling class " << getUlamTypeNameByIndex(cuti).c_str();
-	msg << "(UTI" << cuti << ")";
-	msg << ", for incomplete class " << getUlamTypeNameByIndex(cnsymOfIncomplete->getUlamTypeIdx()).c_str();
-	msg << "(UTI" << cnsymOfIncomplete->getUlamTypeIdx() << ")";
-	MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
+	    std::ostringstream msg;
+	    msg << "MAPPED!! type: " << getUlamTypeNameByIndex(suti).c_str();
+	    msg << "(UTI" << suti << ")";
+	    msg << " TO newtype: " << getUlamTypeNameByIndex(newuti).c_str();
+	    msg << "(UTI" << newuti << ")";
+	    msg << " while compiling class " << getUlamTypeNameByIndex(cuti).c_str();
+	    msg << "(UTI" << cuti << ")";
+	    msg << ", for incomplete class " << getUlamTypeNameByIndex(cnsymOfIncomplete->getUlamTypeIdx()).c_str();
+	    msg << "(UTI" << cnsymOfIncomplete->getUlamTypeIdx() << ")";
+	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
+#endif
+	  }
 
 	if(cuti != skey.getUlamKeyTypeSignatureNameId())
 	  {
 	    //e.g. inheritance
 	    ((SymbolClassNameTemplate *)cnsymOfIncomplete)->mergeClassInstancesFromTEMP(); //not mid-iteration!! makes alreadydefined.
 	  }
+
       }
-    //updateUTIAlias(suti, newuti); //what if..
+    else
+      {
+	//updateUTIAliasForced(suti, newuti); //what if..
+	//updateUTIAlias(newuti, suti); //what if..
+	//Token tmpTok(TOK_TYPE_IDENTIFIER, loc, skey.getUlamKeyTypeSignatureNameId()); //use current locator
+	//cnsym->addUnknownTypeTokenToClass(tmpTok, newuti);
+      }
     return newuti;
   } //mapIncompleteUTIForAClassInstance
 
@@ -2340,10 +2381,57 @@ namespace MFM {
 
 	    if(!hasstub)
 	      walker.addAncestorsOf(basecsym);
+	    else
+	      {
+		//sanity check (t41440)
+		assert(!isClassATemplate(cuti) || basecsym->isTemplateBaseClassStub());
+	      }
 	  }
       } //end while
     return hasstub; //even for non-classes
   } //hasClassAStubInHierarchy
+
+  bool CompilerState::isClassABaseStubInATemplateHierarchy(UTI baseuti)
+  {
+    SymbolClass * basecsym = NULL;
+    AssertBool isDefined = alreadyDefinedSymbolClass(baseuti, basecsym);
+    assert(isDefined);
+    return basecsym->isTemplateBaseClassStub();
+  }
+
+  void CompilerState::setBaseStubFlagForThisClassTemplate(UTI baseuti)
+  {
+    UTI cuti = getCompileThisIdx();
+    if((isClassATemplate(cuti) || isClassABaseStubInATemplateHierarchy(cuti)) && isClassAStub(baseuti))
+      {
+	SymbolClass * basecsym = NULL;
+	AssertBool isDefined = alreadyDefinedSymbolClass(baseuti, basecsym);
+	assert(isDefined);
+
+	basecsym->setTemplateBaseClassStub(); //t41440
+      }
+  }
+
+  bool CompilerState::turnWaitMessageIntoErrorMessage()
+  {
+    return turnWaitMessageIntoErrorMessage(getCompileThisIdx());
+  }
+
+  bool CompilerState::turnWaitMessageIntoErrorMessage(UTI cuti)
+  {
+    if(!isAClass(cuti) || isClassATemplate(cuti) || isClassABaseStubInATemplateHierarchy(cuti))
+      return false; //t41440 special case become debug messages instead;t41204
+
+    SymbolClass * csym = NULL;
+    AssertBool isDefined = alreadyDefinedSymbolClass(cuti, csym);
+    assert(isDefined);
+    if(csym->isStub())
+      {
+	UTI context = csym->getContextForPendingArgValues();
+	return turnWaitMessageIntoErrorMessage(context); //t3328
+      }
+    return true;
+  } //recursive helper
 
   bool CompilerState::isClassAQuarkUnion(UTI cuti)
   {
@@ -2766,12 +2854,15 @@ namespace MFM {
     UTI newstubcopyuti = makeUlamType(newstubkey, Class, superclasstype); //**gets next unknown uti type
 
     SymbolClass * superstubcopy = superctsym->copyAStubClassInstance(superuti, newstubcopyuti, argvaluecontext, argtypecontext, stubloc); //t3365. t41221
-    superctsym->mergeClassInstancesFromTEMP(); //not mid-iteration!!
+    assert(superstubcopy);
 
+    superctsym->mergeClassInstancesFromTEMP(); //not mid-iteration!!
+#if 0
     if(superstubcopy && !superstubcopy->pendingClassArgumentsForClassInstance())
       {
 	superctsym->checkTemplateAncestorsBeforeAStubInstantiation(superstubcopy);//re-CURSE???
       }
+#endif
     return newstubcopyuti;
   } //addStubCopyToAncestorClassTemplate
 
@@ -3785,11 +3876,11 @@ namespace MFM {
 			      msg << ", ";
 			    msg << getUlamTypeNameBriefByIndex(typeVec[i]).c_str();
 			  }
-			msg << ") has conflicting Originating declarations in multiple base classes, ";
+			msg << ") has conflicting Originating declarations in multiple base classes: ";
 			msg << getUlamTypeNameBriefByIndex(baseuti).c_str();
 			msg << " and ";
 			msg << getUlamTypeNameBriefByIndex(foundOriginator).c_str();
-			msg << " while compiling ";
+			msg << ", while compiling ";
 			msg << getUlamTypeNameBriefByIndex(cuti).c_str();
 			MSG2(tmpfsym->getTokPtr(), msg.str().c_str(), ERR);
 			origfsymref = NULL; //t41312
@@ -3991,11 +4082,11 @@ namespace MFM {
 			      msg << ", ";
 			    msg << getUlamTypeNameBriefByIndex(argNodes[i]->getNodeType()).c_str();
 			  }
-			msg << ") has conflicting declarations in multiple base classes, ";
+			msg << ") has conflicting declarations in multiple base classes: ";
 			msg << getUlamTypeNameBriefByIndex(foundinbase).c_str();
 			msg << " and ";
 			msg << getUlamTypeNameBriefByIndex(baseuti).c_str();
-			msg << " while compiling ";
+			msg << ", while compiling ";
 			msg << getUlamTypeNameBriefByIndex(cuti).c_str();
 			MSG2(tmpfsym->getTokPtr(), msg.str().c_str(), WARN); //was WARN
 			foundinbase = Nav; //WARNING
@@ -4054,13 +4145,18 @@ namespace MFM {
 	    assert(basecblock);
 	    pushClassContextUsingMemberClassBlock(basecblock);
 
+	    u32 safematches = 0;
 	    Symbol * fnSym = NULL;
 	    if(basecblock->isFuncIdInScope(fid, fnSym))
-	      count += ((SymbolFunctionName *) fnSym)->noteAmbiguousFunctionSignatures(argNodes, count, matchingFuncCount);
+	      {
+		safematches = ((SymbolFunctionName *) fnSym)->noteAmbiguousFunctionSignatures(argNodes, count, matchingFuncCount);
+		count += safematches;
+	      }
 
 	    popClassContext(); //didn't forget!!
 
-	    walker.addAncestorsOf(basecsym); // check them all..
+	    if(safematches != 1) //comparing with the "safe" matches found (t41437)
+	      walker.addAncestorsOf(basecsym); // check them all..
 	  }
       } //end while
     assert(count == matchingFuncCount); //sanity
@@ -6279,21 +6375,26 @@ namespace MFM {
     UTI buti = block->getNodeType();
     if(rtnb && !isClassAStub(buti))
       {
-	bool hasHazyKin = false;
-	SymbolClass * csym = NULL;
-	if(alreadyDefinedSymbolClass(buti, csym))
+	if(!okUTItoContinue(buti))
+	  rtnb = true; //HZY classes are not stubs (t41434)
+	else
 	  {
-	    u32 basecount = csym->getBaseClassCount() + 1; //include super
-	    u32 i = 0;
-	    while(!hasHazyKin && (i < basecount))
+	    bool hasHazyKin = false;
+	    SymbolClass * csym = NULL;
+	    if(alreadyDefinedSymbolClass(buti, csym))
 	      {
-		UTI baseuti = csym->getBaseClass(i);
-		if(baseuti != Nouti) //super is optional
-		  hasHazyKin = !((NodeBlockClass *) block)->isBaseClassLinkReady(buti,i);
-		i++;
-	      } //end while
+		u32 basecount = csym->getBaseClassCount() + 1; //include super
+		u32 i = 0;
+		while(!hasHazyKin && (i < basecount))
+		  {
+		    UTI baseuti = csym->getBaseClass(i);
+		    if(baseuti != Nouti) //super is optional
+		      hasHazyKin = !((NodeBlockClass *) block)->isBaseClassLinkReady(buti,i);
+		    i++;
+		  } //end while
+		rtnb = hasHazyKin;
+	      }
 	  }
-	rtnb = hasHazyKin;
       }
     //true if isaclass, AND either isastub, OR has hazykin (ie a baseclasslink notready)
     return rtnb;

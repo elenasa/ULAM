@@ -14,7 +14,7 @@ namespace MFM {
       {
 	setBlockNo(symptr->getBlockNoOfST());
 	m_ready = updateConstant(); //sets ready here
-	m_constType = m_constSymbol->getUlamTypeIdx();
+	m_constType = symptr->getUlamTypeIdx();
       }
     //else t41148
   }
@@ -161,7 +161,8 @@ namespace MFM {
     bool stubcopy = m_state.isClassAStub(m_state.getCompileThisIdx());
 
     //instantiate, look up in class block; skip if stub copy and already ready.
-    if(!stubcopy && m_constSymbol == NULL)
+    //if(!stubcopy && m_constSymbol == NULL)
+    if(m_constSymbol == NULL) //t41440??
       {
 	checkForSymbol();
 	if(m_constSymbol)
@@ -242,19 +243,21 @@ namespace MFM {
       m_ready = updateConstant(); //sets ready here
     if(!isReadyConstant())
       {
+	UTI cuti = m_state.getCompileThisIdx();
 	std::ostringstream msg;
 	msg << "Not ready constant for type: ";
 	msg << m_state.getUlamTypeNameByIndex(it).c_str();
 	msg << ", used with constant symbol name '";
 	msg << m_state.getTokenDataAsString(m_token).c_str() << "'";
+	msg << ", while compiling " << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	msg << " (UTI " << cuti << ")";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);  //t41192
 	it = Hzy;
-	if(!stubcopy) //t41432?
+	if(!stubcopy) //t41432? t41440??
 	  {
 	    m_constSymbol = NULL; //lookup again too! (e.g. inherited template instances)
 	    setBlock(NULL);
 	  }
-
       }
     setNodeType(it);
     Node::setStoreIntoAble(TBOOL_FALSE);
@@ -607,9 +610,28 @@ namespace MFM {
     u64 val;
     if(!m_constSymbol)
       return false;
+#if 0
+    if(m_constSymbol->isClassParameter())
+      {
+	if(m_constSymbol->hasInitValue() && m_constSymbol->getInitValue(val))
+	  {
+	    m_constant.uval = val;
+	    return m_constSymbol->isInitValueReady(); //t41438, and t3526
+	  }
+      }
 
+    if(m_constSymbol->isDataMember())
+      {
+	//consistent w NodeConstantDef setSymbolValue ??Tue Mar 30 17:01:29 2021
+	if(m_constSymbol->hasInitValue() && m_constSymbol->getInitValue(val))
+	  {
+	    m_constant.uval = val;
+	    return m_constSymbol->isInitValueReady();
+	  }
+      }
+#endif
     if(m_constSymbol->getValue(val))
-	m_constant.uval = val; //value fits type per its constantdef
+      m_constant.uval = val; //value fits type per its constantdef
     //else don't want default value here
 
     return m_constSymbol->isReady();

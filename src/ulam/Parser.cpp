@@ -348,7 +348,7 @@ namespace MFM {
 	AssertBool isReplaced = m_state.replaceUlamTypeForUpdatedClassType(cut->getUlamKeyTypeSignature(), Class, UC_UNSEEN, cut->isCustomArray());
 	assert(isReplaced);
 
-	cnSym->setClassBlockNode(NULL);
+	cnSym->setClassBlockNode(NULL); //not reset, t3130, etc.
 	std::ostringstream msg;
 	msg << "Empty/Incomplete Class Definition '";
 	msg << m_state.getTokenDataAsString(iTok).c_str();
@@ -422,7 +422,11 @@ namespace MFM {
 	    setupSuperClassHelper(supercsym, cnsym);
 	    //reset super block pointer since it will change if temporary (e.g. t3874)
 	    if(supercsym->isStub() || m_state.isHolder(superuti) || (supercsym->getUlamClass() == UC_UNSEEN))
-	      rtnNode->setBaseClassBlockPointer(NULL,0); //wait for c&l
+	      {
+		rtnNode->setBaseClassBlockPointer(NULL,0); //wait for c&l
+		m_state.setBaseStubFlagForThisClassTemplate(superuti); //applies to stubs only, t3852
+		assert(!cnsym->isClassTemplate() || !supercsym->isStub() || m_state.isClassABaseStubInATemplateHierarchy(superuti));//t3407, t3852
+	      }
 	  }
       }
     else
@@ -824,6 +828,9 @@ namespace MFM {
 		AssertBool isDefined = m_state.alreadyDefinedSymbolClass(baseuti, basecsym);
 		assert(isDefined);
 		rtninherits = true;
+
+		//m_state.setBaseStubFlagForThisClassTemplate(baseuti); //t41440
+		assert(!cnsym->isClassTemplate() || !basecsym->isStub() || m_state.isClassABaseStubInATemplateHierarchy(baseuti));//t41302
 	      }
 	  }
 	m_state.m_parsingVariableSymbolTypeFlag = STF_NEEDSATYPE; //reset
@@ -3015,7 +3022,7 @@ namespace MFM {
 	  }
 	else
 	  {
-	    //(similar to fixAnyClassInstances for unseen templates)
+	    //(similar to fixAnyUnseenClassInstances for unseen templates)
 	    //copy the default parameter symbols and nodeconstantdef's as pending args (t3526)
 	    ctsym->fixAClassStubsDefaultArgs(stubcsym, parmidx);
 	  }
@@ -3107,12 +3114,24 @@ namespace MFM {
 
 	assert(argSym);
 
-	argSym->setClassArgumentFlag(csym->getUlamTypeIdx()); //t41229
 	if( m_state.m_parsingVariableSymbolTypeFlag == STF_CLASSPARAMETER)
 	  argSym->setClassParameterFlag(); //as well?
+	//else
+	argSym->setClassArgumentFlag(csym->getUlamTypeIdx()); //t41229
 
-	//scope updated to new class instance in parseClassArguments
-	m_state.addSymbolToCurrentScope(argSym);
+	//scope updated to new class instance in parseClassArguments (t3326,t3328?)
+	u32 argid = argSym->getId();
+	Symbol * oldArgSym = NULL;
+	if(m_state.isIdInCurrentScope(argid, oldArgSym))
+	  {
+	    //patched in DataMembers when instance stub made
+	    delete argSym;
+	    assert(oldArgSym->isConstant());
+	    argSym = (SymbolConstantValue *) oldArgSym;
+	    //m_state.replaceSymbolInCurrentScope(oldArgSym, argSym); //t3326 better than leaks??
+	  }
+	else
+	  m_state.addSymbolToCurrentScope(argSym);
 
 	//make Node with argument symbol wo trying to fold const expr;
 	// add to list of unresolved for this uti

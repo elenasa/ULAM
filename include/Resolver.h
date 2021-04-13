@@ -79,7 +79,7 @@ namespace MFM
     bool mapUTItoUTI(UTI fmuti, UTI touti);
     bool findMappedUTI(UTI auti, UTI& mappedUTI);
 
-    void cloneUTImap(SymbolClass * csym);
+    void cloneUTImapForNonclasses(SymbolClass * csym);
     void cloneUnknownTypesTokenMap(SymbolClass * csym);
 
   protected:

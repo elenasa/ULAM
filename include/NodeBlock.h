@@ -122,13 +122,13 @@ namespace MFM{
   protected:
     SymbolTableOfVariables m_ST;
 
+    SymbolTable * getSymbolTablePtr(); //use with caution, esp. with inheritance
     //void genCodeDeclsForVariableDataMembers(File * fp, ULAMCLASSTYPE classtype);
 
   private:
     NodeBlock * m_prevBlockNode;
     NodeStatements * m_nodeEndingStmt; //ptr to last statement node while parsing.
 
-    SymbolTable * getSymbolTablePtr(); //use with caution, esp. with inheritance
 
   };
 

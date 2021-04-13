@@ -157,6 +157,11 @@ namespace MFM {
     m_isClassArgDefaultValue = true;
   }
 
+  void SymbolConstantValue::clearClassArgAsDefaultValue()
+  {
+    m_isClassArgDefaultValue = false;
+  }
+
   bool SymbolConstantValue::isClassArgDefaultValue()
   {
     return m_isClassArgDefaultValue;

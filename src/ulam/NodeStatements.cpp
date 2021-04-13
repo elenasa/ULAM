@@ -12,10 +12,7 @@ namespace MFM {
 
   NodeStatements::NodeStatements(const NodeStatements& ref) : Node(ref), m_node(NULL), m_nodeNext(NULL)
   {
-    if(ref.m_node)
-      m_node = ref.m_node->instantiate();
-    if(ref.m_nodeNext)
-      m_nodeNext = (NodeStatements *) ref.m_nodeNext->instantiate();
+    copyAParseTreeHere(ref);
   }
 
   NodeStatements::~NodeStatements()
@@ -24,6 +21,14 @@ namespace MFM {
     m_nodeNext = NULL;
     delete m_node;
     m_node = NULL;
+  }
+
+  void NodeStatements::copyAParseTreeHere(const NodeStatements& ref)
+  {
+    if(ref.m_node)
+      m_node = ref.m_node->instantiate();
+    if(ref.m_nodeNext)
+      m_nodeNext = (NodeStatements *) ref.m_nodeNext->instantiate();
   }
 
   Node * NodeStatements::instantiate()

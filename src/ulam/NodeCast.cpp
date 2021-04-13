@@ -657,17 +657,25 @@ namespace MFM {
 		//case of virtual func calls? (t41364)???
 		if(m_state.isAClass(nodeType))
 		  {
-		    m_state.m_currentAutoObjPtr = ruvPtr;
+		    m_state.m_currentAutoObjPtr = ruvPtr; //a copy
 		    m_state.m_currentAutoStorageType = nodeType;
 
 		    u32 baserelpos = 0;
-		    //use nodetype for data members (t41364)
-		    if(m_state.getABaseClassRelativePositionInAClass(nodeType, dereftobe, baserelpos))
+		    //use nodetype for data members (t41364); and, what if both baseclass and dm???
+		    if(m_node->hasASymbolDataMember())
 		      {
-			ruvPtr.setPtrPos(ruvPtr.getPtrPos() + baserelpos); //t41319
-			ruvPtr.setPtrLen(m_state.getBaseClassBitSize(dereftobe)); //t41364
+			ruvPtr.setPtrTargetType(nodeType); //t41364
 		      }
-		  } //else (not a class)
+		    else
+		      {
+			if(m_state.getABaseClassRelativePositionInAClass(nodeType, dereftobe, baserelpos))
+			  {
+			    ruvPtr.setPtrPos(ruvPtr.getPtrPos() + baserelpos); //t41319
+			    ruvPtr.setPtrLen(m_state.getBaseClassBitSize(dereftobe)); //t41364
+			  }
+			//else (not a class)
+		      }
+		  }
 	      }
 	  }
       }

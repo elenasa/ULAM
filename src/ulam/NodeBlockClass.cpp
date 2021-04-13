@@ -551,6 +551,76 @@ namespace MFM {
     return true; //used in searches for already defined symbol
   }
 
+  void NodeBlockClass::setDataMembersParseTree(UTI cuti, NodeBlockClass & fromClassBlock)
+  {
+    assert(cuti==getNodeType());
+    assert(m_nodeNext == NULL);
+    NodeStatements * fmnode = fromClassBlock.m_nodeNext;
+    if(fmnode == NULL)
+      return;
+    m_nodeNext = (NodeStatements *) fmnode->instantiate(); //t3888
+    assert(m_nodeNext);
+  }
+
+  void NodeBlockClass::resetDataMembersParseTree(UTI cuti, NodeBlockClass & fromClassBlock)
+  {
+    assert(cuti==getNodeType());
+    if(m_nodeNext)
+      {
+	delete m_nodeNext;
+	m_nodeNext = NULL;
+      }
+    if(m_node)
+      {
+	delete m_node;
+	m_node = NULL;
+      }
+    setDataMembersParseTree(cuti, fromClassBlock);
+  }
+
+  void NodeBlockClass::setDataMembersSymbolTable(UTI cuti, NodeBlockClass& fromClassBlock)
+  {
+    assert(cuti==getNodeType());
+    u32 fromtablesize = ((NodeBlock) fromClassBlock).getNumberOfSymbolsInTable();
+    u32 totablesize = NodeBlock::getNumberOfSymbolsInTable();
+    if(totablesize==0)
+      this->getSymbolTablePtr()->copyATableHere(*fromClassBlock.getSymbolTablePtr());
+    else
+      this->getSymbolTablePtr()->mergeATableHere(*fromClassBlock.getSymbolTablePtr());
+
+    if(NodeBlock::getNumberOfSymbolsInTable()>fromtablesize) //t41447
+      {
+	SymbolTableOfVariables diffST(m_state);
+	this->getSymbolTablePtr()->mergedTableDifferences(*fromClassBlock.getSymbolTablePtr(), diffST);
+	std::string namesAsAString;
+	u32 numDiff = diffST.tableTokenNamesAsAString(namesAsAString);
+	assert(numDiff > 0);
+
+	UTI futi = fromClassBlock.getNodeType();
+	u32 fmNameId = m_state.getUlamTypeByIndex(futi)->getUlamTypeNameId();
+
+	std::ostringstream msg;
+	msg << "Unexpected input!! Symbol";
+	if(numDiff > 1)
+	  msg << "s";
+	msg << ": ";
+	msg << namesAsAString.c_str();
+	if(numDiff > 1)
+	  msg << ", do not belong to class ";
+	else
+	  msg << ", does not belong to class ";
+	if(m_state.isClassATemplate(futi))
+	  msg << "template: ";
+	else if(m_state.isClassAStub(futi))
+	  msg << "stub: ";
+	else
+	  msg << ": ";
+	msg << m_state.m_pool.getDataAsString(fmNameId).c_str();
+	msg << " (UTI " << futi << ")";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+      }
+  }
+
   NodeBlockClass * NodeBlockClass::getBaseClassBlockPointer(u32 item)
   {
     if(item < m_nodeBaseClassBlockList.size())
@@ -706,7 +776,7 @@ namespace MFM {
     // Inheritance checks (ulam-5)
     checkMultipleInheritances();
 
-    //side-effect DataMember VAR DECLS
+    //side-effect DataMember VAR DECLS, named constants, typedefs
     if(m_nodeNext)
       m_nodeNext->checkAndLabelType();
 
@@ -754,18 +824,21 @@ UTI NodeBlockClass::checkMultipleInheritances()
 		  //shouldn't happen, caught at parse time (t3900, t3901)
 		  assert(UlamType::compare(nuti, baseuti, m_state) != UTIC_SAME);
 
-		  std::ostringstream msg;
-		  msg << "Substituting mapped UTI" << mappedUTI;
-		  msg << ", " << m_state.getUlamTypeNameBriefByIndex(mappedUTI).c_str();
-		  msg << " for BASE CLASS holder type: '";
-		  msg << m_state.getUlamTypeNameByIndex(baseuti).c_str();
-		  msg << "' UTI" << baseuti << " while labeling class: ";
-		  msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-		  //need to break the chain; e.g. don't want template symbol addresses used
-		  setBaseClassBlockPointer(NULL, i); //force to try again!! avoid inf loop
-		  m_state.resetABaseClassType(nuti, baseuti, mappedUTI);
-		  baseuti = mappedUTI;
+		  if(baseuti!=mappedUTI)
+		    {
+		      std::ostringstream msg;
+		      msg << "Substituting mapped UTI" << mappedUTI;
+		      msg << ", " << m_state.getUlamTypeNameBriefByIndex(mappedUTI).c_str();
+		      msg << " for BASE CLASS holder type: '";
+		      msg << m_state.getUlamTypeNameByIndex(baseuti).c_str();
+		      msg << "' UTI" << baseuti << " while labeling class: ";
+		      msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+		      //need to break the chain; e.g. don't want template symbol addresses used
+		      setBaseClassBlockPointer(NULL, i); //force to try again!! avoid inf loop
+		      m_state.resetABaseClassType(nuti, baseuti, mappedUTI);
+		      baseuti = mappedUTI;
+		    }
 		  brtnhzy |= true;
 		}
 	    }
@@ -773,12 +846,36 @@ UTI NodeBlockClass::checkMultipleInheritances()
 	  //this is a subclass.
 	  if(!isBaseClassLinkReady(nuti, i))
 	    {
-	      if(!m_state.isComplete(baseuti))
+#if 1
+	      SymbolClass * basecsym = NULL;
+	      AssertBool isDefined = m_state.alreadyDefinedSymbolClass(baseuti, basecsym);
+	      assert(isDefined);
+
+	      UTI context = basecsym->getContextForPendingArgValues();
+	      if(basecsym->isStub() && (context != Nouti) && (context != nuti))
 		{
+		  //t41434, context is neither a template, nor baseuti;
+		  //FAILED: 3565,3640,3641,3642,3652,3982,41007,41221,41222,41223,41226,
+		  //41384,41431,41433,41434,41438,41442,41443,41444,41445,41446 as NOOP
+		  //t41225 don't change context if not like-kind
+		  if(!m_state.isClassABaseStubInATemplateHierarchy(baseuti) || m_state.isClassABaseStubInATemplateHierarchy(nuti) || m_state.isClassATemplate(nuti))
+		    basecsym->setContextForPendingArgValues(nuti);
+		}
+	      UTI typecontext = basecsym->getContextForPendingArgTypes();
+	      if(basecsym->isStub() && (typecontext != Nouti) && (typecontext != baseuti))
+		{
+		  //assert(typecontext==nuti); //guessing correctly.
+		  basecsym->setContextForPendingArgTypes(baseuti); //NOOP no diff.
+		}
+	      //else t41225?
+#endif
+		if(!m_state.isComplete(baseuti))
+		  {
 		  std::ostringstream msg;
 		  msg << "Subclass '";
 		  msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-		  msg << "' inherits from '";
+		  msg << "' (UTI " << nuti << ")";
+		  msg << " inherits from '";
 
 		  if(m_state.isClassAStub(baseuti))
 		    {
@@ -809,7 +906,7 @@ UTI NodeBlockClass::checkMultipleInheritances()
 		      msg << "', an incomplete class";
 		      brtnhzy |= false; //t3889, t3831, t3674
 		    }
-
+		  msg << " (UTI " << baseuti << ")";
 		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 		  //need to break the chain; e.g. don't want template symbol addresses used
 		  setBaseClassBlockPointer(NULL, i); //force to try again!! avoid inf loop
@@ -836,18 +933,21 @@ UTI NodeBlockClass::checkMultipleInheritances()
 		  //shouldn't happen, caught at parse time (t3900, t3901)
 		  assert(UlamType::compare(nuti, baseuti, m_state) != UTIC_SAME);
 
-		  std::ostringstream msg;
-		  msg << "Substituting mapped UTI" << mappedUTI;
-		  msg << ", " << m_state.getUlamTypeNameBriefByIndex(mappedUTI).c_str();
-		  msg << " for SHARED BASE CLASS holder type: '";
-		  msg << m_state.getUlamTypeNameByIndex(baseuti).c_str();
-		  msg << "' UTI" << baseuti << " while labeling class: ";
-		  msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-		  //need to break the chain; e.g. don't want template symbol addresses used
-		  setSharedBaseClassBlockPointer(NULL, j); //force to try again!! avoid inf loop
-		  m_state.resetABaseClassType(nuti, baseuti, mappedUTI);
-		  baseuti = mappedUTI;
+		  if(baseuti!=mappedUTI)
+		    {
+		      std::ostringstream msg;
+		      msg << "Substituting mapped UTI" << mappedUTI;
+		      msg << ", " << m_state.getUlamTypeNameBriefByIndex(mappedUTI).c_str();
+		      msg << " for SHARED BASE CLASS holder type: '";
+		      msg << m_state.getUlamTypeNameByIndex(baseuti).c_str();
+		      msg << "' UTI" << baseuti << " while labeling class: ";
+		      msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+		      //need to break the chain; e.g. don't want template symbol addresses used
+		      setSharedBaseClassBlockPointer(NULL, j); //force to try again!! avoid inf loop
+		      m_state.resetABaseClassType(nuti, baseuti, mappedUTI);
+		      baseuti = mappedUTI;
+		    }
 		  brtnhzy |= true;
 		}
 	    }
@@ -861,7 +961,9 @@ UTI NodeBlockClass::checkMultipleInheritances()
 		  std::ostringstream msg;
 		  msg << "Subclass '";
 		  msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-		  msg << "' inherits from shared base '";
+		  msg << "' (UTI " << nuti << ")";
+
+		  msg << " inherits from shared base '";
 
 		  if(m_state.isClassAStub(baseuti))
 		    {
@@ -892,6 +994,7 @@ UTI NodeBlockClass::checkMultipleInheritances()
 		      msg << "', an incomplete class";
 		      brtnhzy |= false; //t3889, t3831, t3674
 		    }
+		  msg << " (UTI " << baseuti << ")";
 
 		  s32 bitem = csym->isABaseClassItem(baseuti);
 		  if(bitem < 0)
@@ -1801,7 +1904,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	  {
 	    NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
 	    assert(basecblock);
-	    supers += basecblock->getNumberOfSymbolsInTable();
+	    supers += ((NodeBlock *)basecblock)->getNumberOfSymbolsInTable();
 	  }
 	i++;
       } //end while
@@ -1819,7 +1922,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	      {
 		NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(j);
 		assert(shbasecblock);
-		supers += shbasecblock->getNumberOfSymbolsInTable();
+		supers += ((NodeBlock *) shbasecblock)->getNumberOfSymbolsInTable();
 	      }
 	    j++;
 	  } //end while

@@ -70,6 +70,7 @@ namespace MFM{
     u32 getConstantStackFrameAbsoluteSlotIndex();
 
     void setClassArgAsDefaultValue();
+    void clearClassArgAsDefaultValue();
     bool isClassArgDefaultValue();
 
   protected:

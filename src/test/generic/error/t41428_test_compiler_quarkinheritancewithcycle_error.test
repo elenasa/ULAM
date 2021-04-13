@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t41428_test_compiler_quarkinheritancewithcycle_error
 #!
-./C.ulam:5:5: ERROR: Incomplete descriptor for type: QU (UTI 32).
+./C.ulam:5:5: ERROR: Incomplete descriptor for type: QU (UTI 32), while labeling class: C (UTI 29).
 ./C.ulam:5:5: ERROR: Incomplete Variable Decl for type: QU, used with variable symbol name 'qu'.
 Unrecoverable Program Type Label FAILURE.
 ##

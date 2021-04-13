@@ -20,7 +20,20 @@ namespace MFM {
   NodeTypeDescriptor::NodeTypeDescriptor(const NodeTypeDescriptor& ref) : Node(ref), m_typeTok(ref.m_typeTok), m_uti(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_uti,ref.getNodeLocation())), m_ready(false), m_contextForPendingArgType(Nouti), m_unknownBitsizeSubtree(NULL), m_refType(ref.m_refType), m_referencedUTI(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_referencedUTI,ref.getNodeLocation()))
   {
     if(ref.m_unknownBitsizeSubtree)
-      m_unknownBitsizeSubtree = new NodeTypeBitsize(*ref.m_unknownBitsizeSubtree); //mapped UTI?
+      {
+	m_unknownBitsizeSubtree = new NodeTypeBitsize(*ref.m_unknownBitsizeSubtree); //mapped UTI?
+#if 0
+	if(m_state.isComplete(ref.m_uti))
+	  {
+	    UlamType * refut = m_state.getUlamTypeByIndex(ref.m_uti);
+	    m_uti = m_state.makeUlamType(m_typeTok, UNKNOWNSIZE, refut->getArraySize(),refut->getUlamClassType()); //reset given uti
+	  }
+#endif
+      }
+#if 0
+    if(m_state.isHolder(m_uti))
+	m_state.addUnknownTypeTokenToThisClassResolver(m_typeTok, m_uti); //t3565, breaks t3384
+#endif
   }
 
   //clone class parameter for pending class argument; caller (NodeConstDef) corrects type (t41223)
@@ -28,6 +41,10 @@ namespace MFM {
   {
     if(ref.m_unknownBitsizeSubtree)
       m_unknownBitsizeSubtree = new NodeTypeBitsize(*ref.m_unknownBitsizeSubtree); //mapped UTI?
+#if 0
+    if(m_state.isHolder(m_uti))
+      m_state.addUnknownTypeTokenToThisClassResolver(m_typeTok, m_uti); //consistent w t3565?
+#endif
   }
 
   NodeTypeDescriptor::~NodeTypeDescriptor()
@@ -212,9 +229,9 @@ namespace MFM {
 	  }
 
 	//if no change, try context..
+	UTI cuti = m_state.getCompileThisIdx();
 	if(mappedUTI == nuti)
 	  {
-	    UTI cuti = m_state.getCompileThisIdx();
 	    // the symbol associated with this type, was mapped during instantiation
 	    // since we're call AFTER that (not during), we can look up our
 	    // new UTI and pass that on up the line of NodeType Selects, if any.
@@ -238,6 +255,9 @@ namespace MFM {
 	    msg << "Incomplete descriptor for type: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str(); //t3125, t3298
 	    msg << " (UTI " << nuti << ")"; //helpful for my debugging (e.g. t41209)
+	    msg << ", while labeling class: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	    msg << " (UTI " << cuti << ")"; //helpful for my debugging (e.g. t41440)
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //t3787
 	  }
       }
@@ -456,6 +476,53 @@ namespace MFM {
 	//else
 	// rtnuti = Hzy;
       }
+#if 0
+    else
+      {
+	// like SCNT::setBitSizeOfClassInstances()
+	//trySetBitsizeWithUTIValues (t41440) ??
+	bool aok = false;
+	SymbolClass * csym = NULL;
+	if(m_state.alreadyDefinedSymbolClass(nuti,csym))
+	  {
+	    s32 totalbits = 0;
+	    s32 sharedbits = UNKNOWNSIZE;
+	    s32 basebits = 0; //overstated, no sharing
+	    s32 mybits = 0; //main goal of trySetBitsize..
+
+	    NodeBlockClass * classNode = csym->getClassBlockNode();
+	    assert(classNode);
+	    m_state.pushClassContext(nuti, classNode, classNode, false, NULL);
+
+	    std::set<UTI> seenset;
+	    seenset.insert(nuti);
+	    aok = csym->trySetBitsizeWithUTIValues(basebits, mybits, seenset);
+	    m_state.popClassContext(); //restore
+
+	    if(aok)
+	      {
+		s32 sharedbitssaved = UNKNOWNSIZE;
+		aok = csym->determineSharedBasesAndTotalBitsize(sharedbitssaved, sharedbits);
+		if(aok)
+		  {
+		    assert(sharedbits >= 0);
+		    assert(sharedbitssaved >= sharedbits);
+		    totalbits = (mybits + sharedbits); //updates total here!!
+		  }
+	      }
+
+	    if(aok)
+	      {
+		m_state.setBitSize(nuti, totalbits); //"scalar" Class bitsize  KEY ADJUSTED
+		//after setBitSize so not to clobber it.
+		m_state.setBaseClassBitSize(nuti, mybits); //noop for elements
+		rtnb = true;
+	      }
+	  }
+	//else
+	// rtnuti = Hzy;
+      }
+#endif
     return rtnb;
   } //resolveClassType
 

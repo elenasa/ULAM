@@ -35,7 +35,8 @@ element R {
 
 
 #:Foo.ulam
-  quark T1(Unsigned u, Bool b) {
+  ulam 5;
+quark T1(Unsigned u, Bool b) {
   Unsigned func() { return u; } // NOT virtual
   Bool mb = b;
 }

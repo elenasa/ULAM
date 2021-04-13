@@ -302,6 +302,10 @@ namespace MFM{
 
     bool isClassAStub(UTI cuti);
     bool hasClassAStubInHierarchy(UTI cuti);
+    bool isClassABaseStubInATemplateHierarchy(UTI baseuti);
+    void setBaseStubFlagForThisClassTemplate(UTI baseuti);
+    bool turnWaitMessageIntoErrorMessage();
+    bool turnWaitMessageIntoErrorMessage(UTI cuti); //recursive helper
     bool isClassAQuarkUnion(UTI cuti);
     bool isClassACustomArray(UTI cuti);
     UTI getAClassCustomArrayType(UTI cuti);

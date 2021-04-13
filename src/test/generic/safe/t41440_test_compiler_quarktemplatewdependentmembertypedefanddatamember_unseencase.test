@@ -1,0 +1,54 @@
+## -*- mode:ulam -*-
+#=t41440_test_compiler_quarktemplatewdependentmembertypedefanddatamember_unseencase
+##
+##  gen output: (+ assert)
+##  Unsigned Arg: 2
+##
+#!
+Exit status: 2
+Ue_R { Unsigned(32) m_tsz(2u);  Int(32) test() {  System s;  XTimer(2,1u,9u) rxt;  self m_tsz . 2u = s ( self m_tsz . )print . s ( self m_tsz . 2u cast == )assert . self m_tsz . cast return } }
+Uq_System { <NOMAIN> }
+Uq_XTimer(Unary(5) bits, Unsigned(32) triggerLevel, Unsigned(32) k) { typedef Unsigned(UNKNOWN) Counter;  Unsigned(UNKNOWN) mCount(notready);  <NOMAIN> }
+##
+## informed by Dave ish 3/28/2021 _033651. Simplified case of t41444 to help debug XTimer;
+##   see also t41441 for seen case.
+##
+#>R.ulam
+  ulam 5;
+//use XTimer;
+element R {
+  Unsigned m_tsz;
+  Int test()
+  {
+    System s;
+    XTimer(2,1,9) rxt;
+    m_tsz = rxt.sizeof;
+    s.print(m_tsz);
+    s.assert(m_tsz==2u);
+    return (Int) m_tsz;
+  }
+}
+
+#:XTimer.ulam
+  ulam 5;
+quark XTimer(Unary(5) bits, Unsigned triggerLevel, Unsigned k)
+{
+  // With a max counter width of 5, the max value of Counter.maxof is
+  // 31, so 1u<<time cannot overflow
+  typedef Unsigned(bits) Counter;
+  Counter mCount;
+}
+
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

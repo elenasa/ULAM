@@ -92,6 +92,9 @@ namespace MFM{
 
     virtual bool isAClassBlock();
 
+    void setDataMembersParseTree(UTI cuti, NodeBlockClass & fromClassBlock);
+    void resetDataMembersParseTree(UTI cuti, NodeBlockClass & fromClassBlock);
+    void setDataMembersSymbolTable(UTI cuti, NodeBlockClass & fromClassBlock);
 
     void clearBaseClassBlockList();
 

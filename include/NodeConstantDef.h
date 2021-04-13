@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeConstantDef.h - Node handling Constant Definition for ULAM
  *
- * Copyright (C) 2015-2019 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2019 Ackleyshack LLC.
+ * Copyright (C) 2015-2021 The Regents of the University of New Mexico.
+ * Copyright (C) 2015-2021 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeConstantDef.h - Node handling Constant Definition for ULAM
   \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2019 All rights reserved.
+  \date (C) 2015-2021 All rights reserved.
   \gpl
 */
 
@@ -158,6 +158,7 @@ namespace MFM{
     NodeBlock * m_currBlockPtr;
 
     void setBlock(NodeBlock * ptr);
+    bool setSymbolValue(const BV8K& bv);
 
     void setupStackWithPrimitiveForEval(u32 slots);
     void setupStackWithConstantClassForEval(u32 slots);
