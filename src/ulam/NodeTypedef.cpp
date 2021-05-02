@@ -49,11 +49,18 @@ namespace MFM {
 
   void NodeTypedef::printPostfix(File * fp)
   {
-    assert(m_typedefSymbol);
-    if(m_typedefSymbol->getId() == m_state.m_pool.getIndexForDataString("Self")) return;
-    if(m_typedefSymbol->getId() == m_state.m_pool.getIndexForDataString("Super")) return;
+    //assert(m_typedefSymbol);
+    if(m_tdid == m_state.m_pool.getIndexForDataString("Self")) return;
+    if(m_tdid == m_state.m_pool.getIndexForDataString("Super")) return;
 
-    UTI tuti = m_typedefSymbol->getUlamTypeIdx();
+    UTI tuti = getNodeType();
+    if(m_typedefSymbol)
+      tuti = m_typedefSymbol->getUlamTypeIdx();
+    else if(m_nodeTypeDesc)
+      tuti = m_nodeTypeDesc->givenUTI();
+   else
+     m_state.abortNotImplementedYet();
+
     UlamKeyTypeSignature tkey = m_state.getUlamKeyTypeSignatureByIndex(tuti);
     UlamType * tut = m_state.getUlamTypeByIndex(tuti);
     ULAMTYPE tetyp = tut->getUlamTypeEnum();
@@ -104,13 +111,22 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
+  void NodeTypedef::clearSymbolPtr()
+  {
+    //if symbol is in a stub, there's no guarantee the stub
+    // won't be replace by another duplicate class once its
+    // pending args have been resolved.
+    m_typedefSymbol = NULL;
+    setBlock(NULL);
+  }
+
   bool NodeTypedef::getSymbolPtr(Symbol *& symptrref)
   {
     symptrref = m_typedefSymbol;
     return true;
   } //getSymbolPtr
 
-  UTI NodeTypedef::checkAndLabelType()
+  UTI NodeTypedef::checkAndLabelType(Node * thisparentnode)
   {
     UTI it = Nav;
 
@@ -146,7 +162,7 @@ namespace MFM {
 	UTI cuti = m_state.getCompileThisIdx();
 	if(m_nodeTypeDesc)
 	  {
-	    UTI duti = m_nodeTypeDesc->checkAndLabelType(); //sets goagain if nav
+	    UTI duti = m_nodeTypeDesc->checkAndLabelType(this); //sets goagain if nav
 	    if(m_state.okUTItoContinue(duti) && (duti != it))
 	      {
 		std::ostringstream msg;
@@ -183,7 +199,11 @@ namespace MFM {
       } // got typedef symbol
 
     setNodeType(it);
-    if(it == Hzy) m_state.setGoAgain(); //since not error; unlike vardecl
+    if(it == Hzy)
+      {
+	clearSymbolPtr();
+	m_state.setGoAgain(); //since not error; unlike vardecl
+      }
     return getNodeType();
   } //checkAndLabelType
 

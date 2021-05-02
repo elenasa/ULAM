@@ -96,11 +96,11 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-  UTI NodeReturnStatement::checkAndLabelType()
+  UTI NodeReturnStatement::checkAndLabelType(Node * thisparentnode)
   {
     UTI rtnType = m_state.m_currentFunctionReturnType;
     assert(m_node); //a return without an expression (i.e. Void) is NodeStatementEmpty!
-    UTI nodeType = m_node->checkAndLabelType();
+    UTI nodeType = m_node->checkAndLabelType(this);
 
     if(m_state.isComplete(nodeType) && m_state.isComplete(rtnType))
       {
@@ -120,7 +120,7 @@ namespace MFM {
 	      {
 		if(m_node->isAConstant() && !m_node->isReadyConstant())
 		  {
-		    m_node->constantFold();
+		    m_node->constantFold(this);
 		  }
 		ULAMTYPE etyp = m_state.getUlamTypeByIndex(rtnType)->getUlamTypeEnum();
 		FORECAST scr = m_node->safeToCastTo(rtnType);

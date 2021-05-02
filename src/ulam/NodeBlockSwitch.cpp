@@ -20,9 +20,9 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-  UTI NodeBlockSwitch::checkAndLabelType()
+  UTI NodeBlockSwitch::checkAndLabelType(Node * thisparentnode)
   {
-    return NodeBlock::checkAndLabelType();
+    return NodeBlock::checkAndLabelType(thisparentnode);
     //maybe something else to help determine the conditional variable type? (t41019)
   }
 

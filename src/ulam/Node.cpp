@@ -197,6 +197,14 @@ namespace MFM {
     return m_state.getFullLocationAsString(m_loc);
   }
 
+  void Node::clearSymbolPtr()
+  {
+    std::ostringstream msg;
+    msg << "virtual void " << prettyNodeName().c_str();
+    msg << "::clearSymbolPtr(){} is needed!!";
+    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+  }
+
   bool Node::getSymbolPtr(Symbol *& symptrref)
   {
     return false;
@@ -377,13 +385,14 @@ namespace MFM {
 
   // any node above assignexpr is not storeintoable;
   // and has no type (e.g. statements, statement, block, program)
-  UTI Node::checkAndLabelType()
+  UTI Node::checkAndLabelType(Node * thisparentnode)
   {
     m_utype = Nouti;
     m_storeIntoAble = TBOOL_FALSE;
     return m_utype;
   }
 
+#if 0
   //common to NodeIdent, NodeTerminalProxy, NodeSquareBracket
   bool Node::exchangeNodeWithParent(Node * newnode)
   {
@@ -408,6 +417,34 @@ namespace MFM {
     MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 
     m_state.popClassContext(); //restore
+
+    //common to all new nodes:
+    newnode->setNodeLocation(getNodeLocation());
+    newnode->resetNodeNo(getNodeNo()); //moved before update lineage
+    newnode->updateLineage(pno); //t3942
+
+    return true;
+  } //exchangeNodeWithParent
+#endif
+
+  //common to NodeIdent, NodeTerminalProxy, NodeSquareBracket
+  bool Node::exchangeNodeWithParent(Node * newnode, Node * parent)
+  {
+    UTI cuti = m_state.getCompileThisIdx(); //for error messages
+    NNO pno = Node::getYourParentNo();
+    assert(pno);
+    assert(parent);
+    assert(parent->getNodeNo() == pno);
+
+    AssertBool swapOk = parent->exchangeKids(this, newnode);
+    assert(swapOk);
+
+    std::ostringstream msg;
+    msg << "Exchanged kids! <" << getName();
+    msg << "> func call (" << prettyNodeName().c_str();
+    msg << "), within class: ";
+    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 
     //common to all new nodes:
     newnode->setNodeLocation(getNodeLocation());
@@ -476,7 +513,7 @@ namespace MFM {
 #endif
   } //countNavHzyNoutiNodes
 
-  UTI Node::constantFold()
+  UTI Node::constantFold(Node * parentnode)
   {
     if(!isAConstant())
       {
@@ -2456,7 +2493,7 @@ namespace MFM {
 	       rtnNode = buildToIntCastingNode(node);
 
 	       //redo check and type labeling; error msg if not same
-	       UTI newType = rtnNode->checkAndLabelType();
+	       UTI newType = rtnNode->checkAndLabelType(this);
 	       doErrMsg = (UlamType::compareForMakingCastingNode(newType, tobeType, m_state) == UTIC_NOTSAME);
 	     }
 	 }
@@ -2534,7 +2571,7 @@ namespace MFM {
     Node * rtnnode = new NodeCast(node, tobeType, NULL, m_state);
     assert(rtnnode);
     rtnnode->setNodeLocation(getNodeLocation());
-    rtnnode->updateLineage(getNodeNo());
+    rtnnode->updateLineage(node->getYourParentNo());
     return rtnnode;
   } //newCastingNode
 
@@ -2544,7 +2581,7 @@ namespace MFM {
     assert(rtnNode);
 
     //redo check and type labeling; error msg if not same
-    UTI newType = rtnNode->checkAndLabelType();
+    UTI newType = rtnNode->checkAndLabelType(this);
     return (UlamType::compareForMakingCastingNode(newType, tobeType, m_state) == UTIC_NOTSAME);
   } //newCastingNodeWithCheck
 
@@ -2701,7 +2738,7 @@ namespace MFM {
     rtnNode = mfuncselectNode;
 
     //redo check and type labeling; error msg if not same
-    UTI newType = rtnNode->checkAndLabelType();
+    UTI newType = rtnNode->checkAndLabelType(this);
     return (UlamType::compareForMakingCastingNode(newType, tobeType, m_state) == UTIC_NOTSAME);
   } //buildCastingFunctionCallNode
 

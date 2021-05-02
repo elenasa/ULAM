@@ -79,6 +79,13 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
+  UTI NodeTypeDescriptorArray::getScalarType()
+  {
+    if(m_nodeScalar)
+      return m_nodeScalar->getNodeType();
+    return Hzy; //t3881
+  }
+
   void NodeTypeDescriptorArray::linkConstantExpressionArraysize(NodeSquareBracket * ceForArraySize)
   {
     //tfr owner, no dups
@@ -91,7 +98,7 @@ namespace MFM {
     m_state.abortShouldntGetHere(); //arrays are linked after reftype is known.
   }
 
-  UTI NodeTypeDescriptorArray::checkAndLabelType()
+  UTI NodeTypeDescriptorArray::checkAndLabelType(Node * thisparentnode)
   {
     UTI it = getNodeType();
 
@@ -104,7 +111,8 @@ namespace MFM {
     if(resolveType(it))
       {
 	m_ready = true; // set here
-	m_uti = it; //given reset here
+	assert(m_state.isComplete(it));//t41262 true;
+	NodeTypeDescriptor::resetGivenUTI(it); //given reset here
 	setNodeType(it);
       }
     else
@@ -117,11 +125,13 @@ namespace MFM {
 
   bool NodeTypeDescriptorArray::resolveType(UTI& rtnuti)
   {
+#if 0
     if(isReadyType())
       {
 	rtnuti = getNodeType();
 	return true;
       }
+#endif
 
     bool rtnb = false;
     // not node select, we are the array on top of the scalar leaf
@@ -131,7 +141,7 @@ namespace MFM {
 
     // scalar type
     assert(m_nodeScalar);
-    UTI scuti = m_nodeScalar->checkAndLabelType();
+    UTI scuti = m_nodeScalar->checkAndLabelType(this);
 
     if(m_nodeScalar->isReadyType())
       {
@@ -167,14 +177,16 @@ namespace MFM {
 	  }
 
 	checkAndMatchBaseUlamTypes(nuti, scuti);
-
-	if(resolveTypeArraysize(nuti, scuti))
+	rtnuti = nuti;
+	if(resolveTypeArraysize(rtnuti, scuti))
 	  {
 	    rtnb = true;
-	    rtnuti = nuti;
+	    //rtnuti = nuti;
 	  }
 	else if(m_state.okUTItoContinue(rtnuti) && !m_state.isComplete(rtnuti))
 	  rtnuti = Hzy; //t3890
+	else if(m_state.isScalar(nuti))
+	  rtnuti = Hzy; //t41301
 	else
 	  rtnuti = nuti; //could be Nav or Hzy
       } //else select not ready, so neither are we!!
@@ -188,29 +200,34 @@ namespace MFM {
   bool NodeTypeDescriptorArray::resolveTypeArraysize(UTI& rtnuti, UTI scuti)
   {
     assert(m_unknownArraysizeSubtree);
-    s32 as = UNKNOWNSIZE;
+    s32 as = m_state.getArraySize(rtnuti); //UNKNOWNSIZE;
+    if(as >= 0)
+      return true;  //might be known now (t3892)
+
     UTI auti = Nouti;
     //array of primitives or classes
-    if(!m_unknownArraysizeSubtree->getArraysizeInBracket(as, auti)) //eval
+    if((as < 0) && !m_unknownArraysizeSubtree->getArraysizeInBracket(as, auti)) //eval
       {
 	rtnuti = Nav;
 	return false; //error, e.g. possible divide by zero
       }
     //else as could still be UNKNOWNSIZE;
 
-    // do it anyway, progress for the bitsize (t3773)
-    // keep m_unknownArraysizeSubtree in case a template
-    if(!m_state.setUTISizes(rtnuti, m_state.getBitSize(scuti), as)) //update UlamType
-      {
-	rtnuti = Nav;
-	return false;
-      }
-
-    attemptToResolveHolderArrayType(rtnuti, scuti);
-
-    checkAndMatchClassTypes(rtnuti, scuti);
-
+    if(attemptToResolveHolderArrayType(rtnuti, scuti))
+    {
+      //t3765 holder isn't a primitive, so assumed to be a class, which it isn't.
+      // NO dont it anyway, progress for the bitsize (t3773)
+      // keep m_unknownArraysizeSubtree in case a template
+      if(!m_state.setUTISizes(rtnuti, m_state.getBitSize(scuti), as, true)) //update UlamType
+	{
+	  rtnuti = Nav;
+	  return false;
+	}
+      checkAndMatchClassTypes(rtnuti, scuti);
+    }
+    //repeat if holder or bitsize is still unknown
     return (m_state.isComplete(rtnuti)); //repeat if holder or bitsize is still unknown
+    //return (as >= 0); //t41301
   } //resolveTypeArraysize
 
   bool NodeTypeDescriptorArray::attemptToResolveHolderArrayType(UTI auti, UTI buti)

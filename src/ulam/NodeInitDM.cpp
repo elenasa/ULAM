@@ -83,7 +83,7 @@ namespace MFM {
 	m_nodeExpr->setClassType(uti); //when another class
   }
 
-  UTI NodeInitDM::checkAndLabelType()
+  UTI NodeInitDM::checkAndLabelType(Node * thisparentnode)
   {
     UTI it = Nouti; //expression type
 
@@ -149,7 +149,7 @@ namespace MFM {
 
     if(m_nodeExpr)
       {
-	it = m_nodeExpr->checkAndLabelType();
+	it = m_nodeExpr->checkAndLabelType(this);
 	if(it == Nav)
 	  {
 	    std::ostringstream msg;
@@ -413,7 +413,7 @@ namespace MFM {
     return m_nodeExpr->getNodeType(); //could be a name constant class! (t41232)
   } //foldConstantExpression
 
-  UTI NodeInitDM::constantFold()
+  UTI NodeInitDM::constantFold(Node * parentnode)
   {
     m_state.abortShouldntGetHere();
     return foldConstantExpression(); //t41170

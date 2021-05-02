@@ -10,12 +10,12 @@
 
 namespace MFM {
 
-  SymbolClass::SymbolClass(const Token& id, UTI utype, NodeBlockClass * classblock, SymbolClassNameTemplate * parent, CompilerState& state) : Symbol(id, utype, state), m_resolver(NULL), m_classBlock(classblock), m_parentTemplate(parent), m_quarkunion(false), m_stub(true), m_stubbaseForTemplate(false), /*m_defaultValue(NULL),*/ m_isreadyDefaultValue(false) /* default */, m_bitsPacked(false), m_registryNumber(UNINITTED_REGISTRY_NUMBER), m_elementType(UNDEFINED_ELEMENT_TYPE), m_vtableinitialized(false)
+  SymbolClass::SymbolClass(const Token& id, UTI utype, NodeBlockClass * classblock, SymbolClassNameTemplate * parent, CompilerState& state) : Symbol(id, utype, state), m_resolver(NULL), m_classBlock(classblock), m_parentTemplate(parent), m_quarkunion(false), m_stub(true), m_stubcopy(false), m_stubForTemplate(false), m_stubForTemplateType(Nouti), m_stubcopyOf(Nouti), /*m_defaultValue(NULL),*/ m_isreadyDefaultValue(false) /* default */, m_bitsPacked(false), m_registryNumber(UNINITTED_REGISTRY_NUMBER), m_elementType(UNDEFINED_ELEMENT_TYPE), m_vtableinitialized(false)
   {
     appendBaseClass(Nouti, true);
   }
 
-  SymbolClass::SymbolClass(const SymbolClass& sref) : Symbol(sref), m_resolver(NULL), m_parentTemplate(sref.m_parentTemplate), m_quarkunion(sref.m_quarkunion), m_stub(sref.m_stub), m_stubbaseForTemplate(false), /*m_defaultValue(NULL),*/ m_isreadyDefaultValue(false), m_bitsPacked(false), m_registryNumber(UNINITTED_REGISTRY_NUMBER), m_elementType(UNDEFINED_ELEMENT_TYPE), m_vtableinitialized(false)
+  SymbolClass::SymbolClass(const SymbolClass& sref) : Symbol(sref), m_resolver(NULL), m_parentTemplate(sref.m_parentTemplate), m_quarkunion(sref.m_quarkunion), m_stub(sref.m_stub), m_stubcopy(sref.m_stubcopy), m_stubForTemplate(false), m_stubForTemplateType(Nouti /* sref.m_stubForTemplateType*/ ), m_stubcopyOf(sref.m_stubcopyOf), /*m_defaultValue(NULL),*/ m_isreadyDefaultValue(false), m_bitsPacked(false), m_registryNumber(UNINITTED_REGISTRY_NUMBER), m_elementType(UNDEFINED_ELEMENT_TYPE), m_vtableinitialized(false)
   {
     for(u32 i = 0; i < sref.m_basestable.size(); i++)
       {
@@ -112,19 +112,31 @@ namespace MFM {
     return false;
   }
 
-  bool SymbolClass::isTemplateBaseClassStub()
+  bool SymbolClass::isStubForTemplate()
   {
-    return m_stubbaseForTemplate;
+    return m_stubForTemplate; //e.g. base class, class parameter
   }
 
-  void SymbolClass::setTemplateBaseClassStub()
+  void SymbolClass::setStubForTemplate()
   {
-    m_stubbaseForTemplate = true;
+    m_stubForTemplate = true;
   }
 
-  void SymbolClass::clearTemplateBaseClassStub()
+  void SymbolClass::clearStubForTemplate()
   {
-    m_stubbaseForTemplate = false;
+    m_stubForTemplate = false;
+    setStubForTemplateType(Nouti);
+  }
+
+  UTI SymbolClass::getStubForTemplateType()
+  {
+    return m_stubForTemplateType;
+  }
+
+  void SymbolClass::setStubForTemplateType(UTI ttype)
+  {
+    m_stubForTemplateType = ttype;
+    setStubForTemplate();
   }
 
   u32 SymbolClass::getBaseClassCount()
@@ -247,8 +259,7 @@ namespace MFM {
     assert(m_state.isARootUTI(baseclass)); //t3652
     if(item == 0)
       {
-	if(!m_state.isUrSelf(getUlamTypeIdx()))
-	   updateBaseClass(m_basestable[0].m_base, 0, baseclass); //initialized
+	setSuperBaseClass(baseclass); //t3806
       }
     else if(item == m_basestable.size())
       {
@@ -260,6 +271,22 @@ namespace MFM {
 	updateBaseClass(m_basestable[item].m_base, item, baseclass);
       }
   } //setBaseClass
+
+  void SymbolClass::setSuperBaseClass(UTI superuti)
+  {
+    UTI oldbaseclass = getBaseClass(0); //Super use might have been parsed
+
+    if(!m_state.isUrSelf(getUlamTypeIdx()))
+      {
+	updateBaseClass(oldbaseclass, 0, superuti);
+
+	if(m_state.isHolder(oldbaseclass))
+	  {
+	    mapUTItoUTI(oldbaseclass, superuti); //t3806
+	    m_state.updateUTIAliasForced(oldbaseclass, superuti); //??
+	  }
+      }
+  }
 
   void SymbolClass::clearBaseAsShared(u32 item)
   {
@@ -396,6 +423,31 @@ namespace MFM {
   void SymbolClass::unsetStub()
   {
     m_stub = false;
+  }
+
+  bool SymbolClass::isStubCopy()
+  {
+    return m_stubcopy;
+  }
+
+  void SymbolClass::unsetStubCopy()
+  {
+    m_stubcopy = false;
+  }
+
+  void SymbolClass::setStubCopy()
+  {
+    m_stubcopy = true;
+  }
+
+  UTI SymbolClass::getStubCopyOf()
+  {
+    return m_stubcopyOf;
+  }
+
+  void SymbolClass::setStubCopyOf(UTI stubuti)
+  {
+    m_stubcopyOf = stubuti;
   }
 
   UTI SymbolClass::getCustomArrayType()
@@ -726,6 +778,7 @@ namespace MFM {
 
   bool SymbolClass::hasUnknownTypeInClass(UTI huti)
   {
+    assert(!isStubCopy());
     if(!m_resolver)
       return false;
     return m_resolver->hasUnknownTypeToken(huti);
@@ -733,6 +786,7 @@ namespace MFM {
 
   bool SymbolClass::getUnknownTypeTokenInClass(UTI huti, Token& tok)
   {
+    assert(!isStubCopy());
     if(!m_resolver)
       return false;
     return m_resolver->getUnknownTypeToken(huti, tok);
@@ -740,6 +794,7 @@ namespace MFM {
 
   bool SymbolClass::statusUnknownTypeInClass(UTI huti)
   {
+    assert(!isStubCopy());
     if(!m_resolver)
       return false;
     return m_resolver->statusUnknownType(huti, this);
@@ -747,6 +802,7 @@ namespace MFM {
 
   bool SymbolClass::statusUnknownTypeNamesInClass()
   {
+    assert(!isStubCopy());
     if(!m_resolver)
       return true;
     return m_resolver->statusAnyUnknownTypeNames();
@@ -754,6 +810,7 @@ namespace MFM {
 
   u32 SymbolClass::reportUnknownTypeNamesInClass()
   {
+    assert(!isStubCopy());
     if(!m_resolver)
       return 0;
     return m_resolver->reportAnyUnknownTypeNames();
@@ -794,6 +851,7 @@ namespace MFM {
 
   bool SymbolClass::pendingClassArgumentsForClassInstance()
   {
+    assert(!isStubCopy());
     if(!m_resolver) //stubs only!
       return false; //ok, none pending
     return m_resolver->pendingClassArgumentsForClassInstance();
@@ -802,24 +860,56 @@ namespace MFM {
   void SymbolClass::cloneArgumentNodesForClassInstance(SymbolClass * fmcsym, UTI argvaluecontext, UTI argtypecontext, bool toStub)
   {
     assert(fmcsym); //from
+    UTI fmuti = fmcsym->getUlamTypeIdx();
+    bool fmtemplate = fmcsym->isClassTemplate(fmuti); //temporary flexibility for debugging t41436
     NodeBlockClass * fmclassblock = fmcsym->getClassBlockNode();
     assert(fmclassblock);
     NodeBlockClass * classblock = getClassBlockNode();
     assert(classblock);
 
-    u32 numArgs = fmclassblock->getNumberOfArgumentNodes();
-    bool argsPending = fmcsym->pendingClassArgumentsForClassInstance();
+#if 0
+    //is this like constantFolding pending arguments???/ (t41228?)
+    m_state.m_pendingArgStubContext = argvaluecontext;
+    m_state.m_pendingArgTypeStubContext = argtypecontext;
+#endif
 
-    assert(!argsPending || (fmcsym->countNonreadyClassArguments() == numArgs));
+    u32 numArgs = fmtemplate ? fmclassblock->getNumberOfParameterNodes() : fmclassblock->getNumberOfArgumentNodes();
 
+    SymbolClassNameTemplate * ptcsym = fmtemplate ? (SymbolClassNameTemplate*) fmcsym : fmcsym->getParentClassTemplate();
+    assert(ptcsym);
+    //    UTI ptuti = ptcsym->getUlamTypeIdx();
+    NodeBlockClass * ptclassblock = ptcsym->getClassBlockNode();
+    assert(ptclassblock);
+
+    //bool argsPending = fmcsym->pendingClassArgumentsForClassInstance();
+    //assert(!argsPending || (fmcsym->countNonreadyClassArguments() == numArgs)); t41224, using upgradeStubCopy..
+
+    //UTI fmcuti = fmcsym->getUlamTypeIdx();
+    //m_state.pushClassContext(fmcuti, fmclassblock, fmclassblock, false, NULL);
+    //m_state.pushClassContext(getUlamTypeIdx(), classblock, classblock, false, NULL);
+    //m_state.pushClassOrLocalContextAndDontUseMemberBlock(argvaluecontext);
+#if 0
+    //this is what the Parser does had it seen the template first!
+    m_state.pushClassOrLocalContextAndDontUseMemberBlock(argvaluecontext);
+    m_state.pushCurrentBlock(classblock);
+#endif
     for(u32 i = 0; i < numArgs; i++)
       {
-	NodeConstantDef * ceNode = (NodeConstantDef *) fmclassblock->getArgumentNode(i);
+	NodeConstantDef * parmNode = (NodeConstantDef *) ptclassblock->getParameterNode(i);
+
+	NodeConstantDef * ceNode = (NodeConstantDef *) (fmtemplate ? fmclassblock->getParameterNode(i) : fmclassblock->getArgumentNode(i));
 	assert(ceNode);
-	ceNode->fixPendingArgumentNode();
-	NodeConstantDef * cloneNode = (NodeConstantDef *) ceNode->instantiate(); //new NodeConstantDef(*ceNode);
+	ceNode->fixPendingArgumentNode(); //sets m_cid
+
+	NodeConstantDef * cloneNode = NULL;
+	if(ceNode->isClassArgumentItsDefaultValue())
+	  cloneNode =  (NodeConstantDef *) parmNode->instantiate();
+	else
+	  cloneNode = (NodeConstantDef *) ceNode->instantiate();
 	assert(cloneNode);
 	assert(ceNode->getNodeNo() == cloneNode->getNodeNo());
+
+	assert(ptcsym->getParameterSymbolPtr(i)->getId()==ceNode->getSymbolId()); //sanity
 
 	Symbol * cvsym = NULL;
 	AssertBool isDefined = classblock->isIdInScope(cloneNode->getSymbolId(), cvsym);
@@ -827,20 +917,23 @@ namespace MFM {
 	cloneNode->setSymbolPtr((SymbolConstantValue *) cvsym); //sets declnno
 
 	if(toStub)
-	  linkConstantExpressionForPendingArg(cloneNode); //resolve later; adds to classblock
+	  linkConstantExpressionForPendingArg(cloneNode); //resolve later; adds to classblock, etc.
 	else
 	  {
 	    if(!cloneNode->isReadyConstant())
 	      linkConstantExpressionForPendingArg(cloneNode); //also adds to class block; t41441 ??
 	    else
-	      classblock->addArgumentNode(cloneNode);
+	      classblock->addArgumentNode(cloneNode); //updates lineage to list
 	  }
       }
-
+#if 0
+    m_state.popClassContext(); //restore
+    m_state.popClassContext(); //restore
+#endif
     if(toStub)
       {
-	setContextForPendingArgValues(argvaluecontext);
-	setContextForPendingArgTypes(argtypecontext); //(t41213, t41223, t3328, t41153)
+	// setContextForPendingArgValues(argvaluecontext);
+	//setContextForPendingArgTypes(argtypecontext); //(t41213, t41223, t3328, t41153)
 
 	//Cannot MIX the current block (context) to find symbols while
 	//using this stub copy to find parent NNOs for constant folding;
@@ -849,16 +942,38 @@ namespace MFM {
 	//Resolution of all context-dependent arg expressions will occur
 	//during the resolving loop..
 	//Note: could be localsFilescope (t41434)
+#if 0
+	//refactor..different context.
 	m_state.pushClassOrLocalContextAndDontUseMemberBlock(argvaluecontext);
 	assignClassArgValuesInStubCopy();
 	m_state.popClassContext(); //restore previous context
+#endif
       }
+
+#if 0
+    m_state.m_pendingArgStubContext = Nouti;
+    m_state.m_pendingArgTypeStubContext = Nouti;
+#endif
   } //cloneArgumentNodesForClassInstance
 
   void SymbolClass::assignClassArgValuesInStubCopy()
   {
     assert(m_resolver);
     m_resolver->assignClassArgValuesInStubCopy(); //t41007 cannot assert true result
+  }
+
+  void SymbolClass::partialInstantiationOfMemberNodesAndSymbols(NodeBlockClass & fromclassblock)
+  {
+    NodeBlockClass * cblock = getClassBlockNode();
+    UTI suti = getUlamTypeIdx();
+
+    m_state.pushClassContext(suti, cblock, cblock, false, NULL);
+
+    cblock->setDataMembersParseTree(suti, fromclassblock);
+    cblock->updateLineage(0);
+    cblock->setDataMembersSymbolTable(suti, fromclassblock);
+
+    m_state.popClassContext(); //restore
   }
 
   void SymbolClass::cloneResolverUTImap(SymbolClass * csym)
@@ -870,6 +985,7 @@ namespace MFM {
 
   void SymbolClass::cloneUnknownTypesMapInClass(SymbolClass * to)
   {
+    assert(!isStubCopy());
     if(!m_resolver)
       return;
     return m_resolver->cloneUnknownTypesTokenMap(to);
@@ -885,12 +1001,10 @@ namespace MFM {
 
   UTI SymbolClass::getContextForPendingArgValues()
   {
-    //if(pendingClassArgumentsForClassInstance())
-      {
-	//assert(m_resolver); //dangerous! when template has default parameters
-	if(m_resolver)
-	  return m_resolver->getContextForPendingArgValues();
-      }
+    //assert(m_resolver); //dangerous! when template has default parameters
+    if(m_resolver)
+      return m_resolver->getContextForPendingArgValues();
+
     assert(!isStub() || (getParentClassTemplate() && ((getParentClassTemplate()->getTotalParametersWithDefaultValues() > 0) || (getParentClassTemplate()->getUlamClass() == UC_UNSEEN))) || !m_state.isComplete(getUlamTypeIdx())); //e.g. not complete if bases have pending arg types (t3981, t41446)
     return Nouti; //getUlamTypeIdx(); //return self UTI, t3981
   } //getContextForPendingArgValues
@@ -905,12 +1019,9 @@ namespace MFM {
 
   UTI SymbolClass::getContextForPendingArgTypes()
   {
-    //if(pendingClassArgumentsForClassInstance())
-      {
-	//assert(m_resolver); //dangerous! when template has default parameters
-	if(m_resolver)
-	  return m_resolver->getContextForPendingArgTypes();
-      }
+    //assert(m_resolver); //dangerous! when template has default parameters
+    if(m_resolver)
+      return m_resolver->getContextForPendingArgTypes();
 
     assert(!isStub() || (getParentClassTemplate() && ((getParentClassTemplate()->getTotalParametersWithDefaultValues() > 0) || (getParentClassTemplate()->getUlamClass() == UC_UNSEEN))) || !m_state.isComplete(getUlamTypeIdx())); //e.g. not complete if bases have pending arg types (t3981)
 
@@ -919,6 +1030,7 @@ namespace MFM {
 
   bool SymbolClass::statusNonreadyClassArguments()
   {
+    assert(!isStubCopy());
     if(!m_resolver) //stubs only!
       return true;
     return m_resolver->statusNonreadyClassArguments(this);
@@ -926,6 +1038,7 @@ namespace MFM {
 
   u32 SymbolClass::countNonreadyClassArguments()
   {
+    assert(!isStubCopy());
     if(!m_resolver)
       return 0; //nothing to do
     return m_resolver->countNonreadyClassArgs();
@@ -1216,20 +1329,15 @@ namespace MFM {
     //only if used by this class, or its superclass
     if(m_state.isOtherClassInThisContext(suti))
       {
-	m_state.indent(fp);
-	fp->write("#include \"");
-	fp->write(m_state.getFileNameForAClassHeader(suti).c_str());
-	fp->write("\"\n");
+	generateAllIncludesForTestMain(fp);
       }
   } //generateAsOtherInclude
 
   void SymbolClass::generateAllIncludesForTestMain(File * fp)
   {
-    UTI suti = getUlamTypeIdx();
-    m_state.indent(fp);
-    fp->write("#include \"");
-    fp->write(m_state.getFileNameForAClassHeader(suti).c_str());
-    fp->write("\"\n");
+    NodeBlockClass * classblock = getClassBlockNode();
+    assert(classblock);
+    classblock->generateIncludeTestMain(fp);
   } //generateAllIncludesForTestMain
 
   void SymbolClass::generateAsOtherForwardDef(File * fp)
@@ -1429,6 +1537,10 @@ namespace MFM {
     //t3373,4,5,6,7 t3380,82, t3394, 95, t3622, t3749, t3755, t3804,7, t3958, t41005, t41032,4
     m_state.m_programDefST.generateAllIncludesTestMainForTableOfClasses(fp);
 
+    //include ALL the locals filescopes being compiled (t41345, t3981, t3865)
+    m_state.generateAllIncludesTestMainForLocalsFilescopes(fp);
+
+#if 0
     NodeBlockClass * classNode = getClassBlockNode();
     assert(classNode);
     UTI locuti = classNode->getLocalsFilescopeType();
@@ -1440,6 +1552,7 @@ namespace MFM {
 	fp->write(m_state.m_pool.getDataAsString(mangledclassid).c_str());
 	fp->write(".h\""); GCNL;
       }
+#endif
 
     fp->write("\n");
     m_state.indent(fp);

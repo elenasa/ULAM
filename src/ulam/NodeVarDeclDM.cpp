@@ -258,7 +258,7 @@ namespace MFM {
     return rscr;
   } //safeToCastTo
 
-  bool NodeVarDeclDM::checkReferenceCompatibility(UTI uti)
+  bool NodeVarDeclDM::checkReferenceCompatibility(UTI uti, Node * parentnode)
   {
     assert(m_state.okUTItoContinue(uti));
     if(m_state.getUlamTypeByIndex(uti)->isAltRefType())
@@ -273,9 +273,9 @@ namespace MFM {
     return true; //ok
   } //checkReferenceCompatibility
 
-  UTI NodeVarDeclDM::checkAndLabelType()
+  UTI NodeVarDeclDM::checkAndLabelType(Node * thisparentnode)
   {
-    UTI nuti = NodeVarDecl::checkAndLabelType(); //sets node type
+    UTI nuti = NodeVarDecl::checkAndLabelType(thisparentnode); //sets node type
 
     if(!m_state.okUTItoContinue(nuti))
       return nuti;
@@ -336,6 +336,7 @@ namespace MFM {
 	    msg << ", initialization is not ready";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    setNodeType(Hzy);
+	    clearSymbolPtr();
 	    m_state.setGoAgain(); //since not error
 	    return Hzy; //short-circuit
 	  }
@@ -365,6 +366,7 @@ namespace MFM {
 		    if(!(m_varSymbol->isInitValueReady()))
 		      {
 			setNodeType(Hzy);
+			clearSymbolPtr();
 			m_state.setGoAgain(); //since not error
 			return Hzy;
 		      }
@@ -548,7 +550,7 @@ namespace MFM {
       return true;
 
     // if here, must be a constant init value..
-    UTI foldeduti = m_nodeInitExpr->constantFold(); //c&l redone
+    UTI foldeduti = m_nodeInitExpr->constantFold(this); //c&l redone
     if(!m_state.okUTItoContinue(foldeduti))
       return false;
 

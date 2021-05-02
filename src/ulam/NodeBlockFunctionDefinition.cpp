@@ -174,7 +174,7 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-  UTI NodeBlockFunctionDefinition::checkAndLabelType()
+  UTI NodeBlockFunctionDefinition::checkAndLabelType(Node * thisparentnode)
   {
     assert(m_funcSymbol);
     UTI fit = m_funcSymbol->getUlamTypeIdx();
@@ -184,7 +184,7 @@ namespace MFM {
     // don't want to leave Nav dangling
     if(m_nodeTypeDesc)
       {
-	it = m_nodeTypeDesc->checkAndLabelType();
+	it = m_nodeTypeDesc->checkAndLabelType(this);
       }
 
     checkParameterNodeTypes();
@@ -253,7 +253,7 @@ namespace MFM {
 
     if(m_nodeNext) //non-empty function
       {
-	m_nodeNext->checkAndLabelType(); //side-effect
+	m_nodeNext->checkAndLabelType(this); //side-effect
 	if(!m_state.checkFunctionReturnNodeTypes(m_funcSymbol)) //gives some errors
 	  setNodeType(Nav); //tries to avoid assert in resolving loop; return sets goagain
       }
@@ -270,7 +270,7 @@ namespace MFM {
 
   bool NodeBlockFunctionDefinition::checkParameterNodeTypes()
   {
-    UTI puti = m_nodeParameterList->checkAndLabelType();
+    UTI puti = m_nodeParameterList->checkAndLabelType(this);
     return m_state.okUTItoContinue(puti);
   }
 

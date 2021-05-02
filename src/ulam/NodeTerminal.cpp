@@ -154,7 +154,7 @@ namespace MFM {
     return fitsInBits(newType) ? CAST_CLEAR : CAST_BAD;
   } //safeToCastTo
 
-  UTI NodeTerminal::checkAndLabelType()
+  UTI NodeTerminal::checkAndLabelType(Node * thisparentnode)
   {
     //numeric tokens are implicitily 64-bits
     // o.w. 64-bit constants got truncated; but no 32-bit sign extension.

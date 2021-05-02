@@ -6,7 +6,7 @@ namespace MFM {
 
   SymbolWithValue::SymbolWithValue(const Token& id, UTI utype, CompilerState & state) : Symbol(id, utype, state), m_isReady(false), m_hasInitVal(false), m_isReadyInitVal(false), m_classParameter(false), m_classArgument(Nouti), m_declnno(0) { }
 
-  SymbolWithValue::SymbolWithValue(const SymbolWithValue & sref) : Symbol(sref), m_isReady(sref.m_isReady), m_hasInitVal(sref.m_hasInitVal), m_isReadyInitVal(false), m_classParameter(false), m_classArgument(Nouti), m_declnno(sref.m_declnno)
+  SymbolWithValue::SymbolWithValue(const SymbolWithValue & sref) : Symbol(sref), m_isReady(sref.m_isReady), m_hasInitVal(sref.m_hasInitVal), m_isReadyInitVal(sref.m_isReadyInitVal /*was false*/), m_classParameter(false), m_classArgument(Nouti), m_declnno(sref.m_declnno)
   {
     if((sref.m_classArgument != Nouti) || sref.m_classParameter)
       m_classArgument = m_state.getCompileThisIdx(); //t41229
@@ -16,7 +16,7 @@ namespace MFM {
 
   }
 
-  SymbolWithValue::SymbolWithValue(const SymbolWithValue & sref, bool keepType) : Symbol(sref, keepType), m_isReady(sref.m_isReady), m_hasInitVal(sref.m_hasInitVal), m_isReadyInitVal(false), m_classParameter(false), m_classArgument(sref.m_classArgument), m_declnno(sref.m_declnno)
+  SymbolWithValue::SymbolWithValue(const SymbolWithValue & sref, bool keepType) : Symbol(sref, keepType), m_isReady(sref.m_isReady), m_hasInitVal(sref.m_hasInitVal), m_isReadyInitVal(sref.m_isReadyInitVal /* was false*/), m_classParameter(false), m_classArgument(sref.m_classArgument), m_declnno(sref.m_declnno)
   {
     //classArg is copying from a classParameter
     m_constantValue = sref.m_constantValue;

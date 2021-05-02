@@ -9,13 +9,13 @@ namespace MFM {
 
   NodeBinaryOpEqualArith::~NodeBinaryOpEqualArith(){}
 
-  UTI NodeBinaryOpEqualArith::checkAndLabelType()
+  UTI NodeBinaryOpEqualArith::checkAndLabelType(Node * thisparentnode)
   {
     //copied from NodeBinaryOpEqual::checkandlabeltype..
     assert(m_nodeLeft && m_nodeRight);
 
-    UTI leftType = m_nodeLeft->checkAndLabelType();
-    UTI rightType = m_nodeRight->checkAndLabelType();
+    UTI leftType = m_nodeLeft->checkAndLabelType(this);
+    UTI rightType = m_nodeRight->checkAndLabelType(this);
 
     if(!m_state.neitherNAVokUTItoContinue(leftType, rightType))
       {
@@ -85,7 +85,7 @@ namespace MFM {
     if(lut->getUlamTypeEnum() == Class)
       {
 	//try for operator overload first (e.g. (pre) +=,-=, (post) ++,-- ) t41117,8
-	if(NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode())
+	if(NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode(thisparentnode))
 	  {
 	    m_state.setGoAgain();
 	    delete this; //suicide is painless..

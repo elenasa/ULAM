@@ -153,6 +153,15 @@ namespace MFM {
 	assert(oldsym == s);
 	m_idToSymbolPtr.erase(it);
       }
+
+    std::map<u32,Symbol*>::iterator nit = m_idToSymbolPtr.find(newid);
+    if(nit != m_idToSymbolPtr.end())
+      {
+	Symbol * newsym = nit->second;
+	assert(newsym != s);
+	m_idToSymbolPtr.erase(nit);
+      }
+
     addToTable(newid, s);
   } //replaceInTable
 

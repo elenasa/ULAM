@@ -24,7 +24,7 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-  UTI NodeBinaryOpArithRemainder::castThyselfToResultType(UTI rt, UTI lt, UTI newType)
+  UTI NodeBinaryOpArithRemainder::castThyselfToResultType(UTI rt, UTI lt, UTI newType, Node *& parentnoderef)
   {
     UTI nuti = newType;
     //because the result bitsize for mod should be the right bitsize
@@ -44,13 +44,16 @@ namespace MFM {
 	  {
 	    NNO pno = Node::getYourParentNo(); //save
 	    assert(pno);
+
 	    //not using use makeCastingNode since don't want recursive c&l call
 	    Node * castNode = Node::newCastingNode(this, nuti);
-
+#if 0
 	    Node * parentNode = m_state.findNodeNoInThisClassForParent(pno);
-	    assert(parentNode);
+#endif
+	    assert(parentnoderef);
+	    assert(pno == parentnoderef->getNodeNo());
 
-	    AssertBool swapOk = parentNode->exchangeKids(this, castNode);
+	    AssertBool swapOk = parentnoderef->exchangeKids(this, castNode);
 	    assert(swapOk);
 
 	    std::ostringstream msg;
@@ -60,8 +63,10 @@ namespace MFM {
 	    msg << " while compiling class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	    castNode->setYourParentNo(pno); //inverts normal update lineage
-	    setYourParentNo(castNode->getNodeNo());
+	    //castNode->setYourParentNo(pno); //inverts normal update lineage
+	    //setYourParentNo(castNode->getNodeNo());
+	    castNode->updateLineage(pno);
+	    parentnoderef = castNode; //t41384
 	  }
 	}
     return nuti;

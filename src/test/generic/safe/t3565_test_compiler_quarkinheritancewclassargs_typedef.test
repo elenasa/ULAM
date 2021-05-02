@@ -41,7 +41,7 @@ element Foo {
 #:Soo.ulam
   ulam 2;
 quark Soo(Int a, Unsigned b) : Coo(a) {
-  //typedef Coo(a).U3 U3;  WORKS WITH THIS!! does this mean typedefs are not inherited???
+  //typedef Coo(a).U3 U3;  //WORKS WITH THIS!! does this mean typedefs are not inherited???
   U3 us = 4u;
 }
 

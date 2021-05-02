@@ -66,12 +66,12 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-  UTI NodeTypeBitsize::checkAndLabelType()
+  UTI NodeTypeBitsize::checkAndLabelType(Node * thisparentnode)
   {
     UTI it = getNodeType();
 
     if(it != Nav)
-      it = m_node->checkAndLabelType(); //previous time through
+      it = m_node->checkAndLabelType(this); //previous time through
 
     if(!m_state.okUTItoContinue(it) || !m_state.isComplete(it))
       {
@@ -137,7 +137,7 @@ namespace MFM {
   bool NodeTypeBitsize::getTypeBitSizeInParen(s32& rtnBitSize, ULAMTYPE BUT, UTI& sizetype)
   {
     s32 newbitsize = UNKNOWNSIZE;
-    sizetype = checkAndLabelType();
+    sizetype = checkAndLabelType(this);
     if(sizetype == Nav) //could be hzy
       {
 	return false; //no rtnBitSize

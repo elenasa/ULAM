@@ -189,9 +189,12 @@ namespace MFM {
 		    UTI mappedUTI = Nouti;
 		    AssertBool gotmapped = cnsym->hasMappedUTI(huti,mappedUTI);
 		    assert(gotmapped);
+#if 0
 		    UTI cuti = m_state.getCompileThisIdx();
-		    ((SymbolClassNameTemplate *)cnsym)->copyAStubClassInstance(mappedUTI, huti, cuti, cuti, tok.m_locator); //t41436?
+		    ((SymbolClassNameTemplate *)cnsym)->copyAStubClassInstance(mappedUTI, huti, cuti, cuti, tok.m_locator); //t41436?, assumes it is a class?
 		    kuti = huti;
+#endif
+		    kuti = mappedUTI;
 		  }
 		else
 		  {
@@ -381,7 +384,8 @@ namespace MFM {
 
     m_state.pushClassOrLocalContextAndDontUseMemberBlock(context);
 
-    m_state.m_pendingArgStubContext = m_classUTI; //t41225??m_classUTI; //set for folding surgery
+    //how bizarre!! setting pendingArgStubContext to 'context' haha!!
+    m_state.m_pendingArgStubContext = context; //t41221??m_classUTI; //set for folding surgery
     m_state.m_pendingArgTypeStubContext = getContextForPendingArgTypes(); //set for resolving types
 
     bool defaultval = false;
@@ -390,6 +394,7 @@ namespace MFM {
     NodeBlockClass * stubclassblock = stubcsym->getClassBlockNode();
     assert(stubclassblock);
     Locator saveStubLoc = stubclassblock->getNodeLocation();
+    NodeList * stubargnodes = stubclassblock->getListOfArgumentNodes(); //args parent
 
     std::vector<NodeConstantDef *> leftCArgs;
     std::vector<NodeConstantDef *>::iterator vit = m_nonreadyClassArgSubtrees.begin();
@@ -404,24 +409,26 @@ namespace MFM {
 
 	    //OMG! if this was a default value for class arg, t3891,
 	    // we want to use the class stub/template as the 'context' rather than where the
-	    // stub was declared.
+	    // stub was declared (stub, not template: t41438,9, t41444,5).
 	    if(defaultval && !pushedtemplate)
 	      {
 		assert(stubcsym);
 		SymbolClassNameTemplate * templateparent = stubcsym->getParentClassTemplate();
 		assert(templateparent);
+		//UTI ttype = templateparent->getUlamTypeIdx();
 		NodeBlockClass * templateclassblock = templateparent->getClassBlockNode();
 		//temporarily change stub loc, in case of local filescope, incl arg/params
 		//stubclassblock->resetNodeLocations(templateclassblock->getNodeLocation());
 		stubclassblock->setNodeLocation(templateclassblock->getNodeLocation());
 
 		m_state.pushClassContext(m_classUTI, stubclassblock, stubclassblock, false, NULL);
+		//m_state.pushClassContext(ttype, templateclassblock, templateclassblock, false, NULL);
 		pushedtemplate = true;
 		m_state.m_pendingArgStubContext = m_classUTI; //t41225??
 	      }
 	    assert(defaultval == pushedtemplate); //once a default, always a default
 
-	    UTI uti = ceNode->checkAndLabelType();
+	    UTI uti = ceNode->checkAndLabelType(stubargnodes);
 	    if(m_state.okUTItoContinue(uti)) //i.e. ready
 	      {
 		m_state.addCompleteUlamTypeToContextBlockSet(uti, stubclassblock); //t3895
@@ -537,7 +544,7 @@ namespace MFM {
       {
 	UTI a = mit->first;
 	UTI b = mit->second;
-	//let classes be newly mapped. t41225,8, t41434,t41436
+	//let classes be newly mapped. t41225,8, t41434,t41436, t41431,3
 	//see also CompilerState::mapIncompleteUTIForAClassInstance for
 	// unknown token type situation, instead of copy of stub.
 	if(!m_state.isAClass(a))

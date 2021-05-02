@@ -61,7 +61,7 @@ namespace MFM{
 
   protected:
 
-    virtual UTI castThyselfToResultType(UTI rt, UTI lt, UTI newType);
+    virtual UTI castThyselfToResultType(UTI rt, UTI lt, UTI newType, Node *& parentnoderef);
 
     virtual UlamValue makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len);
 

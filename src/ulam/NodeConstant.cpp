@@ -64,14 +64,24 @@ namespace MFM {
 
   const char * NodeConstant::getName()
   {
-    if(isReadyConstant())
+    if(isReadyConstant() && m_constSymbol && !m_constSymbol->isClassParameter())
       return NodeTerminal::getName();
+
     return m_state.getTokenDataAsString(m_token).c_str();
   }
 
   const std::string NodeConstant::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
+  }
+
+  void NodeConstant::clearSymbolPtr()
+  {
+    //if symbol is in a stub, there's no guarantee the stub
+    // won't be replace by another duplicate class once its
+    // pending args have been resolved.
+    m_constSymbol = NULL;
+    setBlock(NULL);
   }
 
   bool NodeConstant::getSymbolPtr(Symbol *& symptrref)
@@ -141,13 +151,13 @@ namespace MFM {
     return NodeTerminal::fitsInBits(newType) ? CAST_CLEAR : CAST_BAD;
   } //safeToCastTo
 
-  UTI NodeConstant::checkAndLabelType()
+  UTI NodeConstant::checkAndLabelType(Node * thisparentnode)
   {
     UTI it = getNodeType(); //was Nav; but could be repeated c&l call.
 
     if(m_nodeTypeDesc)
       {
-	UTI duti = m_nodeTypeDesc->checkAndLabelType(); //clobbers any expr it
+	UTI duti = m_nodeTypeDesc->checkAndLabelType(this); //clobbers any expr it
 	if(!m_state.okUTItoContinue(duti))
 	  {
 	    setNodeType(duti);
@@ -158,18 +168,23 @@ namespace MFM {
 
     setupBlockNo(); //in case zero, may use nodetypedesc
 
-    bool stubcopy = m_state.isClassAStub(m_state.getCompileThisIdx());
+    NodeBlockContext * currentContextBlock = m_state.getContextBlockForSearching();
+    assert(currentContextBlock);
+    UTI cbuti = currentContextBlock->getNodeType(); //was getCompileThisIdx()
+    if(!m_state.okUTItoContinue(cbuti)) cbuti = m_state.getCompileThisIdx(); //t3336
+    bool astub = m_state.isClassAStub(cbuti);
 
     //instantiate, look up in class block; skip if stub copy and already ready.
-    //if(!stubcopy && m_constSymbol == NULL)
+    //if(!astub && m_constSymbol == NULL)
     if(m_constSymbol == NULL) //t41440??
       {
 	checkForSymbol();
 	if(m_constSymbol)
 	  {
-	    TBOOL rtb = replaceOurselves(m_constSymbol);
+	    TBOOL rtb = replaceOurselves(m_constSymbol, thisparentnode);
 	    if(rtb == TBOOL_HAZY)
 	      {
+		clearSymbolPtr(); //lookup again too! (e.g. inherited template instances)
 		m_state.setGoAgain();
 		setNodeType(Hzy);
 		return Hzy;
@@ -187,21 +202,21 @@ namespace MFM {
       }
     else
       {
-	stubcopy = m_state.hasClassAStubInHierarchy(m_state.getCompileThisIdx()); //includes ancestors
+	astub = m_state.hasClassAStubInHierarchy(cbuti); //includes ancestors
       }
 
     if(m_constSymbol)
       {
 	it = checkUsedBeforeDeclared(); //m_constSymbol->getUlamTypeIdx();
       }
-    else if(isReadyConstant() && stubcopy)
+    else if(isReadyConstant() && astub)
       {
 	assert(m_state.okUTItoContinue(m_constType));
 	setNodeType(m_constType); //t3565, t3640, t3641, t3642, t3652
 	//stub copy case: still wants uti mapping
-	it = NodeTerminal::checkAndLabelType();
+	it = NodeTerminal::checkAndLabelType(thisparentnode);
       }
-    else if(stubcopy)
+    else if(astub)
       {
 	// still need its symbol for a value
 	// use the member class (unlike checkForSymbol)
@@ -253,10 +268,11 @@ namespace MFM {
 	msg << " (UTI " << cuti << ")";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);  //t41192
 	it = Hzy;
-	if(!stubcopy) //t41432? t41440??
+#if 0
+	if(!astub) //t41432? t41440??
+#endif
 	  {
-	    m_constSymbol = NULL; //lookup again too! (e.g. inherited template instances)
-	    setBlock(NULL);
+	    clearSymbolPtr(); //lookup again too! (e.g. inherited template instances)
 	  }
       }
     setNodeType(it);
@@ -324,7 +340,7 @@ namespace MFM {
     m_state.popClassContext(); //restore
   } //checkForSymbol
 
-  TBOOL NodeConstant::replaceOurselves(Symbol * symptr)
+  TBOOL NodeConstant::replaceOurselves(Symbol * symptr, Node * parentnode)
   {
     assert(symptr);
 
@@ -343,7 +359,7 @@ namespace MFM {
 	  newnode = new NodeConstantClassArray(m_token, (SymbolConstantValue *) symptr, m_nodeTypeDesc, m_state); //t41261
 
 	assert(newnode);
-	AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+	AssertBool swapOk = Node::exchangeNodeWithParent(newnode, parentnode);
 	assert(swapOk);
 
 	m_nodeTypeDesc = NULL; //tfr to new node
@@ -354,7 +370,7 @@ namespace MFM {
 	NodeConstantArray * newnode = new NodeConstantArray(m_token, (SymbolConstantValue *) symptr, m_nodeTypeDesc, m_state);
 	assert(newnode);
 
-	AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+	AssertBool swapOk = Node::exchangeNodeWithParent(newnode, parentnode);
 	assert(swapOk);
 
 	m_nodeTypeDesc = NULL; //tfr to new node
@@ -367,7 +383,7 @@ namespace MFM {
 	NodeModelParameter * newnode = new NodeModelParameter(m_token, (SymbolModelParameterValue*) symptr, m_nodeTypeDesc, m_state);
 	assert(newnode);
 
-	AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+	AssertBool swapOk = Node::exchangeNodeWithParent(newnode, parentnode);
 	assert(swapOk);
 
 	m_nodeTypeDesc = NULL; //tfr to new node
@@ -393,14 +409,14 @@ namespace MFM {
 	  {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    setBlockNo(pcurrBlock->getNodeNo());
-	    m_constSymbol = NULL; //t3323
+	    clearSymbolPtr(); //t3323
+	    //m_constSymbol = NULL; //t3323
 	    rtnuti = Hzy;
 	  }
 	else
 	  {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    m_constSymbol = NULL;
-	    setBlock(NULL);
+	    clearSymbolPtr();
 	    rtnuti = Nav;
 	  }
       }
@@ -435,7 +451,6 @@ namespace MFM {
 		needsapop = true;
 	      }
 	  }
-
 
 	if(m_state.useMemberBlock())
 	  {
@@ -524,8 +539,8 @@ namespace MFM {
     bool hazyKin = false;
     if(m_state.alreadyDefinedSymbol(m_token.m_dataindex, asymptr, hazyKin))
       {
-	assert(hazyKin); //always hazy, right?
-	if(asymptr->isConstant() && ((SymbolConstantValue *) asymptr)->isReady()) //???
+	assert(hazyKin); //always hazy, right? depends on mergeClassInstancesFromTEMP (t41436)
+	if(asymptr->isConstant() && ((SymbolConstantValue *) asymptr)->isReady())
 	  {
 	    u64 val = 0;
 	    ((SymbolConstantValue *) asymptr)->getValue(val);
@@ -607,14 +622,35 @@ namespace MFM {
 
   bool NodeConstant::updateConstant()
   {
+    bool brtn = false;
     u64 val;
     if(!m_constSymbol)
       return false;
     if(m_constSymbol->getValue(val))
-      m_constant.uval = val; //value fits type per its constantdef
+      {
+	m_constant.uval = val; //value fits type per its constantdef
+	brtn = true;
+	assert(m_constSymbol->isReady()); //true;
+      }
+#if 0
+    else if(m_constSymbol->isClassParameter()) //t41436?
+      {
+	if(m_constSymbol->hasInitValue())
+	  {
+	    u64 initval = 0;
+
+	    if(m_constSymbol->getInitValue(initval))
+	      {
+		m_constant.uval = initval; //ready
+		brtn = true;
+		assert(m_constSymbol->isInitValueReady());
+	      }
+	  }
+      }
+#endif
     //else don't want default value here
 
-    return m_constSymbol->isReady();
+    return brtn; //m_constSymbol->isReady();
   } //updateConstant
 
 } //end MFM

@@ -71,7 +71,7 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-  UTI NodeTypeDescriptorSelect::checkAndLabelType()
+  UTI NodeTypeDescriptorSelect::checkAndLabelType(Node * thisparentnode)
   {
     UTI it = getNodeType();
     if(isReadyType())
@@ -100,7 +100,7 @@ namespace MFM {
     // we are in a "chain" of type selects..
     assert(m_nodeSelect);
 
-    UTI seluti = m_nodeSelect->checkAndLabelType();
+    UTI seluti = m_nodeSelect->checkAndLabelType(this);
     if(m_nodeSelect->isReadyType())
       {
 	UlamType * selut = m_state.getUlamTypeByIndex(seluti);
@@ -143,10 +143,12 @@ namespace MFM {
 
 		    if(rtnb)
 		      {
-			if(m_state.hasUnknownTypeInThisClassResolver(auti))
+			UTI nuti = givenUTI(); //t3384
+			if(m_state.hasUnknownTypeInThisClassResolver(nuti))
 			  {
-			    m_state.removeKnownTypeTokenFromThisClassResolver(auti);
-			    m_state.cleanupExistingHolder(auti, rtnuti);
+			    m_state.removeKnownTypeTokenFromThisClassResolver(nuti);
+			    if(m_state.isHolder(nuti)) //t41361, might have been resolved already
+			      m_state.cleanupExistingHolder(nuti, rtnuti);
 			  }
 			else if(m_state.isHolder(rtnuti))
 			  {

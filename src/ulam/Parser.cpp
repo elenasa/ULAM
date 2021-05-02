@@ -292,6 +292,8 @@ namespace MFM {
     UTI cuti = cnSym->getUlamTypeIdx();
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
 
+    m_state.setThisClassForParsing(cuti);
+
     //mostly needed for code gen later, but this is where we first know it!
     m_state.pushClassContext(cuti, cnSym->getClassBlockNode(), cnSym->getClassBlockNode(), false, NULL); //null blocks likely
 
@@ -356,6 +358,7 @@ namespace MFM {
 	MSG(&pTok, msg.str().c_str(), ERR); //t41432
       }
 
+    m_state.clearThisClassForParsing();
     return false; //keep going until EOF is reached
   } //parseThisClass
 
@@ -424,8 +427,8 @@ namespace MFM {
 	    if(supercsym->isStub() || m_state.isHolder(superuti) || (supercsym->getUlamClass() == UC_UNSEEN))
 	      {
 		rtnNode->setBaseClassBlockPointer(NULL,0); //wait for c&l
-		m_state.setBaseStubFlagForThisClassTemplate(superuti); //applies to stubs only, t3852
-		assert(!cnsym->isClassTemplate() || !supercsym->isStub() || m_state.isClassABaseStubInATemplateHierarchy(superuti));//t3407, t3852
+		m_state.setStubFlagForThisClassTemplate(superuti); //applies to stubs only, t3852
+		assert(!cnsym->isClassTemplate() || !supercsym->isStub() || m_state.isClassAMemberStubInATemplate(superuti));//t3407, t3852
 	      }
 	  }
       }
@@ -503,8 +506,9 @@ namespace MFM {
   {
     assert(supercsym);
     UTI superuti = supercsym->getUlamTypeIdx();
+
     assert(cnsym);
-    cnsym->setBaseClass(superuti, 0);
+    //cnsym->setBaseClass(superuti, 0); done already!!
 
     NodeBlockClass * classblock = cnsym->getClassBlockNode();
     assert(classblock); //rtnNode in caller
@@ -540,8 +544,8 @@ namespace MFM {
 	    UTI stuti = symtypedef->getUlamTypeIdx();
 	    if(stuti != superuti) //t3808, t3806, t3807
 	      {
-		m_state.updateUTIAliasForced(stuti, superuti);
-		cnsym->setBaseClass(superuti, 0);
+		//	m_state.updateUTIAliasForced(stuti, superuti);
+		//cnsym->setBaseClass(superuti, 0);
 		symtypedef->resetUlamType(superuti);
 	      }
 	  }
@@ -828,9 +832,9 @@ namespace MFM {
 		AssertBool isDefined = m_state.alreadyDefinedSymbolClass(baseuti, basecsym);
 		assert(isDefined);
 		rtninherits = true;
-
-		//m_state.setBaseStubFlagForThisClassTemplate(baseuti); //t41440
-		assert(!cnsym->isClassTemplate() || !basecsym->isStub() || m_state.isClassABaseStubInATemplateHierarchy(baseuti));//t41302
+		//flag set in makeAStubClassInstance..not here.
+		//m_state.setStubFlagForThisClassTemplate(baseuti); //t41440
+		assert(!cnsym->isClassTemplate() || !basecsym->isStub() || m_state.isClassAMemberStubInATemplate(baseuti));//t41302
 	      }
 	  }
 	m_state.m_parsingVariableSymbolTypeFlag = STF_NEEDSATYPE; //reset
@@ -906,7 +910,11 @@ namespace MFM {
     if(pTok.m_type == TOK_KW_TYPEDEF)
       {
 	//parse Typedef's starting with keyword first
+	m_state.m_parsingVariableSymbolTypeFlag = STF_MEMBERTYPEDEF;
+
 	isAlreadyAppended = parseTypedef();
+
+	m_state.m_parsingVariableSymbolTypeFlag = STF_NEEDSATYPE;
       }
     else if(pTok.m_type == TOK_KW_CONSTDEF)
       {
@@ -917,7 +925,7 @@ namespace MFM {
 	// not set in Symbol constructor, like Localfilescope flag, since
 	// ClassParameter constant defs (e.g. t3328, t3329, t3330..)
 	// also have the same BlockNoST as its class.
-	m_state.m_parsingVariableSymbolTypeFlag = STF_DATAMEMBER;
+	m_state.m_parsingVariableSymbolTypeFlag = STF_MEMBERCONSTANT; //was STF_DATAMEMBER
 
 	isAlreadyAppended = parseConstdef();
 
@@ -2908,6 +2916,7 @@ namespace MFM {
       }
 
     //must be a template class
+    UTI cuti = m_state.getCompileThisIdx();
     SymbolClassNameTemplate * ctsym = NULL;
     if(!m_state.alreadyDefinedSymbolClassNameTemplate(tokid, ctsym))
       {
@@ -2973,7 +2982,7 @@ namespace MFM {
 	msg << "While parsing a ";
 	msg << m_state.getParserSymbolTypeFlagAsString(m_state.m_parsingVariableSymbolTypeFlag).c_str();
 	msg << " for ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str() ;
+	msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str() ;
 	msg << ": due to unrecoverable problems in template: ";
 	msg << m_state.m_pool.getDataAsString(ctsym->getId()).c_str() ;
 	msg << ", additional errors are unlikely to be useful";
@@ -2981,26 +2990,30 @@ namespace MFM {
 	return Nav; //needs a test, was t41166
       }
 
-    stubcsym->setContextForPendingArgValues(m_state.getCompileThisIdx());
+    bool hasnocontext = (stubcsym->getContextForPendingArgValues() == Nouti);
+    hasnocontext = true; //NOOP! always...t3328,t3332,6,t3497,t3886,7,8,t3890,1,2,t41223,1,8
+    if(hasnocontext) stubcsym->setContextForPendingArgValues(cuti);
     // to support dependent parameter class stubs, use typeargs to pass along
     // the outermost stub type in case of recursion (e.g. t41214, error/t41210)
     if(typeargs.m_classInstanceIdx != Nouti)
       {
-	stubcsym->setContextForPendingArgTypes(typeargs.m_classInstanceIdx);
+	if(hasnocontext) stubcsym->setContextForPendingArgTypes(typeargs.m_classInstanceIdx);
       }
     else if(m_state.m_parsingVariableSymbolTypeFlag == STF_CLASSPARAMETER)
       {
-	stubcsym->setContextForPendingArgTypes(m_state.getCompileThisIdx());
-	typeargs.m_classInstanceIdx = m_state.getCompileThisIdx();
+	//stubcsym->setContextForPendingArgTypes(m_state.getCompileThisIdx());
+	if(hasnocontext) stubcsym->setContextForPendingArgTypes(stubuti);
+	typeargs.m_classInstanceIdx = cuti;
+	m_state.setStubFlagForThisClassTemplate(stubuti); //applies to stubs only, t41224
       }
     else if(m_state.m_parsingVariableSymbolTypeFlag == STF_CLASSINHERITANCE)
       {
-	stubcsym->setContextForPendingArgTypes(stubuti); //t41223, t41221, t41224, t41226
+	if(hasnocontext) stubcsym->setContextForPendingArgTypes(stubuti); //t41223, t41221, t41224, t41226
 	typeargs.m_classInstanceIdx = stubuti;
       }
     else
       {
-	stubcsym->setContextForPendingArgTypes(stubuti);
+	if(hasnocontext) stubcsym->setContextForPendingArgTypes(stubuti);
 	typeargs.m_classInstanceIdx = stubuti;
       }
 
@@ -3100,7 +3113,7 @@ namespace MFM {
 
 		//CONUNDRUM!! the goal?
 		//argcsym->setContextForPendingArgTypes(csym->getUlamTypeIdx());
-		argcsym->setContextForPendingArgTypes(typeargs.m_classInstanceIdx); //t41223
+		//argcsym->setContextForPendingArgTypes(typeargs.m_classInstanceIdx); //t41223, t41224
 	      }
 	  }
 	else
@@ -3154,7 +3167,7 @@ namespace MFM {
 	  }
 
 	//fold later; non ready expressions saved by UTI in m_nonreadyClassArgSubtrees (stub)
-	csym->linkConstantExpressionForPendingArg(constNode);
+	csym->linkConstantExpressionForPendingArg(constNode); //also adds argnode to cblock
 	m_state.popClassContext(); //restore after making NodeConstantDef, so current context is class
       } //too many args
 
@@ -6000,7 +6013,7 @@ Node * Parser::wrapFactor(Node * leftNode)
 	    if(args.m_isStmt)
 	      asymptr->setStructuredComment(); //also clears
 
-	    if(m_state.m_parsingVariableSymbolTypeFlag == STF_DATAMEMBER)
+	    if(m_state.m_parsingVariableSymbolTypeFlag == STF_MEMBERCONSTANT)
 	      asymptr->setDataMemberClass(m_state.getCompileThisIdx()); //t3862, t3865, t3868
 
 	    rtnNode = parseRestOfConstantDef(constNode, args.m_assignOK, args.m_isStmt);
@@ -6617,6 +6630,7 @@ Node * Parser::wrapFactor(Node * leftNode)
 	    rtnNode = new NodeCast(nodetocast, typeToBe, typeNode, m_state);
 	    assert(rtnNode);
 	    rtnNode->setNodeLocation(typeNode->getNodeLocation());
+	    rtnNode->updateLineage(nodetocast->getYourParentNo());
 	    ((NodeCast *) rtnNode)->setExplicitCast();
 	  }
 	else

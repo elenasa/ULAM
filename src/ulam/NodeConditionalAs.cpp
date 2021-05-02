@@ -35,12 +35,12 @@ namespace MFM {
     return true;
   }
 
-  UTI NodeConditionalAs::checkAndLabelType()
+  UTI NodeConditionalAs::checkAndLabelType(Node * thisparentnode)
   {
     assert(m_nodeLeft);
     UTI newType = Bool;
 
-    UTI luti = m_nodeLeft->checkAndLabelType(); //side-effect
+    UTI luti = m_nodeLeft->checkAndLabelType(this); //side-effect
     if(luti == Nav)
       {
 	std::ostringstream msg;
@@ -133,7 +133,7 @@ namespace MFM {
       }
 
     assert(m_nodeTypeDesc);
-    UTI ruti = m_nodeTypeDesc->checkAndLabelType();
+    UTI ruti = m_nodeTypeDesc->checkAndLabelType(this);
     if(m_state.okUTItoContinue(ruti))
       {
 	UlamType * rut = m_state.getUlamTypeByIndex(ruti);

@@ -7,6 +7,7 @@
 #include "NodeIdent.h"
 #include "NodeListClassInit.h"
 #include "NodeVarRef.h"
+#include "NodeTypeDescriptorArray.h"
 
 namespace MFM {
 
@@ -118,9 +119,13 @@ namespace MFM {
 
   void NodeVarDecl::printTypeAndName(File * fp)
   {
-    UTI vuti = m_varSymbol->getUlamTypeIdx();
-    UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-    UlamKeyTypeSignature vkey = vut->getUlamKeyTypeSignature();
+    UTI vuti = getNodeType(); //could be hazy
+    if(m_varSymbol)
+      vuti = m_varSymbol->getUlamTypeIdx();
+    else if(m_nodeTypeDesc)
+      vuti = m_nodeTypeDesc->givenUTI();
+    else
+      m_state.abortNotImplementedYet();
 
     fp->write(" ");
     fp->write(m_state.getUlamTypeNameBriefByIndex(vuti).c_str());
@@ -162,6 +167,15 @@ namespace MFM {
   const std::string NodeVarDecl::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
+  }
+
+  void NodeVarDecl::clearSymbolPtr()
+  {
+    //if symbol is in a stub, there's no guarantee the stub
+    // won't be replace by another duplicate class once its
+    // pending args have been resolved.
+    m_varSymbol = NULL;
+    setBlock(NULL);
   }
 
   bool NodeVarDecl::getSymbolPtr(Symbol *& symptrref)
@@ -366,7 +380,7 @@ namespace MFM {
     return rtnOK;
   } //checkSafeToCastTo
 
-  bool NodeVarDecl::checkReferenceCompatibility(UTI uti)
+  bool NodeVarDecl::checkReferenceCompatibility(UTI uti, Node * parentnode)
   {
     assert(m_state.okUTItoContinue(uti));
     if(m_state.getUlamTypeByIndex(uti)->isAltRefType())
@@ -384,14 +398,18 @@ namespace MFM {
 	assert(newnode);
 
 	NNO pno = Node::getYourParentNo();
+	assert(pno);
+	assert(parentnode);
+	assert(pno == parentnode->getNodeNo());
+#if 0
 	Node * parentNode = m_state.findNodeNoInThisClassForParent(pno);
 	assert(parentNode);
+#endif
 
 	newnode->setNodeLocation(getNodeLocation());
-	newnode->setYourParentNo(pno);
 	newnode->resetNodeNo(getNodeNo()); //and symbol declnodeno
 
-	AssertBool swapOk = parentNode->exchangeKids(this, newnode);
+	AssertBool swapOk = parentnode->exchangeKids(this, newnode);
 	assert(swapOk);
 
 	{
@@ -408,6 +426,8 @@ namespace MFM {
 	if(hasInitExpr())
 	  newnode->m_nodeInitExpr = (Node *) m_nodeInitExpr->instantiate();
 
+	newnode->updateLineage(pno); //ulamexports SimpleBurn demo; pno to match parentnode
+
 	m_state.setGoAgain();
 
 	delete this; //suicide is painless..
@@ -419,7 +439,7 @@ namespace MFM {
     return true; //ok
   } //checkReferenceCompatibility
 
-  UTI NodeVarDecl::checkAndLabelType()
+  UTI NodeVarDecl::checkAndLabelType(Node * thisparentnode)
   {
     // instantiate, look up in current block
     if(m_varSymbol == NULL)
@@ -437,7 +457,7 @@ namespace MFM {
     UTI cuti = m_state.getCompileThisIdx();
     if(m_nodeTypeDesc)
       {
-	UTI duti = m_nodeTypeDesc->checkAndLabelType(); //sets goagain
+	UTI duti = m_nodeTypeDesc->checkAndLabelType(this); //sets goagain
 	if(m_state.okUTItoContinue(duti) && (duti != vit))
 	  {
 	    std::ostringstream msg;
@@ -463,6 +483,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Invalid use of type ";
 	msg << m_state.getUlamTypeNameByIndex(vit).c_str();
+	msg << " (UTI " << vit << ")";
 	msg << " with variable symbol name '" << getName() << "'";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(Nav); //could be clobbered by Hazy node expr
@@ -474,6 +495,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Incomplete Variable Decl for type: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(vit).c_str();
+	msg << " (UTI " << vit << ")";
 	msg << ", used with variable symbol name '" << getName() << "'";
 	if(m_state.okUTItoContinue(vit) || m_state.isStillHazy(vit))
 	  {
@@ -488,7 +510,7 @@ namespace MFM {
 
     if(hasInitExpr())
       {
-	UTI eit = m_nodeInitExpr->checkAndLabelType();
+	UTI eit = m_nodeInitExpr->checkAndLabelType(this);
 	if(eit == Nav)
 	  {
 	    std::ostringstream msg;
@@ -506,8 +528,11 @@ namespace MFM {
 	    msg << "Initial value expression for: ";
 	    msg << m_state.m_pool.getDataAsString(m_vid).c_str();
 	    msg << ", initialization is not ready";
+	    msg << " while compiling " << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	    msg << " (UTI " << cuti << ")";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    setNodeType(Hzy);
+	    clearSymbolPtr();
 	    m_state.setGoAgain(); //since not error
 	    return Hzy; //short-circuit
 	  }
@@ -537,12 +562,15 @@ namespace MFM {
 	      {
 		UTI duti = m_nodeTypeDesc->getNodeType();
 		UlamType * dut = m_state.getUlamTypeByIndex(duti);
-		if(m_state.okUTItoContinue(duti) && !dut->isComplete())
+		UTI scalarduti = ((NodeTypeDescriptorArray *) m_nodeTypeDesc)->getScalarType(); //t3768
+
+		if(m_state.okUTItoContinue(scalarduti) && !dut->isComplete())
 		  {
 		    //assert(!dut->isScalar()); t41201
 		    //if here, assume arraysize depends on number of initializers
-		    s32 bitsize = dut->getBitSize();
+		    s32 bitsize = m_state.getBitSize(scalarduti);
 		    u32 n = ((NodeList *) m_nodeInitExpr)->getNumberOfNodes();
+		    duti = m_nodeTypeDesc->givenUTI(); //Hzy not helpful, reload with given
 		    if(n>0)
 		      m_state.setUTISizes(duti, bitsize, n);
 
@@ -558,11 +586,12 @@ namespace MFM {
 			msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 			m_varSymbol->resetUlamType(duti); //consistent!
+			vit = m_varSymbol->getUlamTypeIdx(); //reset
 			//'it' is not OK, that's Hzy; don't map Hzy!!!
 			//m_state.mapTypesInCurrentClass(vit, duti);
 			//m_state.updateUTIAliasForced(vit, duti); //help?
-			m_nodeInitExpr->setNodeType(duti); //replace Void too!
-			vit = duti;
+			//m_nodeInitExpr->setNodeType(duti); //replace Void too!
+			//vit = duti;
 		      }
 		  }
 	      }
@@ -665,6 +694,7 @@ namespace MFM {
 			msg << "', is not ready";
 			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 			setNodeType(Hzy);
+			clearSymbolPtr();
 			m_state.setGoAgain(); //not error, msg needed (t41182)
 			return Hzy;
 		      }
@@ -684,12 +714,16 @@ namespace MFM {
 
     //checkReferenceCompatibilty must be called at the end since
     // NodeVarDecl may do surgery on itself (e.g. t3666)
-    if(m_state.okUTItoContinue(vit) && !checkReferenceCompatibility(vit))
+    if(m_state.okUTItoContinue(vit) && !checkReferenceCompatibility(vit, thisparentnode))
       {
 	vit = Nav; //err msg by checkReferenceCompatibility
 	setNodeType(Nav); //failed
       }
-    if(vit == Hzy) m_state.setGoAgain(); //since not error
+    if(vit == Hzy)
+      {
+	clearSymbolPtr();
+	m_state.setGoAgain(); //since not error
+      }
     return vit; //in case of surgery don't call getNodeType();
   } //checkAndLabelType
 

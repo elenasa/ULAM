@@ -176,15 +176,15 @@ namespace MFM {
     return false;
   }
 
-  UTI NodeStatements::checkAndLabelType()
+  UTI NodeStatements::checkAndLabelType(Node * thisparentnode)
   {
     assert(m_node);
 
     //unlike statements, blocks don't have an m_node
-    m_node->checkAndLabelType(); //side-effect
+    m_node->checkAndLabelType(this); //side-effect
 
     if(m_nodeNext)
-      m_nodeNext->checkAndLabelType(); //side-effect
+      m_nodeNext->checkAndLabelType(this); //side-effect
 
     //statements don't have types
     setNodeType(Void);

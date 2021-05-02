@@ -118,10 +118,10 @@ namespace MFM {
     return m_state.getUlamTypeByIndex(newType)->safeCast(getNodeType());
   }
 
-  UTI NodeUnaryOp::checkAndLabelType()
+  UTI NodeUnaryOp::checkAndLabelType(Node * thisparentnode)
   {
     assert(m_node);
-    UTI uti = m_node->checkAndLabelType();
+    UTI uti = m_node->checkAndLabelType(this);
 
     if(m_state.isComplete(uti) && !m_state.isScalar(uti)) //array unsupported at this time
       {
@@ -143,7 +143,7 @@ namespace MFM {
 	Node * newnode = buildOperatorOverloadFuncCallNode();
 	if(newnode)
 	  {
-	    AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+	    AssertBool swapOk = Node::exchangeNodeWithParent(newnode, thisparentnode);
 	    assert(swapOk);
 
 	    m_node = NULL; //recycle as memberselect
@@ -175,7 +175,7 @@ namespace MFM {
     Node::setStoreIntoAble(TBOOL_FALSE);
 
     if(m_state.okUTItoContinue(newType) && isAConstant() && m_node->isReadyConstant())
-      return constantFold();
+      return constantFold(thisparentnode);
 
     return newType;
   } //checkAndLabelType
@@ -285,7 +285,7 @@ namespace MFM {
     m_node->countNavHzyNoutiNodes(ncnt, hcnt, nocnt); //no need to count self?
   }
 
-  UTI NodeUnaryOp::constantFold()
+  UTI NodeUnaryOp::constantFold(Node * parentnode)
   {
     u64 val = U64_MAX;
     UTI nuti = getNodeType();
@@ -297,8 +297,13 @@ namespace MFM {
 
     NNO pno = Node::getYourParentNo();
     assert(pno);
+    assert(parentnode);
+    assert(pno == parentnode->getNodeNo());
+
+#if 0
     Node * parentNode = m_state.findNodeNoInThisClassForParent(pno); //t3767
     assert(parentNode);
+#endif
 
     evalNodeProlog(0); //new current frame pointer
     makeRoomForNodeType(nuti); //offset a constant expression
@@ -343,7 +348,7 @@ namespace MFM {
     assert(newnode);
     newnode->setNodeLocation(getNodeLocation());
 
-    AssertBool swapOk = parentNode->exchangeKids(this, newnode);
+    AssertBool swapOk = parentnode->exchangeKids(this, newnode);
     assert(swapOk);
 
     std::ostringstream msg;

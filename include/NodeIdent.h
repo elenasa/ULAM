@@ -2,7 +2,8 @@
  * NodeIdent.h - Node handling Identifiers for ULAM
  *
  * Copyright (C) 2014-2019 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2019 Ackleyshack LLC.
+ * Copyright (C) 2014-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +30,7 @@
   \file NodeIdent.h - Node handling Identifiers for ULAM
   \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2019 All rights reserved.
+  \date (C) 2014-2021 All rights reserved.
   \gpl
 */
 
@@ -59,6 +60,8 @@ namespace MFM{
     virtual const char * getName();
 
     virtual const std::string prettyNodeName();
+
+    virtual void clearSymbolPtr();
 
     void setSymbolPtr(SymbolVariable * vsymptr);
 
@@ -90,7 +93,7 @@ namespace MFM{
 
     virtual FORECAST safeToCastTo(UTI newType);
 
-    virtual UTI checkAndLabelType();
+    virtual UTI checkAndLabelType(Node * thisparentnode);
 
     virtual bool trimToTheElement(Node ** fromleftnode, Node *& rtnnodeptr);
 
@@ -125,9 +128,9 @@ namespace MFM{
     void setBlock(NodeBlock * ptr);
     NodeBlock * getBlock();
 
-    TBOOL replaceOurselves(Symbol * symptr);
-    TBOOL lookagainincaseimplicitselfchanged();
-    UTI specifyimplicitselfexplicitly();
+    TBOOL replaceOurselves(Symbol * symptr, Node * parentnode);
+    TBOOL lookagainincaseimplicitselfchanged(Node * parentnode);
+    UTI specifyimplicitselfexplicitly(Node * parentnode);
     UTI checkUsedBeforeDeclared();
 
     SymbolVariable *  makeSymbol(UTI auti, ALT reftype, const TypeArgs& args);

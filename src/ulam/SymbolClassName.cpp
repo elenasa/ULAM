@@ -233,7 +233,7 @@ namespace MFM {
 
     m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
 
-    classNode->checkAndLabelType();
+    classNode->checkAndLabelType(NULL);
     m_state.popClassContext(); //restore
   } //checkAndLabelClassFirst
 
@@ -356,7 +356,7 @@ namespace MFM {
 
     if(aok)
       {
-	m_state.setBitSize(cuti, totalbits); //"scalar" Class bitsize  KEY ADJUSTED
+	m_state.setUTIBitSize(cuti, totalbits); //"scalar" Class bitsize  KEY ADJUSTED
 	if(m_state.getBitSize(cuti) != totalbits)
 	  {
 	    std::ostringstream msg;

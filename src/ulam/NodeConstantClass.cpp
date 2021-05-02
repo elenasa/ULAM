@@ -66,6 +66,15 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
+  void NodeConstantClass::clearSymbolPtr()
+  {
+    //if symbol is in a stub, there's no guarantee the stub
+    // won't be replace by another duplicate class once its
+    // pending args have been resolved.
+    m_constSymbol = NULL;
+    setBlock(NULL);
+  }
+
   bool NodeConstantClass::getSymbolPtr(Symbol *& symptrref)
   {
     symptrref = m_constSymbol;
@@ -108,23 +117,24 @@ namespace MFM {
     return CAST_HAZY;
   } //safeToCastTo
 
-  UTI NodeConstantClass::checkAndLabelType()
+  UTI NodeConstantClass::checkAndLabelType(Node * thisparentnode)
   {
     UTI it = Nouti;
 
-    bool stubcopy = m_state.isClassAStub(m_state.getCompileThisIdx());
+    bool astub = m_state.isClassAStub(m_state.getCompileThisIdx());
 
     //instantiate, look up in class block; skip if stub copy and already ready.
-    if(!stubcopy && m_constSymbol == NULL)
+    //if(!astub && m_constSymbol == NULL)
+    if(m_constSymbol == NULL)
       checkForSymbol();
     else
-      stubcopy = m_state.hasClassAStubInHierarchy(m_state.getCompileThisIdx()); //includes ancestors
+      astub = m_state.hasClassAStubInHierarchy(m_state.getCompileThisIdx()); //includes ancestors
 
     if(m_constSymbol)
       {
 	it = checkUsedBeforeDeclared(); //m_constSymbol->getUlamTypeIdx();
       }
-    else if(stubcopy)
+    else if(astub)
       {
 	assert(m_state.okUTItoContinue(m_constType));
 	setNodeType(m_constType); //t3565, t3640, t3641, t3642, t3652
@@ -178,7 +188,11 @@ namespace MFM {
       }
     setNodeType(it);
     Node::setStoreIntoAble(TBOOL_FALSE);
-    if(it==Hzy) m_state.setGoAgain();
+    if(it==Hzy)
+      {
+	clearSymbolPtr();
+	m_state.setGoAgain();
+      }
     return getNodeType(); //it
   } //checkAndLabelType
 

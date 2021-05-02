@@ -2,8 +2,8 @@
  * NodeMemberSelect.h -  Node for handling Class Instance Member Selection for ULAM
  *
  * Copyright (C) 2014-2020 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2020 Ackleyshack LLC.
- * Copyright (C) 2020 The Living Computation Foundation.
+ * Copyright (C) 2014-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -30,7 +30,7 @@
   \file NodeMemberSelect.h -  Node for handling Class Instance Member Selection for ULAM
   \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2020  All rights reserved.
+  \date (C) 2014-2021  All rights reserved.
   \gpl
 */
 
@@ -85,7 +85,7 @@ namespace MFM{
 
     virtual FORECAST safeToCastTo(UTI newType);
 
-    virtual UTI checkAndLabelType();
+    virtual UTI checkAndLabelType(Node * thisparentnode);
 
     virtual bool getConstantValue(BV8K& bval);
 
@@ -120,6 +120,8 @@ namespace MFM{
 
     SymbolTmpVar * m_tmpvarSymbol;
   private:
+
+    virtual void clearSymbolPtr();
 
     void setStoreIntoAbleAndReferenceAble();
 

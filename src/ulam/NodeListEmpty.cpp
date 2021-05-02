@@ -47,7 +47,7 @@ namespace MFM{
     return CAST_CLEAR;
   }
 
-  UTI NodeListEmpty::checkAndLabelType()
+  UTI NodeListEmpty::checkAndLabelType(Node * thisparentnode)
   {
     setNodeType(Void);
     return Void;
@@ -84,7 +84,7 @@ namespace MFM{
     return Node::getNodeType();
   }
 
-  UTI NodeListEmpty::constantFold()
+  UTI NodeListEmpty::constantFold(Node * parentnode)
   {
     m_state.abortShouldntGetHere();
     return Node::getNodeType();

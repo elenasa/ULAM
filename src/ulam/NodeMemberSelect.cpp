@@ -39,6 +39,15 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
+  void NodeMemberSelect::clearSymbolPtr()
+  {
+    //if symbol is in a stub, there's no guarantee the stub
+    // won't be replace by another duplicate class once its
+    // pending args have been resolved.
+    if(m_nodeRight)
+      m_nodeRight->clearSymbolPtr();
+  }
+
   bool NodeMemberSelect::getSymbolPtr(Symbol *& symptrref)
   {
     if(m_nodeRight)
@@ -121,11 +130,11 @@ namespace MFM {
     return m_nodeRight->safeToCastTo(newType);
   } //safeToCastTo
 
-  UTI NodeMemberSelect::checkAndLabelType()
+  UTI NodeMemberSelect::checkAndLabelType(Node * thisparentnode)
   {
     assert(m_nodeLeft && m_nodeRight);
     UTI nuti = getNodeType();
-    UTI luti = m_nodeLeft->checkAndLabelType(); //side-effect
+    UTI luti = m_nodeLeft->checkAndLabelType(this); //side-effect
 
     if(!m_state.isComplete(luti))
       {
@@ -227,7 +236,7 @@ namespace MFM {
    //set up compiler state to use the member class block for symbol searches
     m_state.pushClassContextUsingMemberClassBlock(memberClassNode);
 
-    UTI rightType = m_nodeRight->checkAndLabelType();
+    UTI rightType = m_nodeRight->checkAndLabelType(this);
 
     //clear up compiler state to no longer use the member class block for symbol searches
     m_state.popClassContext();

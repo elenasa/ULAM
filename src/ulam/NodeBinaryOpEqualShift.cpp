@@ -9,14 +9,14 @@ namespace MFM {
 
   NodeBinaryOpEqualShift::~NodeBinaryOpEqualShift(){}
 
-  UTI NodeBinaryOpEqualShift::checkAndLabelType()
+  UTI NodeBinaryOpEqualShift::checkAndLabelType(Node * thisparentnode)
   {
     //UTI nodeType = NodeBinaryOp::checkAndLabelType(); //dup Shift calcNodeType
 
     assert(m_nodeLeft && m_nodeRight);
 
-    UTI leftType = m_nodeLeft->checkAndLabelType();
-    UTI rightType = m_nodeRight->checkAndLabelType();
+    UTI leftType = m_nodeLeft->checkAndLabelType(this);
+    UTI rightType = m_nodeRight->checkAndLabelType(this);
 
     if(!m_state.okUTItoContinue(leftType))
       {
@@ -32,7 +32,7 @@ namespace MFM {
 
     //replace node with func call to matching function overload operator for class
     // of left, with argument of right;
-    if(NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode())
+    if(NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode(thisparentnode))
       {
 	m_state.setGoAgain();
 	delete this; //suicide is painless..

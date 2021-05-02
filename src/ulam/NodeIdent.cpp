@@ -49,6 +49,15 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
+  void NodeIdent::clearSymbolPtr()
+  {
+    //if symbol is in a stub, there's no guarantee the stub
+    // won't be replace by another duplicate class once its
+    // pending args have been resolved.
+    m_varSymbol = NULL;
+    setBlock(NULL);
+  }
+
   void NodeIdent::setSymbolPtr(SymbolVariable * vsymptr)
   {
     assert(vsymptr);
@@ -220,7 +229,7 @@ namespace MFM {
     return m_state.getUlamTypeByIndex(newType)->safeCast(Node::getNodeType());
   } //safeToCastTo
 
-  UTI NodeIdent::checkAndLabelType()
+  UTI NodeIdent::checkAndLabelType(Node * thisparentnode)
   {
     UTI it = Nouti;  //init (was Nav)
     u32 errCnt = 0;
@@ -252,10 +261,11 @@ namespace MFM {
 	// (e.g. stub class args t3526, t3525, inherited dm t3408), wait if hazyKin (t3572)?;
 	if(m_state.alreadyDefinedSymbol(tokid, asymptr, hazyKin))
 	  {
+	    m_state.popClassContext(); //restore t3102, t41228???
 	    if(!asymptr->isFunction() && !asymptr->isTypedef() && !asymptr->isConstant() && !asymptr->isModelParameter())
 	      {
 		//check hazyiness after determined no surgery required
-		if(!hazyKin)
+		//if(!hazyKin)
 		  {
 		    setSymbolPtr((SymbolVariable *) asymptr);
 		    //assert(asymptr->getBlockNoOfST() == m_currBlockNo); not necessarily true
@@ -263,6 +273,8 @@ namespace MFM {
 		    setBlockNo(asymptr->getBlockNoOfST()); //refined
 		    setBlock(currBlock);
 		  }
+#if 0
+		  //t3565 Foo block was Hzy, but found ident in ancestor correctly??
 		else
 		  {
 		    std::ostringstream msg;
@@ -272,21 +284,20 @@ namespace MFM {
 		    it = Hzy; //t3572, t3597, t41183, and ulamexports QBox
 		    errCnt++;
 		  }
-		m_state.popClassContext(); //restore t3102
+#endif
 	      }
 	    else
 	      {
-		TBOOL rtb = replaceOurselves(asymptr);
+		TBOOL rtb = replaceOurselves(asymptr, thisparentnode);
 		if(rtb == TBOOL_HAZY)
 		  {
-		    m_state.popClassContext(); //restore
+		    clearSymbolPtr();
 		    m_state.setGoAgain();
 		    setNodeType(Hzy);
 		    return Hzy;
 		  }
 		else if(rtb == TBOOL_TRUE)
 		  {
-		    m_state.popClassContext(); //restore
 		    m_state.setGoAgain();
 
 		    delete this; //suicide is painless..
@@ -302,14 +313,13 @@ namespace MFM {
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		    it = Nav;
 		    errCnt++;
-		    m_state.popClassContext(); //restore
 		  }
 	      }
 	  }
 	else
 	  {
 	    //not found, look again...(t41344,5)
-	    TBOOL foundit = lookagainincaseimplicitselfchanged(); //TBOOL_HAZY is good!
+	    TBOOL foundit = lookagainincaseimplicitselfchanged(thisparentnode); //TBOOL_HAZY is good!
 	    if(foundit != TBOOL_TRUE)
 	      {
 		std::ostringstream msg;
@@ -326,16 +336,16 @@ namespace MFM {
 		    it = Hzy;
 		  }
 		errCnt++;
-		//m_state.popClassContext(); //restore
 	      }
 	    m_state.popClassContext(); //restore
 	  }
       } //lookup symbol done
     else
       {
-	TBOOL rtb = replaceOurselves(m_varSymbol);
+	TBOOL rtb = replaceOurselves(m_varSymbol, thisparentnode);
 	if(rtb == TBOOL_HAZY)
 	  {
+	    clearSymbolPtr();
 	    m_state.setGoAgain();
 	    setNodeType(Hzy);
 	    return Hzy;
@@ -404,7 +414,7 @@ namespace MFM {
 
     if(m_state.okUTItoContinue(it) && m_varSymbol)
       {
-	it = specifyimplicitselfexplicitly();
+	it = specifyimplicitselfexplicitly(thisparentnode);
 	if(it == Hzy)
 	  {
 	    std::ostringstream msg;
@@ -418,11 +428,15 @@ namespace MFM {
       it = checkUsedBeforeDeclared();
 
     setNodeType(it);
-    if(it == Hzy) m_state.setGoAgain();
+    if(it == Hzy)
+      {
+	clearSymbolPtr();
+	m_state.setGoAgain();
+      }
     return it;
   } //checkAndLabelType
 
-  TBOOL NodeIdent::replaceOurselves(Symbol * symptr)
+  TBOOL NodeIdent::replaceOurselves(Symbol * symptr, Node * parentnode)
   {
     assert(symptr);
 
@@ -449,7 +463,7 @@ namespace MFM {
 	  newnode = new NodeConstantArray(m_token, (SymbolWithValue *) symptr, NULL, m_state);
 	assert(newnode);
 
-	AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+	AssertBool swapOk = Node::exchangeNodeWithParent(newnode, parentnode);
 	assert(swapOk);
 
 	rtnb = TBOOL_TRUE;
@@ -461,7 +475,7 @@ namespace MFM {
 	NodeModelParameter * newnode = new NodeModelParameter(m_token, (SymbolModelParameterValue*) symptr, NULL, m_state);
 	assert(newnode);
 
-	AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+	AssertBool swapOk = Node::exchangeNodeWithParent(newnode, parentnode);
 	assert(swapOk);
 
 	rtnb = TBOOL_TRUE;
@@ -470,7 +484,7 @@ namespace MFM {
     return rtnb;
   } //replaceOurselves
 
-  TBOOL NodeIdent::lookagainincaseimplicitselfchanged()
+  TBOOL NodeIdent::lookagainincaseimplicitselfchanged(Node * parentnode)
   {
     TBOOL rtn = TBOOL_FALSE;
 
@@ -522,7 +536,7 @@ namespace MFM {
 	setSymbolPtr((SymbolVariable *) symptr);
 	setBlockNo(symptr->getBlockNoOfST()); //refined
 	setBlock(NULL);
-	UTI it = specifyimplicitselfexplicitly(); //returns Hzy
+	UTI it = specifyimplicitselfexplicitly(parentnode); //returns Hzy
 	if(it == Hzy)
 	  rtn = TBOOL_HAZY;
 	else if(!m_state.okUTItoContinue(it))
@@ -532,7 +546,7 @@ namespace MFM {
     return rtn;
   } //lookagainincaseimplicitselfchanged
 
-  UTI NodeIdent::specifyimplicitselfexplicitly()
+  UTI NodeIdent::specifyimplicitselfexplicitly(Node * parentnode)
   {
     assert(m_varSymbol);
     UTI vuti = m_varSymbol->getUlamTypeIdx();
@@ -547,10 +561,14 @@ namespace MFM {
 	return vuti; //t3337 (e.g. t.m_arr[1]) parent is sqbkt, parent's parent is '.'
       }
 
+    NNO pno = Node::getYourParentNo();
+    assert(pno);
+    assert(parentnode);
+    assert(pno == parentnode->getNodeNo());
+
+#if 0
     //a data member/func call needs to be rhs of member select "."
     NodeBlock * currBlock = getBlock();
-
-    NNO pno = Node::getYourParentNo();
 
     m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock); //push again
 
@@ -558,13 +576,14 @@ namespace MFM {
     assert(parentNode);
 
     m_state.popClassContext(); //restore
+#endif
 
     bool implicitself = true;
 
-    if(parentNode->isAMemberSelect())
+    if(parentnode->isAMemberSelect())
       {
 	Symbol * rhsym = NULL;
-	if(!parentNode->getSymbolPtr(rhsym))
+	if(!parentnode->getSymbolPtr(rhsym))
 	  vuti = Hzy; //t41152
 
 	implicitself = (rhsym != m_varSymbol); //rhsym null wont match
@@ -583,7 +602,7 @@ namespace MFM {
     assert(newnode);
     NNO newnodeno = newnode->getNodeNo(); //for us after swap
 
-    AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+    AssertBool swapOk = Node::exchangeNodeWithParent(newnode, parentnode);
     assert(swapOk);
 
     resetNodeNo(newnodeno); //moved before update lineage (t3337)

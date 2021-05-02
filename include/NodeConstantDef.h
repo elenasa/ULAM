@@ -1,8 +1,9 @@
 /**                                        -*- mode:C++ -*-
  * NodeConstantDef.h - Node handling Constant Definition for ULAM
  *
- * Copyright (C) 2015-2021 The Regents of the University of New Mexico.
+ * Copyright (C) 2015-2019 The Regents of the University of New Mexico.
  * Copyright (C) 2015-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -87,11 +88,15 @@ namespace MFM{
 
     bool setNodeTypeDescriptor(NodeTypeDescriptor * nodetypedesc);
 
+    virtual bool getNodeExprPtr(Node *& nodeexprref);
+
+    bool setNodeExpr(Node * nodeexorref);
+
     virtual bool hasDefaultSymbolValue();
 
     bool isClassArgumentItsDefaultValue();
 
-    virtual UTI checkAndLabelType();
+    virtual UTI checkAndLabelType(Node * thisparentnode);
 
     virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
 
@@ -120,6 +125,8 @@ namespace MFM{
     virtual bool assignClassArgValueInStubCopy();
 
     bool cloneTypeDescriptorForPendingArgumentNode(NodeConstantDef * templateparamdef);
+
+    bool cloneDefaultValueExpressionForPendingArgumentNode(NodeConstantDef * templateparamdef);
 
     virtual EvalStatus eval();
 
@@ -156,6 +163,8 @@ namespace MFM{
   private:
     NNO m_currBlockNo;
     NodeBlock * m_currBlockPtr;
+
+    virtual void clearSymbolPtr();
 
     void setBlock(NodeBlock * ptr);
     bool setSymbolValue(const BV8K& bv);

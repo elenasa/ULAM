@@ -81,7 +81,7 @@ namespace MFM {
     return newut->safeCast(getNodeType());
   } //safeToCastTo
 
-  UTI NodeFunctionCall::checkAndLabelType()
+  UTI NodeFunctionCall::checkAndLabelType(Node * thisparentnode)
   {
     UTI it = getNodeType(); //Nav;  // init return type
 
@@ -116,7 +116,7 @@ namespace MFM {
       {
 	//use member block doesn't apply to arguments; no change to current block
 	m_state.pushCurrentBlockAndDontUseMemberBlock(m_state.getCurrentBlock()); //set forall args
-	listuti = m_argumentNodes->checkAndLabelType(); //plus side-effect; void return is ok
+	listuti = m_argumentNodes->checkAndLabelType(this); //plus side-effect; void return is ok
 
 	u32 numargs = getNumberOfArguments();
 	for(u32 i = 0; i < numargs; i++)
@@ -147,6 +147,7 @@ namespace MFM {
 	  {
 	    argNodes.clear();
 	    setNodeType(Hzy);
+	    clearSymbolPtr();
 	    m_state.setGoAgain(); //for compier counts
 	    return Hzy; //short circuit
 	  }
@@ -262,7 +263,7 @@ namespace MFM {
 	if(hazyKin)
 	  foundit = TBOOL_HAZY;
 	else
-	  foundit = lookagainincaseimplicitselfchanged(); //TBOOL_HAZY is good!(t41346)
+	  foundit = lookagainincaseimplicitselfchanged(thisparentnode); //TBOOL_HAZY is good!(t41346)
 
 	if(foundit != TBOOL_TRUE)
 	  {
@@ -316,7 +317,7 @@ namespace MFM {
 	it = m_funcSymbol->getUlamTypeIdx();
 	assert(m_state.okUTItoContinue(it));
 
-	it = specifyimplicitselfexplicitly();
+	it = specifyimplicitselfexplicitly(thisparentnode);
 
 	if(m_state.okUTItoContinue(it))
 	  {
@@ -326,6 +327,7 @@ namespace MFM {
 	      {
 		//Sun Aug 11 2019 Dave issue w Bounce.ulam: nodeType stays incomplete
 		setNodeType(Hzy);
+		clearSymbolPtr();
 		m_state.setGoAgain(); //for compier counts
 		return Hzy; //short circuit
 	      }
@@ -334,7 +336,10 @@ namespace MFM {
 	  {
 	    setNodeType(it); //t41388 error
 	    if(it == Hzy)
-	      m_state.setGoAgain();
+	      {
+		clearSymbolPtr();
+		m_state.setGoAgain();
+	      }
 	    return it;
 	  }
 
@@ -442,6 +447,7 @@ namespace MFM {
     if((listuti == Hzy) || (numHazyFound > 0))
       {
 	setNodeType(Hzy); //happens when the arg list has incomplete types.
+	clearSymbolPtr();
 	m_state.setGoAgain(); //for compier counts
 	it = Hzy;
       }
@@ -462,7 +468,7 @@ namespace MFM {
     return it;
   } //checkAndLabelType
 
-  TBOOL NodeFunctionCall::lookagainincaseimplicitselfchanged()
+  TBOOL NodeFunctionCall::lookagainincaseimplicitselfchanged(Node * parentnode)
   {
     TBOOL rtn = TBOOL_FALSE;
 
@@ -514,7 +520,7 @@ namespace MFM {
 	((SymbolFunctionName *) fnsymptr)->anyFunctionSymbolPtr(tmpfuncsym);
 	assert(tmpfuncsym);
 	m_funcSymbol = tmpfuncsym;
-	UTI it = specifyimplicitselfexplicitly(); //returns Hzy
+	UTI it = specifyimplicitselfexplicitly(parentnode); //returns Hzy
 	if(it == Hzy)
 	  rtn = TBOOL_HAZY;
 	else if(!m_state.okUTItoContinue(it))
@@ -525,7 +531,7 @@ namespace MFM {
     return rtn;
   } //lookagainincaseimplicitselfchanged
 
-  UTI NodeFunctionCall::specifyimplicitselfexplicitly()
+  UTI NodeFunctionCall::specifyimplicitselfexplicitly(Node * parentnode)
   {
     assert(m_funcSymbol);
     UTI futi = m_funcSymbol->getUlamTypeIdx();
@@ -537,7 +543,11 @@ namespace MFM {
       }
 
     NNO pno = Node::getYourParentNo();
+    assert(pno);
+    assert(parentnode);
+    assert(pno == parentnode->getNodeNo());
 
+#if 0
     NodeBlock * currBlock = m_state.getCurrentBlock();
     m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock); //push again
 
@@ -546,13 +556,14 @@ namespace MFM {
     assert(parentNode);
 
     m_state.popClassContext(); //restore
+#endif
 
     bool implicitself = true;
 
-    if(parentNode->isAMemberSelect())
+    if(parentnode->isAMemberSelect())
       {
 	Symbol * rhsym = NULL;
-	if(!parentNode->getSymbolPtr(rhsym))
+	if(!parentnode->getSymbolPtr(rhsym))
 	  futi = Hzy;
 
 	implicitself = (rhsym != m_funcSymbol);
@@ -569,7 +580,7 @@ namespace MFM {
     NodeMemberSelect * newnode = new NodeMemberSelect(explicitself, this, m_state);
     assert(newnode);
 
-    AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+    AssertBool swapOk = Node::exchangeNodeWithParent(newnode, parentnode);
     assert(swapOk);
 
     //redo look-up given explicit self
@@ -933,6 +944,14 @@ namespace MFM {
   u32 NodeFunctionCall::getNumberOfArguments()
   {
     return m_argumentNodes->getNumberOfNodes();
+  }
+
+  void NodeFunctionCall::clearSymbolPtr()
+  {
+    //if symbol is in a stub, there's no guarantee the stub
+    // won't be replace by another duplicate class once its
+    // pending args have been resolved.
+    m_funcSymbol = NULL;
   }
 
   bool NodeFunctionCall::getSymbolPtr(Symbol *& symptrref)

@@ -95,11 +95,11 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-  UTI NodeSimpleStatement::checkAndLabelType()
+  UTI NodeSimpleStatement::checkAndLabelType(Node * thisparentnode)
   {
     assert(m_node);
 
-    m_node->checkAndLabelType(); //side-effect
+    m_node->checkAndLabelType(this); //side-effect
 
     //statements don't have types
     setNodeType(Void);

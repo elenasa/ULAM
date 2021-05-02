@@ -2,7 +2,8 @@
  * NodeVarDecl.h -  Basic Node handling Variable Declarations for ULAM
  *
  * Copyright (C) 2014-2018 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2018 Ackleyshack LLC.
+ * Copyright (C) 2014-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +30,7 @@
   \file NodeVarDecl.h -  Basic Node handling Variable Declarations for ULAM
   \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2018 All rights reserved.
+  \date (C) 2014-2021 All rights reserved.
   \gpl
 */
 
@@ -86,9 +87,9 @@ namespace MFM{
 
     virtual FORECAST safeToCastTo(UTI newType);
 
-    virtual bool checkReferenceCompatibility(UTI uti);
+    virtual bool checkReferenceCompatibility(UTI uti, Node * parentnode);
 
-    virtual UTI checkAndLabelType();
+    virtual UTI checkAndLabelType(Node * thisparentnode);
 
     virtual NNO getBlockNo();
 
@@ -121,6 +122,7 @@ namespace MFM{
     Node * m_nodeInitExpr;
     NodeTypeDescriptor * m_nodeTypeDesc; //can be NULL
 
+    virtual void clearSymbolPtr();
     virtual void checkForSymbol();
     virtual void printTypeAndName(File * fp);
     virtual bool checkSafeToCastTo(UTI fromType, UTI& newType);

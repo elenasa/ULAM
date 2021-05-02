@@ -4,9 +4,9 @@
 
 namespace MFM {
 
-  NodeBlockContext::NodeBlockContext(NodeBlock * prevBlockNode, CompilerState & state): NodeBlock(prevBlockNode, state, NULL), m_classConstantsReady(false) {}
+  NodeBlockContext::NodeBlockContext(NodeBlock * prevBlockNode, CompilerState & state): NodeBlock(prevBlockNode, state, NULL), m_classConstantsReady(false), m_nameid(0) {}
 
-  NodeBlockContext::NodeBlockContext(const NodeBlockContext& ref) : NodeBlock(ref), m_classConstantsReady(false)
+  NodeBlockContext::NodeBlockContext(const NodeBlockContext& ref) : NodeBlock(ref), m_classConstantsReady(false), m_nameid(ref.m_nameid)
   {
     ref.copyUlamTypeKeys((NodeBlockContext *) this); //t3959
   }
@@ -26,7 +26,17 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-  UTI NodeBlockContext::checkAndLabelType()
+  void NodeBlockContext::setNodeType(UTI uti)
+  {
+    Node::setNodeType(uti);
+    //avoid Hzy and Int (workaround for eval testing)
+    if(m_state.okUTItoContinue(uti) && !m_state.isAPrimitiveType(uti))
+      {
+	m_nameid = m_state.getUlamTypeNameIdByIndex(uti);
+      }
+  }
+
+  UTI NodeBlockContext::checkAndLabelType(Node * thisparentnode)
   {
     //dup of NodeBlockLocals for now
     UTI savnuti = getNodeType();
@@ -34,7 +44,7 @@ namespace MFM {
 
     //possibly empty
     if(m_nodeNext)
-        m_nodeNext->checkAndLabelType();
+        m_nodeNext->checkAndLabelType(this);
     setNodeType(savnuti);
     return savnuti;
   }

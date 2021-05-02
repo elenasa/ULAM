@@ -144,7 +144,7 @@ namespace MFM {
     "*/\n\n";
 
   //use of this in the initialization list seems to be okay;
-  CompilerState::CompilerState(): m_linesForDebug(false), m_programDefST(*this), m_parsingLocalDef(false), m_parsingFUNCid(0), m_nextFunctionOrderNumber(1), m_parsingVariableSymbolTypeFlag(STF_NEEDSATYPE), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_pendingArgStubContext(0), m_pendingArgTypeStubContext(0), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0), m_urSelfUTI(Nouti), m_emptyElementUTI(Nouti)
+  CompilerState::CompilerState(): m_linesForDebug(false), m_programDefST(*this), m_parsingLocalDef(false), m_parsingFUNCid(0), m_nextFunctionOrderNumber(1), m_parsingThisClass(Nouti), m_parsingVariableSymbolTypeFlag(STF_NEEDSATYPE), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_pendingArgStubContext(0), m_pendingArgTypeStubContext(0), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0), m_urSelfUTI(Nouti), m_emptyElementUTI(Nouti)
   {
     m_classIdRegistryUTI.push_back(0); //initialize 0 for UrSelf
     m_err.init(this, debugOn, infoOn, noteOn, warnOn, waitOn, NULL);
@@ -341,6 +341,25 @@ namespace MFM {
 			//must have found an alias!
 			//for a class instance in template
 		      }
+#if 0
+		    //moved this to findClassInstanceByUTI
+		    else if(cnsym->hasMappedUTI(uti))
+		      {
+			UTI mappedUTI = uti;
+			AssertBool hasmapped = cnsym->hasMappedUTI(uti, mappedUTI);
+			if(((SymbolClassNameTemplate*) cnsym)->findClassInstanceByUTI(mappedUTI, csym))
+			  {
+			    //already added into template; nothing to do
+			  }
+			else if(alreadyDefinedSymbolClass(mappedUTI, csym))
+			  {
+			    //must have found an alias!
+			    //for a class instance in template
+			  }
+			else
+			  abortShouldntGetHere(); //t41436
+		      }
+#endif
 		    else
 		      abortShouldntGetHere(); //t3379 wo NodeTypedef updating UTIAlias
 		    return csym->getUlamTypeIdx();
@@ -826,7 +845,11 @@ namespace MFM {
 
     //recursively checks ancestors, for mapped uti (ish 20210315)
     if(csym->hasMappedUTI(auti, mappedUTI))
-      return true;
+      {
+	UTI muti = mappedUTI;
+	findaUTIAlias(muti,mappedUTI);
+	return true; //may not be root (t41431)
+      }
 
     // does this hurt anything?
     if(findaUTIAlias(auti, mappedUTI))
@@ -906,15 +929,25 @@ namespace MFM {
     if(isEmptyElement(suti))
       return suti; //special case
 
+#if 0
+    u32 sid = getUlamTypeNameIdByIndex(suti);
+    UTI tduti = Nouti;
+    UTI scalaruti = Nouti;
+    if(getUlamTypeByTypedefName(sid,tduti,scalaruti))
+      return tduti;
+#endif
+
     SymbolClassName * cnsym = NULL;
     AssertBool isDefined = alreadyDefinedSymbolClassNameByUTI(cuti, cnsym);
     assert(isDefined);
 
     UTI mappedUTI;
-
     if(cnsym->hasInstanceMappedUTI(cuti, suti, mappedUTI))
-      return mappedUTI;  //e.g. decl list //t41225,t41228,t3327..etc
-
+      {
+	UTI muti = mappedUTI;
+	findaUTIAlias(muti, mappedUTI); //?
+	return mappedUTI;  //e.g. decl list //t41225,t41228,t3327..etc
+      }
 
     if(findaUTIAlias(suti, mappedUTI))
        return mappedUTI; //anonymous UTI
@@ -930,7 +963,7 @@ namespace MFM {
 	if(!cnsymOfIncomplete->isClassTemplate())
 	  return suti;
 
-	//suti may be a template...or a stub...or a fully instantiated instance
+	//suti may be a template...a stub or stubcopy...or a fully instantiated instance
 
 	ALT salt = getReferenceType(suti);
 	if(salt != ALT_NOT)
@@ -940,19 +973,67 @@ namespace MFM {
 	  }
 
 	//t3859, t3328, t3873
-	if(cnsymOfIncomplete->getId() == cnsym->getId())
+	bool classnamesame = (cnsymOfIncomplete->getId() == cnsym->getId());
+	if(classnamesame)
 	  {
 	    if(isClassATemplate(suti))
 	      return cuti;
-	  }
 
+	    if(cnsymOfIncomplete->hasInstanceMappedUTI(suti, cuti, mappedUTI))
+	      {
+		return mappedUTI;  //t41436?? stops inf loop? only if same class name
+	      }
+	  }
 
 	if(!isClassAStub(suti))
 	  return suti;
+#if 0
+	//must be a stub..
+	UTI sxtype = getContextForPendingArgValuesForStub(suti);
+	UTI sttype = getMemberStubForTemplateType(suti);
+	if((sxtype == cuti) || (sttype == cuti))
+	  return suti; //t41436??
+#endif
 
+	bool isastubcopy = isClassAStubCopy(suti);
 	//suti is a stub related to cuti (also not a template).
-	if(!((SymbolClassNameTemplate *) cnsymOfIncomplete)->pendingClassArgumentsForStubClassInstance(suti))
+	if(!isastubcopy && !((SymbolClassNameTemplate *) cnsymOfIncomplete)->pendingClassArgumentsForStubClassInstance(suti))
 	  return suti; //as good as an instance!
+
+	if(isastubcopy)
+	  {
+	    UTI stubcopyof = getStubCopyOf(suti);
+#if 1
+	    if(cnsym->hasInstanceMappedUTI(cuti, stubcopyof, mappedUTI))
+	      {
+		UTI muti = mappedUTI;
+		findaUTIAlias(muti, mappedUTI);
+		return mappedUTI;  //t41436???? returns suti when suti==cuti
+	      }
+#endif
+
+#if 1
+	    //check reverse only if class names match!
+	    if(classnamesame)
+	      {
+		if(cnsymOfIncomplete->hasInstanceMappedUTI(stubcopyof, cuti, mappedUTI))
+		  {
+		    UTI muti = mappedUTI;
+		    findaUTIAlias(muti, mappedUTI);
+		    return mappedUTI;  //t41436???? stops inf loop?
+		  }
+	      }
+#endif
+
+#if 0
+	    UTI xtype = getContextForPendingArgValuesForStub(stubcopyof);
+	    UTI ttype = getMemberStubForTemplateType(stubcopyof);
+	    if((ttype == cuti) || (xtype == cuti))
+	      return suti; //t41436??
+#endif
+
+	    suti = stubcopyof; //continue as if the original..
+	  }
 
 	//o.w. make a stub copy...(t41436?)
       }
@@ -969,8 +1050,9 @@ namespace MFM {
     //restore from original ut; t41436: suti stub type unseen, while template was a transient
     ULAMCLASSTYPE sclasstype = bUT==Class ? cnsymOfIncomplete->getUlamClass() : sut->getUlamClassType();
 
-    UTI newuti = makeUlamType(newkey, bUT, sclasstype);
-    cnsym->mapInstanceUTI(cuti, suti, newuti);
+    UTI newuti = makeUlamType(newkey, bUT, sclasstype); //could be another holder copy (t3765)
+    AssertBool notdup = cnsym->mapInstanceUTI(cuti, suti, newuti);
+    assert(notdup);
     //cnsym->mapInstanceUTI(cuti, newuti, suti); //t41446 ? t41433?
 
     if(bUT == Class)
@@ -979,18 +1061,23 @@ namespace MFM {
 	if(sut->isCustomArray())
 	  ((UlamTypeClass *) newut)->setCustomArray();
 
+#if 0
 	if(cnsymOfIncomplete->getUlamClass() != sut->getUlamClassType())
 	  {
 	    //warning! new class type 'newuti' doesn't have its SymbolClass yet (undefined);
-	    Token tmpTok(TOK_IDENTIFIER, loc, cnsymOfIncomplete->getId()); //use current locator
+	    Token tmpTok(TOK_TYPE_IDENTIFIER, loc, cnsymOfIncomplete->getId()); //use current locator
 	    cnsym->addUnknownTypeTokenToClass(tmpTok, newuti);  //t41436
 	    cnsymOfIncomplete->mapUTItoUTI(newuti, suti);
 	  }
 	else
+#endif
+
 	  {
 	    //potential for unending process..
 	    //notes: sclasstype may be UNSEEN. 'cuti' may not be getCompileThis class (t41209,t41217,8)
 	    ((SymbolClassNameTemplate *)cnsymOfIncomplete)->copyAStubClassInstance(suti, newuti, cuti, newuti, loc);
+	    //((SymbolClassNameTemplate *)cnsymOfIncomplete)->copyAStubClassInstance(suti, newuti, cuti, cuti, loc);
+	    //((SymbolClassNameTemplate *)cnsymOfIncomplete)->copyAStubClassInstance(suti, newuti, cuti, suti, loc); //let's use the stub suti as the context for types for now, a place to get Arg Nodes during merge (t41361)
 
 	    std::ostringstream msg;
 	    msg << "MAPPED!! type: " << getUlamTypeNameByIndex(suti).c_str();
@@ -1003,13 +1090,6 @@ namespace MFM {
 	    msg << "(UTI" << cnsymOfIncomplete->getUlamTypeIdx() << ")";
 	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
 	  }
-
-	if(cuti != skey.getUlamKeyTypeSignatureNameId())
-	  {
-	    //e.g. inheritance; not mid-iteration!! makes alreadydefined.
-	    ((SymbolClassNameTemplate *)cnsymOfIncomplete)->mergeClassInstancesFromTEMP();
-	  }
-
       }
     //else
     //updateUTIAliasForced(suti, newuti); //what if..
@@ -1069,7 +1149,16 @@ namespace MFM {
     AssertBool isDef = isDefined(m_indexToUlamKey[uti], ut);
     assert(isDef);
     if(ut->getUlamTypeEnum() == Class)
-      return ut->getUlamTypeClassNameBrief(uti);
+      {
+	SymbolClass * csym = NULL;
+	if(alreadyDefinedSymbolClass(uti, csym) && !csym->isStubCopy())
+	  return ut->getUlamTypeClassNameBrief(uti);
+	else
+	  {
+	    u32 nameid = ut->getUlamTypeNameId();
+	    return m_pool.getDataAsString(nameid);
+	  }
+      }
     return ut->getUlamTypeNameBrief();
   }
 
@@ -1716,29 +1805,44 @@ namespace MFM {
     return (ut->isHolder());
   }
 
+  //updates key. we can do this now that UTI is used and the UlamType
+  // * isn't saved; return false if ERR.  Special Case: used by
+  // NodeTypeDescriptorArray, sometimes a holder completed by a scalar
+  // typedef type needs to be corrected at be an array type (t41301)
+  bool CompilerState::setUTIArraySize(UTI utiArg, s32 arraysize)
+  {
+    return setUTISizes(utiArg, getBitSize(utiArg), arraysize, true); //keep current bitsize
+  }
+
   //updates key. we can do this now that UTI is used and the UlamType * isn't saved;
   // return false if ERR
-  bool CompilerState::setBitSize(UTI utiArg, s32 bits)
+  bool CompilerState::setUTIBitSize(UTI utiArg, s32 bits)
   {
-    return setUTISizes(utiArg, bits, getArraySize(utiArg)); //keep current arraysize
+    return setUTISizes(utiArg, bits, getArraySize(utiArg), false); //keep current arraysize
   }
 
   // return false if ERR
-  bool CompilerState::setUTISizes(UTI utiArg, s32 bitsize, s32 arraysize)
+  bool CompilerState::setUTISizes(UTI utiArg, s32 bitsize, s32 arraysize, bool makescalarintoarray)
   {
     UlamType * ut = getUlamTypeByIndex(utiArg);
-
-    if(ut->isComplete())
-      return true;
 
     if(!okUTItoContinue(utiArg))
       return false;
 
+    if(isHolder(utiArg))
+      return false; //t3765
+
     //redirect primitives and arrays (including class arrays)
     if(ut->isPrimitiveType() || !ut->isScalar())
       {
-	return setSizesOfNonClassAndArrays(utiArg, bitsize, arraysize);
+	return setSizesOfNonClassAndArrays(utiArg, bitsize, arraysize, makescalarintoarray);
       }
+
+    if(ut->isComplete() && !makescalarintoarray)
+      return true;  //nothing to do
+
+    //but sometimes we need to reset the array size of a completed scalar type (t41301)
+    assert(!ut->isComplete() || (arraysize != ut->getArraySize()));
 
     //bitsize could be UNKNOWN or CONSTANT (negative)
     s32 total = bitsize * (arraysize >= 0 ? arraysize : 1); //? allow zero arraysize..Mon Jul  4 13:56:27 2016
@@ -1997,13 +2101,19 @@ namespace MFM {
 
   // return false if ERR
   // for primitives, and all arrays (class and nonclass)
-  bool CompilerState::setSizesOfNonClassAndArrays(UTI utiArg, s32 bitsize, s32 arraysize)
+  // makescalarintoarray is by default false (used by NodeTypeDescriptorArray t41301)
+  bool CompilerState::setSizesOfNonClassAndArrays(UTI utiArg, s32 bitsize, s32 arraysize, bool makescalarintoarray)
   {
     UlamType * ut = getUlamTypeByIndex(utiArg);
     assert((ut->getUlamTypeEnum() != Class) || !ut->isScalar());
 
-    if(ut->isComplete())
+    //if(ut->isComplete())
+    if(ut->isComplete() && !makescalarintoarray)
       return true;  //nothing to do
+
+    //but sometimes we need to reset the array size of a completed scalar type (t41301)
+    assert(!ut->isComplete() || (arraysize != ut->getArraySize()));
+
 
     ULAMTYPE bUT = ut->getUlamTypeEnum();
     //disallow zero-sized primitives (no such thing as a BitVector<0u>)
@@ -2132,6 +2242,22 @@ namespace MFM {
     AssertBool isDefined = alreadyDefinedSymbolClass(cuti, csym);
     assert(isDefined);
     return csym->isClassTemplate(cuti);
+  } //isClassATemplate
+
+  bool CompilerState::isClassATemplate(NodeBlockClass * cblock)
+  {
+    UTI cuti = cblock->getNodeType();
+    if(!isAClass(cuti))
+      return false;
+
+    //this version doesn't look up the 'cuti' class symbol, which may not exist yet (t41361)
+    SymbolClassNameTemplate * cnsym = NULL;
+    AssertBool isDefined = alreadyDefinedSymbolClassNameTemplateByUTI(cuti, cnsym);
+    assert(isDefined);
+
+    assert(cnsym->isClassTemplate());
+
+    return (cuti == cnsym->getUlamTypeIdx());
   } //isClassATemplate
 
   //FORMERLY RETURNED SUPERCLASS uti, Nouti or Hzy.
@@ -2268,6 +2394,17 @@ namespace MFM {
       }
   } //resetABaseClassType
 
+  void CompilerState::resetABaseClassItem(UTI cuti, UTI olduti, UTI newuti, u32 item)
+  {
+    UTI subuti = getUlamTypeAsDeref(getUlamTypeAsScalar(cuti)); //in case of array
+
+    SymbolClass * csym = NULL;
+    if(alreadyDefinedSymbolClass(subuti, csym))
+      {
+	csym->updateBaseClass(olduti, (u32) item, newuti);
+      }
+  } //resetABaseClassItem
+
   bool CompilerState::getABaseClassRelativePositionInAClass(UTI cuti, UTI basep, u32& relposref)
   {
     UTI defcuti = getUlamTypeAsDeref(cuti); //t3754
@@ -2362,6 +2499,24 @@ namespace MFM {
     return false; //even for non-classes
   } //isClassAStub
 
+  bool CompilerState::isClassAStubCopy(UTI cuti)
+  {
+    SymbolClass * csym = NULL;
+    if(alreadyDefinedSymbolClass(cuti, csym))
+      return csym->isStubCopy();
+
+    return false; //even for non-classes
+  } //isClassAStubCopy
+
+  UTI CompilerState::getStubCopyOf(UTI baseuti)
+  {
+    SymbolClass * basecsym = NULL;
+    AssertBool isDefined = alreadyDefinedSymbolClass(baseuti, basecsym);
+    assert(isDefined); //will be in TEMP map if a stubcopy
+    //may no longer be a stub copy, upgraded from its stub "of"
+    return basecsym->getStubCopyOf();
+  }
+
   bool CompilerState::hasClassAStubInHierarchy(UTI cuti)
   {
     bool hasstub = false;
@@ -2383,32 +2538,64 @@ namespace MFM {
 	    else
 	      {
 		//sanity check (t41440)
-		assert(!isClassATemplate(cuti) || basecsym->isTemplateBaseClassStub());
+		assert(!isClassATemplate(cuti) || basecsym->isStubForTemplate());
 	      }
 	  }
       } //end while
     return hasstub; //even for non-classes
   } //hasClassAStubInHierarchy
 
-  bool CompilerState::isClassABaseStubInATemplateHierarchy(UTI baseuti)
+  bool CompilerState::isClassAMemberStubInATemplate(UTI baseuti)
+  {
+    //not localscope (t3852,..)
+    return (isAClass(baseuti) && (getMemberStubForTemplateType(baseuti) != Nouti));
+  }
+
+  UTI CompilerState::getMemberStubForTemplateType(UTI baseuti)
   {
     SymbolClass * basecsym = NULL;
     AssertBool isDefined = alreadyDefinedSymbolClass(baseuti, basecsym);
     assert(isDefined);
-    return basecsym->isTemplateBaseClassStub();
+    return basecsym->getStubForTemplateType();
   }
 
-  void CompilerState::setBaseStubFlagForThisClassTemplate(UTI baseuti)
+  void CompilerState::setStubFlagForThisClassTemplate(UTI baseuti)
   {
     UTI cuti = getCompileThisIdx();
-    if((isClassATemplate(cuti) || isClassABaseStubInATemplateHierarchy(cuti)) && isClassAStub(baseuti))
+    if((isClassATemplate(cuti) || isClassAMemberStubInATemplate(cuti)) && isClassAStub(baseuti))
       {
 	SymbolClass * basecsym = NULL;
 	AssertBool isDefined = alreadyDefinedSymbolClass(baseuti, basecsym);
 	assert(isDefined);
-
-	basecsym->setTemplateBaseClassStub(); //t41440
+	//assert(basecsym->getStubForTemplateType() == Nouti); t41223 Parser may reset contexts...???
+	basecsym->setStubForTemplateType(cuti); //t41440
       }
+  }
+
+  UTI CompilerState::getContextForPendingArgValuesForStub(UTI stubuti)
+  {
+    UTI context = Nouti;
+    SymbolClass * csym = NULL;
+    AssertBool isDefined = alreadyDefinedSymbolClass(stubuti, csym);
+    assert(isDefined);
+    //    if(csym->isStub())
+      {
+	context = csym->getContextForPendingArgValues();
+      }
+    return context;
+  }
+
+  UTI CompilerState::getContextForPendingArgTypesForStub(UTI stubuti)
+  {
+    UTI typecontext = Nouti;
+    SymbolClass * csym = NULL;
+    AssertBool isDefined = alreadyDefinedSymbolClass(stubuti, csym);
+    assert(isDefined);
+    //if(csym->isStub())
+      {
+	typecontext = csym->getContextForPendingArgTypes();
+      }
+    return typecontext;
   }
 
   bool CompilerState::turnWaitMessageIntoErrorMessage()
@@ -2418,17 +2605,13 @@ namespace MFM {
 
   bool CompilerState::turnWaitMessageIntoErrorMessage(UTI cuti)
   {
-    if(!isAClass(cuti) || isClassATemplate(cuti) || isClassABaseStubInATemplateHierarchy(cuti))
+    if(!isAClass(cuti) || isClassATemplate(cuti) || isClassAMemberStubInATemplate(cuti))
       return false; //t41440 special case become debug messages instead;t41204
 
-    SymbolClass * csym = NULL;
-    AssertBool isDefined = alreadyDefinedSymbolClass(cuti, csym);
-    assert(isDefined);
-    if(csym->isStub())
-      {
-	UTI context = csym->getContextForPendingArgValues();
-	return turnWaitMessageIntoErrorMessage(context); //t3328
-      }
+    UTI context = getContextForPendingArgValuesForStub(cuti);
+    if((context != Nouti) && (context != cuti))
+      return turnWaitMessageIntoErrorMessage(context); //t3328, a stub
+
     return true;
   } //recursive helper
 
@@ -2852,10 +3035,14 @@ namespace MFM {
     UlamKeyTypeSignature newstubkey(superut->getUlamTypeNameId(), UNKNOWNSIZE); //"-2" and scalar default
     UTI newstubcopyuti = makeUlamType(newstubkey, Class, superclasstype); //**gets next unknown uti type
 
-    SymbolClass * superstubcopy = superctsym->copyAStubClassInstance(superuti, newstubcopyuti, argvaluecontext, argtypecontext, stubloc); //t3365. t41221
+    //SymbolClass * superstubcopy = superctsym->copyAStubClassInstance(superuti, newstubcopyuti, argvaluecontext, argtypecontext, stubloc); //t3365. t41221
+    SymbolClass * superstubcopy = superctsym->copyAStubClassInstance(superuti, newstubcopyuti, argvaluecontext, newstubcopyuti, stubloc); //??? t3365. t41221
     assert(superstubcopy);
 
+#if 0
+    //t41361??
     superctsym->mergeClassInstancesFromTEMP(); //not mid-iteration!!
+#endif
     return newstubcopyuti;
   } //addStubCopyToAncestorClassTemplate
 
@@ -2961,7 +3148,7 @@ namespace MFM {
 	pushClassContext(luti, localsblock, localsblock, false, NULL);
 
 	localsblock->updateLineage(0);
-	localsblock->checkAndLabelType();
+	localsblock->checkAndLabelType(NULL);
 
 	popClassContext(); //restore
       }
@@ -2980,7 +3167,7 @@ namespace MFM {
 	UTI luti = localsblock->getNodeType();
 	pushClassContext(luti, localsblock, localsblock, false, NULL);
 
-	localsblock->checkAndLabelType();
+	localsblock->checkAndLabelType(NULL);
 
 	popClassContext(); //restore
       }
@@ -3519,12 +3706,8 @@ namespace MFM {
     assert(!hasHazyKin);
 
     //start with the current "top" block and look down the stack
-    //until the 'variable id' is found.
-    NodeBlock * blockNode = getCurrentBlock();
-
-    //substitute another selected class block to search for data member
-    if(useMemberBlock())
-      blockNode = getCurrentMemberClassBlock();
+    //until the 'variable id' is found. may be member block.
+    NodeBlock * blockNode = getCurrentBlockForSearching();
 
     while(!brtn && blockNode)
       {
@@ -3553,11 +3736,8 @@ namespace MFM {
 
     //start with the current class block (and look up family tree???)
     //until the 'variable id' is found.
-    NodeBlockContext * cblock = getContextBlock();
-
-    //substitute another selected class block to search for data member
-    if(useMemberBlock())
-      cblock = getCurrentMemberClassBlock();
+    //substitutes another selected class block to search for data member
+    NodeBlockContext * cblock = getContextBlockForSearching();
 
     while(!brtn && cblock)
       {
@@ -3581,11 +3761,8 @@ namespace MFM {
 
     //start with the current class block; doesn't look up family tree
     //until the 'variable id' is found. returns false if not found.
-    NodeBlockContext * cblock = getContextBlock();
-
     //substitute another selected class block to search for data member
-    if(useMemberBlock())
-      cblock = getCurrentMemberClassBlock();
+    NodeBlockContext * cblock = getContextBlockForSearching();
 
     Locator cloc;
     if(cblock)
@@ -3624,11 +3801,8 @@ namespace MFM {
 
     //start with current class block, not family tree (see isFuncIdInAClassScopeOrAncestor)
     //until the 'variable id' is found.
-    NodeBlockContext * cblock = getContextBlock();
-
     //substitute another selected class block to search for data member
-    if(useMemberBlock())
-      cblock = getCurrentMemberClassBlock();
+    NodeBlockContext * cblock = getContextBlockForSearching();
 
     if(cblock && !cblock->isAClassBlock())
       return false;
@@ -3675,8 +3849,10 @@ namespace MFM {
 		symptr = fnSym;
 	      }
 	    else
-	      walker.addAncestorsOf(basecsym);
-
+	      {
+		walker.addAncestorsOf(basecsym);
+		hasHazyKin |= tmphazykin; //t3641
+	      }
 	    popClassContext(); //didn't forget!!
 	  }
 	else if(baseuti == Hzy)
@@ -3699,12 +3875,8 @@ namespace MFM {
     bool rtnb = false;
 
     //start with the current class block, not hierarchy
-    NodeBlockContext * cblock = getContextBlock();
-
     //substitute another selected class block to search for function
-    if(useMemberBlock())
-      cblock = getCurrentMemberClassBlock();
-
+    NodeBlockContext * cblock = getContextBlockForSearching();
     assert(cblock);
 
     Symbol * fnSym = NULL;
@@ -3906,12 +4078,8 @@ namespace MFM {
     u32 matches = 0;
 
     //start with the current class block, not hierarchy
-    NodeBlockContext * cblock = getContextBlock();
-
     //substitute another selected class block to search for function
-    if(useMemberBlock())
-      cblock = getCurrentMemberClassBlock();
-
+    NodeBlockContext * cblock = getContextBlockForSearching();
     assert(cblock);
 
     Symbol * fnSym = NULL;
@@ -3996,12 +4164,8 @@ namespace MFM {
     u32 safematches = 0;
 
     //start with the current class block, not hierarchy
-    NodeBlockContext * cblock = getContextBlock();
-
     //substitute another selected class block to search for function
-    if(useMemberBlock())
-      cblock = getCurrentMemberClassBlock();
-
+    NodeBlockContext * cblock = getContextBlockForSearching();
     assert(cblock);
 
     Symbol * fnSym = NULL;
@@ -4158,11 +4322,8 @@ namespace MFM {
 
   bool CompilerState::isIdInCurrentScope(u32 id, Symbol *& asymptr)
   {
-    NodeBlock * blockNode = getCurrentBlock();
-
-    //substitute another selected class block to search for data member
-    if(useMemberBlock())
-      blockNode = getCurrentMemberClassBlock();
+    //substitute member selected class block to search for data member
+    NodeBlock * blockNode = getCurrentBlockForSearching();
 
     //also applies when isParsingLocalDef()
     return blockNode && blockNode->isIdInScope(id, asymptr);
@@ -5338,6 +5499,17 @@ namespace MFM {
       }
   }
 
+  void CompilerState::generateAllIncludesTestMainForLocalsFilescopes(File * fp)
+  {
+    std::map<u32, NodeBlockLocals *>::iterator it;
+    for(it = m_localsPerFilePath.begin(); it != m_localsPerFilePath.end(); it++)
+      {
+	NodeBlockLocals * localsblock = it->second;
+	assert(localsblock);
+	localsblock->generateIncludeTestMain(fp);
+      }
+  }
+
   //used by SourceStream to build m_textByLinePerFilePath during parsing
   void CompilerState::appendNextLineOfText(Locator loc, std::string textstr)
   {
@@ -5614,6 +5786,7 @@ namespace MFM {
 	labelname << "class ancestor";
 	break;
       case STF_DATAMEMBER:
+      case STF_MEMBERCONSTANT:
 	labelname << "data member";
 	break;
       case STF_FUNCPARAMETER:
@@ -5678,6 +5851,22 @@ namespace MFM {
       }
     return false;
   } //getStructuredCommentToken
+
+  void CompilerState::setThisClassForParsing(UTI cuti)
+  {
+    assert(m_parsingThisClass == Nouti);
+    m_parsingThisClass = cuti;
+  }
+
+  void CompilerState::clearThisClassForParsing()
+  {
+    m_parsingThisClass = Nouti;
+  }
+
+  UTI CompilerState::getThisClassForParsing()
+  {
+    return m_parsingThisClass;
+  }
 
   void CompilerState::setLocalsScopeForParsing(const Token& localTok)
   {
@@ -5829,6 +6018,7 @@ namespace MFM {
 
   Node * CompilerState::findNodeNoInThisClassForParent(NNO n)
   {
+    abortShouldntGetHere();
     return findNodeNoInThisClassStubFirst(n);
   }
 
@@ -5838,6 +6028,7 @@ namespace MFM {
     //if we are in the middle of resolving pending args for a stub
     // and to do constant folding, we need to find the parent node that's in the
     // stub's argument list (was resolver), NOT the context where the stub appears. t3362,3,4,6,7,8..
+#if 0
     UTI stubuti = m_pendingArgStubContext;
     if(stubuti != Nouti)
       {
@@ -5857,16 +6048,52 @@ namespace MFM {
 	      rtnNode = findNodeNoInAncestorsClassOrLocalsScope(n, typestubuti);
 	  }
       }
+#endif
 
     if(!rtnNode)
       rtnNode = findNodeNoInThisClassOrLocalsScope(n);
+
     if(!rtnNode)
       {
 	//exhaustive search as last resort
 	UTI acuti = findAClassByNodeNo(n);
 	if(acuti != Nouti)
 	  rtnNode = findNodeNoInAClass(n, acuti);
+#if 0
+	//works, but..are we piercing the locals filescope veil?
+	else
+	  rtnNode = findALocalsScopeByNodeNo(n); //t41221??
+#endif
       }
+
+#if 0
+    UTI cuti = getCompileThisIdx();
+    //    if(!rtnNode && (stubuti != Nouti))
+    if(!rtnNode && isClassAStub(cuti))
+      {
+	//if stubuti is a stubcopy of a stub-for-template (e.g. class param or baseclass)
+	// check its context next for possible locals; compensates for not seeing template first (t41221)
+	UTI stubof = getStubCopyOf(cuti); //t41228
+	if(stubof && (isClassAMemberStubInATemplate(cuti) || isClassAMemberStubInATemplate(stubof)))
+	  {
+	    UTI stubofcontext = getContextForPendingArgValuesForStub(stubof);
+	    rtnNode = findNodeNoInAClassOrLocalsScope(n, stubofcontext);
+
+	    if(!rtnNode)
+	      {
+		UTI stuboftypescontext = getContextForPendingArgTypesForStub(stubof);
+		rtnNode = findNodeNoInAClassOrLocalsScope(n, stuboftypescontext);
+	      }
+
+	    if(!rtnNode)
+	      {
+		UTI ttype = getMemberStubForTemplateType(stubof); //this might help? t41228??
+		rtnNode = findNodeNoInAncestorsClassOrLocalsScope(n, ttype);
+	      }
+	  }
+      }
+#endif
+
     return rtnNode;
   } //findNodeNoInThisClassStubFirst
 
@@ -6046,9 +6273,7 @@ namespace MFM {
 
   void CompilerState::appendNodeToCurrentBlock(Node * node)
   {
-    NodeBlock * cblock = getCurrentBlock();
-    if(useMemberBlock())
-      cblock = getCurrentMemberClassBlock(); //??
+    NodeBlock * cblock = getCurrentBlockForSearching();
     assert(cblock);
     cblock->appendNextNode(node); //adds a NodeStatements, becomes the new end
   }
@@ -6110,6 +6335,20 @@ namespace MFM {
     AssertBool isDefined = m_classContextStack.getCurrentClassContext(cc);
     assert(isDefined);
     return cc.getCurrentMemberClassBlock();
+  }
+
+  NodeBlock * CompilerState::getCurrentBlockForSearching()
+  {
+    if(useMemberBlock())
+      return getCurrentMemberClassBlock();
+    return getCurrentBlock();
+  }
+
+  NodeBlockContext * CompilerState::getContextBlockForSearching()
+  {
+    if(useMemberBlock())
+      return getCurrentMemberClassBlock();
+    return getContextBlock();
   }
 
   void CompilerState::pushClassContext(UTI idx, NodeBlock * currblock, NodeBlockContext * contextblock, bool usemember, NodeBlockClass * memberblock)
@@ -6392,6 +6631,29 @@ namespace MFM {
     //true if isaclass, AND either isastub, OR has hazykin (ie a baseclasslink notready)
     return rtnb;
   }
+
+  bool CompilerState::hasHazyClassInHierarchy(UTI cuti)
+  {
+    bool hashazy = false;
+
+    BaseclassWalker walker; //searches entire tree until a stub is found
+    walker.init(cuti);
+
+    UTI baseuti = Nouti;
+    //ulam-5 supports multiple base classes; superclass optional;
+    while(!hashazy && walker.getNextBase(baseuti, *this))
+      {
+	SymbolClass * basecsym = NULL;
+	if(alreadyDefinedSymbolClass(baseuti, basecsym))
+	  {
+	    hashazy = basecsym->isStub();
+
+	    if(!hashazy)
+	      walker.addAncestorsOf(basecsym);
+	  }
+      } //end while
+    return hashazy;
+  } //hasHazyClassInHierarchy
 
   bool CompilerState::isStillHazy(UTI uti)
   {

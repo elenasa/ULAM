@@ -41,9 +41,9 @@ namespace MFM {
     return m_nodeLeft->safeToCastTo(newType);
   } //safeToCastTo
 
-  UTI NodeMemberSelectOnConstructorCall::checkAndLabelType()
+  UTI NodeMemberSelectOnConstructorCall::checkAndLabelType(Node * thisparentnode)
   {
-    UTI nuti = NodeMemberSelect::checkAndLabelType();
+    UTI nuti = NodeMemberSelect::checkAndLabelType(thisparentnode);
     if(m_state.okUTItoContinue(nuti))
       {
 	UTI luti = m_nodeLeft->getNodeType();

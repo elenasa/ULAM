@@ -3,7 +3,7 @@
  *
  * Copyright (C) 2015-2021 The Regents of the University of New Mexico.
  * Copyright (C) 2015-2021 Ackleyshack LLC.
- * Copyright (C) 2020 The Living Computation Foundation.
+ * Copyright (C) 2020-2021 The Living Computation Foundation.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -151,11 +151,12 @@ namespace MFM{
     bool takeAnInstancesArgValues(SymbolClass * fm, SymbolClass * to);
     bool copyAnInstancesArgValues(SymbolClass * fm, SymbolClass * to);
     void cloneAnInstancesUTImap(SymbolClass * fm, SymbolClass * to);
-    void initBaseClassListForAStubClassInstance(SymbolClass * & newclassinstance);
-    void updateBaseClassListForAStubClassInstance(SymbolClass * & tocsym);
-    bool checkTemplateAncestorsBeforeAStubInstantiation(SymbolClass * stubcsym);
+    void initBaseClassListForAStubClassInstance(SymbolClass * newclassinstance);
+    void updateBaseClassListForAStubClassInstance(SymbolClass * tocsym);
     bool checkTemplateAncestorsAndUpdateStubBeforeAStubInstantiation(SymbolClass * stubcsym);
-
+    void upgradeStubCopyToAStubClassInstance(UTI suti, SymbolClass * csym);
+    bool flagpAsAStubForTemplate(UTI compilingthis); //helper
+    bool flagpAsAStubForTemplateMemberStub(UTI compilingthis); //helper
 
     bool checkSFINAE(SymbolClass * sym);
 

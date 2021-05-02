@@ -52,16 +52,16 @@ namespace MFM {
     return CAST_CLEAR; //created automatically when 'as' is true
   }
 
-  bool NodeVarRefAs::checkReferenceCompatibility(UTI uti)
+  bool NodeVarRefAs::checkReferenceCompatibility(UTI uti, Node * parentnode)
   {
     assert(m_state.okUTItoContinue(uti));
     assert(m_state.getUlamTypeByIndex(uti)->isReference());
     return true; //ok
   } //checkReferenceCompatibility
 
-  UTI NodeVarRefAs::checkAndLabelType()
+  UTI NodeVarRefAs::checkAndLabelType(Node * thisparentnode)
   {
-    UTI it = NodeVarRef::checkAndLabelType();
+    UTI it = NodeVarRef::checkAndLabelType(thisparentnode);
     setNodeType(it);
     makeSuperSymbolForAsBlock(); //only when lhs is 'self'
     return getNodeType();

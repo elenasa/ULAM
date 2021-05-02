@@ -111,7 +111,7 @@ namespace MFM{
       }
   }
 
-  UTI NodeListArrayInitialization::checkAndLabelType()
+  UTI NodeListArrayInitialization::checkAndLabelType(Node * thisparentnode)
   {
     //the size of the list may be less than the array size
     UTI rtnuti = Node::getNodeType(); //init to Void; //ok
@@ -123,7 +123,7 @@ namespace MFM{
 
     for(u32 i = 0; i < m_nodes.size(); i++)
       {
-	UTI puti = m_nodes[i]->checkAndLabelType();
+	UTI puti = m_nodes[i]->checkAndLabelType(this);
 	if(!m_state.okUTItoContinue(puti))
 	  {
 	    std::ostringstream msg;
@@ -174,7 +174,7 @@ namespace MFM{
   {
     assert(n < m_nodes.size()); //error/t3446
 
-    UTI foldeduti = m_nodes[n]->constantFold(); //c&l possibly redone
+    UTI foldeduti = m_nodes[n]->constantFold(this); //c&l possibly redone
     ULAMTYPE etyp = m_state.getUlamTypeByIndex(foldeduti)->getUlamTypeEnum();
 
     //insure constant value fits in its array's bitsize

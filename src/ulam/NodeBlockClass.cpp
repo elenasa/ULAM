@@ -15,6 +15,7 @@ namespace MFM {
     m_nodeArgumentList = new NodeList(state);
     assert(m_nodeArgumentList);
     initBaseClassBlockList();
+    updateLineage(0); //t41228?
   }
 
   NodeBlockClass::NodeBlockClass(const NodeBlockClass& ref) : NodeBlockContext(ref), m_functionST(ref.m_functionST) /* deep copy */, m_virtualmethodMaxIdx(ref.m_virtualmethodMaxIdx), m_buildingDefaultValueInProgress(false), m_bitPackingInProgress(false), m_isEmpty(ref.m_isEmpty), m_registeredForTestInstance(false), m_nodeParameterList(NULL), m_nodeArgumentList(NULL)
@@ -526,10 +527,13 @@ namespace MFM {
 
   const char * NodeBlockClass::getName()
   {
+    return m_state.m_pool.getDataAsString(m_nameid).c_str();
+#if 0
     UTI cuti = getNodeType();
     if(!m_state.okUTItoContinue(cuti))
       cuti = m_state.getCompileThisIdx(); //maybe be hzy template, getNodeType(); (t3565)
     return m_state.getUlamKeyTypeSignatureByIndex(cuti).getUlamKeyTypeSignatureName(&m_state).c_str();
+#endif
   }
 
   const std::string NodeBlockClass::prettyNodeName()
@@ -553,9 +557,7 @@ namespace MFM {
   void NodeBlockClass::setDataMembersParseTree(UTI cuti, NodeBlockClass & fromClassBlock)
   {
     assert(cuti==getNodeType());
-    //    assert(m_nodeNext == NULL);
-    if(m_nodeNext != NULL)
-      return; //quietly?
+    assert(m_nodeNext == NULL);
     NodeStatements * fmnode = fromClassBlock.m_nodeNext;
     if(fmnode == NULL)
       return;
@@ -582,13 +584,15 @@ namespace MFM {
   void NodeBlockClass::setDataMembersSymbolTable(UTI cuti, NodeBlockClass& fromClassBlock)
   {
     assert(cuti==getNodeType());
-    u32 fromtablesize = ((NodeBlock) fromClassBlock).getNumberOfSymbolsInTable();
+    //u32 fromtablesize = ((NodeBlock) fromClassBlock).getNumberOfSymbolsInTable();
     u32 totablesize = NodeBlock::getNumberOfSymbolsInTable();
     if(totablesize==0)
       this->getSymbolTablePtr()->copyATableHere(*fromClassBlock.getSymbolTablePtr());
     else
       this->getSymbolTablePtr()->mergeATableHere(*fromClassBlock.getSymbolTablePtr());
 
+#if 0
+    //stubs may have symbols for their argument values that templates don't have
     if(NodeBlock::getNumberOfSymbolsInTable()>fromtablesize) //t41447
       {
 	SymbolTableOfVariables diffST(m_state);
@@ -620,6 +624,7 @@ namespace MFM {
 	msg << " (UTI " << futi << ")";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
+    #endif
   } //setDataMemberSymbolsTable
 
   SymbolTable * NodeBlockClass::getFunctionSymbolTablePtr()
@@ -629,7 +634,7 @@ namespace MFM {
 
   void NodeBlockClass::setMemberFunctionsSymbolTable(UTI cuti, NodeBlockClass& fromClassBlock)
   {
-    assert(cuti==getNodeType());
+    //assert(cuti==getNodeType()); t3460??
     u32 fromtablesize = fromClassBlock.getNumberOfFuncSymbolsInTableHere();
     u32 totablesize = getNumberOfFuncSymbolsInTableHere();
     assert(totablesize==0);
@@ -781,7 +786,7 @@ namespace MFM {
     return hasStrings;
   } //hasStringsDataMembers
 
-  UTI NodeBlockClass::checkAndLabelType()
+  UTI NodeBlockClass::checkAndLabelType(Node * thisparentnode)
   {
     //do first, might be important!
     checkParameterNodeTypes();
@@ -794,10 +799,10 @@ namespace MFM {
 
     //side-effect DataMember VAR DECLS, named constants, typedefs
     if(m_nodeNext)
-      m_nodeNext->checkAndLabelType();
+      m_nodeNext->checkAndLabelType(this);
 
     // label all the function definition bodies
-    m_functionST.labelTableOfFunctions();
+    m_functionST.labelTableOfFunctions(this);
 
     // check that a 'test' function returns Int (ulam convention)
     checkTestFunctionReturnType();
@@ -822,7 +827,19 @@ UTI NodeBlockClass::checkMultipleInheritances()
   SymbolClass * csym = NULL;
   AssertBool isDefined = m_state.alreadyDefinedSymbolClass(nuti, csym);
   assert(isDefined);
-
+#if 1
+  //try not to duplicate the baseuti for superclass (t41228?), special case.
+  u32 superid = m_state.m_pool.getIndexForDataString("Super");
+  UTI supertdef = Nouti;
+  UTI scalarsupertdef = Nouti; //Nav if unseen at time of parsing (t3806)
+  if(m_state.getUlamTypeByTypedefName(superid, supertdef, scalarsupertdef))
+    {
+      UTI superalias = supertdef;
+      m_state.findaUTIAlias(supertdef, superalias); //t41228
+      UTI superuti = csym->getBaseClass(0);
+      m_state.resetABaseClassItem(nuti, superuti, superalias, 0); //t41431
+    }
+#endif
   //ulam-5 supports multiple base classes; superclass optional
   u32 basecount = csym->getBaseClassCount() + 1; //include super
   u32 i = 0;
@@ -840,7 +857,8 @@ UTI NodeBlockClass::checkMultipleInheritances()
 		  //shouldn't happen, caught at parse time (t3900, t3901)
 		  assert(UlamType::compare(nuti, baseuti, m_state) != UTIC_SAME);
 
-		  if(baseuti!=mappedUTI)
+		  //if(baseuti!=mappedUTI) //t41431
+		  if(UlamType::compare(mappedUTI, baseuti, m_state) != UTIC_SAME)
 		    {
 		      std::ostringstream msg;
 		      msg << "Substituting mapped UTI" << mappedUTI;
@@ -852,7 +870,7 @@ UTI NodeBlockClass::checkMultipleInheritances()
 		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 		      //need to break the chain; e.g. don't want template symbol addresses used
 		      setBaseClassBlockPointer(NULL, i); //force to try again!! avoid inf loop
-		      m_state.resetABaseClassType(nuti, baseuti, mappedUTI);
+		      m_state.resetABaseClassItem(nuti, baseuti, mappedUTI, i);
 		      baseuti = mappedUTI;
 		    }
 		  brtnhzy |= true;
@@ -862,27 +880,29 @@ UTI NodeBlockClass::checkMultipleInheritances()
 	  //this is a subclass.
 	  if(!isBaseClassLinkReady(nuti, i))
 	    {
+#if 0
 	      SymbolClass * basecsym = NULL;
 	      AssertBool isDefined = m_state.alreadyDefinedSymbolClass(baseuti, basecsym);
 	      assert(isDefined);
 
 	      UTI context = basecsym->getContextForPendingArgValues();
-	      if(basecsym->isStub() && (context != Nouti) && (context != nuti))
+	      if(basecsym->isStub() && !basecsym->isStubCopy() && (context != Nouti) && (context != nuti))
 		{
 		  //t41434, context is neither a template, nor baseuti;
 		  //FAILED: 3565,3640,3641,3642,3652,3982,41007,41221,41222,41223,41226,
 		  //41384,41431,41433,41434,41438,41442,41443,41444,41445,41446 as NOOP
 		  //t41225 don't change context if not like-kind
-		  if(!m_state.isClassABaseStubInATemplateHierarchy(baseuti) || m_state.isClassABaseStubInATemplateHierarchy(nuti) || m_state.isClassATemplate(nuti))
+		  if(!m_state.isClassAMemberStubInATemplate(baseuti) || m_state.isClassAMemberStubInATemplate(nuti) || m_state.isClassATemplate(nuti))
 		    basecsym->setContextForPendingArgValues(nuti);
 		}
 	      UTI typecontext = basecsym->getContextForPendingArgTypes();
-	      if(basecsym->isStub() && (typecontext != Nouti) && (typecontext != baseuti))
+	      if(basecsym->isStub() && !basecsym->isStubCopy() && (typecontext != Nouti) && (typecontext != baseuti))
 		{
 		  //assert(typecontext==nuti); //guessing correctly.
 		  basecsym->setContextForPendingArgTypes(baseuti); //NOOP no diff.
 		}
 	      //else t41225?
+#endif
 
 		if(!m_state.isComplete(baseuti))
 		  {
@@ -1286,7 +1306,7 @@ void NodeBlockClass::checkTestFunctionReturnType()
 	UTI cuti = m_state.getCompileThisIdx(); //getNodeType() maybe Hzy
 	u32 nparms = m_nodeParameterList->getNumberOfNodes();
 	assert((nparms == 0) || m_state.isClassATemplate(cuti));
-	m_nodeParameterList->checkAndLabelType();
+	m_nodeParameterList->checkAndLabelType(this);
 	//delay template parameter type check for instance argument type check
 	//since potential problems may still be Hazy. (t3894,5,8)
       }
@@ -1380,22 +1400,27 @@ void NodeBlockClass::checkTestFunctionReturnType()
   void NodeBlockClass::addArgumentNode(Node * nodeArg)
   {
     assert(m_nodeArgumentList); //must be a template class instance
-    assert(!m_state.isClassATemplate(getNodeType()));
+    assert(!m_state.isClassATemplate(this));
     m_nodeArgumentList->addNodeToList(nodeArg);
   }
 
   Node * NodeBlockClass::getArgumentNode(u32 n)
   {
     assert(m_nodeArgumentList); //must be a template class instance
-    assert(!m_state.isClassATemplate(getNodeType()));
+    assert(!m_state.isClassATemplate(this));
     return m_nodeArgumentList->getNodePtr(n);
   }
 
   u32 NodeBlockClass::getNumberOfArgumentNodes()
   {
     assert(m_nodeArgumentList); //must be a template class instance
-    assert(!m_state.isClassATemplate(getNodeType()));
+    assert(!m_state.isClassATemplate(this));
     return m_nodeArgumentList->getNumberOfNodes();
+  }
+
+  NodeList * NodeBlockClass::getListOfArgumentNodes()
+  {
+    return m_nodeArgumentList;
   }
 
   void NodeBlockClass::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
@@ -2153,6 +2178,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
   void NodeBlockClass::updatePrevBlockPtrOfFuncSymbolsInTable()
   {
     m_functionST.updatePrevBlockPtrAcrossTableOfFunctions(this);
+    m_functionST.linkToParentNodesAcrossTableOfFunctions(this); //all the function defs (missing for full instantiation?)
   }
 
   void NodeBlockClass::initElementDefaultsForEval(UlamValue& uv, UTI cuti)
@@ -5308,5 +5334,14 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.indent(fp);
     fp->write("}\n");
   } //generateTestInstanceRun
+
+  void NodeBlockClass::generateIncludeTestMain(File * fp)
+  {
+    UTI nuti = getNodeType();
+    m_state.indent(fp);
+    fp->write("#include \"");
+    fp->write(m_state.getFileNameForAClassHeader(nuti).c_str());
+    fp->write("\"\n");
+  }
 
 } //end MFM

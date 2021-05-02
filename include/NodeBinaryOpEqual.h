@@ -2,7 +2,8 @@
  * NodeBinaryOpEqual.h -  Basic Node for handling Operator Equal for ULAM
  *
  * Copyright (C) 2014-2019 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2019 Ackleyshack LLC.
+ * Copyright (C) 2014-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +30,7 @@
   \file NodeBinaryOpEqual.h - Basic Node for handling Operator Equal for ULAM
   \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2019 All rights reserved.
+  \date (C) 2014-2021 All rights reserved.
   \gpl
 */
 
@@ -59,7 +60,7 @@ namespace MFM{
 
     virtual const std::string methodNameForCodeGen();
 
-    virtual UTI checkAndLabelType();
+    virtual UTI checkAndLabelType(Node * thisparentnode);
 
     virtual EvalStatus eval();
 
@@ -86,7 +87,7 @@ namespace MFM{
     virtual void makeDefaultStructAssignment(UTI lt, UTI rt, UTI& newtyperef);
 
   private:
-    TBOOL replaceOurselves(bool classoratom);
+    TBOOL replaceOurselves(bool classoratom, Node * parentnode);
     Node * buildOperatorOverloadFuncCallNodeForMatchingArg(bool& hazyArg);
 
   };

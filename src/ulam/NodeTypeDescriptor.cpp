@@ -19,6 +19,11 @@ namespace MFM {
   //since there's no assoc symbol, we map the m_uti here (e.g. S(x,y).sizeof nodeterminalproxy)
   NodeTypeDescriptor::NodeTypeDescriptor(const NodeTypeDescriptor& ref) : Node(ref), m_typeTok(ref.m_typeTok), m_uti(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_uti,ref.getNodeLocation())), m_ready(false), m_contextForPendingArgType(Nouti), m_unknownBitsizeSubtree(NULL), m_refType(ref.m_refType), m_referencedUTI(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_referencedUTI,ref.getNodeLocation()))
   {
+    if(m_state.isHolder(m_uti))
+      {
+	m_state.addUnknownTypeTokenToAClassResolver(m_state.getCompileThisIdx(), m_typeTok, m_uti);  //t3765
+      }
+
     if(ref.m_unknownBitsizeSubtree)
       {
 	m_unknownBitsizeSubtree = new NodeTypeBitsize(*ref.m_unknownBitsizeSubtree); //mapped UTI?
@@ -144,7 +149,7 @@ namespace MFM {
     m_contextForPendingArgType = context;
   }
 
-  UTI NodeTypeDescriptor::checkAndLabelType()
+  UTI NodeTypeDescriptor::checkAndLabelType(Node * thisparentnode)
   {
     if(isReadyType())
       return getNodeType();
@@ -155,6 +160,7 @@ namespace MFM {
 	setNodeType(it);
 	resetGivenUTI(it); //new given reset here!!! Mon Aug  1 12:02:52 2016
 	m_ready = true; //set here!!!
+	assert(m_state.isComplete(it)); //true?
       }
     else if(it == Hzy)
       {
@@ -170,11 +176,14 @@ namespace MFM {
   bool NodeTypeDescriptor::resolveType(UTI& rtnuti)
   {
     bool rtnb = false;
+
+#if 0
     if(isReadyType())
       {
 	rtnuti = getNodeType();
 	return true;
       }
+#endif
 
     // not node select, we are the leaf Type: a typedef, class or primitive scalar.
     UTI nuti = givenUTI(); //start with given.
@@ -195,11 +204,20 @@ namespace MFM {
 	// if Nav, use token
 	UTI mappedUTI = nuti;
 
+	if(m_state.findaUTIAlias(nuti, mappedUTI))
+	  nuti = mappedUTI;
+
+#if 0
 	// first search current block, often same as context;
-	UTI cbuti = m_state.getCurrentBlock()->getNodeType();
+	// but possibly the return type (a classref) of a func def (t41301)
+	NodeBlock * currBlock = m_state.getCurrentBlock();
+	UTI cbuti = currBlock->getNodeType();
 	if(m_state.isAClass(cbuti))
+	  //if(currBlock->isAClassBlock())
 	  {
-	    if(m_state.mappedIncompleteUTI(cbuti, nuti, mappedUTI))
+	    //assert(!m_state.isAltRefType(cbuti));
+	    UTI derefcbuti = m_state.getUlamTypeAsDeref(cbuti);
+	    if(m_state.mappedIncompleteUTI(derefcbuti, nuti, mappedUTI))
 	      {
 		std::ostringstream msg;
 		msg << "Substituting Mapped UTI" << mappedUTI;
@@ -212,6 +230,7 @@ namespace MFM {
 		nuti = mappedUTI;
 	      }
 	  }
+#endif
 
 	//if no change, try context..
 	UTI cuti = m_state.getCompileThisIdx();
@@ -236,9 +255,10 @@ namespace MFM {
 
 	if(!m_state.isComplete(nuti)) //reloads to recheck for debug message
 	  {
+	    u32 nameid = m_state.getUlamTypeNameIdByIndex(nuti);
 	    std::ostringstream msg;
 	    msg << "Incomplete descriptor for type: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str(); //t3125, t3298
+	    msg << m_state.m_pool.getDataAsString(nameid).c_str(); //t3125, t3298, t41361
 	    msg << " (UTI " << nuti << ")"; //helpful for my debugging (e.g. t41209)
 	    msg << ", while labeling class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
@@ -270,7 +290,12 @@ namespace MFM {
 	  {
 	    //islocalsscope t41232
 	    UTI kuti = nuti; //kuti changes
-	    rtnb = m_state.statusUnknownClassTypeInThisLocalsScope(m_typeTok, nuti, kuti);
+	    if(m_state.statusUnknownClassTypeInThisLocalsScope(m_typeTok, nuti, kuti))
+	      {
+		resetGivenUTI(kuti); //even if not complete, no longer a holder
+		if(!(rtnb = m_state.isComplete(kuti)))
+		  kuti = Hzy;
+	      }
 	    nuti = kuti;
 	  }
       }
@@ -520,7 +545,7 @@ namespace MFM {
 	UTI tmpforscalaruti = Nouti;
 	bool isTypedef = m_state.getUlamTypeByTypedefName(m_typeTok.m_dataindex, tduti, tmpforscalaruti);
 
-	if(isTypedef)
+	if(isTypedef && !m_state.isHolder(tduti)) //t3765
 	  {
 	    m_state.updateUTIAliasForced(givenUTI(), tduti); //t3898
 	    nuti = tduti;

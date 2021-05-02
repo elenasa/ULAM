@@ -4,14 +4,14 @@
 ##      //No error about zero bitsize!!
 ## [does not change the gencode]
 ## t3497 with proper odered uses Wed Jun  1 16:36:26 2016
-## Ue_TypedefIssue(Unsigned(32) tif) { typedef Unsigned(UNKNOWN) Symmetry[UNKNOWN];  Unsigned(UNKNOWN) x[UNKNOWN](notready);  Bool(1) b(false);  Vector(vec) t(notready);  <NOMAIN> }
+## Ue_TypedefIssue(Unsigned(32) tif) { typedef Unsigned(4) Symmetry[3];  Unsigned(4) x[3](notready);  Bool(1) b(false);  Vector(vec) t(notready);  <NOMAIN> }
 ## here, without uses:
 ## Ue_TypedefIssue(Unsigned(32) tif) { typedef 0Holder(UNKNOWN) Symmetry;  0Holder(UNKNOWN) x(notready);  Bool(1) b(false);  Vector(vec) t(notready);  <NOMAIN> }
 ##
 #!
 Exit status: 12
 Ue_R { Int(32) test() {  TypedefIssue(2u) ish;  ish ( )foo2 . return } }
-Ue_TypedefIssue(Unsigned(32) tif) { typedef holder Symmetry;  holder x(notready);  Bool(1) b(false);  Vector(vec) t(notready);  <NOMAIN> }
+Ue_TypedefIssue(Unsigned(32) tif) { typedef Unsigned(4) Symmetry[3];  Unsigned(4) x[3](notready);  Bool(1) b(false);  Vector(vec) t(notready);  <NOMAIN> }
 Uq_Vector(Unsigned(32) vec) { typedef Unsigned(UNKNOWN) Channel;  typedef Unsigned(UNKNOWN) Symmetry[UNKNOWN];  Unsigned(UNKNOWN) m[UNKNOWN](notready);  <NOMAIN> }
 ##
 ##      //informed by 3337, array subscript delayed.

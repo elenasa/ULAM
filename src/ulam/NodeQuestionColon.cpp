@@ -216,12 +216,12 @@ namespace MFM {
     return newType;
   } //calcNodeType
 
-  UTI NodeQuestionColon::checkAndLabelType()
+  UTI NodeQuestionColon::checkAndLabelType(Node * thisparentnode)
   {
     assert(m_nodeCondition && m_nodeLeft && m_nodeRight);
 
     // condition should be a bool, safely cast
-    UTI condType = m_nodeCondition->checkAndLabelType();
+    UTI condType = m_nodeCondition->checkAndLabelType(this);
     UTI newcondtype = Bool;
 
     if(m_state.okUTItoContinue(condType) && m_state.isComplete(condType))
@@ -259,9 +259,9 @@ namespace MFM {
 	newcondtype = Hzy;
       }
 
-    UTI trueType = m_nodeLeft->checkAndLabelType(); //side-effect
+    UTI trueType = m_nodeLeft->checkAndLabelType(this); //side-effect
 
-    UTI falseType = m_nodeRight->checkAndLabelType(); //side-effect
+    UTI falseType = m_nodeRight->checkAndLabelType(this); //side-effect
 
     UTI newType = calcNodeType(trueType, falseType);
 
@@ -295,7 +295,7 @@ namespace MFM {
 
     if(m_state.okUTItoContinue(newType) && this->isAConstant())
       {
-	return constantFold();
+	return constantFold(thisparentnode);
       }
     return newType;
   } //checkAndLabelType
@@ -321,7 +321,7 @@ namespace MFM {
     return NodeBinaryOp::countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
   }
 
-  UTI NodeQuestionColon::constantFold()
+  UTI NodeQuestionColon::constantFold(Node * parentnode)
   {
     assert(isAConstant()); //t41059, t41280
 
@@ -360,6 +360,11 @@ namespace MFM {
 	return Hzy;
       }
 
+    u32 pno = Node::getYourParentNo();
+    assert(pno);
+    assert(parentnode);
+    assert(parentnode->getNodeNo() == pno);
+
     Node * newnode = NULL;
     if(condbool == false)
       {
@@ -372,7 +377,9 @@ namespace MFM {
 	m_nodeLeft = NULL; //recycling
       }
 
-    AssertBool isSwap = Node::exchangeNodeWithParent(newnode);
+    newnode->updateLineage(pno);
+
+    AssertBool isSwap = Node::exchangeNodeWithParent(newnode, parentnode);
     assert(isSwap);
 
     m_state.setGoAgain();

@@ -2,8 +2,8 @@
  * NodeFuncDecl.h - Node handling the Function Declaration Order for ULAM
  *
  * Copyright (C) 2020 The Regents of the University of New Mexico.
- * Copyright (C) 2020 Ackleyshack LLC.
- * Copyright (C) 2020 The Living Computation Foundation.
+ * Copyright (C) 2020-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -30,7 +30,7 @@
   \file NodeFuncDecl.h - Node handling the Function Declaration Order for ULAM
   \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2020 All rights reserved.
+  \date (C) 2020-2021 All rights reserved.
   \gpl
 */
 
@@ -64,7 +64,7 @@ namespace MFM{
 
     virtual void genTypeAndNameEntryAsComment(File * fp, s32 totalsize, u32& accumsize);
 
-    virtual UTI checkAndLabelType();
+    virtual UTI checkAndLabelType(Node * thisparentnode);
 
     virtual EvalStatus eval();
 

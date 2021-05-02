@@ -9,7 +9,7 @@
 Exit status: 6
 Ue_R { Unsigned(32) m_tsz(2u);  Unsigned(32) m_rsz(4u);  Int(32) test() {  System s;  RXTimer(2,1u,9u) rxt;  self m_tsz . 2u = s ( self m_tsz . )print . s ( self m_tsz . 2u cast == )assert . RXTimer(4,15u,1u) drxt;  self m_rsz . 4u = s ( self m_rsz . )print . s ( self m_rsz . 4u cast == )assert . self m_tsz . self m_rsz . +b cast return } }
 Uq_System { <NOMAIN> }
-Uq_RXTimer(Unary(5) bits = NONREADYCONST, Unsigned(32) triggerLevel = NONREADYCONST, Unsigned(32) k = 1u) : XTimer(bits,triggerLevel,k) { typedef holder Counter;  :XTimer13< typedef Unsigned(UNKNOWN) Counter;  Unsigned(UNKNOWN) mCount(notready); > <NOMAIN> }
+Uq_RXTimer(Unary(5) bits = NONREADYCONST, Unsigned(32) triggerLevel = NONREADYCONST, Unsigned(32) k = 1u) : XTimer(bits,triggerLevel,k) { typedef Unsigned(2) Counter;  :XTimer13< typedef Unsigned(UNKNOWN) Counter;  Unsigned(UNKNOWN) mCount(notready); > <NOMAIN> }
 Uq_XTimer(Unary(5) bits, Unsigned(32) triggerLevel, Unsigned(32) k) { typedef Unsigned(UNKNOWN) Counter;  Unsigned(UNKNOWN) mCount(notready);  <NOMAIN> }
 Ue_S : RXTimer(4,15u,1u) { /* empty class block */ }
 ##
