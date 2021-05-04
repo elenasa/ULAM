@@ -315,9 +315,10 @@ namespace MFM {
 	assert(m_funcSymbol && m_funcSymbol == funcSymbol);
 
 	it = m_funcSymbol->getUlamTypeIdx();
-	assert(m_state.okUTItoContinue(it));
+	//assert(m_state.okUTItoContinue(it)); //t3641
 
-	it = specifyimplicitselfexplicitly(thisparentnode);
+	if(m_state.okUTItoContinue(it))
+	  it = specifyimplicitselfexplicitly(thisparentnode);
 
 	if(m_state.okUTItoContinue(it))
 	  {
@@ -546,17 +547,6 @@ namespace MFM {
     assert(pno);
     assert(parentnode);
     assert(pno == parentnode->getNodeNo());
-
-#if 0
-    NodeBlock * currBlock = m_state.getCurrentBlock();
-    m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock); //push again
-
-
-    Node * parentNode = m_state.findNodeNoInThisClassForParent(pno);
-    assert(parentNode);
-
-    m_state.popClassContext(); //restore
-#endif
 
     bool implicitself = true;
 

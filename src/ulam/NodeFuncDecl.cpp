@@ -17,6 +17,11 @@ namespace MFM {
     return new NodeFuncDecl(*this);
   }
 
+  void NodeFuncDecl::clearSymbolPtr()
+  {
+    m_funcSymbolPtr = NULL;
+  }
+
   u32 NodeFuncDecl::getfunctionid() const
   {
     assert(m_funcSymbolPtr);
@@ -47,28 +52,7 @@ namespace MFM {
 	if(m_state.isFuncIdInClassScope(m_fid, fnsymptr, hazykin))
 	  {
 	    assert(fnsymptr->isFunction()); //t41084, t41332
-	    //	    UTI fdmuti = fnsymptr->getDataMemberClass();
-	    //if(!m_state.isClassATemplate(fdmuti))
 	    m_funcSymbolPtr = ((SymbolFunctionName *) fnsymptr)->getFunctionSymbolByOrderNumber(m_ordernum);
-#if 0
-	    else
-	      {
-		std::ostringstream msg;
-		msg << "Function symbol '";
-		msg << m_state.m_pool.getDataAsString(m_fid).c_str();
-		msg << "' temporarily found in our template class (UTI ";
-		msg << fdmuti << ")";
-		if(m_state.isClassAStub(m_state.getCompileThisIdx()))
-		  {
-		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-		    setNodeType(Hzy);
-		    m_state.setGoAgain();
-		    return Hzy; //t3336 (with new CSNT::fullyInstantiate method)
-		  }
-		else
-		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	      }
-#endif
 	  }
       }
 
@@ -78,7 +62,7 @@ namespace MFM {
 	msg << "Function symbol '";
 	msg << m_state.m_pool.getDataAsString(m_fid).c_str();
 	msg << "' cannot be found";
-#if 1
+
 	if(m_state.isClassAStub(m_state.getCompileThisIdx()))
 	  {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
@@ -87,7 +71,6 @@ namespace MFM {
 	    return Hzy; //t3336 (with new CSNT::fullyInstantiate method)
 	  }
 	else
-#endif
 	  {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    setNodeType(Nav);
@@ -98,6 +81,11 @@ namespace MFM {
     assert(m_funcSymbolPtr);
     UTI nodeType = m_funcSymbolPtr->getUlamTypeIdx();
     setNodeType(nodeType);
+    if(nodeType == Hzy)
+      {
+	clearSymbolPtr();
+	m_state.setGoAgain();
+      }
     return nodeType;
   }
 

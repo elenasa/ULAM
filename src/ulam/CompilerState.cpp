@@ -341,25 +341,6 @@ namespace MFM {
 			//must have found an alias!
 			//for a class instance in template
 		      }
-#if 0
-		    //moved this to findClassInstanceByUTI
-		    else if(cnsym->hasMappedUTI(uti))
-		      {
-			UTI mappedUTI = uti;
-			AssertBool hasmapped = cnsym->hasMappedUTI(uti, mappedUTI);
-			if(((SymbolClassNameTemplate*) cnsym)->findClassInstanceByUTI(mappedUTI, csym))
-			  {
-			    //already added into template; nothing to do
-			  }
-			else if(alreadyDefinedSymbolClass(mappedUTI, csym))
-			  {
-			    //must have found an alias!
-			    //for a class instance in template
-			  }
-			else
-			  abortShouldntGetHere(); //t41436
-		      }
-#endif
 		    else
 		      abortShouldntGetHere(); //t3379 wo NodeTypedef updating UTIAlias
 		    return csym->getUlamTypeIdx();
@@ -929,14 +910,6 @@ namespace MFM {
     if(isEmptyElement(suti))
       return suti; //special case
 
-#if 0
-    u32 sid = getUlamTypeNameIdByIndex(suti);
-    UTI tduti = Nouti;
-    UTI scalaruti = Nouti;
-    if(getUlamTypeByTypedefName(sid,tduti,scalaruti))
-      return tduti;
-#endif
-
     SymbolClassName * cnsym = NULL;
     AssertBool isDefined = alreadyDefinedSymbolClassNameByUTI(cuti, cnsym);
     assert(isDefined);
@@ -969,7 +942,9 @@ namespace MFM {
 	if(salt != ALT_NOT)
 	  {
 	    UTI asref = mapIncompleteUTIForCurrentClassInstance(getUlamTypeAsDeref(suti), loc);
-	    return getUlamTypeAsRef(asref, salt);
+	    if(okUTItoContinue(asref))
+	      return getUlamTypeAsRef(asref, salt);
+	    return asref; //hzy
 	  }
 
 	//t3859, t3328, t3873
@@ -981,19 +956,12 @@ namespace MFM {
 
 	    if(cnsymOfIncomplete->hasInstanceMappedUTI(suti, cuti, mappedUTI))
 	      {
-		return mappedUTI;  //t41436?? stops inf loop? only if same class name
+		return mappedUTI;  //stops inf loop? only if same class name
 	      }
 	  }
 
 	if(!isClassAStub(suti))
 	  return suti;
-#if 0
-	//must be a stub..
-	UTI sxtype = getContextForPendingArgValuesForStub(suti);
-	UTI sttype = getMemberStubForTemplateType(suti);
-	if((sxtype == cuti) || (sttype == cuti))
-	  return suti; //t41436??
-#endif
 
 	bool isastubcopy = isClassAStubCopy(suti);
 	//suti is a stub related to cuti (also not a template).
@@ -1003,16 +971,13 @@ namespace MFM {
 	if(isastubcopy)
 	  {
 	    UTI stubcopyof = getStubCopyOf(suti);
-#if 1
 	    if(cnsym->hasInstanceMappedUTI(cuti, stubcopyof, mappedUTI))
 	      {
 		UTI muti = mappedUTI;
 		findaUTIAlias(muti, mappedUTI);
-		return mappedUTI;  //t41436???? returns suti when suti==cuti
+		return mappedUTI;  //returns suti when suti==cuti
 	      }
-#endif
 
-#if 1
 	    //check reverse only if class names match!
 	    if(classnamesame)
 	      {
@@ -1023,19 +988,11 @@ namespace MFM {
 		    return mappedUTI;  //t41436???? stops inf loop?
 		  }
 	      }
-#endif
-
-#if 0
-	    UTI xtype = getContextForPendingArgValuesForStub(stubcopyof);
-	    UTI ttype = getMemberStubForTemplateType(stubcopyof);
-	    if((ttype == cuti) || (xtype == cuti))
-	      return suti; //t41436??
-#endif
-
 	    suti = stubcopyof; //continue as if the original..
 	  }
 
-	//o.w. make a stub copy...(t41436?)
+	//o.w. make a stub copy...
+	//return Hzy;
       }
 
     //first time we've seen this 'incomplete' UTI for this class instance (as fully instantiated):
@@ -1053,32 +1010,16 @@ namespace MFM {
     UTI newuti = makeUlamType(newkey, bUT, sclasstype); //could be another holder copy (t3765)
     AssertBool notdup = cnsym->mapInstanceUTI(cuti, suti, newuti);
     assert(notdup);
-    //cnsym->mapInstanceUTI(cuti, newuti, suti); //t41446 ? t41433?
 
     if(bUT == Class)
       {
 	UlamType * newut = getUlamTypeByIndex(newuti);
 	if(sut->isCustomArray())
 	  ((UlamTypeClass *) newut)->setCustomArray();
-
-#if 0
-	if(cnsymOfIncomplete->getUlamClass() != sut->getUlamClassType())
-	  {
-	    //warning! new class type 'newuti' doesn't have its SymbolClass yet (undefined);
-	    Token tmpTok(TOK_TYPE_IDENTIFIER, loc, cnsymOfIncomplete->getId()); //use current locator
-	    cnsym->addUnknownTypeTokenToClass(tmpTok, newuti);  //t41436
-	    cnsymOfIncomplete->mapUTItoUTI(newuti, suti);
-	  }
-	else
-#endif
-
-	  {
-	    //potential for unending process..
-	    //notes: sclasstype may be UNSEEN. 'cuti' may not be getCompileThis class (t41209,t41217,8)
-	    ((SymbolClassNameTemplate *)cnsymOfIncomplete)->copyAStubClassInstance(suti, newuti, cuti, newuti, loc);
-	    //((SymbolClassNameTemplate *)cnsymOfIncomplete)->copyAStubClassInstance(suti, newuti, cuti, cuti, loc);
-	    //((SymbolClassNameTemplate *)cnsymOfIncomplete)->copyAStubClassInstance(suti, newuti, cuti, suti, loc); //let's use the stub suti as the context for types for now, a place to get Arg Nodes during merge (t41361)
-
+	{
+	  //potential for unending process..(t41436)
+	  //notes: sclasstype may be UNSEEN. 'cuti' may not be getCompileThis class (t41209,t41217,8)
+	  ((SymbolClassNameTemplate *)cnsymOfIncomplete)->copyAStubClassInstance(suti, newuti, cuti, newuti, loc);
 	    std::ostringstream msg;
 	    msg << "MAPPED!! type: " << getUlamTypeNameByIndex(suti).c_str();
 	    msg << "(UTI" << suti << ")";
@@ -1091,9 +1032,6 @@ namespace MFM {
 	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
 	  }
       }
-    //else
-    //updateUTIAliasForced(suti, newuti); //what if..
-
     return newuti;
   } //mapIncompleteUTIForAClassInstance
 
@@ -3035,14 +2973,9 @@ namespace MFM {
     UlamKeyTypeSignature newstubkey(superut->getUlamTypeNameId(), UNKNOWNSIZE); //"-2" and scalar default
     UTI newstubcopyuti = makeUlamType(newstubkey, Class, superclasstype); //**gets next unknown uti type
 
-    //SymbolClass * superstubcopy = superctsym->copyAStubClassInstance(superuti, newstubcopyuti, argvaluecontext, argtypecontext, stubloc); //t3365. t41221
     SymbolClass * superstubcopy = superctsym->copyAStubClassInstance(superuti, newstubcopyuti, argvaluecontext, newstubcopyuti, stubloc); //??? t3365. t41221
     assert(superstubcopy);
 
-#if 0
-    //t41361??
-    superctsym->mergeClassInstancesFromTEMP(); //not mid-iteration!!
-#endif
     return newstubcopyuti;
   } //addStubCopyToAncestorClassTemplate
 
@@ -6059,11 +5992,6 @@ namespace MFM {
 	UTI acuti = findAClassByNodeNo(n);
 	if(acuti != Nouti)
 	  rtnNode = findNodeNoInAClass(n, acuti);
-#if 0
-	//works, but..are we piercing the locals filescope veil?
-	else
-	  rtnNode = findALocalsScopeByNodeNo(n); //t41221??
-#endif
       }
 
 #if 0

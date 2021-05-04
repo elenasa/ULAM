@@ -268,12 +268,7 @@ namespace MFM {
 	msg << " (UTI " << cuti << ")";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);  //t41192
 	it = Hzy;
-#if 0
-	if(!astub) //t41432? t41440??
-#endif
-	  {
-	    clearSymbolPtr(); //lookup again too! (e.g. inherited template instances)
-	  }
+	clearSymbolPtr(); //lookup again too! (e.g. inherited template instances)
       }
     setNodeType(it);
     Node::setStoreIntoAble(TBOOL_FALSE);
@@ -346,6 +341,9 @@ namespace MFM {
 
     TBOOL rtb = TBOOL_FALSE;
     UTI suti = symptr->getUlamTypeIdx();
+
+    if(!m_state.okUTItoContinue(suti))
+      return TBOOL_HAZY; //t3894
 
     if(m_state.isAClass(suti))
       {
@@ -632,22 +630,6 @@ namespace MFM {
 	brtn = true;
 	assert(m_constSymbol->isReady()); //true;
       }
-#if 0
-    else if(m_constSymbol->isClassParameter()) //t41436?
-      {
-	if(m_constSymbol->hasInitValue())
-	  {
-	    u64 initval = 0;
-
-	    if(m_constSymbol->getInitValue(initval))
-	      {
-		m_constant.uval = initval; //ready
-		brtn = true;
-		assert(m_constSymbol->isInitValueReady());
-	      }
-	  }
-      }
-#endif
     //else don't want default value here
 
     return brtn; //m_constSymbol->isReady();

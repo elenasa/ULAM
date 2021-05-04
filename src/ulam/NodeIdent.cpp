@@ -264,27 +264,12 @@ namespace MFM {
 	    m_state.popClassContext(); //restore t3102, t41228???
 	    if(!asymptr->isFunction() && !asymptr->isTypedef() && !asymptr->isConstant() && !asymptr->isModelParameter())
 	      {
-		//check hazyiness after determined no surgery required
-		//if(!hazyKin)
-		  {
-		    setSymbolPtr((SymbolVariable *) asymptr);
-		    //assert(asymptr->getBlockNoOfST() == m_currBlockNo); not necessarily true
-		    // e.g. var used before defined, and then is a data member outside current func block.
-		    setBlockNo(asymptr->getBlockNoOfST()); //refined
-		    setBlock(currBlock);
-		  }
-#if 0
-		  //t3565 Foo block was Hzy, but found ident in ancestor correctly??
-		else
-		  {
-		    std::ostringstream msg;
-		    msg << "Identifier '" << m_state.getTokenDataAsString(m_token).c_str();
-		    msg << "' was used while still undeclared";
-		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-		    it = Hzy; //t3572, t3597, t41183, and ulamexports QBox
-		    errCnt++;
-		  }
-#endif
+
+		setSymbolPtr((SymbolVariable *) asymptr);
+		//assert(asymptr->getBlockNoOfST() == m_currBlockNo); not necessarily true
+		// e.g. var used before defined, and then is a data member outside current func block.
+		setBlockNo(asymptr->getBlockNoOfST()); //refined
+		setBlock(currBlock);
 	      }
 	    else
 	      {
@@ -364,6 +349,9 @@ namespace MFM {
     if(!errCnt && m_varSymbol)
       {
 	it = m_varSymbol->getUlamTypeIdx();
+      }
+    if(m_state.okUTItoContinue(it))
+      {
 	Node::setStoreIntoAble(m_varSymbol->isConstant() ? TBOOL_FALSE : TBOOL_TRUE); //store into an array entotal? t3881
 	if(m_varSymbol->isFunctionParameter() && ((SymbolVariableStack *) m_varSymbol)->isConstantFunctionParameter())
 	  Node::setStoreIntoAble(TBOOL_FALSE); //as well as its referenceablity (t41186,8,9)
@@ -442,6 +430,10 @@ namespace MFM {
 
     TBOOL rtnb = TBOOL_FALSE;
     UTI suti = symptr->getUlamTypeIdx();
+
+    if(!m_state.okUTItoContinue(suti))
+      return TBOOL_HAZY; //t3894
+
     if(symptr->isConstant() && !m_state.isConstantRefType(suti))
       {
 	// replace ourselves with a constant node instead;
@@ -565,18 +557,6 @@ namespace MFM {
     assert(pno);
     assert(parentnode);
     assert(pno == parentnode->getNodeNo());
-
-#if 0
-    //a data member/func call needs to be rhs of member select "."
-    NodeBlock * currBlock = getBlock();
-
-    m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock); //push again
-
-    Node * parentNode = m_state.findNodeNoInThisClassForParent(pno);
-    assert(parentNode);
-
-    m_state.popClassContext(); //restore
-#endif
 
     bool implicitself = true;
 

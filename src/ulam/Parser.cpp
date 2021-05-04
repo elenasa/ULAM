@@ -979,8 +979,11 @@ namespace MFM {
 		unreadToken();
 		isConstr = true; //special case!
 		iTok = pTok;
-		delete typeNode;
-		typeNode = NULL;
+		delete typeNode; //Void
+		//constructor return type is Void; make one for consistency
+		Token vTok(TOK_KW_TYPE_VOID, iTok.m_locator, 0);
+		typeNode = new NodeTypeDescriptor(vTok, Void, m_state);
+		assert(typeNode);
 	      }
 	    else
 	      {
@@ -1805,7 +1808,7 @@ namespace MFM {
     UTI huti = whichtrue ? (UTI) Bool : m_state.makeUlamTypeHolder();
 
     std::string swtypedefname = m_state.getSwitchTypedefNameAsString(switchnum);
-    Token swtypeTok(TOK_IDENTIFIER, swTok.m_locator, m_state.m_pool.getIndexForDataString(swtypedefname));
+    Token swtypeTok(TOK_TYPE_IDENTIFIER, swTok.m_locator, m_state.m_pool.getIndexForDataString(swtypedefname));
 
     //give a name to this new ulam type
     SymbolTypedef * symtypedef = new SymbolTypedef(swtypeTok, huti, Nav, m_state);
@@ -1814,7 +1817,11 @@ namespace MFM {
     if(!whichtrue) //t41046
       m_state.addUnknownTypeTokenToThisClassResolver(swtypeTok, huti);
 
-    NodeTypedef * swtypedefnode = new NodeTypedef(symtypedef, NULL, m_state);
+    //for consistency
+    NodeTypeDescriptor * typenode = new NodeTypeDescriptor(swtypeTok, huti, m_state);
+    assert(typenode);
+
+    NodeTypedef * swtypedefnode = new NodeTypedef(symtypedef, typenode, m_state); //was NULL
     assert(swtypedefnode);
     swtypedefnode->setNodeLocation(swTok.m_locator);
     m_state.appendNodeToCurrentBlock(swtypedefnode);
@@ -3444,18 +3451,26 @@ namespace MFM {
 		msg << m_state.m_pool.getDataAsString(csym->getId()).c_str();
 		MSG(&pTok, msg.str().c_str(), DEBUG);
 	      }
-	    assert(m_state.okUTItoContinue(tduti));
-	    ULAMCLASSTYPE tdclasstype = tdut->getUlamClassType();
-	    const std::string tdname = tdut->getUlamTypeNameOnly();
-
-	    //update token argument
-	    if(tdclasstype == UC_NOTACLASS)
-	      args.m_typeTok.init(Token::getTokenTypeFromString(tdname.c_str()), pTok.m_locator, 0); //(not pTok.m_dataindex, e.g.t3380, t3381, t3382)
+	    //assert(m_state.okUTItoContinue(tduti)); Hzy initially..
+	    if(!m_state.okUTItoContinue(tduti))
+	      {
+		args.m_typeTok.init(pTok.m_type, pTok.m_locator, 0);
+	      }
 	    else
 	      {
-		args.m_typeTok.init(TOK_TYPE_IDENTIFIER, pTok.m_locator, m_state.m_pool.getIndexForDataString(tdname));
-		isclasstd = true;
+		ULAMCLASSTYPE tdclasstype = tdut->getUlamClassType();
+		const std::string tdname = tdut->getUlamTypeNameOnly();
+
+		//update token argument
+		if(tdclasstype == UC_NOTACLASS)
+		  args.m_typeTok.init(Token::getTokenTypeFromString(tdname.c_str()), pTok.m_locator, 0); //(not pTok.m_dataindex, e.g.t3380, t3381, t3382)
+		else
+		  {
+		    args.m_typeTok.init(TOK_TYPE_IDENTIFIER, pTok.m_locator, m_state.m_pool.getIndexForDataString(tdname));
+		    isclasstd = true;
+		  }
 	      }
+
 	    //don't update rest of argument refs;
 	    //typedefs have their own bit and array sizes to look up
 	    //possibly another class? go again..
@@ -5367,10 +5382,11 @@ Node * Parser::wrapFactor(Node * leftNode)
 	return NULL;
       }
 
-
-    assert(isConstr || nodetype);
     //internal constructor return type is void
-    UTI rtnuti = isConstr ? (UTI) Void : nodetype->givenUTI();
+    //    assert(isConstr || nodetype);
+    //UTI rtnuti = isConstr ? (UTI) Void : nodetype->givenUTI();
+    assert(nodetype);
+    UTI rtnuti = nodetype->givenUTI();
 
     SymbolFunction * fsymptr = new SymbolFunction(identTok, rtnuti, m_state);
     fsymptr->setStructuredComment(); //also clears

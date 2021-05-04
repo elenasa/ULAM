@@ -300,11 +300,6 @@ namespace MFM {
     assert(parentnode);
     assert(pno == parentnode->getNodeNo());
 
-#if 0
-    Node * parentNode = m_state.findNodeNoInThisClassForParent(pno); //t3767
-    assert(parentNode);
-#endif
-
     evalNodeProlog(0); //new current frame pointer
     makeRoomForNodeType(nuti); //offset a constant expression
     EvalStatus evs = eval();

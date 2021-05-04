@@ -158,7 +158,7 @@ namespace MFM {
 	  {
 	    m_state.statusUnknownTypeInThisClassResolver(it);
 	  }
-
+    assert(m_nodeTypeDesc);
 	UTI cuti = m_state.getCompileThisIdx();
 	if(m_nodeTypeDesc)
 	  {
@@ -174,9 +174,9 @@ namespace MFM {
 		msg << " UTI" << duti << " while labeling class: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-		m_state.mapTypesInCurrentClass(it, duti);
-		m_state.updateUTIAliasForced(it, duti); //t3379, t3668
+		//m_state.mapTypesInCurrentClass(it, duti);
 		m_typedefSymbol->resetUlamType(duti); //consistent! (must be same ref type)
+		//m_state.updateUTIAliasForced(it, duti); //t3379, t3668, t41431
 		it = duti;
 	      }
 	  }

@@ -528,12 +528,6 @@ namespace MFM {
   const char * NodeBlockClass::getName()
   {
     return m_state.m_pool.getDataAsString(m_nameid).c_str();
-#if 0
-    UTI cuti = getNodeType();
-    if(!m_state.okUTItoContinue(cuti))
-      cuti = m_state.getCompileThisIdx(); //maybe be hzy template, getNodeType(); (t3565)
-    return m_state.getUlamKeyTypeSignatureByIndex(cuti).getUlamKeyTypeSignatureName(&m_state).c_str();
-#endif
   }
 
   const std::string NodeBlockClass::prettyNodeName()
@@ -584,47 +578,11 @@ namespace MFM {
   void NodeBlockClass::setDataMembersSymbolTable(UTI cuti, NodeBlockClass& fromClassBlock)
   {
     assert(cuti==getNodeType());
-    //u32 fromtablesize = ((NodeBlock) fromClassBlock).getNumberOfSymbolsInTable();
     u32 totablesize = NodeBlock::getNumberOfSymbolsInTable();
     if(totablesize==0)
       this->getSymbolTablePtr()->copyATableHere(*fromClassBlock.getSymbolTablePtr());
     else
       this->getSymbolTablePtr()->mergeATableHere(*fromClassBlock.getSymbolTablePtr());
-
-#if 0
-    //stubs may have symbols for their argument values that templates don't have
-    if(NodeBlock::getNumberOfSymbolsInTable()>fromtablesize) //t41447
-      {
-	SymbolTableOfVariables diffST(m_state);
-	this->getSymbolTablePtr()->mergedTableDifferences(*fromClassBlock.getSymbolTablePtr(), diffST);
-	std::string namesAsAString;
-	u32 numDiff = diffST.tableTokenNamesAsAString(namesAsAString);
-	assert(numDiff > 0);
-
-	UTI futi = fromClassBlock.getNodeType();
-	u32 fmNameId = m_state.getUlamTypeByIndex(futi)->getUlamTypeNameId();
-
-	std::ostringstream msg;
-	msg << "Unexpected input!! Symbol";
-	if(numDiff > 1)
-	  msg << "s";
-	msg << ": ";
-	msg << namesAsAString.c_str();
-	if(numDiff > 1)
-	  msg << ", do not belong to class ";
-	else
-	  msg << ", does not belong to class ";
-	if(m_state.isClassATemplate(futi))
-	  msg << "template: ";
-	else if(m_state.isClassAStub(futi))
-	  msg << "stub: ";
-	else
-	  msg << ": ";
-	msg << m_state.m_pool.getDataAsString(fmNameId).c_str();
-	msg << " (UTI " << futi << ")";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-      }
-    #endif
   } //setDataMemberSymbolsTable
 
   SymbolTable * NodeBlockClass::getFunctionSymbolTablePtr()
@@ -834,10 +792,13 @@ UTI NodeBlockClass::checkMultipleInheritances()
   UTI scalarsupertdef = Nouti; //Nav if unseen at time of parsing (t3806)
   if(m_state.getUlamTypeByTypedefName(superid, supertdef, scalarsupertdef))
     {
-      UTI superalias = supertdef;
-      m_state.findaUTIAlias(supertdef, superalias); //t41228
-      UTI superuti = csym->getBaseClass(0);
-      m_state.resetABaseClassItem(nuti, superuti, superalias, 0); //t41431
+      if(m_state.okUTItoContinue(supertdef)) //t41005
+	{
+	  UTI superalias = supertdef;
+	  m_state.findaUTIAlias(supertdef, superalias); //t41228
+	  UTI superuti = csym->getBaseClass(0);
+	  m_state.resetABaseClassItem(nuti, superuti, superalias, 0); //t41431
+	}
     }
 #endif
   //ulam-5 supports multiple base classes; superclass optional
@@ -880,32 +841,8 @@ UTI NodeBlockClass::checkMultipleInheritances()
 	  //this is a subclass.
 	  if(!isBaseClassLinkReady(nuti, i))
 	    {
-#if 0
-	      SymbolClass * basecsym = NULL;
-	      AssertBool isDefined = m_state.alreadyDefinedSymbolClass(baseuti, basecsym);
-	      assert(isDefined);
-
-	      UTI context = basecsym->getContextForPendingArgValues();
-	      if(basecsym->isStub() && !basecsym->isStubCopy() && (context != Nouti) && (context != nuti))
+	      if(!m_state.isComplete(baseuti))
 		{
-		  //t41434, context is neither a template, nor baseuti;
-		  //FAILED: 3565,3640,3641,3642,3652,3982,41007,41221,41222,41223,41226,
-		  //41384,41431,41433,41434,41438,41442,41443,41444,41445,41446 as NOOP
-		  //t41225 don't change context if not like-kind
-		  if(!m_state.isClassAMemberStubInATemplate(baseuti) || m_state.isClassAMemberStubInATemplate(nuti) || m_state.isClassATemplate(nuti))
-		    basecsym->setContextForPendingArgValues(nuti);
-		}
-	      UTI typecontext = basecsym->getContextForPendingArgTypes();
-	      if(basecsym->isStub() && !basecsym->isStubCopy() && (typecontext != Nouti) && (typecontext != baseuti))
-		{
-		  //assert(typecontext==nuti); //guessing correctly.
-		  basecsym->setContextForPendingArgTypes(baseuti); //NOOP no diff.
-		}
-	      //else t41225?
-#endif
-
-		if(!m_state.isComplete(baseuti))
-		  {
 		  std::ostringstream msg;
 		  msg << "Subclass '";
 		  msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
@@ -2017,6 +1954,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     while(i < basecount)
       {
 	UTI baseuti = csym->getBaseClass(i);
+	if(baseuti == Hzy)
+	  return UNKNOWNSIZE; //t41301
+
 	assert(baseuti != Hzy);
 	if(baseuti != Nouti)
 	  {

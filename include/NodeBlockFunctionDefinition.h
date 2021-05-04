@@ -78,6 +78,8 @@ class NodeBlockFunctionDefinition : public NodeBlock
 
     Node * getParameterNode(u32 pidx);
 
+    UTI getParameterNodeGivenType(u32 pidx);
+
     void makeSuperSymbol(s32 slot);
 
     virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);

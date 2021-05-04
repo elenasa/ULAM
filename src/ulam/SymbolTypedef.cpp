@@ -5,7 +5,7 @@ namespace MFM {
 
   SymbolTypedef::SymbolTypedef(const Token& id, UTI utype, UTI scalaruti, CompilerState & state) : Symbol(id, utype, state), m_scalarUTI(scalaruti) {}
 
-  SymbolTypedef::SymbolTypedef(const SymbolTypedef& sref) : Symbol(sref), m_scalarUTI(m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_scalarUTI,sref.getLoc()))
+  SymbolTypedef::SymbolTypedef(const SymbolTypedef& sref) : Symbol(sref), m_scalarUTI(/*m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_scalarUTI,sref.getLoc())*/ Hzy)
   {}
 
   SymbolTypedef::SymbolTypedef(const SymbolTypedef& sref, bool keeptype) : Symbol(sref, keeptype), m_scalarUTI(sref.m_scalarUTI) {}

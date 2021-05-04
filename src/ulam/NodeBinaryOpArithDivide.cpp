@@ -56,9 +56,6 @@ NodeBinaryOpArithDivide::NodeBinaryOpArithDivide(const NodeBinaryOpArithDivide& 
 	    Node * castNode = Node::newCastingNode(this, nuti);
 	    assert(castNode);
 
-#if 0
-	    Node * parentNode = m_state.findNodeNoInThisClassForParent(pno);
-#endif
 	    assert(parentnoderef);
 	    assert(pno == parentnoderef->getNodeNo());
 

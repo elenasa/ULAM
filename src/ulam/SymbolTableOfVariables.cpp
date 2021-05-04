@@ -119,7 +119,13 @@ namespace MFM {
 	  }
 
 	UTI suti = sym->getUlamTypeIdx();
-	s32 symsize = calcVariableSymbolTypeSize(suti, seensetref); //recursively
+	s32 symsize = UNKNOWNSIZE;
+	if(!m_state.okUTItoContinue(suti))
+	  {
+	    totalsizes = UNKNOWNSIZE;
+	    break; //Hzy possibility (t41301)
+	  }
+	symsize = calcVariableSymbolTypeSize(suti, seensetref); //recursively
 
 	if(symsize == CYCLEFLAG) //was < 0
 	  {

@@ -186,13 +186,8 @@ namespace MFM {
   {
     assert(cvsymptr);
     m_constSymbol = cvsymptr;
-    //m_currBlockNo = cvsymptr->getBlockNoOfST();
     setBlockNo(cvsymptr->getBlockNoOfST()); //also clears block ptr (t41224)
     assert(m_currBlockNo);
-#if 0
-    if(getNodeType()==Nouti)
-      setNodeType(m_constSymbol->getUlamTypeIdx()); //t41436?
-#endif
   }
 
   u32 NodeConstantDef::getSymbolId()
@@ -212,8 +207,6 @@ namespace MFM {
       }
       else if(m_constSymbol->isClassArgument() && isClassArgumentItsDefaultValue())
 	{
-	  //m_constSymbol->setInitValue(bv); //t41438??
-	  //rtnb = m_constSymbol->isInitValueReady();
 	  m_constSymbol->setValue(bv); //isReady now! (e.g. ClassArgument, ModelParameter)
 	  rtnb = m_constSymbol->isReady();
 	}
@@ -245,8 +238,9 @@ namespace MFM {
     if(m_nodeTypeDesc == NULL)
       {
 	m_nodeTypeDesc = nodetypedesc; //tfr ownership here
-	if(m_constSymbol)
-	  m_nodeTypeDesc->resetGivenUTI(m_constSymbol->getUlamTypeIdx()); //invariant?
+	//if(m_constSymbol)
+	//  m_constSymbol->resetUlamType(m_nodeTypeDesc->givenUTI()); //or keep hazy
+	////  m_nodeTypeDesc->resetGivenUTI(m_constSymbol->getUlamTypeIdx()); //invariant?
 	return true;
       }
     return false;
@@ -314,59 +308,23 @@ namespace MFM {
 
     UTI suti = m_constSymbol->getUlamTypeIdx();
     UTI cuti = m_state.getCompileThisIdx();
-    ////use of context (pushed by Resolver), but not reflected in global m_pendingArgStubContext,
-    ////doesn't help with default values, better off with type context (==stub)
-    //bool changeScope = (m_state.m_pendingArgStubContext != m_state.m_pendingArgTypeStubContext) && (m_constSymbol->isClassParameter() || m_constSymbol->isClassArgument()) && !isClassArgumentItsDefaultValue(); //t3328, t41153, t41209, t41214,7,8, t41224,t41431
-    UTI contextForArgTypes = m_state.m_pendingArgTypeStubContext;
-    UTI contextForArgValues = m_state.m_pendingArgStubContext;
-    bool changeScope = (contextForArgTypes != Nouti) && (contextForArgTypes != contextForArgValues ) && ((m_constSymbol->isClassParameter() || m_constSymbol->isClassArgument()) && isClassArgumentItsDefaultValue()); //t3328, t41153, t41209, t41214,7,8, t41224,t41431,3
-    changeScope = false; //t41225??? Resolver does this for us!!
-    if(changeScope)
-      {
-#if 0
-	UTI ttype = m_state.getMemberStubForTemplateType(contextForArgTypes);
-	if (ttype != Nouti)
-	  {
-	    m_state.pushClassOrLocalCurrentBlock(ttype); //doesn't change compileThisIdx
-	  }
-	else
-#endif
-	//assumming type context is the stub itself??
-	//apparently Resolver made this so for default args.
-	//assert(contextForArgTypes == m_state.m_pendingArgStubContext);
-	//not m_pendingArgStubContext (t3328,9, t3330,2, t41153, t41209, t41214,7,8, t41224
-	//SymbolClassNameTemplate * ctsym;
-	//AssertBool gotplate = m_state.alreadyDefinedSymbolClassNameTemplate(contextForArgTypes, ctsym);
-	//assert(gotplate);
-	//UTI contextForDefaultArg = ctsym->getUlamTypeIdx();
-	//m_state.pushClassOrLocalCurrentBlock(contextForDefaultArg); //doesn't change compileThisIdx
-
-#if 1
-	  {
-	    assert(!m_state.isAClass(contextForArgTypes) || (m_state.getAClassBlock(contextForArgTypes)!=NULL));
-	    m_state.pushClassOrLocalCurrentBlock(contextForArgTypes); //doesn't change compileThisIdx
-	  }
-#endif
-
-      }
-
+    bool changeScope = false;
+    assert(m_nodeTypeDesc);
     // type of the constant
     if(m_nodeTypeDesc)
       {
 	bool changeScopeForTypesOnly = false;
-#if 1
-
-	//if(!changeScope && (m_state.m_pendingArgTypeStubContext != Nouti) && (m_state.m_pendingArgStubContext != m_state.m_pendingArgTypeStubContext))
-	//  if(changeScope || ((contextForArgTypes != Nouti) && (m_state.m_pendingArgStubContext != contextForArgTypes)))
+	UTI contextForArgTypes = m_state.m_pendingArgTypeStubContext;
 	if(contextForArgTypes != Nouti)
 	  {
 	    assert(m_constSymbol->isClassParameter() || m_constSymbol->isClassArgument());
 	    m_state.pushClassOrLocalContextAndDontUseMemberBlock(contextForArgTypes);
 	    changeScopeForTypesOnly = true; //t41216, error/t41218
 	  }
-#endif
+
 	UTI duti = m_nodeTypeDesc->checkAndLabelType(this); //clobbers any expr it
 	if(m_state.okUTItoContinue(duti) && (suti != duti))
+	  //if(suti != duti)
 	  {
 	    std::ostringstream msg;
 	    msg << "REPLACING Symbol UTI" << suti;
@@ -379,7 +337,7 @@ namespace MFM {
 	    msg << " UTI" << cuti;
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	    m_constSymbol->resetUlamType(duti); //consistent!
-	    m_state.mapTypesInCurrentClass(suti, duti);
+	    //m_state.mapTypesInCurrentClass(suti, duti);
 	    suti = duti;
 	  }
 	if(changeScopeForTypesOnly)
@@ -756,8 +714,9 @@ namespace MFM {
 	    m_constSymbol = (SymbolConstantValue *) asymptr;
 	    m_constSymbol->setDeclNodeNo(getNodeNo());
 
-	    if(m_nodeTypeDesc)
-	      m_nodeTypeDesc->resetGivenUTI(m_constSymbol->getUlamTypeIdx()); // invariant?
+	    // NodeTypeDesc is the canonical type
+	    //if(m_nodeTypeDesc)
+	    //  m_nodeTypeDesc->resetGivenUTI(m_constSymbol->getUlamTypeIdx()); // invariant?
 	  }
 	else
 	  {
@@ -1183,8 +1142,9 @@ namespace MFM {
 	    AssertBool isset = setNodeTypeDescriptor(copynodetypedesc); //resets givenuti too.
 	    assert(isset);
 
-	    UTI newuti = m_nodeTypeDesc->givenUTI();
-	    assert(m_constSymbol && (m_constSymbol->getUlamTypeIdx() == newuti)); //invariant? (likely null symbol, see checkForSymbol)
+	    // UTI newuti = m_nodeTypeDesc->givenUTI();
+	    //assert(m_constSymbol && (m_constSymbol->getUlamTypeIdx() == newuti)); //invariant? (likely null symbol, see checkForSymbol)
+	    assert(m_constSymbol && (m_constSymbol->getUlamTypeIdx() == Hzy)); //invariant? (likely null symbol, see checkForSymbol) t41361,
 
 	    assert(copyuti == pnodetypedesc->givenUTI()); //used keep type
 	    aok = true;

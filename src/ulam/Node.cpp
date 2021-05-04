@@ -392,41 +392,6 @@ namespace MFM {
     return m_utype;
   }
 
-#if 0
-  //common to NodeIdent, NodeTerminalProxy, NodeSquareBracket
-  bool Node::exchangeNodeWithParent(Node * newnode)
-  {
-    UTI cuti = m_state.getCompileThisIdx(); //for error messages
-    NodeBlock * currBlock = m_state.getCurrentBlock(); //in NodeIdent, getBlock())
-
-    NNO pno = Node::getYourParentNo();
-
-    m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock); //push again
-
-    Node * parentNode = m_state.findNodeNoInThisClassForParent(pno);
-    assert(parentNode);
-
-    AssertBool swapOk = parentNode->exchangeKids(this, newnode);
-    assert(swapOk);
-
-    std::ostringstream msg;
-    msg << "Exchanged kids! <" << getName();
-    msg << "> func call (" << prettyNodeName().c_str();
-    msg << "), within class: ";
-    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-
-    m_state.popClassContext(); //restore
-
-    //common to all new nodes:
-    newnode->setNodeLocation(getNodeLocation());
-    newnode->resetNodeNo(getNodeNo()); //moved before update lineage
-    newnode->updateLineage(pno); //t3942
-
-    return true;
-  } //exchangeNodeWithParent
-#endif
-
   //common to NodeIdent, NodeTerminalProxy, NodeSquareBracket
   bool Node::exchangeNodeWithParent(Node * newnode, Node * parent)
   {
@@ -2608,8 +2573,11 @@ namespace MFM {
 
     //make the function def, with node (quark) type as its param, returns Int (always)
     SymbolFunction * fsymptr = new SymbolFunction(funcidentTok, Int /*tobeType*/, m_state);
-    //No NodeTypeDescriptor needed for Int
-    NodeBlockFunctionDefinition * fblock = new NodeBlockFunctionDefinition(fsymptr, currClassBlock, NULL, m_state);
+    //No NodeTypeDescriptor needed for Int; except for consistency..
+    Token intTok(TOK_KW_TYPE_INT, loc, 0);
+    NodeTypeDescriptor * nodetype = new NodeTypeDescriptor(intTok, Int, m_state);
+    assert(nodetype);
+    NodeBlockFunctionDefinition * fblock = new NodeBlockFunctionDefinition(fsymptr, currClassBlock, nodetype, m_state);
     assert(fblock);
     fblock->setNodeLocation(loc);
 

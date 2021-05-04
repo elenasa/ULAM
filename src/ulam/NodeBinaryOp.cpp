@@ -529,9 +529,6 @@ namespace MFM {
     NNO pno = Node::getYourParentNo();
     assert(pno);
 
-#if 0
-    Node * parentNode = m_state.findNodeNoInThisClassForParent(pno);
-#endif
     assert(parentnode);
     assert(pno == parentnode->getNodeNo());
 

@@ -125,14 +125,6 @@ namespace MFM {
 
   bool NodeTypeDescriptorArray::resolveType(UTI& rtnuti)
   {
-#if 0
-    if(isReadyType())
-      {
-	rtnuti = getNodeType();
-	return true;
-      }
-#endif
-
     bool rtnb = false;
     // not node select, we are the array on top of the scalar leaf
     UTI nuti = givenUTI();

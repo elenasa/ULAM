@@ -177,18 +177,9 @@ namespace MFM {
   {
     bool rtnb = false;
 
-#if 0
-    if(isReadyType())
-      {
-	rtnuti = getNodeType();
-	return true;
-      }
-#endif
-
     // not node select, we are the leaf Type: a typedef, class or primitive scalar.
     UTI nuti = givenUTI(); //start with given.
 
-    //if(getReferenceType() != ALT_NOT)
     if((getReferenceType() != ALT_NOT) || m_state.isAltRefType(nuti)) //t3668?
       {
 	rtnb = resolveReferenceType(nuti); //may update nuti
@@ -206,31 +197,6 @@ namespace MFM {
 
 	if(m_state.findaUTIAlias(nuti, mappedUTI))
 	  nuti = mappedUTI;
-
-#if 0
-	// first search current block, often same as context;
-	// but possibly the return type (a classref) of a func def (t41301)
-	NodeBlock * currBlock = m_state.getCurrentBlock();
-	UTI cbuti = currBlock->getNodeType();
-	if(m_state.isAClass(cbuti))
-	  //if(currBlock->isAClassBlock())
-	  {
-	    //assert(!m_state.isAltRefType(cbuti));
-	    UTI derefcbuti = m_state.getUlamTypeAsDeref(cbuti);
-	    if(m_state.mappedIncompleteUTI(derefcbuti, nuti, mappedUTI))
-	      {
-		std::ostringstream msg;
-		msg << "Substituting Mapped UTI" << mappedUTI;
-		msg << ", " << m_state.getUlamTypeNameBriefByIndex(mappedUTI).c_str();
-		msg << " for incomplete descriptor type: '";
-		msg << m_state.getUlamTypeNameByIndex(nuti).c_str();
-		msg << "' UTI" << nuti << " while labeling current block: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(cbuti).c_str();
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-		nuti = mappedUTI;
-	      }
-	  }
-#endif
 
 	//if no change, try context..
 	UTI cuti = m_state.getCompileThisIdx();
@@ -545,7 +511,7 @@ namespace MFM {
 	UTI tmpforscalaruti = Nouti;
 	bool isTypedef = m_state.getUlamTypeByTypedefName(m_typeTok.m_dataindex, tduti, tmpforscalaruti);
 
-	if(isTypedef && !m_state.isHolder(tduti)) //t3765
+	if(isTypedef && !m_state.isHolder(tduti) && m_state.okUTItoContinue(tduti)) //t3765, t3384
 	  {
 	    m_state.updateUTIAliasForced(givenUTI(), tduti); //t3898
 	    nuti = tduti;

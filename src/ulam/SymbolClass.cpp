@@ -694,17 +694,30 @@ namespace MFM {
     if(m_bitsPacked)
       return TBOOL_TRUE;
 
+    TBOOL rtntb = TBOOL_FALSE;
     UTI suti = getUlamTypeIdx();
-    NodeBlockClass * classblock = getClassBlockNode();
-    assert(classblock);
-    m_state.pushClassContext(suti, classblock, classblock, false, NULL);
+    if(m_state.isComplete(suti))
+      {
+	NodeBlockClass * classblock = getClassBlockNode();
+	assert(classblock);
+	m_state.pushClassContext(suti, classblock, classblock, false, NULL);
 
-    TBOOL rtntb = classblock->packBitsForVariableDataMembers(); //side-effect
+	rtntb = classblock->packBitsForVariableDataMembers(); //side-effect
 
-    m_state.popClassContext();
+	m_state.popClassContext();
 
-    if(rtntb == TBOOL_TRUE)
-      m_bitsPacked = true;
+	if(rtntb == TBOOL_TRUE)
+	  m_bitsPacked = true;
+      }
+    else
+      {
+	std::ostringstream msg;
+	msg << " Class '";
+	msg << m_state.getUlamTypeNameByIndex(suti).c_str();
+	msg << "' is still incomplete; No pack bits for data members, error";
+	MSG(Symbol::getTokPtr(), msg.str().c_str(), DEBUG); //t3862
+	rtntb = TBOOL_HAZY;
+      }
     return rtntb;
   } //packBitsForClassVariableDataMembers
 
@@ -867,32 +880,14 @@ namespace MFM {
     NodeBlockClass * classblock = getClassBlockNode();
     assert(classblock);
 
-#if 0
-    //is this like constantFolding pending arguments???/ (t41228?)
-    m_state.m_pendingArgStubContext = argvaluecontext;
-    m_state.m_pendingArgTypeStubContext = argtypecontext;
-#endif
-
     u32 numArgs = fmtemplate ? fmclassblock->getNumberOfParameterNodes() : fmclassblock->getNumberOfArgumentNodes();
 
     SymbolClassNameTemplate * ptcsym = fmtemplate ? (SymbolClassNameTemplate*) fmcsym : fmcsym->getParentClassTemplate();
     assert(ptcsym);
-    //    UTI ptuti = ptcsym->getUlamTypeIdx();
+
     NodeBlockClass * ptclassblock = ptcsym->getClassBlockNode();
     assert(ptclassblock);
 
-    //bool argsPending = fmcsym->pendingClassArgumentsForClassInstance();
-    //assert(!argsPending || (fmcsym->countNonreadyClassArguments() == numArgs)); t41224, using upgradeStubCopy..
-
-    //UTI fmcuti = fmcsym->getUlamTypeIdx();
-    //m_state.pushClassContext(fmcuti, fmclassblock, fmclassblock, false, NULL);
-    //m_state.pushClassContext(getUlamTypeIdx(), classblock, classblock, false, NULL);
-    //m_state.pushClassOrLocalContextAndDontUseMemberBlock(argvaluecontext);
-#if 0
-    //this is what the Parser does had it seen the template first!
-    m_state.pushClassOrLocalContextAndDontUseMemberBlock(argvaluecontext);
-    m_state.pushCurrentBlock(classblock);
-#endif
     for(u32 i = 0; i < numArgs; i++)
       {
 	NodeConstantDef * parmNode = (NodeConstantDef *) ptclassblock->getParameterNode(i);
@@ -926,34 +921,6 @@ namespace MFM {
 	      classblock->addArgumentNode(cloneNode); //updates lineage to list
 	  }
       }
-#if 0
-    m_state.popClassContext(); //restore
-    m_state.popClassContext(); //restore
-#endif
-    if(toStub)
-      {
-	// setContextForPendingArgValues(argvaluecontext);
-	//setContextForPendingArgTypes(argtypecontext); //(t41213, t41223, t3328, t41153)
-
-	//Cannot MIX the current block (context) to find symbols while
-	//using this stub copy to find parent NNOs for constant folding;
-	//therefore we separate them so that all we do now is update the
-	//constant values in the stub copy's Resolver map.
-	//Resolution of all context-dependent arg expressions will occur
-	//during the resolving loop..
-	//Note: could be localsFilescope (t41434)
-#if 0
-	//refactor..different context.
-	m_state.pushClassOrLocalContextAndDontUseMemberBlock(argvaluecontext);
-	assignClassArgValuesInStubCopy();
-	m_state.popClassContext(); //restore previous context
-#endif
-      }
-
-#if 0
-    m_state.m_pendingArgStubContext = Nouti;
-    m_state.m_pendingArgTypeStubContext = Nouti;
-#endif
   } //cloneArgumentNodesForClassInstance
 
   void SymbolClass::assignClassArgValuesInStubCopy()
@@ -1539,20 +1506,6 @@ namespace MFM {
 
     //include ALL the locals filescopes being compiled (t41345, t3981, t3865)
     m_state.generateAllIncludesTestMainForLocalsFilescopes(fp);
-
-#if 0
-    NodeBlockClass * classNode = getClassBlockNode();
-    assert(classNode);
-    UTI locuti = classNode->getLocalsFilescopeType();
-    if(locuti != Nouti)
-      {
-	u32 mangledclassid = m_state.getMangledClassNameIdForUlamLocalsFilescope(locuti);
-	m_state.indent(fp);
-	fp->write("#include \"");
-	fp->write(m_state.m_pool.getDataAsString(mangledclassid).c_str());
-	fp->write(".h\""); GCNL;
-      }
-#endif
 
     fp->write("\n");
     m_state.indent(fp);

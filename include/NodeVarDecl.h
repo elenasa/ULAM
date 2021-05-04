@@ -77,6 +77,8 @@ namespace MFM{
 
     virtual bool getSymbolPtr(Symbol *& symptrref);
 
+    bool getNodeTypeDescriptorPtr(NodeTypeDescriptor *& nodetypedescref);
+
     virtual void setInitExpr(Node * node);
 
     bool hasInitExpr();

@@ -184,6 +184,16 @@ namespace MFM {
     return (m_varSymbol != NULL);
   }
 
+  bool NodeVarDecl::getNodeTypeDescriptorPtr(NodeTypeDescriptor *& nodetypedescref)
+  {
+    if(m_nodeTypeDesc)
+      {
+	nodetypedescref = m_nodeTypeDesc;
+	return true;
+      }
+    return false;
+  }
+
   void NodeVarDecl::setInitExpr(Node * node)
   {
     //called during parsing
@@ -401,10 +411,6 @@ namespace MFM {
 	assert(pno);
 	assert(parentnode);
 	assert(pno == parentnode->getNodeNo());
-#if 0
-	Node * parentNode = m_state.findNodeNoInThisClassForParent(pno);
-	assert(parentNode);
-#endif
 
 	newnode->setNodeLocation(getNodeLocation());
 	newnode->resetNodeNo(getNodeNo()); //and symbol declnodeno
@@ -419,7 +425,7 @@ namespace MFM {
 	  msg << m_state.getUlamTypeNameByIndex(cuti).c_str();
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	}
-
+    assert(m_nodeTypeDesc);
 	if(m_nodeTypeDesc)
 	  newnode->m_nodeTypeDesc = (NodeTypeDescriptor *) m_nodeTypeDesc->instantiate();
 
@@ -459,6 +465,7 @@ namespace MFM {
       {
 	UTI duti = m_nodeTypeDesc->checkAndLabelType(this); //sets goagain
 	if(m_state.okUTItoContinue(duti) && (duti != vit))
+	  //if(duti != vit)
 	  {
 	    std::ostringstream msg;
 	    msg << "REPLACING Symbol UTI" << vit;
@@ -470,7 +477,7 @@ namespace MFM {
 	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	    m_varSymbol->resetUlamType(duti); //consistent!
-	    m_state.mapTypesInCurrentClass(vit, duti);
+	    //m_state.mapTypesInCurrentClass(vit, duti); //t41301, not if array
 	    //m_state.updateUTIAliasForced(it, duti); //help?NOPE, t3808
 	    vit = duti;
 	  }
@@ -721,6 +728,12 @@ namespace MFM {
       }
     if(vit == Hzy)
       {
+	std::ostringstream msg;
+	msg << "Variable for: '";
+	msg << m_state.m_pool.getDataAsString(m_vid).c_str();
+	msg << "', is still hazy";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	setNodeType(Hzy); //t3862
 	clearSymbolPtr();
 	m_state.setGoAgain(); //since not error
       }

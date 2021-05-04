@@ -47,9 +47,7 @@ namespace MFM {
 
 	    //not using use makeCastingNode since don't want recursive c&l call
 	    Node * castNode = Node::newCastingNode(this, nuti);
-#if 0
-	    Node * parentNode = m_state.findNodeNoInThisClassForParent(pno);
-#endif
+
 	    assert(parentnoderef);
 	    assert(pno == parentnoderef->getNodeNo());
 

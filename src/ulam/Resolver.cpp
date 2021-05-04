@@ -189,11 +189,6 @@ namespace MFM {
 		    UTI mappedUTI = Nouti;
 		    AssertBool gotmapped = cnsym->hasMappedUTI(huti,mappedUTI);
 		    assert(gotmapped);
-#if 0
-		    UTI cuti = m_state.getCompileThisIdx();
-		    ((SymbolClassNameTemplate *)cnsym)->copyAStubClassInstance(mappedUTI, huti, cuti, cuti, tok.m_locator); //t41436?, assumes it is a class?
-		    kuti = huti;
-#endif
 		    kuti = mappedUTI;
 		  }
 		else
