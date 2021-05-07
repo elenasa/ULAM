@@ -65,6 +65,8 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
+    virtual UTI resetGivenUTI(UTI guti);
+
     UTI getScalarType();
 
     void linkConstantExpressionArraysize(NodeSquareBracket * ceForArraySize);

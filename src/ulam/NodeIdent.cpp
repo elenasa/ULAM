@@ -426,10 +426,11 @@ namespace MFM {
 
   TBOOL NodeIdent::replaceOurselves(Symbol * symptr, Node * parentnode)
   {
-    assert(symptr);
+    assert(symptr);  //dont pass on, may end up stale
 
     TBOOL rtnb = TBOOL_FALSE;
     UTI suti = symptr->getUlamTypeIdx();
+    NNO blocknoST = symptr->getBlockNoOfST();
 
     if(!m_state.okUTItoContinue(suti))
       return TBOOL_HAZY; //t3894
@@ -445,14 +446,18 @@ namespace MFM {
 	      return TBOOL_HAZY; //might not be a class afterall (3/9/21 ish)
 
 	    if(m_state.isScalar(suti))
-	      newnode = new NodeConstantClass(m_token, (SymbolWithValue *) symptr, NULL, m_state);
+	      //newnode = new NodeConstantClass(m_token, (SymbolWithValue *) symptr, NULL, m_state);
+	      newnode = new NodeConstantClass(m_token, blocknoST, suti, NULL, m_state);
 	    else
-	      newnode = new NodeConstantClassArray(m_token, (SymbolWithValue *) symptr, NULL, m_state); //t41261
+	      //newnode = new NodeConstantClassArray(m_token, (SymbolWithValue *) symptr, NULL, m_state); //t41261
+	      newnode = new NodeConstantClassArray(m_token, blocknoST, suti, NULL, m_state); //t41261
 	  }
 	else if(m_state.isScalar(suti))
-	  newnode = new NodeConstant(m_token, (SymbolWithValue *) symptr, NULL, m_state);
+	  //newnode = new NodeConstant(m_token, (SymbolWithValue *) symptr, NULL, m_state);
+	  newnode = new NodeConstant(m_token, blocknoST, suti, NULL, m_state);
 	else
-	  newnode = new NodeConstantArray(m_token, (SymbolWithValue *) symptr, NULL, m_state);
+	  //newnode = new NodeConstantArray(m_token, (SymbolWithValue *) symptr, NULL, m_state);
+	  newnode = new NodeConstantArray(m_token, blocknoST, suti, NULL, m_state);
 	assert(newnode);
 
 	AssertBool swapOk = Node::exchangeNodeWithParent(newnode, parentnode);
@@ -464,7 +469,8 @@ namespace MFM {
       {
 	// replace ourselves with a parameter node instead;
 	// same node no, and loc
-	NodeModelParameter * newnode = new NodeModelParameter(m_token, (SymbolModelParameterValue*) symptr, NULL, m_state);
+	//	NodeModelParameter * newnode = new NodeModelParameter(m_token, (SymbolModelParameterValue*) symptr, NULL, m_state);
+	NodeModelParameter * newnode = new NodeModelParameter(m_token, blocknoST, suti, NULL, m_state);
 	assert(newnode);
 
 	AssertBool swapOk = Node::exchangeNodeWithParent(newnode, parentnode);
@@ -916,6 +922,24 @@ namespace MFM {
 	  {
 	    if(m_state.isHolder(tduti))
 	      {
+		UTI anothertd = args.m_anothertduti;
+		if(anothertd != Nouti)
+		  {
+		    //typedef might have bitsize and arraysize info..
+		    if(checkTypedefOfTypedefSizes(args, anothertd)) //ref
+		      {
+			if(m_state.isHolder(anothertd)) //update holder array,bitsizes (t3374)
+			  m_state.setUTISizes(tduti, args.m_bitsize, args.m_arraysize, true);
+			  else
+			//if(!m_state.isHolder(anothertd)) //update holder array,bitsizes (t3374)
+			  m_state.cleanupExistingHolder(tduti, anothertd);//t3868
+			return true;
+		      }
+		    else
+		      m_state.abortNotImplementedYet();
+		  }
+		//else td not holder
+
 		//not Nav when tduti's an array; might know?
 		args.m_declListOrTypedefScalarType = tdscalaruti;
 
@@ -1042,36 +1066,44 @@ namespace MFM {
 	brtn = true;
       }
 
-    if(!m_state.okUTItoContinue(tduti))
+    //if(!m_state.okUTItoContinue(tduti))
+    if(tduti == Nav)
       brtn = false;
+    //else continue.. possibly Hzy (t3341)
 
     if(brtn)
       {
 	UTI uti = tduti;
 	UTI scalarUTI = args.m_declListOrTypedefScalarType;
-	UlamType * ut = m_state.getUlamTypeByIndex(uti);
-	ULAMTYPE bUT = ut->getUlamTypeEnum();
-	UlamKeyTypeSignature key = ut->getUlamKeyTypeSignature();
-	ULAMCLASSTYPE classtype = ut->getUlamClassType();
 
-	if(ut->isScalar() && (args.m_arraysize != NONARRAYSIZE))
+	if(uti != Hzy)
+	  //if((uti != Hzy) && !m_state.isHolder(uti)) //t3862
 	  {
-	    args.m_declListOrTypedefScalarType = scalarUTI = uti;
-	    // o.w. build symbol (with bit and array sizes);
-	    // arrays can't have their scalar as classInstance;
-	    // o.w., no longer findable by token.
-	    if(args.m_bitsize == 0)
-	      args.m_bitsize = ULAMTYPE_DEFAULTBITSIZE[bUT];
+	    UlamType * ut = m_state.getUlamTypeByIndex(uti);
+	    ULAMTYPE bUT = ut->getUlamTypeEnum();
+	    UlamKeyTypeSignature key = ut->getUlamKeyTypeSignature();
+	    ULAMCLASSTYPE classtype = ut->getUlamClassType();
 
-	    UlamKeyTypeSignature newarraykey(key.getUlamKeyTypeSignatureNameId(), args.m_bitsize, args.m_arraysize, scalarUTI, args.m_declRef); //classinstanceidx removed if not a class
-	    uti = m_state.makeUlamType(newarraykey, bUT, classtype);
+	    if(ut->isScalar() && (args.m_arraysize != NONARRAYSIZE))
+	      {
+		args.m_declListOrTypedefScalarType = scalarUTI = uti;
+		// o.w. build symbol (with bit and array sizes);
+		// arrays can't have their scalar as classInstance;
+		// o.w., no longer findable by token.
+		if(args.m_bitsize == 0)
+		  args.m_bitsize = ULAMTYPE_DEFAULTBITSIZE[bUT];
+
+		UlamKeyTypeSignature newarraykey(key.getUlamKeyTypeSignatureNameId(), args.m_bitsize, args.m_arraysize, scalarUTI, args.m_declRef); //classinstanceidx removed if not a class
+		uti = m_state.makeUlamType(newarraykey, bUT, classtype);
+	      }
+	    else if(m_state.getReferenceType(uti) != args.m_declRef)
+	      {
+		// could be array or scalar ref
+		UlamKeyTypeSignature newkey(key.getUlamKeyTypeSignatureNameId(), key.getUlamKeyTypeSignatureBitSize(), key.getUlamKeyTypeSignatureArraySize(), key.getUlamKeyTypeSignatureClassInstanceIdx(), args.m_declRef); //classinstanceidx removed if not a class
+		uti = m_state.makeUlamType(newkey, bUT, classtype);
+	      }
 	  }
-	else if(m_state.getReferenceType(uti) != args.m_declRef)
-	  {
-	    // could be array or scalar ref
-	    UlamKeyTypeSignature newkey(key.getUlamKeyTypeSignatureNameId(), key.getUlamKeyTypeSignatureBitSize(), key.getUlamKeyTypeSignatureArraySize(), key.getUlamKeyTypeSignatureClassInstanceIdx(), args.m_declRef); //classinstanceidx removed if not a class
-	    uti = m_state.makeUlamType(newkey, bUT, classtype);
-	  }
+
 	//create a symbol for this new ulam type, a typedef, with its type
 	SymbolTypedef * symtypedef = new SymbolTypedef(m_token, uti, scalarUTI, m_state);
 	m_state.addSymbolToCurrentScope(symtypedef);
@@ -1160,8 +1192,10 @@ namespace MFM {
 	brtn = true;
       }
 
-    if(!m_state.okUTItoContinue(uti))
+    //    if(!m_state.okUTItoContinue(uti))
+    if(uti == Nav)
       brtn = false;
+    //else continue, possibly Hazy (t3342)
 
     if(brtn)
       {
@@ -1258,8 +1292,10 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
 
-    if(!m_state.okUTItoContinue(uti))
+    //if(!m_state.okUTItoContinue(uti))
+    if(uti == Nav)
       brtn = false;
+    //else continue, possibly Hazy
 
     if(brtn)
       {
@@ -1346,8 +1382,10 @@ namespace MFM {
 	brtn = true;
       }
 
-    if(!m_state.okUTItoContinue(auti))
+    //if(!m_state.okUTItoContinue(auti))
+    if(auti == Nav)
       brtn = false; //t41153
+    //else continue even if Hzy (t3339)
 
     if(brtn)
       {
@@ -1439,7 +1477,7 @@ namespace MFM {
       }
 
     s32 tdbitsize = tdut->getBitSize();
-    if(args.m_bitsize > 0)  //variable's
+    if(args.m_bitsize >= 0)  //variable's (can be valid zero bitsize)
       {
 	if(tdbitsize != args.m_bitsize)  //was (tdbitsize > 0)
 	  {

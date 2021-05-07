@@ -52,6 +52,8 @@ namespace MFM{
 
     NodeConstant(const Token& tok, SymbolWithValue * symptr, NodeTypeDescriptor * typedesc, CompilerState & state);
 
+    NodeConstant(const Token& tok, NNO stblockno, UTI constantType, NodeTypeDescriptor * typedesc, CompilerState & state);
+
     NodeConstant(const NodeConstant& ref);
 
     virtual ~NodeConstant();
@@ -97,7 +99,7 @@ namespace MFM{
   protected:
     const Token m_token;
     NodeTypeDescriptor * m_nodeTypeDesc; //can be NULL
-    SymbolWithValue * m_constSymbol;
+    SymbolWithValue * m_constSymbol; //not owner
     bool m_ready;
     UTI m_constType;
 

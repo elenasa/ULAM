@@ -351,6 +351,18 @@ namespace MFM {
 	  }
       }
 
+    if(m_state.findaUTIAlias(basicuti, mappedUTI)) //t3862
+      {
+	std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.find(mappedUTI);
+	if(it != m_scalarClassInstanceIdxToSymbolPtr.end())
+	  {
+	    symptrref = it->second;
+	    //maybe be duplicates, same symbol, different UTIs (t3327)
+	    assert(it->first == mappedUTI); //cheap sanity check
+	    return true;
+	  }
+      }
+
     return false;
   } //findClassInstanceByUTI
 
@@ -2530,7 +2542,8 @@ namespace MFM {
     ret = m_stubsToDelete.insert(std::pair<UTI,SymbolClass*> (uti,symptr)); //stub
     assert(ret.second); //false if already existed, i.e. not added
 #endif
-    delete symptr;
+    delete symptr; //t41433
+
   }
 
 } //end MFM

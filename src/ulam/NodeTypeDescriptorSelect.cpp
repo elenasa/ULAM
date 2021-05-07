@@ -80,7 +80,7 @@ namespace MFM {
     if(resolveType(it))
       {
 	m_ready = true; //set here
-	m_uti = it; //given reset here
+	it = NodeTypeDescriptor::resetGivenUTI(it); //may revert to its root
       }
     setNodeType(it);
     if(it == Hzy) m_state.setGoAgain();
@@ -125,6 +125,7 @@ namespace MFM {
 		      {
 			UTI mappedUTI;
 			if(m_state.mappedIncompleteUTI(seluti, auti, mappedUTI))
+			  //if(m_state.mappedIncompleteUTI(seluti, auti, mappedUTI) && !m_state.isHolder(mappedUTI)) //t3375
 			  {
 			    std::ostringstream msg;
 			    msg << "Substituting Mapped UTI" << mappedUTI << ", ";

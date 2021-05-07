@@ -52,6 +52,8 @@ namespace MFM{
 
     NodeConstantClassArray(const Token& tok, SymbolWithValue * symptr, NodeTypeDescriptor * typedesc, CompilerState & state);
 
+    NodeConstantClassArray(const Token& tok, NNO stblockno, UTI constantType, NodeTypeDescriptor * typedesc, CompilerState & state);
+
     NodeConstantClassArray(const NodeConstantClassArray& ref);
 
     virtual ~NodeConstantClassArray();

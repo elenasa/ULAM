@@ -407,6 +407,7 @@ namespace MFM {
     if(huti == newuti) return; //short-circuit (e.g. t3378) don't use compare; maybe Hzy etyp
 
     assert(isHolder(huti) || !isComplete(huti)); //t41288, t41287; incomplete: t3378, t3380
+    assert(okUTItoContinue(newuti)); //t3868
 
     UlamType * newut = getUlamTypeByIndex(newuti);
     UlamKeyTypeSignature newkey = newut->getUlamKeyTypeSignature();
@@ -813,11 +814,22 @@ namespace MFM {
   } //replaceUlamTypeForUpdatedClassType
 
   // no side-effects, except to 3rd arg when return is true.
+  // doesn't pass along holders as mapped type (t3375)
   bool CompilerState::mappedIncompleteUTI(UTI cuti, UTI auti, UTI& mappedUTI)
   {
+    UTI tmpmappedUTI = auti;
+
     if(isALocalsFileScope(cuti))
       {
-	return findaUTIAlias(auti, mappedUTI); 	//not a class (t3862)
+	if(findaUTIAlias(auti, tmpmappedUTI)) 	//not a class (t3862)
+	  {
+	    if(!isHolder(tmpmappedUTI))
+	      {
+		mappedUTI = tmpmappedUTI;
+		return true;
+	      }
+	  }
+	return false;
       }
 
     SymbolClass * csym = NULL;
@@ -825,22 +837,43 @@ namespace MFM {
     assert(isDefined);
 
     //recursively checks ancestors, for mapped uti (ish 20210315)
-    if(csym->hasMappedUTI(auti, mappedUTI))
+    if(csym->hasMappedUTI(auti, tmpmappedUTI))
       {
-	UTI muti = mappedUTI;
-	findaUTIAlias(muti,mappedUTI);
-	return true; //may not be root (t41431)
+	UTI muti = tmpmappedUTI;
+	findaUTIAlias(muti,tmpmappedUTI);
+	if(!isHolder(tmpmappedUTI))
+	  {
+	    mappedUTI = tmpmappedUTI;
+	    return true; //may not be root (t41431)
+	  }
+	else
+	  return false;
       }
 
     // does this hurt anything?
-    if(findaUTIAlias(auti, mappedUTI))
-       return true; //anonymous UTI
+    if(findaUTIAlias(auti, tmpmappedUTI))
+      {
+	if(!isHolder(tmpmappedUTI))
+	  {
+	    mappedUTI = tmpmappedUTI;
+	    return true; //anonymous UTI
+	  }
+	else
+	  return false;
+      }
 
     //or this? (works for template instances too)
     if((csym->getClassBlockNode() != NULL) && statusUnknownTypeInAClassResolver(cuti, auti))
     {
-      findaUTIAlias(auti, mappedUTI); //auti no longer a holder (ish 20210315-22xx)
-      return true;
+      tmpmappedUTI = auti;
+      findaUTIAlias(auti, tmpmappedUTI); //auti no longer a holder (ish 20210315-22xx)
+      if(!isHolder(tmpmappedUTI))
+	{
+	  mappedUTI = tmpmappedUTI;
+	  return true;
+	}
+      else
+	return false;
     }
 
     if(!isHolder(auti))
@@ -874,7 +907,17 @@ namespace MFM {
 	      {
 		if(!cnsymOfIncomplete->isClassTemplate())
 		  return false;
-		return (cnsymOfIncomplete->hasMappedUTI(auti, mappedUTI));
+
+		if(cnsymOfIncomplete->hasMappedUTI(auti, tmpmappedUTI))
+		  {
+		    if(!isHolder(tmpmappedUTI))
+		      {
+			mappedUTI = tmpmappedUTI;
+			return true;
+		      }
+		    else
+		      return false;
+		  }
 	      }
 	  }
 	//else?
@@ -1768,7 +1811,8 @@ namespace MFM {
       return false;
 
     if(isHolder(utiArg))
-      return false; //t3765
+      return setSizeAsHolderArray(utiArg, bitsize, arraysize);
+    //return false; //t3765
 
     //redirect primitives and arrays (including class arrays)
     if(ut->isPrimitiveType() || !ut->isScalar())
@@ -2133,6 +2177,48 @@ namespace MFM {
     }
     return true;
   } //setSizesOfNonClassAndArrays
+
+    // return false if ERR
+  // for primitives, and all arrays (class and nonclass)
+  // makescalarintoarray is by default false (used by NodeTypeDescriptorArray t41301)
+  bool CompilerState::setSizeAsHolderArray(UTI utiArg, s32 bitsize, s32 arraysize)
+  {
+    UlamType * ut = getUlamTypeByIndex(utiArg);
+    assert(ut->isHolder());
+
+    ULAMTYPE bUT = ut->getUlamTypeEnum();
+    //disallow zero-sized primitives (no such thing as a BitVector<0u>)
+    //'Void' by default is zero and only zero bitsize (already complete)
+    UlamKeyTypeSignature key = ut->getUlamKeyTypeSignature();
+    ULAMCLASSTYPE classtype = ut->getUlamClassType();
+
+    UlamKeyTypeSignature newkey = UlamKeyTypeSignature(key.getUlamKeyTypeSignatureNameId(), bitsize, arraysize, key.getUlamKeyTypeSignatureClassInstanceIdx(), key.getUlamKeyTypeSignatureReferenceType());
+
+    if(key == newkey)
+      return true;
+
+    //remove old key from map, if no longer pointed to by any UTIs
+    deleteUlamKeyTypeSignature(key, utiArg);
+
+    UlamType * newut = NULL;
+    if(!isDefined(newkey, newut))
+      {
+	newut = createUlamType(newkey, bUT, classtype); //possibly a class array
+	m_definedUlamTypes.insert(std::pair<UlamKeyTypeSignature, UlamType*>(newkey,newut));
+      }
+
+    m_indexToUlamKey[utiArg] = newkey;
+
+    incrementKeyToAnyUTICounter(newkey, utiArg);
+
+    {
+      std::ostringstream msg;
+      msg << "Sizes set for Holder Array: " << newut->getUlamTypeName().c_str();
+      msg << " (UTI" << utiArg << ")";
+      MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
+    }
+    return true;
+  } //setSizeAsHolderArray
 
   s32 CompilerState::getDefaultBitSize(UTI uti)
   {
@@ -2830,25 +2916,32 @@ namespace MFM {
 	      {
 		kuti = csym->getUlamTypeIdx(); //perhaps an alias
 	      }
+	    else if(((SymbolClassNameTemplate *)cnsym)->findClassInstanceByUTI(huti, csym))
+	      {
+		kuti = csym->getUlamTypeIdx(); //also checks for mapped uti
+	      }
 	    else
 	      {
+		rtnb = false;
+#if 0
 		std::ostringstream msg;
 		msg << "Class with parameters seen with the same name: ";
 		msg << m_pool.getDataAsString(cnsym->getId()).c_str();
 		MSG2(&tok, msg.str().c_str(), ERR); //No corresponding Nav Node for this ERR
-		kuti = Nav;
-		rtnb = false;
+		kuti = Nav; //not like Resolver does (t3868)
+#endif
 	      }
 	  }
 	else
 	  kuti = cnsym->getUlamTypeIdx();
 
 	if(rtnb)
-	  assert(!isHolder(kuti));
-
-	cleanupExistingHolder(huti, kuti);
-	rtnuti = kuti;
-      }
+	  {
+	    assert(!isHolder(kuti));
+	    cleanupExistingHolder(huti, kuti); //t3868 kuti is Nav;
+	    rtnuti = kuti; //? only if rtnb is true?
+	  }
+      } //no class name
     return rtnb;
   } //statusUnknownClassTypeInThisLocalsFileScope
 

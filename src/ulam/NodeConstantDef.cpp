@@ -324,7 +324,6 @@ namespace MFM {
 
 	UTI duti = m_nodeTypeDesc->checkAndLabelType(this); //clobbers any expr it
 	if(m_state.okUTItoContinue(duti) && (suti != duti))
-	  //if(suti != duti)
 	  {
 	    std::ostringstream msg;
 	    msg << "REPLACING Symbol UTI" << suti;
@@ -641,6 +640,7 @@ namespace MFM {
 		return Hzy;
 	      }
 	  }
+#if 0
 	else if(!m_constSymbol->isClassParameter())
 	  {
 	    //Expression and symbol have different UTI, but a class..So CHANGE symbol type? WHAT??
@@ -652,6 +652,7 @@ namespace MFM {
 		//alias missing?
 	      }
 	  }
+#endif
       }
 
     setNodeType(suti);

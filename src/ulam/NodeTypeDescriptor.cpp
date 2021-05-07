@@ -112,9 +112,40 @@ namespace MFM {
     return m_uti;
   }
 
-  void NodeTypeDescriptor::resetGivenUTI(UTI guti)
+  UTI NodeTypeDescriptor::resetGivenUTI(UTI guti)
   {
-    m_uti = guti;  //invariant?
+    // use the root
+    UTI galias = guti;
+    m_state.findaUTIAlias(guti, galias); //t3373
+    if(!m_state.isComplete(galias) && m_state.isComplete(guti))
+      {
+	galias = guti; //t3666
+      }
+    else if(m_state.isHolder(galias) && !m_state.isHolder(guti))
+      {
+	galias = guti; //t3375, dont lose progress
+      }
+
+    if(m_state.isReference(galias))
+      {
+	m_uti = galias; //t3223
+      }
+    else if(m_uti != galias)
+      {
+	UTI aliasuti = m_uti;
+	if(!m_state.findaUTIAlias(m_uti, aliasuti))
+	  {
+	    if(m_state.isHolder(m_uti)) //not is stub (t41213)
+	      m_state.updateUTIAliasForced(m_uti, galias); //t41409 holder, t3375 reverse?
+	  }
+	else
+	  {
+	    assert((aliasuti == guti) || (aliasuti == galias) || (m_state.lookupUTIAlias(aliasuti)==galias)); //t3384, t3373
+	  }
+	m_uti = galias;
+      }
+    //else noop
+    return m_uti;
   }
 
   UTI NodeTypeDescriptor::getReferencedUTI()
@@ -157,8 +188,8 @@ namespace MFM {
     UTI it = givenUTI();
     if(resolveType(it)) //ref
       {
+	it = resetGivenUTI(it); //may revert to its root
 	setNodeType(it);
-	resetGivenUTI(it); //new given reset here!!! Mon Aug  1 12:02:52 2016
 	m_ready = true; //set here!!!
 	assert(m_state.isComplete(it)); //true?
       }
@@ -168,7 +199,10 @@ namespace MFM {
 	m_state.setGoAgain();
       }
     else
-      setNodeType(it);
+      {
+	it = resetGivenUTI(it);
+	setNodeType(it); //though incomplete (t41213)
+      }
 
     return getNodeType();
   } //checkAndLabelType
@@ -195,7 +229,7 @@ namespace MFM {
 	// if Nav, use token
 	UTI mappedUTI = nuti;
 
-	if(m_state.findaUTIAlias(nuti, mappedUTI))
+	if(m_state.findaUTIAlias(nuti, mappedUTI) && !m_state.isHolder(mappedUTI))
 	  nuti = mappedUTI;
 
 	//if no change, try context..
@@ -206,6 +240,7 @@ namespace MFM {
 	    // since we're call AFTER that (not during), we can look up our
 	    // new UTI and pass that on up the line of NodeType Selects, if any.
 	    if(m_state.mappedIncompleteUTI(cuti, nuti, mappedUTI))
+	      //if(m_state.mappedIncompleteUTI(cuti, nuti, mappedUTI) && !m_state.isHolder(mappedUTI))
 	      {
 		std::ostringstream msg;
 		msg << "Substituting Mapped UTI" << mappedUTI;
@@ -258,7 +293,7 @@ namespace MFM {
 	    UTI kuti = nuti; //kuti changes
 	    if(m_state.statusUnknownClassTypeInThisLocalsScope(m_typeTok, nuti, kuti))
 	      {
-		resetGivenUTI(kuti); //even if not complete, no longer a holder
+		kuti = resetGivenUTI(kuti); //even if not complete, no longer a holder
 		if(!(rtnb = m_state.isComplete(kuti)))
 		  kuti = Hzy;
 	      }
@@ -308,6 +343,7 @@ namespace MFM {
 	    // since we're call AFTER that (not during), we can look up our
 	    // new UTI and pass that on up the line of NodeType Selects, if any.
 	    if(m_state.mappedIncompleteUTI(cuti, derefuti, mappedUTI))
+	      //if(m_state.mappedIncompleteUTI(cuti, derefuti, mappedUTI) && !m_state.isHolder(mappedUTI))
 	      {
 		std::ostringstream msg;
 		msg << "Substituting Mapped UTI" << mappedUTI;
@@ -418,6 +454,7 @@ namespace MFM {
 	      }
 	    else
 	      {
+		bool stubcopy = false;
 		bool isAnonymousClass = (nut->isHolder() || !m_state.isARootUTI(nuti));
 		UTI auti = nuti;
 
@@ -431,16 +468,27 @@ namespace MFM {
 		    AssertBool isAlias = m_state.findaUTIAlias(nuti, auti);
 		    assert(isAlias);
 		  }
-
+		else if(m_state.isClassAStubCopy(nuti))
+		  {
+		    stubcopy = true;
+		  }
 		std::ostringstream msg;
 		msg << "UNSEEN Class and incomplete descriptor for type: '";
 		msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str() << "'";
-		if(isAnonymousClass)
+		//if(isAnonymousClass)
+		if(isAnonymousClass) //t41413
 		  {
 		    msg << " (UTI" << nuti << ")";
 		    msg << " replaced with type: (UTI" << auti << ")";
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 		    rtnuti = auti; //was Hzy
+		  }
+		else if(stubcopy)
+		  {
+		    msg << " (UTI" << nuti << ")";
+		    msg << " is a stubcopy";
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+		    rtnuti = Hzy; //t41213
 		  }
 		else
 		  {
@@ -451,6 +499,16 @@ namespace MFM {
 	  }
 	//else
 	// rtnuti = Hzy;
+      }
+    else if(m_state.isClassAStub(nuti))
+      {
+	std::ostringstream msg;
+	msg << "SEEN Class Stub and incomplete descriptor for type: '";
+	msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str() << "'";
+	msg << " (UTI" << nuti << ")";
+	msg << " is a stub";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	rtnuti = Hzy; //t41213
       }
     return rtnb;
   } //resolveClassType
@@ -466,7 +524,7 @@ namespace MFM {
 	  {
 	    //use given UTI, not the not-ok nuti here.. (t41288)
 	    //assert(m_state.okUTItoContinue(givenUTI()) || (getReferenceType() != ALT_NOT));
-	    if(m_state.okUTItoContinue(givenUTI()))
+	    if(m_state.okUTItoContinue(givenUTI()) && !m_state.isHolder(givenUTI())) //t3378
 	      {
 		UlamType * nut = m_state.getUlamTypeByIndex(givenUTI());
 		ULAMTYPE etyp = nut->getUlamTypeEnum();
@@ -513,7 +571,20 @@ namespace MFM {
 
 	if(isTypedef && !m_state.isHolder(tduti) && m_state.okUTItoContinue(tduti)) //t3765, t3384
 	  {
-	    m_state.updateUTIAliasForced(givenUTI(), tduti); //t3898
+	    if(m_state.isReference(tduti))
+	      {
+		UTI guti = givenUTI();
+		ALT tdreftype = m_state.getReferenceType(tduti);
+		UTI tdderef = m_state.getUlamTypeAsDeref(tduti);
+		setReferenceType(tdreftype, tdderef); //t3666 (no change to givenUTI)
+		assert(guti==givenUTI());
+
+		ALT givenreftype = m_state.getReferenceType(guti);
+		if(givenreftype == tdreftype)
+		  m_state.updateUTIAliasForced(guti, tduti); //t3666
+	      }
+	    //else alias handled during resetGivenUTI
+
 	    nuti = tduti;
 	    if(!(rtnb = m_state.isComplete(nuti)))
 	      nuti = Hzy;

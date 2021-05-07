@@ -52,6 +52,8 @@ namespace MFM{
 
     NodeConstantClass(const Token& tok, SymbolWithValue * symptr, NodeTypeDescriptor * typedesc, CompilerState & state);
 
+    NodeConstantClass(const Token& tok, NNO stblockno, UTI constantType, NodeTypeDescriptor * typedesc, CompilerState & state);
+
     NodeConstantClass(const NodeConstantClass& ref);
 
     virtual ~NodeConstantClass();

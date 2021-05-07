@@ -286,6 +286,7 @@ namespace MFM{
     void initUTIAlias(UTI auti);
 
     bool setSizesOfNonClassAndArrays(UTI utArg, s32 bitsize, s32 arraysize, bool makescalarintoarray = false);
+    bool setSizeAsHolderArray(UTI utiArg, s32 bitsize, s32 arraysize);
 
     s32 getDefaultBitSize(UTI uti);
     u32 getTotalBitSize(UTI utArg);

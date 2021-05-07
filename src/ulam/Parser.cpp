@@ -2626,10 +2626,12 @@ namespace MFM {
 		if(Token::isTokenAType(nTok))
 		  {
 		    typeargs.init(nTok);
+
 		    m_state.pushClassContext(localsblock->getNodeType(), localsblock, localsblock, false, NULL);
 
 		    typeNode = parseTypeDescriptor(typeargs, castUTI, isaclass, delAfterDotFails);
 
+		    typeargs.m_anothertduti = castUTI; //t3868
 		    m_state.popClassContext();
 		  }
 		else
@@ -3089,6 +3091,7 @@ namespace MFM {
       }
     else
       {
+	//assert(m_state.m_parsingVariableSymbolTypeFlag != STF_CLASSPARAMETER); (e.g. t3525, 3886,..)
 	//try to continue..
 	m_state.pushCurrentBlock(csym->getClassBlockNode()); //reset here for new arg's ST; no change to compilethisidx
 
@@ -3108,8 +3111,11 @@ namespace MFM {
 		//t41216, also in fixAnyUnseen for templates seen afterwards;
 		if(m_state.m_parsingVariableSymbolTypeFlag == STF_CLASSPARAMETER)
 		  m_state.addUnknownTypeTokenToThisClassResolver(argTok, auti);
+#if 0
+		//t41220 FUNCLOCALVAR v
 		else
 		  m_state.addUnknownTypeTokenToAClassResolver(csym->getUlamTypeIdx(), argTok, auti);
+#endif
 	      }
 	    if(m_state.isAClass(auti) && m_state.isClassAStub(auti))
 	      {
@@ -3135,9 +3141,9 @@ namespace MFM {
 	assert(argSym);
 
 	if( m_state.m_parsingVariableSymbolTypeFlag == STF_CLASSPARAMETER)
-	  argSym->setClassParameterFlag(); //as well?
-	//else
-	argSym->setClassArgumentFlag(csym->getUlamTypeIdx()); //t41229
+	  argSym->setClassParameterFlag(); //mutally exclusive to class argument
+	else
+	  argSym->setClassArgumentFlag(csym->getUlamTypeIdx()); //t41229
 
 	//scope updated to new class instance in parseClassArguments (t3326,t3328?)
 	u32 argid = argSym->getId();
@@ -3454,7 +3460,7 @@ namespace MFM {
 	    //assert(m_state.okUTItoContinue(tduti)); Hzy initially..
 	    if(!m_state.okUTItoContinue(tduti))
 	      {
-		args.m_typeTok.init(pTok.m_type, pTok.m_locator, 0);
+		args.m_typeTok = pTok; //t3339
 	      }
 	    else
 	      {
@@ -5848,9 +5854,11 @@ Node * Parser::wrapFactor(Node * leftNode)
 	else
 	  {
 	    UTI auti = asymptr->getUlamTypeIdx();
+
 	    //chain to NodeType descriptor if array (i.e. non scalar), o.w. delete lval
 	    linkOrFreeConstantExpressionArraysize(auti, args, (NodeSquareBracket *)lvalNode, nodetyperef);
-	    syncTypeDescriptorWithSymbolType(auti, args, nodetyperef); //t3611, t3613
+
+	    syncTypeDescriptorWithSymbolType(auti, args, nodetyperef); //t3611,t3613,t3816 might change nodetyperef
 
 	    // tfr owner of node type descriptor to node var decl
 	    if(asymptr->isDataMember())
@@ -5938,9 +5946,11 @@ Node * Parser::wrapFactor(Node * leftNode)
 	if(aok)
 	  {
 	    UTI auti = asymptr->getUlamTypeIdx();
+
 	    //chain to NodeType descriptor if array (i.e. non scalar), o.w. delete lval
 	    linkOrFreeConstantExpressionArraysize(auti, args, (NodeSquareBracket *)lvalNode, nodetyperef);
-	    //syncTypeDescriptorWithSymbolType(auti, args, nodetyperef);//t3378 skips, t3668
+
+	    syncTypeDescriptorWithSymbolType(auti, args, nodetyperef);//t3378 skips, t3668
 
 	    // tfr owner of nodetyperef to node typedef
 	    rtnNode =  new NodeTypedef((SymbolTypedef *) asymptr, nodetyperef, m_state);
@@ -6018,6 +6028,7 @@ Node * Parser::wrapFactor(Node * leftNode)
 	else
 	  {
 	    UTI auti = asymptr->getUlamTypeIdx();
+
 	    //chain to NodeType descriptor if array (i.e. non scalar), o.w. deletes lval
 	    linkOrFreeConstantExpressionArraysize(auti, args, (NodeSquareBracket *)lvalNode, nodetyperef);
 	    syncTypeDescriptorWithSymbolType(auti, args, nodetyperef);
@@ -6678,8 +6689,10 @@ Node * Parser::wrapFactor(Node * leftNode)
   void Parser::linkOrFreeConstantExpressionArraysize(UTI auti, const TypeArgs& args, NodeSquareBracket * ceForArraySize, NodeTypeDescriptor *& nodetyperef)
   {
     //auti is incomplete.
-
+    //bool isholder = m_state.isHolder(auti); //t3374, t3136
+    //s32 arraysize = isholder ? args.m_arraysize : m_state.getArraySize(auti);
     s32 arraysize = m_state.getArraySize(auti);
+
     //link arraysize subtree for arraytype based on scalar from another class, OR
     // a local arraytype based on a local scalar uti; o.w. delete.
     // don't keep the ceForArraySize if the type belongs to another class!
@@ -6699,7 +6712,6 @@ Node * Parser::wrapFactor(Node * leftNode)
 	return;
       }
 
-
     assert(m_state.okUTItoContinue(nodetyperef->givenUTI()));
 
     // could be local array typedef, no square brackets this time (else)
@@ -6716,8 +6728,11 @@ Node * Parser::wrapFactor(Node * leftNode)
 
   void Parser::syncTypeDescriptorWithSymbolType(UTI auti, const TypeArgs& args, NodeTypeDescriptor * nodetyperef)
   {
-    assert(m_state.okUTItoContinue(auti));
-    if(m_state.isScalar(auti)) //t3816, t3223,
+    if(!m_state.okUTItoContinue(auti)) //t3339, t3342 might be Hazy, nothing to sync
+      return;
+
+    assert(nodetyperef);
+    //if(m_state.isScalar(auti)) //t3816, t3223, or refs to arrays t3668
       {
 	ALT refalt = m_state.getReferenceType(auti);
 	if((refalt != ALT_NOT))

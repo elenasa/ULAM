@@ -2,7 +2,8 @@
  * NodeModelParameter.h - Node handling Model Parameters for ULAM
  *
  * Copyright (C) 2015-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2017 Ackleyshack LLC.
+ * Copyright (C) 2015-2021 Ackleyshack LLC.
+ * Copyright (C) 2021 The Living Computation Foundation
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +30,7 @@
   \file NodeModelParameter.h - Node handling Model Parameters for ULAM
   \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2017 All rights reserved.
+  \date (C) 2015-2021 All rights reserved.
   \gpl
 */
 
@@ -47,6 +48,8 @@ namespace MFM{
   public:
 
     NodeModelParameter(const Token& tok, SymbolModelParameterValue * symptr, NodeTypeDescriptor * typedesc, CompilerState & state);
+
+    NodeModelParameter(const Token& tok, NNO stblockno, UTI constantType, NodeTypeDescriptor * typedesc, CompilerState & state);
 
     NodeModelParameter(const NodeModelParameter& ref);
 

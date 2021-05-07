@@ -19,6 +19,9 @@ namespace MFM {
     //else t41148
   }
 
+  NodeConstant::NodeConstant(const Token& tok, NNO stblockno, UTI constantType, NodeTypeDescriptor * typedesc, CompilerState & state) : NodeTerminal(state), m_token(tok), m_nodeTypeDesc(typedesc), m_constSymbol(NULL), m_ready(false), m_constType(constantType), m_currBlockNo(stblockno), m_currBlockPtr(NULL), m_tmpvarSymbol(NULL)
+  { }
+
   NodeConstant::NodeConstant(const NodeConstant& ref) : NodeTerminal(ref), m_token(ref.m_token), m_nodeTypeDesc(NULL), m_constSymbol(NULL), m_ready(false), m_constType(ref.m_constType), m_currBlockNo(ref.m_currBlockNo), m_currBlockPtr(NULL), m_tmpvarSymbol(NULL)
   {
     if(ref.m_nodeTypeDesc)
@@ -268,11 +271,14 @@ namespace MFM {
 	msg << " (UTI " << cuti << ")";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);  //t41192
 	it = Hzy;
-	clearSymbolPtr(); //lookup again too! (e.g. inherited template instances)
       }
     setNodeType(it);
     Node::setStoreIntoAble(TBOOL_FALSE);
-    if(getNodeType() == Hzy) m_state.setGoAgain();
+    if(getNodeType() == Hzy)
+      {
+	clearSymbolPtr(); //lookup again too! (e.g. inherited template instances)
+	m_state.setGoAgain();
+      }
     return getNodeType(); //it; just to be sure..
   } //checkAndLabelType
 
@@ -337,10 +343,11 @@ namespace MFM {
 
   TBOOL NodeConstant::replaceOurselves(Symbol * symptr, Node * parentnode)
   {
-    assert(symptr);
+    assert(symptr); //don't pass on, may become stale (t41433)
 
     TBOOL rtb = TBOOL_FALSE;
     UTI suti = symptr->getUlamTypeIdx();
+    NNO blocknoST = symptr->getBlockNoOfST();
 
     if(!m_state.okUTItoContinue(suti))
       return TBOOL_HAZY; //t3894
@@ -352,9 +359,11 @@ namespace MFM {
 
 	Node * newnode = NULL;
 	if(m_state.isScalar(suti))
-	  newnode = new NodeConstantClass(m_token, (SymbolConstantValue *) symptr, m_nodeTypeDesc, m_state);
+	  //newnode = new NodeConstantClass(m_token, (SymbolConstantValue *) symptr, m_nodeTypeDesc, m_state);
+	  newnode = new NodeConstantClass(m_token, blocknoST, suti, m_nodeTypeDesc, m_state);
 	else
-	  newnode = new NodeConstantClassArray(m_token, (SymbolConstantValue *) symptr, m_nodeTypeDesc, m_state); //t41261
+	  //newnode = new NodeConstantClassArray(m_token, (SymbolConstantValue *) symptr, m_nodeTypeDesc, m_state); //t41261
+	  newnode = new NodeConstantClassArray(m_token, blocknoST, suti, m_nodeTypeDesc, m_state); //t41261
 
 	assert(newnode);
 	AssertBool swapOk = Node::exchangeNodeWithParent(newnode, parentnode);
@@ -365,7 +374,8 @@ namespace MFM {
       }
     else if(!m_state.isScalar(suti))
       {
-	NodeConstantArray * newnode = new NodeConstantArray(m_token, (SymbolConstantValue *) symptr, m_nodeTypeDesc, m_state);
+	//NodeConstantArray * newnode = new NodeConstantArray(m_token, (SymbolConstantValue *) symptr, m_nodeTypeDesc, m_state);
+	NodeConstantArray * newnode = new NodeConstantArray(m_token, blocknoST, suti, m_nodeTypeDesc, m_state); //t41261
 	assert(newnode);
 
 	AssertBool swapOk = Node::exchangeNodeWithParent(newnode, parentnode);
@@ -378,7 +388,8 @@ namespace MFM {
       {
 	// replace ourselves with a parameter node instead;
 	// same node no, and loc
-	NodeModelParameter * newnode = new NodeModelParameter(m_token, (SymbolModelParameterValue*) symptr, m_nodeTypeDesc, m_state);
+	//NodeModelParameter * newnode = new NodeModelParameter(m_token, (SymbolModelParameterValue*) symptr, m_nodeTypeDesc, m_state);
+	NodeModelParameter * newnode = new NodeModelParameter(m_token, blocknoST, suti, m_nodeTypeDesc, m_state);
 	assert(newnode);
 
 	AssertBool swapOk = Node::exchangeNodeWithParent(newnode, parentnode);

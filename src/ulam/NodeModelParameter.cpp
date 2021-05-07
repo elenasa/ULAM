@@ -6,6 +6,9 @@ namespace MFM {
 
   NodeModelParameter::NodeModelParameter(const Token& tok, SymbolModelParameterValue * symptr, NodeTypeDescriptor * typedesc, CompilerState & state) : NodeConstant(tok, symptr, typedesc, state) { }
 
+  NodeModelParameter::NodeModelParameter(const Token& tok, NNO stblockno, UTI constantType, NodeTypeDescriptor * typedesc, CompilerState & state) : NodeConstant(tok, stblockno, constantType, typedesc, state)
+  { }
+
   NodeModelParameter::NodeModelParameter(const NodeModelParameter& ref) : NodeConstant(ref) {}
 
   NodeModelParameter::~NodeModelParameter(){}

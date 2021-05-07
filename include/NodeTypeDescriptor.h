@@ -77,7 +77,7 @@ namespace MFM{
 
     UTI givenUTI();
 
-    void resetGivenUTI(UTI guti);
+    virtual UTI resetGivenUTI(UTI guti); //may use guti rootUTI instead
 
     UTI getReferencedUTI();
 

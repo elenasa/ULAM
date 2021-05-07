@@ -133,6 +133,8 @@ namespace MFM {
 
     u32 tokid = m_state.getTokenDataAsStringId(tok);
     UTI kuti = Nav;
+
+    //see also CS:statusUnknownClassTypeInThisLocalsScope
     if(etyp == Class)
       {
 	SymbolClassName * cnsym = NULL; //no way a template or stub
@@ -151,7 +153,6 @@ namespace MFM {
 			AssertBool isDefined = m_state.alreadyDefinedSymbolClassName(cid, cnsym);
 			assert(isDefined);
 		      }
-
 		    kuti = mappedUTI; //t3862
 		  }
 	      }

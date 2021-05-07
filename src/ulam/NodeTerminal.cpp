@@ -67,7 +67,7 @@ namespace MFM {
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     s32 nbitsize = nut->getBitSize();
-    assert(nbitsize >= 0);
+    //assert(nbitsize >= 0); t3668 Hazy, e.g. for countNavHazyNodes..
     ULAMTYPE etyp = nut->getUlamTypeEnum();
     std::ostringstream num;
     switch(etyp)
