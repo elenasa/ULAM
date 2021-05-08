@@ -375,6 +375,7 @@ enum EvalStatus {ERROR, NOTREADY, NORMAL, RETURN, BREAK, CONTINUE, UNEVALUABLE};
     void genCodeReadArrayItemFromAConstantClassIntoATmpVar(File * fp, UVPass & luvpass, UVPass & ruvpass);
 
     virtual void checkForSymbol();
+    virtual TBOOL replaceOurselves(Symbol * symptr, Node * parentnode);
 
     void genCodeReadElementTypeField(File * fp, UVPass & uvpass);
     void restoreElementTypeForAncestorCasting(File * fp, UVPass & uvpass);

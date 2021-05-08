@@ -119,7 +119,7 @@ namespace MFM{
 
     virtual void clearSymbolPtr();
 
-    TBOOL replaceOurselves(Symbol * symptr, Node * parentnode);
+    virtual TBOOL replaceOurselves(Symbol * symptr, Node * parentnode);
     UTI checkUsedBeforeDeclared();
     UlamValue makeUlamValuePtr();
 

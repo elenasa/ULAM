@@ -66,7 +66,8 @@ namespace MFM {
 
     Symbol * asymptr = NULL;
     bool hazyKin = false;
-    if(m_state.alreadyDefinedSymbol(m_token.m_dataindex, asymptr, hazyKin) && !hazyKin)
+    //if(m_state.alreadyDefinedSymbol(m_token.m_dataindex, asymptr, hazyKin) && !hazyKin)
+    if(m_state.alreadyDefinedSymbol(m_token.m_dataindex, asymptr, hazyKin)) //t3503
       {
 	if(asymptr->isModelParameter())
 	  {
@@ -94,6 +95,11 @@ namespace MFM {
       }
     m_state.popClassContext(); //restore
   } //checkForSymbol
+
+  TBOOL NodeModelParameter::replaceOurselves(Symbol * symptr, Node * parentnode)
+  {
+    return TBOOL_FALSE; //nothing to do (t3503)
+  }
 
   //class context set prior to calling us; purpose is to get
   // the value of this constant from the context before

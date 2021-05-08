@@ -486,11 +486,10 @@ namespace MFM {
     ULAMTYPE etyp = m_state.getUlamTypeByIndex(vit)->getUlamTypeEnum();
     if(etyp == Void)
       {
-	//void only valid use is as a func return type
+	//void only valid use is as a func return type (t3437,8)
 	std::ostringstream msg;
 	msg << "Invalid use of type ";
 	msg << m_state.getUlamTypeNameByIndex(vit).c_str();
-	msg << " (UTI " << vit << ")";
 	msg << " with variable symbol name '" << getName() << "'";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(Nav); //could be clobbered by Hazy node expr

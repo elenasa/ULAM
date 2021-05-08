@@ -1811,8 +1811,7 @@ namespace MFM {
       return false;
 
     if(isHolder(utiArg))
-      return setSizeAsHolderArray(utiArg, bitsize, arraysize);
-    //return false; //t3765
+      return setSizeAsHolderArray(utiArg, bitsize, arraysize); //t3765,t41265
 
     //redirect primitives and arrays (including class arrays)
     if(ut->isPrimitiveType() || !ut->isScalar())
@@ -2089,13 +2088,13 @@ namespace MFM {
     UlamType * ut = getUlamTypeByIndex(utiArg);
     assert((ut->getUlamTypeEnum() != Class) || !ut->isScalar());
 
-    //if(ut->isComplete())
     if(ut->isComplete() && !makescalarintoarray)
       return true;  //nothing to do
 
     //but sometimes we need to reset the array size of a completed scalar type (t41301)
     assert(!ut->isComplete() || (arraysize != ut->getArraySize()));
 
+    assert(!ut->isHolder()); //t41265, sent to setSizeAsHolderArray
 
     ULAMTYPE bUT = ut->getUlamTypeEnum();
     //disallow zero-sized primitives (no such thing as a BitVector<0u>)

@@ -308,13 +308,12 @@ namespace MFM {
 
     UTI suti = m_constSymbol->getUlamTypeIdx();
     UTI cuti = m_state.getCompileThisIdx();
+    UTI contextForArgTypes = m_state.m_pendingArgTypeStubContext;
     bool changeScope = false;
-    assert(m_nodeTypeDesc);
     // type of the constant
     if(m_nodeTypeDesc)
       {
 	bool changeScopeForTypesOnly = false;
-	UTI contextForArgTypes = m_state.m_pendingArgTypeStubContext;
 	if(contextForArgTypes != Nouti)
 	  {
 	    assert(m_constSymbol->isClassParameter() || m_constSymbol->isClassArgument());
@@ -341,6 +340,12 @@ namespace MFM {
 	  }
 	if(changeScopeForTypesOnly)
 	  m_state.popClassContext(); //restore
+      }
+    else
+      {
+	//no m_nodeTypeDesc: e.g. class arg of unseen template, fixed later (t3370)
+	assert(m_constSymbol && m_constSymbol->isClassArgument()); //sanity check
+	assert((contextForArgTypes != Nouti) && m_state.isClassAStub(contextForArgTypes) && !m_state.isASeenClass(contextForArgTypes)); //sanity check, cuti might be its context
       }
 
     // move before m_nodeExpr "Void" check (t3883, error/t3451);
@@ -1135,11 +1140,12 @@ namespace MFM {
 	NodeTypeDescriptor * pnodetypedesc = NULL;
 	if(templateparamdef->getNodeTypeDescriptorPtr(pnodetypedesc))
 	  {
-	    NodeTypeDescriptor * copynodetypedesc = new NodeTypeDescriptor(*pnodetypedesc, true);
+	    //NodeTypeDescriptor * copynodetypedesc = new NodeTypeDescriptor(*pnodetypedesc, true);
+	    NodeTypeDescriptor * copynodetypedesc = (NodeTypeDescriptor *) pnodetypedesc->instantiate(); //t41209?
 	    assert(copynodetypedesc);
 	    copynodetypedesc->setNodeLocation(getNodeLocation()); //same loc as this node
 
-	    UTI copyuti = copynodetypedesc->givenUTI(); //save
+	    //UTI copyuti = copynodetypedesc->givenUTI(); //save
 	    AssertBool isset = setNodeTypeDescriptor(copynodetypedesc); //resets givenuti too.
 	    assert(isset);
 
@@ -1147,7 +1153,7 @@ namespace MFM {
 	    //assert(m_constSymbol && (m_constSymbol->getUlamTypeIdx() == newuti)); //invariant? (likely null symbol, see checkForSymbol)
 	    assert(m_constSymbol && (m_constSymbol->getUlamTypeIdx() == Hzy)); //invariant? (likely null symbol, see checkForSymbol) t41361,
 
-	    assert(copyuti == pnodetypedesc->givenUTI()); //used keep type
+	    //assert(copyuti == pnodetypedesc->givenUTI()); //used keep type
 	    aok = true;
 	  }
       }

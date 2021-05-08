@@ -505,10 +505,10 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "SEEN Class Stub and incomplete descriptor for type: '";
 	msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str() << "'";
-	msg << " (UTI" << nuti << ")";
+	msg << " (UTI " << nuti << ")";
 	msg << " is a stub";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	rtnuti = Hzy; //t41213
+	rtnuti = Hzy; //t41213, t3444
       }
     return rtnb;
   } //resolveClassType

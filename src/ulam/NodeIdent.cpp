@@ -1414,12 +1414,12 @@ namespace MFM {
 
   SymbolVariable *  NodeIdent::makeSymbol(UTI auti, ALT reftype, const TypeArgs & args)
   {
-    if(m_state.m_parsingVariableSymbolTypeFlag == STF_DATAMEMBER)
+    if((m_state.m_parsingVariableSymbolTypeFlag == STF_DATAMEMBER) || (m_state.m_parsingVariableSymbolTypeFlag == STF_MEMBERCONSTANT))
       {
 	u32 baseslot = 1;  //unpacked fixed later
 	//variable-index, ulamtype, ulamvalue(ownership to symbol); always packed
 	if(reftype != ALT_NOT)
-	  return NULL; //error! dm's not references
+	  return NULL; //error! dm's not references, const func return value not refs (t41193)
 	return (new SymbolVariableDataMember(m_token, auti, baseslot, m_state));
       }
 

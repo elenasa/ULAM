@@ -4,7 +4,7 @@
 ./Foo.ulam:2:9: ERROR: Element 'Foo' is abstract due to these pure functions..
 ./Foo.ulam:2:9: NOTE: Pure: Int(32) vfunc().
 ./Test.ulam:5:5: ERROR: 'fb' is type FooBase(1), which is abstract due to these pure functions..
-./FooBase.ulam:2:9: NOTE: Pure: Int(32) vfunc().
+./Test.ulam:5:5: NOTE: Pure: Int(32) vfunc().
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t41296, t3607; checks instances of abstract templates,

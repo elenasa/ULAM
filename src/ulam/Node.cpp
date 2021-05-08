@@ -433,6 +433,15 @@ namespace MFM {
     //for Nodes with Symbols
   }
 
+  TBOOL Node::replaceOurselves(Symbol * symptr, Node * parentnode)
+  {
+    std::ostringstream msg;
+    msg << "virtual TBOOL " << prettyNodeName().c_str();
+    msg << "::replaceOurselves(Symbol * symptr, Node * parentnode){} is needed!!";
+    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+    return TBOOL_FALSE;
+  }
+
   void Node::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
   {
     UTI nuti = getNodeType();

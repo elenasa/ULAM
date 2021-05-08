@@ -3093,7 +3093,9 @@ namespace MFM {
       {
 	//assert(m_state.m_parsingVariableSymbolTypeFlag != STF_CLASSPARAMETER); (e.g. t3525, 3886,..)
 	//try to continue..
-	m_state.pushCurrentBlock(csym->getClassBlockNode()); //reset here for new arg's ST; no change to compilethisidx
+	UTI cuti = csym->getUlamTypeIdx();
+	NodeBlockClass * cblock = csym->getClassBlockNode();
+	m_state.pushCurrentBlock(cblock); //reset here for new arg's ST; no change to compilethisidx
 
 	SymbolConstantValue * argSym = NULL;
 	if(!ctUnseen)
@@ -3101,7 +3103,7 @@ namespace MFM {
 	    SymbolConstantValue * paramSym = ctsym->getParameterSymbolPtr(parmIdx);
 	    assert(paramSym);
 	    Token argTok(TOK_IDENTIFIER, pTok.m_locator, paramSym->getId()); //use current locator
-	    UTI auti = m_state.mapIncompleteUTIForAClassInstance(csym->getUlamTypeIdx(), paramSym->getUlamTypeIdx(), pTok.m_locator);
+	    UTI auti = m_state.mapIncompleteUTIForAClassInstance(cuti, paramSym->getUlamTypeIdx(), pTok.m_locator);
 
 	    //like param, not clone t3526, t3862, t3615, t3892; error msg loc (error/t3893)
 	    argSym = new SymbolConstantValue(argTok, auti, m_state);
@@ -3143,7 +3145,7 @@ namespace MFM {
 	if( m_state.m_parsingVariableSymbolTypeFlag == STF_CLASSPARAMETER)
 	  argSym->setClassParameterFlag(); //mutally exclusive to class argument
 	else
-	  argSym->setClassArgumentFlag(csym->getUlamTypeIdx()); //t41229
+	  argSym->setClassArgumentFlag(cuti); //t41229
 
 	//scope updated to new class instance in parseClassArguments (t3326,t3328?)
 	u32 argid = argSym->getId();
@@ -3174,7 +3176,8 @@ namespace MFM {
 	    NodeBlockClass * templateblock = ctsym->getClassBlockNode();
 	    NodeConstantDef * paramConstDef = (NodeConstantDef *) templateblock->getParameterNode(parmIdx);
 	    assert(paramConstDef);
-	    m_state.pushClassContext(ctsym->getUlamTypeIdx(), templateblock, templateblock, false, NULL); //came from Parser parseRestOfClassArguments says null blocks likely (t41214)
+	    //m_state.pushClassContext(ctsym->getUlamTypeIdx(), templateblock, templateblock, false, NULL); //came from Parser parseRestOfClassArguments says null blocks likely (t41214)
+	    m_state.pushClassContext(cuti, cblock, cblock, false, NULL); //came from Parser parseRestOfClassArguments says null blocks likely (t41214, t3349)
 	    constNode->cloneTypeDescriptorForPendingArgumentNode(paramConstDef);
 	    m_state.popClassContext();
 	  }

@@ -129,8 +129,13 @@ namespace MFM {
 
   void NodeVarDeclDM::noteTypeAndName(UTI cuti, s32 totalsize, u32& accumsize)
   {
-    assert(m_varSymbol);
-    UTI nuti = m_varSymbol->getUlamTypeIdx(); //t41286, node type for class DMs maybe Hzy still.
+    UTI nuti = getNodeType();
+    if(m_varSymbol)
+      nuti = m_varSymbol->getUlamTypeIdx(); //t41286, node type for class DMs maybe Hzy still.
+    else if(m_nodeTypeDesc)
+      nuti = m_nodeTypeDesc->givenUTI();
+    else
+      m_state.abortNotImplementedYet();
 
     UlamKeyTypeSignature vkey = m_state.getUlamKeyTypeSignatureByIndex(nuti);
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);

@@ -1,9 +1,10 @@
 ## -*- mode:ulam -*-
 #=t41435_test_compiler_elementtemplatewithunseenancestortemplatetypo_ish_error
 #!
-./R.ulam:5:5: ERROR: Incomplete descriptor for type: S (UTI 50), while labeling class: R (UTI 29).
-./R.ulam:5:5: ERROR: Incomplete Variable Decl for type: S, used with variable symbol name 'doggy'.
-./S.ulam:2:9: ERROR: Subclass 'S' (UTI 50) inherits from 'Watchdog', a class with pending arguments or ancestors (UTI 52).
+./R.ulam:5:5: ERROR: Incomplete descriptor for type: S (UTI 49), while labeling class: R (UTI 29).
+./R.ulam:5:5: ERROR: Incomplete Variable Decl for type: S (UTI 49), used with variable symbol name 'doggy'.
+./R.ulam:5:5: ERROR: Variable for: 'doggy', is still hazy.
+./S.ulam:2:9: ERROR: Subclass 'S' (UTI 49) inherits from 'Watchdog', a class with pending arguments or ancestors (UTI 51).
 ./S.ulam:2:13: ERROR: UNSEEN class type <Watchdog> was never defined in: Watchdog.ulam.
 Unrecoverable Program Type Label FAILURE.
 ##

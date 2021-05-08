@@ -128,7 +128,7 @@ namespace MFM{
     void setBlock(NodeBlock * ptr);
     NodeBlock * getBlock();
 
-    TBOOL replaceOurselves(Symbol * symptr, Node * parentnode);
+    virtual TBOOL replaceOurselves(Symbol * symptr, Node * parentnode);
     TBOOL lookagainincaseimplicitselfchanged(Node * parentnode);
     UTI specifyimplicitselfexplicitly(Node * parentnode);
     UTI checkUsedBeforeDeclared();

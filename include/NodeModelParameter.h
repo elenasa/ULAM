@@ -77,6 +77,7 @@ namespace MFM{
     virtual void checkForSymbol();
 
   private:
+    virtual TBOOL replaceOurselves(Symbol * symptr, Node * parentnode);
 
   };
 

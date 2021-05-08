@@ -87,7 +87,7 @@ namespace MFM{
     virtual void makeDefaultStructAssignment(UTI lt, UTI rt, UTI& newtyperef);
 
   private:
-    TBOOL replaceOurselves(bool classoratom, Node * parentnode);
+    virtual TBOOL replaceOurselves(bool classoratom, Node * parentnode);
     Node * buildOperatorOverloadFuncCallNodeForMatchingArg(bool& hazyArg);
 
   };

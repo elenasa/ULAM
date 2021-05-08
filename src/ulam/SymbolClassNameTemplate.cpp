@@ -717,31 +717,6 @@ namespace MFM {
 		((SymbolConstantValue *) argsym)->changeConstantId(sid, m_parameterSymbols[i]->getId());
 		cblock->replaceIdInScope(sid, m_parameterSymbols[i]->getId(), argsym);
 
-		//((SymbolConstantValue *) argsym)->clearClassArgAsDefaultValue(); //t3526,t41361,2, t41436, t41438??
-
-#if 0
-		UTI puti = m_parameterSymbols[i]->getUlamTypeIdx();
-		UTI auti = m_state.mapIncompleteUTIForAClassInstance(typecontext, puti, argsym->getLoc());
-		argsym->resetUlamType(auti); //default was Hzy
-		if(m_state.isHolder(auti))
-		  {
-		    //auti gets added to this stub' resolver
-		    Token * argTokPtr = argsym->getTokPtr();
-		    Token argTok(*argTokPtr);
-		    m_state.addUnknownTypeTokenToAClassResolver(suti, argTok, auti); //t41216
-		  }
-		else if(m_state.isAClass(auti) && m_state.isClassAStub(auti))
-		  {
-		    SymbolClass * argcsym = NULL;
-		    AssertBool isDef = m_state.alreadyDefinedSymbolClass(auti, argcsym);
-		    assert(isDef);
-		    //argcsym->setContextForPendingArgTypes(suti); //t41209
-		    //argcsym->setContextForPendingArgTypes(context); //t41209
-		    //assert(argcsym->getContextForPendingArgValues()==context); //t41209 not so
-		    //argcsym->setContextForPendingArgValues(context); //t41209
-		  }
-#endif
-
 		//any type descriptors need to be copied (t41209,t41211);
 		//including classes that might be holders (t41216)
 		NodeConstantDef * paramConstDef = (NodeConstantDef *) templateclassblock->getParameterNode(i);
@@ -749,9 +724,8 @@ namespace MFM {
 		NodeConstantDef * stubConstDef = (NodeConstantDef *) cblock->getArgumentNode(i);
 		assert(stubConstDef);
 
-		m_state.pushClassContext(cuti, templateclassblock, templateclassblock, false, NULL); //came from Parser parseRestOfClassArguments says null blocks likely (t41214)
+		m_state.pushClassContext(suti, cblock, cblock, false, NULL); //came from Parser parseRestOfClassArguments says null blocks likely (t41214)
 		stubConstDef->cloneTypeDescriptorForPendingArgumentNode(paramConstDef); //if any and none (t41211, t41213, error/t41210, error/t41212)
-		//stubConstDef->cloneDefaultValueExpressionForPendingArgumentNode(paramConstDef); //t41436 NO HELP.
 
 		m_state.popClassContext();
 
@@ -821,9 +795,6 @@ namespace MFM {
 
 	if(firstDefaultParamUsed >= 0)
 	  m_state.popClassContext(); //restore stub push for defaults
-
-	//nodeExpr is still NodeIdent at this juncture...essentially a NOOP
-	//csym->assignClassArgValuesInStubCopy(); //missing? see cloneArgumentNodesForClassIns (t41438)
 
 	m_state.popClassContext(); //restore current block push
 	m_state.popClassContext(); //restore context push
@@ -1512,7 +1483,7 @@ namespace MFM {
     assert(csym->getId()==getId());
 
     //more stub Copying possible during this upgrade process; inserts into TEMP map may happen.
-    //push context cuti by c&l caller
+    //push context suti by c&l caller
 
     if(getUlamClass() == UC_UNSEEN)
       return; //wait since template is unseen..
