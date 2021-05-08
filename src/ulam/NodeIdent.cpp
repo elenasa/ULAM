@@ -432,8 +432,10 @@ namespace MFM {
     UTI suti = symptr->getUlamTypeIdx();
     NNO blocknoST = symptr->getBlockNoOfST();
 
+#if 0
     if(!m_state.okUTItoContinue(suti))
       return TBOOL_HAZY; //t3894
+#endif
 
     if(symptr->isConstant() && !m_state.isConstantRefType(suti))
       {

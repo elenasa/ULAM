@@ -8,7 +8,7 @@
 ./Q.ulam:2:42: ERROR: Proxy Type: unresolved is still incomplete and unknown for its 'sizeof'.
 ./Q.ulam:2:24: ERROR: Constant value expression for 's', is not yet ready.
 ./Q.ulam:2:24: ERROR: Incomplete NodeConstantDef for type: Unsigned(32), used with symbol name 's', after folding.
-./Q.ulam:2:39: ERROR: Not ready constant for type: Int(32), used with constant symbol name 'b', while compiling Q(b,s) (UTI 35).
+./Q.ulam:2:39: ERROR: Not ready constant for type: Int(32), used with symbol name 'b', while compiling Q(b,s) (UTI 35).
 ./Q.ulam:2:39: ERROR: Constant value expression for: a, is not ready, still hazy, while compiling Q(b,s) (UTI 35).
 ./P.ulam:7:5: ERROR: Incomplete descriptor for type: Q (UTI 35), while labeling class: P (UTI 31).
 ./P.ulam:7:5: ERROR: SEEN Class Stub and incomplete descriptor for type: 'Q(b,s)' (UTI 35) is a stub.
@@ -24,14 +24,14 @@
 ./P.ulam:11:13: ERROR: Cannot cast a nonready type.
 ./P.ulam:11:5: ERROR: Function return type is still unresolved: unresolved.
 ./Q.ulam:3:11: ERROR: Incomplete descriptor for type: Unsigned (UTI 40), while labeling class: Q(b,s) (UTI 35).
-./Q.ulam:3:20: ERROR: Not ready constant for type: Unsigned(32), used with constant symbol name 's', while compiling Q(b,s) (UTI 35).
+./Q.ulam:3:20: ERROR: Not ready constant for type: Unsigned(32), used with symbol name 's', while compiling Q(b,s) (UTI 35).
 ./Q.ulam:3:11: ERROR: Type Bitsize specifier, within (), is not ready.
 ./Q.ulam:3:11: ERROR: Incomplete Typedef for type: unresolved (UTI 2), used with typedef symbol name 'Foo'.
 ./Q.ulam:4:3: ERROR: Incomplete descriptor for type: Unsigned (UTI 40), while labeling class: Q(b,s) (UTI 35).
 ./Q.ulam:4:3: ERROR: Incomplete Variable Decl for type: unresolved (UTI 2), used with variable symbol name 'f'.
 ./Q.ulam:4:3: ERROR: Variable for: 'f', is still hazy.
 ./V.ulam:3:3: ERROR: Incomplete descriptor for type: Unsigned (UTI 70), while labeling class: V(a) (UTI 39).
-./V.ulam:3:12: ERROR: Not ready constant for type: Int(32), used with constant symbol name 'a', while compiling V(a) (UTI 39).
+./V.ulam:3:12: ERROR: Not ready constant for type: Int(32), used with symbol name 'a', while compiling V(a) (UTI 39).
 ./V.ulam:3:3: ERROR: Type Bitsize specifier, within (), is not ready.
 ./V.ulam:3:3: ERROR: Incomplete Variable Decl for type: unresolved (UTI 2), used with variable symbol name 'vfoo'.
 ./V.ulam:3:3: ERROR: Variable for: 'vfoo', is still hazy.
