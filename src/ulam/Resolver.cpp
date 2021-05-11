@@ -18,6 +18,30 @@ namespace MFM {
     m_mapUTItoUTI.clear();
   } //clearLeftoverSubtrees
 
+  void Resolver::aliasAnyCommonClassesFromResolver(Resolver * srcresolv)
+  {
+    assert(srcresolv);
+
+    std::map<UTI, UTI>::iterator mit = m_mapUTItoUTI.begin();
+    while(mit != m_mapUTItoUTI.end())
+      {
+	UTI a = mit->first;
+	UTI b = mit->second;
+	//look for (a)stub->(b)copy
+	if(m_state.isAClass(a))
+	  {
+	    //does src have a map for (a)
+	    UTI alias = a;
+	    if(srcresolv->findMappedUTI(a, alias))
+	      {
+		//alias (b) to source's map for same (a)
+		m_state.updateUTIAliasForced(b, alias); //FALLACY!!
+	      }
+	  }
+	mit++;
+      }
+  }
+
   void Resolver::clearLeftoverNonreadyClassArgSubtrees()
   {
     s32 nonreadyG = m_nonreadyClassArgSubtrees.size();
@@ -416,9 +440,9 @@ namespace MFM {
 		//temporarily change stub loc, in case of local filescope, incl arg/params
 		//stubclassblock->resetNodeLocations(templateclassblock->getNodeLocation());
 		stubclassblock->setNodeLocation(templateclassblock->getNodeLocation());
-
+		//stubclassblock->setPreviousBlockPointer(templateclassblock); t3595,3898
 		m_state.pushClassContext(m_classUTI, stubclassblock, stubclassblock, false, NULL);
-		//m_state.pushClassContext(ttype, templateclassblock, templateclassblock, false, NULL);
+		//m_state.pushClassContext(ttype, templateclassblock, templateclassblock, false, NULL); t41438,9, t41444,5 fail.
 		pushedtemplate = true;
 		m_state.m_pendingArgStubContext = m_classUTI; //t41225??
 	      }

@@ -1,5 +1,5 @@
 ## -*- mode:ulam -*-
-#=t41436_test_compiler_elementtemplatewithdefaultclassparametersandquarktemplateancestorwvirtualoverrides_ish
+#=t41450_test_compiler_elementtemplatewithdefaultclassparametersandquarktemplateancestorwvirtualoverrides_implicitsupertypedef_ish
 #!
 Exit status: 0
 Ue_R { Int(32) test() {  System s;  DemoGST demo;  0 cast return } }
@@ -9,8 +9,7 @@ Uq_GeneralSpatialTree(Unary(4) cRADIUS = 15u) { constant Unsigned(32) cBITSNEEDE
 Un_GeneralSpatialTreeVisitor(Unary(4) cRADIUSV = 15u) { typedef GeneralSpatialTree(cRADIUS) GST;  <NOMAIN> }
 Un_DemoGSTV : GeneralSpatialTreeVisitor(4) { typedef GeneralSpatialTree(4) GST;  :GeneralSpatialTreeVisitor(4)< typedef GeneralSpatialTree(4) GST; > <NOMAIN> }
 ##
-## informed by Dave ish 3/28/2021 045328. Matching virtual functions in relatives
-## (simplified for test); see also t41449 and t41450 for DemoGST typedef variations.
+## variation on t41449, t41436, DemoGST with implcit Super.GST typedef
 ##
 #>R.ulam
   ulam 5;
@@ -119,7 +118,7 @@ transient DemoGSTV : GeneralSpatialTreeVisitor() {
   //^^^ Also fails with: transient DemoGSTV : GeneralSpatialTreeVisitor(4u)
   //./GeneralSpatialTree.ulam:19:37: ERROR: Not ready constant for type: Unary(4), used with constant symbol name 'cRADIUS', while compiling GeneralSpatialTreeVisitor(4) (UTI 70).
   //./GeneralSpatialTree.ulam:19:37: ERROR: Constant value expression for: cRADIUSV, is not ready, still hazy, while compiling GeneralSpatialTreeVisitor(4) (UTI 70).
-  typedef GeneralSpatialTree() GST;
+  //typedef GeneralSpatialTree() GST;
   //typedef Super.GST GST;
   //^^^ Also fails with:  typedef GeneralSpatialTree(4u) GST;
 

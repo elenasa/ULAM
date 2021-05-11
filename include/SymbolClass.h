@@ -66,6 +66,8 @@ namespace MFM{
 
     virtual Symbol * clone();
 
+    void aliasAnyCommonClassesBeforeTrashing(SymbolClass * csym);
+
     virtual bool isClass();
 
     virtual bool isClassTemplate(UTI cuti);
@@ -247,6 +249,8 @@ namespace MFM{
 
     BasesTable m_basestable;
     BasesTable m_sharedbasestable; //ulam-5
+
+    void aliasAnyCommonClasses(Resolver * srcresolv); //helper
 
     void clearBaseAsShared(u32 item);
     void setNumberSharingBase(u32 item, u32 numshared);

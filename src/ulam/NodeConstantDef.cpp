@@ -1151,7 +1151,8 @@ namespace MFM {
 
 	    // UTI newuti = m_nodeTypeDesc->givenUTI();
 	    //assert(m_constSymbol && (m_constSymbol->getUlamTypeIdx() == newuti)); //invariant? (likely null symbol, see checkForSymbol)
-	    assert(m_constSymbol && (m_constSymbol->getUlamTypeIdx() == Hzy)); //invariant? (likely null symbol, see checkForSymbol) t41361,
+	    //assert(m_constSymbol && (m_constSymbol->getUlamTypeIdx() == Hzy)); //invariant? (likely null symbol, see checkForSymbol) t41361,
+	    assert(m_constSymbol && ((m_constSymbol->getUlamTypeIdx() == Hzy) || (m_constSymbol->getUlamTypeIdx() == m_nodeTypeDesc->givenUTI()))); //invariant? (likely null symbol, see checkForSymbol) t41361, t3326
 
 	    //assert(copyuti == pnodetypedesc->givenUTI()); //used keep type
 	    aok = true;

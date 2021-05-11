@@ -57,6 +57,8 @@ namespace MFM
     Resolver(UTI instance, CompilerState& state);
     ~Resolver();
 
+    void aliasAnyCommonClassesFromResolver(Resolver * srcresolv);
+
     void addUnknownTypeToken(const Token& tok, UTI huti);
     Token removeKnownTypeToken(UTI huti);
     bool hasUnknownTypeToken(UTI huti);

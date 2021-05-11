@@ -467,7 +467,7 @@ namespace MFM {
       {
 	newclassinstance->partialInstantiationOfMemberNodesAndSymbols(*templateclassblock);
 
-	cloneAnInstancesUTImap(this, newclassinstance); //t3384,t3565??
+	//cloneAnInstancesUTImap(this, newclassinstance); //t3384,t3565??
       } //else wait if template is unseen
 
     return newclassinstance;
@@ -482,43 +482,30 @@ namespace MFM {
     assert((getNumberOfParameters() > 0) || (getUlamClass() == UC_UNSEEN));
     assert(instance != newuti);
 
-    //    UTI compilingthis = m_state.getCompileThisIdx(); //before push
-    UTI compilingthis = m_state.getThisClassForParsing(); //not classstack
-    //assert(compilingthis!=Nouti); //else no longer parsing...might be so..?
+    UTI compilingthis = m_state.getThisClassForParsing(); //possibly no longer parsing
     compilingthis = compilingthis == Nouti ? m_state.getCompileThisIdx() : compilingthis;
+
+    UTI stubcopyof = m_state.getStubCopyOf(instance);
+    bool twasastubcopy = (stubcopyof != Nouti);
+    assert(!twasastubcopy);
 
     SymbolClass * csym = NULL;
     AssertBool isDefined = findClassInstanceByUTI(instance, csym);
     assert(isDefined); //in TEMP map if a stubcopy
 
-
-    if(csym->isStubCopy())
-      {
-	m_state.abortShouldntGetHere();
-	UTI stubof = csym->getStubCopyOf();
-	//	return copyAStubClassInstance(csym->getStubCopyOf(), newuti, argvaluecontext, argtypecontext, newloc);
-	return copyAStubClassInstance(stubof, newuti, argvaluecontext, m_state.getContextForPendingArgValuesForStub(stubof), newloc);
-      }
-
     assert(!csym->isStubCopy());
     assert(csym->isStub());
     assert(csym->pendingClassArgumentsForClassInstance());
 
-    //NodeBlockClass * blockclass = csym->getClassBlockNode();
     NodeBlockClass * templateclassblock = getClassBlockNode();
     assert(templateclassblock);
     bool isCATemplate = ((UlamTypeClass *) m_state.getUlamTypeByIndex(getUlamTypeIdx()))->isCustomArray();
 
-    //previous block is template's class block, and new NNO here!
-    //NodeBlockClass * newblockclass = new NodeBlockClass(templateclassblock, m_state);
     NodeBlockClass * newblockclass = new NodeBlockClass(NULL, m_state);
-    //NodeBlockClass * newblockclass = new NodeBlockClass(blockclass, m_state);
-
     assert(newblockclass);
     newblockclass->setNodeLocation(newloc); //questionable LOC? t41221
     newblockclass->setNodeType(newuti);
     newblockclass->resetNodeNo(templateclassblock->getNodeNo()); //keep NNO consistent (new)
-    //newblockclass->setSuperBlockPointer(NULL); //wait for c&l when no longer a stub
 
     //provides proper context for setting type (e.g. t3640)
     m_state.pushClassContext(newuti, newblockclass, newblockclass, false, NULL);
@@ -644,8 +631,6 @@ namespace MFM {
 
 	NodeBlockClass * cblock = csym->getClassBlockNode();
 	assert(cblock);
-
-	cblock->resetNodeNo(templateclassblock->getNodeNo()); //keep NNO consistent (new) missing
 
 	//can have 0Holder symbols for possible typedefs seen from another class
 	//which will increase the count of symbols; can only test for at least;
@@ -805,7 +790,7 @@ namespace MFM {
 
 	initBaseClassListForAStubClassInstance(csym);
 	cblock->initBaseClassBlockList(); //wait for c&l when no longer a stub
-	cloneAnInstancesUTImap(this, csym); //t3384,t3565??
+	//?cloneAnInstancesUTImap(this, csym); //t3384,t3565??
 
 	it++;
       } //while any more stubs
@@ -869,15 +854,6 @@ namespace MFM {
       }
 
     m_state.popClassContext(); //restore
-   if(stubcsym->getContextForPendingArgValues() == Nouti)
-     {
-       m_state.abortNeedsATest();
-       NodeBlockContext * contextblock = m_state.getContextBlockForSearching();
-       assert(contextblock);
-       UTI cbuti = contextblock->getNodeType(); //was getCompileThisIdx (t3361?)
-       assert(m_state.okUTItoContinue(cbuti));
-      stubcsym->setContextForPendingArgValues(cbuti); //reset
-     }
   } //fixAClassStubsDefaultArgs
 
 
@@ -1332,8 +1308,9 @@ namespace MFM {
 	  {
 	    assert(dupsym->getContextForPendingArgValues() == Nouti);
 	    assert(dupsym->getStubForTemplateType() == Nouti);
-	    UTI duti = dupsym->getUlamTypeIdx();
-	    m_state.mergeClassUTI(cuti, duti);
+	    UTI duputi = dupsym->getUlamTypeIdx();
+	    m_state.mergeClassUTI(cuti, duputi, csym->getLoc());
+	    //	    dupsym->aliasAnyCommonClassesBeforeTrashing(csym); t41361,2
 	    trashStub(cuti, csym);
 	    it->second = dupsym; //duplicate! except different UTIs
 	    it++;
@@ -1482,8 +1459,8 @@ namespace MFM {
   {
     assert(csym->getId()==getId());
 
-    //more stub Copying possible during this upgrade process; inserts into TEMP map may happen.
-    //push context suti by c&l caller
+    //more stub copying possible during this upgrade process; inserts into TEMP map may happen.
+    //pushed context suti by c&l caller
 
     if(getUlamClass() == UC_UNSEEN)
       return; //wait since template is unseen..
@@ -1504,8 +1481,6 @@ namespace MFM {
 	AssertBool isReplaced = m_state.replaceUlamTypeForUpdatedClassType(skey, Class, getUlamClass(), isCATemplate); //suti remains the same
 	assert(isReplaced);
 	assert(csym->getUlamClass() != UC_UNSEEN); //t41209
-
-	cblock->resetNodeNo(templatecblock->getNodeNo()); //keep NNO consistent (new) missing
 
 	//should this be done again? now that template is seen?
 	initBaseClassListForAStubClassInstance(csym);
@@ -1539,7 +1514,7 @@ namespace MFM {
 
     csym->cloneArgumentNodesForClassInstance(stubwhencecame, argvaluecontext, argtypecontext, true); //not in data member parse tree
 
-    csym->unsetStubCopy(); //has arguments, data members; but still a stub (no funcs)
+    csym->unsetStubCopy(); //has arguments,data members,no funcs; but still a stub (w stubof)
   } //upgradeStubCopyToAStubClassInstance
 
   Node * SymbolClassNameTemplate::findNodeNoInAClassInstance(UTI instance, NNO n)

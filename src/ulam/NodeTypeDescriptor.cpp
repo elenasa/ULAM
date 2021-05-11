@@ -135,8 +135,8 @@ namespace MFM {
 	UTI aliasuti = m_uti;
 	if(!m_state.findaUTIAlias(m_uti, aliasuti))
 	  {
-	    if(m_state.isHolder(m_uti)) //not is stub (t41213)
-	      m_state.updateUTIAliasForced(m_uti, galias); //t41409 holder, t3375 reverse?
+	    if(m_state.isHolder(m_uti)) //not is stub (t41213),t41409 holder, t3375 reverse?
+	      m_state.cleanupExistingHolder(m_uti, galias); //updates alias too
 	  }
 	else
 	  {
@@ -314,7 +314,7 @@ namespace MFM {
   {
     bool rtnb = false;
 
-    UTI nuti = givenUTI();
+    UTI nuti = rtnuti; //preset to givenUTI(), or typedef before reset
     UTI cuti = m_state.getCompileThisIdx();
 
     //assert(getReferenceType() != ALT_NOT);
@@ -371,8 +371,16 @@ namespace MFM {
 		return false;
 	      }
 
-	    // we might have set the size of a holder ref. still a holder. darn.
-	    rtnb = m_state.completeAReferenceTypeWith(nuti, derefuti);
+	    if(nuti == Hzy)
+	      {
+		nuti = m_state.getUlamTypeAsRef(derefuti, getReferenceType());
+		rtnb = true;
+	      }
+	    else
+	      {
+		// we might have set the size of a holder ref. still a holder. darn.
+		rtnb = m_state.completeAReferenceTypeWith(nuti, derefuti);
+	      }
 
 	    ALT altd = m_state.getReferenceType(nuti);
 	    setReferenceType(altd, derefuti);
@@ -539,7 +547,7 @@ namespace MFM {
 		//must be a reference type; use type token to make one!
 		assert((altd == ALT_REF) || (altd == ALT_CONSTREF));
 		ULAMTYPE etyp = m_state.getBaseTypeFromToken(m_typeTok);
-		if(etyp != Class)
+		if((etyp != Class) && (etyp != Hzy))
 		  {
 		    //use default primitive bitsize; (assumes scalar)
 		    nuti = m_state.makeUlamType(m_typeTok, ULAMTYPE_DEFAULTBITSIZE[etyp], NONARRAYSIZE, Nouti, altd, UC_NOTACLASS);
@@ -571,17 +579,26 @@ namespace MFM {
 
 	if(isTypedef && !m_state.isHolder(tduti) && m_state.okUTItoContinue(tduti)) //t3765, t3384
 	  {
+	    UTI guti = givenUTI();
+	    ALT givenreftype = getReferenceType();
 	    if(m_state.isReference(tduti))
 	      {
-		UTI guti = givenUTI();
 		ALT tdreftype = m_state.getReferenceType(tduti);
 		UTI tdderef = m_state.getUlamTypeAsDeref(tduti);
-		setReferenceType(tdreftype, tdderef); //t3666 (no change to givenUTI)
-		assert(guti==givenUTI());
-
-		ALT givenreftype = m_state.getReferenceType(guti);
+		//setReferenceType(tdreftype, tdderef); //t3666 (no change to givenUTI)
+		//ALT givenreftype = m_state.getReferenceType(guti); after setting??
 		if(givenreftype == tdreftype)
-		  m_state.updateUTIAliasForced(guti, tduti); //t3666
+		  {
+		    setReferenceType(tdreftype, tdderef); //t3666 (no change to givenUTI)
+		    m_state.updateUTIAliasForced(guti, tduti); //t3666
+		  }
+	      }
+	    else if(givenreftype != ALT_NOT)
+	      {
+		UTI tdderef = tduti;
+		setReferenceType(givenreftype, tdderef); //tduti might not be guti alias
+		UTI tdasref = m_state.getUlamTypeAsRef(tduti, givenreftype);
+		tduti = tdasref; //to continue (t41436)
 	      }
 	    //else alias handled during resetGivenUTI
 

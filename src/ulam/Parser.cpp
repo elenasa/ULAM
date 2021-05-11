@@ -3152,6 +3152,8 @@ namespace MFM {
 	Symbol * oldArgSym = NULL;
 	if(m_state.isIdInCurrentScope(argid, oldArgSym))
 	  {
+	    assert(oldArgSym->getUlamTypeIdx()==Hzy); //sanity check..before.. ????
+	    oldArgSym->resetUlamType(argSym->getUlamTypeIdx()); //replacing Hzy ????
 	    //patched in DataMembers when instance stub made
 	    delete argSym;
 	    assert(oldArgSym->isConstant());
@@ -3176,7 +3178,6 @@ namespace MFM {
 	    NodeBlockClass * templateblock = ctsym->getClassBlockNode();
 	    NodeConstantDef * paramConstDef = (NodeConstantDef *) templateblock->getParameterNode(parmIdx);
 	    assert(paramConstDef);
-	    //m_state.pushClassContext(ctsym->getUlamTypeIdx(), templateblock, templateblock, false, NULL); //came from Parser parseRestOfClassArguments says null blocks likely (t41214)
 	    m_state.pushClassContext(cuti, cblock, cblock, false, NULL); //came from Parser parseRestOfClassArguments says null blocks likely (t41214, t3349)
 	    constNode->cloneTypeDescriptorForPendingArgumentNode(paramConstDef);
 	    m_state.popClassContext();

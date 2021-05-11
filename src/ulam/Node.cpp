@@ -18,7 +18,16 @@ namespace MFM {
 
   Node::Node(CompilerState & state): m_state(state), m_utype(Nouti), m_storeIntoAble(TBOOL_FALSE), m_referenceAble(TBOOL_FALSE), m_parentNo(0), m_no(m_state.getNextNodeNo()) {}
 
-  Node::Node(const Node & ref) : m_state(ref.m_state), m_utype(ref.m_utype), m_storeIntoAble(ref.m_storeIntoAble), m_referenceAble(ref.m_referenceAble), m_loc(ref.m_loc), m_parentNo(ref.m_parentNo), m_no(ref.m_no) /* same NNO */ {}
+  Node::Node(const Node & ref) : m_state(ref.m_state), m_utype(ref.m_utype), m_storeIntoAble(ref.m_storeIntoAble), m_referenceAble(ref.m_referenceAble), m_loc(ref.m_loc), m_parentNo(ref.m_parentNo), m_no(ref.m_no) /* same NNO */
+  {
+    /* m_utype is sometimes known for node: terminals(varies), statements(void), nodelists(void); o.w. either Nouti or Hzy (t3361) */
+#if 0
+    if(m_state.okUTItoContinue(m_utype))
+      {
+	getNodeType();/* what is it then? */
+      }
+#endif
+  }
 
   void Node::setYourParentNo(NNO pno)
   {
@@ -199,10 +208,14 @@ namespace MFM {
 
   void Node::clearSymbolPtr()
   {
-    std::ostringstream msg;
-    msg << "virtual void " << prettyNodeName().c_str();
-    msg << "::clearSymbolPtr(){} is needed!!";
-    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+    Symbol * symptr = NULL;
+    if(getSymbolPtr(symptr))
+      {
+	std::ostringstream msg;
+	msg << "virtual void " << prettyNodeName().c_str();
+	msg << "::clearSymbolPtr(){} is needed!!";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+      }
   }
 
   bool Node::getSymbolPtr(Symbol *& symptrref)

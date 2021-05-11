@@ -66,6 +66,18 @@ namespace MFM {
     return new SymbolClass(*this);
   }
 
+  void SymbolClass::aliasAnyCommonClassesBeforeTrashing(SymbolClass * csym)
+  {
+    assert(csym);
+    csym->aliasAnyCommonClasses(m_resolver);
+  }
+
+  void SymbolClass::aliasAnyCommonClasses(Resolver * srcresolv)
+  {
+    assert(m_resolver);
+    m_resolver->aliasAnyCommonClassesFromResolver(srcresolv);
+  } //helper
+
   void SymbolClass::setClassBlockNode(NodeBlockClass * node)
   {
     //assert(m_classBlock == NULL); t3130, etc..
@@ -283,7 +295,8 @@ namespace MFM {
 	if(m_state.isHolder(oldbaseclass))
 	  {
 	    mapUTItoUTI(oldbaseclass, superuti); //t3806
-	    m_state.updateUTIAliasForced(oldbaseclass, superuti); //??
+	    //m_state.updateUTIAliasForced(oldbaseclass, superuti); //??
+	    m_state.cleanupExistingHolder(oldbaseclass, superuti); //??
 	  }
       }
   }

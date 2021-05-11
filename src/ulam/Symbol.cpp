@@ -13,7 +13,7 @@ namespace MFM {
     if(m_isSelf)
       {
 	UTI cuti = m_state.getCompileThisIdx();
-	m_uti = m_state.getUlamTypeAsRef(cuti, ALT_REF); //3328
+	m_uti = m_state.getUlamTypeAsRef(cuti, ALT_REF); //t3328
       }
   }
 
@@ -159,7 +159,7 @@ namespace MFM {
 
   void Symbol::setAutoLocalType(ALT alt)
   {
-    assert(m_state.getUlamTypeByIndex(getUlamTypeIdx())->getReferenceType() == alt);
+    assert((getUlamTypeIdx() == Hzy) || (m_state.getUlamTypeByIndex(getUlamTypeIdx())->getReferenceType() == alt));
     m_autoLocalType = alt;
   }
 

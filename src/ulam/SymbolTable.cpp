@@ -51,7 +51,22 @@ namespace MFM {
 	    copyof = found->clone();
 	    addToTable(fid, copyof);
 	  }
-	//else already here! skip clone
+#if 0
+	else
+	  {
+	    Symbol * newcopy = found->clone();
+	    replaceInTable(copyof, newcopy);
+	  }
+
+	else //already here! skip clone
+	  {
+	    if(copyof->isConstant())
+	      {
+		NNO fnno = ((SymbolConstantValue *)found)->getDeclNodeNo();
+		((SymbolConstantValue *)copyof)->setDeclNodeNo(fnno); //t41436?
+	      }
+	  }
+#endif
 	it++;
       }
   }

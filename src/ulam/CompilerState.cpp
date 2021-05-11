@@ -353,7 +353,6 @@ namespace MFM {
 		assert(isDefined);
 	      }
 	  }
-
       }
 
     //we need to keep the uti, but change the key
@@ -735,20 +734,24 @@ namespace MFM {
     return ut;
   } //createUlamType
 
-  void CompilerState::incrementKeyToAnyUTICounter(UlamKeyTypeSignature key, UTI utarg)
+  u32 CompilerState::incrementKeyToAnyUTICounter(UlamKeyTypeSignature key, UTI utarg)
   {
+    u32 count = 0;
     std::map<UlamKeyTypeSignature, std::set<UTI>, less_than_key>::iterator it = m_keyToAnyUTI.find(key);
     if(it != m_keyToAnyUTI.end())
       {
 	assert(key == it->first);
 	it->second.insert(utarg);
+	count = it->second.size();
       }
     else
       {
 	std::set<UTI> aset;
 	aset.insert(utarg);
 	m_keyToAnyUTI.insert(std::pair<UlamKeyTypeSignature,std::set<UTI> >(key, aset));
+	count = 1;
       }
+    return count;
   } //incrementKeyToAnyUTICounter
 
   u32 CompilerState::decrementKeyToAnyUTICounter(UlamKeyTypeSignature key, UTI utarg)
@@ -770,6 +773,20 @@ namespace MFM {
       }
     return count;
   } //decrementKeyToAnyUTICounter
+
+
+  u32 CompilerState::getKeyToAnyUTICounter(UlamKeyTypeSignature key)
+  {
+    std::map<UlamKeyTypeSignature, std::set<UTI>, less_than_key>::iterator it = m_keyToAnyUTI.find(key);
+    u32 count = 0;
+    if(it != m_keyToAnyUTI.end())
+      {
+	assert(key == it->first);
+	count = it->second.size();
+      }
+    return count;
+  }
+
 
   //used to update Class' calculated bit size (setBitSize)
   bool CompilerState::deleteUlamKeyTypeSignature(UlamKeyTypeSignature key, UTI utarg)
@@ -953,6 +970,9 @@ namespace MFM {
     if(isEmptyElement(suti))
       return suti; //special case
 
+    if(suti == cuti)
+      return suti;
+
     SymbolClassName * cnsym = NULL;
     AssertBool isDefined = alreadyDefinedSymbolClassNameByUTI(cuti, cnsym);
     assert(isDefined);
@@ -1006,33 +1026,23 @@ namespace MFM {
 	if(!isClassAStub(suti))
 	  return suti;
 
-	bool isastubcopy = isClassAStubCopy(suti);
-	//suti is a stub related to cuti (also not a template).
-	if(!isastubcopy && !((SymbolClassNameTemplate *) cnsymOfIncomplete)->pendingClassArgumentsForStubClassInstance(suti))
+	UTI stubcopyof = getStubCopyOf(suti);
+	bool isastubcopy = (stubcopyof != Nouti); //or was a stubcopy
+	//stubcopies have no args yet to be pending (t41223,..)
+	if(!isClassAStubCopy(suti) && !((SymbolClassNameTemplate *) cnsymOfIncomplete)->pendingClassArgumentsForStubClassInstance(suti))
 	  return suti; //as good as an instance!
+
+	if(getContextForPendingArgValuesForStub(cuti) == suti)
+	  return suti; //t41436??
 
 	if(isastubcopy)
 	  {
-	    UTI stubcopyof = getStubCopyOf(suti);
-	    if(cnsym->hasInstanceMappedUTI(cuti, stubcopyof, mappedUTI))
-	      {
-		UTI muti = mappedUTI;
-		findaUTIAlias(muti, mappedUTI);
-		return mappedUTI;  //returns suti when suti==cuti
-	      }
-
-	    //check reverse only if class names match!
-	    if(classnamesame)
-	      {
-		if(cnsymOfIncomplete->hasInstanceMappedUTI(stubcopyof, cuti, mappedUTI))
-		  {
-		    UTI muti = mappedUTI;
-		    findaUTIAlias(muti, mappedUTI);
-		    return mappedUTI;  //t41436???? stops inf loop?
-		  }
-	      }
 	    suti = stubcopyof; //continue as if the original..
+	    sut = getUlamTypeByIndex(suti);
 	  }
+
+	if(getContextForPendingArgValuesForStub(cuti) == suti)
+	  return suti; //t41436??
 
 	//o.w. make a stub copy...
 	//return Hzy;
@@ -1045,6 +1055,7 @@ namespace MFM {
     //(e.g. dependent on instances arg values which makes it different than others', like "self").
     //Context dependent pending args are resolved before they are added to the resolver's
     //pending args.
+
     UlamKeyTypeSignature skey = sut->getUlamKeyTypeSignature();
     UlamKeyTypeSignature newkey(skey); //default constructor makes copy
     //restore from original ut; t41436: suti stub type unseen, while template was a transient
@@ -1761,8 +1772,7 @@ namespace MFM {
 	    assert(isDefined);
 	  }
 	return true;
-      }
-
+      } //else
     AssertBool sized = setUTISizes(utiArg, derefut->getBitSize(), derefut->getArraySize());
     assert(sized);
 
@@ -1993,7 +2003,7 @@ namespace MFM {
       }
   }
 
-  void CompilerState::mergeClassUTI(UTI olduti, UTI cuti)
+  u32 CompilerState::mergeClassUTI(UTI olduti, UTI cuti, Locator oldloc)
   {
     UlamKeyTypeSignature key1 = getUlamKeyTypeSignatureByIndex(olduti);
     UlamKeyTypeSignature key2 = getUlamKeyTypeSignatureByIndex(cuti);
@@ -2002,19 +2012,26 @@ namespace MFM {
     assert(key1.getUlamKeyTypeSignatureNameId() == key2.getUlamKeyTypeSignatureNameId());
 
     if(key1.getUlamKeyTypeSignatureReferenceType() != key2.getUlamKeyTypeSignatureReferenceType())
-      return; //don't destory olduti if either is a reference of the other
+      return 0; //don't destory olduti if either is a reference of the other
 
     updateUTIAliasForced(olduti, cuti); //t3327
     //removes old key and its ulamtype from map, if no longer pointed to
     deleteUlamKeyTypeSignature(key1, olduti);
     m_indexToUlamKey[olduti] = key2;
-    incrementKeyToAnyUTICounter(key2, olduti);
+    u32 count = incrementKeyToAnyUTICounter(key2, olduti);
     {
       std::ostringstream msg;
-      msg << "MERGED keys for duplicate Class (UTI" << olduti << ") WITH: ";
-      msg << getUlamTypeNameByIndex(cuti).c_str() << " (UTI" << cuti << ")";
-      MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
+      msg << "MERGED keys of duplicate Class (UTI " << olduti << ") WITH: ";
+      msg << getUlamTypeNameByIndex(cuti).c_str() << " (UTI " << cuti << ")";
+      if((olduti > 100) && (count >= ((u32)(olduti/10))))
+	{
+	  msg << " TOO COMMON, SUSPECT LOOPING; count is now at " << count;
+	  MSG2(getFullLocationAsString(oldloc).c_str(), msg.str().c_str(), ERR);
+	}
+      else
+	MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
     }
+    return count; // >0 succeeded
   } //mergeClassUTI
 
   bool CompilerState::isARootUTI(UTI auti)
@@ -2604,6 +2621,7 @@ namespace MFM {
     //    if(csym->isStub())
       {
 	context = csym->getContextForPendingArgValues();
+	context = lookupUTIAlias(context);
       }
     return context;
   }
@@ -2617,6 +2635,7 @@ namespace MFM {
     //if(csym->isStub())
       {
 	typecontext = csym->getContextForPendingArgTypes();
+	typecontext = lookupUTIAlias(typecontext);
       }
     return typecontext;
   }
@@ -6085,34 +6104,6 @@ namespace MFM {
 	if(acuti != Nouti)
 	  rtnNode = findNodeNoInAClass(n, acuti);
       }
-
-#if 0
-    UTI cuti = getCompileThisIdx();
-    //    if(!rtnNode && (stubuti != Nouti))
-    if(!rtnNode && isClassAStub(cuti))
-      {
-	//if stubuti is a stubcopy of a stub-for-template (e.g. class param or baseclass)
-	// check its context next for possible locals; compensates for not seeing template first (t41221)
-	UTI stubof = getStubCopyOf(cuti); //t41228
-	if(stubof && (isClassAMemberStubInATemplate(cuti) || isClassAMemberStubInATemplate(stubof)))
-	  {
-	    UTI stubofcontext = getContextForPendingArgValuesForStub(stubof);
-	    rtnNode = findNodeNoInAClassOrLocalsScope(n, stubofcontext);
-
-	    if(!rtnNode)
-	      {
-		UTI stuboftypescontext = getContextForPendingArgTypesForStub(stubof);
-		rtnNode = findNodeNoInAClassOrLocalsScope(n, stuboftypescontext);
-	      }
-
-	    if(!rtnNode)
-	      {
-		UTI ttype = getMemberStubForTemplateType(stubof); //this might help? t41228??
-		rtnNode = findNodeNoInAncestorsClassOrLocalsScope(n, ttype);
-	      }
-	  }
-      }
-#endif
 
     return rtnNode;
   } //findNodeNoInThisClassStubFirst

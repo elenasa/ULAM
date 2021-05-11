@@ -209,8 +209,9 @@ namespace MFM{
     bool isDefined(UlamKeyTypeSignature key, UlamType *& foundUT);
     bool anyDefinedUTI(UlamKeyTypeSignature key, UTI& foundUTI);
     UlamType * createUlamType(UlamKeyTypeSignature key, ULAMTYPE utype, ULAMCLASSTYPE classtype);
-    void incrementKeyToAnyUTICounter(UlamKeyTypeSignature key, UTI utarg);
+    u32 incrementKeyToAnyUTICounter(UlamKeyTypeSignature key, UTI utarg);
     u32 decrementKeyToAnyUTICounter(UlamKeyTypeSignature key, UTI utarg);
+    u32 getKeyToAnyUTICounter(UlamKeyTypeSignature key);
     bool deleteUlamKeyTypeSignature(UlamKeyTypeSignature key, UTI utarg);
     bool replaceUlamTypeForUpdatedClassType(UlamKeyTypeSignature key, ULAMTYPE etype, ULAMCLASSTYPE classtype, bool isCArray);
     bool mappedIncompleteUTI(UTI cuti, UTI auti, UTI& mappedUTI);
@@ -277,7 +278,7 @@ namespace MFM{
     void noteClassDataMembersTypeAndName(UTI cuti, s32 totalsize); //for errors
     void verifyZeroSizeUrSelf();
     void verifyZeroRegistryIdForUrSelf();
-    void mergeClassUTI(UTI olduti, UTI cuti);
+    u32 mergeClassUTI(UTI olduti, UTI cuti, Locator oldloc);
     bool isARootUTI(UTI auti);
     bool findaUTIAlias(UTI auti, UTI& aliasuti);
     UTI lookupUTIAlias(UTI auti);

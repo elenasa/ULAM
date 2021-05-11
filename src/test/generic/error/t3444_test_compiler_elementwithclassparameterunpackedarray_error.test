@@ -2,7 +2,7 @@
 #=t3444_test_compiler_elementwithclassparameterunpackedarray_error
 #!
 ./T.ulam:7:4: ERROR: Incomplete descriptor for type: 0Holder (UTI 35), while labeling class: S(y,3) (UTI 34).
-./T.ulam:7:4: ERROR: Incomplete NodeConstantDef for type: unresolved, used with symbol name 'y'.
+./T.ulam:7:4: ERROR: Incomplete NodeConstantDef for type: holder, used with symbol name 'y'.
 ./T.ulam:7:4: ERROR: Constant value expression for class argument: y, is not ready.
 ./T.ulam:7:2: ERROR: Incomplete descriptor for type: S (UTI 34), while labeling class: T (UTI 31).
 ./T.ulam:7:2: ERROR: SEEN Class Stub and incomplete descriptor for type: 'S(y,3)' (UTI 34) is a stub.

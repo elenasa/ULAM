@@ -1218,7 +1218,8 @@ namespace MFM {
 	  }
 
 	if(holdUTIForAlias != Nouti)
-	  m_state.updateUTIAliasForced(holdUTIForAlias, uti); //t3862
+	  //m_state.updateUTIAliasForced(holdUTIForAlias, uti); //t3862
+	  m_state.cleanupExistingHolder(holdUTIForAlias, uti);
 
 	//gets the symbol just created by makeUlamType; true.
 	return (m_state.isIdInCurrentScope(m_token.m_dataindex, asymptr));
@@ -1391,10 +1392,17 @@ namespace MFM {
 
     if(brtn)
       {
-	//ut not current; no deref.
-	UTI uti = m_state.getUlamTypeAsRef(auti, args.m_declRef, args.m_hasConstantTypeModifier);
+	SymbolVariable * sym = NULL;
+	if(auti == Hzy)
+	  sym = makeSymbol(auti, args.m_declRef, args); //t41436
+	else
+	  {
+	    //ut not current; no deref.
+	    UTI uti = m_state.getUlamTypeAsRef(auti, args.m_declRef, args.m_hasConstantTypeModifier);
 
-	SymbolVariable * sym = makeSymbol(uti, m_state.getReferenceType(uti), args);
+	    sym = makeSymbol(uti, m_state.getReferenceType(uti), args);
+	  }
+
 	if(sym)
 	  {
 	    m_state.addSymbolToCurrentScope(sym); //ownership goes to the block

@@ -1,5 +1,5 @@
 ## -*- mode:ulam -*-
-#=t41447_test_compiler_elementtemplatemissingtypedefinancestortemplate_error
+#=t41448_test_compiler_elementtemplatemissingtypedefinancestortemplate_error
 #!
 ./RXTimer.ulam:4:17: ERROR: Undetermined Type: <Counter>; Suggest 'use Counter;' if it's a class, otherwise a typedef is needed.
 ./RXTimer.ulam:4:17: ERROR: Undetermined Type: <Counter>; Suggest 'use Counter;' if it's a class, otherwise a typedef is needed.
