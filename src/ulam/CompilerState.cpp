@@ -1070,6 +1070,15 @@ namespace MFM {
 	UlamType * newut = getUlamTypeByIndex(newuti);
 	if(sut->isCustomArray())
 	  ((UlamTypeClass *) newut)->setCustomArray();
+
+	if(cnsymOfIncomplete->getUlamClass() != sut->getUlamClassType())
+	  {
+	    //warning! new class type 'newuti' doesn't have its SymbolClass yet (undefined);
+	    Token tmpTok(TOK_TYPE_IDENTIFIER, loc, cnsymOfIncomplete->getId()); //use current locator
+	    cnsym->addUnknownTypeTokenToClass(tmpTok, newuti);  //t41436
+	    cnsymOfIncomplete->mapUTItoUTI(newuti, suti);
+	  }
+	else
 	{
 	  //potential for unending process..(t41436)
 	  //notes: sclasstype may be UNSEEN. 'cuti' may not be getCompileThis class (t41209,t41217,8)
