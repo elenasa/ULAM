@@ -310,6 +310,11 @@ namespace MFM {
     return false;
   }
 
+  bool Node::isEmptyArraysizeDecl()
+  {
+    return false;
+  }
+
   bool Node::isAList()
   {
     return false;

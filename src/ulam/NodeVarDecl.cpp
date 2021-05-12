@@ -563,8 +563,8 @@ namespace MFM {
 	    //only possible if array type with initializers
 	    m_varSymbol->setHasInitValue(); //might not be ready yet
 
-	    //if(!m_state.okUTItoContinue(vit) && m_nodeTypeDesc)
-	    if(!m_state.isComplete(vit) && m_nodeTypeDesc) //error/t41165
+	    //t3768,9 t3773,7, t3853, t3975, t41425
+	    if(!m_state.isComplete(vit) && m_nodeTypeDesc && m_nodeTypeDesc->isEmptyArraysizeDecl()) //error/t41165
 	      {
 		UTI duti = m_nodeTypeDesc->getNodeType();
 		UlamType * dut = m_state.getUlamTypeByIndex(duti);
@@ -573,7 +573,7 @@ namespace MFM {
 		if(m_state.okUTItoContinue(scalarduti) && !dut->isComplete())
 		  {
 		    //assert(!dut->isScalar()); t41201
-		    //if here, ASSUME arraysize depends on number of initializers
+		    //if here, empty arraysize depends on number of initializers
 		    s32 bitsize = m_state.getBitSize(scalarduti);
 		    u32 n = ((NodeList *) m_nodeInitExpr)->getNumberOfNodes();
 		    duti = m_nodeTypeDesc->givenUTI(); //Hzy not helpful, reload with given
@@ -601,7 +601,6 @@ namespace MFM {
 		      }
 		  }
 	      }
-
 
 	    if(hasInitExpr() && m_state.isComplete(vit))
 	      {
@@ -644,7 +643,7 @@ namespace MFM {
 			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 			setNodeType(Nav);
 			return Nav;
-		      }
+		      } //else t3847 zero sized array init ok
 		    m_nodeInitExpr->setNodeType(vit); //replace Void t41201
 		  }
 	      }

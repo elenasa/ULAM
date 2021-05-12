@@ -444,7 +444,7 @@ namespace MFM {
 		    return Nav;
 		  }
 
-		if(!m_state.okUTItoContinue(suti) && m_nodeTypeDesc)
+		if(!m_state.okUTItoContinue(suti) && m_nodeTypeDesc && m_nodeTypeDesc->isEmptyArraysizeDecl())
 		  {
 		    UTI duti = m_nodeTypeDesc->getNodeType();
 		    UlamType * dut = m_state.getUlamTypeByIndex(duti);
@@ -455,7 +455,7 @@ namespace MFM {
 			//assert(!dut->isScalar()); //t41390 HAZ????
 			//assert(dut->isPrimitiveType()); t41261
 
-			//if here, assume arraysize depends on number of initializers
+			//if here, empty arraysize depends on number of initializers
 			s32 bitsize = m_state.getBitSize(scalarduti);
 			u32 n = ((NodeList *) m_nodeExpr)->getNumberOfNodes();
 			duti = m_nodeTypeDesc->givenUTI(); //Hzy not helpful, reload with given

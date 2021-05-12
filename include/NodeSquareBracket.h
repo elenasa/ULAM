@@ -69,6 +69,8 @@ namespace MFM{
 
     virtual bool isArrayItem();
 
+    virtual bool isEmptyArraysizeDecl();
+
     virtual UTI checkAndLabelType(Node * thisparentnode);
 
     virtual bool getConstantValue(BV8K& bval);

@@ -159,6 +159,11 @@ namespace MFM {
     return Hzy; //ow assumes size of initialized list, wrong when arraysize 0 (t3847).
   }
 
+  bool NodeTypeDescriptor::isEmptyArraysizeDecl()
+  {
+    return true;
+  }
+
   UTI NodeTypeDescriptor::getReferencedUTI()
   {
     return m_referencedUTI;

@@ -99,8 +99,13 @@ namespace MFM {
   UTI NodeTypeDescriptorArray::getScalarType()
   {
     if(m_nodeScalar)
-      return m_nodeScalar->getNodeType();
-    return Hzy; //t3881
+	return m_nodeScalar->getNodeType();
+    return Hzy; //t3881, t3768
+  }
+
+  bool NodeTypeDescriptorArray::isEmptyArraysizeDecl()
+  {
+    return m_unknownArraysizeSubtree && m_unknownArraysizeSubtree->isEmptyArraysizeDecl();
   }
 
   void NodeTypeDescriptorArray::linkConstantExpressionArraysize(NodeSquareBracket * ceForArraySize)

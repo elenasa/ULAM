@@ -69,6 +69,8 @@ namespace MFM{
 
     virtual UTI getScalarType();
 
+    virtual bool isEmptyArraysizeDecl();
+
     void linkConstantExpressionArraysize(NodeSquareBracket * ceForArraySize);
 
     virtual void setReferenceType(ALT refarg, UTI referencedUTI, UTI refUTI);

@@ -81,6 +81,8 @@ namespace MFM{
 
     virtual UTI getScalarType();
 
+    virtual bool isEmptyArraysizeDecl();
+
     UTI getReferencedUTI();
 
     ALT getReferenceType();

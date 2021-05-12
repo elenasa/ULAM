@@ -174,6 +174,8 @@ enum EvalStatus {ERROR, NOTREADY, NORMAL, RETURN, BREAK, CONTINUE, UNEVALUABLE};
 
     virtual bool isArrayItem();
 
+    virtual bool isEmptyArraysizeDecl();
+
     virtual bool isAList();
 
     virtual bool isExplicitReferenceCast(); //only NodeCast may return true

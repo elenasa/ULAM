@@ -70,6 +70,11 @@ namespace MFM {
     return true; //not for array declaration; includes custom array items
   }
 
+  bool NodeSquareBracket::isEmptyArraysizeDecl()
+  {
+    return (m_nodeRight == NULL);
+  }
+
   // used to select an array item; not for declaration
   UTI NodeSquareBracket::checkAndLabelType(Node * thisparentnode)
   {
