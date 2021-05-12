@@ -67,7 +67,7 @@ namespace MFM{
 
     virtual UTI resetGivenUTI(UTI guti);
 
-    UTI getScalarType();
+    virtual UTI getScalarType();
 
     void linkConstantExpressionArraysize(NodeSquareBracket * ceForArraySize);
 

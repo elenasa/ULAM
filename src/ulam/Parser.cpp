@@ -1836,7 +1836,11 @@ namespace MFM {
 	assert(swsym);
 	m_state.addSymbolToCurrentScope(swsym); //ownership goes to the block
 
-	NodeVarDecl * swvalueDecl = new NodeVarDecl(swsym, NULL, m_state);
+	//for consistency (t41436)
+	NodeTypeDescriptor * typenode2 = new NodeTypeDescriptor(swtypeTok, huti, m_state);
+	assert(typenode2);
+
+	NodeVarDecl * swvalueDecl = new NodeVarDecl(swsym, typenode2, m_state);
 	assert(swvalueDecl);
 	swvalueDecl->setNodeLocation(swTok.m_locator);
 	swvalueDecl->setInitExpr(condNode);

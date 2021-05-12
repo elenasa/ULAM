@@ -550,7 +550,7 @@ namespace MFM {
 
   void NodeBlockClass::setDataMembersParseTree(UTI cuti, NodeBlockClass & fromClassBlock)
   {
-    assert(cuti==getNodeType());
+    assert((cuti == getNodeType()) || (getNodeType() == Hzy));
     assert(m_nodeNext == NULL);
     NodeStatements * fmnode = fromClassBlock.m_nodeNext;
     if(fmnode == NULL)
@@ -561,7 +561,7 @@ namespace MFM {
 
   void NodeBlockClass::resetDataMembersParseTree(UTI cuti, NodeBlockClass & fromClassBlock)
   {
-    assert(cuti==getNodeType());
+    assert((cuti == getNodeType()) || (getNodeType() == Hzy));
     if(m_nodeNext)
       {
 	delete m_nodeNext;
@@ -577,7 +577,7 @@ namespace MFM {
 
   void NodeBlockClass::setDataMembersSymbolTable(UTI cuti, NodeBlockClass& fromClassBlock)
   {
-    assert(cuti==getNodeType());
+    assert((cuti == getNodeType()) || (getNodeType() == Hzy));
     u32 totablesize = NodeBlock::getNumberOfSymbolsInTable();
     if(totablesize==0)
       this->getSymbolTablePtr()->copyATableHere(*fromClassBlock.getSymbolTablePtr());
@@ -592,7 +592,7 @@ namespace MFM {
 
   void NodeBlockClass::setMemberFunctionsSymbolTable(UTI cuti, NodeBlockClass& fromClassBlock)
   {
-    //assert(cuti==getNodeType()); t3460??
+    assert((cuti == getNodeType()) || (getNodeType() == Hzy)); //t3460??
     u32 fromtablesize = fromClassBlock.getNumberOfFuncSymbolsInTableHere();
     u32 totablesize = getNumberOfFuncSymbolsInTableHere();
     assert(totablesize==0);

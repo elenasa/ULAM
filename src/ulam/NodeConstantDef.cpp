@@ -448,7 +448,7 @@ namespace MFM {
 		  {
 		    UTI duti = m_nodeTypeDesc->getNodeType();
 		    UlamType * dut = m_state.getUlamTypeByIndex(duti);
-		    UTI scalarduti = ((NodeTypeDescriptorArray *) m_nodeTypeDesc)->getScalarType();
+		    UTI scalarduti = m_nodeTypeDesc->getScalarType();
 
 		    if(m_state.okUTItoContinue(scalarduti) && !dut->isComplete())
 		      {

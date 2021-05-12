@@ -568,12 +568,12 @@ namespace MFM {
 	      {
 		UTI duti = m_nodeTypeDesc->getNodeType();
 		UlamType * dut = m_state.getUlamTypeByIndex(duti);
-		UTI scalarduti = ((NodeTypeDescriptorArray *) m_nodeTypeDesc)->getScalarType(); //t3768
+		UTI scalarduti = m_nodeTypeDesc->getScalarType(); //t3768
 
 		if(m_state.okUTItoContinue(scalarduti) && !dut->isComplete())
 		  {
 		    //assert(!dut->isScalar()); t41201
-		    //if here, assume arraysize depends on number of initializers
+		    //if here, ASSUME arraysize depends on number of initializers
 		    s32 bitsize = m_state.getBitSize(scalarduti);
 		    u32 n = ((NodeList *) m_nodeInitExpr)->getNumberOfNodes();
 		    duti = m_nodeTypeDesc->givenUTI(); //Hzy not helpful, reload with given

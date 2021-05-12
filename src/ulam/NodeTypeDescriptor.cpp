@@ -5,19 +5,19 @@
 
 namespace MFM {
 
-  NodeTypeDescriptor::NodeTypeDescriptor(const Token& tokarg, UTI auti, CompilerState & state) : Node(state), m_typeTok(tokarg), m_uti(auti), m_ready(false), m_contextForPendingArgType(Nouti), m_unknownBitsizeSubtree(NULL), m_refType(ALT_NOT), m_referencedUTI(Nouti)
+  NodeTypeDescriptor::NodeTypeDescriptor(const Token& tokarg, UTI auti, CompilerState & state) : Node(state), m_typeTok(tokarg), m_uti(auti), m_ready(false), m_unknownBitsizeSubtree(NULL), m_refType(ALT_NOT), m_referencedUTI(Nouti)
   {
     setNodeLocation(m_typeTok.m_locator);
   }
 
   // use by ALT_AS.
-  NodeTypeDescriptor::NodeTypeDescriptor(const Token& tokarg, UTI auti, CompilerState & state, ALT refarg, UTI referencedUTIarg) : Node(state), m_typeTok(tokarg), m_uti(auti), m_ready(false), m_contextForPendingArgType(Nouti), m_unknownBitsizeSubtree(NULL), m_refType(refarg), m_referencedUTI(referencedUTIarg)
+  NodeTypeDescriptor::NodeTypeDescriptor(const Token& tokarg, UTI auti, CompilerState & state, ALT refarg, UTI referencedUTIarg) : Node(state), m_typeTok(tokarg), m_uti(auti), m_ready(false), m_unknownBitsizeSubtree(NULL), m_refType(refarg), m_referencedUTI(referencedUTIarg)
   {
     setNodeLocation(m_typeTok.m_locator);
   }
 
   //since there's no assoc symbol, we map the m_uti here (e.g. S(x,y).sizeof nodeterminalproxy)
-  NodeTypeDescriptor::NodeTypeDescriptor(const NodeTypeDescriptor& ref) : Node(ref), m_typeTok(ref.m_typeTok), m_uti(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_uti,ref.getNodeLocation())), m_ready(false), m_contextForPendingArgType(Nouti), m_unknownBitsizeSubtree(NULL), m_refType(ref.m_refType), m_referencedUTI(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_referencedUTI,ref.getNodeLocation()))
+  NodeTypeDescriptor::NodeTypeDescriptor(const NodeTypeDescriptor& ref) : Node(ref), m_typeTok(ref.m_typeTok), m_uti(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_uti,ref.getNodeLocation())), m_ready(false), m_unknownBitsizeSubtree(NULL), m_refType(ref.m_refType), m_referencedUTI(Hzy /*m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_referencedUTI,ref.getNodeLocation())*/)
   {
     if(m_state.isHolder(m_uti))
       {
@@ -31,7 +31,7 @@ namespace MFM {
   }
 
   //clone class parameter for pending class argument; caller (NodeConstDef) corrects type (t41223)
-  NodeTypeDescriptor::NodeTypeDescriptor(const NodeTypeDescriptor& ref, bool keepType) : Node(ref), m_typeTok(ref.m_typeTok), m_uti(ref.m_uti), m_ready(false), m_contextForPendingArgType(Nouti), m_unknownBitsizeSubtree(NULL), m_refType(ref.m_refType), m_referencedUTI(ref.m_referencedUTI)
+  NodeTypeDescriptor::NodeTypeDescriptor(const NodeTypeDescriptor& ref, bool keepType) : Node(ref), m_typeTok(ref.m_typeTok), m_uti(ref.m_uti), m_ready(false), m_unknownBitsizeSubtree(NULL), m_refType(ref.m_refType), m_referencedUTI(ref.m_referencedUTI)
   {
     if(ref.m_unknownBitsizeSubtree)
       m_unknownBitsizeSubtree = new NodeTypeBitsize(*ref.m_unknownBitsizeSubtree); //mapped UTI?
@@ -148,6 +148,17 @@ namespace MFM {
     return m_uti;
   }
 
+  UTI NodeTypeDescriptor::getScalarType()
+  {
+    //An array typedef does not have NodeTypeDescriptorArray in use (t3847);
+    //A class may use emptylist to initialize, disguises as an array to NodeVarDecl (t41201);
+    UTI guti = givenUTI();
+    assert(!m_state.isScalar(guti) || m_state.isAClass(guti)); //t3847, t41201
+    if(m_state.isComplete(guti))
+      return m_state.getUlamTypeAsScalar(guti);
+    return Hzy; //ow assumes size of initialized list, wrong when arraysize 0 (t3847).
+  }
+
   UTI NodeTypeDescriptor::getReferencedUTI()
   {
     return m_referencedUTI;
@@ -168,16 +179,6 @@ namespace MFM {
   {
     setReferenceType(refarg, referencedUTI);
     resetGivenUTI(refUTI); //new given as ref UTI Sat Jul  2 15:10:29 2016
-  }
-
-  UTI NodeTypeDescriptor::getContextForPendingArgType()
-  {
-    return m_contextForPendingArgType;
-  }
-
-  void NodeTypeDescriptor::setContextForPendingArgType(UTI context)
-  {
-    m_contextForPendingArgType = context;
   }
 
   UTI NodeTypeDescriptor::checkAndLabelType(Node * thisparentnode)

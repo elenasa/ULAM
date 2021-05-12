@@ -79,6 +79,8 @@ namespace MFM{
 
     virtual UTI resetGivenUTI(UTI guti); //may use guti rootUTI instead
 
+    virtual UTI getScalarType();
+
     UTI getReferencedUTI();
 
     ALT getReferenceType();
@@ -103,7 +105,6 @@ namespace MFM{
     Token m_typeTok;
     UTI m_uti;
     bool m_ready;
-    UTI m_contextForPendingArgType;
 
   private:
     NodeTypeBitsize * m_unknownBitsizeSubtree;

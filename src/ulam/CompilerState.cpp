@@ -3816,14 +3816,32 @@ namespace MFM {
     if(localsblock)
       brtn = localsblock->isIdInScope(id, symptr); //checks one scope only!
 
-    //try a stub's template's filescope (e.g. for inheritance of template class instances t41221)
+    //try a stub's template's filescope
+    //(e.g. for inheritance of template class instances t41221;
+    // for local filescope constants in class parameter t41431)
     if(cblock)
       {
+	UTI suti = Nouti;
 	UTI cbuti = cblock->getNodeType();
-	if(isClassAStub(cbuti))
+	if(!isClassAStub(cbuti))
+	  {
+	    UTI stubof = Nouti;
+	    if(okUTItoContinue(cbuti) && isAClass(cbuti))
+	      stubof = getStubCopyOf(cbuti); //t41431
+	    if(stubof != Nouti)
+	      {
+		UTI stubofcontext = getContextForPendingArgValuesForStub(stubof);
+		assert(isClassATemplate(stubofcontext));
+		suti = stubofcontext;
+	      }
+	  }
+	else
+	  suti = cbuti; //is a stub
+
+	if(suti != Nouti)
 	  {
 	    SymbolClassNameTemplate * cntsym = NULL;
-	    AssertBool isDef = alreadyDefinedSymbolClassNameTemplateByUTI(cbuti, cntsym);
+	    AssertBool isDef = alreadyDefinedSymbolClassNameTemplateByUTI(suti, cntsym);
 	    assert(isDef);
 
 	    NodeBlockClass * templateclassblock = cntsym->getClassBlockNode();
