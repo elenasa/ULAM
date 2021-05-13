@@ -178,7 +178,6 @@ namespace MFM {
     bool astub = m_state.isClassAStub(cbuti);
 
     //instantiate, look up in class block; skip if stub copy and already ready.
-    //if(!astub && m_constSymbol == NULL)
     if(m_constSymbol == NULL) //t41440??
       {
 	checkForSymbol();
@@ -363,10 +362,8 @@ namespace MFM {
 
 	Node * newnode = NULL;
 	if(m_state.isScalar(suti))
-	  //newnode = new NodeConstantClass(m_token, (SymbolConstantValue *) symptr, m_nodeTypeDesc, m_state);
 	  newnode = new NodeConstantClass(m_token, blocknoST, suti, m_nodeTypeDesc, m_state);
 	else
-	  //newnode = new NodeConstantClassArray(m_token, (SymbolConstantValue *) symptr, m_nodeTypeDesc, m_state); //t41261
 	  newnode = new NodeConstantClassArray(m_token, blocknoST, suti, m_nodeTypeDesc, m_state); //t41261
 
 	assert(newnode);
@@ -378,7 +375,6 @@ namespace MFM {
       }
     else if(!m_state.isScalar(suti))
       {
-	//NodeConstantArray * newnode = new NodeConstantArray(m_token, (SymbolConstantValue *) symptr, m_nodeTypeDesc, m_state);
 	NodeConstantArray * newnode = new NodeConstantArray(m_token, blocknoST, suti, m_nodeTypeDesc, m_state); //t41261
 	assert(newnode);
 
@@ -392,7 +388,6 @@ namespace MFM {
       {
 	// replace ourselves with a parameter node instead;
 	// same node no, and loc
-	//NodeModelParameter * newnode = new NodeModelParameter(m_token, (SymbolModelParameterValue*) symptr, m_nodeTypeDesc, m_state);
 	NodeModelParameter * newnode = new NodeModelParameter(m_token, blocknoST, suti, m_nodeTypeDesc, m_state);
 	assert(newnode);
 
@@ -423,7 +418,6 @@ namespace MFM {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    setBlockNo(pcurrBlock->getNodeNo());
 	    clearSymbolPtr(); //t3323
-	    //m_constSymbol = NULL; //t3323
 	    rtnuti = Hzy;
 	  }
 	else
@@ -647,7 +641,7 @@ namespace MFM {
       }
     //else don't want default value here
 
-    return brtn; //m_constSymbol->isReady();
+    return brtn;
   } //updateConstant
 
 } //end MFM

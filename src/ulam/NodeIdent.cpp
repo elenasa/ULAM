@@ -432,11 +432,6 @@ namespace MFM {
     UTI suti = symptr->getUlamTypeIdx();
     NNO blocknoST = symptr->getBlockNoOfST();
 
-#if 0
-    if(!m_state.okUTItoContinue(suti))
-      return TBOOL_HAZY; //t3894
-#endif
-
     if(symptr->isConstant() && !m_state.isConstantRefType(suti))
       {
 	// replace ourselves with a constant node instead;
@@ -448,17 +443,13 @@ namespace MFM {
 	      return TBOOL_HAZY; //might not be a class afterall (3/9/21 ish)
 
 	    if(m_state.isScalar(suti))
-	      //newnode = new NodeConstantClass(m_token, (SymbolWithValue *) symptr, NULL, m_state);
 	      newnode = new NodeConstantClass(m_token, blocknoST, suti, NULL, m_state);
 	    else
-	      //newnode = new NodeConstantClassArray(m_token, (SymbolWithValue *) symptr, NULL, m_state); //t41261
 	      newnode = new NodeConstantClassArray(m_token, blocknoST, suti, NULL, m_state); //t41261
 	  }
 	else if(m_state.isScalar(suti))
-	  //newnode = new NodeConstant(m_token, (SymbolWithValue *) symptr, NULL, m_state);
 	  newnode = new NodeConstant(m_token, blocknoST, suti, NULL, m_state);
 	else
-	  //newnode = new NodeConstantArray(m_token, (SymbolWithValue *) symptr, NULL, m_state);
 	  newnode = new NodeConstantArray(m_token, blocknoST, suti, NULL, m_state);
 	assert(newnode);
 
@@ -471,7 +462,6 @@ namespace MFM {
       {
 	// replace ourselves with a parameter node instead;
 	// same node no, and loc
-	//	NodeModelParameter * newnode = new NodeModelParameter(m_token, (SymbolModelParameterValue*) symptr, NULL, m_state);
 	NodeModelParameter * newnode = new NodeModelParameter(m_token, blocknoST, suti, NULL, m_state);
 	assert(newnode);
 
@@ -932,8 +922,7 @@ namespace MFM {
 		      {
 			if(m_state.isHolder(anothertd)) //update holder array,bitsizes (t3374)
 			  m_state.setUTISizes(tduti, args.m_bitsize, args.m_arraysize, true);
-			  else
-			//if(!m_state.isHolder(anothertd)) //update holder array,bitsizes (t3374)
+			else
 			  m_state.cleanupExistingHolder(tduti, anothertd);//t3868
 			return true;
 		      }
@@ -1068,7 +1057,6 @@ namespace MFM {
 	brtn = true;
       }
 
-    //if(!m_state.okUTItoContinue(tduti))
     if(tduti == Nav)
       brtn = false;
     //else continue.. possibly Hzy (t3341)
@@ -1078,8 +1066,7 @@ namespace MFM {
 	UTI uti = tduti;
 	UTI scalarUTI = args.m_declListOrTypedefScalarType;
 
-	if(uti != Hzy)
-	  //if((uti != Hzy) && !m_state.isHolder(uti)) //t3862
+	if(uti != Hzy) //t3862
 	  {
 	    UlamType * ut = m_state.getUlamTypeByIndex(uti);
 	    ULAMTYPE bUT = ut->getUlamTypeEnum();
@@ -1114,8 +1101,6 @@ namespace MFM {
 	symtypedef->setAutoLocalType(m_state.getReferenceType(uti));
 
 	//check if also a holder (not necessary)
-	//if(ut->isHolder()) m_state.addUnknownTypeTokenToThisClassResolver(m_token, uti);
-
 	return (m_state.isIdInCurrentScope(m_token.m_dataindex, asymptr)); //true
       }
     return false;
@@ -1218,8 +1203,7 @@ namespace MFM {
 	  }
 
 	if(holdUTIForAlias != Nouti)
-	  //m_state.updateUTIAliasForced(holdUTIForAlias, uti); //t3862
-	  m_state.cleanupExistingHolder(holdUTIForAlias, uti);
+	  m_state.cleanupExistingHolder(holdUTIForAlias, uti); //t3862
 
 	//gets the symbol just created by makeUlamType; true.
 	return (m_state.isIdInCurrentScope(m_token.m_dataindex, asymptr));
@@ -1295,7 +1279,6 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
 
-    //if(!m_state.okUTItoContinue(uti))
     if(uti == Nav)
       brtn = false;
     //else continue, possibly Hazy
@@ -1385,7 +1368,6 @@ namespace MFM {
 	brtn = true;
       }
 
-    //if(!m_state.okUTItoContinue(auti))
     if(auti == Nav)
       brtn = false; //t41153
     //else continue even if Hzy (t3339)

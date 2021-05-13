@@ -543,11 +543,7 @@ namespace MFM {
 	    assert(symtypedef->getId() == superid);
 	    UTI stuti = symtypedef->getUlamTypeIdx();
 	    if(stuti != superuti) //t3808, t3806, t3807
-	      {
-		//	m_state.updateUTIAliasForced(stuti, superuti);
-		//cnsym->setBaseClass(superuti, 0);
-		symtypedef->resetUlamType(superuti);
-	      }
+	      symtypedef->resetUlamType(superuti);
 	  }
       }
     else
@@ -832,8 +828,6 @@ namespace MFM {
 		AssertBool isDefined = m_state.alreadyDefinedSymbolClass(baseuti, basecsym);
 		assert(isDefined);
 		rtninherits = true;
-		//flag set in makeAStubClassInstance..not here.
-		//m_state.setStubFlagForThisClassTemplate(baseuti); //t41440
 		assert(!cnsym->isClassTemplate() || !basecsym->isStub() || m_state.isClassAMemberStubInATemplate(baseuti));//t41302
 	      }
 	  }
@@ -3117,11 +3111,7 @@ namespace MFM {
 		//t41216, also in fixAnyUnseen for templates seen afterwards;
 		if(m_state.m_parsingVariableSymbolTypeFlag == STF_CLASSPARAMETER)
 		  m_state.addUnknownTypeTokenToThisClassResolver(argTok, auti);
-#if 0
-		//t41220 FUNCLOCALVAR v
-		else
-		  m_state.addUnknownTypeTokenToAClassResolver(csym->getUlamTypeIdx(), argTok, auti);
-#endif
+		//else t41220 FUNCLOCALVAR v
 	      }
 	    if(m_state.isAClass(auti) && m_state.isClassAStub(auti))
 	      {
@@ -3162,7 +3152,6 @@ namespace MFM {
 	    delete argSym;
 	    assert(oldArgSym->isConstant());
 	    argSym = (SymbolConstantValue *) oldArgSym;
-	    //m_state.replaceSymbolInCurrentScope(oldArgSym, argSym); //t3326 better than leaks??
 	  }
 	else
 	  m_state.addSymbolToCurrentScope(argSym);
@@ -6713,7 +6702,6 @@ Node * Parser::wrapFactor(Node * leftNode)
       }
 
     //typedef is an array from another class
-    //if((args.m_anothertduti == Nouti) && (args.m_anothertduti == auti))
     if((args.m_anothertduti != Nouti) && (args.m_anothertduti == auti))
       {
 	delete ceForArraySize;

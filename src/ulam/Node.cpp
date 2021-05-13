@@ -21,12 +21,6 @@ namespace MFM {
   Node::Node(const Node & ref) : m_state(ref.m_state), m_utype(ref.m_utype), m_storeIntoAble(ref.m_storeIntoAble), m_referenceAble(ref.m_referenceAble), m_loc(ref.m_loc), m_parentNo(ref.m_parentNo), m_no(ref.m_no) /* same NNO */
   {
     /* m_utype is sometimes known for node: terminals(varies), statements(void), nodelists(void); o.w. either Nouti or Hzy (t3361) */
-#if 0
-    if(m_state.okUTItoContinue(m_utype))
-      {
-	getNodeType();/* what is it then? */
-      }
-#endif
   }
 
   void Node::setYourParentNo(NNO pno)
@@ -1157,7 +1151,6 @@ namespace MFM {
 
 	//read method based on last cos
 	fp->write(readMethodForCodeGen(cosuti, uvpass).c_str());
-	//	if(cos->isDataMember())
 	if(cos->isDataMember() || m_state.isAltRefType(stgcosuti))
 	  {
 	    fp->write("(0u, "); //pos part of local member name (UlamRef) (e.g. t3739, 3788, 3789, 3795, 3805)
@@ -1331,9 +1324,6 @@ namespace MFM {
     fp->write(writeMethodForCodeGen(luti, luvpass).c_str());
     fp->write("(");
     fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
-    //if(ruvpass.getPassStorage() == TMPBITVAL)
-    //  fp->write(".read()"); //t41359
-
     fp->write(");"); GCNL;
 
     // inheritance cast needs the lhs type restored after the generated write

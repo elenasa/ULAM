@@ -152,7 +152,6 @@ namespace MFM{
     bool copyAnInstancesArgValues(SymbolClass * fm, SymbolClass * to);
     void cloneAnInstancesUTImap(SymbolClass * fm, SymbolClass * to);
     void initBaseClassListForAStubClassInstance(SymbolClass * newclassinstance);
-    void updateBaseClassListForAStubClassInstance(SymbolClass * tocsym);
     bool checkTemplateAncestorsAndUpdateStubBeforeAStubInstantiation(SymbolClass * stubcsym);
     void upgradeStubCopyToAStubClassInstance(UTI suti, SymbolClass * csym);
     bool flagpAsAStubForTemplate(UTI compilingthis); //helper

@@ -17,6 +17,8 @@ namespace MFM {
 
   SymbolClass::SymbolClass(const SymbolClass& sref) : Symbol(sref), m_resolver(NULL), m_parentTemplate(sref.m_parentTemplate), m_quarkunion(sref.m_quarkunion), m_stub(sref.m_stub), m_stubcopy(sref.m_stubcopy), m_stubForTemplate(false), m_stubForTemplateType(Nouti /* sref.m_stubForTemplateType*/ ), m_stubcopyOf(sref.m_stubcopyOf), /*m_defaultValue(NULL),*/ m_isreadyDefaultValue(false), m_bitsPacked(false), m_registryNumber(UNINITTED_REGISTRY_NUMBER), m_elementType(UNDEFINED_ELEMENT_TYPE), m_vtableinitialized(false)
   {
+    m_state.abortNotImplementedYet();
+
     for(u32 i = 0; i < sref.m_basestable.size(); i++)
       {
 	appendBaseClass(m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_basestable[i].m_base,sref.getLoc()), sref.isDirectSharedBase(i));
@@ -28,7 +30,6 @@ namespace MFM {
 	appendSharedBaseClass(m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_sharedbasestable[j].m_base,sref.getLoc()), sref.getNumberSharingSharedBase(j));
       }
 
-    //patched data member parse tree from stub! (t41440?)
     if(sref.m_classBlock)
       {
 	m_classBlock = (NodeBlockClass * ) sref.m_classBlock->instantiate(); //note: wasn't correct uti during cloning
@@ -65,18 +66,6 @@ namespace MFM {
     m_state.abortShouldntGetHere();
     return new SymbolClass(*this);
   }
-
-  void SymbolClass::aliasAnyCommonClassesBeforeTrashing(SymbolClass * csym)
-  {
-    assert(csym);
-    csym->aliasAnyCommonClasses(m_resolver);
-  }
-
-  void SymbolClass::aliasAnyCommonClasses(Resolver * srcresolv)
-  {
-    assert(m_resolver);
-    m_resolver->aliasAnyCommonClassesFromResolver(srcresolv);
-  } //helper
 
   void SymbolClass::setClassBlockNode(NodeBlockClass * node)
   {
@@ -295,8 +284,7 @@ namespace MFM {
 	if(m_state.isHolder(oldbaseclass))
 	  {
 	    mapUTItoUTI(oldbaseclass, superuti); //t3806
-	    //m_state.updateUTIAliasForced(oldbaseclass, superuti); //??
-	    m_state.cleanupExistingHolder(oldbaseclass, superuti); //??
+	    m_state.cleanupExistingHolder(oldbaseclass, superuti);
 	  }
       }
   }

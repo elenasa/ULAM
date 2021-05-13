@@ -4276,7 +4276,6 @@ namespace MFM {
 	    bool tmphazyargs = false;
 	    SymbolFunction * tmpfsym = NULL; //e.g. t3357
 	    u32 safematches = findMatchingFunctionWithSafeCastsInClassScope(fid, argNodes, tmpfsym, tmphazyargs, FST);
-	    //matchingFuncCount += safematches; //ALL, not just minimum (t41119)
 
 	    hasHazyArgs |= tmphazyargs; //(like t3483)
 
@@ -4322,7 +4321,6 @@ namespace MFM {
 			matchingFuncCount += safematches;
 		      }
 		//else skip this one, related and less specific.
-		//  matchingFuncCount += safematches;
 	      }
 	    else
 	      {
@@ -6099,28 +6097,6 @@ namespace MFM {
     //if we are in the middle of resolving pending args for a stub
     // and to do constant folding, we need to find the parent node that's in the
     // stub's argument list (was resolver), NOT the context where the stub appears. t3362,3,4,6,7,8..
-#if 0
-    UTI stubuti = m_pendingArgStubContext;
-    if(stubuti != Nouti)
-      {
-	rtnNode = findNodeNoInAClassOrLocalsScope(n, stubuti); //may not include ancestors, if not complete (t41225,8)
-	if(!rtnNode)
-	  rtnNode = findNodeNoInAncestorsClassOrLocalsScope(n, stubuti);
-      }
-
-    //Next, try stub's context for Arg Types..(t41214)
-    if(!rtnNode)
-      {
-	UTI typestubuti = m_pendingArgTypeStubContext;
-	if((typestubuti != Nouti) && (typestubuti != stubuti))
-	  {
-	    rtnNode = findNodeNoInAClassOrLocalsScope(n, typestubuti);
-	    if(!rtnNode)
-	      rtnNode = findNodeNoInAncestorsClassOrLocalsScope(n, typestubuti);
-	  }
-      }
-#endif
-
     if(!rtnNode)
       rtnNode = findNodeNoInThisClassOrLocalsScope(n);
 

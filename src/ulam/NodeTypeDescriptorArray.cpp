@@ -17,7 +17,6 @@ namespace MFM {
       m_nodeScalar = (NodeTypeDescriptor *) ref.m_nodeScalar->instantiate();
 
     if(ref.m_unknownArraysizeSubtree)
-      //m_unknownArraysizeSubtree = new NodeSquareBracket(*ref.m_unknownArraysizeSubtree); //mappedUTI?
       m_unknownArraysizeSubtree = (NodeSquareBracket *) ref.m_unknownArraysizeSubtree->instantiate(); //mappedUTI? t3136?
   }
 
@@ -83,14 +82,12 @@ namespace MFM {
   UTI NodeTypeDescriptorArray::resetGivenUTI(UTI guti)
   {
     assert(!m_state.isScalar(guti) || m_state.isHolder(guti));
-#if 1
     UTI galias = guti;
     if(m_state.findaUTIAlias(guti, galias)) //t41301
       {
 	if(m_state.isScalar(galias))
 	  m_state.updateUTIAliasForced(guti,guti); //undo mistaken scalar for array type
       }
-#endif
     UTI arraytype = NodeTypeDescriptor::resetGivenUTI(guti);
     assert(!m_state.isScalar(arraytype) || m_state.isHolder(arraytype));
     return arraytype;
@@ -170,7 +167,6 @@ namespace MFM {
 	    // since we're call AFTER that (not during), we can look up our
 	    // new UTI and pass that on up the line of NodeType Selects, if any.
 	    if(m_state.mappedIncompleteUTI(cuti, scuti, mappedUTI))
-	      //if(m_state.mappedIncompleteUTI(cuti, scuti, mappedUTI) && !m_state.isHolder(mappedUTI))
 	      {
 		std::ostringstream msg;
 		msg << "Substituting Mapped UTI" << mappedUTI;
@@ -197,7 +193,6 @@ namespace MFM {
 	if(resolveTypeArraysize(rtnuti, scuti))
 	  {
 	    rtnb = true;
-	    //rtnuti = nuti;
 	  }
 	else if(m_state.okUTItoContinue(rtnuti) && !m_state.isComplete(rtnuti))
 	  rtnuti = Hzy; //t3890

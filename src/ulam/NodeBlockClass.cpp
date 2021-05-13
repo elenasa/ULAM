@@ -785,7 +785,7 @@ UTI NodeBlockClass::checkMultipleInheritances()
   SymbolClass * csym = NULL;
   AssertBool isDefined = m_state.alreadyDefinedSymbolClass(nuti, csym);
   assert(isDefined);
-#if 1
+
   //try not to duplicate the baseuti for superclass (t41228?), special case.
   u32 superid = m_state.m_pool.getIndexForDataString("Super");
   UTI supertdef = Nouti;
@@ -800,7 +800,7 @@ UTI NodeBlockClass::checkMultipleInheritances()
 	  m_state.resetABaseClassItem(nuti, superuti, superalias, 0); //t41431
 	}
     }
-#endif
+
   //ulam-5 supports multiple base classes; superclass optional
   u32 basecount = csym->getBaseClassCount() + 1; //include super
   u32 i = 0;
@@ -1961,7 +1961,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	if(baseuti != Nouti)
 	  {
 	    s32 bs = m_state.getBitSize(baseuti); //may contain shared bits!
-	    //s32 bs = m_state.getBaseClassBitSize(baseuti); //only dm bits!
 	    if(bs < 0)
 	      return bs; //error if any base class size is negative
 	    else

@@ -6,10 +6,7 @@
 
 namespace MFM {
 
-  SymbolClassNameTemplate::SymbolClassNameTemplate(const Token& id, UTI utype, NodeBlockClass * classblock, CompilerState& state) : SymbolClassName(id, utype, classblock, state)
-  {
-    //setParentClassTemplate(this);
-  }
+  SymbolClassNameTemplate::SymbolClassNameTemplate(const Token& id, UTI utype, NodeBlockClass * classblock, CompilerState& state) : SymbolClassName(id, utype, classblock, state) { }
 
   SymbolClassNameTemplate::~SymbolClassNameTemplate()
   {
@@ -287,34 +284,6 @@ namespace MFM {
       }
   } //initBaseClassListForAStubClassInstance
 
-  void SymbolClassNameTemplate::updateBaseClassListForAStubClassInstance(SymbolClass * tocsym)
-  {
-    assert(tocsym);
-    // used by new, nonworking, fullyInstantiate to try to emulate SymbolClass copy constructor.
-    //UTI tocuti = tocsym->getUlamTypeIdx();
-    //from template
-    u32 basecount = SymbolClass::getBaseClassCount() + 1; //includes super
-    for(u32 i = 0; i < basecount; i++)
-      {
-	UTI baseuti = SymbolClass::getBaseClass(i);
-	//UTI tobaseuti = tocsym->getBaseClass(i);
-	//if(baseuti != tobaseuti)
-	  //tocsym->updateBaseClass(tobaseuti, i, m_state.mapIncompleteUTIForAClassInstance(tocuti, baseuti, getLoc()));
-	  //tocsym->updateBaseClass(tobaseuti, i, m_state.mapIncompleteUTIForCurrentClassInstance(baseuti, getLoc()));
-	tocsym->appendBaseClass(m_state.mapIncompleteUTIForCurrentClassInstance(baseuti, getLoc()), SymbolClass::getNumberSharingBase(i)); //works like SC ccstr
-	//tocsym->setBaseClass(m_state.mapIncompleteUTIForCurrentClassInstance(baseuti, getLoc()), i, SymbolClass::getNumberSharingBase(i)); //doesn't work like SC ccstr
-      }
-
-    for(u32 j = 0; j < SymbolClass::getSharedBaseClassCount(); j++)
-      {
-	UTI shbaseuti = SymbolClass::getSharedBaseClass(j);
-	//UTI toshbaseuti = tocsym->getSharedBaseClass(j);
-	//if(shbaseuti != toshbaseuti)
-	//tocsym->updateSharedBaseClass(toshbaseuti, j, m_state.mapIncompleteUTIForCurrentClassInstance(shbaseuti,getLoc()));
-	tocsym->appendSharedBaseClass(m_state.mapIncompleteUTIForCurrentClassInstance(shbaseuti,getLoc()),SymbolClass::getNumberSharingSharedBase(j)); //works like SC ccstr
-	//tocsym->setSharedBaseClass(m_state.mapIncompleteUTIForCurrentClassInstance(shbaseuti,getLoc()),j, SymbolClass::getNumberSharingSharedBase(j)); doesn't exist!!
-      }
-  } //updateBaseClassListForAStubClassInstance (unused)
 
   // (does not include template as an instance!)
   bool SymbolClassNameTemplate::findClassInstanceByUTI(UTI uti, SymbolClass * & symptrref)
@@ -455,18 +424,11 @@ namespace MFM {
     UTI compilingthis = m_state.getCompileThisIdx();
     if(flagpAsAStubForTemplate(compilingthis))
       newclassinstance->setStubForTemplateType(compilingthis); //t41225, t3336?
-    else if(flagpAsAStubForTemplateMemberStub(compilingthis))
-      {
-	m_state.abortNeedsATest();
-	//	argvaluecontext = m_state.getMemberStubForTemplateType(compilingthis);
-	newclassinstance->setStubForTemplateType(compilingthis); //t3852, etc..
-      }
 
     //a difference between them t41442
     if(m_state.isASeenClass(getUlamTypeIdx()))
       {
 	newclassinstance->partialInstantiationOfMemberNodesAndSymbols(*templateclassblock);
-
 	//cloneAnInstancesUTImap(this, newclassinstance); //t3384,t3565??
       } //else wait if template is unseen
 
@@ -859,10 +821,7 @@ namespace MFM {
 
   bool SymbolClassNameTemplate::statusNonreadyClassArgumentsInStubClassInstances()
   {
-#if 0
-    if(getUlamClass() == UC_UNSEEN)
-      return false; //template not seen (e.g. typo) (t41435)
-#endif
+    //if(getUlamClass() == UC_UNSEEN) return false; //template not seen (e.g. typo) (t41435)
 
     bool aok = true;
     std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
@@ -1310,7 +1269,6 @@ namespace MFM {
 	    assert(dupsym->getStubForTemplateType() == Nouti);
 	    UTI duputi = dupsym->getUlamTypeIdx();
 	    m_state.mergeClassUTI(cuti, duputi, csym->getLoc());
-	    //	    dupsym->aliasAnyCommonClassesBeforeTrashing(csym); t41361,2
 	    trashStub(cuti, csym);
 	    it->second = dupsym; //duplicate! except different UTIs
 	    it++;
@@ -1740,7 +1698,6 @@ namespace MFM {
 	      upgradeStubCopyToAStubClassInstance(stubuti, csym);
 	    else
 	      classNode->checkAndLabelType(NULL); //do each stub instance
-	    //classNode->checkArgumentNodeTypes(); //see pending class args
 
 	    m_state.popClassContext(); //restore
 	  }
@@ -2489,7 +2446,6 @@ namespace MFM {
     assert(ret.second); //false if already existed, i.e. not added
 #endif
     delete symptr; //t41433
-
   }
 
 } //end MFM

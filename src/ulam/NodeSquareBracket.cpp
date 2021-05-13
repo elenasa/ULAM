@@ -712,11 +712,6 @@ namespace MFM {
     // pending args have been resolved.
     if(m_nodeLeft)
       m_nodeLeft->clearSymbolPtr();
-#if 0
-    Symbol * tmpsym = NULL;
-    if(m_nodeRight && m_nodeRight->getSymbolPtr(tmpsym))
-      m_nodeRight->clearSymbolPtr(); //t41301??
-#endif
   }
 
   bool NodeSquareBracket::getSymbolPtr(Symbol *& symptrref)

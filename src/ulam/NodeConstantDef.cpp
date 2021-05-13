@@ -335,7 +335,6 @@ namespace MFM {
 	    msg << " UTI" << cuti;
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	    m_constSymbol->resetUlamType(duti); //consistent!
-	    //m_state.mapTypesInCurrentClass(suti, duti);
 	    suti = duti;
 	  }
 	if(changeScopeForTypesOnly)
@@ -432,7 +431,6 @@ namespace MFM {
 	    else
 	      {
 		//only possible if array type with initializers;
-		//assert(!m_state.okUTItoContinue(suti) || !m_state.isScalar(suti));
 		if(m_state.okUTItoContinue(suti) && m_state.isScalar(suti))
 		  {
 		    //error scalar with {} error (t41389, t41390)
@@ -452,9 +450,6 @@ namespace MFM {
 
 		    if(m_state.okUTItoContinue(scalarduti) && !dut->isComplete())
 		      {
-			//assert(!dut->isScalar()); //t41390 HAZ????
-			//assert(dut->isPrimitiveType()); t41261
-
 			//if here, empty arraysize depends on number of initializers
 			s32 bitsize = m_state.getBitSize(scalarduti);
 			u32 n = ((NodeList *) m_nodeExpr)->getNumberOfNodes();
@@ -474,8 +469,6 @@ namespace MFM {
 			    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 			    m_constSymbol->resetUlamType(duti); //consistent!
 			    suti = m_constSymbol->getUlamTypeIdx(); //reset after alias (t3890, t3891)
-			    //m_nodeExpr->setNodeType(duti); //replace Void too!
-			    //nuti = duti;
 			  }
 		      }
 		    //else
@@ -645,19 +638,6 @@ namespace MFM {
 		return Hzy;
 	      }
 	  }
-#if 0
-	else if(!m_constSymbol->isClassParameter())
-	  {
-	    //Expression and symbol have different UTI, but a class..So CHANGE symbol type? WHAT??
-	    // t41209, t41213, t41214
-	    if(m_state.getUlamTypeNameIdByIndex(nuti) == m_state.getUlamTypeNameIdByIndex(suti))
-	      {
-		m_constSymbol->resetUlamType(nuti);
-		suti = nuti; //t3451?
-		//alias missing?
-	      }
-	  }
-#endif
       }
 
     setNodeType(suti);
@@ -719,10 +699,6 @@ namespace MFM {
 	  {
 	    m_constSymbol = (SymbolConstantValue *) asymptr;
 	    m_constSymbol->setDeclNodeNo(getNodeNo());
-
-	    // NodeTypeDesc is the canonical type
-	    //if(m_nodeTypeDesc)
-	    //  m_nodeTypeDesc->resetGivenUTI(m_constSymbol->getUlamTypeIdx()); // invariant?
 	  }
 	else
 	  {
@@ -1140,21 +1116,14 @@ namespace MFM {
 	NodeTypeDescriptor * pnodetypedesc = NULL;
 	if(templateparamdef->getNodeTypeDescriptorPtr(pnodetypedesc))
 	  {
-	    //NodeTypeDescriptor * copynodetypedesc = new NodeTypeDescriptor(*pnodetypedesc, true);
 	    NodeTypeDescriptor * copynodetypedesc = (NodeTypeDescriptor *) pnodetypedesc->instantiate(); //t41209?
 	    assert(copynodetypedesc);
 	    copynodetypedesc->setNodeLocation(getNodeLocation()); //same loc as this node
 
-	    //UTI copyuti = copynodetypedesc->givenUTI(); //save
 	    AssertBool isset = setNodeTypeDescriptor(copynodetypedesc); //resets givenuti too.
 	    assert(isset);
 
-	    // UTI newuti = m_nodeTypeDesc->givenUTI();
-	    //assert(m_constSymbol && (m_constSymbol->getUlamTypeIdx() == newuti)); //invariant? (likely null symbol, see checkForSymbol)
-	    //assert(m_constSymbol && (m_constSymbol->getUlamTypeIdx() == Hzy)); //invariant? (likely null symbol, see checkForSymbol) t41361,
 	    assert(m_constSymbol && ((m_constSymbol->getUlamTypeIdx() == Hzy) || (m_constSymbol->getUlamTypeIdx() == m_nodeTypeDesc->givenUTI()))); //invariant? (likely null symbol, see checkForSymbol) t41361, t3326
-
-	    //assert(copyuti == pnodetypedesc->givenUTI()); //used keep type
 	    aok = true;
 	  }
       }
@@ -1366,7 +1335,6 @@ namespace MFM {
 
 	m_state.m_constantStack.storeUlamValueAtStackIndex(immUV, ((SymbolConstantValue *) m_constSymbol)->getConstantStackFrameAbsoluteSlotIndex());
       }
-    //else if(!m_nodeExpr)
     else if(m_nodeExpr->isAList() && ((NodeList*) m_nodeExpr)->isEmptyList())
       {
 	//unpacked, no inits for class, use default; support arrays
@@ -1470,8 +1438,6 @@ namespace MFM {
       {
 	if(m_constSymbol->isLocalsFilescopeDef() ||  m_constSymbol->isDataMember())
 	  {
-	    //u32 arraysize = nut->getArraySize();
-
 	    //as a "data member", locals filescope, or class arguement:
 	    // initialized in no-arg constructor (non-const)
 	    m_state.indentUlamCode(fp);

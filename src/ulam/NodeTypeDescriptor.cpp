@@ -246,7 +246,6 @@ namespace MFM {
 	    // since we're call AFTER that (not during), we can look up our
 	    // new UTI and pass that on up the line of NodeType Selects, if any.
 	    if(m_state.mappedIncompleteUTI(cuti, nuti, mappedUTI))
-	      //if(m_state.mappedIncompleteUTI(cuti, nuti, mappedUTI) && !m_state.isHolder(mappedUTI))
 	      {
 		std::ostringstream msg;
 		msg << "Substituting Mapped UTI" << mappedUTI;
@@ -280,7 +279,6 @@ namespace MFM {
       {
 	rtnb = resolveClassType(nuti);
       }
-    //else if((etyp == Holder) && !m_state.isThisLocalsFileScope())
     else if((etyp == Holder))
       {
 	if(!m_state.isThisLocalsFileScope())
@@ -323,7 +321,6 @@ namespace MFM {
     UTI nuti = rtnuti; //preset to givenUTI(), or typedef before reset
     UTI cuti = m_state.getCompileThisIdx();
 
-    //assert(getReferenceType() != ALT_NOT);
     assert((getReferenceType() != ALT_NOT) || (m_state.isAltRefType(nuti))); //t3668?
 
     //if reference is not complete, but its deref is, use its sizes to complete us.
@@ -349,7 +346,6 @@ namespace MFM {
 	    // since we're call AFTER that (not during), we can look up our
 	    // new UTI and pass that on up the line of NodeType Selects, if any.
 	    if(m_state.mappedIncompleteUTI(cuti, derefuti, mappedUTI))
-	      //if(m_state.mappedIncompleteUTI(cuti, derefuti, mappedUTI) && !m_state.isHolder(mappedUTI))
 	      {
 		std::ostringstream msg;
 		msg << "Substituting Mapped UTI" << mappedUTI;
@@ -537,7 +533,6 @@ namespace MFM {
 	if(!m_state.okUTItoContinue(nuti))
 	  {
 	    //use given UTI, not the not-ok nuti here.. (t41288)
-	    //assert(m_state.okUTItoContinue(givenUTI()) || (getReferenceType() != ALT_NOT));
 	    if(m_state.okUTItoContinue(givenUTI()) && !m_state.isHolder(givenUTI())) //t3378
 	      {
 		UlamType * nut = m_state.getUlamTypeByIndex(givenUTI());
@@ -591,8 +586,6 @@ namespace MFM {
 	      {
 		ALT tdreftype = m_state.getReferenceType(tduti);
 		UTI tdderef = m_state.getUlamTypeAsDeref(tduti);
-		//setReferenceType(tdreftype, tdderef); //t3666 (no change to givenUTI)
-		//ALT givenreftype = m_state.getReferenceType(guti); after setting??
 		if(givenreftype == tdreftype)
 		  {
 		    setReferenceType(tdreftype, tdderef); //t3666 (no change to givenUTI)

@@ -18,30 +18,6 @@ namespace MFM {
     m_mapUTItoUTI.clear();
   } //clearLeftoverSubtrees
 
-  void Resolver::aliasAnyCommonClassesFromResolver(Resolver * srcresolv)
-  {
-    assert(srcresolv);
-
-    std::map<UTI, UTI>::iterator mit = m_mapUTItoUTI.begin();
-    while(mit != m_mapUTItoUTI.end())
-      {
-	UTI a = mit->first;
-	UTI b = mit->second;
-	//look for (a)stub->(b)copy
-	if(m_state.isAClass(a))
-	  {
-	    //does src have a map for (a)
-	    UTI alias = a;
-	    if(srcresolv->findMappedUTI(a, alias))
-	      {
-		//alias (b) to source's map for same (a)
-		m_state.updateUTIAliasForced(b, alias); //FALLACY!!
-	      }
-	  }
-	mit++;
-      }
-  }
-
   void Resolver::clearLeftoverNonreadyClassArgSubtrees()
   {
     s32 nonreadyG = m_nonreadyClassArgSubtrees.size();
