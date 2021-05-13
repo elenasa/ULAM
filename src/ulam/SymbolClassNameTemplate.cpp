@@ -398,7 +398,6 @@ namespace MFM {
     bool isCATemplate = ((UlamTypeClass *) m_state.getUlamTypeByIndex(getUlamTypeIdx()))->isCustomArray();
 
     //previous block is template's class block, and new NNO here!
-    //NodeBlockClass * newblockclass = new NodeBlockClass(templateclassblock, m_state);
     NodeBlockClass * newblockclass = new NodeBlockClass(NULL, m_state);
     assert(newblockclass);
     newblockclass->setNodeLocation(typeTok.m_locator);
@@ -418,7 +417,6 @@ namespace MFM {
       ((UlamTypeClass *) m_state.getUlamTypeByIndex(stubcuti))->setCustomArray();
 
     addClassInstanceUTI(stubcuti, newclassinstance); //link here
-    //newclassinstance->mapUTItoUTI(getUlamTypeIdx(), stubcuti); //map template->instance, instead of fudging, here too??
 
     //before patching in data member symbols, like typedef "super".
     UTI compilingthis = m_state.getCompileThisIdx();
@@ -429,7 +427,6 @@ namespace MFM {
     if(m_state.isASeenClass(getUlamTypeIdx()))
       {
 	newclassinstance->partialInstantiationOfMemberNodesAndSymbols(*templateclassblock);
-	//cloneAnInstancesUTImap(this, newclassinstance); //t3384,t3565??
       } //else wait if template is unseen
 
     return newclassinstance;
@@ -556,9 +553,6 @@ namespace MFM {
 
     ULAMCLASSTYPE classtype = getUlamClass();
     assert(classtype != UC_UNSEEN);
-
-    //before iteration; go ahead and merge any entries from the non-temp map
-    //mergeClassInstancesFromTEMP(); //new here!
 
     //furthermore, this must exist by now, or else this is the wrong time to be fixing
     NodeBlockClass * templateclassblock = getClassBlockNode();
@@ -752,7 +746,6 @@ namespace MFM {
 
 	initBaseClassListForAStubClassInstance(csym);
 	cblock->initBaseClassBlockList(); //wait for c&l when no longer a stub
-	//?cloneAnInstancesUTImap(this, csym); //t3384,t3565??
 
 	it++;
       } //while any more stubs
