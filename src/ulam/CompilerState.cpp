@@ -734,37 +734,37 @@ namespace MFM {
     return ut;
   } //createUlamType
 
-  u32 CompilerState::incrementKeyToAnyUTICounter(UlamKeyTypeSignature key, UTI utarg)
+  u32 CompilerState::incrementKeyToAnyUTICounter(UlamKeyTypeSignature key, UTI utiarg)
   {
     u32 count = 0;
     std::map<UlamKeyTypeSignature, std::set<UTI>, less_than_key>::iterator it = m_keyToAnyUTI.find(key);
     if(it != m_keyToAnyUTI.end())
       {
 	assert(key == it->first);
-	it->second.insert(utarg);
+	it->second.insert(utiarg);
 	count = it->second.size();
       }
     else
       {
 	std::set<UTI> aset;
-	aset.insert(utarg);
+	aset.insert(utiarg);
 	m_keyToAnyUTI.insert(std::pair<UlamKeyTypeSignature,std::set<UTI> >(key, aset));
 	count = 1;
       }
     return count;
   } //incrementKeyToAnyUTICounter
 
-  u32 CompilerState::decrementKeyToAnyUTICounter(UlamKeyTypeSignature key, UTI utarg)
+  u32 CompilerState::decrementKeyToAnyUTICounter(UlamKeyTypeSignature key, UTI utiarg)
   {
     std::map<UlamKeyTypeSignature, std::set<UTI>, less_than_key>::iterator it = m_keyToAnyUTI.find(key);
     u32 count = 0;
     if(it != m_keyToAnyUTI.end())
       {
 	assert(key == it->first);
-	std::set<UTI>::iterator sit = it->second.find(utarg);
+	std::set<UTI>::iterator sit = it->second.find(utiarg);
 	if(sit != it->second.end())
 	  {
-	    assert(utarg == *sit);
+	    assert(utiarg == *sit);
 	    it->second.erase(sit); //decrements count
 	  }
 	count = it->second.size();
@@ -789,10 +789,10 @@ namespace MFM {
 
 
   //used to update Class' calculated bit size (setBitSize)
-  bool CompilerState::deleteUlamKeyTypeSignature(UlamKeyTypeSignature key, UTI utarg)
+  bool CompilerState::deleteUlamKeyTypeSignature(UlamKeyTypeSignature key, UTI utiarg)
   {
     bool rtnBool= false;
-    if(decrementKeyToAnyUTICounter(key, utarg) == 0)
+    if(decrementKeyToAnyUTICounter(key, utiarg) == 0)
       {
 	std::map<UlamKeyTypeSignature, UlamType *, less_than_key>::iterator it = m_definedUlamTypes.find(key);
 	if(it != m_definedUlamTypes.end())
@@ -805,6 +805,9 @@ namespace MFM {
 	    rtnBool = true;
 	  }
       }
+    UlamKeyTypeSignature nokey = getUlamTypeByIndex(Nouti)->getUlamKeyTypeSignature();
+    m_indexToUlamKey[utiarg] = nokey; //clear to Nouti key
+    incrementKeyToAnyUTICounter(nokey, utiarg); //here
     return rtnBool;
   } //deleteUlamKeyTypeSignature
 
@@ -1356,7 +1359,7 @@ namespace MFM {
       return utiArg;
 
     //for typedef array, the scalar is the primitive type
-    // maintained in the symbol!! can't get to it from utarg.
+    // maintained in the symbol!! can't get to it from utiarg.
     ULAMTYPE bUT = ut->getUlamTypeEnum();
     UlamKeyTypeSignature keyOfArg = ut->getUlamKeyTypeSignature();
     UTI cuti = keyOfArg.getUlamKeyTypeSignatureClassInstanceIdx(); // what-if a ref?
@@ -1381,7 +1384,7 @@ namespace MFM {
       return utiArg;
 
     //for typedef array, the scalar is the primitive type
-    // maintained in the symbol!! can't get to it from utarg.
+    // maintained in the symbol!! can't get to it from utiarg.
     ULAMTYPE bUT = ut->getUlamTypeEnum();
     UlamKeyTypeSignature keyOfArg = ut->getUlamKeyTypeSignature();
     UTI cuti = keyOfArg.getUlamKeyTypeSignatureClassInstanceIdx(); // what-if a ref?
@@ -2012,7 +2015,7 @@ namespace MFM {
       }
   }
 
-  u32 CompilerState::mergeClassUTI(UTI olduti, UTI cuti, Locator oldloc)
+  u32 CompilerState::mergeClassUTI(UTI olduti, UTI cuti, Locator loc)
   {
     UlamKeyTypeSignature key1 = getUlamKeyTypeSignatureByIndex(olduti);
     UlamKeyTypeSignature key2 = getUlamKeyTypeSignatureByIndex(cuti);
@@ -2032,15 +2035,27 @@ namespace MFM {
       std::ostringstream msg;
       msg << "MERGED keys of duplicate Class (UTI " << olduti << ") WITH: ";
       msg << getUlamTypeNameByIndex(cuti).c_str() << " (UTI " << cuti << ")";
-      if((olduti > 100) && (count >= ((u32)(olduti/10))))
+      msg << " count is now at " << count;
+
+#define PERCENTAGE_THRESOLD_DUPLICATE_DIVISOR 10
+
+      if((olduti > 100) && (count >= ((u32)(olduti/PERCENTAGE_THRESOLD_DUPLICATE_DIVISOR))))
 	{
-	  msg << " TOO COMMON, SUSPECT LOOPING; count is now at " << count;
-	  MSG2(getFullLocationAsString(oldloc).c_str(), msg.str().c_str(), ERR);
+	  msg << "; TOO COMMON, SUSPECT LOOPING"; // (t41452)
+	  MSG2(getFullLocationAsString(loc).c_str(), msg.str().c_str(), DEBUG);
+
+	  std::ostringstream msg;
+	  msg << "Circular reference or dependencies too complex: " << count << " copies of ";
+	  msg << getUlamTypeNameBriefByIndex(cuti).c_str() << " (UTI " << cuti << "), so far.";
+	  MSG2(getFullLocationAsString(loc).c_str(), msg.str().c_str(), ERR);
 	}
       else
-	MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
+	{
+	  MSG2(getFullLocationAsString(loc).c_str(), msg.str().c_str(), DEBUG);
+	  count = 0; //clear ok
+	}
     }
-    return count; // >0 succeeded
+    return count; // >0 too many
   } //mergeClassUTI
 
   bool CompilerState::isARootUTI(UTI auti)

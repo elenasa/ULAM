@@ -156,11 +156,26 @@ namespace MFM{
     void upgradeStubCopyToAStubClassInstance(UTI suti, SymbolClass * csym);
     bool flagpAsAStubForTemplate(UTI compilingthis); //helper
     bool flagpAsAStubForTemplateMemberStub(UTI compilingthis); //helper
+    u32 findClassInstancesByLocation(Locator loc, std::set<UTI>& asetref);
 
     bool checkSFINAE(SymbolClass * sym);
 
-    std::map<UTI, SymbolClass* > m_stubsToDelete;
-    void trashStub(UTI uti, SymbolClass * symptr);
+    struct less_than_loc
+    {
+      //see operator< in Locator
+      inline bool operator() (const Locator loc1, const Locator loc2)
+      {
+	return (loc1 < loc2);
+      }
+    };
+
+
+    //std::map<UTI, SymbolClass* > m_stubsToDelete;
+    std::map<UTI, std::map<Locator,u32>, less_than_loc > m_locStubsDeleted;
+    std::map<Locator, std::set<UTI>, less_than_loc > m_locClassInstances;
+    void trashStub(UTI duputi, SymbolClass * symptr);
+    void outputLocationsOfTrashedStubs(u32 toomany, UTI dupi);
+    void addClassInstanceByLocation(Locator loc, UTI uti);
   };
 
 }

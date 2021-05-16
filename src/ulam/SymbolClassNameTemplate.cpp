@@ -53,6 +53,7 @@ namespace MFM {
 
     m_mapOfTemplateUTIToInstanceUTIPerClassInstance.clear();
 
+#if 0
     //empty trash: delete any stubs that were replaced by full class instances
     std::map<UTI, SymbolClass* >::iterator dit = m_stubsToDelete.begin();
     while(dit != m_stubsToDelete.end())
@@ -62,7 +63,12 @@ namespace MFM {
 	dit->second = NULL;
 	dit++;
       }
-    m_stubsToDelete.clear();
+    //m_stubsToDelete.clear();
+#endif
+
+    m_locStubsDeleted.clear();
+    m_locClassInstances.clear();
+
   } //destructor
 
   void SymbolClassNameTemplate::getTargetDescriptorsForClassInstances(TargetMap& classtargets)
@@ -272,6 +278,12 @@ namespace MFM {
 		//need a copy of the super stub, and its uti
 		baseuti = Hzy; //wait until resolving loop.
 	      }
+	    else
+	      {
+		UTI balias = baseuti;
+		if(m_state.findaUTIAlias(baseuti, balias))
+		  baseuti = balias;
+	      }
 	    newclassinstance->setBaseClass(baseuti, i, sharedbase);
 	    //any superclass block links are handled during c&l
 	  }
@@ -362,6 +374,42 @@ namespace MFM {
     //new (full) entry, and owner of symbol class for class instances with args
     std::string argstring = formatAnInstancesArgValuesAsAString(uti);
     m_scalarClassArgStringsToSymbolPtr.insert(std::pair<std::string,SymbolClass*>(argstring,symptr));
+    addClassInstanceByLocation(symptr->getLoc(), uti);
+  }
+
+  void SymbolClassNameTemplate::addClassInstanceByLocation(Locator loc, UTI uti)
+  {
+    std::map<Locator, std::set<UTI>, less_than_loc >::iterator it = m_locClassInstances.find(loc);
+    if(it != m_locClassInstances.end())
+      {
+	assert(it->first == loc);
+	it->second.insert(uti);
+      }
+    else
+      {
+	std::set<UTI> aset;
+	aset.insert(uti);
+	std::pair<std::map<Locator, std::set<UTI> >::iterator, bool> ret;
+	ret = m_locClassInstances.insert(std::pair<Locator, std::set<UTI> >(loc, aset));
+	AssertBool added = ret.second; //false if already existed, i.e. not added
+	assert(added);
+
+	std::set<UTI> checkset;
+	u32 found = findClassInstancesByLocation(loc, checkset);
+	assert(found == 1); //sanity
+      }
+  }
+
+  u32 SymbolClassNameTemplate::findClassInstancesByLocation(Locator loc, std::set<UTI>& asetref)
+  {
+    u32 numfound = 0;
+    std::map<Locator, std::set<UTI>, less_than_loc >::iterator it = m_locClassInstances.find(loc);
+    if(it != m_locClassInstances.end())
+      {
+	asetref = it->second;
+	numfound = asetref.size();
+      }
+    return numfound;
   }
 
   bool SymbolClassNameTemplate::pendingClassArgumentsForStubClassInstance(UTI instance)
@@ -447,6 +495,45 @@ namespace MFM {
     UTI stubcopyof = m_state.getStubCopyOf(instance);
     bool twasastubcopy = (stubcopyof != Nouti);
     assert(!twasastubcopy);
+
+#if 0
+    //if(m_state.getThisClassForParsing() == Nouti)
+      {
+	std::set<UTI> asetbyloc;
+	u32 numfound = findClassInstancesByLocation(newloc, asetbyloc);
+	if(numfound > 0)
+	  {
+	    if(numfound == 1)
+	      {
+		UTI adupi = *asetbyloc.begin();
+		SymbolClass * dupcsym = NULL;
+		AssertBool isDefined = findClassInstanceByUTI(adupi, dupcsym);
+		assert(isDefined);
+		return dupcsym;
+	      }
+	    else
+	      {
+		//warning..heading for a looping situation? t41431,3 (2 per loc).
+		std::ostringstream msg;
+		msg << "This location has more than one (" << numfound << ") class instances ";
+		msg << "associated with it. Heading for trouble..";
+
+		u32 cntr = 0;
+		std::set<UTI>::iterator it = asetbyloc.begin();
+		while(it != asetbyloc.end())
+		  {
+		    if(cntr > 0)
+		      msg << ", ";
+		    msg << m_state.getUlamTypeNameBriefByIndex(*it).c_str();
+		    it++;
+		    cntr++;
+		  }
+		MSG(m_state.getFullLocationAsString(newloc).c_str(), msg.str().c_str(), WAIT);
+	      }
+	  }
+	//else continue
+      }
+#endif
 
     SymbolClass * csym = NULL;
     AssertBool isDefined = findClassInstanceByUTI(instance, csym);
@@ -553,6 +640,9 @@ namespace MFM {
 
     ULAMCLASSTYPE classtype = getUlamClass();
     assert(classtype != UC_UNSEEN);
+
+    //before iteration; go ahead and merge any entries from the non-temp map
+    mergeClassInstancesFromTEMP(); //new here!
 
     //furthermore, this must exist by now, or else this is the wrong time to be fixing
     NodeBlockClass * templateclassblock = getClassBlockNode();
@@ -1261,9 +1351,11 @@ namespace MFM {
 	    assert(dupsym->getContextForPendingArgValues() == Nouti);
 	    assert(dupsym->getStubForTemplateType() == Nouti);
 	    UTI duputi = dupsym->getUlamTypeIdx();
-	    m_state.mergeClassUTI(cuti, duputi, csym->getLoc());
-	    trashStub(cuti, csym);
+	    u32 toomanycount = m_state.mergeClassUTI(cuti, duputi, dupsym->getLoc());
+	    trashStub(duputi, csym);
 	    it->second = dupsym; //duplicate! except different UTIs
+	    if(toomanycount > 0)
+	      outputLocationsOfTrashedStubs(toomanycount,duputi);
 	    it++;
 	    continue;
 	  }
@@ -1380,7 +1472,7 @@ namespace MFM {
 		  }
 	      }
 	  }
-	else //neither nouti or hzy
+	else //neither nouti or hzy, waiting for fullinstiated/regular baseclasses
 	  rtnok &= !m_state.isClassAStub(stubbaseuti);
       } //for loop of bases
 
@@ -2431,14 +2523,69 @@ namespace MFM {
 
   // in case of a class stub was saved as a variable symbol in a NodeVarDecl plus ST;
   // wait to safely delete the stub even after it is fully instantiated (e.g. t3577 VG).
-  void SymbolClassNameTemplate::trashStub(UTI uti, SymbolClass * symptr)
+  void SymbolClassNameTemplate::trashStub(UTI duputi, SymbolClass * symptr)
   {
 #if 0
     std::pair<std::map<UTI,SymbolClass *>::iterator,bool> ret;
-    ret = m_stubsToDelete.insert(std::pair<UTI,SymbolClass*> (uti,symptr)); //stub
+    ret = m_stubsToDelete.insert(std::pair<UTI,SymbolClass*> (symptr->getUlamTypeIdx(),symptr)); //stub
     assert(ret.second); //false if already existed, i.e. not added
 #endif
+
+    std::map<UTI, std::map<Locator, u32>, less_than_loc>::iterator it = m_locStubsDeleted.find(duputi);
+    if(it != m_locStubsDeleted.end())
+      {
+	assert(duputi == it->first);
+	std::map<Locator, u32> * locmap = &it->second;
+	std::map<Locator, u32>::iterator mit = locmap->find(symptr->getLoc());
+	if(mit != locmap->end())
+	  {
+	    u32 loccount = mit->second;
+	    mit->second = loccount + 1;
+	  }
+	else
+	  {
+	   it->second.insert(std::pair<Locator, u32> (symptr->getLoc(), 1));
+	  }
+      }
+    else
+      {
+	std::map<Locator, u32> locmap;
+	locmap.insert(std::pair<Locator, u32>(symptr->getLoc(), 1));
+	m_locStubsDeleted.insert(std::pair<UTI, std::map<Locator,u32> >(duputi, locmap));
+      }
     delete symptr; //t41433
+  }
+
+  void SymbolClassNameTemplate::outputLocationsOfTrashedStubs(u32 toomany, UTI dupi)
+  {
+    u32 count = 0;
+    std::ostringstream msg;
+    //msg << "Too many (" << toomany << ") copies of " <<  m_state.getUlamTypeNameBriefByIndex(dupi).c_str();
+    //msg << " key found: ";
+
+    std::map<UTI, std::map<Locator, u32>, less_than_loc>::iterator it = m_locStubsDeleted.find(dupi);
+    if(it != m_locStubsDeleted.end())
+      {
+	assert(dupi == it->first);
+	std::map<Locator,u32> locmap = it->second;
+	msg << ".. " << locmap.size() << " locations responsible for the " << toomany << " copies: ";
+
+	std::map<Locator,u32>::iterator sit = locmap.begin();
+	while(sit != locmap.end())
+	  {
+	    Locator loc = sit->first;
+	    u32 numloc = sit->second;
+	    if(count > 0)
+	      msg << ", ";
+	    msg << m_state.getFullLocationAsString(loc).c_str();
+	    msg << " (" << numloc << ")";
+	    count += numloc;
+	    sit++;
+	  }
+	MSG(Symbol::getTokPtr(), msg.str().c_str(), NOTE);
+	//assert(count == toomany);
+      }
+    //else dupi not found
   }
 
 } //end MFM

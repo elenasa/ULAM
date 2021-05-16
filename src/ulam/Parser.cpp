@@ -350,7 +350,7 @@ namespace MFM {
 	AssertBool isReplaced = m_state.replaceUlamTypeForUpdatedClassType(cut->getUlamKeyTypeSignature(), Class, UC_UNSEEN, cut->isCustomArray());
 	assert(isReplaced);
 
-	cnSym->setClassBlockNode(NULL); //not reset, t3130, etc.
+	cnSym->setClassBlockNode(NULL); //not reset, t3130, etc.; t41451 assertion.
 	std::ostringstream msg;
 	msg << "Empty/Incomplete Class Definition '";
 	msg << m_state.getTokenDataAsString(iTok).c_str();

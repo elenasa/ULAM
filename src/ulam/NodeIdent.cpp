@@ -1006,7 +1006,10 @@ namespace MFM {
 	msg << "class type: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(pmcuti).c_str();
 	msg << ", first noticed at: .";  //..
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //issue 5/6/16
+	if(isUnseenClass)
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	else
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //issue 5/6/16
 
 	NodeBlockClass * ucblock = prematureclass->getClassBlockNode();
 	assert(ucblock);
@@ -1014,9 +1017,15 @@ namespace MFM {
 	imsg << ".. Another typedef for '";
  	imsg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str();
 	imsg << "' visible from here might clear the ambiguity"; //t41008
-	MSG(ucblock->getNodeLocationAsString().c_str(), imsg.str().c_str(), ERR); //ish 5/6/16,11/16/17
+	if(isUnseenClass)
+	  MSG(ucblock->getNodeLocationAsString().c_str(), imsg.str().c_str(), WAIT);
+	else
+	  MSG(ucblock->getNodeLocationAsString().c_str(), imsg.str().c_str(), ERR); //ish 5/6/16,11/16/17
 
-	return false; //quit!
+	if(isUnseenClass)
+	  m_state.removeIncompleteClassSymbolFromProgramTable(m_token); //t41451, continue..
+	else
+	  return false; //quit!
       }
 
     if(args.m_anothertduti != Nouti)
@@ -1091,6 +1100,8 @@ namespace MFM {
 		UlamKeyTypeSignature newkey(key.getUlamKeyTypeSignatureNameId(), key.getUlamKeyTypeSignatureBitSize(), key.getUlamKeyTypeSignatureArraySize(), key.getUlamKeyTypeSignatureClassInstanceIdx(), args.m_declRef); //classinstanceidx removed if not a class
 		uti = m_state.makeUlamType(newkey, bUT, classtype);
 	      }
+	    if(pmcuti)
+	      m_state.cleanupExistingHolder(pmcuti, uti); //t41451
 	  }
 
 	//create a symbol for this new ulam type, a typedef, with its type
