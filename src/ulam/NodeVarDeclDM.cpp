@@ -198,6 +198,16 @@ namespace MFM {
     //like NodeVarDecl::printNameAndType
 
     fp->write(m_state.getUlamTypeNameBriefByIndex(nuti).c_str());
+    if(m_state.isAClass(nuti)) //like baseclasses, classid for classes
+      {
+	SymbolClass * csym = NULL;
+	if(m_state.alreadyDefinedSymbolClass(nuti, csym))
+	  {
+	    fp->write(" <");
+	    fp->write_decimal_unsigned(csym->getRegistryNumber());
+	    fp->write(">");
+	  }
+      }
     fp->write("\n"); //end
 
     accumsize += nsize;

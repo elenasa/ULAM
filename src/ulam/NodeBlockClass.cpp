@@ -2465,6 +2465,24 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     u32 accumsize = 0;
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
     s32 totalsize = cut->getTotalBitSize(); //actual for elements(as in mangled name)
+    s32 freesize = 0;
+    ULAMCLASSTYPE ct = cut->getUlamClassType();
+    switch(ct)
+      {
+      case UC_ELEMENT:
+	freesize = MAXSTATEBITS - totalsize;
+	break;
+      case UC_QUARK:
+	freesize = MAXBITSPERQUARK - totalsize;
+	break;
+      case UC_TRANSIENT:
+	freesize = MAXBITSPERTRANSIENT - totalsize;
+	break;
+      case UC_LOCALSFILESCOPE:
+	return; //t3852 moot
+      default:
+	m_state.abortShouldntGetHere();
+      }
     SymbolClass * csym = NULL;
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cuti, csym);
     assert(isDefined);
@@ -2474,17 +2492,19 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.indent(fp);
     fp->write("| COMPONENTS of ");
     fp->write(cut->getUlamTypeClassNameBrief(cuti).c_str());
-    fp->write(" (");
+    fp->write(" <");
     fp->write_decimal_unsigned(csym->getRegistryNumber());
-    fp->write(")");
+    fp->write(">");
     fp->write(" (");
     fp->write_decimal(totalsize);
-    fp->write(" bits total) are: \n");
+    fp->write(" bits/");
+    fp->write_decimal(freesize);
+    fp->write(" unused): \n");
     m_state.indent(fp);
     fp->write("| \n"); //blank
 
     m_state.indent(fp);
-    fp->write("| Pos\t| Bits\t| Name\t| Type (classid)\n");
+    fp->write("| Pos\t| Bits\t| Name\t| Type <classid>\n");
 
     //ulam-5 data members precede base classes
     if(m_nodeNext)
@@ -2571,9 +2591,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     SymbolClass * csym = NULL;
     if(m_state.alreadyDefinedSymbolClass(nuti, csym))
       {
-	fp->write(" (");
+	fp->write(" <");
 	fp->write_decimal_unsigned(csym->getRegistryNumber());
-	fp->write(")");
+	fp->write(">");
       }
     fp->write("\n");
 
