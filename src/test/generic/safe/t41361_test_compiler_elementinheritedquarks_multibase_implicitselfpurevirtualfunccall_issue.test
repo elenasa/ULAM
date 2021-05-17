@@ -21,7 +21,10 @@ Uq_C2D { Int(6) m_width( 9);  Int(6) m_height( 4);  <NOMAIN> }
 ##
 ## informed by Dave ish 10/19/19; cannot recreate with this simplified test.
 ## nor with this more complicated version. what is missing?
-## eval fails, but gen code is fine.
+## eval fails, but gen code is fine; catches MatingBond.
+##
+## NOTEWORTHY: MatingBond typedef in Bond, is canonical example of stub-copies (uses) vary based
+##             on class arguments, eventhough location and argument strings are identical.
 ##
 #>QBond.ulam
  ulam 5;
@@ -35,7 +38,7 @@ quark QBond + Fail {
   ulam 3;
 quark Bond(Bits cTYPE_TAG, Bool cBOND_SIDE, Unary(4) cMAX_BOND_LENGTH=4) : Fail+BondUtils {
     typedef EventWindow.SiteNum SN;
-    typedef Bond(cTYPE_TAG,!cBOND_SIDE,cMAX_BOND_LENGTH) MatingBond;
+    typedef Bond(cTYPE_TAG,!cBOND_SIDE,cMAX_BOND_LENGTH) MatingBond; //IMPORTANT!!
 
     constant Unsigned cBOND_BITS =
       cMAX_BOND_LENGTH == 4 ? 6u :

@@ -1,0 +1,35 @@
+## -*- mode:ulam -*-
+#=t41456_test_compiler_templateclasseswithinterdependentconstantvalues_error
+#!
+./Foo.ulam:3:38: ERROR: Not ready constant for type: Unsigned(32), used with symbol name 'cFOO', while compiling Foo(0u) (UTI 32).
+./Foo.ulam:3:12: ERROR: Constant value expression for: cBAR, is not ready, still hazy, while compiling Foo(0u) (UTI 32).
+./Bar.ulam:3:38: ERROR: Not ready constant for type: Unsigned(32), used with symbol name 'cBAR', while compiling Bar(0u) (UTI 35).
+./Bar.ulam:3:12: ERROR: Constant value expression for: cFOO, is not ready, still hazy, while compiling Bar(0u) (UTI 35).
+Unrecoverable Program Type Label FAILURE.
+##
+## Dave was worried..we stop.
+##
+#>R.ulam
+  ulam 5;
+element R {
+  Int test()
+  {
+    Foo(0) f;
+    return 0;
+  }
+}
+
+#:Foo.ulam
+  ulam 5;
+quark Foo(Unsigned cFOO) {
+  constant Unsigned cBAR = Bar(cFOO).cFOO + 0u;
+}
+
+
+#:Bar.ulam
+  ulam 5;
+quark Bar(Unsigned cBAR) {
+  constant Unsigned cFOO = Foo(cBAR).cBAR + 0u;
+}
+
+#.

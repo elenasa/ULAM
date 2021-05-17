@@ -464,17 +464,21 @@ namespace MFM {
     if(isCATemplate)
       ((UlamTypeClass *) m_state.getUlamTypeByIndex(stubcuti))->setCustomArray();
 
+    newclassinstance->mapUTItoUTI(getUlamTypeIdx(), stubcuti); //map template->instance, instead of fudging.
+
     addClassInstanceUTI(stubcuti, newclassinstance); //link here
 
     //before patching in data member symbols, like typedef "super".
     UTI compilingthis = m_state.getCompileThisIdx();
-    if(flagpAsAStubForTemplate(compilingthis))
+    //if(flagpAsAStubForTemplate(compilingthis)) //a difference
+    if(flagpAsAStubForTemplate(compilingthis) || m_state.isClassAMemberStubInATemplate(compilingthis))
       newclassinstance->setStubForTemplateType(compilingthis); //t41225, t3336?
 
     //a difference between them t41442
     if(m_state.isASeenClass(getUlamTypeIdx()))
       {
 	newclassinstance->partialInstantiationOfMemberNodesAndSymbols(*templateclassblock);
+	//	cloneAnInstancesUTImap(this, newclassinstance); //t3384,t3565??
       } //else wait if template is unseen
 
     return newclassinstance;
@@ -494,7 +498,7 @@ namespace MFM {
 
     UTI stubcopyof = m_state.getStubCopyOf(instance);
     bool twasastubcopy = (stubcopyof != Nouti);
-    assert(!twasastubcopy);
+    assert(!twasastubcopy); //t41448, t41452??
 
 #if 0
     //if(m_state.getThisClassForParsing() == Nouti)
@@ -570,6 +574,7 @@ namespace MFM {
       ((UlamTypeClass *) m_state.getUlamTypeByIndex(newuti))->setCustomArray(); //t41007
 
     newclassinstance->mapUTItoUTI(instance, newuti); //map stub->stubcopy, instead of FUDGING. (t41224)
+    newclassinstance->mapUTItoUTI(getUlamTypeIdx(), newuti); //map template->instance, instead of fudging.
 
     //inheritance: (multi-inheritance ulam-5)
     initBaseClassListForAStubClassInstance(newclassinstance);
@@ -1463,7 +1468,7 @@ namespace MFM {
 		if(!gotbase)
 		  {
 		    //if superbaseuti is a stub of this template; possible un-ending (MAX_ITERATIONS)
-		    // increase in the size of m_scalarClassInstanceIdxToSymbolPtr each time we're called;
+		    // increase in size of m_scalarClassInstanceIdxToSymbolPtr each time we're called;
 		    // never resolving; should be caught at parse time (t3901)
 		    assert(m_state.getUlamTypeByIndex(superbaseuti)->getUlamTypeNameId() != getId());
 		    UTI newstubbaseuti = m_state.addStubCopyToAncestorClassTemplate(superbaseuti, stubuti, stubuti, stubcsym->getLoc()); //t41431, t3640,1
@@ -1554,6 +1559,7 @@ namespace MFM {
     //patch data members into seen-stubcopy (t3361, t3384); unseen-stubcopies fixed later
     // before the arguments cloning to insure argname ids inscope.
     csym->partialInstantiationOfMemberNodesAndSymbols(*whencecblock);
+    //csym->partialInstantiationOfMemberNodesAndSymbols(*templatecblock); //t41452 inf loop
 
     csym->cloneArgumentNodesForClassInstance(stubwhencecame, argvaluecontext, argtypecontext, true); //not in data member parse tree
 

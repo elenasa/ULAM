@@ -2997,30 +2997,30 @@ namespace MFM {
 	return Nav; //needs a test, was t41166
       }
 
-    bool hasnocontext = (stubcsym->getContextForPendingArgValues() == Nouti);
-    hasnocontext = true; //NOOP! always...t3328,t3332,6,t3497,t3886,7,8,t3890,1,2,t41223,1,8
-    if(hasnocontext) stubcsym->setContextForPendingArgValues(cuti);
+    //note: class resolver cnstr initializes value/type contexts to: cuti/stubuti
+    //assert(stubcsym->getContextForPendingArgValues() == Nouti);
+    //NOOP! always...t3328,t3332,6,t3497,t3886,7,8,t3890,1,2,t41223,1,8
+    stubcsym->setContextForPendingArgValues(cuti);
     // to support dependent parameter class stubs, use typeargs to pass along
     // the outermost stub type in case of recursion (e.g. t41214, error/t41210)
     if(typeargs.m_classInstanceIdx != Nouti)
       {
-	if(hasnocontext) stubcsym->setContextForPendingArgTypes(typeargs.m_classInstanceIdx);
+	stubcsym->setContextForPendingArgTypes(typeargs.m_classInstanceIdx);
       }
     else if(m_state.m_parsingVariableSymbolTypeFlag == STF_CLASSPARAMETER)
       {
-	//stubcsym->setContextForPendingArgTypes(m_state.getCompileThisIdx());
-	if(hasnocontext) stubcsym->setContextForPendingArgTypes(stubuti);
+	stubcsym->setContextForPendingArgTypes(stubuti);
 	typeargs.m_classInstanceIdx = cuti;
 	m_state.setStubFlagForThisClassTemplate(stubuti); //applies to stubs only, t41224
       }
     else if(m_state.m_parsingVariableSymbolTypeFlag == STF_CLASSINHERITANCE)
       {
-	if(hasnocontext) stubcsym->setContextForPendingArgTypes(stubuti); //t41223, t41221, t41224, t41226
+	stubcsym->setContextForPendingArgTypes(stubuti); //t41223, t41221, t41224, t41226
 	typeargs.m_classInstanceIdx = stubuti;
       }
     else
       {
-	if(hasnocontext) stubcsym->setContextForPendingArgTypes(stubuti);
+	stubcsym->setContextForPendingArgTypes(stubuti);
 	typeargs.m_classInstanceIdx = stubuti;
       }
 
@@ -3121,8 +3121,8 @@ namespace MFM {
 		assert(isDef);
 
 		//CONUNDRUM!! the goal?
-		//argcsym->setContextForPendingArgTypes(csym->getUlamTypeIdx());
-		//argcsym->setContextForPendingArgTypes(typeargs.m_classInstanceIdx); //t41223, t41224
+		argcsym->setContextForPendingArgTypes(cuti); //t41223, t41224
+		argcsym->setContextForPendingArgValues(cuti);
 	      }
 	  }
 	else

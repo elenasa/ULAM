@@ -819,7 +819,7 @@ UTI NodeBlockClass::checkMultipleInheritances()
 		  assert(UlamType::compare(nuti, baseuti, m_state) != UTIC_SAME);
 
 		  //if(baseuti!=mappedUTI) //t41431
-		  if(UlamType::compare(mappedUTI, baseuti, m_state) != UTIC_SAME)
+		  if((UlamType::compare(mappedUTI, baseuti, m_state) != UTIC_SAME) && !m_state.isClassAStubCopy(mappedUTI))
 		    {
 		      std::ostringstream msg;
 		      msg << "Substituting mapped UTI" << mappedUTI;
@@ -831,7 +831,7 @@ UTI NodeBlockClass::checkMultipleInheritances()
 		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 		      //need to break the chain; e.g. don't want template symbol addresses used
 		      setBaseClassBlockPointer(NULL, i); //force to try again!! avoid inf loop
-		      m_state.resetABaseClassItem(nuti, baseuti, mappedUTI, i);
+		      m_state.resetABaseClassItem(nuti, baseuti, mappedUTI, i); //t41448,t41452 stubcopy
 		      baseuti = mappedUTI;
 		    }
 		  brtnhzy |= true;

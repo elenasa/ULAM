@@ -250,6 +250,7 @@ namespace MFM {
   {
     assert(m_state.isARootUTI(newbaseclass)); //t3652
     assert(!m_state.isUrSelf(getUlamTypeIdx()));
+    assert(!isClassTemplate(getUlamTypeIdx()) || !m_state.isClassAStubCopy(newbaseclass)); //t41448
     assert(item < m_basestable.size());
     assert(m_basestable[item].m_base == oldclasstype);
     m_basestable[item].m_base = newbaseclass;
