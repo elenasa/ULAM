@@ -330,6 +330,20 @@ namespace MFM {
 	return true;
       }
 
+    //in case there a mapped UTI (t41436, t41452,3)
+    UTI mappedUTI = basicuti;
+    if(hasMappedUTI(basicuti, mappedUTI))
+      {
+	std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.find(mappedUTI);
+	if(it != m_scalarClassInstanceIdxToSymbolPtr.end())
+	  {
+	    symptrref = it->second;
+	    //maybe be duplicates, same symbol, different UTIs (t3327)
+	    assert(it->first == mappedUTI); //cheap sanity check
+	    return true;
+	  }
+      }
+
     return false;
   } //findClassInstanceByUTI
 

@@ -1,0 +1,249 @@
+## -*- mode:ulam -*-
+#=t41447_test_compiler_quarktemplatewithtypedefanddmfrombasesbasetemplateclassinstance
+##
+## gen output (+ interleaved asserts)
+##  Unsigned Arg: 7
+##  Unsigned Arg: 15
+##
+##  note: atoms are unevaluable (-11)
+#!
+Exit status: -11
+Ue_R { Int(32) test() {  System s;  LSwitch4 sw;  sw ( )behave . s ( sw m_position . cast )print . s ( sw ( )isMax . )assert . Box b;  b ( )behave . s ( b m_position . cast )print . s ( b ( )isMax . )assert . 0 cast return } }
+Uq_EventWindow { typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry;  <NOMAIN> }
+Uq_System { <NOMAIN> }
+Ue_LSwitch4 : QSwitch4(3u) { :QSwitch4(3u)< constant Unsigned(32) cPORT_BASE_IDX = 2u;  constant Unsigned(32) cPORT_WIDTH = 8u; > ^QBox(3u)< typedef Unsigned(2) Sym;  Unsigned(2) m_sym(0); > ^QLine(3u)< EventWindow ew( typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry; );  typedef Unsigned(3) Position;  Unsigned(3) m_position( 7u); > <NOMAIN> }
+Ue_Box : QLine(4u) { :QLine(4u)< EventWindow ew( typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry; );  typedef Unsigned(4) Position;  Unsigned(4) m_position( 15u); > <NOMAIN> }
+Uq_QBox(Unsigned(32) bits) : QLine(bits) { typedef Unsigned(2) Sym;  Unsigned(2) m_sym(0);  :QLine11< EventWindow ew(notready);  typedef Unsigned(UNKNOWN) Position;  Unsigned(UNKNOWN) m_position(notready); > <NOMAIN> }
+Uq_QLine(Unsigned(32) bits) { EventWindow ew(notready);  typedef Unsigned(UNKNOWN) Position;  Unsigned(UNKNOWN) m_position(notready);  <NOMAIN> }
+Uq_QSwitch4(Unsigned(32) cBITS) : QBox(bits) { constant Unsigned(32) cPORT_BASE_IDX = 1 cBITS << cast 4u /;  constant Unsigned(32) cPORT_WIDTH = 8u;  :QBox11< typedef Unsigned(2) Sym;  Unsigned(2) m_sym(0); > <NOMAIN> }
+##
+##share/ulam/demos/Router/QSwitch4.ulam:33:20: ERROR: Incomplete identifier for type: Unsigned(UNKNOWN), used with list symbol name 'm_position'.
+##share/ulam/demos/Router/QSwitch4.ulam:33:5: ERROR: Initial value expression for: idx, initialization is not ready.
+##Unrecoverable Program Type Label FAILURE.
+##
+## simplier version informed by ulamexports demo Router (does NOT recreate compiler error)
+## simplier version in ulamexports: QBox.ulam QSwitch4.ulam QLine.ulam Box.ulam
+## fails; BUT,  OK without Box.ulam; or OK with QBox anywhere else in the ordering.
+## note: ulamexports failure clue to think-o of dup class symbols and assumed symbol pts
+##
+#>R.ulam
+  ulam 5;
+use EventWindow;
+use System;
+element R {
+
+  Int test()
+  {
+    System s;
+    LSwitch4 sw;
+    sw.behave();
+    s.print(sw.m_position);
+    s.assert(sw.isMax()); //ends up where started, both clauses true
+
+    Box b;
+    b.behave();
+    s.print(b.m_position);
+    s.assert(b.isMax()); //ends up where started, both clauses true
+
+    return 0;
+  }
+}
+
+#:QBox.ulam
+  //  ulam 5;
+quark QBox(Unsigned bits) : QLine(bits)
+{
+  typedef Unsigned(2) Sym;
+  Sym m_sym;
+
+  Void nextSym() {
+    if (m_sym == m_sym.maxof) m_sym = m_sym.minof;
+    else ++m_sym;
+  }
+
+  Void prevSym() {
+    if (m_sym == m_sym.minof) m_sym = m_sym.maxof;
+    else --m_sym;
+  }
+
+    Bool updateQBox() {
+    EventWindow.Symmetry old;
+    old = ew.changeSymmetry(m_sym);
+
+    if (updateQLine())
+      return true;
+
+    Bool mod = false;
+
+    if (isMax() && ew[4] is Empty) {
+      Atom a = self.atomof;
+      Self & s = (Self&) a;
+      s.m_position = m_position.minof;
+      s.nextSym();
+      ew[4] = a;
+      /*
+      Self s = self;
+      m_position = m_position.minof;
+      nextSym();
+      ew[4] = self.storageof;
+      self = s;
+      */
+      mod = true;
+    }
+
+    if (isMin() && ew[3] is Empty) {
+      Atom a = self.atomof;
+      Self & s = (Self&) a;
+      s.m_position = m_position.maxof;
+      s.prevSym();
+      ew[3] = a;
+      /*
+      Self s = self;
+      m_position = m_position.maxof;
+      prevSym();
+      ew[3] = self.storageof;
+      self = s;
+      */
+      mod = true;
+    }
+    if (mod) return mod;
+
+    ew.changeSymmetry(old);
+
+    return mod;
+  }
+}
+
+#:QSwitch4.ulam
+  //  ulam 5;
+/**
+   A quarked-out four port data switch.  cBITS is the log2 of the side
+   of the router box.
+ */
+quark QSwitch4(Unsigned cBITS) : QBox(cBITS)
+{
+  constant Unsigned cPORT_BASE_IDX = ((Unsigned)(1<<cBITS))/4u;
+  constant Unsigned cPORT_WIDTH = 8;
+
+  Bool update() {
+
+    if (updateQBox()) return true;
+
+    Bool ret = false;
+
+    EventWindow ew;
+    ew.changeSymmetry(m_sym);
+
+    Unsigned idx = m_position;
+
+    if (idx >= cPORT_BASE_IDX &&
+        idx <= cPORT_BASE_IDX + cPORT_WIDTH) {
+      ret = true;
+    }
+
+    if (m_sym == 2 && idx == 2u && ew[11] is Empty)
+    {
+      //Router8 r8;
+      //ew[11] = r8;
+      ret = true;
+    }
+    return ret;
+  }
+}
+
+element LSwitch4 : QSwitch4(3)
+{
+  Void behave() { update(); }
+}
+
+#:QLine.ulam
+  //  ulam 5;
+quark QLine(Unsigned bits)
+{
+  EventWindow ew;
+  typedef Unsigned(bits) Position;
+
+  Position m_position = Position.maxof; //assignment for testing only!!
+
+  Bool isMin() { return m_position == Position.minof; }
+  Bool isMax() { return m_position == Position.maxof; }
+  Bool updateQLine() {
+    Bool ret = false;
+    if (!isMin() && ew[1] is Empty) {
+      //if (!isMin()) {
+      Atom a = self.atomof;
+      Self & s = (Self&) a;
+      --s.m_position;
+      ew[1] = a;
+      ret = true;
+    }
+    if (!isMax() && ew[4] is Empty) {
+      //if (!isMax()) {
+      Atom a = self.atomof;
+      Self & s = (Self&) a;
+      ++s.m_position;
+      ew[4] = a;
+      ret = true;
+    }
+    return ret;
+  }
+}
+
+#:Box.ulam
+  ulam 5;
+/**
+   Four lines.
+   \symbol Bx
+   \color #f0a
+
+   \author Dave Ackley
+   \license public-domain
+*/
+element Box : QLine(4)
+{
+    Void behave() {
+      updateQLine();
+
+      if (isMax() && ew[4] is Empty) {
+	//if (isMax()) {
+	Box b = self;
+	b.m_position = m_position.minof;
+	//b.nextSym();
+	ew[4] = b;
+      }
+
+      if (isMin() && ew[3] is Empty) {
+	//if (isMin()) {
+	Box b = self;
+	b.m_position = m_position.maxof;
+	//b.prevSym();
+	ew[3] = b;
+      }
+    }
+}
+
+#:EventWindow.ulam
+  ulam 3;
+quark EventWindow {
+    typedef Unsigned(6) SiteNum;
+    typedef Unsigned(3) Symmetry;
+
+    Symmetry changeSymmetry(Symmetry newSym){
+      return newSym--;
+    }
+
+  Atom& aref(Int index) native;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

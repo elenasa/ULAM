@@ -407,6 +407,7 @@ namespace MFM {
     if(huti == newuti) return; //short-circuit (e.g. t3378) don't use compare; maybe Hzy etyp
 
     assert(isHolder(huti) || !isComplete(huti)); //t41288, t41287; incomplete: t3378, t3380
+    assert(okUTItoContinue(newuti)); //t3868
 
     UlamType * newut = getUlamTypeByIndex(newuti);
     UlamKeyTypeSignature newkey = newut->getUlamKeyTypeSignature();
@@ -1059,15 +1060,14 @@ namespace MFM {
 	abortShouldntGetHere();
       }
     AssertBool isDef = isDefined(m_indexToUlamKey[typidx], rtnUT);
-    assert(isDef);
+    if(!isDef)
+      return getUlamTypeByIndex(Nav); //t41452,3
     return rtnUT;
   } //getUlamTypeByIndex
 
   const std::string CompilerState::getUlamTypeNameBriefByIndex(UTI uti)
   {
-    UlamType * ut = NULL;
-    AssertBool isDef = isDefined(m_indexToUlamKey[uti], ut);
-    assert(isDef);
+    UlamType * ut = getUlamTypeByIndex(uti);
     if(ut->getUlamTypeEnum() == Class)
       return ut->getUlamTypeClassNameBrief(uti);
     return ut->getUlamTypeNameBrief();
@@ -1075,10 +1075,7 @@ namespace MFM {
 
   const std::string CompilerState::getUlamTypeNameByIndex(UTI uti)
   {
-    UlamType * ut = NULL;
-    AssertBool isDef = isDefined(m_indexToUlamKey[uti], ut);
-    assert(isDef);
-
+    UlamType * ut = getUlamTypeByIndex(uti);
     return ut->getUlamTypeName(); //prettier names for internal types(error/t3113); String arrays(t3976)
   }
 

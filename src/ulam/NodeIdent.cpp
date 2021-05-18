@@ -992,7 +992,10 @@ namespace MFM {
 	msg << "class type: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(pmcuti).c_str();
 	msg << ", first noticed at: .";  //..
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //issue 5/6/16
+	if(isUnseenClass)
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	else
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //issue 5/6/16
 
 	NodeBlockClass * ucblock = prematureclass->getClassBlockNode();
 	assert(ucblock);
@@ -1000,9 +1003,14 @@ namespace MFM {
 	imsg << ".. Another typedef for '";
  	imsg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str();
 	imsg << "' visible from here might clear the ambiguity"; //t41008
-	MSG(ucblock->getNodeLocationAsString().c_str(), imsg.str().c_str(), ERR); //ish 5/6/16,11/16/17
-
-	return false; //quit!
+	if(isUnseenClass)
+	  MSG(ucblock->getNodeLocationAsString().c_str(), imsg.str().c_str(), WAIT);
+	else
+	  MSG(ucblock->getNodeLocationAsString().c_str(), imsg.str().c_str(), ERR); //ish 5/6/16,11/16/17
+	if(isUnseenClass)
+	  m_state.removeIncompleteClassSymbolFromProgramTable(m_token); //t41451, continue..
+	else
+	  return false; //quit!
       }
 
     if(args.m_anothertduti != Nouti)
@@ -1014,7 +1022,7 @@ namespace MFM {
 	    brtn = true;
 	  }
       }
-    else if(m_state.getUlamTypeByTypedefName(m_state.getTokenDataAsStringId(args.m_typeTok), tduti, tdscalaruti)) //t3674 Self;
+    else if(m_state.getUlamTypeByTypedefName(m_state.getTokenDataAsStringId(args.m_typeTok), tduti, tdscalaruti)) //t3674 Self; t41452,3
       {
 	args.m_declListOrTypedefScalarType = tdscalaruti; //not Nav when tduti is an array
 	if(checkTypedefOfTypedefSizes(args, tduti)) //ref
@@ -1043,36 +1051,46 @@ namespace MFM {
 	brtn = true;
       }
 
-    if(!m_state.okUTItoContinue(tduti))
+    //if(!m_state.okUTItoContinue(tduti))
+    if(tduti == Nav)
       brtn = false;
+    //else continue.. possibly Hzy (t3341)
 
     if(brtn)
       {
 	UTI uti = tduti;
 	UTI scalarUTI = args.m_declListOrTypedefScalarType;
-	UlamType * ut = m_state.getUlamTypeByIndex(uti);
-	ULAMTYPE bUT = ut->getUlamTypeEnum();
-	UlamKeyTypeSignature key = ut->getUlamKeyTypeSignature();
-	ULAMCLASSTYPE classtype = ut->getUlamClassType();
 
-	if(ut->isScalar() && (args.m_arraysize != NONARRAYSIZE))
+	if(uti != Hzy) //t3862
 	  {
-	    args.m_declListOrTypedefScalarType = scalarUTI = uti;
-	    // o.w. build symbol (with bit and array sizes);
-	    // arrays can't have their scalar as classInstance;
-	    // o.w., no longer findable by token.
-	    if(args.m_bitsize == 0)
-	      args.m_bitsize = ULAMTYPE_DEFAULTBITSIZE[bUT];
+	    UlamType * ut = m_state.getUlamTypeByIndex(uti);
+	    ULAMTYPE bUT = ut->getUlamTypeEnum();
+	    UlamKeyTypeSignature key = ut->getUlamKeyTypeSignature();
+	    ULAMCLASSTYPE classtype = ut->getUlamClassType();
 
-	    UlamKeyTypeSignature newarraykey(key.getUlamKeyTypeSignatureNameId(), args.m_bitsize, args.m_arraysize, scalarUTI, args.m_declRef); //classinstanceidx removed if not a class
-	    uti = m_state.makeUlamType(newarraykey, bUT, classtype);
+	    if(ut->isScalar() && (args.m_arraysize != NONARRAYSIZE))
+	      {
+		args.m_declListOrTypedefScalarType = scalarUTI = uti;
+		// o.w. build symbol (with bit and array sizes);
+		// arrays can't have their scalar as classInstance;
+		// o.w., no longer findable by token.
+		if(args.m_bitsize == 0)
+		  args.m_bitsize = ULAMTYPE_DEFAULTBITSIZE[bUT];
+
+		UlamKeyTypeSignature newarraykey(key.getUlamKeyTypeSignatureNameId(), args.m_bitsize, args.m_arraysize, scalarUTI, args.m_declRef); //classinstanceidx removed if not a class
+		uti = m_state.makeUlamType(newarraykey, bUT, classtype);
+	      }
+	    else if(m_state.getReferenceType(uti) != args.m_declRef)
+	      {
+		// could be array or scalar ref
+		UlamKeyTypeSignature newkey(key.getUlamKeyTypeSignatureNameId(), key.getUlamKeyTypeSignatureBitSize(), key.getUlamKeyTypeSignatureArraySize(), key.getUlamKeyTypeSignatureClassInstanceIdx(), args.m_declRef); //classinstanceidx removed if not a class
+		uti = m_state.makeUlamType(newkey, bUT, classtype);
+	      }
+
+	    if(pmcuti)
+	      m_state.cleanupExistingHolder(pmcuti, uti); //t41451
 	  }
-	else if(m_state.getReferenceType(uti) != args.m_declRef)
-	  {
-	    // could be array or scalar ref
-	    UlamKeyTypeSignature newkey(key.getUlamKeyTypeSignatureNameId(), key.getUlamKeyTypeSignatureBitSize(), key.getUlamKeyTypeSignatureArraySize(), key.getUlamKeyTypeSignatureClassInstanceIdx(), args.m_declRef); //classinstanceidx removed if not a class
-	    uti = m_state.makeUlamType(newkey, bUT, classtype);
-	  }
+
 	//create a symbol for this new ulam type, a typedef, with its type
 	SymbolTypedef * symtypedef = new SymbolTypedef(m_token, uti, scalarUTI, m_state);
 	m_state.addSymbolToCurrentScope(symtypedef);
@@ -1081,8 +1099,6 @@ namespace MFM {
 	symtypedef->setAutoLocalType(m_state.getReferenceType(uti));
 
 	//check if also a holder (not necessary)
-	//if(ut->isHolder()) m_state.addUnknownTypeTokenToThisClassResolver(m_token, uti);
-
 	return (m_state.isIdInCurrentScope(m_token.m_dataindex, asymptr)); //true
       }
     return false;

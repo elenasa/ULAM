@@ -1,0 +1,207 @@
+## -*- mode:ulam -*-
+#=t41455_test_compiler_templateclasseswiththreewayreferencingtypedefs
+#!
+Exit status: 0
+Ue_R { Int(32) test() {  System s;  DemoGST demo;  0 cast return } }
+Uq_System { <NOMAIN> }
+Ue_DemoGST : GeneralSpatialTree(4) { :GeneralSpatialTree(4)< constant Unsigned(32) cBITSNEEDED = 6u;  typedef Unsigned(6) EWPtr;  typedef Unsigned(2) RGBState;  constant Unsigned(2) cRED_STATE = 0u;  constant Unsigned(2) cGREEN_STATE = 1u;  constant Unsigned(2) cBLUE_STATE = 2u;  constant Unsigned(2) cDEAD_STATE = 3u;  Unsigned(6) mParentSN(0);  Unsigned(2) mRGBState( 0u);  typedef GeneralSpatialTreeVisitor(4) GSTV; > <NOMAIN> }
+Uq_GeneralSpatialTree(Unary(4) cRADIUS = 15u) { constant Unsigned(32) cBITSNEEDED = cRADIUS 1u <= ?  3u :  cRADIUS 2u == ?  4u :  cRADIUS 3u == ?  5u :  6u;  typedef Unsigned(UNKNOWN) EWPtr;  typedef Unsigned(2) RGBState;  constant Unsigned(2) cRED_STATE = 0u;  constant Unsigned(2) cGREEN_STATE = 1u;  constant Unsigned(2) cBLUE_STATE = 2u;  constant Unsigned(2) cDEAD_STATE = 3u;  Unsigned(UNKNOWN) mParentSN(notready);  Unsigned(2) mRGBState(notready);  typedef GeneralSpatialTreeVisitor(cRADIUSV) GSTV;  <NOMAIN> }
+Un_GeneralSpatialTreeVisitor(Unary(4) cRADIUSV = 15u) { typedef GeneralSpatialTreeHost(cRADIUSH) GSTH;  typedef holder GST;  <NOMAIN> }
+Un_GeneralSpatialTreeHost(Unary(4) cRADIUSH = 15u) { typedef GeneralSpatialTree(cRADIUS) GST;  <NOMAIN> }
+Un_DemoGSTV : GeneralSpatialTreeVisitor(4) { :GeneralSpatialTreeVisitor(4)< typedef GeneralSpatialTreeHost(4) GSTH;  typedef GeneralSpatialTree(4) GST; > <NOMAIN> }
+Un_DemoGSTH : GeneralSpatialTreeHost(4) { :GeneralSpatialTreeHost(4)< typedef GeneralSpatialTree(4) GST; > <NOMAIN> }
+##
+## variation on t41451, with third template class G.S.T.Host typedef, see also t41452.
+##
+#>R.ulam
+  ulam 5;
+element R {
+  Int test()
+  {
+    System s;
+    DemoGST demo;
+
+    return 0;
+  }
+}
+
+#:GeneralSpatialTree.ulam
+  ulam 5;
+quark GeneralSpatialTree(Unary(4) cRADIUS = 4u) {
+  constant Unsigned cBITSNEEDED =
+    (cRADIUS <= 1u ? 3u :
+       (cRADIUS == 2u ? 4u :
+         (cRADIUS == 3u ? 5u : 6u)));
+  typedef Unsigned(cBITSNEEDED) EWPtr;
+
+  typedef Unsigned(2) RGBState;
+  constant RGBState cRED_STATE = 0u;
+  constant RGBState cGREEN_STATE = 1u;
+  constant RGBState cBLUE_STATE = 2u;
+  constant RGBState cDEAD_STATE = 3u;
+
+  // DATA MEMBERS
+  EWPtr mParentSN;
+  RGBState mRGBState = cRED_STATE;
+
+  typedef GeneralSpatialTreeVisitor(cRADIUS) GSTV;
+  //typedef GeneralSpatialTreeHost(cRADIUS) GSTH; //LOOPING!!
+
+  // Death API
+
+  Bool die() { mRGBState = cDEAD_STATE; return true; }
+  Bool isDead() { return mRGBState == cDEAD_STATE; }
+
+  Bool decompose() {
+    if (!isDead()) return false;
+    // AND DECOMPOSE...[edited]
+    mRGBState = cDEAD_STATE;
+    return true;
+  }
+
+  // TREE API
+  Bool hasParentPtr() { return mParentSN != 0u; }
+
+  Bool traverse(GSTV & gstv) {
+    if (decompose()) return true;              // Yah We Changed Stuff
+
+    Unsigned cond = mRGBState;
+    which (cond)
+    {
+      case cDEAD_STATE:
+	{ /* "unreachable" */ }
+	case cRED_STATE:
+	  {
+	    if (!hasParentPtr() && gstv.initTraverse(self))
+	      return false;   // Root's got nothing, but OK if caller has other biz
+
+	    if (gstv.preorderStep(self))
+	      return false;         // Pre-order wants a retry later; caller biz OK
+
+	    mRGBState = cGREEN_STATE;
+	    return true;            // We changed state
+	  }
+	case cGREEN_STATE:
+	  {
+	    // Are my kids all blue?
+	    if (gstv.postorderStep(self))
+	      return false;        // Post-order wants a retry later; caller biz OK
+
+	    mRGBState = cBLUE_STATE;
+	    return true;          // We changed state
+	  }
+	case cBLUE_STATE:
+	  {
+	    // Is my parent blue?
+	    if (hasParentPtr()) {
+	      return false;       // We're waiting but caller can work
+	    }
+	    mRGBState = cRED_STATE;
+	    return true;          // We changed state
+	  }
+    }
+    return false;
+  }
+}
+
+#:GeneralSpatialTreeVisitor.ulam
+  ulam 5;
+transient GeneralSpatialTreeVisitor(Unary(4) cRADIUSV = 4u) {
+  typedef GeneralSpatialTreeHost(cRADIUSV) GSTH; //NO GOOD!!
+  typedef GSTH.GST GST;
+  //typedef GeneralSpatialTree(cRADIUSV) GST; //ok
+
+    /** \return false if new traversal set up, true if nothing changed and need to retry this step */
+  virtual Bool initTraverse(GST & root) ;
+
+  /** \return false if done, true if nothing changed and need to retry this step*/
+  virtual Bool preorderStep(GST & gst) ;
+
+  /** \return false if done, true if nothing changed and need to retry this step*/
+  virtual Bool postorderStep(GST & gst) ;
+}
+
+#:GeneralSpatialTreeHost.ulam
+  ulam 5;
+transient GeneralSpatialTreeHost(Unary(4) cRADIUSH = 4u) {
+  typedef GeneralSpatialTree(cRADIUSH) GST;
+
+  /** \return false if new traversal set up, true if nothing changed and need to retry this step */
+  virtual Bool initTraverse(GST & root) ;
+
+  /** \return false if done, true if nothing changed and need to retry this step*/
+  virtual Bool preorderStep(GST & gst) ;
+
+  /** \return false if done, true if nothing changed and need to retry this step*/
+  virtual Bool postorderStep(GST & gst) ;
+}
+
+#:DemoGSTV.ulam
+  ulam 5;
+transient DemoGSTV : GeneralSpatialTreeVisitor() {
+
+  @Override
+    virtual Bool initTraverse(GST& root) {
+    return false;
+  }
+
+  @Override
+    virtual Bool preorderStep(GST& gst) {
+    return false;
+  }
+  @Override
+    virtual Bool postorderStep(GST& gst) {
+    return false;
+  }
+}
+
+#:DemoGST.ulam
+  ulam 5;
+element DemoGST : GeneralSpatialTree() {
+  Void behave() {
+    DemoGSTV gstv;
+    if (traverse(gstv)) return;
+    //DebugUtils du;
+    //du.printContext();
+  }
+}
+
+#:DemoGSTH.ulam
+  ulam 5;
+transient DemoGSTH : GeneralSpatialTreeHost() {
+  Void behave() {
+    GST gst;
+    DemoGSTV gstv;
+    if (gst.traverse(gstv)) return;
+    //DebugUtils du;
+    //du.printContext();
+  }
+
+  @Override
+    virtual Bool initTraverse(GST& root) {
+    return false;
+  }
+
+  @Override
+    virtual Bool preorderStep(GST& gst) {
+    return false;
+  }
+  @Override
+    virtual Bool postorderStep(GST& gst) {
+    return false;
+  }
+}
+
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.
