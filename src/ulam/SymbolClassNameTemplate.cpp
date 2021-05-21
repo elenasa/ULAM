@@ -519,6 +519,8 @@ namespace MFM {
 	    newblockclass->setDataMembersSymbolTable(newuti, *blockclass);
 	  }
 #endif
+	//sets flag so that fixAnyUnseen does not partially instantiate stubcopy
+	newclassinstance->setStubCopy();
       }
     else
       {
@@ -752,13 +754,16 @@ namespace MFM {
 	// later, during c&l if a subclass, the super ptr gets the classblock of superclass
 	cblock->initBaseClassBlockList(); //wait for c&l when no longer a stub
 
-	m_state.pushClassContext(suti, cblock, cblock, false, NULL);
-	//patch in the data members nodes and symbols (t41440??)
-	cblock->setDataMembersParseTree(suti, *templateclassblock);
-	cblock->updateLineage(0); //??
-	cblock->setDataMembersSymbolTable(suti, *templateclassblock);
+	//if(!csym->isStubCopy()) //t41438,9, t41444,5
+	  {
+	    m_state.pushClassContext(suti, cblock, cblock, false, NULL);
+	    //patch in the data members nodes and symbols (t41440??)
+	    cblock->setDataMembersParseTree(suti, *templateclassblock);
+	    cblock->updateLineage(0); //??
+	    cblock->setDataMembersSymbolTable(suti, *templateclassblock);
 
-	m_state.popClassContext(); //restore
+	    m_state.popClassContext(); //restore
+	  }
 	cloneAnInstancesUTImap(this, csym); //t3384,t3565??
 
 	it++;

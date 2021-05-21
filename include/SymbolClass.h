@@ -114,6 +114,12 @@ namespace MFM{
 
     void unsetStub();
 
+    bool isStubCopy();
+
+    void unsetStubCopy();
+
+    void setStubCopy();
+
     UTI getCustomArrayType(); //by function return type
 
     u32 getCustomArrayIndexTypeFor(Node * rnode, UTI& idxuti, bool& hasHazyArgs);
@@ -220,6 +226,7 @@ namespace MFM{
     SymbolClassNameTemplate * m_parentTemplate;
     bool m_quarkunion;
     bool m_stub;
+    bool m_stubcopy;
     bool m_stubbaseForTemplate; //ulam-5 (t41440)
     BV8K m_defaultValue; //BitVector
     bool m_isreadyDefaultValue;
