@@ -3436,6 +3436,10 @@ namespace MFM {
 
     assert(cosclassut->isScalar()); //cos array (t3147-48)
 
+    //by default cos is the first data member
+    Symbol * fdmsym = cos;
+    UTI fdmclassuti = cosclassuti;
+
     bool askEffSelf = askEffectiveSelfAtRuntimeForRelPosOfBase();
     u32 pos = uvpass.getPassPos();
 
@@ -3444,6 +3448,19 @@ namespace MFM {
       {
 	u32 locpos = calcDataMemberPosOfCurrentObjectClasses(false, Nouti);
 	pos = locpos; //t41318, t3826
+      }
+    else
+      {
+	//first data member
+	s32 firstDM = isCurrentObjectsContainingFirstDataMember();
+	assert(firstDM > 0);
+	if(firstDM < (s32)(cosSize - 1))
+	  {
+	    fdmsym = m_state.m_currentObjSymbolsForCodeGen[firstDM];
+	    fdmclassuti = fdmsym->getDataMemberClass();
+	    u32 locpos = calcDataMemberPosOfCurrentObjectClassesFromFirstDMIndex(firstDM, Nouti);
+	    pos = locpos; //t41457,8,9
+	  }
       }
 
     fp->write("UlamRef<EC>("); //wrapper for local storage
@@ -3461,10 +3478,10 @@ namespace MFM {
 	    fp->write(".GetEffectiveSelf()->");
 	    fp->write(m_state.getGetRelPosMangledFunctionName(stgcosuti)); //nonatom
 	    fp->write("(");
-	    fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(cosclassuti)); //efficiency
+	    fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(fdmclassuti)); //efficiency
 	    fp->write("u ");
 	    fp->write("/* ");
-	    fp->write(m_state.getUlamTypeNameBriefByIndex(cosclassuti).c_str());
+	    fp->write(m_state.getUlamTypeNameBriefByIndex(fdmclassuti).c_str());
 	    fp->write(" */");
 	    fp->write(") - ");
 	    fp->write(stgcos->getMangledName().c_str());
@@ -4097,6 +4114,25 @@ namespace MFM {
     return indexOfLastTmp;
   } //isCurrentObjectsContainingATmpVarSymbol
 
+  //returns the index to the first object that's a data member symbol (not base type); o.w. -1 none found;
+  // first object is the storage, or reference to storage; (t41457)
+  s32 Node::isCurrentObjectsContainingFirstDataMember()
+  {
+    s32 indexOfFirstDM = -1;
+    u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
+    assert(cosSize > 1); //expect [0] to be either self or a ref
+    for(u32 i = 1; i < cosSize; i++)
+      {
+	Symbol * bsym = m_state.m_currentObjSymbolsForCodeGen[i];
+	if(bsym->isDataMember())
+	  {
+	    indexOfFirstDM = i;
+	    break;
+	  }
+      }
+    return indexOfFirstDM;
+  } //isCurrentObjectsContainingFirstDataMember
+
   // used by genHiddenArg2 for function calls; uvpass may contain the index
   // of an array item, or a specific base type that is in a shared position,
   //o.w. the current arg's tmp var (unneeded here).
@@ -4148,7 +4184,7 @@ namespace MFM {
       }
     else if(cos->isDataMember()) //also uvpass target type is stgcosuti(t3821)
       {
-	u32 newpos = calcDataMemberPosOfCurrentObjectClasses(askeffselfarg, funcclassarg);
+	u32 newpos = calcDataMemberPosOfCurrentObjectClasseso(askeffselfarg, funcclassarg);
 	posStr << newpos << "u ";
 	outputpos = false;
       }
@@ -4285,6 +4321,70 @@ namespace MFM {
       }
     return pos;
   } //calcDataMemberPosOfCurrentObjectClasses
+
+  u32 Node::calcDataMemberPosOfCurrentObjectClassesFromFirstDMIndex(u32 firstdmindex, UTI funcclassarg)
+  {
+    s32 pos = 0;
+
+    u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
+    assert(cosSize > 0);
+    assert(firstdmindex < cosSize);
+
+    //the position of the first data member's class will be askEffSelf at runtime
+    // the rest of the positions can be known at compile time, start at firstdmindex (t41457)
+    Symbol * fdmsym = m_state.m_currentObjSymbolsForCodeGen[firstdmindex];
+    UTI fdmclassuti = fdmsym->getDataMemberClass();
+    UTI cuti = fdmclassuti; //start here!
+    pos += fdmsym->getPosOffset();
+
+    for(u32 i = firstdmindex + 1; i < cosSize; i++)
+      {
+	Symbol * sym = m_state.m_currentObjSymbolsForCodeGen[i];
+	assert(sym);
+	UTI suti = sym->getUlamTypeIdx();
+	UTI sdmclass = sym->getDataMemberClass();
+	//tmpSymbols (e.g. a func return value) are not data members (t3914);
+	if(sym->isTmpVarSymbol())
+	  {
+	    assert(!((SymbolTmpVar *) sym)->isBaseClassRegNum());
+	    if(!((SymbolTmpVar *) sym)->isBaseClassRef())
+	      {
+		u32 tmprelpos; //error/t41313
+		AssertBool gottmp = m_state.getABaseClassRelativePositionInAClass(cuti, suti, tmprelpos);
+		assert(gottmp);
+
+		pos += tmprelpos;
+		pos += sym->getPosOffset();
+	      }
+	    else //ignore BaseClassTypes (implicit in data member class of next symbol)
+	      {
+		m_state.abortNeedsATest();
+		suti = cuti; //t41460 ??
+	      }
+	  }
+	else
+	  {
+	    //not a tmpvar
+	    u32 relpos;
+	    if(m_state.getABaseClassRelativePositionInAClass(cuti, sdmclass, relpos))
+	      {
+		pos += relpos;
+		suti = sdmclass;
+	      }
+	    pos += sym->getPosOffset();
+	  }
+	cuti = suti; //next in line
+      } //forloop
+
+    if((funcclassarg != Nouti) && m_state.isClassASubclassOf(cuti, funcclassarg))
+      {
+	u32 funcclassrelpos = 0;
+	AssertBool gotrelpos = m_state.getABaseClassRelativePositionInAClass(cuti, funcclassarg, funcclassrelpos);
+	assert(gotrelpos);
+	pos += funcclassrelpos;
+      }
+    return pos;
+  } //calcDataMemberPosOfCurrentObjectClassesFromFirstDMIndex
 
   // true means we can't know rel pos of 'stg' until runtime; o.w. known at compile time.
   // invarients: pos points to the 'stg' type, refs cannot be dm.

@@ -328,12 +328,18 @@ enum EvalStatus {ERROR, NOTREADY, NORMAL, RETURN, BREAK, CONTINUE, UNEVALUABLE};
     //index of last tmp symbol object; o.w.-1
     s32 isCurrentObjectsContainingATmpVarSymbol();
 
+    //index of first DM symbol object; o.w.-1
+    s32 isCurrentObjectsContainingFirstDataMember();
+
     // used by genHiddenArg2 for function calls;
     std::string calcPosOfCurrentObjectClassesAsString(const UVPass& uvpass, bool adjstEle, bool askeffselfarg, UTI funcclassarg);
 
     //called when (implicit self) data member is a complete class;
     //pos known at compile time (e.g. t3541)
     u32 calcDataMemberPosOfCurrentObjectClasses(bool askingeffself, UTI funcclassarg);
+
+    //called when storage is a ref, but pos from first data member is known at compile time
+    u32 calcDataMemberPosOfCurrentObjectClassesFromFirstDMIndex(u32 firstdmindex, UTI funcclassarg);
 
     //true means we can't know rel pos of 'stg' until runtime; o.w. known at compile time.
     bool askEffectiveSelfAtRuntimeForRelPosOfBase(UTI funcclassarg = Nouti);
