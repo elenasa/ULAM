@@ -447,6 +447,7 @@ namespace MFM {
 
     //previous block is template's class block, and new NNO here!
     NodeBlockClass * newblockclass = new NodeBlockClass(NULL, m_state);
+    //NodeBlockClass * newblockclass = new NodeBlockClass(templateclassblock, m_state);
     assert(newblockclass);
     newblockclass->setNodeLocation(typeTok.m_locator);
     newblockclass->setNodeType(stubcuti);
@@ -471,14 +472,15 @@ namespace MFM {
     //before patching in data member symbols, like typedef "super".
     UTI compilingthis = m_state.getCompileThisIdx();
     //if(flagpAsAStubForTemplate(compilingthis)) //a difference
-    if(flagpAsAStubForTemplate(compilingthis) || m_state.isClassAMemberStubInATemplate(compilingthis))
+    if(flagpAsAStubForTemplate(compilingthis) || flagpAsAStubForTemplateMemberStub(compilingthis))
       newclassinstance->setStubForTemplateType(compilingthis); //t41225, t3336?
 
     //a difference between them t41442
     if(m_state.isASeenClass(getUlamTypeIdx()))
       {
-	newclassinstance->partialInstantiationOfMemberNodesAndSymbols(*templateclassblock);
-	//	cloneAnInstancesUTImap(this, newclassinstance); //t3384,t3565??
+	//if(!newclassinstance->isStubForTemplate())
+	  newclassinstance->partialInstantiationOfMemberNodesAndSymbols(*templateclassblock);
+	cloneAnInstancesUTImap(this, newclassinstance); //t3384,t3565??
       } //else wait if template is unseen
 
     return newclassinstance;
@@ -545,20 +547,24 @@ namespace MFM {
 
     assert(!csym->isStubCopy());
     assert(csym->isStub());
-    assert(csym->pendingClassArgumentsForClassInstance());
+    assert(csym->pendingClassArgumentsForClassInstance()); //t41222
 
+    NodeBlockClass * blockclass = csym->getClassBlockNode();
+    assert(blockclass);
     NodeBlockClass * templateclassblock = getClassBlockNode();
     assert(templateclassblock);
     bool isCATemplate = ((UlamTypeClass *) m_state.getUlamTypeByIndex(getUlamTypeIdx()))->isCustomArray();
 
     NodeBlockClass * newblockclass = new NodeBlockClass(NULL, m_state);
+    //NodeBlockClass * newblockclass = new NodeBlockClass(templateclassblock, m_state);
     assert(newblockclass);
     newblockclass->setNodeLocation(newloc); //questionable LOC? t41221
-    newblockclass->setNodeType(newuti);
-    newblockclass->resetNodeNo(templateclassblock->getNodeNo()); //keep NNO consistent (new)
 
     //provides proper context for setting type (e.g. t3640)
     m_state.pushClassContext(newuti, newblockclass, newblockclass, false, NULL);
+
+    newblockclass->setNodeType(newuti);
+    newblockclass->resetNodeNo(templateclassblock->getNodeNo()); //keep NNO consistent (new)
 
     Token stubTok(TOK_TYPE_IDENTIFIER,csym->getLoc(), getId());
 
@@ -573,12 +579,15 @@ namespace MFM {
     if(isCATemplate)
       ((UlamTypeClass *) m_state.getUlamTypeByIndex(newuti))->setCustomArray(); //t41007
 
+#if 1
     newclassinstance->mapUTItoUTI(instance, newuti); //map stub->stubcopy, instead of FUDGING. (t41224)
-    newclassinstance->mapUTItoUTI(getUlamTypeIdx(), newuti); //map template->instance, instead of fudging.
+    newclassinstance->mapUTItoUTI(getUlamTypeIdx(), newuti); //map template->instance, instead of fudging
+#endif
 
     //inheritance: (multi-inheritance ulam-5)
     initBaseClassListForAStubClassInstance(newclassinstance);
 
+#if 0
     //before patching in data member symbols, like typedef "super".
     if(flagpAsAStubForTemplate(compilingthis))
       {
@@ -589,13 +598,56 @@ namespace MFM {
 	UTI ttype = m_state.getMemberStubForTemplateType(compilingthis);
 	newclassinstance->setStubForTemplateType(ttype);
       }
+#else
+    //before patching in data member symbols, like typedef "super". develop version uses context
+    if(flagpAsAStubForTemplate(argvaluecontext))
+      {
+	newclassinstance->setStubForTemplateType(argvaluecontext); //t41225? t41224, t41436
+      }
+    else if(flagpAsAStubForTemplateMemberStub(argvaluecontext)) //t41436? different here
+      {
+	UTI ttype = m_state.getMemberStubForTemplateType(argvaluecontext);
+	newclassinstance->setStubForTemplateType(ttype);
+      }
+#endif
 
-    //wait for merge to clone arg nodes (t41361?)
-    newclassinstance->setContextForPendingArgValues(argvaluecontext);
-    newclassinstance->setContextForPendingArgTypes(argtypecontext);
+#if 0
+    //t41436 mid-parsing template, with typedef to a stub whose template has been seen...but it has
+    //       a typedef back to us! unseen stub vs sort-of "seen" template!!
+    // we are in the middle of fully instantiating (context) or parsing;
+    // with known args that we want to use to resolve, if possible, these pending args:
+    if(copyAnInstancesArgValues(csym, newclassinstance))
+      {
+	//can't addClassInstanceUTI(newuti, newclassinstance) ITERATION IN PROGRESS!!!
+	m_scalarClassInstanceIdxToSymbolPtrTEMP.insert(std::pair<UTI,SymbolClass*> (newuti,newclassinstance));
+
+	newclassinstance->cloneArgumentNodesForClassInstance(csym, argvaluecontext, argtypecontext, true);
+	//cloneAnInstancesUTImap(csym,newclassinstance); //t3764,5,6..NO WAY
+	csym->cloneResolverUTImap(newclassinstance); //t3383,t3392,4,5..
+
+	blockclass->copyUlamTypeKeys(newblockclass); //t3895, maybe
+
+	//partialInstantion makes tests worse!! gah
+	//NO wait for merge to clone arg nodes (t41361?) ????
+	//newclassinstance->setContextForPendingArgValues(argvaluecontext);
+	//newclassinstance->setContextForPendingArgTypes(argtypecontext);
+
+	newclassinstance->setStubCopy(); //effects getUlamTypeNameBriefByIndex..
+	newclassinstance->setStubCopyOf(instance); //effects upgradeStubCopyToAStub..
+      }
+    else
+      {
+	delete newclassinstance; //failed e.g. wrong number of args
+	newclassinstance = NULL;
+      }
+#endif
 
     //can't addClassInstanceUTI(newuti, newclassinstance) ITERATION IN PROGRESS!!!
     m_scalarClassInstanceIdxToSymbolPtrTEMP.insert(std::pair<UTI,SymbolClass*> (newuti,newclassinstance));
+
+    newclassinstance->setContextForPendingArgValues(argvaluecontext);
+    newclassinstance->setContextForPendingArgTypes(argtypecontext);
+
     newclassinstance->setStubCopy(); //effects getUlamTypeNameBriefByIndex..
     newclassinstance->setStubCopyOf(instance); //effects upgradeStubCopyToAStub..
 
@@ -623,6 +675,7 @@ namespace MFM {
   {
     if(m_state.isClassAMemberStubInATemplate(compilingthis))
       {
+	//return true; //regardless
 	if((m_state.m_parsingVariableSymbolTypeFlag == STF_CLASSINHERITANCE))
 	  return true;
 	if((m_state.m_parsingVariableSymbolTypeFlag == STF_CLASSPARAMETER))
@@ -647,7 +700,7 @@ namespace MFM {
     assert(classtype != UC_UNSEEN);
 
     //before iteration; go ahead and merge any entries from the non-temp map
-    mergeClassInstancesFromTEMP(); //new here!
+    //mergeClassInstancesFromTEMP(); //new here!
 
     //furthermore, this must exist by now, or else this is the wrong time to be fixing
     NodeBlockClass * templateclassblock = getClassBlockNode();
@@ -682,6 +735,9 @@ namespace MFM {
 
 	NodeBlockClass * cblock = csym->getClassBlockNode();
 	assert(cblock);
+
+	assert(cblock->getNodeNo() == templateclassblock->getNodeNo()); //keep NNOs consistent, sanity or set?
+	//	assert(cblock->getPreviousBlockPointer() == templateclassblock); //sanity or set??
 
 	//can have 0Holder symbols for possible typedefs seen from another class
 	//which will increase the count of symbols; can only test for at least;
@@ -753,6 +809,26 @@ namespace MFM {
 		((SymbolConstantValue *) argsym)->changeConstantId(sid, m_parameterSymbols[i]->getId());
 		cblock->replaceIdInScope(sid, m_parameterSymbols[i]->getId(), argsym);
 
+#if 1
+		UTI puti = m_parameterSymbols[i]->getUlamTypeIdx();
+		UTI auti = m_state.mapIncompleteUTIForAClassInstance(typecontext, puti, argsym->getLoc());
+		argsym->resetUlamType(auti); //default was Hzy
+		if(m_state.isHolder(auti))
+		  {
+		    //auti gets added to this stub' resolver
+		    Token * argTokPtr = argsym->getTokPtr();
+		    Token argTok(*argTokPtr);
+		    m_state.addUnknownTypeTokenToAClassResolver(suti, argTok, auti); //t41216
+		  }
+		else if(m_state.isAClass(auti) && m_state.isClassAStub(auti))
+		  {
+		    SymbolClass * argcsym = NULL;
+		    AssertBool isDef = m_state.alreadyDefinedSymbolClass(auti, argcsym);
+		    assert(isDef);
+		    argcsym->setContextForPendingArgTypes(suti); //t41209
+		  }
+#endif
+
 		//any type descriptors need to be copied (t41209,t41211);
 		//including classes that might be holders (t41216)
 		NodeConstantDef * paramConstDef = (NodeConstantDef *) templateclassblock->getParameterNode(i);
@@ -767,7 +843,6 @@ namespace MFM {
 
 		stubConstDef->fixPendingArgumentNode(); //name m_cid
 		foundArgs++;
-
 	      }
 	    else
 	      {
@@ -835,16 +910,19 @@ namespace MFM {
 	m_state.popClassContext(); //restore current block push
 	m_state.popClassContext(); //restore context push
 
+	// class instance's prev classblock is linked to its template's when stub is made.
+	// later, during c&l if a subclass, the super ptr gets the classblock of superclass
+	//initBaseClassListForAStubClassInstance(csym);
+	cblock->initBaseClassBlockList(); //wait for c&l when no longer a stub
 
 	//makeAStub, upgradeStubCopy both patch in data members after arguments fixed (t3895)
-	csym->partialInstantiationOfMemberNodesAndSymbols(*templateclassblock);
+	//if(!csym->isStubForTemplate())
+	  csym->partialInstantiationOfMemberNodesAndSymbols(*templateclassblock);
 
-	initBaseClassListForAStubClassInstance(csym);
-	cblock->initBaseClassBlockList(); //wait for c&l when no longer a stub
+	cloneAnInstancesUTImap(this, csym); //t3384,t3565??
 
 	it++;
       } //while any more stubs
-
   } //fixAnyUnseenClassInstances
 
   //called during parsing, similar to fixAnyUnseenClassInstances for seen templates
@@ -904,6 +982,7 @@ namespace MFM {
       }
 
     m_state.popClassContext(); //restore
+    assert(stubcsym->getContextForPendingArgValues() != Nouti); //sanity or set??
   } //fixAClassStubsDefaultArgs
 
 
@@ -916,11 +995,12 @@ namespace MFM {
     while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
       {
 	SymbolClass * csym = it->second;
+	UTI cuti = csym->getUlamTypeIdx();
 
-	if(checkSFINAE(csym))
+	if(checkSFINAE(csym) && csym->isClassTemplate(cuti))
 	  {
 	    it++;
-	    continue; //skip templates Mon Jun 20 10:36:42 2016
+	    continue; //skip only templates (t41222)
 	  }
 
 	if(csym->isStubCopy())
@@ -932,7 +1012,6 @@ namespace MFM {
 	//push to Resolver to skip stubs that will never get resolved (e.g. t3787)
 	NodeBlockClass * classNode = csym->getClassBlockNode();
 	assert(classNode);
-	UTI cuti = csym->getUlamTypeIdx();
 
 	m_state.pushClassContext(cuti, classNode, classNode, false, NULL);
 
@@ -1296,10 +1375,161 @@ namespace MFM {
     return false; //excludes template definition as instance t3526
   } //mapInstanceUTI
 
+#if 0
+  //original working version:
+  bool SymbolClassNameTemplate::fullyInstantiate()
+  {
+    bool aok = true; //all done
+
+    // in case of leftovers from previous resolving loop;
+    // could result from a different class' instantiation.
+    //mergeClassInstancesFromTEMP();
+
+    if(m_scalarClassInstanceIdxToSymbolPtr.empty())
+      return true;
+
+    NodeBlockClass * templatecblock = getClassBlockNode();
+    if(!templatecblock)
+      {
+	std::ostringstream msg;
+	msg << "Cannot fully instantiate a template class '";
+	msg << m_state.getUlamTypeNameByIndex(getUlamTypeIdx()).c_str();
+	msg << "' without a definition (maybe not a class at all)";
+	MSG(Symbol::getTokPtr(), msg.str().c_str(), ERR);
+	return false;
+      }
+
+    UTI tuti = getUlamTypeIdx();
+    bool isCATemplate = ((UlamTypeClass *) m_state.getUlamTypeByIndex(tuti))->isCustomArray();
+
+    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
+    while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
+      {
+	SymbolClass * csym = it->second;
+	UTI cuti = csym->getUlamTypeIdx();
+
+	if(checkSFINAE(csym) && csym->isClassTemplate(cuti))
+	  {
+	    it++;
+	    continue; //skip templates only (t41222)
+	  }
+
+	if(!csym->isStub())
+	  {
+	    it++;
+	    continue; //already done
+	  }
+
+	if(csym->isStubCopy())
+	  {
+	    //aok &= false;
+	    it++;
+	    continue; //have to wait (t3640, t41448)
+	  }
+
+	//ask stub class symbol..
+	if(csym->pendingClassArgumentsForClassInstance())
+	  {
+	    aok &= false;
+	    it++;
+	    continue; //have to wait
+	  }
+
+	//have we seen these args before?
+	SymbolClass * dupsym = NULL;
+	if(findClassInstanceByArgString(cuti, dupsym))
+	  {
+	    assert(dupsym->getContextForPendingArgValues() == Nouti);
+	    assert(dupsym->getStubForTemplateType() == Nouti);
+	    UTI duputi = dupsym->getUlamTypeIdx();
+	    m_state.mergeClassUTI(cuti, duputi, dupsym->getLoc());
+	    trashStub(duputi, csym);
+	    it->second = dupsym; //duplicate! except different UTIs
+	    it++;
+	    continue;
+	  }
+
+	//check for any ancestor stubs needed..may update stub
+	if(!checkTemplateAncestorsAndUpdateStubBeforeAStubInstantiation(csym))
+	  {
+	    aok &= false;
+	    it++;
+	    continue; //have to wait
+	  }
+
+	// first time for this cuti, and ready args!
+	m_state.pushClassContext(cuti, NULL, NULL, false, NULL);
+	csym->mapUTItoUTI(tuti, cuti); //map template->instance, instead of fudging.
+	//assert(mappedUTI == cuti); //may substitutes previously mapped uti instead of cuti.
+
+	SymbolClass * clone = new SymbolClass(*this); // no longer a stub!
+
+	//at this point we have a NodeBlockClass! update the context
+	//keep the template's location (for targetmap)
+	NodeBlockClass * classNode = clone->getClassBlockNode();
+	assert(classNode);
+
+	m_state.popClassContext();
+	m_state.pushClassContext(cuti, classNode, classNode, false, NULL);
+
+	//DON'T re-patch in the nodeblockclass parse tree from stub (t41440?, t3328?)
+
+	//set previous block pointer for function definition blocks, as updating lineage
+	// to this class block
+	classNode->updatePrevBlockPtrOfFuncSymbolsInTable();
+
+	//set super block pointer to this class block during c&l
+	classNode->initBaseClassBlockList(); //clear in case of stubs
+
+	//copy the context, where stub used
+	clone->setContextForPendingArgValues(csym->getContextForPendingArgValues());
+
+	//replace type context, usually the stub itself, missing?
+	clone->setContextForPendingArgTypes(csym->getContextForPendingArgTypes());
+
+	if(!takeAnInstancesArgValues(csym, clone)) //instead of keeping template's unknown values
+	  {
+	    aok &= false;
+	    delete clone;
+	  }
+	else
+	  {
+	    clone->cloneArgumentNodesForClassInstance(csym, csym->getContextForPendingArgValues(), csym->getContextForPendingArgTypes(), false); //Not in data member parse tree
+	    cloneAnInstancesUTImap(csym, clone);
+	    csym->getClassBlockNode()->copyUlamTypeKeys(classNode); //t3895
+
+	    //assert(clone->getUlamTypeIdx() == cuti); //insane!!
+	    assert(it->first == cuti); //insane!!
+	    it->second = clone; //replace with the full copy
+	    trashStub(cuti, csym);
+
+	    addClassInstanceByArgString(cuti, clone); //new entry, and owner of symbol class
+
+	    if(isCATemplate)
+	      ((UlamTypeClass *) m_state.getUlamTypeByIndex(cuti))->setCustomArray();
+
+	    clone->unsetStub();
+	    clone->clearStubForTemplate(); //useful, may not apply, as a duplicate class
+	    clone->setContextForPendingArgValues(Nouti);
+	    clone->setContextForPendingArgTypes(Nouti);
+	  }
+	m_state.popClassContext(); //restore
+	it++;
+      } //while
+
+    // done with iteration; go ahead and merge any entries into the non-temp map
+    //mergeClassInstancesFromTEMP(); //try at end as well for inherited stubs.
+    return aok;
+  } //fullyInstantiate
+#else
   //new version...not fully working yet...
   bool SymbolClassNameTemplate::fullyInstantiate()
   {
     bool aok = true; //all done
+
+    // in case of leftovers from previous resolving loop;
+    // could result from a different class' instantiation.
+    //mergeClassInstancesFromTEMP();
 
     if(m_scalarClassInstanceIdxToSymbolPtr.empty())
       return true;
@@ -1322,10 +1552,10 @@ namespace MFM {
 	SymbolClass * csym = it->second;
 	UTI cuti = csym->getUlamTypeIdx();
 
-	if(checkSFINAE(csym))
+	if(checkSFINAE(csym) && csym->isClassTemplate(cuti))
 	  {
 	    it++;
-	    continue; //skip templates Mon Jun 20 10:36:42 2016
+	    continue; //skip templates only (t41222)
 	  }
 
 	if(!csym->isStub())
@@ -1336,7 +1566,7 @@ namespace MFM {
 
 	if(csym->isStubCopy())
 	  {
-	    aok &= false;
+	    //aok &= false;
 	    it++;
 	    continue; //have to wait (t3640)
 	  }
@@ -1360,7 +1590,16 @@ namespace MFM {
 	    trashStub(duputi, csym);
 	    it->second = dupsym; //duplicate! except different UTIs
 	    if(toomanycount > 0)
-	      outputLocationsOfTrashedStubs(toomanycount,duputi);
+	      {
+#if 1
+		std::ostringstream msg;
+		msg << "Circular reference or dependencies too complex: " << toomanycount << " copies of ";
+		msg << m_state.getUlamTypeNameBriefByIndex(duputi).c_str() << " (UTI " << duputi << "), so far.";
+		MSG(m_state.getFullLocationAsString(dupsym->getLoc()).c_str(), msg.str().c_str(), ERR);
+#endif
+		outputLocationsOfTrashedStubs(toomanycount,duputi);
+		aok &= false;  // error/t41455, t41452
+	      }
 	    it++;
 	    continue;
 	  }
@@ -1386,6 +1625,9 @@ namespace MFM {
 
 	addClassInstanceByArgString(cuti, csym); //new entry, and owner of symbol class
 
+	AssertBool verifd = verifySelfAndSuperTypedefs(cuti, csym);
+        assert(verifd);
+
 	csym->unsetStub();
 	csym->clearStubForTemplate(); //useful, may not apply, as a duplicate class
 	csym->setContextForPendingArgValues(Nouti);
@@ -1397,6 +1639,7 @@ namespace MFM {
 
     return aok;
   } //fullyInstantiate
+#endif
 
   bool SymbolClassNameTemplate::checkTemplateAncestorsAndUpdateStubBeforeAStubInstantiation(SymbolClass * stubcsym)
   {
@@ -1479,12 +1722,28 @@ namespace MFM {
 	  }
 	else //neither nouti or hzy, waiting for fullinstiated/regular baseclasses
 	  rtnok &= !m_state.isClassAStub(stubbaseuti);
+
       } //for loop of bases
 
     //    rtnok &= !m_state.hasHazyClassInHierarchy(stubcsym->getUlamTypeIdx());
     return rtnok;
   } //checkTemplateAncestorsAndUpdateStubBeforeAStubInstantiation
 
+  bool SymbolClassNameTemplate::verifySelfAndSuperTypedefs(UTI cuti, SymbolClass * csym)
+  {
+    //internal processing, not caused by user; no error messages.
+    bool aok = true;
+    u32 selftypeid = m_state.m_pool.getIndexForDataString("Self");
+    UTI selftdef = Nouti;
+    UTI scalarselftdef = Nouti;
+    aok = (m_state.getUlamTypeByTypedefName(selftypeid, selftdef, scalarselftdef) && (selftdef == cuti));
+    UTI superuti = csym->getBaseClass(0);
+    u32 supertypeid = m_state.m_pool.getIndexForDataString("Super");
+    UTI supertdef = Nouti;
+    UTI scalarsupertdef = Nouti;
+    aok &= (m_state.getUlamTypeByTypedefName(supertypeid, supertdef, scalarsupertdef) && (supertdef == superuti));
+    return aok;
+  } //verifySelfAndSuperTypedefs
 
   void SymbolClassNameTemplate::mergeClassInstancesFromTEMP()
   {
@@ -1554,7 +1813,10 @@ namespace MFM {
     assert(whencecblock);
 
     whencecblock->copyUlamTypeKeys(cblock); //t3895, maybe
-    cloneAnInstancesUTImap(stubwhencecame,csym); //nicer postfix answers (t3764,5,6..)
+    //cloneAnInstancesUTImap(stubwhencecame, csym); //nicer postfix answers (t3764,5,6..)
+    stubwhencecame->cloneResolverUTImap(csym); //t3383,t3392,4,5..
+
+    //copyAnInstancesArgValues(stubwhencecame, csym); ///??dup partial ins???
 
     //patch data members into seen-stubcopy (t3361, t3384); unseen-stubcopies fixed later
     // before the arguments cloning to insure argname ids inscope.
@@ -1695,7 +1957,7 @@ namespace MFM {
 	if(checkSFINAE(csym))
 	  {
 	    it++;
-	    continue; //skip templates Mon Jun 20 10:36:42 2016
+	    continue; //skip templates and template member stubs
 	  }
 
 	UTI cuti = csym->getUlamTypeIdx();
@@ -1769,14 +2031,11 @@ namespace MFM {
     //template data members, constants, typedefs not c&l here (t41432)
     assert(getUlamClass() != UC_UNSEEN);
 
-    mergeClassInstancesFromTEMP(); //new here! (t41436)
-
-    //what about stubs (t41440?)
     std::map<UTI, SymbolClass* >::iterator stubit = m_scalarClassInstanceIdxToSymbolPtr.begin();
     while(stubit != m_scalarClassInstanceIdxToSymbolPtr.end())
       {
 	SymbolClass * csym = stubit->second;
-	if(csym->isStub())
+	if(csym->isStub() && !csym->isStubCopy())
 	  {
 	    UTI stubuti = csym->getUlamTypeIdx();
 
@@ -1785,10 +2044,8 @@ namespace MFM {
 
 	    m_state.pushClassContext(stubuti, classNode, classNode, false, NULL);
 
-	    if(csym->isStubCopy())
-	      upgradeStubCopyToAStubClassInstance(stubuti, csym);
-	    else
-	      classNode->checkAndLabelType(NULL); //do each stub instance
+	    //no need to stub checkArguments (errors: t3444,t3520,t41204,t41454) overkill!
+	    classNode->checkAndLabelType(NULL); //do each stub instance
 
 	    m_state.popClassContext(); //restore
 	  }
@@ -1807,9 +2064,10 @@ namespace MFM {
 	  {
 	    m_state.pushClassContext(cuti, classNode, classNode, false, NULL);
 
+	    classNode->checkArgumentNodeTypes(); //checks unsupported types (t3894,t3895,t3898),t41324
+
 	    classNode->checkAndLabelType(NULL); //do each instance
 
-	    classNode->checkArgumentNodeTypes(); //unsupported types (t3894,t3895,t3898)
 
 	    m_state.popClassContext(); //restore
 	  }
@@ -1822,6 +2080,30 @@ namespace MFM {
 	    MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
 	it++;
+      }
+
+    //LASTLY, upgrade stub copies to stub status..c&l next time round
+    mergeClassInstancesFromTEMP(); //new here! (t41436)
+
+    //what about stub copies (t41440?)
+    std::map<UTI, SymbolClass* >::iterator stubcpit = m_scalarClassInstanceIdxToSymbolPtr.begin();
+    while(stubcpit != m_scalarClassInstanceIdxToSymbolPtr.end())
+      {
+	SymbolClass * csym = stubcpit->second;
+	if(csym->isStubCopy())
+	  {
+	    UTI stubuti = csym->getUlamTypeIdx();
+
+	    NodeBlockClass * classNode = csym->getClassBlockNode();
+	    assert(classNode);
+
+	    m_state.pushClassContext(stubuti, classNode, classNode, false, NULL);
+
+	    upgradeStubCopyToAStubClassInstance(stubuti, csym);
+
+	    m_state.popClassContext(); //restore
+	  }
+	stubcpit++;
       }
   } //checkAndLabelClassInstances
 
@@ -1838,8 +2120,20 @@ namespace MFM {
 	u32 unsetclasscnt = nocnt;
 
 	SymbolClass * csym = it->second;
-	//skip templates and stubs that will never get resolved (SFINAE)
+	//skip templates and template member stubs that will never get resolved (SFINAE)
 	if(checkSFINAE(csym))
+	  {
+	    it++;
+	    continue;
+	  }
+#if 1
+	if(csym->isStub())
+	  {
+	    it++;
+	    continue;
+	  }
+#endif
+	if(csym->isStubCopy())
 	  {
 	    it++;
 	    continue;
@@ -1893,14 +2187,15 @@ namespace MFM {
   bool SymbolClassNameTemplate::statusUnknownTypeInClassInstances(UTI huti)
   {
     bool aok = true;
-    bool aoktemplate = true;
+    //bool aoktemplate = true;
 
     //use template results for remaining stubs
     NodeBlockClass * classNode = getClassBlockNode();
     assert(classNode);
     m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
 
-    aoktemplate = SymbolClass::statusUnknownTypeInClass(huti);
+    //aoktemplate =
+    SymbolClass::statusUnknownTypeInClass(huti);
 
     m_state.popClassContext(); //restore
 
@@ -1913,15 +2208,23 @@ namespace MFM {
 	SymbolClass * csym = it->second;
 	UTI suti = csym->getUlamTypeIdx();
 
-	if(checkSFINAE(csym))
+	if(checkSFINAE(csym) && csym->isClassTemplate(suti)) //t3764?? holder???
 	  {
 	    it++;
-	    continue; //skip templates, stubs that will never get resolved
+	    continue; //skips only templates
 	  }
 
+	if(csym->isStubCopy())
+	  {
+	    it++;
+	    continue; //wait until a stub..
+	  }
+
+#if 0
 	if(csym->isStub())
 	  aok &= aoktemplate; //use template
 	else
+#endif
 	  {
 	    NodeBlockClass * classNode = csym->getClassBlockNode();
 	    assert(classNode);
@@ -1962,12 +2265,20 @@ namespace MFM {
 	if(checkSFINAE(csym))
 	  {
 	    it++;
-	    continue; //skip templates and stubs that will never get resolved
+	    continue; //skip templates and template member stubs that will never get resolved
 	  }
 
+	if(csym->isStubCopy())
+	  {
+	    it++;
+	    continue; //skip templates and stubcopies that will never get resolved
+	  }
+
+#if 1
 	if(csym->isStub())
 	  aok &= aoktemplate; //use template
 	else
+#endif
 	  {
 	    NodeBlockClass * classNode = csym->getClassBlockNode();
 	    assert(classNode);
@@ -2043,7 +2354,7 @@ namespace MFM {
 	if(checkSFINAE(csym))
 	  {
 	    it++;
-	    continue; //skip templates Mon Jun 20 10:36:42 2016
+	    continue; //skip templates and template member stubs
 	  }
 
 	if(m_state.isComplete(uti))
@@ -2460,7 +2771,8 @@ namespace MFM {
     for(u32 i = 0; i < cargs; i++)
       {
 	SymbolConstantValue * asym = instancesArgs[i];
-	SymbolConstantValue * asym2 = new SymbolConstantValue(*asym, true); //keep type!! (t41223)
+	//SymbolConstantValue * asym2 = new SymbolConstantValue(*asym, true); //keep type!! (t41223)
+	SymbolConstantValue * asym2 = new SymbolConstantValue(*asym); //don't keep type!! (t41227)
 	asym2->setBlockNoOfST(toclassblock->getNodeNo());
 	m_state.addSymbolToCurrentScope(asym2);
       } //next arg
@@ -2524,7 +2836,10 @@ namespace MFM {
     //"Substitution Error Is Not A Failure"
     //bypass if template or with context of template (stub)
     // or "unseen" template (e.g. typo stub use) 20210328 ish 035039
-    return ((sym->getUlamTypeIdx() == getUlamTypeIdx()) || (sym->isStub() && m_state.isClassATemplate(sym->getContextForPendingArgValues())));
+    //return ((sym->getUlamTypeIdx() == getUlamTypeIdx()) || (sym->isStub() && m_state.isClassATemplate(sym->getContextForPendingArgValues())));
+    UTI suti = sym->getUlamTypeIdx();
+    return ((suti == getUlamTypeIdx()) || (sym->isStub() && m_state.isClassAMemberStubInATemplate(suti)));
+    //return ((suti == getUlamTypeIdx()) || !m_state.turnWaitMessageIntoErrorMessage(suti));
   }
 
   // in case of a class stub was saved as a variable symbol in a NodeVarDecl plus ST;
@@ -2566,9 +2881,7 @@ namespace MFM {
   {
     u32 count = 0;
     std::ostringstream msg;
-    //msg << "Too many (" << toomany << ") copies of " <<  m_state.getUlamTypeNameBriefByIndex(dupi).c_str();
-    //msg << " key found: ";
-
+    //"Too many (" << toomany << ") copies of " <<  m_state.getUlamTypeNameBriefByIndex(dupi)
     std::map<UTI, std::map<Locator, u32>, less_than_loc>::iterator it = m_locStubsDeleted.find(dupi);
     if(it != m_locStubsDeleted.end())
       {
@@ -2588,8 +2901,8 @@ namespace MFM {
 	    count += numloc;
 	    sit++;
 	  }
-	MSG(Symbol::getTokPtr(), msg.str().c_str(), NOTE);
-	//assert(count == toomany);
+	MSG(Symbol::getTokPtr(), msg.str().c_str(), NOTE); //t41452
+	assert(count + 1 == toomany); //t41455
       }
     //else dupi not found
   }

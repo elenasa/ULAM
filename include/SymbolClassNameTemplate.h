@@ -82,8 +82,6 @@ namespace MFM{
     SymbolClass * makeAStubClassInstance(const Token& typeTok, UTI cuti); //to hold class args, and cUTI
     SymbolClass * copyAStubClassInstance(UTI instance, UTI newuti, UTI argvaluecontext, UTI argtypecontext, Locator newloc);
 
-    void mergeClassInstancesFromTEMP();
-
     /** replaces temporary class argument names, updates the ST, and the class type */
     void fixAnyUnseenClassInstances();
     void fixAClassStubsDefaultArgs(SymbolClass * stubcsym, u32 defaultstartidx);
@@ -153,6 +151,9 @@ namespace MFM{
     void cloneAnInstancesUTImap(SymbolClass * fm, SymbolClass * to);
     void initBaseClassListForAStubClassInstance(SymbolClass * newclassinstance);
     bool checkTemplateAncestorsAndUpdateStubBeforeAStubInstantiation(SymbolClass * stubcsym);
+    bool verifySelfAndSuperTypedefs(UTI cuti, SymbolClass * csym);
+    void mergeClassInstancesFromTEMP();
+
     void upgradeStubCopyToAStubClassInstance(UTI suti, SymbolClass * csym);
     bool flagpAsAStubForTemplate(UTI compilingthis); //helper
     bool flagpAsAStubForTemplateMemberStub(UTI compilingthis); //helper

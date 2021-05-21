@@ -54,12 +54,12 @@ namespace MFM {
     if(m_tdid == m_state.m_pool.getIndexForDataString("Super")) return;
 
     UTI tuti = getNodeType();
-    if(m_typedefSymbol)
+    if(m_nodeTypeDesc)
+      tuti = m_nodeTypeDesc->givenUTI(); //first in line (t3764)
+    else if(m_typedefSymbol)
       tuti = m_typedefSymbol->getUlamTypeIdx();
-    else if(m_nodeTypeDesc)
-      tuti = m_nodeTypeDesc->givenUTI();
-   else
-     m_state.abortNotImplementedYet();
+    else
+      m_state.abortNotImplementedYet();
 
     UlamKeyTypeSignature tkey = m_state.getUlamKeyTypeSignatureByIndex(tuti);
     UlamType * tut = m_state.getUlamTypeByIndex(tuti);

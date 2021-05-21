@@ -4,6 +4,7 @@
 #include <errno.h>
 #include "CompilerState.h"
 #include "SymbolClass.h"
+#include "SymbolTypedef.h"
 #include "SymbolClassName.h"
 #include "Resolver.h"
 #include "Parity2D_4x4.h"
@@ -17,7 +18,7 @@ namespace MFM {
 
   SymbolClass::SymbolClass(const SymbolClass& sref) : Symbol(sref), m_resolver(NULL), m_parentTemplate(sref.m_parentTemplate), m_quarkunion(sref.m_quarkunion), m_stub(sref.m_stub), m_stubcopy(sref.m_stubcopy), m_stubForTemplate(false), m_stubForTemplateType(Nouti /* sref.m_stubForTemplateType*/ ), m_stubcopyOf(sref.m_stubcopyOf), /*m_defaultValue(NULL),*/ m_isreadyDefaultValue(false), m_bitsPacked(false), m_registryNumber(UNINITTED_REGISTRY_NUMBER), m_elementType(UNDEFINED_ELEMENT_TYPE), m_vtableinitialized(false)
   {
-    m_state.abortNotImplementedYet();
+    resetUlamType(m_state.getCompileThisIdx()); //symbols Hzy by default
 
     for(u32 i = 0; i < sref.m_basestable.size(); i++)
       {
@@ -254,6 +255,8 @@ namespace MFM {
     assert(item < m_basestable.size());
     assert(m_basestable[item].m_base == oldclasstype);
     m_basestable[item].m_base = newbaseclass;
+    if(item==0)
+      updateSuperTypedef(newbaseclass);
   }
 
   void SymbolClass::setBaseClass(UTI baseclass, u32 item, bool sharedbase)
@@ -287,8 +290,29 @@ namespace MFM {
 	    mapUTItoUTI(oldbaseclass, superuti); //t3806
 	    m_state.cleanupExistingHolder(oldbaseclass, superuti);
 	  }
+	updateSuperTypedef(superuti);
       }
-  }
+  } //setSuperBaseClass
+
+  void SymbolClass::updateSuperTypedef(UTI superuti)
+  {
+    //may not get to cblock's c&l before fullInstant, stub w default args (t41452)
+    NodeBlockClass * cblock = getClassBlockNode();
+    assert(cblock);
+
+    u32 superid = m_state.m_pool.getIndexForDataString("Super");
+    Symbol * symtypedef = NULL;
+    if(!cblock->isIdInScope(superid, symtypedef))
+      {
+	Token superTok(TOK_KW_TYPE_SUPER, cblock->getNodeLocation(), 0);
+	symtypedef = new SymbolTypedef(superTok, superuti, superuti, m_state);
+	assert(symtypedef);
+	symtypedef->setBlockNoOfST(cblock->getNodeNo());
+	cblock->addIdToScope(superid,symtypedef);
+      }
+    else
+      symtypedef->resetUlamType(superuti);
+  } //updateSuperTypedef
 
   void SymbolClass::clearBaseAsShared(u32 item)
   {
@@ -866,12 +890,13 @@ namespace MFM {
 
   bool SymbolClass::pendingClassArgumentsForClassInstance()
   {
-    assert(!isStubCopy());
+    //    assert(!isStubCopy());
     if(!m_resolver) //stubs only!
       return false; //ok, none pending
     return m_resolver->pendingClassArgumentsForClassInstance();
   }
 
+#if 1
   void SymbolClass::cloneArgumentNodesForClassInstance(SymbolClass * fmcsym, UTI argvaluecontext, UTI argtypecontext, bool toStub)
   {
     assert(fmcsym); //from
@@ -924,6 +949,63 @@ namespace MFM {
 	  }
       }
   } //cloneArgumentNodesForClassInstance
+#else
+  void SymbolClass::cloneArgumentNodesForClassInstance(SymbolClass * fmcsym, UTI argvaluecontext, UTI argtypecontext, bool toStub)
+  {
+    assert(fmcsym); //from
+    NodeBlockClass * fmclassblock = fmcsym->getClassBlockNode();
+    assert(fmclassblock);
+    NodeBlockClass * classblock = getClassBlockNode();
+    assert(classblock);
+
+    u32 numArgs = fmclassblock->getNumberOfArgumentNodes();
+    bool argsPending = fmcsym->pendingClassArgumentsForClassInstance();
+
+    assert(!argsPending || (fmcsym->countNonreadyClassArguments() == numArgs));
+
+    for(u32 i = 0; i < numArgs; i++)
+      {
+	NodeConstantDef * ceNode = (NodeConstantDef *) fmclassblock->getArgumentNode(i);
+	assert(ceNode);
+	ceNode->fixPendingArgumentNode();
+	NodeConstantDef * cloneNode = (NodeConstantDef *) ceNode->instantiate(); //new NodeConstantDef(*ceNode);
+	assert(cloneNode);
+	assert(ceNode->getNodeNo() == cloneNode->getNodeNo());
+
+	Symbol * cvsym = NULL;
+	AssertBool isDefined = classblock->isIdInScope(cloneNode->getSymbolId(), cvsym);
+	assert(isDefined);
+	cloneNode->setSymbolPtr((SymbolConstantValue *) cvsym); //sets declnno
+
+	if(toStub)
+	  linkConstantExpressionForPendingArg(cloneNode); //resolve later; adds to classblock
+	else
+	  {
+	    if(!cloneNode->isReadyConstant())
+	      linkConstantExpressionForPendingArg(cloneNode); //also adds to class block; t41441 ??
+	    else
+	      classblock->addArgumentNode(cloneNode);
+	  }
+      }
+
+    if(toStub)
+      {
+	setContextForPendingArgValues(argvaluecontext);
+	setContextForPendingArgTypes(argtypecontext); //(t41213, t41223, t3328, t41153)
+
+	//Cannot MIX the current block (context) to find symbols while
+	//using this stub copy to find parent NNOs for constant folding;
+	//therefore we separate them so that all we do now is update the
+	//constant values in the stub copy's Resolver map.
+	//Resolution of all context-dependent arg expressions will occur
+	//during the resolving loop..
+	//Note: could be localsFilescope (t41434)
+	m_state.pushClassOrLocalContextAndDontUseMemberBlock(argvaluecontext);
+	assignClassArgValuesInStubCopy();
+	m_state.popClassContext(); //restore previous context
+      }
+  } //cloneArgumentNodesForClassInstance (fm develop)
+#endif
 
   void SymbolClass::assignClassArgValuesInStubCopy()
   {

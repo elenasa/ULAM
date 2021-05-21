@@ -18,6 +18,8 @@ namespace MFM {
 
   SymbolWithValue::SymbolWithValue(const SymbolWithValue & sref, bool keepType) : Symbol(sref, keepType), m_isReady(sref.m_isReady), m_hasInitVal(sref.m_hasInitVal), m_isReadyInitVal(sref.m_isReadyInitVal /* was false*/), m_classParameter(false), m_classArgument(sref.m_classArgument), m_declnno(sref.m_declnno)
   {
+    if((sref.m_classArgument != Nouti) || sref.m_classParameter)
+      m_classArgument = m_state.getCompileThisIdx(); //t41227
     //classArg is copying from a classParameter
     m_constantValue = sref.m_constantValue;
     m_initialValue = sref.m_initialValue;

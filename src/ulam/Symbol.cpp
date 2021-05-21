@@ -10,10 +10,14 @@ namespace MFM {
 
   Symbol::Symbol(const Symbol & sref) : m_state(sref.m_state), m_structuredCommentToken(sref.m_structuredCommentToken), m_gotStructuredCommentToken(sref.m_gotStructuredCommentToken), m_idtok(sref.m_idtok), m_uti(Hzy/*m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_uti,sref.getLoc())*/), m_dataMemberClass(m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_dataMemberClass,sref.getLoc())), m_localsfilescopeType(sref.m_localsfilescopeType), m_autoLocalType(sref.m_autoLocalType), m_isSelf(sref.m_isSelf), m_isSuper(sref.m_isSuper), m_stBlockNo(sref.m_stBlockNo)
   {
-    if(m_isSelf)
+    if(m_isSelf) //little 'self'
       {
 	UTI cuti = m_state.getCompileThisIdx();
 	m_uti = m_state.getUlamTypeAsRef(cuti, ALT_REF); //t3328
+      }
+    if(m_idtok.m_type == TOK_KW_TYPE_SELF) // big "Self", the type
+      {
+	m_uti = m_state.getCompileThisIdx(); //t41436
       }
   }
 

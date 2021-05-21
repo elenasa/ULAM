@@ -120,10 +120,10 @@ namespace MFM {
   void NodeVarDecl::printTypeAndName(File * fp)
   {
     UTI vuti = getNodeType(); //could be hazy
-    if(m_varSymbol)
-      vuti = m_varSymbol->getUlamTypeIdx();
-    else if(m_nodeTypeDesc)
+    if(m_nodeTypeDesc)
       vuti = m_nodeTypeDesc->givenUTI();
+    else if(m_varSymbol)
+      vuti = m_varSymbol->getUlamTypeIdx();
     else
       m_state.abortNotImplementedYet();
 

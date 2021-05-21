@@ -91,10 +91,10 @@ namespace MFM {
   {
     //in case the node belongs to the template, use the symbol uti, o.w. 0Nav. (t41221)
     UTI suti = getNodeType();
-    if(m_constSymbol)
-      suti = m_constSymbol->getUlamTypeIdx();
-    else if(m_nodeTypeDesc)
+    if(m_nodeTypeDesc)
       suti = m_nodeTypeDesc->givenUTI();
+    else if(m_constSymbol)
+      suti = m_constSymbol->getUlamTypeIdx();
     else
       m_state.abortNotImplementedYet();
 

@@ -140,7 +140,7 @@ namespace MFM {
 	  }
 	else
 	  {
-	    assert((aliasuti == guti) || (aliasuti == galias) || (m_state.lookupUTIAlias(aliasuti)==galias)); //t3384, t3373
+	    assert((aliasuti == guti) || (aliasuti == galias) || (m_state.lookupUTIAlias(aliasuti)==galias) || m_state.isAPrimitiveType(m_uti)); //t3384, t3373, t41438 (bitsizes differ);
 	  }
 	m_uti = galias;
       }
@@ -612,6 +612,9 @@ namespace MFM {
 
   bool NodeTypeDescriptor::resolveTypeBitsize(UTI& rtnuti)
   {
+    if(rtnuti == Nav)
+      return false; //t3767, next time around..
+
     UTI auti = rtnuti;
     UlamType * ut = m_state.getUlamTypeByIndex(auti);
     ULAMTYPE etyp = ut->getUlamTypeEnum();

@@ -1143,15 +1143,14 @@ namespace MFM {
 	abortShouldntGetHere();
       }
     AssertBool isDef = isDefined(m_indexToUlamKey[typidx], rtnUT);
-    assert(isDef);
+    if(!isDef)
+      return getUlamTypeByIndex(Nav); //e.g. decrementKey fell to none and was erased (t41452,3)
     return rtnUT;
   } //getUlamTypeByIndex
 
   const std::string CompilerState::getUlamTypeNameBriefByIndex(UTI uti)
   {
-    UlamType * ut = NULL;
-    AssertBool isDef = isDefined(m_indexToUlamKey[uti], ut);
-    assert(isDef);
+    UlamType * ut = getUlamTypeByIndex(uti);
     if(ut->getUlamTypeEnum() == Class)
       {
 	SymbolClass * csym = NULL;
@@ -1168,11 +1167,7 @@ namespace MFM {
 
   const std::string CompilerState::getUlamTypeNameByIndex(UTI uti)
   {
-    UlamType * ut = NULL;
-    AssertBool isDef = isDefined(m_indexToUlamKey[uti], ut);
-    assert(isDef);
-
-    return ut->getUlamTypeName(); //prettier names for internal types(error/t3113); String arrays(t3976)
+    return getUlamTypeByIndex(uti)->getUlamTypeName(); //prettier names for internal types(error/t3113); String arrays(t3976)
   }
 
   // returns effective self name of the scalar dereferenced uti arg.
@@ -2037,17 +2032,19 @@ namespace MFM {
       msg << getUlamTypeNameByIndex(cuti).c_str() << " (UTI " << cuti << ")";
       msg << " count is now at " << count;
 
-#define PERCENTAGE_THRESOLD_DUPLICATE_DIVISOR 10
+#define PERCENTAGE_THRESOLD_DUPLICATE_DIVISOR 5
 
       if((olduti > 100) && (count >= ((u32)(olduti/PERCENTAGE_THRESOLD_DUPLICATE_DIVISOR))))
 	{
-	  msg << "; TOO COMMON, SUSPECT LOOPING"; // (t41452)
+	  msg << "; TOO COMMON, SUSPECT LOOPING"; // (t41452,t41455)
 	  MSG2(getFullLocationAsString(loc).c_str(), msg.str().c_str(), DEBUG);
-
+#if 0
+	  //not left to caller, since Symbol errors don't stop the resolvingLoop (t41452)
 	  std::ostringstream msg;
 	  msg << "Circular reference or dependencies too complex: " << count << " copies of ";
 	  msg << getUlamTypeNameBriefByIndex(cuti).c_str() << " (UTI " << cuti << "), so far.";
-	  MSG2(getFullLocationAsString(loc).c_str(), msg.str().c_str(), ERR);
+	  MSG2(getFullLocationAsString(loc).c_str(), msg.str().c_str(), WAIT);
+#endif
 	}
       else
 	{
@@ -3105,6 +3102,10 @@ namespace MFM {
 
     ULAMCLASSTYPE superclasstype = superut->getUlamClassType();
     assert((superclasstype != UC_UNSEEN) && (superclasstype != UC_ELEMENT)); //quark or transient
+
+    if(!supercsym->isStub() || !supercsym->pendingClassArgumentsForClassInstance())
+      return superuti; //t41222
+
     UlamKeyTypeSignature newstubkey(superut->getUlamTypeNameId(), UNKNOWNSIZE); //"-2" and scalar default
     UTI newstubcopyuti = makeUlamType(newstubkey, Class, superclasstype); //**gets next unknown uti type
 

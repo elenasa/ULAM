@@ -84,6 +84,8 @@ namespace MFM{
     void updateBaseClass(UTI oldclasstype, u32 item, UTI newbaseclass);
     void setBaseClass(UTI baseclass, u32 item, bool sharedbase = true);
     void setSuperBaseClass(UTI superuti);
+    void updateSuperTypedef(UTI superuti);
+
     s32 getBaseClassRelativePosition(u32 item) const;
     void setBaseClassRelativePosition(u32 item, u32 pos);
 

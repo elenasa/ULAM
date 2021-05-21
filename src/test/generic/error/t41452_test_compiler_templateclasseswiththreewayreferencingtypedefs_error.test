@@ -1,8 +1,8 @@
 ## -*- mode:ulam -*-
 #=t41452_test_compiler_templateclasseswiththreewayreferencingtypedefs_error
 #!
-./DemoGST.ulam:2:19: ERROR: Circular reference or dependencies too complex: 67 copies of GeneralSpatialTree(4) (UTI 95), so far..
-./GeneralSpatialTree.ulam:2:7: NOTE: .. 2 locations responsible for the 67 copies: ./GeneralSpatialTreeVisitor.ulam:5:11: (33), ./GeneralSpatialTreeHost.ulam:3:11: (33).
+./DemoGST.ulam:2:19: ERROR: Circular reference or dependencies too complex: 607 copies of GeneralSpatialTree(4) (UTI 95), so far..
+./GeneralSpatialTree.ulam:2:7: NOTE: .. 2 locations responsible for the 607 copies: ./GeneralSpatialTreeVisitor.ulam:5:11: (303), ./GeneralSpatialTreeHost.ulam:3:11: (303).
 Unrecoverable Program Type Label FAILURE.
 ##
 ## variation on t41451, with third template class G.S.T.Host typedef, see also t41455.
