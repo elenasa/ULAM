@@ -1,0 +1,102 @@
+## -*- mode:ulam -*-
+#=t41459_test_compiler_atomreftoaccessdatamemberofofbaseclass_gencode_ish
+##
+## gen output: (+ interleaved asserts)
+##  Unsigned Arg: 6
+##  Unsigned Arg: 1
+##  Unsigned Arg: 6
+##  Unsigned Arg: 1
+##
+#!
+Exit status: -11
+Ue_R { Int(32) test() {  FooNG3 foo;  foo ( )behave . 0 cast return } }
+Ue_FooNG3 : QGah +SP { /* empty class block */ }
+Uq_QFoo { typedef Unsigned(3) FC;  Unsigned(3) mX(0);  Unsigned(3) mY(0);  <NOMAIN> }
+Uq_QBar { QFoo mPos( typedef Unsigned(3) FC;  Unsigned(3) mX(0);  Unsigned(3) mY(0); );  QFoo mSize( typedef Unsigned(3) FC;  Unsigned(3) mX(0);  Unsigned(3) mY(0); );  <NOMAIN> }
+Uq_QZong : QBar { Bool(1) mZonger(false);  :QBar< QFoo mPos( typedef Unsigned(3) FC;  Unsigned(3) mX(0);  Unsigned(3) mY(0); );  QFoo mSize( typedef Unsigned(3) FC;  Unsigned(3) mX(0);  Unsigned(3) mY(0); ); > <NOMAIN> }
+Uq_QGah { QBar mThis( QFoo mPos( typedef Unsigned(3) FC;  Unsigned(3) mX(0);  Unsigned(3) mY(0); );  QFoo mSize( typedef Unsigned(3) FC;  Unsigned(3) mX(0);  Unsigned(3) mY(0); ); );  QBar mThat( QFoo mPos( typedef Unsigned(3) FC;  Unsigned(3) mX(0);  Unsigned(3) mY(0); );  QFoo mSize( typedef Unsigned(3) FC;  Unsigned(3) mX(0);  Unsigned(3) mY(0); ); );  <NOMAIN> }
+Uq_SP : QGah { :QGah< QBar mThis( QFoo mPos( typedef Unsigned(3) FC;  Unsigned(3) mX(0);  Unsigned(3) mY(0); );  QFoo mSize( typedef Unsigned(3) FC;  Unsigned(3) mX(0);  Unsigned(3) mY(0); ); );  QBar mThat( QFoo mPos( typedef Unsigned(3) FC;  Unsigned(3) mX(0);  Unsigned(3) mY(0); );  QFoo mSize( typedef Unsigned(3) FC;  Unsigned(3) mX(0);  Unsigned(3) mY(0); ); ); > <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## informed by Dave ish 5/19/2021. And yet another level deeper (QZong) than t41458.
+##
+#>R.ulam
+  ulam 5;
+element R {
+  Int test()
+  {
+    FooNG3 foo;
+    foo.behave();
+
+    return 0;
+  }
+}
+
+#:QFoo.ulam
+  ulam 5;
+quark QFoo {
+  typedef Unsigned(3) FC;
+  FC mX;
+  FC mY;
+}
+
+#:QBar.ulam
+  ulam 5;
+quark QBar {
+  QFoo mPos;
+  QFoo mSize;
+}
+
+#:QZong.ulam
+  ulam 5;
+quark QZong : QBar {
+  Bool mZonger;
+  }
+
+#:QGah.ulam
+  ulam 5;
+quark QGah {
+  QBar mThis;
+  QBar mThat;
+}
+
+#:SP.ulam
+  ulam 5;
+quark SP : QGah {
+  Void behave() {
+    System s;
+    ++self.mThis.mSize.mY;
+    self.mThat.mPos.mX = 6;
+
+    s.print(self.mThat.mPos.mX); // Is 6
+    s.assert(self.mThat.mPos.mX==6);
+    s.print(self.mThis.mSize.mY); // Is 1
+    s.assert(self.mThis.mSize.mY==1);
+
+    Atom copy = self.atomof;
+    Self & bein = (Self&) copy;
+    s.print(bein.mThat.mPos.mX); // Should be 6 too
+    s.assert(bein.mThat.mPos.mX==self.mThat.mPos.mX);
+    s.print(bein.mThis.mSize.mY); // Should be 1 too
+    s.assert(bein.mThis.mSize.mY==self.mThis.mSize.mY);
+  }
+}
+
+#:FooNG3.ulam
+  ulam 5;
+element FooNG3 : QGah + SP {
+}
+
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.
