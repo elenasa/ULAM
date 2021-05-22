@@ -170,10 +170,7 @@ namespace MFM{
       }
     };
 
-
-    //std::map<UTI, SymbolClass* > m_stubsToDelete;
     std::map<UTI, std::map<Locator,u32>, less_than_loc > m_locStubsDeleted;
-    std::map<Locator, std::set<UTI>, less_than_loc > m_locClassInstances;
     void trashStub(UTI duputi, SymbolClass * symptr);
     void outputLocationsOfTrashedStubs(u32 toomany, UTI dupi);
     void addClassInstanceByLocation(Locator loc, UTI uti);

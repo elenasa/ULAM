@@ -4184,7 +4184,7 @@ namespace MFM {
       }
     else if(cos->isDataMember()) //also uvpass target type is stgcosuti(t3821)
       {
-	u32 newpos = calcDataMemberPosOfCurrentObjectClasseso(askeffselfarg, funcclassarg);
+	u32 newpos = calcDataMemberPosOfCurrentObjectClasses(askeffselfarg, funcclassarg);
 	posStr << newpos << "u ";
 	outputpos = false;
       }

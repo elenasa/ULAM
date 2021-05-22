@@ -896,22 +896,19 @@ namespace MFM {
     return m_resolver->pendingClassArgumentsForClassInstance();
   }
 
-#if 1
-  void SymbolClass::cloneArgumentNodesForClassInstance(SymbolClass * fmcsym, UTI argvaluecontext, UTI argtypecontext, bool toStub)
+  void SymbolClass::cloneArgumentNodesForClassInstance(SymbolClass * fmcsym, UTI argvaluecontext, UTI argtypecontext)
   {
     assert(fmcsym); //from
-    UTI fmuti = fmcsym->getUlamTypeIdx();
-    bool fmtemplate = fmcsym->isClassTemplate(fmuti); //temporary flexibility for debugging t41436
+    //UTI fmuti = fmcsym->getUlamTypeIdx();
     NodeBlockClass * fmclassblock = fmcsym->getClassBlockNode();
     assert(fmclassblock);
     NodeBlockClass * classblock = getClassBlockNode();
     assert(classblock);
 
-    u32 numArgs = fmtemplate ? fmclassblock->getNumberOfParameterNodes() : fmclassblock->getNumberOfArgumentNodes();
+    u32 numArgs = fmclassblock->getNumberOfArgumentNodes();
 
-    SymbolClassNameTemplate * ptcsym = fmtemplate ? (SymbolClassNameTemplate*) fmcsym : fmcsym->getParentClassTemplate();
+    SymbolClassNameTemplate * ptcsym = fmcsym->getParentClassTemplate();
     assert(ptcsym);
-
     NodeBlockClass * ptclassblock = ptcsym->getClassBlockNode();
     assert(ptclassblock);
 
@@ -919,7 +916,7 @@ namespace MFM {
       {
 	NodeConstantDef * parmNode = (NodeConstantDef *) ptclassblock->getParameterNode(i);
 
-	NodeConstantDef * ceNode = (NodeConstantDef *) (fmtemplate ? fmclassblock->getParameterNode(i) : fmclassblock->getArgumentNode(i));
+	NodeConstantDef * ceNode = (NodeConstantDef *) fmclassblock->getArgumentNode(i);
 	assert(ceNode);
 	ceNode->fixPendingArgumentNode(); //sets m_cid
 
@@ -938,74 +935,9 @@ namespace MFM {
 	assert(isDefined);
 	cloneNode->setSymbolPtr((SymbolConstantValue *) cvsym); //sets declnno
 
-	if(toStub)
-	  linkConstantExpressionForPendingArg(cloneNode); //resolve later; adds to classblock, etc.
-	else
-	  {
-	    if(!cloneNode->isReadyConstant())
-	      linkConstantExpressionForPendingArg(cloneNode); //also adds to class block; t41441 ??
-	    else
-	      classblock->addArgumentNode(cloneNode); //updates lineage to list
-	  }
-      }
+	linkConstantExpressionForPendingArg(cloneNode); //resolve later; adds to classblock, etc.
+      } //end forloop
   } //cloneArgumentNodesForClassInstance
-#else
-  void SymbolClass::cloneArgumentNodesForClassInstance(SymbolClass * fmcsym, UTI argvaluecontext, UTI argtypecontext, bool toStub)
-  {
-    assert(fmcsym); //from
-    NodeBlockClass * fmclassblock = fmcsym->getClassBlockNode();
-    assert(fmclassblock);
-    NodeBlockClass * classblock = getClassBlockNode();
-    assert(classblock);
-
-    u32 numArgs = fmclassblock->getNumberOfArgumentNodes();
-    bool argsPending = fmcsym->pendingClassArgumentsForClassInstance();
-
-    assert(!argsPending || (fmcsym->countNonreadyClassArguments() == numArgs));
-
-    for(u32 i = 0; i < numArgs; i++)
-      {
-	NodeConstantDef * ceNode = (NodeConstantDef *) fmclassblock->getArgumentNode(i);
-	assert(ceNode);
-	ceNode->fixPendingArgumentNode();
-	NodeConstantDef * cloneNode = (NodeConstantDef *) ceNode->instantiate(); //new NodeConstantDef(*ceNode);
-	assert(cloneNode);
-	assert(ceNode->getNodeNo() == cloneNode->getNodeNo());
-
-	Symbol * cvsym = NULL;
-	AssertBool isDefined = classblock->isIdInScope(cloneNode->getSymbolId(), cvsym);
-	assert(isDefined);
-	cloneNode->setSymbolPtr((SymbolConstantValue *) cvsym); //sets declnno
-
-	if(toStub)
-	  linkConstantExpressionForPendingArg(cloneNode); //resolve later; adds to classblock
-	else
-	  {
-	    if(!cloneNode->isReadyConstant())
-	      linkConstantExpressionForPendingArg(cloneNode); //also adds to class block; t41441 ??
-	    else
-	      classblock->addArgumentNode(cloneNode);
-	  }
-      }
-
-    if(toStub)
-      {
-	setContextForPendingArgValues(argvaluecontext);
-	setContextForPendingArgTypes(argtypecontext); //(t41213, t41223, t3328, t41153)
-
-	//Cannot MIX the current block (context) to find symbols while
-	//using this stub copy to find parent NNOs for constant folding;
-	//therefore we separate them so that all we do now is update the
-	//constant values in the stub copy's Resolver map.
-	//Resolution of all context-dependent arg expressions will occur
-	//during the resolving loop..
-	//Note: could be localsFilescope (t41434)
-	m_state.pushClassOrLocalContextAndDontUseMemberBlock(argvaluecontext);
-	assignClassArgValuesInStubCopy();
-	m_state.popClassContext(); //restore previous context
-      }
-  } //cloneArgumentNodesForClassInstance (fm develop)
-#endif
 
   void SymbolClass::assignClassArgValuesInStubCopy()
   {

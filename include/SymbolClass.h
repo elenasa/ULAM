@@ -162,7 +162,7 @@ namespace MFM{
 
     void linkConstantExpressionForPendingArg(NodeConstantDef * constNode);
     bool pendingClassArgumentsForClassInstance();
-    void cloneArgumentNodesForClassInstance(SymbolClass * fmcsym, UTI argvaluecontext, UTI argtypecontext, bool toStub);
+    void cloneArgumentNodesForClassInstance(SymbolClass * fmcsym, UTI argvaluecontext, UTI argtypecontext);
     void cloneResolverUTImap(SymbolClass * csym);
     void cloneUnknownTypesMapInClass(SymbolClass * to);
 
@@ -240,6 +240,7 @@ namespace MFM{
     bool m_stubForTemplate; //ulam-5 (t41440, t41224)
     UTI m_stubForTemplateType;
     UTI m_stubcopyOf;
+    bool m_stubcopyfromseentemplatestub;
     BV8K m_defaultValue; //BitVector
     bool m_isreadyDefaultValue;
     bool m_bitsPacked;

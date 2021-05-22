@@ -30,11 +30,6 @@
 ./Q.ulam:4:3: ERROR: Incomplete descriptor for type: Unsigned (UTI 40), while labeling class: Q(b,s) (UTI 35).
 ./Q.ulam:4:3: ERROR: Incomplete Variable Decl for type: unresolved (UTI 2), used with variable symbol name 'f'.
 ./Q.ulam:4:3: ERROR: Variable for: 'f', is still hazy.
-./V.ulam:3:3: ERROR: Incomplete descriptor for type: Unsigned (UTI 70), while labeling class: V(a) (UTI 39).
-./V.ulam:3:12: ERROR: Not ready constant for type: Int(32), used with symbol name 'a', while compiling V(a) (UTI 39).
-./V.ulam:3:3: ERROR: Type Bitsize specifier, within (), is not ready.
-./V.ulam:3:3: ERROR: Incomplete Variable Decl for type: unresolved (UTI 2), used with variable symbol name 'vfoo'.
-./V.ulam:3:3: ERROR: Variable for: 'vfoo', is still hazy.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t41203, array without initialization or size (last 2 errors output).

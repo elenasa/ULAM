@@ -1073,7 +1073,7 @@ namespace MFM {
 	UlamType * newut = getUlamTypeByIndex(newuti);
 	if(sut->isCustomArray())
 	  ((UlamTypeClass *) newut)->setCustomArray();
-
+#if 0
 	if(cnsymOfIncomplete->getUlamClass() != sut->getUlamClassType())
 	  {
 	    //warning! new class type 'newuti' doesn't have its SymbolClass yet (undefined);
@@ -1082,6 +1082,7 @@ namespace MFM {
 	    cnsymOfIncomplete->mapUTItoUTI(newuti, suti);
 	  }
 	else
+#endif
 	{
 	  //potential for unending process..(t41436)
 	  //notes: sclasstype may be UNSEEN. 'cuti' may not be getCompileThis class (t41209,t41217,8)
@@ -2032,25 +2033,16 @@ namespace MFM {
       msg << getUlamTypeNameByIndex(cuti).c_str() << " (UTI " << cuti << ")";
       msg << " count is now at " << count;
 
-#define PERCENTAGE_THRESOLD_DUPLICATE_DIVISOR 5
+#define PERCENTAGE_THRESOLD_DUPLICATE_DIVISOR 10
 
       if((olduti > 100) && (count >= ((u32)(olduti/PERCENTAGE_THRESOLD_DUPLICATE_DIVISOR))))
 	{
-	  msg << "; TOO COMMON, SUSPECT LOOPING"; // (t41452,t41455)
-	  MSG2(getFullLocationAsString(loc).c_str(), msg.str().c_str(), DEBUG);
-#if 0
-	  //not left to caller, since Symbol errors don't stop the resolvingLoop (t41452)
-	  std::ostringstream msg;
-	  msg << "Circular reference or dependencies too complex: " << count << " copies of ";
-	  msg << getUlamTypeNameBriefByIndex(cuti).c_str() << " (UTI " << cuti << "), so far.";
-	  MSG2(getFullLocationAsString(loc).c_str(), msg.str().c_str(), WAIT);
-#endif
+	  msg << "; TOO COMMON, SUSPECT LOOPING"; // (t41455)
 	}
       else
-	{
-	  MSG2(getFullLocationAsString(loc).c_str(), msg.str().c_str(), DEBUG);
-	  count = 0; //clear ok
-	}
+	count = 0; //clear ok
+
+      MSG2(getFullLocationAsString(loc).c_str(), msg.str().c_str(), DEBUG);
     }
     return count; // >0 too many
   } //mergeClassUTI
