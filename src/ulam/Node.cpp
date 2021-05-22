@@ -3458,7 +3458,7 @@ namespace MFM {
 	  {
 	    fdmsym = m_state.m_currentObjSymbolsForCodeGen[firstDM];
 	    fdmclassuti = fdmsym->getDataMemberClass();
-	    u32 locpos = calcDataMemberPosOfCurrentObjectClassesFromFirstDMIndex(firstDM, Nouti);
+	    u32 locpos = calcDataMemberPosOfCurrentObjectClassesFromFirstDMIndex(firstDM);
 	    pos = locpos; //t41457,8,9
 	  }
       }
@@ -4114,18 +4114,23 @@ namespace MFM {
     return indexOfLastTmp;
   } //isCurrentObjectsContainingATmpVarSymbol
 
-  //returns the index to the first object that's a data member symbol (not base type); o.w. -1 none found;
+  //returns the index to the first object that's a data member symbol (not base type);
+  //        o.w. -1 none found;
   // first object is the storage, or reference to storage; (t41457)
   s32 Node::isCurrentObjectsContainingFirstDataMember()
   {
     s32 indexOfFirstDM = -1;
     u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
     assert(cosSize > 1); //expect [0] to be either self or a ref
+    Symbol * sym = m_state.m_currentObjSymbolsForCodeGen[0];
+    assert(sym && (sym->isSelf() || sym->isAutoLocal())); //sanity
+
     for(u32 i = 1; i < cosSize; i++)
       {
-	Symbol * bsym = m_state.m_currentObjSymbolsForCodeGen[i];
-	if(bsym->isDataMember())
+	sym = m_state.m_currentObjSymbolsForCodeGen[i];
+	if(sym->isDataMember())
 	  {
+	    assert(!sym->isAutoLocal()); //sanity, dm not refs
 	    indexOfFirstDM = i;
 	    break;
 	  }
@@ -4322,7 +4327,7 @@ namespace MFM {
     return pos;
   } //calcDataMemberPosOfCurrentObjectClasses
 
-  u32 Node::calcDataMemberPosOfCurrentObjectClassesFromFirstDMIndex(u32 firstdmindex, UTI funcclassarg)
+  u32 Node::calcDataMemberPosOfCurrentObjectClassesFromFirstDMIndex(u32 firstdmindex)
   {
     s32 pos = 0;
 
@@ -4373,16 +4378,10 @@ namespace MFM {
 	      }
 	    pos += sym->getPosOffset();
 	  }
+
 	cuti = suti; //next in line
       } //forloop
 
-    if((funcclassarg != Nouti) && m_state.isClassASubclassOf(cuti, funcclassarg))
-      {
-	u32 funcclassrelpos = 0;
-	AssertBool gotrelpos = m_state.getABaseClassRelativePositionInAClass(cuti, funcclassarg, funcclassrelpos);
-	assert(gotrelpos);
-	pos += funcclassrelpos;
-      }
     return pos;
   } //calcDataMemberPosOfCurrentObjectClassesFromFirstDMIndex
 

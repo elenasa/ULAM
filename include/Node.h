@@ -339,7 +339,7 @@ enum EvalStatus {ERROR, NOTREADY, NORMAL, RETURN, BREAK, CONTINUE, UNEVALUABLE};
     u32 calcDataMemberPosOfCurrentObjectClasses(bool askingeffself, UTI funcclassarg);
 
     //called when storage is a ref, but pos from first data member is known at compile time
-    u32 calcDataMemberPosOfCurrentObjectClassesFromFirstDMIndex(u32 firstdmindex, UTI funcclassarg);
+    u32 calcDataMemberPosOfCurrentObjectClassesFromFirstDMIndex(u32 firstdmindex);
 
     //true means we can't know rel pos of 'stg' until runtime; o.w. known at compile time.
     bool askEffectiveSelfAtRuntimeForRelPosOfBase(UTI funcclassarg = Nouti);
