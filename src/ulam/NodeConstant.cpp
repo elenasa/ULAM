@@ -177,8 +177,8 @@ namespace MFM {
     if(!m_state.okUTItoContinue(cbuti)) cbuti = m_state.getCompileThisIdx(); //t3336
     bool astub = m_state.isClassAStub(cbuti);
 
-    //instantiate, look up in class block; skip if stub copy and already ready.
-    if(m_constSymbol == NULL) //t41440??
+    //instantiate, look up in class block;
+    if(m_constSymbol == NULL) //t41440?
       {
 	checkForSymbol();
 	if(m_constSymbol)
@@ -519,45 +519,6 @@ namespace MFM {
     assert(currBlock);
     return currBlock;
   }
-
-  //class context set prior to calling us; purpose is to get
-  // the value of this constant from the context before
-  // constant folding happens.
-  bool NodeConstant::assignClassArgValueInStubCopy()
-  {
-    // insure current block NNOs match
-    if(m_currBlockNo != m_state.getCurrentBlockNo())
-      {
-	std::ostringstream msg;
-	msg << "Block NNO " << m_currBlockNo << " for <";
-	msg << m_state.getTokenDataAsString(m_token).c_str();
-	msg << "> does not match the current block no ";
-	msg << m_state.getCurrentBlockNo();
-	msg << "; its value cannot be used in stub copy, with class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	return false;
-      }
-
-    if(m_ready)
-      return true; //nothing to do
-
-    Symbol * asymptr = NULL;
-    bool hazyKin = false;
-    if(m_state.alreadyDefinedSymbol(m_token.m_dataindex, asymptr, hazyKin))
-      {
-	assert(hazyKin); //always hazy, right? depends on mergeClassInstancesFromTEMP (t41436)
-	if(asymptr->isConstant() && ((SymbolConstantValue *) asymptr)->isReady())
-	  {
-	    u64 val = 0;
-	    ((SymbolConstantValue *) asymptr)->getValue(val);
-	    m_constant.uval = val;
-	    m_ready = true;
-	    //note: m_constSymbol may be NULL; ok in this circumstance (i.e. stub copy).
-	  }
-      }
-    return m_ready;
-  } //assignClassArgValueInStubCopy
 
   EvalStatus NodeConstant::eval()
   {

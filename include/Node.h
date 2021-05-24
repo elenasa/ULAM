@@ -218,8 +218,6 @@ enum EvalStatus {ERROR, NOTREADY, NORMAL, RETURN, BREAK, CONTINUE, UNEVALUABLE};
 
     virtual bool installSymbolVariable(TypeArgs& args,  Symbol *& asymptr);
 
-    virtual bool assignClassArgValueInStubCopy();
-
     virtual EvalStatus eval() = 0;
     virtual EvalStatus evalToStoreInto();
     virtual EvalStatus evalErrorReturn();

@@ -584,8 +584,6 @@ namespace MFM {
     msg << " while compiling class: ";
     msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
     MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-    //    newnode->setYourParentNo(pno); //a leaf
-    //newnode->resetNodeNo(getNodeNo());
     newnode->updateLineage(pno);
 
     m_state.setGoAgain();
@@ -594,14 +592,6 @@ namespace MFM {
 
     return Hzy;
   } //constantFold
-
-  bool NodeBinaryOp::assignClassArgValueInStubCopy()
-  {
-    bool aok = true;
-    aok &= m_nodeLeft->assignClassArgValueInStubCopy();
-    aok &= m_nodeRight->assignClassArgValueInStubCopy();
-    return aok;
-  }
 
   EvalStatus NodeBinaryOp::eval()
   {

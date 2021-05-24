@@ -663,11 +663,6 @@ namespace MFM {
       m_unknownBitsizeSubtree->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
   }
 
-  bool NodeTypeDescriptor::assignClassArgValueInStubCopy()
-  {
-    return true;
-  }
-
   EvalStatus NodeTypeDescriptor::eval()
   {
     m_state.abortShouldntGetHere();  //not in parse tree; part of Node's type

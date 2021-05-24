@@ -399,11 +399,6 @@ namespace MFM {
     return false;
   } //trimToTheElement
 
-  bool NodeMemberSelect::assignClassArgValueInStubCopy()
-  {
-    return true; //nothing to do
-  }
-
   bool NodeMemberSelect::isFunctionCall()
   {
     return m_nodeRight->isFunctionCall(); //based like storeintoable, on right

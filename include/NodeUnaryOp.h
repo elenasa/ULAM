@@ -82,8 +82,6 @@ namespace MFM{
 
     virtual const std::string methodNameForCodeGen();
 
-    virtual bool assignClassArgValueInStubCopy();
-
     virtual EvalStatus eval();
 
     virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);

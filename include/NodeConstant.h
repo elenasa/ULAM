@@ -86,8 +86,6 @@ namespace MFM{
 
     virtual UTI checkAndLabelType(Node * thisparentnode);
 
-    virtual bool assignClassArgValueInStubCopy();
-
     virtual EvalStatus eval();
 
     virtual EvalStatus evalToStoreInto();

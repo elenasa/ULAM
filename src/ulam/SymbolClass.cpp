@@ -939,12 +939,6 @@ namespace MFM {
       } //end forloop
   } //cloneArgumentNodesForClassInstance
 
-  void SymbolClass::assignClassArgValuesInStubCopy()
-  {
-    assert(m_resolver);
-    m_resolver->assignClassArgValuesInStubCopy(); //t41007 cannot assert true result
-  }
-
   void SymbolClass::partialInstantiationOfMemberNodesAndSymbols(NodeBlockClass & fromclassblock)
   {
     NodeBlockClass * cblock = getClassBlockNode();

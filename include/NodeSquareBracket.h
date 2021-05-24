@@ -77,8 +77,6 @@ namespace MFM{
 
     virtual bool trimToTheElement(Node ** fromleftnode, Node *& rtnnodeptr);
 
-    virtual bool assignClassArgValueInStubCopy();
-
     virtual EvalStatus eval();
 
     virtual EvalStatus evalToStoreInto();

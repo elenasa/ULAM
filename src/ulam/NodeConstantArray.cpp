@@ -287,43 +287,6 @@ namespace MFM {
     return currBlock;
   }
 
-  //class context set prior to calling us; purpose is to get
-  // the value of this constant from the context before
-  // constant folding happens.
-  bool NodeConstantArray::assignClassArgValueInStubCopy()
-  {
-    // insure current block NNOs match
-    if(m_currBlockNo != m_state.getCurrentBlockNo())
-      {
-	std::ostringstream msg;
-	msg << "Block NNO " << m_currBlockNo << " for '";
-	msg << m_state.getTokenDataAsString(m_token).c_str();
-	msg << "' does not match the current block no ";
-	msg << m_state.getCurrentBlockNo();
-	msg << "; its value cannot be used in stub copy, with class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	return false;
-      }
-
-    if(isReadyConstant())
-      return true; //nothing to do
-
-    bool isready = false;
-    Symbol * asymptr = NULL;
-    bool hazyKin = false;
-    if(m_state.alreadyDefinedSymbol(m_token.m_dataindex, asymptr, hazyKin))
-      {
-	assert(hazyKin); //always hazy, right?
-	if(asymptr->isConstant() && ((SymbolConstantValue *) asymptr)->isReady()) //???
-	  {
-	    isready = true;
-	    //note: m_constSymbol may be NULL; ok in this circumstance (i.e. stub copy).
-	  }
-      }
-    return isready;
-  } //assignClassArgValueInStubCopy
-
   bool NodeConstantArray::getArrayValue(BV8K& bvtmp)
   {
     bool brtn = false;

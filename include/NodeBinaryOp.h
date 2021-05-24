@@ -85,8 +85,6 @@ namespace MFM{
 
     virtual UTI constantFold(Node * parentnode);
 
-    virtual bool assignClassArgValueInStubCopy();
-
     virtual EvalStatus eval();
 
     virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);

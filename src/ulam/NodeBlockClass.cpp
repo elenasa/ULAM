@@ -592,7 +592,7 @@ namespace MFM {
 
   void NodeBlockClass::setMemberFunctionsSymbolTable(UTI cuti, NodeBlockClass& fromClassBlock)
   {
-    assert((cuti == getNodeType()) || (getNodeType() == Hzy)); //t3460??
+    assert((cuti == getNodeType()) || (getNodeType() == Hzy)); //t3460
     u32 fromtablesize = fromClassBlock.getNumberOfFuncSymbolsInTableHere();
     u32 totablesize = getNumberOfFuncSymbolsInTableHere();
     assert(totablesize==0);
@@ -1648,7 +1648,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	      } //end while
 	  }
       }
-    return camatches; //search all base classes, just super, or first one with a match???
+    return camatches; //search all base classes, not just super, or first one with a match.
   } //getCustomArrayIndexTypeFromGetFunction
 
   bool NodeBlockClass::hasCustomArrayLengthofFunction()

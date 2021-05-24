@@ -67,8 +67,6 @@ namespace MFM{
 
     virtual FORECAST safeToCastTo(UTI newType);
 
-    virtual bool assignClassArgValueInStubCopy();
-
     virtual void genCode(File * fp, UVPass& uvpass);
 
     virtual void genCodeToStoreInto(File * fp, UVPass& uvpass);

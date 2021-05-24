@@ -364,7 +364,7 @@ namespace MFM {
   bool SymbolClassNameTemplate::pendingClassArgumentsForStubClassInstance(UTI instance)
   {
     if(instance == getUlamTypeIdx())
-      return false; //WHO KNOWS!!??? t41440
+      return false; //WHO KNOWS!!? t41440
 
     bool rtnpending = false;
     if((getNumberOfParameters() > 0) || (getUlamClass() == UC_UNSEEN))
@@ -447,7 +447,7 @@ namespace MFM {
 
     UTI stubcopyof = m_state.getStubCopyOf(instance);
     bool twasastubcopy = (stubcopyof != Nouti);
-    assert(!twasastubcopy); //t41448, t41452??
+    assert(!twasastubcopy); //t41448, t41452
 
     SymbolClass * csym = NULL;
     AssertBool isDefined = findClassInstanceByUTI(instance, csym);

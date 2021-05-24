@@ -119,12 +119,6 @@ namespace MFM {
     m_node->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
   }
 
-  bool NodeTypeBitsize::assignClassArgValueInStubCopy()
-  {
-    //return m_node->assignClassArgValueInStubCopy();
-    return true;
-  }
-
   EvalStatus NodeTypeBitsize::eval()
   {
     m_state.abortShouldntGetHere();  //not in parse tree; part of symbol's type

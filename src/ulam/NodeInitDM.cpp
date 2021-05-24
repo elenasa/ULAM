@@ -530,12 +530,6 @@ namespace MFM {
     m_state.abortShouldntGetHere();
   }
 
-  bool NodeInitDM::assignClassArgValueInStubCopy()
-  {
-    m_state.abortShouldntGetHere(); //??
-    return false;
-  }
-
   EvalStatus NodeInitDM::eval()
   {
     assert(m_constSymbol);

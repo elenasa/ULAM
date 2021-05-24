@@ -218,7 +218,6 @@ namespace MFM{
 
     void buildIsBitVectorByRegNum(BV8K& bitvecref);
 
-    void assignClassArgValuesInStubCopy(); //was private.
     void partialInstantiationOfMemberNodesAndSymbols(NodeBlockClass & fromclassblock);
 
     bool isStubForTemplate();

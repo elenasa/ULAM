@@ -331,21 +331,6 @@ namespace MFM {
     return m_unknownTypeTokens.size();
   } //reportAnyUnknownTypeNames
 
-  bool Resolver::assignClassArgValuesInStubCopy()
-  {
-    bool aok = true;
-    // context already set by caller
-    std::vector<NodeConstantDef *>::iterator vit = m_nonreadyClassArgSubtrees.begin();
-    while(vit != m_nonreadyClassArgSubtrees.end())
-      {
-	NodeConstantDef * ceNode = *vit;
-	if(ceNode)
-	  aok &= ceNode->assignClassArgValueInStubCopy();
-	vit++;
-      } //while thru vector of incomplete args only
-    return aok;
-  } //assignClassArgValuesInStubCopy
-
   u32 Resolver::countNonreadyClassArgs()
   {
     return m_nonreadyClassArgSubtrees.size();
@@ -380,8 +365,7 @@ namespace MFM {
 
     m_state.pushClassOrLocalContextAndDontUseMemberBlock(context);
 
-    //how bizarre!! setting pendingArgStubContext to 'context' haha!!
-    m_state.m_pendingArgStubContext = context; //t41221??m_classUTI; //set for folding surgery
+    m_state.m_pendingArgStubContext = context; //set for folding surgery (t41221)
     m_state.m_pendingArgTypeStubContext = getContextForPendingArgTypes(); //set for resolving types
 
     bool defaultval = false;
@@ -400,7 +384,6 @@ namespace MFM {
 	if(ceNode)
 	  {
 	    //use default value if there is one AND there isn't a constant expression (t3893)
-	    //defaultval = ceNode->hasDefaultSymbolValue() && !ceNode->hasConstantExpr();
 	    defaultval = ceNode->isClassArgumentItsDefaultValue(); //t41431
 
 	    //OMG! if this was a default value for class arg, t3891,
@@ -411,16 +394,12 @@ namespace MFM {
 		assert(stubcsym);
 		SymbolClassNameTemplate * templateparent = stubcsym->getParentClassTemplate();
 		assert(templateparent);
-		//UTI ttype = templateparent->getUlamTypeIdx();
 		NodeBlockClass * templateclassblock = templateparent->getClassBlockNode();
 		//temporarily change stub loc, in case of local filescope, incl arg/params
-		//stubclassblock->resetNodeLocations(templateclassblock->getNodeLocation());
 		stubclassblock->setNodeLocation(templateclassblock->getNodeLocation());
-		//stubclassblock->setPreviousBlockPointer(templateclassblock); t3595,3898
-		m_state.pushClassContext(m_classUTI, stubclassblock, stubclassblock, false, NULL);
-		//m_state.pushClassContext(ttype, templateclassblock, templateclassblock, false, NULL); t41438,9, t41444,5 fail.
+		m_state.pushClassContext(m_classUTI, stubclassblock, stubclassblock, false, NULL); //t41438,9, t41444,5 fail w templateblock.
 		pushedtemplate = true;
-		m_state.m_pendingArgStubContext = m_classUTI; //t41225??
+		m_state.m_pendingArgStubContext = m_classUTI; //t41225
 	      }
 	    assert(defaultval == pushedtemplate); //once a default, always a default
 

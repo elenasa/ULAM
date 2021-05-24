@@ -77,8 +77,6 @@ namespace MFM{
 
     virtual void fixPendingArgumentNode();
 
-    virtual bool assignClassArgValueInStubCopy();
-
     virtual EvalStatus eval();
 
     virtual TBOOL packBitsInOrderOfDeclaration(u32& offset);

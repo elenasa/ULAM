@@ -560,11 +560,6 @@ namespace MFM {
     return false;
   }
 
-  bool Node::assignClassArgValueInStubCopy()
-  {
-    return true; //nothing to do
-  }
-
   EvalStatus Node::evalToStoreInto()
   {
     std::ostringstream msg;
@@ -3277,7 +3272,7 @@ namespace MFM {
 		      hiddenarg2 << "T::ATOM_FIRST_STATE_BIT + ";
 
 		    hiddenarg2 << "0u , " << getLengthOfMemberClassForHiddenArg(stgcosuti) << "u, "; //len
-		    hiddenarg2 << "0u, "; //UlamRef extra arg for pos-to-Eff??
+		    hiddenarg2 << "0u, "; //UlamRef extra arg for pos-to-Eff
 		    hiddenarg2 << stgcos->getMangledName().c_str() << ", &"; //storage
 		    hiddenarg2 << m_state.getTheInstanceMangledNameByIndex(stgcosuti).c_str(); //effself
 		    hiddenarg2 << ", " << genUlamRefUsageAsString(stgcosuti).c_str();

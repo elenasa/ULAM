@@ -1036,16 +1036,15 @@ namespace MFM {
 	  return suti; //as good as an instance!
 
 	if(getContextForPendingArgValuesForStub(cuti) == suti)
-	  return suti; //t41436??
+	  return suti; //t41436?
+	if(getContextForPendingArgValuesForStub(cuti) == stubcopyof)
+	  return suti; //t41436?
 
 	if(isastubcopy)
 	  {
 	    suti = stubcopyof; //continue as if the original..
 	    sut = getUlamTypeByIndex(suti);
 	  }
-
-	if(getContextForPendingArgValuesForStub(cuti) == suti)
-	  return suti; //t41436??
 
 	//o.w. make a stub copy...
 	//return Hzy;
@@ -1073,31 +1072,20 @@ namespace MFM {
 	UlamType * newut = getUlamTypeByIndex(newuti);
 	if(sut->isCustomArray())
 	  ((UlamTypeClass *) newut)->setCustomArray();
-#if 0
-	if(cnsymOfIncomplete->getUlamClass() != sut->getUlamClassType())
-	  {
-	    //warning! new class type 'newuti' doesn't have its SymbolClass yet (undefined);
-	    Token tmpTok(TOK_TYPE_IDENTIFIER, loc, cnsymOfIncomplete->getId()); //use current locator
-	    cnsym->addUnknownTypeTokenToClass(tmpTok, newuti);  //t41436
-	    cnsymOfIncomplete->mapUTItoUTI(newuti, suti);
-	  }
-	else
-#endif
-	{
-	  //potential for unending process..(t41436)
-	  //notes: sclasstype may be UNSEEN. 'cuti' may not be getCompileThis class (t41209,t41217,8)
-	  ((SymbolClassNameTemplate *)cnsymOfIncomplete)->copyAStubClassInstance(suti, newuti, cuti, newuti, loc);
-	    std::ostringstream msg;
-	    msg << "MAPPED!! type: " << getUlamTypeNameByIndex(suti).c_str();
-	    msg << "(UTI" << suti << ")";
-	    msg << " TO newtype: " << getUlamTypeNameByIndex(newuti).c_str();
-	    msg << "(UTI" << newuti << ")";
-	    msg << " while compiling class " << getUlamTypeNameByIndex(cuti).c_str();
-	    msg << "(UTI" << cuti << ")";
-	    msg << ", for incomplete class " << getUlamTypeNameByIndex(cnsymOfIncomplete->getUlamTypeIdx()).c_str();
-	    msg << "(UTI" << cnsymOfIncomplete->getUlamTypeIdx() << ")";
-	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
-	  }
+
+	//potential for unending process..(t41436)
+	//notes: sclasstype may be UNSEEN. 'cuti' may not be getCompileThis class (t41209,t41217,8)
+	((SymbolClassNameTemplate *)cnsymOfIncomplete)->copyAStubClassInstance(suti, newuti, cuti, newuti, loc);
+	std::ostringstream msg;
+	msg << "MAPPED!! type: " << getUlamTypeNameByIndex(suti).c_str();
+	msg << "(UTI" << suti << ")";
+	msg << " TO newtype: " << getUlamTypeNameByIndex(newuti).c_str();
+	msg << "(UTI" << newuti << ")";
+	msg << " while compiling class " << getUlamTypeNameByIndex(cuti).c_str();
+	msg << "(UTI" << cuti << ")";
+	msg << ", for incomplete class " << getUlamTypeNameByIndex(cnsymOfIncomplete->getUlamTypeIdx()).c_str();
+	msg << "(UTI" << cnsymOfIncomplete->getUlamTypeIdx() << ")";
+	MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
       }
     return newuti;
   } //mapIncompleteUTIForAClassInstance
@@ -2620,7 +2608,7 @@ namespace MFM {
 	SymbolClass * basecsym = NULL;
 	AssertBool isDefined = alreadyDefinedSymbolClass(baseuti, basecsym);
 	assert(isDefined);
-	//assert(basecsym->getStubForTemplateType() == Nouti); t41223 Parser may reset contexts...???
+	//assert(basecsym->getStubForTemplateType() == Nouti); t41223 Parser may reset contexts..
 	basecsym->setStubForTemplateType(cuti); //t41440
       }
   }
@@ -3101,7 +3089,7 @@ namespace MFM {
     UlamKeyTypeSignature newstubkey(superut->getUlamTypeNameId(), UNKNOWNSIZE); //"-2" and scalar default
     UTI newstubcopyuti = makeUlamType(newstubkey, Class, superclasstype); //**gets next unknown uti type
 
-    SymbolClass * superstubcopy = superctsym->copyAStubClassInstance(superuti, newstubcopyuti, argvaluecontext, newstubcopyuti, stubloc); //??? t3365. t41221
+    SymbolClass * superstubcopy = superctsym->copyAStubClassInstance(superuti, newstubcopyuti, argvaluecontext, newstubcopyuti, stubloc); //t3365. t41221
     assert(superstubcopy);
 
     return newstubcopyuti;
@@ -3793,10 +3781,9 @@ namespace MFM {
   bool CompilerState::isDataMemberIdInClassScope(u32 dataindex, Symbol * & symptr, bool& hasHazyKin)
   {
     bool brtn = false;
-    //assert(!hasHazyKin); might come from alreadyDefinedSymbol now, and have a hazy chain.
+    //might come from alreadyDefinedSymbol now, and have a hazy chain.
 
-    //start with the current class block (and look up family tree???)
-    //until the 'variable id' is found.
+    //start with the current class block, until the 'variable id' is found.
     //substitutes another selected class block to search for data member
     NodeBlockContext * cblock = getContextBlockForSearching();
 
@@ -3876,7 +3863,7 @@ namespace MFM {
   bool CompilerState::isFuncIdInClassScope(u32 dataindex, Symbol * & symptr, bool& hasHazyKin)
   {
     bool brtn = false;
-    //assert(!hasHazyKin); might come from alreadyDefinedSymbol now, and have a hazy chain.
+    //might come from alreadyDefinedSymbol now, and have a hazy chain.
 
     //start with current class block, not family tree (see isFuncIdInAClassScopeOrAncestor)
     //until the 'variable id' is found.
@@ -3890,7 +3877,7 @@ namespace MFM {
       {
 	brtn = ((NodeBlockClass *) cblock)->isFuncIdInScope(dataindex,symptr); //returns symbol
 	hasHazyKin |= checkHasHazyKin(cblock); //self is stub
-	cblock = (NodeBlockContext *) (cblock->getPreviousBlockPointer()); //traverse the chain, including templates (not ancestors; see alreadyDefinedSymbolByAncestorOf)
+	cblock = (NodeBlockContext *) (cblock->getPreviousBlockPointer()); //traverse any chain
       }
     return brtn;
   } //isFuncIdInClassScope
@@ -4022,7 +4009,8 @@ namespace MFM {
 		      {
 			foundinbase = baseuti;
 			fsymref = tmpfsym;
-			//rtnb = true; //(t41325,19) stop ok since breadth-first search
+			//rtnb = true; //(t41325,19) stop? since breadth-first search;
+			//can't stop (t41394)
 		      }
 		    else if(isClassASubclassOf(baseuti, foundinbase))
 		      {

@@ -101,14 +101,6 @@ namespace MFM {
     return TBOOL_FALSE; //nothing to do (t3503)
   }
 
-  //class context set prior to calling us; purpose is to get
-  // the value of this constant from the context before
-  // constant folding happens.
-  bool NodeModelParameter::assignClassArgValueInStubCopy()
-  {
-    return true; //nothing to do
-  } //assignClassArgValueInStubCopy
-
   void NodeModelParameter::genCode(File * fp, UVPass& uvpass)
   {
     if(!NodeConstant::isReadyConstant())

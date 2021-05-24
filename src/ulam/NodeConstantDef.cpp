@@ -1070,12 +1070,10 @@ namespace MFM {
 		BV8K bvmask;
 		if((rtnok = ((NodeListClassInit *) m_nodeExpr)->initDataMembersConstantValue(bvtmp,bvmask))) //passes along default value
 		  setSymbolValue(bvtmp);
-		//m_constSymbol->setValue(bvtmp); ??
 	      }
 	    else
 	      {
-		//m_constSymbol->setValue(bvtmp); //empty list uses default
-		setSymbolValue(bvtmp);
+		setSymbolValue(bvtmp); //empty list uses default
 		rtnok = true;
 	      }
 	  } // else no default, perhaps not ready
@@ -1097,12 +1095,6 @@ namespace MFM {
 	m_cid = m_constSymbol->getId();
       }
   } //fixPendingArgumentNode
-
-  bool NodeConstantDef::assignClassArgValueInStubCopy()
-  {
-    assert(m_nodeExpr);
-    return m_nodeExpr->assignClassArgValueInStubCopy();
-  }
 
   bool NodeConstantDef::cloneTypeDescriptorForPendingArgumentNode(NodeConstantDef * templateparamdef)
   {

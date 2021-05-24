@@ -363,11 +363,6 @@ namespace MFM {
     return Hzy;
   } //constantFold
 
-  bool NodeUnaryOp::assignClassArgValueInStubCopy()
-  {
-    return m_node->assignClassArgValueInStubCopy();
-  }
-
   EvalStatus NodeUnaryOp::eval()
   {
     assert(m_node);

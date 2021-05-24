@@ -654,7 +654,7 @@ namespace MFM {
 		ruvPtr.setPtrTargetType(dereftobe); //t3754 case 1 & 3 (to element ref)
 
 		//before the cast, so we don't lose the subclass ("effself") in
-		//case of virtual func calls? (t41364)???
+		//case of virtual func calls? (t41364)
 		if(m_state.isAClass(nodeType))
 		  {
 		    m_state.m_currentAutoObjPtr = ruvPtr; //a copy

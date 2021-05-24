@@ -122,8 +122,6 @@ namespace MFM{
 
     virtual void fixPendingArgumentNode();
 
-    virtual bool assignClassArgValueInStubCopy();
-
     bool cloneTypeDescriptorForPendingArgumentNode(NodeConstantDef * templateparamdef);
 
     bool cloneDefaultValueExpressionForPendingArgumentNode(NodeConstantDef * templateparamdef);

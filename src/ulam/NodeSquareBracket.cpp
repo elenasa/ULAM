@@ -803,11 +803,6 @@ namespace MFM {
     return m_nodeLeft->installSymbolVariable(args, asymptr);
   } //installSymbolVariable
 
-  bool NodeSquareBracket::assignClassArgValueInStubCopy()
-  {
-    return true;
-  }
-
   // eval() no longer performed before check and label
   // returns false if error; UNKNOWNSIZE is not an error!
   bool NodeSquareBracket::getArraysizeInBracket(s32 & rtnArraySize, UTI& sizetype)
