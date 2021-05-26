@@ -4,7 +4,7 @@
 ./T.ulam:5:34: ERROR: Data member 'i' initialization attempt clobbers a previous initialization value.
 Unrecoverable Program Type Label FAILURE.
 ##
-##    //informed by t3333, t41209
+##    //informed by t3333, t41209; see also t41465
 ##
 #>T.ulam
  ulam 1;

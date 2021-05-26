@@ -23,7 +23,7 @@ use QA;
 element A {
  Int test() {
    System s;
-   QA qa2 = { .sarr2 = {1, 2, 3}}; //unions initializable
+   QA qa2 = { .sarr2 = {1, 2, 3} }; //unions initializable
    s.print(qa2.sa); //==291
 
    QA qa1 = { .sarr1 = { 4, 5} }; //unions initializable
