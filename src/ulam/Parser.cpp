@@ -5385,9 +5385,6 @@ Node * Parser::wrapFactor(Node * leftNode)
 	return NULL;
       }
 
-    //internal constructor return type is void
-    //    assert(isConstr || nodetype);
-    //UTI rtnuti = isConstr ? (UTI) Void : nodetype->givenUTI();
     assert(nodetype);
     UTI rtnuti = nodetype->givenUTI();
 
@@ -5782,14 +5779,11 @@ Node * Parser::wrapFactor(Node * leftNode)
     if(!isConstr && currClassBlock->isIdInScope(identTok.m_dataindex,asymptr) && !asymptr->isFunction())
       {
 	std::ostringstream msg;
-	msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str();
-	msg << " cannot be used again as a function, it has a previous definition as '";
+	msg << "'" << m_state.m_pool.getDataAsString(asymptr->getId()).c_str();
+	msg << "' cannot be used again as a function, it has a previous definition as '";
 	msg << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str();
 	msg << " " << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << "'";
 	MSG(&args.m_typeTok, msg.str().c_str(), ERR);
-	//eat tokens until end of definition? which ending brace?
-	//delete nodetype;
-	//return NULL;
       } //keep going..more errors (t3284)
 
     //not in scope, or not yet defined, or possible overloading
@@ -5831,8 +5825,8 @@ Node * Parser::wrapFactor(Node * leftNode)
 	    if(asymptr)
 	      {
 		std::ostringstream msg;
-		msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str();
-		msg << " has a previous declaration as '";
+		msg << "'" << m_state.m_pool.getDataAsString(asymptr->getId()).c_str();
+		msg << "' has a previous declaration as '";
 		msg << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str();
 		msg << "' and cannot be used as a variable";
 		MSG(&args.m_typeTok, msg.str().c_str(), ERR);
@@ -5916,8 +5910,8 @@ Node * Parser::wrapFactor(Node * leftNode)
 		u32 asymid = asymptr->getId(); //Self and Super no longer exceptions
 		UTI auti = asymptr->getUlamTypeIdx();
 		std::ostringstream msg;
-		msg << m_state.m_pool.getDataAsString(asymid).c_str();
-		msg << " cannot be a typedef because it is already declared as ";
+		msg << "'" << m_state.m_pool.getDataAsString(asymid).c_str();
+		msg << "' cannot be a typedef because it is already declared as ";
 		msg << m_state.getUlamTypeNameBriefByIndex(auti).c_str();
 		msg << " at: ."; //..
 		MSG(&args.m_typeTok, msg.str().c_str(), ERR); //t3698, t3391
@@ -5988,11 +5982,11 @@ Node * Parser::wrapFactor(Node * leftNode)
 	    if(asymptr)
 	      {
 		std::ostringstream msg;
-		msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str();
-		msg << " cannot be a named constant because it is already declared as ";
+		msg << "'" << m_state.m_pool.getDataAsString(asymptr->getId()).c_str();
+		msg << "' cannot be a named constant because it is already declared as ";
 		msg << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str();
 		msg << " at: ."; //..
-		MSG(&args.m_typeTok, msg.str().c_str(), ERR); //t41130, t3872
+		MSG(&args.m_typeTok, msg.str().c_str(), ERR); //t41130,t3872,t41163
 
 		std::ostringstream imsg;
 		imsg << ".. this location";
@@ -6071,8 +6065,8 @@ Node * Parser::wrapFactor(Node * leftNode)
 	    if(asymptr)
 	      {
 		std::ostringstream msg;
-		msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str();
-		msg << " cannot be a Model Parameter data member because it is already declared as ";
+		msg << "'" << m_state.m_pool.getDataAsString(asymptr->getId()).c_str();
+		msg << "' cannot be a Model Parameter data member because it is already declared as ";
 		msg << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str();
 		msg << " at: ."; //..
 		MSG(&args.m_typeTok, msg.str().c_str(), ERR);
@@ -6686,8 +6680,6 @@ Node * Parser::wrapFactor(Node * leftNode)
   void Parser::linkOrFreeConstantExpressionArraysize(UTI auti, const TypeArgs& args, NodeSquareBracket * ceForArraySize, NodeTypeDescriptor *& nodetyperef)
   {
     //auti is incomplete.
-    //bool isholder = m_state.isHolder(auti); //t3374, t3136
-    //s32 arraysize = isholder ? args.m_arraysize : m_state.getArraySize(auti);
     s32 arraysize = m_state.getArraySize(auti);
 
     //link arraysize subtree for arraytype based on scalar from another class, OR
