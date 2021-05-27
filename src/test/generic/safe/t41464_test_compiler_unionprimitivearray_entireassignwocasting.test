@@ -11,15 +11,15 @@
 #!
 Exit status: 0
 Ue_A { Int(32) test() {  System s;  QA qa2 = { .sarr2 = { 1 cast, 2 cast, 3 cast } };  s ( qa2 sa . cast )print . QA qa1 = { .sarr1 = { 4 cast, 5 cast } };  s ( qa1 sa . cast )print . qa2 sarr1 . qa1 sarr1 . = s ( qa2 sarr2 0 [] . cast )print . s ( qa2 sarr2 1 [] . cast )print . s ( qa2 sarr2 2 [] . cast )print . s ( qa2 sarr1 0 [] . qa1 sarr1 0 [] . == )assert . s ( qa2 sarr1 1 [] . qa1 sarr1 1 [] . == )assert . QA qa3 = { .sa = 291u };  s ( qa3 sarr2 0 [] . cast 1 cast == )assert . s ( qa3 sarr2 1 [] . cast 2 cast == )assert . s ( qa3 sarr2 2 [] . cast 3 cast == )assert . 0 cast return } }
-Uq_QA { Unsigned(6) sarr1[2](0,0);  Unsigned(4) sarr2[3](0,0,0);  Unsigned(12) sa(0);  <NOMAIN> }
 Uq_System { <NOMAIN> }
+Uq_QA { Unsigned(6) sarr1[2](0,0);  Unsigned(4) sarr2[3](0,0,0);  Unsigned(12) sa(0);  <NOMAIN> }
 ##
 ## informed by t41165 and Dave's union trick to get around casting arrays of different types;
-##                               also initialized unions at declaration wo forloop.
+##                       also initialized unions at declaration wo forloop. (see also t41466)
 ##
 #>A.ulam
-  ulam 3;
-use QA;
+  ulam 4;
+//use QA; //not required
 element A {
  Int test() {
    System s;
