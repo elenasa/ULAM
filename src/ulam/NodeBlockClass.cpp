@@ -2465,11 +2465,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     u32 accumsize = 0;
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
     s32 totalsize = cut->getTotalBitSize(); //actual for elements(as in mangled name)
-<<<<<<< HEAD
-        s32 freesize = 0;
-=======
     s32 freesize = 0;
->>>>>>> devpartialinstver
     ULAMCLASSTYPE ct = cut->getUlamClassType();
     switch(ct)
       {

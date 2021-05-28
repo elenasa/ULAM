@@ -124,13 +124,10 @@ namespace MFM{
 
     void setStubCopy();
 
-<<<<<<< HEAD
-=======
     UTI getStubCopyOf();
 
     void setStubCopyOf(UTI stubuti);
 
->>>>>>> devpartialinstver
     UTI getCustomArrayType(); //by function return type
 
     u32 getCustomArrayIndexTypeFor(Node * rnode, UTI& idxuti, bool& hasHazyArgs);

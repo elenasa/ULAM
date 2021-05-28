@@ -1,15 +1,9 @@
 ## -*- mode:ulam -*-
 #=t41456_test_compiler_templateclasseswithinterdependentconstantvalues_error
 #!
-<<<<<<< HEAD
-./Foo.ulam:3:38: ERROR: Not ready constant for type: Unsigned(32), used with constant symbol name 'cFOO', while compiling Foo(0u) (UTI 32).
-./Foo.ulam:3:12: ERROR: Constant value expression for: cBAR, is not ready, still hazy, while compiling Foo(0u) (UTI 32).
-./Bar.ulam:3:38: ERROR: Not ready constant for type: Unsigned(32), used with constant symbol name 'cBAR', while compiling Bar(0u) (UTI 35).
-=======
 ./Foo.ulam:3:38: ERROR: Not ready constant for type: Unsigned(32), used with symbol name 'cFOO', while compiling Foo(0u) (UTI 32).
 ./Foo.ulam:3:12: ERROR: Constant value expression for: cBAR, is not ready, still hazy, while compiling Foo(0u) (UTI 32).
 ./Bar.ulam:3:38: ERROR: Not ready constant for type: Unsigned(32), used with symbol name 'cBAR', while compiling Bar(0u) (UTI 35).
->>>>>>> devpartialinstver
 ./Bar.ulam:3:12: ERROR: Constant value expression for: cFOO, is not ready, still hazy, while compiling Bar(0u) (UTI 35).
 Unrecoverable Program Type Label FAILURE.
 ##
