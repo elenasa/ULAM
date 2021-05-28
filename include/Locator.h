@@ -59,6 +59,9 @@ class Locator
 
   bool hasNeverBeenRead() const;
 
+  bool operator<(const Locator& loc2) const;
+  bool operator==(const Locator & loc2) const;
+
  private:
   u32 m_pathIdx;
   u32 m_fullPathIdx;

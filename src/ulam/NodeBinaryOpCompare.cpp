@@ -22,13 +22,13 @@ namespace MFM {
     return NULL;
   }
 
-  UTI NodeBinaryOpCompare::checkAndLabelType()
+  UTI NodeBinaryOpCompare::checkAndLabelType(Node * thisparentnode)
   {
     assert(m_nodeLeft && m_nodeRight);
-    UTI leftType = m_nodeLeft->checkAndLabelType();
-    UTI rightType = m_nodeRight->checkAndLabelType();
+    UTI leftType = m_nodeLeft->checkAndLabelType(this);
+    UTI rightType = m_nodeRight->checkAndLabelType(this);
 
-    if(NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode())
+    if(NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode(thisparentnode))
       {
 	m_state.setGoAgain();
 	delete this; //suicide is painless..
@@ -63,7 +63,7 @@ namespace MFM {
 
     //still may need casting (e.g. unary compared to an int) before constantfolding, t41273
     if(m_state.okUTItoContinue(newType) && isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
-      return NodeBinaryOp::constantFold();
+      return NodeBinaryOp::constantFold(thisparentnode);
 
     return newType;
   } //checkAndLabelType

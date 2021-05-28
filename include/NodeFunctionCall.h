@@ -2,8 +2,8 @@
  * NodeFunctionCall.h - Basic Node for handling Function Calls for ULAM
  *
  * Copyright (C) 2014-2020 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2020 Ackleyshack LLC.
- * Copyright (C) 2020 The Living Computation Foundation.
+ * Copyright (C) 2014-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -30,7 +30,7 @@
   \file NodeFunctionCall.h - Basic Node for handling Function Calls for ULAM
   \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2020 All rights reserved.
+  \date (C) 2014-2021 All rights reserved.
   \gpl
 */
 
@@ -70,7 +70,7 @@ namespace MFM{
 
     virtual FORECAST safeToCastTo(UTI newType);
 
-    virtual UTI checkAndLabelType();
+    virtual UTI checkAndLabelType(Node * thisparentnode);
 
     virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
 
@@ -113,8 +113,10 @@ namespace MFM{
     NodeList * m_argumentNodes;
     SymbolTmpVar * m_tmpvarSymbol;
 
-    TBOOL lookagainincaseimplicitselfchanged();
-    UTI specifyimplicitselfexplicitly();
+    virtual void clearSymbolPtr();
+
+    TBOOL lookagainincaseimplicitselfchanged(Node * parentnode);
+    UTI specifyimplicitselfexplicitly(Node * parentnode);
 
     EvalStatus evalArgumentsInReverseOrder(u32& argsPushed);
     EvalStatus evalHiddenArguments(u32& argsPushed, NodeBlockFunctionDefinition *& func);

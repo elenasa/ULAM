@@ -2,7 +2,8 @@
  * NodeInitDM.h - Node handling Class Data Member Init for ULAM
  *
  * Copyright (C) 2018 The Regents of the University of New Mexico.
- * Copyright (C) 2018 Ackleyshack LLC.
+ * Copyright (C) 2018-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +30,7 @@
   \file NodeInitDM.h - Node handling Class Data Member Init for ULAM
   \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2018 All rights reserved.
+  \date (C) 2018-2021 All rights reserved.
   \gpl
 */
 
@@ -66,17 +67,15 @@ namespace MFM{
 
     virtual void setNodeType(UTI uti);
 
-    virtual UTI checkAndLabelType();
+    virtual UTI checkAndLabelType(Node * thisparentnode);
 
     virtual UTI foldConstantExpression();
 
-    virtual UTI constantFold();
+    virtual UTI constantFold(Node * parentnode);
 
     bool initDataMemberConstantValue(BV8K& dvref, BV8K& bvmask);
 
     virtual void fixPendingArgumentNode();
-
-    virtual bool assignClassArgValueInStubCopy();
 
     virtual EvalStatus eval();
 

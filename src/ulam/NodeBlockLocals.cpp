@@ -47,10 +47,10 @@ namespace MFM {
     return false;
   }
 
-  UTI NodeBlockLocals::checkAndLabelType()
+  UTI NodeBlockLocals::checkAndLabelType(Node * thisparentnode)
   {
     //possibly empty (e.g. error/t3875)
-    return NodeBlockContext::checkAndLabelType();
+    return NodeBlockContext::checkAndLabelType(thisparentnode);
   }
 
   void NodeBlockLocals::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
@@ -120,6 +120,18 @@ namespace MFM {
     fp->write("}\n");
     return;
   } //generateTestInstance
+
+  void NodeBlockLocals::generateIncludeTestMain(File * fp)
+  {
+    UTI locuti = getNodeType();
+    u32 mangledclassid = m_state.getMangledClassNameIdForUlamLocalsFilescope(locuti);
+
+    m_state.indent(fp);
+    fp->write("#include \"");
+    fp->write(m_state.m_pool.getDataAsString(mangledclassid).c_str());
+    fp->write(".h\""); GCNL;
+    return;
+  } //generateIncludeTestMain
 
   bool NodeBlockLocals::assignRegistrationNumberToLocalsBlock(u32 n)
   {

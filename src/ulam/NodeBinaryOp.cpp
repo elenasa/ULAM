@@ -146,12 +146,12 @@ namespace MFM {
     return m_state.getUlamTypeByIndex(newType)->safeCast(getNodeType());
   }
 
-  UTI NodeBinaryOp::checkAndLabelType()
+  UTI NodeBinaryOp::checkAndLabelType(Node * thisparentnode)
   {
     assert(m_nodeLeft && m_nodeRight);
 
-    UTI leftType = m_nodeLeft->checkAndLabelType();
-    UTI rightType = m_nodeRight->checkAndLabelType();
+    UTI leftType = m_nodeLeft->checkAndLabelType(this);
+    UTI rightType = m_nodeRight->checkAndLabelType(this);
 
     if(!m_state.okUTItoContinue(leftType))
       {
@@ -168,7 +168,7 @@ namespace MFM {
     //replace node with func call to matching function overload operator for class
     // of left, with argument of right (t41104);
     // quark toInt must be used on rhs of operators (t3191, t3200, t3513, t3648,9)
-    if(buildandreplaceOperatorOverloadFuncCallNode())
+    if(buildandreplaceOperatorOverloadFuncCallNode(thisparentnode))
       {
 	m_state.setGoAgain();
 	delete this; //suicide is painless..
@@ -200,15 +200,15 @@ namespace MFM {
     if(newType == Hzy) m_state.setGoAgain();
 
     //before constant folding; if needed (e.g. Remainder, Divide)
-    castThyselfToResultType(rightType, leftType, newType);
+    castThyselfToResultType(rightType, leftType, newType, thisparentnode);
 
     if(m_state.okUTItoContinue(newType) && isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
-      return constantFold();
+      return constantFold(thisparentnode);
 
     return newType;
   } //checkAndLabelType
 
-  bool NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode()
+  bool NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode(Node * parentnode)
   {
     assert(m_nodeLeft && m_nodeRight);
     UTI lt = m_nodeLeft->getNodeType();
@@ -218,7 +218,7 @@ namespace MFM {
     Node * newnode = buildOperatorOverloadFuncCallNode();
     if(newnode)
       {
-	AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+	AssertBool swapOk = Node::exchangeNodeWithParent(newnode, parentnode);
 	assert(swapOk);
 
 	m_nodeLeft = NULL; //recycle as memberselect
@@ -235,7 +235,7 @@ namespace MFM {
     return Node::buildOperatorOverloadFuncCallNodeHelper(m_nodeLeft, m_nodeRight, getName());
   } //buildOperatorOverloadFuncCallNode
 
-  UTI NodeBinaryOp::castThyselfToResultType(UTI rt, UTI lt, UTI newType)
+  UTI NodeBinaryOp::castThyselfToResultType(UTI rt, UTI lt, UTI newType, Node *& parentnoderef)
   {
     return newType; //noop
   }
@@ -515,7 +515,7 @@ namespace MFM {
     m_nodeRight->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
   }
 
-  UTI NodeBinaryOp::constantFold()
+  UTI NodeBinaryOp::constantFold(Node * parentnode)
   {
     u64 val = 0;
     UTI nuti = getNodeType();
@@ -529,8 +529,8 @@ namespace MFM {
     NNO pno = Node::getYourParentNo();
     assert(pno);
 
-    Node * parentNode = m_state.findNodeNoInThisClassForParent(pno);
-    assert(parentNode);
+    assert(parentnode);
+    assert(pno == parentnode->getNodeNo());
 
     evalNodeProlog(0); //new current frame pointer
     makeRoomForNodeType(nuti); //offset a constant expression
@@ -575,7 +575,7 @@ namespace MFM {
     assert(newnode);
     newnode->setNodeLocation(getNodeLocation());
 
-    AssertBool swapOk = parentNode->exchangeKids(this, newnode);
+    AssertBool swapOk = parentnode->exchangeKids(this, newnode);
     assert(swapOk);
 
     std::ostringstream msg;
@@ -584,9 +584,7 @@ namespace MFM {
     msg << " while compiling class: ";
     msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
     MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-
-    newnode->setYourParentNo(pno); //a leaf
-    newnode->resetNodeNo(getNodeNo());
+    newnode->updateLineage(pno);
 
     m_state.setGoAgain();
 
@@ -594,14 +592,6 @@ namespace MFM {
 
     return Hzy;
   } //constantFold
-
-  bool NodeBinaryOp::assignClassArgValueInStubCopy()
-  {
-    bool aok = true;
-    aok &= m_nodeLeft->assignClassArgValueInStubCopy();
-    aok &= m_nodeRight->assignClassArgValueInStubCopy();
-    return aok;
-  }
 
   EvalStatus NodeBinaryOp::eval()
   {

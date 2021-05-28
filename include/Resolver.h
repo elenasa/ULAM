@@ -66,7 +66,6 @@ namespace MFM
     u32 reportAnyUnknownTypeNames();
 
     //these exist in a stubs only!
-    bool assignClassArgValuesInStubCopy();
     u32 countNonreadyClassArgs();
     bool statusNonreadyClassArguments(SymbolClass * stubcsym);
     void linkConstantExpressionForPendingArg(NodeConstantDef * ceNode);

@@ -3,15 +3,18 @@
 #!
 ./Foo.ulam:2:9: ERROR: Subclass 'Foo' (UTI 29) inherits from 'Moo', an unresolved local filescope typedef (UTI 31).
 ./Foo.ulam:6:5: ERROR: Incomplete descriptor for type: Foo (UTI 29), while labeling class: Foo (UTI 29).
-./Foo.ulam:6:5: ERROR: Incomplete Variable Decl for type: Foo, used with variable symbol name 'f'.
+./Foo.ulam:6:5: ERROR: Incomplete Variable Decl for type: Foo (UTI 29), used with variable symbol name 'f'.
+./Foo.ulam:6:5: ERROR: Variable for: 'f', is still hazy.
 ./Foo.ulam:7:9: ERROR: Incomplete identifier for type: Foo, used with list symbol name 'f'.
 ./Foo.ulam:7:11: ERROR: Member selected is incomplete class: unresolved, check and label fails this time around.
 ./Foo.ulam:8:9: ERROR: Incomplete descriptor for type: 31 (UTI 31), while labeling class: Foo (UTI 29).
 ./Foo.ulam:8:13: ERROR: Proxy Type: unresolved is still incomplete and unknown for its 'sizeof'.
-./Foo.ulam:9:5: ERROR: Identifier 'sp' was used while still undeclared.
+./Foo.ulam:9:5: ERROR: Incomplete identifier for type: Foo&, used with list symbol name 'self'.
+./Foo.ulam:9:5: ERROR: Member selected is incomplete class: unresolved, check and label fails this time around.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## test of local defs errors, mis-using local keyword as forward decl
+## formerly: ./Foo.ulam:9:5: ERROR: Identifier 'sp' was used while still undeclared.
 ##
 #>Foo.ulam
   ulam 3;

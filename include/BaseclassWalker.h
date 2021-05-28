@@ -2,8 +2,8 @@
  * BaseclassWalker.h - Traverse a family tree for ULAM
  *
  * Copyright (C) 2019-2020 The Regents of the University of New Mexico.
- * Copyright (C) 2019-2020 Ackleyshack LLC.
- * Copyright (C) 2020 The Living Computation Foundation.
+ * Copyright (C) 2019-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -30,7 +30,7 @@
   \file BaseclassWalker.h -  Traverse a family tree for ULAM
   \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2019-2020 All rights reserved.
+  \date (C) 2019-2021 All rights reserved.
   \gpl
 */
 

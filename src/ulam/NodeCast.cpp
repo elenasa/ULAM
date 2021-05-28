@@ -133,14 +133,14 @@ namespace MFM {
     return m_state.getUlamTypeByIndex(newType)->safeCast(getCastType());
   }
 
-  UTI NodeCast::checkAndLabelType()
+  UTI NodeCast::checkAndLabelType(Node * thisparentnode)
   {
     // unlike the other nodes, nodecast knows its type at construction time;
     // this is for checking for errors, before eval happens.
     u32 errorsFound = 0;
     u32 hazinessFound = 0;
     UTI tobeType = getCastType();
-    UTI nodeType = m_node->checkAndLabelType();
+    UTI nodeType = m_node->checkAndLabelType(this);
 
     if(nodeType == Nav)
       {
@@ -166,7 +166,7 @@ namespace MFM {
     if(m_nodeTypeDesc)
       {
 	//might be a mapped uti for instantiated template class
-	tobeType = m_nodeTypeDesc->checkAndLabelType();
+	tobeType = m_nodeTypeDesc->checkAndLabelType(this);
 	setCastType(tobeType); //overrides type set at parse time
 	if(!m_nodeTypeDesc->isReadyType())
 	  {
@@ -414,7 +414,7 @@ namespace MFM {
 		    assert(m_node);
 		    m_node->setNodeLocation(getNodeLocation());
 		    m_node->updateLineage(getNodeNo());
-		    UTI chkintuti = m_node->checkAndLabelType();
+		    UTI chkintuti = m_node->checkAndLabelType(this);
 		    if(!m_state.okUTItoContinue(chkintuti))
 		      {
 			std::ostringstream msg;
@@ -654,7 +654,7 @@ namespace MFM {
 		ruvPtr.setPtrTargetType(dereftobe); //t3754 case 1 & 3 (to element ref)
 
 		//before the cast, so we don't lose the subclass ("effself") in
-		//case of virtual func calls? (t41364)???
+		//case of virtual func calls? (t41364)
 		if(m_state.isAClass(nodeType))
 		  {
 		    m_state.m_currentAutoObjPtr = ruvPtr; //a copy

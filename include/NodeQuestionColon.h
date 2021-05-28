@@ -2,7 +2,8 @@
  * NodeQuestionColon.h - Question Colon Expression Node for ULAM
  *
  * Copyright (C) 2017-2019 The Regents of the University of New Mexico.
- * Copyright (C) 2017-2019 Ackleyshack LLC.
+ * Copyright (C) 2017-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +30,7 @@
   \file NodeQuestionColon.h - Question Colon Expression Node for ULAM
   \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2017-2019 All rights reserved.
+  \date (C) 2017-2021 All rights reserved.
   \gpl
 */
 
@@ -78,13 +79,13 @@ namespace MFM{
 
     virtual bool isTernaryExpression();
 
-    virtual UTI checkAndLabelType();
+    virtual UTI checkAndLabelType(Node * thisparentnode);
 
     virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);
 
     virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
 
-    virtual UTI constantFold();
+    virtual UTI constantFold(Node * parentnode);
 
     virtual EvalStatus eval();
 

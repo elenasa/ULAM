@@ -110,14 +110,14 @@ namespace MFM {
     fp->write(myname);
   } //printOp
 
-  UTI NodeControl::checkAndLabelType()
+  UTI NodeControl::checkAndLabelType(Node * thisparentnode)
   {
     assert(m_nodeCondition && m_nodeBody);
     UTI newType = Bool;
     ULAMTYPE newEnumTyp = Bool;
 
     // condition should be a bool, safely cast
-    UTI cuti = m_nodeCondition->checkAndLabelType();
+    UTI cuti = m_nodeCondition->checkAndLabelType(this);
     if(m_state.okUTItoContinue(cuti) && m_state.isComplete(cuti))
       {
 	assert(m_state.isScalar(cuti));
@@ -154,7 +154,7 @@ namespace MFM {
 
     //don't do body when condition is error, or isn't ready and as-cond (t3924)
     if((newType != Nav) && ((newType != Hzy) || !m_nodeCondition->asConditionalNode()))
-      m_nodeBody->checkAndLabelType(); //side-effect
+      m_nodeBody->checkAndLabelType(this); //side-effect
 
     setNodeType(newType); //stays the same
     if(newType == Hzy) m_state.setGoAgain();

@@ -37,9 +37,9 @@ namespace MFM {
     return m_state.getUlamTypeByIndex(newType)->safeCast(nuti);
   } //safeToCastTo
 
-  UTI NodeInstanceof::checkAndLabelType()
+  UTI NodeInstanceof::checkAndLabelType(Node * thisparentnode)
   {
-    NodeStorageof::checkAndLabelType();
+    NodeStorageof::checkAndLabelType(thisparentnode);
 
     UTI oftype = NodeStorageof::getOfType(); //deref'd
     if(m_state.okUTItoContinue(oftype))

@@ -119,7 +119,13 @@ namespace MFM {
 	  }
 
 	UTI suti = sym->getUlamTypeIdx();
-	s32 symsize = calcVariableSymbolTypeSize(suti, seensetref); //recursively
+	s32 symsize = UNKNOWNSIZE;
+	if(!m_state.okUTItoContinue(suti))
+	  {
+	    totalsizes = UNKNOWNSIZE;
+	    break; //Hzy possibility (t41301)
+	  }
+	symsize = calcVariableSymbolTypeSize(suti, seensetref); //recursively
 
 	if(symsize == CYCLEFLAG) //was < 0
 	  {
@@ -132,7 +138,7 @@ namespace MFM {
 	else if(symsize == EMPTYSYMBOLTABLE)
 	  {
 	    symsize = 0;
-	    m_state.setBitSize(suti, symsize); //total bits NOT including arrays
+	    m_state.setUTIBitSize(suti, symsize); //total bits NOT including arrays
 	  }
 	else if(symsize <= UNKNOWNSIZE)
 	  {
@@ -151,7 +157,7 @@ namespace MFM {
 	    s32 savebasebitsize = 0;
 	    if(isabaseclass) //t41298,9 (atom), t3143 (array)
 	      savebasebitsize = m_state.getBaseClassBitSize(suti);
-	    m_state.setBitSize(suti, symsize);
+	    m_state.setUTIBitSize(suti, symsize);
 	    if(isabaseclass) //t41298,9 (atom)
 	      m_state.setBaseClassBitSize(suti,savebasebitsize);//restr t3755
 	  }
@@ -206,7 +212,7 @@ namespace MFM {
 	else if(symsize == EMPTYSYMBOLTABLE)
 	  {
 	    symsize = 0;
-	    m_state.setBitSize(suti, symsize); //total bits NOT including arrays
+	    m_state.setUTIBitSize(suti, symsize); //total bits NOT including arrays
 	  }
 	else if(symsize <= UNKNOWNSIZE)
 	  {
@@ -220,7 +226,7 @@ namespace MFM {
 	  }
 	else
 	  {
-	    m_state.setBitSize(suti, symsize); //symsize does not include arrays
+	    m_state.setUTIBitSize(suti, symsize); //symsize does not include arrays
 	  }
 
 	UlamType * sut = m_state.getUlamTypeByIndex(suti); //no sooner!
@@ -385,7 +391,7 @@ namespace MFM {
 	  {
 	    assert(totbitsize <= UNKNOWNSIZE || m_state.getArraySize(arguti) == UNKNOWNSIZE);
 
-	    //m_state.setBitSize(arguti, CYCLEFLAG); //before the recusive call..
+	    //m_state.setUTIBitSize(arguti, CYCLEFLAG); //before the recusive call..
 	    //get base type, scalar type of class
 	    SymbolClass * csym = NULL;
 	    if(m_state.alreadyDefinedSymbolClass(arguti, csym))
@@ -475,7 +481,7 @@ namespace MFM {
 		    else
 		      {
 			aok = false;
-			m_state.setBitSize(cuti, CYCLEFLAG);//t41427, t3383
+			m_state.setUTIBitSize(cuti, CYCLEFLAG);//t41427, t3383
 			return CYCLEFLAG;
 		      }
 

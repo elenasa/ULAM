@@ -18,7 +18,10 @@ namespace MFM {
 
   Node::Node(CompilerState & state): m_state(state), m_utype(Nouti), m_storeIntoAble(TBOOL_FALSE), m_referenceAble(TBOOL_FALSE), m_parentNo(0), m_no(m_state.getNextNodeNo()) {}
 
-  Node::Node(const Node & ref) : m_state(ref.m_state), m_utype(ref.m_utype), m_storeIntoAble(ref.m_storeIntoAble), m_referenceAble(ref.m_referenceAble), m_loc(ref.m_loc), m_parentNo(ref.m_parentNo), m_no(ref.m_no) /* same NNO */ {}
+  Node::Node(const Node & ref) : m_state(ref.m_state), m_utype(ref.m_utype), m_storeIntoAble(ref.m_storeIntoAble), m_referenceAble(ref.m_referenceAble), m_loc(ref.m_loc), m_parentNo(ref.m_parentNo), m_no(ref.m_no) /* same NNO */
+  {
+    /* m_utype is sometimes known for node: terminals(varies), statements(void), nodelists(void); o.w. either Nouti or Hzy (t3361) */
+  }
 
   void Node::setYourParentNo(NNO pno)
   {
@@ -197,6 +200,18 @@ namespace MFM {
     return m_state.getFullLocationAsString(m_loc);
   }
 
+  void Node::clearSymbolPtr()
+  {
+    Symbol * symptr = NULL;
+    if(getSymbolPtr(symptr))
+      {
+	std::ostringstream msg;
+	msg << "virtual void " << prettyNodeName().c_str();
+	msg << "::clearSymbolPtr(){} is needed!!";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+      }
+  }
+
   bool Node::getSymbolPtr(Symbol *& symptrref)
   {
     return false;
@@ -289,6 +304,11 @@ namespace MFM {
     return false;
   }
 
+  bool Node::isEmptyArraysizeDecl()
+  {
+    return false;
+  }
+
   bool Node::isAList()
   {
     return false;
@@ -377,7 +397,7 @@ namespace MFM {
 
   // any node above assignexpr is not storeintoable;
   // and has no type (e.g. statements, statement, block, program)
-  UTI Node::checkAndLabelType()
+  UTI Node::checkAndLabelType(Node * thisparentnode)
   {
     m_utype = Nouti;
     m_storeIntoAble = TBOOL_FALSE;
@@ -385,19 +405,15 @@ namespace MFM {
   }
 
   //common to NodeIdent, NodeTerminalProxy, NodeSquareBracket
-  bool Node::exchangeNodeWithParent(Node * newnode)
+  bool Node::exchangeNodeWithParent(Node * newnode, Node * parent)
   {
     UTI cuti = m_state.getCompileThisIdx(); //for error messages
-    NodeBlock * currBlock = m_state.getCurrentBlock(); //in NodeIdent, getBlock())
-
     NNO pno = Node::getYourParentNo();
+    assert(pno);
+    assert(parent);
+    assert(parent->getNodeNo() == pno);
 
-    m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock); //push again
-
-    Node * parentNode = m_state.findNodeNoInThisClassForParent(pno);
-    assert(parentNode);
-
-    AssertBool swapOk = parentNode->exchangeKids(this, newnode);
+    AssertBool swapOk = parent->exchangeKids(this, newnode);
     assert(swapOk);
 
     std::ostringstream msg;
@@ -406,8 +422,6 @@ namespace MFM {
     msg << "), within class: ";
     msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
     MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-
-    m_state.popClassContext(); //restore
 
     //common to all new nodes:
     newnode->setNodeLocation(getNodeLocation());
@@ -429,6 +443,15 @@ namespace MFM {
   void Node::checkForSymbol()
   {
     //for Nodes with Symbols
+  }
+
+  TBOOL Node::replaceOurselves(Symbol * symptr, Node * parentnode)
+  {
+    std::ostringstream msg;
+    msg << "virtual TBOOL " << prettyNodeName().c_str();
+    msg << "::replaceOurselves(Symbol * symptr, Node * parentnode){} is needed!!";
+    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+    return TBOOL_FALSE;
   }
 
   void Node::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
@@ -476,7 +499,7 @@ namespace MFM {
 #endif
   } //countNavHzyNoutiNodes
 
-  UTI Node::constantFold()
+  UTI Node::constantFold(Node * parentnode)
   {
     if(!isAConstant())
       {
@@ -535,11 +558,6 @@ namespace MFM {
   bool Node::installSymbolVariable(TypeArgs& args, Symbol *& asymptr)
   {
     return false;
-  }
-
-  bool Node::assignClassArgValueInStubCopy()
-  {
-    return true; //nothing to do
   }
 
   EvalStatus Node::evalToStoreInto()
@@ -1128,7 +1146,6 @@ namespace MFM {
 
 	//read method based on last cos
 	fp->write(readMethodForCodeGen(cosuti, uvpass).c_str());
-	//	if(cos->isDataMember())
 	if(cos->isDataMember() || m_state.isAltRefType(stgcosuti))
 	  {
 	    fp->write("(0u, "); //pos part of local member name (UlamRef) (e.g. t3739, 3788, 3789, 3795, 3805)
@@ -1302,9 +1319,6 @@ namespace MFM {
     fp->write(writeMethodForCodeGen(luti, luvpass).c_str());
     fp->write("(");
     fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
-    //if(ruvpass.getPassStorage() == TMPBITVAL)
-    //  fp->write(".read()"); //t41359
-
     fp->write(");"); GCNL;
 
     // inheritance cast needs the lhs type restored after the generated write
@@ -2456,7 +2470,7 @@ namespace MFM {
 	       rtnNode = buildToIntCastingNode(node);
 
 	       //redo check and type labeling; error msg if not same
-	       UTI newType = rtnNode->checkAndLabelType();
+	       UTI newType = rtnNode->checkAndLabelType(this);
 	       doErrMsg = (UlamType::compareForMakingCastingNode(newType, tobeType, m_state) == UTIC_NOTSAME);
 	     }
 	 }
@@ -2534,7 +2548,7 @@ namespace MFM {
     Node * rtnnode = new NodeCast(node, tobeType, NULL, m_state);
     assert(rtnnode);
     rtnnode->setNodeLocation(getNodeLocation());
-    rtnnode->updateLineage(getNodeNo());
+    rtnnode->updateLineage(node->getYourParentNo());
     return rtnnode;
   } //newCastingNode
 
@@ -2544,7 +2558,7 @@ namespace MFM {
     assert(rtnNode);
 
     //redo check and type labeling; error msg if not same
-    UTI newType = rtnNode->checkAndLabelType();
+    UTI newType = rtnNode->checkAndLabelType(this);
     return (UlamType::compareForMakingCastingNode(newType, tobeType, m_state) == UTIC_NOTSAME);
   } //newCastingNodeWithCheck
 
@@ -2571,8 +2585,11 @@ namespace MFM {
 
     //make the function def, with node (quark) type as its param, returns Int (always)
     SymbolFunction * fsymptr = new SymbolFunction(funcidentTok, Int /*tobeType*/, m_state);
-    //No NodeTypeDescriptor needed for Int
-    NodeBlockFunctionDefinition * fblock = new NodeBlockFunctionDefinition(fsymptr, currClassBlock, NULL, m_state);
+    //No NodeTypeDescriptor needed for Int; except for consistency..
+    Token intTok(TOK_KW_TYPE_INT, loc, 0);
+    NodeTypeDescriptor * nodetype = new NodeTypeDescriptor(intTok, Int, m_state);
+    assert(nodetype);
+    NodeBlockFunctionDefinition * fblock = new NodeBlockFunctionDefinition(fsymptr, currClassBlock, nodetype, m_state);
     assert(fblock);
     fblock->setNodeLocation(loc);
 
@@ -2701,7 +2718,7 @@ namespace MFM {
     rtnNode = mfuncselectNode;
 
     //redo check and type labeling; error msg if not same
-    UTI newType = rtnNode->checkAndLabelType();
+    UTI newType = rtnNode->checkAndLabelType(this);
     return (UlamType::compareForMakingCastingNode(newType, tobeType, m_state) == UTIC_NOTSAME);
   } //buildCastingFunctionCallNode
 
@@ -3255,7 +3272,7 @@ namespace MFM {
 		      hiddenarg2 << "T::ATOM_FIRST_STATE_BIT + ";
 
 		    hiddenarg2 << "0u , " << getLengthOfMemberClassForHiddenArg(stgcosuti) << "u, "; //len
-		    hiddenarg2 << "0u, "; //UlamRef extra arg for pos-to-Eff??
+		    hiddenarg2 << "0u, "; //UlamRef extra arg for pos-to-Eff
 		    hiddenarg2 << stgcos->getMangledName().c_str() << ", &"; //storage
 		    hiddenarg2 << m_state.getTheInstanceMangledNameByIndex(stgcosuti).c_str(); //effself
 		    hiddenarg2 << ", " << genUlamRefUsageAsString(stgcosuti).c_str();
@@ -3436,7 +3453,7 @@ namespace MFM {
 	  {
 	    fdmsym = m_state.m_currentObjSymbolsForCodeGen[firstDM];
 	    fdmclassuti = fdmsym->getDataMemberClass();
-	    u32 locpos = calcDataMemberPosOfCurrentObjectClassesFromFirstDMIndex(firstDM, Nouti);
+	    u32 locpos = calcDataMemberPosOfCurrentObjectClassesFromFirstDMIndex(firstDM);
 	    pos = locpos; //t41457,8,9
 	  }
       }
@@ -4092,18 +4109,24 @@ namespace MFM {
     return indexOfLastTmp;
   } //isCurrentObjectsContainingATmpVarSymbol
 
-    //returns the index to the first object that's a data member symbol (not base type); o.w. -1 none found;
+
+  //returns the index to the first object that's a data member symbol (not base type);
+  //        o.w. -1 none found;
   // first object is the storage, or reference to storage; (t41457)
   s32 Node::isCurrentObjectsContainingFirstDataMember()
   {
     s32 indexOfFirstDM = -1;
     u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
     assert(cosSize > 1); //expect [0] to be either self or a ref
+    Symbol * sym = m_state.m_currentObjSymbolsForCodeGen[0];
+    assert(sym && (sym->isSelf() || sym->isAutoLocal())); //sanity
+
     for(u32 i = 1; i < cosSize; i++)
       {
-	Symbol * bsym = m_state.m_currentObjSymbolsForCodeGen[i];
-	if(bsym->isDataMember())
+	sym = m_state.m_currentObjSymbolsForCodeGen[i];
+	if(sym->isDataMember())
 	  {
+	    assert(!sym->isAutoLocal()); //sanity, dm not refs
 	    indexOfFirstDM = i;
 	    break;
 	  }
@@ -4301,7 +4324,7 @@ namespace MFM {
   } //calcDataMemberPosOfCurrentObjectClasses
 
 
-  u32 Node::calcDataMemberPosOfCurrentObjectClassesFromFirstDMIndex(u32 firstdmindex, UTI funcclassarg)
+  u32 Node::calcDataMemberPosOfCurrentObjectClassesFromFirstDMIndex(u32 firstdmindex)
   {
     s32 pos = 0;
 
@@ -4338,7 +4361,7 @@ namespace MFM {
 	    else //ignore BaseClassTypes (implicit in data member class of next symbol)
 	      {
 		m_state.abortNeedsATest();
-		suti = cuti; //t41319 ?????????????
+		suti = cuti; //t41460 ??
 	      }
 	  }
 	else
@@ -4352,18 +4375,12 @@ namespace MFM {
 	      }
 	    pos += sym->getPosOffset();
 	  }
+
 	cuti = suti; //next in line
       } //forloop
 
-    if((funcclassarg != Nouti) && m_state.isClassASubclassOf(cuti, funcclassarg))
-      {
-	u32 funcclassrelpos = 0;
-	AssertBool gotrelpos = m_state.getABaseClassRelativePositionInAClass(cuti, funcclassarg, funcclassrelpos);
-	assert(gotrelpos);
-	pos += funcclassrelpos;
-      }
     return pos;
-  } //calcDataMemberPosOfCurrentObjectClasses
+  } //calcDataMemberPosOfCurrentObjectClassesFromFirstDMIndex
 
   // true means we can't know rel pos of 'stg' until runtime; o.w. known at compile time.
   // invarients: pos points to the 'stg' type, refs cannot be dm.

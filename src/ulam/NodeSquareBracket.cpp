@@ -70,8 +70,13 @@ namespace MFM {
     return true; //not for array declaration; includes custom array items
   }
 
+  bool NodeSquareBracket::isEmptyArraysizeDecl()
+  {
+    return (m_nodeRight == NULL);
+  }
+
   // used to select an array item; not for declaration
-  UTI NodeSquareBracket::checkAndLabelType()
+  UTI NodeSquareBracket::checkAndLabelType(Node * thisparentnode)
   {
     assert(m_nodeLeft);
     u32 errorCount = 0;
@@ -79,7 +84,7 @@ namespace MFM {
     UTI newType = Nav; //init
     UTI idxuti = Nav;
 
-    UTI leftType = m_nodeLeft->checkAndLabelType();
+    UTI leftType = m_nodeLeft->checkAndLabelType(this);
 
     //Not caught during parsing since array size may be blank if declared with initialization
     if(!m_nodeRight)
@@ -95,7 +100,7 @@ namespace MFM {
     //for example, f.chance[i] where i is local, same as f.func(i);
     NodeBlock * currBlock = m_state.getCurrentBlock();
     m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock); //currblock doesn't change
-    UTI rightType = m_nodeRight->checkAndLabelType();
+    UTI rightType = m_nodeRight->checkAndLabelType(this);
 
     //Dave ish07152020: RHS (a customarray arg) function call
     // exchanges itself for implicit self, and returns Hzy type for the new
@@ -139,11 +144,19 @@ namespace MFM {
 	      {
 		//ok!
 	      }
+	    else if(lut->isPrimitiveType())
+	      {
+		//ok! (t3765)
+	      }
+	    else if(letyp == UAtom)
+	      {
+		m_state.abortNeedsATest();
+	      }
 	    else
 	      {
 		assert(letyp == Class);
 		//overload operator[] supercedes custom array (t41129)
-		if(NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode())
+		if(NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode(thisparentnode))
 		  {
 		    m_state.setGoAgain();
 		    delete this; //suicide is painless..
@@ -212,6 +225,7 @@ namespace MFM {
 		    msg << m_state.getUlamTypeNameByIndex(leftType).c_str();
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 		    setNodeType(Hzy);
+		    clearSymbolPtr();
 		    m_state.setGoAgain();
 		    return Hzy;
 		  }
@@ -286,7 +300,7 @@ namespace MFM {
 		  {
 		    //replace node with func call to 'aref' (t41000, t41001)
 		    Node * newnode = buildArefFuncCallNode();
-		    AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+		    AssertBool swapOk = Node::exchangeNodeWithParent(newnode, thisparentnode);
 		    assert(swapOk);
 
 		    m_nodeRight = NULL; //recycled
@@ -370,7 +384,11 @@ namespace MFM {
 	  m_state.abortShouldntGetHere();
       }
     setNodeType(newType);
-    if(newType == Hzy) m_state.setGoAgain(); //covers non-error(debug) messages for incompletes
+    if(newType == Hzy)
+      {
+	clearSymbolPtr();
+	m_state.setGoAgain(); //covers non-error(debug) messages for incompletes
+      }
     return newType;
   } //checkAndLabelType
 
@@ -687,6 +705,15 @@ namespace MFM {
     return UlamValue();
   }
 
+  void NodeSquareBracket::clearSymbolPtr()
+  {
+    //if symbol is in a stub, there's no guarantee the stub
+    // won't be replace by another duplicate class once its
+    // pending args have been resolved.
+    if(m_nodeLeft)
+      m_nodeLeft->clearSymbolPtr();
+  }
+
   bool NodeSquareBracket::getSymbolPtr(Symbol *& symptrref)
   {
     if(m_nodeLeft)
@@ -776,11 +803,6 @@ namespace MFM {
     return m_nodeLeft->installSymbolVariable(args, asymptr);
   } //installSymbolVariable
 
-  bool NodeSquareBracket::assignClassArgValueInStubCopy()
-  {
-    return true;
-  }
-
   // eval() no longer performed before check and label
   // returns false if error; UNKNOWNSIZE is not an error!
   bool NodeSquareBracket::getArraysizeInBracket(s32 & rtnArraySize, UTI& sizetype)
@@ -794,7 +816,7 @@ namespace MFM {
 	return true;
       }
 
-    sizetype = m_nodeRight->checkAndLabelType(); //t3504
+    sizetype = m_nodeRight->checkAndLabelType(this); //t3504
     if((sizetype == Nav))
       {
 	rtnArraySize = UNKNOWNSIZE;

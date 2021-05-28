@@ -11,7 +11,7 @@ Exit status: -11
 Uq_QBond +Fail { typedef Unsigned(6) SN;  +Fail<> ^SystemU3<> ^System<> <NOMAIN> }
 Uq_Fail +SystemU3 { +SystemU3<> ^System<> <NOMAIN> }
 Uq_EventWindow { typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry;  <NOMAIN> }
-Uq_Bond(Bits(32) cTYPE_TAG, Bool(1) cBOND_SIDE, Unary(4) cMAX_BOND_LENGTH = 15u) : Fail +BondUtils { typedef Unsigned(UNKNOWN) SN;  typedef Bond(cTYPE_TAG,cBOND_SIDE,cMAX_BOND_LENGTH) MatingBond;  constant Unsigned(32) cBOND_BITS = cMAX_BOND_LENGTH 4 == ?  6u :  cMAX_BOND_LENGTH 3 == ?  5u :  cMAX_BOND_LENGTH 2 == ?  4u :  3u;  typedef Unsigned(UNKNOWN) BondSite;  Unsigned(UNKNOWN) mBondSite(notready);  :Fail<> +BondUtils< EventWindow ew( typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry; );  typedef Unsigned(6) SN; > <NOMAIN> }
+Uq_Bond(Bits(32) cTYPE_TAG, Bool(1) cBOND_SIDE, Unary(4) cMAX_BOND_LENGTH = 15u) : Fail +BondUtils { typedef Unsigned(6) SN;  typedef Bond(cTYPE_TAG,cBOND_SIDE,cMAX_BOND_LENGTH) MatingBond;  constant Unsigned(32) cBOND_BITS = cMAX_BOND_LENGTH 4 == ?  6u :  cMAX_BOND_LENGTH 3 == ?  5u :  cMAX_BOND_LENGTH 2 == ?  4u :  3u;  typedef Unsigned(UNKNOWN) BondSite;  Unsigned(UNKNOWN) mBondSite(notready);  :Fail<> +BondUtils< EventWindow ew( typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry; );  typedef Unsigned(6) SN; > <NOMAIN> }
 Uq_BondUtils { EventWindow ew( typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry; );  typedef Unsigned(6) SN;  <NOMAIN> }
 Uq_Bondo : QBond +SystemU3 { EventWindow ew( typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry; );  typedef Unsigned(6) SN;  :QBond< typedef Unsigned(6) SN; > +SystemU3<> ^Fail<> ^System<> <NOMAIN> }
 Uq_SystemU3 : System { :System<> <NOMAIN> }
@@ -21,7 +21,10 @@ Uq_C2D { Int(6) m_width( 9);  Int(6) m_height( 4);  <NOMAIN> }
 ##
 ## informed by Dave ish 10/19/19; cannot recreate with this simplified test.
 ## nor with this more complicated version. what is missing?
-## eval fails, but gen code is fine.
+## eval fails, but gen code is fine; catches MatingBond.
+##
+## NOTEWORTHY: MatingBond typedef in Bond, is canonical example of stub-copies (uses) vary based
+##             on class arguments, eventhough location and argument strings are identical.
 ##
 #>QBond.ulam
  ulam 5;
@@ -35,7 +38,7 @@ quark QBond + Fail {
   ulam 3;
 quark Bond(Bits cTYPE_TAG, Bool cBOND_SIDE, Unary(4) cMAX_BOND_LENGTH=4) : Fail+BondUtils {
     typedef EventWindow.SiteNum SN;
-    typedef Bond(cTYPE_TAG,!cBOND_SIDE,cMAX_BOND_LENGTH) MatingBond;
+    typedef Bond(cTYPE_TAG,!cBOND_SIDE,cMAX_BOND_LENGTH) MatingBond; //IMPORTANT!!
 
     constant Unsigned cBOND_BITS =
       cMAX_BOND_LENGTH == 4 ? 6u :

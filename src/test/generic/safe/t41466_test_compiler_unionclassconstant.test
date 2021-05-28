@@ -1,0 +1,81 @@
+## -*- mode:ulam -*-
+#=t41466_test_compiler_unionclassconstant
+##
+## gen output: (+ 5 asserts)
+##   Unsigned Arg: 291
+##   Unsigned Arg: 261
+##   Unsigned Arg: 1
+##   Unsigned Arg: 0
+##   Unsigned Arg: 5
+##
+#!
+Exit status: 0
+Ue_A { Int(32) test() {  System s;  QA qa2 = cqa2;  s ( qa2 sa . cast )print . constant QA cqa1 = { .sarr1 = { 4 cast, 5 cast } };  QA qa1 = cqa1;  s ( qa1 sa . cast )print . qa2 sarr1 . qa1 sarr1 . = s ( qa2 sarr2 0 [] . cast )print . s ( qa2 sarr2 1 [] . cast )print . s ( qa2 sarr2 2 [] . cast )print . s ( qa2 sarr1 0 [] . cqa1 sarr1 0 [] . == )assert . s ( qa2 sarr1 1 [] . cqa1 sarr1 1 [] . == )assert . QA qa3 = { .sa = 261u };  s ( qa3 sarr2 0 [] . cqa1 sarr2 0 [] . == )assert . s ( qa3 ( 1 cast )getsarr2 . cqa1 sarr2 1 [] . == )assert . s ( qa3 ( 2 cast )getsarr2 . cast 5 cast == )assert . 0 cast return } }
+Uq_QA { Unsigned(6) sarr1[2](0,0);  Unsigned(4) sarr2[3](0,0,0);  Unsigned(12) sa(0);  <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## informed by t41464, trying unions as named class contants, both member and local filescope
+##
+#>A.ulam
+  ulam 4;
+local constant QA cqa2 = { .sarr2 = {1, 2, 3} }; //filescope constant union initializable;
+element A {
+ Int test() {
+   System s;
+   QA qa2 = cqa2;
+   s.print(qa2.sa); //==291
+
+   constant QA cqa1 = { .sarr1 = { 4, 5} }; //member constant union  initializable;
+   QA qa1 = cqa1;
+   s.print(qa1.sa); //==261
+
+   qa2.sarr1 = qa1.sarr1;  //the same size, assignment!
+   s.print(qa2.sarr2[0]);
+   s.print(qa2.sarr2[1]);
+   s.print(qa2.sarr2[2]);
+   s.assert(qa2.sarr1[0] == cqa1.sarr1[0]); //by transitivity
+   s.assert(qa2.sarr1[1] == cqa1.sarr1[1]);
+
+   QA qa3 = { .sa = 261 };
+   s.assert(qa3.sarr2[0] == cqa1.sarr2[0]); //==1 can use any union member
+   s.assert(qa3.getsarr2(1) == cqa1.sarr2[1]); //==0 and funccall, modifiable lhs
+   s.assert(qa3.getsarr2(2) == 5); //==5
+   return 0;
+ }
+}
+
+#:QA.ulam
+  ulam 5;
+union QA
+{
+  Unsigned(6) sarr1[2];
+  Unsigned(4) sarr2[3];
+  Unsigned(12) sa; //not necessary
+  Unsigned(4) getsarr2(Unsigned item)
+  {
+    return sarr2[item];
+  }
+
+  Unsigned(6) getsarr1(Unsigned item)
+  {
+    return sarr1[item];
+  }
+
+  Unsigned getSA()
+  {
+    return sa;
+  }
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

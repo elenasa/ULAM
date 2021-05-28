@@ -1,0 +1,91 @@
+## -*- mode:ulam -*-
+#=t41462_test_compiler_elementwmultiquarkbases_dmassignments
+##
+## gen output: (+ interleaved double asserts)
+##  Unsigned Arg: 2
+##  Unsigned Arg: 1
+##  Unsigned Arg: 3
+##
+#!
+Exit status: 0
+Ue_R { Int(32) test() {  Foo foo;  foo ( )behave . 0 cast return } }
+Ue_Foo : QBar +QGah +QFoo { QBar m_foobar( Int(2) mBar(0);  :QFoo< Unsigned(3) mFoo(0); > +QGah< Int(5) mGah(0); >);  :QBar< Int(2) mBar(0); > +QGah< Int(5) mGah(0); > +QFoo< Unsigned(3) mFoo(0); > <NOMAIN> }
+Uq_QGah { Int(5) mGah(0);  <NOMAIN> }
+Uq_QFoo { Unsigned(3) mFoo(0);  <NOMAIN> }
+Uq_QBar : QFoo +QGah { Int(2) mBar(0);  :QFoo< Unsigned(3) mFoo(0); > +QGah< Int(5) mGah(0); > <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## informed by Dave 5/20/2021. Uses local ref to data member as func arg.
+##
+#>R.ulam
+  ulam 5;
+element R {
+  Int test()
+  {
+    Foo foo;
+    foo.behave();
+
+    return 0;
+  }
+}
+
+#:QGah.ulam
+  ulam 5;
+quark QGah {
+  Int(5) mGah;
+}
+
+#:QFoo.ulam
+  ulam 5;
+quark QFoo {
+  Unsigned(3) mFoo;
+}
+
+#:QBar.ulam
+  ulam 5;
+quark QBar : QFoo + QGah {
+  Int(2) mBar;
+}
+
+#:Foo.ulam
+  ulam 5;
+element Foo : QBar + QGah + QFoo {
+  QBar m_foobar;
+  Void func(QBar & abar)
+  {
+    QBar bar;
+    bar.mBar = 1;
+    bar.mFoo = 2;
+    bar.mGah = 3;
+    abar = bar;
+  }
+
+  Void behave() {
+    QBar& lbar = m_foobar;
+    func(lbar);
+
+    System s;
+    s.print(lbar.mFoo);
+    s.assert(lbar.mFoo==2);
+    s.assert(lbar.mFoo==m_foobar.mFoo);
+    s.print((Int) lbar.mBar);
+    s.assert(lbar.mBar==1);
+    s.assert(lbar.mBar==m_foobar.mBar);
+    s.print(lbar.mGah);
+    s.assert(lbar.mGah==3);
+    s.assert(lbar.mGah==m_foobar.mGah);
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

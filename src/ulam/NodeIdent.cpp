@@ -49,6 +49,15 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
+  void NodeIdent::clearSymbolPtr()
+  {
+    //if symbol is in a stub, there's no guarantee the stub
+    // won't be replace by another duplicate class once its
+    // pending args have been resolved.
+    m_varSymbol = NULL;
+    setBlock(NULL);
+  }
+
   void NodeIdent::setSymbolPtr(SymbolVariable * vsymptr)
   {
     assert(vsymptr);
@@ -220,7 +229,7 @@ namespace MFM {
     return m_state.getUlamTypeByIndex(newType)->safeCast(Node::getNodeType());
   } //safeToCastTo
 
-  UTI NodeIdent::checkAndLabelType()
+  UTI NodeIdent::checkAndLabelType(Node * thisparentnode)
   {
     UTI it = Nouti;  //init (was Nav)
     u32 errCnt = 0;
@@ -252,41 +261,28 @@ namespace MFM {
 	// (e.g. stub class args t3526, t3525, inherited dm t3408), wait if hazyKin (t3572)?;
 	if(m_state.alreadyDefinedSymbol(tokid, asymptr, hazyKin))
 	  {
+	    m_state.popClassContext(); //restore t3102, t41228???
 	    if(!asymptr->isFunction() && !asymptr->isTypedef() && !asymptr->isConstant() && !asymptr->isModelParameter())
 	      {
-		//check hazyiness after determined no surgery required
-		if(!hazyKin)
-		  {
-		    setSymbolPtr((SymbolVariable *) asymptr);
-		    //assert(asymptr->getBlockNoOfST() == m_currBlockNo); not necessarily true
-		    // e.g. var used before defined, and then is a data member outside current func block.
-		    setBlockNo(asymptr->getBlockNoOfST()); //refined
-		    setBlock(currBlock);
-		  }
-		else
-		  {
-		    std::ostringstream msg;
-		    msg << "Identifier '" << m_state.getTokenDataAsString(m_token).c_str();
-		    msg << "' was used while still undeclared";
-		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-		    it = Hzy; //t3572, t3597, t41183, and ulamexports QBox
-		    errCnt++;
-		  }
-		m_state.popClassContext(); //restore t3102
+
+		setSymbolPtr((SymbolVariable *) asymptr);
+		//assert(asymptr->getBlockNoOfST() == m_currBlockNo); not necessarily true
+		// e.g. var used before defined, and then is a data member outside current func block.
+		setBlockNo(asymptr->getBlockNoOfST()); //refined
+		setBlock(currBlock);
 	      }
 	    else
 	      {
-		TBOOL rtb = replaceOurselves(asymptr);
+		TBOOL rtb = replaceOurselves(asymptr, thisparentnode);
 		if(rtb == TBOOL_HAZY)
 		  {
-		    m_state.popClassContext(); //restore
+		    clearSymbolPtr();
 		    m_state.setGoAgain();
 		    setNodeType(Hzy);
 		    return Hzy;
 		  }
 		else if(rtb == TBOOL_TRUE)
 		  {
-		    m_state.popClassContext(); //restore
 		    m_state.setGoAgain();
 
 		    delete this; //suicide is painless..
@@ -302,14 +298,13 @@ namespace MFM {
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		    it = Nav;
 		    errCnt++;
-		    m_state.popClassContext(); //restore
 		  }
 	      }
 	  }
 	else
 	  {
 	    //not found, look again...(t41344,5)
-	    TBOOL foundit = lookagainincaseimplicitselfchanged(); //TBOOL_HAZY is good!
+	    TBOOL foundit = lookagainincaseimplicitselfchanged(thisparentnode); //TBOOL_HAZY is good!
 	    if(foundit != TBOOL_TRUE)
 	      {
 		std::ostringstream msg;
@@ -326,16 +321,16 @@ namespace MFM {
 		    it = Hzy;
 		  }
 		errCnt++;
-		//m_state.popClassContext(); //restore
 	      }
 	    m_state.popClassContext(); //restore
 	  }
       } //lookup symbol done
     else
       {
-	TBOOL rtb = replaceOurselves(m_varSymbol);
+	TBOOL rtb = replaceOurselves(m_varSymbol, thisparentnode);
 	if(rtb == TBOOL_HAZY)
 	  {
+	    clearSymbolPtr();
 	    m_state.setGoAgain();
 	    setNodeType(Hzy);
 	    return Hzy;
@@ -354,6 +349,9 @@ namespace MFM {
     if(!errCnt && m_varSymbol)
       {
 	it = m_varSymbol->getUlamTypeIdx();
+      }
+    if(m_state.okUTItoContinue(it))
+      {
 	Node::setStoreIntoAble(m_varSymbol->isConstant() ? TBOOL_FALSE : TBOOL_TRUE); //store into an array entotal? t3881
 	if(m_varSymbol->isFunctionParameter() && ((SymbolVariableStack *) m_varSymbol)->isConstantFunctionParameter())
 	  Node::setStoreIntoAble(TBOOL_FALSE); //as well as its referenceablity (t41186,8,9)
@@ -404,7 +402,7 @@ namespace MFM {
 
     if(m_state.okUTItoContinue(it) && m_varSymbol)
       {
-	it = specifyimplicitselfexplicitly();
+	it = specifyimplicitselfexplicitly(thisparentnode);
 	if(it == Hzy)
 	  {
 	    std::ostringstream msg;
@@ -418,16 +416,22 @@ namespace MFM {
       it = checkUsedBeforeDeclared();
 
     setNodeType(it);
-    if(it == Hzy) m_state.setGoAgain();
+    if(it == Hzy)
+      {
+	clearSymbolPtr();
+	m_state.setGoAgain();
+      }
     return it;
   } //checkAndLabelType
 
-  TBOOL NodeIdent::replaceOurselves(Symbol * symptr)
+  TBOOL NodeIdent::replaceOurselves(Symbol * symptr, Node * parentnode)
   {
-    assert(symptr);
+    assert(symptr);  //dont pass on, may end up stale
 
     TBOOL rtnb = TBOOL_FALSE;
     UTI suti = symptr->getUlamTypeIdx();
+    NNO blocknoST = symptr->getBlockNoOfST();
+
     if(symptr->isConstant() && !m_state.isConstantRefType(suti))
       {
 	// replace ourselves with a constant node instead;
@@ -439,17 +443,17 @@ namespace MFM {
 	      return TBOOL_HAZY; //might not be a class afterall (3/9/21 ish)
 
 	    if(m_state.isScalar(suti))
-	      newnode = new NodeConstantClass(m_token, (SymbolWithValue *) symptr, NULL, m_state);
+	      newnode = new NodeConstantClass(m_token, blocknoST, suti, NULL, m_state);
 	    else
-	      newnode = new NodeConstantClassArray(m_token, (SymbolWithValue *) symptr, NULL, m_state); //t41261
+	      newnode = new NodeConstantClassArray(m_token, blocknoST, suti, NULL, m_state); //t41261
 	  }
 	else if(m_state.isScalar(suti))
-	  newnode = new NodeConstant(m_token, (SymbolWithValue *) symptr, NULL, m_state);
+	  newnode = new NodeConstant(m_token, blocknoST, suti, NULL, m_state);
 	else
-	  newnode = new NodeConstantArray(m_token, (SymbolWithValue *) symptr, NULL, m_state);
+	  newnode = new NodeConstantArray(m_token, blocknoST, suti, NULL, m_state);
 	assert(newnode);
 
-	AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+	AssertBool swapOk = Node::exchangeNodeWithParent(newnode, parentnode);
 	assert(swapOk);
 
 	rtnb = TBOOL_TRUE;
@@ -458,10 +462,10 @@ namespace MFM {
       {
 	// replace ourselves with a parameter node instead;
 	// same node no, and loc
-	NodeModelParameter * newnode = new NodeModelParameter(m_token, (SymbolModelParameterValue*) symptr, NULL, m_state);
+	NodeModelParameter * newnode = new NodeModelParameter(m_token, blocknoST, suti, NULL, m_state);
 	assert(newnode);
 
-	AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+	AssertBool swapOk = Node::exchangeNodeWithParent(newnode, parentnode);
 	assert(swapOk);
 
 	rtnb = TBOOL_TRUE;
@@ -470,7 +474,7 @@ namespace MFM {
     return rtnb;
   } //replaceOurselves
 
-  TBOOL NodeIdent::lookagainincaseimplicitselfchanged()
+  TBOOL NodeIdent::lookagainincaseimplicitselfchanged(Node * parentnode)
   {
     TBOOL rtn = TBOOL_FALSE;
 
@@ -522,7 +526,7 @@ namespace MFM {
 	setSymbolPtr((SymbolVariable *) symptr);
 	setBlockNo(symptr->getBlockNoOfST()); //refined
 	setBlock(NULL);
-	UTI it = specifyimplicitselfexplicitly(); //returns Hzy
+	UTI it = specifyimplicitselfexplicitly(parentnode); //returns Hzy
 	if(it == Hzy)
 	  rtn = TBOOL_HAZY;
 	else if(!m_state.okUTItoContinue(it))
@@ -532,7 +536,7 @@ namespace MFM {
     return rtn;
   } //lookagainincaseimplicitselfchanged
 
-  UTI NodeIdent::specifyimplicitselfexplicitly()
+  UTI NodeIdent::specifyimplicitselfexplicitly(Node * parentnode)
   {
     assert(m_varSymbol);
     UTI vuti = m_varSymbol->getUlamTypeIdx();
@@ -547,24 +551,17 @@ namespace MFM {
 	return vuti; //t3337 (e.g. t.m_arr[1]) parent is sqbkt, parent's parent is '.'
       }
 
-    //a data member/func call needs to be rhs of member select "."
-    NodeBlock * currBlock = getBlock();
-
     NNO pno = Node::getYourParentNo();
-
-    m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock); //push again
-
-    Node * parentNode = m_state.findNodeNoInThisClassForParent(pno);
-    assert(parentNode);
-
-    m_state.popClassContext(); //restore
+    assert(pno);
+    assert(parentnode);
+    assert(pno == parentnode->getNodeNo());
 
     bool implicitself = true;
 
-    if(parentNode->isAMemberSelect())
+    if(parentnode->isAMemberSelect())
       {
 	Symbol * rhsym = NULL;
-	if(!parentNode->getSymbolPtr(rhsym))
+	if(!parentnode->getSymbolPtr(rhsym))
 	  vuti = Hzy; //t41152
 
 	implicitself = (rhsym != m_varSymbol); //rhsym null wont match
@@ -583,7 +580,7 @@ namespace MFM {
     assert(newnode);
     NNO newnodeno = newnode->getNodeNo(); //for us after swap
 
-    AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+    AssertBool swapOk = Node::exchangeNodeWithParent(newnode, parentnode);
     assert(swapOk);
 
     resetNodeNo(newnodeno); //moved before update lineage (t3337)
@@ -917,6 +914,23 @@ namespace MFM {
 	  {
 	    if(m_state.isHolder(tduti))
 	      {
+		UTI anothertd = args.m_anothertduti;
+		if(anothertd != Nouti)
+		  {
+		    //typedef might have bitsize and arraysize info..
+		    if(checkTypedefOfTypedefSizes(args, anothertd)) //ref
+		      {
+			if(m_state.isHolder(anothertd)) //update holder array,bitsizes (t3374)
+			  m_state.setUTISizes(tduti, args.m_bitsize, args.m_arraysize, true);
+			else
+			  m_state.cleanupExistingHolder(tduti, anothertd);//t3868
+			return true;
+		      }
+		    else
+		      m_state.abortNotImplementedYet();
+		  }
+		//else td not holder
+
 		//not Nav when tduti's an array; might know?
 		args.m_declListOrTypedefScalarType = tdscalaruti;
 
@@ -1007,6 +1021,7 @@ namespace MFM {
 	  MSG(ucblock->getNodeLocationAsString().c_str(), imsg.str().c_str(), WAIT);
 	else
 	  MSG(ucblock->getNodeLocationAsString().c_str(), imsg.str().c_str(), ERR); //ish 5/6/16,11/16/17
+
 	if(isUnseenClass)
 	  m_state.removeIncompleteClassSymbolFromProgramTable(m_token); //t41451, continue..
 	else
@@ -1051,7 +1066,6 @@ namespace MFM {
 	brtn = true;
       }
 
-    //if(!m_state.okUTItoContinue(tduti))
     if(tduti == Nav)
       brtn = false;
     //else continue.. possibly Hzy (t3341)
@@ -1177,8 +1191,10 @@ namespace MFM {
 	brtn = true;
       }
 
-    if(!m_state.okUTItoContinue(uti))
+    //    if(!m_state.okUTItoContinue(uti))
+    if(uti == Nav)
       brtn = false;
+    //else continue, possibly Hazy (t3342)
 
     if(brtn)
       {
@@ -1199,7 +1215,7 @@ namespace MFM {
 	  }
 
 	if(holdUTIForAlias != Nouti)
-	  m_state.updateUTIAliasForced(holdUTIForAlias, uti); //t3862
+	  m_state.cleanupExistingHolder(holdUTIForAlias, uti); //t3862
 
 	//gets the symbol just created by makeUlamType; true.
 	return (m_state.isIdInCurrentScope(m_token.m_dataindex, asymptr));
@@ -1275,8 +1291,9 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
 
-    if(!m_state.okUTItoContinue(uti))
+    if(uti == Nav)
       brtn = false;
+    //else continue, possibly Hazy
 
     if(brtn)
       {
@@ -1363,15 +1380,23 @@ namespace MFM {
 	brtn = true;
       }
 
-    if(!m_state.okUTItoContinue(auti))
+    if(auti == Nav)
       brtn = false; //t41153
+    //else continue even if Hzy (t3339)
 
     if(brtn)
       {
-	//ut not current; no deref.
-	UTI uti = m_state.getUlamTypeAsRef(auti, args.m_declRef, args.m_hasConstantTypeModifier);
+	SymbolVariable * sym = NULL;
+	if(auti == Hzy)
+	  sym = makeSymbol(auti, args.m_declRef, args); //t41436
+	else
+	  {
+	    //ut not current; no deref.
+	    UTI uti = m_state.getUlamTypeAsRef(auti, args.m_declRef, args.m_hasConstantTypeModifier);
 
-	SymbolVariable * sym = makeSymbol(uti, m_state.getReferenceType(uti), args);
+	    sym = makeSymbol(uti, m_state.getReferenceType(uti), args);
+	  }
+
 	if(sym)
 	  {
 	    m_state.addSymbolToCurrentScope(sym); //ownership goes to the block
@@ -1393,12 +1418,12 @@ namespace MFM {
 
   SymbolVariable *  NodeIdent::makeSymbol(UTI auti, ALT reftype, const TypeArgs & args)
   {
-    if(m_state.m_parsingVariableSymbolTypeFlag == STF_DATAMEMBER)
+    if((m_state.m_parsingVariableSymbolTypeFlag == STF_DATAMEMBER) || (m_state.m_parsingVariableSymbolTypeFlag == STF_MEMBERCONSTANT))
       {
 	u32 baseslot = 1;  //unpacked fixed later
 	//variable-index, ulamtype, ulamvalue(ownership to symbol); always packed
 	if(reftype != ALT_NOT)
-	  return NULL; //error! dm's not references
+	  return NULL; //error! dm's not references, const func return value not refs (t41193)
 	return (new SymbolVariableDataMember(m_token, auti, baseslot, m_state));
       }
 
@@ -1456,7 +1481,7 @@ namespace MFM {
       }
 
     s32 tdbitsize = tdut->getBitSize();
-    if(args.m_bitsize > 0)  //variable's
+    if(args.m_bitsize >= 0)  //variable's (can be valid zero bitsize)
       {
 	if(tdbitsize != args.m_bitsize)  //was (tdbitsize > 0)
 	  {

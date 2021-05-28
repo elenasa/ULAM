@@ -1,9 +1,9 @@
 /**                                        -*- mode:C++ -*-
  * NodeBlockClass.h - Basic Node for handling Classes for ULAM
  *
- * Copyright (C) 2014-2021 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2019 The Regents of the University of New Mexico.
  * Copyright (C) 2014-2021 Ackleyshack LLC.
- * Copyright (C) 2021 The Living Computation Foundation.
+ * Copyright (C) 2020-2021 The Living Computation Foundation.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -123,7 +123,7 @@ namespace MFM{
 
     virtual bool hasStringDataMembers();
 
-    virtual UTI checkAndLabelType();
+    virtual UTI checkAndLabelType(Node * thisparentnode);
 
     bool checkParameterNodeTypes();
 
@@ -140,6 +140,8 @@ namespace MFM{
     Node * getArgumentNode(u32 n);
 
     u32 getNumberOfArgumentNodes();
+
+    NodeList * getListOfArgumentNodes();
 
     virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
 
@@ -232,6 +234,7 @@ namespace MFM{
     virtual void addMemberDescriptionsToInfoMap(ClassMemberMap& classmembers);
 
     virtual void generateTestInstance(File * fp, bool runtest);
+    virtual void generateIncludeTestMain(File * fp);
 
   protected:
     SymbolTableOfFunctions m_functionST;

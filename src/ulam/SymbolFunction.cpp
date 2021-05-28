@@ -219,10 +219,14 @@ namespace MFM {
     // note: though Classes (as args) may be 'incomplete' (i.e. bit size == UNKNOWN),
     //        during this parse stage, the key remains consistent.
     // many UTI -to- one key, how does this impact the scheme?
+    // symbols may be initially Hzy, then best to use parameternode's typedescriptor's givenUTI.
     for(u32 i = 0; i < m_parameterSymbols.size(); i++)
       {
 	Symbol * sym = m_parameterSymbols[i];
-	mangled << "," << sym->getUlamTypeIdx();
+	if(sym->getUlamTypeIdx()==Hzy)
+	  mangled << "," << getFunctionNode()->getParameterNodeGivenType(i); //t3333
+	else
+	  mangled << "," << sym->getUlamTypeIdx();
       }
     return mangled.str();
   } //getMangledNameWithUTIparameters

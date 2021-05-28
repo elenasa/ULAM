@@ -120,7 +120,7 @@ namespace MFM {
     m_nodeEndingStmt = nextNode;
   } //appendNextNode
 
-  UTI NodeBlock::checkAndLabelType()
+  UTI NodeBlock::checkAndLabelType(Node * thisparentnode)
   {
     assert(m_nodeNext);
     //especially important for template instances (prev ptr nullified on instantiation)
@@ -132,7 +132,7 @@ namespace MFM {
 
     m_state.pushCurrentBlock(this);
 
-    m_nodeNext->checkAndLabelType();
+    m_nodeNext->checkAndLabelType(this);
 
     m_state.popClassContext(); //restores m_prevBlockNode
 

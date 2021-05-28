@@ -83,7 +83,7 @@ namespace MFM {
 	m_nodeExpr->setClassType(uti); //when another class
   }
 
-  UTI NodeInitDM::checkAndLabelType()
+  UTI NodeInitDM::checkAndLabelType(Node * thisparentnode)
   {
     UTI it = Nouti; //expression type
 
@@ -149,7 +149,7 @@ namespace MFM {
 
     if(m_nodeExpr)
       {
-	it = m_nodeExpr->checkAndLabelType();
+	it = m_nodeExpr->checkAndLabelType(this);
 	if(it == Nav)
 	  {
 	    std::ostringstream msg;
@@ -413,7 +413,7 @@ namespace MFM {
     return m_nodeExpr->getNodeType(); //could be a name constant class! (t41232)
   } //foldConstantExpression
 
-  UTI NodeInitDM::constantFold()
+  UTI NodeInitDM::constantFold(Node * parentnode)
   {
     m_state.abortShouldntGetHere();
     return foldConstantExpression(); //t41170
@@ -453,6 +453,7 @@ namespace MFM {
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     u32 len = nut->getSizeofUlamType(); //t41168, t41232
 
+    //checks once-write mask has not been set, i.e. zeros; not its underlying value.
     if(!SymbolWithValue::isValueAllZeros(pos, len, bvmask))
       {
 	std::ostringstream msg;
@@ -460,7 +461,7 @@ namespace MFM {
 	msg << " initialization attempt clobbers a previous initialization value";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(Nav); //compiler counts
-	return false; //t3451
+	return false; //t3451, t41465
       }
 
     if(m_state.isAClass(nuti) && !m_constSymbol->isInitValueReady())
@@ -528,12 +529,6 @@ namespace MFM {
   void NodeInitDM::fixPendingArgumentNode()
   {
     m_state.abortShouldntGetHere();
-  }
-
-  bool NodeInitDM::assignClassArgValueInStubCopy()
-  {
-    m_state.abortShouldntGetHere(); //??
-    return false;
   }
 
   EvalStatus NodeInitDM::eval()

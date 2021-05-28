@@ -9,11 +9,11 @@ Ue_KeyExprRep { KeyExprNode m_key( typedef Unsigned(8) Byte;  Unsigned(8) m_left
 Uq_KeyExprNode { typedef Unsigned(8) Byte;  Unsigned(8) m_leftIndex(0);  Unsigned(8) m_rightIndex(0);  Unsigned(8) m_keyCode(0);  Unsigned(8) m_op(0);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
-## ish, informed by Dave 3/18/18 (blew an assertion); constant class array not implemented yet.
+## ish, informed by Dave 3/18/18 (blew an assertion); see also t41265
 ##
 #>KeyExprRep.ulam
   ulam 3;
-use KeyExprNode; //without use ./KeyExprNode.ulam:9:0: ERROR: Invalid size (-2) to set for primitive type: 0Holder.
+use KeyExprNode;
 local constant KeyExprNode keyexpr_x13[] = {
    { .m_leftIndex = 1, .m_rightIndex = 2, .m_keyCode = 0, .m_op = '|' }, // [0]
    { .m_leftIndex = 3, .m_rightIndex = 4, .m_keyCode = 0, .m_op = '&' }, // [1]

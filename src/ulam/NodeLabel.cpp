@@ -36,7 +36,7 @@ namespace MFM {
     fp->write(getName());
   }
 
-  UTI NodeLabel::checkAndLabelType()
+  UTI NodeLabel::checkAndLabelType(Node * thisparentnode)
   {
     UTI nodeType = Void;
     setNodeType(nodeType);

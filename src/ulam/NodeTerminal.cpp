@@ -67,7 +67,7 @@ namespace MFM {
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     s32 nbitsize = nut->getBitSize();
-    assert(nbitsize >= 0);
+    //assert(nbitsize >= 0); t3668 Hazy, e.g. for countNavHazyNodes..
     ULAMTYPE etyp = nut->getUlamTypeEnum();
     std::ostringstream num;
     switch(etyp)
@@ -154,7 +154,7 @@ namespace MFM {
     return fitsInBits(newType) ? CAST_CLEAR : CAST_BAD;
   } //safeToCastTo
 
-  UTI NodeTerminal::checkAndLabelType()
+  UTI NodeTerminal::checkAndLabelType(Node * thisparentnode)
   {
     //numeric tokens are implicitily 64-bits
     // o.w. 64-bit constants got truncated; but no 32-bit sign extension.

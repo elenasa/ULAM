@@ -117,8 +117,7 @@ namespace MFM {
 	  {
 	    //even though it may fail at runtime:
 	    //(down)casting fm super to sub..only if fm-ref && to-ref
-	    //	    if(!isfmref || !isAltRefType())
-	    if(!isfmref) //only if fm-ref???
+	    if(!isfmref)
 	      scr = CAST_BAD; //t3756, t3757
 	  }
 	else if(m_state.isClassASubclassOf(fmderef, cuti))
@@ -227,10 +226,10 @@ namespace MFM {
       namestr << ((SymbolClassNameTemplate *) cnsym)->formatAnInstancesArgValuesAsCommaDelimitedString(uti).c_str();
 
      //note: any "[arraysize]" comes with variable name, not class type (like C decl).
-    if(getReferenceType() != ALT_NOT)
+    if(isref)
       namestr << "&";
     return namestr.str();
-  } //getUlamTypeNameBrief
+  } //getUlamTypeClassNameBrief
 
   //see SymbolVariableDataMember printPostfix for recursive output
   void UlamTypeClass::getDataAsString(const u32 data, char * valstr, char prefix)

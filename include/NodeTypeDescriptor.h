@@ -2,7 +2,8 @@
  * NodeTypeDescriptor.h - Basic Node Type descriptor for ULAM
  *
  * Copyright (C) 2015-2018 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2018 Ackleyshack LLC.
+ * Copyright (C) 2015-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +30,7 @@
   \file NodeTypeDescriptor.h - Basic Node Type descriptor for ULAM
   \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2018 All rights reserved.
+  \date (C) 2015-2021 All rights reserved.
   \gpl
 */
 
@@ -76,7 +77,11 @@ namespace MFM{
 
     UTI givenUTI();
 
-    void resetGivenUTI(UTI guti);
+    virtual UTI resetGivenUTI(UTI guti); //may use guti rootUTI instead
+
+    virtual UTI getScalarType();
+
+    virtual bool isEmptyArraysizeDecl();
 
     UTI getReferencedUTI();
 
@@ -90,11 +95,9 @@ namespace MFM{
 
     void setContextForPendingArgType(UTI context);
 
-    virtual UTI checkAndLabelType();
+    virtual UTI checkAndLabelType(Node * thisparentnode);
 
     virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
-
-    virtual bool assignClassArgValueInStubCopy();
 
     virtual EvalStatus eval();
 
@@ -102,7 +105,6 @@ namespace MFM{
     Token m_typeTok;
     UTI m_uti;
     bool m_ready;
-    UTI m_contextForPendingArgType;
 
   private:
     NodeTypeBitsize * m_unknownBitsizeSubtree;

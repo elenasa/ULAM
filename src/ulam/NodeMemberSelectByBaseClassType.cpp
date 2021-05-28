@@ -93,9 +93,9 @@ namespace MFM {
     return m_nodeRight->safeToCastTo(newType);
   } //safeToCastTo
 
-  UTI NodeMemberSelectByBaseClassType::checkAndLabelType()
+  UTI NodeMemberSelectByBaseClassType::checkAndLabelType(Node * thisparentnode)
   {
-    UTI nuti = NodeMemberSelect::checkAndLabelType();
+    UTI nuti = NodeMemberSelect::checkAndLabelType(thisparentnode);
     if(m_state.okUTItoContinue(nuti))
       {
 	UTI luti = m_nodeLeft->getNodeType();
@@ -114,7 +114,7 @@ namespace MFM {
 
 	if(m_nodeVTclassrn)
 	  {
-	    UTI vtuti = m_nodeVTclassrn->checkAndLabelType(); //Unsigned
+	    UTI vtuti = m_nodeVTclassrn->checkAndLabelType(this); //Unsigned
 	    if(!m_state.okUTItoContinue(vtuti))
 	      {
 		std::ostringstream msg;

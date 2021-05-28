@@ -107,7 +107,7 @@ namespace MFM {
     m_oftype = oftyp;
   }
 
-  UTI NodeStorageof::checkAndLabelType()
+  UTI NodeStorageof::checkAndLabelType(Node * thisparentnode)
   {
   UTI nuti = Nouti;
 
@@ -116,7 +116,7 @@ namespace MFM {
       //m_nodeOf if variable subject; o.w. nodeTypeDescriptor if Type subject
       if(m_nodeOf)
 	{
-	  UTI ofuti = m_nodeOf->checkAndLabelType();
+	  UTI ofuti = m_nodeOf->checkAndLabelType(this);
 	  if(m_state.okUTItoContinue(ofuti))
 	    {
 	      std::ostringstream msg;
@@ -151,7 +151,7 @@ namespace MFM {
       else if(m_nodeTypeDesc)
 	{
 	  //Of a Type (lhs)
-	  nuti = m_nodeTypeDesc->checkAndLabelType(); //sets goagain if hzy
+	  nuti = m_nodeTypeDesc->checkAndLabelType(this); //sets goagain if hzy
 	}
       else
 	m_state.abortShouldntGetHere();

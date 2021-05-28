@@ -1,8 +1,11 @@
 ## -*- mode:ulam -*-
 #=t41452_test_compiler_templateclasseswiththreewayreferencingtypedefs
 #!
+<<<<<<< HEAD
 ##./DemoGST.ulam:2:19: ERROR: Circular reference or dependencies too complex: 67 copies of GeneralSpatialTree(4) (UTI 95), so far..
 ##./GeneralSpatialTree.ulam:2:7: NOTE: .. 2 locations responsible for the 67 copies: ./GeneralSpatialTreeVisitor.ulam:5:11: (33), ./GeneralSpatialTreeHost.ulam:3:11: (33).
+=======
+>>>>>>> devpartialinstver
 Exit status: 0
 Ue_R { Int(32) test() {  System s;  DemoGST demo;  0 cast return } }
 Uq_System { <NOMAIN> }
@@ -12,6 +15,11 @@ Un_GeneralSpatialTreeVisitor(Unary(4) cRADIUSV = 15u) : GeneralSpatialTree(cRADI
 Un_GeneralSpatialTreeHost(Unary(4) cRADIUSH = 15u) : GeneralSpatialTree(cRADIUS) { typedef GeneralSpatialTree(cRADIUS) GST;  :GeneralSpatialTree11< constant Unsigned(32) cBITSNEEDED = cRADIUS 1u <= ?  3u :  cRADIUS 2u == ?  4u :  cRADIUS 3u == ?  5u :  6u;  typedef Unsigned(UNKNOWN) EWPtr;  typedef Unsigned(2) RGBState;  constant Unsigned(2) cRED_STATE = 0u;  constant Unsigned(2) cGREEN_STATE = 1u;  constant Unsigned(2) cBLUE_STATE = 2u;  constant Unsigned(2) cDEAD_STATE = 3u;  Unsigned(UNKNOWN) mParentSN(notready);  Unsigned(2) mRGBState(notready);  typedef GeneralSpatialTreeVisitor(cRADIUSV) GSTV;  typedef GeneralSpatialTreeHost(cRADIUSH) GSTH; > <NOMAIN> }
 Un_DemoGSTV : GeneralSpatialTreeVisitor(4) { :GeneralSpatialTreeVisitor(4)< typedef GeneralSpatialTree(4) GST; > ^GeneralSpatialTree(4)< constant Unsigned(32) cBITSNEEDED = 6u;  typedef Unsigned(6) EWPtr;  typedef Unsigned(2) RGBState;  constant Unsigned(2) cRED_STATE = 0u;  constant Unsigned(2) cGREEN_STATE = 1u;  constant Unsigned(2) cBLUE_STATE = 2u;  constant Unsigned(2) cDEAD_STATE = 3u;  Unsigned(6) mParentSN(0);  Unsigned(2) mRGBState( 0u);  typedef GeneralSpatialTreeVisitor(4) GSTV;  typedef GeneralSpatialTreeHost(4) GSTH; > <NOMAIN> }
 Un_DemoGSTH : GeneralSpatialTreeHost(4) { :GeneralSpatialTreeHost(4)< typedef GeneralSpatialTree(4) GST; > ^GeneralSpatialTree(4)< constant Unsigned(32) cBITSNEEDED = 6u;  typedef Unsigned(6) EWPtr;  typedef Unsigned(2) RGBState;  constant Unsigned(2) cRED_STATE = 0u;  constant Unsigned(2) cGREEN_STATE = 1u;  constant Unsigned(2) cBLUE_STATE = 2u;  constant Unsigned(2) cDEAD_STATE = 3u;  Unsigned(6) mParentSN(0);  Unsigned(2) mRGBState( 0u);  typedef GeneralSpatialTreeVisitor(4) GSTV;  typedef GeneralSpatialTreeHost(4) GSTH; > <NOMAIN> }
+<<<<<<< HEAD
+=======
+##./DemoGST.ulam:2:19: ERROR: Circular reference or dependencies too complex: 607 copies of GeneralSpatialTree(4) (UTI 95), so far..
+##./GeneralSpatialTree.ulam:2:7: NOTE: .. 2 locations responsible for the 607 copies: ./GeneralSpatialTreeVisitor.ulam:5:11: (303), ./GeneralSpatialTreeHost.ulam:3:11: (303).
+>>>>>>> devpartialinstver
 ##
 ## variation on t41451, with third template class G.S.T.Host typedef, see also t41455.
 ##
@@ -47,7 +55,11 @@ quark GeneralSpatialTree(Unary(4) cRADIUS = 4u) {
   RGBState mRGBState = cRED_STATE;
 
   typedef GeneralSpatialTreeVisitor(cRADIUS) GSTV;
+<<<<<<< HEAD
   typedef GeneralSpatialTreeHost(cRADIUS) GSTH; //LOOPING!!
+=======
+  typedef GeneralSpatialTreeHost(cRADIUS) GSTH; //LOOPING!! no more...
+>>>>>>> devpartialinstver
 
   // Death API
 

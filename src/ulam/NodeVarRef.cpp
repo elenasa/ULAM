@@ -170,7 +170,7 @@ namespace MFM {
     return rscr;
   } //safeToCastTo
 
-  bool NodeVarRef::checkReferenceCompatibility(UTI uti)
+  bool NodeVarRef::checkReferenceCompatibility(UTI uti, Node * parentnode)
   {
     assert(m_state.okUTItoContinue(uti));
     if((!m_state.getUlamTypeByIndex(uti)->isAltRefType()))
@@ -185,9 +185,9 @@ namespace MFM {
     return true; //ok
   } //checkReferenceCompatibility
 
-  UTI NodeVarRef::checkAndLabelType()
+  UTI NodeVarRef::checkAndLabelType(Node * thisparentnode)
   {
-    UTI it = NodeVarDecl::checkAndLabelType();
+    UTI it = NodeVarDecl::checkAndLabelType(thisparentnode);
     u32 errCount= 0;
     u32 hazyCount = 0;
     if(!m_state.okUTItoContinue(it))
@@ -242,6 +242,7 @@ namespace MFM {
 	if(hazyCount)
 	  {
 	    setNodeType(Hzy);
+	    clearSymbolPtr();
 	    m_state.setGoAgain();
 	    return Hzy; //short-circuit
 	  }
@@ -301,7 +302,11 @@ namespace MFM {
 	  Node::setStoreIntoAble(TBOOL_TRUE);
       }
     setNodeType(it);
-    if(it == Hzy) m_state.setGoAgain();
+    if(it == Hzy)
+      {
+	clearSymbolPtr();
+	m_state.setGoAgain();
+      }
     return getNodeType();
   } //checkAndLabelType
 

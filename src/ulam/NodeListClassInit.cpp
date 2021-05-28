@@ -88,7 +88,7 @@ namespace MFM{
     return true;
   }
 
-  UTI NodeListClassInit::checkAndLabelType()
+  UTI NodeListClassInit::checkAndLabelType(Node * thisparentnode)
   {
     UTI rtnuti = Node::getNodeType();
 
@@ -137,7 +137,7 @@ namespace MFM{
     for(u32 i = 0; i < m_nodes.size(); i++)
       {
 	assert(m_nodes[i]);
-	UTI puti = m_nodes[i]->checkAndLabelType();
+	UTI puti = m_nodes[i]->checkAndLabelType(this);
 	if(puti == Nav)
 	  {
 	    std::ostringstream msg;
@@ -197,7 +197,7 @@ namespace MFM{
     return Node::getNodeType();
   }
 
-  UTI NodeListClassInit::constantFold()
+  UTI NodeListClassInit::constantFold(Node * parentnode)
   {
     return foldConstantExpression(); //t41170
   }

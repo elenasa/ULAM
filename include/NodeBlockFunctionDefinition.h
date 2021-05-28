@@ -2,8 +2,8 @@
  * NodeBlockFunctionDefinition.h - Node for handling Function Definitions for ULAM
  *
  * Copyright (C) 2014-2020 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2020 Ackleyshack LLC.
- * Copyright (C) 2020 The Living Computation Foundation.
+ * Copyright (C) 2014-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -30,7 +30,7 @@
   \file NodeBlockFunctionDefinition.h - Node for handling Function Definitions for ULAM
   \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2020 All rights reserved.
+  \date (C) 2014-2021 All rights reserved.
   \gpl
 */
 
@@ -70,13 +70,15 @@ class NodeBlockFunctionDefinition : public NodeBlock
 
     virtual void printPostfix(File * fp);
 
-    virtual UTI checkAndLabelType();
+    virtual UTI checkAndLabelType(Node * thisparentnode);
 
     bool checkParameterNodeTypes();
 
     void addParameterNode(Node * nodeArg);
 
     Node * getParameterNode(u32 pidx);
+
+    UTI getParameterNodeGivenType(u32 pidx);
 
     void makeSuperSymbol(s32 slot);
 

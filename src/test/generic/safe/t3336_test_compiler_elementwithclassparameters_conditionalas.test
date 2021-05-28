@@ -14,7 +14,7 @@ Uq_System { <NOMAIN> }
 ##
 ##      //informed by t3249_test_compiler_elementandquark_conditionalas
 ##      // 'a has System' doesn't appy to eval because atoms have no class declarations; but testable for gencode
-##      // enhanced by a 'named constant', v;
+##      // enhanced test with Counter4 as a template instance, and a 'named constant', v;
 ##
 #>Foo.ulam
   ulam 1;

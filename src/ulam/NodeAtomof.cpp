@@ -26,10 +26,10 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-  UTI NodeAtomof::checkAndLabelType()
+  UTI NodeAtomof::checkAndLabelType(Node * thisparentnode)
   {
     assert(m_nodeOf); //Identifier, not a Type; caught at parse time (right?)
-    UTI nuti = NodeStorageof::checkAndLabelType();
+    UTI nuti = NodeStorageof::checkAndLabelType(thisparentnode);
     if(m_state.okUTItoContinue(nuti))
       {
 	UTI vuti = m_nodeOf->getNodeType();

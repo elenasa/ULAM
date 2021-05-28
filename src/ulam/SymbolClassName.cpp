@@ -185,21 +185,47 @@ namespace MFM {
   {
     NodeBlockClass * classNode = getClassBlockNode();
     assert(classNode);
-    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
+    UTI cuti = getUlamTypeIdx();
+    if(m_state.isComplete(cuti))
+      {
+	m_state.pushClassContext(cuti, classNode, classNode, false, NULL);
 
-    classNode->calcMaxDepthOfFunctions();
-    m_state.popClassContext(); //restore
+	classNode->calcMaxDepthOfFunctions();
+	m_state.popClassContext(); //restore
+      }
+    else
+      {
+	std::ostringstream msg;
+	msg << " Class '";
+	msg << m_state.getUlamTypeNameByIndex(cuti).c_str();
+	msg << "' is still incomplete; No calc max depth function, error";
+	MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //t3862
+      }
   } //calcMaxDepthOfFunctionsForClassInstances
 
   bool SymbolClassName::calcMaxIndexOfVirtualFunctionsForClassInstances()
   {
+    bool aok = true;
     NodeBlockClass * classNode = getClassBlockNode();
     assert(classNode);
-    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
+    UTI cuti = getUlamTypeIdx();
+    if(m_state.isComplete(cuti))
+      {
+	m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
 
-    classNode->calcMaxIndexOfVirtualFunctions();
-    m_state.popClassContext(); //restore
-    return (classNode->getVirtualMethodMaxIdx() != UNKNOWNSIZE);
+	classNode->calcMaxIndexOfVirtualFunctions();
+	m_state.popClassContext(); //restore
+	aok = (classNode->getVirtualMethodMaxIdx() != UNKNOWNSIZE);
+      }
+    else
+      {
+	std::ostringstream msg;
+	msg << " Class '";
+	msg << m_state.getUlamTypeNameByIndex(cuti).c_str();
+	msg << "' is still incomplete; No calc max index of virtual functions, error";
+	MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //t3862
+      }
+    return aok;
   } //calcMaxIndexOfVirtualFunctionsForClassInstances
 
   void SymbolClassName::checkAbstractInstanceErrorsForClassInstances()
@@ -233,7 +259,7 @@ namespace MFM {
 
     m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
 
-    classNode->checkAndLabelType();
+    classNode->checkAndLabelType(NULL);
     m_state.popClassContext(); //restore
   } //checkAndLabelClassFirst
 
@@ -356,7 +382,7 @@ namespace MFM {
 
     if(aok)
       {
-	m_state.setBitSize(cuti, totalbits); //"scalar" Class bitsize  KEY ADJUSTED
+	m_state.setUTIBitSize(cuti, totalbits); //"scalar" Class bitsize  KEY ADJUSTED
 	if(m_state.getBitSize(cuti) != totalbits)
 	  {
 	    std::ostringstream msg;

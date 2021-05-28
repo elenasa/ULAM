@@ -538,7 +538,7 @@ namespace MFM {
     return rtnfound;
   } //findNodeNoInFunctionDefs
 
-  bool SymbolFunctionName::labelFunctions()
+  bool SymbolFunctionName::labelFunctions(Node * thisparentnode)
   {
     bool aok = true; //parameter types
 
@@ -552,7 +552,7 @@ namespace MFM {
 
 	NodeBlockFunctionDefinition * func = fsym->getFunctionNode();
 	assert(func); //how would a function symbol be without a body? perhaps an ACCESSOR to-be-made?
-	func->checkAndLabelType();
+	func->checkAndLabelType(thisparentnode);
 	++it;
       }
     return aok;

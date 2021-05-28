@@ -83,6 +83,9 @@ namespace MFM{
     void appendBaseClass(UTI baseclass, bool sharedbase);
     void updateBaseClass(UTI oldclasstype, u32 item, UTI newbaseclass);
     void setBaseClass(UTI baseclass, u32 item, bool sharedbase = true);
+    void setSuperBaseClass(UTI superuti);
+    void updateSuperTypedef(UTI superuti);
+
     s32 getBaseClassRelativePosition(u32 item) const;
     void setBaseClassRelativePosition(u32 item, u32 pos);
 
@@ -91,6 +94,7 @@ namespace MFM{
     s32 isASharedBaseClassItemSearch(UTI buti);
     u32 getSharedBaseClassCount() const;
     void updateSharedBaseClass(UTI oldclasstype, u32 item, UTI newbaseclass);
+    void appendSharedBaseClass(UTI baseclass, u32 numshared);
 
     s32 getSharedBaseClassRelativePosition(u32 item) const;
     void setSharedBaseClassRelativePosition(u32 item, u32 pos);
@@ -120,6 +124,13 @@ namespace MFM{
 
     void setStubCopy();
 
+<<<<<<< HEAD
+=======
+    UTI getStubCopyOf();
+
+    void setStubCopyOf(UTI stubuti);
+
+>>>>>>> devpartialinstver
     UTI getCustomArrayType(); //by function return type
 
     u32 getCustomArrayIndexTypeFor(Node * rnode, UTI& idxuti, bool& hasHazyArgs);
@@ -154,7 +165,7 @@ namespace MFM{
 
     void linkConstantExpressionForPendingArg(NodeConstantDef * constNode);
     bool pendingClassArgumentsForClassInstance();
-    void cloneArgumentNodesForClassInstance(SymbolClass * fmcsym, UTI argvaluecontext, UTI argtypecontext, bool toStub);
+    void cloneArgumentNodesForClassInstance(SymbolClass * fmcsym, UTI argvaluecontext, UTI argtypecontext);
     void cloneResolverUTImap(SymbolClass * csym);
     void cloneUnknownTypesMapInClass(SymbolClass * to);
 
@@ -210,11 +221,12 @@ namespace MFM{
 
     void buildIsBitVectorByRegNum(BV8K& bitvecref);
 
-    void assignClassArgValuesInStubCopy(); //was private.
+    void partialInstantiationOfMemberNodesAndSymbols(NodeBlockClass & fromclassblock);
 
-    void setTemplateBaseClassStub();
-    void clearTemplateBaseClassStub();
-    bool isTemplateBaseClassStub();
+    bool isStubForTemplate();
+    UTI getStubForTemplateType();
+    void setStubForTemplateType(UTI ttype);
+    void clearStubForTemplate();
 
   protected:
     Resolver * m_resolver;
@@ -227,7 +239,10 @@ namespace MFM{
     bool m_quarkunion;
     bool m_stub;
     bool m_stubcopy;
-    bool m_stubbaseForTemplate; //ulam-5 (t41440)
+    bool m_stubForTemplate; //ulam-5 (t41440, t41224)
+    UTI m_stubForTemplateType;
+    UTI m_stubcopyOf;
+    bool m_stubcopyfromseentemplatestub;
     BV8K m_defaultValue; //BitVector
     bool m_isreadyDefaultValue;
     bool m_bitsPacked;
@@ -241,7 +256,8 @@ namespace MFM{
     void clearBaseAsShared(u32 item);
     void setNumberSharingBase(u32 item, u32 numshared);
     s32 isABaseClassItemSearch(UTI buti);
-    void appendSharedBaseClass(UTI baseclass, u32 numshared);
+
+    void setStubForTemplate();
 
     bool resolveHasMappedUTI(UTI auti, UTI& mappedUTI);
     bool resolveHasMappedUTI(UTI auti); //helps w debugging

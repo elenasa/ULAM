@@ -4,6 +4,7 @@
 #include "SymbolVariable.h"
 #include "SymbolVariableStack.h"
 #include "SymbolFunctionName.h"
+#include "NodeVarDecl.h"
 
 namespace MFM {
 
@@ -174,7 +175,7 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-  UTI NodeBlockFunctionDefinition::checkAndLabelType()
+  UTI NodeBlockFunctionDefinition::checkAndLabelType(Node * thisparentnode)
   {
     assert(m_funcSymbol);
     UTI fit = m_funcSymbol->getUlamTypeIdx();
@@ -182,9 +183,10 @@ namespace MFM {
     UTI cuti = m_state.getCompileThisIdx();
 
     // don't want to leave Nav dangling
+    assert(m_nodeTypeDesc);
     if(m_nodeTypeDesc)
       {
-	it = m_nodeTypeDesc->checkAndLabelType();
+	it = m_nodeTypeDesc->checkAndLabelType(this);
       }
 
     checkParameterNodeTypes();
@@ -199,7 +201,7 @@ namespace MFM {
       }
     else
       {
-	if(m_state.okUTItoContinue(fit) && (fit != it)) //exact UTI match
+	if(m_state.okUTItoContinue(it) && (fit != it)) //exact UTI match
 	{
 	  std::ostringstream msg;
 	  msg << "Resetting function symbol UTI" << fit;
@@ -211,7 +213,7 @@ namespace MFM {
 	  msg <<  " while labeling class: ";
 	  msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	  m_state.mapTypesInCurrentClass(fit, it);
+	  //m_state.mapTypesInCurrentClass(fit, it);
 	  m_funcSymbol->resetUlamType(it); //consistent!
 	  //m_state.updateUTIAliasForced(fit, it); //Mon Jun  6 13:45:15 2016 ?
 	}
@@ -253,7 +255,7 @@ namespace MFM {
 
     if(m_nodeNext) //non-empty function
       {
-	m_nodeNext->checkAndLabelType(); //side-effect
+	m_nodeNext->checkAndLabelType(this); //side-effect
 	if(!m_state.checkFunctionReturnNodeTypes(m_funcSymbol)) //gives some errors
 	  setNodeType(Nav); //tries to avoid assert in resolving loop; return sets goagain
       }
@@ -270,7 +272,7 @@ namespace MFM {
 
   bool NodeBlockFunctionDefinition::checkParameterNodeTypes()
   {
-    UTI puti = m_nodeParameterList->checkAndLabelType();
+    UTI puti = m_nodeParameterList->checkAndLabelType(this);
     return m_state.okUTItoContinue(puti);
   }
 
@@ -283,6 +285,16 @@ namespace MFM {
   {
     assert(m_nodeParameterList);
     return m_nodeParameterList->getNodePtr(pidx);
+  }
+
+  UTI NodeBlockFunctionDefinition::getParameterNodeGivenType(u32 pidx)
+  {
+    NodeVarDecl * parmdef = (NodeVarDecl *) getParameterNode(pidx);
+    assert(parmdef);
+    NodeTypeDescriptor * typedesc = NULL;
+    AssertBool gottype = parmdef->getNodeTypeDescriptorPtr(typedesc);
+    assert(gottype);
+    return typedesc->givenUTI();
   }
 
   void NodeBlockFunctionDefinition::makeSuperSymbol(s32 slot)

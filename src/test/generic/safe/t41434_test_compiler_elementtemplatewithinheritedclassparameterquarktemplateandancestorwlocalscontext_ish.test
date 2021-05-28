@@ -34,20 +34,24 @@ element R {
 }
 
 
-#:Foo.ulam
+#:T1.ulam
   ulam 5;
 quark T1(Unsigned u, Bool b) {
   Unsigned func() { return u; } // NOT virtual
   Bool mb = b;
 }
 
+#:T2.ulam
+  ulam 5;
 quark T2(Bool z, Unsigned q, Unsigned other) : T1(q,z) {
   Unsigned func() { return other; }
   Unsigned(5) mq = (Unsigned(5)) q;
 }
 
-local typedef T2(true, 1u, 27u) MyT2;
+#:T3.ulam
+  ulam 5;
 
+local typedef T2(true, 1u, 27u) MyT2;
 quark T3 : MyT2 {
   Void behave() {
     System s;
@@ -55,6 +59,8 @@ quark T3 : MyT2 {
   }
 }
 
+#:Foo.ulam
+  ulam 5;
 element Foo : T3 { }
 
 
