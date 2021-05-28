@@ -1426,10 +1426,9 @@ namespace MFM {
 
   Node * Parser::parseControlIf(const Token& ifTok)
   {
-    if(!getExpectedToken(TOK_OPEN_PAREN))
-      {
-	return NULL;
-      }
+    Token ftmpTok;
+    if(!getExpectedToken(TOK_OPEN_PAREN,ftmpTok))
+      return NULL; //non-quietly, t41467
 
     //before parsing the IF statement, need a new scope
     NodeBlock * currBlock = m_state.getCurrentBlock();
@@ -1494,8 +1493,9 @@ namespace MFM {
 
   Node * Parser::parseControlWhile(const Token& wTok)
   {
-    if(!getExpectedToken(TOK_OPEN_PAREN))
-      return NULL;
+    Token wtmpTok;
+    if(!getExpectedToken(TOK_OPEN_PAREN, wtmpTok))
+      return NULL; //non-quietly, t41467
 
     u32 controlLoopLabelNum = m_state.m_parsingControlLoopsSwitchStack.getLastExitNumber(); //save at the top
 
@@ -1547,8 +1547,9 @@ namespace MFM {
 
   Node * Parser::parseControlFor(const Token& fTok)
   {
-    if(!getExpectedToken(TOK_OPEN_PAREN))
-      return NULL;
+    Token ftmpTok;
+    if(!getExpectedToken(TOK_OPEN_PAREN, ftmpTok))
+      return NULL; //non-quietly, t41467
 
     u32 controlLoopLabelNum = m_state.m_parsingControlLoopsSwitchStack.getLastExitNumber(); //save at the top
 
@@ -1623,7 +1624,8 @@ namespace MFM {
 	    return NULL; //stop this maddness
 	  }
 
-	if(!getExpectedToken(TOK_SEMICOLON))
+	Token tmpTok;
+	if(!getExpectedToken(TOK_SEMICOLON, tmpTok))
 	  {
 	    m_state.popClassContext(); //the pop
 	    delete rtnNode;
@@ -1746,10 +1748,9 @@ namespace MFM {
 
   Node * Parser::parseControlSwitch(const Token& swTok)
   {
-    if(!getExpectedToken(TOK_OPEN_PAREN))
-      {
-	return NULL;
-      }
+    Token stmpTok;
+    if(!getExpectedToken(TOK_OPEN_PAREN, stmpTok))
+      return NULL; //non-quietly, t41467
 
     u32 switchnum = m_state.getNextTmpVarNumber();
 
