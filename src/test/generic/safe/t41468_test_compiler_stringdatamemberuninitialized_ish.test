@@ -1,0 +1,50 @@
+## -*- mode:ulam -*-
+#=t41468_test_compiler_stringdatamemberuninitialized_ish
+##
+## gen output: 1 assert
+#!
+Exit status: -11
+Ue_T { Int(32) test() {  System s;  QFoo qf;  s ( qf ( )okString . ! )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+Uq_QFoo { String str(UNINITIALIZED_STRING);  <NOMAIN> }
+##
+##  informed by Daves ish 20210528, an uninitialized string data member in a quark;
+##  got g++ compiler error for getDefaultQuark():
+##     error: ‘initBV’ was not declared in this scope
+##     return initBV.Read(0u, QUARK_SIZE); //gcnl:NodeBlockClass.cpp:4189
+##
+#>T.ulam
+ ulam 5;
+element T{
+
+  Int test(){
+    System s;
+    QFoo qf;
+    s.assert(!qf.okString());
+    return 0;
+  }
+}
+
+#:QFoo.ulam
+ ulam 5;
+quark QFoo {
+  String str;
+ Bool okString()
+ {
+   return (Bool) str; //uninitialized string returns false;
+ }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

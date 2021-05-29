@@ -1604,10 +1604,9 @@ namespace MFM {
       return false;
 
     std::string dhex;
-    UTI cuti = getCompileThisIdx();
-    bool notZero = SymbolWithValue::getHexValueAsString(len, dval, dhex);
-    if(!notZero && (getUlamTypeByIndex(cuti)->getUlamClassType() != UC_TRANSIENT))
-      return false; //nothing to do
+    //UTI cuti = getCompileThisIdx();
+    //bool notZero =
+    SymbolWithValue::getHexValueAsString(len, dval, dhex);
 
     //build static constant array of u32's for BV8K:
     indent(fp);

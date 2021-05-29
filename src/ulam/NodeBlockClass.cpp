@@ -4156,7 +4156,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	return;
       }
 
-    //get all initialized data members in quark
+    //get all initialized data members in quark (w strings t41093,t41167,t41468)
     u32 qval = 0;
     AssertBool isDefaultQuark = m_state.getDefaultQuark(cuti, qval);
     assert(isDefaultQuark);
@@ -4179,23 +4179,11 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     m_state.m_currentIndentLevel++;
 
-    //Strings cannot be initialized in Unions (t41093)
-    if(hasStringDataMembers() && !m_state.isClassAQuarkUnion(cuti))
-      {
-	//must by the only data member then (max size Quark == size of String) t41167
-	genCodeBuiltInFunctionBuildingDefaultDataMembers(fp);
-
-	m_state.indent(fp);
-	fp->write("return initBV.Read(0u, QUARK_SIZE);"); GCNL;
-      }
-    else
-      {
-	m_state.indent(fp);
-	fp->write("return ");
-	fp->write_hexadecimal(qval);
-	fp->write("; //=");
-	fp->write_decimal_unsigned(qval); GCNL;
-      }
+    m_state.indent(fp);
+    fp->write("return ");
+    fp->write_hexadecimal(qval);
+    fp->write("; //=");
+    fp->write_decimal_unsigned(qval); GCNL;
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);

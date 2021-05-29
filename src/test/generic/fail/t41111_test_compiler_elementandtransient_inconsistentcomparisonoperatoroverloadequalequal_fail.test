@@ -32,7 +32,7 @@ element Foo : QW {
 
     second = (too != foo);
     s.print(second);
-    s.assert(second == first); //should be opposite of ==
+    s.assert(second == first); //should be opposite of ==, but isn't
 
     return (too - foo);
   }
