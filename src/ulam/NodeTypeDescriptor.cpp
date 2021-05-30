@@ -138,9 +138,16 @@ namespace MFM {
 	    if(m_state.isHolder(m_uti)) //not is stub (t41213),t41409 holder, t3375 reverse?
 	      m_state.cleanupExistingHolder(m_uti, galias); //updates alias too
 	  }
+	else if(m_state.isClassAStub(aliasuti) && !m_state.isClassAStub(galias))
+	  {
+	    //t41469 (not complete but not a stub either); and, needs
+	    //aliasuti "aliased" to galias, ow aliasuti remains unresolved.
+	    assert(m_state.getUlamTypeNameIdByIndex(aliasuti) == m_state.getUlamTypeNameIdByIndex(galias)); //sanity check
+	    m_state.updateUTIAliasForced(aliasuti, galias);
+	  }
 	else
 	  {
-	    assert((aliasuti == guti) || (aliasuti == galias) || (m_state.lookupUTIAlias(aliasuti)==galias) || m_state.isAPrimitiveType(m_uti)); //t3384, t3373, t41438 (bitsizes differ);
+	    assert((aliasuti == guti) || (aliasuti == galias) || (m_state.lookupUTIAlias(aliasuti)==galias) || m_state.isAPrimitiveType(m_uti)); //t3384, t3373, t41438 (bitsizes differ)
 	  }
 	m_uti = galias;
       }
@@ -207,7 +214,7 @@ namespace MFM {
     else
       {
 	it = resetGivenUTI(it);
-	setNodeType(it); //though incomplete (t41213)
+	setNodeType(it); //though incomplete (t41213, t41469)
       }
 
     return getNodeType();
@@ -520,6 +527,7 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	rtnuti = Hzy; //t41213, t3444
       }
+    //else incomplete, non-stub, not Hzy (t41469)
     return rtnb;
   } //resolveClassType
 
