@@ -8,8 +8,11 @@ use AtomUtils;
    result, EventWindow quarks can be created with impunity, and all
    will access the same event window state, but on the other hand, all
    (or at least most) of the methods in this class will FAIL if there
-   is actually no event in progress, which is an issue primarily in
-   calls on the getColor method.
+   is actually no event in progress, which is an issue during calls on
+   methods such as getColor and renderGraphics.
+
+   \sa MDist for various site and coord mapping methods that can be
+       used whether an event is in progress or not
 
    \author Dave Ackley
    \license lgpl

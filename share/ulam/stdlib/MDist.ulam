@@ -89,6 +89,8 @@ quark MDist {
 
   C2D symMap(C2D pt, Symmetry sym) native; //{ C2D ret(sym,2); return ret; }
 
+  Symmetry symInverse(Symmetry sym) native;
+
   Index symMap(Index siteNumber, Symmetry sym) {
     C2D c = getSiteCoord(siteNumber);
     C2D m = symMap(c, sym);
