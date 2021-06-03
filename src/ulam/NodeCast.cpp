@@ -100,9 +100,9 @@ namespace MFM {
     return m_node->isNegativeConstant();
   }
 
-  bool NodeCast::isWordSizeConstant()
+  bool NodeCast::isWordSizeConstant(u32 wordsize)
   {
-    return m_node->isWordSizeConstant();
+    return m_node->isWordSizeConstant(wordsize);
   }
 
   bool NodeCast::isFunctionCall()

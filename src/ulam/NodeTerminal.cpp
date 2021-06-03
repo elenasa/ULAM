@@ -569,34 +569,12 @@ namespace MFM {
     return rtnb;
   } //isNegativeConstant
 
-  // used during check and label for bitwise shift op that has a RHS constant term gt/ge 32;
+  // used during check and label for bitwise shift op that has a RHS constant term gt arg, 32 or 64;
   // since node is not the shiftee, unsigned/int distinction not pertinent
   // false is ok.
-  bool NodeTerminal::isWordSizeConstant()
+  bool NodeTerminal::isWordSizeConstant(u32 wordsize)
   {
-    bool rtnb = false;
-    UlamType * nut = m_state.getUlamTypeByIndex(getNodeType());
-    u32 wordsize = nut->getTotalWordSize();
-    ULAMTYPE etyp = nut->getUlamTypeEnum();
-    if(etyp == Int)
-      {
-	if(wordsize <= MAXBITSPERINT)
-	  rtnb = (m_constant.sval >= MAXBITSPERINT);
-	else if(wordsize <= MAXBITSPERLONG)
-	  rtnb = (m_constant.sval >= MAXBITSPERLONG);
-	else
-	  m_state.abortGreaterThanMaxBitsPerLong();
-      }
-    else if(etyp == Unsigned)
-      {
-	if(wordsize <= MAXBITSPERINT)
-	rtnb = (m_constant.uval >= (u32) MAXBITSPERINT);
-	else if(wordsize <= MAXBITSPERLONG)
-	  rtnb = (m_constant.uval >= (u32) MAXBITSPERLONG);
-	else
-	  m_state.abortGreaterThanMaxBitsPerLong();
-      }
-    return rtnb;
+    return  (m_constant.uval > wordsize); //use to be >=
   } //isWordSizeConstant
 
   void NodeTerminal::genCode(File * fp, UVPass& uvpass)

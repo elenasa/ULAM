@@ -283,7 +283,7 @@ namespace MFM {
     return false;
   }
 
-  bool Node::isWordSizeConstant()
+  bool Node::isWordSizeConstant(u32 wordsize)
   {
     m_state.abortShouldntGetHere();
     return false;

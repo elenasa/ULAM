@@ -166,7 +166,7 @@ enum EvalStatus {ERROR, NOTREADY, NORMAL, RETURN, BREAK, CONTINUE, UNEVALUABLE};
 
     virtual bool isNegativeConstant();
 
-    virtual bool isWordSizeConstant();
+    virtual bool isWordSizeConstant(u32 wordsize);
 
     virtual bool isFunctionCall();
 

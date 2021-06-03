@@ -74,7 +74,7 @@ namespace MFM{
 
     virtual bool isNegativeConstant();
 
-    virtual bool isWordSizeConstant();
+    virtual bool isWordSizeConstant(u32 wordsize);
 
     virtual EvalStatus eval();
 

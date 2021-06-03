@@ -111,8 +111,8 @@ namespace MFM {
 	bool bok = true;
 	//s32 lbs = resultBitsize(lt, rt);
 	//e.g. t3432, t3463, t3467
-	s32 lbs = UNKNOWNSIZE, wordsize = UNKNOWNSIZE;
-	NodeBinaryOp::calcBitsizeForResultInBits(lt, lbs, wordsize);
+	s32 lbs = UNKNOWNSIZE, lwordsize = UNKNOWNSIZE;
+	NodeBinaryOp::calcBitsizeForResultInBits(lt, lbs, lwordsize);
 
 	//will auto cast to Bits, a downhill cast. using LHS bitsize (not result size).
 	UlamKeyTypeSignature newleftkey(m_state.m_pool.getIndexForDataString("Bits"), lbs);
@@ -167,7 +167,7 @@ namespace MFM {
 	//check for big shift values
 	if(m_nodeRight->isAConstant() && m_nodeRight->isReadyConstant())
 	  {
-	    if(m_nodeRight->isWordSizeConstant())
+	    if(m_nodeRight->isWordSizeConstant(lwordsize))
 	      {
 		std::ostringstream msg;
 		msg << "Shift distance greater than data width, operation ";
