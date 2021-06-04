@@ -124,8 +124,7 @@ namespace MFM {
 		    else //t3862
 		      {
 			UTI mappedUTI;
-			if(m_state.mappedIncompleteUTI(seluti, auti, mappedUTI))
-			  //if(m_state.mappedIncompleteUTI(seluti, auti, mappedUTI) && !m_state.isHolder(mappedUTI)) //t3375
+			if(m_state.mappedIncompleteUTI(seluti, auti, mappedUTI)) //3375
 			  {
 			    std::ostringstream msg;
 			    msg << "Substituting Mapped UTI" << mappedUTI << ", ";
@@ -165,8 +164,9 @@ namespace MFM {
 		    msg << "Not a typedef '" << m_state.getTokenDataAsString(m_typeTok).c_str();
 		    msg << "' in another class, " ;;
 		    msg << m_state.getUlamTypeNameBriefByIndex(seluti).c_str();
-		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //was WARN
 		    rtnuti = Nav; //?
+		    m_state.abortNeedsATest();
 		  }
 	      }
 	    else
@@ -185,7 +185,7 @@ namespace MFM {
 		  {
 		    msg <<" while compiling: ";
 		    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //was DEBUG
 		    rtnuti = Hzy;
 		  }
 	      }

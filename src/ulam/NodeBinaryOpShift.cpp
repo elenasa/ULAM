@@ -172,7 +172,7 @@ namespace MFM {
 		std::ostringstream msg;
 		msg << "Shift distance greater than data width, operation ";
 		msg << getName();
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN); //t41470
 	      }
 	  }
 

@@ -356,7 +356,8 @@ namespace MFM {
 
 	it++;
       }
-    return (!m_state.goAgain() && (m_state.m_err.getErrorCount() + m_state.m_err.getWarningCount() == 0));
+    //    return (!m_state.goAgain() && (m_state.m_err.getErrorCount() + m_state.m_err.getWarningCount() == 0));
+    return !m_state.goAgain(); //t41470
   } //labelTableOfClasses
 
   void SymbolTableOfClasses::countNavNodesAcrossTableOfClasses(u32& navcount, u32& hzycount, u32& unsetcount)

@@ -1,5 +1,5 @@
 ## -*- mode:ulam -*-
-#=t3746_test_compiler_elementinheritedquark_redeclarefuncvirtual
+#=t3746_test_compiler_elementinheritedquark_redeclarefuncvirtual_warn
 ##
 ## gen output: (times 2) requires quark vtable support
 ## assert: arg is 1
@@ -7,8 +7,6 @@
 ##
 #!
 ./Base.ulam:3:7: Warning: Virtual overloaded function 'dfunc' has a NON-VIRTUAL ancestor in class: Base while compiling Sub1.
-./Base.ulam:3:7: Warning: Virtual overloaded function 'dfunc' has a NON-VIRTUAL ancestor in class: Base while compiling E2.
-./Base.ulam:3:7: Warning: Virtual overloaded function 'dfunc' has a NON-VIRTUAL ancestor in class: Base while compiling E2.
 ./Base.ulam:3:7: Warning: Virtual overloaded function 'dfunc' has a NON-VIRTUAL ancestor in class: Base while compiling E2.
 ./E2.ulam:3:9: Warning: Virtual overloaded function 'dfunc' Originating class is: Sub1 while compiling E2.
 Exit status: 0

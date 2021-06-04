@@ -3220,7 +3220,8 @@ namespace MFM {
 
 	popClassContext(); //restore
       }
-    return (!goAgain() && (m_err.getErrorCount() + m_err.getWarningCount() == 0));
+    //return (!goAgain() && (m_err.getErrorCount() + m_err.getWarningCount() == 0));
+    return !goAgain();
   } //checkAndLabelPassForLocals
 
   u32 CompilerState::getMaxNumberOfRegisteredUlamClasses()
