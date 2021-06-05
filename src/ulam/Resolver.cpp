@@ -219,6 +219,10 @@ namespace MFM {
     if(aok)
       {
 	assert(!m_state.isHolder(kuti));
+	ALT alth = m_state.getReferenceType(huti);
+	ALT altk = m_state.getReferenceType(kuti);
+	if(alth != altk)
+	  kuti = m_state.getUlamTypeAsRef(kuti, alth); //t41455
 	m_state.cleanupExistingHolder(huti, kuti);
       }
     return aok;

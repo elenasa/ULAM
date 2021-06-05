@@ -889,6 +889,7 @@ namespace MFM {
       findaUTIAlias(auti, tmpmappedUTI); //auti no longer a holder (ish 20210315-22xx)
       if(!isHolder(tmpmappedUTI))
 	{
+	  assert(getReferenceType(auti) == getReferenceType(tmpmappedUTI)); //t41455
 	  mappedUTI = tmpmappedUTI;
 	  return true;
 	}

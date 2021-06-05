@@ -1,15 +1,24 @@
 ## -*- mode:ulam -*-
-#=t41455_test_compiler_templateclasseswiththreewayreferencingtypedefs_error
+#=t41455_test_compiler_templateclasseswiththreewayreferencingtypedefs
 #!
-./GeneralSpatialTreeVisitor.ulam:8:29: ERROR: Variable reference 'root', is invalid.
-./GeneralSpatialTreeVisitor.ulam:8:11: ERROR: Argument 1 has a problem.
-./GeneralSpatialTreeVisitor.ulam:11:29: ERROR: Variable reference 'gst', is invalid.
-./GeneralSpatialTreeVisitor.ulam:11:11: ERROR: Argument 1 has a problem.
-./GeneralSpatialTreeVisitor.ulam:14:30: ERROR: Variable reference 'gst', is invalid.
-./GeneralSpatialTreeVisitor.ulam:14:11: ERROR: Argument 1 has a problem.
-Unrecoverable Program Type Label FAILURE.
+Exit status: 0
+Ue_R { Int(32) test() {  System s;  DemoGST demo;  0 cast return } }
+Uq_System { <NOMAIN> }
+Ue_DemoGST : GeneralSpatialTree(4) { :GeneralSpatialTree(4)< constant Unsigned(32) cBITSNEEDED = 6u;  typedef Unsigned(6) EWPtr;  typedef Unsigned(2) RGBState;  constant Unsigned(2) cRED_STATE = 0u;  constant Unsigned(2) cGREEN_STATE = 1u;  constant Unsigned(2) cBLUE_STATE = 2u;  constant Unsigned(2) cDEAD_STATE = 3u;  Unsigned(6) mParentSN(0);  Unsigned(2) mRGBState( 0u);  typedef GeneralSpatialTreeVisitor(4) GSTV; > <NOMAIN> }
+Uq_GeneralSpatialTree(Unary(4) cRADIUS = 15u) { constant Unsigned(32) cBITSNEEDED = cRADIUS 1u <= ?  3u :  cRADIUS 2u == ?  4u :  cRADIUS 3u == ?  5u :  6u;  typedef Unsigned(UNKNOWN) EWPtr;  typedef Unsigned(2) RGBState;  constant Unsigned(2) cRED_STATE = 0u;  constant Unsigned(2) cGREEN_STATE = 1u;  constant Unsigned(2) cBLUE_STATE = 2u;  constant Unsigned(2) cDEAD_STATE = 3u;  Unsigned(UNKNOWN) mParentSN(notready);  Unsigned(2) mRGBState(notready);  typedef GeneralSpatialTreeVisitor(cRADIUSV) GSTV;  <NOMAIN> }
+Un_GeneralSpatialTreeVisitor(Unary(4) cRADIUSV = 15u) { typedef GeneralSpatialTreeHost(cRADIUSH) GSTH;  typedef holder GST;  <NOMAIN> }
+Un_GeneralSpatialTreeHost(Unary(4) cRADIUSH = 15u) { typedef GeneralSpatialTree(cRADIUS) GST;  <NOMAIN> }
+Un_DemoGSTV : GeneralSpatialTreeVisitor(4) { :GeneralSpatialTreeVisitor(4)< typedef GeneralSpatialTreeHost(4) GSTH;  typedef GeneralSpatialTree(4) GST; > <NOMAIN> }
+Un_DemoGSTH : GeneralSpatialTreeHost(4) { :GeneralSpatialTreeHost(4)< typedef GeneralSpatialTree(4) GST; > <NOMAIN> }
+##./GeneralSpatialTreeVisitor.ulam:8:29: ERROR: Variable reference 'root', is invalid.
+##./GeneralSpatialTreeVisitor.ulam:8:11: ERROR: Argument 1 has a problem.
+##./GeneralSpatialTreeVisitor.ulam:11:29: ERROR: Variable reference 'gst', is invalid.
+##./GeneralSpatialTreeVisitor.ulam:11:11: ERROR: Argument 1 has a problem.
+##./GeneralSpatialTreeVisitor.ulam:14:30: ERROR: Variable reference 'gst', is invalid.
+##./GeneralSpatialTreeVisitor.ulam:14:11: ERROR: Argument 1 has a problem.
 ##
 ## variation on t41451, with third template class G.S.T.Host typedef, see also t41452.
+## revealed bug when holder a ref, and unknown status resolved as non-ref typedef, fixed.
 ##
 #>R.ulam
   ulam 5;
