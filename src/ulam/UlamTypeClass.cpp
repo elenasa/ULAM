@@ -290,6 +290,9 @@ namespace MFM {
     if(getUlamClassType() == UC_UNSEEN)
       return false; //forgotten?
 
+    if((getUlamClassType() != UC_ELEMENT) && !isReference() && isScalar() && (getBitsizeAsBaseClass() == UNKNOWNSIZE))
+      return false;
+
     return UlamType::isComplete();
   }
 

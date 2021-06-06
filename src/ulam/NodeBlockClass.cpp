@@ -3880,7 +3880,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	fp->write("() const;"); GCNL;
 	fp->write("\n");
 
-	if(classtype != UC_ELEMENT)
+	if((classtype != UC_ELEMENT) && (classtype != UC_LOCALSFILESCOPE))
 	  {
 	    m_state.indent(fp);
 	    fp->write("virtual u32 ");
@@ -3925,6 +3925,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     //elements are never a baseclass, fail.
     if(classtype == UC_ELEMENT) return;
 
+    //locals filescope are never a baseclass, fail. //3852
+    if(classtype == UC_LOCALSFILESCOPE) return;
+
     //next, returns base class size:
     m_state.indent(fp);
     fp->write("template<class EC>\n");
@@ -3946,7 +3949,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     m_state.indent(fp);
     fp->write("return ");
-    fp->write_decimal_unsigned(cut->getBitsizeAsBaseClass());
+    s32 baselen = cut->getBitsizeAsBaseClass();
+    assert(baselen >= 0);
+    fp->write_decimal(baselen);
     fp->write(";"); GCNL;
 
     m_state.m_currentIndentLevel--;
