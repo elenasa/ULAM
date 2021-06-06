@@ -1,0 +1,19 @@
+## -*- mode:ulam -*-
+#=t41472_test_compiler_nonvoidfunctionmissingreturnvalue_error
+#!
+./T.ulam:5:5: ERROR: Return expression missing for non-void function returning: Int(32).
+Unrecoverable Program Type Label FAILURE.
+##
+##  informed by my typo; got user-unfriendly error:
+##./T.ulam:8:5: ERROR: virtual FORECAST NodeStatementEmpty::safeToCastTo(UTI newType){} is needed!!.
+##
+#>T.ulam
+ ulam 5;
+element T{
+
+  Int test(){
+    return ;
+  }
+}
+
+#.

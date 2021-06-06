@@ -1,0 +1,98 @@
+## -*- mode:ulam -*-
+#=t41473_test_compiler_funccallonrefinsideifconditionafterothercalls_gencode_ish
+##
+## gen output: + 1 assert
+##  Unsigned Arg: 7
+##  Unsigned Arg: 0
+##  Unsigned Arg: 8
+##  arg 1 type name: <Ut_10121i>
+##  arg 2 type name: <Ut_10141i>
+##  arg 3 type name: <Ut_10121i>
+##
+#!
+Exit status: -11
+Ue_T { Bool(1) m_border(true);  Int(32) test() {  System s;  Plate p;  B2DPacketSense b2dps;  self m_border . b2dps ( p cast )sense . = s ( self m_border . ! )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+Uq_Plate { <NOMAIN> }
+Uq_B2DPacketSense { typedef Unsigned(1) SenseDir;  constant Unsigned(1) cSDIR_OUTWARD = 0u;  constant Unsigned(1) cSDIR_INWARD = 1u;  Unsigned(1) mSenseDir(0);  <NOMAIN> }
+Uq_Math { <NOMAIN> }
+##
+##  informed by Daves ish 20210606, still cannot replicate.
+##  Fixed by clearing UVPass in NodeBlock::genCode, as well as, NodeMemberSelect::genCode rhs.
+##  Culprit came after ByteStreamLogger printf call (var args, unused returned ur); tried Math.max here.
+##
+#>T.ulam
+ ulam 5;
+element T{
+  Bool m_border = true;
+  Int test(){
+    System s;
+    Plate p;
+    B2DPacketSense b2dps;
+    m_border = b2dps.sense(p);
+    s.assert(!m_border);
+    return 0;
+  }
+}
+
+#:B2DPacketSense.ulam
+  ulam 5;
+quark B2DPacketSense {
+  typedef Unsigned(1) SenseDir;
+  constant SenseDir cSDIR_OUTWARD = 0u;
+  constant SenseDir cSDIR_INWARD  = 1u;
+
+  SenseDir mSenseDir;
+
+  Void print(System & w) {
+    w.print(mSenseDir == cSDIR_OUTWARD ? 0u : 1u);
+  }
+
+  /** Return true if packet changed in any way */
+  Bool sense(Plate & p)
+  {
+    Math math;
+    System s;
+    s.print(7u);
+    self.print(s);
+    s.print(8u);
+    math.max(1, -4, 0); //var args, return unused (like ish)
+
+    if(!p.isPlateBorder()) //called on wrong class, not p <<---CULPRIT
+      return false;
+    return true; //when missing, no error (see t41474)
+  }
+}
+
+##      // max with variable number of args...
+##      //with final void * 0 instead of nargs as first arg.
+#:Math.ulam
+  ulam 3;
+quark Math {
+  Int max(...) native;
+}
+
+#:Plate.ulam
+  ulam 5;
+quark Plate {
+  /** Are we on the border of our plate, based on our pos and size?
+   */
+  Bool isPlateBorder() {
+    return false; //isPlateBorderCoord(positionOnPlate());
+  }
+}
+
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

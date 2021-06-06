@@ -118,45 +118,56 @@ namespace MFM {
 	  {
 	    if(UlamType::compare(rtnType, Void, m_state) == UTIC_NOTSAME)
 	      {
-		if(m_node->isAConstant() && !m_node->isReadyConstant())
+		if(nodeType == Void)
 		  {
-		    m_node->constantFold(this);
-		  }
-		ULAMTYPE etyp = m_state.getUlamTypeByIndex(rtnType)->getUlamTypeEnum();
-		FORECAST scr = m_node->safeToCastTo(rtnType);
-		if(scr == CAST_CLEAR)
-		  {
-		    if(!Node::makeCastingNode(m_node, rtnType, m_node))
-		      nodeType = Nav; //no casting node
-		    else
-		      nodeType = m_node->getNodeType(); //casted
+		    std::ostringstream msg;
+		    msg << "Return expression missing for non-void function returning: ";
+		    msg << m_state.getUlamTypeNameBriefByIndex(rtnType).c_str();
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    nodeType = Nav; //t41472
 		  }
 		else
 		  {
-		    std::ostringstream msg;
-		    if(etyp == Bool)
-		      msg << "Use a comparison operation";
-		    else if(etyp == String)
-		      msg << "Invalid";
-		    else if(!m_state.isScalar(rtnType) || !m_state.isScalar(nodeType))
-		      msg << "Not possible";
-		    else
-		      msg << "Use explicit cast";
-		    msg << " to return ";
-		    msg << m_state.getUlamTypeNameByIndex(nodeType).c_str();
-		    msg << " as ";
-		    msg << m_state.getUlamTypeNameByIndex(rtnType).c_str();
-		    if(scr == CAST_BAD)
+		    if(m_node->isAConstant() && !m_node->isReadyConstant())
 		      {
-			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-			nodeType = Nav;
+			m_node->constantFold(this);
+		      }
+		    ULAMTYPE etyp = m_state.getUlamTypeByIndex(rtnType)->getUlamTypeEnum();
+		    FORECAST scr = m_node->safeToCastTo(rtnType);
+		    if(scr == CAST_CLEAR)
+		      {
+			if(!Node::makeCastingNode(m_node, rtnType, m_node))
+			  nodeType = Nav; //no casting node
+			else
+			  nodeType = m_node->getNodeType(); //casted
 		      }
 		    else
 		      {
-			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-			nodeType = Hzy;
+			std::ostringstream msg;
+			if(etyp == Bool)
+			  msg << "Use a comparison operation";
+			else if(etyp == String)
+			  msg << "Invalid";
+			else if(!m_state.isScalar(rtnType) || !m_state.isScalar(nodeType))
+			  msg << "Not possible";
+			else
+			  msg << "Use explicit cast";
+			msg << " to return ";
+			msg << m_state.getUlamTypeNameByIndex(nodeType).c_str();
+			msg << " as ";
+			msg << m_state.getUlamTypeNameByIndex(rtnType).c_str();
+			if(scr == CAST_BAD)
+			  {
+			    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+			    nodeType = Nav;
+			  }
+			else
+			  {
+			    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+			    nodeType = Hzy;
+			  }
 		      }
-		  }
+		  } //else not empty return
 	      } //not void
 	    else
 	      {

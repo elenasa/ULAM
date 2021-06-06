@@ -603,16 +603,19 @@ namespace MFM {
 
     m_nodeLeft->genCodeToStoreInto(fp, luvpass);
 
+    UVPass ruvpass; //fresh (t41473?), consistent w genCodeToStoreInto
     //NodeIdent can't do it, because it doesn't know it's not a stand-alone element.
     // here, we know there's rhs of member select, which needs to adjust to state bits.
     if(passalongUVPass())
       {
-	uvpass = luvpass;
+	ruvpass = luvpass;
       }
+    //else
 
     //check the back (not front) to process multiple member selections (e.g. t3818)
-    m_nodeRight->genCode(fp, uvpass);  //leave any array item as-is for gencode.
+    m_nodeRight->genCode(fp, ruvpass);  //leave any array item as-is for gencode.
 
+    uvpass = ruvpass;
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************?
   } //genCode
 
