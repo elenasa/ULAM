@@ -273,6 +273,11 @@ namespace MFM {
 
   void NodeBlock::genCode(File * fp, UVPass& uvpass)
   {
+    //20210606 Dave's ish, pointer.functioncall following native, var arg function call
+    //         w unused return (t41473 doesn't recreate problem yet)
+    UVPass uvpass2clear;
+    uvpass = uvpass2clear; //refresh
+
     m_state.indentUlamCode(fp);
     fp->write("{\n");
 
