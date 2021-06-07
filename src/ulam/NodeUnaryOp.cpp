@@ -355,12 +355,11 @@ namespace MFM {
 
     newnode->setYourParentNo(pno);
     newnode->resetNodeNo(getNodeNo());
-
-    m_state.setGoAgain();
+    //m_state.setGoAgain();
 
     delete this; //suicide is painless..
 
-    return Hzy;
+    return nuti; //return Hzy;
   } //constantFold
 
   EvalStatus NodeUnaryOp::eval()

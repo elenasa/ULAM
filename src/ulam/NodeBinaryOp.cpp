@@ -203,7 +203,7 @@ namespace MFM {
     castThyselfToResultType(rightType, leftType, newType, thisparentnode);
 
     if(m_state.okUTItoContinue(newType) && isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
-      return constantFold(thisparentnode);
+      return constantFold(thisparentnode); //surgery possible
 
     return newType;
   } //checkAndLabelType
@@ -585,12 +585,11 @@ namespace MFM {
     msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
     MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
     newnode->updateLineage(pno);
-
-    m_state.setGoAgain();
+    // m_state.setGoAgain();
 
     delete this; //suicide is painless..
 
-    return Hzy;
+    return nuti; //not Hzy, newnode has its nodetype already too!
   } //constantFold
 
   EvalStatus NodeBinaryOp::eval()

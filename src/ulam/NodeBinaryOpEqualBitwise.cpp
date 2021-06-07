@@ -64,13 +64,8 @@ namespace MFM {
     //before constant folding; if needed (e.g. Remainder, Divide)
     castThyselfToResultType(rightType, leftType, newType, thisparentnode);
 
-    if(m_state.okUTItoContinue(newType) && isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
-      newType = constantFold(thisparentnode);
-
-    UTI nodeType = newType;
-
     //specific for bitwise equal..
-    if(m_state.okUTItoContinue(nodeType))
+    if(m_state.okUTItoContinue(newType))
       {
 	TBOOL stor = NodeBinaryOpEqual::checkStoreIntoAble();
 	if(stor == TBOOL_FALSE)
@@ -80,6 +75,7 @@ namespace MFM {
 	  }
 	else if(stor == TBOOL_HAZY)
 	  {
+	    newType = Hzy;
 	    setNodeType(Hzy);
 	    m_state.setGoAgain();
 	  }
@@ -95,7 +91,11 @@ namespace MFM {
 	setNodeType(newType);
 	if(newType == Hzy) m_state.setGoAgain();
       }
-    return getNodeType();
+
+    if(m_state.okUTItoContinue(newType) && isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
+      return constantFold(thisparentnode);
+
+    return newType;
   } //checkandlabeltype
 
   UTI NodeBinaryOpEqualBitwise::calcNodeType(UTI lt, UTI rt)  //bitwise

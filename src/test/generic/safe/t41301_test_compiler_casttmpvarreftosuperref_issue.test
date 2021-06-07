@@ -4,7 +4,7 @@
 Exit status: -11
 Ue_Foo { Int(32) test() {  SystemU3 du;  typedef ByteStreamArray(250u) MsgBuf;  ByteStreamArray(250u) buf;  du ( buf cast cast )print . 0 cast return } }
 Uq_SystemU3 : System { :System<> <NOMAIN> }
-Un_ByteStreamArray(Unsigned(32) len) : ByteStream { Unsigned(32) mWrite(notready);  Unsigned(32) mRead(notready);  holder mData[UNKNOWN](notready);  :ByteStream<> <NOMAIN> }
+Un_ByteStreamArray(Unsigned(32) len) : ByteStream { Unsigned(32) mWrite( 0u);  Unsigned(32) mRead( 0u);  holder mData[UNKNOWN](notready);  :ByteStream<> <NOMAIN> }
 Uq_ByteStream { <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
