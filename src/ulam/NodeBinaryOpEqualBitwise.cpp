@@ -92,6 +92,7 @@ namespace MFM {
 	if(newType == Hzy) m_state.setGoAgain();
       }
 
+    //t3109,10,11, t3221, t41122,3,6, t41298,9, t41421
     if(m_state.okUTItoContinue(newType) && isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
       return constantFold(thisparentnode);
 

@@ -585,11 +585,11 @@ namespace MFM {
     msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
     MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
     newnode->updateLineage(pno);
-    // m_state.setGoAgain();
+    //    m_state.setGoAgain();
 
     delete this; //suicide is painless..
 
-    return nuti; //not Hzy, newnode has its nodetype already too!
+    return nuti; //not Hzy, newnode has its nodetype (t41475?)
   } //constantFold
 
   EvalStatus NodeBinaryOp::eval()
