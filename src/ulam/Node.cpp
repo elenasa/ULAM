@@ -3202,21 +3202,36 @@ namespace MFM {
 		  {
 		    if(askEffSelf)
 		      {
+			Symbol * fdmsym = cos;
+			u32 pos = uvpass.getPassPos();
+			//first data member (t41476)
+			s32 firstDM = isCurrentObjectsContainingFirstDataMember();
+			assert(firstDM > 0);
+			u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
+			assert(cosSize > 1); //see caller
+			if(firstDM < (s32)(cosSize - 1))
+			  {
+			    fdmsym = m_state.m_currentObjSymbolsForCodeGen[firstDM];
+			    u32 locpos = calcDataMemberPosOfCurrentObjectClassesFromFirstDMIndex(firstDM);
+			    pos = locpos;
+			  }
+
 			//e.g. ref to a base, but dm in base's base, a
 			//shared base.  can't know effSelf at compile
 			//time;t3648,t3751,2,3,4,5,t3811,t3832
 			hiddenarg2 << stgcos->getMangledName().c_str();
 			hiddenarg2 << ".GetEffectiveSelf()->";
 			hiddenarg2 << m_state.getGetRelPosMangledFunctionName(stgcosuti); //nonatom
-			UTI cosclassuti = cos->getDataMemberClass();
+			UTI fdmclassuti = fdmsym->getDataMemberClass();
 			hiddenarg2 << "(";
-			hiddenarg2 << m_state.getAClassRegistrationNumber(cosclassuti); //efficiency
+			hiddenarg2 << m_state.getAClassRegistrationNumber(fdmclassuti); //efficiency
 			hiddenarg2 << "u ";
 			hiddenarg2 << "/* ";
-			hiddenarg2 << m_state.getUlamTypeNameBriefByIndex(cosclassuti).c_str();
+			hiddenarg2 << m_state.getUlamTypeNameBriefByIndex(fdmclassuti).c_str();
 			hiddenarg2 << " */";
 			hiddenarg2 << ") -" << stgcos->getMangledName().c_str();
 			hiddenarg2 << ".GetPosToEffectiveSelf()";
+			hiddenarg2 << " + " << pos << "u"; //t41476
 		      }
 		    else
 		      hiddenarg2 << calcPosOfCurrentObjectClassesAsString(uvpass, false, askEffSelf, skipfuncclass); //reloffset;
