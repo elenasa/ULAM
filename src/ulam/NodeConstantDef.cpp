@@ -1027,15 +1027,35 @@ namespace MFM {
 
   bool NodeConstantDef::buildDefaultValue(u32 wlen, BV8K& bvref)
   {
-    AssertBool rtnok = buildDefaultValueForClassConstantDefs();
-    assert(rtnok);
-    return true; //pass on
+    UTI nuti = getNodeType();
+    if(!m_state.okUTItoContinue(nuti) || !m_state.isComplete(nuti))
+      {
+	std::ostringstream msg;
+	msg << "Building default value for member constant '";
+	msg << m_state.m_pool.getDataAsString(m_cid).c_str();
+	msg << "' not ready";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	m_state.goAgain();
+	return false; //t41478
+      }
+
+    bool rtnok = buildDefaultValueForClassConstantDefs();
+    //assert(rtnok); //t41477
+    if(!rtnok)
+      {
+	std::ostringstream msg;
+	msg << "Building default value for member constant '";
+	msg << m_state.m_pool.getDataAsString(m_cid).c_str();
+	msg << "' failed";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //t41477
+      }
+    return rtnok;
   } //buildDefaultValue
 
   bool NodeConstantDef::buildDefaultValueForClassConstantDefs()
   {
     UTI nuti = getNodeType();
-    assert(m_state.okUTItoContinue(nuti) && m_state.isComplete(nuti));
+    assert(m_state.okUTItoContinue(nuti) && m_state.isComplete(nuti)); //t41478 (see caller above)
 
     if(!m_state.isAClass(nuti)) //t41198
       return true;

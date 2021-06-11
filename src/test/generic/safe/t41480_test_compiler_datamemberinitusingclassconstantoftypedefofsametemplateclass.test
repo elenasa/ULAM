@@ -1,0 +1,55 @@
+## -*- mode:ulam -*-
+#=t41480_test_compiler_datamemberinitusingclassconstantoftypedefofsametemplateclass
+##  gen output (+ 1 assert)
+##      Unsigned Arg: 1
+#!
+Exit status: 1
+Ue_T { typedef Foo(false,0u) MyFoo;  constant Foo(false,1u) cNF = { 0x20000000 };  Unsigned(3) mBoo(1u);  Int(32) test() {  System s;  s ( self mBoo . cast )print . s ( self mBoo . cNF mDM1 . == )assert . self mBoo . cast return } }
+Uq_Foo(Bool(1) b, Unsigned(3) m) { Unsigned(3) mDM1(notready);  Bool(1) mDM2(notready);  typedef Foo(true,2u) QFoo;  typedef Foo12 MooFoo;  typedef Foo(b,m) NewFoo;  <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+##  informed by Dave's ish 20210610, see error/t41477,t41479 and t41478
+##  a way to change data member initial values while still using the class' default value
+##  as member typedef of same template class. But, requires constant of type MyFoo.NewFoo.
+##
+#>T.ulam
+ ulam 5;
+element T {
+  typedef Foo(false,0) MyFoo;
+  constant MyFoo.NewFoo cNF = { }; //needs to be a constant!
+  Unsigned(3) mBoo = cNF.mDM1; //to init data member
+
+  Int test(){
+    System s;
+    s.print(mBoo); //==1
+    s.assert(mBoo==cNF.mDM1);
+    return (Int) (mBoo);
+
+  }
+}
+
+#:Foo.ulam
+  ulam 5;
+quark Foo(Bool b, Unsigned(3) m) {
+  Unsigned(3) mDM1 = m;
+  Bool mDM2 = b;
+
+  typedef Foo(true, 2) QFoo;
+
+  typedef Self MooFoo; //defaults
+
+  typedef Foo(b,m+1) NewFoo;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

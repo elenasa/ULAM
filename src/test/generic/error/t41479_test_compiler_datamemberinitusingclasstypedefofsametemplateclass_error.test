@@ -1,0 +1,51 @@
+## -*- mode:ulam -*-
+#=t41479_test_compiler_datamemberinitusingclasstypedefofsametemplateclass_error
+#!
+./T.ulam:7:25: ERROR: (1) 'mDM1' is not a constant, and cannot be used as one with a class type: Foo(false,0u).NewFoo.
+./T.ulam:9:33: ERROR: (1) 'mDM1' is not a constant, and cannot be used as one with a class type: Foo(false,0u).NewFoo.
+Unrecoverable Program Type Label FAILURE.
+##
+##  informed by Dave's ish 20210610, see error/t41477, t41478, t41480
+##  a way to change data member initial values while still using the class' default value
+##  as member typedef of same template class. But, requires constant of type MyFoo.NewFoo.
+##
+#>T.ulam
+ ulam 5;
+element T {
+  typedef Foo(false,0) MyFoo; //needs to be a constant, so that..
+  Unsigned (3) mBoo;
+  Int test(){
+    System s;
+    mBoo = MyFoo.NewFoo.mDM1; //is assigned a constant!
+    s.print(mBoo);
+    s.assert(mBoo==MyFoo.NewFoo.mDM1); //also here
+    return (Int) (mBoo);
+
+  }
+}
+
+#:Foo.ulam
+  ulam 5;
+quark Foo(Bool b, Unsigned(3) m) {
+  Unsigned(3) mDM1 = m;
+  Bool mDM2 = b;
+
+  typedef Foo(true, 2) QFoo;
+
+  typedef Self MooFoo; //defaults
+
+  typedef Foo(b,m+1) NewFoo;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

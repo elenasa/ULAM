@@ -1695,17 +1695,33 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
   //starts here, called by SymbolClass
   bool NodeBlockClass::buildDefaultValue(u32 wlen, BV8K& dvref)
   {
+    UTI nuti = getNodeType();
     if(m_buildingDefaultValueInProgress)
-      return false;
-
+      {
+	std::ostringstream msg;
+	msg << "Building default value in progress for class ";
+	msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+	msg << "; requested member of same type";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //t41477
+	return false;
+      }
     m_buildingDefaultValueInProgress = true; //set
 
     bool aok = true;
-    UTI nuti = getNodeType();
 
     // ulam-5 data members precede base classes
     if(m_nodeNext)
       aok = m_nodeNext->buildDefaultValue(wlen, dvref); //side-effect for dm vardecls
+
+    if(!aok)
+      {
+	std::ostringstream msg;
+	msg << "Building default value for class ";
+	msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+	msg << " failed";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //t41477
+	return false;
+      }
 
     m_buildingDefaultValueInProgress = false; //clear
 
