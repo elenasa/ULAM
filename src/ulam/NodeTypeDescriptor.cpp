@@ -395,7 +395,21 @@ namespace MFM {
 	    ALT altd = m_state.getReferenceType(nuti);
 	    setReferenceType(altd, derefuti);
 	  } //complete deref
-	//else deref not complete, t.f. nuti isn't changed
+	//else deref not complete, t.f. nuti isn't changed (t41298,9)
+#if 0
+	else if(derefuti == cuti) //t41481
+	  {
+	    u32 selfid = m_state.m_pool.getIndexForDataString("self");
+	    Symbol * myself = NULL;
+	    bool hasHazyKin = false;
+	    if(m_state.alreadyDefinedSymbolHere(selfid, myself, hasHazyKin))
+	      {
+		nuti = myself->getUlamTypeIdx(); //may not be complete because of this alias!!
+		m_state.updateUTIAliasForced(rtnuti, nuti);
+		rtnb = true;
+	      }
+	  }
+#endif
       } //else not ok to continue
 
     if(rtnb)

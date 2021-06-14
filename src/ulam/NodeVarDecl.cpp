@@ -545,8 +545,10 @@ namespace MFM {
 
 	if(m_state.getCurrentBlock()->isASwitchBlock())
 	  {
+	    assert(m_nodeTypeDesc);
+	    vit = m_nodeTypeDesc->givenUTI();
 	    //e.g. switch condition variable (t41016-19); reload vit (was localvar)
-	    vit = m_varSymbol->getUlamTypeIdx(); //base type has arraysize
+	    //t41481
 	    if(m_state.isHolder(vit) && m_state.isComplete(eit))
 	      {
 		m_state.cleanupExistingHolder(vit, eit);

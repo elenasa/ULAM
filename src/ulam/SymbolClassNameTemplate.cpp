@@ -1877,14 +1877,15 @@ namespace MFM {
   bool SymbolClassNameTemplate::statusUnknownTypeInClassInstances(UTI huti)
   {
     bool aok = true;
-    bool aoktemplate = true;
+    //bool aoktemplate = true;
 
     //use template results for remaining stubs
     NodeBlockClass * classNode = getClassBlockNode();
     assert(classNode);
     m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
 
-    aoktemplate = SymbolClass::statusUnknownTypeInClass(huti);
+    //aoktemplate =
+    SymbolClass::statusUnknownTypeInClass(huti);
 
     m_state.popClassContext(); //restore
 
@@ -1908,10 +1909,11 @@ namespace MFM {
 	    it++;
 	    continue; //wait until a stub..
 	  }
-
+#if 0
 	if(csym->isStub())
 	  aok &= aoktemplate; //use template
 	else
+#endif
 	  {
 	    NodeBlockClass * classNode = csym->getClassBlockNode();
 	    assert(classNode);
@@ -2509,10 +2511,11 @@ namespace MFM {
   // done promptly after the full instantiation
   void SymbolClassNameTemplate::cloneAnInstancesUTImap(SymbolClass * fm, SymbolClass * to)
   {
-    fm->cloneResolverUTImap(to);
-    fm->cloneUnknownTypesMapInClass(to); //from the stub to the clone.
-    //any additional from the template? may have duplicates with stub (not added).
-    SymbolClass::cloneUnknownTypesMapInClass(to); //from the template; after UTImap.
+    fm->cloneResolverUTImap(to); //for non-classes only
+    if(fm != this)
+      fm->cloneUnknownTypesMapInClass(to); //from the stub to the clone.
+    //any additional from the template? may have duplicates with stub (not added). t41481.
+    //SymbolClass::cloneUnknownTypesMapInClass(to); //from the template; after UTImap.
   }
 
   bool SymbolClassNameTemplate::checkSFINAE(SymbolClass * sym)

@@ -1,0 +1,291 @@
+## -*- mode:ulam -*-
+#=t41481_test_compiler_switchontypefromanotherclassinfuncoftemplatedsuper_ish
+#!
+Exit status: 0
+Ue_T { Int(32) test() {  System s;  AtomWire aw;  0 cast return } }
+Uq_System { <NOMAIN> }
+Ue_AtomWire : B2DTPlate(2) { typedef B2DTPlate(2) B2DPlate2;  :B2DTPlate(2)< typedef B2DT(2) MyB2D;  typedef Unsigned(6) SN;  B2DT(2) mSizeOfPlate( constant Unsigned(32) cCOMPILATION_ERROR_UNLESS_BITS_GE_2 = 1u;  typedef Unsigned(2) BCoord;  constant Unsigned(2) cILLEGAL = 3u;  constant Unsigned(2) cMAXVAL = 2u;  constant Unsigned(2) cMINVAL = 0u;  Unsigned(2) mX( 3u);  Unsigned(2) mY( 3u); );  B2DT(2) mPosOnPlate( constant Unsigned(32) cCOMPILATION_ERROR_UNLESS_BITS_GE_2 = 1u;  typedef Unsigned(2) BCoord;  constant Unsigned(2) cILLEGAL = 3u;  constant Unsigned(2) cMAXVAL = 2u;  constant Unsigned(2) cMINVAL = 0u;  Unsigned(2) mX( 3u);  Unsigned(2) mY( 3u); );  Bits(2) mDeathBits(0); > ^Plate< typedef Bits(2) DeathBits;  constant Bits(2) cDIE_AND_DOWN = 1u;  constant Bits(2) cDIE_AND_UP = 2u;  constant Bits(2) cDIE_EITHER = 3u; > <NOMAIN> }
+Uq_B2DTPlate(Unary(8) cBITS_PER_COORD) : Plate { typedef B2DT(cBITS_PER_COORD) MyB2D;  typedef Unsigned(6) SN;  B2DT(cBITS_PER_COORD) mSizeOfPlate(notready);  B2DT(cBITS_PER_COORD) mPosOnPlate(notready);  Bits(UNKNOWN) mDeathBits(notready);  :Plate< typedef Bits(2) DeathBits;  constant Bits(2) cDIE_AND_DOWN = 1u;  constant Bits(2) cDIE_AND_UP = 2u;  constant Bits(2) cDIE_EITHER = 3u; > <NOMAIN> }
+Uq_B2DPlate : B2DTPlate(7) { /* empty class block */ }
+Uq_Plate { typedef Bits(2) DeathBits;  constant Bits(2) cDIE_AND_DOWN = 1u;  constant Bits(2) cDIE_AND_UP = 2u;  constant Bits(2) cDIE_EITHER = 3u;  <NOMAIN> }
+Uq_B2DT(Unary(8) cBITS_PER_COORD) { constant Unsigned(32) cCOMPILATION_ERROR_UNLESS_BITS_GE_2 = 1u cBITS_PER_COORD 1u -b /;  typedef Unsigned(UNKNOWN) BCoord;  constant Unsigned(UNKNOWN) cILLEGAL = unresolved maxof .;  constant Unsigned(UNKNOWN) cMAXVAL = unresolved maxof . 1u -b;  constant Unsigned(UNKNOWN) cMINVAL = unresolved minof .;  Unsigned(UNKNOWN) mX(notready);  Unsigned(UNKNOWN) mY(notready);  <NOMAIN> }
+Uq_EventWindow { typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry;  <NOMAIN> }
+Uq_C2D { typedef Int(7) Coord;  Int(7) m_width(0);  Int(7) m_height(0);  <NOMAIN> }
+Uq_PlateUtils { typedef Unsigned(2) PlateDir;  constant Unsigned(2) cPLATE_GOES_W = 0u;  constant Unsigned(2) cPLATE_GOES_N = 1u;  constant Unsigned(2) cPLATE_GOES_E = 2u;  constant Unsigned(2) cPLATE_GOES_S = 3u;  <NOMAIN> }
+Uq_B2D : B2DT(7) { /* empty class block */ }
+##
+##  informed by Dave's ish 20210613
+##   switch's typedef and tmpvar from template class B2DTPlate, unresolved with the following errors:
+##
+## ./B2DPlate.ulam:36:5: ERROR: Undetermined Type: <_SWITCHTYPEDEF12>; Suggest 'use _SWITCHTYPEDEF12;' if it's a class, otherwise a typedef is needed.
+##./B2DPlate.ulam:36:5: ERROR: Incomplete descriptor for type: 0Holder (UTI 194), while labeling class: B2DTPlate(2) (UTI 36).
+##./B2DPlate.ulam:36:5: ERROR: Incomplete Typedef for type: unresolved (UTI 2), used with typedef symbol name '_SWITCHTYPEDEF12'.
+##./B2DPlate.ulam:36:5: ERROR: Incomplete Variable Decl for type: unresolved (UTI 2), used with variable symbol name 'Uh_switchcond12'.
+##./B2DPlate.ulam:36:5: ERROR: Variable for: 'Uh_switchcond12', is still hazy.
+##./B2DPlate.ulam:36:5: ERROR: Incomplete descriptor for type: 0Holder (UTI 207), while labeling class: B2DTPlate(7) (UTI 69).
+##
+#>T.ulam
+ ulam 5;
+element T {
+  Int test(){
+    System s;
+    AtomWire aw;
+    return 0;
+  }
+}
+
+#:AtomWire.ulam
+  ulam 5;
+element AtomWire : B2DPlate2 {
+  typedef B2DTPlate(2u) B2DPlate2;
+}
+
+
+#:B2DPlate.ulam
+  ulam 5;
+quark B2DTPlate(Unary(8) cBITS_PER_COORD) : Plate {
+  typedef B2DT(cBITS_PER_COORD) MyB2D;
+  typedef EventWindow.SiteNum SN;
+  MyB2D mSizeOfPlate;
+  MyB2D mPosOnPlate;
+  DeathBits mDeathBits;
+
+  //// B2DPlate API
+  virtual Atom copyOf() { //< A copy of self suitable for healing
+    return self.atomof;
+  }
+
+  //// Plate API
+  @Override
+  virtual C2D sizeOfPlate() { return mSizeOfPlate.toC2D(); }
+  @Override
+  virtual C2D positionOnPlate() { return mPosOnPlate.toC2D(); }
+  @Override
+  virtual DeathBits getDeathBits() { return mDeathBits; }
+  @Override
+  virtual Void setDeathBits(DeathBits bits) { mDeathBits = bits; }
+
+  //// B2DPlate utilities
+
+  Bool setSizeOfPlate(C2D size) { return mSizeOfPlate.fromC2D(size); }
+
+  Bool setPositionOnPlate(C2D pos) { return mPosOnPlate.fromC2D(pos); }
+
+  SN getCCWPlate() {
+    PlateUtils pu;
+    C2D pos = positionOnPlate();
+    C2D size = sizeOfPlate();
+    PlateUtils.PlateDir dir = pu.borderDir(pos,size);
+    C2D incr;
+    which (dir) {
+      case pu.cPLATE_GOES_N: {
+	if (pos.getX() > 0) incr.setX(-1); else incr.setY(+1);
+      }
+      case pu.cPLATE_GOES_E: {
+	if (pos.getY() > 0) incr.setY(-1); else incr.setX(-1);
+      }
+      case pu.cPLATE_GOES_S: {
+	if (pos.getX() < size.getX() - 1) incr.setX(+1); else incr.setY(-1);
+      }
+      case pu.cPLATE_GOES_W: {
+	if (pos.getY() < size.getY() - 1) incr.setY(+1); else incr.setX(+1);
+      }
+    }
+    /*
+    MDist md;
+    EventWindow ew;
+    SN ret = md.getSiteNumber(incr); // XXX ASSUMES WE'RE AT ew[0];
+    if (!(ew[ret] is Self)) ret = SN.maxof; // Only valid if really one of us
+    return ret;
+    */
+    return SN.maxof;
+  }
+}
+
+quark B2DPlate : B2DTPlate(7) {
+}
+
+//quark B2DPlate2 : B2DTPlate(2) { }
+
+
+#:B2D.ulam
+  ulam 5;
+quark B2DT(Unary(8) cBITS_PER_COORD) {
+  constant Unsigned cCOMPILATION_ERROR_UNLESS_BITS_GE_2 = 1u/(cBITS_PER_COORD-1u);
+  typedef Unsigned(cBITS_PER_COORD) BCoord;
+  constant BCoord cILLEGAL = BCoord.maxof;
+  constant BCoord cMAXVAL = BCoord.maxof-1u;
+  constant BCoord cMINVAL = BCoord.minof;
+  BCoord mX = cILLEGAL;
+  BCoord mY = cILLEGAL;
+
+    Bool isValid() {
+    return mY != cILLEGAL && mY != cILLEGAL;
+  }
+
+  Void invalidate() {
+    mX = mY = cILLEGAL;
+  }
+
+  C2D toC2D() {
+    if (!isValid()) {
+      System f;
+      f.assert(false); //f.fail("toC2D invalid B2D");
+    }
+    C2D ret(mX,mY);
+    return ret;
+  }
+
+  Bool fromC2D(C2D c) {
+    init(c.getX(),c.getY());
+    return isValid();
+  }
+
+  Void init(Int x, Int y) {
+    if (x < cMINVAL || x < cMINVAL ||
+        y > cMAXVAL || y > cMAXVAL)
+      invalidate();
+    else {
+      mX = (BCoord) x;
+      mY = (BCoord) y;
+    }
+  }
+}
+quark B2D : B2DT(7) { }
+
+
+#:Plate.ulam
+  ulam 5;
+quark Plate {
+  typedef Bits(2) DeathBits;
+  constant DeathBits cDIE_AND_DOWN = 1u<<0u; //< This and its subplates die
+  constant DeathBits cDIE_AND_UP =   1u<<1u; //< This and its superplates die
+  constant DeathBits cDIE_EITHER = cDIE_AND_DOWN | cDIE_AND_UP; //< This and sub and super plates die
+
+  //// Plate API
+  virtual C2D sizeOfPlate() ;                 //< Overall size of self's plate
+  virtual C2D positionOnPlate() ;             //< Position of self in plate (0,0)..size-(1,1)
+  virtual Bool blockSubplates() { return false; } //< Blocks all priorities in contained plates
+  virtual Int priority() { return 0; }        //< Default priority within containment rules
+  virtual DeathBits getDeathBits() ;          //< Current DeathBits status of Plate
+  virtual Void setDeathBits(DeathBits bits) ; //< Update DeathBits status of Plate
+
+  //// Plate Services
+}
+
+#:PlateUtils.ulam
+  ulam 5;
+quark PlateUtils {
+  typedef Unsigned(2) PlateDir;
+  constant PlateDir cPLATE_GOES_W = 0u;
+  constant PlateDir cPLATE_GOES_N = 1u;
+  constant PlateDir cPLATE_GOES_E = 2u;
+  constant PlateDir cPLATE_GOES_S = 3u;
+
+  PlateDir borderDir(C2D pos, C2D size) {
+    if (pos.getY() == 0 && pos.getX() < size.getX() - 1)
+      return cPLATE_GOES_N;
+    if (pos.getX() == size.getX() - 1 && pos.getY() < size.getY() - 1)
+      return cPLATE_GOES_E;
+    if (pos.getY() == size.getY() - 1 && pos.getX() > 0)
+      return cPLATE_GOES_S;
+    /*if (pos.getX() == 0 && pos.getY() > 0)*/
+    return cPLATE_GOES_W;
+  }
+}
+
+#:C2D.ulam
+  ulam 3;
+quark C2D {
+  typedef Int(7u) Coord;
+  Coord m_width;
+  Coord m_height;
+
+  Void init(Int x, Int y) {
+    m_width = (Coord) x;
+    m_height = (Coord) y;
+    return;
+  }
+  Int getIndex(Int a, Int b){
+    return ((m_height-b) * m_width + (m_height-a));
+  }
+  Int getX()
+  {
+    return m_width;
+  }
+  Int getY()
+  {
+    return m_height;
+  }
+
+  Void setX(Coord x)
+  {
+    m_width = x;
+  }
+  Void setY(Coord y)
+  {
+    m_height = y;
+  }
+
+  Self(Int ax, Int ay) {
+    init(ax,ay);
+  }
+
+  Self abs() {
+    return abs(self);
+  }
+
+  Self abs(Self of) {
+    if (of.m_width < 0) of.m_width = -of.m_width;
+    if (of.m_height < 0) of.m_height = -of.m_height;
+    return of;
+  }
+
+  Self & operator+=(Self other) {
+    // This single statement should work..
+    // return self = self + other;
+    self = self + other;
+    return self;
+  }
+
+  Self add(Self other) {
+    return make((Coord) (m_width + other.m_width), (Coord) (m_height + other.m_height));
+  }
+
+  Self operator+(Self other) {
+    return add(other);
+  }
+
+  Self make(Int x, Int y)
+  {
+    Self ret;
+    ret.init(x,y);
+    return ret;
+  }
+}
+
+#:EventWindow.ulam
+  ulam 3;
+quark EventWindow {
+    typedef Unsigned(6) SiteNum;
+    typedef Unsigned(3) Symmetry;
+
+    Symmetry changeSymmetry(Symmetry newSym){
+      return newSym--;
+    }
+
+  Atom& aref(Int index) native;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.
