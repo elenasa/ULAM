@@ -140,8 +140,9 @@ namespace MFM {
 
   const std::string SymbolFunction::getFunctionNameWithTypes()
   {
+    UTI futi = getUlamTypeIdx();
     std::ostringstream fname;
-    fname << m_state.getUlamTypeNameBriefByIndex(getUlamTypeIdx()).c_str(); //return type
+    fname << m_state.getUlamTypeNameBriefByIndex(futi).c_str(); //return type
     fname << " ";
     fname << m_state.m_pool.getDataAsString(getId()); //ulam func name
 

@@ -43,7 +43,18 @@ namespace MFM {
 
   const std::string UlamType::getUlamTypeNameBrief()
   {
-    return m_key.getUlamKeyTypeSignatureNameAndBitSize(&m_state); //no arrays, nor ref w Bit-Size
+    std::ostringstream namestr;
+#if 0
+    //nice but breaks too many tests, cosmetically ):
+    if(getBitSize() == ULAMTYPE_DEFAULTBITSIZE[getUlamTypeEnum()])
+      namestr << m_key.getUlamKeyTypeSignatureName(&m_state).c_str();
+    else
+#endif
+      namestr << m_key.getUlamKeyTypeSignatureNameAndBitSize(&m_state).c_str();
+    if(isAltRefType())
+      namestr << "&";
+    return namestr.str(); //no arrays, refs, bitsize if not default size
+    //return m_key.getUlamKeyTypeSignatureNameAndBitSize(&m_state); //no arrays, nor ref w Bit-Size
   }
 
   const std::string UlamType::getUlamTypeClassNameBrief(UTI cuti)

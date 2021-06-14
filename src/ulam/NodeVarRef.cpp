@@ -49,17 +49,18 @@ namespace MFM {
   {
     UTI vuti = m_varSymbol->getUlamTypeIdx();
     UlamKeyTypeSignature vkey = m_state.getUlamKeyTypeSignatureByIndex(vuti);
-    UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-    ULAMTYPE vetyp = vut->getUlamTypeEnum();
+    //    UlamType * vut = m_state.getUlamTypeByIndex(vuti);
+    //    ULAMTYPE vetyp = vut->getUlamTypeEnum();
 
     if(m_state.isConstantRefType(vuti))
       fp->write(" constant"); //t41242,3
 
     fp->write(" ");
 
-    fp->write(m_state.getUlamTypeNameBriefByIndex(vuti).c_str());
-    if(vetyp != Class)
-      fp->write("&"); //<--the only difference!!!
+    fp->write(m_state.getUlamTypeNameBriefByIndex(vuti).c_str()); //includes ref & (t3611)
+
+    //if(vetyp != Class)
+    //  fp->write("&"); //<--the only difference!!! e.g.t3611
 
     fp->write(" ");
     fp->write(getName());

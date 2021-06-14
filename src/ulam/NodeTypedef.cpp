@@ -47,6 +47,7 @@ namespace MFM {
     return false;
   } //findNodeNo
 
+  //see also SymbolTypedef::printPostfixValuesOfVariableDeclarations
   void NodeTypedef::printPostfix(File * fp)
   {
     //assert(m_typedefSymbol);
@@ -62,18 +63,11 @@ namespace MFM {
       m_state.abortNotImplementedYet();
 
     UlamKeyTypeSignature tkey = m_state.getUlamKeyTypeSignatureByIndex(tuti);
-    UlamType * tut = m_state.getUlamTypeByIndex(tuti);
-    ULAMTYPE tetyp = tut->getUlamTypeEnum();
 
-    fp->write(" typedef");
+    fp->write(" typedef ");
 
-    fp->write(" ");
-
-    fp->write(m_state.getUlamTypeNameBriefByIndex(tuti).c_str());
-
-    if((tetyp != Class) && tut->isAltRefType())
-      fp->write(" &"); //an array of refs as written, should be ref to an array.
-
+    //an array of refs as written, should be ref to an array (t3666).
+    fp->write(m_state.getUlamTypeNameBriefByIndex(tuti).c_str()); //includes &
     fp->write(" ");
     fp->write(getName());
 
