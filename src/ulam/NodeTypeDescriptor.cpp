@@ -226,8 +226,9 @@ namespace MFM {
 
     // not node select, we are the leaf Type: a typedef, class or primitive scalar.
     UTI nuti = givenUTI(); //start with given.
+    bool isreferencetype = (getReferenceType() != ALT_NOT) || m_state.isAltRefType(nuti);
 
-    if((getReferenceType() != ALT_NOT) || m_state.isAltRefType(nuti)) //t3668?
+    if(isreferencetype) //t3668?
       {
 	rtnb = resolveReferenceType(nuti); //may update nuti
 	if(nuti == Nav)
@@ -237,7 +238,7 @@ namespace MFM {
 	  }
       }
 
-    if(!m_state.isComplete(nuti))
+    if(!m_state.isComplete(nuti) && !isreferencetype)
       {
 	// if Nav, use token
 	UTI mappedUTI = nuti;
@@ -396,20 +397,6 @@ namespace MFM {
 	    setReferenceType(altd, derefuti);
 	  } //complete deref
 	//else deref not complete, t.f. nuti isn't changed (t41298,9)
-#if 0
-	else if(derefuti == cuti) //t41481
-	  {
-	    u32 selfid = m_state.m_pool.getIndexForDataString("self");
-	    Symbol * myself = NULL;
-	    bool hasHazyKin = false;
-	    if(m_state.alreadyDefinedSymbolHere(selfid, myself, hasHazyKin))
-	      {
-		nuti = myself->getUlamTypeIdx(); //may not be complete because of this alias!!
-		m_state.updateUTIAliasForced(rtnuti, nuti);
-		rtnb = true;
-	      }
-	  }
-#endif
       } //else not ok to continue
 
     if(rtnb)

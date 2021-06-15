@@ -1877,17 +1877,6 @@ namespace MFM {
   bool SymbolClassNameTemplate::statusUnknownTypeInClassInstances(UTI huti)
   {
     bool aok = true;
-    //bool aoktemplate = true;
-
-    //use template results for remaining stubs
-    NodeBlockClass * classNode = getClassBlockNode();
-    assert(classNode);
-    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
-
-    //aoktemplate =
-    SymbolClass::statusUnknownTypeInClass(huti);
-
-    m_state.popClassContext(); //restore
 
     // only full instances need to be counted, UNLESS there's an error situation
     // and we bailed out of the resolving loop, so do them all!
@@ -1909,20 +1898,15 @@ namespace MFM {
 	    it++;
 	    continue; //wait until a stub..
 	  }
-#if 0
-	if(csym->isStub())
-	  aok &= aoktemplate; //use template
-	else
-#endif
-	  {
-	    NodeBlockClass * classNode = csym->getClassBlockNode();
-	    assert(classNode);
-	    m_state.pushClassContext(suti, classNode, classNode, false, NULL);
 
-	    aok &= csym->statusUnknownTypeInClass(huti);
+	NodeBlockClass * classNode = csym->getClassBlockNode();
+	assert(classNode);
+	m_state.pushClassContext(suti, classNode, classNode, false, NULL);
 
-	    m_state.popClassContext(); //restore
-	  }
+	aok &= csym->statusUnknownTypeInClass(huti);
+
+	m_state.popClassContext(); //restore
+
 	it++;
       }
     return aok;
@@ -1933,7 +1917,7 @@ namespace MFM {
     bool aok = true;
     bool aoktemplate = true;
 
-    //use template results for remaining stubs
+    //use template results for remaining stubs (t3565, error t3444)
     NodeBlockClass * classNode = getClassBlockNode();
     assert(classNode);
     m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);

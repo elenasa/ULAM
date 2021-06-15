@@ -547,8 +547,8 @@ namespace MFM {
 	  {
 	    assert(m_nodeTypeDesc);
 	    vit = m_nodeTypeDesc->givenUTI();
-	    //e.g. switch condition variable (t41016-19); reload vit (was localvar)
-	    //t41481
+	    //e.g. switch condition variable (t41016-19); reload vit (was localvar);
+	    //use nodetypedesc, not varSymbol (t41481);
 	    if(m_state.isHolder(vit) && m_state.isComplete(eit))
 	      {
 		m_state.cleanupExistingHolder(vit, eit);
