@@ -5985,7 +5985,7 @@ Node * Parser::wrapFactor(Node * leftNode)
 		std::ostringstream msg;
 		msg << "'" << m_state.m_pool.getDataAsString(asymptr->getId()).c_str();
 		msg << "' cannot be a named constant because it is already declared as ";
-		msg << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str();
+		msg << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str(); //t41463
 		msg << " at: ."; //..
 		MSG(&args.m_typeTok, msg.str().c_str(), ERR); //t41130,t3872,t41163
 

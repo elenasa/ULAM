@@ -381,7 +381,7 @@ namespace MFM {
 
 	if(!quietly)
 	  {
-	    //array op scalar: defer since the question of matrix operations is unclear.
+	    //array op scalar: defer since the question of matrix operations is unclear (t41324)
 	    std::ostringstream msg;
 	    msg << "Incompatible (nonscalar) types ";
 	    msg << m_state.getUlamTypeNameByIndex(lt).c_str();

@@ -267,7 +267,7 @@ namespace MFM {
 	  msg << "constant for type: ";
 	else
 	  msg << "Model Parameter for type: "; //t3443
-	msg << m_state.getUlamTypeNameByIndex(it).c_str();
+	msg << m_state.getUlamTypeNameByIndex(it).c_str(); //t41456
 	msg << ", used with symbol name '";
 	msg << m_state.getTokenDataAsString(m_token).c_str() << "'";
 	msg << ", while compiling " << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();

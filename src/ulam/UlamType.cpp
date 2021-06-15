@@ -35,22 +35,20 @@ namespace MFM {
 
   const std::string UlamType::getUlamTypeName()
   {
-    //return m_key.getUlamKeyTypeSignatureAsString(&m_state);
-    return m_key.getUlamKeyTypeSignatureNameAndSize(&m_state); //wo classinstance,w bits&arrays (t3137)
-    // REMINDER!! error due to disappearing string:
+    return m_key.getUlamKeyTypeSignatureNameAndSize((getBitSize() == ULAMTYPE_DEFAULTBITSIZE[getUlamTypeEnum()]), &m_state); //wo classinstance, w bits&arrays(t3137),no default bitsize (t41324)
+    // REMINDERS!! error due to disappearing string:
+    //    return m_key.getUlamKeyTypeSignatureAsString(&m_state);
     //    return m_key.getUlamKeyTypeSignatureAsString().c_str();
   }
 
   const std::string UlamType::getUlamTypeNameBrief()
   {
     std::ostringstream namestr;
-#if 0
-    //nice but breaks too many tests, cosmetically ):
     if(getBitSize() == ULAMTYPE_DEFAULTBITSIZE[getUlamTypeEnum()])
-      namestr << m_key.getUlamKeyTypeSignatureName(&m_state).c_str();
+      namestr << m_key.getUlamKeyTypeSignatureName(&m_state).c_str(); //no default bitsize
     else
-#endif
       namestr << m_key.getUlamKeyTypeSignatureNameAndBitSize(&m_state).c_str();
+
     if(isAltRefType())
       namestr << "&";
     return namestr.str(); //no arrays, refs, bitsize if not default size
@@ -137,7 +135,7 @@ namespace MFM {
 	msg << "Casting different Array sizes: ";
 	msg << m_state.getUlamTypeNameByIndex(typidx).c_str();
 	msg << " TO " ;
-	msg << getUlamTypeName().c_str();
+	msg << getUlamTypeName().c_str(); //t41429
 	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 	bOK = false;
       }

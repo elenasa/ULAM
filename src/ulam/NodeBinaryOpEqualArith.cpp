@@ -22,7 +22,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Assignment is invalid";
 	msg << "; LHS: ";
-	msg << m_state.getUlamTypeNameByIndex(leftType);
+	msg << m_state.getUlamTypeNameByIndex(leftType); //t41388
 	msg << "; RHS: ";
 	msg << m_state.getUlamTypeNameByIndex(rightType);
 
