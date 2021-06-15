@@ -7,9 +7,9 @@
 ##
 #!
 Exit status: 3
-Uq_Typo(Int(32) a) : Bar { /* empty class block */ }
+Uq_Typo(Int a) : Bar { /* empty class block */ }
 Uq_Bar { Unsigned(3) bu( 7u);  <NOMAIN> }
-Ue_Eltypo : Typo(1) { Unsigned(3) first(3u);  Unsigned(3) second(3u);  Typo(1) t( constant Int(32) a = 1;  :Bar< Unsigned(3) bu(7u); >);  :Typo(1)< constant Int(32) a = 1;  :Bar< Unsigned(3) bu(3u); >> ^Bar< Unsigned(3) bu(3u); > Int(32) test() {  System s;  Eltypo& me = self;  { self Bar as cond { Bar& self;  self ( 3u cast )func . s ( self bu . cast )print . s ( self bu . cast 3 cast == )assert . me first . self bu . = } if s ( false )assert . else } s ( self bu . cast )print . s ( self bu . cast 3 cast == )assert . s ( self first . cast )print . s ( self first . cast 3 cast == )assert . self second . self bu . = self second . cast return } }
+Ue_Eltypo : Typo(1) { Unsigned(3) first(3u);  Unsigned(3) second(3u);  Typo(1) t( constant Int a = 1;  :Bar< Unsigned(3) bu(7u); >);  :Typo(1)< constant Int a = 1;  :Bar< Unsigned(3) bu(3u); >> ^Bar< Unsigned(3) bu(3u); > Int test() {  System s;  Eltypo& me = self;  { self Bar as cond { Bar& self;  self ( 3u cast )func . s ( self bu . cast )print . s ( self bu . cast 3 cast == )assert . me first . self bu . = } if s ( false )assert . else } s ( self bu . cast )print . s ( self bu . cast 3 cast == )assert . s ( self first . cast )print . s ( self first . cast 3 cast == )assert . self second . self bu . = self second . cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by 3589, except as 'self', instead of local variable 'elf'

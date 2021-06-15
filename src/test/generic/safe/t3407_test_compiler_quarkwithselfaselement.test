@@ -6,7 +6,7 @@
 ##
 #!
 Exit status: 2
-Ue_ElT : Typo { Int(32) i(2);  :Typo<> Int(32) test() {  System s;  s ( self i . 0 cast == )assert . Atom(96) mar = self cast;  self ( mar cast )incr . self mar cast = s ( self i . )print . self ( mar cast )incr . self mar cast = s ( self i . )print . s ( self i . 2 cast == )assert . self i . return } }
+Ue_ElT : Typo { Int i(2);  :Typo<> Int test() {  System s;  s ( self i . 0 cast == )assert . Atom mar = self cast;  self ( mar cast )incr . self mar cast = s ( self i . )print . self ( mar cast )incr . self mar cast = s ( self i . )print . s ( self i . 2 cast == )assert . self i . return } }
 Uq_Typo { <NOMAIN> }
 Uq_System { <NOMAIN> }
 #>ElT.ulam

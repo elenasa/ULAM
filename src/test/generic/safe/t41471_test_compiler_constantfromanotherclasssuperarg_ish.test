@@ -4,11 +4,11 @@
 ## gen output: 3 asserts
 #!
 Exit status: 4
-Ue_T { Int(32) test() {  System s;  constant Int(32) foobits = 4;  s ( true )assert . constant Bool(1) fb = true;  s ( 1u )assert . typedef QFoo(4) Q;  constant Bool(1) qb = true;  s ( 1u )assert . 4 return } }
+Ue_T { Int test() {  System s;  constant Int foobits = 4;  s ( true )assert . constant Bool fb = true;  s ( 1u )assert . typedef QFoo(4) Q;  constant Bool qb = true;  s ( 1u )assert . 4 return } }
 Uq_System { <NOMAIN> }
-Ue_Foo : QFoo(4) { constant Unsigned(32) nbits = 4u;  :QFoo(4)< Bits(4) m_bits(0);  constant Bool(1) fourbits = true; > ^QBar(true)< Bool(1) m_b( 1u); > <NOMAIN> }
-Uq_QFoo(Unary(4) bits) : QBar(b) { Bits(UNKNOWN) m_bits(notready);  constant Bool(1) fourbits = bits 4 ==;  :QBar11< Bool(1) m_b(notready); > <NOMAIN> }
-Uq_QBar(Bool(1) b) { Bool(1) m_b(notready);  <NOMAIN> }
+Ue_Foo : QFoo(4) { constant Unsigned nbits = 4u;  :QFoo(4)< Bits(4) m_bits(0);  constant Bool fourbits = true; > ^QBar(true)< Bool m_b( 1u); > <NOMAIN> }
+Uq_QFoo(Unary(4) bits) : QBar(b) { Bits(UNKNOWN) m_bits(notready);  constant Bool fourbits = bits 4 ==;  :QBar11< Bool m_b(notready); > <NOMAIN> }
+Uq_QBar(Bool b) { Bool m_b(notready);  <NOMAIN> }
 ##
 ##  informed by Daves ish 20210605, the assert that got away! (still missing)
 ##

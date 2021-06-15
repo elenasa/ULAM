@@ -2,7 +2,7 @@
 #=t41324_test_compiler_stringarrayasclassargs_error
 #!
 ./Foo.ulam:6:5: ERROR: Class arguments of type String are limited to scalars by MFM::UlamTypeInfo: String[3] (arg 3) in class Booly(0u,2u,077477696e6b6c65066c6974746c650473746172).
-./Booly.ulam:5:13: ERROR: Incompatible (nonscalar) types String[3] and Bool(1) for binary && ; Suggest writing a loop.
+./Booly.ulam:5:13: ERROR: Incompatible (nonscalar) types String[3] and Bool for binary && ; Suggest writing a loop.
 Unrecoverable Program Type Label FAILURE.
 ##
 ##      //informed by code review for m_state.isAStringType, which didn't include arrays. oops.

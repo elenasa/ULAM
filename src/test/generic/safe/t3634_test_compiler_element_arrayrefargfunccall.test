@@ -5,7 +5,7 @@
 ##       */
 #!
 Exit status: 1
-Ue_Foo { System s();  typedef Bool(3) Bar[4];  Int(32) m_i(12);  Bool(3) m_b[4](false,false,true,false);  Int(32) test() {  Bool(3)& bref[4] = self m_b . cast;  self m_i . 12u cast = self ( self m_b . cast 2 cast )check . self s . ( self m_b . 2 [] )print . self m_b . 2 [] cast return } }
+Ue_Foo { System s();  typedef Bool(3) Bar[4];  Int m_i(12);  Bool(3) m_b[4](false,false,true,false);  Int test() {  Bool(3)& bref[4] = self m_b . cast;  self m_i . 12u cast = self ( self m_b . cast 2 cast )check . self s . ( self m_b . 2 [] )print . self m_b . 2 [] cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t3625

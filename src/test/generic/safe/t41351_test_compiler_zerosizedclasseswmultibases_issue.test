@@ -11,12 +11,12 @@
 ##
 #!
 Exit status: 0
-Ue_BondDemoBond : DemoBase +MIBondable +Printable { :DemoBase< :Printable<>> +MIBondable< typedef Int(32) Tag;  +Printable<>> +Printable<> Int(32) test() {  self ( )printSelf . 0 cast return } }
+Ue_BondDemoBond : DemoBase +MIBondable +Printable { :DemoBase< :Printable<>> +MIBondable< typedef Int Tag;  +Printable<>> +Printable<> Int test() {  self ( )printSelf . 0 cast return } }
 Uq_DemoBase : Printable { :Printable<> <NOMAIN> }
 Uq_Printable { <NOMAIN> }
 Uq_DemoBond : Bond +Printable { typedef Unsigned(6) SiteNum;  Unsigned(6) mNearSN( 63u);  Unsigned(6) mFarSN( 63u);  :Bond< typedef Unsigned(6) SiteNum; > +Printable<> <NOMAIN> }
 Uq_Bond +Printable { typedef Unsigned(6) SiteNum;  +Printable<> <NOMAIN> }
-Uq_MIBondable +Printable { typedef Int(32) Tag;  +Printable<> <NOMAIN> }
+Uq_MIBondable +Printable { typedef Int Tag;  +Printable<> <NOMAIN> }
 Uq_Fail +System { +System<> <NOMAIN> }
 Uq_SystemU3 : System { :System<> <NOMAIN> }
 Uq_System { <NOMAIN> }

@@ -5,7 +5,7 @@
 ##      */
 #!
 Exit status: 2
-Ue_Tu { Int(32) me(2);  Int(32) test() {  System s;  self me . 2 cast = s ( self me . )print . self me . return } }
+Ue_Tu { Int me(2);  Int test() {  System s;  self me . 2 cast = s ( self me . )print . self me . return } }
 Uq_System { <NOMAIN> }
 #>Tu.ulam
   ulam 1;

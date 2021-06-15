@@ -8,10 +8,10 @@
 ## FAILED: ILLEGAL_ARGUMENT
 #!
 Exit status: 3
-Ue_T { Int(32) test() {  System sys;  constant Q(false) cqf = { .i = 3 };  S(0x18,false) sf;  sys ( sf 3 . )print . sys ( sf 3 . 3 cast == )assert . sys ( sf v . b . cast )print . sys ( sf v . b . ! )assert . sf 3 . cast return } }
+Ue_T { Int test() {  System sys;  constant Q(false) cqf = { .i = 3 };  S(0x18,false) sf;  sys ( sf 3 . )print . sys ( sf 3 . 3 cast == )assert . sys ( sf v . b . cast )print . sys ( sf v . b . ! )assert . sf 3 . cast return } }
 Uq_System { <NOMAIN> }
-Uq_Q(Bool(1) flag) { Bool(1) b(notready);  Int(4) i(0);  <NOMAIN> }
-Uq_S(Q(flag) v, Bool(1) bp = false) { constant Int(4) csi = v i .;  <NOMAIN> }
+Uq_Q(Bool flag) { Bool b(notready);  Int(4) i(0);  <NOMAIN> }
+Uq_S(Q(flag) v, Bool bp = false) { constant Int(4) csi = v i .;  <NOMAIN> }
 ##
 ##    //informed by t41214 (new parameter order w a default)
 ##

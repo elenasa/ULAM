@@ -10,8 +10,8 @@
 ##
 #!
 Exit status: 0
-Ue_Foo : Qbar { Bool(1) sp(true);  :Qbar< Int(3) m_q(3);  Bool(1) qsp(false); > Int(32) test() {  System s;  s ( self sp . )assert . Bool(1) notsp = self sp . ?  false :  true;  s ( notsp ! )assert . Int(32) i = self sp . ?  4u cast :  self m_q . cast;  s ( i )print . s ( i 4 cast == )assert . Qbar j = self sp . ?  self ( i )func . :  self cast;  s ( j m_q . )print . s ( j m_q . 3 == )assert . Int(6) k = j ( )getq . cast;  s ( k cast )print . s ( k 3 cast == )assert . Foo fdq;  Foo& fdr = fdq cast;  Qbar n = self sp . ?  self ( )foofuncref . :  fdr cast;  s ( n m_q . )print . s ( n m_q . 3 == )assert . Foo dq;  Qbar m = self sp . ?  self ( )foofunc . :  dq cast;  s ( m m_q . )print . s ( m m_q . 3 == )assert . 0 cast return } }
-Uq_Qbar { Bool(1) qsp(false);  Int(3) m_q( 1);  <NOMAIN> }
+Ue_Foo : Qbar { Bool sp(true);  :Qbar< Int(3) m_q(3);  Bool qsp(false); > Int test() {  System s;  s ( self sp . )assert . Bool notsp = self sp . ?  false :  true;  s ( notsp ! )assert . Int i = self sp . ?  4u cast :  self m_q . cast;  s ( i )print . s ( i 4 cast == )assert . Qbar j = self sp . ?  self ( i )func . :  self cast;  s ( j m_q . )print . s ( j m_q . 3 == )assert . Int(6) k = j ( )getq . cast;  s ( k cast )print . s ( k 3 cast == )assert . Foo fdq;  Foo& fdr = fdq cast;  Qbar n = self sp . ?  self ( )foofuncref . :  fdr cast;  s ( n m_q . )print . s ( n m_q . 3 == )assert . Foo dq;  Qbar m = self sp . ?  self ( )foofunc . :  dq cast;  s ( m m_q . )print . s ( m m_q . 3 == )assert . 0 cast return } }
+Uq_Qbar { Bool qsp(false);  Int(3) m_q( 1);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 #>Foo.ulam

@@ -2,7 +2,7 @@
 #=t3942_test_compiler_caarray2D
 #!
 Exit status: -11
-Ue_R { Int(32) test() {  TEventWindows tvt;  EventWindow ew = tvt ( 2 cast )aref . cast;  Atom(96) atom1 = ew ( 0 cast )aref . cast;  Atom(96) atom2 = tvt ( 2 cast )aref . ( 0 cast )aref . cast;  0 cast return } }
+Ue_R { Int test() {  TEventWindows tvt;  EventWindow ew = tvt ( 2 cast )aref . cast;  Atom atom1 = ew ( 0 cast )aref . cast;  Atom atom2 = tvt ( 2 cast )aref . ( 0 cast )aref . cast;  0 cast return } }
 Un_TEventWindows { EventWindow m_EWarr[7](), (), (), (), (), (), ();  <NOMAIN> }
 Uq_EventWindow { <NOMAIN> }
 ##

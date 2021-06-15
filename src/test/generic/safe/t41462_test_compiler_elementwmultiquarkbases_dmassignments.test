@@ -8,7 +8,7 @@
 ##
 #!
 Exit status: 0
-Ue_R { Int(32) test() {  Foo foo;  foo ( )behave . 0 cast return } }
+Ue_R { Int test() {  Foo foo;  foo ( )behave . 0 cast return } }
 Ue_Foo : QBar +QGah +QFoo { QBar m_foobar( Int(2) mBar(0);  :QFoo< Unsigned(3) mFoo(0); > +QGah< Int(5) mGah(0); >);  :QBar< Int(2) mBar(0); > +QGah< Int(5) mGah(0); > +QFoo< Unsigned(3) mFoo(0); > <NOMAIN> }
 Uq_QGah { Int(5) mGah(0);  <NOMAIN> }
 Uq_QFoo { Unsigned(3) mFoo(0);  <NOMAIN> }

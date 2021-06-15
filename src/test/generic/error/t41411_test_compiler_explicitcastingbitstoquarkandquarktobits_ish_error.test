@@ -49,7 +49,7 @@ quark SegPkt10 {
   constant CN cRSV6        = 6u;
   constant CN cRSV7        = 7u;
 
-  Bool(1) mUpbound;
+  Bool mUpbound;
   CN mCN;
 }
 

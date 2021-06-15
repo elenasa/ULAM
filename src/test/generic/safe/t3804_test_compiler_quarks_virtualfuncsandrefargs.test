@@ -27,11 +27,11 @@
 ##
 #!
 Exit status: 0
-Ue_RefTest { System f();  Int(32) mChecks(-11);  Int(32) test() {  self ( )runTests . 0 cast return } }
+Ue_RefTest { System f();  Int mChecks(-11);  Int test() {  self ( )runTests . 0 cast return } }
 Uq_System { <NOMAIN> }
-Uq_QBrt { Bool(1) mQBool( true);  <NOMAIN> }
-Uq_QDat : QBrt { Unary(3) mUnDat(0);  QBrt mBaseDat( Bool(1) mQBool( true); );  :QBrt< Bool(1) mQBool( true); > <NOMAIN> }
-Uq_QSubDat { QDat mQdat( Unary(3) mUnDat(0);  QBrt mBaseDat( Bool(1) mQBool( true); );  :QBrt< Bool(1) mQBool( true); >);  <NOMAIN> }
+Uq_QBrt { Bool mQBool( true);  <NOMAIN> }
+Uq_QDat : QBrt { Unary(3) mUnDat(0);  QBrt mBaseDat( Bool mQBool( true); );  :QBrt< Bool mQBool( true); > <NOMAIN> }
+Uq_QSubDat { QDat mQdat( Unary(3) mUnDat(0);  QBrt mBaseDat( Bool mQBool( true); );  :QBrt< Bool mQBool( true); >);  <NOMAIN> }
 ##
 ## informed by Dave!
 ##

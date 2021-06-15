@@ -2,7 +2,7 @@
 #=t41259_test_compiler_element_expressionwithfunccall_order_ish_error
 #!
 Exit status: 0
-Ue_Foo { Int(32) test() {  Foo f;  Unsigned(32) var1 = f ( )func . 1u cast +b;  Unsigned(32) var2 = 1u cast f ( )func . +b;  0 cast return } }
+Ue_Foo { Int test() {  Foo f;  Unsigned var1 = f ( )func . 1u cast +b;  Unsigned var2 = 1u cast f ( )func . +b;  0 cast return } }
 ##
 ## ish, informed by Dave 3/14/18 generated SPLAT code; Sorry, grammar says rhs of +/- is a term. Term leads to Factor.
 ## Factor allows assign_expression within parens. The extra parens around the f, (f).func(), ends the assign_expression.

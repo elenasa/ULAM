@@ -13,7 +13,7 @@ Exit status: 0
 Uq_Base { <NOMAIN> }
 Uq_Sub1 : Base { :Base<> <NOMAIN> }
 Ue_E2 : Sub1 { :Sub1<> ^Base<> <NOMAIN> }
-Ue_Test : System { Bool(1) brtn[2](true,true);  :System<> Int(32) test() {  E2 e2;  Sub1& s1ref = e2 cast;  Base& bref = e2 cast;  self brtn . 0 [] s1ref ( )dfunc . 12 cast == = self ( self brtn . 0 [] )assert . self brtn . 1 [] bref ( )dfunc . 10 cast == = self ( self brtn . 0 [] )assert . 0 cast return } }
+Ue_Test : System { Bool brtn[2](true,true);  :System<> Int test() {  E2 e2;  Sub1& s1ref = e2 cast;  Base& bref = e2 cast;  self brtn . 0 [] s1ref ( )dfunc . 12 cast == = self ( self brtn . 0 [] )assert . self brtn . 1 [] bref ( )dfunc . 10 cast == = self ( self brtn . 0 [] )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t3602, vtable-example 11/19/15

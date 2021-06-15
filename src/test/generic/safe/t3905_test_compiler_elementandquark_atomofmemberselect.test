@@ -4,7 +4,7 @@
 ##
 #!
 Exit status: -11
-Ue_A : QW { Bool(1) b(true);  QW m_q();  :QW<> Int(32) test() {  System s;  self b . true = Atom(96) metoo = self.atomof cast;  { metoo A as cond { A& metoo;  s ( metoo b . )assert . } if } A a;  a b . true = Atom(96) me = a.atomof cast;  { me A as cond { A& me;  s ( me b . )assert . } if } 0 cast return } }
+Ue_A : QW { Bool b(true);  QW m_q();  :QW<> Int test() {  System s;  self b . true = Atom metoo = self.atomof cast;  { metoo A as cond { A& metoo;  s ( metoo b . )assert . } if } A a;  a b . true = Atom me = a.atomof cast;  { me A as cond { A& me;  s ( me b . )assert . } if } 0 cast return } }
 Uq_System { <NOMAIN> }
 Uq_QW { <NOMAIN> }
 ##

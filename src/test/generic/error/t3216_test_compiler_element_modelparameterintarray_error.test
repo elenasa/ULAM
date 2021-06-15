@@ -15,7 +15,7 @@ ulam 1;
  element Foo {
 Bool(7) sp;
 parameter Int(3) chance[2] = { };
-Bool(1) last;
+Bool last;
 Int test() {
  Foo f;
 return f.chance[1];

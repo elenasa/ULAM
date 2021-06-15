@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3219_test_compiler_element_modelparameterasconstantexpression_error
 #!
-./Foo.ulam:4:3: ERROR: Type Bitsize specifier: Int(32), within (), is not a numeric constant expression.
+./Foo.ulam:4:3: ERROR: Type Bitsize specifier: Int, within (), is not a numeric constant expression.
 Unrecoverable Program Type Label FAILURE.
 ##
 ##      // fix bitsize, then get:
@@ -12,7 +12,7 @@ Unrecoverable Program Type Label FAILURE.
 element Foo {
   parameter Int chance = 2;
   Int(chance) arr[chance];
-  Bool(1) last;
+  Bool last;
   Int test() {
     return chance;
   }

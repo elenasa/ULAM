@@ -6,7 +6,7 @@
 ##       */
 #!
 Exit status: 3
-Ue_Foo { System s();  Int(4) m_i(0);  Bool(3) m_b(false);  Int(32) test() {  Foo f;  Bool(3)& bref = f m_b . cast;  f m_i . 3 cast = self ( f m_b . cast )check . self s . ( f m_b . )print . self s . ( f m_b . cast )assert . self s . ( f m_i . )print . self s . ( f m_i . 3 cast == )assert . f m_i . cast return } }
+Ue_Foo { System s();  Int(4) m_i(0);  Bool(3) m_b(false);  Int test() {  Foo f;  Bool(3)& bref = f m_b . cast;  f m_i . 3 cast = self ( f m_b . cast )check . self s . ( f m_b . )print . self s . ( f m_b . cast )assert . self s . ( f m_i . )print . self s . ( f m_i . 3 cast == )assert . f m_i . cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t3625

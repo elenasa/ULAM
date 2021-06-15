@@ -10,7 +10,7 @@
 ##      */
 #!
 Exit status: 0
-Ue_A { System s();  Unary(3) u(2u);  Unary(3) v(2u);  Int(32) test() {  self v . 3u cast = self u . self v . cast 1 cast << cast = self v . self v . cast 1 cast >> cast = self s . ( self u . )print . self s . ( self u . cast 2 == )assert . self s . ( self v . )print . self s . ( self v . cast 2 == )assert . 0 cast return } }
+Ue_A { System s();  Unary(3) u(2u);  Unary(3) v(2u);  Int test() {  self v . 3u cast = self u . self v . cast 1 cast << cast = self v . self v . cast 1 cast >> cast = self s . ( self u . )print . self s . ( self u . cast 2 == )assert . self s . ( self v . )print . self s . ( self v . cast 2 == )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ##      // cast to Bits and cast back to Unary(3): 3 >> 1 = 2   3 << 1 = 2

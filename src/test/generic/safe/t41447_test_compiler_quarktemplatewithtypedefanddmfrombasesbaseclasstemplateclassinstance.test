@@ -8,14 +8,14 @@
 ##  note: atoms are unevaluable (-11)
 #!
 Exit status: -11
-Ue_R { Int(32) test() {  System s;  LSwitch4 sw;  sw ( )behave . s ( sw m_position . cast )print . s ( sw ( )isMax . )assert . Box b;  b ( )behave . s ( b m_position . cast )print . s ( b ( )isMax . )assert . 0 cast return } }
+Ue_R { Int test() {  System s;  LSwitch4 sw;  sw ( )behave . s ( sw m_position . cast )print . s ( sw ( )isMax . )assert . Box b;  b ( )behave . s ( b m_position . cast )print . s ( b ( )isMax . )assert . 0 cast return } }
 Uq_EventWindow { typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry;  <NOMAIN> }
 Uq_System { <NOMAIN> }
-Ue_LSwitch4 : QSwitch4(3u) { :QSwitch4(3u)< constant Unsigned(32) cPORT_BASE_IDX = 2u;  constant Unsigned(32) cPORT_WIDTH = 8u; > ^QBox(3u)< typedef Unsigned(2) Sym;  Unsigned(2) m_sym(0); > ^QLine(3u)< EventWindow ew( typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry; );  typedef Unsigned(3) Position;  Unsigned(3) m_position( 7u); > <NOMAIN> }
+Ue_LSwitch4 : QSwitch4(3u) { :QSwitch4(3u)< constant Unsigned cPORT_BASE_IDX = 2u;  constant Unsigned cPORT_WIDTH = 8u; > ^QBox(3u)< typedef Unsigned(2) Sym;  Unsigned(2) m_sym(0); > ^QLine(3u)< EventWindow ew( typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry; );  typedef Unsigned(3) Position;  Unsigned(3) m_position( 7u); > <NOMAIN> }
 Ue_Box : QLine(4u) { :QLine(4u)< EventWindow ew( typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry; );  typedef Unsigned(4) Position;  Unsigned(4) m_position( 15u); > <NOMAIN> }
-Uq_QBox(Unsigned(32) bits) : QLine(bits) { typedef Unsigned(2) Sym;  Unsigned(2) m_sym(0);  :QLine11< EventWindow ew(notready);  typedef Unsigned(UNKNOWN) Position;  Unsigned(UNKNOWN) m_position(notready); > <NOMAIN> }
-Uq_QLine(Unsigned(32) bits) { EventWindow ew(notready);  typedef Unsigned(UNKNOWN) Position;  Unsigned(UNKNOWN) m_position(notready);  <NOMAIN> }
-Uq_QSwitch4(Unsigned(32) cBITS) : QBox(bits) { constant Unsigned(32) cPORT_BASE_IDX = 1 cBITS << cast 4u /;  constant Unsigned(32) cPORT_WIDTH = 8u;  :QBox11< typedef Unsigned(2) Sym;  Unsigned(2) m_sym(0); > <NOMAIN> }
+Uq_QBox(Unsigned bits) : QLine(bits) { typedef Unsigned(2) Sym;  Unsigned(2) m_sym(0);  :QLine11< EventWindow ew(notready);  typedef Unsigned(UNKNOWN) Position;  Unsigned(UNKNOWN) m_position(notready); > <NOMAIN> }
+Uq_QLine(Unsigned bits) { EventWindow ew(notready);  typedef Unsigned(UNKNOWN) Position;  Unsigned(UNKNOWN) m_position(notready);  <NOMAIN> }
+Uq_QSwitch4(Unsigned cBITS) : QBox(bits) { constant Unsigned cPORT_BASE_IDX = 1 cBITS << cast 4u /;  constant Unsigned cPORT_WIDTH = 8u;  :QBox11< typedef Unsigned(2) Sym;  Unsigned(2) m_sym(0); > <NOMAIN> }
 ##
 ##share/ulam/demos/Router/QSwitch4.ulam:33:20: ERROR: Incomplete identifier for type: Unsigned(UNKNOWN), used with list symbol name 'm_position'.
 ##share/ulam/demos/Router/QSwitch4.ulam:33:5: ERROR: Initial value expression for: idx, initialization is not ready.

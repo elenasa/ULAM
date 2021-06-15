@@ -7,9 +7,9 @@
 ##       Unsigned Arg: 4 (+ 2 asserts)
 #!
 Exit status: 4
-Uq_Typo(Int(32) a) : Bar { Bool(1) spt(false);  :Bar< Unsigned(3) bu( 7u); > <NOMAIN> }
+Uq_Typo(Int a) : Bar { Bool spt(false);  :Bar< Unsigned(3) bu( 7u); > <NOMAIN> }
 Uq_Bar { Unsigned(3) bu( 7u);  <NOMAIN> }
-Ue_Eltypo : Typo(1) +Bar { Unsigned(3) first(4u);  Unsigned(3) second(4u);  Typo(1) t( constant Int(32) a = 1;  Bool(1) spt(false);  :Bar< Unsigned(3) bu(7u); >);  :Typo(1)< constant Int(32) a = 1;  Bool(1) spt(false);  :Bar< Unsigned(3) bu(7u); >> +Bar< Unsigned(3) bu(7u); > Int(32) test() {  System s;  Eltypo elf;  Bar& barref = elf t . cast;  barref ( 3u cast )func . s ( barref bu . cast )print . s ( barref bu . cast 4 == )assert . self first . barref bu . = s ( elf t . spt . )assert . s ( elf spt . ! )assert . s ( elf bu . cast )print . s ( elf bu . cast 7 == )assert . s ( self first . cast )print . s ( self first . cast 4 == )assert . self second . elf t . bu . = s ( self second . 4u == )assert . self second . cast return } }
+Ue_Eltypo : Typo(1) +Bar { Unsigned(3) first(4u);  Unsigned(3) second(4u);  Typo(1) t( constant Int a = 1;  Bool spt(false);  :Bar< Unsigned(3) bu(7u); >);  :Typo(1)< constant Int a = 1;  Bool spt(false);  :Bar< Unsigned(3) bu(7u); >> +Bar< Unsigned(3) bu(7u); > Int test() {  System s;  Eltypo elf;  Bar& barref = elf t . cast;  barref ( 3u cast )func . s ( barref bu . cast )print . s ( barref bu . cast 4 == )assert . self first . barref bu . = s ( elf t . spt . )assert . s ( elf spt . ! )assert . s ( elf bu . cast )print . s ( elf bu . cast 7 == )assert . s ( self first . cast )print . s ( self first . cast 4 == )assert . self second . elf t . bu . = s ( self second . 4u == )assert . self second . cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by 3588, t41363

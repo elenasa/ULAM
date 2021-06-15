@@ -2,7 +2,7 @@
 #=t3723_test_compiler_transientinheritquark
 #!
 Exit status: 6
-Ue_Foo { Bool(1) first(false);  Int(32) test() {  Soo su;  { su cb . cond { 6u cast return } if } 0 cast return } }
+Ue_Foo { Bool first(false);  Int test() {  Soo su;  { su cb . cond { 6u cast return } if } 0 cast return } }
 Un_Soo : Coo { Unsigned(3) us( 4u);  :Coo< Bool(3) cb( true); > <NOMAIN> }
 Uq_Coo { Bool(3) cb( true);  <NOMAIN> }
 ##

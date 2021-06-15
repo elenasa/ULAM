@@ -2,8 +2,8 @@
 #=t3322_test_compiler_compound
 #!
 Exit status: 1
-Ue_A { Bar bar( Bool(1) b(true); );  Int(32) test() {  self bar . b . true = self bar . b . cast return } }
-Uq_Bar { Bool(1) b(false);  <NOMAIN> }
+Ue_A { Bar bar( Bool b(true); );  Int test() {  self bar . b . true = self bar . b . cast return } }
+Uq_Bar { Bool b(false);  <NOMAIN> }
 #>A.ulam
   ulam 1;
 quark Bar{

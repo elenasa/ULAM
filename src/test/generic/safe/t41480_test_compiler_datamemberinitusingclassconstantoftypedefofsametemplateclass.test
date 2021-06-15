@@ -4,8 +4,8 @@
 ##      Unsigned Arg: 1
 #!
 Exit status: 1
-Ue_T { typedef Foo(false,0u) MyFoo;  constant Foo(false,1u) cNF = { 0x20000000 };  Unsigned(3) mBoo(1u);  Int(32) test() {  System s;  s ( self mBoo . cast )print . s ( self mBoo . cNF mDM1 . == )assert . self mBoo . cast return } }
-Uq_Foo(Bool(1) b, Unsigned(3) m) { Unsigned(3) mDM1(notready);  Bool(1) mDM2(notready);  typedef Foo(true,2u) QFoo;  typedef Foo12 MooFoo;  typedef Foo(b,m) NewFoo;  <NOMAIN> }
+Ue_T { typedef Foo(false,0u) MyFoo;  constant Foo(false,1u) cNF = { 0x20000000 };  Unsigned(3) mBoo(1u);  Int test() {  System s;  s ( self mBoo . cast )print . s ( self mBoo . cNF mDM1 . == )assert . self mBoo . cast return } }
+Uq_Foo(Bool b, Unsigned(3) m) { Unsigned(3) mDM1(notready);  Bool mDM2(notready);  typedef Foo(true,2u) QFoo;  typedef Foo12 MooFoo;  typedef Foo(b,m) NewFoo;  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 ##  informed by Dave's ish 20210610, see error/t41477,t41479 and t41478

@@ -8,10 +8,10 @@
 ##
 #!
 Exit status: 0
-Ue_E4 : QBase3 +QBase2 +QBase1 { Int(32) m_c4(212);  Int(32) m_a4(110);  typedef QBase2 QB2;  :QBase3< Bool(1) m_b3(false);  :QBase1< Bool(1) m_b1(true); >> +QBase2< Bool(1) m_b2(true); > +QBase1< Bool(1) m_b1(false); > Int(32) test() {  System s;  typedef QBase1 QB1;  self m_c4 . self QB2 . ( )vfuncc . = s ( self m_c4 . )print . s ( self m_c4 . 212 cast == )assert . self m_a4 . self QB1 . ( )vfunca . = s ( self m_a4 . )print . s ( self m_a4 . 110 cast == )assert . s ( self m_b1 . )assert . self m_b1 . false = Int(32) sa4 = super QB1 . ( )vfunca .;  s ( sa4 )print . s ( sa4 110 cast == )assert . s ( self m_b1 . )assert . 0 cast return } }
-Uq_QBase3 : QBase1 { Bool(1) m_b3(false);  :QBase1< Bool(1) m_b1(false); > <NOMAIN> }
-Uq_QBase2 { Bool(1) m_b2(false);  <NOMAIN> }
-Uq_QBase1 { Bool(1) m_b1(false);  <NOMAIN> }
+Ue_E4 : QBase3 +QBase2 +QBase1 { Int m_c4(212);  Int m_a4(110);  typedef QBase2 QB2;  :QBase3< Bool m_b3(false);  :QBase1< Bool m_b1(true); >> +QBase2< Bool m_b2(true); > +QBase1< Bool m_b1(false); > Int test() {  System s;  typedef QBase1 QB1;  self m_c4 . self QB2 . ( )vfuncc . = s ( self m_c4 . )print . s ( self m_c4 . 212 cast == )assert . self m_a4 . self QB1 . ( )vfunca . = s ( self m_a4 . )print . s ( self m_a4 . 110 cast == )assert . s ( self m_b1 . )assert . self m_b1 . false = Int sa4 = super QB1 . ( )vfunca .;  s ( sa4 )print . s ( sa4 110 cast == )assert . s ( self m_b1 . )assert . 0 cast return } }
+Uq_QBase3 : QBase1 { Bool m_b3(false);  :QBase1< Bool m_b1(false); > <NOMAIN> }
+Uq_QBase2 { Bool m_b2(false);  <NOMAIN> }
+Uq_QBase1 { Bool m_b1(false);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 ##       informed by t41310; here we want to pick a base class' 'override instead,

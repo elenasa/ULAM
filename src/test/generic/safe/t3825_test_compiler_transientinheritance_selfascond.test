@@ -13,7 +13,7 @@
 ##
 #!
 Exit status: 0
-Ue_Foo { Bool(1) first(true);  Int(32) test() {  Soo su;  self first . su ( )func . = 0 cast return } }
+Ue_Foo { Bool first(true);  Int test() {  Soo su;  self first . su ( )func . = 0 cast return } }
 Un_Soo : Coo { Unsigned(3) us( 4u);  :Coo< Bool(3) cb(false); > <NOMAIN> }
 Un_Coo { Bool(3) cb(false);  <NOMAIN> }
 Uq_System { <NOMAIN> }

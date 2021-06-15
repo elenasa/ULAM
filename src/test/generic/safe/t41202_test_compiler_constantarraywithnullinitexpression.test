@@ -6,7 +6,7 @@
 ##
 #!
 Exit status: 0
-Ue_P { Bool(1) b(false);  Int(32) test() {  System s;  Int(32) i = by 3 [];  s ( by 3 [] )print . s ( by 3 [] 0 cast == )assert . i return } }
+Ue_P { Bool b(false);  Int test() {  System s;  Int i = by 3 [];  s ( by 3 [] )print . s ( by 3 [] 0 cast == )assert . i return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t41201; grammar change to allow default array values

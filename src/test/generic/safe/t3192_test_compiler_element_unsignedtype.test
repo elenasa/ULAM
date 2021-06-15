@@ -6,7 +6,7 @@
 ##
 #!
 Exit status: 1
-Ue_Foo { System s();  Unsigned(1) m_array[7](0u,1u,0u,0u,0u,0u,0u);  Int(32) test() {  self m_array . 1 [] 1 cast = self s . ( self m_array . 0 [] cast )print . self s . ( self m_array . 1 [] cast )print . self m_array . 1 [] cast return } }
+Ue_Foo { System s();  Unsigned(1) m_array[7](0u,1u,0u,0u,0u,0u,0u);  Int test() {  self m_array . 1 [] 1 cast = self s . ( self m_array . 0 [] cast )print . self s . ( self m_array . 1 [] cast )print . self m_array . 1 [] cast return } }
 Uq_System { <NOMAIN> }
 #>Foo.ulam
   ulam 1;

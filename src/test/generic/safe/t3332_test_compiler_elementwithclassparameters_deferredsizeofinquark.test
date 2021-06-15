@@ -3,8 +3,8 @@
 ##    //Constants have explicit types
 #!
 Exit status: 6
-Ue_T { Int(32) i(6);  Int(32) test() {  S(1,2) m;  self i . m ( )func . = self i . return } }
-Uq_S(Int(32) x, Int(32) y) { Int(UNKNOWN) i(notready);  Int(UNKNOWN) j(notready);  <NOMAIN> }
+Ue_T { Int i(6);  Int test() {  S(1,2) m;  self i . m ( )func . = self i . return } }
+Uq_S(Int x, Int y) { Int(UNKNOWN) i(notready);  Int(UNKNOWN) j(notready);  <NOMAIN> }
 ##
 ##    //informed by t3331
 ##    // here we set i using S(1,2).sizeof

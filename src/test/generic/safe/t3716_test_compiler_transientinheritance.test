@@ -8,7 +8,7 @@
 ##
 #!
 Exit status: 6
-Ue_Foo { System s();  Bool(1) first(false);  Int(32) test() {  Soo su;  { su cb . cond { self s . ( su cb . )print . self s . ( su cb . cast )assert . 6u cast return } if } 0 cast return } }
+Ue_Foo { System s();  Bool first(false);  Int test() {  Soo su;  { su cb . cond { self s . ( su cb . )print . self s . ( su cb . cast )assert . 6u cast return } if } 0 cast return } }
 Un_Soo : Coo { Unsigned(3) us( 4u);  :Coo< Bool(3) cb( true); > <NOMAIN> }
 Un_Coo { Bool(3) cb( true);  <NOMAIN> }
 Uq_System { <NOMAIN> }

@@ -32,7 +32,7 @@ element Anchor10 : QSegX {
 
 /*
 quark SegPkt10 {
-  Bool(1) mUpbound;
+  Bool mUpbound;
 }
 */
 

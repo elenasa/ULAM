@@ -5,7 +5,7 @@
 Unrecoverable Program Type Label FAILURE.
 ##
 ##./Tu.ulam:8:8: ERROR: Void is not a supported type for binary |=.
-##./Tu.ulam:9:5: ERROR: Use explicit cast to return Bool(3) as Int(32).
+##./Tu.ulam:9:5: ERROR: Use explicit cast to return Bool(3) as Int.
 ##
 #>Tu.ulam
   ulam 1;

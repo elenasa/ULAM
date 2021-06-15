@@ -11,7 +11,7 @@ Unrecoverable Program Parse FAILURE: <Foo.ulam>
 #>Foo.ulam
 ulam 1;
 element Foo {
-Bool(1) sp;
+Bool sp;
  parameter Atom poochance;
  Bool last;
  Int test() {

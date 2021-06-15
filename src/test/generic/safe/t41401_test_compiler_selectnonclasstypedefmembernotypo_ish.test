@@ -6,8 +6,8 @@
 ##
 #!
 Exit status: 3
-Ue_A { typedef Unsigned(3) Stage;  Int(32) test() {  System s;  A a;  Unsigned(3) stg = a ( )stage .;  s ( stg cast 3 cast == )assert . s ( a ( )stage . cast )print . stg cast return } }
-Uq_QBase(Unsigned(32) bits) { typedef Unsigned(UNKNOWN) Stage;  <NOMAIN> }
+Ue_A { typedef Unsigned(3) Stage;  Int test() {  System s;  A a;  Unsigned(3) stg = a ( )stage .;  s ( stg cast 3 cast == )assert . s ( a ( )stage . cast )print . stg cast return } }
+Uq_QBase(Unsigned bits) { typedef Unsigned(UNKNOWN) Stage;  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 ## Based on Dave ish 04262020: t41399, Without typo.

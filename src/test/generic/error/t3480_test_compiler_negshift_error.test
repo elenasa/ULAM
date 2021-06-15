@@ -3,10 +3,10 @@
 #!
 ./A.ulam:10:25: ERROR: Unsigned is the supported type for shift distance, operation <<; Suggest casting Int(2) to Unsigned.
 ./A.ulam:10:12: ERROR: Cannot cast erroneous type.
-./A.ulam:10:9: ERROR: Assignment is invalid; LHS: Unsigned(32); RHS: erroneous.
+./A.ulam:10:9: ERROR: Assignment is invalid; LHS: Unsigned; RHS: erroneous.
 ./A.ulam:11:20: ERROR: Unsigned is the supported type for shift distance, operation >>; Suggest casting Int(2) to Unsigned.
 ./A.ulam:11:12: ERROR: Cannot cast erroneous type.
-./A.ulam:11:9: ERROR: Assignment is invalid; LHS: Int(32); RHS: erroneous.
+./A.ulam:11:9: ERROR: Assignment is invalid; LHS: Int; RHS: erroneous.
 Unrecoverable Program Type Label FAILURE.
 ##
 ##      //informed by t3246

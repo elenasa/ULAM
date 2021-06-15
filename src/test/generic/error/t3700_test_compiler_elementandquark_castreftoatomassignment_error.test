@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3700_test_compiler_elementandquark_castreftoatomassignment_error
 #!
-./A.ulam:11:5: ERROR: Atom variable a's type Atom(96), and its initial value type Qbase&, are incompatible; .atomof may help.
+./A.ulam:11:5: ERROR: Atom variable a's type Atom, and its initial value type Qbase&, are incompatible; .atomof may help.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t3697

@@ -9,7 +9,7 @@
 ./SPLATRuleSet.ulam:9:3: NOTE: (3316 of 17061 bits, at 6632) SPLATKeyStateAny m_keyStateAny.
 ./SPLATRuleSet.ulam:10:3: NOTE: (3316 of 17061 bits, at 9948) SPLATKeyStateOccupied m_keyStateOccupied.
 ./SPLATRuleSet.ulam:11:3: NOTE: (3316 of 17061 bits, at 13264) SPLATKeyStateInvalid m_keyStateInvalid.
-./SPLATRuleSet.ulam:15:3: NOTE: (320 of 17061 bits, at 16580) Int(32) m_scratchVars[10].
+./SPLATRuleSet.ulam:15:3: NOTE: (320 of 17061 bits, at 16580) Int m_scratchVars[10].
 ./SPLATRuleSet.ulam:19:3: NOTE: (64 of 17061 bits, at 16900) Bits(64) m_givenTrueForNode.
 ./SPLATInstance.ulam:2:7: NOTE: (1 of 17061 bits, at 16964) from super base class: SPLATInstance.
 ./SPLATRuleSet.ulam:2:11: ERROR: CLASS (regular) 'SPLATRuleSet' SIZED 17061 FAILED.

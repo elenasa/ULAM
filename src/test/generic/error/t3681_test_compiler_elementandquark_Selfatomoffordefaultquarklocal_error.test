@@ -9,7 +9,7 @@
 ## eval ERROR exit status is -1
 #!
 Exit status: -1
-Ue_A { Bool(1) b(false);  Int(32) test() {  System s;  QW qw;  Atom(96) a = qw ( )func .;  { a A as cond { A& a;  s ( false )assert . } if s ( true )assert . else } { a QW is cond s ( false )assert . if s ( true )assert . else } 0 cast return } }
+Ue_A { Bool b(false);  Int test() {  System s;  QW qw;  Atom a = qw ( )func .;  { a A as cond { A& a;  s ( false )assert . } if s ( true )assert . else } { a QW is cond s ( false )assert . if s ( true )assert . else } 0 cast return } }
 Uq_System { <NOMAIN> }
 Uq_QW { <NOMAIN> }
 ##

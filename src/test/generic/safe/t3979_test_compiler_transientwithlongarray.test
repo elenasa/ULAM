@@ -6,9 +6,9 @@
 ##
 #!
 Exit status: 0
-Ue_Foo { Bool(1) sp(false);  Int(32) test() {  System s;  Tumi tmis;  s ( tmis barrlong 0 [] . cast )assert . s ( tmis barrlong 5 [] . cast )assert . s ( tmis barrlong 4 [] . ! cast )assert . tmis barrlong 4 [] . true cast = s ( tmis barrlong 4 [] . cast )assert . tmis barrlong 0 [] . false cast = s ( tmis barrlong 0 [] . ! cast )assert . Bool(7) barrlong[6] = { true, false, true, false, false, true };  s ( barrlong 0 [] cast )assert . s ( barrlong 5 [] cast )assert . s ( barrlong 4 [] ! cast )assert . barrlong 4 [] true cast = s ( barrlong 4 [] cast )assert . barrlong 0 [] false cast = s ( barrlong 0 [] ! cast )assert . 0 cast return } }
+Ue_Foo { Bool sp(false);  Int test() {  System s;  Tumi tmis;  s ( tmis barrlong 0 [] . cast )assert . s ( tmis barrlong 5 [] . cast )assert . s ( tmis barrlong 4 [] . ! cast )assert . tmis barrlong 4 [] . true cast = s ( tmis barrlong 4 [] . cast )assert . tmis barrlong 0 [] . false cast = s ( tmis barrlong 0 [] . ! cast )assert . Bool(7) barrlong[6] = { true, false, true, false, false, true };  s ( barrlong 0 [] cast )assert . s ( barrlong 5 [] cast )assert . s ( barrlong 4 [] ! cast )assert . barrlong 4 [] true cast = s ( barrlong 4 [] cast )assert . barrlong 0 [] false cast = s ( barrlong 0 [] ! cast )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
-Un_Tumi { Bool(1) b2( true);  Unsigned(9) u2( 7u);  Bool(7) barrlong[6]( { true, false, true, false, false, true });  <NOMAIN> }
+Un_Tumi { Bool b2( true);  Unsigned(9) u2( 7u);  Bool(7) barrlong[6]( { true, false, true, false, false, true });  <NOMAIN> }
 ##
 ## based on t3715, t3968 except acessing the quark data member structure instead
 ## with data member structure read/write (informed by ish 12/1/16)

@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t41463_test_compiler_elementandquarkswclassargs_wdefaultparamvaluefromanotherclass_memberconstantshadow_error
 #!
-./V.ulam:4:12: ERROR: 'a' cannot be a named constant because it is already declared as Int(32) at: ..
+./V.ulam:4:12: ERROR: 'a' cannot be a named constant because it is already declared as Int at: ..
 ./V.ulam:2:13: ERROR: .. this location.
 ./V.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'V'; Possible missing ending curly brace.
 ./V.ulam:4:22: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.

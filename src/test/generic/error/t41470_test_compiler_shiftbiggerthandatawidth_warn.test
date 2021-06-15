@@ -3,9 +3,9 @@
 #!
 ./A.ulam:7:12: Warning: Shift distance greater than data width, operation <<.
 Exit status: 64
-Ue_A { Bits(64) a(HexU64(0x0, 0x0));  constant Unsigned(32) d = 64u;  typedef Q1(66u) Q1D2;  Int(32) test() {  self a . self a . 65 cast << = 64u cast return } }
-Uq_Q1(Unsigned(32) x) : Q2(y) { /* empty class block */ }
-Uq_Q2(Unsigned(32) y) { /* empty class block */ }
+Ue_A { Bits(64) a(HexU64(0x0, 0x0));  constant Unsigned d = 64u;  typedef Q1(66u) Q1D2;  Int test() {  self a . self a . 65 cast << = 64u cast return } }
+Uq_Q1(Unsigned x) : Q2(y) { /* empty class block */ }
+Uq_Q2(Unsigned y) { /* empty class block */ }
 ##
 ##      //informed by Dave's ish 20210602, changed test to > from >=;
 ##      reduced number of "warnings" by not including warning count in c&l results.

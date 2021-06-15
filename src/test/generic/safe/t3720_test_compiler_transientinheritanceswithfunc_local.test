@@ -7,8 +7,8 @@
 ##
 #!
 Exit status: 11
-Ue_R { Int(32) test() {  Foo f;  f ( )func . return } }
-Un_Foo { System s();  Bool(1) first(false);  <NOMAIN> }
+Ue_R { Int test() {  Foo f;  f ( )func . return } }
+Un_Foo { System s();  Bool first(false);  <NOMAIN> }
 Un_Soo : Coo { Unsigned(3) us( 4u);  :Coo< Bool(3) cb( true); > ^Loo< Int(5) lu( -1); > <NOMAIN> }
 Un_Coo : Loo { Bool(3) cb( true);  :Loo< Int(5) lu( -1); > <NOMAIN> }
 Un_Loo { Int(5) lu( -1);  <NOMAIN> }

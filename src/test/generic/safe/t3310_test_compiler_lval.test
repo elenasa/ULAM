@@ -3,7 +3,7 @@
 ##      //constant fold: a 2 1 -b
 #!
 Exit status: 3
-Ue_A { Int(16) a[2](3,7);  Int(32) test() {  Int(32) j;  self a . 1 [] 7 cast = j 10 cast self a . 1 [] cast -b cast = self a . 0 [] j cast = j return } }
+Ue_A { Int(16) a[2](3,7);  Int test() {  Int j;  self a . 1 [] 7 cast = j 10 cast self a . 1 [] cast -b cast = self a . 0 [] j cast = j return } }
 #>A.ulam
   ulam 1;
 element A {

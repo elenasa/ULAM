@@ -12,7 +12,7 @@ Unrecoverable Program Parse FAILURE: <Foo.ulam>
 element Foo {
   Int test() {
     Unsigned(64) var64 = 11111111111111111111u; //20 digits + u is 64-bits OK
-    //./Foo.ulam:6:5: ERROR: Use explicit cast to convert Unsigned(64) to Unsigned(32) for variable initialization.
+    //./Foo.ulam:6:5: ERROR: Use explicit cast to convert Unsigned(64) to Unsigned for variable initialization.
     Unsigned var32 = 11111111111111111111u; //20 digits + u is 64-bits OK (needs a cast!)
 
     //error msg for var32 doesn't show when these two are present:

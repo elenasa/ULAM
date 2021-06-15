@@ -2,8 +2,8 @@
 #=t41153_test_compiler_elementandquark_selfcasttoatom_issue_error
 #!
 Exit status: -11
-Ue_MyElement : QOne(10u) { Bool(1) sp(false);  :QOne(10u)< constant Unsigned(32) num = 10u; > Int(32) test() {  Atom(96) abc = self cast;  self ( )behave . 0 cast return } }
-Uq_QOne(Unsigned(32) num) { <NOMAIN> }
+Ue_MyElement : QOne(10u) { Bool sp(false);  :QOne(10u)< constant Unsigned num = 10u; > Int test() {  Atom abc = self cast;  self ( )behave . 0 cast return } }
+Uq_QOne(Unsigned num) { <NOMAIN> }
 ##
 ## informed by user ish 11/5/2017:
 ## (see also t3905) 2 unused variables generated due to casts to Atom.

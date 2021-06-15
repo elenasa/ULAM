@@ -2,10 +2,10 @@
 #=t41451_test_compiler_templateclasseswiththreewayreferencingtypedefs
 #!
 Exit status: 0
-Ue_R { Int(32) test() {  System s;  DemoGST demo;  0 cast return } }
+Ue_R { Int test() {  System s;  DemoGST demo;  0 cast return } }
 Uq_System { <NOMAIN> }
-Ue_DemoGST : GeneralSpatialTree(4) { :GeneralSpatialTree(4)< constant Unsigned(32) cBITSNEEDED = 6u;  typedef Unsigned(6) EWPtr;  typedef Unsigned(2) RGBState;  constant Unsigned(2) cRED_STATE = 0u;  constant Unsigned(2) cGREEN_STATE = 1u;  constant Unsigned(2) cBLUE_STATE = 2u;  constant Unsigned(2) cDEAD_STATE = 3u;  Unsigned(6) mParentSN(0);  Unsigned(2) mRGBState( 0u);  typedef GeneralSpatialTreeVisitor(4) GSTV; > <NOMAIN> }
-Uq_GeneralSpatialTree(Unary(4) cRADIUS = 15u) { constant Unsigned(32) cBITSNEEDED = cRADIUS 1u <= ?  3u :  cRADIUS 2u == ?  4u :  cRADIUS 3u == ?  5u :  6u;  typedef Unsigned(UNKNOWN) EWPtr;  typedef Unsigned(2) RGBState;  constant Unsigned(2) cRED_STATE = 0u;  constant Unsigned(2) cGREEN_STATE = 1u;  constant Unsigned(2) cBLUE_STATE = 2u;  constant Unsigned(2) cDEAD_STATE = 3u;  Unsigned(UNKNOWN) mParentSN(notready);  Unsigned(2) mRGBState(notready);  typedef GeneralSpatialTreeVisitor(cRADIUSV) GSTV;  <NOMAIN> }
+Ue_DemoGST : GeneralSpatialTree(4) { :GeneralSpatialTree(4)< constant Unsigned cBITSNEEDED = 6u;  typedef Unsigned(6) EWPtr;  typedef Unsigned(2) RGBState;  constant Unsigned(2) cRED_STATE = 0u;  constant Unsigned(2) cGREEN_STATE = 1u;  constant Unsigned(2) cBLUE_STATE = 2u;  constant Unsigned(2) cDEAD_STATE = 3u;  Unsigned(6) mParentSN(0);  Unsigned(2) mRGBState( 0u);  typedef GeneralSpatialTreeVisitor(4) GSTV; > <NOMAIN> }
+Uq_GeneralSpatialTree(Unary(4) cRADIUS = 15u) { constant Unsigned cBITSNEEDED = cRADIUS 1u <= ?  3u :  cRADIUS 2u == ?  4u :  cRADIUS 3u == ?  5u :  6u;  typedef Unsigned(UNKNOWN) EWPtr;  typedef Unsigned(2) RGBState;  constant Unsigned(2) cRED_STATE = 0u;  constant Unsigned(2) cGREEN_STATE = 1u;  constant Unsigned(2) cBLUE_STATE = 2u;  constant Unsigned(2) cDEAD_STATE = 3u;  Unsigned(UNKNOWN) mParentSN(notready);  Unsigned(2) mRGBState(notready);  typedef GeneralSpatialTreeVisitor(cRADIUSV) GSTV;  <NOMAIN> }
 Un_GeneralSpatialTreeVisitor(Unary(4) cRADIUSV = 15u) { typedef GeneralSpatialTree(cRADIUS) GST;  <NOMAIN> }
 Un_GeneralSpatialTreeHost(Unary(4) cRADIUSH = 15u) { typedef GeneralSpatialTree(cRADIUS) GST;  <NOMAIN> }
 Un_DemoGSTV : GeneralSpatialTreeVisitor(4) { :GeneralSpatialTreeVisitor(4)< typedef GeneralSpatialTree(4) GST; > <NOMAIN> }

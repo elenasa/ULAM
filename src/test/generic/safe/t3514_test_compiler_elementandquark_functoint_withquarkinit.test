@@ -6,7 +6,7 @@
 ##
 #!
 Exit status: 11
-Ue_Foo { Q q( C2D c( typedef Int(4) I;  Int(4) m_width(7);  Int(4) m_height(4); ); );  Int(32) test() {  self q . ( )toInt . cast return } }
+Ue_Foo { Q q( C2D c( typedef Int(4) I;  Int(4) m_width(7);  Int(4) m_height(4); ); );  Int test() {  self q . ( )toInt . cast return } }
 Uq_Q { C2D c( typedef Int(4) I;  Int(4) m_width( 7);  Int(4) m_height( 4); );  <NOMAIN> }
 Uq_C2D { typedef Int(4) I;  Int(4) m_width( 7);  Int(4) m_height( 4);  <NOMAIN> }
 ##

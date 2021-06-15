@@ -13,9 +13,9 @@
 ##
 #!
 Exit status: 0
-Ue_A : QStr("hello world") { QBar m_bar( Unsigned(3) r(1u);  Bool(1) sp(false); );  Bool(1) b(true);  Bool(1) b2(false);  :QStr("hello world")< String m_str("hello world");  constant String str = "hello world"; > Int(32) test() {  SystemU3 su3;  A mya = mya ( "bar" 3 cast )Self .;  Unsigned(8) fasc = mya m_str 0 [] .;  self b . fasc 98u == = su3 ( mya m_str . )print . su3 ( self b . )assert . Unsigned(3) chkr = mya m_bar . r .;  su3 ( chkr cast )print . su3 ( mya m_bar . r . cast )print . su3 ( mya m_bar . r . cast 3 cast == )assert . su3 ( mya m_bar . sp . cast )print . su3 ( mya m_bar . sp . )assert . A a = { .m_str = "foo", .m_bar = { .r = 7u, .sp = true } };  Unsigned(8) fasc2 = a m_str 0 [] .;  self b2 . fasc2 102u == = su3 ( a m_str . )print . su3 ( self b2 . )assert . Unsigned(3) chkr2 = a m_bar . r .;  su3 ( chkr2 cast )print . su3 ( a m_bar . r . cast )print . su3 ( a m_bar . r . cast 7 == )assert . su3 ( a m_bar . sp . cast )print . su3 ( a m_bar . sp . )assert . 0 cast return } }
+Ue_A : QStr("hello world") { QBar m_bar( Unsigned(3) r(1u);  Bool sp(false); );  Bool b(true);  Bool b2(false);  :QStr("hello world")< String m_str("hello world");  constant String str = "hello world"; > Int test() {  SystemU3 su3;  A mya = mya ( "bar" 3 cast )Self .;  Unsigned(8) fasc = mya m_str 0 [] .;  self b . fasc 98u == = su3 ( mya m_str . )print . su3 ( self b . )assert . Unsigned(3) chkr = mya m_bar . r .;  su3 ( chkr cast )print . su3 ( mya m_bar . r . cast )print . su3 ( mya m_bar . r . cast 3 cast == )assert . su3 ( mya m_bar . sp . cast )print . su3 ( mya m_bar . sp . )assert . A a = { .m_str = "foo", .m_bar = { .r = 7u, .sp = true } };  Unsigned(8) fasc2 = a m_str 0 [] .;  self b2 . fasc2 102u == = su3 ( a m_str . )print . su3 ( self b2 . )assert . Unsigned(3) chkr2 = a m_bar . r .;  su3 ( chkr2 cast )print . su3 ( a m_bar . r . cast )print . su3 ( a m_bar . r . cast 7 == )assert . su3 ( a m_bar . sp . cast )print . su3 ( a m_bar . sp . )assert . 0 cast return } }
 Uq_QStr(String str) { String m_str(notready);  <NOMAIN> }
-Uq_QBar { Bool(1) sp(false);  Unsigned(3) r( 1u);  <NOMAIN> }
+Uq_QBar { Bool sp(false);  Unsigned(3) r( 1u);  <NOMAIN> }
 Uq_SystemU3 : System { :System<> <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

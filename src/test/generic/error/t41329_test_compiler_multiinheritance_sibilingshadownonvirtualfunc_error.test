@@ -4,14 +4,14 @@
 #!
 ./QBaseLast.ulam:4:7: Warning: Function: funcb() has conflicting declarations in multiple base classes: QBase3 and QBaseLast, while compiling E4.
 ./Foo.ulam:15:15: ERROR: Ambiguous matches (2) of function 'funcb' called without arguments.
-./QBase3.ulam:4:7: NOTE: Match (1 of 2) : Int(32) funcb().
-./QBaseLast.ulam:4:7: NOTE: Match (2 of 2) : Int(32) funcb().
-./Foo.ulam:15:10: ERROR: Assignment is invalid; LHS: Int(32); RHS: erroneous.
+./QBase3.ulam:4:7: NOTE: Match (1 of 2) : Int funcb().
+./QBaseLast.ulam:4:7: NOTE: Match (2 of 2) : Int funcb().
+./Foo.ulam:15:10: ERROR: Assignment is invalid; LHS: Int; RHS: erroneous.
 ./QBaseLast.ulam:5:15: Warning: Virtual Function: vfuncb() has conflicting declarations in multiple base classes: QBase3 and QBaseLast, while compiling E4.
 ./Foo.ulam:18:15: ERROR: Ambiguous matches (2) of function 'vfuncb' called without arguments.
-./QBase3.ulam:5:15: NOTE: Match (1 of 2) : Int(32) vfuncb().
-./QBaseLast.ulam:5:15: NOTE: Match (2 of 2) : Int(32) vfuncb().
-./Foo.ulam:18:10: ERROR: Assignment is invalid; LHS: Int(32); RHS: erroneous.
+./QBase3.ulam:5:15: NOTE: Match (1 of 2) : Int vfuncb().
+./QBaseLast.ulam:5:15: NOTE: Match (2 of 2) : Int vfuncb().
+./Foo.ulam:18:10: ERROR: Assignment is invalid; LHS: Int; RHS: erroneous.
 Unrecoverable Program Type Label FAILURE.
 ##
 ##  informed by t41328; siblings may have non-virtual functions with same name, requiring

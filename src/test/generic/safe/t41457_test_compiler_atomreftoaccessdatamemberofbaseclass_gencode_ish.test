@@ -9,7 +9,7 @@
 ##
 #!
 Exit status: -11
-Ue_R { Int(32) test() {  Foo foo;  foo ( )behave . 0 cast return } }
+Ue_R { Int test() {  Foo foo;  foo ( )behave . 0 cast return } }
 Ue_Foo : SP { /* empty class block */ }
 Uq_QFoo { typedef Unsigned(7) FC;  Unsigned(7) mX(0);  Unsigned(7) mY(0);  <NOMAIN> }
 Uq_QBar { QFoo mPos( typedef Unsigned(7) FC;  Unsigned(7) mX(0);  Unsigned(7) mY(0); );  QFoo mSize( typedef Unsigned(7) FC;  Unsigned(7) mX(0);  Unsigned(7) mY(0); );  <NOMAIN> }

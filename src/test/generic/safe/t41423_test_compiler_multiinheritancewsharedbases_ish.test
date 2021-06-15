@@ -6,7 +6,7 @@
 ##
 #!
 Exit status: 0
-Ue_R { Unsigned(32) m_foosize(27u);  Int(32) test() {  System s;  Foo f;  f ( )behave . self m_foosize . 27u = s ( self m_foosize . )print . s ( self m_foosize . 27u cast == )assert . 0 cast return } }
+Ue_R { Unsigned m_foosize(27u);  Int test() {  System s;  Foo f;  f ( )behave . self m_foosize . 27u = s ( self m_foosize . )print . s ( self m_foosize . 27u cast == )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 Un_Foo : Q5 { :Q5<> ^Q4<> ^Q< Unsigned(22) mFoo(0); > ^Q2< Unsigned(2) mBar(0); > ^Q3< Unsigned(3) mGah(0); > <NOMAIN> }
 Uq_Q5 : Q4 +Q { /* empty class block */ }

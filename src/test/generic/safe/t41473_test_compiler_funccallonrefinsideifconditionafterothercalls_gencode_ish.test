@@ -11,7 +11,7 @@
 ##
 #!
 Exit status: -11
-Ue_T { Bool(1) m_border(true);  Int(32) test() {  System s;  Plate p;  B2DPacketSense b2dps;  self m_border . b2dps ( p cast )sense . = s ( self m_border . ! )assert . 0 cast return } }
+Ue_T { Bool m_border(true);  Int test() {  System s;  Plate p;  B2DPacketSense b2dps;  self m_border . b2dps ( p cast )sense . = s ( self m_border . ! )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 Uq_Plate { <NOMAIN> }
 Uq_B2DPacketSense { typedef Unsigned(1) SenseDir;  constant Unsigned(1) cSDIR_OUTWARD = 0u;  constant Unsigned(1) cSDIR_INWARD = 1u;  Unsigned(1) mSenseDir(0);  <NOMAIN> }

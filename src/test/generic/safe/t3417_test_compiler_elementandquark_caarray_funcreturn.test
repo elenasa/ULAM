@@ -8,8 +8,8 @@
 ##      // correct answer in gen code output, not exit status.
 #!
 Exit status: 2
-Ue_IntArrayTest { typedef Int(3) Intn;  constant Int(32) isn = 3;  IAN(3) ia( constant Int(32) n = 3;  typedef Int(3) Intn; );  Int(32) test() {  System s;  Int(3) a;  a self ( )func . = s ( a )print . s ( a 2 == )assert . a cast return } }
-Uq_IAN(Int(32) n) { typedef Int(UNKNOWN) Intn;  <NOMAIN> }
+Ue_IntArrayTest { typedef Int(3) Intn;  constant Int isn = 3;  IAN(3) ia( constant Int n = 3;  typedef Int(3) Intn; );  Int test() {  System s;  Int(3) a;  a self ( )func . = s ( a )print . s ( a 2 == )assert . a cast return } }
+Uq_IAN(Int n) { typedef Int(UNKNOWN) Intn;  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 ##      //informed by 3416 only return is Int("3") instead of atom; using class args for bitsize "3"
@@ -36,7 +36,7 @@ element IntArrayTest {
 }
 
 ##
-##      //./IAN.ulam:5:2: ERROR: Returning Int(32) as a smaller type Int(3) requires explicit casting.
+##      //./IAN.ulam:5:2: ERROR: Returning Int as a smaller type Int(3) requires explicit casting.
 #:IAN.ulam
   ulam 1;
 quark IAN(Int n) {

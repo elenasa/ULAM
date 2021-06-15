@@ -2,11 +2,11 @@
 #=t41446_test_compiler_elementtemplatewithtypedeffromanothertemplateclassinstance
 #!
 Exit status: 0
-Ue_R { Int(32) test() {  System s;  Foo(4,3u,false) f;  0 cast return } }
+Ue_R { Int test() {  System s;  Foo(4,3u,false) f;  0 cast return } }
 Uq_System { <NOMAIN> }
-Uq_Foo(Unary(5) x = NONREADYCONST, Unsigned(4) y = NONREADYCONST, Bool(1) z = NONREADYCONST) : Zar(x,y,z) { /* empty class block */ }
-Uq_Pop(Bits(32) speciesID, Unsigned(5) mytag, Unary(5) myProgress, Unsigned(32) triggerlevel) { typedef Foo(x,y,false) MyFoo;  <NOMAIN> }
-Uq_Zar(Unary(5) x, Unsigned(4) y, Bool(1) z) { typedef Unary(UNKNOWN) Zary;  <NOMAIN> }
+Uq_Foo(Unary(5) x = NONREADYCONST, Unsigned(4) y = NONREADYCONST, Bool z = NONREADYCONST) : Zar(x,y,z) { /* empty class block */ }
+Uq_Pop(Bits speciesID, Unsigned(5) mytag, Unary(5) myProgress, Unsigned triggerlevel) { typedef Foo(x,y,false) MyFoo;  <NOMAIN> }
+Uq_Zar(Unary(5) x, Unsigned(4) y, Bool z) { typedef Unary(UNKNOWN) Zary;  <NOMAIN> }
 ##
 ## simplier version informed by t41433
 ##        turn wait message into error message check must recurse;

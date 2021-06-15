@@ -8,8 +8,8 @@
 ##
 #!
 Exit status: -11
-Ue_Foo : QPerc { Int(32) mi(0);  :QPerc< Bool(1) bb(false); > Int(32) test() {  System s;  Atom(96) a = Foo.instanceof cast;  { a QPerc as cond { QPerc& a;  Atom(96) aqinas = a.atomof cast;  self mi . a ( )func . = s ( 1u )print . s ( true )assert . s ( 96u )print . s ( true )assert . } if } s ( self mi . )print . self bb . self mi . 2 cast == = s ( self bb . )assert . self mi . return } }
-Uq_QPerc { Bool(1) bb(false);  <NOMAIN> }
+Ue_Foo : QPerc { Int mi(0);  :QPerc< Bool bb(false); > Int test() {  System s;  Atom a = Foo.instanceof cast;  { a QPerc as cond { QPerc& a;  Atom aqinas = a.atomof cast;  self mi . a ( )func . = s ( 1u )print . s ( true )assert . s ( 96u )print . s ( true )assert . } if } s ( self mi . )print . self bb . self mi . 2 cast == = s ( self bb . )assert . self mi . return } }
+Uq_QPerc { Bool bb(false);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 ## informed by a Dave ish 7/1/2016;

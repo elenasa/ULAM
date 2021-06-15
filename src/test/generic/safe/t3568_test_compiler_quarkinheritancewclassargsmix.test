@@ -5,8 +5,8 @@
 ##
 #!
 Exit status: 96
-Ue_Foo { System s();  Bool(1) first(false);  Soo(1,2u) su( constant Int(32) a = 1;  constant Unsigned(32) b = 2u;  Unsigned(3) us(4u);  :Coo< Bool(3) cb(true); >);  Int(32) test() {  Foo f;  { f su . cb . cond { self s . ( f su . cb . )print . 96u cast return } if } self s . ( false )assert . 0 cast return } }
-Uq_Soo(Int(32) a, Unsigned(32) b) : Coo { Unsigned(3) us( 4u);  :Coo< Bool(3) cb( true); > <NOMAIN> }
+Ue_Foo { System s();  Bool first(false);  Soo(1,2u) su( constant Int a = 1;  constant Unsigned b = 2u;  Unsigned(3) us(4u);  :Coo< Bool(3) cb(true); >);  Int test() {  Foo f;  { f su . cb . cond { self s . ( f su . cb . )print . 96u cast return } if } self s . ( false )assert . 0 cast return } }
+Uq_Soo(Int a, Unsigned b) : Coo { Unsigned(3) us( 4u);  :Coo< Bool(3) cb( true); > <NOMAIN> }
 Uq_Coo { Bool(3) cb( true);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

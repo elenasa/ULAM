@@ -7,7 +7,7 @@
 ##      */
 #!
 Exit status: 0
-Ue_A { Bool(7) b(true);  System s();  Int(32) d(0);  Int(32) test() {  self d . 3 cast = { Int(32) index = 0 cast;  index self d . < cond self b . index 0 cast != cast = _1: index 1 cast += while } { Unsigned(32) index = 0 cast;  index 3u cast < cond { self d . 1 cast -= self s . ( self d . )print . } _2: index 1 cast += while } self d . return } }
+Ue_A { Bool(7) b(true);  System s();  Int d(0);  Int test() {  self d . 3 cast = { Int index = 0 cast;  index self d . < cond self b . index 0 cast != cast = _1: index 1 cast += while } { Unsigned index = 0 cast;  index 3u cast < cond { self d . 1 cast -= self s . ( self d . )print . } _2: index 1 cast += while } self d . return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
   ulam 1;
@@ -30,7 +30,7 @@ element A {
 
 ##      //informed by: WindowUtils
 ##      // in second forloop:, must use 3u in comparison, since signed wins when mixed;
-##      //./A.ulam:10:32: ERROR: Use explicit cast to convert Unsigned(32) and Int(3) to Int(32) for binary operator<.
+##      //./A.ulam:10:32: ERROR: Use explicit cast to convert Unsigned and Int(3) to Int for binary operator<.
 ##      // oddly, 1u is not needed for initialization because with '=' lhs wins!
 #:System.ulam
 ulam 1;

@@ -4,7 +4,7 @@
 ## gen output: 1 assert
 #!
 Exit status: -11
-Ue_T { Int(32) test() {  System s;  QFoo qf;  s ( qf ( )okString . ! )assert . 0 cast return } }
+Ue_T { Int test() {  System s;  QFoo qf;  s ( qf ( )okString . ! )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 Uq_QFoo { String str(UNINITIALIZED_STRING);  <NOMAIN> }
 ##

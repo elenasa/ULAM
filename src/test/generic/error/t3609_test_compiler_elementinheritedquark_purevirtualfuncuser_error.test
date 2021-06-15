@@ -3,7 +3,7 @@
 ##
 #!
 ./Test.ulam:17:5: ERROR: 'b' is type Base, which is abstract due to these pure functions..
-./Base.ulam:2:7: NOTE: Pure: Int(32) afunc(Int(32) a).
+./Base.ulam:2:7: NOTE: Pure: Int afunc(Int a).
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t3608

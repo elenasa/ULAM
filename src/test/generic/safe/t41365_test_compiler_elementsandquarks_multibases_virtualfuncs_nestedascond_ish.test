@@ -7,7 +7,7 @@
 ##
 #!
 Exit status: -11
-Ue_Ish5 : System { :System<> Int(32) test() {  E1 e1;  E2 e2;  Atom(96) a1 = e1 cast;  Atom(96) a2 = e2 cast;  { a1 QBond as cond { QBond& a1;  { a2 QBond as cond { QBond& a2;  self ( a1 ( a2 cast )afunc . )assert . } if } } if } 0 cast return } }
+Ue_Ish5 : System { :System<> Int test() {  E1 e1;  E2 e2;  Atom a1 = e1 cast;  Atom a2 = e2 cast;  { a1 QBond as cond { QBond& a1;  { a2 QBond as cond { QBond& a2;  self ( a1 ( a2 cast )afunc . )assert . } if } } if } 0 cast return } }
 Ue_E1 : QBond { :QBond<> <NOMAIN> }
 Uq_QBond { <NOMAIN> }
 Ue_E2 : QBond { :QBond<> <NOMAIN> }

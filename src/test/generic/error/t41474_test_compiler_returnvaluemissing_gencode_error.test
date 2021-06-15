@@ -2,7 +2,7 @@
 #=t41474_test_compiler_returnvaluemissing_gencode_error
 #!
 Exit status: 0
-Ue_T { Bool(1) m_border(false);  Int(32) test() {  Plate p;  B2DPacketSense b2dps;  self m_border . b2dps ( p cast )sense . = 0 cast return } }
+Ue_T { Bool m_border(false);  Int test() {  Plate p;  B2DPacketSense b2dps;  self m_border . b2dps ( p cast )sense . = 0 cast return } }
 Uq_Plate { <NOMAIN> }
 Uq_B2DPacketSense { <NOMAIN> }
 ##

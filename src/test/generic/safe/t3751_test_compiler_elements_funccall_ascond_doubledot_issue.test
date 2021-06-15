@@ -5,7 +5,7 @@
 ##
 #!
 Exit status: 0
-Ue_Ish5 : System { Bool(1) brtn(true);  :System<> Int(32) test() {  E1 e1;  Atom(96) a1 = e1 cast;  { a1 E1 as cond { E1& a1;  Int(32) ans = a1 m_b . ( )func .;  self ( ans )print . self brtn . ans 4 cast == = self ( self brtn . )assert . } if } 0 cast return } }
+Ue_Ish5 : System { Bool brtn(true);  :System<> Int test() {  E1 e1;  Atom a1 = e1 cast;  { a1 E1 as cond { E1& a1;  Int ans = a1 m_b . ( )func .;  self ( ans )print . self brtn . ans 4 cast == = self ( self brtn . )assert . } if } 0 cast return } }
 Uq_System { <NOMAIN> }
 Ue_E1 : Sub { /* empty class block */ }
 Uq_Sub { QBase m_b();  <NOMAIN> }

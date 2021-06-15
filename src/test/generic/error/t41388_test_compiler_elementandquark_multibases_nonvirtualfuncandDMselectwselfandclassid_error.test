@@ -2,7 +2,7 @@
 #=t41388_test_compiler_elementandquark_multibases_nonvirtualfuncandDMselectwselfandclassid_error
 #!
 ./E4.ulam:13:42: ERROR: Member selected by classId must be a VIRTUAL function, not 'isConnected'.
-./E4.ulam:13:10: ERROR: Assignment is invalid; LHS: Bool(1); RHS: erroneous.
+./E4.ulam:13:10: ERROR: Assignment is invalid; LHS: Bool; RHS: erroneous.
 ./E4.ulam:15:43: ERROR: Member selected by classId must be a virtual function, not data member 'm_site2'; data members cannot be shadowed by related subclasses.
 ./E4.ulam:15:7: ERROR: Argument 1 has a problem.
 Unrecoverable Program Type Label FAILURE.

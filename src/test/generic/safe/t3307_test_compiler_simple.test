@@ -3,7 +3,7 @@
 ##      // constant folded 1 3 +b, and 2 4 *
 #!
 Exit status: 8
-Ue_A { Int(16) a[2](4,8);  Int(32) test() {  self a . 0 [] 4 cast = self a . 1 [] 8 cast = self a . 1 [] cast return } }
+Ue_A { Int(16) a[2](4,8);  Int test() {  self a . 0 [] 4 cast = self a . 1 [] 8 cast = self a . 1 [] cast return } }
 #>A.ulam
   ulam 1;
 element A {

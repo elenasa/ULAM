@@ -26,10 +26,10 @@
 ##
 #!
 Exit status: -11
-Ue_R { Int(32) test() {  System s;  Foo f;  f ( )behave . 0 cast return } }
+Ue_R { Int test() {  System s;  Foo f;  f ( )behave . 0 cast return } }
 Uq_System { <NOMAIN> }
-Ue_Foo : Secondary +Intermediate { Bool(7) sp(false);  System s();  :Secondary< Bool(1) m_b2(false); > +Intermediate< Int(4) m_i4(0);  Int(4) m_a4(0); > ^Base< Int(3) m_i3( 0); > <NOMAIN> }
-Uq_Secondary : Base { Bool(1) m_b2(false);  :Base< Int(3) m_i3( 0); > <NOMAIN> }
+Ue_Foo : Secondary +Intermediate { Bool(7) sp(false);  System s();  :Secondary< Bool m_b2(false); > +Intermediate< Int(4) m_i4(0);  Int(4) m_a4(0); > ^Base< Int(3) m_i3( 0); > <NOMAIN> }
+Uq_Secondary : Base { Bool m_b2(false);  :Base< Int(3) m_i3( 0); > <NOMAIN> }
 Uq_Intermediate : Base { Int(4) m_i4(0);  Int(4) m_a4(0);  :Base< Int(3) m_i3( 0); > <NOMAIN> }
 Uq_Base { Int(3) m_i3( 0);  <NOMAIN> }
 ##

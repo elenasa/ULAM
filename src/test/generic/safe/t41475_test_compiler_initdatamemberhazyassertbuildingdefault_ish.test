@@ -7,11 +7,11 @@
 ##
 #!
 Exit status: 0
-Ue_T { Int(32) test() {  System s;  PlateOperator po;  s ( po mDesiredPlateSize . mX . cast )print . s ( po mDesiredPlateSize . mY . cast )print . 0 cast return } }
+Ue_T { Int test() {  System s;  PlateOperator po;  s ( po mDesiredPlateSize . mX . cast )print . s ( po mDesiredPlateSize . mY . cast )print . 0 cast return } }
 Uq_System { <NOMAIN> }
 Ue_PlateOperator { typedef B2D SizeCoord;  B2D mDesiredPlateSize( { .mX = 20u, .mY = 6u });  <NOMAIN> }
 Uq_B2D : B2DT(7) { /* empty class block */ }
-Uq_B2DT(Unary(8) cBITS_PER_COORD) { constant Unsigned(32) cCOMPILATION_ERROR_UNLESS_BITS_GE_2 = 1u cBITS_PER_COORD 1u -b /;  typedef Unsigned(UNKNOWN) BCoord;  constant Unsigned(UNKNOWN) cILLEGAL = unresolved maxof .;  constant Unsigned(UNKNOWN) cMAXVAL = unresolved maxof . 1u -b;  constant Unsigned(UNKNOWN) cMINVAL = unresolved minof .;  Unsigned(UNKNOWN) mX(notready);  Unsigned(UNKNOWN) mY(notready);  <NOMAIN> }
+Uq_B2DT(Unary(8) cBITS_PER_COORD) { constant Unsigned cCOMPILATION_ERROR_UNLESS_BITS_GE_2 = 1u cBITS_PER_COORD 1u -b /;  typedef Unsigned(UNKNOWN) BCoord;  constant Unsigned(UNKNOWN) cILLEGAL = unresolved maxof .;  constant Unsigned(UNKNOWN) cMAXVAL = unresolved maxof . 1u -b;  constant Unsigned(UNKNOWN) cMINVAL = unresolved minof .;  Unsigned(UNKNOWN) mX(notready);  Unsigned(UNKNOWN) mY(notready);  <NOMAIN> }
 ##
 ##  informed by Daves ish 20210607 042828, still cannot replicate.
 ##  Fixed by constant fold NodeBinaryOp not return Hazy after surgery (as well as NodeUnaryOp and NodeBinaryOpEqualBitwise)

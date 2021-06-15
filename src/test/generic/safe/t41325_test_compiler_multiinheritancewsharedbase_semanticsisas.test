@@ -33,12 +33,12 @@
 ##
 #!
 Exit status: -11
-Ue_R { Int(32) test() {  System s;  Foo f;  f ( )behave . 0 cast return } }
+Ue_R { Int test() {  System s;  Foo f;  f ( )behave . 0 cast return } }
 Uq_System { <NOMAIN> }
-Ue_Foo : Secondary +Intermediate { Bool(7) sp(false);  System s();  :Secondary< Bool(1) m_b2(false); > +Intermediate< Int(4) m_i4( 2);  Int(4) m_a4( 3); > ^Base< Bool(1) bsp( true);  Int(3) m_i3( -1); > <NOMAIN> }
-Uq_Secondary +Base { Bool(1) m_b2(false);  +Base< Bool(1) bsp( true);  Int(3) m_i3( -1); > <NOMAIN> }
-Uq_Intermediate +Base { Int(4) m_i4( 2);  Int(4) m_a4( 3);  +Base< Bool(1) bsp( true);  Int(3) m_i3( -1); > <NOMAIN> }
-Uq_Base { Bool(1) bsp( true);  Int(3) m_i3( -1);  <NOMAIN> }
+Ue_Foo : Secondary +Intermediate { Bool(7) sp(false);  System s();  :Secondary< Bool m_b2(false); > +Intermediate< Int(4) m_i4( 2);  Int(4) m_a4( 3); > ^Base< Bool bsp( true);  Int(3) m_i3( -1); > <NOMAIN> }
+Uq_Secondary +Base { Bool m_b2(false);  +Base< Bool bsp( true);  Int(3) m_i3( -1); > <NOMAIN> }
+Uq_Intermediate +Base { Int(4) m_i4( 2);  Int(4) m_a4( 3);  +Base< Bool bsp( true);  Int(3) m_i3( -1); > <NOMAIN> }
+Uq_Base { Bool bsp( true);  Int(3) m_i3( -1);  <NOMAIN> }
 ##
 ## informed by t41319, with shared bases
 ##

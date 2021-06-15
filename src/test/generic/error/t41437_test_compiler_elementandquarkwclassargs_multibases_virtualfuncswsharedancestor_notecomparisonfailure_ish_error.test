@@ -3,8 +3,8 @@
 #!
 ./PrintBase.ulam:4:18: Warning: Virtual Function: die() has conflicting declarations in multiple base classes: GeneralSpatialTree and PrintBase, while compiling Plate.
 ./R.ulam:6:7: ERROR: Ambiguous matches (2) of function 'die' called without arguments.
-./GeneralSpatialTree.ulam:13:8: NOTE: Match (1 of 2) : Bool(1) die().
-./PrintBase.ulam:4:18: NOTE: Match (2 of 2) : Bool(1) die().
+./GeneralSpatialTree.ulam:13:8: NOTE: Match (1 of 2) : Bool die().
+./PrintBase.ulam:4:18: NOTE: Match (2 of 2) : Bool die().
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by Dave ish 3/28/2021 _141743. Note ambiguous searched all ancestors,

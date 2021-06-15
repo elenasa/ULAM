@@ -5,10 +5,10 @@
 ##
 #!
 Exit status: -11
-Ue_R { Int(32) test() {  System s;  Trans t;  Typo(1)& poref = t elt . cast;  poref ( 2u cast )func . Atom(96)& a = poref.atomof;  Eltypo ell = a cast;  s ( ell bu . 2u cast == )assert . ell bu . cast return } }
+Ue_R { Int test() {  System s;  Trans t;  Typo(1)& poref = t elt . cast;  poref ( 2u cast )func . Atom& a = poref.atomof;  Eltypo ell = a cast;  s ( ell bu . 2u cast == )assert . ell bu . cast return } }
 Un_Trans { Bool(7) sp(false);  Eltypo elt( Unsigned(3) first(0);  Unsigned(3) second(0);  :Typo(1)<> ^Bar< Unsigned(3) bu( 7u); >);  <NOMAIN> }
 Ue_Eltypo : Typo(1) { Unsigned(3) first(0);  Unsigned(3) second(0);  :Typo(1)<> ^Bar< Unsigned(3) bu( 7u); > <NOMAIN> }
-Uq_Typo(Int(32) a) : Bar { /* empty class block */ }
+Uq_Typo(Int a) : Bar { /* empty class block */ }
 Uq_Bar { Unsigned(3) bu( 7u);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

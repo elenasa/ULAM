@@ -5,7 +5,7 @@
 ## https://gcc.gnu.org/bugzilla/show_bug.cgi?id=59124
 ##
 Exit status: 0
-Ue_R { Int(32) test() {  Ish myish;  myish ( )behave . 0 cast return } }
+Ue_R { Int test() {  Ish myish;  myish ( )behave . 0 cast return } }
 Ue_Ish { typedef Unsigned(8) ARGB[4];  <NOMAIN> }
 ##
 ## for loop issue

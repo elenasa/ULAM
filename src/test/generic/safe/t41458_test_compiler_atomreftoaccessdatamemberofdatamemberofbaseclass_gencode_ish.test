@@ -9,7 +9,7 @@
 ##
 #!
 Exit status: -11
-Ue_R { Int(32) test() {  FooNG foo;  foo ( )behave . 0 cast return } }
+Ue_R { Int test() {  FooNG foo;  foo ( )behave . 0 cast return } }
 Ue_FooNG : QGah +SP { /* empty class block */ }
 Uq_QFoo { typedef Unsigned(4) FC;  Unsigned(4) mX(0);  Unsigned(4) mY(0);  <NOMAIN> }
 Uq_QBar { QFoo mPos( typedef Unsigned(4) FC;  Unsigned(4) mX(0);  Unsigned(4) mY(0); );  QFoo mSize( typedef Unsigned(4) FC;  Unsigned(4) mX(0);  Unsigned(4) mY(0); );  <NOMAIN> }

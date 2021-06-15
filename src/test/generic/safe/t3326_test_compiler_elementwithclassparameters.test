@@ -2,8 +2,8 @@
 #=t3326_test_compiler_elementwithclassparameters
 #!
 Exit status: 4
-Ue_R { Int(32) test() {  Foo(3) e;  Foo(4) f;  f a . 4u cast = f a . cast return } }
-Ue_Foo(Int(32) n) { Unsigned(UNKNOWN) a(notready);  <NOMAIN> }
+Ue_R { Int test() {  Foo(3) e;  Foo(4) f;  f a . 4u cast = f a . cast return } }
+Ue_Foo(Int n) { Unsigned(UNKNOWN) a(notready);  <NOMAIN> }
 ##
 ##     //Constants have explicit types
 ##

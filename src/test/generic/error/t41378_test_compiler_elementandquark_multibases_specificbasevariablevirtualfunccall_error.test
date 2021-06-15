@@ -3,7 +3,7 @@
 ##
 #!
 ./Foo.ulam:14:30: ERROR: (2) 'vfunca' is not a defined function, or cannot be safely called in this context.
-./Foo.ulam:14:10: ERROR: Assignment is invalid; LHS: Int(32); RHS: erroneous.
+./Foo.ulam:14:10: ERROR: Assignment is invalid; LHS: Int; RHS: erroneous.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t41376, QBad, is not related to vfunca originating class, not found.

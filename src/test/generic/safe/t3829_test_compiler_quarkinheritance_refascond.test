@@ -13,7 +13,7 @@
 ##
 #!
 Exit status: 3
-Ue_Foo { System s();  Bool(1) first(true);  Int(32) test() {  Soo su;  Soo& sur = su cast;  { sur Coo as cond { Coo& sur;  sur cb . true cast = self s . ( sur cb . )print . self s . ( sur cb . cast )assert . self s . ( su cb . )print . self s . ( su cb . cast )assert . self first . true = self s . ( self first . )assert . 3u cast return } if } 0 cast return } }
+Ue_Foo { System s();  Bool first(true);  Int test() {  Soo su;  Soo& sur = su cast;  { sur Coo as cond { Coo& sur;  sur cb . true cast = self s . ( sur cb . )print . self s . ( sur cb . cast )assert . self s . ( su cb . )print . self s . ( su cb . cast )assert . self first . true = self s . ( self first . )assert . 3u cast return } if } 0 cast return } }
 Uq_Soo : Coo { Unsigned(3) us( 4u);  :Coo< Bool(3) cb(false); > <NOMAIN> }
 Uq_Coo { Bool(3) cb(false);  <NOMAIN> }
 Uq_System { <NOMAIN> }

@@ -13,7 +13,7 @@ Unrecoverable Program Parse FAILURE: <Foo.ulam>
 ulam 1;
 use Poo;
 element Foo {
-Bool(1) sp;
+Bool sp;
  parameter Poo poochance;
  Bool last;
  Int test() {

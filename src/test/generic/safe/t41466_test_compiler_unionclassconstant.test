@@ -10,7 +10,7 @@
 ##
 #!
 Exit status: 0
-Ue_A { Int(32) test() {  System s;  QA qa2 = cqa2;  s ( qa2 sa . cast )print . constant QA cqa1 = { .sarr1 = { 4 cast, 5 cast } };  QA qa1 = cqa1;  s ( qa1 sa . cast )print . qa2 sarr1 . qa1 sarr1 . = s ( qa2 sarr2 0 [] . cast )print . s ( qa2 sarr2 1 [] . cast )print . s ( qa2 sarr2 2 [] . cast )print . s ( qa2 sarr1 0 [] . cqa1 sarr1 0 [] . == )assert . s ( qa2 sarr1 1 [] . cqa1 sarr1 1 [] . == )assert . QA qa3 = { .sa = 261u };  s ( qa3 sarr2 0 [] . cqa1 sarr2 0 [] . == )assert . s ( qa3 ( 1 cast )getsarr2 . cqa1 sarr2 1 [] . == )assert . s ( qa3 ( 2 cast )getsarr2 . cast 5 cast == )assert . 0 cast return } }
+Ue_A { Int test() {  System s;  QA qa2 = cqa2;  s ( qa2 sa . cast )print . constant QA cqa1 = { .sarr1 = { 4 cast, 5 cast } };  QA qa1 = cqa1;  s ( qa1 sa . cast )print . qa2 sarr1 . qa1 sarr1 . = s ( qa2 sarr2 0 [] . cast )print . s ( qa2 sarr2 1 [] . cast )print . s ( qa2 sarr2 2 [] . cast )print . s ( qa2 sarr1 0 [] . cqa1 sarr1 0 [] . == )assert . s ( qa2 sarr1 1 [] . cqa1 sarr1 1 [] . == )assert . QA qa3 = { .sa = 261u };  s ( qa3 sarr2 0 [] . cqa1 sarr2 0 [] . == )assert . s ( qa3 ( 1 cast )getsarr2 . cqa1 sarr2 1 [] . == )assert . s ( qa3 ( 2 cast )getsarr2 . cast 5 cast == )assert . 0 cast return } }
 Uq_QA { Unsigned(6) sarr1[2](0,0);  Unsigned(4) sarr2[3](0,0,0);  Unsigned(12) sa(0);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

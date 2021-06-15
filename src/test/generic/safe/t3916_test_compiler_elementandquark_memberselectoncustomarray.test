@@ -6,10 +6,10 @@
 ##
 #!
 Exit status: -11
-Ue_A : QW { Bool(1) b(false);  System s();  QW m_q();  :QW<> Int(32) test() {  Tfoo asme;  self b . asme ( 0 cast )aref . ( )setb . = self s . ( self b . cast )print . self s . ( self b . )assert . asme ( 1 cast )aref . b . self b . = self s . ( asme ( 1 cast )aref . b . cast )print . self s . ( asme ( 1 cast )aref . b . )assert . 0 cast return } }
+Ue_A : QW { Bool b(false);  System s();  QW m_q();  :QW<> Int test() {  Tfoo asme;  self b . asme ( 0 cast )aref . ( )setb . = self s . ( self b . cast )print . self s . ( self b . )assert . asme ( 1 cast )aref . b . self b . = self s . ( asme ( 1 cast )aref . b . cast )print . self s . ( asme ( 1 cast )aref . b . )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 Uq_QW { <NOMAIN> }
-Un_Tfoo { A m_a[4]( System s();  Bool(1) b(false);  QW m_q();  :QW<>), ( System s();  Bool(1) b(false);  QW m_q();  :QW<>), ( System s();  Bool(1) b(false);  QW m_q();  :QW<>), ( System s();  Bool(1) b(false);  QW m_q();  :QW<>);  <NOMAIN> }
+Un_Tfoo { A m_a[4]( System s();  Bool b(false);  QW m_q();  :QW<>), ( System s();  Bool b(false);  QW m_q();  :QW<>), ( System s();  Bool b(false);  QW m_q();  :QW<>), ( System s();  Bool b(false);  QW m_q();  :QW<>);  <NOMAIN> }
 ##
 ## informed by t3913
 ##

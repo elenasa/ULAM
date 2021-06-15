@@ -9,8 +9,8 @@
 ##
 #!
 Exit status: 7
-Uq_Typo(Int(32) a) : Bar { Bool(1) typool(false);  constant Unsigned(3) cTHREE = 2u;  :Bar< Unsigned(3) bu( 7u); > <NOMAIN> }
-Ue_Eltypo : Typo(1) { System s();  Unsigned(3) first(2u);  Unsigned(3) second(7u);  Typo(1) t( constant Unsigned(3) cTHREE = 2u;  constant Int(32) a = 1;  Bool(1) typool(false);  :Bar< Unsigned(3) bu(2u); >);  :Typo(1)< constant Unsigned(3) cTHREE = 2u;  constant Int(32) a = 1;  Bool(1) typool(true);  :Bar< Unsigned(3) bu(7u); >> ^Bar< Unsigned(3) bu(7u); > Int(32) test() {  self ( )functest . self s . ( self t . bu . cast )print . self s . ( self t . bu . 3u != )assert . self s . ( self t . bu . super 2u . == )assert . self s . ( self first . cast )print . self s . ( self first . 3u != )assert . self s . ( self first . super 2u . == )assert . self second . self bu . = self second . cast return } }
+Uq_Typo(Int a) : Bar { Bool typool(false);  constant Unsigned(3) cTHREE = 2u;  :Bar< Unsigned(3) bu( 7u); > <NOMAIN> }
+Ue_Eltypo : Typo(1) { System s();  Unsigned(3) first(2u);  Unsigned(3) second(7u);  Typo(1) t( constant Unsigned(3) cTHREE = 2u;  constant Int a = 1;  Bool typool(false);  :Bar< Unsigned(3) bu(2u); >);  :Typo(1)< constant Unsigned(3) cTHREE = 2u;  constant Int a = 1;  Bool typool(true);  :Bar< Unsigned(3) bu(7u); >> ^Bar< Unsigned(3) bu(7u); > Int test() {  self ( )functest . self s . ( self t . bu . cast )print . self s . ( self t . bu . 3u != )assert . self s . ( self t . bu . super 2u . == )assert . self s . ( self first . cast )print . self s . ( self first . 3u != )assert . self s . ( self first . super 2u . == )assert . self second . self bu . = self second . cast return } }
 Uq_System { <NOMAIN> }
 Uq_Bar { Unsigned(3) bu( 7u);  <NOMAIN> }
 ##

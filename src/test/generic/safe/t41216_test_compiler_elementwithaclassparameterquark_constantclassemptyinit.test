@@ -10,9 +10,9 @@
 ## ILLEGAL_ARGUMENT
 #!
 Exit status: 3
-Ue_T { Int(32) test() {  System sys;  constant Q cqt = { };  sys ( cqt i . )print . sys ( cqt i . 3 cast == )assert . sys ( cqt b . cast )print . sys ( cqt b . )assert . S(0x98) s;  sys ( s 3 . )print . sys ( s 3 . 3 cast == )assert . sys ( s v . b . cast )print . sys ( s v . b . )assert . s 3 . cast return } }
+Ue_T { Int test() {  System sys;  constant Q cqt = { };  sys ( cqt i . )print . sys ( cqt i . 3 cast == )assert . sys ( cqt b . cast )print . sys ( cqt b . )assert . S(0x98) s;  sys ( s 3 . )print . sys ( s 3 . 3 cast == )assert . sys ( s v . b . cast )print . sys ( s v . b . )assert . s 3 . cast return } }
 Uq_System { <NOMAIN> }
-Uq_Q { Bool(1) b( true);  Int(4) i( 3);  <NOMAIN> }
+Uq_Q { Bool b( true);  Int(4) i( 3);  <NOMAIN> }
 Uq_S(Q v) { constant Int(4) csi = v i .;  <NOMAIN> }
 ##
 ##    //informed by t41213 (simplified S one parameter, and Q has none); empty cqt initialization.

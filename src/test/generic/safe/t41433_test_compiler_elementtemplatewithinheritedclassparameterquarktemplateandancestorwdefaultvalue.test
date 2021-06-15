@@ -10,12 +10,12 @@
 ##
 #!
 Exit status: 0
-Ue_R { constant Unsigned(32) cTip = 1u;  Int(32) test() {  System s;  Pop(0xfeed,7u,3,1u) pop;  Unsigned(32) ans = pop ( )behaving .;  s ( ans )print . s ( ans 3u cast == )assert . s ( pop ( )samely . )assert . s ( pop ( )badly . ! )assert . Crackle(0xf00d,2u) crackle;  Unsigned(32) ans2 = crackle ( )behaving .;  s ( ans2 )print . s ( ans2 4u cast == )assert . s ( 2u )print . s ( true )assert . Crackle(0xbead,5u) snap;  Unsigned(32) ans3 = snap ( )behaving .;  s ( ans3 )print . s ( ans3 4u cast == )assert . s ( 5u )print . s ( true )assert . 0 cast return } }
+Ue_R { constant Unsigned cTip = 1u;  Int test() {  System s;  Pop(0xfeed,7u,3,1u) pop;  Unsigned ans = pop ( )behaving .;  s ( ans )print . s ( ans 3u cast == )assert . s ( pop ( )samely . )assert . s ( pop ( )badly . ! )assert . Crackle(0xf00d,2u) crackle;  Unsigned ans2 = crackle ( )behaving .;  s ( ans2 )print . s ( ans2 4u cast == )assert . s ( 2u )print . s ( true )assert . Crackle(0xbead,5u) snap;  Unsigned ans3 = snap ( )behaving .;  s ( ans3 )print . s ( ans3 4u cast == )assert . s ( 5u )print . s ( true )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
-Uq_Pop(Bits(32) speciesID, Unsigned(5) mytag, Unary(5) myProgress, Unsigned(32) triggerlevel) { typedef Foo(x,y,false) MyFoo;  Foo(x,y,false) mFoo(notready);  <NOMAIN> }
-Un_Crackle(Bits(32) specId, Unsigned(32) trig = NONREADYCONST) : Pop(speciesID,3u,4,triggerlevel) { constant Unsigned(32) cTrigger = trig;  Bits(32) mId(notready);  typedef holder Zary;  holder mzary(notready);  :Pop14< typedef Foo(x,y,false) MyFoo;  Foo(x,y,false) mFoo(notready); > <NOMAIN> }
-Uq_Zar(Unary(5) x, Unsigned(4) y, Bool(1) z) { typedef Unary(UNKNOWN) Zary;  <NOMAIN> }
-Uq_Foo(Unary(5) x, Unsigned(4) y, Bool(1) z) : Zar(x,y,z) { Zar(x,y,true) mZar(notready);  :Zar13< typedef Unary(UNKNOWN) Zary; > <NOMAIN> }
+Uq_Pop(Bits speciesID, Unsigned(5) mytag, Unary(5) myProgress, Unsigned triggerlevel) { typedef Foo(x,y,false) MyFoo;  Foo(x,y,false) mFoo(notready);  <NOMAIN> }
+Un_Crackle(Bits specId, Unsigned trig = NONREADYCONST) : Pop(speciesID,3u,4,triggerlevel) { constant Unsigned cTrigger = trig;  Bits mId(notready);  typedef holder Zary;  holder mzary(notready);  :Pop14< typedef Foo(x,y,false) MyFoo;  Foo(x,y,false) mFoo(notready); > <NOMAIN> }
+Uq_Zar(Unary(5) x, Unsigned(4) y, Bool z) { typedef Unary(UNKNOWN) Zary;  <NOMAIN> }
+Uq_Foo(Unary(5) x, Unsigned(4) y, Bool z) : Zar(x,y,z) { Zar(x,y,true) mZar(notready);  :Zar13< typedef Unary(UNKNOWN) Zary; > <NOMAIN> }
 ##
 ## see t41431,2 cannot use constant as default that is set to a local constant, why?? BUG. Fixed.
 ##       Except when its template params are not dependent (e.g. R's use of cTip).

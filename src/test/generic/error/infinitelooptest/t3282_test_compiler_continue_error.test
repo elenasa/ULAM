@@ -4,7 +4,7 @@
 ##       // must turn off eval testing to avoid infinite loop; only gencode testable
 ##
 Exit status: 0
-Ue_Fu { Int(32) test() {  { Int(32) i;  i 0 cast = i 5 cast < cond goto _1: i 1 cast += while } Int(32) j;  j 5 cast = j 1 cast -= 0 cast > cond j 1 cast == cond goto if _2: while 0 cast return } }
+Ue_Fu { Int test() {  { Int i;  i 0 cast = i 5 cast < cond goto _1: i 1 cast += while } Int j;  j 5 cast = j 1 cast -= 0 cast > cond j 1 cast == cond goto if _2: while 0 cast return } }
 #>Fu.ulam
 ulam 1;
 element Fu {

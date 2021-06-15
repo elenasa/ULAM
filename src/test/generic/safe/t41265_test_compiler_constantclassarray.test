@@ -2,7 +2,7 @@
 #=t41265_test_compiler_constantclassarray
 #!
 Exit status: 0
-Ue_KeyExprRep { KeyExprNode m_key( Unsigned(8) m_leftIndex(1u);  Unsigned(8) m_rightIndex(2u);  Unsigned(8) m_keyCode(0u);  Unsigned(8) m_op(124u);  typedef Unsigned(8) Byte; );  Int(32) test() {  self m_key . keyexpr_x13 0 [] = 0 cast return } }
+Ue_KeyExprRep { KeyExprNode m_key( Unsigned(8) m_leftIndex(1u);  Unsigned(8) m_rightIndex(2u);  Unsigned(8) m_keyCode(0u);  Unsigned(8) m_op(124u);  typedef Unsigned(8) Byte; );  Int test() {  self m_key . keyexpr_x13 0 [] = 0 cast return } }
 Uq_KeyExprNode { typedef Unsigned(8) Byte;  Unsigned(8) m_leftIndex(0);  Unsigned(8) m_rightIndex(0);  Unsigned(8) m_keyCode(0);  Unsigned(8) m_op(0);  <NOMAIN> }
 ##
 ## ish, informed by Dave 3/18/18 and t41261: no longer must see the Type of constant array first

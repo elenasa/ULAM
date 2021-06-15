@@ -8,7 +8,7 @@
 ##
 #!
 Exit status: 0
-Ue_A { Int(8) m_s1(0);  Int(8) m_s2(3);  Int(8) m_s3(20);  Int(32) test() {  System s;  String mt = "";  self m_s1 . 0u cast = s ( self m_s1 . cast )print . s ( self m_s1 . 0 cast == )assert . String str = "foo";  self m_s2 . 3u cast = s ( self m_s2 . cast )print . s ( self m_s2 . 3 cast == )assert . self m_s3 . 20u cast = s ( self m_s3 . cast )print . s ( self m_s3 . 20 cast == )assert . 0 cast return } }
+Ue_A { Int(8) m_s1(0);  Int(8) m_s2(3);  Int(8) m_s3(20);  Int test() {  System s;  String mt = "";  self m_s1 . 0u cast = s ( self m_s1 . cast )print . s ( self m_s1 . 0 cast == )assert . String str = "foo";  self m_s2 . 3u cast = s ( self m_s2 . cast )print . s ( self m_s2 . 3 cast == )assert . self m_s3 . 20u cast = s ( self m_s3 . cast )print . s ( self m_s3 . 20 cast == )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t3929

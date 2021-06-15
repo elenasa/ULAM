@@ -5,8 +5,8 @@
 ##
 #!
 Exit status: -11
-Ue_EventWindowTest : EvtWinEl { constant Int(32) v = -2;  :EvtWinEl< Int(32) m_idx(40); > Int(32) test() {  System s;  Atom(96) a;  EventWindowTest ewt;  a ewt ( 0 cast )aref . = s ( a EventWindowTest is )assert . 0 cast return } }
-Uq_EvtWinEl { Int(32) m_idx( 40);  <NOMAIN> }
+Ue_EventWindowTest : EvtWinEl { constant Int v = -2;  :EvtWinEl< Int m_idx(40); > Int test() {  System s;  Atom a;  EventWindowTest ewt;  a ewt ( 0 cast )aref . = s ( a EventWindowTest is )assert . 0 cast return } }
+Uq_EvtWinEl { Int m_idx( 40);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 ##      // element may be a custom array! inherited no less!!

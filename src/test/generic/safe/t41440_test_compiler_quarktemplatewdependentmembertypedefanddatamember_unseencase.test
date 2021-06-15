@@ -6,9 +6,9 @@
 ##
 #!
 Exit status: 2
-Ue_R { Unsigned(32) m_tsz(2u);  Int(32) test() {  System s;  XTimer(2,1u,9u) rxt;  self m_tsz . 2u = s ( self m_tsz . )print . s ( self m_tsz . 2u cast == )assert . self m_tsz . cast return } }
+Ue_R { Unsigned m_tsz(2u);  Int test() {  System s;  XTimer(2,1u,9u) rxt;  self m_tsz . 2u = s ( self m_tsz . )print . s ( self m_tsz . 2u cast == )assert . self m_tsz . cast return } }
 Uq_System { <NOMAIN> }
-Uq_XTimer(Unary(5) bits, Unsigned(32) triggerLevel, Unsigned(32) k) { typedef Unsigned(UNKNOWN) Counter;  Unsigned(UNKNOWN) mCount(notready);  <NOMAIN> }
+Uq_XTimer(Unary(5) bits, Unsigned triggerLevel, Unsigned k) { typedef Unsigned(UNKNOWN) Counter;  Unsigned(UNKNOWN) mCount(notready);  <NOMAIN> }
 ##
 ## informed by Dave ish 3/28/2021 _033651. Simplified case of t41444 to help debug XTimer;
 ##   see also t41441 for seen case.

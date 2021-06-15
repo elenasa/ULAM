@@ -5,7 +5,7 @@
 ##      */
 #!
 Exit status: 1
-Ue_Foo { System s();  Bool(3) m_b(true);  Int(32) test() {  self m_b . self ( true cast )check . = self s . ( self m_b . )print . self m_b . cast return } }
+Ue_Foo { System s();  Bool(3) m_b(true);  Int test() {  self m_b . self ( true cast )check . = self s . ( self m_b . )print . self m_b . cast return } }
 Uq_System { <NOMAIN> }
 #>Foo.ulam
   ulam 1;
