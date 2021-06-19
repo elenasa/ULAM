@@ -434,13 +434,22 @@ namespace MFM {
 	if(nut->getUlamClassType()==UC_ELEMENT)
 	  {
 	    BV8K bvfix;
+	    len = MAXSTATEBITS;
+	    bvclass.CopyBV(ATOMFIRSTSTATEBITPOS, 0u, len, bvfix);
+	    atomUV.putDataBig(ATOMFIRSTSTATEBITPOS, len, bvfix);
+	  }
+	else if(m_state.isAtom(nuti)) //support for constant atom (t41483,4)
+	  {
+	    BV8K bvfix;
+	    len = MAXSTATEBITS;
 	    bvclass.CopyBV(ATOMFIRSTSTATEBITPOS, 0u, len, bvfix);
 	    atomUV.putDataBig(ATOMFIRSTSTATEBITPOS, len, bvfix);
 	  }
 	else
 	  atomUV.putDataBig(ATOMFIRSTSTATEBITPOS, len, bvclass);
+
 	m_state.m_constantStack.storeUlamValueInSlot(atomUV, ((SymbolConstantValue *) m_constSymbol)->getConstantStackFrameAbsoluteSlotIndex());
-      }
+      } //not scalar
   } //setupStackWithClassForEval
 
   void NodeConstantClass::genCode(File * fp, UVPass& uvpass)

@@ -109,15 +109,23 @@ namespace MFM {
 	    //default (uninitialized) values
 	    char dstr[40];
 
-	    nut->getDataAsString(0, dstr, 'z');
-	    fp->write(dstr);
-
-	    if(!m_state.isScalar(nuti))
+	    if(nut->isScalar())
 	      {
-		s32 arraysize = m_state.getArraySize(nuti);
-		for(s32 i = 1; i < arraysize; i++)
+		nut->getDataAsString(0, dstr, 'z');
+		fp->write(dstr);
+	      }
+	    else
+	      {
+		//an uninit array outputs type arraysize times (t41484, t3143)
+		UTI scalaruti = m_state.getUlamTypeAsScalar(nuti);
+		UlamType * scalarut = m_state.getUlamTypeByIndex(scalaruti);
+
+		scalarut->getDataAsString(0, dstr, 'z');
+		s32 arraysize = nut->getArraySize();
+		for(s32 i = 0; i < arraysize; i++)
 		  {
-		    nut->getDataAsString(0, dstr, ',');
+		    if(i>0)
+		      fp->write(",");
 		    fp->write(dstr);
 		  }
 	      }

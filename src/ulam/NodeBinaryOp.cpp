@@ -526,6 +526,9 @@ namespace MFM {
     // if here, must be a constant..
     assert(isAConstant());
 
+    if(m_state.isAClass(nuti))
+      return nuti; //t41484 (e.g. node sq bkt)
+
     NNO pno = Node::getYourParentNo();
     assert(pno);
 

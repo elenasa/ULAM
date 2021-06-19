@@ -190,10 +190,10 @@ namespace MFM{
   UTI NodeListClassInit::foldConstantExpression()
   {
     for(u32 i = 0; i < m_nodes.size(); i++)
-      ((NodeInitDM *) m_nodes[i])->foldConstantExpression();
-
-    m_state.tryToPackAClass(m_classUTI); //t41198 here?
-
+      {
+	((NodeInitDM *) m_nodes[i])->foldConstantExpression();
+	m_state.tryToPackAClass(m_classUTI); //t41198 here?
+      }
     return Node::getNodeType();
   }
 

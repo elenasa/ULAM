@@ -902,7 +902,8 @@ namespace MFM {
       {
 	assert(namedconstantclassidx == (cosSize - 1));
 	//may be scalar or dm array (t41198), arrayitem (t41261), entire array (t41261,3,6)
-	assert(m_state.isAClass(cosuti));
+	//assert(m_state.isAClass(cosuti));
+	assert(m_state.isAClass(cosuti) || m_state.isAtom(cosuti)); //t41483 support const atom
 	//assert(stgcos==cos); //s.cc t41198
       }
     else
@@ -999,7 +1000,8 @@ namespace MFM {
       {
 	assert(namedconstantclassidx == (cosSize - 1));
 	assert(!m_state.isScalar(cosuti)); //dm array (t41198), or arrayitem (t41261)
-	assert(m_state.isAClass(cosuti));
+	//assert(m_state.isAClass(cosuti));
+	assert(m_state.isAClass(cosuti) || m_state.isAtom(cosuti)); //t41484
 	//assert(stgcos==cos);
       }
     else
@@ -3676,7 +3678,8 @@ namespace MFM {
     SymbolWithValue * ncsym = (SymbolWithValue *) m_state.m_currentObjSymbolsForCodeGen[namedconstantclassidx];
     assert(ncsym);
     UTI ncuti = ncsym->getUlamTypeIdx();
-    assert(m_state.isAClass(ncuti)); //sanity
+    //    assert(m_state.isAClass(ncuti)); //sanity
+    assert(m_state.isAClass(ncuti) || m_state.isAtom(ncuti)); //sanity hurts t41483 support const atom
     assert(ncsym->isConstant()); //sanity
     assert(ncsym->isReady());
 
@@ -4041,7 +4044,8 @@ namespace MFM {
       {
 	Symbol * sym = m_state.m_currentObjSymbolsForCodeGen[i];
 	UTI suti = sym->getUlamTypeIdx(); //possibly array of classes
-	if(sym->isConstant() && m_state.isAClass(suti))
+	//	if(sym->isConstant() && m_state.isAClass(suti)) support constant atoms
+	if(sym->isConstant() && (m_state.isAClass(suti) || m_state.isAtom(suti))) //t41483
 	  {
 	    indexOfLast = i;
 	    break;

@@ -318,20 +318,27 @@ namespace MFM{
       }
 
     UlamValue ituv = m_state.m_nodeEvalStack.popArg();
-
-    u64 foldedconst;
-    u32 itemlen = m_state.getBitSize(nuti);
-
-    if(itemlen <= MAXBITSPERINT)
-      foldedconst = ituv.getImmediateData(itemlen, m_state);
-    else if(itemlen <= MAXBITSPERLONG)
-      foldedconst = ituv.getImmediateDataLong(itemlen, m_state);
-    else
-      m_state.abortGreaterThanMaxBitsPerLong();
-
     evalNodeEpilog();
 
-    bvtmp.WriteLong(pos * itemlen, itemlen, foldedconst);
+    u32 itemlen = m_state.getBitSize(nuti);
+    if(itemlen == BITSPERATOM)
+      {
+	ituv.getDataBig(pos * itemlen, BITSPERATOM, bvtmp); //t41484
+      }
+    else
+      {
+	u64 foldedconst;
+
+	if(itemlen <= MAXBITSPERINT)
+	  foldedconst = ituv.getImmediateData(itemlen, m_state);
+	else if(itemlen <= MAXBITSPERLONG)
+	  foldedconst = ituv.getImmediateDataLong(itemlen, m_state);
+	else
+	  m_state.abortGreaterThanMaxBitsPerLong();
+
+	bvtmp.WriteLong(pos * itemlen, itemlen, foldedconst);
+      }
+
     return true;
   } //buildArrayItemInitialValue
 

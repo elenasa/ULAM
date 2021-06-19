@@ -373,6 +373,20 @@ namespace MFM {
 	m_nodeTypeDesc = NULL; //tfr to new node
 	rtb = TBOOL_TRUE;
       }
+    else if(m_state.isAtom(suti)) //support for constant atom arrays (t41484)
+      {
+	Node * newnode = NULL;
+	if(m_state.isScalar(suti))
+	  newnode = new NodeConstantClass(m_token, blocknoST, suti, m_nodeTypeDesc, m_state);
+	else
+	  newnode = new NodeConstantClassArray(m_token, blocknoST, suti, m_nodeTypeDesc, m_state); //t41483
+	assert(newnode);
+	AssertBool swapOk = Node::exchangeNodeWithParent(newnode, parentnode);
+	assert(swapOk);
+
+	m_nodeTypeDesc = NULL; //tfr to new node
+	rtb = TBOOL_TRUE;
+      }
     else if(!m_state.isScalar(suti))
       {
 	NodeConstantArray * newnode = new NodeConstantArray(m_token, blocknoST, suti, m_nodeTypeDesc, m_state); //t41261

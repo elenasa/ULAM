@@ -9,7 +9,11 @@
 
 namespace MFM {
 
-  UlamTypeClassElement::UlamTypeClassElement(const UlamKeyTypeSignature key, CompilerState & state) : UlamTypeClass(key, state) { }
+  UlamTypeClassElement::UlamTypeClassElement(const UlamKeyTypeSignature key, CompilerState & state) : UlamTypeClass(key, state)
+  {
+    m_wordLengthTotal = calcWordSize(getSizeofUlamType());
+    m_wordLengthItem = calcWordSize(BITSPERATOM);
+  }
 
   ULAMCLASSTYPE UlamTypeClassElement::getUlamClassType()
   {

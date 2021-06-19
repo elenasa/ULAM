@@ -54,18 +54,18 @@ namespace MFM{
 
       struct RawAtom {
 	u16 m_short;
-	UTI m_utypeIdx;
-	u8  m_bits[8];  //oops! not 10 anymore
+	UTI m_utypeIdx; //corresponds to AtomBitVector bits 0-15
+	u8  m_bits[8];  //oops! was 10, (not the class data)
       } m_rawAtom;
 
       struct PtrValue {
 	s16 m_slotIndex;
-	UTI m_utypeIdx;
+	UTI m_utypeIdx; //corresponds to AtomBitVector bits 0-15
 	u8  m_posInAtom;
 	s8  m_bitlenInAtom;
 	u8  m_storagetype; //STORAGE
 	u8  m_packed; //PACKFIT
-	u16 m_targetType;
+	UTI m_targetType;
 	u16 m_nameid; //for code gen
       } m_ptrValue;
 
@@ -194,6 +194,8 @@ namespace MFM{
     u32 getData(u32 pos, s32 len) const;
 
     u64 getDataLong(u32 pos, s32 len) const;
+
+    void getDataBig(u32 pos, s32 len, BV8K& bvref) const;
 
     void putData(u32 pos, s32 len, u32 data);
 

@@ -188,12 +188,12 @@ namespace MFM {
 
   void UlamType::getDataAsString(const u32 data, char * valstr, char prefix)
   {
-    sprintf(valstr,"%s", getUlamTypeName().c_str());
+    sprintf(valstr,"%s", getUlamTypeNameBrief().c_str());
   }
 
   void UlamType::getDataLongAsString(const u64 data, char * valstr, char prefix)
   {
-    sprintf(valstr,"%s", getUlamTypeName().c_str());
+    sprintf(valstr,"%s", getUlamTypeNameBrief().c_str());
   }
 
   s32 UlamType::getDataAsCs32(const u32 data)

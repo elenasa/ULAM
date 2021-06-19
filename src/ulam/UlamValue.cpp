@@ -46,6 +46,8 @@ namespace MFM {
   {
     UlamValue rtnValue = UlamValue::makeAtom();
     rtnValue.setAtomElementTypeIdx(elementType);
+    if(state.isAtom(elementType))
+      return rtnValue; //support for constant atoms (t41483,4)
 
     SymbolClass * csym = NULL;
     AssertBool isDefined = state.alreadyDefinedSymbolClass(elementType, csym);
@@ -53,7 +55,6 @@ namespace MFM {
     NodeBlockClass * cblock = csym->getClassBlockNode();
     assert(cblock);
     cblock->initElementDefaultsForEval(rtnValue, elementType);
-
     return rtnValue;
   } //makeDefaultAtom
 
@@ -152,25 +153,36 @@ namespace MFM {
     assert((s32) slot <= S16_MAX);
     rtnUV.m_uv.m_ptrValue.m_slotIndex = (s16) slot;
 
+    UlamType * ttut = state.getUlamTypeByIndex(targetType);
+    //ULAMCLASSTYPE ttclasstype = ttut->getUlamClassType();
+    //figure out the pos based on targettype; elements start at first state bit (25)
+    // quarks too still?, CAN WE SUPPORT transients?
+    ULAMTYPE ttenum = ttut->getUlamTypeEnum();
+
     //NOTE: 'len' of a packed-array,
     //       becomes the total size (bits * arraysize);
     //       'len' is item bitsize for unpacked-array;
     //       constants become default len;
     s32 len;
     if(packed == UNPACKED)
-      len = state.getBitSize(targetType);
+      {
+	if((ttenum == UAtom))// || (ttclasstype == UC_ELEMENT))
+	  {
+	    len = BITSPERATOM; //MAXSTATEBITS; //t41484
+	  }
+	else
+	  len = state.getBitSize(targetType); //arrayitem or element (t3686)
+      }
     else
       len = state.getTotalBitSize(targetType);
 
     if(pos == 0)
       {
-	UlamType * ttut = state.getUlamTypeByIndex(targetType);
-	//ULAMCLASSTYPE ttclasstype = ttut->getUlamClassType();
-	//figure out the pos based on targettype; elements start at first state bit (25)
-	// quarks too still?, CAN WE SUPPORT transients?
-	ULAMTYPE ttenum = ttut->getUlamTypeEnum();
-	if((ttenum == UAtom) || (ttenum == Class))
+	//if((ttenum == UAtom) || (ttenum == Class)) //t41483, t3172
+	if((ttenum == Class)) //t41483, t3172
 	  rtnUV.m_uv.m_ptrValue.m_posInAtom = ATOMFIRSTSTATEBITPOS; //len is predetermined
+	else if (ttenum == UAtom)
+	  rtnUV.m_uv.m_ptrValue.m_posInAtom = pos;
 	else
 	  {
 	    u32 basepos = BITSPERATOM - len;
@@ -831,6 +843,17 @@ namespace MFM {
     AtomBitVector a(m_uv.m_storage.m_atom); //copy
     return a.ReadLong(pos, len);
   } //getData
+
+  void UlamValue::getDataBig(u32 pos, s32 len, BV8K& bvref) const
+  {
+    assert(len >= 0);
+    assert(len <= BITSPERATOM);
+    assert(pos + len <= MAXBITSPERTRANSIENT);
+
+    AtomBitVector a(m_uv.m_storage.m_atom); //copy
+    a.CopyBV(0u, pos, len, bvref); //frompos, topos, tolen, destbv
+    return;
+  } //getDataBig
 
   void UlamValue::putData(u32 pos, s32 len, u32 data)
   {

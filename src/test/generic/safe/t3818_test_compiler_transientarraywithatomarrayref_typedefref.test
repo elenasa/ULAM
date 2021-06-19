@@ -6,10 +6,10 @@
 Exit status: -11
 Ue_R { Bool b(false);  Bool c(false);  Int test() {  System s;  QW qw;  A ar[3];  ar 1 [] mToo 1 [] . mAtoo 1 [] . Foo.instanceof cast = Atom a1 = ar 1 [] mToo 1 [] . mAtoo 1 [] .;  self b . qw ( a1 cast )aunc . = s ( self b . )assert . typedef Atom& ATR[3];  Atom& atr[3] = ar 2 [] mToo 2 [] . mAtoo . cast;  Atom& at2 = atr 2 [] cast;  at2 Foo.instanceof cast = self c . qw ( at2 )aunc . = s ( self c . )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
-Un_A : QW { Bool(7) sp(false);  Too mToo[3]( Atom mAtoo[3](Atom[3]Atom[3]Atom[3]); ), ( Atom mAtoo[3](Atom[3]Atom[3]Atom[3]); ), ( Atom mAtoo[3](Atom[3]Atom[3]Atom[3]); );  :QW< typedef Unary(3) Coord; > <NOMAIN> }
+Un_A : QW { Bool(7) sp(false);  Too mToo[3]( Atom mAtoo[3](Atom,Atom,Atom); ), ( Atom mAtoo[3](Atom,Atom,Atom); ), ( Atom mAtoo[3](Atom,Atom,Atom); );  :QW< typedef Unary(3) Coord; > <NOMAIN> }
 Uq_QW { typedef Unary(3) Coord;  <NOMAIN> }
 Ue_Foo { typedef Unary(3) Coord;  Unary(3) mTre( 1u);  Unary(3) mCoo[3](0,0,0);  <NOMAIN> }
-Un_Too { Atom mAtoo[3](Atom[3]Atom[3]Atom[3]);  <NOMAIN> }
+Un_Too { Atom mAtoo[3](Atom,Atom,Atom);  <NOMAIN> }
 ##
 ## similar to 3816, except has a local array ref of atom array typedef
 ##

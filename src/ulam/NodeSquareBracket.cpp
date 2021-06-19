@@ -70,6 +70,26 @@ namespace MFM {
     return true; //not for array declaration; includes custom array items
   }
 
+  bool NodeSquareBracket::isAConstant()
+  {
+    return m_nodeLeft->isAConstant() && m_nodeRight->isAConstant();
+  }
+
+  bool NodeSquareBracket::isAConstantClass()
+  {
+    return m_nodeLeft->isAConstantClassArray() && m_nodeRight->isAConstant(); //t41484
+  }
+
+  bool NodeSquareBracket::isAConstantClassArray()
+  {
+    return m_nodeLeft->isAConstantClassArray();
+  }
+
+  void NodeSquareBracket::setClassType(UTI cuti)
+  {
+    //noop (t41484)
+  }
+
   bool NodeSquareBracket::isEmptyArraysizeDecl()
   {
     return (m_nodeRight == NULL);
@@ -418,6 +438,15 @@ namespace MFM {
   bool NodeSquareBracket::getConstantValue(BV8K& bval)
   {
     return getConstantArrayItemValue(bval);
+  }
+
+  bool NodeSquareBracket::initDataMembersConstantValue(BV8K& bvref, BV8K& bvmask)
+  {
+    //bvref contains default value at pos 0
+    bool rtnok = getConstantValue(bvref); //overwrites
+    if(rtnok)
+      bvmask.SetBits(0, m_state.getUlamTypeByIndex(getNodeType())->getSizeofUlamType()); //t41484
+    return rtnok;
   }
 
   //here, we check for existence, do we can default to custom array, aref.
@@ -899,8 +928,8 @@ namespace MFM {
     //else continue..
 
     genCodeToStoreInto(fp, uvpass);
-
-    if(!(isString || m_nodeLeft->isAConstant()) || m_state.isReference(uvpass.getPassTargetType())) //t3953,t3973, not isAltRefType t3908, nor constant class (t41266)
+    UTI tt = uvpass.getPassTargetType();
+    if(!(isString || m_nodeLeft->isAConstant()) || (m_state.isReference(tt) && !m_state.isAtom(tt))) //t3953,t3973, not isAltRefType t3908, nor constant class (t41266), not constantatomarrayitem (t41484)
       Node::genCodeReadIntoATmpVar(fp, uvpass);
     else
       m_state.clearCurrentObjSymbolsForCodeGen();
@@ -954,7 +983,9 @@ namespace MFM {
       {
 	Node::genCodeReadArrayItemFromAConstantClassIntoATmpVar(fp, luvpass, offset);
 	uvpass = luvpass;
-	if(m_state.isAClass(cossuti))
+	if(m_state.isAtom(cossuti)) //t41484, in a T
+	  return;
+	else if(m_state.isAClass(cossuti))
 	  Node::genCodeConvertATmpVarIntoBitVector(fp, uvpass); //not for t41198, for t41263
 	else if(m_state.isAStringType(cossuti)) //t41274, t41267, t41273
 	  uvpass.setPassTargetType(m_state.getUlamTypeAsDeref(luvpass.getPassTargetType()));

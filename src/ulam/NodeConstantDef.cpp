@@ -837,7 +837,8 @@ namespace MFM {
     //scalar classes wait until after c&l to build default value;
     // but pieces can be folded in advance;
     // t41198 (might be better to replace node with NodeInitDM?)
-    if(m_state.isAClass(uti))
+    //if(m_state.isAClass(uti))
+    if(m_state.isAClass(uti) || m_state.isAtom(uti)) //t41483 constant atom
       {
 	UTI rtnuti = Nav;
 	if(m_nodeExpr->isAList()) //t3451, t41209
@@ -932,17 +933,7 @@ namespace MFM {
 
     //cast first, also does safeCast
     UlamType * ut = m_state.getUlamTypeByIndex(uti);
-    if(ut->cast(cnstUV, uti))
-      {
-	u32 wordsize = m_state.getTotalWordSize(uti);
-	if(wordsize == MAXBITSPERINT)
-	  newconst = cnstUV.getImmediateData(m_state);
-	else if(wordsize == MAXBITSPERLONG)
-	  newconst = cnstUV.getImmediateDataLong(m_state);
-	else
-	  m_state.abortGreaterThanMaxBitsPerLong();
-      }
-    else
+    if(!ut->cast(cnstUV, uti))
       {
 	std::ostringstream msg;
 	msg << "Constant value expression for '";
@@ -951,6 +942,14 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	return Nav;
       }
+
+    u32 wordsize = m_state.getTotalWordSize(uti);
+    if(wordsize == MAXBITSPERINT)
+      newconst = cnstUV.getImmediateData(m_state);
+    else if(wordsize == MAXBITSPERLONG)
+      newconst = cnstUV.getImmediateDataLong(m_state);
+    else
+      m_state.abortGreaterThanMaxBitsPerLong();
 
     // BUT WHY when Symbol is all we need/want? because it indicates
     // there's a default value before c&l (see SCNT::getTotalParametersWithDefaultValues) (t3526)
@@ -1194,12 +1193,13 @@ namespace MFM {
 	setupStackWithPrimitiveForEval(slotsneeded);
 	cslotidx += slotsneeded;
       }
-    else if(m_state.isAClass(nuti)) //t41198
+    //    else if(m_state.isAClass(nuti)) //t41198
+    else if(m_state.isAClass(nuti) || m_state.isAtom(nuti)) //t41198, t41483,4
       {
 	//array of classes??
 	//eval doesn't support transients (> atom size) (t41231)
 	ULAMCLASSTYPE nclasstype = nut->getUlamClassType();
-	if((nclasstype == UC_ELEMENT) || (nclasstype == UC_QUARK) || ((nclasstype == UC_TRANSIENT) && (nut->getTotalBitSize() <= MAXSTATEBITS)))
+	if((nclasstype == UC_ELEMENT) || (nclasstype == UC_QUARK) || ((nclasstype == UC_TRANSIENT) && (nut->getTotalBitSize() <= MAXSTATEBITS)) || m_state.isAtom(nuti))
 	  {
 	    u32 slotsneeded = m_state.slotsNeeded(nuti);
 	    assert(m_constSymbol);
@@ -1328,7 +1328,7 @@ namespace MFM {
     assert(m_nodeExpr); //empty init is empty list, not null (t41262); could be a NodeConstantClass
 
     ULAMCLASSTYPE classtype = nut->getUlamClassType();
-    assert((classtype == UC_QUARK) || (classtype == UC_ELEMENT) || ((classtype == UC_TRANSIENT) && (nut->getTotalBitSize() <= MAXSTATEBITS)));
+    assert((classtype == UC_QUARK) || (classtype == UC_ELEMENT) || ((classtype == UC_TRANSIENT) && (nut->getTotalBitSize() <= MAXSTATEBITS)) || m_state.isAtom(nuti));
 
     PACKFIT packFit = nut->getPackable();
     if((packFit == PACKEDLOADABLE))
@@ -1366,6 +1366,8 @@ namespace MFM {
 	  }
 	else if(classtype == UC_ELEMENT)
 	  defaultUV = UlamValue::makeDefaultAtom(scalaruti, m_state);
+	else if(m_state.isAtom(scalaruti))
+	  defaultUV = UlamValue::makeDefaultAtom(scalaruti, m_state);
 	else
 	  m_state.abortShouldntGetHere();
 
@@ -1398,6 +1400,13 @@ namespace MFM {
 		bvclass.CopyBV(j * itemlen, 0u, itemlen, elval); //fmpos, topos, len, destbv
 		classUV = UlamValue::makeAtom(scalaruti);
 		classUV.putDataBig(ATOMFIRSTSTATEBITPOS, itemlen, elval);
+	      }
+	    else if(m_state.isAtom(scalaruti)) //(t41483,3)
+	      {
+		BV8K atval;
+		bvclass.CopyBV(j * itemlen, 0u, itemlen, atval); //fmpos, topos, len, destbv
+		classUV = UlamValue::makeAtom(scalaruti);
+		classUV.putDataBig(0, itemlen, atval);
 	      }
 
 	    m_state.m_constantStack.storeUlamValueAtStackIndex(classUV, baseslot + j);
@@ -1508,7 +1517,8 @@ namespace MFM {
 	m_constSymbol->printPostfixValue(fp);
 	GCNL;
       }
-    else if(etyp == Class)
+    //    else if(etyp == Class)
+    else if((etyp == Class) || (etyp == UAtom)) //t41483
       {
 	std::string estr;
 	AssertBool gotVal = m_constSymbol->getClassValueAsHexString(estr);
@@ -1580,9 +1590,10 @@ namespace MFM {
   {
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    ULAMCLASSTYPE classtype = nut->getUlamClassType();
+    //ULAMCLASSTYPE classtype = nut->getUlamClassType();
+    ULAMTYPE etyp = nut->getUlamTypeEnum();
 
-    if(nut->isScalar() && (classtype == UC_NOTACLASS))
+    if(nut->isScalar() && !((etyp == Class) || (etyp == UAtom)))//(classtype == UC_NOTACLASS))t41483
       return;
 
     //constant array: Class or Primitive (not class arg primitive) //t3894
@@ -1650,7 +1661,8 @@ namespace MFM {
     fp->write("initVal[(");
     fp->write_decimal_unsigned(len);
     fp->write(" + 31)/32] = ");
-    if(netyp == Class)
+    //    if(netyp == Class)
+    if((netyp == Class) || (netyp == UAtom)) //t41483
       {
 	std::string estr;
 	AssertBool gotVal = m_constSymbol->getClassValueAsHexString(estr);

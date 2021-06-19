@@ -1,0 +1,46 @@
+## -*- mode:ulam -*-
+#=t41485_test_compiler_constanttransientwithatomarrayofconstantelements_ish
+#!
+Exit status: -11
+Ue_R { Int test() {  NOWAY noway;  0 cast return } }
+Un_NOWAY { Atom mAtoms[3](Atom,Atom,Atom);  <NOMAIN> }
+Ue_DReg { /* empty class block */ }
+Ue_Res { /* empty class block */ }
+##
+## informed by Dave ish 6/16/21, aborted without error message; 3 days later, now it compiles!
+##
+##
+#>R.ulam
+  ulam 5;
+element R {
+  Int test()
+  {
+    NOWAY noway;
+    return 0;
+  }
+}
+
+local constant DReg cDREG = {  };
+local constant Res cRES = {  };
+local constant Empty cEMPTY = { };
+local constant NOWAY cNoway = { .mAtoms = { cDREG, cRES, cEMPTY } };
+
+#:NOWAY.ulam
+  ulam 5;
+transient NOWAY {
+  Atom mAtoms[3];
+}
+
+#:DReg.ulam
+  ulam 1;
+element DReg { }
+
+#:Res.ulam
+  ulam 1;
+element Res { }
+
+#:Empty.ulam
+  ulam 1;
+element Empty { }
+
+#.
