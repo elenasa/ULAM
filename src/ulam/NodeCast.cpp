@@ -91,6 +91,11 @@ namespace MFM {
     return m_explicit;
   }
 
+  bool NodeCast::isExplicitReferenceCast()
+  {
+    return isExplicitCast() && m_state.isAltRefType(getCastType());
+  }
+
   bool NodeCast::isACast()
   {
     return true;
@@ -131,9 +136,9 @@ namespace MFM {
     return m_node->isArrayItem();
   }
 
-  bool NodeCast::isExplicitReferenceCast()
+  bool NodeCast::getSymbolPtr(Symbol *& symptrref)
   {
-    return isExplicitCast() && m_state.isAltRefType(getCastType());
+    return m_node->getSymbolPtr(symptrref);
   }
 
   FORECAST NodeCast::safeToCastTo(UTI newType)

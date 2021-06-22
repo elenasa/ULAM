@@ -658,7 +658,6 @@ namespace MFM {
 
 	    if(m_state.isAClass(eit) && m_nodeInitExpr->isAList())
 	      m_varSymbol->setHasInitValue(); //t41185
-
 	  }
 
 	setNodeType(vit); //needed before safeToCast, and folding
@@ -710,7 +709,25 @@ namespace MFM {
 	  }
 
 	if(m_state.okUTItoContinue(eit) && m_state.okUTItoContinue(vit))
+	  {
+	    Symbol * initsym = NULL;
+	    m_nodeInitExpr->getSymbolPtr(initsym);
+	    if(initsym && (initsym == m_varSymbol))
+	      {
+		std::ostringstream msg;
+		msg << "Initial value expression for: '";
+		msg << m_state.m_pool.getDataAsString(m_vid).c_str();
+		msg << "', is itself";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		setNodeType(Nav);
+		clearSymbolPtr();
+		return Nav; //t41486
+	      }
+	  }
+
+	if(m_state.okUTItoContinue(eit) && m_state.okUTItoContinue(vit))
 	  checkSafeToCastTo(eit, vit); //may side-effect 'vit'
+
       } //end node expression
 
     if(m_varSymbol && m_varSymbol->isFunctionParameter() && ((SymbolVariableStack *) m_varSymbol)->isConstantFunctionParameter())

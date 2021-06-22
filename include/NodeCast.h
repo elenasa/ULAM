@@ -77,6 +77,8 @@ namespace MFM{
 
     virtual bool isExplicitCast();
 
+    virtual bool isExplicitReferenceCast(); //only NodeCast may return true
+
     virtual bool isACast();
 
     virtual bool isAConstant();
@@ -93,7 +95,7 @@ namespace MFM{
 
     virtual bool isArrayItem();
 
-    virtual bool isExplicitReferenceCast(); //only NodeCast may return true
+    virtual bool getSymbolPtr(Symbol *& symptrref);
 
     virtual FORECAST safeToCastTo(UTI newType);
 
