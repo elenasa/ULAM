@@ -144,6 +144,7 @@ namespace MFM {
 		    if(rtnb)
 		      {
 			UTI nuti = givenUTI(); //t3384
+			bool isreferencetype = (getReferenceType() != ALT_NOT) || m_state.isAltRefType(nuti); //t41490
 			if(m_state.hasUnknownTypeInThisClassResolver(nuti))
 			  {
 			    m_state.removeKnownTypeTokenFromThisClassResolver(nuti);
@@ -154,6 +155,10 @@ namespace MFM {
 			  {
 			    rtnuti = Hzy; //not so fast!!
 			    rtnb = false;
+			  }
+			else if(isreferencetype)
+			  {
+			    rtnb = resolveReferenceType(rtnuti); //t41491
 			  }
 		      }
 		  }

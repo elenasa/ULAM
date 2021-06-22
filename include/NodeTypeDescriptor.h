@@ -106,13 +106,14 @@ namespace MFM{
     UTI m_uti;
     bool m_ready;
 
+    bool resolveReferenceType(UTI& rtnuti);
+
   private:
     NodeTypeBitsize * m_unknownBitsizeSubtree;
     ALT m_refType;
     UTI m_referencedUTI;
 
     virtual bool resolveType(UTI& rtnuti);
-    bool resolveReferenceType(UTI& rtnuti);
     bool resolveClassType(UTI& rtnuti);
     bool resolvePrimitiveOrArrayType(UTI& rtnuti);
     bool resolveTypeBitsize(UTI& rtnuti);

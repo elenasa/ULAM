@@ -382,7 +382,7 @@ namespace MFM {
 		return false;
 	      }
 
-	    if(nuti == Hzy)
+	    if((nuti == Hzy) || !m_state.isAltRefType(nuti)) //t41491
 	      {
 		nuti = m_state.getUlamTypeAsRef(derefuti, getReferenceType());
 		rtnb = true;
