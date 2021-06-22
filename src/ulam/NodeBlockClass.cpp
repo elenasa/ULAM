@@ -1719,7 +1719,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	msg << "Building default value for class ";
 	msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
 	msg << " failed";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //t41477
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //t41477
+	m_state.setGoAgain(); //was ERR (t41490)
+	m_buildingDefaultValueInProgress = false; //clear
 	return false;
       }
 

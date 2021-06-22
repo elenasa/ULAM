@@ -204,7 +204,7 @@ namespace MFM {
     bool aok = true;
     if(m_node)
       aok &= m_node->buildDefaultValue(wlen, dvref); //yikes! (was |=) (t41185)
-    if(aok && m_nodeNext) //why go on? (t41185)
+    if(m_nodeNext) //why go on? (t41185)
       aok &= m_nodeNext->buildDefaultValue(wlen, dvref);
     return aok;
   }
@@ -214,7 +214,7 @@ namespace MFM {
     bool aok = true;
     if(m_node)
       aok &= m_node->buildDefaultValueForClassConstantDefs();
-    if(aok && m_nodeNext) //why go on
+    if(m_nodeNext) //why go on
       aok &= m_nodeNext->buildDefaultValueForClassConstantDefs();
     return aok;
   }

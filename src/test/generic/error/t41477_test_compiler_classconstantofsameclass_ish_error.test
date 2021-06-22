@@ -3,7 +3,6 @@
 #!
 ./Foo.ulam:2:7: ERROR: Building default value in progress for class Foo; requested member of same type.
 ./Foo.ulam:5:12: ERROR: Building default value for member constant 'mOp10' failed.
-./Foo.ulam:2:7: ERROR: Building default value for class Foo failed.
 Unrecoverable Program Type Label FAILURE.
 ##
 ##  informed by Dave's ish 20210610, got an assert:

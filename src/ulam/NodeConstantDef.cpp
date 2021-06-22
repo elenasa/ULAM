@@ -1040,7 +1040,6 @@ namespace MFM {
       }
 
     bool rtnok = buildDefaultValueForClassConstantDefs();
-    //assert(rtnok); //t41477
     if(!rtnok)
       {
 	std::ostringstream msg;
