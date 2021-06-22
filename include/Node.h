@@ -156,6 +156,8 @@ enum EvalStatus {ERROR, NOTREADY, NORMAL, RETURN, BREAK, CONTINUE, UNEVALUABLE};
 
     virtual bool belongsToVOWN(UTI vown);
 
+    virtual bool isACast();
+
     virtual bool isAConstant();
 
     virtual bool isAConstantClass();

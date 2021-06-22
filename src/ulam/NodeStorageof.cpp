@@ -281,4 +281,27 @@ namespace MFM {
     return NORMAL;
   } //evalToStoreInto
 
+  UlamValue NodeStorageof::evalAtomOfExpr()
+  {
+    UTI nuti = getNodeType();
+
+    assert(m_nodeOf);
+    assert(m_state.isAtom(nuti));
+
+    UlamValue ofuv = UlamValue::makeAtom();
+    ofuv.setUlamValueEffSelfTypeIdx(m_state.getEmptyElementUTI());
+
+    // need effective self of atom (t3286)
+    evalNodeProlog(0); //new current node eval frame pointer
+
+    u32 slots = makeRoomForSlots(nuti); //always 1 slot for ptr
+
+    EvalStatus evs = m_nodeOf->eval();
+    if(evs == NORMAL)
+      ofuv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(slots); //immediate scalar + 1 for pluv
+    evalNodeEpilog();
+
+    return ofuv;
+  } //evalAtomOfExpr
+
 } //end MFM

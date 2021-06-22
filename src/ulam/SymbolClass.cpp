@@ -1156,13 +1156,14 @@ namespace MFM {
 
   ELE_TYPE SymbolClass::getElementType()
   {
+    UTI cuti = getUlamTypeIdx();
     if(m_elementType == UNDEFINED_ELEMENT_TYPE)
       {
-	if(m_state.isEmptyElement(getUlamTypeIdx()))
+	if(m_state.isEmptyElement(cuti))
 	  assignEmptyElementType(); //t3802
 	else
 	  {
-	    ELE_TYPE type = m_state.getNextElementType();
+	    ELE_TYPE type = m_state.getNextElementType(cuti);
 	    assignElementType(type);
 	  }
       }

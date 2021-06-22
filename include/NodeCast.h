@@ -1,6 +1,6 @@
 /**                                        -*- mode:C++ -*-
  * NodeCast.h - Basic Node for handling Type Casting for ULAM
- *
+o *
  * Copyright (C) 2014-2019 The Regents of the University of New Mexico.
  * Copyright (C) 2014-2021 Ackleyshack LLC.
  * Copyright (C) 2020-2021 The Living Computation Foundation
@@ -71,9 +71,13 @@ namespace MFM{
 
     UTI getCastType();
 
+    UTI getCastedType();
+
     void setExplicitCast();
 
     virtual bool isExplicitCast();
+
+    virtual bool isACast();
 
     virtual bool isAConstant();
 

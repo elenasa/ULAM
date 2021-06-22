@@ -34,11 +34,34 @@ namespace MFM {
     //now allowing atoms to be cast as quarks, as well as elements;
     // also allowing subclasses to be cast as their superclass (u1.2.2)
     if(vetyp == UAtom)
-      brtn = false; //cast atom to a quark ref (in eval)?
+      {
+	//cast atom to a quark ref (in eval)? t41315,8
+	UTI dereftypidx = m_state.getUlamTypeAsDeref(typidx);
+	UTI veffself = val.getUlamValueEffSelfTypeIdx();
+	assert(veffself != Nouti);
+	if(isReference())
+	  {
+	    if(UlamType::compare(veffself, dereftypidx, m_state) == UTIC_SAME)
+	      {
+		val.setUlamValueTypeIdx(typidx);
+	      }
+	    else if(m_state.isClassASubclassOf(veffself, dereftypidx))
+	      {
+		val.setUlamValueTypeIdx(typidx);
+	      }
+	    else
+	      {
+		brtn = false;
+	      }
+	  }
+	else
+	  {
+	    brtn = false;
+	  }
+      }
     else if(UlamType::compare(valtypidx, typidx, m_state) == UTIC_SAME)
       {
-	//if same type nothing to do; if atom, shows as element in eval-land.
-	//val.setAtomElementTypeIdx(typidx); //?
+	//if same type nothing to do;
       }
     else if(m_state.isClassASubclassOf(valtypidx, typidx))
       {
@@ -47,6 +70,7 @@ namespace MFM {
 	if(len > MAXBITSPERINT)
 	  m_state.abortNotSupported(); //quarks are max 32 bits
 	UlamValue newval = UlamValue::makeImmediateClass(typidx, 0, len);
+	newval.setUlamValueEffSelfTypeIdx(valtypidx); //new
 	m_state.extractQuarkBaseFromSubclassForEval(val, typidx, newval);
 	val = newval;
       }

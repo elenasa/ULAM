@@ -181,7 +181,12 @@ namespace MFM {
     bool isit = ((UlamType::compare(derefluti,ruti,m_state) == UTIC_SAME) || m_state.isClassASubclassOf(derefluti, ruti));
 #else
     bool isit = (m_state.isAtom(luti) || (UlamType::compare(derefluti,ruti,m_state) == UTIC_SAME) || m_state.isClassASubclassOf(derefluti, ruti));
-
+    if(m_state.isAtom(luti))
+      {
+	UlamValue luv = m_state.getPtrTarget(pluv);
+	UTI leffself = luv.getUlamValueEffSelfTypeIdx();
+	isit = (leffself != Nouti) && ((UlamType::compare(leffself,ruti,m_state) == UTIC_SAME) || m_state.isClassASubclassOf(leffself, ruti)); //t41484, t3255
+      }
 #endif
 
     UlamValue rtnuv = UlamValue::makeImmediate(nuti, (u32) isit, m_state);

@@ -1,0 +1,42 @@
+## -*- mode:ulam -*-
+#=t41486_test_compiler_circularassignmentofitselftoitself_ish_error
+#!
+./T.ulam:4:5: ERROR: 'aw' is type AtomWire, which is abstract due to these pure functions..
+./AtomWire.ulam:2:9: NOTE: Pure: Unsigned(6) getNextSN(Bool left).
+./AtomWire.ulam:2:9: NOTE: Pure: Bool isPeer(Bool left).
+./AtomWire.ulam:2:9: NOTE: Pure: Bool loadFrom(Atom a).
+./AtomWire.ulam:2:9: NOTE: Pure: Bool storeTo(Atom& a).
+./AtomWire.ulam:2:9: ERROR: Element 'AtomWire' is abstract due to these pure functions..
+Unrecoverable Program Type Label FAILURE.
+##
+##  informed by Dave's ish 20210613, see also t41481
+##   storeTo wrong due to missing ref arg type
+##
+#>T.ulam
+ ulam 5;
+element T {
+  Int test(){
+    KillPlate aw;
+    return 0;
+  }
+}
+
+#:KillPlate.ulam
+  ulam 5;
+element KillPlate {
+  Void behave()
+  {
+    EventWindow ew;
+
+    EventWindow.SiteNum sn = (EventWindow.SiteNum) sn;
+  }
+}
+
+#:EventWindow.ulam
+  ulam 3;
+quark EventWindow {
+  typedef Unsigned(6) SiteNum;
+  typedef Unsigned(3) Symmetry;
+}
+
+#.

@@ -630,7 +630,8 @@ namespace MFM{
     u32 getAClassRegistrationNumber(UTI cuti); //ulam-4
     u32 getALocalsScopeRegistrationNumber(UTI cuti); //ulam-4
     ELE_TYPE getAClassElementType(UTI cuti); //ulam-4
-    ELE_TYPE getNextElementType(); //ulam-4 incrementally
+    ELE_TYPE getNextElementType(UTI cuti); //ulam-4 incrementally
+    UTI lookupClassByElementType(ELE_TYPE ele);
     u32 assignClassId(UTI cuti);
 
     NodeBlockClass * getAClassBlock(UTI cuti);

@@ -866,7 +866,9 @@ namespace MFM {
 
     if(m_state.isAtom(nuti))
       {
-	UlamValue atomUV = UlamValue::makeAtom(m_varSymbol->getUlamTypeIdx());
+	UlamValue atomUV = UlamValue::makeAtom(); //arg was m_varSymbol->getUlamTypeIdx() t3277?
+	atomUV.setUlamValueEffSelfTypeIdx(m_state.getEmptyElementUTI()); //t3401
+
 	//scalar or UNPACKED array of atoms (t3709)
 	u32 baseslot =  ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex();
 	for(u32 j = 0; j < slots; j++)

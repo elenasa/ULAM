@@ -27,6 +27,8 @@ namespace MFM {
   {
     AtomBitVector a; //clear storage
     a.ToArray(m_uv.m_storage.m_atom);
+    setUlamValueEffSelfTypeIdx(Nouti);
+    setUlamValueTypeIdx(Nouti);
   }
 
   void UlamValue::init(UTI utype, u32 v, CompilerState& state)
@@ -45,9 +47,15 @@ namespace MFM {
   UlamValue UlamValue::makeDefaultAtom(UTI elementType, CompilerState& state)
   {
     UlamValue rtnValue = UlamValue::makeAtom();
-    rtnValue.setAtomElementTypeIdx(elementType);
+    rtnValue.setUlamValueTypeIdx(elementType);
+
     if(state.isAtom(elementType))
-      return rtnValue; //support for constant atoms (t41483,4)
+      {
+	rtnValue.setUlamValueEffSelfTypeIdx(state.getEmptyElementUTI());
+	return rtnValue; //support for constant atoms (t41483,4)
+      }
+    //else
+    rtnValue.setUlamValueEffSelfTypeIdx(elementType);
 
     SymbolClass * csym = NULL;
     AssertBool isDefined = state.alreadyDefinedSymbolClass(elementType, csym);
@@ -61,7 +69,8 @@ namespace MFM {
   UlamValue UlamValue::makeAtom(UTI elementType)
   {
     UlamValue rtnValue = UlamValue::makeAtom();
-    rtnValue.setAtomElementTypeIdx(elementType);
+    rtnValue.setUlamValueTypeIdx(elementType);
+    rtnValue.setUlamValueEffSelfTypeIdx(elementType);
     return rtnValue;
   } //makeAtom
 
@@ -69,7 +78,7 @@ namespace MFM {
   {
     UlamValue rtnVal; //static
     rtnVal.clear();
-    rtnVal.setAtomElementTypeIdx(UAtom);
+    rtnVal.setUlamValueTypeIdx(UAtom);
     return rtnVal;
   } //makeAtom overload
 
@@ -102,6 +111,7 @@ namespace MFM {
     assert(len <= MAXBITSPERINT && (s32) len >= 0); //very important!
     rtnVal.clear();
     rtnVal.setUlamValueTypeIdx(utype);
+    rtnVal.setUlamValueEffSelfTypeIdx(utype);
     rtnVal.putData(ATOMFIRSTSTATEBITPOS, len, v); //left-justified
     return rtnVal;
   } //makeImmediateClass
@@ -134,6 +144,7 @@ namespace MFM {
     assert(len <= MAXBITSPERLONG && (s32) len >= 0); //very important!
     rtnVal.clear();
     rtnVal.setUlamValueTypeIdx(utype);
+    rtnVal.setUlamValueEffSelfTypeIdx(utype);
     rtnVal.putDataLong(ATOMFIRSTSTATEBITPOS, len, v); //left-justified
     return rtnVal;
   } //makeImmediateLongClass
@@ -202,6 +213,8 @@ namespace MFM {
     rtnUV.m_uv.m_ptrValue.m_packed = packed;
     rtnUV.m_uv.m_ptrValue.m_targetType = targetType;
     rtnUV.m_uv.m_ptrValue.m_nameid = 0;
+    rtnUV.m_uv.m_ptrValue.m_targetEffSelf = 0;
+    rtnUV.m_uv.m_ptrValue.m_nomore = 0;
     return rtnUV;
   } //makePtr overload
 
@@ -238,14 +251,24 @@ namespace MFM {
      m_uv.m_rawAtom.m_utypeIdx = utype;
   }
 
-  UTI UlamValue::getAtomElementTypeIdx()
+  UTI UlamValue::getUlamValueEffSelfTypeIdx() const
   {
-    return (UTI) getDataFromAtom(0, 16);
+    return m_uv.m_rawAtom.m_effself;
   }
 
-  void UlamValue::setAtomElementTypeIdx(UTI utype)
+  void UlamValue::setUlamValueEffSelfTypeIdx(UTI utype)
   {
-    putData(0, 16, utype);
+     m_uv.m_rawAtom.m_effself = utype;
+  }
+
+  u32 UlamValue::getAtomElementTypeIdx()
+  {
+    return  getDataFromAtom(0, ATOMFIRSTSTATEBITPOS);
+  }
+
+  void UlamValue::setAtomElementTypeIdx(u32 eletypecorr)
+  {
+    putData(0, ATOMFIRSTSTATEBITPOS, eletypecorr);
   }
 
   // for iterating an entire array see CompilerState::assignArrayValues
@@ -326,6 +349,12 @@ namespace MFM {
     return (PACKFIT) m_uv.m_ptrValue.m_packed;
   } //isTargetPacked
 
+  void UlamValue::setTargetPacked(PACKFIT packed)
+  {
+    assert(isPtr());
+    m_uv.m_ptrValue.m_packed = packed;
+  }
+
   void UlamValue::setPtrStorage(STORAGE s)
   {
     assert(isPtr());
@@ -398,6 +427,18 @@ namespace MFM {
     assert(isPtr());
     m_uv.m_ptrValue.m_targetType = type;
   } //setPtrTargetType
+
+    UTI UlamValue::getPtrTargetEffSelfType()
+  {
+    assert(isPtr());
+    return m_uv.m_ptrValue.m_targetEffSelf;
+  } //getPtrTargetType
+
+  void UlamValue::setPtrTargetEffSelfType(UTI type)
+  {
+    assert(isPtr());
+    m_uv.m_ptrValue.m_targetEffSelf = type;
+  } //setPtrTargetEffSelf
 
   u16 UlamValue::getPtrNameId()
   {
@@ -883,6 +924,9 @@ namespace MFM {
 
   UlamValue& UlamValue::operator=(const UlamValue& rhs)
   {
+    m_uv.m_storage.m_effself = rhs.m_uv.m_storage.m_effself;
+    m_uv.m_storage.m_utypeIdx = rhs.m_uv.m_storage.m_utypeIdx;
+
     for(u32 i = 0; i < AtomBitVector::ARRAY_LENGTH; i++)
       {
 	m_uv.m_storage.m_atom[i] = rhs.m_uv.m_storage.m_atom[i];

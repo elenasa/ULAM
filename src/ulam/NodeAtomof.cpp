@@ -139,7 +139,7 @@ namespace MFM {
 	UlamValue selfuvp = m_state.m_currentSelfPtr;
 	UTI ttype = selfuvp.getPtrTargetType();
 	assert(m_state.okUTItoContinue(ttype));
-	if((m_state.getUlamTypeByIndex(ttype)->getUlamClassType() == UC_QUARK))
+	if((m_state.getUlamTypeByIndex(ttype)->getUlamClassType() == UC_QUARK) && !m_state.isReference(ttype))
 	  {
 	    selfuvp = atomuv; //bail for error
 	  }
@@ -172,14 +172,22 @@ namespace MFM {
       {
 	UTI vuti = getOfType();
 	UlamType * vut = m_state.getUlamTypeByIndex(vuti);
+	Symbol * vsym = NULL;
+	m_nodeOf->getSymbolPtr(vsym);
+
 	if(vut->getUlamClassType() == UC_QUARK)
-	  ptr = atomuv; //bail
+	  {
+	    if(m_state.isReference(vsym->getUlamTypeIdx()))
+	      ptr = ((SymbolVariableStack *) vsym)->getAutoPtrForEval(); //t3835
+	    else
+	      {
+		m_state.abortNeedsATest();
+		ptr = atomuv; //bail
+	      }
+	  }
 	else
 	  {
-	  //local variable on the stack; could be array ptr!
-	    Symbol * vsym = NULL;
-	    m_nodeOf->getSymbolPtr(vsym);
-
+	    //local variable on the stack; could be array ptr!
 	    ptr = UlamValue::makePtr(((SymbolVariableStack *) vsym)->getStackFrameSlotIndex(), STACK, auti, m_state.determinePackable(vuti), m_state, 0, vsym->getId()); //id?
 	  }
       }

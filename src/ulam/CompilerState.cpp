@@ -5497,6 +5497,8 @@ namespace MFM {
   {
     UTI debuti = getUlamTypeAsDeref(buti); //t41319 attempts to cast ele to base quarkref
     UTI cuti = fmuvarg.getUlamValueTypeIdx();
+    if(isAtom(cuti))
+      cuti = fmuvarg.getUlamValueEffSelfTypeIdx(); //t41315
     assert(isClassASubclassOf(cuti, debuti));
 
     s32 pos = ATOMFIRSTSTATEBITPOS; //all classes start after type in ulamvalue
@@ -6227,9 +6229,17 @@ namespace MFM {
     return csym->getElementType();
   }
 
-  ELE_TYPE CompilerState::getNextElementType()
+  ELE_TYPE CompilerState::getNextElementType(UTI cuti)
   {
-    return m_elementTypeGenerator.makeNextType();
+    return m_elementTypeGenerator.makeNextType(cuti);
+  }
+
+  UTI CompilerState::lookupClassByElementType(ELE_TYPE ele)
+  {
+    if(ele == EMPTY_ELEMENT_TYPE)
+      return getEmptyElementUTI();
+    assert(ele != UNDEFINED_ELEMENT_TYPE);
+    return m_elementTypeGenerator.findElementTypeClass(ele);
   }
 
   u32 CompilerState::assignClassId(UTI cuti)
@@ -6616,13 +6626,17 @@ namespace MFM {
   {
     assert(block);
     bool rtnb = block->isAClassBlock(); //t3172
-    UTI buti = block->getNodeType();
+    UTI buti = block->getNodeType(); //Int when eval test function (t41315)
+
     if(rtnb && !isClassAStub(buti))
       {
 	if(!okUTItoContinue(buti))
 	  rtnb = true; //HZY classes are not stubs (t41434)
+	else if(buti == Int)
+	  rtnb = false; //middle of test (t41315)
 	else
 	  {
+	    assert(isAClass(buti)); //sanity
 	    bool hasHazyKin = false;
 	    SymbolClass * csym = NULL;
 	    if(alreadyDefinedSymbolClass(buti, csym))

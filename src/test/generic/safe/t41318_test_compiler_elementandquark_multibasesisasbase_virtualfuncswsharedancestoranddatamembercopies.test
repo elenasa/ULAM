@@ -6,8 +6,8 @@
 ## Int Arg: 410 (+ 6 asserts)
 ##
 #!
-Exit status: -11
-Ue_Foo +System { Int m_c4(0);  Int m_a4(0);  +System<> Int test() {  typedef QBase2 QB2;  typedef QBase1 QB1;  Atom a = E4.instanceof cast;  { a QBase2 as cond { QBase2& a;  self m_a4 . a ( )vfunca . = self ( self m_a4 . )print . self ( self m_a4 . 410 cast == )assert . self ( a m_b1 . )assert . } if } E4& e4ref = a cast;  self ( e4ref m_b1 . )assert . self ( e4ref QB2 . m_b1 . )assert . self ( e4ref QBase3 . m_b1 . )assert . self ( e4ref QBaseLast . m_b1 . )assert . self ( e4ref m_b4 . )assert . Atom b = E4.instanceof cast;  QBase2& qb2ref = b cast;  self m_c4 . qb2ref ( )vfunca . = self ( self m_c4 . )print . self ( self m_c4 . 410 cast == )assert . E4& e4bref = b cast;  self ( e4bref m_b1 . )assert . self ( e4bref QB2 . m_b1 . )assert . self ( e4bref QBase3 . m_b1 . )assert . self ( e4bref QBaseLast . m_b1 . )assert . self ( e4bref m_b4 . )assert . 0 cast return } }
+Exit status: 0
+Ue_Foo +System { Int m_c4(410);  Int m_a4(410);  +System<> Int test() {  typedef QBase2 QB2;  typedef QBase1 QB1;  Atom a = E4.instanceof cast;  { a QBase2 as cond { QBase2& a;  self m_a4 . a ( )vfunca . = self ( self m_a4 . )print . self ( self m_a4 . 410 cast == )assert . self ( a m_b1 . )assert . } if } E4& e4ref = a cast;  self ( e4ref m_b1 . )assert . self ( e4ref QB2 . m_b1 . )assert . self ( e4ref QBase3 . m_b1 . )assert . self ( e4ref QBaseLast . m_b1 . )assert . self ( e4ref m_b4 . )assert . Atom b = E4.instanceof cast;  QBase2& qb2ref = b cast;  self m_c4 . qb2ref ( )vfunca . = self ( self m_c4 . )print . self ( self m_c4 . 410 cast == )assert . E4& e4bref = b cast;  self ( e4bref m_b1 . )assert . self ( e4bref QB2 . m_b1 . )assert . self ( e4bref QBase3 . m_b1 . )assert . self ( e4bref QBaseLast . m_b1 . )assert . self ( e4bref m_b4 . )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 Ue_E4 : QBase3 +QBase2 +QBaseLast { Bool m_b4(false);  typedef QBase2 QB2;  :QBase3< Bool m_b3(false); > +QBase2< Bool m_b2(false);  Bits(1) m_bit(0); > +QBaseLast< Bool(7) m_blast(false); > ^QBase1< Bool m_b1(false); > <NOMAIN> }
 Uq_QBase3 : QBase1 { Bool m_b3(false);  :QBase1< Bool m_b1(false); > <NOMAIN> }

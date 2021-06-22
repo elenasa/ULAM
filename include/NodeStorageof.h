@@ -92,6 +92,8 @@ namespace MFM{
 
     virtual UlamValue makeUlamValuePtr() = 0;
 
+    UlamValue evalAtomOfExpr();
+
   private:
 
     UTI m_oftype;

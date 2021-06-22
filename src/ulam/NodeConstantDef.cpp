@@ -6,6 +6,7 @@
 #include "CompilerState.h"
 #include "MapConstantDesc.h"
 #include "NodeTypeDescriptorArray.h"
+#include "Parity2D_4x4.h"
 
 namespace MFM {
 
@@ -1366,8 +1367,8 @@ namespace MFM {
 	  }
 	else if(classtype == UC_ELEMENT)
 	  defaultUV = UlamValue::makeDefaultAtom(scalaruti, m_state);
-	else if(m_state.isAtom(scalaruti))
-	  defaultUV = UlamValue::makeDefaultAtom(scalaruti, m_state);
+	//else if(m_state.isAtom(scalaruti))
+	//  defaultUV = UlamValue::makeDefaultAtom(scalaruti, m_state);
 	else
 	  m_state.abortShouldntGetHere();
 
@@ -1396,17 +1397,57 @@ namespace MFM {
 	      }
 	    else if(classtype == UC_ELEMENT) //(t41230,8,9 t41243)
 	      {
+		itemlen = BITSPERATOM;
 		BV8K elval;
 		bvclass.CopyBV(j * itemlen, 0u, itemlen, elval); //fmpos, topos, len, destbv
 		classUV = UlamValue::makeAtom(scalaruti);
-		classUV.putDataBig(ATOMFIRSTSTATEBITPOS, itemlen, elval);
+		classUV.putDataBig(0u, itemlen, elval); //1st arg was ATOMFIRSTSTATEBITPOS
 	      }
-	    else if(m_state.isAtom(scalaruti)) //(t41483,3)
+	    else if(m_state.isAtom(scalaruti)) //(t41483,4)
 	      {
 		BV8K atval;
 		bvclass.CopyBV(j * itemlen, 0u, itemlen, atval); //fmpos, topos, len, destbv
-		classUV = UlamValue::makeAtom(scalaruti);
+		classUV = UlamValue::makeAtom();
 		classUV.putDataBig(0, itemlen, atval);
+
+		UTI euti = Nouti;
+		u32 elewcorr = classUV.getAtomElementTypeIdx();
+		u32 eletype = 0;
+		AssertBool gotele = Parity2D_4x4::Remove2DParity(elewcorr, eletype);
+		assert(gotele);
+		ELE_TYPE ele = (ELE_TYPE) eletype;
+		if(ele != UNDEFINED_ELEMENT_TYPE)
+		  {
+		    euti = m_state.lookupClassByElementType(ele);
+		    if(euti != Nouti)
+		      {
+			assert(m_state.isAClass(euti));
+			classUV.setUlamValueEffSelfTypeIdx(euti);
+		      }
+		  }
+		else
+		  classUV.setUlamValueEffSelfTypeIdx(m_state.getEmptyElementUTI());
+
+#if 0
+		//do again differently to check, debugggg
+		UTI classuti = Nouti;
+		if(m_nodeExpr->isAList())
+		  {
+		    assert(((NodeList*)m_nodeExpr)->getNodePtr(j)->isACast());
+		    classuti = ((NodeCast *)((NodeList*)m_nodeExpr)->getNodePtr(j))->getCastedType();
+		  }
+		else if(m_nodeExpr->isACast())
+		  {
+		    classuti = ((NodeCast *) m_nodeExpr)->getCastedType();
+		  }
+		else
+		  classuti = m_nodeExpr->getNodeType(); //t41483
+
+		assert(m_state.isAClass(classuti));
+		assert((euti == Nouti) || UlamType::compare(classuti,euti, m_state)==UTIC_SAME);
+		if(euti == Nouti)
+		  classUV.setUlamValueEffSelfTypeIdx(classuti);
+#endif
 	      }
 
 	    m_state.m_constantStack.storeUlamValueAtStackIndex(classUV, baseslot + j);

@@ -966,6 +966,10 @@ namespace MFM {
 	  {
 	    ALT autolocaltype = asym->getAutoLocalType();
 	    UTI auti = asym->getUlamTypeIdx();
+	    bool isatom = m_state.isAtom(auti);
+	    if(isatom)
+	      auti = atomPtr.getPtrTargetEffSelfType(); //t41318
+
 	    if(autolocaltype == ALT_AS) //must be a class
 	      {
 		atomPtr.setPtrTargetType(((SymbolVariableStack *) asym)->getAutoStorageTypeForEval());

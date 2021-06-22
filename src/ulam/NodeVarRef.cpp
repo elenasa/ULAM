@@ -49,8 +49,6 @@ namespace MFM {
   {
     UTI vuti = m_varSymbol->getUlamTypeIdx();
     UlamKeyTypeSignature vkey = m_state.getUlamKeyTypeSignatureByIndex(vuti);
-    //    UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-    //    ULAMTYPE vetyp = vut->getUlamTypeEnum();
 
     if(m_state.isConstantRefType(vuti))
       fp->write(" constant"); //t41242,3
@@ -391,8 +389,10 @@ namespace MFM {
   {
     u32 pos = 0;
     if(m_varSymbol->isDataMember())
-      pos = m_varSymbol->getPosOffset();
-
+      {
+	pos = m_varSymbol->getPosOffset();
+	m_state.abortShouldntGetHere(); //dm are not refs.
+      }
     UlamValue ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + pos, m_varSymbol->getId());
 
     ptr.checkForAbsolutePtr(m_state.m_currentObjPtr);

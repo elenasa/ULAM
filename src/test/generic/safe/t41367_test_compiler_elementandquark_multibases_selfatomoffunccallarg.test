@@ -1,12 +1,10 @@
 ## -*- mode:ulam -*-
-#=t3684_test_compiler_elementandquark_elementatomoffunccallarg
+#=t41367_test_compiler_elementandquark_elementatomoffunccallarg
 ##
 ##  gen code output: (3 asserts)
-##
-##  unevaluable without assuming atoms as elements (c should be false)
 #!
 Exit status: 0
-Ue_A : QW { Unsigned m_int(0u);  :QW< Bool b(true);  Bool c(true);  Bool d(true);  :QBase< Bool m_qb(false); > +System<>> ^QBase< Bool m_qb(false); > ^System<> Int test() {  self ( )behave . 0 cast return } }
+Ue_A : QW { Unsigned m_int(0u);  :QW< Bool b(true);  Bool c(false);  Bool d(true);  :QBase< Bool m_qb(false); > +System<>> ^QBase< Bool m_qb(false); > ^System<> Int test() {  self ( )behave . 0 cast return } }
 Uq_QW : QBase +System { Bool b(false);  Bool c(false);  Bool d(false);  :QBase< Bool m_qb(false); > +System<> <NOMAIN> }
 Uq_QBase { Bool m_qb(false);  <NOMAIN> }
 Uq_System { <NOMAIN> }

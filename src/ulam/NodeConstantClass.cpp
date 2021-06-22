@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include "NodeConstantClass.h"
 #include "CompilerState.h"
+#include "Parity2D_4x4.h"
 
 namespace MFM {
 
@@ -422,28 +423,51 @@ namespace MFM {
   {
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    bool isatom = m_state.isAtom(nuti); //t41483
+    assert(nut->getUlamTypeEnum()==Class || isatom);
 
     //for eval purposes, a transient must fit into atom state bits, like an element
     // any class may be a data member (see NodeVarDeclDM)
     if(nut->isScalar())
       {
-	UlamValue atomUV = UlamValue::makeDefaultAtom(m_constSymbol->getUlamTypeIdx(), m_state);
+	UlamValue atomUV = isatom ? UlamValue::makeAtom() : UlamValue::makeDefaultAtom(m_constSymbol->getUlamTypeIdx(), m_state);
 	BV8K bvclass;
 	AssertBool gotVal = m_constSymbol->getValue(bvclass);
 	u32 len = nut->getBitSize();
 	if(nut->getUlamClassType()==UC_ELEMENT)
 	  {
 	    BV8K bvfix;
-	    len = MAXSTATEBITS;
-	    bvclass.CopyBV(ATOMFIRSTSTATEBITPOS, 0u, len, bvfix);
-	    atomUV.putDataBig(ATOMFIRSTSTATEBITPOS, len, bvfix);
+	    len = BITSPERATOM; //t41487
+	    bvclass.CopyBV(0u, 0u, len, bvfix);
+	    atomUV.putDataBig(0u, len, bvfix);
 	  }
-	else if(m_state.isAtom(nuti)) //support for constant atom (t41483,4)
+	else if(isatom) //support for constant atom (t41483,4)
 	  {
 	    BV8K bvfix;
-	    len = MAXSTATEBITS;
-	    bvclass.CopyBV(ATOMFIRSTSTATEBITPOS, 0u, len, bvfix);
-	    atomUV.putDataBig(ATOMFIRSTSTATEBITPOS, len, bvfix);
+	    len = BITSPERATOM; //MAXSTATEBITS; t41487
+	    bvclass.CopyBV(0u, 0u, len, bvfix);
+	    atomUV.putDataBig(0u, len, bvfix);
+
+	    //borrowed from NodeConstantDef (t41483)
+	    UTI euti = Nouti;
+	    u32 elewcorr = atomUV.getAtomElementTypeIdx();
+	    u32 eletype = 0;
+	    AssertBool gotele = Parity2D_4x4::Remove2DParity(elewcorr, eletype);
+	    assert(gotele);
+	    ELE_TYPE ele = (ELE_TYPE) eletype;
+	    if(ele != UNDEFINED_ELEMENT_TYPE)
+	      {
+		euti = m_state.lookupClassByElementType(ele);
+		if(euti != Nouti)
+		  {
+		    assert(m_state.isAClass(euti));
+		    atomUV.setUlamValueEffSelfTypeIdx(euti);
+		  }
+		else
+		  m_state.abortShouldntGetHere();
+	      }
+	    else
+	      atomUV.setUlamValueEffSelfTypeIdx(m_state.getEmptyElementUTI());
 	  }
 	else
 	  atomUV.putDataBig(ATOMFIRSTSTATEBITPOS, len, bvclass);

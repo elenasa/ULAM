@@ -22,13 +22,13 @@ namespace MFM {
 
   UTI USite::getElementTypeNumber()
   {
-    return m_site.getAtomElementTypeIdx();
+    return m_site.getUlamValueTypeIdx();
   }
 
 
   void USite::setElementTypeNumber(UTI type)
   {
-    m_site.setAtomElementTypeIdx(type);
+    m_site.setUlamValueTypeIdx(type);
   }
 
   void USite::setElementTypeAndDefaults(UTI type, CompilerState& state)

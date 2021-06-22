@@ -1,15 +1,13 @@
 ## -*- mode:ulam -*-
 #=t3255_test_compiler_self
-##      /* gen code output: (interleaved asserts)
+##   gen code output: (interleaved asserts)
 ##	 Bool(3) Arg: 0x7 (true)
 ##	 Bool(3) Arg: 0x7 (true)
 ##	 Bool(3) Arg: 0x0 (false)
-##      */
-##      //note: in eval, last case, uninitialized atom case is wrong!!
-##        unevaluable without assuming atoms as elements
+##
 #!
 Exit status: 1
-Ue_S { System s();  Bool sp(false);  Bool(3) b1(true);  Bool(3) b2(true);  Int test() {  Atom a;  Atom t;  a self cast = { a S as cond { S& a;  self b2 . a ( )func . cast = } if } self s . ( self b2 . )print . self s . ( self b2 . cast )assert . self b1 . self ( a )func . cast = self s . ( self b1 . )print . self s . ( self b1 . cast )assert . self b1 . self ( t )func . cast = self s . ( self b1 . )print . self s . ( self b1 . ! cast )assert . self b2 . cast return } }
+Ue_S { System s();  Bool sp(false);  Bool(3) b1(false);  Bool(3) b2(true);  Int test() {  Atom a;  Atom t;  a self cast = { a S as cond { S& a;  self b2 . a ( )func . cast = } if } self s . ( self b2 . )print . self s . ( self b2 . cast )assert . self b1 . self ( a )func . cast = self s . ( self b1 . )print . self s . ( self b1 . cast )assert . self b1 . self ( t )func . cast = self s . ( self b1 . )print . self s . ( self b1 . ! cast )assert . self b2 . cast return } }
 Uq_System { <NOMAIN> }
 #>S.ulam
  ulam 1;

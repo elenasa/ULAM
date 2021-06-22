@@ -75,7 +75,10 @@ namespace MFM {
     u32 atop = 1;
     atop = m_state.m_funcCallStack.getAbsoluteStackIndexOfSlot(atop);
     if(m_state.isAtom(auti))
-      atomuv = UlamValue::makeAtom(auti);
+      {
+	atomuv = NodeStorageof::evalAtomOfExpr();  //t3286
+	//	  atomuv = UlamValue::makeAtom();
+      }
     else if(aclasstype == UC_ELEMENT)
       atomuv = UlamValue::makeDefaultAtom(auti, m_state);
     else if(aclasstype == UC_QUARK)

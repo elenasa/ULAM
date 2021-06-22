@@ -85,7 +85,18 @@ namespace MFM {
 
     if((fmut->getUlamClassType() == UC_ELEMENT) || m_state.isAtom(valtypidx) || ((fmut->getUlamTypeEnum() == Class) && fmut->isAltRefType()))
       {
-	val.setUlamValueTypeIdx(typidx); //try this (t41484?)
+	if(!m_state.isAtom(valtypidx))
+	  {
+	    UTI dereftypidx = m_state.getUlamTypeAsDeref(valtypidx);
+	    UTI feffself = val.getUlamValueEffSelfTypeIdx();
+	    if(feffself == Nouti)
+	      val.setUlamValueEffSelfTypeIdx(dereftypidx); //for testing, assume ok (e.g. t3754,t3277)
+	    else
+	      brtn = (UlamType::compare(feffself,dereftypidx,m_state)==UTIC_SAME); //sanity (t41487, t41484)
+	  }
+
+	if(brtn)
+	  val.setUlamValueTypeIdx(typidx); //try this (t41484?, t3255)
       }
     else
       brtn = false;

@@ -53,9 +53,9 @@ namespace MFM{
     union UV {
 
       struct RawAtom {
-	u16 m_short;
-	UTI m_utypeIdx; //corresponds to AtomBitVector bits 0-15
-	u8  m_bits[8];  //oops! was 10, (not the class data)
+	u16 m_effself;
+	UTI m_utypeIdx; //ulam UTI
+	u8  m_bits[12];
       } m_rawAtom;
 
       struct PtrValue {
@@ -67,11 +67,15 @@ namespace MFM{
 	u8  m_packed; //PACKFIT
 	UTI m_targetType;
 	u16 m_nameid; //for code gen
+	UTI m_targetEffSelf;
+	u16 m_nomore;
       } m_ptrValue;
 
       struct Storage {
+	u16 m_effself;
+	UTI m_utypeIdx;
 	//AtomBitVector m_atom;
-	//0-15 UTI, 16-24 errcorr. 25-96 designed by element data members
+	//0-15 ElementType, 16-24 errcorr. 25-96 designed by element data members
 	u32 m_atom[AtomBitVector::ARRAY_LENGTH];
       } m_storage;
 
@@ -122,15 +126,21 @@ namespace MFM{
 
     void setUlamValueTypeIdx(UTI utype);
 
-    UTI  getAtomElementTypeIdx();
+    UTI  getUlamValueEffSelfTypeIdx() const;
 
-    void setAtomElementTypeIdx(UTI utype);
+    void setUlamValueEffSelfTypeIdx(UTI utype);
+
+    u32 getAtomElementTypeIdx();
+
+    void setAtomElementTypeIdx(u32 eletypecorr);
 
     bool isPtr() const;
 
     bool isPtrAbs() const;
 
     PACKFIT isTargetPacked(); // Ptr only
+
+    void setTargetPacked(PACKFIT packed); // Ptr only
 
     UlamValue getValAt(u32 offset, CompilerState& state) const; // Ptr only, arrays
 
@@ -153,6 +163,10 @@ namespace MFM{
     UTI getPtrTargetType();
 
     void setPtrTargetType(UTI type);
+
+    UTI getPtrTargetEffSelfType();
+
+    void setPtrTargetEffSelfType(UTI type);
 
     u16 getPtrNameId();
 

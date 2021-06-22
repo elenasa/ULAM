@@ -732,8 +732,7 @@ namespace MFM {
 			len = m_state.getTotalBitSize(nuti);
 			BV8K bvtmp;
 			uv.getDataBig(startpos, len, bvtmp);
-			uv = UlamValue::makeAtom();
-			uv.setAtomElementTypeIdx(nuti); //also when a ref
+			uv = UlamValue::makeAtom(nuti);
 
 			if(m_state.isAClass(nuti))
 			  uv.putDataBig(ATOMFIRSTSTATEBITPOS, len, bvtmp); //t3587

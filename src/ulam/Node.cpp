@@ -257,6 +257,11 @@ namespace MFM {
     return false;
   }
 
+  bool Node::isACast()
+  {
+    return false;
+  }
+
   bool Node::isAConstant()
   {
     return false;

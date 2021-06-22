@@ -75,6 +75,12 @@ namespace MFM {
     return m_castToBe;
   }
 
+  UTI NodeCast::getCastedType()
+  {
+    assert(m_node);
+    return m_node->getNodeType();
+  }
+
   void NodeCast::setExplicitCast()
   {
     m_explicit = true;
@@ -83,6 +89,11 @@ namespace MFM {
   bool NodeCast::isExplicitCast()
   {
     return m_explicit;
+  }
+
+  bool NodeCast::isACast()
+  {
+    return true;
   }
 
   bool NodeCast::isAConstant()
@@ -676,6 +687,24 @@ namespace MFM {
 			//else (not a class)
 		      }
 		  }
+		else if(m_state.isAtom(nodeType)) //t41315,8
+		  {
+		    UTI effself = uv.getUlamValueEffSelfTypeIdx();
+		    ruvPtr.setPtrTargetType(tobeType);
+		    ruvPtr.setPtrTargetEffSelfType(effself);
+
+		    m_state.m_currentAutoObjPtr = ruvPtr; //a copy
+		    m_state.m_currentAutoStorageType = UAtom; //effself?;
+
+		    u32 baserelpos = 0;
+		    if(m_state.getABaseClassRelativePositionInAClass(effself, dereftobe, baserelpos))
+		      {
+			u32 adjust = m_state.isAtom(ttype) ? ATOMFIRSTSTATEBITPOS : 0u; //t41005
+			ruvPtr.setPtrPos(ruvPtr.getPtrPos() + baserelpos + adjust );
+			ruvPtr.setPtrLen(m_state.getBaseClassBitSize(dereftobe));
+		      }
+		  }
+		//else (not a class)
 	      }
 	  }
       }
