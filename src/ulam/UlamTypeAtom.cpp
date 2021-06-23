@@ -77,11 +77,8 @@ namespace MFM {
     AssertBool isScalars = (fmut->isScalar() && isScalar());
     assert(isScalars);
 
-    // what change is to be made ????
     // atom type vs. class type
-    // how can it be both in an UlamValue?
-    // what of its contents?
-    // val = UlamValue::makeAtom(valtypidx);
+    // how can it be both in an UlamValue? new effself field (ulam-5)
 
     if((fmut->getUlamClassType() == UC_ELEMENT) || m_state.isAtom(valtypidx) || ((fmut->getUlamTypeEnum() == Class) && fmut->isAltRefType()))
       {

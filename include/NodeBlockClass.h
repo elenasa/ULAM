@@ -222,8 +222,6 @@ namespace MFM{
 
     virtual void generateBuiltinConstantClassOrArrayInitializationFunction(File * fp, bool declOnly);
 
-    void initElementDefaultsForEval(UlamValue& uv, UTI cuti);
-
     NodeBlockFunctionDefinition * findTestFunctionNode();
 
     NodeBlockFunctionDefinition * findCustomArrayLengthofFunctionNode();

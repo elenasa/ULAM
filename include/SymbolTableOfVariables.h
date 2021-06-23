@@ -67,8 +67,6 @@ namespace MFM{
 
     s32 getMaxVariableSymbolsBitSize(std::set<UTI>& seensetref);  //for quark union
 
-    void initializeElementDefaultsForEval(UlamValue& uvsite, UTI cuti);
-
     //void packBitsForTableOfVariableDataMembers();  //after type labeling, before code gen
 
     void genModelParameterImmediateDefinitionsForTableOfVariableDataMembers(File *fp);

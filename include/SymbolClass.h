@@ -177,8 +177,6 @@ namespace MFM{
 
     bool assignRegistryNumber(u32 n); //ulam-4
     u32 getRegistryNumber(); //ulam-4, assign when UTI is ok ulam-5
-    bool assignElementType(ELE_TYPE n); //ulam-4
-    bool assignEmptyElementType(); //ulam-4
     ELE_TYPE getElementType(); //ulam-4
 
     virtual void generateCode(FileManager * fm);
@@ -258,6 +256,9 @@ namespace MFM{
 
     bool resolveHasMappedUTI(UTI auti, UTI& mappedUTI);
     bool resolveHasMappedUTI(UTI auti); //helps w debugging
+
+    bool assignElementType(ELE_TYPE n); //ulam-4
+    bool assignEmptyElementType(); //ulam-4
 
     void generateHeaderPreamble(File * fp);
     void genIfndefForHeaderFile(File * fp);

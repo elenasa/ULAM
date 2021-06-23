@@ -1366,8 +1366,6 @@ namespace MFM {
 	  }
 	else if(classtype == UC_ELEMENT)
 	  defaultUV = UlamValue::makeDefaultAtom(scalaruti, m_state);
-	//else if(m_state.isAtom(scalaruti))
-	//  defaultUV = UlamValue::makeDefaultAtom(scalaruti, m_state);
 	else
 	  m_state.abortShouldntGetHere();
 
@@ -1426,28 +1424,9 @@ namespace MFM {
 		  }
 		else
 		  classUV.setUlamValueEffSelfTypeIdx(m_state.getEmptyElementUTI());
-
-#if 0
-		//do again differently to check, debugggg
-		UTI classuti = Nouti;
-		if(m_nodeExpr->isAList())
-		  {
-		    assert(((NodeList*)m_nodeExpr)->getNodePtr(j)->isACast());
-		    classuti = ((NodeCast *)((NodeList*)m_nodeExpr)->getNodePtr(j))->getCastedType();
-		  }
-		else if(m_nodeExpr->isACast())
-		  {
-		    classuti = ((NodeCast *) m_nodeExpr)->getCastedType();
-		  }
-		else
-		  classuti = m_nodeExpr->getNodeType(); //t41483
-
-		assert(m_state.isAClass(classuti));
-		assert((euti == Nouti) || UlamType::compare(classuti,euti, m_state)==UTIC_SAME);
-		if(euti == Nouti)
-		  classUV.setUlamValueEffSelfTypeIdx(classuti);
-#endif
 	      }
+	    else
+	      m_state.abortNotImplementedYet(); //transient array?
 
 	    m_state.m_constantStack.storeUlamValueAtStackIndex(classUV, baseslot + j);
 	  }

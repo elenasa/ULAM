@@ -267,53 +267,6 @@ namespace MFM {
   }
 #endif
 
-  void SymbolTableOfVariables::initializeElementDefaultsForEval(UlamValue& uvsite, UTI startuti)
-  {
-    if(m_idToSymbolPtr.empty()) return;
-
-    u32 startpos = ATOMFIRSTSTATEBITPOS; //use relative offsets
-
-    UTI buti = m_state.getCompileThisIdx(); //us
-    if(UlamType::compare(buti, startuti, m_state) != UTIC_SAME)
-      {
-	u32 baserelpos = 0;
-	if(m_state.getABaseClassRelativePositionInAClass(startuti, buti, baserelpos))
-	  startpos += baserelpos;
-	//else a data member (eg t41304)
-      }
-
-    std::map<u32, Symbol* >::iterator it = m_idToSymbolPtr.begin();
-    while(it != m_idToSymbolPtr.end())
-      {
-	Symbol * sym = it->second;
-	UTI suti = sym->getUlamTypeIdx();
-	UlamType * sut = m_state.getUlamTypeByIndex(suti);
-
-	//skip quarkunion initializations (o.w. misleading, which value? e.g. t3782)
-	if(sym->isDataMember() && variableSymbolWithCountableSize(sym) && !m_state.isClassAQuarkUnion(suti))
-	  {
-	    s32 len = sut->getTotalBitSize(); //include arrays (e.g. t3512)
-	    assert(sym->isPosOffsetReliable());
-	    u32 pos = sym->getPosOffset();
-
-	    //updates the UV at offset with the default of sym;
-	    // support initialized non-class arrays
-	    if(((SymbolVariableDataMember *) sym)->hasInitValue())
-	      {
-		assert(len <= MAXSTATEBITS);
-		BV8K dval;
-		if(((SymbolVariableDataMember *) sym)->getInitValue(dval))
-		  {
-		    uvsite.putDataBig(pos + startpos, len, dval); //t3772, t3776
-		  }
-	      }
-	    //else nothing to do
-	  } //countable
-	it++;
-      } //while
-    return;
-  } //initializeElementDefaultsForEval
-
   void SymbolTableOfVariables::genModelParameterImmediateDefinitionsForTableOfVariableDataMembers(File *fp)
   {
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();

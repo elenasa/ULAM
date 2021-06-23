@@ -2138,68 +2138,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_functionST.linkToParentNodesAcrossTableOfFunctions(this); //all the function defs (missing for full instantiation?)
   }
 
-  void NodeBlockClass::initElementDefaultsForEval(UlamValue& uv, UTI cuti)
-  {
-    UTI buti = getNodeType();
-
-    UlamType * but = m_state.getUlamTypeByIndex(buti);
-    if((but->getUlamClassType() == UC_TRANSIENT) && (but->getTotalBitSize() > MAXSTATEBITS))
-      return; //cannot do eval on a huge transient
-
-    //ulam-5 data members precede bases; all bases are shared
-    m_ST.initializeElementDefaultsForEval(uv, cuti);
-
-    //ulam-5 shared bases come after all the base class data members
-    if(UlamType::compare(cuti, buti, m_state) != UTIC_SAME)
-      return;
-
-    //ulam-5 supports multiple base classes; superclass optional
-    SymbolClass * csym = NULL;
-    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(buti, csym);
-    assert(isDefined);
-
-    u32 basecount = csym->getBaseClassCount() + 1; //include super
-    u32 i = 0;
-    while(i < basecount)
-      {
-	UTI baseuti = csym->getBaseClass(i);
-	assert(baseuti != Hzy);
-	if((baseuti != Nouti)) // && !csym->isDirectSharedBase(i))
-	  {
-	    NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
-	    assert(basecblock);
-	    m_state.pushClassContext(baseuti, basecblock, basecblock, false, NULL);
-	    basecblock->initElementDefaultsForEval(uv, cuti);
-	    m_state.popClassContext(); //restore
-	  }
-	i++;
-      } //end while
-
-    //ulam-5 supports shared base classes;
-    u32 shbasecount = csym->getSharedBaseClassCount();
-    u32 j = 0;
-    while(j < shbasecount)
-      {
-	UTI baseuti = csym->getSharedBaseClass(j);
-	assert(baseuti != Hzy);
-	if(baseuti != Nouti)
-	  {
-	    s32 bitem = csym->isABaseClassItem(baseuti);
-	    if(bitem < 0)
-	      {
-		//not a direct shared base
-		NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(j);
-		assert(shbasecblock);
-		m_state.pushClassContext(baseuti, shbasecblock, shbasecblock, false, NULL);
-		shbasecblock->initElementDefaultsForEval(uv, cuti);
-		m_state.popClassContext(); //restore
-	      }
-	  }
-	j++;
-      } //end while
-    return;
-  } //initElementDefaultsForEval
-
   //don't set nextNode since it'll get deleted with program.
   NodeBlockFunctionDefinition * NodeBlockClass::findTestFunctionNode()
   {

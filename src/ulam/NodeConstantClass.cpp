@@ -430,47 +430,32 @@ namespace MFM {
     // any class may be a data member (see NodeVarDeclDM)
     if(nut->isScalar())
       {
-	UlamValue atomUV = isatom ? UlamValue::makeAtom() : UlamValue::makeDefaultAtom(m_constSymbol->getUlamTypeIdx(), m_state);
 	BV8K bvclass;
 	AssertBool gotVal = m_constSymbol->getValue(bvclass);
 	u32 len = nut->getBitSize();
-	if(nut->getUlamClassType()==UC_ELEMENT)
-	  {
-	    BV8K bvfix;
-	    len = BITSPERATOM; //t41487
-	    bvclass.CopyBV(0u, 0u, len, bvfix);
-	    atomUV.putDataBig(0u, len, bvfix);
-	  }
-	else if(isatom) //support for constant atom (t41483,4)
-	  {
-	    BV8K bvfix;
-	    len = BITSPERATOM; //MAXSTATEBITS; t41487
-	    bvclass.CopyBV(0u, 0u, len, bvfix);
-	    atomUV.putDataBig(0u, len, bvfix);
+	UTI euti = Nouti;
 
-	    //borrowed from NodeConstantDef (t41483)
-	    UTI euti = Nouti;
-	    u32 elewcorr = atomUV.getAtomElementTypeIdx();
+	if(isatom)
+	  {
+	    u32 elewcorr = bvclass.Read(0u, ATOMFIRSTSTATEBITPOS);
 	    u32 eletype = 0;
 	    AssertBool gotele = Parity2D_4x4::Remove2DParity(elewcorr, eletype);
 	    assert(gotele);
 	    ELE_TYPE ele = (ELE_TYPE) eletype;
-	    if(ele != UNDEFINED_ELEMENT_TYPE)
-	      {
-		euti = m_state.lookupClassByElementType(ele);
-		if(euti != Nouti)
-		  {
-		    assert(m_state.isAClass(euti));
-		    atomUV.setUlamValueEffSelfTypeIdx(euti);
-		  }
-		else
-		  m_state.abortShouldntGetHere();
-	      }
-	    else
-	      atomUV.setUlamValueEffSelfTypeIdx(m_state.getEmptyElementUTI());
+	    euti = (ele != UNDEFINED_ELEMENT_TYPE) ? m_state.lookupClassByElementType(ele) : m_state.getEmptyElementUTI();
+	    assert(m_state.isAClass(euti));
 	  }
 	else
-	  atomUV.putDataBig(ATOMFIRSTSTATEBITPOS, len, bvclass);
+	  euti = m_constSymbol->getUlamTypeIdx();
+
+	UlamValue atomUV = UlamValue::makeDefaultAtom(euti, m_state);
+	if((nut->getUlamClassType()==UC_ELEMENT) || isatom) //support for constant atom (t41483,4)
+	  {
+	    len = BITSPERATOM; //t41487
+	    atomUV.putDataBig(0u, len, bvclass);
+	  }
+	else
+	  atomUV.putDataBig(ATOMFIRSTSTATEBITPOS, len, bvclass); //other classes skip elementtype field
 
 	m_state.m_constantStack.storeUlamValueInSlot(atomUV, ((SymbolConstantValue *) m_constSymbol)->getConstantStackFrameAbsoluteSlotIndex());
       } //not scalar

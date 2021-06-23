@@ -44,33 +44,39 @@ namespace MFM {
     putData(BITSPERATOM - len, len, v); //starts from end, for 32 bit boundary case
   } //init
 
-  UlamValue UlamValue::makeDefaultAtom(UTI elementType, CompilerState& state)
+  UlamValue UlamValue::makeDefaultAtom(UTI classType, CompilerState& state)
   {
     UlamValue rtnValue = UlamValue::makeAtom();
-    rtnValue.setUlamValueTypeIdx(elementType);
+    rtnValue.setUlamValueTypeIdx(classType);
 
-    if(state.isAtom(elementType))
-      {
-	rtnValue.setUlamValueEffSelfTypeIdx(state.getEmptyElementUTI());
-	return rtnValue; //support for constant atoms (t41483,4)
-      }
-    //else
-    rtnValue.setUlamValueEffSelfTypeIdx(elementType);
+    if(state.isAtom(classType))
+      classType = state.getEmptyElementUTI(); //support for constant atoms (t41483,4)
 
-    SymbolClass * csym = NULL;
-    AssertBool isDefined = state.alreadyDefinedSymbolClass(elementType, csym);
-    assert(isDefined);
-    NodeBlockClass * cblock = csym->getClassBlockNode();
-    assert(cblock);
-    cblock->initElementDefaultsForEval(rtnValue, elementType);
+    rtnValue.setUlamValueEffSelfTypeIdx(classType);
+    UlamType * ut = state.getUlamTypeByIndex(classType);
+    ULAMCLASSTYPE uct = ut->getUlamClassType();
+
+    u32 pos = uct == UC_ELEMENT ? 0u : ATOMFIRSTSTATEBITPOS;
+    u32 len = uct == UC_ELEMENT ? BITSPERATOM : ut->getTotalBitSize();
+    if((uct == UC_TRANSIENT) && (len > MAXSTATEBITS))
+      return rtnValue; //too big to initialize for eval (t3714)
+
+    BV8K defaultbv;
+    AssertBool gotDefault = state.getDefaultClassValue(classType,defaultbv);
+    assert(gotDefault);
+
+    rtnValue.putDataBig(pos, len, defaultbv);
     return rtnValue;
   } //makeDefaultAtom
 
-  UlamValue UlamValue::makeAtom(UTI elementType)
+  UlamValue UlamValue::makeAtom(UTI classType)
   {
     UlamValue rtnValue = UlamValue::makeAtom();
-    rtnValue.setUlamValueTypeIdx(elementType);
-    rtnValue.setUlamValueEffSelfTypeIdx(elementType);
+    if(classType != UAtom)
+      {
+	rtnValue.setUlamValueTypeIdx(classType);
+	rtnValue.setUlamValueEffSelfTypeIdx(classType);
+      }
     return rtnValue;
   } //makeAtom
 
@@ -78,7 +84,7 @@ namespace MFM {
   {
     UlamValue rtnVal; //static
     rtnVal.clear();
-    rtnVal.setUlamValueTypeIdx(UAtom);
+    rtnVal.setUlamValueTypeIdx(UAtom); //dont have Empty UTI for effself, up to caller
     return rtnVal;
   } //makeAtom overload
 

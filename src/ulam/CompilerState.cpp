@@ -5303,7 +5303,12 @@ namespace MFM {
 
     //handle UAtom assignment as a singleton (not array values)
     if(ruv.isPtr())
-      return assignArrayValues(lptr, ruv);
+      {
+	if(ruv.getPtrTargetType() != UAtom)
+	  return assignArrayValues(lptr, ruv);
+	else
+	  return assignValuePtr(lptr, ruv); //t41483
+      }
 
     //r is data (includes packed arrays), store it into where lptr is pointing
     assert((UlamType::compareForUlamValueAssignment(lptr.getPtrTargetType(), ruv.getUlamValueTypeIdx(), *this) == UTIC_SAME) || (UlamType::compareForUlamValueAssignment(lptr.getPtrTargetType(), UAtom, *this) == UTIC_SAME) || (UlamType::compareForUlamValueAssignment(ruv.getUlamValueTypeIdx(), UAtom, *this) == UTIC_SAME));
