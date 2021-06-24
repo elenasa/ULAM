@@ -2104,7 +2104,7 @@ namespace MFM {
 	UVPass cuvpass = uvpass;
 	if(isCurrentObjectsContainingAConstantClass() >= 0)
 	  {
-	    isConstantClass = true; //t41271,2
+	    isConstantClass = true; //t41271,2; includes Atoms
 	    genCodeReadFromAConstantClassIntoATmpVar(fp, cuvpass); //fixes strings and element types
 
 	    UTI cuvuti = cuvpass.getPassTargetType();
@@ -2135,7 +2135,11 @@ namespace MFM {
 	  {
 	    genConstantArrayMangledName(fp); //primitive constant array
 	  }
-	fp->write(", 0u, NULL"); //effective self for arrays is NULL
+	if(vetyp == UAtom)
+	  fp->write(", 0u"); //t41492
+	else
+	  fp->write(", 0u, NULL"); //effective self for arrays is NULL
+
 	fp->write(", uc"); //non-reference since constant
 	fp->write(");"); GCNL;
 	return;

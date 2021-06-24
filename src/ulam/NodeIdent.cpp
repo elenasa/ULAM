@@ -864,27 +864,7 @@ namespace MFM {
       return ((SymbolVariableStack *) m_varSymbol)->getAutoPtrForEval(); //haha! we're done.
 
     UlamValue ptr;
-#if 0
-
-    //t3686???
-    UTI objclass = m_state.m_currentObjPtr.getPtrTargetType();
-    UTI vuti = m_varSymbol->getUlamTypeIdx();
-    u32 relposofbase = 0;
-    if(	m_state.getABaseClassRelativePositionInAClass(objclass, vuti, relposofbase))
-      {
-	ptr = ((SymbolVariableStack *) m_varSymbol)->getAutoPtrForEval();
-	u32 pos = ptr.getPtrPos();
-	ptr.setPtrPos(pos+relposofbase);
-	//ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + relposofbase, m_varSymbol->getId());
-	s32 len = m_state.getTotalBitSize(vuti);
-	ptr.setPtrLen(len);
-
-	ptr.checkForAbsolutePtr(m_state.m_currentObjPtr); //t3810
-      }
-    else
-#endif
-
-      if(m_varSymbol->isDataMember())
+    if(m_varSymbol->isDataMember())
       {
 	UTI objclass = m_state.m_currentObjPtr.getPtrTargetType();
 	UTI dmclass = m_varSymbol->getDataMemberClass();

@@ -170,7 +170,13 @@ namespace MFM {
 	      }
 	    else if(letyp == UAtom)
 	      {
-		m_state.abortNeedsATest();
+		//overload operator[] supercedes custom array (t41492)
+		if(NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode(thisparentnode))
+		  {
+		    m_state.setGoAgain();
+		    delete this; //suicide is painless..
+		    return Hzy;
+		  }
 	      }
 	    else
 	      {

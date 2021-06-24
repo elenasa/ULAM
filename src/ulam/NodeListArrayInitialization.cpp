@@ -342,6 +342,7 @@ namespace MFM{
     return true;
   } //buildArrayItemInitialValue
 
+  //given bvtmp has arraysize copies of default class value;
   bool NodeListArrayInitialization::buildClassArrayValueInitialization(BV8K& bvtmp)
   {
     UTI nuti = Node::getNodeType();
@@ -364,13 +365,6 @@ namespace MFM{
 	rtnok &= buildClassArrayItemInitialValue(i, i, bvtmp); //yikes! (was |=) (t41185) all or none
 	if(!rtnok)
 	  break;
-      }
-
-    //fill in default class if nothing provided for a non-empty array
-    if((n == 0) && (arraysize > 0))
-      {
-	rtnok = m_state.getDefaultClassValue(nuti, bvtmp); //uses scalar uti
-	n = 1; //ready to fall thru and propagate as needed
       }
 
     if(rtnok)
@@ -400,16 +394,15 @@ namespace MFM{
     UTI scalaruti = m_state.getUlamTypeAsScalar(nuti);
     UlamType * scalarut = m_state.getUlamTypeByIndex(scalaruti);
     u32 itemlen = scalarut->getSizeofUlamType();
-    u32 adjust = 0; //(classtype == UC_ELEMENT ? ATOMFIRSTSTATEBITPOS : 0);
 
     BV8K bvclass;
-    bvtmp.CopyBV(pos * itemlen + adjust, 0, itemlen - adjust, bvclass); //zero-based item
+    bvtmp.CopyBV(pos * itemlen, 0, itemlen, bvclass); //zero-based item
     if(m_nodes[n]->isAConstantClass())
       {
 	BV8K bvmask;
 	if(((NodeConstantClass *) m_nodes[n])->initDataMembersConstantValue(bvclass, bvmask)) //at pos 0
 	  {
-	    bvclass.CopyBV(0, pos * itemlen + adjust, itemlen - adjust, bvtmp); //frompos, topos, len, destBV
+	    bvclass.CopyBV(0, pos * itemlen, itemlen, bvtmp); //frompos, topos, len, destBV
 	    rtnb = true;
 	  }
       }
@@ -418,7 +411,7 @@ namespace MFM{
 	BV8K bvmask;
 	if(((NodeListClassInit *) m_nodes[n])->initDataMembersConstantValue(bvclass, bvmask)) //at pos 0
 	  {
-	    bvclass.CopyBV(0, pos * itemlen + adjust, itemlen - adjust, bvtmp); //frompos, topos, len, destBV
+	    bvclass.CopyBV(0, pos * itemlen, itemlen, bvtmp); //frompos, topos, len, destBV
 	    rtnb = true;
 	  }
       }

@@ -1010,7 +1010,7 @@ namespace MFM {
 		m_state.getDefaultAsArray(scalarut->getSizeofUlamType(), nut->getArraySize(), 0, bvclass, bvtmp); //t41179
 	      }
 
-	    if(((NodeList *) m_nodeExpr)->buildArrayValueInitialization(bvtmp))
+	    if(((NodeList *) m_nodeExpr)->buildArrayValueInitialization(bvtmp)) //t41492 redo
 	      brtn = true;
 	  }
 	//else no good (error/t41181)
