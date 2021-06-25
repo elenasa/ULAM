@@ -5183,60 +5183,76 @@ namespace MFM {
 
   UlamValue CompilerState::getPtrTarget(UlamValue ptr)
   {
-    assert(ptr.isPtr());
-    if(ptr.isPtrAbs())
-      return getPtrTargetFromAbsoluteIndex(ptr); //short-circuit
+    s32 cnt = 0; //no more than MAX times around
+    if(ptr.getPtrStorage() == EVALRETURN)
+      return getPtrTargetOnce(ptr);
+    return getPtrTarget(ptr, ptr.isPtrAbs(), false, cnt); //to value
+  }
 
-    //slot + storage
-    UlamValue valAtIdx;
-    switch(ptr.getPtrStorage())
-      {
-      case STACK:
-	valAtIdx = m_funcCallStack.loadUlamValueFromSlot(ptr.getPtrSlotIndex());
-	break;
-      case EVALRETURN:
-	valAtIdx = m_nodeEvalStack.loadUlamValueFromSlot(ptr.getPtrSlotIndex());
-	break;
-      case EVENTWINDOW:
-	valAtIdx = m_eventWindow.loadAtomFromSite(ptr.getPtrSlotIndex());
-	break;
-      case CNSTSTACK:
-	valAtIdx = m_constantStack.loadUlamValueFromStackIndex(ptr.getPtrSlotIndex());
-	break;
-      default:
-	abortUndefinedCallStack(); //error!
-	break;
-      };
-    return valAtIdx; //return as-is
-  } //getPtrTarget
-
-  UlamValue CompilerState::getPtrTargetFromAbsoluteIndex(UlamValue ptr)
+  UlamValue CompilerState::getPtrTargetOnce(UlamValue ptr)
   {
-    assert(ptr.isPtrAbs());
+    s32 cnt = PTR_LOOP_MAX; //no more than MAX times around
+    return getPtrTarget(ptr, ptr.isPtrAbs(), false, cnt); //to value
+  }
+
+  UlamValue CompilerState::getPtrTargetLastPtr(UlamValue ptr)
+  {
+    s32 cnt = 0; //no more than MAX times around
+    return getPtrTarget(ptr, ptr.isPtrAbs(), true, cnt); //last ptr in chain
+  }
+
+  UlamValue CompilerState::getPtrTarget(UlamValue ptr, bool isAbsolute, bool ptrOnly, s32& cntref)
+  {
+    if(cntref++ > PTR_LOOP_MAX)
+      return ptr; //abortNotSupported();
+
+    if(!ptrOnly && !ptr.isPtr())
+      return ptr;
 
     //slot + storage
     UlamValue valAtIdx;
     switch(ptr.getPtrStorage())
       {
       case STACK:
-	valAtIdx = m_funcCallStack.loadUlamValueFromStackIndex(ptr.getPtrSlotIndex());
+	{
+	  if(isAbsolute)
+	    valAtIdx = m_funcCallStack.loadUlamValueFromStackIndex(ptr.getPtrSlotIndex());
+	  else
+	    valAtIdx = m_funcCallStack.loadUlamValueFromSlot(ptr.getPtrSlotIndex());
+	}
 	break;
       case EVALRETURN:
-	valAtIdx = m_nodeEvalStack.loadUlamValueFromStackIndex(ptr.getPtrSlotIndex());
+	{
+	  if(isAbsolute)
+	    valAtIdx = m_nodeEvalStack.loadUlamValueFromStackIndex(ptr.getPtrSlotIndex());
+	  else
+	    valAtIdx = m_nodeEvalStack.loadUlamValueFromSlot(ptr.getPtrSlotIndex());
+	}
 	break;
       case EVENTWINDOW:
-	abortShouldntGetHere();
-	valAtIdx = m_eventWindow.loadAtomFromSite(ptr.getPtrSlotIndex()); //?
+	{
+	  if(isAbsolute)
+	    {
+	      abortShouldntGetHere();
+	      valAtIdx = m_eventWindow.loadAtomFromSite(ptr.getPtrSlotIndex()); //?
+	    }
+	  else
+	    valAtIdx = m_eventWindow.loadAtomFromSite(ptr.getPtrSlotIndex());
+	}
 	break;
       case CNSTSTACK:
-	valAtIdx = m_constantStack.loadUlamValueFromStackIndex(ptr.getPtrSlotIndex());
+	valAtIdx = m_constantStack.loadUlamValueFromStackIndex(ptr.getPtrSlotIndex()); //same
 	break;
       default:
 	abortUndefinedCallStack(); //error!
 	break;
       };
-    return valAtIdx; //return as-is
-  } //getPtrTargetFromAbsoluteIndex
+
+    if(ptrOnly && !valAtIdx.isPtr())
+      return ptr;
+
+    return getPtrTarget(valAtIdx, valAtIdx.isPtrAbs(), ptrOnly, cntref); //return as-is
+  } //getPtrTarget (recursive helper)
 
   bool CompilerState::isLocalUnreturnableReferenceForEval(UlamValue ptr)
   {
@@ -5300,30 +5316,32 @@ namespace MFM {
   void CompilerState::assignValue(UlamValue lptr, UlamValue ruv)
   {
     assert(lptr.isPtr());
+    //UlamValue llptr = getPtrTargetLastPtr(lptr);
+    UlamValue llptr = lptr;
 
     //handle UAtom assignment as a singleton (not array values)
     if(ruv.isPtr())
       {
 	if(ruv.getPtrTargetType() != UAtom)
-	  return assignArrayValues(lptr, ruv);
+	  return assignArrayValues(llptr, ruv);
 	else
-	  return assignValuePtr(lptr, ruv); //t41483
+	  return assignValuePtr(llptr, ruv); //t41483
       }
 
     //r is data (includes packed arrays), store it into where lptr is pointing
-    assert((UlamType::compareForUlamValueAssignment(lptr.getPtrTargetType(), ruv.getUlamValueTypeIdx(), *this) == UTIC_SAME) || (UlamType::compareForUlamValueAssignment(lptr.getPtrTargetType(), UAtom, *this) == UTIC_SAME) || (UlamType::compareForUlamValueAssignment(ruv.getUlamValueTypeIdx(), UAtom, *this) == UTIC_SAME));
+    assert((UlamType::compareForUlamValueAssignment(llptr.getPtrTargetType(), ruv.getUlamValueTypeIdx(), *this) == UTIC_SAME) || (UlamType::compareForUlamValueAssignment(llptr.getPtrTargetType(), UAtom, *this) == UTIC_SAME) || (UlamType::compareForUlamValueAssignment(ruv.getUlamValueTypeIdx(), UAtom, *this) == UTIC_SAME));
 
-    STORAGE place = lptr.getPtrStorage();
+    STORAGE place = llptr.getPtrStorage();
     switch(place)
       {
       case STACK:
-	m_funcCallStack.assignUlamValue(lptr, ruv, *this);
+	m_funcCallStack.assignUlamValue(llptr, ruv, *this);
 	break;
       case EVALRETURN:
-	m_nodeEvalStack.assignUlamValue(lptr, ruv, *this);
+	m_nodeEvalStack.assignUlamValue(llptr, ruv, *this);
 	break;
       case EVENTWINDOW:
-	m_eventWindow.assignUlamValue(lptr, ruv);
+	m_eventWindow.assignUlamValue(llptr, ruv);
 	break;
       case CNSTSTACK:
       default:

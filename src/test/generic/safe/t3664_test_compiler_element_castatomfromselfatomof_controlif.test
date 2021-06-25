@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3664_test_compiler_element_castatomfromselfatomof_controlif
 #!
-Exit status: -11
+Exit status: 0
 Ue_Foo : QPerc { :QPerc< Bool bb(true); > Int test() {  self bb . true = { self bb . cond Atom a = self.atomof cast;  if } Atom a = self.atomof cast;  0 cast return } }
 Uq_QPerc { Bool bb(false);  <NOMAIN> }
 ##

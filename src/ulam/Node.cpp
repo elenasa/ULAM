@@ -692,8 +692,8 @@ namespace MFM {
     // save in "uc" slot, below returning answer (if Void??? - 0?)
     s32 slots = m_state.slotsNeeded(getNodeType());
 
-    //where to put the return value..'return' statement uses STACK
-    UlamValue rtnPtr = UlamValue::makePtr(-slots - 1, STACK, rtnUVtype, m_state.determinePackable(rtnUVtype), m_state);
+    //where to put the return value..'return' statement uses STACK (t41497, t41476)
+    UlamValue rtnPtr = UlamValue::makePtr(-slots, STACK, rtnUVtype, m_state.determinePackable(rtnUVtype), m_state);
     m_state.assignValue(rtnPtr, rtnUV);
     return rtnPtr;
   } //assignAnonymousClassReturnValueToStack

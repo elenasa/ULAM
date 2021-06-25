@@ -630,13 +630,6 @@ namespace MFM {
     m_state.abortShouldntGetHere(); //unused
   }
 
-  void NodeBinaryOpEqual::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
-  {
-    assert(m_nodeRight);
-    m_nodeRight->calcMaxDepth(depth, maxdepth, base); //funccall?
-    return; //work done by NodeStatements and NodeBlock
-  }
-
   void NodeBinaryOpEqual::genCode(File * fp, UVPass& uvpass)
   {
     assert(m_nodeLeft && m_nodeRight);

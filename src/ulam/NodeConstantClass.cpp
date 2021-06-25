@@ -365,11 +365,13 @@ namespace MFM {
     if(((SymbolConstantValue *) m_constSymbol)->getConstantStackFrameAbsoluteSlotIndex() == 0)
       return evalStatusReturnNoEpilog(NOTREADY);
 
-    setupStackWithClassForEval(); //t41230
+    UTI effselfuti = setupStackWithClassForEval(); //t41230
 
     evalNodeProlog(0); //new current node eval frame pointer, t3897
 
     UlamValue rtnUVPtr = makeUlamValuePtr();
+    rtnUVPtr.setPtrTargetEffSelfType(effselfuti); //t41494
+
     Node::assignReturnValueToStack(rtnUVPtr);
 
     evalNodeEpilog();
@@ -394,11 +396,13 @@ namespace MFM {
     if(((SymbolConstantValue *) m_constSymbol)->getConstantStackFrameAbsoluteSlotIndex() == 0)
       return evalStatusReturnNoEpilog(NOTREADY);
 
-    setupStackWithClassForEval();
+    UTI effselfuti = setupStackWithClassForEval();
 
     evalNodeProlog(0); //new current node eval frame pointer
 
     UlamValue rtnUVPtr = makeUlamValuePtr();
+    rtnUVPtr.setPtrTargetEffSelfType(effselfuti);
+
     Node::assignReturnValuePtrToStack(rtnUVPtr);
 
     evalNodeEpilog();
@@ -419,12 +423,13 @@ namespace MFM {
     return absptr;
   }
 
-  void NodeConstantClass::setupStackWithClassForEval()
+  UTI NodeConstantClass::setupStackWithClassForEval()
   {
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     bool isatom = m_state.isAtom(nuti); //t41483
     assert(nut->getUlamTypeEnum()==Class || isatom);
+    UTI rtneffself = Nav;
 
     //for eval purposes, a transient must fit into atom state bits, like an element
     // any class may be a data member (see NodeVarDeclDM)
@@ -434,7 +439,7 @@ namespace MFM {
 	AssertBool gotVal = m_constSymbol->getValue(bvclass);
 	u32 len = nut->getBitSize();
 	UTI euti = Nouti;
-
+	UlamValue atomUV = UlamValue::makeAtom();
 	if(isatom)
 	  {
 	    u32 elewcorr = bvclass.Read(0u, ATOMFIRSTSTATEBITPOS);
@@ -446,9 +451,13 @@ namespace MFM {
 	    assert(m_state.isAClass(euti));
 	  }
 	else
-	  euti = m_constSymbol->getUlamTypeIdx();
+	  {
+	    euti = m_constSymbol->getUlamTypeIdx();
+	    atomUV.setUlamValueTypeIdx(euti);
+	  }
+	atomUV.setUlamValueEffSelfTypeIdx(euti);
+	rtneffself = euti; //t41494
 
-	UlamValue atomUV = UlamValue::makeDefaultAtom(euti, m_state);
 	if((nut->getUlamClassType()==UC_ELEMENT) || isatom) //support for constant atom (t41483,4)
 	  {
 	    len = BITSPERATOM; //t41487
@@ -459,6 +468,10 @@ namespace MFM {
 
 	m_state.m_constantStack.storeUlamValueInSlot(atomUV, ((SymbolConstantValue *) m_constSymbol)->getConstantStackFrameAbsoluteSlotIndex());
       } //not scalar
+    else
+      m_state.abortShouldntGetHere(); //see NodeConstantClassArray
+
+    return rtneffself;
   } //setupStackWithClassForEval
 
   void NodeConstantClass::genCode(File * fp, UVPass& uvpass)

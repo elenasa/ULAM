@@ -548,36 +548,12 @@ namespace MFM {
       }
 
     UlamValue uv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);
+    if(uv.isPtr()) //t41497
+      uv = m_state.getPtrTarget(uv); //t41495, t3407
+
     UTI vuti = uv.getUlamValueTypeIdx();
-    UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-    ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
-    assert(!m_state.isPtr(vuti));
-    if(m_state.isAtom(nodeType) && m_state.isAtom(tobeType) && (vut->getUlamTypeEnum() == Class))
-      {
-	std::ostringstream msg;
-	msg << "Cast question: Do not wipe out actual type for atom during eval! Value type ";
-	msg << m_state.getUlamTypeNameBriefByIndex(vuti).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	return evalStatusReturn(UNEVALUABLE);
-      }
-    if((m_state.isAtom(tobeType)) && (vclasstype == UC_QUARK))
-      {
-	assert(vut->isAltRefType()); //an immediate non-ref quark should be an error
-	std::ostringstream msg;
-	msg << "Cast question: actual type for quark ref during eval! Value type ";
-	msg << m_state.getUlamTypeNameBriefByIndex(vuti).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	return evalStatusReturn(UNEVALUABLE);
-      }
-    if((m_state.isAtom(tobeType)) && (vclasstype == UC_ELEMENT) && vut->isAltRefType())
-      {
-	std::ostringstream msg;
-	msg << "Cast question: actual type for element ref during eval! Value type ";
-	msg << m_state.getUlamTypeNameBriefByIndex(vuti).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	return evalStatusReturn(UNEVALUABLE); //e.g. t3753
-      }
-    else if(UlamType::compare(nodeType, tobeType, m_state) != UTIC_SAME)
+
+    if(UlamType::compare(nodeType, tobeType, m_state) != UTIC_SAME)
       {
 	if(m_state.isARefTypeOfUlamType(nodeType, tobeType))
 	  {
@@ -643,18 +619,10 @@ namespace MFM {
 	else
 	  {
 	    UlamValue uvp = ruvPtr;
-	    if(m_state.isAltRefType(uvp.getPtrTargetType()))
-	      uvp = m_state.getPtrTarget(uvp);
-
-	    UlamValue uv = uvp;
+	    UlamValue uv =m_state.getPtrTarget(uvp);
 	    UTI ttype = uv.getUlamValueTypeIdx();
-	    if(m_state.isPtr(ttype))
-	      {
-		uv = m_state.getPtrTarget(uvp);
-		ttype = uv.getUlamValueTypeIdx();
-	      }
 
-	    if(m_state.isPtr(ttype) || !(m_state.getUlamTypeByIndex(tobeType)->cast(uv, tobeType)))
+	    if(!(m_state.getUlamTypeByIndex(tobeType)->cast(uv, tobeType)))
 	      {
 		std::ostringstream msg;
 		msg << "Cast problem during evalToStoreInto! Value type ";
@@ -695,18 +663,20 @@ namespace MFM {
 		else if(m_state.isAtom(nodeType)) //t41315,8
 		  {
 		    UTI effself = uv.getUlamValueEffSelfTypeIdx();
-		    ruvPtr.setPtrTargetType(tobeType);
+		    ruvPtr.setPtrTargetType(tobeType); //possibly reset to ref type, no longer atom
 		    ruvPtr.setPtrTargetEffSelfType(effself);
 
-		    m_state.m_currentAutoObjPtr = ruvPtr; //a copy
+		    m_state.m_currentAutoObjPtr = ruvPtr; //a copy, before the upcoming changes
 		    m_state.m_currentAutoStorageType = UAtom; //effself?;
 
-		    u32 baserelpos = 0;
+		    u32 baserelpos = 0; //t3837, t41315
 		    if(m_state.getABaseClassRelativePositionInAClass(effself, dereftobe, baserelpos))
 		      {
 			u32 adjust = m_state.isAtom(ttype) ? ATOMFIRSTSTATEBITPOS : 0u; //t41005
 			ruvPtr.setPtrPos(ruvPtr.getPtrPos() + baserelpos + adjust );
 			ruvPtr.setPtrLen(m_state.getBaseClassBitSize(dereftobe));
+			if(m_state.getUlamTypeByIndex(dereftobe)->getUlamClassType()==UC_ELEMENT)
+			  ruvPtr.setPtrLen(MAXSTATEBITS); //elements have no baseclassbitsize
 		      }
 		  }
 		//else (not a class)

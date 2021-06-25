@@ -284,8 +284,9 @@ namespace MFM {
     assert(m_state.isPtr(luti));
     luti = pluv.getPtrTargetType();
     assert(m_state.okUTItoContinue(luti));
-    UlamType * lut = m_state.getUlamTypeByIndex(luti);
+
     UlamValue luv = m_state.getPtrTarget(pluv);
+
     bool leftisatom = m_state.isAtom(luti) || m_state.isAtom(luv.getUlamValueTypeIdx()); //t3754,t3837
     if(leftisatom)
       {
@@ -294,9 +295,10 @@ namespace MFM {
 	if(leffself != Nouti)
 	  {
 	    luti = leffself;
-	    lut = m_state.getUlamTypeByIndex(luti);
 	  }
       }
+
+    UlamType * lut = m_state.getUlamTypeByIndex(luti);
 
     bool asit = false;
     UTI ruti = getRightType();

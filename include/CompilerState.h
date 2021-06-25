@@ -521,8 +521,10 @@ namespace MFM{
     /** returns immediate target value: extracts data from packed targets;
 	unpacked array targets are invalid */
     UlamValue getPtrTarget(UlamValue ptr);
-
-    UlamValue getPtrTargetFromAbsoluteIndex(UlamValue ptr);
+    UlamValue getPtrTargetOnce(UlamValue ptr);
+    UlamValue getPtrTargetLastPtr(UlamValue ptr);
+    UlamValue getPtrTarget(UlamValue ptr, bool isAbsolute, bool ptrOnly, s32& cntref);
+    #define PTR_LOOP_MAX (5)
 
     /** returns true if local variable */
     bool isLocalUnreturnableReferenceForEval(UlamValue ptr);

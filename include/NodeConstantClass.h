@@ -123,7 +123,7 @@ namespace MFM{
 
     UlamValue makeUlamValuePtr();
     void makeUVPassForCodeGen(UVPass& uvpass);
-    void setupStackWithClassForEval();
+    UTI setupStackWithClassForEval(); //return effself type
 
     bool getClassValue(BV8K& bvtmp);
   };

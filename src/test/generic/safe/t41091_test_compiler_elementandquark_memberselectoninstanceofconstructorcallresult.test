@@ -2,11 +2,9 @@
 #=t41091_test_compiler_elementandquark_memberselectoninstanceofconstructorcallresult
 ##      gen code output: 2 asserts
 ##
-## cast element as atom unevaluable, element type lost
-##
 #!
-Exit status: -11
-Ue_A : QW { Bool b(false);  QW m_q();  :QW<> Int test() {  System s;  A a;  Atom me = a.instanceof ( true )Self . ( )func .;  { me A as cond { A& me;  self b . me b . = s ( me b . )assert . } if s ( false )assert . else } Atom me2 = A.instanceof ( true )Self . ( )func .;  { me2 A as cond { A& me2;  self b . me2 b . = s ( me2 b . )assert . } if s ( false )assert . else } 0 cast return } }
+Exit status: 0
+Ue_A : QW { Bool b(true);  QW m_q();  :QW<> Int test() {  System s;  A a;  Atom me = a.instanceof ( true )Self . ( )func .;  { me A as cond { A& me;  self b . me b . = s ( me b . )assert . } if s ( false )assert . else } Atom me2 = A.instanceof ( true )Self . ( )func .;  { me2 A as cond { A& me2;  self b . me2 b . = s ( me2 b . )assert . } if s ( false )assert . else } 0 cast return } }
 Uq_QW { <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
@@ -26,7 +24,7 @@ element A : QW {
 
     if(me as A)
     {
-      b = me.b; //uneval-ed, b still false in postfix output
+      b = me.b;
       s.assert(me.b);
     }
     else
@@ -36,7 +34,7 @@ element A : QW {
     Atom me2 = A.instanceof(true).func();
     if(me2 as A)
     {
-      b = me2.b; //uneval-ed, b still false in postfix output
+      b = me2.b;
       s.assert(me2.b);
     }
     else

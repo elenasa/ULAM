@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t41153_test_compiler_elementandquark_selfcasttoatom_issue_error
 #!
-Exit status: -11
+Exit status: 0
 Ue_MyElement : QOne(10u) { Bool sp(false);  :QOne(10u)< constant Unsigned num = 10u; > Int test() {  Atom abc = self cast;  self ( )behave . 0 cast return } }
 Uq_QOne(Unsigned num) { <NOMAIN> }
 ##

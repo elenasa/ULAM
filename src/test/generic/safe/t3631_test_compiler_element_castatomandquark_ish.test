@@ -2,10 +2,9 @@
 #=t3631_test_compiler_element_castatomandquark_ish
 ##
 ## gen output: assert
-## eval: b is false; should be true
 #!
-Exit status: -11
-Ue_Foo : QPerc { Bool b(false);  :QPerc<> Int test() {  System s;  self b . self ( )check . = s ( self b . )assert . self b . ! cast return } }
+Exit status: 0
+Ue_Foo : QPerc { Bool b(true);  :QPerc<> Int test() {  System s;  self b . self ( )check . = s ( self b . )assert . self b . ! cast return } }
 Uq_QPerc { <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

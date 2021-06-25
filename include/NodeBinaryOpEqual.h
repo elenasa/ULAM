@@ -66,8 +66,6 @@ namespace MFM{
 
     virtual EvalStatus evalToStoreInto();
 
-    virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);
-
     virtual void genCode(File * fp, UVPass& uvpass);
 
   protected:

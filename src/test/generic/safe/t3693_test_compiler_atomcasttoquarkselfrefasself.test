@@ -2,11 +2,9 @@
 #=t3693_test_compiler_atomcasttoquarkselfrefasself
 ##      gen code output: (1 asserts)
 ##
-##        unevaluable: expected exit status 1
-##
 #!
-Exit status: -11
-Ue_A : QW { Bool b(false);  Bool c(false);  :QW< Bool bw(true); > Int test() {  System s;  self bw . true = QW q = self ( )func .;  self b . q bw . = s ( self b . )assert . self b . cast return } }
+Exit status: 1
+Ue_A : QW { Bool b(true);  Bool c(false);  :QW< Bool bw(true); > Int test() {  System s;  self bw . true = QW q = self ( )func .;  self b . q bw . = s ( self b . )assert . self b . cast return } }
 Uq_System { <NOMAIN> }
 Uq_QW { Bool bw(false);  <NOMAIN> }
 ##

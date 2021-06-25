@@ -304,9 +304,6 @@ namespace MFM {
     assert(isNext);
     UlamValue atval = state.getPtrTarget(scalarPtr);
 
-    while(atval.isPtr())
-      atval = state.getPtrTarget(atval); //instead of getPtrTarget doing it (t3615 vs t3611)
-
     // redo what getPtrTarget use to do, when types didn't match due to
     // an element/quark or a requested scalar of an arraytype
     UTI suti = scalarPtr.getPtrTargetType();

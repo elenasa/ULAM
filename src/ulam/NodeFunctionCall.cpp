@@ -673,7 +673,14 @@ namespace MFM {
 	UlamValue rtnUV = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);
 	UTI rtnuti = rtnUV.getUlamValueTypeIdx();
 	if(m_state.isPtr(rtnuti))
-	  rtnuti = rtnUV.getPtrTargetType();
+	  {
+	    rtnuti = rtnUV.getPtrTargetType();
+	    if(m_state.isAtom(rtnuti))
+	      {
+		rtnuti = rtnUV.getUlamValueEffSelfTypeIdx();
+		m_state.abortNeedsATest();
+	      }
+	  }
 	if(UlamType::compareForUlamValueAssignment(rtnuti, rtnType, m_state) == UTIC_SAME)
 	  {
 	    Node::assignReturnValueToStack(rtnUV); //into return space on eval stack;

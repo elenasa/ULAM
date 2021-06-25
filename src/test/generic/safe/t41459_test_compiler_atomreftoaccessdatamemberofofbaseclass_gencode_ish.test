@@ -8,7 +8,7 @@
 ##  Unsigned Arg: 1
 ##
 #!
-Exit status: -11
+Exit status: 0
 Ue_R { Int test() {  FooNG3 foo;  foo ( )behave . 0 cast return } }
 Ue_FooNG3 : QGah +SP { /* empty class block */ }
 Uq_QFoo { typedef Unsigned(3) FC;  Unsigned(3) mX(0);  Unsigned(3) mY(0);  <NOMAIN> }

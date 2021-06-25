@@ -671,7 +671,7 @@ namespace MFM {
     if(m_state.isScalar(nuti))
       {
 	if(m_state.isAltRefType(uvp.getPtrTargetType()))
-	   uvp = m_state.getPtrTarget(uvp);
+	  uvp = m_state.getPtrTargetLastPtr(uvp); // lastptr? t3407?
 
 	uv = m_state.getPtrTarget(uvp);
 	UTI ttype = uv.getUlamValueTypeIdx();
@@ -711,19 +711,11 @@ namespace MFM {
 		UlamType * nut = m_state.getUlamTypeByIndex(nuti);
 		if((m_state.isAtom(nuti) || (classtype == UC_ELEMENT)) && (nut->isScalar() || nut->isAltRefType()))
 		  {
-		    uv = m_state.getPtrTarget(uvp); //error/t3676, error/t3677
+		    uv = m_state.getPtrTarget(uvp); //error/t3676, error/t3677, t3407
 		  }
 		else
 		  {
 		    //includes (evaluable) transients (t3739)
-		    UTI vuti = uv.getUlamValueTypeIdx();
-		    // does this handle a ptr to a ptr (e.g. "self")? (see makeUlamValuePtr)
-		    if(m_state.isPtr(vuti))
-		      {
-			uvp = uv;
-			uv = m_state.getPtrTarget(uvp);
-		      }
-
 		    s32 len = uvp.getPtrLen();
 		    assert(len != UNKNOWNSIZE);
 		    if((len == MAXSTATEBITS) || (len == BITSPERATOM))
@@ -815,7 +807,7 @@ namespace MFM {
     //must remain a ptr!!!
     if(m_state.isAltRefType(rtnUVPtr.getPtrTargetType()) && (rtnUVPtr.getPtrStorage() == STACK))
       {
-	UlamValue tmpref = m_state.getPtrTarget(rtnUVPtr);
+	UlamValue tmpref = m_state.getPtrTargetOnce(rtnUVPtr); //t41496
 	 if(tmpref.isPtr())
 	   rtnUVPtr = tmpref;
 	 //else no change? (e.g. t3407)
@@ -868,6 +860,11 @@ namespace MFM {
       {
 	UTI objclass = m_state.m_currentObjPtr.getPtrTargetType();
 	UTI dmclass = m_varSymbol->getDataMemberClass();
+	if(m_state.isAtom(objclass))
+	  {
+	    objclass = m_state.m_currentObjPtr.getPtrTargetEffSelfType(); //t41496
+	    assert((objclass != Nouti) && m_state.isAClass(objclass));
+	  }
 	assert((UlamType::compareForUlamValueAssignment(dmclass, objclass, m_state) == UTIC_SAME) || m_state.isClassASubclassOf(objclass, dmclass)); //sanity, right? t3915
 	// return ptr to this data member within the m_currentObjPtr
 	// 'pos' modified by this data member symbol's packed bit position;
@@ -882,8 +879,8 @@ namespace MFM {
       }
     else
       {
-	//DEBUG ONLY!!, to view ptr saved with Ref's m_varSymbol.
 #if 0
+	//DEBUG ONLY!!, to view ptr saved with Ref's m_varSymbol.
 	if(m_varSymbol->isAutoLocal()) //ALT_REF, ALT_CONSTREF or ALT_ARRAYITEM
 	  ptr = ((SymbolVariableStack *) m_varSymbol)->getAutoPtrForEval();
 #endif

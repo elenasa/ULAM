@@ -169,7 +169,8 @@ namespace MFM {
     // DO 'IS':
     UTI luti = pluv.getUlamValueTypeIdx();
     assert(m_state.isPtr(luti));
-    luti = pluv.getPtrTargetType();
+    UlamValue luv = m_state.getPtrTarget(pluv);
+    luti = luv.getUlamValueTypeIdx();
     UTI ruti = getRightType();
 
     UTI derefluti = m_state.getUlamTypeAsDeref(luti);
@@ -183,9 +184,8 @@ namespace MFM {
     bool isit = (m_state.isAtom(luti) || (UlamType::compare(derefluti,ruti,m_state) == UTIC_SAME) || m_state.isClassASubclassOf(derefluti, ruti));
     if(m_state.isAtom(luti))
       {
-	UlamValue luv = m_state.getPtrTarget(pluv);
 	UTI leffself = luv.getUlamValueEffSelfTypeIdx();
-	isit = (leffself != Nouti) && ((UlamType::compare(leffself,ruti,m_state) == UTIC_SAME) || m_state.isClassASubclassOf(leffself, ruti)); //t41484, t3255
+	isit = (leffself != Nouti) && ((UlamType::compare(leffself,ruti,m_state) == UTIC_SAME) || m_state.isClassASubclassOf(leffself, ruti)); //t41484, t3255, t41495
       }
 #endif
 

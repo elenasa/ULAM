@@ -3,7 +3,7 @@
 ##      gen code output: 1 asserts
 ##
 #!
-Exit status: -11
+Exit status: 0
 Ue_A : QW { Bool b(true);  QW m_q();  :QW<> Int test() {  System s;  self b . true = A a;  a b . self ( )asme . b . = Atom me = a ( )func .;  { me A as cond { A& me;  s ( me b . )assert . } if s ( false )assert . else } 0 cast return } }
 Uq_System { <NOMAIN> }
 Uq_QW { <NOMAIN> }
