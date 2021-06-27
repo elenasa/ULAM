@@ -556,6 +556,7 @@ namespace MFM{
     bool hasThisClassStringDataMembers();
 
     void extractQuarkBaseFromSubclassForEval(UlamValue fmuvarg, UTI buti, UlamValue& touvref);
+    void extractTransientBaseFromSubclassForEval(UlamValue fmuvarg, UTI buti, UlamValue& touvref);
 
     void setupCenterSiteForTesting();
     void setupCenterSiteForGenCode();

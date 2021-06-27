@@ -892,7 +892,7 @@ namespace MFM {
   {
     assert(len >= 0);
     assert(len <= BITSPERATOM);
-    assert(pos + len <= MAXBITSPERTRANSIENT);
+    assert(pos + len <= MAXBITSPERTRANSIENT); //t41484,5,7
 
     AtomBitVector a(m_uv.m_storage.m_atom); //copy
     a.CopyBV(0u, pos, len, bvref); //frompos, topos, tolen, destbv

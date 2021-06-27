@@ -28,12 +28,39 @@ namespace MFM {
     UTI valtypidx = val.getUlamValueTypeIdx();
     UlamType * fmut = m_state.getUlamTypeByIndex(valtypidx);
     assert(fmut->isScalar() && isScalar());
-    //now allowing atoms to be cast as transients, as well as elements;
     // also allowing subclasses to be cast as their superclass (u1.2.2)
-    if(!(UlamType::compare(valtypidx, typidx, m_state) == UTIC_SAME))
+    if(isReference())
       {
-	brtn = false;
+	UTI dereftypidx = m_state.getUlamTypeAsDeref(typidx);
+	if(UlamType::compare(valtypidx, dereftypidx, m_state) == UTIC_SAME)
+	  {
+	    val.setUlamValueTypeIdx(typidx);
+	  }
+	else if(m_state.isClassASubclassOf(valtypidx, dereftypidx))
+	  {
+	    val.setUlamValueTypeIdx(typidx);
+	  }
+	else
+	  {
+	    brtn = false;
+	  }
       }
+    else if(UlamType::compare(valtypidx, typidx, m_state) == UTIC_SAME)
+      {
+	//if same type nothing to do;
+      }
+    else if(m_state.isClassASubclassOf(valtypidx, typidx))
+      {
+	s32 len = getTotalBitSize();
+	assert(len != UNKNOWNSIZE);
+	if(len > MAXSTATEBITS)
+	  m_state.abortNotSupported(); //for eval transients are limited to statebits
+	UlamValue newval = UlamValue::makeAtom(typidx);
+	m_state.extractTransientBaseFromSubclassForEval(val, typidx, newval);
+	val = newval;
+      }
+    else
+      brtn = false;
     return brtn;
   } //end cast
 

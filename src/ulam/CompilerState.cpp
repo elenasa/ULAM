@@ -5554,6 +5554,43 @@ namespace MFM {
       } //end while
   } //extractQuarkBaseFromSubclassForEval
 
+  void CompilerState::extractTransientBaseFromSubclassForEval(UlamValue fmuvarg, UTI buti, UlamValue& touvref)
+  {
+    UTI debuti = getUlamTypeAsDeref(buti);
+    UTI cuti = fmuvarg.getUlamValueTypeIdx();
+    assert(isClassASubclassOf(cuti, debuti));
+
+    s32 pos = ATOMFIRSTSTATEBITPOS; //all classes start after type in ulamvalue
+
+    BaseclassWalker walker;
+    walker.init(debuti);
+
+    //ulam-5 supports multiple base classes; superclass optional;
+    UTI baseuti = Nouti;
+    while(walker.getNextBase(baseuti, *this))
+      {
+	SymbolClass * basecsym = NULL;
+	if(alreadyDefinedSymbolClass(baseuti, basecsym))
+	  {
+	    u32 fmrelpos = 0;
+	    getABaseClassRelativePositionInAClass(cuti, baseuti, fmrelpos);
+
+	    u32 torelpos = 0;
+	    getABaseClassRelativePositionInAClass(debuti, baseuti, torelpos);
+
+	    s32 blen = getBaseClassBitSize(baseuti);
+	    assert(blen <= MAXSTATEBITS);
+
+	    BV8K bvdata;
+	    fmuvarg.getDataBig(pos + fmrelpos, blen, bvdata);
+	    touvref.putDataBig(pos + torelpos, blen, bvdata);
+
+	    //include all ancestors of arg buti
+	    walker.addAncestorsOf(basecsym);
+	  }
+      } //end while
+  } //extractTransientBaseFromSubclassForEval
+
   void CompilerState::setupCenterSiteForTesting()
   {
     //set up an atom in eventWindow; init m_currentObjPtr to point to it
