@@ -273,8 +273,8 @@ namespace MFM{
 
     //if(isEmptyList()) return true; //noop, t41201
 
-    if(m_state.isAClass(nuti))
-      return buildClassArrayValueInitialization(bvtmp); //t41185
+    if(m_state.isAClass(nuti) || m_state.isAtom(nuti))
+      return buildClassArrayValueInitialization(bvtmp); //t41185,t41485 atom array
 
     for(u32 i = 0; i < n; i++)
       {
@@ -397,7 +397,18 @@ namespace MFM{
 
     BV8K bvclass;
     bvtmp.CopyBV(pos * itemlen, 0, itemlen, bvclass); //zero-based item
-    if(m_nodes[n]->isAConstantClass())
+
+    if(m_nodes[n]->isAConstant() && m_state.isAtom(nuti))
+      {
+	//cast to .constantof or named constant
+	BV8K bvmask;
+	if(m_nodes[n]->initDataMembersConstantValue(bvclass, bvmask)) //at pos 0
+	  {
+	    bvclass.CopyBV(0, pos * itemlen, itemlen, bvtmp); //frompos, topos, len, destBV
+	    rtnb = true;
+	  }
+      }
+    else if(m_nodes[n]->isAConstantClass())
       {
 	BV8K bvmask;
 	if(((NodeConstantClass *) m_nodes[n])->initDataMembersConstantValue(bvclass, bvmask)) //at pos 0

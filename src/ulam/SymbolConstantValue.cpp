@@ -106,7 +106,6 @@ namespace MFM {
 
     fp->write(" = ");
 
-    //    if(tetyp == Class)
     if((tetyp == Class) || (tetyp == UAtom)) //t41483
       {
 	std::string classhexstr;

@@ -1,0 +1,36 @@
+## -*- mode:ulam -*-
+#=t41501_test_compiler_classidtemplateargnoarginstanceoffunccall_error
+#!
+./R.ulam:5:40: ERROR: Initial value of 'instanceof' has no constructor arguments.
+./R.ulam:5:14: ERROR: Initial value of 'a2cid' is missing.
+./R.ulam:5:53: ERROR: Invalid Statement (possible missing semicolon).
+Unrecoverable Program Parse FAILURE: <R.ulam>
+Unrecoverable Program Parse FAILURE: <A.ulam>
+Unrecoverable Program Parse FAILURE: <Ele2.ulam>
+##
+## informed by t41402, except empty args on instanceof, caused segfault
+##
+#>R.ulam
+  ulam 5;
+element R
+{
+  Int test() {
+    Unsigned a2cid = A(Ele2.classidof).instanceof().getClassid(); //or driveby templated class func call
+    return 0;
+  }
+}
+
+#:A.ulam
+  ulam 5;
+element A(Unsigned cid)
+{
+  constant Unsigned c_cid = cid;
+  Unsigned getClassid()  { return c_cid; }
+}
+
+#:Ele2.ulam
+  ulam 5;
+element Ele2 {
+}
+
+#.

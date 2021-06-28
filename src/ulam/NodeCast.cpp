@@ -103,7 +103,17 @@ namespace MFM {
 
   bool NodeCast::isAConstant()
   {
-    return m_node->isAConstant();
+    return m_node->isAConstant(); //pass thru
+  }
+
+  bool NodeCast::isAConstantClass()
+  {
+    return m_node->isAConstantClass(); //pass thru
+  }
+
+  bool NodeCast::initDataMembersConstantValue(BV8K& bvref, BV8K& bvmask)
+  {
+    return m_node->initDataMembersConstantValue(bvref, bvmask); //pass thru
   }
 
   bool NodeCast::isReadyConstant()
@@ -307,7 +317,7 @@ namespace MFM {
 		  }
 	      }
 
-	    if(m_state.isAltRefType(tobeType) && m_node->isAConstant())
+	    if(m_state.isAltRefType(tobeType) && isAConstant())
 	      {
 		std::ostringstream msg;
 		msg << "Cannot explicitly cast a constant, " << m_node->getName() << ", type ";
@@ -2208,7 +2218,7 @@ namespace MFM {
   void NodeCast::genCodeToStoreIntoCastAsReference(File * fp, UVPass & uvpass)
   {
     UTI tobeType = getCastType();
-    if(m_node->isAConstantClass() || m_node->isAConstant())
+    if(isAConstantClass() || isAConstant())
       {
 	assert(m_state.isConstantRefType(tobeType)); //t41238-9,t41240,t41242,error/t41248,error/t41253
       }
@@ -2273,7 +2283,7 @@ namespace MFM {
     // size secondary when different classes, possibly related (e.g. t3779)
     // even constant may need casting (e.g. narrowing for saturation)
     // Bool constants require casts to generate "full" true UVPass (>1-bit).
-    return( isExplicitCast() || (typEnum == Class) || (typEnum != nodetypEnum) || (m_state.getBitSize(tobeType) != m_state.getBitSize(nodeType)) || ( (nodetypEnum == Bool) && m_node->isAConstant() && (m_state.getBitSize(tobeType)>1)));
+    return( isExplicitCast() || (typEnum == Class) || (typEnum != nodetypEnum) || (m_state.getBitSize(tobeType) != m_state.getBitSize(nodeType)) || ( (nodetypEnum == Bool) && isAConstant() && (m_state.getBitSize(tobeType)>1)));
   } //needsACast
 
 } //end MFM

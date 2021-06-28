@@ -83,6 +83,10 @@ namespace MFM{
 
     virtual bool isAConstant();
 
+    virtual bool isAConstantClass();
+
+    virtual bool initDataMembersConstantValue(BV8K& bvref, BV8K& bvmask);
+
     virtual bool isReadyConstant();
 
     virtual bool isNegativeConstant();

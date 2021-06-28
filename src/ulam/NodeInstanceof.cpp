@@ -58,6 +58,7 @@ namespace MFM {
 
 	if(!isaref)
 	  Node::setReferenceAble(TBOOL_FALSE); //t3660
+
       }
     return getNodeType();
   } //checkAndLabelType
@@ -209,7 +210,7 @@ namespace MFM {
   void NodeInstanceof::genCodeToStoreInto(File * fp, UVPass& uvpass)
   {
     //lhs
-    assert(getStoreIntoAble() == TBOOL_TRUE); //not so..why not!
+    //assert(getStoreIntoAble() == TBOOL_TRUE); //not so..why not! (t3657) defaultvalue is a constant
     genCode(fp, uvpass); //t41085
 
     //tmp variable becomes the object of the constructor call (t41085)

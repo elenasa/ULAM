@@ -20,10 +20,11 @@ element R {
   }
 }
 
-local constant DReg cDREG = {  };
-local constant Res cRES = {  };
+//local constant DReg cDREG = {  };
+//local constant Res cRES = {  };
 local constant Empty cEMPTY = { };
-local constant NOWAY cNoway = { .mAtoms = { cDREG, cRES, cEMPTY } };
+//local constant NOWAY cNoway = { .mAtoms = { cDREG, cRES, cEMPTY } };
+local constant NOWAY cNoway = { .mAtoms = { DReg.constantof, Res.constantof, cEMPTY } };
 
 #:NOWAY.ulam
   ulam 5;

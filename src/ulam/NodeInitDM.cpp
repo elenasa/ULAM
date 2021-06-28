@@ -363,7 +363,7 @@ namespace MFM {
 	m_constSymbol = new SymbolConstantValue(cTok, auti, m_state); //t41232
 	assert(m_constSymbol);
 	m_constSymbol->setHasInitValue();
-	assert(!hazyKin);
+	assert(!hazyKin); //t41184
       }
     else
       {

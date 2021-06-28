@@ -27,7 +27,6 @@ local constant KeyExprNode keyexpr_x13[] = {
 };
 
 local constant Atom cAtom = keyexpr_x13[0]; //ok
-//local constant Atom cAtom[3] = { local.keyexpr_x13[0], local.keyexpr_x13[3], local.cDReg };
 local constant KeyExprNode ckey = keyexpr_x13[0]; //code gen to compare w cAtom
 
 element KeyExprRep {

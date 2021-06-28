@@ -968,7 +968,7 @@ UTI NodeBlockClass::checkMultipleInheritances()
 		  msg << " (UTI " << baseuti << ")";
 
 		  s32 bitem = csym->isABaseClassItem(baseuti);
-		  if(bitem < 0)
+		  if(bitem < 0) //not a direct shared base
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 		  //else drop msg
 		  //need to break the chain; e.g. don't want template symbol addresses used
@@ -2264,23 +2264,33 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 		return TBOOL_HAZY;
 	      }
 
-	    if(baseuti != Nouti)
+	    if((baseuti != Nouti))
 	      {
+		//not a direct shared base
 		NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(j);
 		if(!shbasecblock)
 		  {
-		    std::ostringstream msg;
-		    msg << "Subclass '";
-		    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-		    msg << "' inherits from '";
-		    msg << m_state.getUlamTypeNameBriefByIndex(baseuti).c_str();
-		    msg << "', an INCOMPLETE Shared Base class; ";
-		    msg << "No bit packing of variable data members";
-		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-		    return TBOOL_HAZY;
+		    //check again in case first time was before shared basecount set
+		    //(i.e. nuti incomplete) t41485
+		    checkMultipleInheritances();
+		    shbasecblock = getSharedBaseClassBlockPointer(j);
+
+		    if(!shbasecblock)
+		      {
+			std::ostringstream msg;
+			msg << "Subclass '";
+			msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+			msg << "' inherits from '";
+			msg << m_state.getUlamTypeNameBriefByIndex(baseuti).c_str();
+			msg << "', an INCOMPLETE Shared Base class; ";
+			msg << "No bit packing of variable data members";
+			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+			return TBOOL_HAZY;
+		      }
 		  }
 
 		assert(UlamType::compare(shbasecblock->getNodeType(), baseuti, m_state) == UTIC_SAME);
+
 		if(!m_state.isComplete(baseuti))
 		  {
 		    return TBOOL_HAZY;
@@ -2294,7 +2304,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 		    csym->setSharedBaseClassRelativePosition(j, reloffset); //directshared
 		    reloffset += baseoffset;
 		  }
-		else
+		else //t41485
 		  {
 		    assert(csym->isDirectSharedBase(bitem));
 		    u32 directsharedoffset = csym->getBaseClassRelativePosition(bitem);

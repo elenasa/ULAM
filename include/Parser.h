@@ -132,7 +132,7 @@ namespace MFM{
     bool parseRestOfInitialization(const Token& identTok, Node * dNode);
 
     bool makeDeclConstructorCall(const Token& identTok, NodeVarDecl * dNode);
-    Node * makeInstanceofConstructorCall(const Token& fTok, NodeInstanceof * instanceofNode);
+    Node * makeInstanceofConstructorCall(const Token& fTok, Node * memberNode, NodeTypeDescriptor * nodetype);
     NodeFunctionCall * parseConstructorCall(const Token& identTok);
 
     /**

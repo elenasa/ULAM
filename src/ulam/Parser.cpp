@@ -48,6 +48,7 @@
 #include "NodeConditionalIs.h"
 #include "NodeConstant.h"
 #include "NodeConstantArray.h"
+#include "NodeConstantof.h"
 #include "NodeContinueStatement.h"
 #include "NodeFuncDecl.h"
 #include "NodeInitDM.h"
@@ -1193,7 +1194,7 @@ namespace MFM {
     return brtn; // true even if no assignment; false on error
   } //makeDeclConstructorCall
 
-  Node * Parser::makeInstanceofConstructorCall(const Token& fTok, NodeInstanceof * instanceofNode)
+  Node * Parser::makeInstanceofConstructorCall(const Token& fTok, Node * memberNode, NodeTypeDescriptor * nodetype)
   {
     //open paren already eaten
     NodeFunctionCall * constrNode = parseConstructorCall(fTok); //tok for loc and errmsgs
@@ -1202,6 +1203,11 @@ namespace MFM {
       {
 	return NULL;
       }
+
+    //make here to avoid seqfault by deleting nodetype twice! (t41402)
+    NodeInstanceof * instanceofNode = new NodeInstanceof(memberNode, nodetype, m_state);
+    assert(instanceofNode);
+    instanceofNode->setNodeLocation(fTok.m_locator);
 
     NodeMemberSelectOnConstructorCall * memberSelectNode = new NodeMemberSelectOnConstructorCall(instanceofNode, constrNode, m_state);
     assert(memberSelectNode);
@@ -3391,7 +3397,7 @@ namespace MFM {
       {
 	//hail mary pass..possibly a sizeof of unseen class
 	getNextToken(nTok);
-	if((nTok.m_type != TOK_KW_SIZEOF) && (nTok.m_type != TOK_KW_INSTANCEOF) && (nTok.m_type != TOK_KW_ATOMOF) && (nTok.m_type != TOK_KW_CLASSIDOF))
+	if((nTok.m_type != TOK_KW_SIZEOF) && (nTok.m_type != TOK_KW_INSTANCEOF) && (nTok.m_type != TOK_KW_ATOMOF) && (nTok.m_type != TOK_KW_CLASSIDOF) && (nTok.m_type != TOK_KW_CONSTANTOF))
 	  {
 	    std::ostringstream msg;
 	    msg << "Trying to use typedef from another class '";
@@ -3813,19 +3819,21 @@ namespace MFM {
       case TOK_KW_MINOF:
 	rtnNode = new NodeTerminalProxy(memberNode, utype, fTok, nodetype, m_state);
 	break;
+      case TOK_KW_CONSTANTOF:
+	rtnNode = new NodeConstantof(memberNode, nodetype, m_state);
+	rtnNode->setNodeLocation(fTok.m_locator);
+	break;
       case TOK_KW_INSTANCEOF:
 	{
-	rtnNode = new NodeInstanceof(memberNode, nodetype, m_state);
-	rtnNode->setNodeLocation(fTok.m_locator);
-
 	Token cTok;
 	getNextToken(cTok);
 	if(cTok.m_type == TOK_OPEN_PAREN)
 	  {
-	    Node * cctrNode = makeInstanceofConstructorCall(fTok, (NodeInstanceof *) rtnNode);
+	    Node * cctrNode = makeInstanceofConstructorCall(fTok, memberNode, nodetype);
 	    if(!cctrNode)
 	      {
-		delete rtnNode;
+		delete memberNode; //don't delete nodetype here, seqfault t41220
+		memberNode = NULL;
 		rtnNode = NULL;
 		//error
 	      }
@@ -3833,7 +3841,11 @@ namespace MFM {
 	      rtnNode = cctrNode;
 	  }
 	else
-	  unreadToken();
+	  {
+	    unreadToken();
+	    rtnNode = new NodeInstanceof(memberNode, nodetype, m_state);
+	    rtnNode->setNodeLocation(fTok.m_locator);
+	  }
 	}
 	break;
       case TOK_KW_ATOMOF:
@@ -4218,6 +4230,7 @@ namespace MFM {
 	  }
 	else
 	  {
+	    //t41402 segfault, errors t3453,4,t3680,t3705,t41138
 	    //clean up, some kind of error parsing min/max/sizeof
 	    delete typeNode;
 	    typeNode = NULL;

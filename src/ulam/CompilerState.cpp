@@ -5316,32 +5316,30 @@ namespace MFM {
   void CompilerState::assignValue(UlamValue lptr, UlamValue ruv)
   {
     assert(lptr.isPtr());
-    //UlamValue llptr = getPtrTargetLastPtr(lptr);
-    UlamValue llptr = lptr;
 
     //handle UAtom assignment as a singleton (not array values)
     if(ruv.isPtr())
       {
 	if(ruv.getPtrTargetType() != UAtom)
-	  return assignArrayValues(llptr, ruv);
+	  return assignArrayValues(lptr, ruv);
 	else
-	  return assignValuePtr(llptr, ruv); //t41483
+	  return assignValuePtr(lptr, ruv); //t41483
       }
 
     //r is data (includes packed arrays), store it into where lptr is pointing
-    assert((UlamType::compareForUlamValueAssignment(llptr.getPtrTargetType(), ruv.getUlamValueTypeIdx(), *this) == UTIC_SAME) || (UlamType::compareForUlamValueAssignment(llptr.getPtrTargetType(), UAtom, *this) == UTIC_SAME) || (UlamType::compareForUlamValueAssignment(ruv.getUlamValueTypeIdx(), UAtom, *this) == UTIC_SAME));
+    assert((UlamType::compareForUlamValueAssignment(lptr.getPtrTargetType(), ruv.getUlamValueTypeIdx(), *this) == UTIC_SAME) || (UlamType::compareForUlamValueAssignment(lptr.getPtrTargetType(), UAtom, *this) == UTIC_SAME) || (UlamType::compareForUlamValueAssignment(ruv.getUlamValueTypeIdx(), UAtom, *this) == UTIC_SAME));
 
-    STORAGE place = llptr.getPtrStorage();
+    STORAGE place = lptr.getPtrStorage();
     switch(place)
       {
       case STACK:
-	m_funcCallStack.assignUlamValue(llptr, ruv, *this);
+	m_funcCallStack.assignUlamValue(lptr, ruv, *this);
 	break;
       case EVALRETURN:
-	m_nodeEvalStack.assignUlamValue(llptr, ruv, *this);
+	m_nodeEvalStack.assignUlamValue(lptr, ruv, *this);
 	break;
       case EVENTWINDOW:
-	m_eventWindow.assignUlamValue(llptr, ruv);
+	m_eventWindow.assignUlamValue(lptr, ruv);
 	break;
       case CNSTSTACK:
       default:

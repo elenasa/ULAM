@@ -171,7 +171,6 @@ namespace MFM {
     rtnUV.m_uv.m_ptrValue.m_slotIndex = (s16) slot;
 
     UlamType * ttut = state.getUlamTypeByIndex(targetType);
-    //ULAMCLASSTYPE ttclasstype = ttut->getUlamClassType();
     //figure out the pos based on targettype; elements start at first state bit (25)
     // quarks too still?, CAN WE SUPPORT transients?
     ULAMTYPE ttenum = ttut->getUlamTypeEnum();
@@ -183,9 +182,9 @@ namespace MFM {
     s32 len;
     if(packed == UNPACKED)
       {
-	if((ttenum == UAtom))// || (ttclasstype == UC_ELEMENT))
+	if((ttenum == UAtom))
 	  {
-	    len = BITSPERATOM; //MAXSTATEBITS; //t41484
+	    len = BITSPERATOM; //t41484
 	  }
 	else
 	  len = state.getBitSize(targetType); //arrayitem or element (t3686)
@@ -195,7 +194,6 @@ namespace MFM {
 
     if(pos == 0)
       {
-	//if((ttenum == UAtom) || (ttenum == Class)) //t41483, t3172
 	if((ttenum == Class)) //t41483, t3172
 	  rtnUV.m_uv.m_ptrValue.m_posInAtom = ATOMFIRSTSTATEBITPOS; //len is predetermined
 	else if (ttenum == UAtom)

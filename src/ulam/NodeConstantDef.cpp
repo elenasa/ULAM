@@ -838,7 +838,6 @@ namespace MFM {
     //scalar classes wait until after c&l to build default value;
     // but pieces can be folded in advance;
     // t41198 (might be better to replace node with NodeInitDM?)
-    //if(m_state.isAClass(uti))
     if(m_state.isAClass(uti) || m_state.isAtom(uti)) //t41483 constant atom
       {
 	UTI rtnuti = Nav;
@@ -1009,6 +1008,7 @@ namespace MFM {
 
 		m_state.getDefaultAsArray(scalarut->getSizeofUlamType(), nut->getArraySize(), 0, bvclass, bvtmp); //t41179
 	      }
+	    //else (e.g. atom bvtmp is zeros)
 
 	    if(((NodeList *) m_nodeExpr)->buildArrayValueInitialization(bvtmp)) //t41492 redo
 	      brtn = true;
@@ -1193,7 +1193,6 @@ namespace MFM {
 	setupStackWithPrimitiveForEval(slotsneeded);
 	cslotidx += slotsneeded;
       }
-    //    else if(m_state.isAClass(nuti)) //t41198
     else if(m_state.isAClass(nuti) || m_state.isAtom(nuti)) //t41198, t41483,4
       {
 	//array of classes??
@@ -1536,7 +1535,6 @@ namespace MFM {
 	m_constSymbol->printPostfixValue(fp);
 	GCNL;
       }
-    //    else if(etyp == Class)
     else if((etyp == Class) || (etyp == UAtom)) //t41483
       {
 	std::string estr;
@@ -1612,7 +1610,7 @@ namespace MFM {
     //ULAMCLASSTYPE classtype = nut->getUlamClassType();
     ULAMTYPE etyp = nut->getUlamTypeEnum();
 
-    if(nut->isScalar() && !((etyp == Class) || (etyp == UAtom)))//(classtype == UC_NOTACLASS))t41483
+    if(nut->isScalar() && !((etyp == Class) || (etyp == UAtom)))//t41483
       return;
 
     //constant array: Class or Primitive (not class arg primitive) //t3894
@@ -1680,7 +1678,6 @@ namespace MFM {
     fp->write("initVal[(");
     fp->write_decimal_unsigned(len);
     fp->write(" + 31)/32] = ");
-    //    if(netyp == Class)
     if((netyp == Class) || (netyp == UAtom)) //t41483
       {
 	std::string estr;
