@@ -98,6 +98,7 @@ namespace MFM{
 
   void NodeListArrayInitialization::setClassType(UTI cuti) //from parent
   {
+    //sets the array to all the same type, not for constant atom arrays.
     assert(m_state.okUTItoContinue(cuti));
     if(m_state.okUTItoContinue(cuti) && m_state.isAClass(cuti))
       {
@@ -106,7 +107,9 @@ namespace MFM{
 	  {
 	    if(m_nodes[i]->isClassInit())
 	      m_nodes[i]->setClassType(scalaruti);
-	    //else quietly fail?
+	    else if(m_nodes[i]->isAConstantClass())
+	      m_state.abortNotImplementedYet(); //t41509
+	    //quietly fail (t41234)
 	  }
       }
   }
@@ -411,7 +414,8 @@ namespace MFM{
     else if(m_nodes[n]->isAConstantClass())
       {
 	BV8K bvmask;
-	if(((NodeConstantClass *) m_nodes[n])->initDataMembersConstantValue(bvclass, bvmask)) //at pos 0
+	//	if(((NodeConstantClass *) m_nodes[n])->initDataMembersConstantValue(bvclass, bvmask)) //at pos 0
+	if(m_nodes[n]->initDataMembersConstantValue(bvclass, bvmask)) //at pos 0
 	  {
 	    bvclass.CopyBV(0, pos * itemlen, itemlen, bvtmp); //frompos, topos, len, destBV
 	    rtnb = true;

@@ -61,11 +61,14 @@ namespace MFM{
 
     virtual bool isAConstantClass();
 
+    virtual bool getConstantValue(BV8K& bval);
+
     virtual bool initDataMembersConstantValue(BV8K& bvref, BV8K& bvmask);
 
     virtual UTI checkAndLabelType(Node * thisparentnode);
 
   protected:
+    virtual UlamValue makeUlamValuePtr();
 
   private:
 

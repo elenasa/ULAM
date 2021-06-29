@@ -69,7 +69,7 @@ namespace MFM {
     UlamValue ptr;
     UlamValue atomuv;
 
-    UTI auti = getOfType();
+    UTI auti = getNodeType(); //t41469
     UlamType * aut = m_state.getUlamTypeByIndex(auti);
     ULAMCLASSTYPE aclasstype = aut->getUlamClassType();
 
@@ -210,7 +210,7 @@ namespace MFM {
   void NodeInstanceof::genCodeToStoreInto(File * fp, UVPass& uvpass)
   {
     //lhs
-    //assert(getStoreIntoAble() == TBOOL_TRUE); //not so..why not! (t3657) defaultvalue is a constant
+    //assert(getStoreIntoAble() == TBOOL_TRUE); //not so..why not? (t41503) constantof defaultvalue
     genCode(fp, uvpass); //t41085
 
     //tmp variable becomes the object of the constructor call (t41085)

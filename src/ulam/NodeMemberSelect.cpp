@@ -425,7 +425,7 @@ namespace MFM {
 
     if(m_nodeLeft->isAConstant())
       {
-	//probably need evaltostoreinto for rhs, since not DM.
+	//probably need evaltostoreinto for rhs, since not DM. (? t41507)
 	//m_state.abortNotImplementedYet(); //t41198, t41209, t41217
 	//return UNEVALUABLE;
       }

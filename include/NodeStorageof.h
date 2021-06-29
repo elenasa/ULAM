@@ -79,6 +79,8 @@ namespace MFM{
 
     virtual EvalStatus evalToStoreInto();
 
+    virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);
+
     virtual void genCode(File * fp, UVPass& uvpass) = 0;
 
     virtual void genCodeToStoreInto(File * fp, UVPass& uvpass) = 0;

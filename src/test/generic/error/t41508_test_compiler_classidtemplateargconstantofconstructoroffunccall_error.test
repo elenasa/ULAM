@@ -1,0 +1,36 @@
+## -*- mode:ulam -*-
+#=t41508_test_compiler_classidtemplateargconstantconstructoroffunccall_error
+#!
+./R.ulam:5:40: ERROR: Unsupported request: 'constantof' constructor call.
+./R.ulam:5:14: ERROR: Initial value of 'a2cid' is missing.
+./R.ulam:5:51: ERROR: Invalid Statement (possible missing semicolon).
+Unrecoverable Program Parse FAILURE: <R.ulam>
+Unrecoverable Program Parse FAILURE: <A.ulam>
+Unrecoverable Program Parse FAILURE: <Ele2.ulam>
+##
+## informed by t41502, except constantof has (), like a constructor call; see also t41501.
+##
+#>R.ulam
+  ulam 5;
+element R
+{
+  Int test() {
+    Unsigned a2cid = A(Ele2.classidof).constantof().getClassid(); //or driveby templated class func call
+    return 0;
+  }
+}
+
+#:A.ulam
+  ulam 5;
+element A(Unsigned cid)
+{
+  constant Unsigned c_cid = cid;
+  Unsigned getClassid()  { return c_cid; }
+}
+
+#:Ele2.ulam
+  ulam 5;
+element Ele2 {
+}
+
+#.

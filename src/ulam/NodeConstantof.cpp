@@ -32,7 +32,15 @@ namespace MFM {
 
   bool NodeConstantof::isAConstantClass()
   {
-    return true; //wrong node, though. confusing.
+    return true;
+  }
+
+  bool NodeConstantof::getConstantValue(BV8K& bval)
+  {
+    UTI nuti = getNodeType();
+    assert(m_state.okUTItoContinue(nuti));
+    bool rtnok = m_state.getDefaultClassValue(nuti, bval);
+    return rtnok;
   }
 
   bool NodeConstantof::initDataMembersConstantValue(BV8K& bvref, BV8K& bvmask)
@@ -51,8 +59,46 @@ namespace MFM {
     NodeInstanceof::checkAndLabelType(thisparentnode);
 
     Node::setStoreIntoAble(TBOOL_FALSE);
+
     return getNodeType();
   } //checkAndLabelType
 
+
+  UlamValue NodeConstantof::makeUlamValuePtr()
+  {
+    UlamValue ptr;
+    UlamValue atomuv;
+
+    UTI auti = getOfType();
+    UlamType * aut = m_state.getUlamTypeByIndex(auti);
+    ULAMCLASSTYPE aclasstype = aut->getUlamClassType();
+
+    u32 atop = 1;
+    atop = m_state.m_constantStack.getAbsoluteTopOfStackIndexOfNextSlot();
+    u32 slotsneeded = m_state.slotsNeeded(auti);
+    Node::makeRoomForSlots(slotsneeded, CNSTSTACK); //before store (t41507)
+
+    if(m_state.isAtom(auti))
+      atomuv = NodeStorageof::evalAtomOfExpr();  //t3286
+    else if(aclasstype == UC_ELEMENT)
+      atomuv = UlamValue::makeDefaultAtom(auti, m_state);
+    else if(aclasstype == UC_QUARK)
+      {
+	u32 dq = 0;
+	AssertBool isDefinedQuark = m_state.getDefaultQuark(auti, dq); //returns scalar dq
+	assert(isDefinedQuark);
+	atomuv = UlamValue::makeImmediateClass(auti, dq, aut->getTotalBitSize());
+      }
+    else if(aclasstype == UC_TRANSIENT)
+      atomuv = UlamValue::makeDefaultAtom(auti, m_state); //size limited to atom for eval
+    else
+      m_state.abortUndefinedUlamClassType();
+
+    m_state.m_constantStack.storeUlamValueInSlot(atomuv, atop);
+
+    ptr = UlamValue::makePtr(atop, CNSTSTACK, auti, m_state.determinePackable(auti), m_state, 0);
+    ptr.setUlamValueTypeIdx(PtrAbs);
+    return ptr;
+  } //makeUlamValuePtr
 
 } //end MFM

@@ -675,6 +675,7 @@ namespace MFM {
 
 	uv = m_state.getPtrTarget(uvp);
 	UTI ttype = uv.getUlamValueTypeIdx();
+	assert(m_state.okUTItoContinue(ttype)); //t41033
 
 	// redo what getPtrTarget use to do, when types didn't match due to
 	// an element/quark or a requested scalar of an arraytype

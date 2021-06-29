@@ -3820,8 +3820,23 @@ namespace MFM {
 	rtnNode = new NodeTerminalProxy(memberNode, utype, fTok, nodetype, m_state);
 	break;
       case TOK_KW_CONSTANTOF:
-	rtnNode = new NodeConstantof(memberNode, nodetype, m_state);
-	rtnNode->setNodeLocation(fTok.m_locator);
+	{
+	  Token cTok;
+	  getNextToken(cTok);
+	  unreadToken();
+	  if(cTok.m_type == TOK_OPEN_PAREN)
+	    {
+	      std::ostringstream msg;
+	      msg << "Unsupported request: '" << m_state.getTokenDataAsString(fTok).c_str();
+	      msg << "' constructor call";
+	      MSG(&fTok, msg.str().c_str(), ERR); //t41508
+	    }
+	  else
+	    {
+	      rtnNode = new NodeConstantof(memberNode, nodetype, m_state);
+	      rtnNode->setNodeLocation(fTok.m_locator);
+	    }
+	}
 	break;
       case TOK_KW_INSTANCEOF:
 	{
