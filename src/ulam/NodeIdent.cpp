@@ -1015,11 +1015,13 @@ namespace MFM {
 
     SymbolClassName * prematureclass = NULL;
     bool isUnseenClass = false;
+    bool isPrematureClassATemplate = false;
     UTI pmcuti = Nouti;
     if(m_state.alreadyDefinedSymbolClassName(m_token.m_dataindex, prematureclass))
       {
 	pmcuti = prematureclass->getUlamTypeIdx();
 	isUnseenClass = (m_state.getUlamTypeByIndex(pmcuti)->getUlamClassType() == UC_UNSEEN);
+	isPrematureClassATemplate = prematureclass->isClassTemplate(); //t41510
 
 	std::ostringstream msg;
 	msg << "Typedef alias '";
@@ -1029,11 +1031,13 @@ namespace MFM {
 	  msg << "an unseen ";
 	msg << "class type: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(pmcuti).c_str();
+	if(isPrematureClassATemplate)
+	  msg << ", a template";
 	msg << ", first noticed at: .";  //..
-	if(isUnseenClass)
+	if(isUnseenClass) //t41399
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	else
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //issue 5/6/16
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //issue 5/6/16, t41510
 
 	NodeBlockClass * ucblock = prematureclass->getClassBlockNode();
 	assert(ucblock);
@@ -1046,10 +1050,11 @@ namespace MFM {
 	else
 	  MSG(ucblock->getNodeLocationAsString().c_str(), imsg.str().c_str(), ERR); //ish 5/6/16,11/16/17
 
-	if(isUnseenClass)
+	if(isUnseenClass && !isPrematureClassATemplate)
 	  m_state.removeIncompleteClassSymbolFromProgramTable(m_token); //t41451, continue..
-	else
-	  return false; //quit!
+
+	if(!isUnseenClass)
+	  return false; //quit! (t41510)
       }
 
     if(args.m_anothertduti != Nouti)

@@ -1318,10 +1318,35 @@ namespace MFM {
     return rtnBool;
   } //getUlamTypeByTypedefName
 
-  bool CompilerState::getUlamTypeByTypedefNameinLocalsScope(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType)
+  bool CompilerState::getUlamTypeByTypedefNameinAnyLocalsScope(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType, Symbol *& asymptr)
+  {
+    bool rtnb = false;
+    std::map<u32, NodeBlockLocals *>::iterator it;
+
+    for(it = m_localsPerFilePath.begin(); it != m_localsPerFilePath.end(); it++)
+      {
+	NodeBlockLocals * localsblock = it->second;
+	assert(localsblock);
+
+	UTI luti = localsblock->getNodeType();
+	pushClassContext(luti, localsblock, localsblock, false, NULL);
+
+	if(getUlamTypeByTypedefNameinLocalsScope(nameIdx, rtnType, rtnScalarType, asymptr))
+	  {
+	    assert(asymptr->isTypedef());
+	    rtnb = true;
+	    popClassContext(); //restore
+	    break;
+	  }
+	popClassContext(); //restore
+      }
+    return rtnb;
+  } //getUlamTypeByTypedefNameinAnyLocalsScope
+
+  bool CompilerState::getUlamTypeByTypedefNameinLocalsScope(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType, Symbol *& asymptr)
   {
     bool rtnBool = false;
-    Symbol * asymptr = NULL;
+    assert(asymptr == NULL);
 
     //e.g. KEYWORDS have no m_dataindex (=0); short-circuit
     if(nameIdx == 0) return false;
@@ -1351,7 +1376,10 @@ namespace MFM {
     UTI cuti = keyOfArg.getUlamKeyTypeSignatureClassInstanceIdx(); // what-if a ref?
 
     if(bUT == Class)
-      return cuti; //try this Mon May  2 10:36:56 2016
+      {
+	assert(okUTItoContinue(cuti)); //at least not Nouti (t41509)
+	return cuti; //try this Mon May  2 10:36:56 2016
+      }
 
     s32 bitsize = keyOfArg.getUlamKeyTypeSignatureBitSize();
     u32 nameid = keyOfArg.getUlamKeyTypeSignatureNameId();
@@ -2963,7 +2991,7 @@ namespace MFM {
 	  }
       } //no class name
     return rtnb;
-  } //statusUnknownClassTypeInThisLocalsFileScope
+  } //statusUnknownClassTypeInThisLocalsScope
 
   bool CompilerState::removeIncompleteClassSymbolFromProgramTable(u32 id)
   {
@@ -3012,27 +3040,92 @@ namespace MFM {
   {
     assert(cTok.m_type == TOK_TYPE_IDENTIFIER); //3676
     u32 dataindex = cTok.m_dataindex;
-    bool isNotDefined = (symptr == NULL) && !alreadyDefinedSymbolClassName(dataindex, symptr);
+    AssertBool isNotDefined = (symptr == NULL) && !alreadyDefinedSymbolClassName(dataindex, symptr);
     assert(isNotDefined);
 
-    UlamKeyTypeSignature key(dataindex, UNKNOWNSIZE); //"-2" and scalar default
-    UTI cuti = makeUlamType(key, Class, UC_UNSEEN); //**gets next unknown uti type
+    UTI cuti = Nouti;
+    bool ltdisatypedefclassholder = false;
+    UTI localstd = Nouti;
+    UTI localstdscalar = Nouti;
+    Symbol * asymptr = NULL;
+    if(getUlamTypeByTypedefNameinAnyLocalsScope(dataindex, localstd, localstdscalar, asymptr))
+      {
+	UTI ltd = asymptr->getUlamTypeIdx();
+	Locator tdloc = asymptr->getLoc();
+	if(isHolder(ltd) && isScalar(ltd) && (tdloc.getPathIndex() != cTok.m_locator.getPathIndex()))
+	  {
+	    ltdisatypedefclassholder = isAClass(ltd);
 
-    NodeBlockClass * classblock = new NodeBlockClass(NULL, *this);
-    assert(classblock);
-    classblock->setNodeLocation(cTok.m_locator); //only where first used, not defined!
+	    UlamKeyTypeSignature key(dataindex, UNKNOWNSIZE, NONARRAYSIZE, ltd); //ltd for classinstanceidx (t41509)
+	    //yes, we found a guess in a locals filescope before class was seen. (t41509)
+	    //reuse its uti, fix holder key, and remove the typdedef symbol from localsfilescope.
+	    cuti = makeUlamTypeFromHolder(key, Class, ltd, UC_UNSEEN);
+	    assert(cuti==ltd);
 
-    //avoid Invalid Read whenconstructing class' Symbol
-    pushClassContext(cuti, classblock, classblock, false, NULL); //null blocks likely
+	    NodeBlockLocals * localsblock = getLocalsScopeBlock(tdloc);
+	    assert(localsblock);
+	    UTI luti = localsblock->getNodeType();
+	    assert(okUTItoContinue(luti));
 
-    classblock->setNodeType(cuti); //t3895, after classblock pushed
+	    Symbol * localsymptr = NULL;
+	    pushClassContext(luti, localsblock, localsblock, false, NULL);
+	    takeSymbolFromCurrentScope(dataindex, localsymptr);
+	    popClassContext(); //restore
 
-    //symbol ownership goes to the programDefST; distinguish btn template & regular classes here:
-    symptr = new SymbolClassName(cTok, cuti, classblock, *this);
-    m_programDefST.addToTable(dataindex, symptr);
-    m_unseenClasses.insert(dataindex);
+	    assert(localsymptr == asymptr);
+	    delete asymptr;
+	    localsymptr = asymptr = NULL;
+	  }
+	else if(isClassAStub(ltd))
+	  {
+	    //making a template
+	    UlamKeyTypeSignature key(dataindex, UNKNOWNSIZE); //"-2" and scalar default
+	    cuti = makeUlamType(key, Class, UC_UNSEEN); //**gets next unknown uti type
+	    //continue.. (t3860,t3872,t41130)
+	  }
+	else if(isAClass(ltd) && isScalar(ltd))
+	  {
+	    //a true typedef (e.g. another class, not a holder)
+	    UlamKeyTypeSignature key(dataindex, UNKNOWNSIZE); //"-2" and scalar default
+	    cuti = makeUlamType(key, Class, UC_UNSEEN); //**gets next unknown uti type
+	    //continue..(t41513)
+	  }
+	else
+	  {
+	    //error, class mimics locals typedef
+	    abortNotImplementedYet();
+	    return false;
+	  }
+      }
+    else
+      {
+	UlamKeyTypeSignature key(dataindex, UNKNOWNSIZE); //"-2" and scalar default
+	cuti = makeUlamType(key, Class, UC_UNSEEN); //**gets next unknown uti type
+      }
 
-    popClassContext();
+    if(!ltdisatypedefclassholder)
+      {
+	NodeBlockClass * classblock = new NodeBlockClass(NULL, *this);
+	assert(classblock);
+	classblock->setNodeLocation(cTok.m_locator); //only where first used, not defined!
+
+	//avoid Invalid Read whenconstructing class' Symbol
+	pushClassContext(cuti, classblock, classblock, false, NULL); //null blocks likely
+
+	classblock->setNodeType(cuti); //t3895, after classblock pushed
+
+	//symbol ownership goes to the programDefST; distinguish btn template & regular classes here:
+	symptr = new SymbolClassName(cTok, cuti, classblock, *this);
+	m_programDefST.addToTable(dataindex, symptr);
+	m_unseenClasses.insert(dataindex);
+
+	popClassContext(); //restore
+      }
+    else //makeUlamTypeFromHolder already replaced the holder class for us.
+      {
+	AssertBool isDefined = alreadyDefinedSymbolClassName(dataindex, symptr);
+	assert(isDefined);
+      }
     return true; //compatible with alreadyDefinedSymbolClassName return
   } //addIncompleteClassSymbolToProgramTable
 

@@ -290,6 +290,7 @@ namespace MFM {
 	cnSym = ctSym;
       } //template
 
+    assert(cnSym);
     UTI cuti = cnSym->getUlamTypeIdx();
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
 
@@ -2856,9 +2857,10 @@ namespace MFM {
 	  {
 	    UTI tduti = Nav;
 	    UTI tdscalaruti = Nouti;
+	    Symbol * tdsymbol = NULL;
 	    //check if a typedef first..look localdefs first when parsing class inheritance
 	    if(((m_state.m_parsingVariableSymbolTypeFlag == STF_CLASSINHERITANCE)
-		&& m_state.getUlamTypeByTypedefNameinLocalsScope(tokid, tduti, tdscalaruti))
+		&& m_state.getUlamTypeByTypedefNameinLocalsScope(tokid, tduti, tdscalaruti, tdsymbol))
 	       || m_state.getUlamTypeByTypedefName(tokid, tduti, tdscalaruti))
 	      {
 		ULAMTYPE bUT = m_state.getUlamTypeByIndex(tduti)->getUlamTypeEnum();

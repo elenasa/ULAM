@@ -43,6 +43,11 @@ namespace MFM {
     return rtnok;
   }
 
+  void NodeConstantof::setClassType(UTI cuti)
+  {
+    NodeStorageof::setOfType(cuti);
+  }
+
   bool NodeConstantof::initDataMembersConstantValue(BV8K& bvref, BV8K& bvmask)
   {
     UTI nuti = getNodeType();

@@ -63,6 +63,8 @@ namespace MFM{
 
     virtual bool getConstantValue(BV8K& bval);
 
+    virtual void setClassType(UTI cuti);
+
     virtual bool initDataMembersConstantValue(BV8K& bvref, BV8K& bvmask);
 
     virtual UTI checkAndLabelType(Node * thisparentnode);

@@ -108,7 +108,10 @@ namespace MFM{
 	    if(m_nodes[i]->isClassInit())
 	      m_nodes[i]->setClassType(scalaruti);
 	    else if(m_nodes[i]->isAConstantClass())
-	      m_state.abortNotImplementedYet(); //t41509
+	      {
+		//noop (t41509, t41234)
+	      }
+	    //else
 	    //quietly fail (t41234)
 	  }
       }

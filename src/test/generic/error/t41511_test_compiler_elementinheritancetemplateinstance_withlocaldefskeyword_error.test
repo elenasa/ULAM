@@ -1,0 +1,42 @@
+## -*- mode:ulam -*-
+#=t41511_test_compiler_elementinheritancetemplateinstance_withlocaldefskeyword_error
+#!
+./Foo.ulam:3:9: ERROR: Subclass 'Foo' (UTI 29) inherits from 'MyMoo', an unresolved local filescope typedef (UTI 31).
+./Foo.ulam:7:5: ERROR: Incomplete descriptor for type: Foo (UTI 29), while labeling class: Foo (UTI 29).
+./Foo.ulam:7:5: ERROR: Incomplete Variable Decl for type: Foo (UTI 29), used with variable symbol name 'f'.
+./Foo.ulam:7:5: ERROR: Variable for: 'f', is still hazy.
+./Foo.ulam:8:9: ERROR: Incomplete identifier for type: Foo, used with list symbol name 'f'.
+./Foo.ulam:8:11: ERROR: Member selected is incomplete class: unresolved, check and label fails this time around.
+./Foo.ulam:9:9: ERROR: Incomplete descriptor for type: 31 (UTI 31), while labeling class: Foo (UTI 29).
+./Foo.ulam:9:15: ERROR: Proxy Type: unresolved is still incomplete and unknown for its 'sizeof'.
+./Foo.ulam:10:5: ERROR: Incomplete identifier for type: Foo&, used with list symbol name 'self'.
+./Foo.ulam:10:5: ERROR: Member selected is incomplete class: unresolved, check and label fails this time around.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by t3875, except using template quark instance typedef that is missing;
+## test of local defs errors, mis-using local keyword as forward decl
+## formerly: ./Foo.ulam:9:5: ERROR: Identifier 'sp' was used while still undeclared.
+##
+#>Foo.ulam
+  ulam 3;
+//local typedef Moo(1) MyMoo; <--Missing!!
+element Foo : local.MyMoo {
+  Bool(7) sp;
+  Int test() {
+    Unsigned a = 73;
+    Foo f;
+    a = f.us;
+    a = MyMoo.sizeof;
+    sp = (a == 42u);
+    return (Int) a; //=42
+  }
+}
+
+#:Moo.ulam
+  ulam 1;
+quark Moo(Int a) {
+  Unsigned(3) us = 4u;
+}
+
+
+#.
