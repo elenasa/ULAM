@@ -3075,6 +3075,14 @@ namespace MFM {
 	    assert(localsymptr == asymptr);
 	    delete asymptr;
 	    localsymptr = asymptr = NULL;
+
+	    {
+	      u32 numothers = cleanupAnyotherClassHolderTypedefsInLocalsScopes(cTok, cuti);
+	      std::ostringstream msg;
+	      msg << "Cleanup " << numothers << " holders typedefs in locals scopes for class ";
+	      msg << getUlamTypeNameBriefByIndex(cuti).c_str();
+	      MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
+	    }
 	  }
 	else if(isClassAStub(ltd))
 	  {
@@ -3128,6 +3136,57 @@ namespace MFM {
       }
     return true; //compatible with alreadyDefinedSymbolClassName return
   } //addIncompleteClassSymbolToProgramTable
+
+  u32 CompilerState::cleanupAnyotherClassHolderTypedefsInLocalsScopes(const Token& cTok, UTI cuti)
+  {
+    u32 cdataindex = cTok.m_dataindex;
+    UlamType * cut = getUlamTypeByIndex(cuti);
+    UlamKeyTypeSignature ckey = cut->getUlamKeyTypeSignature();
+    u32 numltd = 0;
+    UTI localstd = Nouti;
+    UTI localstdscalar = Nouti;
+    Symbol * asymptr = NULL;
+    while(getUlamTypeByTypedefNameinAnyLocalsScope(cdataindex, localstd, localstdscalar, asymptr))
+      {
+	UTI ltd = asymptr->getUlamTypeIdx();
+	Locator tdloc = asymptr->getLoc();
+	if(isHolder(ltd) && isScalar(ltd) && (tdloc.getPathIndex() != cTok.m_locator.getPathIndex()))
+	  {
+	    //yes, we found aanother guess in a locals filescope before class was seen. (t41516)
+	    //alias its uti, fix holder key, and remove the typdedef symbol from localsfilescope.
+
+	    numltd += isAClass(ltd) ? 1 : 0;
+
+	    UlamKeyTypeSignature ltdkey = getUlamKeyTypeSignatureByIndex(ltd);
+
+	    //we need to keep the uti, but change the key
+	    //removes old key and its ulamtype from map, if no longer pointed to
+	    deleteUlamKeyTypeSignature(ltdkey, ltd); //decrements counter
+
+	    incrementKeyToAnyUTICounter(ckey, ltd);
+
+	    m_indexToUlamKey[ltd] = ckey;
+
+	    updateUTIAliasForced(ltd, cuti); //after index-to-key is set
+
+	    NodeBlockLocals * localsblock = getLocalsScopeBlock(tdloc);
+	    assert(localsblock);
+	    UTI luti = localsblock->getNodeType();
+	    assert(okUTItoContinue(luti));
+
+	    Symbol * localsymptr = NULL;
+	    pushClassContext(luti, localsblock, localsblock, false, NULL);
+	    takeSymbolFromCurrentScope(cdataindex, localsymptr);
+	    popClassContext(); //restore
+
+	    assert(localsymptr == asymptr);
+	    delete asymptr;
+	    localsymptr = asymptr = NULL;
+	  }
+	//else
+      }
+    return numltd;
+  }
 
   //temporary UlamType which will be updated during type labeling.
   bool CompilerState::addIncompleteTemplateClassSymbolToProgramTable(const Token& cTok, SymbolClassNameTemplate * & symptr)

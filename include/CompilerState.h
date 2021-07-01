@@ -234,6 +234,7 @@ namespace MFM{
     bool getUlamTypeByTypedefName(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType);
     bool getUlamTypeByTypedefNameinLocalsScope(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType, Symbol *& asymptr);
     bool getUlamTypeByTypedefNameinAnyLocalsScope(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType, Symbol *& asymptr);
+    u32 cleanupAnyotherClassHolderTypedefsInLocalsScopes(const Token& cTok, UTI cuti);
 
     /** turns array into its scalar type */
     UTI getUlamTypeAsScalar(UTI utArg);
