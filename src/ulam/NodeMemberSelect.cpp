@@ -204,8 +204,15 @@ namespace MFM {
     std::string className = m_state.getUlamTypeNameBriefByIndex(luti); //help me debug
 
     SymbolClass * csym = NULL;
-    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(luti, csym);
-    assert(isDefined);
+    if(!m_state.alreadyDefinedSymbolClass(luti, csym))
+      {
+	std::ostringstream msg;
+	msg << "Member selected is not a defined class: ";
+	msg << className.c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	setNodeType(Nav);
+	return Nav; //t41518
+      }
 
     NodeBlockClass * memberClassNode = csym->getClassBlockNode();
     assert(memberClassNode);  //e.g. forgot the closing brace on quark definition
