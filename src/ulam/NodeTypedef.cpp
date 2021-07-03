@@ -152,22 +152,7 @@ namespace MFM {
 	  {
 	    m_state.statusUnknownTypeInThisClassResolver(it);
 	  }
-	else if(m_state.isThisLocalsFileScope())
-	  {
-	    SymbolClassName * cnsym = NULL;
-	    if(m_state.alreadyDefinedSymbolClassName(m_tdid, cnsym))
-	      {
-		std::ostringstream msg;
-		msg << "Locals filescope typedef '" << getName();
-		msg  << "' exists as a class with the same name;";
-		msg << " cannot also be an alias for: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		setNodeType(Nav);
-		return Nav; //t3860, t41513
-	      }
-	  }
-	//else (t41298,9, t41469)
+	//else (t41298,9, t41469)?
 
 	assert(m_nodeTypeDesc);
 	UTI cuti = m_state.getCompileThisIdx();

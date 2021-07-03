@@ -234,7 +234,7 @@ namespace MFM {
       {
 	if(!m_state.alreadyDefinedSymbolClassName(iTok.m_dataindex, cnSym))
 	  {
-	    m_state.addIncompleteClassSymbolToProgramTable(iTok, cnSym);
+	    m_state.addIncompleteParseThisClassSymbolToProgramTable(iTok, cnSym);
 	  }
 	else
 	  {
@@ -686,6 +686,7 @@ namespace MFM {
 		    SymbolTypedef * symtypedef = new SymbolTypedef(iTok, huti, huti, m_state);
 		    assert(symtypedef);
 		    symtypedef->setBlockNoOfST(m_state.getContextBlockNo());
+		    symtypedef->setUlamGeneratedTypedef();
 		    m_state.addSymbolToCurrentScope(symtypedef); //local scope
 
 		    cnsym->setSuperClassForClassInstance(huti, cnsym->getUlamTypeIdx()); //set here!!
@@ -2893,6 +2894,7 @@ namespace MFM {
 			SymbolTypedef * symtypedef = new SymbolTypedef(typeargs.m_typeTok, huti, Nav, m_state);
 			assert(symtypedef);
 			symtypedef->setBlockNoOfST(m_state.getContextBlockNo());
+			symtypedef->setUlamGeneratedTypedef();
 			m_state.addSymbolToCurrentScope(symtypedef); //locals scope
 		      }
 		    return huti;
@@ -3442,6 +3444,7 @@ namespace MFM {
 		SymbolTypedef * symtypedef = new SymbolTypedef(pTok, huti, Nav, m_state);
 		assert(symtypedef);
 		symtypedef->setBlockNoOfST(memberClassBlock->getNodeNo());
+		symtypedef->setUlamGeneratedTypedef();
 		m_state.addSymbolToCurrentMemberClassScope(symtypedef); //not locals scope
 		m_state.addUnknownTypeTokenToAClassResolver(mcuti, pTok, huti);
 
@@ -5979,6 +5982,7 @@ Node * Parser::wrapFactor(Node * leftNode)
 	    assert(rtnNode);
 	    rtnNode->setNodeLocation(args.m_typeTok.m_locator);
 	    asymptr->setStructuredComment(); //also clears
+	    ((SymbolTypedef *) asymptr)->clearUlamGeneratedTypedef(); //for locals scope
 	  }
 
 	if(!rtnNode)

@@ -18,7 +18,7 @@ quark Moo {
 }
 
 local typedef UrSelf Moo;
-element Foo : Moo {
+element Foo : local.Moo {
   Bool(7) sp;
   Int test() {
     Unsigned a = 73;

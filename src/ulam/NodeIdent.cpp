@@ -953,7 +953,22 @@ namespace MFM {
 		    else
 		      m_state.abortNotImplementedYet();
 		  }
-		//else td not holder
+		else if(((SymbolTypedef *)asymptr)->isUlamGeneratedTypedef() && m_state.isThisLocalsFileScope())
+		  {
+		    Symbol * gen2symptr = NULL;
+		    if(m_state.isIdInCurrentScope(args.m_typeTok.m_dataindex, gen2symptr))
+		      {
+			if(gen2symptr->isTypedef() && ((SymbolTypedef*) gen2symptr)->isUlamGeneratedTypedef())
+			  {
+			    UTI g2type = gen2symptr->getUlamTypeIdx();
+			    assert(m_state.isHolder(g2type));
+			    m_state.replaceUTIKeyAndAlias(g2type, tduti);
+			    //done cleaning up localsfilescope, ulam generated typedefs, i think.
+			    return true; //t41516
+			  }
+		      } //else new type not holder
+		  }
+		//else td not from another class, nor locals generated holder (e.g. t3783)
 
 		//not Nav when tduti's an array; might know?
 		args.m_declListOrTypedefScalarType = tdscalaruti;

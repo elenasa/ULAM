@@ -10,13 +10,14 @@ Uq_Moo { Unsigned(3) us( 4u);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 ## formerly test of local defs errors, mis-using local keyword as forward decl
-## will look for Moo typedef in locals filescope before using the class Moo
+## local constant cMoo causes a holder typedef to be generated in local scope;
+## so inheritance finds it eventhough undefined by user. see t41516.
 ## see also (t41510,t41511,t41513)
 ##
 #>Foo.ulam
   ulam 3;
-local constant Moo cMoo = { }; //irrelevant, just a question
-element Foo : local.Moo {
+local constant Moo cMoo = { }; //causes tmp holder typedef to be generated
+element Foo : local.Moo { //<--still an error!!! since no typedef.
   Bool(7) sp;
   Int test() {
     System s;

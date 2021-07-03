@@ -67,6 +67,8 @@ namespace MFM{
 
     virtual UTI checkAndLabelType(Node * thisparentnode);
 
+    u32 getAllRemainingUlamGeneratedTypedefSymbolsInLocalScope(std::map<UTI, Symbol*>& mapref);
+
     virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);
 
     virtual void genCode(File * fp, UVPass& uvpass);

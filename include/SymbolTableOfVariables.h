@@ -59,6 +59,8 @@ namespace MFM{
 
     u32 findTypedefSymbolNameIdByTypeInTable(UTI type);
 
+    u32 getAllRemainingUlamGeneratedTypedefSymbolsInTable(std::map<UTI, Symbol*>& mapref);
+
     //Table of Variable Data Members:
 
     virtual u32 getTotalSymbolSize();

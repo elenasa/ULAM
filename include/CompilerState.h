@@ -198,6 +198,8 @@ namespace MFM{
     UTI makeUlamTypeFromHolder(UlamKeyTypeSignature newkey, ULAMTYPE utype, UTI uti, ULAMCLASSTYPE classtype);
     UTI makeUlamTypeFromHolder(UlamKeyTypeSignature oldkey, UlamKeyTypeSignature newkey, ULAMTYPE utype, UTI uti, ULAMCLASSTYPE classtype);
     void cleanupExistingHolder(UTI huti, UTI newuti);
+    u32 replaceUTIKeyAndAlias(UTI olduti, UTI newuti);
+    void removeUlamGeneratedTypedefFromLocalsScope(u32 nameid, NodeBlockLocals * localsblock);
     SymbolClassName * makeAnonymousClassFromHolder(UTI cuti, Locator cloc);
 
     UTI makeUlamType(const Token& typeTok, s32 bitsize, s32 arraysize, UTI classinstanceidx, ALT reftype = ALT_NOT, ULAMCLASSTYPE classtype = UC_NOTACLASS);
@@ -233,8 +235,8 @@ namespace MFM{
 
     bool getUlamTypeByTypedefName(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType);
     bool getUlamTypeByTypedefNameinLocalsScope(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType, Symbol *& asymptr);
-    bool getUlamTypeByTypedefNameinAnyLocalsScope(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType, Symbol *& asymptr);
-    u32 cleanupAnyotherClassHolderTypedefsInLocalsScopes(const Token& cTok, UTI cuti);
+    typedef std::pair<NodeBlockLocals*, Symbol*> k_localstypedefpair;
+    bool getUlamTypeByTypedefNameinAnyLocalsScope(u32 nameIdx, std::map<UTI, k_localstypedefpair> & mapref);
 
     /** turns array into its scalar type */
     UTI getUlamTypeAsScalar(UTI utArg);
@@ -406,6 +408,7 @@ namespace MFM{
     /** creates temporary class type for dataindex, returns the new Symbol pointer in 2nd arg; */
     bool removeIncompleteClassSymbolFromProgramTable(u32 id); //helper
     bool removeIncompleteClassSymbolFromProgramTable(const Token& nTok);
+    bool addIncompleteParseThisClassSymbolToProgramTable(const Token& cTok, SymbolClassName * & symptr);
     bool addIncompleteClassSymbolToProgramTable(const Token& cTok, SymbolClassName * & symptr);
     bool addIncompleteTemplateClassSymbolToProgramTable(const Token& cTok, SymbolClassNameTemplate * & symptr);
     UTI addStubCopyToAncestorClassTemplate(UTI stubTypeToCopy, UTI argvaluecontext, UTI argtypecontext, Locator stubloc);
@@ -420,6 +423,7 @@ namespace MFM{
     void updateLineageAndFirstCheckAndLabelPass();
     void updateLineageAndFirstCheckAndLabelPassForLocals();
     bool checkAndLabelPassForLocals();
+    bool checkforAnyRemainingUlamGeneratedUlamTypedefsinThisLocalsScope(UTI thislocalarg);
 
     u32 getMaxNumberOfRegisteredUlamClasses();
     void defineRegistrationNumberForUlamClasses(); //ulam-4

@@ -3,6 +3,7 @@
 #include <iostream>
 #include "SymbolTableOfVariables.h"
 #include "SymbolModelParameterValue.h"
+#include "SymbolTypedef.h"
 #include "SymbolVariable.h"
 #include "SymbolVariableDataMember.h"
 #include "CompilerState.h"
@@ -81,6 +82,30 @@ namespace MFM {
       }
     return rtnId;
   } //findTypedefSymbolNameIdByTypeInTable
+
+  u32 SymbolTableOfVariables::getAllRemainingUlamGeneratedTypedefSymbolsInTable(std::map<UTI, Symbol*>& mapref)
+  {
+    u32 rtnnum = 0;
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	assert(sym);
+	if(sym->isTypedef())
+	  {
+	    if(((SymbolTypedef*)sym)->isUlamGeneratedTypedef())
+	      {
+		UTI suti = sym->getUlamTypeIdx();
+		std::pair<std::map<UTI,Symbol*>::iterator, bool> reti;
+		reti = mapref.insert(std::pair<UTI,Symbol*>(suti, sym));
+		assert(reti.second); //false if already existed, i.e. not added.
+		rtnnum++;
+	      }
+	  }
+	it++;
+      }
+    return rtnnum;
+  }
 
   //called by NodeBlock.
   u32 SymbolTableOfVariables::getTotalSymbolSize()

@@ -3,12 +3,12 @@
 
 namespace MFM {
 
-  SymbolTypedef::SymbolTypedef(const Token& id, UTI utype, UTI scalaruti, CompilerState & state) : Symbol(id, utype, state), m_scalarUTI(scalaruti) {}
+  SymbolTypedef::SymbolTypedef(const Token& id, UTI utype, UTI scalaruti, CompilerState & state) : Symbol(id, utype, state), m_scalarUTI(scalaruti), m_ulamgenerated(false) {}
 
-  SymbolTypedef::SymbolTypedef(const SymbolTypedef& sref) : Symbol(sref), m_scalarUTI(/*m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_scalarUTI,sref.getLoc())*/ Hzy)
+  SymbolTypedef::SymbolTypedef(const SymbolTypedef& sref) : Symbol(sref), m_scalarUTI(/*m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_scalarUTI,sref.getLoc())*/ Hzy), m_ulamgenerated(sref.m_ulamgenerated)
   {}
 
-  SymbolTypedef::SymbolTypedef(const SymbolTypedef& sref, bool keeptype) : Symbol(sref, keeptype), m_scalarUTI(sref.m_scalarUTI) {}
+  SymbolTypedef::SymbolTypedef(const SymbolTypedef& sref, bool keeptype) : Symbol(sref, keeptype), m_scalarUTI(sref.m_scalarUTI), m_ulamgenerated(sref.m_ulamgenerated) {}
 
   SymbolTypedef::~SymbolTypedef() {}
 
@@ -77,5 +77,20 @@ namespace MFM {
 	m_gotStructuredCommentToken = true;
       }
   } //setStructuredComment
+
+  bool SymbolTypedef::isUlamGeneratedTypedef()
+  {
+    return m_ulamgenerated;
+  }
+
+  void SymbolTypedef::setUlamGeneratedTypedef()
+  {
+    m_ulamgenerated = true;
+  }
+
+  void SymbolTypedef::clearUlamGeneratedTypedef()
+  {
+    m_ulamgenerated = false; //found user defined typedef
+  }
 
 } //end MFM

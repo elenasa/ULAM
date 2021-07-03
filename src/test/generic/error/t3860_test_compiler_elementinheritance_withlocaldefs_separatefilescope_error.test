@@ -2,7 +2,6 @@
 #=t3860_test_compiler_elementinheritance_withlocaldefs_separatefilescope_error
 #!
 ./Soo.ulam:6:24: ERROR: Variable 'soosize' is not defined, or was used before declared in a function.
-./Foo.ulam:3:15: ERROR: Locals filescope typedef 'Soo3' exists as a class with the same name; cannot also be an alias for: Soo(v).
 ./Soo.ulam:10:16: ERROR: UNSEEN class type <Soo3> was never defined in: Soo3.ulam.
 Unrecoverable Program Type Label FAILURE.
 ##
