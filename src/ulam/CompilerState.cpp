@@ -1682,9 +1682,15 @@ namespace MFM {
 
     //build static constant array of u32's for BV8K:
     indent(fp);
-    fp->write("static const u32 vales[(");
-    fp->write_decimal_unsigned(len); // == [nwords]
-    fp->write(" + 31)/32] = { ");
+    fp->write("static const u32 vales");
+    if(len == 0)
+      fp->write("[1] = { ");
+    else
+      {
+	fp->write("[(");
+	fp->write_decimal_unsigned(len); // == [nwords]
+	fp->write(" + 31)/32] = { ");
+      }
     fp->write(dhex.c_str());
     fp->write(" };"); GCNL;
 

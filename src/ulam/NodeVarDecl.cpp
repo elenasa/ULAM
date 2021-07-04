@@ -1187,9 +1187,14 @@ namespace MFM {
 	    m_state.indentUlamCode(fp);
 	    fp->write("const u32 _init");
 	    fp->write(m_varSymbol->getMangledName().c_str());
-	    fp->write("[(");
-	    fp->write_decimal_unsigned(len); //== [nwords]
-	    fp->write(" + 31)/32] = { ");
+	    if(len == 0)
+	      fp->write("[1] = { ");
+	    else
+	      {
+		fp->write("[(");
+		fp->write_decimal_unsigned(len); //== [nwords]
+		fp->write(" + 31)/32] = { ");
+	      }
 	    fp->write(estr.c_str());
 	    fp->write(" };\n");
 

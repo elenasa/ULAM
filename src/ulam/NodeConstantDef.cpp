@@ -1564,9 +1564,14 @@ namespace MFM {
 	    m_state.indentUlamCode(fp);
 	    fp->write("const u32 _init");
 	    fp->write(m_constSymbol->getMangledName().c_str());
-	    fp->write("[(");
-	    fp->write_decimal_unsigned(len); //== [nwords]
-	    fp->write(" + 31)/32] = { ");
+	    if(len == 0)
+	      fp->write("[1] = { ");
+	    else
+	      {
+		fp->write("[(");
+		fp->write_decimal_unsigned(len); //== [nwords]
+		fp->write(" + 31)/32] = { ");
+	      }
 	    fp->write(estr.c_str());
 	    fp->write(" };\n");
 
@@ -1625,9 +1630,14 @@ namespace MFM {
 	m_state.indent(fp);
 	fp->write("typedef u32 TypeForInit");
 	fp->write(m_constSymbol->getMangledName().c_str());
-	fp->write("[(");
-	fp->write_decimal_unsigned(len);
-	fp->write(" + 31)/32];\n");
+	if(len == 0)
+	  fp->write("[1];\n"); //t41520
+	else
+	  {
+	    fp->write("[(");
+	    fp->write_decimal_unsigned(len);
+	    fp->write(" + 31)/32];\n");
+	  }
 
 	//unique function to initialize STATIC constant (classes and array) "data members";
 	// not called in class no-arg constructor, but in .tcc (t41198)
@@ -1676,9 +1686,16 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("static ");
     fp->write("u32 ");
-    fp->write("initVal[(");
-    fp->write_decimal_unsigned(len);
-    fp->write(" + 31)/32] = ");
+    fp->write("initVal");
+    if(len == 0)
+      fp->write("[1] = ");
+    else
+      {
+	fp->write("[(");
+	fp->write_decimal_unsigned(len);
+	fp->write(" + 31)/32] = ");
+      }
+
     if((netyp == Class) || (netyp == UAtom)) //t41483
       {
 	std::string estr;
