@@ -1,12 +1,9 @@
 ## -*- mode:ulam -*-
 #=t41515_test_compiler_elementinheritance_withlocaldefskeyword_baseclassseenbeforetypedef_error
 #!
-./Foo.ulam:2:22: ERROR: Typedef alias 'Moo' already exists as class type: Moo, first noticed at: ..
-./Moo.ulam:2:7: ERROR: .. Another typedef for 'Moo' visible from here might clear the ambiguity.
-./Foo.ulam:2:22: ERROR: Invalid typedef of base type <UrSelf> and name 'Moo' (missing symbol).
-./Foo.ulam:2:25: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
- ERROR: No parse tree for This Class: Foo.
-Unrecoverable Program Parse FAILURE: <Foo.ulam>
+./Foo.ulam:8:11: ERROR: Variable 'us' is not defined, or was used before declared in a function.
+./Foo.ulam:8:7: ERROR: Assignment is invalid; LHS: Unsigned; RHS: erroneous.
+Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t41514, does local.Moo typedef supercede the class Moo as Foo's super? YES.
 ##
@@ -19,7 +16,7 @@ quark Moo {
 #:Foo.ulam
   ulam 3;
 local typedef UrSelf Moo;
-element Foo : Moo {
+element Foo : local.Moo {
   Bool(7) sp;
   Int test() {
     Unsigned a = 73;

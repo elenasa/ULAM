@@ -1,15 +1,15 @@
 ## -*- mode:ulam -*-
 #=t41510_test_compiler_templateinstancetypedefwsamename_error
 #!
-./Foo.ulam:3:21: ERROR: Invalid inheritance from local filescope; Class Definition 'Foo' is not a typedef.
-./Foo.ulam:9:12: ERROR: Missing Class Arguments for an instance stub of class template 'Moo'.
-./Foo.ulam:9:9: ERROR: Trying to use typedef from another class template 'Moo', but instance cannot be found.
+./Foo.ulam:9:18: ERROR: Missing Class Arguments for an instance stub of class template 'Moo'.
+./Foo.ulam:9:15: ERROR: Trying to use typedef from another class template 'Moo', but instance cannot be found.
 Unrecoverable Program Parse FAILURE: <Foo.ulam>
 Unrecoverable Program Parse FAILURE: <Moo.ulam>
 ##
-##  informed by t3875, except using locals typedef with instance with same name as template, should not assert
+##  informed by t3875, except using locals typedef with instance with same name as template,
+##  should not assert:
 ## CompilerState.cpp:2313: bool MFM::CompilerState::isClassATemplate(MFM::u16): Assertion `isDefined' failed.
-##
+##  (works if a different name is used for local.Moo)
 #>Foo.ulam
   ulam 3;
 local typedef Moo(1) Moo;
@@ -19,7 +19,7 @@ element Foo : local.Moo {
     Unsigned a = 73;
     Foo f;
     a = f.us;
-    a = Moo.sizeof; // <-- clearly confused, which Moo?? the class
+    a = local.Moo.sizeof; // <-- clearly confused, which Moo?? the class
     sp = (a == 42u);
     return (Int) a; //=42
   }

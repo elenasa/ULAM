@@ -95,6 +95,11 @@ namespace MFM {
     return true;
   }
 
+  bool NodeConstantArray::isAConstantClassArray()
+  {
+    return m_state.isAClass(m_constType); //t41484, though doesn't match the node!
+  }
+
   FORECAST NodeConstantArray::safeToCastTo(UTI newType)
   {
     if(isReadyConstant())

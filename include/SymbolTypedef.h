@@ -70,12 +70,14 @@ namespace MFM{
     bool isUlamGeneratedTypedef();
     void setUlamGeneratedTypedef();
     void clearUlamGeneratedTypedef();
-
+    bool isUlamGeneratedTypedefAliased();
+    void setUlamGeneratedTypedefAliased();
   protected:
 
   private:
     UTI m_scalarUTI; //when utype is an array
     bool m_ulamgenerated;
+    bool m_ulamgeneratedaliased; //good as deleted, but better.
   };
 
 }

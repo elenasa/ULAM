@@ -257,6 +257,13 @@ namespace MFM {
 		m_state.clearStructuredCommentToken();
 		return  true; //we're done unless we can gobble the rest up?
 	      }
+	    else
+	      {
+		UTI uti = cnSym->getUlamTypeIdx();
+		bool tmpisaclassholder = false;
+		m_state.cleanupAllGeneratedLocalsTypedefsOfThisClassHolder(cnSym->getId(), uti, tmpisaclassholder); //t41519
+		assert(uti == cnSym->getUlamTypeIdx()); //no change.
+	      }
 	    wasIncomplete = true;
 	  }
       }
@@ -697,25 +704,73 @@ namespace MFM {
 		  {
 		    //typedef already defined! must be a localdef
 		    UlamType * tdut = m_state.getUlamTypeByIndex(tduti);
-		    if(tdut->isHolder() && (tdut->getUlamClassType() == UC_NOTACLASS))
+		    if(tdut->isPrimitiveType())
 		      {
-			//now we know it's a class! iTok "Soo3" for loc  (t41010)
-			m_state.makeAnonymousClassFromHolder(tduti, iTok.m_locator); //also returns supercsym
+			//error! using non-class typedef (t41519)
+			std::ostringstream msg;
+			msg << "Class Definition '";
+			msg << m_state.getUlamTypeNameBriefByIndex(cnsym->getUlamTypeIdx()).c_str();
+			msg << "'; Inheritance from '";
+			msg << m_state.m_pool.getDataAsString(tokid).c_str() << "', type: ";
+			msg << m_state.getUlamTypeNameByIndex(tduti).c_str();
+			MSG(&iTok, msg.str().c_str(), ERR);
 		      }
+		    else
+		      {
+			if(tdut->isHolder() && (tdut->getUlamClassType() == UC_NOTACLASS))
+			  {
+			    //now we know it's a class! iTok "Soo3" for loc  (t41010)
+			    m_state.makeAnonymousClassFromHolder(tduti, iTok.m_locator); //also returns supercsym
+			  }
 
-		    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(tduti, supercsym);
-		    assert(isDefined);
+			AssertBool isDefined = m_state.alreadyDefinedSymbolClass(tduti, supercsym);
+			assert(isDefined);
+			rtninherits = true; //typedef exists (t41009, t41010)
+		      }
 		  }
-		rtninherits = true; //typedef exists (t41009, t41010)
 	      }
 	    else
 	      {
-		//error! using keyword local. with an already defined class
-		std::ostringstream msg;
-		msg << "Invalid inheritance from local filescope; Class Definition '";
-		msg << m_state.getUlamTypeNameBriefByIndex(cnsym->getUlamTypeIdx()).c_str();
-		msg << "' is not a typedef";
-		MSG(&iTok, msg.str().c_str(), ERR);
+		//check if also a locals typedef..else use class type
+		UTI ltduti = Nav;
+		UTI ltdscalaruti = Nouti;
+		if(m_state.getUlamTypeByTypedefName(tokid, ltduti, ltdscalaruti))
+		  {
+		    //typedef already defined! must be a localdef
+		    UlamType * ltdut = m_state.getUlamTypeByIndex(ltduti);
+		    if(ltdut->isPrimitiveType())
+		      {
+			//error! using non-class typedef
+			std::ostringstream msg;
+			msg << "Class Definition '";
+			msg << m_state.getUlamTypeNameBriefByIndex(cnsym->getUlamTypeIdx()).c_str();
+			msg << "'; Inheritance from local filescope '";
+			msg << m_state.m_pool.getDataAsString(tokid).c_str() << "', type: ";
+			msg << m_state.getUlamTypeNameByIndex(ltduti).c_str();
+			MSG(&iTok, msg.str().c_str(), ERR);
+		      }
+		    else
+		      {
+			if(ltdut->isHolder() && (ltdut->getUlamClassType() == UC_NOTACLASS))
+			  {
+			    //now we know it's a class! iTok "Soo3" for loc  (t41010)
+			    m_state.makeAnonymousClassFromHolder(ltduti, iTok.m_locator); //also returns supercsym
+			  }
+
+			AssertBool isDefined = m_state.alreadyDefinedSymbolClass(ltduti, supercsym);
+			assert(isDefined);
+			rtninherits = true;
+		      }
+		  }
+		else
+		  {
+		    //error! using keyword local. with an already defined class
+		    std::ostringstream msg;
+		    msg << "Invalid inheritance from local filescope; Class Definition '";
+		    msg << m_state.getUlamTypeNameBriefByIndex(cnsym->getUlamTypeIdx()).c_str();
+		    msg << "' is not a typedef";
+		    MSG(&iTok, msg.str().c_str(), ERR);
+		  }
 	      }
 	  }
 	m_state.popClassContext(); //restore
@@ -737,12 +792,23 @@ namespace MFM {
 	superuti = parseClassArguments(typeargs, isaclass);
 	if(superuti != Nav)
 	  {
+	    isaclass = m_state.isAClass(superuti); //t41519
 	    u32 superid = m_state.getUlamTypeNameIdByIndex(superuti);
 
 	    UTI instance = cnsym->getUlamTypeIdx();
 	    u32 instanceid = m_state.getUlamTypeNameIdByIndex(instance);
 
-	    if(superid == instanceid)
+	    if(!isaclass)
+	      {
+		std::ostringstream msg;
+		msg << "Class Definition '";
+		msg << m_state.getUlamTypeNameBriefByIndex(instance).c_str(); //t41519
+		msg << "'; Inheritance from non-class '";
+		msg << m_state.getTokenDataAsString(iTok).c_str() << "', type: ";
+		msg << m_state.getUlamTypeNameByIndex(superuti).c_str();
+		MSG(&iTok, msg.str().c_str(), ERR);
+	      }
+	    else if(superid == instanceid)
 	      {
 		std::ostringstream msg;
 		msg << "Class Definition '";
@@ -759,7 +825,6 @@ namespace MFM {
 		rtninherits = true;
 	      }
 	  }
-	m_state.m_parsingVariableSymbolTypeFlag = STF_NEEDSATYPE; //reset
       }
     else
       {
@@ -770,6 +835,7 @@ namespace MFM {
 	msg << m_state.getTokenDataAsString(iTok).c_str() << "'";
 	MSG(&iTok, msg.str().c_str(), ERR);
       }
+    m_state.m_parsingVariableSymbolTypeFlag = STF_NEEDSATYPE; //reset
     return rtninherits;
   } //parseRestOfClassInheritance
 
@@ -2861,7 +2927,7 @@ namespace MFM {
 	    Symbol * tdsymbol = NULL;
 	    //check if a typedef first..look localdefs first when parsing class inheritance
 	    if(((m_state.m_parsingVariableSymbolTypeFlag == STF_CLASSINHERITANCE)
-		&& m_state.getUlamTypeByTypedefNameinLocalsScope(tokid, tduti, tdscalaruti, tdsymbol))
+	    	&& m_state.getUlamTypeByTypedefNameinLocalsScope(tokid, tduti, tdscalaruti, tdsymbol))
 	       || m_state.getUlamTypeByTypedefName(tokid, tduti, tdscalaruti))
 	      {
 		ULAMTYPE bUT = m_state.getUlamTypeByIndex(tduti)->getUlamTypeEnum();
@@ -2877,7 +2943,7 @@ namespace MFM {
 	      {
 		// not a typedef, but not necessarily a class either!!
 		if(isaclass)
-		  m_state.addIncompleteClassSymbolToProgramTable(typeargs.m_typeTok, cnsym);
+		  m_state.addIncompleteClassSymbolToProgramTable(typeargs.m_typeTok, cnsym); //t41452,t3337
 		else
 		  {
 		    UTI huti = m_state.makeUlamTypeHolder();
@@ -2911,6 +2977,34 @@ namespace MFM {
 		msg << m_state.m_pool.getDataAsString(cnsym->getId()).c_str() << "'";
 		MSG(&pTok, msg.str().c_str(), ERR);
 		return Nav;
+	      }
+	    else if(m_state.isThisLocalsFileScope())
+	      {
+		if(!m_state.isUrSelf(cnsym->getUlamTypeIdx()))
+		  {
+		    UTI ltduti = Nav;
+		    UTI ltdscalaruti = Nouti;
+		    if(!m_state.getUlamTypeByTypedefName(tokid, ltduti, ltdscalaruti))
+		      {
+			//locals typedef could shadow class, without being one; generate a holder
+			UTI huti = m_state.makeUlamTypeHolder();
+			SymbolTypedef * symtypedef = new SymbolTypedef(typeargs.m_typeTok, huti, Nav, m_state);
+			assert(symtypedef);
+			symtypedef->setBlockNoOfST(m_state.getContextBlockNo());
+			symtypedef->setUlamGeneratedTypedef();
+			m_state.addSymbolToCurrentScope(symtypedef); //locals scope
+			return huti; //t41516, t41515
+		      }
+		    else
+		      {
+			return ltduti; //t41483, dont add twice!
+		      }
+		  }
+		else
+		  {
+		    //e.g. t3883 UrSelf isn't shadowed.
+		    isaclass = true;
+		  }
 	      }
 	    else
 	      isaclass = true; //reset

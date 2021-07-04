@@ -1052,7 +1052,7 @@ namespace MFM {
 	if(isUnseenClass) //t41399
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	else
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //issue 5/6/16, t41510
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //issue 5/6/16,t41510 was ERR
 
 	NodeBlockClass * ucblock = prematureclass->getClassBlockNode();
 	assert(ucblock);
@@ -1063,13 +1063,38 @@ namespace MFM {
 	if(isUnseenClass)
 	  MSG(ucblock->getNodeLocationAsString().c_str(), imsg.str().c_str(), WAIT);
 	else
-	  MSG(ucblock->getNodeLocationAsString().c_str(), imsg.str().c_str(), ERR); //ish 5/6/16,11/16/17
+	  MSG(ucblock->getNodeLocationAsString().c_str(), imsg.str().c_str(), DEBUG); //ish 5/6/16,11/16/17 (Was ERR)
 
 	if(isUnseenClass && !isPrematureClassATemplate)
 	  m_state.removeIncompleteClassSymbolFromProgramTable(m_token); //t41451, continue..
 
 	if(!isUnseenClass)
-	  return false; //quit! (t41510)
+	  {
+	    //return false; //quit! (t41510)
+	    pmcuti = Nouti; //t41516 allow shadowing??
+	  }
+      }
+
+    //pmcuti, unseen or seen, we are here to replace/re-alias ulam-generated typedef in locals scope;
+    UTI ltduti = Nouti;
+    UTI ltdscalaruti = Nouti;
+    Symbol * ltdsymptr = NULL;
+    if(m_state.isThisLocalsFileScope())
+      {
+	if(m_state.getUlamTypeByTypedefNameinLocalsScope(m_token.m_dataindex, ltduti, ltdscalaruti, ltdsymptr))
+	  {
+	    assert(ltdsymptr->isTypedef());
+	    UTI ltd = ltdsymptr->getUlamTypeIdx();
+	    bool isUlamGenerated = ((SymbolTypedef*)ltdsymptr)->isUlamGeneratedTypedef();
+	    if(isUlamGenerated)
+	      {
+		//NodeBlockLocals * localsblock = (NodeBlockLocals*) m_state.getContextBlock();
+		//m_state.removeUlamGeneratedTypedefFromLocalsScope(m_token.m_dataindex, localsblock);
+		assert(ltd == ltduti);
+	      }
+	    else
+	      ltduti = Nouti; //clear
+	  }
       }
 
     if(args.m_anothertduti != Nouti)
@@ -1146,7 +1171,12 @@ namespace MFM {
 	      }
 
 	    if(pmcuti)
-	      m_state.cleanupExistingHolder(pmcuti, uti); //t41451
+	      m_state.cleanupExistingHolder(pmcuti, uti); //t41451,t41452
+	    if(ltduti)
+	      {
+		m_state.replaceUTIKeyAndAlias(ltduti, uti); //t41516
+		((SymbolTypedef*)ltdsymptr)->setUlamGeneratedTypedefAliased();
+	      }
 	  }
 
 	//create a symbol for this new ulam type, a typedef, with its type
@@ -1180,7 +1210,7 @@ namespace MFM {
     bool brtn = false;
     UTI uti = Nav;
     UTI tdscalaruti = Nav;
-
+    //Symbol * ltdsymptr = NULL;
     if(args.m_anothertduti != Nouti)
       {
 	if(checkConstantTypedefSizes(args, args.m_anothertduti))

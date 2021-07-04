@@ -3074,21 +3074,13 @@ namespace MFM {
     return rtnb;
   } //removeIncompleteClassSymbolFromProgramTable
 
-  //ready to parse this class, check for temporary (locals typedef) UlamTypes holders until seen
-  bool CompilerState::addIncompleteParseThisClassSymbolToProgramTable(const Token& cTok, SymbolClassName * & symptr)
+  s32 CompilerState::cleanupAllGeneratedLocalsTypedefsOfThisClassHolder(u32 dataindex, UTI& cuti, bool& isaclassholder)
   {
-    assert(cTok.m_type == TOK_TYPE_IDENTIFIER); //3676
-    u32 dataindex = cTok.m_dataindex;
-    AssertBool isNotDefined = (symptr == NULL) && !alreadyDefinedSymbolClassName(dataindex, symptr);
-    assert(isNotDefined);
-
-    UTI cuti = Nouti;
     std::map<UTI,k_localstypedefpair> tdmap;
 
-    bool ltdisatypedefclassholder = false;
+    s32 localscountaliased = 0;
     if(getUlamTypeByTypedefNameinAnyLocalsScope(dataindex, tdmap))
       {
-	u32 localscountremoved = 0;
 	std::map<UTI, k_localstypedefpair>::iterator it;
 
 	for(it = tdmap.begin(); it != tdmap.end(); it++)
@@ -3108,7 +3100,6 @@ namespace MFM {
 		msg << "' in locals scope ";
 		msg << getUlamTypeNameBriefByIndex(luti).c_str();
 		msg << " has a class name";
-		//		MSG2(getFullLocationAsString(tdsymptr->getLoc()).c_str(), msg.str().c_str(), ERR);
 		MSG2(getFullLocationAsString(tdsymptr->getLoc()).c_str(), msg.str().c_str(), DEBUG);
 	      }
 	    else if(isHolder(ltd) && isUlamGenerated)
@@ -3120,7 +3111,7 @@ namespace MFM {
 		//assert(isAClass(ltd)); t41232,3,4, t41262,5,6,t41483,4,5
 		if(cuti == Nouti)
 		  {
-		    ltdisatypedefclassholder = isAClass(ltd); //set once
+		    isaclassholder = isAClass(ltd); //set once
 		    if(!isARootUTI(ltd))
 		      ltd = lookupUTIAlias(ltd); //t41516, Gah case
 
@@ -3136,36 +3127,58 @@ namespace MFM {
 		  }
 
 		//remove the holder typdedef symbol from its localsfilescope.
-		removeUlamGeneratedTypedefFromLocalsScope(dataindex, localsblock);
-		localscountremoved++;
+		//removeUlamGeneratedTypedefFromLocalsScope(dataindex, localsblock);
+		((SymbolTypedef *)tdsymptr)->setUlamGeneratedTypedefAliased();
+		localscountaliased++;
 	      }
 	    else if(isClassAStub(ltd))
 	      {
-		//making a template
-		UlamKeyTypeSignature key(dataindex, UNKNOWNSIZE); //"-2" and scalar default
-		cuti = makeUlamType(key, Class, UC_UNSEEN); //**gets next unknown uti type
+		if(cuti == Nouti)
+		  {
+		    //making a template
+		    UlamKeyTypeSignature key(dataindex, UNKNOWNSIZE); //"-2" and scalar default
+		    cuti = makeUlamType(key, Class, UC_UNSEEN); //**gets next unknown uti type
+		  }
 		//continue.. (t3860,t3872,t41130)
 	      }
 	    else if(isAClass(ltd) && isScalar(ltd))
 	      {
-		//a true typedef (e.g. another class, not a holder)
-		UlamKeyTypeSignature key(dataindex, UNKNOWNSIZE); //"-2" and scalar default
-		cuti = makeUlamType(key, Class, UC_UNSEEN); //**gets next unknown uti type
+		if(cuti == Nouti)
+		  {
+		    //a true typedef (e.g. another class, not a holder)
+		    UlamKeyTypeSignature key(dataindex, UNKNOWNSIZE); //"-2" and scalar default
+		    cuti = makeUlamType(key, Class, UC_UNSEEN); //**gets next unknown uti type
+		  }
 		//continue..(t41513)
 	      }
 	    else
 	      {
-		//error, class mimics locals typedef
-		abortNotImplementedYet();
-		return false;
+		//error, e.g. non-class locals typedef mimics class name (t41519)
+		//abortNotImplementedYet();
+		//return false;
+		//skip
 	      }
 	  }
 
 	std::ostringstream msg;
-	msg << "Cleanup " << localscountremoved << " holders typedefs in locals scopes for class ";
+	msg << "Aliased " << localscountaliased << " holders typedefs in locals scopes for class ";
 	msg << getUlamTypeNameBriefByIndex(cuti).c_str();
 	MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
       }
+    return localscountaliased;
+  } //cleanupAllGeneratedLocalsTypedefsOfThisClassHolder
+
+  //ready to parse this class, check for temporary (locals typedef) UlamTypes holders until seen
+  bool CompilerState::addIncompleteParseThisClassSymbolToProgramTable(const Token& cTok, SymbolClassName * & symptr)
+  {
+    assert(cTok.m_type == TOK_TYPE_IDENTIFIER); //3676
+    u32 dataindex = cTok.m_dataindex;
+    AssertBool isNotDefined = (symptr == NULL) && !alreadyDefinedSymbolClassName(dataindex, symptr);
+    assert(isNotDefined);
+
+    UTI cuti = Nouti;
+    bool ltdisatypedefclassholder = false; //too late to check after, t41232
+    cleanupAllGeneratedLocalsTypedefsOfThisClassHolder(dataindex, cuti, ltdisatypedefclassholder);
 
     if(cuti==Nouti)
       {
@@ -3442,14 +3455,27 @@ namespace MFM {
 	    assert(tduti == it->first);
 	    assert(((SymbolTypedef *)sym)->isUlamGeneratedTypedef());
 
-	    std::ostringstream msg;
-	    msg << "Typedef '";
-	    msg << m_pool.getDataAsString(tdid).c_str();
-	    msg << "' in locals scope ";
-	    msg << getUlamTypeNameBriefByIndex(thislocalarg).c_str();
-	    msg << " remains undefined";
-	    MSG2(getFullLocationAsString(sym->getLoc()).c_str(), msg.str().c_str(), ERR); //t41511
-
+	    if(!((SymbolTypedef *)sym)->isUlamGeneratedTypedefAliased())
+	      {
+		SymbolClassName * cnsym = NULL;
+		if(isScalar(tduti) && alreadyDefinedSymbolClassName(tdid, cnsym))
+		  {
+		    UTI cuti = cnsym->getUlamTypeIdx();
+		    cuti = lookupUTIAlias(cuti); //t41266
+		    replaceUTIKeyAndAlias(tduti, cuti); //t41230
+		    ((SymbolTypedef *)sym)->setUlamGeneratedTypedefAliased();
+		  }
+		else
+		  {
+		    std::ostringstream msg;
+		    msg << "Typedef '";
+		    msg << m_pool.getDataAsString(tdid).c_str();
+		    msg << "' in locals scope ";
+		    msg << getUlamTypeNameBriefByIndex(thislocalarg).c_str();
+		    msg << " remains undefined";
+		    MSG2(getFullLocationAsString(sym->getLoc()).c_str(), msg.str().c_str(), ERR); //t41511
+		  }
+	      }
 	    it++;
 	  }
       }

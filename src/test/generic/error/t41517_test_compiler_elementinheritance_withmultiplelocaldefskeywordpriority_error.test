@@ -5,7 +5,7 @@
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t41516, Gah error since not used, or defined typedef in local scope
-## see also (t41510,t41511,t41513); assertion fixed.
+## see also t41519;
 ##
 #>Foo.ulam
   ulam 3;

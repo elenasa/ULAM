@@ -6,12 +6,12 @@
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t3875, does local.Moo typedef supercede the class Moo as Foo's super? Yes!!
-##
+## (see also t41514,t41515)
 #>Foo.ulam
   ulam 3;
 local typedef UrSelf Moo;
-element Foo : local.Moo { //no difference
-  //element Foo : Moo {
+//element Foo : local.Moo { //no difference
+element Foo : Moo {
   Bool(7) sp;
   Int test() {
     Unsigned a = 73;

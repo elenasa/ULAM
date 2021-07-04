@@ -408,6 +408,7 @@ namespace MFM{
     /** creates temporary class type for dataindex, returns the new Symbol pointer in 2nd arg; */
     bool removeIncompleteClassSymbolFromProgramTable(u32 id); //helper
     bool removeIncompleteClassSymbolFromProgramTable(const Token& nTok);
+    s32 cleanupAllGeneratedLocalsTypedefsOfThisClassHolder(u32 dataindex, UTI& cuti, bool& isaclassholder);
     bool addIncompleteParseThisClassSymbolToProgramTable(const Token& cTok, SymbolClassName * & symptr);
     bool addIncompleteClassSymbolToProgramTable(const Token& cTok, SymbolClassName * & symptr);
     bool addIncompleteTemplateClassSymbolToProgramTable(const Token& cTok, SymbolClassNameTemplate * & symptr);

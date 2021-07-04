@@ -1196,7 +1196,8 @@ namespace MFM {
     else if(m_state.isAClass(nuti) || m_state.isAtom(nuti)) //t41198, t41483,4
       {
 	//array of classes??
-	//eval doesn't support transients (> atom size) (t41231)
+	// eval doesn't support transients (> atom size) (t41231)
+	// without a slot index, eval will return NOTREADY (-12) (t41266)
 	ULAMCLASSTYPE nclasstype = nut->getUlamClassType();
 	if((nclasstype == UC_ELEMENT) || (nclasstype == UC_QUARK) || ((nclasstype == UC_TRANSIENT) && (nut->getTotalBitSize() <= MAXSTATEBITS)) || m_state.isAtom(nuti))
 	  {

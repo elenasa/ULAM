@@ -73,9 +73,11 @@ quark Moo {
 
 #:Nat.ulam
   ulam 1;
+/** Nat comes after Moo */
 quark Nat {
-  Bits(11) m_bits;
+  local.Moo m_bits;
 }
+local typedef Bits(11) Moo;
 
 #:System.ulam
 ulam 1;

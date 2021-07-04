@@ -3,12 +3,12 @@
 
 namespace MFM {
 
-  SymbolTypedef::SymbolTypedef(const Token& id, UTI utype, UTI scalaruti, CompilerState & state) : Symbol(id, utype, state), m_scalarUTI(scalaruti), m_ulamgenerated(false) {}
+  SymbolTypedef::SymbolTypedef(const Token& id, UTI utype, UTI scalaruti, CompilerState & state) : Symbol(id, utype, state), m_scalarUTI(scalaruti), m_ulamgenerated(false), m_ulamgeneratedaliased(false) {}
 
-  SymbolTypedef::SymbolTypedef(const SymbolTypedef& sref) : Symbol(sref), m_scalarUTI(/*m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_scalarUTI,sref.getLoc())*/ Hzy), m_ulamgenerated(sref.m_ulamgenerated)
+  SymbolTypedef::SymbolTypedef(const SymbolTypedef& sref) : Symbol(sref), m_scalarUTI(/*m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_scalarUTI,sref.getLoc())*/ Hzy), m_ulamgenerated(sref.m_ulamgenerated), m_ulamgeneratedaliased(sref.m_ulamgeneratedaliased)
   {}
 
-  SymbolTypedef::SymbolTypedef(const SymbolTypedef& sref, bool keeptype) : Symbol(sref, keeptype), m_scalarUTI(sref.m_scalarUTI), m_ulamgenerated(sref.m_ulamgenerated) {}
+  SymbolTypedef::SymbolTypedef(const SymbolTypedef& sref, bool keeptype) : Symbol(sref, keeptype), m_scalarUTI(sref.m_scalarUTI), m_ulamgenerated(sref.m_ulamgenerated), m_ulamgeneratedaliased(sref.m_ulamgeneratedaliased) {}
 
   SymbolTypedef::~SymbolTypedef() {}
 
@@ -91,6 +91,16 @@ namespace MFM {
   void SymbolTypedef::clearUlamGeneratedTypedef()
   {
     m_ulamgenerated = false; //found user defined typedef
+  }
+
+  bool SymbolTypedef::isUlamGeneratedTypedefAliased()
+  {
+    return m_ulamgeneratedaliased;
+  }
+
+  void SymbolTypedef::setUlamGeneratedTypedefAliased()
+  {
+    m_ulamgeneratedaliased = true;
   }
 
 } //end MFM

@@ -183,7 +183,7 @@ namespace MFM {
 	    if(isabaseclass) //t41298,9 (atom), t3143 (array)
 	      savebasebitsize = m_state.getBaseClassBitSize(suti);
 	    m_state.setUTIBitSize(suti, symsize);
-	    if(isabaseclass) //t41298,9 (atom)
+	    if(isabaseclass && (savebasebitsize != UNKNOWNSIZE)) //t41298,9 (atom);t41269
 	      m_state.setBaseClassBitSize(suti,savebasebitsize);//restr t3755
 	  }
 
