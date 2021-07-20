@@ -385,12 +385,7 @@ namespace MFM {
 
     m_indexToUlamKey[uti] = newkey;
 
-#if 0
-    if(isAClass(uti))
-      updateUTIAliasForced(uti, auti); //after index-to-key is set, forced ok?
-    else
-#endif
-      updateUTIAlias(uti, auti); //after index-to-key is set, forced ok? NOPE (t41489)
+    updateUTIAlias(uti, auti); //after index-to-key is set, forced ok? NOPE (t41489)
 
     {
       std::ostringstream msg;
@@ -464,18 +459,7 @@ namespace MFM {
 	AssertBool isGone = removeIncompleteClassSymbolFromProgramTable(oldnameid);
 	assert(isGone);
       }
-#if 0
-    if(isAClass(olduti) && isAClass(newuti))
-      {
-	UTI ciold = oldkey.getUlamKeyTypeSignatureClassInstanceIdx();
-	UTI cinew = newkey.getUlamKeyTypeSignatureClassInstanceIdx();
-	if((ciold != cinew) && (ciold != olduti) && (cinew != newuti))
-	  {
-	    abortNeedsATest();
-	    updateUTIAliasForced(ciold, cinew); //t41436?
-	  }
-      }
-#endif
+
     //we need to keep the huti, but change the key
     //removes old key and its ulamtype from map, if no longer pointed to
     deleteUlamKeyTypeSignature(oldkey, olduti); //decrements counter
@@ -486,25 +470,6 @@ namespace MFM {
 
     updateUTIAliasForced(olduti, newuti); //after index-to-key is set
     return newkeycount;
-  }
-
-  void CompilerState::removeCulamGeneratedTypedefFromLocalsScope(u32 nameid, NodeBlockLocals * localsblock)
-  {
-    assert(localsblock);
-    UTI luti = localsblock->getNodeType();
-    Symbol * localsymptr = NULL;
-    pushClassContext(luti, localsblock, localsblock, false, NULL);
-
-    takeSymbolFromCurrentScope(nameid, localsymptr);
-    assert(localsymptr);
-    assert(localsymptr->isTypedef());
-    assert(localsymptr->isCulamGeneratedTypedef());
-    //assert(isHolder(localsymptr->getUlamTypeIdx())); //was a holder, t3875
-
-    popClassContext(); //restore
-
-    delete localsymptr;
-    localsymptr = NULL;
   }
 
   //similar to addIncompleteClassSymbolToProgramTable, yet different!
@@ -574,7 +539,6 @@ namespace MFM {
     if(isaclass)
       {
 	makeAnonymousClassFromHolder(huti, tok.m_locator); //default is not a class
-	//addUnseenClassId(tokid); //ulamexports?
       }
     return huti;
   } //makeCulamGeneratedTypedefSymbolInCurrentContext
@@ -3337,7 +3301,6 @@ namespace MFM {
 		  }
 
 		//remove the holder typdedef symbol from its localsfilescope.
-		//removeCulamGeneratedTypedefFromLocalsScope(dataindex, localsblock);
 		((SymbolTypedef *)tdsymptr)->setCulamGeneratedTypedefAliased();
 		localscountaliased++;
 	      }
@@ -3410,7 +3373,6 @@ namespace MFM {
 	//symbol ownership goes to the programDefST; distinguish btn template & regular classes here:
 	symptr = new SymbolClassName(cTok, cuti, classblock, *this);
 	m_programDefST.addToTable(dataindex, symptr);
-	//addUnseenClassId(dataindex); //ulamexports?
 
 	popClassContext(); //restore
       }
@@ -3856,28 +3818,11 @@ namespace MFM {
 			    cuti = cnsym->getUlamTypeIdx();
 			  }
 
-			//			if(cuti != Nouti)
 			if((cuti != Nouti) && !isHolder(cuti)) //t3644 (or cuti != tduti)
 			  {
 			    assert(!isClassATemplate(cuti));
 			    UTI calias = cuti;
 			    findRootUTIAlias(cuti,calias); //was:cuti = lookupUTIAlias(cuti); //t41266
-#if 0
-			    if(isAClass(tduti))
-			      {
-				assert(isAnonymousClass(tduti)); //t3347
-				SymbolClass * tdcsym = NULL;
-				if(alreadyDefinedSymbolClass(tduti, tdcsym))
-				  {
-				    NodeBlockClass * fmblock = tdcsym->getClassBlockNode();
-				    assert(fmblock);
-				    //from anonymous class, with possible tmp typedefs expected
-				    NodeBlockClass * cblock = cnsym->getClassBlockNode();
-				    assert(cblock);
-				    cblock->setDataMembersSymbolTable(cuti, *fmblock);
-				  }
-			      }
-#endif
 			    replaceUTIKeyAndAlias(tduti, calias); //t41230
 			    ((SymbolTypedef *)sym)->setCulamGeneratedTypedefAliased();
 			    isaliasednow = true;
@@ -3885,6 +3830,8 @@ namespace MFM {
 		      }
 		    else
 		      {
+			//(template instances need a c&l round to clear possible ug-typedef flags)
+			//t41013, t3384
 			std::ostringstream msg;
 			msg << "Typedef '";
 			msg << m_pool.getDataAsString(tdid).c_str();
@@ -3894,12 +3841,9 @@ namespace MFM {
 			  msg << "' in class ";
 			msg << getUlamTypeNameBriefByIndex(thisarg).c_str();
 			msg << " remains undefined";
-			//if(isClassATemplate(thisarg) || isClassATemplateInstance(thisarg))
-			  MSG2(getFullLocationAsString(sym->getLoc()).c_str(), msg.str().c_str(), WAIT); //t41013, t3384 (template instances need a c&l round to clear possible ug-typedef flags)
-			  //else
-			  //MSG2(getFullLocationAsString(sym->getLoc()).c_str(), msg.str().c_str(), ERR); //t41013, t3384 (FULLSTOP)
-			  if(!isUnseenClassId(tdid)) //for ulamexports..
-			    addUnseenClassId(tdid);
+			MSG2(getFullLocationAsString(sym->getLoc()).c_str(), msg.str().c_str(), WAIT);
+			if(!isUnseenClassId(tdid)) //for ulamexports..
+			  addUnseenClassId(tdid);
 			aok &= false;
 		      }
 		  }
@@ -4567,12 +4511,6 @@ namespace MFM {
 	cblock = (NodeBlockContext *) (cblock->getPreviousBlockPointer());
       }
 
-#if 0
-    //search current class's local file scope only (not ancestors')
-    if(!brtn)
-      brtn = isIdInLocalFileScope(dataindex, symptr); //local constant or typedef
-#endif
-
     return brtn;
   } //isDataMemberIdInClassScope
 
@@ -4592,46 +4530,6 @@ namespace MFM {
     NodeBlockLocals * localsblock = getLocalsScopeBlock(cloc);
     if(localsblock)
       brtn = localsblock->isIdInScope(id, symptr); //checks one scope only!
-
-#if 0
-    //tried a stub's template's filescope
-    //(e.g. for inheritance of template class instances t41221;
-    // for local filescope constants in class parameter t41431)
-    if(cblock)
-      {
-	UTI suti = Nouti;
-	UTI cbuti = cblock->getNodeType();
-	if(!isClassAStub(cbuti))
-	  {
-	    UTI stubof = Nouti;
-	    if(okUTItoContinue(cbuti) && isAClass(cbuti))
-	      stubof = getStubCopyOf(cbuti); //t41431
-	    if(stubof != Nouti)
-	      {
-		UTI stubofcontext = getContextForPendingArgValuesForStub(stubof);
-		assert(isClassATemplate(stubofcontext));
-		suti = stubofcontext;
-	      }
-	  }
-	else
-	  suti = cbuti; //is a stub
-
-	if(suti != Nouti)
-	  {
-	    SymbolClassNameTemplate * cntsym = NULL;
-	    AssertBool isDef = alreadyDefinedSymbolClassNameTemplateByUTI(suti, cntsym);
-	    assert(isDef);
-
-	    NodeBlockClass * templateclassblock = cntsym->getClassBlockNode();
-	    assert(templateclassblock);
-
-	    Locator ctloc = templateclassblock->getNodeLocation();
-	    NodeBlockLocals * localsblockfortemplate = getLocalsScopeBlock(ctloc);
-	    if(localsblockfortemplate)
-	      brtn = localsblockfortemplate->isIdInScope(id, symptr);
-	  }
-      }
-#endif
 
     return brtn;
   } //isIdInLocalFileScope

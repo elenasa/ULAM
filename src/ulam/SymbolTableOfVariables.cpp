@@ -419,102 +419,89 @@ namespace MFM {
 	  {
 	    assert(totbitsize == UNKNOWNSIZE);
 	    //get base type
-#if 0
-	    UTI tduti = Nouti;
-	    UTI tdscalaruti = Nouti;
-	    Symbol * tdsymptr = NULL;
-	    u32 nameid = m_state.getUlamTypeNameIdByIndex(arguti);
-	    if(m_state.getUlamTypeByTypedefNameInClassHierarchyThenLocalsScope(nameid, tduti, tdscalaruti, tdsymptr))
+	    SymbolClass * csym = NULL;
+	    if(m_state.alreadyDefinedSymbolClass(arguti, csym))
 	      {
-		return m_state.getBitSize(tduti);
-	      }
-	    else
-#endif
-	      {
-		SymbolClass * csym = NULL;
-		if(m_state.alreadyDefinedSymbolClass(arguti, csym))
-		  {
-		    s32 csize;
-		    UTI cuti = csym->getUlamTypeIdx(); //not arguti(t41233,t41262)
+		s32 csize;
+		UTI cuti = csym->getUlamTypeIdx(); //not arguti(t41233,t41262)
 
-		    if((csize = m_state.getBitSize(cuti)) >= 0)
+		if((csize = m_state.getBitSize(cuti)) >= 0)
+		  {
+		    return csize;
+		  }
+		else if(csize == CYCLEFLAG)  //was < 0
+		  {
+		    //error! cycle..replace with message..at last.
+		    std::ostringstream msg;
+		    msg << "Class '" << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+		    msg << "' contains a cycle, cannot calculate its bitsize";
+		    MSG(csym->getTokPtr(), msg.str().c_str(), ERR);
+		    return csize;
+		  }
+		else if(csize == EMPTYSYMBOLTABLE)
+		  {
+		    return 0; //empty, ok
+		  }
+		else if(csym->isStub())
+		  {
+		    return UNKNOWNSIZE; //csize?
+		  }
+		else if(m_state.isAnonymousClass(cuti))
+		  {
+		    return UNKNOWNSIZE; //csize?
+		  }
+		else
+		  {
+		    //==0, redo variable total
+		    NodeBlockClass * classblock = csym->getClassBlockNode();
+		    assert(classblock);
+
+		    //a class cannot contain a copy of itself!
+		    if(classblock == m_state.getContextBlock())
 		      {
-			return csize;
-		      }
-		    else if(csize == CYCLEFLAG)  //was < 0
-		      {
-			//error! cycle..replace with message..at last.
 			std::ostringstream msg;
 			msg << "Class '" << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-			msg << "' contains a cycle, cannot calculate its bitsize";
+			msg << "' cannot contain a copy of itself"; //error/t3390
 			MSG(csym->getTokPtr(), msg.str().c_str(), ERR);
-			return csize;
+			classblock->setNodeType(Nav);
+			return UNKNOWNSIZE;
 		      }
-		    else if(csize == EMPTYSYMBOLTABLE)
+
+		    bool aok = true;
+		    s32 sharedbits = UNKNOWNSIZE;
+		    s32 basebits = 0; //overstated, no sharing
+		    s32 mybits = 0; //main goal of trySetBitsize..
+
+		    std::pair<std::set<UTI>::iterator,bool> ret = seensetref.insert(cuti);
+		    if(ret.second)
 		      {
-			return 0; //empty, ok
-		      }
-		    else if(csym->isStub())
-		      {
-			return UNKNOWNSIZE; //csize?
-		      }
-		    else if(m_state.isAnonymousClass(cuti))
-		      {
-			return UNKNOWNSIZE; //csize?
+			//first sighting
+			m_state.pushClassContext(cuti, classblock, classblock, false, NULL);
+			aok = csym->trySetBitsizeWithUTIValues(basebits, mybits, seensetref);
 		      }
 		    else
 		      {
-			//==0, redo variable total
-			NodeBlockClass * classblock = csym->getClassBlockNode();
-			assert(classblock);
+			aok = false;
+			m_state.setUTIBitSize(cuti, CYCLEFLAG);//t41427, t3383
+			return CYCLEFLAG;
+		      }
 
-			//a class cannot contain a copy of itself!
-			if(classblock == m_state.getContextBlock())
-			  {
-			    std::ostringstream msg;
-			    msg << "Class '" << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-			    msg << "' cannot contain a copy of itself"; //error/t3390
-			    MSG(csym->getTokPtr(), msg.str().c_str(), ERR);
-			    classblock->setNodeType(Nav);
-			    return UNKNOWNSIZE;
-			  }
-
-			bool aok = true;
-			s32 sharedbits = UNKNOWNSIZE;
-			s32 basebits = 0; //overstated, no sharing
-			s32 mybits = 0; //main goal of trySetBitsize..
-
-			std::pair<std::set<UTI>::iterator,bool> ret = seensetref.insert(cuti);
-			if(ret.second)
-			  {
-			    //first sighting
-			    m_state.pushClassContext(cuti, classblock, classblock, false, NULL);
-			    aok = csym->trySetBitsizeWithUTIValues(basebits, mybits, seensetref);
-			  }
-			else
-			  {
-			    aok = false;
-			    m_state.setUTIBitSize(cuti, CYCLEFLAG);//t41427, t3383
-			    return CYCLEFLAG;
-			  }
-
+		    if(aok)
+		      {
+			s32 sharedbitssaved = UNKNOWNSIZE;
+			aok = csym->determineSharedBasesAndTotalBitsize(sharedbitssaved, sharedbits);
 			if(aok)
 			  {
-			    s32 sharedbitssaved = UNKNOWNSIZE;
-			    aok = csym->determineSharedBasesAndTotalBitsize(sharedbitssaved, sharedbits);
-			    if(aok)
-			      {
-				assert(sharedbits >= 0);
-				assert(sharedbitssaved >= sharedbits);
-				csize = (mybits + sharedbits); //updates total here!!
-				//before setUTIsizes, restored later (t3755)
-				aok = m_state.setBaseClassBitSize(cuti, mybits); //noop for elements
-			      }
+			    assert(sharedbits >= 0);
+			    assert(sharedbitssaved >= sharedbits);
+			    csize = (mybits + sharedbits); //updates total here!!
+			    //before setUTIsizes, restored later (t3755)
+			    aok = m_state.setBaseClassBitSize(cuti, mybits); //noop for elements
 			  }
-			m_state.popClassContext(); //restore
-			return aok ? csize : UNKNOWNSIZE;
 		      }
-		  } //class
+		    m_state.popClassContext(); //restore
+		    return aok ? csize : UNKNOWNSIZE;
+		  }
 	      }
 	  } //totbitsize == 0
       } //not primitive, not array

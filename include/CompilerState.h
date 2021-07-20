@@ -200,7 +200,6 @@ namespace MFM{
     void cleanupExistingHolder(UTI huti, UTI newuti);
     void mergeAnyDataMembersBeforeAnonymousClassReplaced(UTI olduti, UTI newuti);
     u32 replaceUTIKeyAndAlias(UTI olduti, UTI newuti);
-    void removeCulamGeneratedTypedefFromLocalsScope(u32 nameid, NodeBlockLocals * localsblock);
     SymbolClassName * makeAnonymousClassFromHolder(UTI cuti, Locator cloc);
     UTI makeCulamGeneratedTypedefSymbolInCurrentContext(Token tok, bool isaclass = false);
 

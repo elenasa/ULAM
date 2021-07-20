@@ -177,7 +177,6 @@ namespace MFM {
 		    m_state.replaceUTIKeyAndAlias(it, duti);
 		    m_typedefSymbol->clearCulamGeneratedTypedef();
 		  }
-		//m_state.mapTypesInCurrentClass(it, duti);
 		m_typedefSymbol->resetUlamType(duti); //consistent! (must be same ref type)
 		//m_state.updateUTIAliasForced(it, duti); //t3379, t3668, t41431
 		it = duti;

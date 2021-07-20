@@ -307,8 +307,7 @@ namespace MFM {
     m_state.pushClassContext(cuti, cnSym->getClassBlockNode(), cnSym->getClassBlockNode(), false, NULL); //null blocks likely
 
     //set ulam class type in UlamType (through its class symbol) since we know it;
-    //UC_UNSEEN if unseen so far.
-    //m_state.resetUnseenClassId(cnSym, iTok); wait..
+    //UC_UNSEEN if unseen so far. m_state.resetUnseenClassId(cnSym, iTok); wait..
 
     switch(pTok.m_type)
       {
@@ -431,33 +430,6 @@ namespace MFM {
     if(qTok.m_type == TOK_COLON)
       {
 	inherits = parseRestOfMultiClassInheritance(cnsym, 0, true); //t41312
-#if 0
-	if(inherits)
-	  {
-	    UTI superuti = cnsym->getSuperClassForClassInstance(utype);
-	    if(m_state.okUTItoContinue(superuti)) //t3643
-	      {
-		//setupSuperClassHelper(superuti, cnsym);
-		//m_state.setStubFlagForThisClassTemplate(superuti); //applies to stubs only, t3852
-	      }
-	    //else not ok..
-	  }
-#endif
-#if 0
-	//if(inherits)
-	if(inherits && m_state.okUTItoContinue(superuti)) //(t3643)
-	  {
-	    setupSuperClassHelper(supercsym, cnsym);
-	    //reset super block pointer since it will change if temporary (e.g. t3874)
-	    if(supercsym->isStub() || m_state.isHolder(superuti) || (supercsym->getUlamClass() == UC_UNSEEN))
-	      {
-		rtnNode->setBaseClassBlockPointer(NULL,0); //wait for c&l
-		m_state.setStubFlagForThisClassTemplate(superuti); //applies to stubs only, t3852
-		//assert(!cnsym->isClassTemplate() || !supercsym->isStub() || m_state.isClassAMemberStubInATemplate(superuti));//t3407, t3852; t3643 ??
-	      }
-	  }
-#endif
-
       }
     else
       {
@@ -532,7 +504,6 @@ namespace MFM {
     assert(isDef);
     UTI urself = ursym->getUlamTypeIdx();
     assert(m_state.isUrSelf(urself)); //sanity
-    //setupSuperClassHelper(urself, cnsym);
     cnsym->setBaseClass(urself, 0); //t41184
   }
 
@@ -560,52 +531,6 @@ namespace MFM {
 	if(stuti != superuti) //t3808, t3806, t3807
 	  symtypedef->resetUlamType(superuti);
       }
-#if 0
-    NodeBlockClass * superclassblock = supercsym->getClassBlockNode();
-    //assert(superclassblock); may be NULL if UNSEEN w error (e.g. missing close brace) t41159
-
-    //set super class' block after any parameters parsed;
-    // (separate from previous block which might be pointing to template in case of a stub)
-    //classblock->setSuperBlockPointer(NULL); //wait for c&l
-    classblock->setBaseClassBlockPointer(superclassblock, 0);
-
-    if(superclassblock)
-      {
-	//rearrange order of class context so that super class is traversed after subclass
-	m_state.popClassContext(); //m_currentBlock = prevBlock;
-	m_state.pushClassContext(superuti, superclassblock, superclassblock, false, NULL);
-	m_state.pushClassContext(cnsym->getUlamTypeIdx(), classblock, classblock, false, NULL); //redo
-	//automatically create a Super typedef symbol for this class' super type;
-	// avoids assuming "Super" is a class name (t41150)
-	u32 superid = m_state.m_pool.getIndexForDataString("Super");
-	Symbol * symtypedef = NULL;
-	if(!classblock->isIdInScope(superid, symtypedef))
-	  {
-	    Token superTok(TOK_KW_TYPE_SUPER, superclassblock->getNodeLocation(), 0);
-	    symtypedef = new SymbolTypedef(superTok, superuti, superuti, m_state);
-	    assert(symtypedef);
-	    m_state.addSymbolToCurrentScope(symtypedef);
-	  }
-	else //holder may have been made prior
-	  {
-	    assert(symtypedef->getId() == superid);
-	    UTI stuti = symtypedef->getUlamTypeIdx();
-	    if(stuti != superuti) //t3808, t3806, t3807
-	      symtypedef->resetUlamType(superuti);
-	  }
-      }
-    else
-      {
-	//may be NULL if UNSEEN w error (e.g. missing close brace) t41159
-	std::ostringstream msg;
-	msg << "Class '";
-	msg << m_state.m_pool.getDataAsString(cnsym->getId()).c_str();
-	msg << "' has an erroring superclass '";
-	msg << m_state.getUlamTypeNameBriefByIndex(superuti).c_str() << "'";
-	MSG(classblock->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-      }
-#endif
-
   } //setupSuperClassHelper
 
   void Parser::parseRestOfClassParameters(SymbolClassNameTemplate * cntsym, NodeBlockClass * cblock)
@@ -753,40 +678,6 @@ namespace MFM {
 	bool isaclass = true;
 	UTI baseuti = parseClassArguments(typeargs, isaclass);
 
-#if 0
-	UTI baseuti = Nouti;
-	if(pTok.m_type == TOK_OPEN_PAREN)
-	  {
-	    //template instance (stub), t.f. not a typedef
-	    bool isaclass = true;
-	    baseuti = parseClassArguments(typeargs, isaclass);
-	  }
-	else
-	  {
-	    //not local scope; haven't parsed class to know if member typedef exists
-	    u32 tokid = m_state.getTokenDataAsStringId(typeargs.m_typeTok);
-	    UTI tduti = Nav;
-	    UTI tdscalaruti = Nouti;
-	    if(m_state.getUlamTypeByTypedefName(tokid, tduti, tdscalaruti))
-	      {
-		baseuti = tduti;
-	      }
-	    else
-	      {
-		baseuti = m_state.makeCulamGeneratedTypedefSymbolInCurrentContext(typeargs.m_typeTok, true);
-#if 0
-		UTI huti = m_state.makeUlamTypeHolder();
-		m_state.makeAnonymousClassFromHolder(huti, typeargs.m_typeTok.m_locator); //t41013
-		SymbolTypedef * symtypedef = new SymbolTypedef(typeargs.m_typeTok, huti, Nav, m_state);
-		assert(symtypedef);
-		symtypedef->setCulamGeneratedTypedef();
-		m_state.addSymbolToCurrentScope(symtypedef); //not locals scope
-		baseuti = huti;
-#endif
-	      }
-	  }
-#endif
-
 	if(m_state.okUTItoContinue(baseuti))
 	  {
 	    u32 baseid = m_state.getUlamTypeNameIdByIndex(baseuti);
@@ -856,15 +747,6 @@ namespace MFM {
 	  {
 	    //make a typedef holder for a class
 	    UTI superuti = m_state.makeCulamGeneratedTypedefSymbolInCurrentContext(iTok, true);
-#if 0
-	    UTI huti = m_state.makeUlamTypeHolder();
-	    m_state.makeAnonymousClassFromHolder(huti, iTok.m_locator); //anonymous class
-	    SymbolTypedef * symtypedef = new SymbolTypedef(iTok, huti, huti, m_state);
-	    assert(symtypedef);
-	    symtypedef->setCulamGeneratedTypedef();
-	    m_state.addSymbolToCurrentScope(symtypedef); //local scope
-#endif
-
 	    if(item == 0)
 	      cnsym->setSuperClassForClassInstance(superuti, instance); //set super here!!
 	    else
@@ -2192,32 +2074,6 @@ namespace MFM {
     UTI tuti = ruti;
     UlamType * tut = m_state.getUlamTypeByIndex(tuti);
 
-#if 0
-    UTI tuti = m_state.getUlamTypeAsRef(ruti, ALT_AS);
-    UlamType * tut = m_state.getUlamTypeByIndex(tuti);
-    Token typeTok;
-
-    if(m_state.isHolder(ruti))
-      {
-	//if ruti is a holder, tuti will be too. Make typedef to help to resolve later. (t3831)
-	u32 rid = m_state.findNameIdOfCulamGeneratedTypedefTypeinThisContext(ruti);
-	assert(rid > 0); //found ruti
-	assert(rid==asrid);
-	typeTok.init(TOK_TYPE_IDENTIFIER, asNode->getNodeLocation(), rid);
-	SymbolTypedef * symtypedef = new SymbolTypedef(typeTok, tuti, Nav, m_state);
-	assert(symtypedef);
-	symtypedef->setCulamGeneratedTypedef();
-	m_state.addSymbolToCurrentContextScope(symtypedef); //class scope
-      }
-    else
-      {
-	const std::string tdname = tut->getUlamTypeNameOnly();
-	u32 tdid = m_state.m_pool.getIndexForDataString(tdname);
-	assert(tdid==asrid);
-	typeTok.init(TOK_TYPE_IDENTIFIER, asNode->getNodeLocation(), tdid);
-      }
-#endif
-
     TypeArgs typeargs;
     typeargs.init(typeTok);
     typeargs.m_bitsize = tut->getBitSize();
@@ -2859,12 +2715,6 @@ namespace MFM {
 		typeargs.m_declRef = m_state.getReferenceType(cuti); //was ALT_REF
 		typeargs.m_referencedUTI = typeargs.m_classInstanceIdx;
 	      }
-#if 0
-	    else if(typeargs.m_declRef != ALT_NOT)
-	      {
-		typeargs.m_referencedUTI = cuti; //t3728
-	      }
-#endif
 	    else if(m_state.isScalar(cuti))
 	      typeargs.m_classInstanceIdx = cuti;
 	    else
@@ -3006,14 +2856,7 @@ namespace MFM {
 		return tduti;
 	      }
 
-	    UTI huti = m_state.makeCulamGeneratedTypedefSymbolInCurrentContext(typeargs.m_typeTok, true); //not locals scope, isaclass? (t41444)
-#if 0
-	    UTI huti = m_state.makeUlamTypeHolder();
-	    SymbolTypedef * symtypedef = new SymbolTypedef(typeargs.m_typeTok, huti, Nav, m_state);
-	    assert(symtypedef);
-	    symtypedef->setCulamGeneratedTypedef();
-	    m_state.addSymbolToCurrentScope(symtypedef); //not locals scope
-#endif
+	    UTI huti = m_state.makeCulamGeneratedTypedefSymbolInCurrentContext(typeargs.m_typeTok, true); //not locals scope, isaclass. (t41444)
 	    return huti;
 	  }
 	//else not inheritance..
@@ -3021,26 +2864,7 @@ namespace MFM {
 	//if in locals filescope, only if we already have a typedef should we not generate one.
 	if(m_state.isThisLocalsFileScope())
 	  {
-#if 0
-	    //done by makeCulamGeneratedTypedef..
-	    UTI ltduti = Nav;
-	    UTI ltdscalaruti = Nouti;
-	    if(m_state.getUlamTypeByTypedefNameInLocalsScope(tokid, ltduti, ltdscalaruti))
-	      {
-		return ltduti;
-	      }
-#endif
-
-	    UTI huti = m_state.makeCulamGeneratedTypedefSymbolInCurrentContext(typeargs.m_typeTok, isaclass); ///isaclass?
-
-#if 0
-	    UTI huti = m_state.makeUlamTypeHolder();
-	    SymbolTypedef * symtypedef = new SymbolTypedef(typeargs.m_typeTok, huti, Nav, m_state);
-	    assert(symtypedef);
-	    symtypedef->setCulamGeneratedTypedef();
-	    m_state.addSymbolToCurrentScope(symtypedef);
-#endif
-
+	    UTI huti = m_state.makeCulamGeneratedTypedefSymbolInCurrentContext(typeargs.m_typeTok, isaclass);
 	    typeargs.m_anothertduti = huti; //t41517
 	    return huti; //locals scope (t3652)
 	  }
@@ -3076,14 +2900,7 @@ namespace MFM {
 	else
 	  {
 	    //generate a class member typedef, class scope
-	    UTI huti = m_state.makeCulamGeneratedTypedefSymbolInCurrentContext(typeargs.m_typeTok); //isaclass?
-#if 0
-	    UTI huti = m_state.makeUlamTypeHolder();
-	    SymbolTypedef * symtypedef = new SymbolTypedef(typeargs.m_typeTok, huti, Nav, m_state);
-	    assert(symtypedef);
-	    symtypedef->setCulamGeneratedTypedef();
-	    m_state.addSymbolToCurrentContextScope(symtypedef); //class scope
-#endif
+	    UTI huti = m_state.makeCulamGeneratedTypedefSymbolInCurrentContext(typeargs.m_typeTok); //isaclass? no.
 	    return huti;
 	  }
 	m_state.abortShouldntGetHere();
@@ -3463,7 +3280,6 @@ namespace MFM {
     Symbol * asym = NULL; //or a typedef that we've already seen
     bool hazyKin = false; //don't care
     u32 tokid = m_state.getTokenDataAsStringId(args.m_typeTok); //t41312
-    //if(!(m_state.alreadyDefinedSymbolClassName(tokid, cnsym) || m_state.alreadyDefinedSymbol(tokid, asym, hazyKin)))
     if(!m_state.alreadyDefinedSymbol(tokid, asym, hazyKin) && !m_state.alreadyDefinedSymbolClassName(tokid, cnsym)) //t3497
       {
 	//if here, the last typedef might have been a holder for some unknown type
@@ -3486,7 +3302,6 @@ namespace MFM {
 	    UTI aclassuti = args.m_anothertduti;
 	    Token atok = args.m_typeTok;
 	    cnsym = m_state.makeAnonymousClassFromHolder(aclassuti, atok.m_locator); //t3385
-	    //m_state.addUnseenClassId(tokid); //ulamexports?
 	    args.m_classInstanceIdx = aclassuti; //since we didn't know last time
 	  }
 	else
@@ -3512,8 +3327,6 @@ namespace MFM {
 		if(m_state.isHolder(acuti) && !m_state.isAClass(acuti))
 		  {
 		    m_state.makeAnonymousClassFromHolder(acuti, args.m_typeTok.m_locator); //anonymous class (t41437)
-		    //m_state.addUnseenClassId(tokid); //ulamexports?
-
 		    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(acuti, tmpcsym);
 		    assert(isDefined); //t3643
 		  }
@@ -3610,17 +3423,6 @@ namespace MFM {
 	      {
 		bool isaclass = (pTok.m_type == TOK_KW_TYPE_SUPER);
 		m_state.makeCulamGeneratedTypedefSymbolInCurrentContext(pTok, isaclass);
-
-#if 0
-		UTI huti = m_state.makeUlamTypeHolder();
-		SymbolTypedef * symtypedef = new SymbolTypedef(pTok, huti, Nav, m_state);
-		assert(symtypedef);
-		symtypedef->setCulamGeneratedTypedef();
-		m_state.addSymbolToCurrentMemberClassScope(symtypedef); //not locals scope
-		//m_state.addUnknownTypeTokenToAClassResolver(mcuti, pTok, huti); //really needed??
-		if(pTok.m_type==TOK_KW_TYPE_SUPER)
-		  m_state.makeAnonymousClassFromHolder(huti, pTok.m_locator); //t41312??
-#endif
 	      }
 	  } //end make one up, now fall through
 
@@ -3637,8 +3439,6 @@ namespace MFM {
 		msg << m_state.m_pool.getDataAsString(csym->getId()).c_str();
 		MSG(&pTok, msg.str().c_str(), DEBUG);
 	      }
-	    //assert(m_state.okUTItoContinue(tduti)); Hzy initially..
-	    //if(!m_state.okUTItoContinue(tduti))
 	    if(!m_state.okUTItoContinue(tduti) || m_state.isHolder(tduti))
 	      {
 		args.m_typeTok = pTok; //t3339, t41437
@@ -3769,16 +3569,15 @@ namespace MFM {
 	NodeBlockLocals * localsblock = m_state.getLocalsScopeBlock(m_state.getContextBlockLoc());
 	if(!locDefined && localsblock)
 	  {
-	    m_state.pushClassContext(localsblock->getNodeType(), localsblock, localsblock, false, NULL); //?
+	    m_state.pushClassContext(localsblock->getNodeType(), localsblock, localsblock, false, NULL);
 
 	    //make holder for this localdef constant not seen yet! (t3873)
 	    UTI huti = m_state.makeUlamTypeHolder();
 	    SymbolConstantValue * constsym = new SymbolConstantValue(identTok, huti, m_state);
-	    //constsym->setBlockNoOfST(m_state.getContextBlockNo());
 	    m_state.addSymbolToCurrentScope(constsym);
 	    asymptr = constsym;
 
-	    m_state.popClassContext(); //?
+	    m_state.popClassContext();
 	  }
 	//else (t41007)
       }

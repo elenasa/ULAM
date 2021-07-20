@@ -5,7 +5,7 @@ namespace MFM {
 
   SymbolTypedef::SymbolTypedef(const Token& id, UTI utype, UTI scalaruti, CompilerState & state) : Symbol(id, utype, state), m_scalarUTI(scalaruti), m_culamgenerated(false), m_culamgeneratedaliased(false) {}
 
-  SymbolTypedef::SymbolTypedef(const SymbolTypedef& sref) : Symbol(sref), m_scalarUTI(/*m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_scalarUTI,sref.getLoc())*/ Hzy), m_culamgenerated(sref.m_culamgenerated), m_culamgeneratedaliased(sref.m_culamgeneratedaliased)
+  SymbolTypedef::SymbolTypedef(const SymbolTypedef& sref) : Symbol(sref), m_scalarUTI(Hzy), m_culamgenerated(sref.m_culamgenerated), m_culamgeneratedaliased(sref.m_culamgeneratedaliased)
   {
     if(isCulamGeneratedTypedef())
       {

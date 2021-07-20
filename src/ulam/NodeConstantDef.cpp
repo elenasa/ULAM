@@ -324,7 +324,6 @@ namespace MFM {
 
 	UTI duti = m_nodeTypeDesc->checkAndLabelType(this); //clobbers any expr it
 	if(m_state.okUTItoContinue(duti) && (suti != duti))
-	  //if((suti != duti))
 	  {
 	    std::ostringstream msg;
 	    msg << "REPLACING Symbol UTI" << suti;

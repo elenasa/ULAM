@@ -1043,56 +1043,8 @@ namespace MFM {
 	  } //a typedef already there
 	return brtn; //already there, and updated
       }
-#if 0
-    SymbolClassName * prematureclass = NULL;
-    bool isUnseenClass = false;
-    bool isPrematureClassATemplate = false;
-    UTI pmcuti = Nouti;
-    if(m_state.alreadyDefinedSymbolClassName(m_token.m_dataindex, prematureclass))
-      {
-	pmcuti = prematureclass->getUlamTypeIdx();
-	isUnseenClass = (m_state.getUlamTypeByIndex(pmcuti)->getUlamClassType() == UC_UNSEEN);
-	isPrematureClassATemplate = prematureclass->isClassTemplate(); //t41510
 
-	std::ostringstream msg;
-	msg << "Typedef alias '";
-	msg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str();
-	msg << "' already exists as ";
-	if(isUnseenClass)
-	  msg << "an unseen ";
-	msg << "class type: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(pmcuti).c_str();
-	if(isPrematureClassATemplate)
-	  msg << ", a template";
-	msg << ", first noticed at: .";  //..
-	if(isUnseenClass) //t41399
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	else
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //issue 5/6/16,t41510 was ERR
-
-	NodeBlockClass * ucblock = prematureclass->getClassBlockNode();
-	assert(ucblock);
-	std::ostringstream imsg;
-	imsg << ".. Another typedef for '";
- 	imsg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str();
-	imsg << "' visible from here might clear the ambiguity"; //t41008
-	if(isUnseenClass)
-	  MSG(ucblock->getNodeLocationAsString().c_str(), imsg.str().c_str(), WAIT);
-	else
-	  MSG(ucblock->getNodeLocationAsString().c_str(), imsg.str().c_str(), DEBUG); //ish 5/6/16,11/16/17 (Was ERR)
-
-	if(isUnseenClass && !isPrematureClassATemplate)
-	  m_state.removeIncompleteClassSymbolFromProgramTable(m_token); //t41451, continue..
-
-	if(!isUnseenClass)
-	  {
-	    //return false; //quit! (t41510)
-	    pmcuti = Nouti; //t41516 allow shadowing??
-	  }
-      }
-#endif
-
-    //pmcuti, unseen or seen, we are here to replace/re-alias ulam-generated typedef in locals scope;
+    //we are here to replace/re-alias ulam-generated typedef in locals scope;
     UTI ltduti = Nouti;
     UTI ltdscalaruti = Nouti;
     Symbol * ltdsymptr = NULL;
@@ -1105,8 +1057,6 @@ namespace MFM {
 	    bool isUlamGenerated = ltdsymptr->isCulamGeneratedTypedef();
 	    if(isUlamGenerated)
 	      {
-		//NodeBlockLocals * localsblock = (NodeBlockLocals*) m_state.getContextBlock();
-		//m_state.removeCulamGeneratedTypedefFromLocalsScope(m_token.m_dataindex, localsblock);
 		assert(ltd == ltduti);
 	      }
 	    else
@@ -1166,8 +1116,7 @@ namespace MFM {
 	if((args.m_declRef == ALT_NOT) && (ualt != ALT_NOT))
 	  usealt = ualt; //t3728
 
-	if(uti != Hzy) //t3862
-	  //if((uti != Hzy) && !m_state.isHolder(uti)) //t3862, t3728, t3172
+	if(uti != Hzy) //t3862, t3728, t3172
 	  {
 	    UlamType * ut = m_state.getUlamTypeByIndex(uti);
 	    ULAMTYPE bUT = ut->getUlamTypeEnum();
@@ -1196,10 +1145,7 @@ namespace MFM {
 		    uti = m_state.makeUlamType(newkey, bUT, classtype);
 		  }
 	      }
-#if 0
-	    if(pmcuti)
-	      m_state.cleanupExistingHolder(pmcuti, uti); //t41451,t41452
-#endif
+
 	    if(ltduti)
 	      {
 		m_state.replaceUTIKeyAndAlias(ltduti, uti); //t41516
@@ -1297,7 +1243,6 @@ namespace MFM {
 	brtn = true;
       }
 
-    //    if(!m_state.okUTItoContinue(uti))
     if(uti == Nav)
       brtn = false;
     //else continue, possibly Hazy (t3342)
