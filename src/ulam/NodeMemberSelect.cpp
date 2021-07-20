@@ -139,16 +139,20 @@ namespace MFM {
     if(!m_state.isComplete(luti))
       {
 	std::ostringstream msg;
-	msg << "Member selected is incomplete class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
-	msg << ", check and label fails this time around";
 	if(luti == Nav)
 	  {
+	    msg << "Member selected, ";
+	    msg << m_nodeLeft->getName();
+	    msg << ", is invalid here";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    nuti = Nav; //error/t3460
 	  }
 	else
 	  {
+	    msg << "Member selected is an incomplete class: ";
+	    //msg << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
+	    msg << m_nodeLeft->getName();
+	    msg << ", check and label fails this time around"; //t41511
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    if(nuti != Nav)
 	      nuti = Hzy; //avoid clobbering Nav

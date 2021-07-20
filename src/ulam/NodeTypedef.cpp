@@ -135,22 +135,22 @@ namespace MFM {
 
 	//check for UNSEEN Class' ClassType (e.g. array of UC_QUARK)
 	UlamType * tdut = m_state.getUlamTypeByIndex(it);
-	if((tdut->getUlamTypeEnum() == Class) && (tdut->getUlamClassType() == UC_UNSEEN))
+	if(tdut->isHolder() && !m_state.isThisLocalsFileScope())
+	  {
+	    m_state.statusUnknownTypeInThisClassResolver(it); //t3384
+	  }
+	else if((tdut->getUlamTypeEnum() == Class) && (tdut->getUlamClassType() == UC_UNSEEN))
 	  {
 	    if(!m_state.completeIncompleteClassSymbolForTypedef(it))
 	      {
 		std::ostringstream msg;
 		msg << "Incomplete Typedef for class type: ";
-		msg << m_state.getUlamTypeNameByIndex(it).c_str();
-		msg << ", used with variable symbol name '" << getName() << "'";
+		msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+		msg << ", used with alias name '" << getName() << "'";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	      }
 	    else
 	      m_state.addCompleteUlamTypeToThisContextSet(it); //t41147
-	  }
-	else if(tdut->isHolder() && !m_state.isThisLocalsFileScope())
-	  {
-	    m_state.statusUnknownTypeInThisClassResolver(it);
 	  }
 	//else (t41298,9, t41469)?
 
@@ -160,6 +160,7 @@ namespace MFM {
 	  {
 	    UTI duti = m_nodeTypeDesc->checkAndLabelType(this); //sets goagain if nav
 	    if(m_state.okUTItoContinue(duti) && (duti != it))
+	      //if((duti != it))
 	      {
 		std::ostringstream msg;
 		msg << "REPLACING Symbol UTI" << it;
@@ -170,6 +171,12 @@ namespace MFM {
 		msg << " UTI" << duti << " while labeling class: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		if(m_state.okUTItoContinue(duti) && m_typedefSymbol->isCulamGeneratedTypedef() && !m_typedefSymbol->isCulamGeneratedTypedefAliased())
+		  {
+		    //likely compiling a template instance (t3384)
+		    m_state.replaceUTIKeyAndAlias(it, duti);
+		    m_typedefSymbol->clearCulamGeneratedTypedef();
+		  }
 		//m_state.mapTypesInCurrentClass(it, duti);
 		m_typedefSymbol->resetUlamType(duti); //consistent! (must be same ref type)
 		//m_state.updateUTIAliasForced(it, duti); //t3379, t3668, t41431
@@ -180,11 +187,9 @@ namespace MFM {
 	if(!m_state.okUTItoContinue(it) || !m_state.isComplete(it)) //reloads
 	  {
 	    std::ostringstream msg;
-	    msg << "Incomplete Typedef for type: ";
-	    msg << m_state.getUlamTypeNameByIndex(it).c_str();
-	    msg << " (UTI " << it << ")";
-	    msg << ", used with typedef symbol name '" << getName() << "'";
-	    if(m_state.okUTItoContinue(it) || m_state.isStillHazy(it)) //t41288
+	    msg << "Incomplete Typedef used with alias name '";
+	    msg << getName() << "'";
+	    if(m_state.okUTItoContinue(it) || m_state.isStillHazy(it)) //t41288,t41448
 	      {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 		it = Hzy; //t3862

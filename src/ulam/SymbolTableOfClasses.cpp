@@ -383,10 +383,10 @@ namespace MFM {
 		std::ostringstream msg;
 		msg << "UNSEEN class type <";
 		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-		msg << "> was never defined in: ";
+		msg << "> was never defined in ";
 		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-		msg << ".ulam"; // e.g. error/t3492
-		MSG(sym->getTokPtr(), msg.str().c_str(), ERR);
+		msg << ".ulam; check for capitalization or spelling typos"; // e.g. error/t3492
+		MSG(sym->getTokPtr(), msg.str().c_str(), ERR); //t41435
 		navcount++; //for compiler counter
 		//sym->getClassBlockNode()->setNodeType(Nav); //for compiler counter
 	      }

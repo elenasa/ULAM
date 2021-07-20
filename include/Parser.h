@@ -108,14 +108,14 @@ namespace MFM{
 
     void parseRestOfClassParameters(SymbolClassNameTemplate * ctsym, NodeBlockClass * cblock);
 
-    bool parseRestOfClassInheritance(SymbolClassName * cnsym, SymbolClass *& supercsym, UTI& superuti);
 
     //ulam 5 supports multiple inheritance
     bool parseMultipleClassInheritances(SymbolClassName * cnsym);
-    bool parseRestOfMultiClassInheritance(SymbolClassName * cnsym, bool sharedVirtualBase);
+    bool parseRestOfMultiClassInheritance(SymbolClassName * cnsym, u32 item, bool sharedVirtualBase);
+    bool parseRestOfMultiClassInheritanceUsingALocaldef(SymbolClassName * cnsym, u32 item, bool sharedVirtualBase);
 
     void setupSuperClassHelper(SymbolClassName * cnsym);
-    void setupSuperClassHelper(SymbolClass * supercsym, SymbolClassName * cnsym);
+    void setupSuperClassHelper(UTI superuti, SymbolClassName * cnsym);
 
    /**
 	<LOCAL_DEF> := 'local' + ( <TYPE_DEF> | <CONST_DEF> ) + ';'

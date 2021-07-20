@@ -1,10 +1,8 @@
 ## -*- mode:ulam -*-
 #=t41518_test_compiler_elementinheritance_varrefuseofundefinedclasstypedefinbase_ish_error
 #!
-./Moo.ulam:8:29: ERROR: Cannot explicitly cast Moo(3) to type: MyContainer(3)&.
-./Moo.ulam:8:7: ERROR: Initial value expression for: root, initialization is invalid.
-./Moo.ulam:8:7: ERROR: Storage expression for: root, is invalid.
-./Moo.ulam:9:15: ERROR: Member selected is not a defined class: MyContainer.
+./Moo.ulam:6:13: ERROR: Typedef 'MyContainer' in class Moo remains undefined.
+./Moo.ulam:6:10: ERROR: Righthand type of conditional operator 'as' is still incomplete.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by 20210703_004343 ish: lhs memberselect, undefined classname asserted:

@@ -9,8 +9,8 @@
 Exit status: 7
 Ue_R { Unsigned dsz(4u);  Unsigned psz(3u);  Int test() {  System s;  WatchDog(4u,15u) doggy;  self dsz . 4u = s ( self dsz . )print . s ( self dsz . 4u cast == )assert . WatchDog(3u,7u) puppy;  self psz . 3u = s ( self psz . )print . s ( self psz . 3u cast == )assert . self dsz . self psz . +b cast return } }
 Uq_System { <NOMAIN> }
-Uq_WatchDog(Unsigned(5) myProgressBits = NONREADYCONST, Unsigned triggerLevel = NONREADYCONST) : RXTimer(bits,triggerLevel,1u) +Update { constant Unsigned cDOG_TRIGGER = triggerLevel;  constant Unsigned cMYDOG_MAXOF = unresolved maxof .;  constant Unary(5) cDOG_BITS = 15u;  constant Unsigned cDOG_MAXOF = unresolved maxof .;  :RXTimer13< typedef holder Counter; > +Update<> <NOMAIN> }
-Uq_RXTimer(Unary(5) bits, Unsigned triggerLevel, Unsigned k) : XTimer(bits,triggerLevel,k) { typedef holder Counter;  :XTimer13< typedef Unsigned(UNKNOWN) Counter;  Unsigned(UNKNOWN) mCount(notready); > <NOMAIN> }
+Uq_WatchDog(Unsigned(5) myProgressBits = NONREADYCONST, Unsigned triggerLevel = NONREADYCONST) : RXTimer(bits,triggerLevel,1u) +Update { constant Unsigned cDOG_TRIGGER = triggerLevel;  constant Unsigned cMYDOG_MAXOF = Unsigned(UNKNOWN) maxof .;  constant Unary(5) cDOG_BITS = 15u;  constant Unsigned cDOG_MAXOF = Unsigned(UNKNOWN) maxof .;  :RXTimer13< typedef Unsigned(UNKNOWN) Counter; > +Update<> <NOMAIN> }
+Uq_RXTimer(Unary(5) bits, Unsigned triggerLevel, Unsigned k) : XTimer(bits,triggerLevel,k) { typedef Unsigned(UNKNOWN) Counter;  :XTimer13< typedef Unsigned(UNKNOWN) Counter;  Unsigned(UNKNOWN) mCount(notready); > <NOMAIN> }
 Uq_Update { <NOMAIN> }
 Uq_XTimer(Unary(5) bits, Unsigned triggerLevel, Unsigned k) { typedef Unsigned(UNKNOWN) Counter;  Unsigned(UNKNOWN) mCount(notready);  <NOMAIN> }
 Ue_S : WatchDog(4u,15u) { /* empty class block */ }

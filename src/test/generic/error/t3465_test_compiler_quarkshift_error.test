@@ -3,7 +3,6 @@
 #!
 ./A.ulam:6:11: ERROR: (2) 'operator<<' is not a defined function, or cannot be safely called in this context.
 ./A.ulam:6:7: ERROR: Assignment is invalid; LHS: Bar; RHS: erroneous.
-./A.ulam:7:7: ERROR: (2) 'operator=' is not a defined function, or cannot be safely called in this context.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## changed shift distance to unsigned to get these errors instead,

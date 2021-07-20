@@ -103,11 +103,11 @@ namespace MFM {
     UTI seluti = m_nodeSelect->checkAndLabelType(this);
     if(m_nodeSelect->isReadyType())
       {
+	u32 tokid = m_state.getTokenDataAsStringId(m_typeTok); //t3806,7,8 t41312, t41517
 	UlamType * selut = m_state.getUlamTypeByIndex(seluti);
 	ULAMTYPE seletyp = selut->getUlamTypeEnum();
 	if(seletyp == Class)
 	  {
-	    u32 tokid = m_state.getTokenDataAsStringId(m_typeTok); //t3806,7,8 t41312
 	    // find our id in the "selected" class, must be a typedef (t3267)
 	    Symbol * asymptr = NULL;
 	    bool hazyKin = false;
@@ -164,10 +164,9 @@ namespace MFM {
 		  }
 		else
 		  {
-		    //error id is not a typedef
 		    std::ostringstream msg;
-		    msg << "Not a typedef '" << m_state.getTokenDataAsString(m_typeTok).c_str();
-		    msg << "' in another class, " ;;
+		    msg << "Not a typedef '" << m_state.m_pool.getDataAsString(tokid).c_str();
+		    msg << "' in selected class, " ;;
 		    msg << m_state.getUlamTypeNameBriefByIndex(seluti).c_str();
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //was WARN
 		    rtnuti = Nav; //?
@@ -178,21 +177,73 @@ namespace MFM {
 	      {
 		//error! id not found
 		std::ostringstream msg;
-		msg << "Undefined Typedef '" << m_state.getTokenDataAsString(m_typeTok).c_str();
-		msg << "' in another class, " ;;
+		msg << "Undefined Typedef '" << m_state.m_pool.getDataAsString(tokid).c_str();
+		msg << "' in selected class, " ;;
 		msg << m_state.getUlamTypeNameByIndex(seluti).c_str();
-		if(!hazyKin)
+		if(hazyKin)
 		  {
-		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //new
-		    rtnuti = Nav;
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+		    rtnuti = Hzy;  //t3267
 		  }
 		else
 		  {
-		    msg <<" while compiling: ";
-		    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //was DEBUG
-		    rtnuti = Hzy;
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    rtnuti = Nav;
 		  }
+	      }
+	  }
+	else if(seletyp == LocalsFileScope)
+	  {
+	    Symbol * ltdsymptr = NULL;
+	    if(m_state.isIdInLocalFileScope(tokid, ltdsymptr))
+	      {
+		UTI auti = ltdsymptr->getUlamTypeIdx();
+		if(ltdsymptr->isTypedef())
+		  {
+		    if(ltdsymptr->isCulamGeneratedTypedef())
+		      {
+			if(ltdsymptr->isCulamGeneratedTypedefAliased())
+			  {
+			    UTI ltdalias = auti;
+			    m_state.findRootUTIAlias(auti, ltdalias);
+			    rtnuti = ltdalias;
+			    rtnb = true;
+			  }
+			else
+			  {
+			    rtnuti = Hzy;
+			  }
+		      }
+		    else if(m_state.isComplete(auti))
+		      {
+			rtnuti = auti;
+			rtnb = true;
+		      }
+		    else
+		      rtnuti = Hzy;
+		  }
+		else
+		  {
+		    //error id is not a typedef
+		    std::ostringstream msg;
+		    msg << "Not a typedef '" << m_state.m_pool.getDataAsString(tokid).c_str();
+		    msg << "' in locals scope, " ;;
+		    msg << m_state.getUlamTypeNameBriefByIndex(seluti).c_str();
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //was WARN
+		    rtnuti = Nav; //?
+		    m_state.abortNeedsATest();
+		  }
+	      }
+	    else
+	      {
+		//error! id not found, check for a class in global scope!!
+		std::ostringstream msg;
+		msg << "Undefined Typedef '" << m_state.m_pool.getDataAsString(tokid).c_str();
+		msg << "' in locals scope, " ;;
+		msg << m_state.getUlamTypeNameByIndex(seluti).c_str();
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //new
+		rtnuti = Nav;
+		m_state.abortShouldntGetHere(); //resolved to a class alias
 	      }
 	  }
 	else
@@ -200,7 +251,7 @@ namespace MFM {
 	    //error has to be a class
 	    std::ostringstream msg;
 	    msg << "Type selected by '" << m_state.getTokenDataAsString(m_typeTok).c_str();
-	    msg << "' is NOT another class, " ;
+	    msg << "' is NOT another class nor locals scope, " ;
 	    msg << m_state.getUlamTypeNameBriefByIndex(seluti).c_str();
 	    msg << ", rather a " << UlamType::getUlamTypeEnumAsString(seletyp) << " type,";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);

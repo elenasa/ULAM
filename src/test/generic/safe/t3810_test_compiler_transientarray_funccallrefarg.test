@@ -16,7 +16,7 @@ Uq_QW { <NOMAIN> }
 ## similar to 3685, except a transient
 ##
 ## revealed bug in eval,NodeIdent makeUlamValuePtr when m_currentObject was PtrAbs, new ptr should be too!
-##
+## also, bug in NodeCast set 'singleref' notreferenceable, since not tobe a ref; now takes its child node's instead.
 #>R.ulam
   ulam 2;
 use System;

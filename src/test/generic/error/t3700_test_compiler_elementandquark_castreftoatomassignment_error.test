@@ -42,8 +42,8 @@ quark QW : Qbase{
   Self func()
   {
     Atom a = self.atomof;
-    //Self& sra = (Self&) a; //new way!
-    Self& sra = a; //immediate quark with current values
+    Self& sra = (Self&) a; //new way!
+    //Self& sra = a; //immediate quark with current values
     return sra;
   }
 }

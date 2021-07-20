@@ -14,8 +14,8 @@ Uq_System { <NOMAIN> }
 #>Foo.ulam
   ulam 3;
 local constant Unsigned(3) soosize = 3u;
-local typedef Soo(soosize) Soo3;
-element Foo : Soo(soosize) {
+local typedef Soo(soosize) Soo3; //which soosize? local?
+element Foo : Soo(soosize) { //member soosize
   Bool(7) sp;
   constant Unsigned(3) soosize = 1u; //okay to redeclare
   Unsigned a = 73;
@@ -23,12 +23,12 @@ element Foo : Soo(soosize) {
     System s;
     Foo f;
     a = f.us;
-    a = Soo3.sizeof;
-    sp = (a == soosize);
+    a = Soo3.sizeof; //which? later typedef or local?..local?
+    sp = (a == soosize); //compared to member soosize? false
     s.assert(!sp);
 
     typedef Soo(soosize) Soo3; //okay to redeclare
-    s.assert(Soo3.sizeof == soosize);
+    s.assert(Soo3.sizeof == soosize); //compared to member sooosize, true
     return (Int) a; //=3
   }
 }

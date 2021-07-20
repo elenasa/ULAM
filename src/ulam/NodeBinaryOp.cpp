@@ -151,7 +151,7 @@ namespace MFM {
     assert(m_nodeLeft && m_nodeRight);
 
     UTI leftType = m_nodeLeft->checkAndLabelType(this);
-    UTI rightType = m_nodeRight->checkAndLabelType(this);
+    UTI rightType = m_nodeRight->checkAndLabelType(this); //t41332
 
     if(!m_state.okUTItoContinue(leftType))
       {
@@ -175,6 +175,13 @@ namespace MFM {
 	return Hzy;
       }
     //else should fail again as non-primitive;
+
+    //rightType = m_nodeRight->getNodeType(); //don'trefresh //t3497 (surgery Nouti)
+    if(!m_state.okUTItoContinue(rightType))
+      {
+	setNodeType(rightType);
+	return rightType; //t41437 (Hzy)
+      }
 
     UTI newType = calcNodeType(leftType, rightType); //does safety check
 

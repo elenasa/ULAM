@@ -220,14 +220,18 @@ namespace MFM {
     // note: though Classes (as args) may be 'incomplete' (i.e. bit size == UNKNOWN),
     //        during this parse stage, the key remains consistent.
     // many UTI -to- one key, how does this impact the scheme?
-    // symbols may be initially Hzy, then best to use parameternode's typedescriptor's givenUTI.
+    // symbols may be initially Hzy, or a holder, temporarily unique w funcdef NodeNo
+    // (then best to use parameternode's typedescriptor's givenUTI, except might be same holder)
     for(u32 i = 0; i < m_parameterSymbols.size(); i++)
       {
 	Symbol * sym = m_parameterSymbols[i];
-	if(sym->getUlamTypeIdx()==Hzy)
-	  mangled << "," << getFunctionNode()->getParameterNodeGivenType(i); //t3333
+	UTI suti = sym->getUlamTypeIdx();
+	if((suti == Hzy) || m_state.isHolder(suti))
+	  {
+	    mangled << "," << suti << "-" << getFunctionNode()->getNodeNo(); //t41132, t3333
+	  }
 	else
-	  mangled << "," << sym->getUlamTypeIdx();
+	  mangled << "," << suti;
       }
     return mangled.str();
   } //getMangledNameWithUTIparameters
@@ -249,13 +253,21 @@ namespace MFM {
     if(numArgs < numParams || (numArgs > numParams && !takesVariableArgs()))
       return false;
 
+    NodeBlockFunctionDefinition * fblock = getFunctionNode();
+    assert(fblock);
+
     bool rtnBool = true;
     //next match types; order counts!
     for(u32 i=0; i < numParams; i++)
       {
-	UTI puti = m_parameterSymbols.at(i)->getUlamTypeIdx();
+	//UTI puti = m_parameterSymbols.at(i)->getUlamTypeIdx();
+	UTI puti = fblock->getParameterNode(i)->getNodeType();
 	if(!m_state.okUTItoContinue(puti) || !m_state.isComplete(puti))
-	  hasHazyArgs = true;
+	  {
+	    hasHazyArgs = true;
+	    rtnBool = false; //t3411
+	    break;
+	  }
 	UTI auti = argTypes[i];
 	ULAMTYPECOMPARERESULTS utic = UlamType::compareForArgumentMatching(puti, auti, m_state);
 	if( utic != UTIC_SAME)
@@ -291,13 +303,22 @@ namespace MFM {
     if(numArgs < numParams || (numArgs > numParams && !takesVariableArgs()))
       return false;
 
+    NodeBlockFunctionDefinition * fblock = getFunctionNode(); //t3810?
+    assert(fblock);
+
     bool rtnBool = true;
     //next, liberally match types; order counts!
     for(u32 i=0; i < numParams; i++)
       {
-	UTI puti = m_parameterSymbols.at(i)->getUlamTypeIdx();
+	//UTI puti = m_parameterSymbols.at(i)->getUlamTypeIdx();
+	UTI puti = fblock->getParameterNode(i)->getNodeType();
 	UTI auti = argNodes[i]->getNodeType();
-	if(UlamType::compareForArgumentMatching(puti, auti, m_state) != UTIC_SAME) //not same|not ready
+	if(!m_state.okUTItoContinue(puti) || !m_state.okUTItoContinue(auti))
+	  {
+	    hasHazyArgs = true; //t3411, t41256..
+	    break;
+	  }
+	else if(UlamType::compareForArgumentMatching(puti, auti, m_state) != UTIC_SAME) //not same|not ready
 	  {
 	    UlamType * put = m_state.getUlamTypeByIndex(puti);
 	    UlamType * aut = m_state.getUlamTypeByIndex(auti);

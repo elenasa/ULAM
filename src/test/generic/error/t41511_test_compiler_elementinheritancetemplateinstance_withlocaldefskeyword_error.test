@@ -1,18 +1,24 @@
 ## -*- mode:ulam -*-
 #=t41511_test_compiler_elementinheritancetemplateinstance_withlocaldefskeyword_error
 #!
-./Foo.ulam:3:21: ERROR: Typedef 'MyMoo' in locals scope Foo.ulam remains undefined.
+./Foo.ulam:3:9: ERROR: Subclass 'Foo' inherits from MyMoo, an unresolved local filescope typedef.
+./Foo.ulam:8:5: ERROR: Incomplete Variable Decl for type: Foo used with variable symbol name 'f'.
+./Foo.ulam:8:5: ERROR: Variable for: 'f', is still hazy.
+./Foo.ulam:9:9: ERROR: Incomplete identifier for a type Foo, used with list symbol name 'f'.
+./Foo.ulam:9:11: ERROR: Member selected is an incomplete class: f, check and label fails this time around.
+./Foo.ulam:11:5: ERROR: Incomplete identifier for a type Foo&, used with list symbol name 'self'.
+./Foo.ulam:11:5: ERROR: Member selected is an incomplete class: self, check and label fails this time around.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t3875, except using template quark instance typedef that is missing;
 ## test of local defs errors, mis-using local keyword as forward decl
-## formerly: ./Foo.ulam:9:5: ERROR: Identifier 'sp' was used while still undeclared.
 ##
 #>Foo.ulam
   ulam 3;
 //local typedef Moo(1) MyMoo; <--Missing!!
 element Foo : local.MyMoo {
   Bool(7) sp;
+  typedef Moo(1) MyMoo;
   Int test() {
     Unsigned a = 73;
     Foo f;

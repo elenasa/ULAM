@@ -59,7 +59,7 @@ namespace MFM{
 
     u32 findTypedefSymbolNameIdByTypeInTable(UTI type);
 
-    u32 getAllRemainingUlamGeneratedTypedefSymbolsInTable(std::map<UTI, Symbol*>& mapref);
+    u32 getAllRemainingCulamGeneratedTypedefSymbolsInTable(std::map<u32, Symbol*>& mapref);
 
     //Table of Variable Data Members:
 

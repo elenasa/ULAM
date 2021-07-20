@@ -3,12 +3,29 @@
 
 namespace MFM {
 
-  SymbolTypedef::SymbolTypedef(const Token& id, UTI utype, UTI scalaruti, CompilerState & state) : Symbol(id, utype, state), m_scalarUTI(scalaruti), m_ulamgenerated(false), m_ulamgeneratedaliased(false) {}
+  SymbolTypedef::SymbolTypedef(const Token& id, UTI utype, UTI scalaruti, CompilerState & state) : Symbol(id, utype, state), m_scalarUTI(scalaruti), m_culamgenerated(false), m_culamgeneratedaliased(false) {}
 
-  SymbolTypedef::SymbolTypedef(const SymbolTypedef& sref) : Symbol(sref), m_scalarUTI(/*m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_scalarUTI,sref.getLoc())*/ Hzy), m_ulamgenerated(sref.m_ulamgenerated), m_ulamgeneratedaliased(sref.m_ulamgeneratedaliased)
-  {}
+  SymbolTypedef::SymbolTypedef(const SymbolTypedef& sref) : Symbol(sref), m_scalarUTI(/*m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_scalarUTI,sref.getLoc())*/ Hzy), m_culamgenerated(sref.m_culamgenerated), m_culamgeneratedaliased(sref.m_culamgeneratedaliased)
+  {
+    if(isCulamGeneratedTypedef())
+      {
+	UTI sreftype = sref.getUlamTypeIdx();
+	if(!isCulamGeneratedTypedefAliased())
+	  {
+	    assert(m_state.isHolder(sreftype));
+	    UTI huti = m_state.makeUlamTypeHolder();
+	    if(m_state.isAClass(sreftype))
+	      {
+		m_state.makeAnonymousClassFromHolder(huti, getLoc()); //t41013
+	      }
+	    resetUlamType(huti);
+	  }
+	else
+	  resetUlamType(sreftype);
+      }
+  }
 
-  SymbolTypedef::SymbolTypedef(const SymbolTypedef& sref, bool keeptype) : Symbol(sref, keeptype), m_scalarUTI(sref.m_scalarUTI), m_ulamgenerated(sref.m_ulamgenerated), m_ulamgeneratedaliased(sref.m_ulamgeneratedaliased) {}
+  SymbolTypedef::SymbolTypedef(const SymbolTypedef& sref, bool keeptype) : Symbol(sref, keeptype), m_scalarUTI(sref.m_scalarUTI), m_culamgenerated(sref.m_culamgenerated), m_culamgeneratedaliased(sref.m_culamgeneratedaliased) {}
 
   SymbolTypedef::~SymbolTypedef() {}
 
@@ -42,6 +59,7 @@ namespace MFM {
   {
     if(getId() == m_state.m_pool.getIndexForDataString("Self")) return;
     if(getId() == m_state.m_pool.getIndexForDataString("Super")) return;
+    if(isCulamGeneratedTypedef()) return; //t41184
 
     UTI tuti = getUlamTypeIdx();
     UlamKeyTypeSignature tkey = m_state.getUlamKeyTypeSignatureByIndex(tuti);
@@ -78,29 +96,29 @@ namespace MFM {
       }
   } //setStructuredComment
 
-  bool SymbolTypedef::isUlamGeneratedTypedef()
+  bool SymbolTypedef::isCulamGeneratedTypedef()
   {
-    return m_ulamgenerated;
+    return m_culamgenerated;
   }
 
-  void SymbolTypedef::setUlamGeneratedTypedef()
+  void SymbolTypedef::setCulamGeneratedTypedef()
   {
-    m_ulamgenerated = true;
+    m_culamgenerated = true;
   }
 
-  void SymbolTypedef::clearUlamGeneratedTypedef()
+  void SymbolTypedef::clearCulamGeneratedTypedef()
   {
-    m_ulamgenerated = false; //found user defined typedef
+    m_culamgenerated = false; //found user defined typedef
   }
 
-  bool SymbolTypedef::isUlamGeneratedTypedefAliased()
+  bool SymbolTypedef::isCulamGeneratedTypedefAliased()
   {
-    return m_ulamgeneratedaliased;
+    return m_culamgeneratedaliased;
   }
 
-  void SymbolTypedef::setUlamGeneratedTypedefAliased()
+  void SymbolTypedef::setCulamGeneratedTypedefAliased()
   {
-    m_ulamgeneratedaliased = true;
+    m_culamgeneratedaliased = true;
   }
 
 } //end MFM

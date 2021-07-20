@@ -4,10 +4,11 @@
 ## gen output:
 ##  Unsigned Arg: 3 (+ 3 asserts)
 ##  Unsigned Arg: 4 (+ 1 assert)
+##  Unsigned Arg: 2 (+ 1 assert)
 ##
 #!
 Exit status: 0
-Ue_R { Int test() {  System s;  Pop(0xfeed,7u,3,1u) pop;  Unsigned ans = pop ( )behaving .;  s ( ans )print . s ( ans 3u cast == )assert . s ( pop ( )samely . )assert . s ( pop ( )badly . ! )assert . Crackle(0xf00d,2u) crackle;  Unsigned ans2 = crackle ( )behaving .;  s ( ans2 )print . s ( ans2 4u cast == )assert . 0 cast return } }
+Ue_R { Unsigned rlevel(2u);  Int test() {  System s;  Pop(0xfeed,7u,3,1u) pop;  Unsigned ans = pop ( )behaving .;  s ( ans )print . s ( ans 3u cast == )assert . s ( pop ( )samely . )assert . s ( pop ( )badly . ! )assert . Crackle(0xf00d,2u) crackle;  Unsigned ans2 = crackle ( )behaving .;  s ( ans2 )print . s ( ans2 4u cast == )assert . self rlevel . crackle 2u . = s ( self rlevel . )print . s ( self rlevel . 2u cast == )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 Uq_Pop(Bits speciesID, Unsigned(5) mytag, Unary(5) myProgress, Unsigned triggerlevel) { typedef Foo(x,y,false) MyFoo;  Foo(x,y,false) mFoo(notready);  <NOMAIN> }
 Un_Crackle(Bits specId, Unsigned(UNKNOWN) trig = NONREADYCONST) : Pop(speciesID,3u,4,triggerlevel) { constant Unsigned cTrigger = cLevel;  Bits mId(notready);  :Pop14< typedef Foo(x,y,false) MyFoo;  Foo(x,y,false) mFoo(notready); > <NOMAIN> }
@@ -19,7 +20,9 @@ Uq_Zar(Unary(5) x, Unsigned(4) y, Bool z) { <NOMAIN> }
 ##
 #>R.ulam
   ulam 5;
+local constant Unsigned cLevel = 4; //not for crackle instance
 element R {
+  Unsigned rlevel = 0;
   Int test()
   {
     System s;
@@ -36,6 +39,10 @@ element R {
     Unsigned ans2 = crackle.behaving();
     s.print(ans2);
     s.assert(ans2==4u);
+
+    rlevel = crackle.cTrigger;
+    s.print(rlevel);
+    s.assert(rlevel==2u);
     return 0;
   }
 }
@@ -44,13 +51,13 @@ element R {
   ulam 5;
 local constant Unsigned(5) cTag = 3;
 local constant Unary(5) cProg = 4;
-local constant Unsigned cLevel = 2;
 //transient Crackle(Bits specId, Unsigned trig = cTrigger) : Pop(specId,cTag,cProg,cLevel)
 transient Crackle(Bits specId, Unsigned(cLevel) trig = cLevel) : Pop(specId,cTag,cProg,trig)
 {
   constant Unsigned cTrigger = cLevel; //fails as default when equal to cLevel; o.w. works.
   Bits mId = specId;
 }
+local constant Unsigned cLevel = 2;
 
 #:Pop.ulam
   ulam 5;

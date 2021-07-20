@@ -53,11 +53,6 @@ namespace MFM {
     return NodeBlockContext::checkAndLabelType(thisparentnode);
   }
 
-  u32 NodeBlockLocals::getAllRemainingUlamGeneratedTypedefSymbolsInLocalScope(std::map<UTI, Symbol*>& mapref)
-  {
-    return m_ST.getAllRemainingUlamGeneratedTypedefSymbolsInTable(mapref);
-  }
-
   void NodeBlockLocals::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
   {
     return;  //overrides NodeBlock

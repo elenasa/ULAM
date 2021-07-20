@@ -385,7 +385,12 @@ namespace MFM {
 
     m_indexToUlamKey[uti] = newkey;
 
-    updateUTIAlias(uti, auti); //after index-to-key is set
+#if 0
+    if(isAClass(uti))
+      updateUTIAliasForced(uti, auti); //after index-to-key is set, forced ok?
+    else
+#endif
+      updateUTIAlias(uti, auti); //after index-to-key is set, forced ok? NOPE (t41489)
 
     {
       std::ostringstream msg;
@@ -417,12 +422,60 @@ namespace MFM {
     updateUTIAliasForced(huti, newuti);
   }
 
+  void CompilerState::mergeAnyDataMembersBeforeAnonymousClassReplaced(UTI olduti, UTI newuti)
+  {
+    assert(isAClass(olduti));
+    assert(isAnonymousClass(olduti));
+    SymbolClass * oldcsym = NULL;
+    if(alreadyDefinedSymbolClass(olduti, oldcsym))
+      {
+	NodeBlockClass * fmblock = oldcsym->getClassBlockNode();
+	assert(fmblock);
+	//from anonymous class, with possible tmp typedefs expected (t3347)
+	SymbolClass * newcsym = NULL;
+	AssertBool gotnew = alreadyDefinedSymbolClass(newuti, newcsym);
+	assert(gotnew);
+	NodeBlockClass * cblock = newcsym->getClassBlockNode();
+	if(cblock)
+	  {
+	    UTI mappednew = newuti;
+	    if(newcsym->getUlamTypeIdx() != newuti)
+	      findRootUTIAlias(newuti, mappednew); //t41312,3
+	    cblock->setDataMembersSymbolTable(mappednew, *fmblock);
+	  }
+	//else error(t3186,t41159)
+      }
+  }
+
   u32 CompilerState::replaceUTIKeyAndAlias(UTI olduti, UTI newuti)
   {
+    assert(okUTItoContinue(olduti));
+    assert(okUTItoContinue(newuti));
     UlamType * newut = getUlamTypeByIndex(newuti);
     UlamKeyTypeSignature newkey = newut->getUlamKeyTypeSignature();
     UlamKeyTypeSignature oldkey = getUlamKeyTypeSignatureByIndex(olduti);
 
+    // apparently, wrong about maybeIsAClass assumption during parseClassArguments (t41437)
+    if(isHolder(olduti) && isAClass(olduti)) //dont remove and alias (t41513)
+      {
+	if(isAClass(newuti))
+	  mergeAnyDataMembersBeforeAnonymousClassReplaced(olduti, newuti); //t3384
+	u32 oldnameid = oldkey.getUlamKeyTypeSignatureNameId();
+	AssertBool isGone = removeIncompleteClassSymbolFromProgramTable(oldnameid);
+	assert(isGone);
+      }
+#if 0
+    if(isAClass(olduti) && isAClass(newuti))
+      {
+	UTI ciold = oldkey.getUlamKeyTypeSignatureClassInstanceIdx();
+	UTI cinew = newkey.getUlamKeyTypeSignatureClassInstanceIdx();
+	if((ciold != cinew) && (ciold != olduti) && (cinew != newuti))
+	  {
+	    abortNeedsATest();
+	    updateUTIAliasForced(ciold, cinew); //t41436?
+	  }
+      }
+#endif
     //we need to keep the huti, but change the key
     //removes old key and its ulamtype from map, if no longer pointed to
     deleteUlamKeyTypeSignature(oldkey, olduti); //decrements counter
@@ -435,7 +488,7 @@ namespace MFM {
     return newkeycount;
   }
 
-  void CompilerState::removeUlamGeneratedTypedefFromLocalsScope(u32 nameid, NodeBlockLocals * localsblock)
+  void CompilerState::removeCulamGeneratedTypedefFromLocalsScope(u32 nameid, NodeBlockLocals * localsblock)
   {
     assert(localsblock);
     UTI luti = localsblock->getNodeType();
@@ -445,7 +498,7 @@ namespace MFM {
     takeSymbolFromCurrentScope(nameid, localsymptr);
     assert(localsymptr);
     assert(localsymptr->isTypedef());
-    assert(((SymbolTypedef *) localsymptr)->isUlamGeneratedTypedef());
+    assert(localsymptr->isCulamGeneratedTypedef());
     //assert(isHolder(localsymptr->getUlamTypeIdx())); //was a holder, t3875
 
     popClassContext(); //restore
@@ -483,6 +536,48 @@ namespace MFM {
       }
     return cnsym;
   } //makeAnonymousClassFromHolder
+
+  UTI CompilerState::makeCulamGeneratedTypedefSymbolInCurrentContext(Token tok, bool isaclass)
+  {
+    u32 tokid = getTokenDataAsStringId(tok);
+    Symbol * tdsymptr = NULL;
+    bool hashazykin = false;
+    if(isDataMemberIdInClassScope(tokid, tdsymptr, hashazykin))
+      return tdsymptr->getUlamTypeIdx(); //avoid making another holder
+
+    UTI parsingthisclass = getThisClassForParsing();
+    if(getUlamTypeNameIdByIndex(parsingthisclass) == tokid)
+      {
+	if(isClassATemplate(parsingthisclass))
+	  {
+	    std::ostringstream msg;
+	    msg << "Class name used as a type within Template Definition of same name: ";
+	    msg << m_pool.getDataAsString(tokid).c_str();
+	    MSG2(&tok, msg.str().c_str(), ERR);
+	    return Nav; //t41155
+	  }
+	return parsingthisclass; //t3565, no typedef needed
+      }
+
+    UTI huti = makeUlamTypeHolder();
+    SymbolTypedef * symtypedef = new SymbolTypedef(tok, huti, Nav, *this);
+    assert(symtypedef);
+    symtypedef->setCulamGeneratedTypedef();
+
+    if(useMemberBlock())
+      addSymbolToCurrentMemberClassScope(symtypedef); //not locals scope
+    else if(isThisLocalsFileScope())
+      addSymbolToLocalsScope(symtypedef, tok.m_locator);
+    else
+      addSymbolToCurrentContextScope(symtypedef);
+
+    if(isaclass)
+      {
+	makeAnonymousClassFromHolder(huti, tok.m_locator); //default is not a class
+	//addUnseenClassId(tokid); //ulamexports?
+      }
+    return huti;
+  } //makeCulamGeneratedTypedefSymbolInCurrentContext
 
   //convenience method (refactors code originally from installSymbol)
   //if exists, just returns it, o.w. makes it; trick to know the base ULAMTYPE
@@ -874,18 +969,22 @@ namespace MFM {
   // doesn't pass along holders as mapped type (t3375)
   bool CompilerState::mappedIncompleteUTI(UTI cuti, UTI auti, UTI& mappedUTI)
   {
+    if(!okUTItoContinue(auti))
+      return false; //t41448
+
     UTI tmpmappedUTI = auti;
 
     if(isALocalsFileScope(cuti))
       {
-	if(findaUTIAlias(auti, tmpmappedUTI)) 	//not a class (t3862)
-	  {
-	    if(!isHolder(tmpmappedUTI))
-	      {
-		mappedUTI = tmpmappedUTI;
-		return true;
-	      }
-	  }
+	//if(findaUTIAlias(auti, tmpmappedUTI))
+	if(findRootUTIAlias(auti, tmpmappedUTI)) //not a class (t3862, t3326)
+	{
+	  if(!isHolder(tmpmappedUTI))
+	    {
+	      mappedUTI = tmpmappedUTI;
+	      return true;
+	    }
+	}
 	return false;
       }
 
@@ -897,7 +996,7 @@ namespace MFM {
     if(csym->hasMappedUTI(auti, tmpmappedUTI))
       {
 	UTI muti = tmpmappedUTI;
-	findaUTIAlias(muti,tmpmappedUTI);
+	findRootUTIAlias(muti,tmpmappedUTI);
 	if(!isHolder(tmpmappedUTI))
 	  {
 	    mappedUTI = tmpmappedUTI;
@@ -907,8 +1006,8 @@ namespace MFM {
 	  return false;
       }
 
-    // does this hurt anything?
-    if(findaUTIAlias(auti, tmpmappedUTI))
+    // does this hurt anything? t3326?
+    if(findRootUTIAlias(auti, tmpmappedUTI))
       {
 	if(!isHolder(tmpmappedUTI))
 	  {
@@ -923,7 +1022,7 @@ namespace MFM {
     if((csym->getClassBlockNode() != NULL) && statusUnknownTypeInAClassResolver(cuti, auti))
     {
       tmpmappedUTI = auti;
-      findaUTIAlias(auti, tmpmappedUTI); //auti no longer a holder (ish 20210315-22xx)
+      findRootUTIAlias(auti, tmpmappedUTI); //auti no longer a holder (ish 20210315-22xx)
       if(!isHolder(tmpmappedUTI))
 	{
 	  assert(getReferenceType(auti) == getReferenceType(tmpmappedUTI)); //t41455
@@ -979,7 +1078,9 @@ namespace MFM {
 	      }
 	  }
 	//else?
-      } //not a holder
+      }
+    //else is a holder
+
     return false;
   } //mappedIncompleteUTI
 
@@ -1002,7 +1103,10 @@ namespace MFM {
 
     if(isALocalsFileScope(cuti))
       {
-	return suti; //t3526, t3892
+	UTI mappedluti = suti;
+	findRootUTIAlias(suti, mappedluti); //?
+	return mappedluti;
+	//return suti; //t3526, t3892
       }
 
     if(isUrSelf(suti))
@@ -1022,11 +1126,11 @@ namespace MFM {
     if(cnsym->hasInstanceMappedUTI(cuti, suti, mappedUTI))
       {
 	UTI muti = mappedUTI;
-	findaUTIAlias(muti, mappedUTI); //?
+	findRootUTIAlias(muti, mappedUTI); //?
 	return mappedUTI;  //e.g. decl list //t41225,t41228,t3327..etc
       }
 
-    if(findaUTIAlias(suti, mappedUTI))
+    if(findRootUTIAlias(suti, mappedUTI)) //t3326
        return mappedUTI; //anonymous UTI
 
     //move this test after looking for the mapped class symbol type
@@ -1046,7 +1150,7 @@ namespace MFM {
 	if(salt != ALT_NOT)
 	  {
 	    UTI asref = mapIncompleteUTIForCurrentClassInstance(getUlamTypeAsDeref(suti), loc);
-	    if(okUTItoContinue(asref))
+	    if(okUTItoContinue(asref) && !isHolder(asref))
 	      return getUlamTypeAsRef(asref, salt);
 	    return asref; //hzy
 	  }
@@ -1333,7 +1437,29 @@ namespace MFM {
     return uti;
   } //getUlamTypeFromToken
 
+  bool CompilerState::getUlamTypeByTypedefNameInClassHierarchyThenLocalsScope(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType)
+  {
+    //first look in the class hierarchy, bases depth-first, then this locals scope if not found.
+    if(getUlamTypeByTypedefName(nameIdx, rtnType, rtnScalarType))
+      return true;
+    return getUlamTypeByTypedefNameInLocalsScope(nameIdx, rtnType, rtnScalarType);
+  }
+
+  bool CompilerState::getUlamTypeByTypedefNameInClassHierarchyThenLocalsScope(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType, Symbol *& asymptr)
+  {
+    //first look in the class hierarchy, bases depth-first, then this locals scope if not found.
+    if(getUlamTypeByTypedefName(nameIdx, rtnType, rtnScalarType, asymptr))
+      return true;
+    return getUlamTypeByTypedefNameInLocalsScope(nameIdx, rtnType, rtnScalarType, asymptr);
+  }
+
   bool CompilerState::getUlamTypeByTypedefName(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType)
+  {
+    Symbol * dropsymptr = NULL;
+    return getUlamTypeByTypedefName(nameIdx, rtnType, rtnScalarType, dropsymptr);
+  } //getUlamTypeByTypedefName
+
+  bool CompilerState::getUlamTypeByTypedefName(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType, Symbol* & tdsymptr)
   {
     bool rtnBool = false;
     Symbol * asymptr = NULL;
@@ -1343,50 +1469,27 @@ namespace MFM {
     if(nameIdx == 0) return false;
 
     //searched back through all block's ST for idx (t3555 and ancestors; t3126 within funcdef)
-    if(alreadyDefinedSymbol(nameIdx, asymptr, hazyKin))
+    // no longer in locals filescope (hence Here).
+    if(alreadyDefinedSymbolHere(nameIdx, asymptr, hazyKin))
       {
 	if(asymptr->isTypedef())
 	  {
 	    rtnType = asymptr->getUlamTypeIdx();
 	    rtnScalarType = ((SymbolTypedef *) asymptr)->getScalarUTI();
+	    tdsymptr = asymptr;
 	    rtnBool = true;
 	  }
       }
     return rtnBool;
   } //getUlamTypeByTypedefName
 
-  bool CompilerState::getUlamTypeByTypedefNameinAnyLocalsScope(u32 nameIdx, std::map<UTI, k_localstypedefpair> & mapref)
+  bool CompilerState::getUlamTypeByTypedefNameInLocalsScope(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType)
   {
-    bool rtnb = false;
-    std::map<u32, NodeBlockLocals *>::iterator it;
+    Symbol * dropsymptr = NULL;
+    return getUlamTypeByTypedefNameInLocalsScope(nameIdx, rtnType, rtnScalarType, dropsymptr);
+  }
 
-    for(it = m_localsPerFilePath.begin(); it != m_localsPerFilePath.end(); it++)
-      {
-	UTI tduti = Nouti;
-	UTI tdscalaruti = Nouti;
-	Symbol * asymptr = NULL;
-	NodeBlockLocals * localsblock = it->second;
-	assert(localsblock);
-
-	UTI luti = localsblock->getNodeType();
-	pushClassContext(luti, localsblock, localsblock, false, NULL);
-
-	if(getUlamTypeByTypedefNameinLocalsScope(nameIdx, tduti, tdscalaruti, asymptr))
-	  {
-	    assert(asymptr->isTypedef());
-	    UTI auti = asymptr->getUlamTypeIdx();
-	    std::pair<std::map<UTI,k_localstypedefpair>::iterator, bool> reti;
-	    k_localstypedefpair kpair(localsblock,asymptr);
-	    reti = mapref.insert(std::pair<UTI,k_localstypedefpair>(auti, kpair));
-	    assert(reti.second); //false if already existed, i.e. not added.
-	    rtnb = true;
-	  }
-	popClassContext(); //restore (t3860)
-      }
-    return rtnb;
-  } //getUlamTypeByTypedefNameinAnyLocalsScope
-
-  bool CompilerState::getUlamTypeByTypedefNameinLocalsScope(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType, Symbol *& asymptr)
+  bool CompilerState::getUlamTypeByTypedefNameInLocalsScope(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType, Symbol *& asymptr)
   {
     bool rtnBool = false;
     assert(asymptr == NULL);
@@ -1405,6 +1508,37 @@ namespace MFM {
       }
     return rtnBool;
   } //getUlamTypeByTypedefNameInLocalsScope
+
+  bool CompilerState::getUlamTypeByTypedefNameInAnyLocalsScope(u32 nameIdx, std::map<UTI, k_localstypedefpair> & mapref)
+  {
+    bool rtnb = false;
+    std::map<u32, NodeBlockLocals *>::iterator it;
+
+    for(it = m_localsPerFilePath.begin(); it != m_localsPerFilePath.end(); it++)
+      {
+	UTI tduti = Nouti;
+	UTI tdscalaruti = Nouti;
+	Symbol * asymptr = NULL;
+	NodeBlockLocals * localsblock = it->second;
+	assert(localsblock);
+
+	UTI luti = localsblock->getNodeType();
+	pushClassContext(luti, localsblock, localsblock, false, NULL);
+
+	if(getUlamTypeByTypedefNameInLocalsScope(nameIdx, tduti, tdscalaruti, asymptr))
+	  {
+	    assert(asymptr->isTypedef());
+	    UTI auti = asymptr->getUlamTypeIdx();
+	    std::pair<std::map<UTI,k_localstypedefpair>::iterator, bool> reti;
+	    k_localstypedefpair kpair(localsblock,asymptr);
+	    reti = mapref.insert(std::pair<UTI,k_localstypedefpair>(auti, kpair));
+	    assert(reti.second); //false if already existed, i.e. not added.
+	    rtnb = true;
+	  }
+	popClassContext(); //restore (t3860)
+      }
+    return rtnb;
+  } //getUlamTypeByTypedefNameInAnyLocalsScope
 
   UTI CompilerState::getUlamTypeAsScalar(UTI utiArg)
   {
@@ -1983,6 +2117,8 @@ namespace MFM {
 
     incrementKeyToAnyUTICounter(newkey, utiArg); //here
 
+    updateUTIAliasForced(utiArg, utiArg); //reset any alias back to root
+
     {
       std::ostringstream msg;
       msg << "Sizes SET for Class: " << newut->getUlamTypeName().c_str() << " (UTI" << utiArg << ")";
@@ -2127,6 +2263,25 @@ namespace MFM {
     return false;
   } //findaUTIAlias
 
+  bool CompilerState::findRootUTIAlias(UTI auti, UTI& aliasuti)
+  {
+    assert(auti < m_unionRootUTI.size());
+    bool foundroot = false;
+    u32 cntr = 0;
+    UTI finduti = auti;
+    while(!foundroot && (cntr++ < 5))
+      {
+	UTI xuti = finduti;
+	finduti = m_unionRootUTI[xuti];
+	if(finduti == xuti)
+	  foundroot = true;
+      }
+    if(foundroot)
+      aliasuti = finduti; //no change o.w.
+    assert(cntr <= 5); //5 big enough?
+    return (auti != finduti);
+  } //findRootUTIAlias
+
   UTI CompilerState::lookupUTIAlias(UTI auti)
   {
     assert(auti < m_unionRootUTI.size());
@@ -2145,7 +2300,7 @@ namespace MFM {
   {
     assert(auti < m_unionRootUTI.size());
     assert(buti < m_unionRootUTI.size());
-    assert(!isAClass(buti) || !isClassATemplate(buti) || !isClassAStub(auti)); //don't alias a stub to a template
+    assert(!isAClass(buti) || !isClassAStub(auti) || !isClassATemplate(buti)); //don't alias a stub to a template (t3451)
     m_unionRootUTI[auti] = buti;
     {
       std::ostringstream msg;
@@ -2260,6 +2415,8 @@ namespace MFM {
 
     incrementKeyToAnyUTICounter(newkey, utiArg);
 
+    updateUTIAliasForced(utiArg, utiArg); //reset any alias back to root
+
     {
       std::ostringstream msg;
       msg << "Sizes set for nonClass: " << newut->getUlamTypeName().c_str();
@@ -2301,6 +2458,8 @@ namespace MFM {
     m_indexToUlamKey[utiArg] = newkey;
 
     incrementKeyToAnyUTICounter(newkey, utiArg);
+
+    updateUTIAliasForced(utiArg, utiArg); //reset any alias back to root
 
     {
       std::ostringstream msg;
@@ -2362,6 +2521,8 @@ namespace MFM {
   bool CompilerState::isClassATemplate(NodeBlockClass * cblock)
   {
     UTI cuti = cblock->getNodeType();
+    assert(okUTItoContinue(cuti));
+
     if(!isAClass(cuti))
       return false;
 
@@ -2374,6 +2535,32 @@ namespace MFM {
 
     return (cuti == cnsym->getUlamTypeIdx());
   } //isClassATemplate
+
+  bool CompilerState::isClassATemplateInstance(UTI cuti)
+  {
+    //can also check isClassAStub before fullyInstantiated.
+    assert(okUTItoContinue(cuti));
+
+    if(!isAClass(cuti))
+      return false;
+
+    NodeBlockClass * cblock = getAClassBlock(cuti);
+    assert(cblock);
+
+    return (cblock->getNumberOfArgumentNodes() > 0);
+  } //isClassATemplateInstance
+
+  UTI CompilerState::getTemplateTypeOfStub(UTI stubuti)
+  {
+    UTI tuti = Nouti;
+    SymbolClassName * cnsym = NULL;
+    if(alreadyDefinedSymbolClassNameByUTI(stubuti, cnsym))
+      {
+	tuti = cnsym->getUlamTypeIdx();
+	assert(cnsym->isClassTemplate());
+      }
+    return tuti;
+  }
 
   //FORMERLY RETURNED SUPERCLASS uti, Nouti or Hzy.
   bool CompilerState::isClassASubclass(UTI cuti)
@@ -2760,28 +2947,26 @@ namespace MFM {
   UTI CompilerState::getAClassCustomArrayType(UTI cuti)
   {
     assert(isScalar(cuti));
-    SymbolClass * csym = NULL;
-    AssertBool isDefined = alreadyDefinedSymbolClass(cuti, csym);
-    assert(isDefined);
-    return csym->getCustomArrayType(); //checks via classblock in case of inheritance
+    NodeBlockClass * cblock = getAClassBlock(cuti); //checks via classblock in case of inheritance
+    assert(cblock);
+    return cblock->getCustomArrayTypeFromGetFunction(cuti); //returns canonical type
   } //getAClassCustomArrayType
 
   u32 CompilerState::getAClassCustomArrayIndexType(UTI cuti, Node * rnode, UTI& idxuti, bool& hasHazyArgs)
   {
     assert(isScalar(cuti));
-    SymbolClass * csym = NULL;
-    AssertBool isDefined = alreadyDefinedSymbolClass(cuti, csym);
-    assert(isDefined);
-    return csym->getCustomArrayIndexTypeFor(rnode, idxuti, hasHazyArgs); //checks via classblock in case of inheritance
+    NodeBlockClass * cblock = getAClassBlock(cuti); //checks via classblock in case of inheritance
+    assert(cblock);
+    //returns number of matching types; updates last two args.
+    return cblock->getCustomArrayIndexTypeFromGetFunction(cuti, rnode, idxuti, hasHazyArgs);
   } //getAClassCustomArrayIndexType
 
   bool CompilerState::hasAClassCustomArrayLengthof(UTI cuti)
   {
     assert(isScalar(cuti));
-    SymbolClass * csym = NULL;
-    AssertBool isDefined = alreadyDefinedSymbolClass(cuti, csym);
-    assert(isDefined);
-    return csym->hasCustomArrayLengthof(); //checks via classblock in case of inheritance
+    NodeBlockClass * cblock = getAClassBlock(cuti); //checks via classblock in case of inheritance
+    assert(cblock);
+    return cblock->hasCustomArrayLengthofFunction(cuti);
   } //hasAClassCustomArrayLengthof
 
   bool CompilerState::hasCustomArrayInAClassOrAncestor(UTI cuti)
@@ -2880,7 +3065,7 @@ namespace MFM {
 	      {
 		//template may not be aware of this mapping (e.g. t3379)
 		UTI mappedUTI;
-		if(findaUTIAlias(scalarUTI, mappedUTI))
+		if(findRootUTIAlias(scalarUTI, mappedUTI)) //t3326
 		  {
 		    if(((SymbolClassNameTemplate *) cnsym)->findClassInstanceByUTI(mappedUTI, csym))
 		      {
@@ -2997,44 +3182,63 @@ namespace MFM {
       return false;
 
     bool rtnb = false;
+    u32 tokid = getTokenDataAsStringId(tok);
+    UTI kuti = huti; //init
 
-    SymbolClassName * cnsym = NULL;
-    if((rtnb = alreadyDefinedSymbolClassName(tok.m_dataindex, cnsym)))
+    UTI tmpscalar = Nouti;
+    Symbol * ltdsymptr = NULL;
+    if(getUlamTypeByTypedefNameInLocalsScope(tokid, kuti, tmpscalar, ltdsymptr))
       {
-	UTI kuti = huti; //init
-	if(cnsym->isClassTemplate())
+	assert(ltdsymptr && ltdsymptr->isTypedef());
+	if(ltdsymptr->isCulamGeneratedTypedef())
 	  {
-	    SymbolClass * csym = NULL;
-	    if(alreadyDefinedSymbolClass(huti, csym))
+	    if(ltdsymptr->isCulamGeneratedTypedefAliased())
+	      return true;
+	    else //handled by CS::checkforAnyRemainingCulamGeneratedTypedefsInThisContext
+	      return false;
+	  }
+	rtnb = !isHolder(kuti);
+      }
+
+    if(!rtnb)
+      {
+	SymbolClassName * cnsym = NULL;
+	if((rtnb = alreadyDefinedSymbolClassName(tok.m_dataindex, cnsym)))
+	  {
+	    if(cnsym->isClassTemplate())
 	      {
-		kuti = csym->getUlamTypeIdx(); //perhaps an alias
-	      }
-	    else if(((SymbolClassNameTemplate *)cnsym)->findClassInstanceByUTI(huti, csym))
-	      {
-		kuti = csym->getUlamTypeIdx(); //also checks for mapped uti
+		SymbolClass * csym = NULL;
+		if(alreadyDefinedSymbolClass(huti, csym))
+		  {
+		    kuti = csym->getUlamTypeIdx(); //perhaps an alias
+		  }
+		else if(((SymbolClassNameTemplate *)cnsym)->findClassInstanceByUTI(huti, csym))
+		  {
+		    kuti = csym->getUlamTypeIdx(); //also checks for mapped uti
+		  }
+		else
+		  {
+		    rtnb = false;
+#if 0
+		    std::ostringstream msg;
+		    msg << "Class with parameters seen with the same name: ";
+		    msg << m_pool.getDataAsString(cnsym->getId()).c_str();
+		    MSG2(&tok, msg.str().c_str(), ERR); //No corresponding Nav Node for this ERR
+		    kuti = Nav; //not like Resolver does (t3868)
+#endif
+		  }
 	      }
 	    else
-	      {
-		rtnb = false;
-#if 0
-		std::ostringstream msg;
-		msg << "Class with parameters seen with the same name: ";
-		msg << m_pool.getDataAsString(cnsym->getId()).c_str();
-		MSG2(&tok, msg.str().c_str(), ERR); //No corresponding Nav Node for this ERR
-		kuti = Nav; //not like Resolver does (t3868)
-#endif
-	      }
-	  }
-	else
-	  kuti = cnsym->getUlamTypeIdx();
+	      kuti = cnsym->getUlamTypeIdx();
+	  } //no class name
+      }
 
-	if(rtnb)
-	  {
-	    assert(!isHolder(kuti));
-	    cleanupExistingHolder(huti, kuti); //t3868 kuti is Nav;
-	    rtnuti = kuti; //? only if rtnb is true?
-	  }
-      } //no class name
+    if(rtnb)
+      {
+	assert(!isHolder(kuti));
+	cleanupExistingHolder(huti, kuti); //t3868 kuti is Nav;
+	rtnuti = kuti; //? only if rtnb is true?
+      }
     return rtnb;
   } //statusUnknownClassTypeInThisLocalsScope
 
@@ -3061,7 +3265,7 @@ namespace MFM {
 
 	    deleteUlamKeyTypeSignature(ckey, cuti); //decrements counter
 
-	    resetUnseenClass(cnsym, nTok); //before removing it from programDefST
+	    resetUnseenClassId(cnsym, nTok); //before removing it from programDefST
 
 	    Symbol * rmcnsym  = NULL;
 	    AssertBool isGone = m_programDefST.removeFromTable(id, rmcnsym);
@@ -3085,7 +3289,7 @@ namespace MFM {
     std::map<UTI,k_localstypedefpair> tdmap;
 
     s32 localscountaliased = 0;
-    if(getUlamTypeByTypedefNameinAnyLocalsScope(dataindex, tdmap))
+    if(getUlamTypeByTypedefNameInAnyLocalsScope(dataindex, tdmap))
       {
 	std::map<UTI, k_localstypedefpair>::iterator it;
 
@@ -3097,7 +3301,7 @@ namespace MFM {
 	    UTI luti = localsblock->getNodeType();
 	    Symbol * tdsymptr = ltdpair.second;
 	    assert(ltd == tdsymptr->getUlamTypeIdx());
-	    bool isUlamGenerated = ((SymbolTypedef*)tdsymptr)->isUlamGeneratedTypedef();
+	    bool isUlamGenerated = tdsymptr->isCulamGeneratedTypedef();
 	    if(isHolder(ltd) && !isUlamGenerated)
 	      {
 		std::ostringstream msg;
@@ -3133,8 +3337,8 @@ namespace MFM {
 		  }
 
 		//remove the holder typdedef symbol from its localsfilescope.
-		//removeUlamGeneratedTypedefFromLocalsScope(dataindex, localsblock);
-		((SymbolTypedef *)tdsymptr)->setUlamGeneratedTypedefAliased();
+		//removeCulamGeneratedTypedefFromLocalsScope(dataindex, localsblock);
+		((SymbolTypedef *)tdsymptr)->setCulamGeneratedTypedefAliased();
 		localscountaliased++;
 	      }
 	    else if(isClassAStub(ltd))
@@ -3206,7 +3410,7 @@ namespace MFM {
 	//symbol ownership goes to the programDefST; distinguish btn template & regular classes here:
 	symptr = new SymbolClassName(cTok, cuti, classblock, *this);
 	m_programDefST.addToTable(dataindex, symptr);
-	m_unseenClasses.insert(dataindex);
+	//addUnseenClassId(dataindex); //ulamexports?
 
 	popClassContext(); //restore
       }
@@ -3241,7 +3445,7 @@ namespace MFM {
     //symbol ownership goes to the programDefST; distinguish btn template & regular classes here:
     symptr = new SymbolClassName(cTok, cuti, classblock, *this);
     m_programDefST.addToTable(dataindex, symptr);
-    m_unseenClasses.insert(dataindex);
+    addUnseenClassId(dataindex);
 
     popClassContext(); //restore
     return true; //compatible with alreadyDefinedSymbolClassName return
@@ -3269,7 +3473,7 @@ namespace MFM {
     //symbol ownership goes to the programDefST; distinguish btn template & regular classes here:
     symptr = new SymbolClassNameTemplate(cTok, cuti, classblock, *this);
     m_programDefST.addToTable(dataindex, symptr);
-    m_unseenClasses.insert(dataindex);
+    addUnseenClassId(dataindex);
     symptr->setBaseClass(Hzy, 0);
 
     popClassContext();
@@ -3307,18 +3511,45 @@ namespace MFM {
     return newstubcopyuti;
   } //addStubCopyToAncestorClassTemplate
 
-  void CompilerState::resetUnseenClass(SymbolClassName * cnsym, const Token& identTok)
+  bool CompilerState::isUnseenClassId(u32 id)
+  {
+    if(m_unseenClasses.empty())
+      return false;
+
+    bool foundit = false;
+    std::set<u32>::iterator it = m_unseenClasses.find(id);
+    if(it != m_unseenClasses.end())
+      {
+	foundit = true;
+      }
+    return foundit;
+  }
+
+  bool CompilerState::addUnseenClassId(u32 id)
+  {
+    std::pair<std::set<u32>::iterator, bool> reti;
+    reti = m_unseenClasses.insert(id);
+    return reti.second; //false if already existed, i.e. not added;
+  }
+
+  void CompilerState::resetUnseenClassId(u32 id)
   {
     if(m_unseenClasses.empty())
       return;
-    assert(identTok.m_type == TOK_TYPE_IDENTIFIER); //t3380
-    std::set<u32>::iterator it = m_unseenClasses.find(identTok.m_dataindex);
+
+    std::set<u32>::iterator it = m_unseenClasses.find(id);
     if(it != m_unseenClasses.end())
       {
 	m_unseenClasses.erase(it);
       }
+  }
+
+  void CompilerState::resetUnseenClassId(SymbolClassName * cnsym, const Token& identTok)
+  {
+    assert(identTok.m_type == TOK_TYPE_IDENTIFIER); //3380
+    resetUnseenClassId(identTok.m_dataindex);
     cnsym->resetUnseenClassLocation(identTok);
-  } //resetUnseenClass
+  } //resetUnseenClassId
 
   bool CompilerState::getUnseenClassFilenames(std::vector<std::string>& unseenFiles)
   {
@@ -3430,7 +3661,7 @@ namespace MFM {
 
 	localsblock->checkAndLabelType(NULL);
 
-	checkforAnyRemainingUlamGeneratedUlamTypedefsinThisLocalsScope(luti); //returns bool, errs
+	checkforAnyRemainingCulamGeneratedTypedefsInThisContext(luti); //returns bool, errs
 
 	popClassContext(); //restore
       }
@@ -3438,19 +3669,263 @@ namespace MFM {
     return !goAgain();
   } //checkAndLabelPassForLocals
 
-  bool CompilerState::checkforAnyRemainingUlamGeneratedUlamTypedefsinThisLocalsScope(UTI thislocalarg)
+  bool CompilerState::checkforAnyRemainingCulamGeneratedTypedefsInThisContext(UTI thisarg)
   {
-    bool aok = true;
-    assert(isThisLocalsFileScope());
-    NodeBlockLocals * localsblock = (NodeBlockLocals*) getContextBlock();
-    assert(localsblock->getNodeType()==thislocalarg);
+    bool rtnb = true;
+    NodeBlockContext * cblock = getContextBlock();
+    assert(cblock);
+    UTI nuti = cblock->getNodeType();
+    if(nuti == Nav)
+      return false; //t3155,t3390
 
-    std::map<UTI, Symbol *> tdmap;
-    u32 remaining = localsblock->getAllRemainingUlamGeneratedTypedefSymbolsInLocalScope(tdmap);
+    assert((cblock->getNodeType() == thisarg) || ((cblock->getNodeType() == Hzy) && (getCompileThisIdx() == thisarg))); //t41511,13,14
+    bool islocalscope = isThisLocalsFileScope();
+
+    std::map<u32, Symbol *> tdmap;
+    u32 remaining = cblock->getAllRemainingCulamGeneratedTypedefSymbolsInContext(tdmap);
     if(remaining > 0)
       {
-	aok = false;
-	std::map<UTI, Symbol *>::iterator it = tdmap.begin();
+	std::map<u32, Symbol *>::iterator it = tdmap.begin();
+	while(it != tdmap.end())
+	  {
+	    bool aok = true;
+
+	    Symbol * sym = it->second;
+	    assert(sym);
+	    assert(sym->isTypedef());
+	    UTI tduti = sym->getUlamTypeIdx();
+	    u32 tdid = sym->getId();
+	    assert(tdid == it->first);
+	    assert(sym->isCulamGeneratedTypedef());
+
+	    if(!sym->isCulamGeneratedTypedefAliased())
+	      {
+		bool isaliasednow = false;
+		if(!okUTItoContinue(tduti))
+		  aok = false; //t41437
+
+		if(!islocalscope && aok)
+		  {
+		    //not locals filescope, a class; looks through class hierarchy before locals
+		    //if too many choices, provide an error;
+		    std::vector<k_typedefpair> kinvec;
+		    bool hazyKin = false;
+		    if(alreadyDefinedSymbolByAncestorsOf(thisarg, tdid, kinvec, hazyKin) && !hazyKin)
+		      {
+			u32 kinvecsize = kinvec.size();
+			if(kinvecsize == 1)
+			  {
+			    //UTI baseuti = kinvec[0].first;
+			    Symbol * ksym = kinvec[0].second;
+			    UTI ktd = ksym->getUlamTypeIdx();
+			    if(okUTItoContinue(ktd))
+			      {
+				replaceUTIKeyAndAlias(tduti, ktd);
+				((SymbolTypedef *)sym)->setCulamGeneratedTypedefAliased();
+				isaliasednow = true;
+			      }
+			    else
+			      aok = false; //t3742
+			  }
+			else
+			  {
+			    //check if kin typedefs compare same before error
+			    std::set<UTI> kinset;
+			    for(u32 i = 0; i < kinvecsize; i++)
+			      {
+				Symbol * ksym = kinvec[0].second;
+				UTI ktd = ksym->getUlamTypeIdx();
+				//assert(okUTItoContinue(ktd)); //good question, ulamexports:WallPort
+				if(okUTItoContinue(ktd))
+				  {
+				    UTI ktdmapped = ktd;
+				    findRootUTIAlias(ktd,ktdmapped);
+				    kinset.insert(ktdmapped);
+				  }
+			      }
+			    UTI kuti = Nouti;
+			    std::set<UTI>::iterator it;
+			    for(it = kinset.begin(); it != kinset.end(); it++)
+			      {
+				UTI ktd = *it;
+				if(okUTItoContinue(ktd))
+				  {
+				    if(kuti == Nouti)
+				      {
+					kuti = ktd; //for comparisons
+				      }
+				    else if(UlamType::compare(ktd,kuti,*this) == UTIC_NOTSAME) //neither hazy nor same
+				      {
+					aok = false;
+					break;
+				      }
+				  }
+			      }
+
+			    if(aok)
+			      {
+				if((kinvecsize != 0) && (kuti == Nouti))
+				  aok = false; //ulamexports:Wallport
+				else
+				  {
+				    assert(okUTItoContinue(kuti));
+				    replaceUTIKeyAndAlias(tduti, kuti);
+				    ((SymbolTypedef *)sym)->setCulamGeneratedTypedefAliased();
+				    isaliasednow = true;
+				  }
+			      }
+			    else
+			      {
+				//TODO: error message
+				std::ostringstream msg;
+				msg << "Ambiguous typedefs '";
+				msg << m_pool.getDataAsString(tdid).c_str();
+				msg << "' found in ";
+				msg << kinvecsize << " ancestors; ";
+				msg << "Specify from which baseclass";
+				MSG2(getFullLocationAsString(sym->getLoc()).c_str(), msg.str().c_str(), ERR);
+			      }
+			  }
+		      }
+		    else if(hazyKin && !kinvec.empty())
+		      aok = false; //wait..only if worth waiting for (t41444)
+		  }
+
+		if(!isaliasednow && aok)
+		  {
+		    //look for this locals typedef, before global class
+		    Symbol * ltdsymptr = NULL;
+		    Locator cloc = cblock->getNodeLocation();
+		    NodeBlockLocals * localsblock = getLocalsScopeBlock(cloc);
+		    if(localsblock && localsblock->isIdInScope(tdid, ltdsymptr)) //checks one scope
+		      {
+			assert(ltdsymptr->isTypedef());
+			if(!ltdsymptr->isCulamGeneratedTypedef() || ltdsymptr->isCulamGeneratedTypedefAliased())
+			  {
+			    if(isHolder(tduti) && isAClass(tduti))
+			      {
+				removeIncompleteClassSymbolFromProgramTable(getUlamTypeNameIdByIndex(tduti)); //t41513??
+				//removeIncompleteClassSymbolFromProgramTable(tdid); //t41513??
+			      }
+
+			    UTI ltd = ltdsymptr->getUlamTypeIdx();
+			    replaceUTIKeyAndAlias(tduti, ltd);
+			    ((SymbolTypedef *)sym)->setCulamGeneratedTypedefAliased();
+			    isaliasednow = true;
+			  }
+		      }
+		  }
+
+		if(!isaliasednow && aok)
+		  {
+		    SymbolClassName * cnsym = NULL;
+		    if(isScalar(tduti) && alreadyDefinedSymbolClassName(tdid, cnsym))
+		      {
+			UTI cuti = Nouti;
+			if(cnsym->isClassTemplate())
+			  {
+			    SymbolClass * csym = NULL;
+			    if(alreadyDefinedSymbolClass(tduti, csym))
+			      {
+				cuti = csym->getUlamTypeIdx(); //perhaps an alias
+			      }
+			    else if(((SymbolClassNameTemplate *)cnsym)->findClassInstanceByUTI(tduti, csym))
+			      {
+				cuti = csym->getUlamTypeIdx(); //also checks for mapped uti.
+			      }
+			    //else
+			    if((cuti == Nouti) || (cuti == tduti))
+			      {
+				// t3644, t3554
+				std::ostringstream msg;
+				msg << "Class with parameters seen with the same name: ";
+				msg << m_pool.getDataAsString(tdid).c_str();
+				msg << "; No shadow typedef in ";
+				if(isClassATemplate(thisarg))
+				  msg << "template scope, ";
+				else if(isALocalsFileScope(thisarg))
+				  msg << "locals scope, ";
+				else
+				  msg << "class scope, ";
+				msg << getUlamTypeNameBriefByIndex(thisarg).c_str();
+				MSG2(getFullLocationAsString(sym->getLoc()).c_str(), msg.str().c_str(), ERR);
+			      }
+			  }
+			else
+			  {
+			    cuti = cnsym->getUlamTypeIdx();
+			  }
+
+			//			if(cuti != Nouti)
+			if((cuti != Nouti) && !isHolder(cuti)) //t3644 (or cuti != tduti)
+			  {
+			    assert(!isClassATemplate(cuti));
+			    UTI calias = cuti;
+			    findRootUTIAlias(cuti,calias); //was:cuti = lookupUTIAlias(cuti); //t41266
+#if 0
+			    if(isAClass(tduti))
+			      {
+				assert(isAnonymousClass(tduti)); //t3347
+				SymbolClass * tdcsym = NULL;
+				if(alreadyDefinedSymbolClass(tduti, tdcsym))
+				  {
+				    NodeBlockClass * fmblock = tdcsym->getClassBlockNode();
+				    assert(fmblock);
+				    //from anonymous class, with possible tmp typedefs expected
+				    NodeBlockClass * cblock = cnsym->getClassBlockNode();
+				    assert(cblock);
+				    cblock->setDataMembersSymbolTable(cuti, *fmblock);
+				  }
+			      }
+#endif
+			    replaceUTIKeyAndAlias(tduti, calias); //t41230
+			    ((SymbolTypedef *)sym)->setCulamGeneratedTypedefAliased();
+			    isaliasednow = true;
+			  }
+		      }
+		    else
+		      {
+			std::ostringstream msg;
+			msg << "Typedef '";
+			msg << m_pool.getDataAsString(tdid).c_str();
+			if(islocalscope)
+			  msg << "' in locals scope "; //t41511,14
+			else
+			  msg << "' in class ";
+			msg << getUlamTypeNameBriefByIndex(thisarg).c_str();
+			msg << " remains undefined";
+			//if(isClassATemplate(thisarg) || isClassATemplateInstance(thisarg))
+			  MSG2(getFullLocationAsString(sym->getLoc()).c_str(), msg.str().c_str(), WAIT); //t41013, t3384 (template instances need a c&l round to clear possible ug-typedef flags)
+			  //else
+			  //MSG2(getFullLocationAsString(sym->getLoc()).c_str(), msg.str().c_str(), ERR); //t41013, t3384 (FULLSTOP)
+			  if(!isUnseenClassId(tdid)) //for ulamexports..
+			    addUnseenClassId(tdid);
+			aok &= false;
+		      }
+		  }
+		aok &= isaliasednow;
+	      }
+	    rtnb &= aok;
+	    it++;
+	  }
+      }
+    return rtnb;
+  } //checkforAnyRemainingCulamGeneratedTypedefsInThisContext
+
+  u32 CompilerState::findNameIdOfCulamGeneratedTypedefTypeInThisContext(UTI typearg)
+  {
+    u32 rtnid = 0; //not found == 0
+    NodeBlockContext * cblock = getContextBlock();
+    assert(cblock);
+    UTI nuti = cblock->getNodeType();
+    if(nuti == Nav)
+      return 0;
+
+    std::map<u32, Symbol *> tdmap;
+    u32 remaining = cblock->getAllRemainingCulamGeneratedTypedefSymbolsInContext(tdmap);
+    if(remaining > 0)
+      {
+	std::map<u32, Symbol *>::iterator it = tdmap.begin();
 	while(it != tdmap.end())
 	  {
 	    Symbol * sym = it->second;
@@ -3458,35 +3933,19 @@ namespace MFM {
 	    assert(sym->isTypedef());
 	    UTI tduti = sym->getUlamTypeIdx();
 	    u32 tdid = sym->getId();
-	    assert(tduti == it->first);
-	    assert(((SymbolTypedef *)sym)->isUlamGeneratedTypedef());
+	    assert(tdid == it->first);
+	    assert(sym->isCulamGeneratedTypedef());
 
-	    if(!((SymbolTypedef *)sym)->isUlamGeneratedTypedefAliased())
+	    if(tduti == typearg)
 	      {
-		SymbolClassName * cnsym = NULL;
-		if(isScalar(tduti) && alreadyDefinedSymbolClassName(tdid, cnsym))
-		  {
-		    UTI cuti = cnsym->getUlamTypeIdx();
-		    cuti = lookupUTIAlias(cuti); //t41266
-		    replaceUTIKeyAndAlias(tduti, cuti); //t41230
-		    ((SymbolTypedef *)sym)->setUlamGeneratedTypedefAliased();
-		  }
-		else
-		  {
-		    std::ostringstream msg;
-		    msg << "Typedef '";
-		    msg << m_pool.getDataAsString(tdid).c_str();
-		    msg << "' in locals scope ";
-		    msg << getUlamTypeNameBriefByIndex(thislocalarg).c_str();
-		    msg << " remains undefined";
-		    MSG2(getFullLocationAsString(sym->getLoc()).c_str(), msg.str().c_str(), ERR); //t41511
-		  }
+	        rtnid = tdid;
+		break;
 	      }
 	    it++;
 	  }
       }
-    return aok;
-  } //checkforAnyRemainingUlamGeneratedUlamTypedefsinThisLocalsScope
+    return rtnid;
+  } //findNameIdOfCulamGeneratedTypedefTypeInThisContext (unused)
 
   u32 CompilerState::getMaxNumberOfRegisteredUlamClasses()
   {
@@ -3898,6 +4357,11 @@ namespace MFM {
 	found = alreadyDefinedSymbolByAncestorOf(cuti, dataindex, symptr, tmphazys);
 	hasHazyKin = tmphazykin || tmphazys;
       }
+
+    //search current class's local file scope only (not ancestors')
+    if(!found)
+      found = isIdInLocalFileScope(dataindex, symptr); //local constant or typedef
+
     return found;
   } //alreadyDefinedSymbol
 
@@ -3979,6 +4443,47 @@ namespace MFM {
     return !kinsetref.empty();
   } //alreadyDefinedSymbolByAncestorOf
 
+  bool CompilerState::alreadyDefinedSymbolByAncestorsOf(UTI cuti, u32 dataindex, std::vector<k_typedefpair>& kinvecref, bool& hasHazyKin)
+  {
+    BaseclassWalker walker;
+
+    // return complete set of base class UTIs that share the symbol name id (error/t41331).
+    SymbolClass * csym = NULL;
+    if(alreadyDefinedSymbolClass(cuti, csym))
+      walker.addAncestorsOf(csym);
+
+    UTI baseuti = Nouti;
+    while(walker.getNextBase(baseuti, *this))
+      {
+	SymbolClass * basecsym = NULL;
+	if(alreadyDefinedSymbolClass(baseuti, basecsym))
+	  {
+	    NodeBlockClass * basecblock = basecsym->getClassBlockNode();
+	    pushClassContext(baseuti, basecblock, basecblock, false, NULL);
+	    Symbol * symptr = NULL;
+	    bool tmphzykin = false;
+	    bool kinhadit = alreadyDefinedSymbolHere(dataindex, symptr, tmphzykin);
+
+	    popClassContext(); //restore
+
+	    if(kinhadit)
+	      {
+		k_typedefpair kpair(baseuti,symptr);
+		kinvecref.push_back(kpair);
+		hasHazyKin |= tmphzykin;
+	      }
+	    //all
+	    walker.addAncestorsOf(basecsym);
+	  }
+	else if((baseuti == Hzy))
+	  {
+	    hasHazyKin = true; //like t3641
+	  }
+	//else
+      } //end while
+    return !kinvecref.empty();
+  } //alreadyDefinedSymbolByAncestorOf
+
   bool CompilerState::alreadyDefinedSymbolByAClassOrAncestor(UTI cuti, u32 dataindex, Symbol *& symptr, bool& hasHazyKin)
   {
     BaseclassWalker walker;
@@ -4035,8 +4540,9 @@ namespace MFM {
 
     //data member variables in class block; function symbols are linked to their
     //function def block; check function data members separately.
+    //no longer checks local filescope
     if(!brtn)
-      brtn = isDataMemberIdInClassScope(dataindex, symptr, hasHazyKin); //also checks local filescope
+      brtn = isDataMemberIdInClassScope(dataindex, symptr, hasHazyKin);
 
     if(!brtn)
       brtn = isFuncIdInClassScope(dataindex, symptr, hasHazyKin);
@@ -4061,9 +4567,11 @@ namespace MFM {
 	cblock = (NodeBlockContext *) (cblock->getPreviousBlockPointer());
       }
 
+#if 0
     //search current class's local file scope only (not ancestors')
     if(!brtn)
       brtn = isIdInLocalFileScope(dataindex, symptr); //local constant or typedef
+#endif
 
     return brtn;
   } //isDataMemberIdInClassScope
@@ -4085,7 +4593,8 @@ namespace MFM {
     if(localsblock)
       brtn = localsblock->isIdInScope(id, symptr); //checks one scope only!
 
-    //try a stub's template's filescope
+#if 0
+    //tried a stub's template's filescope
     //(e.g. for inheritance of template class instances t41221;
     // for local filescope constants in class parameter t41431)
     if(cblock)
@@ -4122,6 +4631,8 @@ namespace MFM {
 	      brtn = localsblockfortemplate->isIdInScope(id, symptr);
 	  }
       }
+#endif
+
     return brtn;
   } //isIdInLocalFileScope
 
@@ -4351,6 +4862,10 @@ namespace MFM {
 		      {
 			foundOriginator = baseuti;
 			origfsymref = tmpfsym;
+		      }
+		    else if(UlamType::compare(foundOriginator, baseuti, *this) != UTIC_NOTSAME)
+		      {
+			//noop (t41385)
 		      }
 		    else if(isClassASubclassOf(foundOriginator, baseuti))
 		      {
@@ -4664,7 +5179,20 @@ namespace MFM {
   {
     assert(!useMemberBlock());
     //also applies when isParsingLocalDef()
-    getCurrentBlock()->addIdToScope(symptr->getId(), symptr);
+    NodeBlock * currBlock = getCurrentBlock();
+    assert(currBlock);
+    symptr->setBlockNoOfST(currBlock->getNodeNo()); //invariant
+    currBlock->addIdToScope(symptr->getId(), symptr);
+  }
+
+  //symbol ownership goes to current context block (end of vector)
+  void CompilerState::addSymbolToCurrentContextScope(Symbol * symptr)
+  {
+    assert(!useMemberBlock());
+    NodeBlockContext * cBlock = getContextBlock(); //class or locals
+    assert(cBlock);
+    symptr->setBlockNoOfST(cBlock->getNodeNo()); //invariant
+    cBlock->addIdToScope(symptr->getId(), symptr);
   }
 
   void CompilerState::addSymbolToLocalsScope(Symbol * symptr, Locator loc)
@@ -4673,6 +5201,7 @@ namespace MFM {
     NodeBlockLocals * localsblock = makeLocalsScopeBlock(loc); //getLocalsScopeLocator
     assert(localsblock);
 
+    symptr->setBlockNoOfST(localsblock->getNodeNo()); //invariant
     localsblock->addIdToScope(symptr->getId(), symptr);
   } //addSymbolToLocalsScope
 
@@ -4680,7 +5209,10 @@ namespace MFM {
   // making stuff up!
   void CompilerState::addSymbolToCurrentMemberClassScope(Symbol * symptr)
   {
-    getCurrentMemberClassBlock()->addIdToScope(symptr->getId(), symptr);
+    NodeBlockClass * memberblock = getCurrentMemberClassBlock();
+    assert(memberblock);
+    symptr->setBlockNoOfST(memberblock->getNodeNo()); //invariant
+    memberblock->addIdToScope(symptr->getId(), symptr);
   }
 
   //symbol ownership goes to the current block (end of vector);

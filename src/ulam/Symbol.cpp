@@ -10,15 +10,22 @@ namespace MFM {
 
   Symbol::Symbol(const Symbol & sref) : m_state(sref.m_state), m_structuredCommentToken(sref.m_structuredCommentToken), m_gotStructuredCommentToken(sref.m_gotStructuredCommentToken), m_idtok(sref.m_idtok), m_uti(Hzy/*m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_uti,sref.getLoc())*/), m_dataMemberClass(m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_dataMemberClass,sref.getLoc())), m_localsfilescopeType(sref.m_localsfilescopeType), m_autoLocalType(sref.m_autoLocalType), m_isSelf(sref.m_isSelf), m_isSuper(sref.m_isSuper), m_stBlockNo(sref.m_stBlockNo)
   {
+    UTI cuti = m_state.getCompileThisIdx();
     if(m_isSelf) //little 'self'
       {
-	UTI cuti = m_state.getCompileThisIdx();
 	m_uti = m_state.getUlamTypeAsRef(cuti, ALT_REF); //t3328
       }
-    if(m_idtok.m_type == TOK_KW_TYPE_SELF) // big "Self", the type
+    else if(m_idtok.m_type == TOK_KW_TYPE_SELF) // big "Self", the type
       {
-	m_uti = m_state.getCompileThisIdx(); //t41436
+	m_uti = cuti; //t41436
       }
+    else if(m_idtok.m_type == TOK_KW_SELF) // little "self", perhaps ALT_AS
+      {
+	m_uti = m_state.getUlamTypeAsRef(cuti, m_autoLocalType); //t3831
+	//m_isSelf = true; //?
+      }
+    //else
+
   }
 
   Symbol::Symbol(const Symbol& sref, bool keepType) : m_state(sref.m_state), m_structuredCommentToken(sref.m_structuredCommentToken), m_gotStructuredCommentToken(sref.m_gotStructuredCommentToken), m_idtok(sref.m_idtok), m_uti(sref.m_uti), m_dataMemberClass(sref.m_dataMemberClass), m_localsfilescopeType(sref.m_localsfilescopeType), m_autoLocalType(sref.m_autoLocalType), m_isSelf(sref.m_isSelf), m_isSuper(sref.m_isSuper), m_stBlockNo(sref.m_stBlockNo) {}
@@ -69,6 +76,11 @@ namespace MFM {
   }
 
   UTI Symbol::getUlamTypeIdx()
+  {
+    return m_uti;
+  }
+
+  UTI Symbol::getUlamTypeIdx() const
   {
     return m_uti;
   }
@@ -163,7 +175,7 @@ namespace MFM {
 
   void Symbol::setAutoLocalType(ALT alt)
   {
-    assert((getUlamTypeIdx() == Hzy) || (m_state.getUlamTypeByIndex(getUlamTypeIdx())->getReferenceType() == alt));
+    assert((getUlamTypeIdx() == Hzy) || (m_state.getUlamTypeByIndex(getUlamTypeIdx())->getReferenceType() == alt) || m_state.isHolder(getUlamTypeIdx()));
     m_autoLocalType = alt;
   }
 
@@ -195,6 +207,16 @@ namespace MFM {
   bool Symbol::isSuper()
   {
     return m_isSuper;
+  }
+
+  bool Symbol::isCulamGeneratedTypedef()
+  {
+    return false;
+  }
+
+  bool Symbol::isCulamGeneratedTypedefAliased()
+  {
+    return false;
   }
 
   NNO Symbol::getBlockNoOfST()

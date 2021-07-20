@@ -149,13 +149,13 @@ namespace MFM{
 
     bool hasCustomArray();
 
-    void checkCustomArrayTypeFunctions();
+    void checkCustomArrayTypeFunctions(UTI cuti);
 
-    UTI getCustomArrayTypeFromGetFunction();
+    UTI getCustomArrayTypeFromGetFunction(UTI cuti);
 
-    u32 getCustomArrayIndexTypeFromGetFunction(Node * rnode, UTI& idxuti, bool& hasHazyArgs);
+    u32 getCustomArrayIndexTypeFromGetFunction(UTI cuti, Node * rnode, UTI& idxuti, bool& hasHazyArgs);
 
-    bool hasCustomArrayLengthofFunction();
+    bool hasCustomArrayLengthofFunction(UTI cuti);
 
     virtual bool buildDefaultValue(u32 wlen, BV8K& dvref); //starts here, called by SymbolClass
 

@@ -324,6 +324,7 @@ namespace MFM {
 
 	UTI duti = m_nodeTypeDesc->checkAndLabelType(this); //clobbers any expr it
 	if(m_state.okUTItoContinue(duti) && (suti != duti))
+	  //if((suti != duti))
 	  {
 	    std::ostringstream msg;
 	    msg << "REPLACING Symbol UTI" << suti;
@@ -353,9 +354,10 @@ namespace MFM {
     if(!m_state.okUTItoContinue(suti) || !m_state.isComplete(suti))
       {
 	std::ostringstream msg;
-	msg << "Incomplete " << prettyNodeName().c_str() << " for type: ";
-	msg << m_state.getUlamTypeNameByIndex(suti).c_str();
-	msg << ", used with symbol name '" << getName() << "'";
+	msg << "Incomplete Constant Def for type";
+	if(m_state.okUTItoContinue(suti) && !m_state.isHolder(suti))
+	  msg << ": " << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
+	msg << " used with symbol name '" << getName() << "'";
 	if(m_state.okUTItoContinue(suti) || m_state.isStillHazy(suti)) //41288?
 	  {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
@@ -658,10 +660,10 @@ namespace MFM {
 	else if(m_state.isStillHazy(foldrtn))
 	  {
 	    std::ostringstream msg;
-	    msg << "Incomplete " << prettyNodeName().c_str() << " for type: ";
+	    msg << "Incomplete Constant Def for type: ";
 	    msg << m_state.getUlamTypeNameByIndex(suti).c_str();
 	    msg << ", used with symbol name '" << getName() << "', after folding";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //t41204
 	    setNodeType(Hzy);
 	  }
 	else //if(!m_state.isAClass(foldrtn)) //t41198
@@ -871,7 +873,8 @@ namespace MFM {
 		u32 tmpslotnum = m_state.m_constantStack.getAbsoluteTopOfStackIndexOfNextSlot();
 		assignConstantSlotIndex(tmpslotnum);
 	      }
-	    //else no good
+	    else
+	      rtnuti = Hzy; //t41509
 	  }
 	else
 	  m_state.abortShouldntGetHere();

@@ -210,7 +210,7 @@ namespace MFM {
 		UTI rootuti = baseuti;
 		if(!m_state.isARootUTI(baseuti))
 		  {
-		    AssertBool gotroot = m_state.findaUTIAlias(baseuti, rootuti); //t3652
+		    AssertBool gotroot = m_state.findRootUTIAlias(baseuti, rootuti); //t3652
 		    assert(gotroot); //note: not mapped in resolver
 		  }
 
@@ -235,7 +235,7 @@ namespace MFM {
     UTI rootuti = baseclass;
     if(!m_state.isARootUTI(baseclass))
       {
-	AssertBool gotroot = m_state.findaUTIAlias(baseclass, rootuti); //t3652
+	AssertBool gotroot = m_state.findRootUTIAlias(baseclass, rootuti); //t3652
 	assert(gotroot); //note: not mapped in resolver
       }
 
@@ -286,7 +286,7 @@ namespace MFM {
 
 	if(m_state.isHolder(oldbaseclass))
 	  {
-	    mapUTItoUTI(oldbaseclass, superuti); //t3806
+	    //mapUTItoUTI(oldbaseclass, superuti); //t3806 redundant
 	    m_state.cleanupExistingHolder(oldbaseclass, superuti);
 	  }
 	updateSuperTypedef(superuti);
@@ -310,7 +310,7 @@ namespace MFM {
 	cblock->addIdToScope(superid,symtypedef);
       }
     else
-      symtypedef->resetUlamType(superuti);
+      symtypedef->resetUlamType(superuti); //any aliasing needed?
   } //updateSuperTypedef
 
   void SymbolClass::clearBaseAsShared(u32 item)
@@ -388,7 +388,7 @@ namespace MFM {
     UTI rootuti = baseclass;
     if(!m_state.isARootUTI(baseclass))
       {
-	AssertBool gotroot = m_state.findaUTIAlias(baseclass, rootuti); //t3652
+	AssertBool gotroot = m_state.findRootUTIAlias(baseclass, rootuti); //t3652
 	assert(gotroot); //note: not mapped in resolver
       }
 
@@ -479,7 +479,7 @@ namespace MFM {
   {
     NodeBlockClass * classNode = getClassBlockNode(); //instance
     assert(classNode);
-    return classNode->getCustomArrayTypeFromGetFunction(); //returns canonical type
+    return classNode->getCustomArrayTypeFromGetFunction(getUlamTypeIdx()); //returns canonical type
   }
 
   u32 SymbolClass::getCustomArrayIndexTypeFor(Node * rnode, UTI& idxuti, bool& hasHazyArgs)
@@ -487,14 +487,14 @@ namespace MFM {
     NodeBlockClass * classNode = getClassBlockNode(); //instance
     assert(classNode);
     //returns number of matching types; updates last two args.
-    return classNode->getCustomArrayIndexTypeFromGetFunction(rnode, idxuti, hasHazyArgs);
+    return classNode->getCustomArrayIndexTypeFromGetFunction(getUlamTypeIdx(), rnode, idxuti, hasHazyArgs);
   }
 
   bool SymbolClass::hasCustomArrayLengthof()
   {
     NodeBlockClass * classNode = getClassBlockNode(); //instance
     assert(classNode);
-    return classNode->hasCustomArrayLengthofFunction();
+    return classNode->hasCustomArrayLengthofFunction(getUlamTypeIdx());
   }
 
   bool SymbolClass::trySetBitsizeWithUTIValues(s32& basebits, s32& mybits, std::set<UTI>& seensetref)
@@ -570,7 +570,7 @@ namespace MFM {
 	totalsharedbasebitsize += basebitsize;
 
 	if(isASharedBaseClassItem(baseuti) < 0)
-	  appendSharedBaseClass(baseuti, numshared);
+	  appendSharedBaseClass(baseuti, numshared); //t41423
 
 	s32 bitem = isABaseClassItem(baseuti);
 	if(bitem >= 0) //direct shared
@@ -1942,7 +1942,7 @@ namespace MFM {
     UTI rootuti = origuti;
     if(!m_state.isARootUTI(origuti))
       {
-	AssertBool gotroot = m_state.findaUTIAlias(origuti, rootuti); //t3652
+	AssertBool gotroot = m_state.findRootUTIAlias(origuti, rootuti); //t3652
 	assert(gotroot); //note: not mapped in resolver
       }
     std::pair<BasesTableTypeMap::iterator, bool> reti;

@@ -67,17 +67,17 @@ namespace MFM{
 
     virtual void setStructuredComment();
 
-    bool isUlamGeneratedTypedef();
-    void setUlamGeneratedTypedef();
-    void clearUlamGeneratedTypedef();
-    bool isUlamGeneratedTypedefAliased();
-    void setUlamGeneratedTypedefAliased();
+    virtual bool isCulamGeneratedTypedef();
+    void setCulamGeneratedTypedef();
+    void clearCulamGeneratedTypedef();
+    virtual bool isCulamGeneratedTypedefAliased();
+    void setCulamGeneratedTypedefAliased();
   protected:
 
   private:
     UTI m_scalarUTI; //when utype is an array
-    bool m_ulamgenerated;
-    bool m_ulamgeneratedaliased; //good as deleted, but better.
+    bool m_culamgenerated;
+    bool m_culamgeneratedaliased; //good as deleted, but better.
   };
 
 }

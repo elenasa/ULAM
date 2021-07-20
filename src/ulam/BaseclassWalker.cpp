@@ -75,10 +75,9 @@ namespace MFM {
 	UTI rootuti = baseuti;
 	if(!state.isARootUTI(baseuti))
 	  {
-	    AssertBool gotroot = state.findaUTIAlias(baseuti, rootuti); //t41384
+	    AssertBool gotroot = state.findRootUTIAlias(baseuti, rootuti); //t41384
 	    assert(gotroot);
 	  }
-
 	ret = m_seenset.insert(rootuti);
 	if(ret.second)
 	  {

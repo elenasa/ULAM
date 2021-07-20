@@ -109,7 +109,7 @@ namespace MFM {
   {
     UTI basicuti = m_state.getUlamTypeAsDeref(m_state.getUlamTypeAsScalar(instance));
     UTI rootbasicuti = basicuti;
-    m_state.findaUTIAlias(basicuti, rootbasicuti); //in case alias Mon Jun 20 14:39:07 2016
+    m_state.findRootUTIAlias(basicuti, rootbasicuti); //in case alias Mon Jun 20 14:39:07 2016
     assert((rootbasicuti == getUlamTypeIdx()) || (m_state.isARefTypeOfUlamType(rootbasicuti, getUlamTypeIdx()) == UTIC_SAME)); //or could be a reference
     return "10"; //zero args
   } //formatAnInstancesArgValuesAsAString
@@ -163,11 +163,12 @@ namespace MFM {
 
   void SymbolClassName::checkCustomArraysOfClassInstances()
   {
+    UTI cuti = getUlamTypeIdx();
     NodeBlockClass * classNode = getClassBlockNode();
     assert(classNode);
-    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
+    m_state.pushClassContext(cuti, classNode, classNode, false, NULL);
 
-    classNode->checkCustomArrayTypeFunctions();
+    classNode->checkCustomArrayTypeFunctions(cuti);
     m_state.popClassContext(); //restore
   } //checkCustomArraysOfClassInstances()
 

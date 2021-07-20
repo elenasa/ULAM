@@ -203,7 +203,7 @@ namespace MFM {
 #if 0
     //for DEBUGG ONLY!!
     UTI aliasuti;
-    if(m_state.findaUTIAlias(cuti, aliasuti))
+    if(m_state.findRootUTIAlias(cuti, aliasuti))
       {
 	//when array or ref, the kuti is the scalar/deref uti, the aliasuti is same as cuti;
 	//stubs get here via printPostfix on template classes;

@@ -3,7 +3,7 @@
 #!
 Exit status: 3
 Ue_R { Int test() {  P(1) pel;  pel var . 3 cast = pel var . cast return } }
-Ue_P(Int a) { Bool b(false);  unresolved var(notready);  <NOMAIN> }
+Ue_P(Int a) { Bool b(false);  holder var(notready);  <NOMAIN> }
 Uq_Q(Int s) { typedef Unsigned(UNKNOWN) Foo;  <NOMAIN> }
 Uq_V { typedef Q(3) Woof;  <NOMAIN> }
 ##

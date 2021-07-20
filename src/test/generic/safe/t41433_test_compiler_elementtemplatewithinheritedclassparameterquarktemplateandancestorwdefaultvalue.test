@@ -13,7 +13,7 @@ Exit status: 0
 Ue_R { constant Unsigned cTip = 1u;  Int test() {  System s;  Pop(0xfeed,7u,3,1u) pop;  Unsigned ans = pop ( )behaving .;  s ( ans )print . s ( ans 3u cast == )assert . s ( pop ( )samely . )assert . s ( pop ( )badly . ! )assert . Crackle(0xf00d,2u) crackle;  Unsigned ans2 = crackle ( )behaving .;  s ( ans2 )print . s ( ans2 4u cast == )assert . s ( 2u )print . s ( true )assert . Crackle(0xbead,5u) snap;  Unsigned ans3 = snap ( )behaving .;  s ( ans3 )print . s ( ans3 4u cast == )assert . s ( 5u )print . s ( true )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 Uq_Pop(Bits speciesID, Unsigned(5) mytag, Unary(5) myProgress, Unsigned triggerlevel) { typedef Foo(x,y,false) MyFoo;  Foo(x,y,false) mFoo(notready);  <NOMAIN> }
-Un_Crackle(Bits specId, Unsigned trig = NONREADYCONST) : Pop(speciesID,3u,4,triggerlevel) { constant Unsigned cTrigger = trig;  Bits mId(notready);  typedef holder Zary;  holder mzary(notready);  :Pop14< typedef Foo(x,y,false) MyFoo;  Foo(x,y,false) mFoo(notready); > <NOMAIN> }
+Un_Crackle(Bits specId, Unsigned trig = NONREADYCONST) : Pop(speciesID,3u,4,triggerlevel) { constant Unsigned cTrigger = trig;  Bits mId(notready);  typedef Unary(UNKNOWN) Zary;  Unary(UNKNOWN) mzary(notready);  :Pop14< typedef Foo(x,y,false) MyFoo;  Foo(x,y,false) mFoo(notready); > <NOMAIN> }
 Uq_Zar(Unary(5) x, Unsigned(4) y, Bool z) { typedef Unary(UNKNOWN) Zary;  <NOMAIN> }
 Uq_Foo(Unary(5) x, Unsigned(4) y, Bool z) : Zar(x,y,z) { Zar(x,y,true) mZar(notready);  :Zar13< typedef Unary(UNKNOWN) Zary; > <NOMAIN> }
 ##

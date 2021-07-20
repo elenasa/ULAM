@@ -83,7 +83,7 @@ namespace MFM {
   {
     assert(!m_state.isScalar(guti) || m_state.isHolder(guti));
     UTI galias = guti;
-    if(m_state.findaUTIAlias(guti, galias)) //t41301
+    if(m_state.findRootUTIAlias(guti, galias)) //t41301
       {
 	if(m_state.isScalar(galias))
 	  m_state.updateUTIAliasForced(guti,guti); //undo mistaken scalar for array type
@@ -184,7 +184,7 @@ namespace MFM {
 		std::ostringstream msg;
 		msg << "Incomplete descriptor for scalar of array: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(scuti).c_str();
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //was WAIT
 	      }
 	  }
 

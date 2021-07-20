@@ -2,7 +2,7 @@
 #=t41331_test_compiler_multiinheritance_subshadowsbasedatamember_error
 ##
 #!
-./E4.ulam:4:3: ERROR: Data member 'm_b1' is shadowing 2 ancestors: QBaseLast, QBase1.
+./E4.ulam:4:3: ERROR: Data member 'm_b1' is shadowing 2 ancestors: QBase1, QBaseLast.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## A subclass may not shadow a base class data member name;

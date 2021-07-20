@@ -65,6 +65,8 @@ namespace MFM{
 
     virtual UTI checkAndLabelType(Node * thisparentnode);
 
+    u32 getAllRemainingCulamGeneratedTypedefSymbolsInContext(std::map<u32, Symbol*>& mapref);
+
     virtual bool hasStringDataMembers();
 
     bool classConstantsReady();

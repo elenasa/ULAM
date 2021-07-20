@@ -49,6 +49,12 @@ namespace MFM {
     return savnuti;
   }
 
+  u32 NodeBlockContext::getAllRemainingCulamGeneratedTypedefSymbolsInContext(std::map<u32, Symbol*>& mapref)
+  {
+    return m_ST.getAllRemainingCulamGeneratedTypedefSymbolsInTable(mapref);
+  }
+
+
   bool NodeBlockContext::hasStringDataMembers()
   {
     return m_ST.hasUlamTypeSymbolsInTable(String); //btw, does not check superclasses!!!

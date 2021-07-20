@@ -21,14 +21,14 @@ element T {
 #:KillPlate.ulam
   ulam 5;
 
-local constant EventWindow.SiteNum sn = 6; //ok, using local.sn
+local constant EventWindow.SiteNum sn = 7; //ok, using local.sn
 element KillPlate {
   constant EventWindow.SiteNum sn = 6;
   //EventWindow.SiteNum sn = (EventWindow.SiteNum) KillPlate.sn; //also ok as dm, not both.
   Void behave()
   {
     EventWindow ew;
-    EventWindow.SiteNum sn = (EventWindow.SiteNum) KillPlate.sn; //ok
+    EventWindow.SiteNum sn = (EventWindow.SiteNum) KillPlate.sn; //ok, uses member sn, not local
   }
 }
 

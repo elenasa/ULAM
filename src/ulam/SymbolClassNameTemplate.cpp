@@ -266,7 +266,7 @@ namespace MFM {
 	    else
 	      {
 		UTI balias = baseuti;
-		if(m_state.findaUTIAlias(baseuti, balias))
+		if(m_state.findRootUTIAlias(baseuti, balias))
 		  baseuti = balias;
 	      }
 	    newclassinstance->setBaseClass(baseuti, i, sharedbase);
@@ -317,7 +317,7 @@ namespace MFM {
 	  }
       }
 
-    if(m_state.findaUTIAlias(basicuti, mappedUTI)) //t3862
+    if(m_state.findRootUTIAlias(basicuti, mappedUTI)) //t3862
       {
 	std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.find(mappedUTI);
 	if(it != m_scalarClassInstanceIdxToSymbolPtr.end())
@@ -397,7 +397,7 @@ namespace MFM {
     //previous block is template's class block, and new NNO here!
     NodeBlockClass * newblockclass = new NodeBlockClass(NULL, m_state);
     assert(newblockclass);
-    newblockclass->setNodeLocation(typeTok.m_locator);
+    newblockclass->setNodeLocation(typeTok.m_locator); //for arg values
     newblockclass->setNodeType(stubcuti);
     newblockclass->resetNodeNo(templateclassblock->getNodeNo()); //keep NNO consistent (new)
 
@@ -1300,6 +1300,8 @@ namespace MFM {
 	NodeBlockClass * classNode = csym->getClassBlockNode();
 	assert(classNode);
 
+	classNode->setNodeLocation(this->getLoc()); //uses template's locals scope
+
 	m_state.pushClassContext(cuti, classNode, classNode, false, NULL);
 
 	UTI whence = csym->getStubCopyOf();
@@ -1400,7 +1402,7 @@ namespace MFM {
 			if(m_state.okUTItoContinue(supertdef)) //not if Hzy (t3642)
 			  {
 			    UTI alias = scalarsupertdef;
-			    m_state.findaUTIAlias(scalarsupertdef, alias); //t41228
+			    m_state.findRootUTIAlias(scalarsupertdef, alias); //t41228
 			    stubcsym->updateBaseClass(stubbaseuti, i, alias); //stubcopy's superbase set here!!
 			    rtnok &= true;
 			    gotbase = true;
@@ -1559,7 +1561,7 @@ namespace MFM {
 	  {
 	    m_state.pushClassContext(cuti, classNode, classNode, false, NULL);
 
-	    classNode->checkCustomArrayTypeFunctions(); //do each instance
+	    classNode->checkCustomArrayTypeFunctions(cuti); //do each instance
 	    m_state.popClassContext(); //restore
 	  }
 	else
@@ -1739,12 +1741,18 @@ namespace MFM {
 	    NodeBlockClass * classNode = csym->getClassBlockNode();
 	    assert(classNode);
 
+	    Locator saveStubLoc = classNode->getNodeLocation();
+	    //temporarily change stub loc, in case of local filescope, incl arg/params
+	    classNode->setNodeLocation(this->getLoc());
+
 	    m_state.pushClassContext(stubuti, classNode, classNode, false, NULL);
 
 	    //no need to stub checkArguments (errors: t3444,t3520,t41204,t41454) overkill!
 	    classNode->checkAndLabelType(NULL); //do each stub instance
 
 	    m_state.popClassContext(); //restore
+
+	    classNode->setNodeLocation(saveStubLoc); //restore until fully instantiated
 	  }
 	stubit++;
       }
@@ -2443,7 +2451,7 @@ namespace MFM {
       {
 	SymbolConstantValue * asym = instancesArgs[i];
 	SymbolConstantValue * asym2 = new SymbolConstantValue(*asym); //don't keep type!! (t41227)
-	asym2->setBlockNoOfST(toclassblock->getNodeNo());
+	//asym2->setBlockNoOfST(toclassblock->getNodeNo());
 	m_state.addSymbolToCurrentScope(asym2);
       } //next arg
 
@@ -2475,8 +2483,17 @@ namespace MFM {
 
 	if(!m_state.isScalar(puti))
 	  {
+	    s32 arraysize = m_state.getArraySize(puti);
 	    fp->write("[");
-	    fp->write_decimal(m_state.getArraySize(puti));
+	    if(arraysize >= 0)
+	      fp->write_decimal(arraysize);
+	    else if(arraysize == UNKNOWNSIZE)
+	      fp->write("UNKNOWN"); //t3894
+	    else if(arraysize != NONARRAYSIZE)
+	      {
+		fp->write_decimal(arraysize);
+		fp->write("?");
+	      }
 	    fp->write("]");
 	  }
 

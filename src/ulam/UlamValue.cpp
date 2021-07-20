@@ -284,6 +284,7 @@ namespace MFM {
     if(state.isClassACustomArray(auti))
       {
 	UTI caType = state.getAClassCustomArrayType(auti);
+	assert(state.okUTItoContinue(caType));
 	UlamType * caut = state.getUlamTypeByIndex(caType);
 	s32 calen = caut->getBitSize();
 	if( calen > MAXBITSPERLONG)

@@ -13,7 +13,6 @@
 ./SPLATRuleSet.ulam:19:3: NOTE: (64 of 17061 bits, at 16900) Bits(64) m_givenTrueForNode.
 ./SPLATInstance.ulam:2:7: NOTE: (1 of 17061 bits, at 16964) from super base class: SPLATInstance.
 ./SPLATRuleSet.ulam:2:11: ERROR: CLASS (regular) 'SPLATRuleSet' SIZED 17061 FAILED.
-./SPLATRuleSet.ulam:22:11: ERROR: Subclass 'SPLATRuleSet_13QMembrane' inherits from illegal 'SPLATRuleSet'.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by Dave 3/6/19, t41013 (Unhelpful 0Hzy type shown for class data members sometimes)

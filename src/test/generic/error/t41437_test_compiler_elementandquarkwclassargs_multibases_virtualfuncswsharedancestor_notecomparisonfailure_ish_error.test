@@ -87,6 +87,8 @@ quark Printer : PrintBase + SPOTStageBits(2u) {
 quark Utils : Parms {
   SN reversePtr(SN od) {
     return Parms.SN.maxof; // Illegal reverses to illegal
+    //return SN.maxof; // Illegal reverses to illegal (asserts:
+    //CompilerState.cpp:7106: bool MFM::CompilerState::isAnonymousClass(MFM::u16): Assertion `isAClass(cuti)' failed.
   }
 }
 

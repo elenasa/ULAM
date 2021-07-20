@@ -4,7 +4,8 @@
 ./Bar.ulam:3:9: ERROR: Subclass 'Bar' inherits from 'Int', a class that's not a quark.
 Unrecoverable Program Type Label FAILURE.
 ##
-## informed by t41516, Gah error since not used, or defined typedef in local scope
+## informed by t41516, Bar uses member typedef wo local specificity; if local
+## specificity (even wo a localscope typedef) uses the class Moo.
 ## see also t41519;
 ##
 #>Foo.ulam
@@ -45,9 +46,9 @@ element Gah : Moo {
 
 #:Bar.ulam
   ulam 5;
-//element Bar : local.Moo { //uses class, even without a local typedef!!
-element Bar : Moo { //uses member typedef, without local specificity!!
-  typedef Int Moo; //shadows a class name?
+//element Bar : local.Moo { //uses member typedefclass, see t41523
+element Bar : Moo { //uses member typedef, without local specificity!! class Moo comes after
+  typedef Int Moo; //shadows a class name
   local.Moo m_moo; //uses class, generated typedef
 }
 

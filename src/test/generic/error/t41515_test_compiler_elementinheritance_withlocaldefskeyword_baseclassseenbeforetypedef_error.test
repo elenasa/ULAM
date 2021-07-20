@@ -1,8 +1,8 @@
 ## -*- mode:ulam -*-
 #=t41515_test_compiler_elementinheritance_withlocaldefskeyword_baseclassseenbeforetypedef_error
 #!
-./Foo.ulam:8:11: ERROR: Variable 'us' is not defined, or was used before declared in a function.
-./Foo.ulam:8:7: ERROR: Assignment is invalid; LHS: Unsigned; RHS: erroneous.
+./Foo.ulam:9:11: ERROR: Variable 'us' is not defined, or was used before declared in a function.
+./Foo.ulam:9:7: ERROR: Assignment is invalid; LHS: Unsigned; RHS: erroneous.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t41514, does local.Moo typedef supercede the class Moo as Foo's super? YES.
@@ -18,6 +18,7 @@ quark Moo {
 local typedef UrSelf Moo;
 element Foo : local.Moo {
   Bool(7) sp;
+  typedef Int Moo; //ignored
   Int test() {
     Unsigned a = 73;
     Foo f;

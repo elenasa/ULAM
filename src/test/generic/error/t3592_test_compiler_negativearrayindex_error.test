@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3592_test_compiler_negativearrayindex_error
 #!
-./Ish2.ulam:10:5: ERROR: Type Bitsize specifier for Unsigned type, within (), is a negative numeric constant expression: -1.
+./Ish2.ulam:9:5: ERROR: Type Bitsize specifier for Unsigned type, within (), is a negative numeric constant expression: -1.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by safe/t3591 (see also t3593)
@@ -14,7 +14,6 @@ element Ish2 {
 
   Int test()
   {
-    System s;
     constant Phase cP = 0;
     Unsigned(cP - 1) tunsigned;
     return phase;

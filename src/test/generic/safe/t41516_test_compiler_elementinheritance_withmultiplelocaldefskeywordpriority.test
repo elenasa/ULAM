@@ -73,7 +73,7 @@ quark Moo {
 
 #:Nat.ulam
   ulam 1;
-/** Nat comes after Moo */
+/** Nat comes after Moo; local typedef after use */
 quark Nat {
   local.Moo m_bits;
 }

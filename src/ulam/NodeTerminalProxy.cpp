@@ -657,11 +657,13 @@ namespace MFM {
     if(!m_state.okUTItoContinue(m_uti) || !m_state.isComplete(m_uti))
       {
 	std::ostringstream msg;
-	msg << "Proxy Type: " << m_state.getUlamTypeNameBriefByIndex(m_uti).c_str();
+	msg << "Proxy Type";
+	if(m_state.okUTItoContinue(m_uti) && !m_state.isHolder(m_uti))
+	  msg << ": " << m_state.getUlamTypeNameBriefByIndex(m_uti).c_str();
 	msg << " is still incomplete and unknown for its '";
 	msg << m_funcTok.getTokenString() << "'";
 	if(m_state.okUTItoContinue(m_uti) || m_state.isStillHazy(m_uti))
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //error/t3298
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //error/t3298,t41204
 	else
 	  {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);

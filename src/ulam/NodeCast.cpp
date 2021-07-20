@@ -494,8 +494,10 @@ namespace MFM {
     //storeintoable includes referenceAble
     if(m_state.getReferenceType(tobeType) == ALT_REF)
       Node::setStoreIntoAble(TBOOL_TRUE); //t3692, t41153
+    else if(isExplicitCast()) //not a ref.
+      Node::setStoreIntoAble(TBOOL_FALSE); //t3733, t3665
     else
-      Node::setStoreIntoAble(TBOOL_FALSE); //TBOOL_HZY up until now.
+      Node::setStoreIntoAble(m_node->getStoreIntoAble()); //TBOOL_HZY up til now. t3810
 
     setNodeType(getCastType()); //since neither Hzy, nor Nav
     return getNodeType();

@@ -310,7 +310,7 @@ namespace MFM {
 		std::ostringstream msg;
 		msg << "Variable '" << m_state.getTokenDataAsString(m_token).c_str();
 		msg << "' is not defined, or was used before declared in a function";
-		if((foundit != TBOOL_HAZY))
+		if((foundit != TBOOL_HAZY) && !hazyKin) //t3889 hazyKin
 		  {
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		    it = Nav;
@@ -369,7 +369,7 @@ namespace MFM {
 	    // the symbol associated with this type, was mapped during instantiation
 	    // since we're call AFTER that (not during), we can look up our
 	    // new UTI and pass that on up the line of NodeType Selects, if any.
-	    if(m_state.mappedIncompleteUTI(cuti, it, mappedUTI))
+	    if(m_state.mappedIncompleteUTI(cuti, it, mappedUTI) && (it != mappedUTI))
 	      {
 		std::ostringstream msg;
 		msg << "Substituting Mapped UTI" << mappedUTI;
@@ -383,17 +383,25 @@ namespace MFM {
 		m_varSymbol->resetUlamType(mappedUTI); //consistent!
 		it = mappedUTI;
 	      }
-	    else if(m_varSymbol->isSelf() || m_state.isAltRefType(it) || m_varSymbol->isSuper())
+	    //else
+	      if(m_varSymbol->isSelf() || m_state.isAltRefType(it) || m_varSymbol->isSuper())
 	      {
-		m_state.completeAReferenceType(it);
+		m_state.completeAReferenceType(it); //t3121
 	      }
 
 	    if(!m_state.isComplete(it)) //reloads to recheck for debug message
 	      {
 		std::ostringstream msg;
-		msg << "Incomplete identifier for type: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-		msg << ", used with list symbol name '" << getName() << "'";
+		msg << "Incomplete identifier for a type ";
+		if(!m_state.isHolder(it) && m_state.okUTItoContinue(it))
+		  {
+		    if(m_state.isAClass(it))
+		      msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+		    else
+		      msg << m_state.m_pool.getDataAsString(m_state.getUlamTypeNameIdByIndex(it)).c_str();
+		    msg << ", ";
+		  }
+		msg << "used with list symbol name '" << getName() << "'";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 		it = Hzy; //missing t3754 case 1
 	      }
@@ -684,6 +692,7 @@ namespace MFM {
 	    if(m_state.isClassACustomArray(nuti))
 	      {
 		UTI caType = m_state.getAClassCustomArrayType(nuti);
+		assert(m_state.okUTItoContinue(caType));
 		UlamType * caut = m_state.getUlamTypeByIndex(caType);
 		if(m_state.isAtom(caType) || (caut->getBitSize() > MAXBITSPERINT))
 		  {
@@ -953,12 +962,12 @@ namespace MFM {
 		    else
 		      m_state.abortNotImplementedYet();
 		  }
-		else if(((SymbolTypedef *)asymptr)->isUlamGeneratedTypedef() && m_state.isThisLocalsFileScope())
+		else if(asymptr->isCulamGeneratedTypedef() && m_state.isThisLocalsFileScope())
 		  {
 		    Symbol * gen2symptr = NULL;
 		    if(m_state.isIdInCurrentScope(args.m_typeTok.m_dataindex, gen2symptr))
 		      {
-			if(gen2symptr->isTypedef() && ((SymbolTypedef*) gen2symptr)->isUlamGeneratedTypedef())
+			if(gen2symptr->isTypedef() && gen2symptr->isCulamGeneratedTypedef())
 			  {
 			    UTI g2type = gen2symptr->getUlamTypeIdx();
 			    assert(m_state.isHolder(g2type));
@@ -968,7 +977,14 @@ namespace MFM {
 			  }
 		      } //else new type not holder
 		  }
-		//else td not from another class, nor locals generated holder (e.g. t3783)
+		else if(asymptr->isCulamGeneratedTypedef()) //t41489
+		  {
+		    if(asymptr->isCulamGeneratedTypedefAliased())
+		      {
+			//m_state.abortNotImplementedYet();
+		      }
+		  }
+		//else td not from another class, nor locals or member generated holder (e.g. t3783)
 
 		//not Nav when tduti's an array; might know?
 		args.m_declListOrTypedefScalarType = tdscalaruti;
@@ -1027,7 +1043,7 @@ namespace MFM {
 	  } //a typedef already there
 	return brtn; //already there, and updated
       }
-
+#if 0
     SymbolClassName * prematureclass = NULL;
     bool isUnseenClass = false;
     bool isPrematureClassATemplate = false;
@@ -1074,6 +1090,7 @@ namespace MFM {
 	    pmcuti = Nouti; //t41516 allow shadowing??
 	  }
       }
+#endif
 
     //pmcuti, unseen or seen, we are here to replace/re-alias ulam-generated typedef in locals scope;
     UTI ltduti = Nouti;
@@ -1081,15 +1098,15 @@ namespace MFM {
     Symbol * ltdsymptr = NULL;
     if(m_state.isThisLocalsFileScope())
       {
-	if(m_state.getUlamTypeByTypedefNameinLocalsScope(m_token.m_dataindex, ltduti, ltdscalaruti, ltdsymptr))
+	if(m_state.getUlamTypeByTypedefNameInLocalsScope(m_token.m_dataindex, ltduti, ltdscalaruti, ltdsymptr))
 	  {
 	    assert(ltdsymptr->isTypedef());
 	    UTI ltd = ltdsymptr->getUlamTypeIdx();
-	    bool isUlamGenerated = ((SymbolTypedef*)ltdsymptr)->isUlamGeneratedTypedef();
+	    bool isUlamGenerated = ltdsymptr->isCulamGeneratedTypedef();
 	    if(isUlamGenerated)
 	      {
 		//NodeBlockLocals * localsblock = (NodeBlockLocals*) m_state.getContextBlock();
-		//m_state.removeUlamGeneratedTypedefFromLocalsScope(m_token.m_dataindex, localsblock);
+		//m_state.removeCulamGeneratedTypedefFromLocalsScope(m_token.m_dataindex, localsblock);
 		assert(ltd == ltduti);
 	      }
 	    else
@@ -1144,7 +1161,13 @@ namespace MFM {
 	UTI uti = tduti;
 	UTI scalarUTI = args.m_declListOrTypedefScalarType;
 
+	ALT usealt = args.m_declRef; //default
+	ALT ualt = m_state.getReferenceType(uti);
+	if((args.m_declRef == ALT_NOT) && (ualt != ALT_NOT))
+	  usealt = ualt; //t3728
+
 	if(uti != Hzy) //t3862
+	  //if((uti != Hzy) && !m_state.isHolder(uti)) //t3862, t3728, t3172
 	  {
 	    UlamType * ut = m_state.getUlamTypeByIndex(uti);
 	    ULAMTYPE bUT = ut->getUlamTypeEnum();
@@ -1160,22 +1183,27 @@ namespace MFM {
 		if(args.m_bitsize == 0)
 		  args.m_bitsize = ULAMTYPE_DEFAULTBITSIZE[bUT];
 
-		UlamKeyTypeSignature newarraykey(key.getUlamKeyTypeSignatureNameId(), args.m_bitsize, args.m_arraysize, scalarUTI, args.m_declRef); //classinstanceidx removed if not a class
-		uti = m_state.makeUlamType(newarraykey, bUT, classtype);
+		UlamKeyTypeSignature newarraykey(key.getUlamKeyTypeSignatureNameId(), args.m_bitsize, args.m_arraysize, scalarUTI, usealt); //classinstanceidx removed if not a class (t3816)
+		uti = m_state.makeUlamType(newarraykey, bUT, classtype); //t3172
 	      }
-	    else if(m_state.getReferenceType(uti) != args.m_declRef)
+	    //else
+	    if(!m_state.isHolder(uti)) //t3728
 	      {
-		// could be array or scalar ref
-		UlamKeyTypeSignature newkey(key.getUlamKeyTypeSignatureNameId(), key.getUlamKeyTypeSignatureBitSize(), key.getUlamKeyTypeSignatureArraySize(), key.getUlamKeyTypeSignatureClassInstanceIdx(), args.m_declRef); //classinstanceidx removed if not a class
-		uti = m_state.makeUlamType(newkey, bUT, classtype);
+		if(m_state.getReferenceType(uti) != args.m_declRef)
+		  {
+		    // could be array or scalar ref
+		    UlamKeyTypeSignature newkey(key.getUlamKeyTypeSignatureNameId(), key.getUlamKeyTypeSignatureBitSize(), key.getUlamKeyTypeSignatureArraySize(), key.getUlamKeyTypeSignatureClassInstanceIdx(), usealt); //classinstanceidx removed if not a class
+		    uti = m_state.makeUlamType(newkey, bUT, classtype);
+		  }
 	      }
-
+#if 0
 	    if(pmcuti)
 	      m_state.cleanupExistingHolder(pmcuti, uti); //t41451,t41452
+#endif
 	    if(ltduti)
 	      {
 		m_state.replaceUTIKeyAndAlias(ltduti, uti); //t41516
-		((SymbolTypedef*)ltdsymptr)->setUlamGeneratedTypedefAliased();
+		((SymbolTypedef*)ltdsymptr)->setCulamGeneratedTypedefAliased();
 	      }
 	  }
 
@@ -1184,7 +1212,7 @@ namespace MFM {
 	m_state.addSymbolToCurrentScope(symtypedef);
 
 	//remember tduti for references
-	symtypedef->setAutoLocalType(m_state.getReferenceType(uti));
+	symtypedef->setAutoLocalType(usealt);
 
 	//check if also a holder (not necessary)
 	return (m_state.isIdInCurrentScope(m_token.m_dataindex, asymptr)); //true
@@ -1210,7 +1238,7 @@ namespace MFM {
     bool brtn = false;
     UTI uti = Nav;
     UTI tdscalaruti = Nav;
-    //Symbol * ltdsymptr = NULL;
+    Symbol * tdsymptr = NULL;
     if(args.m_anothertduti != Nouti)
       {
 	if(checkConstantTypedefSizes(args, args.m_anothertduti))
@@ -1224,8 +1252,12 @@ namespace MFM {
 	    brtn = true;
 	  }
       }
-    else if(m_state.getUlamTypeByTypedefName(m_state.getTokenDataAsStringId(args.m_typeTok), uti, tdscalaruti))
+    else if(m_state.getUlamTypeByTypedefName(m_state.getTokenDataAsStringId(args.m_typeTok), uti, tdscalaruti, tdsymptr))
       {
+	if(tdsymptr->isCulamGeneratedTypedef() && tdsymptr->isCulamGeneratedTypedefAliased())
+	  m_state.findRootUTIAlias(uti, uti);
+	//else ??
+
 	args.m_declListOrTypedefScalarType = tdscalaruti; //not Nav when tduti is an array
 	if(checkConstantTypedefSizes(args, uti))
 	  {
@@ -1273,7 +1305,8 @@ namespace MFM {
     if(brtn)
       {
 	//constant refs allowed (t41192)
-	uti = m_state.getUlamTypeAsRef(uti, args.m_declRef, args.m_hasConstantTypeModifier);
+	if(!((uti == Hzy) || m_state.isHolder(uti)))
+	  uti = m_state.getUlamTypeAsRef(uti, args.m_declRef, args.m_hasConstantTypeModifier);
 
 	if(!asymptr)
 	  {
@@ -1323,6 +1356,7 @@ namespace MFM {
     bool brtn = false;
     UTI uti = Nav;
     UTI tdscalaruti = Nav;
+    Symbol* tdsymptr = NULL;
     if(args.m_anothertduti != Nouti)
       {
 	if(checkConstantTypedefSizes(args, args.m_anothertduti))
@@ -1331,8 +1365,12 @@ namespace MFM {
 	    uti = args.m_anothertduti;
 	  }
       }
-    else if(m_state.getUlamTypeByTypedefName(m_state.getTokenDataAsStringId(args.m_typeTok), uti, tdscalaruti))
+    else if(m_state.getUlamTypeByTypedefName(m_state.getTokenDataAsStringId(args.m_typeTok), uti, tdscalaruti,tdsymptr))
       {
+	if(tdsymptr->isCulamGeneratedTypedef() && tdsymptr->isCulamGeneratedTypedefAliased())
+	  m_state.findRootUTIAlias(uti, uti); //t3411
+	//else ??
+
 	args.m_declListOrTypedefScalarType = tdscalaruti; //not Nav when tduti is an array
 	if(checkConstantTypedefSizes(args, uti))
 	  {
@@ -1398,6 +1436,7 @@ namespace MFM {
     bool brtn = false;
     UTI auti = Nav;
     UTI tdscalaruti = Nav;
+    Symbol * tdsymptr = NULL;
     // verify typedef exists for this scope; or is a primitive keyword type
     // if a primitive (NONARRAYSIZE), we may need to make a new arraysize type for it;
     // or if it is a class type (quark, element).
@@ -1414,8 +1453,12 @@ namespace MFM {
 	  }
 	brtn = true;
       }
-    else if(m_state.getUlamTypeByTypedefName(m_state.getTokenDataAsStringId(args.m_typeTok), auti, tdscalaruti))
+    else if(m_state.getUlamTypeByTypedefName(m_state.getTokenDataAsStringId(args.m_typeTok), auti, tdscalaruti, tdsymptr))
       {
+	if(tdsymptr->isCulamGeneratedTypedef() && tdsymptr->isCulamGeneratedTypedefAliased())
+	  m_state.findRootUTIAlias(auti, auti); //t3411
+	//else ??
+
 	args.m_declListOrTypedefScalarType = tdscalaruti; //not Nav when tduti is an array
 	// check typedef types here..
 	if(!checkVariableTypedefSizes(args, auti))
@@ -1460,13 +1503,21 @@ namespace MFM {
 
     if(brtn)
       {
+	ALT usealt = args.m_declRef; //default
+	ALT aualt = m_state.getReferenceType(auti);
+	if((args.m_declRef == ALT_NOT) && (aualt != ALT_NOT))
+	  usealt = aualt; //t3816
+
 	SymbolVariable * sym = NULL;
-	if(auti == Hzy)
-	  sym = makeSymbol(auti, args.m_declRef, args); //t41436
+	//if(auti == Hzy) //t3810??
+	if((auti == Hzy) || m_state.isHolder(auti))
+	  {
+	    sym = makeSymbol(auti, usealt, args); //t41436,t3831
+	  }
 	else
 	  {
 	    //ut not current; no deref.
-	    UTI uti = m_state.getUlamTypeAsRef(auti, args.m_declRef, args.m_hasConstantTypeModifier);
+	    UTI uti = m_state.getUlamTypeAsRef(auti, usealt, args.m_hasConstantTypeModifier);
 
 	    sym = makeSymbol(uti, m_state.getReferenceType(uti), args);
 	  }

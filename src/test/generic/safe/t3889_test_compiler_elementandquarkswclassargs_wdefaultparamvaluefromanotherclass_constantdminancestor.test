@@ -32,6 +32,7 @@ element P {
 #:Q.ulam
   ulam 3;
 local constant Int b = 4;
+//local constant Int we = W.we; //???
 quark Q(Unsigned s = V(b).sizeof, Int b = we) : W {
   constant Int myb = 3;
   typedef Unsigned(s) Foo;

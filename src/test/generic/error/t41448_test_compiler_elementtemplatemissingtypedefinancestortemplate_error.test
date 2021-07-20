@@ -2,11 +2,11 @@
 #=t41448_test_compiler_elementtemplatemissingtypedefinancestortemplate_error
 #!
 ./RXTimer.ulam:4:17: ERROR: Undetermined Type: <Counter>; Suggest 'use Counter;' if it's a class, otherwise a typedef is needed.
-./RXTimer.ulam:4:17: ERROR: Incomplete Typedef for type: unresolved (UTI 2), used with typedef symbol name 'Counter'.
+./RXTimer.ulam:4:17: ERROR: Incomplete Typedef used with alias name 'Counter'.
+./RXTimer.ulam:4:17: ERROR: Typedef 'Counter' in class XTimer(4,15u,1u) remains undefined.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t41435, stub has  more member symbols than its template; asserted
-## formerly: ./RXTimer.ulam:3:67: ERROR: Unexpected input!! Symbol: Counter, does not belong to class template: XTimer (UTI 40).
 ## With 'use XTimer' before RXTimer gives problem with Counter typedef missing; ow,
 ##                   inherits from a class with pending arguments or ancestors
 ##

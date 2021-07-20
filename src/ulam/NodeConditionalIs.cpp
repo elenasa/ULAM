@@ -120,9 +120,8 @@ namespace MFM {
     if(m_state.okUTItoContinue(newType) && !m_state.isComplete(ruti))
       {
 	std::ostringstream msg;
-	msg << "Righthand type of conditional operator '" << getName() << "': ";
-	msg << m_state.getUlamTypeNameBriefByIndex(ruti).c_str();
-	msg << ", is still incomplete";
+	msg << "Righthand type of conditional operator '" << getName() << "' ";
+	msg << "is still incomplete";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	newType = Hzy; //goagain set by nodetypedesc
       }

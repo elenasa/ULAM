@@ -230,7 +230,7 @@ namespace MFM {
 	if(!m_state.isComplete(it)) //reloads to recheck
 	  {
 	    UTI mappedUTI = it;
-	    if(m_state.findaUTIAlias(it, mappedUTI))
+	    if(m_state.findRootUTIAlias(it, mappedUTI))
 	      {
 		std::ostringstream msg;
 		msg << "REPLACE " << prettyNodeName().c_str() << " for type: ";

@@ -3,7 +3,7 @@
 #!
 Exit status: 3
 Ue_R { Int test() {  P(1) pel;  pel 3u . cast return } }
-Ue_P(Int a) { constant unresolved nvar = 3u;  <NOMAIN> }
+Ue_P(Int a) { constant holder nvar = 3u;  <NOMAIN> }
 Uq_Q(Int s) { typedef Unsigned(UNKNOWN) Foo;  <NOMAIN> }
 Uq_V { typedef Q(3) Woof;  <NOMAIN> }
 ##

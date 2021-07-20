@@ -17,7 +17,7 @@ Uq_System { <NOMAIN> }
 #>Foo.ulam
   ulam 3;
 local constant Moo cMoo = { }; //causes tmp holder typedef to be generated
-element Foo : local.Moo { //<--still an error!!! since no typedef.
+element Foo : local.Moo { //also causes tmp holder typedef to be generated
   Bool(7) sp;
   Int test() {
     System s;

@@ -2,6 +2,7 @@
 #=t41400_test_compiler_selectnonclassHZYtypedefmembertypo_ish_error
 #!
 ./A.ulam:16:15: ERROR: Expected data member or function call to follow member select by type 'Stage'.
+./A.ulam:6:3: ERROR: Class with parameters seen with the same name: Stage; No shadow typedef in class scope, A.
 Unrecoverable Program Parse FAILURE: <A.ulam>
 Unrecoverable Program Parse FAILURE: <QBase.ulam>
 Unrecoverable Program Parse FAILURE: <System.ulam>

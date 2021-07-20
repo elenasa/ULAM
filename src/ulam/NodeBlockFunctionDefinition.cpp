@@ -198,6 +198,7 @@ namespace MFM {
 	msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
 	msg << ", used with function name '" << getName() << "'";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	it = Hzy; //t3653
       }
     else
       {
@@ -225,17 +226,19 @@ namespace MFM {
       return Nav; //bail for this iteration
 
     if(it == Hzy)
-      return Hzy; //bail for this iteration
-
-    if(m_state.okUTItoContinue(it))
       {
-	bool isref = m_state.isAltRefType(it) && !m_state.isConstantRefType(it);
-	if(m_state.isAClass(it) || isref)
-	  setStoreIntoAble(TBOOL_TRUE); //t3912 (class)
-
-	if(!isref)
-	  setReferenceAble(TBOOL_FALSE); //set after storeintoable t3661,2; t3630
+	m_state.setGoAgain();
+	return Hzy; //bail for this iteration
       }
+
+    assert(m_state.okUTItoContinue(it));
+
+    bool isref = m_state.isAltRefType(it) && !m_state.isConstantRefType(it);
+    if(m_state.isAClass(it) || isref)
+      setStoreIntoAble(TBOOL_TRUE); //t3912 (class)
+
+    if(!isref)
+      setReferenceAble(TBOOL_FALSE); //set after storeintoable t3661,2; t3630
 
     m_state.pushCurrentBlock(this);
 
@@ -308,10 +311,8 @@ namespace MFM {
     u32 superid = m_state.m_pool.getIndexForDataString("super");
     if(!NodeBlock::isIdInScope(superid, (Symbol *&) supersym))
       {
-	if(superuti != Nouti)
+	if(m_state.okUTItoContinue(superuti) && !m_state.isHolder(superuti)) //t41013
 	  {
-	    assert(m_state.okUTItoContinue(superuti));
-
 	    Token superTok(TOK_KW_SUPER, getNodeLocation(), 0);
 	    supersym = new SymbolVariableStack(superTok, m_state.getUlamTypeAsRef(superuti, ALT_REF), slot, m_state);
 	    assert(supersym);

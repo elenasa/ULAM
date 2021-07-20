@@ -1,10 +1,8 @@
 ## -*- mode:ulam -*-
 #=t3742_test_compiler_elementandquark_typo_error
 #!
-./Eltypo.ulam:13:19: ERROR: Incomplete descriptor for type: ElTypo (UTI 49), while labeling class: Eltypo (UTI 44).
-./Eltypo.ulam:13:19: ERROR: UNSEEN Class and incomplete descriptor for type: 'ElTypo'.
-./Eltypo.ulam:13:16: ERROR: Righthand type of conditional operator 'is': unresolved, is still incomplete.
-./Eltypo.ulam:13:19: ERROR: UNSEEN class type <ElTypo> was never defined in: ElTypo.ulam.
+./Eltypo.ulam:13:19: ERROR: Typedef 'ElTypo' in class Eltypo remains undefined.
+./Eltypo.ulam:13:16: ERROR: Righthand type of conditional operator 'is' is still incomplete.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by safe/t3741, (see t3370)

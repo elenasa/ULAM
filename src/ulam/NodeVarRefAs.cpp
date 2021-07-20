@@ -63,7 +63,8 @@ namespace MFM {
   {
     UTI it = NodeVarRef::checkAndLabelType(thisparentnode);
     setNodeType(it);
-    makeSuperSymbolForAsBlock(); //only when lhs is 'self'
+    if(m_state.okUTItoContinue(it)) //t3831
+      makeSuperSymbolForAsBlock(); //only when lhs is 'self'
     return getNodeType();
   } //checkAndLabelType
 

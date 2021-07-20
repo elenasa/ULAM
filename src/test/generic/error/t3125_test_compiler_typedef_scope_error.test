@@ -1,12 +1,11 @@
 ## -*- mode:ulam -*-
 #=t3125_test_compiler_typedef_scope_error
 #!
-./D.ulam:9:5: ERROR: Undetermined Type: <Bar>; Suggest 'use Bar;' if it's a class, otherwise a typedef is needed.
-./D.ulam:9:5: ERROR: Incomplete descriptor for type: 0Holder (UTI 32), while labeling class: D (UTI 29).
-./D.ulam:9:5: ERROR: Incomplete Variable Decl for type: holder (UTI 32), used with variable symbol name 'f'.
+./D.ulam:9:5: ERROR: Typedef 'Bar' in class D remains undefined.
+./D.ulam:9:5: ERROR: Incomplete Variable Decl for type used with variable symbol name 'f'.
 ./D.ulam:9:5: ERROR: Variable for: 'f', is still hazy.
-./D.ulam:10:5: ERROR: Incomplete identifier for type: holder, used with list symbol name 'f'.
-./D.ulam:11:12: ERROR: Incomplete identifier for type: holder, used with list symbol name 'f'.
+./D.ulam:10:5: ERROR: Incomplete identifier for a type used with list symbol name 'f'.
+./D.ulam:11:12: ERROR: Incomplete identifier for a type used with list symbol name 'f'.
 ./D.ulam:11:5: ERROR: Function return type is still unresolved: unresolved.
 Unrecoverable Program Type Label FAILURE.
 ##
@@ -15,7 +14,7 @@ element D {
   Int test()
   {
     {
-     typedef Int Bar[2];
+     typedef Int Bar[2]; //out of scope for f
      Bar e;
      e[0] = 4;
     }

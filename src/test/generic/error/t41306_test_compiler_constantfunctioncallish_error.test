@@ -3,6 +3,7 @@
 #!
 ./QFoo.ulam:10:30: ERROR: (1) 'treeID' is not a constant, and cannot be used as one with type: TreeID.
 ./QFoo.ulam:10:45: ERROR: Named Constant 'geneID' is not defined, or was used before declared in a function.
+./QFoo.ulam:13:5: ERROR: Use explicit cast to return Atom& as Unsigned(6).
 Unrecoverable Program Type Label FAILURE.
 ##
 ## 5/19/19 user Spencer Harmon submitted ish: culam asserted due to

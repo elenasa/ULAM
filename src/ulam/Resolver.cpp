@@ -1,6 +1,7 @@
 #include "Resolver.h"
 #include "CompilerState.h"
 #include "SymbolClass.h"
+#include "SymbolTypedef.h"
 
 namespace MFM {
 
@@ -120,6 +121,124 @@ namespace MFM {
     return aok;
   } //statusUnknownType
 
+  //see also CS:statusUnknownClassTypeInThisLocalsScope
+  bool Resolver::checkUnknownTypeToResolve(UTI huti, const Token& tok)
+  {
+    bool aok = false;
+
+    if(m_state.isComplete(huti))
+      return true; //short-circuit, known (t41287,8), t41436 hzy but known.
+
+    ULAMTYPE etyp = m_state.getBaseTypeFromToken(tok);
+    if((etyp == Hzy) || (etyp == Holder))
+      return false;
+
+    u32 tokid = m_state.getTokenDataAsStringId(tok);
+    UTI kuti = Nav;
+
+    //a typedef (e.g. t3379, 3381)
+    UTI tmpscalar = Nouti;
+    Symbol * tdsymptr = NULL;
+    if(m_state.getUlamTypeByTypedefNameInClassHierarchyThenLocalsScope(tokid, kuti, tmpscalar, tdsymptr))
+      {
+	assert(tdsymptr && tdsymptr->isTypedef());
+	if(tdsymptr->isCulamGeneratedTypedef())
+	  {
+	    if(tdsymptr->isCulamGeneratedTypedefAliased())
+	      return true;
+	    else //handled by CS::checkforAnyRemainingCulamGeneratedTypedefsInThisContext
+	      return false;
+	  }
+	aok = !m_state.isHolder(kuti);
+      }
+
+    if(!aok && (etyp == Class))
+      {
+	SymbolClassName * cnsym = NULL; //no way a template or stub
+	if(!m_state.alreadyDefinedSymbolClassName(tokid, cnsym))
+	  {
+	    SymbolClass * csym = NULL;
+	    if(m_state.alreadyDefinedSymbolClassAsHolder(huti, csym))
+	      {
+		aok = false; //still a holder
+		UTI mappedUTI;
+		if(m_state.findRootUTIAlias(huti, mappedUTI))
+		  {
+		    if(m_state.alreadyDefinedSymbolClass(mappedUTI, csym))
+		      {
+			u32 cid = csym->getId();
+			AssertBool isDefined = m_state.alreadyDefinedSymbolClassName(cid, cnsym);
+			assert(isDefined);
+		      }
+		    kuti = mappedUTI; //t3862
+		  }
+	      }
+	    else if(m_state.alreadyDefinedSymbolClass(huti, csym))
+	      {
+		//e.g. t41287,8  array typedef finds its scalar class;
+		// careful not to clobber the array UTI with cleanup.
+		u32 cid = csym->getId();
+		AssertBool isDefined = m_state.alreadyDefinedSymbolClassName(cid, cnsym);
+		assert(isDefined);
+		aok = m_state.isHolder(cnsym->getUlamTypeIdx()) ? false : true;
+		aok &= m_state.isScalar(huti);
+	      }
+	    //else
+	  }
+	else
+	  {
+	    UTI cuti = cnsym->getUlamTypeIdx(); //may not be ==huti
+	    if(m_state.getUlamTypeByIndex(cuti)->getUlamClassType() == UC_UNSEEN)
+	      aok = false; //still unseen
+	    else
+	      aok = true; //not missing, seen!
+	  }
+
+	if(aok)
+	  {
+	    assert(cnsym);
+	    if(cnsym->isClassTemplate())
+	      {
+		SymbolClass * csym = NULL;
+		if(m_state.alreadyDefinedSymbolClass(huti, csym))
+		  kuti = csym->getUlamTypeIdx(); //perhaps an alias
+		else if(cnsym->hasMappedUTI(huti))
+		  {
+		    UTI mappedUTI = Nouti;
+		    AssertBool gotmapped = cnsym->hasMappedUTI(huti,mappedUTI);
+		    assert(gotmapped);
+		    kuti = mappedUTI;
+		  }
+		else
+		  {
+		    std::ostringstream msg;
+		    msg << "Class with parameters seen with the same name: ";
+		    msg << m_state.m_pool.getDataAsString(cnsym->getId()).c_str();
+		    MSG(m_state.getFullLocationAsString(tok.m_locator).c_str(), msg.str().c_str(), ERR); //No corresponding Nav Node for this ERR (e.g. error/t3644)
+		    //aok = false; continue so no more than one error for same problem
+		    kuti = cnsym->getUlamTypeIdx();
+		  }
+	      }
+	    else
+	      kuti = cnsym->getUlamTypeIdx();
+	  }
+      } //end class type
+    //else
+
+
+    if(aok)
+      {
+	assert(!m_state.isHolder(kuti));
+	ALT alth = m_state.getReferenceType(huti);
+	ALT altk = m_state.getReferenceType(kuti);
+	if(alth != altk)
+	  kuti = m_state.getUlamTypeAsRef(kuti, alth); //t41455
+	m_state.cleanupExistingHolder(huti, kuti);
+      }
+    return aok;
+  } //checkUnknownTypeToResolve
+
+#if 0
   bool Resolver::checkUnknownTypeToResolve(UTI huti, const Token& tok)
   {
     bool aok = false;
@@ -145,7 +264,7 @@ namespace MFM {
 	      {
 		aok = false; //still a holder
 		UTI mappedUTI;
-		if(m_state.findaUTIAlias(huti, mappedUTI))
+		if(m_state.findRootUTIAlias(huti, mappedUTI))
 		  {
 		    if(m_state.alreadyDefinedSymbolClass(mappedUTI, csym))
 		      {
@@ -227,6 +346,7 @@ namespace MFM {
       }
     return aok;
   } //checkUnknownTypeToResolve
+#endif
 
   bool Resolver::checkUnknownTypeAsClassArgument(UTI huti, const Token& tok, SymbolClass * csym)
   {

@@ -1,0 +1,46 @@
+## -*- mode:ulam -*-
+#=t41525_test_compiler_elementmultiinheritance_shodowingtypedefsinhierarchy_error
+#!
+./Foo.ulam:7:7: ERROR: Variable 'm_bus' is not defined, or was used before declared in a function.
+./Foo.ulam:7:13: ERROR: Assignment is invalid; LHS: erroneous; RHS: Int(2).
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by t41524
+##
+#>Moo.ulam
+ ulam 3;
+quark Moo {
+  typedef Moo Mine;
+  Unsigned(3) m_us = 4u;
+  Unsigned(3) func()
+  {
+    return m_us;
+  }
+}
+
+#:Foo.ulam
+  ulam 5;
+element Foo : local.Moo + Moo + Bar {
+  Bool(7) sp;
+  typedef Bar Moo; //wait for it..2 Bars allowed?
+  Int test() {
+    Mine f; //is class Moo, super first.
+    f.m_bus = 1;
+    Unsigned a = f.func();
+    sp = (a == 4u);
+    return (Int) a;
+  }
+}
+
+#:Bar.ulam
+  ulam 3;
+quark Bar {
+  typedef Bar Mine;
+  Unsigned(3) m_bus = 3u;
+  Unsigned(3) func()
+  {
+    return m_bus;
+  }
+}
+
+#.

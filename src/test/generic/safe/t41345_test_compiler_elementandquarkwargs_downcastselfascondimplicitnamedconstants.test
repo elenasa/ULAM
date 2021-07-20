@@ -68,10 +68,10 @@ element Eltypo : Typo(1) {
   Int test(){
     functest();
     s.print(t.bu);
-    s.assert(t.bu != cTHREE);
+    s.assert(t.bu != local.cTHREE); //super precedence over local wo specificity
     s.assert(t.bu == super.cTHREE); //==2u
     s.print(first);
-    s.assert(first != cTHREE);
+    s.assert(first != local.cTHREE); //super precedence over local wo specificity
     s.assert(first == super.cTHREE); // == 2u
     second = self.bu; //still 7
     return second;

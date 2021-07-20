@@ -201,7 +201,7 @@ namespace MFM {
 		    // either an array of custom array classes, or a custom array;
 		    // Note: A diff approach, substitute a func call node for sq bkt, not used.
 		    UTI caType = m_state.getAClassCustomArrayType(leftType);
-		    if(!m_state.isComplete(caType))
+		    if(!m_state.okUTItoContinue(caType) || !m_state.isComplete(caType))
 		      {
 			std::ostringstream msg;
 			msg << "Incomplete Custom Array Type: ";
@@ -218,7 +218,7 @@ namespace MFM {
 			else
 			  {
 			    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-			    newType = Hzy;
+			    newType = Hzy; //t3549
 			    hazyCount++;
 			  }
 		      }

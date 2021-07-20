@@ -623,9 +623,9 @@ namespace MFM {
     if(ci1 != ci2)
       {
 	//related t41436 (20210328 ish 045328 template instance ancestor comparison)
-	UTI aliasci1 = state.lookupUTIAlias(ci1);
-	UTI aliasci2 = state.lookupUTIAlias(ci2);
-	if(aliasci1 != aliasci2)
+	UlamKeyTypeSignature ci1key = state.getUlamTypeByIndex(ci1)->getUlamKeyTypeSignature();
+	UlamKeyTypeSignature ci2key = state.getUlamTypeByIndex(ci2)->getUlamKeyTypeSignature();
+	if(!(ci1key == ci2key))
 	  return UTIC_NOTSAME; //t3412 different class args
       }
 
@@ -707,11 +707,10 @@ namespace MFM {
     UTI ci2 = key2.getUlamKeyTypeSignatureClassInstanceIdx();
     if(ci1 != ci2)
       {
-	//might be related
-	UTI aliasci1 = state.lookupUTIAlias(ci1);
-	UTI aliasci2 = state.lookupUTIAlias(ci2);
-	if(aliasci1 != aliasci2)
-	  return UTIC_NOTSAME; //different class args
+	UlamKeyTypeSignature ci1key = state.getUlamTypeByIndex(ci1)->getUlamKeyTypeSignature();
+	UlamKeyTypeSignature ci2key = state.getUlamTypeByIndex(ci2)->getUlamKeyTypeSignature();
+	if(!(ci1key == ci2key))
+	  return UTIC_NOTSAME;
       }
 
     ALT alt1 = key1.getUlamKeyTypeSignatureReferenceType();

@@ -198,9 +198,11 @@ namespace MFM{
     UTI makeUlamTypeFromHolder(UlamKeyTypeSignature newkey, ULAMTYPE utype, UTI uti, ULAMCLASSTYPE classtype);
     UTI makeUlamTypeFromHolder(UlamKeyTypeSignature oldkey, UlamKeyTypeSignature newkey, ULAMTYPE utype, UTI uti, ULAMCLASSTYPE classtype);
     void cleanupExistingHolder(UTI huti, UTI newuti);
+    void mergeAnyDataMembersBeforeAnonymousClassReplaced(UTI olduti, UTI newuti);
     u32 replaceUTIKeyAndAlias(UTI olduti, UTI newuti);
-    void removeUlamGeneratedTypedefFromLocalsScope(u32 nameid, NodeBlockLocals * localsblock);
+    void removeCulamGeneratedTypedefFromLocalsScope(u32 nameid, NodeBlockLocals * localsblock);
     SymbolClassName * makeAnonymousClassFromHolder(UTI cuti, Locator cloc);
+    UTI makeCulamGeneratedTypedefSymbolInCurrentContext(Token tok, bool isaclass = false);
 
     UTI makeUlamType(const Token& typeTok, s32 bitsize, s32 arraysize, UTI classinstanceidx, ALT reftype = ALT_NOT, ULAMCLASSTYPE classtype = UC_NOTACLASS);
     UTI makeUlamType(UlamKeyTypeSignature key, ULAMTYPE utype, ULAMCLASSTYPE classtype);
@@ -233,10 +235,16 @@ namespace MFM{
     UTI getUlamTypeFromToken(const Token& tok, s32 typebitsize, s32 arraysize);
     UTI getUlamTypeFromToken(TypeArgs & args);
 
+    bool getUlamTypeByTypedefNameInClassHierarchyThenLocalsScope(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType);
+    bool getUlamTypeByTypedefNameInClassHierarchyThenLocalsScope(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType, Symbol*& asymptr);
     bool getUlamTypeByTypedefName(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType);
-    bool getUlamTypeByTypedefNameinLocalsScope(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType, Symbol *& asymptr);
+    bool getUlamTypeByTypedefName(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType, Symbol* & tdsymptr);
+    bool getUlamTypeByTypedefNameInLocalsScope(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType);
+    bool getUlamTypeByTypedefNameInLocalsScope(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType, Symbol *& asymptr);
+
     typedef std::pair<NodeBlockLocals*, Symbol*> k_localstypedefpair;
-    bool getUlamTypeByTypedefNameinAnyLocalsScope(u32 nameIdx, std::map<UTI, k_localstypedefpair> & mapref);
+    bool getUlamTypeByTypedefNameInAnyLocalsScope(u32 nameIdx, std::map<UTI, k_localstypedefpair> & mapref);
+
 
     /** turns array into its scalar type */
     UTI getUlamTypeAsScalar(UTI utArg);
@@ -285,6 +293,7 @@ namespace MFM{
     u32 mergeClassUTI(UTI olduti, UTI cuti, Locator oldloc);
     bool isARootUTI(UTI auti);
     bool findaUTIAlias(UTI auti, UTI& aliasuti);
+    bool findRootUTIAlias(UTI auti, UTI& aliasuti);
     UTI lookupUTIAlias(UTI auti);
     void updateUTIAlias(UTI auti, UTI buti);
     void updateUTIAliasForced(UTI auti, UTI buti);
@@ -299,6 +308,8 @@ namespace MFM{
     s32 slotsNeeded(UTI uti);
     bool isClassATemplate(UTI cuti);
     bool isClassATemplate(NodeBlockClass * cblock); //overloaded
+    bool isClassATemplateInstance(UTI cuti);
+    UTI getTemplateTypeOfStub(UTI stubuti);
     bool isClassASubclass(UTI cuti); //fromerly returned super UTI, or Nav if no inheritance
     u32 findClassAncestorWithMatchingNameid(UTI cuti, u32 nameid, UTI& superp);
     u32 findTheSharedVirtualBasesInAClassHierarchy(UTI cuti, std::map<UTI, u32>& svbmapref);
@@ -338,6 +349,10 @@ namespace MFM{
     bool alreadyDefinedSymbol(u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
     bool alreadyDefinedSymbolByAncestorOf(UTI cuti, u32 dataindex, Symbol *& symptr, bool& hasHazyKin);
     bool alreadyDefinedSymbolByAncestorsOf(UTI cuti, u32 dataindex, std::set<UTI>& kinsetref, bool& hasHazyKin);
+
+    typedef std::pair<UTI, Symbol*> k_typedefpair;
+    bool alreadyDefinedSymbolByAncestorsOf(UTI cuti, u32 dataindex, std::vector<k_typedefpair>& kinvecref, bool& hasHazyKin);
+
     bool alreadyDefinedSymbolByAClassOrAncestor(UTI cuti, u32 dataindex, Symbol *& symptr, bool& hasHazyKin);
 
     /** searches linked blocks (e.g. within a function), then data
@@ -369,6 +384,7 @@ namespace MFM{
 
     bool isIdInCurrentScope(u32 id, Symbol *& asymptr);
     void addSymbolToCurrentScope(Symbol * symptr); //ownership goes to the block
+    void addSymbolToCurrentContextScope(Symbol * symptr);
     void addSymbolToLocalsScope(Symbol * symptr, Locator loc); //ownership goes to the m_localsPerFilePath ST
     void addSymbolToCurrentMemberClassScope(Symbol * symptr); //making stuff up for member
     void replaceSymbolInCurrentScope(u32 oldid, Symbol * symptr); //same symbol, new id
@@ -414,7 +430,11 @@ namespace MFM{
     bool addIncompleteTemplateClassSymbolToProgramTable(const Token& cTok, SymbolClassNameTemplate * & symptr);
     UTI addStubCopyToAncestorClassTemplate(UTI stubTypeToCopy, UTI argvaluecontext, UTI argtypecontext, Locator stubloc);
 
-    void resetUnseenClass(SymbolClassName * cnsym, const Token& identTok);
+    /** used while parsing to get any unseen classes from shared (e.g. ulamexports) */
+    bool isUnseenClassId(u32 id);
+    bool addUnseenClassId(u32 id);
+    void resetUnseenClassId(u32 id);
+    void resetUnseenClassId(SymbolClassName * cnsym, const Token& identTok);
     bool getUnseenClassFilenames(std::vector<std::string>& unseenFiles);
 
     /** during type labeling, sets ULAMCLASSTYPE for typedefs that
@@ -424,7 +444,8 @@ namespace MFM{
     void updateLineageAndFirstCheckAndLabelPass();
     void updateLineageAndFirstCheckAndLabelPassForLocals();
     bool checkAndLabelPassForLocals();
-    bool checkforAnyRemainingUlamGeneratedUlamTypedefsinThisLocalsScope(UTI thislocalarg);
+    bool checkforAnyRemainingCulamGeneratedTypedefsInThisContext(UTI thisarg);
+    u32 findNameIdOfCulamGeneratedTypedefTypeInThisContext(UTI typearg);
 
     u32 getMaxNumberOfRegisteredUlamClasses();
     void defineRegistrationNumberForUlamClasses(); //ulam-4

@@ -1,8 +1,8 @@
 ## -*- mode:ulam -*-
 #=t41479_test_compiler_datamemberinitusingclasstypedefofsametemplateclass_error
 #!
-./T.ulam:7:25: ERROR: (1) 'mDM1' is not a constant, and cannot be used as one with a class type: Foo(false,0u).NewFoo.
-./T.ulam:9:33: ERROR: (1) 'mDM1' is not a constant, and cannot be used as one with a class type: Foo(false,0u).NewFoo.
+./T.ulam:7:25: ERROR: (1) 'mDM1' is not a constant, and cannot be used as one with a class type: MyFoo.NewFoo.
+./T.ulam:9:33: ERROR: (1) 'mDM1' is not a constant, and cannot be used as one with a class type: MyFoo.NewFoo.
 Unrecoverable Program Type Label FAILURE.
 ##
 ##  informed by Dave's ish 20210610, see error/t41477, t41478, t41480

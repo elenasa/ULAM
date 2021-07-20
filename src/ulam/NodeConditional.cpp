@@ -123,4 +123,9 @@ namespace MFM {
     return m_nodeTypeDesc->givenUTI();
   }
 
+  u32 NodeConditional::getRightTypeNameId()
+  {
+    return m_nodeTypeDesc->getTypeNameId();
+  }
+
 } //end MFM
