@@ -1356,6 +1356,7 @@ namespace MFM {
       {
 	UTI stubbaseuti = stubcsym->getBaseClass(i);
 	UTI superbaseuti = SymbolClass::getBaseClass(i); //template's ancestor
+	m_state.findRootUTIAlias(superbaseuti,superbaseuti); //t3567
 
 	if((stubbaseuti == Nouti) || (stubbaseuti == Hzy))
 	  {
@@ -2090,6 +2091,7 @@ namespace MFM {
 		m_state.setUTIBitSize(uti, totalbits); //"scalar" Class bitsize  KEY ADJUSTED
 		//after setBitSize so not to clobber it.
 		m_state.setBaseClassBitSize(uti, mybits); //noop for elements
+		m_state.updateUTIAliasForced(uti, cuti); //redo alias (t3652, t41384)
 	      }
 	  }
 

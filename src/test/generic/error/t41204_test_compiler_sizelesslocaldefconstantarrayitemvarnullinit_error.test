@@ -19,7 +19,7 @@
 ./P.ulam:11:20: ERROR: Undetermined type for missing member 'w' Proxy.
 ./P.ulam:11:13: ERROR: Cannot cast a nonready type.
 ./P.ulam:11:5: ERROR: Function return type is still unresolved: unresolved.
-./Q.ulam:2:7: ERROR: Subclass 'Q(b,s)' inherits from an incomplete class.
+./Q.ulam:2:7: ERROR: Subclass 'Q(b,s)' inherits from an incomplete class, item 0.
 ./Q.ulam:3:20: ERROR: Not ready constant for type: Unsigned, used with symbol name 's', while compiling Q(b,s) (UTI 35).
 ./Q.ulam:3:11: ERROR: Type Bitsize specifier, within (), is not ready.
 ./Q.ulam:3:11: ERROR: Incomplete Typedef used with alias name 'Foo'.

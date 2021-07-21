@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t41517_test_compiler_elementinheritance_withmultiplelocaldefskeywordpriority_error
 #!
-./Bar.ulam:3:9: ERROR: Subclass 'Bar' inherits from 'Int', a class that's not a quark.
+./Bar.ulam:3:9: ERROR: Non-class typedef: Int invalid superclass for class 'Bar'.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t41516, Bar uses member typedef wo local specificity; if local

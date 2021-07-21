@@ -161,6 +161,8 @@ namespace MFM {
   s32 SymbolClass::isABaseClassItemSearch(UTI buti)
   {
     s32 item = -1; //negative is not found
+    if(m_basestable.empty()) return item;
+
     for(u32 i = 0; i < m_basestable.size(); i++)
       {
 	UTI baseuti = m_basestable[i].m_base;
@@ -239,10 +241,14 @@ namespace MFM {
 	assert(gotroot); //note: not mapped in resolver
       }
 
+    if(isABaseClassItemSearch(rootuti) >= 0)
+      return; //skip dups, quietly?
+
     BaseClassEntry bentry;
     bentry.m_base = rootuti;
     bentry.m_numbaseshared = (sharedbase ? 1 : 0); //=true, all shared virtual ^base
     bentry.m_basepos = UNKNOWNSIZE; //pos unknown
+    bentry.m_dupflag = false; //default, until packbits happens later
     m_basestable.push_back(bentry);
   } //appendBaseClass
 
@@ -254,6 +260,7 @@ namespace MFM {
     assert(item < m_basestable.size());
     assert(m_basestable[item].m_base == oldclasstype);
     m_basestable[item].m_base = newbaseclass;
+
     if(item==0)
       updateSuperTypedef(newbaseclass);
   }
@@ -337,10 +344,17 @@ namespace MFM {
     return m_basestable[item].m_basepos;
   }
 
-  void SymbolClass::setBaseClassRelativePosition(u32 item, u32 pos)
+  void SymbolClass::setBaseClassRelativePosition(u32 item, u32 pos, bool dupflag)
   {
     assert(item < m_basestable.size());
     m_basestable[item].m_basepos = (s32) pos;
+    m_basestable[item].m_dupflag = dupflag;
+  }
+
+  bool SymbolClass::isADuplicateBaseClass(u32 item)
+  {
+    assert(item < m_basestable.size());
+    return m_basestable[item].m_dupflag;
   }
 
   UTI SymbolClass::getSharedBaseClass(u32 item)
@@ -396,6 +410,7 @@ namespace MFM {
     bentry.m_base = rootuti;
     bentry.m_numbaseshared = numshared; //shared virtual ^base
     bentry.m_basepos = UNKNOWNSIZE; //pos unknown
+    bentry.m_dupflag = false; //default, until packbits happens later
     m_sharedbasestable.push_back(bentry);
   } //appendSharedBaseClass
 

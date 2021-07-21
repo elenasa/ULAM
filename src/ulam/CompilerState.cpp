@@ -2649,8 +2649,10 @@ namespace MFM {
 
   void CompilerState::resetABaseClassType(UTI cuti, UTI olduti, UTI newuti)
   {
-    UTI subuti = getUlamTypeAsDeref(getUlamTypeAsScalar(cuti)); //in case of array
+    if( (olduti == newuti) || UlamType::compare(olduti, newuti, *this) == UTIC_SAME)
+      return;
 
+    UTI subuti = getUlamTypeAsDeref(getUlamTypeAsScalar(cuti)); //in case of array
     SymbolClass * csym = NULL;
     if(alreadyDefinedSymbolClass(subuti, csym))
       {
@@ -2662,8 +2664,10 @@ namespace MFM {
 
   void CompilerState::resetABaseClassItem(UTI cuti, UTI olduti, UTI newuti, u32 item)
   {
-    UTI subuti = getUlamTypeAsDeref(getUlamTypeAsScalar(cuti)); //in case of array
+    if( (olduti == newuti) || UlamType::compare(olduti, newuti, *this) == UTIC_SAME)
+      return;
 
+    UTI subuti = getUlamTypeAsDeref(getUlamTypeAsScalar(cuti)); //in case of array
     SymbolClass * csym = NULL;
     if(alreadyDefinedSymbolClass(subuti, csym))
       {

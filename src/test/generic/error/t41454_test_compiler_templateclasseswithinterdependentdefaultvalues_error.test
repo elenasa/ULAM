@@ -7,7 +7,7 @@
 ./Foo.ulam:2:22: ERROR: Constant value expression for: b, is not ready, still hazy, while compiling Foo(a,b) (UTI 32).
 ./R.ulam:5:5: ERROR: Incomplete Variable Decl for type: Foo(a,b) used with variable symbol name 'f'.
 ./R.ulam:5:5: ERROR: Variable for: 'f', is still hazy.
-./Foo.ulam:2:7: ERROR: Subclass 'Foo(a,b)' inherits from an incomplete class.
+./Foo.ulam:2:7: ERROR: Subclass 'Foo(a,b)' inherits from an incomplete class, item 0.
 ./Foo.ulam:3:7: ERROR: Not ready constant for type: Int, used with symbol name 'a', while compiling Foo(a,b) (UTI 32).
 ./Foo.ulam:3:3: ERROR: Type Bitsize specifier, within (), is not ready.
 ./Foo.ulam:3:3: ERROR: Incomplete Variable Decl for type: Int(UNKNOWN) used with variable symbol name 'm_a'.

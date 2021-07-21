@@ -87,7 +87,8 @@ namespace MFM{
     void updateSuperTypedef(UTI superuti);
 
     s32 getBaseClassRelativePosition(u32 item) const;
-    void setBaseClassRelativePosition(u32 item, u32 pos);
+    void setBaseClassRelativePosition(u32 item, u32 pos, bool dupflag);
+    bool isADuplicateBaseClass(u32 item);
 
     UTI getSharedBaseClass(u32 item);
     s32 isASharedBaseClassItem(UTI buti);

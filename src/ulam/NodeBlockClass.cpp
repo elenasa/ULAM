@@ -892,13 +892,11 @@ namespace MFM {
 			std::ostringstream msg;
 			msg << "Non-class typedef: ";
 			msg << m_state.m_pool.getDataAsString(baseid).c_str();
-			// msg << ", type ";
-			//msg << m_state.getUlamTypeNameByIndex(mappedbase).c_str();
 			if(i == 0)
-			  msg << "invalid superclass for class '";
+			  msg << " invalid superclass for class '"; //t41517
 			else
-			  msg << "invalid baseclass (" << i << ") for class '";
-			msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+			  msg << " invalid baseclass (" << i << ") for class '";
+			msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str() << "'";
 			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 			setBaseClassBlockPointer(NULL, i);
 			m_state.resetABaseClassItem(nuti, baseuti, Nav, i);
@@ -917,7 +915,7 @@ namespace MFM {
 	//this is a subclass.
 	if(!isBaseClassLinkReady(nuti, i))
 	  {
-	    if(!m_state.isComplete(baseuti))
+	    if((baseuti != Nouti) && !m_state.isComplete(baseuti))
 	      {
 		std::ostringstream msg;
 		msg << "Subclass '";
@@ -955,9 +953,9 @@ namespace MFM {
 		  }
 		else
 		  {
+		    msg << "an incomplete class, item " << i ;
 		    //msg << m_state.getUlamTypeNameBriefByIndex(baseuti).c_str();
-		    msg << "an incomplete class";
-		    brtnhzy |= false; //t3889, t3831, t3674
+		    brtnhzy |= false; //t3889, t3831, t3674, t41204, t41428, t41454
 		  }
 		//msg << " (UTI " << baseuti << ")";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
@@ -2360,6 +2358,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(nuti, csym);
     assert(isDefined);
 
+    BasesTableTypeMap maptype2pos;
+
     u32 basecount = csym->getBaseClassCount() + 1; //include super
     u32 i = 0;
     while(i < basecount)
@@ -2394,8 +2394,31 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 
 	    s32 baseoffset = m_state.getBaseClassBitSize(baseuti);
 	    assert(baseoffset >= 0); //t3318,t3755
-	    csym->setBaseClassRelativePosition(i, reloffset); //t3102, t3536 before updating reloffset
-	    reloffset += baseoffset;
+
+	    bool dupflag = false;
+	    u32 pos = reloffset;
+	    BasesTableTypeMap::iterator it = maptype2pos.find(baseuti);
+	    if(it != maptype2pos.end())
+	      {
+		pos = it->second;
+		dupflag = true; //could continue, if we wanted to..
+#if 1
+		std::ostringstream msg;
+		msg << "Subclass '";
+		msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+		msg << "' inherits directly from '";
+		msg << m_state.getUlamTypeNameBriefByIndex(baseuti).c_str();
+		msg << "', a duplicated baseclass, item " << i;
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		return TBOOL_FALSE; //t41526
+#endif
+	      }
+	    else
+	      {
+		maptype2pos.insert(std::pair<UTI, u32>(baseuti, pos));
+		reloffset += baseoffset;
+	      }
+	    csym->setBaseClassRelativePosition(i, pos, dupflag); //t3102, t3536 before updating reloffset
 	  }
 	i++;
       } //end while
@@ -2451,8 +2474,18 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 		if(bitem < 0)
 		  {
 		    //not a direct shared base
-		    csym->setSharedBaseClassRelativePosition(j, reloffset); //directshared
-		    reloffset += baseoffset;
+		    u32 shpos = reloffset;
+		    BasesTableTypeMap::iterator it = maptype2pos.find(baseuti);
+		    if(it != maptype2pos.end())
+		      {
+			shpos = it->second;
+		      }
+		    else
+		      {
+			//maptype2pos.insert(std::pair<UTI, u32>(baseuti, shpos));
+			reloffset += baseoffset;
+		      }
+		    csym->setSharedBaseClassRelativePosition(j, shpos); //directshared
 		  }
 		else //t41485
 		  {
@@ -2649,8 +2682,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 		basecblock = basecnsym->getClassBlockNode();
 	      }
 	    assert(basecblock);
+	    bool dupflag = csym->isADuplicateBaseClass(i);
 	    s32 pos = csym->getBaseClassRelativePosition(i);
-	    basecblock->genBaseClassTypeAndNameEntryAsComment(fp, baseuti, pos, accumsize, i); //no recursion
+	    basecblock->genBaseClassTypeAndNameEntryAsComment(fp, baseuti, pos, accumsize, i, dupflag); //no recursion
 	  }
 	i++;
       } //end while
@@ -2676,7 +2710,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 	if(bitem < 0) //not a direct shared base
 	  {
 	    s32 pos = csym->getSharedBaseClassRelativePosition(j);
-	    shbasecblock->genBaseClassTypeAndNameEntryAsComment(fp, baseuti, pos, accumsize, j+1000); //no recursion
+	    shbasecblock->genBaseClassTypeAndNameEntryAsComment(fp, baseuti, pos, accumsize, j+1000, false); //no recursion
 	  }
 	j++;
       } //end while
@@ -2688,7 +2722,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
     GCNL;
   } //genClassDataMemberChartAsComment
 
-  void NodeBlockClass::genBaseClassTypeAndNameEntryAsComment(File * fp, UTI nuti, s32 atpos, u32& accumsize, u32 baseitem)
+  void NodeBlockClass::genBaseClassTypeAndNameEntryAsComment(File * fp, UTI nuti, s32 atpos, u32& accumsize, u32 baseitem, bool dupflag)
   {
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     s32 nsize = nut->getBitsizeAsBaseClass();
@@ -2714,9 +2748,10 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
     fp->write("\n");
 
     //quarkunions don't accumulate sizes of dm, they use max dm size;
-    //quarkunions cannot be base classes, or have any (except UrSelf); (t3209, t41145)
-    assert((atpos == (s32) accumsize) || m_state.isClassAQuarkUnion(m_state.getCompileThisIdx()));
-    accumsize += nsize;
+    //quarkunions can now be base classes, and have some (including UrSelf); (t3209, t41145)
+    assert(dupflag || (atpos == (s32) accumsize) || m_state.isClassAQuarkUnion(m_state.getCompileThisIdx()));
+    if(!dupflag)
+      accumsize += nsize;
   } //genBaseClassTypeAndNameEntryAsComment
 
   void NodeBlockClass::genCodeHeaderQuark(File * fp)
