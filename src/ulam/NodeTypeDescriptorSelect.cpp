@@ -194,8 +194,11 @@ namespace MFM {
 	  }
 	else if(seletyp == LocalsFileScope)
 	  {
+	    NodeBlockLocals * lblock = m_state.getLocalsScopeBlockByIndex(seluti); //t41528
+	    assert(lblock);
+
 	    Symbol * ltdsymptr = NULL;
-	    if(m_state.isIdInLocalFileScope(tokid, ltdsymptr))
+	    if(lblock->isIdInScope(tokid, ltdsymptr))
 	      {
 		UTI auti = ltdsymptr->getUlamTypeIdx();
 		if(ltdsymptr->isTypedef())
@@ -237,13 +240,22 @@ namespace MFM {
 	    else
 	      {
 		//error! id not found, check for a class in global scope!!
-		std::ostringstream msg;
-		msg << "Undefined Typedef '" << m_state.m_pool.getDataAsString(tokid).c_str();
-		msg << "' in locals scope, " ;;
-		msg << m_state.getUlamTypeNameByIndex(seluti).c_str();
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //new
-		rtnuti = Nav;
-		m_state.abortShouldntGetHere(); //resolved to a class alias
+		SymbolClassName * cnsym = NULL;
+		if(!m_state.alreadyDefinedSymbolClassName(tokid, cnsym))
+		  {
+		    std::ostringstream msg;
+		    msg << "Undefined Typedef '" << m_state.m_pool.getDataAsString(tokid).c_str();
+		    msg << "' in locals scope, " ;;
+		    msg << m_state.getUlamTypeNameByIndex(seluti).c_str();
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //new
+		    rtnuti = Nav;
+		  }
+		else
+		  {
+		    assert(!cnsym->isClassTemplate());
+		    rtnuti = cnsym->getUlamTypeIdx();
+		    rtnb = true;
+		  }
 	      }
 	  }
 	else

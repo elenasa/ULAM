@@ -1444,6 +1444,36 @@ namespace MFM {
 	    rtnBool = true;
 	  }
       }
+    else
+      {
+	//don't forget the ancestors (t41527)
+	UTI cuti = getCompileThisIdx();
+
+	if(useMemberBlock()) //(t3555 and ancestors; t3126 within funcdef)
+	  {
+	    NodeBlockClass* memberblock = getCurrentMemberClassBlock();
+	    if(memberblock) //could be null during parsing e.g. parseMemberSelectExpr->parseIdentExpr
+	      cuti = memberblock->getNodeType();
+	    else
+	      {
+		hazyKin = true;
+		return false; //wait
+	      }
+	  }
+	assert(okUTItoContinue(cuti));
+
+	if(alreadyDefinedSymbolByAncestorOf(cuti, nameIdx, asymptr, hazyKin))
+	  {
+	    if(asymptr->isTypedef())
+	      {
+		rtnType = asymptr->getUlamTypeIdx();
+		rtnScalarType = ((SymbolTypedef *) asymptr)->getScalarUTI();
+		tdsymptr = asymptr;
+		rtnBool = true;
+	      }
+	  }
+      }
+
     return rtnBool;
   } //getUlamTypeByTypedefName
 

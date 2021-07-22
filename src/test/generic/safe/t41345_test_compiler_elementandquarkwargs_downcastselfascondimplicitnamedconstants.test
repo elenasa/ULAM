@@ -5,20 +5,21 @@
 ##       after asserts abort: arg is 1
 ##	 Unsigned Arg: 2 (+2 asserts)
 ##       Unsigned Arg: 2 (+2 asserts)
-##       Unsigned Arg: 2 (+2 assers)
+##       Unsigned Arg: 2 (+2 asserts)
+##       Unsigned Arg: 7 (+1 assert)
 ##
 #!
 Exit status: 7
 Uq_Typo(Int a) : Bar { Bool typool(false);  constant Unsigned(3) cTHREE = 2u;  :Bar< Unsigned(3) bu( 7u); > <NOMAIN> }
-Ue_Eltypo : Typo(1) { System s();  Unsigned(3) first(2u);  Unsigned(3) second(7u);  Typo(1) t( constant Unsigned(3) cTHREE = 2u;  constant Int a = 1;  Bool typool(false);  :Bar< Unsigned(3) bu(2u); >);  :Typo(1)< constant Unsigned(3) cTHREE = 2u;  constant Int a = 1;  Bool typool(true);  :Bar< Unsigned(3) bu(7u); >> ^Bar< Unsigned(3) bu(7u); > Int test() {  self ( )functest . self s . ( self t . bu . cast )print . self s . ( self t . bu . 3u != )assert . self s . ( self t . bu . super 2u . == )assert . self s . ( self first . cast )print . self s . ( self first . 3u != )assert . self s . ( self first . super 2u . == )assert . self second . self bu . = self second . cast return } }
+Ue_Eltypo : Typo(1) { System s();  Unsigned(3) first(2u);  Unsigned(3) second(7u);  Typo(1) t( constant Unsigned(3) cTHREE = 2u;  constant Int a = 1;  Bool typool(false);  :Bar< Unsigned(3) bu(2u); >);  :Typo(1)< constant Unsigned(3) cTHREE = 2u;  constant Int a = 1;  Bool typool(true);  :Bar< Unsigned(3) bu(7u); >> ^Bar< Unsigned(3) bu(7u); > Int test() {  self ( )functest . self s . ( self t . bu . cast )print . self s . ( self t . bu . 3u != )assert . self s . ( self t . bu . super 2u . == )assert . self s . ( self first . cast )print . self s . ( self first . 3u != )assert . self s . ( self first . 2u == )assert . self second . self bu . = self s . ( self second . cast )print . self s . ( self second . 7u == )assert . self second . cast return } }
 Uq_System { <NOMAIN> }
 Uq_Bar { Unsigned(3) bu( 7u);  <NOMAIN> }
 ##
 ## "conditional downcast"
 ## informed by 41344, except implicit 'self' in as-block used with named constants;
 ## note, since constants can be shadowed (unlike data members) by subclasses,
-## implicit self can produce different results than explicit self,
-## including local filescope. As seen here..
+## implicit self can produce different results than explicit self, however
+## class hierarchy has precedence over local filescope. As seen here..
 ##
 #:Typo.ulam
   ulam 2;
@@ -35,7 +36,7 @@ quark Typo(Int a) : Bar{
       s.assert(typool);
       t.func(cTHREE); //modifies ElTypo datamember 'bu' in Bar
       s.print(t.bu);
-      s.assert(t.bu != self.cTHREE); //used current classscope, 2u
+      s.assert(t.bu == self.cTHREE); //uses current classscope, 2u
       s.assert(t.bu == cTHREE); //2u
       first = t.bu; //2u, from 7u
     }
@@ -72,8 +73,10 @@ element Eltypo : Typo(1) {
     s.assert(t.bu == super.cTHREE); //==2u
     s.print(first);
     s.assert(first != local.cTHREE); //super precedence over local wo specificity
-    s.assert(first == super.cTHREE); // == 2u
+    s.assert(first == cTHREE); // == 2u
     second = self.bu; //still 7
+    s.print(second);
+    s.assert(second==7u);
     return second;
   }
 }

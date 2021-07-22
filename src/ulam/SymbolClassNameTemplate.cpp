@@ -749,7 +749,7 @@ namespace MFM {
 
 	// class instance's prev classblock is linked to its template's when stub is made.
 	// later, during c&l if a subclass, the super ptr gets the classblock of superclass
-	//initBaseClassListForAStubClassInstance(csym);
+	initBaseClassListForAStubClassInstance(csym); //t41527
 	cblock->initBaseClassBlockList(); //wait for c&l when no longer a stub
 
 	//makeAStub patches in data members after arguments fixed (t3895)

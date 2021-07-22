@@ -357,13 +357,9 @@ namespace MFM {
 	if(m_state.okUTItoContinue(suti) && !m_state.isHolder(suti))
 	  msg << ": " << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
 	msg << " used with symbol name '" << getName() << "'";
-	if(m_state.okUTItoContinue(suti) || m_state.isStillHazy(suti)) //41288?
-	  {
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	    suti = Hzy; //since not error; wait to goagain until not Nav
-	  }
-	else
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	//msg << " while compiling UTI" << cuti;
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	suti = Hzy; //since not error; wait to goagain until not Nav
       }
 
     ULAMTYPE etyp = m_state.getUlamTypeByIndex(suti)->getUlamTypeEnum();
