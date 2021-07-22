@@ -94,6 +94,7 @@ namespace MFM {
     m_state.m_funcCallStack.storeUlamValueAtStackIndex(atomuv, atop); //stackframeslotindex ?
 
     ptr = UlamValue::makePtr(atop, STACK, auti, m_state.determinePackable(auti), m_state, 0);
+    ptr.setPtrTargetEffSelfType(auti); //t41318, t41384
     ptr.setUlamValueTypeIdx(PtrAbs);
     return ptr;
   } //makeUlamValuePtr

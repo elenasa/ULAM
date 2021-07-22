@@ -276,16 +276,27 @@ namespace MFM {
     if((rtnUV.getUlamValueTypeIdx() == Hzy) || (ruti == Hzy))
       return false;
 
-    UTI subclass = luv.getPtrTargetType();
+    //UTI subclass = luv.getPtrTargetType();
+    UTI subclass = luv.getPtrTargetEffSelfType();
     UTI basetype = m_nodeRight->getNodeType();
     s32 baselen = m_state.getBaseClassBitSize(basetype);
     u32 basepos = UNRELIABLEPOS;
     if(m_state.getABaseClassRelativePositionInAClass(subclass, basetype, basepos))
       {
+	UTI ttype = luv.getPtrTargetType();
+	u32 ttpos = 0;
+	if(m_state.isClassASubclassOf(subclass, ttype))
+	  {
+	    AssertBool gotpos = m_state.getABaseClassRelativePositionInAClass(subclass, ttype, ttpos);
+	    assert(gotpos);
+	  }
+
 	u32 subpos = luv.getPtrPos();
-	rtnUV.setPtrPos(subpos+basepos);
+	rtnUV.setPtrPos(subpos-ttpos+basepos); //reset to start state bits
 	rtnUV.setPtrLen(baselen);
 	rtnUV.setPtrTargetType(basetype);
+	if(rtnUV.getPtrTargetEffSelfType() == Nouti)
+	  rtnUV.setPtrTargetEffSelfType(subclass); //t41386
 	rtnUV.setPtrNameId(0);
       }
     else
@@ -332,16 +343,28 @@ namespace MFM {
     ruvPtr = newCurrentObjectPtr;
 
     //works like NodeIdent makeUlamValue for "manufactured super"
-    UTI subclass = ruvPtr.getPtrTargetType();
+    //UTI subclass = ruvPtr.getPtrTargetType();
+    UTI subclass = ruvPtr.getPtrTargetEffSelfType(); //t41386
+    assert(subclass); //not Nouti
     assert(!m_state.isPtr(subclass)); //was != 11
     UTI basetype = m_nodeRight->getNodeType();
     s32 baselen = m_state.getBaseClassBitSize(basetype);
     u32 basepos = UNRELIABLEPOS;
     if(m_state.getABaseClassRelativePositionInAClass(subclass, basetype, basepos))
       {
+	UTI ttype = ruvPtr.getPtrTargetType();
+	u32 ttpos = 0;
+	if(m_state.isClassASubclassOf(subclass, ttype))
+	  {
+	    AssertBool gotpos = m_state.getABaseClassRelativePositionInAClass(subclass, ttype, ttpos);
+	    assert(gotpos);
+	  }
+
 	u32 subpos = newCurrentObjectPtr.getPtrPos();
-	ruvPtr.setPtrPos(subpos+basepos);
+	ruvPtr.setPtrPos(subpos-ttpos+basepos); //reset to start state bits
 	ruvPtr.setPtrTargetType(m_state.getUlamTypeAsDeref(basetype));
+	if(ruvPtr.getPtrTargetEffSelfType() == Nouti)
+	  ruvPtr.setPtrTargetEffSelfType(subclass); //t41386
 	ruvPtr.setPtrLen(baselen);
 	ruvPtr.setPtrNameId(0);
       }

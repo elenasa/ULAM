@@ -381,7 +381,7 @@ namespace MFM {
 	  adjust = ATOMFIRSTSTATEBITPOS; //t3563, t3637
 
 	UlamValue ptr = UlamValue::makePtr(pluv.getPtrSlotIndex(), pluv.getPtrStorage(), asuti, m_state.determinePackable(asuti), m_state, pluv.getPtrPos() + relpos + adjust, pluv.getPtrNameId());
-
+	ptr.setPtrTargetEffSelfType(luti); //t41318, t41384
 	ptr.checkForAbsolutePtr(pluv);
 
 	m_state.m_currentAutoObjPtr = ptr;

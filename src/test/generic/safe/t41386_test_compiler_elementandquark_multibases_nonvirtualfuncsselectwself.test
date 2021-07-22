@@ -9,10 +9,9 @@
 ##   Bool(3) Arg: 0x7 (true)
 ##   Bool(3) Arg: 0x7 (true)
 ##
-## eval r_d4[0] comes up true???
 #!
 Exit status: 0
-Ue_R { Bool r_c4[2](false,true);  Bool r_a4[2](false,true);  Bool r_d4[2](false,true);  Int test() {  System s;  E4 e;  e ( )behave . self r_c4 . 0 [] e m_c4 . = s ( e m_c4 . cast )print . s ( e m_c4 . ! )assert . self r_a4 . 0 [] e m_a4 . = s ( e m_a4 . cast )print . s ( e m_a4 . ! )assert . self r_d4 . 0 [] e m_d4 . = s ( e m_d4 . cast )print . s ( e m_d4 . ! )assert . e QBase4 . ( )initSites . e ( )behave . self r_c4 . 1 [] e m_c4 . = s ( e m_c4 . cast )print . s ( e m_c4 . )assert . self r_a4 . 1 [] e m_a4 . = s ( e m_a4 . cast )print . s ( e m_a4 . )assert . self r_d4 . 1 [] e m_d4 . = s ( e m_d4 . cast )print . s ( e m_d4 . )assert . 0 cast return } }
+Ue_R { Bool r_c4[2](false,true);  Bool r_a4[2](false,true);  Bool r_d4[2](false,true);  Int test() {  System s;  E4 e;  e ( )behave . self r_c4 . 0 [] e m_c4 . = s ( e m_c4 . cast )print . s ( e m_c4 . ! )assert . self r_a4 . 0 [] e m_a4 . = s ( e m_a4 . cast )print . s ( e m_a4 . ! )assert . self r_d4 . 0 [] e m_d4 . = s ( e m_d4 . cast )print . s ( e m_d4 . ! )assert . e ( )initSites . e ( )behave . self r_c4 . 1 [] e m_c4 . = s ( e m_c4 . cast )print . s ( e m_c4 . )assert . self r_a4 . 1 [] e m_a4 . = s ( e m_a4 . cast )print . s ( e m_a4 . )assert . self r_d4 . 1 [] e m_d4 . = s ( e m_d4 . cast )print . s ( e m_d4 . )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 Ue_E4 +QBase4 { Bool m_c4(false);  Bool m_a4(false);  Bool m_d4(false);  +QBase4< Bool m_b4(false); > ^QBase1< Bool m_b1(false); > ^QBase2< Bool m_b2(false);  Unsigned(6) m_site2( 63u); > ^QBase3< Bool m_b3(false);  Unsigned(6) m_site3( 63u); > <NOMAIN> }
 Uq_QBase4 +QBase2 +QBase3 { Bool m_b4(false);  +QBase2< Bool m_b2(false);  Unsigned(6) m_site2( 63u); > +QBase3< Bool m_b3(false);  Unsigned(6) m_site3( 63u); > ^QBase1< Bool m_b1(false); > <NOMAIN> }
@@ -52,7 +51,7 @@ element R {
     s.print(e.m_d4);
     s.assert(!e.m_d4);
 
-    e.QBase4.initSites();
+    e.initSites(); //e.QBase4.initSites();
 
     e.behave();
 

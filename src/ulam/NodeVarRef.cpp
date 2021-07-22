@@ -387,14 +387,15 @@ namespace MFM {
     // 'pos' modified by this data member symbol's packed bit position
   UlamValue NodeVarRef::makeUlamValuePtr()
   {
+    UTI nuti = getNodeType();
     u32 pos = 0;
     if(m_varSymbol->isDataMember())
       {
 	pos = m_varSymbol->getPosOffset();
 	m_state.abortShouldntGetHere(); //dm are not refs.
       }
-    UlamValue ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + pos, m_varSymbol->getId());
-
+    UlamValue ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), nuti, m_state.determinePackable(nuti), m_state, m_state.m_currentObjPtr.getPtrPos() + pos, m_varSymbol->getId());
+    //not sure about setPtrTargetEffSelfType..is it in m_currentObjPtr??
     ptr.checkForAbsolutePtr(m_state.m_currentObjPtr);
     return ptr;
   } //makeUlamValuePtr

@@ -102,6 +102,7 @@ namespace MFM {
     m_state.m_constantStack.storeUlamValueInSlot(atomuv, atop);
 
     ptr = UlamValue::makePtr(atop, CNSTSTACK, auti, m_state.determinePackable(auti), m_state, 0);
+    ptr.setPtrTargetEffSelfType(auti);
     ptr.setUlamValueTypeIdx(PtrAbs);
     return ptr;
   } //makeUlamValuePtr

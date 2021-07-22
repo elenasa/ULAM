@@ -832,6 +832,7 @@ namespace MFM {
 
   UlamValue NodeIdent::makeUlamValuePtr()
   {
+    UTI nuti = getNodeType();
     if(m_varSymbol->isSelf())
       {
 	// when "self" is a quark, we're inside a func called on a quark (e.g. dm or local)
@@ -854,6 +855,7 @@ namespace MFM {
 	assert(gotpos);
 	selfuvp.setPtrPos(selfuvp.getPtrPos() + relposofsuper);
 	selfuvp.setPtrTargetType(m_state.getUlamTypeAsDeref(supertype));
+	selfuvp.setPtrTargetEffSelfType(selfttype);
 	selfuvp.setPtrLen(m_state.getBaseClassBitSize(supertype));
 	selfuvp.setPtrNameId(0);
 	return selfuvp; //now superuvp.
@@ -883,8 +885,9 @@ namespace MFM {
 	AssertBool gotpos = m_state.getABaseClassRelativePositionInAClass(objclass, dmclass, relposofbase);
 	assert(gotpos);
 
-	ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset() + relposofbase, m_varSymbol->getId());
-
+	ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), nuti, m_state.determinePackable(nuti), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset() + relposofbase, m_varSymbol->getId());
+	if(m_state.isAClass(nuti))
+	  ptr.setPtrTargetEffSelfType(nuti); //self contained dm, its own effself
 	ptr.checkForAbsolutePtr(m_state.m_currentObjPtr); //t3810
       }
     else
@@ -895,7 +898,9 @@ namespace MFM {
 	  ptr = ((SymbolVariableStack *) m_varSymbol)->getAutoPtrForEval();
 #endif
 	//local variable on the stack; could be array ptr! could be 'super'
-	ptr = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, getNodeType(), m_state.determinePackable(getNodeType()), m_state, 0, m_varSymbol->getId());
+	ptr = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, nuti, m_state.determinePackable(getNodeType()), m_state, 0, m_varSymbol->getId());
+	if(m_state.isAClass(nuti))
+	  ptr.setPtrTargetEffSelfType(nuti);
       }
     return ptr;
   } //makeUlamValuePtr
