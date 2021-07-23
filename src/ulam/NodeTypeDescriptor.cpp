@@ -486,7 +486,7 @@ namespace MFM {
     if(nut->isComplete())
       {
 	UTI aliasuti;
-	if(m_state.findaUTIAlias(nuti, aliasuti))
+	if(m_state.findRootUTIAlias(nuti, aliasuti))
 	  rtnuti = aliasuti; //t3921
 	else
 	  rtnuti = nuti;
@@ -523,9 +523,7 @@ namespace MFM {
 		std::ostringstream msg;
 		if(m_state.isComplete(tduti))
 		  {
-		    UlamType * tut = m_state.getUlamTypeByIndex(tduti);
-		    UlamKeyTypeSignature newkey(tut->getUlamTypeNameId(), tut->getBitSize(), tut->getArraySize(), tduti, tut->getReferenceType());
-		    m_state.makeUlamTypeFromHolder(newkey, tut->getUlamTypeEnum(), nuti, tut->getUlamClassType());
+		    m_state.cleanupExistingHolder(nuti, tduti); //20210722 ish
 		    rtnuti = tduti; //reset
 		    rtnb = true;
 		    msg << "RESET ";
@@ -554,7 +552,7 @@ namespace MFM {
 		  }
 		else if(!m_state.isARootUTI(nuti))
 		  {
-		    AssertBool isAlias = m_state.findaUTIAlias(nuti, auti);
+		    AssertBool isAlias = m_state.findRootUTIAlias(nuti, auti);
 		    assert(isAlias);
 		  }
 		else if(m_state.isClassAStubCopy(nuti))

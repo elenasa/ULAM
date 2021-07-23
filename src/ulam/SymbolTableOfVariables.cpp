@@ -146,7 +146,6 @@ namespace MFM {
 	UTI suti = sym->getUlamTypeIdx();
 	s32 symsize = UNKNOWNSIZE;
 	if(!m_state.okUTItoContinue(suti))
-	  //if(!m_state.okUTItoContinue(suti) || m_state.isHolder(suti))
 	  {
 	    totalsizes = UNKNOWNSIZE;
 	    break; //Hzy possibility (t41301)
@@ -340,7 +339,6 @@ namespace MFM {
 
     UlamType * argut = m_state.getUlamTypeByIndex(arguti);
     s32 totbitsize = argut->getBitSize(); // why not total bit size? findNodeNoInThisClass fails (e.g. t3144, etc)
-    //ULAMCLASSTYPE argclasstype = argut->getUlamClassType();Hzy fails t41288
     s32 argarraysize = argut->getArraySize();
     if(!m_state.isAClass(arguti)) //includes Atom type, Hzy arrays
       {
@@ -369,11 +367,7 @@ namespace MFM {
 	else
 	  {
 	    assert(totbitsize <= UNKNOWNSIZE || m_state.getArraySize(arguti) == UNKNOWNSIZE);
-	    //if(m_state.getArraySize(arguti) == UNKNOWNSIZE)
-	    //  return UNKNOWNSIZE; //Tue Jul 13 17:14:35 2021
-	    //m_state.setUTIBitSize(arguti, CYCLEFLAG); //before the recusive call..
 	    //get base type, scalar type of class
-#if 1
 	    UTI tduti = Nouti;
 	    UTI tdscalaruti = Nouti;
 	    Symbol * tdsymptr = NULL;
@@ -381,13 +375,9 @@ namespace MFM {
 	    if(m_state.getUlamTypeByTypedefNameInClassHierarchyThenLocalsScope(nameid, tduti, tdscalaruti, tdsymptr))
 	      {
 		//don't use getTotalBitSize, assumes 0 bits for UNKNOWN, 1 for UNKNOWN arraysize(t3653)
-		s32 sizeofclass = m_state.getBitSize(tduti); //calcVariableSymbolTypeSize(tduti, seensetref);
-		//		if(sizeofclass >= 0)
-		//  return sizeofclass * m_state.getArraySize(arguti);
-		return  sizeofclass; //t3145
+		return m_state.getBitSize(tduti); //t3145
 	      }
 	    else
-#endif
 	      {
 		SymbolClass * csym = NULL;
 		if(m_state.alreadyDefinedSymbolClass(arguti, csym))
@@ -396,7 +386,7 @@ namespace MFM {
 		    if(sizeofclass >= 0)
 		      return sizeofclass * m_state.getArraySize(arguti);
 		    return sizeofclass; //unknownsize? cycle? empty?
-		    //when do we multiply by the arraysize??? TODO?? (t3653, t3145)
+		    //when do we multiply by the arraysize? (t3653, t3145)
 		  }
 	      }
 	  }

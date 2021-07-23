@@ -168,7 +168,7 @@ namespace MFM {
 	UTI baseuti = m_basestable[i].m_base;
 	if( baseuti != Nouti) //super optional (t3102)
 	  {
-	    //if(UlamType::compare(baseuti, buti, m_state) == UTIC_SAME)
+	    //incomplete wont match, yet (20210722 ish)
 	    if(UlamType::compare(baseuti, buti, m_state) != UTIC_NOTSAME)
 	      {
 		item = i;
@@ -241,10 +241,7 @@ namespace MFM {
 	AssertBool gotroot = m_state.findRootUTIAlias(baseclass, rootuti); //t3652
 	assert(gotroot); //note: not mapped in resolver
       }
-#if 0
-    if(isABaseClassItemSearch(rootuti) >= 0)
-      return; //skip dups, quietly?
-#endif
+    //note: catch any duplicates, later, during packing bits (20210722 ish)
     BaseClassEntry bentry;
     bentry.m_base = rootuti;
     bentry.m_numbaseshared = (sharedbase ? 1 : 0); //=true, all shared virtual ^base

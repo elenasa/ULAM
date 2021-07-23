@@ -480,10 +480,8 @@ namespace MFM {
 	delete rtnNode;
 	rtnNode = NULL;
       }
-#if 1
     else
       m_state.checkforAnyRemainingCulamGeneratedTypedefsInThisContext(cnsym->getUlamTypeIdx()); //t3347,t3544, ulamexports
-#endif
 
     //this block's ST is no longer in scope
     m_state.popClassContext(); //m_currentBlock = prevBlock;

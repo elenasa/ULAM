@@ -2257,7 +2257,6 @@ namespace MFM {
     return false;
   } //findaUTIAlias
 
-#if 0
   bool CompilerState::findRootUTIAlias(UTI auti, UTI& aliasuti)
   {
     assert(auti < m_unionRootUTI.size());
@@ -2271,46 +2270,13 @@ namespace MFM {
 	if(finduti == xuti)
 	  foundroot = true;
       }
-    if(foundroot)
-      aliasuti = finduti; //no change o.w.
-    assert(cntr <= 5); //5 big enough?
-    return (auti != finduti);
-  } //findRootUTIAlias
-#endif
-
-  bool CompilerState::findRootUTIAlias(UTI auti, UTI& aliasuti)
-  {
-    assert(auti < m_unionRootUTI.size());
-    bool foundroot = false;
-    u32 cntr = 0;
-    UTI finduti = auti;
-    while(!foundroot && (cntr++ < 5))
-      {
-	UTI xuti = finduti;
-	finduti = m_unionRootUTI[xuti];
-	if(finduti == xuti)
-	  foundroot = true;
-      }
-    assert(cntr <= 5); //5 big enough?
-
-    //only classes have m_classInstanceIdx in key; unless an ALT reference type, or array, it should match its uti
     if(isAClass(auti) && !isReference(auti) && isScalar(auti))
       {
-	bool same = false;
-	cntr = 0;
-	while(!same && (cntr++ < 5))
-	  {
-	    UlamType * aut = getUlamTypeByIndex(finduti);
-	    UTI classidx = aut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureClassInstanceIdx();
-	    if(finduti == classidx)
-	      same = true;
-	    else
-	      finduti = classidx;
-	  }
-	assert(cntr <= 5); //5 big enough?
+	UlamKeyTypeSignature key = getUlamTypeByIndex(finduti)->getUlamKeyTypeSignature();
+	assert(finduti == key.getUlamKeyTypeSignatureClassInstanceIdx()); //invarient
       }
-
-    if(finduti != auti)
+    assert(cntr <= 5); //5 big enough?
+    if(auti != finduti)
       {
 	aliasuti = finduti; //no change o.w.
 	return true;
@@ -2336,7 +2302,8 @@ namespace MFM {
   {
     assert(auti < m_unionRootUTI.size());
     assert(buti < m_unionRootUTI.size());
-    assert(!isAClass(buti) || !isClassAStub(auti) || !isClassATemplate(buti)); //don't alias a stub to a template (t3451)
+    //assert uses findRootUTIAlias to answer Stub question; expensive (20210722 ish)
+    //assert(!isAClass(buti) || !isClassAStub(auti) || !isClassATemplate(buti)); //don't alias a stub to a template (t3451)
     m_unionRootUTI[auti] = buti;
     {
       std::ostringstream msg;
@@ -3364,6 +3331,7 @@ namespace MFM {
 		    isaclassholder = isAClass(ltd); //set once
 		    if(!isARootUTI(ltd))
 		      ltd = lookupUTIAlias(ltd); //t41516, Gah case
+		    assert(isARootUTI(ltd)); //sanity, or call findRootUTIAlias instead?
 
 		    //first one found becomes the incomplete class uti, as we prepare to parse it.
 		    UlamKeyTypeSignature key(dataindex, UNKNOWNSIZE, NONARRAYSIZE, ltd); //ltd for classinstanceidx (t41509)
@@ -3818,7 +3786,6 @@ namespace MFM {
 			      }
 			    else
 			      {
-				//TODO: error message
 				std::ostringstream msg;
 				msg << "Ambiguous typedefs '";
 				msg << m_pool.getDataAsString(tdid).c_str();

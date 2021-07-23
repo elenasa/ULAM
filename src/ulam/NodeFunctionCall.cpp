@@ -1712,8 +1712,7 @@ namespace MFM {
     // too limiting (ulam-5) to limit to 'super' special case:
     //   t3606, t3608, t3774, t3779, t3788, t3794, t3795, t3967, t41131
     // once cos is a ref, all bets off! unclear effSelf, e.g. cos is 'self'
-    //    if(m_state.getUlamTypeAsDeref(cosuti) != cvfuti) //multiple bases possible (ulam-5)
-    if(!m_state.isAltRefType(cosuti) && (m_state.getUlamTypeAsDeref(cosuti) != cvfuti)) //multiple bases possible (ulam-5); issue +(t41361 TODO)
+    if(!m_state.isAltRefType(cosuti) && (m_state.getUlamTypeAsDeref(cosuti) != cvfuti)) //multiple bases possible (ulam-5); issue +(t41361)
       {
 	SymbolClass * cvfsym = NULL;
 	AssertBool iscvfDefined = m_state.alreadyDefinedSymbolClass(cvfuti, cvfsym);
