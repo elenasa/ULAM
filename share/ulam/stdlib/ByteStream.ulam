@@ -58,7 +58,7 @@ quark ByteStreamWriter +ByteStream {
 
   Self & print(String s)
   {
-    for (Unsigned i = 0; i < s.lengthof; ++i) 
+    for (Unsigned i = 0; i < s.lengthof; ++i)
     {
       ASCII a = s[i];
       writeByte(a);
@@ -97,7 +97,7 @@ quark ByteStreamWriter +ByteStream {
   Self & print(Int n)
   {
     if (n == -2147483648) return print("-2147483648");
-    if (n < 0) { 
+    if (n < 0) {
       print("-");
       n = -n;
     }
@@ -116,11 +116,11 @@ quark ByteStreamWriter +ByteStream {
       Int ch = r.readByte();
       if (ch < 0) return i;
       writeByte((ASCII) ch);
-    }    
+    }
     return max;
   }
 
-  virtual Self & writeBytes(String s) 
+  virtual Self & writeBytes(String s)
   {
     for (Unsigned i = 0; i < s.lengthof; ++i)
       writeByte(s[i]);
@@ -148,5 +148,5 @@ quark ByteStreamNull + ByteStreamReaderWriter {
 
   @Override
   virtual Int writeByte(ASCII x) { return 0; } // 0 == 'byte written'
-  
+
 }

@@ -2257,6 +2257,7 @@ namespace MFM {
     return false;
   } //findaUTIAlias
 
+#if 0
   bool CompilerState::findRootUTIAlias(UTI auti, UTI& aliasuti)
   {
     assert(auti < m_unionRootUTI.size());
@@ -2274,6 +2275,47 @@ namespace MFM {
       aliasuti = finduti; //no change o.w.
     assert(cntr <= 5); //5 big enough?
     return (auti != finduti);
+  } //findRootUTIAlias
+#endif
+
+  bool CompilerState::findRootUTIAlias(UTI auti, UTI& aliasuti)
+  {
+    assert(auti < m_unionRootUTI.size());
+    bool foundroot = false;
+    u32 cntr = 0;
+    UTI finduti = auti;
+    while(!foundroot && (cntr++ < 5))
+      {
+	UTI xuti = finduti;
+	finduti = m_unionRootUTI[xuti];
+	if(finduti == xuti)
+	  foundroot = true;
+      }
+    assert(cntr <= 5); //5 big enough?
+
+    //only classes have m_classInstanceIdx in key; unless an ALT reference type, or array, it should match its uti
+    if(isAClass(auti) && !isReference(auti) && isScalar(auti))
+      {
+	bool same = false;
+	cntr = 0;
+	while(!same && (cntr++ < 5))
+	  {
+	    UlamType * aut = getUlamTypeByIndex(finduti);
+	    UTI classidx = aut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureClassInstanceIdx();
+	    if(finduti == classidx)
+	      same = true;
+	    else
+	      finduti = classidx;
+	  }
+	assert(cntr <= 5); //5 big enough?
+      }
+
+    if(finduti != auti)
+      {
+	aliasuti = finduti; //no change o.w.
+	return true;
+      }
+    return false;
   } //findRootUTIAlias
 
   UTI CompilerState::lookupUTIAlias(UTI auti)
@@ -3716,7 +3758,9 @@ namespace MFM {
 			    UTI ktd = ksym->getUlamTypeIdx();
 			    if(okUTItoContinue(ktd))
 			      {
-				replaceUTIKeyAndAlias(tduti, ktd);
+				UTI ktdmapped = ktd;
+				findRootUTIAlias(ktd, ktdmapped);
+				replaceUTIKeyAndAlias(tduti, ktdmapped);
 				((SymbolTypedef *)sym)->setCulamGeneratedTypedefAliased();
 				isaliasednow = true;
 			      }
@@ -3746,11 +3790,13 @@ namespace MFM {
 				UTI ktd = *it;
 				if(okUTItoContinue(ktd))
 				  {
+				    UTI ktdmapped = ktd;
+				    findRootUTIAlias(ktd, ktdmapped);
 				    if(kuti == Nouti)
 				      {
-					kuti = ktd; //for comparisons
+					kuti = ktdmapped; //for comparisons
 				      }
-				    else if(UlamType::compare(ktd,kuti,*this) == UTIC_NOTSAME) //neither hazy nor same
+				    else if(UlamType::compare(ktdmapped,kuti,*this) == UTIC_NOTSAME) //neither hazy nor same
 				      {
 					aok = false;
 					break;
@@ -3805,7 +3851,9 @@ namespace MFM {
 			      }
 
 			    UTI ltd = ltdsymptr->getUlamTypeIdx();
-			    replaceUTIKeyAndAlias(tduti, ltd);
+			    UTI ltdmapped = ltd;
+			    findRootUTIAlias(ltd, ltdmapped);
+			    replaceUTIKeyAndAlias(tduti, ltdmapped);
 			    ((SymbolTypedef *)sym)->setCulamGeneratedTypedefAliased();
 			    isaliasednow = true;
 			  }
