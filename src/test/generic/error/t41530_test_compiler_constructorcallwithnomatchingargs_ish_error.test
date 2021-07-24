@@ -1,0 +1,42 @@
+## -*- mode:ulam -*-
+#=t41530_test_compiler_contructorcallwithnomatchingargs_ish_error
+#!
+./R.ulam:5:7: ERROR: Class 'A' is not a defined constructor, or cannot be safely called in this context.
+./R.ulam:5:5: ERROR: Initial value expression for: pop, initialization is invalid.
+./R.ulam:6:7: ERROR: Class 'B' has no defined constructor with 2 matching argument types: Bool, Int(3), and cannot be called.
+./R.ulam:6:5: ERROR: Initial value expression for: push, initialization is invalid.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by 20210724 ish
+##
+#>R.ulam
+  ulam 5;
+element R
+{
+  Int test() {
+    A pop(true, 3);
+    B push(true, 3);
+    return 0;
+  }
+}
+
+#:A.ulam
+  ulam 5;
+quark A
+{
+  Bool m_bad;
+}
+
+#:B.ulam
+  ulam 5;
+quark B
+{
+  Bool m_bad;
+  Self(Bool u)
+  {
+    m_bad = u;
+  }
+}
+
+
+#.

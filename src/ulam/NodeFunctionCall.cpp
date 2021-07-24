@@ -161,9 +161,18 @@ namespace MFM {
 	  {
 	    assert(foundInAncestor == Nouti); //sanity
 	    std::ostringstream msg;
-	    msg << "(1) '" << m_state.getTokenDataAsString(m_functionNameTok).c_str();
-	    msg << "' has no defined function with " << numargs;
-	    msg << " matching argument type";
+
+	    if(m_functionNameTok.m_type == TOK_KW_TYPE_SELF)
+	      {
+		msg << "Class '" << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+		msg << "' has no defined constructor with "; //t41530
+	      }
+	    else
+	      {
+		msg << "(1) '" << m_state.getTokenDataAsString(m_functionNameTok).c_str();
+		msg << "' has no defined function with ";
+	      }
+	    msg << numargs << " matching argument type";
 	    if(numargs != 1)
 	      msg << "s";
 	    msg << ": ";
@@ -268,8 +277,17 @@ namespace MFM {
 	if(foundit != TBOOL_TRUE)
 	  {
 	    std::ostringstream msg;
-	    msg << "(2) '" << m_state.getTokenDataAsString(m_functionNameTok).c_str();
-	    msg << "' is not a defined function, or cannot be safely called in this context";
+	    if(m_functionNameTok.m_type == TOK_KW_TYPE_SELF)
+	      {
+		msg << "Class '" << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+		msg << "' is not a defined constructor, "; //t41530
+	      }
+	    else
+	      {
+		msg << "(2) '" << m_state.getTokenDataAsString(m_functionNameTok).c_str();
+		msg << "' is not a defined function, ";
+	      }
+	    msg << "or cannot be safely called in this context";
 	    if(foundit == TBOOL_HAZY)
 	      {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
