@@ -2270,8 +2270,9 @@ namespace MFM {
 	if(finduti == xuti)
 	  foundroot = true;
       }
-    if(isAClass(auti) && !isReference(auti) && isScalar(auti))
+    if(isAClass(auti) && !isReference(auti) && isScalar(auti) && isAClass(finduti))
       {
+	//cannot assume an anonymous class has a class alias - 20210724-162342 ish)
 	UlamKeyTypeSignature key = getUlamTypeByIndex(finduti)->getUlamKeyTypeSignature();
 	assert(finduti == key.getUlamKeyTypeSignatureClassInstanceIdx()); //invarient
       }
