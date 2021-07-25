@@ -1,5 +1,5 @@
 ## -*- mode:ulam -*-
-#=t41521_test_compiler_elementinheritance_withlocaldefskeyword_butinvalidmembertypedef_whenclassseenfirst_error
+#=t41521_test_compiler_elementinheritance_withlocaldefskeyword_butinvalidmembertypedef_whenclassseenfirst
 #!
 Exit status: 4
 Uq_Moo { Unsigned(3) us( 4u);  <NOMAIN> }

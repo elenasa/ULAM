@@ -2,13 +2,13 @@
 #=t41282_test_compiler_element_modelparameterasconstant_fail
 ##
 ## gencode output: (due to model parameter)
-## include/Ue_10103Foo1110131i12_Types.h:379: FAILED: NULL_POINTER
+## include/Ue_10103Foo10_Types.h:178: FAILED: NULL_POINTER
 ##
 #!
 Exit status: 0
-Ue_R { System s();  Int(32) test() {  { pChance(1u) cond self s . ( 7 )print . if } 0 cast return } }
+Ue_R { System s();  Int test() {  { pChance(1u) cond self s . ( 7 )print . if } 0 cast return } }
 Uq_System { <NOMAIN> }
-Ue_Foo {parameter Bool(1) pChance = true;  <NOMAIN> }
+Ue_Foo {parameter Bool pChance = true;  <NOMAIN> }
 ##
 ## informed by Daves ISH 2/28/19; Fixed in NodeConstant::setBlock()
 ##

@@ -1,12 +1,12 @@
 ## -*- mode:ulam -*-
 #=t41149_test_compiler_element_modelparameterfuncargtypedef_fail
 ##
-## gen error: include/Ue_10107MyParms10_Types.h:169: FAILED: NULL_POINTER
+## gen error: include/Ue_10107MyParms10_Types.h:178: FAILED: NULL_POINTER
 ##
 #!
 Exit status: 0
-Ue_MyElement { typedef MyParms B;  typedef MyElement A;  Int(32) test() {  self ( pFOO(3u) 12u cast )func . 0 cast return } }
-Ue_MyParms {parameter Unsigned(32) pFOO = 3u;  <NOMAIN> }
+Ue_MyElement { typedef MyParms B;  typedef MyElement A;  Int test() {  self ( pFOO(3u) 12u cast )func . 0 cast return } }
+Ue_MyParms {parameter Unsigned pFOO = 3u;  <NOMAIN> }
 ##
 ## informed by t41146 and t41147, user ish 11/5/2017:
 ## //when seen usage comes first, the error was caught by NodeConstant, not Parser;

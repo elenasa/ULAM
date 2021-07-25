@@ -5,11 +5,11 @@
 ## Int Arg: 0
 ##
 ## gen error log:
-## include/Ue_102641A10.tcc:65: FAILED: UNINITIALIZED_VALUE
+## include/GlobalStringPool.h:51: FAILED: UNINITIALIZED_VALUE
 ##
 #!
 Exit status: -1
-Ue_A { Int(32) m_s1(0);  Int(32) m_s2(0);  Int(32) test() {  System s;  String mt = "";  self m_s1 . 0u cast = s ( self m_s1 . )print . s ( self m_s1 . 0 cast == )assert . String str;  self m_s2 . 20u cast = s ( self m_s2 . )print . s ( self m_s2 . 20 cast == )assert . 0 cast return } }
+Ue_A { Int m_s1(0);  Int m_s2(0);  Int test() {  System s;  String mt = "";  self m_s1 . 0u cast = s ( self m_s1 . )print . s ( self m_s1 . 0 cast == )assert . String str;  self m_s2 . 20u cast = s ( self m_s2 . )print . s ( self m_s2 . 20 cast == )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t3931
