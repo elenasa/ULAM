@@ -1,0 +1,48 @@
+## -*- mode:ulam -*-
+#=t41532_test_compiler_element_instanceofatomofreturnref_fail
+## gen output:
+##  include/Uq_10133Bar10.tcc:68: FAILED: UNRETURNABLE_REFERENCE
+#!
+Exit status: -1
+Ue_Foo : Bar { Bool(3) b(false);  Int(4) m_i(0);  Bar sbar( Bool val_b[3](false,false,false); );  :Bar< Bool val_b[3](false,false,false); > Int test() {  Atom& a = self ( )getatomofelement .;  0 cast return } }
+Uq_Bar { Bool val_b[3](false,false,false);  <NOMAIN> }
+##
+## informed by t41531, and t3223
+##
+#>Foo.ulam
+  ulam 1;
+element Foo : Bar {
+  Bool(3) b;
+  Int(4) m_i;
+  Bar sbar;
+  Bool check(Int v) {
+    return true;
+  }
+  Int test() {
+    Atom& a = self.getatomofelement();
+    return 0;
+  }
+}
+
+#:Bar.ulam
+  ulam 1;
+quark Bar {
+  Bool val_b[3];
+  Void reset(Bool b) {
+    b = false;
+  }
+  Atom& aref(Int index) native;
+
+  Atom& getatomof()
+  {
+    Atom a = self.atomof;
+    return self.atomof;
+  }
+
+  Atom& getatomofelement()
+  {
+    return Foo.instanceof.atomof;
+  }
+}
+
+#.

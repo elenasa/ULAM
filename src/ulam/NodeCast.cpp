@@ -570,6 +570,8 @@ namespace MFM {
 	if(m_state.isARefTypeOfUlamType(nodeType, tobeType))
 	  {
 	    uv.setUlamValueTypeIdx(tobeType);
+	    if(m_state.isAtom(tobeType) && !m_state.isAtom(vuti))
+	      uv.setUlamValueEffSelfTypeIdx(vuti); //t3679
 	  }
 	else if(!(m_state.getUlamTypeByIndex(tobeType)->cast(uv, tobeType)))
 	  {

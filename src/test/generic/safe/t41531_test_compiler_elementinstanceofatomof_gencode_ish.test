@@ -1,0 +1,26 @@
+## -*- mode:ulam -*-
+#=t41531_test_compiler_elementinstanceofatomof_gencode_ish
+#!
+Exit status: 0
+Ue_R { Int test() {  Atom a = Foo.instanceof.atomof cast;  0 cast return } }
+Ue_Foo { /* empty class block */ }
+##
+## informed by Dave's 20210725 ish
+##
+#>R.ulam
+ ulam 5;
+element R {
+  Int test()
+  {
+    Atom a = Foo.instanceof.atomof; //gencode error
+    return 0;
+  }
+}
+
+
+#:Foo.ulam
+  ulam 5;
+element Foo
+{ }
+
+#.
