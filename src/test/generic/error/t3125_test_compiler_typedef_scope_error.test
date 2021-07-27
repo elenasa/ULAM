@@ -4,8 +4,6 @@
 ./D.ulam:9:5: ERROR: Typedef 'Bar' in class D remains undefined.
 ./D.ulam:9:5: ERROR: Incomplete Variable Decl for type used with variable symbol name 'f'.
 ./D.ulam:9:5: ERROR: Variable for: 'f', is still hazy.
-./D.ulam:10:5: ERROR: Incomplete identifier for a type used with list symbol name 'f'.
-./D.ulam:11:12: ERROR: Incomplete identifier for a type used with list symbol name 'f'.
 ./D.ulam:11:5: ERROR: Function return type is still unresolved: unresolved.
 Unrecoverable Program Type Label FAILURE.
 ##

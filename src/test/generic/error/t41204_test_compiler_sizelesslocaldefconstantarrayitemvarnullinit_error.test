@@ -8,14 +8,11 @@
 ./Q.ulam:2:24: ERROR: Incomplete Constant Def for type: Unsigned, used with symbol name 's', after folding.
 ./Q.ulam:2:39: ERROR: Not ready constant for type: Int, used with symbol name 'b', while compiling Q(b,s) (UTI 35).
 ./Q.ulam:2:39: ERROR: Constant value expression for: a, is not ready, still hazy, while compiling Q(b,s) (UTI 35).
-./P.ulam:7:5: ERROR: Incomplete Variable Decl for type: Q(b,s) used with variable symbol name 'w'.
+./P.ulam:7:5: ERROR: Incomplete Variable Decl for type used with variable symbol name 'w'.
 ./P.ulam:7:5: ERROR: Variable for: 'w', is still hazy.
-./P.ulam:8:13: ERROR: Incomplete identifier for a type Q(b,s), used with list symbol name 'w'.
 ./P.ulam:8:15: ERROR: Undetermined type for missing member 'w' Proxy.
 ./P.ulam:8:7: ERROR: Argument 1 is incomplete.
-./P.ulam:9:10: ERROR: Incomplete identifier for a type Q(b,s), used with list symbol name 'w'.
 ./P.ulam:9:12: ERROR: Undetermined type for missing member 'w' Proxy.
-./P.ulam:11:18: ERROR: Incomplete identifier for a type Q(b,s), used with list symbol name 'w'.
 ./P.ulam:11:20: ERROR: Undetermined type for missing member 'w' Proxy.
 ./P.ulam:11:13: ERROR: Cannot cast a nonready type.
 ./P.ulam:11:5: ERROR: Function return type is still unresolved: unresolved.

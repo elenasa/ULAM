@@ -5,7 +5,7 @@
 ./Foo.ulam:2:11: ERROR: Constant value expression for: a, is not ready, still hazy, while compiling Foo(a,b) (UTI 32).
 ./Foo.ulam:2:30: ERROR: Not ready constant for type: Int, used with symbol name 'a', while compiling Foo(a,b) (UTI 32).
 ./Foo.ulam:2:22: ERROR: Constant value expression for: b, is not ready, still hazy, while compiling Foo(a,b) (UTI 32).
-./R.ulam:5:5: ERROR: Incomplete Variable Decl for type: Foo(a,b) used with variable symbol name 'f'.
+./R.ulam:5:5: ERROR: Incomplete Variable Decl for type used with variable symbol name 'f'.
 ./R.ulam:5:5: ERROR: Variable for: 'f', is still hazy.
 ./Foo.ulam:3:7: ERROR: Not ready constant for type: Int, used with symbol name 'a', while compiling Foo(a,b) (UTI 32).
 ./Foo.ulam:3:3: ERROR: Type Bitsize specifier, within (), is not ready.

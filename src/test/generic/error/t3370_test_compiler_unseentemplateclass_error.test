@@ -3,7 +3,7 @@
 #!
 ./Eltypo.ulam:4:8: ERROR: Incomplete Constant Def for type used with symbol name '_0'.
 ./Eltypo.ulam:4:8: ERROR: Constant value expression for class argument: _0, is not ready.
-./Eltypo.ulam:4:3: ERROR: Incomplete Variable Decl for type: Typ0 used with variable symbol name 't'.
+./Eltypo.ulam:4:3: ERROR: Incomplete Variable Decl for type used with variable symbol name 't'.
 ./Eltypo.ulam:4:3: ERROR: Variable for: 't', is still hazy.
 ./Eltypo.ulam:4:3: ERROR: UNSEEN class type <Typ0> was never defined in Typ0.ulam; check for capitalization or spelling typos.
 Unrecoverable Program Type Label FAILURE.

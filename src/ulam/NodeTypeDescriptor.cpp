@@ -287,7 +287,7 @@ namespace MFM {
     if((etyp == Class)) //&& !isreferencetype
       {
 	rtnb = resolveClassType(nuti);
-	if(rtnb && isreferencetype)
+	if(rtnb && isreferencetype && !m_state.isReference(nuti))
 	  {
 	    //try again..
 	    rtnb = resolveReferenceType(nuti); //20210726 ish

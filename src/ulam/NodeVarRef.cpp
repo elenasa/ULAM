@@ -193,8 +193,11 @@ namespace MFM {
       {
 	if(it == Nav)
 	  errCount++;
-	if((it == Hzy) || m_state.isStillHazy(it))
+	else if((it == Hzy) || m_state.isStillHazy(it))
 	  hazyCount++;
+	else if(m_state.isHolder(it))
+	  hazyCount++;
+	//else
 	assert(it != Nouti);
       }
     ////requires non-constant, non-funccall value
