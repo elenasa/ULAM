@@ -1150,6 +1150,12 @@ namespace MFM {
 	  {
 	    suti = stubcopyof; //continue as if the original..
 	    sut = getUlamTypeByIndex(suti);
+	    if(cnsym->hasInstanceMappedUTI(cuti, suti, mappedUTI))
+	      {
+		UTI muti = mappedUTI;
+		findRootUTIAlias(muti, mappedUTI); //?
+		return mappedUTI;  //20210726-2 ish
+	      }
 	  }
 
 	//o.w. make a stub copy...
