@@ -142,7 +142,7 @@ namespace MFM {
 	assert(m_state.okUTItoContinue(ttype));
 	if((m_state.getUlamTypeByIndex(ttype)->getUlamClassType() == UC_QUARK) && !m_state.isReference(ttype))
 	  {
-	    selfuvp = atomuv; //bail for error
+	    selfuvp = atomuv; //bail for error (fail/t3682)
 	  }
 	return selfuvp;
       } //done
