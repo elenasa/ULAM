@@ -287,6 +287,11 @@ namespace MFM {
     if((etyp == Class)) //&& !isreferencetype
       {
 	rtnb = resolveClassType(nuti);
+	if(rtnb && isreferencetype)
+	  {
+	    //try again..
+	    rtnb = resolveReferenceType(nuti); //20210726 ish
+	  }
       }
     else if((etyp == Holder))
       {
@@ -523,8 +528,10 @@ namespace MFM {
 		std::ostringstream msg;
 		if(m_state.isComplete(tduti))
 		  {
-		    m_state.cleanupExistingHolder(nuti, tduti); //20210722 ish
-		    rtnuti = tduti; //reset
+		    UTI tdalias = tduti;
+		    m_state.findRootUTIAlias(tduti, tdalias); //20210726 ish
+		    m_state.cleanupExistingHolder(nuti, tdalias); //20210722 ish
+		    rtnuti = tdalias; //reset
 		    rtnb = true;
 		    msg << "RESET ";
 		  }

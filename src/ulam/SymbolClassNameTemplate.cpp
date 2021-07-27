@@ -863,7 +863,8 @@ namespace MFM {
 		SymbolClass * basecsym = NULL;
 		if(m_state.alreadyDefinedSymbolClass(baseuti, basecsym))
 		  {
-		    if(!basecsym->isStub())
+		    //if(!basecsym->isStub())
+		    if(!basecsym->isStub() && !m_state.isHolder(baseuti)) //20210726 ish
 		      classNode->setBaseClassBlockPointer(basecsym->getClassBlockNode(),i);
 		    else
 		      aok = false;
