@@ -466,9 +466,7 @@ namespace MFM {
 	UTI duti = m_nodeTypeDesc->checkAndLabelType(this); //sets goagain
 	if(duti == Nav)
 	  vit = Nav; //t41203
-	//if((duti != vit) && (m_state.okUTItoContinue(duti) || m_varSymbol->isFunctionParameter()) )
-	//if(duti != vit) //even if Hzy, e.g. func param (t3810)
-	else if((duti != vit) && ((m_state.okUTItoContinue(duti) && !m_state.isHolder(duti)) || m_varSymbol->isFunctionParameter()) )
+	else if((duti != vit) && ((m_state.okUTItoContinue(duti) && !m_state.isHolder(duti)) || m_varSymbol->isFunctionParameter())) //even if Hzy, e.g. func param (t3810)
 	  {
 	    std::ostringstream msg;
 	    msg << "REPLACING Symbol UTI" << vit;

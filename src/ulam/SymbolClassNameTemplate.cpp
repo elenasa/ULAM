@@ -858,21 +858,17 @@ namespace MFM {
 	while(i < basecount)
 	  {
 	    UTI baseuti = csym->getBaseClass(i);
-	    if(m_state.okUTItoContinue(baseuti) && !classNode->isBaseClassLinkReady(cuti,baseuti))
+	    if(m_state.okUTItoContinue(baseuti) && !classNode->isBaseClassBlockReady(cuti,baseuti))
 	      {
 		SymbolClass * basecsym = NULL;
 		if(m_state.alreadyDefinedSymbolClass(baseuti, basecsym))
 		  {
-		    //if(!basecsym->isStub())
-		    //if(!basecsym->isStub() && !m_state.isHolder(baseuti)) //20210726 ish
-		    //  classNode->setBaseClassBlockPointer(basecsym->getClassBlockNode(),i);
-		    //else
 		    if(basecsym->isStub() || m_state.isHolder(baseuti)) //20210726 ish
 		      aok = false;
 		  }
 	      }
 	    else
-	      aok = false; //???t41440 hazy
+	      aok = false; //? t41440 hazy
 	    i++;
 	  } //end while
 

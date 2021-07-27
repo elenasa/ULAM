@@ -162,7 +162,6 @@ namespace MFM {
 	    if(duti == Nav)
 	      it = Nav;
 	    else if(m_state.okUTItoContinue(duti) && (duti != it))
-	      //if((duti != it))
 	      {
 		std::ostringstream msg;
 		msg << "REPLACING Symbol UTI" << it;

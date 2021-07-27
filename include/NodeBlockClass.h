@@ -100,27 +100,7 @@ namespace MFM{
 
     void setMemberFunctionsSymbolTable(UTI cuti, NodeBlockClass& fromClassBlock);
 
-    //void clearBaseClassBlockList();
-
-    //void clearSharedBaseClassBlockList();
-
-    //void initBaseClassBlockList();
-
-    //void initSharedBaseClassBlockList();
-
-    //void setBaseClassBlockPointer(NodeBlockClass *, u32 item);
-
-    //void setSharedBaseClassBlockPointer(NodeBlockClass *, u32 item);
-
-    //NodeBlockClass * getBaseClassBlockPointer(u32 item);
-
-    //NodeBlockClass * getSharedBaseClassBlockPointer(u32 item);
-
-    //bool isBaseClassLinkReady(UTI cuti, u32 item);
-
-    //bool isSharedBaseClassLinkReady(UTI cuti, u32 item);
-
-    bool isBaseClassLinkReady(UTI cuti, UTI baseuti);
+    bool isBaseClassBlockReady(UTI cuti, UTI baseuti);
 
     virtual bool hasStringDataMembers();
 

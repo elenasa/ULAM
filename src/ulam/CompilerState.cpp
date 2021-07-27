@@ -662,15 +662,6 @@ namespace MFM {
 
 	initUTIAlias(uti);
       }
-#if 0
-    else
-      {
-	abortShouldntGetHere();
-	//AssertBool isDefined = anyDefinedUTI(key,uti);
-	//assert(isDefined);
-      }
-#endif
-
     return uti;
   } //makeUlamType
 
@@ -7467,9 +7458,8 @@ namespace MFM {
 		while(!hasHazyKin && (i < basecount))
 		  {
 		    UTI baseuti = csym->getBaseClass(i);
-		    //if(baseuti != Nouti) //super is optional
 		    if((baseuti != Nouti) && !isUrSelf(baseuti)) //super is optional, urSelf ok
-		      hasHazyKin = !((NodeBlockClass *) block)->isBaseClassLinkReady(buti,baseuti);
+		      hasHazyKin = !((NodeBlockClass *) block)->isBaseClassBlockReady(buti,baseuti);
 		    i++;
 		  } //end while
 		rtnb = hasHazyKin;

@@ -284,7 +284,7 @@ namespace MFM {
 
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     ULAMTYPE etyp = nut->getUlamTypeEnum();
-    if((etyp == Class)) //&& !isreferencetype
+    if((etyp == Class))
       {
 	rtnb = resolveClassType(nuti);
 	if(rtnb && isreferencetype && !m_state.isReference(nuti))
