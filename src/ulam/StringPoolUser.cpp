@@ -323,7 +323,7 @@ namespace MFM {
 
   void StringPoolUser::writeEscaped(File * fp, u8 c)
   {
-    if(!isgraph(c))
+    if(!isgraph(c) || c == '?') // '?' to avoid trigraph problems
       {
 	char tmp[8*3+1];
 	sprintf(tmp,"\\%03o",c);
