@@ -185,39 +185,47 @@ namespace MFM {
     // don't want to leave Nav dangling
     assert(m_nodeTypeDesc);
     if(m_nodeTypeDesc)
-      {
-	it = m_nodeTypeDesc->checkAndLabelType(this);
-      }
+      it = m_nodeTypeDesc->checkAndLabelType(this);
 
-    checkParameterNodeTypes();
-
-    if(!m_state.isComplete(it))
+    if(it == Nav)
       {
 	std::ostringstream msg;
-	msg << "Incomplete Function Return type: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-	msg << ", used with function name '" << getName() << "'";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	it = Hzy; //t3653
+	msg << "Invalid Function Return type ";
+	msg << "used with function name '" << getName() << "'";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
     else
       {
-	if(m_state.okUTItoContinue(it) && (fit != it)) //exact UTI match
-	{
-	  std::ostringstream msg;
-	  msg << "Resetting function symbol UTI" << fit;
-	  msg << ", " << m_state.getUlamTypeNameByIndex(fit).c_str();
-	  msg << " by type descriptor type: ";
-	  msg << m_state.getUlamTypeNameByIndex(it).c_str();
-	  msg << "' UTI" << it;
-	  msg << " used with function name '" << getName();
-	  msg <<  " while labeling class: ";
-	  msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	  //m_state.mapTypesInCurrentClass(fit, it);
-	  m_funcSymbol->resetUlamType(it); //consistent!
-	  //m_state.updateUTIAliasForced(fit, it); //Mon Jun  6 13:45:15 2016 ?
-	}
+	checkParameterNodeTypes();
+
+	if(!m_state.isComplete(it))
+	  {
+	    std::ostringstream msg;
+	    msg << "Incomplete Function Return type: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+	    msg << ", used with function name '" << getName() << "'";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	    it = Hzy; //t3653
+	  }
+	else
+	  {
+	    if(m_state.okUTItoContinue(it) && (fit != it)) //exact UTI match
+	      {
+		std::ostringstream msg;
+		msg << "Resetting function symbol UTI" << fit;
+		msg << ", " << m_state.getUlamTypeNameByIndex(fit).c_str();
+		msg << " by type descriptor type: ";
+		msg << m_state.getUlamTypeNameByIndex(it).c_str();
+		msg << "' UTI" << it;
+		msg << " used with function name '" << getName();
+		msg <<  " while labeling class: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		//m_state.mapTypesInCurrentClass(fit, it);
+		m_funcSymbol->resetUlamType(it); //consistent!
+		//m_state.updateUTIAliasForced(fit, it); //Mon Jun  6 13:45:15 2016 ?
+	      }
+	  }
       }
 
     setNodeType(it);

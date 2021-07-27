@@ -323,7 +323,9 @@ namespace MFM {
 	  }
 
 	UTI duti = m_nodeTypeDesc->checkAndLabelType(this); //clobbers any expr it
-	if(m_state.okUTItoContinue(duti) && (suti != duti))
+	if(duti == Nav)
+	  suti = Nav;
+	else if(m_state.okUTItoContinue(duti) && (suti != duti))
 	  {
 	    std::ostringstream msg;
 	    msg << "REPLACING Symbol UTI" << suti;
@@ -353,13 +355,21 @@ namespace MFM {
     if(!m_state.okUTItoContinue(suti) || !m_state.isComplete(suti))
       {
 	std::ostringstream msg;
-	msg << "Incomplete Constant Def for type";
+	if(suti == Nav)
+	  msg << "Invalid Constant Def type ";
+	else
+	  msg << "Incomplete Constant Def for type";
 	if(m_state.okUTItoContinue(suti) && !m_state.isHolder(suti))
 	  msg << ": " << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
 	msg << " used with symbol name '" << getName() << "'";
 	//msg << " while compiling UTI" << cuti;
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	suti = Hzy; //since not error; wait to goagain until not Nav
+	if(suti == Nav)
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	else
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	    suti = Hzy; //since not error; wait to goagain until not Nav
+	  }
       }
 
     ULAMTYPE etyp = m_state.getUlamTypeByIndex(suti)->getUlamTypeEnum();

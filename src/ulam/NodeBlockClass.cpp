@@ -14,7 +14,7 @@ namespace MFM {
     assert(m_nodeParameterList);
     m_nodeArgumentList = new NodeList(state);
     assert(m_nodeArgumentList);
-    initBaseClassBlockList();
+    //    initBaseClassBlockList();
     updateLineage(0); //t41228?
   }
 
@@ -27,7 +27,7 @@ namespace MFM {
     assert(m_nodeParameterList);
     m_nodeArgumentList = new NodeList(m_state);
     assert(m_nodeArgumentList);
-    initBaseClassBlockList();
+    //initBaseClassBlockList();
     m_state.popClassContext();
   }
 
@@ -37,8 +37,8 @@ namespace MFM {
     m_nodeParameterList = NULL;
     delete m_nodeArgumentList;
     m_nodeArgumentList = NULL;
-    clearBaseClassBlockList();
-    clearSharedBaseClassBlockList();
+    //clearBaseClassBlockList();
+    //clearSharedBaseClassBlockList();
   }
 
   Node * NodeBlockClass::instantiate()
@@ -259,8 +259,11 @@ namespace MFM {
 	//skip UrSelf to avoid extensive changes to all test answers
 	if(m_state.okUTItoContinue(superuti) && !m_state.isUrSelf(superuti))
 	  {
-	    NodeBlockClass * superblock = getBaseClassBlockPointer(0);
-	    if(!isBaseClassLinkReady(cuti,0))
+	    //NodeBlockClass * superblock = getBaseClassBlockPointer(0);
+	    NodeBlockClass * superblock = m_state.getAClassBlock(superuti);
+	    //if(!isBaseClassLinkReady(cuti,0))
+	    //if(m_state.isClassAStub(superuti))
+	    if(!isBaseClassLinkReady(cuti, superuti))
 	      {
 		//use SCN instead of SC in case of stub (use template's classblock)
 		SymbolClassName * supercnsym = NULL;
@@ -284,9 +287,12 @@ namespace MFM {
 	while(i < basecount)
 	  {
 	    UTI baseuti = csym->getBaseClass(i);
-	    NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
+	    //NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
+	    NodeBlockClass * basecblock = m_state.getAClassBlock(baseuti);
 
-	    if(!isBaseClassLinkReady(cuti, i))
+	    //if(!isBaseClassLinkReady(cuti, i))
+	    //if(m_state.isClassAStub(baseuti))
+	    if(!isBaseClassLinkReady(cuti, baseuti))
 	      {
 		//use SCN instead of SC in case of stub (use template's classblock)
 		SymbolClassName * basecnsym = NULL;
@@ -312,9 +318,12 @@ namespace MFM {
 	    UTI baseuti = csym->getSharedBaseClass(j);
 	    if(!m_state.isUrSelf(baseuti))
 	      {
-		NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(j);
+		//NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(j);
+		NodeBlockClass * shbasecblock = m_state.getAClassBlock(baseuti);
 
-		if(!isSharedBaseClassLinkReady(cuti, j))
+		//if(!isSharedBaseClassLinkReady(cuti, j))
+		//if(m_state.isClassAStub(baseuti))
+		if(!isBaseClassLinkReady(cuti, baseuti))
 		  {
 		    //use SCN instead of SC in case of stub (use template's classblock)
 		    SymbolClassName * basecnsym = NULL;
@@ -359,7 +368,8 @@ namespace MFM {
 	//skip UrSelf to avoid extensive changes to all test answers
 	if(m_state.okUTItoContinue(superuti) && !m_state.isUrSelf(superuti))
 	  {
-	    NodeBlockClass * superblock = getBaseClassBlockPointer(0);
+	    //NodeBlockClass * superblock = getBaseClassBlockPointer(0);
+	    NodeBlockClass * superblock = m_state.getAClassBlock(superuti);
 	    assert(superblock && UlamType::compare(superblock->getNodeType(), superuti, m_state) == UTIC_SAME);
 	    u32 relpos = csym->getBaseClassRelativePosition(0);
 	    fp->write(" :");
@@ -375,7 +385,8 @@ namespace MFM {
 	while(i < basecount)
 	  {
 	    UTI baseuti = csym->getBaseClass(i);
-	    NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
+	    //NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
+	    NodeBlockClass * basecblock = m_state.getAClassBlock(baseuti);
 	    assert(basecblock && UlamType::compare(basecblock->getNodeType(), baseuti, m_state) == UTIC_SAME);
 	    u32 relpos = csym->getBaseClassRelativePosition(i);
 	    fp->write(" +");
@@ -394,7 +405,8 @@ namespace MFM {
 	    UTI baseuti = csym->getSharedBaseClass(j);
 	    if(!m_state.isUrSelf(baseuti)) //t3102
 	      {
-		NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(j);
+		//NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(j);
+		NodeBlockClass * shbasecblock = m_state.getAClassBlock(baseuti);
 		assert(shbasecblock && UlamType::compare(shbasecblock->getNodeType(), baseuti, m_state) == UTIC_SAME);
 
 		s32 bitem = csym->isABaseClassItem(baseuti);
@@ -462,8 +474,11 @@ namespace MFM {
 	//skip UrSelf to avoid extensive changes to all test answers
 	if(m_state.okUTItoContinue(superuti) && !m_state.isUrSelf(superuti))
 	  {
-	    NodeBlockClass * superblock = getBaseClassBlockPointer(0);
-	    if(!isBaseClassLinkReady(cuti, 0))
+	    //NodeBlockClass * superblock = getBaseClassBlockPointer(0);
+	    NodeBlockClass * superblock = m_state.getAClassBlock(superuti);
+	    //if(!isBaseClassLinkReady(cuti, 0))
+	    //if(m_state.isClassAStub(superuti))
+	    if(!isBaseClassLinkReady(cuti, superuti))
 	      {
 		//use SCN instead of SC in case of stub (use template's classblock)
 		SymbolClassName * supercnsym = NULL;
@@ -481,9 +496,12 @@ namespace MFM {
 	while(i < basecount)
 	  {
 	    UTI baseuti = csym->getBaseClass(i);
-	    NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
+	    //NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
+	    NodeBlockClass * basecblock = m_state.getAClassBlock(baseuti);
 
-	    if(!isBaseClassLinkReady(cuti, i))
+	    //if(!isBaseClassLinkReady(cuti, i))
+	    //	    if(m_state.isClassAStub(baseuti))
+	    if(!isBaseClassLinkReady(cuti, baseuti))
 	      {
 		//use SCN instead of SC in case of stub (use template's classblock)
 		SymbolClassName * basecnsym = NULL;
@@ -502,9 +520,12 @@ namespace MFM {
 	while(j < sharedbasecount)
 	  {
 	    UTI sbaseuti = csym->getSharedBaseClass(j);
-	    NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(j);
+	    //NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(j);
+	    NodeBlockClass * shbasecblock = m_state.getAClassBlock(sbaseuti);
 
-	    if(!isSharedBaseClassLinkReady(cuti, j))
+	    //if(!isSharedBaseClassLinkReady(cuti, j))
+	    //if(m_state.isClassAStub(sbaseuti))
+	    if(!isBaseClassLinkReady(cuti, sbaseuti))
 	      {
 		//use SCN instead of SC in case of stub (use template's classblock)
 		SymbolClassName * basecnsym = NULL;
@@ -600,6 +621,7 @@ namespace MFM {
     assert(m_functionST.getTableSize()==fromtablesize);
   }
 
+#if 0
   NodeBlockClass * NodeBlockClass::getBaseClassBlockPointer(u32 item)
   {
     if(item < m_nodeBaseClassBlockList.size())
@@ -698,6 +720,45 @@ namespace MFM {
       }
     return false;
   } //isSharedBaseClassLinkReady
+#endif
+
+  bool NodeBlockClass::isBaseClassLinkReady(UTI cuti, UTI baseuti)
+  {
+#if 0
+    //call for known subclasses only
+    SymbolClass * csym = NULL;
+    if(!m_state.alreadyDefinedSymbolClass(cuti, csym))
+      return false;
+#endif
+
+    if(!m_state.okUTItoContinue(baseuti))
+      return false; //t41013 (for super)
+
+    if(m_state.isHolder(baseuti))
+      return false; //t3756,7, t3865,t3889...
+
+    if(!m_state.isAClass(baseuti))
+      return false; //holder turned into primitive (t41517, t41519);
+
+    //assert(m_state.isARootUTI(baseuti)); //sanity? nope, used by checkHazyKin
+
+#if 1
+    if(m_state.isClassAStub(baseuti))
+      return false; //t41435;t3565,t3652,t41007,t41221,2,t41476;t41298,9;
+#endif
+
+    NodeBlockClass * basecblock = m_state.getAClassBlock(baseuti);
+    if(basecblock == NULL)
+      return false;
+
+    UTI sblockuti = basecblock->getNodeType();
+    if(!m_state.okUTItoContinue(sblockuti))
+      return false;
+
+    ULAMTYPECOMPARERESULTS cmpresult = UlamType::compare(sblockuti, baseuti, m_state);
+    return !(cmpresult != UTIC_SAME);
+
+  } //isBaseClassLinkReady
 
   bool NodeBlockClass::hasStringDataMembers()
   {
@@ -713,7 +774,8 @@ namespace MFM {
 	    //skip UrSelf to avoid extensive changes to all test answers
 	    if((superuti != Nouti) && !m_state.isUrSelf(superuti))
 	      {
-		NodeBlockClass * superblock = getBaseClassBlockPointer(0);
+		//NodeBlockClass * superblock = getBaseClassBlockPointer(0);
+		NodeBlockClass * superblock = m_state.getAClassBlock(superuti);
 		if(superblock != NULL)
 		  hasStrings |= superblock->hasStringDataMembers();
 	      }
@@ -723,7 +785,9 @@ namespace MFM {
 	    u32 i = 1;
 	    while(!hasStrings && (i < basecount))
 	      {
-		NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
+		UTI baseuti = csym->getBaseClass(i);
+		//NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
+		NodeBlockClass * basecblock = m_state.getAClassBlock(baseuti);
 		if(basecblock != NULL)
 		  hasStrings |= basecblock->hasStringDataMembers();
 		i++;
@@ -734,7 +798,9 @@ namespace MFM {
 	    u32 j = 0;
 	    while(!hasStrings && (j < shbasecount))
 	      {
-		NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(j);
+		UTI baseuti = csym->getSharedBaseClass(j);
+		//NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(j);
+		NodeBlockClass * shbasecblock = m_state.getAClassBlock(baseuti);
 		if(shbasecblock != NULL)
 		  hasStrings |= shbasecblock->hasStringDataMembers();
 		j++;
@@ -833,11 +899,12 @@ namespace MFM {
 			msg << m_state.getUlamTypeNameBriefByIndex(baseuti).c_str();
 			msg << "': same types";
 			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-			setBaseClassBlockPointer(NULL, i);
+			//setBaseClassBlockPointer(NULL, i);
 			errs |= true;
 		      }
 		    else
 		      {
+			m_state.findRootUTIAlias(mappedUTI, mappedUTI); //con't w root
 			//if(baseuti!=mappedUTI) //t41431, t41517
 			if((UlamType::compare(mappedUTI, baseuti, m_state) != UTIC_SAME) && !m_state.isClassAStubCopy(mappedUTI))
 			  {
@@ -850,7 +917,7 @@ namespace MFM {
 			    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
 			    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 			    //need to break the chain; e.g. don't want template symbol addresses used
-			    setBaseClassBlockPointer(NULL, i); //force to try again!! avoid inf loop
+			    //  setBaseClassBlockPointer(NULL, i); //force to try again!! avoid inf loop
 			    m_state.resetABaseClassItem(nuti, baseuti, mappedUTI, i); //t41448,t41452 stubcopy
 			    baseuti = mappedUTI;
 			  }//else
@@ -867,7 +934,7 @@ namespace MFM {
 		      msg << "invalid baseclass (" << i << ") for class '";
 		    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str() << "'";
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		    setBaseClassBlockPointer(NULL, i); //t41517
+		    //setBaseClassBlockPointer(NULL, i); //t41517
 		    m_state.resetABaseClassItem(nuti, baseuti, Nav, i); //t3554?
 		    errs |= true;
 		  }
@@ -898,7 +965,7 @@ namespace MFM {
 			  msg << " invalid baseclass (" << i << ") for class '";
 			msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str() << "'";
 			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-			setBaseClassBlockPointer(NULL, i);
+			//setBaseClassBlockPointer(NULL, i);
 			m_state.resetABaseClassItem(nuti, baseuti, Nav, i);
 			errs |= true;
 		      }
@@ -913,7 +980,8 @@ namespace MFM {
 
 
 	//this is a subclass.
-	if(!isBaseClassLinkReady(nuti, i))
+	//if(!isBaseClassLinkReady(nuti, i))
+	if(!isBaseClassLinkReady(nuti, baseuti))
 	  {
 	    if((baseuti != Nouti) && !m_state.isComplete(baseuti))
 	      {
@@ -960,7 +1028,7 @@ namespace MFM {
 		//msg << " (UTI " << baseuti << ")";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 		//need to break the chain; e.g. don't want template symbol addresses used
-		setBaseClassBlockPointer(NULL, i); //force to try again!! avoid inf loop
+		//setBaseClassBlockPointer(NULL, i); //force to try again!! avoid inf loop
 	      }
 	  }
 	i++;
@@ -983,7 +1051,9 @@ namespace MFM {
 		    //shouldn't happen, caught at parse time (t3900, t3901)
 		    assert(UlamType::compare(nuti, baseuti, m_state) != UTIC_SAME);
 
-		    if(baseuti!=mappedUTI)
+		    m_state.findRootUTIAlias(mappedUTI, mappedUTI); //con't w root
+		    //if(baseuti != mappedUTI)
+		    if(UlamType::compare(baseuti, mappedUTI, m_state) == UTIC_NOTSAME)
 		      {
 			std::ostringstream msg;
 			msg << "Substituting mapped UTI" << mappedUTI;
@@ -994,7 +1064,7 @@ namespace MFM {
 			msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
 			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 			//need to break the chain; e.g. don't want template symbol addresses used
-			setSharedBaseClassBlockPointer(NULL, j); //force to try again!! avoid inf loop
+			//setSharedBaseClassBlockPointer(NULL, j); //force to try again!! avoid inf loop
 			m_state.resetABaseClassType(nuti, baseuti, mappedUTI);
 			baseuti = mappedUTI;
 		      }
@@ -1003,7 +1073,7 @@ namespace MFM {
 	      }
 
 	    //this is a subclass.
-	    if(!isSharedBaseClassLinkReady(nuti, j))
+	    if(!isBaseClassLinkReady(nuti, baseuti))
 	      {
 		//not a direct shared base
 		if(!m_state.isComplete(baseuti))
@@ -1051,7 +1121,7 @@ namespace MFM {
 		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 		    //else drop msg
 		    //need to break the chain; e.g. don't want template symbol addresses used
-		    setSharedBaseClassBlockPointer(NULL, j); //force to try again!! avoid inf loop
+		    //setSharedBaseClassBlockPointer(NULL, j); //force to try again!! avoid inf loop
 		  }
 	      }
 	  }
@@ -1073,6 +1143,7 @@ namespace MFM {
 
     //o.w. continue..
 
+
     //bool errs = false;
     i = 0;
     while(i < basecount)
@@ -1085,11 +1156,12 @@ namespace MFM {
 	if(m_state.alreadyDefinedSymbolClass(baseuti, basecsym))
 	  {
 	    NodeBlockClass * baseclassblock = basecsym->getClassBlockNode();
-	    setBaseClassBlockPointer(baseclassblock, i); //fixed
+	    //setBaseClassBlockPointer(baseclassblock, i); //fixed
 
-	    if(!isBaseClassLinkReady(nuti, i))
+	    //if(!isBaseClassLinkReady(nuti, i))
+	    if(!isBaseClassLinkReady(nuti, baseuti))
 	      {
-		setBaseClassBlockPointer(NULL, i); //force to try again!! avoid inf loop
+		//setBaseClassBlockPointer(NULL, i); //force to try again!! avoid inf loop
 		std::ostringstream msg;
 		msg << "Subclass '";
 		msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
@@ -1126,11 +1198,12 @@ namespace MFM {
 	if(m_state.alreadyDefinedSymbolClass(baseuti, basecsym))
 	  {
 	    NodeBlockClass * baseclassblock = basecsym->getClassBlockNode();
-	    setSharedBaseClassBlockPointer(baseclassblock, j); //fixed
+	    //setSharedBaseClassBlockPointer(baseclassblock, j); //fixed
 
-	    if(!isSharedBaseClassLinkReady(nuti, j))
+	    //if(!isSharedBaseClassLinkReady(nuti, j))
+	    if(!isBaseClassLinkReady(nuti, baseuti))
 	      {
-		setSharedBaseClassBlockPointer(NULL, j); //force to try again!! avoid inf loop
+		//setSharedBaseClassBlockPointer(NULL, j); //force to try again!! avoid inf loop
 		std::ostringstream msg;
 		msg << "Subclass '";
 		msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
@@ -1568,9 +1641,9 @@ namespace MFM {
 	UTI baseuti = csym->getBaseClass(i);
 	if(baseuti != Nouti)
 	  {
-	    NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
-	    if(!basecblock)
-	      basecblock = m_state.getAClassBlock(baseuti);
+	    //NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
+	    //if(!basecblock)
+	    NodeBlockClass * basecblock = m_state.getAClassBlock(baseuti);
 	    assert(basecblock);
 
 	    s32 basesmaxidx = basecblock->getVirtualMethodMaxIdx();
@@ -1654,7 +1727,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 	assert(baseuti != Hzy);
 	if(baseuti != Nouti)
 	  {
-	    NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
+	    //NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
+	    NodeBlockClass * basecblock = m_state.getAClassBlock(baseuti);
 	    if(!basecblock) //might be during resolving loop, not set yet
 	      {
 		std::ostringstream msg;
@@ -1710,9 +1784,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 		UTI baseuti = csym->getBaseClass(i);
 		if(baseuti != Nouti)
 		  {
-		    NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
-		    if(!basecblock)
-		      basecblock = m_state.getAClassBlock(baseuti); //t3549
+		    //NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
+		    //if(!basecblock)
+		    NodeBlockClass *  basecblock = m_state.getAClassBlock(baseuti); //t3549
 		    assert(basecblock);
 		    catype = basecblock->getCustomArrayTypeFromGetFunction(baseuti);
 		  }
@@ -1758,9 +1832,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 		UTI baseuti = csym->getBaseClass(i);
 		if(baseuti != Nouti)
 		  {
-		    NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
-		    if(!basecblock)
-		      basecblock = m_state.getAClassBlock(baseuti);
+		    //NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
+		    //if(!basecblock)
+		    NodeBlockClass * basecblock = m_state.getAClassBlock(baseuti);
 		    assert(basecblock);
 		    bool tmphzyargs = false;
 		    camatches += basecblock->getCustomArrayIndexTypeFromGetFunction(baseuti, rnode, idxuti, tmphzyargs);
@@ -1813,9 +1887,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 	    UTI baseuti = csym->getBaseClass(i);
 	    if(baseuti != Nouti)
 	      {
-		NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
-		if(!basecblock)
-		  basecblock = m_state.getAClassBlock(baseuti);
+		//NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
+		//if(!basecblock)
+		NodeBlockClass * basecblock = m_state.getAClassBlock(baseuti);
 		assert(basecblock);
 		camatch += basecblock->hasCustomArrayLengthofFunction(baseuti);
 	      }
@@ -1937,9 +2011,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 	UTI baseuti = csym->getBaseClass(i);
 	if(baseuti != Nouti)
 	  {
-	    NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
-	    if(!basecblock)
-	      basecblock = m_state.getAClassBlock(baseuti);
+	    //NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
+	    //if(!basecblock)
+	    NodeBlockClass * basecblock = m_state.getAClassBlock(baseuti);
 	    assert(basecblock);
 	    aok &= basecblock->buildDefaultValueForClassConstantDefs();
 	  }
@@ -2066,9 +2140,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 	UTI baseuti = csym->getBaseClass(i);
 	if((baseuti != Nouti) && !csym->isDirectSharedBase(i))
 	  {
-	    NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
-	    if(!basecblock)
-	      basecblock = m_state.getAClassBlock(baseuti);
+	    //NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
+	    //if(!basecblock)
+	    NodeBlockClass * basecblock = m_state.getAClassBlock(baseuti);
 	    assert(basecblock);
 	    supers += basecblock->getSizeOfSymbolsInTable();
 	  }
@@ -2086,7 +2160,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 	    UTI baseuti = csym->getSharedBaseClass(i);
 	    if(baseuti != Nouti)
 	      {
-		NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(j);
+		//NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(j);
+		NodeBlockClass * shbasecblock = m_state.getAClassBlock(baseuti);
 		assert(shbasecblock);
 		supers += shbasecblock->getSizeOfSymbolsInTable();
 	      }
@@ -2246,9 +2321,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 	UTI baseuti = csym->getBaseClass(i);
 	if((baseuti != Nouti) && !csym->isDirectSharedBase(i))
 	  {
-	    NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
-	    if(!basecblock)
-	      basecblock = m_state.getAClassBlock(baseuti);
+	    //NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
+	    //if(!basecblock)
+	    NodeBlockClass * basecblock = m_state.getAClassBlock(baseuti);
 	    assert(basecblock);
 	    superfs += basecblock->getSizeOfFuncSymbolsInTable();
 	  }
@@ -2266,7 +2341,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 	    UTI baseuti = csym->getSharedBaseClass(j);
 	    if(baseuti != Nouti)
 	      {
-		NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(j);
+		//NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(j);
+		NodeBlockClass * shbasecblock = m_state.getAClassBlock(baseuti);
 		assert(shbasecblock);
 		superfs += shbasecblock->getSizeOfFuncSymbolsInTable();
 	      }
@@ -2372,7 +2448,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 
 	if((baseuti != Nouti))// && !csym->isDirectSharedBase(i))
 	  {
-	    NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
+	    //NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
+	    NodeBlockClass * basecblock = m_state.getAClassBlock(baseuti);
 	    if(!basecblock)
 	      {
 		std::ostringstream msg;
@@ -2440,13 +2517,15 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 	    if((baseuti != Nouti))
 	      {
 		//not a direct shared base
-		NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(j);
+		//NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(j);
+		NodeBlockClass * shbasecblock = m_state.getAClassBlock(baseuti);
 		if(!shbasecblock)
 		  {
 		    //check again in case first time was before shared basecount set
 		    //(i.e. nuti incomplete) t41485
 		    checkMultipleInheritances();
-		    shbasecblock = getSharedBaseClassBlockPointer(j);
+		    //shbasecblock = getSharedBaseClassBlockPointer(j);
+		    shbasecblock = m_state.getAClassBlock(baseuti);
 
 		    if(!shbasecblock)
 		      {
@@ -2671,9 +2750,12 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 	UTI baseuti = csym->getBaseClass(i);
 	if(m_state.okUTItoContinue(baseuti)) //skips implicit/default super here
 	  {
-	    NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
-
-	    if(!isBaseClassLinkReady(cuti, i))
+	    //NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
+	    NodeBlockClass * basecblock = m_state.getAClassBlock(baseuti);
+#if 1
+	    //if(!isBaseClassLinkReady(cuti, i))
+	    //if(m_state.isClassAStub(baseuti))
+	    if(!isBaseClassLinkReady(cuti, baseuti))
 	      {
 		//use SCN instead of SC in case of stub (use template's classblock)
 		SymbolClassName * basecnsym = NULL;
@@ -2681,6 +2763,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 		assert(isDefined);
 		basecblock = basecnsym->getClassBlockNode();
 	      }
+#endif
 	    assert(basecblock);
 	    bool dupflag = csym->isADuplicateBaseClass(i);
 	    s32 pos = csym->getBaseClassRelativePosition(i);
@@ -2695,8 +2778,12 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
     while(j < shbasecount)
       {
 	UTI baseuti = csym->getSharedBaseClass(j);
-	NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(j);
-	if(!isSharedBaseClassLinkReady(cuti, j))
+	//NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(j);
+	NodeBlockClass * shbasecblock = m_state.getAClassBlock(baseuti);
+
+	//if(!isSharedBaseClassLinkReady(cuti, j))
+	//if(m_state.isClassAStub(baseuti))
+	if(!isBaseClassLinkReady(cuti, baseuti))
 	  {
 	    //use SCN instead of SC in case of stub (use template's classblock)
 	    SymbolClassName * basecnsym = NULL;
@@ -4916,7 +5003,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 	if(baseuti != Nouti)
 	  {
 	    //then include any of its relatives:
-	    NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
+	    //NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
+	    NodeBlockClass * basecblock = m_state.getAClassBlock(baseuti);
 	    if(!basecblock)
 	      basecblock = m_state.getAClassBlock(baseuti);
 	    assert(basecblock);
@@ -4939,7 +5027,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 	    s32 bitem = csym->isABaseClassItem(baseuti);
 	    if(bitem < 0)
 	      {
-		NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(j);
+		//NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(j);
+		NodeBlockClass * shbasecblock = m_state.getAClassBlock(baseuti);
 		assert(shbasecblock);
 		shbasecblock->generateUlamClassInfo(fp, declOnly, dmcount);
 	      }
@@ -5314,9 +5403,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 	if(baseuti != Nouti)
 	  {
 	    //then include any of its relatives:
-	    NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
-	    if(!basecblock)
-	      basecblock = m_state.getAClassBlock(baseuti);
+	    //NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
+	    //if(!basecblock)
+	    NodeBlockClass * basecblock = m_state.getAClassBlock(baseuti);
 	    assert(basecblock);
 	    basecblock->generateTestInstance(fp, runtest);
 	  }
@@ -5333,7 +5422,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 	if(baseuti != Nouti)
 	  {
 	    //then include any of its relatives:
-	    NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(j);
+	    //NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(j);
+	    NodeBlockClass * shbasecblock = m_state.getAClassBlock(baseuti);
 	    assert(shbasecblock);
 	    shbasecblock->generateTestInstance(fp, runtest);
 	  }

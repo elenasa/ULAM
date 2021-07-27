@@ -318,7 +318,7 @@ namespace MFM {
 	    nuti = kuti;
 	  }
 
-	//maybe a culam-generated typedef.. (t3565)
+	//maybe a culam-generated typedef holder.. (t3565)
 	if(nuti == Hzy)
 	  {
 	    UTI tduti = Nouti;
@@ -374,6 +374,16 @@ namespace MFM {
 	    derefuti = nuti; //t41491
 	    nuti = givenUTI();
 	    assert(nuti != derefuti);
+	  }
+	else if(derefuti == nuti)
+	  {
+	    UTI mappedUTI = nuti;
+	    if(m_state.findRootUTIAlias(nuti, mappedUTI))
+	      {
+		derefuti = mappedUTI; //t41298,9 ?
+	      }
+	    else
+	      return false;
 	  }
 	else
 	  return false;
@@ -657,7 +667,7 @@ namespace MFM {
 	rtnb = resolveTypeBitsize(nuti);
       }
 
-    if(!m_state.okUTItoContinue(nuti))
+    if(nuti == Hzy) //t41203, nav returned
       {
 	u32 tokid = m_state.getTokenDataAsStringId(m_typeTok);
 	UTI tduti = Nouti;

@@ -100,16 +100,19 @@ quark SubQ : QContent {
 
 transient SPLATKeyState_10QContent_Dot : SPLATKeyStateAny {
 } // transient SPLATKeyState_10QContent_Dot
+
 transient SPLATKeyState_10QContent_At : SPLATKeyStateSelf {
   // check @  : random.oneIn(100)    // 1% death rate when isolated
   Bool check(SPLATRuleSet & splATTROoB__rs) {
-  return (
-  random.oneIn(100)    // 1% death rate when isolated
-  );
+    return (
+	    random.oneIn(100)    // 1% death rate when isolated
+	    );
   }
 } // transient SPLATKeyState_10QContent_At
+
 transient SPLATKeyState_10QContent_Underline : SPLATKeyStateEmpty {
 } // transient SPLATKeyState_10QContent_Underline
+
 transient SPLATKeyState_10QContent_n : SPLATKeyState {
   // given n  : !(ew[$cursn] is QContent) && !(ew[$cursn] is InnerMembrane)
   Bool given(SPLATRuleSet & splATTROoB__rs, SN splATTROoB__cursn, Atom & splATTROoB__curatom) {

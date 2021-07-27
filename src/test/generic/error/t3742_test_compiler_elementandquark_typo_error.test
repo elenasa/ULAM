@@ -2,7 +2,7 @@
 #=t3742_test_compiler_elementandquark_typo_error
 #!
 ./Eltypo.ulam:13:19: ERROR: Typedef 'ElTypo' in class Eltypo remains undefined.
-./Eltypo.ulam:13:16: ERROR: Righthand type of conditional operator 'is' is still incomplete.
+./Eltypo.ulam:13:16: ERROR: Incomplete righthand type of conditional operator 'is' ElTypo.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by safe/t3741, (see t3370)

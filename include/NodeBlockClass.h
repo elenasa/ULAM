@@ -100,26 +100,27 @@ namespace MFM{
 
     void setMemberFunctionsSymbolTable(UTI cuti, NodeBlockClass& fromClassBlock);
 
-    void clearBaseClassBlockList();
+    //void clearBaseClassBlockList();
 
-    void clearSharedBaseClassBlockList();
+    //void clearSharedBaseClassBlockList();
 
-    void initBaseClassBlockList();
+    //void initBaseClassBlockList();
 
-    void initSharedBaseClassBlockList();
+    //void initSharedBaseClassBlockList();
 
-    void setBaseClassBlockPointer(NodeBlockClass *, u32 item);
+    //void setBaseClassBlockPointer(NodeBlockClass *, u32 item);
 
-    void setSharedBaseClassBlockPointer(NodeBlockClass *, u32 item);
+    //void setSharedBaseClassBlockPointer(NodeBlockClass *, u32 item);
 
-    NodeBlockClass * getBaseClassBlockPointer(u32 item);
+    //NodeBlockClass * getBaseClassBlockPointer(u32 item);
 
-    NodeBlockClass * getSharedBaseClassBlockPointer(u32 item);
+    //NodeBlockClass * getSharedBaseClassBlockPointer(u32 item);
 
-    bool isBaseClassLinkReady(UTI cuti, u32 item);
+    //bool isBaseClassLinkReady(UTI cuti, u32 item);
 
-    bool isSharedBaseClassLinkReady(UTI cuti, u32 item);
+    //bool isSharedBaseClassLinkReady(UTI cuti, u32 item);
 
+    bool isBaseClassLinkReady(UTI cuti, UTI baseuti);
 
     virtual bool hasStringDataMembers();
 
@@ -240,8 +241,8 @@ namespace MFM{
 
   private:
 
-    std::vector<NodeBlockClass *> m_nodeBaseClassBlockList; // NodeBlockClass * m_superBlockNode;
-    std::vector<NodeBlockClass *> m_nodeSharedBaseClassBlockList; // NodeBlockClass * m_superBlockNode;
+    //std::vector<NodeBlockClass *> m_nodeBaseClassBlockList; // NodeBlockClass * m_superBlockNode;
+    //std::vector<NodeBlockClass *> m_nodeSharedBaseClassBlockList; // NodeBlockClass * m_superBlockNode;
 
     bool m_buildingDefaultValueInProgress;
     bool m_bitPackingInProgress;

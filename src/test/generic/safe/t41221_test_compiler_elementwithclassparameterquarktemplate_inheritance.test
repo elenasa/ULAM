@@ -12,7 +12,7 @@ Exit status: 2
 Ue_T { Int test() {  System sys;  E(true) et;  sys ( et 2 . )print . sys ( et 2 . 2 cast == )assert . sys ( et b . cast )print . sys ( et b . )assert . E(false) ef;  sys ( ef 2 . )print . sys ( ef 2 . 2 cast == )assert . sys ( ef b . cast )print . sys ( ef b . )assert . et 2 . cast return } }
 Uq_System { <NOMAIN> }
 Ue_E(Bool bp) : S(true) { /* empty class block */ }
-Uq_S(Bool bp) : Q(true) { constant Int(4) csi = bp ?  2 :  3;  :Q11< Bool b(notready);  Int(4) i(0); > <NOMAIN> }
+Uq_S(Bool bp) : Q(true) { constant Int(4) csi = bp ?  2 :  3;  :Q(true)< Bool b( 1u);  Int(4) i(0); > <NOMAIN> }
 Uq_Q(Bool flag) { Bool b(notready);  Int(4) i(0);  <NOMAIN> }
 ##
 ##    //informed by t41209, except using double inheritance; and a local constant in S (bugger)

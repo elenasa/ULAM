@@ -158,8 +158,10 @@ namespace MFM {
 	UTI cuti = m_state.getCompileThisIdx();
 	if(m_nodeTypeDesc)
 	  {
-	    UTI duti = m_nodeTypeDesc->checkAndLabelType(this); //sets goagain if nav
-	    if(m_state.okUTItoContinue(duti) && (duti != it))
+	    UTI duti = m_nodeTypeDesc->checkAndLabelType(this); //sets goagain if nav??
+	    if(duti == Nav)
+	      it = Nav;
+	    else if(m_state.okUTItoContinue(duti) && (duti != it))
 	      //if((duti != it))
 	      {
 		std::ostringstream msg;
@@ -186,7 +188,10 @@ namespace MFM {
 	if(!m_state.okUTItoContinue(it) || !m_state.isComplete(it)) //reloads
 	  {
 	    std::ostringstream msg;
-	    msg << "Incomplete Typedef used with alias name '";
+	    if(it == Nav)
+	      msg << "Invalid Typedef used with alias name '"; //t41408
+	    else
+	      msg << "Incomplete Typedef used with alias name '";
 	    msg << getName() << "'";
 	    if(m_state.okUTItoContinue(it) || m_state.isStillHazy(it)) //t41288,t41448
 	      {

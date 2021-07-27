@@ -193,6 +193,15 @@ namespace MFM {
       {
 	//might be a mapped uti for instantiated template class
 	tobeType = m_nodeTypeDesc->checkAndLabelType(this);
+	if(tobeType == Nav)
+	  {
+	    std::ostringstream msg;
+	    msg << "Cannot cast erroneous type tobe" ;
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    setNodeType(Nav);
+	    return Nav; //short-circuit
+	  }
+
 	setCastType(tobeType); //overrides type set at parse time
 	if(!m_nodeTypeDesc->isReadyType())
 	  {

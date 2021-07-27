@@ -750,7 +750,7 @@ namespace MFM {
 	// class instance's prev classblock is linked to its template's when stub is made.
 	// later, during c&l if a subclass, the super ptr gets the classblock of superclass
 	initBaseClassListForAStubClassInstance(csym); //t41527
-	cblock->initBaseClassBlockList(); //wait for c&l when no longer a stub
+	//cblock->initBaseClassBlockList(); //wait for c&l when no longer a stub
 
 	//makeAStub patches in data members after arguments fixed (t3895)
 	csym->partialInstantiationOfMemberNodesAndSymbols(*templateclassblock);
@@ -858,15 +858,16 @@ namespace MFM {
 	while(i < basecount)
 	  {
 	    UTI baseuti = csym->getBaseClass(i);
-	    if(m_state.okUTItoContinue(baseuti) && !classNode->isBaseClassLinkReady(cuti,i))
+	    if(m_state.okUTItoContinue(baseuti) && !classNode->isBaseClassLinkReady(cuti,baseuti))
 	      {
 		SymbolClass * basecsym = NULL;
 		if(m_state.alreadyDefinedSymbolClass(baseuti, basecsym))
 		  {
 		    //if(!basecsym->isStub())
-		    if(!basecsym->isStub() && !m_state.isHolder(baseuti)) //20210726 ish
-		      classNode->setBaseClassBlockPointer(basecsym->getClassBlockNode(),i);
-		    else
+		    //if(!basecsym->isStub() && !m_state.isHolder(baseuti)) //20210726 ish
+		    //  classNode->setBaseClassBlockPointer(basecsym->getClassBlockNode(),i);
+		    //else
+		    if(basecsym->isStub() || m_state.isHolder(baseuti)) //20210726 ish
 		      aok = false;
 		  }
 	      }
@@ -1495,7 +1496,7 @@ namespace MFM {
 
 	//should this be done again? now that template is seen?
 	initBaseClassListForAStubClassInstance(csym);
-	cblock->initBaseClassBlockList(); //wait for c&l when no longer a stub
+	//cblock->initBaseClassBlockList(); //wait for c&l when no longer a stub
       }
 
     //wait for merge to clone arg nodes (t41361?); and reassign argtypecontxt to self
