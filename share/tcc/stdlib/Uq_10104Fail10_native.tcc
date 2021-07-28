@@ -26,7 +26,8 @@ namespace MFM{
 
     u32 type = ur.GetType();
     typedef typename EC::ATOM_CONFIG AC;
-    SPoint ctr = uc.GetEventWindow().GetCenterInTile();
+    SPoint ctr(-1,-1);
+    if (uc.HasEventWindow()) ctr = uc.GetEventWindow().GetCenterInTile(); // Can't assume an ew
     SPointSerializer sctr(ctr);
 
     if (type != T::ATOM_UNDEFINED_TYPE) { // Have an actual element
