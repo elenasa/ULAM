@@ -575,6 +575,7 @@ namespace MFM {
       {
 	//no key, make new type, how to know baseUT? bitsize?
 	uti = makeUlamType(key, bUT, classtype); //returns uti
+	findRootUTIAlias(uti,uti); //?
       }
     else
       {
@@ -1154,13 +1155,14 @@ namespace MFM {
 	if(isastubcopy)
 	  {
 	    suti = stubcopyof; //continue as if the original..
-	    sut = getUlamTypeByIndex(suti);
 	    if(cnsym->hasInstanceMappedUTI(cuti, suti, mappedUTI))
 	      {
 		UTI muti = mappedUTI;
-		findRootUTIAlias(muti, mappedUTI); //?
-		return mappedUTI;  //20210726-2 ish
+		findRootUTIAlias(muti, mappedUTI);
+		return mappedUTI;  //20210726-2 ish; err/t41448
+		//suti = mappedUTI; SCNT:450 assert failed '!twasastubcopy'
 	      }
+	    sut = getUlamTypeByIndex(suti);
 	  }
 
 	//o.w. make a stub copy...
@@ -2274,7 +2276,8 @@ namespace MFM {
     bool foundroot = false;
     u32 cntr = 0;
     UTI finduti = auti;
-    while(!foundroot && (cntr++ < 5))
+    const u32 MAXCHAIN = 7;
+    while(!foundroot && (cntr++ < MAXCHAIN))
       {
 	UTI xuti = finduti;
 	finduti = m_unionRootUTI[xuti];
@@ -2287,7 +2290,7 @@ namespace MFM {
 	UlamKeyTypeSignature key = getUlamTypeByIndex(finduti)->getUlamKeyTypeSignature();
 	assert(finduti == key.getUlamKeyTypeSignatureClassInstanceIdx()); //invarient
       }
-    assert(cntr <= 5); //5 big enough?
+    assert(cntr <= MAXCHAIN); //big enough?
     if(auti != finduti)
       {
 	aliasuti = finduti; //no change o.w.
