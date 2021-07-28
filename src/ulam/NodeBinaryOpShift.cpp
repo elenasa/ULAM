@@ -10,13 +10,13 @@ namespace MFM {
 
   NodeBinaryOpShift::~NodeBinaryOpShift() {}
 
-  UTI NodeBinaryOpShift::checkAndLabelType()
+  UTI NodeBinaryOpShift::checkAndLabelType(Node * thisparentnode)
   {
     assert(m_nodeLeft && m_nodeRight);
-    UTI leftType = m_nodeLeft->checkAndLabelType();
-    UTI rightType = m_nodeRight->checkAndLabelType();
+    UTI leftType = m_nodeLeft->checkAndLabelType(this);
+    UTI rightType = m_nodeRight->checkAndLabelType(this);
 
-    if(NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode())
+    if(NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode(thisparentnode))
       {
 	m_state.setGoAgain();
 	delete this; //suicide is painless..
@@ -59,7 +59,7 @@ namespace MFM {
       } //complete
 
     if(m_state.okUTItoContinue(newType) && isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
-      return constantFold();
+      return constantFold(thisparentnode);
 
     return newType;
   } //checkAndLabelType
@@ -111,8 +111,8 @@ namespace MFM {
 	bool bok = true;
 	//s32 lbs = resultBitsize(lt, rt);
 	//e.g. t3432, t3463, t3467
-	s32 lbs = UNKNOWNSIZE, wordsize = UNKNOWNSIZE;
-	NodeBinaryOp::calcBitsizeForResultInBits(lt, lbs, wordsize);
+	s32 lbs = UNKNOWNSIZE, lwordsize = UNKNOWNSIZE;
+	NodeBinaryOp::calcBitsizeForResultInBits(lt, lbs, lwordsize);
 
 	//will auto cast to Bits, a downhill cast. using LHS bitsize (not result size).
 	UlamKeyTypeSignature newleftkey(m_state.m_pool.getIndexForDataString("Bits"), lbs);
@@ -167,12 +167,12 @@ namespace MFM {
 	//check for big shift values
 	if(m_nodeRight->isAConstant() && m_nodeRight->isReadyConstant())
 	  {
-	    if(m_nodeRight->isWordSizeConstant())
+	    if(m_nodeRight->isWordSizeConstant(lwordsize))
 	      {
 		std::ostringstream msg;
 		msg << "Shift distance greater than data width, operation ";
 		msg << getName();
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN); //t41470
 	      }
 	  }
 

@@ -81,7 +81,7 @@ namespace MFM {
     return newut->safeCast(getNodeType());
   } //safeToCastTo
 
-  UTI NodeFunctionCall::checkAndLabelType()
+  UTI NodeFunctionCall::checkAndLabelType(Node * thisparentnode)
   {
     UTI it = getNodeType(); //Nav;  // init return type
 
@@ -116,7 +116,7 @@ namespace MFM {
       {
 	//use member block doesn't apply to arguments; no change to current block
 	m_state.pushCurrentBlockAndDontUseMemberBlock(m_state.getCurrentBlock()); //set forall args
-	listuti = m_argumentNodes->checkAndLabelType(); //plus side-effect; void return is ok
+	listuti = m_argumentNodes->checkAndLabelType(this); //plus side-effect; void return is ok
 
 	u32 numargs = getNumberOfArguments();
 	for(u32 i = 0; i < numargs; i++)
@@ -147,6 +147,7 @@ namespace MFM {
 	  {
 	    argNodes.clear();
 	    setNodeType(Hzy);
+	    clearSymbolPtr();
 	    m_state.setGoAgain(); //for compier counts
 	    return Hzy; //short circuit
 	  }
@@ -160,9 +161,18 @@ namespace MFM {
 	  {
 	    assert(foundInAncestor == Nouti); //sanity
 	    std::ostringstream msg;
-	    msg << "(1) '" << m_state.getTokenDataAsString(m_functionNameTok).c_str();
-	    msg << "' has no defined function with " << numargs;
-	    msg << " matching argument type";
+
+	    if(m_functionNameTok.m_type == TOK_KW_TYPE_SELF)
+	      {
+		msg << "Class '" << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+		msg << "' has no defined constructor with "; //t41530
+	      }
+	    else
+	      {
+		msg << "(1) '" << m_state.getTokenDataAsString(m_functionNameTok).c_str();
+		msg << "' has no defined function with ";
+	      }
+	    msg << numargs << " matching argument type";
 	    if(numargs != 1)
 	      msg << "s";
 	    msg << ": ";
@@ -200,7 +210,7 @@ namespace MFM {
 		    UTI auti = argNodes[i]->getNodeType();
 		    msg << m_state.getUlamTypeNameBriefByIndex(auti).c_str() << ", ";
 		  }
-		msg << "explicit casting is required";
+		msg << "explicit casting is required"; //ulamexports:DebugUtils
 	      }
 	    else
 	      {
@@ -262,13 +272,22 @@ namespace MFM {
 	if(hazyKin)
 	  foundit = TBOOL_HAZY;
 	else
-	  foundit = lookagainincaseimplicitselfchanged(); //TBOOL_HAZY is good!(t41346)
+	  foundit = lookagainincaseimplicitselfchanged(thisparentnode); //TBOOL_HAZY is good!(t41346)
 
 	if(foundit != TBOOL_TRUE)
 	  {
 	    std::ostringstream msg;
-	    msg << "(2) '" << m_state.getTokenDataAsString(m_functionNameTok).c_str();
-	    msg << "' is not a defined function, or cannot be safely called in this context";
+	    if(m_functionNameTok.m_type == TOK_KW_TYPE_SELF)
+	      {
+		msg << "Class '" << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+		msg << "' is not a defined constructor, "; //t41530
+	      }
+	    else
+	      {
+		msg << "(2) '" << m_state.getTokenDataAsString(m_functionNameTok).c_str();
+		msg << "' is not a defined function, ";
+	      }
+	    msg << "or cannot be safely called in this context";
 	    if(foundit == TBOOL_HAZY)
 	      {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
@@ -314,9 +333,10 @@ namespace MFM {
 	assert(m_funcSymbol && m_funcSymbol == funcSymbol);
 
 	it = m_funcSymbol->getUlamTypeIdx();
-	assert(m_state.okUTItoContinue(it));
+	//assert(m_state.okUTItoContinue(it)); //t3641
 
-	it = specifyimplicitselfexplicitly();
+	if(m_state.okUTItoContinue(it))
+	  it = specifyimplicitselfexplicitly(thisparentnode);
 
 	if(m_state.okUTItoContinue(it))
 	  {
@@ -326,6 +346,7 @@ namespace MFM {
 	      {
 		//Sun Aug 11 2019 Dave issue w Bounce.ulam: nodeType stays incomplete
 		setNodeType(Hzy);
+		clearSymbolPtr();
 		m_state.setGoAgain(); //for compier counts
 		return Hzy; //short circuit
 	      }
@@ -334,7 +355,10 @@ namespace MFM {
 	  {
 	    setNodeType(it); //t41388 error
 	    if(it == Hzy)
-	      m_state.setGoAgain();
+	      {
+		clearSymbolPtr();
+		m_state.setGoAgain();
+	      }
 	    return it;
 	  }
 
@@ -442,6 +466,7 @@ namespace MFM {
     if((listuti == Hzy) || (numHazyFound > 0))
       {
 	setNodeType(Hzy); //happens when the arg list has incomplete types.
+	clearSymbolPtr();
 	m_state.setGoAgain(); //for compier counts
 	it = Hzy;
       }
@@ -462,7 +487,7 @@ namespace MFM {
     return it;
   } //checkAndLabelType
 
-  TBOOL NodeFunctionCall::lookagainincaseimplicitselfchanged()
+  TBOOL NodeFunctionCall::lookagainincaseimplicitselfchanged(Node * parentnode)
   {
     TBOOL rtn = TBOOL_FALSE;
 
@@ -514,7 +539,7 @@ namespace MFM {
 	((SymbolFunctionName *) fnsymptr)->anyFunctionSymbolPtr(tmpfuncsym);
 	assert(tmpfuncsym);
 	m_funcSymbol = tmpfuncsym;
-	UTI it = specifyimplicitselfexplicitly(); //returns Hzy
+	UTI it = specifyimplicitselfexplicitly(parentnode); //returns Hzy
 	if(it == Hzy)
 	  rtn = TBOOL_HAZY;
 	else if(!m_state.okUTItoContinue(it))
@@ -525,7 +550,7 @@ namespace MFM {
     return rtn;
   } //lookagainincaseimplicitselfchanged
 
-  UTI NodeFunctionCall::specifyimplicitselfexplicitly()
+  UTI NodeFunctionCall::specifyimplicitselfexplicitly(Node * parentnode)
   {
     assert(m_funcSymbol);
     UTI futi = m_funcSymbol->getUlamTypeIdx();
@@ -537,22 +562,16 @@ namespace MFM {
       }
 
     NNO pno = Node::getYourParentNo();
-
-    NodeBlock * currBlock = m_state.getCurrentBlock();
-    m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock); //push again
-
-
-    Node * parentNode = m_state.findNodeNoInThisClassForParent(pno);
-    assert(parentNode);
-
-    m_state.popClassContext(); //restore
+    assert(pno);
+    assert(parentnode);
+    assert(pno == parentnode->getNodeNo());
 
     bool implicitself = true;
 
-    if(parentNode->isAMemberSelect())
+    if(parentnode->isAMemberSelect())
       {
 	Symbol * rhsym = NULL;
-	if(!parentNode->getSymbolPtr(rhsym))
+	if(!parentnode->getSymbolPtr(rhsym))
 	  futi = Hzy;
 
 	implicitself = (rhsym != m_funcSymbol);
@@ -569,7 +588,7 @@ namespace MFM {
     NodeMemberSelect * newnode = new NodeMemberSelect(explicitself, this, m_state);
     assert(newnode);
 
-    AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+    AssertBool swapOk = Node::exchangeNodeWithParent(newnode, parentnode);
     assert(swapOk);
 
     //redo look-up given explicit self
@@ -672,7 +691,14 @@ namespace MFM {
 	UlamValue rtnUV = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);
 	UTI rtnuti = rtnUV.getUlamValueTypeIdx();
 	if(m_state.isPtr(rtnuti))
-	  rtnuti = rtnUV.getPtrTargetType();
+	  {
+	    rtnuti = rtnUV.getPtrTargetType();
+	    if(m_state.isAtom(rtnuti))
+	      {
+		rtnuti = rtnUV.getUlamValueEffSelfTypeIdx();
+		m_state.abortNeedsATest();
+	      }
+	  }
 	if(UlamType::compareForUlamValueAssignment(rtnuti, rtnType, m_state) == UTIC_SAME)
 	  {
 	    Node::assignReturnValueToStack(rtnUV); //into return space on eval stack;
@@ -935,6 +961,14 @@ namespace MFM {
     return m_argumentNodes->getNumberOfNodes();
   }
 
+  void NodeFunctionCall::clearSymbolPtr()
+  {
+    //if symbol is in a stub, there's no guarantee the stub
+    // won't be replace by another duplicate class once its
+    // pending args have been resolved.
+    m_funcSymbol = NULL;
+  }
+
   bool NodeFunctionCall::getSymbolPtr(Symbol *& symptrref)
   {
     symptrref = m_funcSymbol;
@@ -957,6 +991,10 @@ namespace MFM {
 	  {
 	    ALT autolocaltype = asym->getAutoLocalType();
 	    UTI auti = asym->getUlamTypeIdx();
+	    bool isatom = m_state.isAtom(auti);
+	    if(isatom)
+	      auti = atomPtr.getPtrTargetEffSelfType(); //t41318
+
 	    if(autolocaltype == ALT_AS) //must be a class
 	      {
 		atomPtr.setPtrTargetType(((SymbolVariableStack *) asym)->getAutoStorageTypeForEval());
@@ -1692,8 +1730,7 @@ namespace MFM {
     // too limiting (ulam-5) to limit to 'super' special case:
     //   t3606, t3608, t3774, t3779, t3788, t3794, t3795, t3967, t41131
     // once cos is a ref, all bets off! unclear effSelf, e.g. cos is 'self'
-    //    if(m_state.getUlamTypeAsDeref(cosuti) != cvfuti) //multiple bases possible (ulam-5)
-    if(!m_state.isAltRefType(cosuti) && (m_state.getUlamTypeAsDeref(cosuti) != cvfuti)) //multiple bases possible (ulam-5); issue +(t41361 TODO)
+    if(!m_state.isAltRefType(cosuti) && (m_state.getUlamTypeAsDeref(cosuti) != cvfuti)) //multiple bases possible (ulam-5); issue +(t41361)
       {
 	SymbolClass * cvfsym = NULL;
 	AssertBool iscvfDefined = m_state.alreadyDefinedSymbolClass(cvfuti, cvfsym);

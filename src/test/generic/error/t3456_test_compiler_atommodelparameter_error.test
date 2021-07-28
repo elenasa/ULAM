@@ -1,9 +1,9 @@
 ## -*- mode:ulam -*-
 #=t3456_test_compiler_atommodelparameter_error
 #!
-./Tu.ulam:4:17: ERROR: Missing '=' after model parameter definition.
+./Tu.ulam:4:18: ERROR: Missing model parameter definition after '=' for 'aep'.
 ./Tu.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'Tu'; Possible missing ending curly brace.
-./Tu.ulam:4:17: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+./Tu.ulam:4:18: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 ./Tu.ulam:2:9: ERROR: Invalid Type: Tu.
  ERROR: No parse tree for This Class: Tu.
 Unrecoverable Program Parse FAILURE: <Tu.ulam>
@@ -11,14 +11,14 @@ Unrecoverable Program Parse FAILURE: <Tu.ulam>
 ##      // cannot write into an MP in ulam (only MFM simulator!)
 ##
 #>Tu.ulam
-ulam 1;
+  ulam 1;
 element Tu {
-typedef Atom A;
- parameter A aep;
+  typedef Atom A;
+  parameter A aep;
   Int test(){
- aep = self;
- return 0;
-}
+    aep = self;
+    return 0;
+  }
 }
 
 #.

@@ -47,7 +47,7 @@ namespace MFM{
     return CAST_CLEAR;
   }
 
-  UTI NodeListEmpty::checkAndLabelType()
+  UTI NodeListEmpty::checkAndLabelType(Node * thisparentnode)
   {
     setNodeType(Void);
     return Void;
@@ -84,7 +84,7 @@ namespace MFM{
     return Node::getNodeType();
   }
 
-  UTI NodeListEmpty::constantFold()
+  UTI NodeListEmpty::constantFold(Node * parentnode)
   {
     m_state.abortShouldntGetHere();
     return Node::getNodeType();
@@ -131,47 +131,10 @@ namespace MFM{
     return true; //all zeros for default primitives
   } //buildArrayValueInitialization
 
+  //given bvtmp has arraysize copies of default class value;
   bool NodeListEmpty::buildClassArrayValueInitialization(BV8K& bvtmp)
   {
-    UTI nuti = Node::getNodeType();
-    assert(m_state.okUTItoContinue(nuti));
-    if(nuti == Void)
-      {
-	setNodeType(Hzy);
-	m_state.setGoAgain();
-	return false;
-      }
-
-    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    s32 arraysize = nut->getArraySize();
-    assert(arraysize >= 0);
-
-    u32 n = m_nodes.size();
-    assert(n==0);
-
-    bool rtnok = true;
-    //fill in default class if nothing provided for a non-empty array
-    if((arraysize > 0))
-      {
-	rtnok = m_state.getDefaultClassValue(nuti, bvtmp); //uses scalar uti, tries to pack
-	n = 1; //ready to fall thru and propagate as needed
-      }
-
-    if(rtnok)
-      {
-	//propagate last value for any remaining items not initialized
-	if((n > 0) && (n < (u32) arraysize))
-	  {
-	    u32 itemlen = nut->getBitSize();
-	    BV8K lastbv;
-	    bvtmp.CopyBV((n - 1) *  itemlen, 0, itemlen, lastbv); //frompos, topos, len, destBV
-	    for(s32 i = n; i < arraysize; i++)
-	      {
-		lastbv.CopyBV(0, i * itemlen, itemlen, bvtmp);
-	      }
-	  }
-      }
-    return rtnok;
+    return true;
   } //buildClassArrayValueInitialization
 
 } //MFM

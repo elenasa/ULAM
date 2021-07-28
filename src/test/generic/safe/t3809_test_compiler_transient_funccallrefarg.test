@@ -4,7 +4,7 @@
 ##
 #!
 Exit status: 0
-Ue_R { Bool(1) b(true);  Int(32) test() {  System s;  A at;  QW qw;  self b . qw ( at cast )func . = s ( self b . )assert . 0 cast return } }
+Ue_R { Bool b(true);  Int test() {  System s;  A at;  QW qw;  self b . qw ( at cast )func . = s ( self b . )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 Un_A : QW { Bool(7) sp(false);  :QW<> <NOMAIN> }
 Uq_QW { <NOMAIN> }

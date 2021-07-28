@@ -7,7 +7,6 @@
 ./Sub1.ulam:2:7: ERROR: Invalid Type: Sub1.
  ERROR: No parse tree for This Class: Sub1.
 Unrecoverable Program Parse FAILURE: <Sub1.ulam>
-./E2.ulam:2:9: ERROR: Class 'E2' has an erroring superclass 'Sub1'.
 Unrecoverable Program Parse FAILURE: <E2.ulam>
 Unrecoverable Program Parse FAILURE: <Test.ulam>
 Unrecoverable Program Parse FAILURE: <System.ulam>

@@ -75,6 +75,12 @@ namespace MFM {
     return m_castToBe;
   }
 
+  UTI NodeCast::getCastedType()
+  {
+    assert(m_node);
+    return m_node->getNodeType();
+  }
+
   void NodeCast::setExplicitCast()
   {
     m_explicit = true;
@@ -85,9 +91,29 @@ namespace MFM {
     return m_explicit;
   }
 
+  bool NodeCast::isExplicitReferenceCast()
+  {
+    return isExplicitCast() && m_state.isAltRefType(getCastType());
+  }
+
+  bool NodeCast::isACast()
+  {
+    return true;
+  }
+
   bool NodeCast::isAConstant()
   {
-    return m_node->isAConstant();
+    return m_node->isAConstant(); //pass thru
+  }
+
+  bool NodeCast::isAConstantClass()
+  {
+    return m_node->isAConstantClass(); //pass thru
+  }
+
+  bool NodeCast::initDataMembersConstantValue(BV8K& bvref, BV8K& bvmask)
+  {
+    return m_node->initDataMembersConstantValue(bvref, bvmask); //pass thru
   }
 
   bool NodeCast::isReadyConstant()
@@ -100,9 +126,9 @@ namespace MFM {
     return m_node->isNegativeConstant();
   }
 
-  bool NodeCast::isWordSizeConstant()
+  bool NodeCast::isWordSizeConstant(u32 wordsize)
   {
-    return m_node->isWordSizeConstant();
+    return m_node->isWordSizeConstant(wordsize);
   }
 
   bool NodeCast::isFunctionCall()
@@ -120,9 +146,9 @@ namespace MFM {
     return m_node->isArrayItem();
   }
 
-  bool NodeCast::isExplicitReferenceCast()
+  bool NodeCast::getSymbolPtr(Symbol *& symptrref)
   {
-    return isExplicitCast() && m_state.isAltRefType(getCastType());
+    return m_node->getSymbolPtr(symptrref);
   }
 
   FORECAST NodeCast::safeToCastTo(UTI newType)
@@ -133,14 +159,14 @@ namespace MFM {
     return m_state.getUlamTypeByIndex(newType)->safeCast(getCastType());
   }
 
-  UTI NodeCast::checkAndLabelType()
+  UTI NodeCast::checkAndLabelType(Node * thisparentnode)
   {
     // unlike the other nodes, nodecast knows its type at construction time;
     // this is for checking for errors, before eval happens.
     u32 errorsFound = 0;
     u32 hazinessFound = 0;
     UTI tobeType = getCastType();
-    UTI nodeType = m_node->checkAndLabelType();
+    UTI nodeType = m_node->checkAndLabelType(this);
 
     if(nodeType == Nav)
       {
@@ -166,7 +192,16 @@ namespace MFM {
     if(m_nodeTypeDesc)
       {
 	//might be a mapped uti for instantiated template class
-	tobeType = m_nodeTypeDesc->checkAndLabelType();
+	tobeType = m_nodeTypeDesc->checkAndLabelType(this);
+	if(tobeType == Nav)
+	  {
+	    std::ostringstream msg;
+	    msg << "Cannot cast erroneous type tobe" ;
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    setNodeType(Nav);
+	    return Nav; //short-circuit
+	  }
+
 	setCastType(tobeType); //overrides type set at parse time
 	if(!m_nodeTypeDesc->isReadyType())
 	  {
@@ -291,7 +326,7 @@ namespace MFM {
 		  }
 	      }
 
-	    if(m_state.isAltRefType(tobeType) && m_node->isAConstant())
+	    if(m_state.isAltRefType(tobeType) && isAConstant())
 	      {
 		std::ostringstream msg;
 		msg << "Cannot explicitly cast a constant, " << m_node->getName() << ", type ";
@@ -414,7 +449,7 @@ namespace MFM {
 		    assert(m_node);
 		    m_node->setNodeLocation(getNodeLocation());
 		    m_node->updateLineage(getNodeNo());
-		    UTI chkintuti = m_node->checkAndLabelType();
+		    UTI chkintuti = m_node->checkAndLabelType(this);
 		    if(!m_state.okUTItoContinue(chkintuti))
 		      {
 			std::ostringstream msg;
@@ -468,8 +503,10 @@ namespace MFM {
     //storeintoable includes referenceAble
     if(m_state.getReferenceType(tobeType) == ALT_REF)
       Node::setStoreIntoAble(TBOOL_TRUE); //t3692, t41153
+    else if(isExplicitCast()) //not a ref.
+      Node::setStoreIntoAble(TBOOL_FALSE); //t3733, t3665
     else
-      Node::setStoreIntoAble(TBOOL_FALSE); //TBOOL_HZY up until now.
+      Node::setStoreIntoAble(m_node->getStoreIntoAble()); //TBOOL_HZY up til now. t3810
 
     setNodeType(getCastType()); //since neither Hzy, nor Nav
     return getNodeType();
@@ -532,40 +569,18 @@ namespace MFM {
       }
 
     UlamValue uv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);
+    if(uv.isPtr()) //t41497
+      uv = m_state.getPtrTarget(uv); //t41495, t3407
+
     UTI vuti = uv.getUlamValueTypeIdx();
-    UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-    ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
-    assert(!m_state.isPtr(vuti));
-    if(m_state.isAtom(nodeType) && m_state.isAtom(tobeType) && (vut->getUlamTypeEnum() == Class))
-      {
-	std::ostringstream msg;
-	msg << "Cast question: Do not wipe out actual type for atom during eval! Value type ";
-	msg << m_state.getUlamTypeNameBriefByIndex(vuti).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	return evalStatusReturn(UNEVALUABLE);
-      }
-    if((m_state.isAtom(tobeType)) && (vclasstype == UC_QUARK))
-      {
-	assert(vut->isAltRefType()); //an immediate non-ref quark should be an error
-	std::ostringstream msg;
-	msg << "Cast question: actual type for quark ref during eval! Value type ";
-	msg << m_state.getUlamTypeNameBriefByIndex(vuti).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	return evalStatusReturn(UNEVALUABLE);
-      }
-    if((m_state.isAtom(tobeType)) && (vclasstype == UC_ELEMENT) && vut->isAltRefType())
-      {
-	std::ostringstream msg;
-	msg << "Cast question: actual type for element ref during eval! Value type ";
-	msg << m_state.getUlamTypeNameBriefByIndex(vuti).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	return evalStatusReturn(UNEVALUABLE); //e.g. t3753
-      }
-    else if(UlamType::compare(nodeType, tobeType, m_state) != UTIC_SAME)
+
+    if(UlamType::compare(nodeType, tobeType, m_state) != UTIC_SAME)
       {
 	if(m_state.isARefTypeOfUlamType(nodeType, tobeType))
 	  {
 	    uv.setUlamValueTypeIdx(tobeType);
+	    if(m_state.isAtom(tobeType) && !m_state.isAtom(vuti))
+	      uv.setUlamValueEffSelfTypeIdx(vuti); //t3679
 	  }
 	else if(!(m_state.getUlamTypeByIndex(tobeType)->cast(uv, tobeType)))
 	  {
@@ -627,18 +642,10 @@ namespace MFM {
 	else
 	  {
 	    UlamValue uvp = ruvPtr;
-	    if(m_state.isAltRefType(uvp.getPtrTargetType()))
-	      uvp = m_state.getPtrTarget(uvp);
-
-	    UlamValue uv = uvp;
+	    UlamValue uv =m_state.getPtrTarget(uvp);
 	    UTI ttype = uv.getUlamValueTypeIdx();
-	    if(m_state.isPtr(ttype))
-	      {
-		uv = m_state.getPtrTarget(uvp);
-		ttype = uv.getUlamValueTypeIdx();
-	      }
 
-	    if(m_state.isPtr(ttype) || !(m_state.getUlamTypeByIndex(tobeType)->cast(uv, tobeType)))
+	    if(!(m_state.getUlamTypeByIndex(tobeType)->cast(uv, tobeType)))
 	      {
 		std::ostringstream msg;
 		msg << "Cast problem during evalToStoreInto! Value type ";
@@ -654,20 +661,48 @@ namespace MFM {
 		ruvPtr.setPtrTargetType(dereftobe); //t3754 case 1 & 3 (to element ref)
 
 		//before the cast, so we don't lose the subclass ("effself") in
-		//case of virtual func calls? (t41364)???
+		//case of virtual func calls? (t41364)
 		if(m_state.isAClass(nodeType))
 		  {
-		    m_state.m_currentAutoObjPtr = ruvPtr;
+		    m_state.m_currentAutoObjPtr = ruvPtr; //a copy
 		    m_state.m_currentAutoStorageType = nodeType;
 
 		    u32 baserelpos = 0;
-		    //use nodetype for data members (t41364)
-		    if(m_state.getABaseClassRelativePositionInAClass(nodeType, dereftobe, baserelpos))
+		    //use nodetype for data members (t41364); and, what if both baseclass and dm???
+		    if(m_node->hasASymbolDataMember())
 		      {
-			ruvPtr.setPtrPos(ruvPtr.getPtrPos() + baserelpos); //t41319
-			ruvPtr.setPtrLen(m_state.getBaseClassBitSize(dereftobe)); //t41364
+			ruvPtr.setPtrTargetType(nodeType); //t41364
 		      }
-		  } //else (not a class)
+		    else
+		      {
+			if(m_state.getABaseClassRelativePositionInAClass(nodeType, dereftobe, baserelpos))
+			  {
+			    ruvPtr.setPtrPos(ruvPtr.getPtrPos() + baserelpos); //t41319
+			    ruvPtr.setPtrLen(m_state.getBaseClassBitSize(dereftobe)); //t41364
+			  }
+			//else (not a class)
+		      }
+		  }
+		else if(m_state.isAtom(nodeType)) //t41315,8
+		  {
+		    UTI effself = uv.getUlamValueEffSelfTypeIdx();
+		    ruvPtr.setPtrTargetType(tobeType); //possibly reset to ref type, no longer atom
+		    ruvPtr.setPtrTargetEffSelfType(effself);
+
+		    m_state.m_currentAutoObjPtr = ruvPtr; //a copy, before the upcoming changes
+		    m_state.m_currentAutoStorageType = UAtom; //effself?;
+
+		    u32 baserelpos = 0; //t3837, t41315
+		    if(m_state.getABaseClassRelativePositionInAClass(effself, dereftobe, baserelpos))
+		      {
+			u32 adjust = m_state.isAtom(ttype) ? ATOMFIRSTSTATEBITPOS : 0u; //t41005
+			ruvPtr.setPtrPos(ruvPtr.getPtrPos() + baserelpos + adjust );
+			ruvPtr.setPtrLen(m_state.getBaseClassBitSize(dereftobe));
+			if(m_state.getUlamTypeByIndex(dereftobe)->getUlamClassType()==UC_ELEMENT)
+			  ruvPtr.setPtrLen(MAXSTATEBITS); //elements have no baseclassbitsize
+		      }
+		  }
+		//else (not a class)
 	      }
 	  }
       }
@@ -2196,7 +2231,7 @@ namespace MFM {
   void NodeCast::genCodeToStoreIntoCastAsReference(File * fp, UVPass & uvpass)
   {
     UTI tobeType = getCastType();
-    if(m_node->isAConstantClass() || m_node->isAConstant())
+    if(isAConstantClass() || isAConstant())
       {
 	assert(m_state.isConstantRefType(tobeType)); //t41238-9,t41240,t41242,error/t41248,error/t41253
       }
@@ -2261,7 +2296,7 @@ namespace MFM {
     // size secondary when different classes, possibly related (e.g. t3779)
     // even constant may need casting (e.g. narrowing for saturation)
     // Bool constants require casts to generate "full" true UVPass (>1-bit).
-    return( isExplicitCast() || (typEnum == Class) || (typEnum != nodetypEnum) || (m_state.getBitSize(tobeType) != m_state.getBitSize(nodeType)) || ( (nodetypEnum == Bool) && m_node->isAConstant() && (m_state.getBitSize(tobeType)>1)));
+    return( isExplicitCast() || (typEnum == Class) || (typEnum != nodetypEnum) || (m_state.getBitSize(tobeType) != m_state.getBitSize(nodeType)) || ( (nodetypEnum == Bool) && isAConstant() && (m_state.getBitSize(tobeType)>1)));
   } //needsACast
 
 } //end MFM

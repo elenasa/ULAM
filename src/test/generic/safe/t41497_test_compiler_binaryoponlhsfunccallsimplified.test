@@ -1,0 +1,134 @@
+## -*- mode:ulam -*-
+#=t41497_test_compiler_binaryoponlhsfunccallsimplified
+##
+## gen output: + interleaved asserts)
+##  Int Arg: 0
+##  Int Arg: 4
+##  Int Arg: 0
+##  Int Arg: 4
+##
+#!
+Exit status: 0
+Ue_T { typedef Int(7) Coord;  Int(7) ans[4](0,4,0,4);  Int test() {  System s;  Tecton tec;  tec ( )behave . self ans . 0 [] tec m_offset . ( )getX . cast = self ans . 1 [] tec m_offset . ( )getY . cast = s ( self ans . 0 [] cast )print . s ( self ans . 1 [] cast )print . s ( self ans . 0 [] 0 cast == )assert . s ( self ans . 1 [] 4 cast == )assert . self ans . 2 [] tec m_offset2 . ( )getX . cast = self ans . 3 [] tec m_offset2 . ( )getY . cast = s ( self ans . 2 [] cast )print . s ( self ans . 3 [] cast )print . s ( self ans . 2 [] self ans . 0 [] == )assert . s ( self ans . 3 [] self ans . 1 [] == )assert . 0 cast return } }
+Uq_C2D { typedef Int(7) Coord;  Int(7) m_width(0);  Int(7) m_height(0);  <NOMAIN> }
+Uq_System { <NOMAIN> }
+Ue_Tecton { C2D m_offset( typedef Int(7) Coord;  Int(7) m_width(0);  Int(7) m_height(0); );  C2D m_offset2( typedef Int(7) Coord;  Int(7) m_width(0);  Int(7) m_height(0); );  <NOMAIN> }
+##
+##  informed by t41476, eval called assignAnonymousClassReturnValueToStack at (-slots -1), and asserted.
+##  CallStack lvalAtIdx was a Ptr, the assert; (-slots - 0), fixed that symptom ;
+##  failed when function call on LHS of NodeBinaryOp, regardless of dm, localfuncvar, or implicit self;
+##  calcMaxDepth dropped lhs, for memberselect and opEqual (explains LHS symptom);
+##
+#>T.ulam
+  ulam 5;
+element T{
+  typedef C2D.Coord Coord;
+  Coord ans[4];
+  Int test(){
+    System s;
+    Tecton tec;
+    tec.behave();
+
+    ans[0] = (Coord) tec.m_offset.getX(); //==0
+    ans[1] = (Coord) tec.m_offset.getY(); //==4
+    s.print(ans[0]);
+    s.print(ans[1]);
+    s.assert(ans[0] == 0);
+    s.assert(ans[1] == 4);
+
+    ans[2] = (Coord) tec.m_offset2.getX(); //==0
+    ans[3] = (Coord) tec.m_offset2.getY(); //==4
+    s.print(ans[2]);
+    s.print(ans[3]);
+    s.assert(ans[2] == ans[0]);
+    s.assert(ans[3] == ans[1]);
+    return 0;
+  }
+}
+
+#:Tecton.ulam
+  ulam 5;
+element Tecton
+{
+  C2D m_offset;
+  C2D m_offset2;
+  Void behave()
+  {
+    C2D fwdoffset(-1,2);
+    m_offset = fwdoffset.abs() + fwdoffset;
+    m_offset2 = abs2(fwdoffset) + fwdoffset; //doesnt req explicit memberselect to fail; w self
+  }
+
+  C2D abs2(C2D c)
+  {
+    return c.abs();
+  }
+
+}
+
+#:C2D.ulam
+  ulam 3;
+quark C2D {
+  typedef Int(7u) Coord;
+  Coord m_width;
+  Coord m_height;
+
+  Void init(Int x, Int y) {
+    m_width = (Coord) x;
+    m_height = (Coord) y;
+    return;
+  }
+  Int getIndex(Int a, Int b){
+    return ((m_height-b) * m_width + (m_height-a));
+  }
+  Int getX()
+  {
+    return m_width;
+  }
+  Int getY()
+  {
+    return m_height;
+  }
+
+  Self(Int ax, Int ay) {
+    init(ax,ay);
+  }
+
+  Self abs() {
+    return abs(self);
+  }
+
+  Self abs(Self of) {
+    if (of.m_width < 0) of.m_width = -of.m_width;
+    if (of.m_height < 0) of.m_height = -of.m_height;
+    return of;
+  }
+
+  Self add(Self other) {
+    return make((Coord) (m_width + other.m_width), (Coord) (m_height + other.m_height));
+  }
+
+  Self operator+(Self other) {
+    return add(other);
+  }
+
+  Self make(Int x, Int y)
+  {
+    Self ret;
+    ret.init(x,y);
+    return ret;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

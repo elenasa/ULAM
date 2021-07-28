@@ -1,32 +1,30 @@
 ## -*- mode:ulam -*-
 #=t3444_test_compiler_elementwithclassparameterunpackedarray_error
 #!
-./T.ulam:7:4: ERROR: Incomplete descriptor for type: holder (UTI 35).
-./T.ulam:7:4: ERROR: Incomplete NodeConstantDef for type: holder, used with symbol name 'y'.
-./T.ulam:7:4: ERROR: Constant value expression for class argument: y, is not ready.
-./T.ulam:7:2: ERROR: Incomplete descriptor for type: S(y,3) (UTI 34).
-./T.ulam:7:2: ERROR: Incomplete Variable Decl for type: S(y,3), used with variable symbol name 'n'.
+./T.ulam:7:7: ERROR: Incomplete Constant Def for type used with symbol name 'y'.
+./T.ulam:7:7: ERROR: Constant value expression for class argument: y, is not ready.
+./T.ulam:7:5: ERROR: Incomplete Variable Decl for type: S(y,3) used with variable symbol name 'n'.
+./T.ulam:7:5: ERROR: Variable for: 'n', is still hazy.
+./S.ulam:2:9: ERROR: Typedef 'BigSite' in class S(y,3) remains undefined.
 Unrecoverable Program Type Label FAILURE.
-##
-## error was nicer before surgery returned hzy in NodeIdent, and others:
-##./T.ulam:7:4: ERROR: Constant value expression for class argument: y, is not a constant.
 ##
 ##    //informed by t3445
 ##
 #>T.ulam
  ulam 1;
 use S;
- element T{
-typedef Int BigSite[10];
- Int test(){
-BigSite site;
- S(site, 3) n;
- return 0;
+element T{
+  typedef Int BigSite[10];
+  Int test(){
+    BigSite site;
+    S(site, 3) n;
+    return 0;
+  }
 }
- }
 
 #:S.ulam
-ulam 1;
+  ulam 1;
 quark S(BigSite y, Int i){
- }
+}
+
 #.

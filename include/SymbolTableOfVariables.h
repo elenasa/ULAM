@@ -59,6 +59,8 @@ namespace MFM{
 
     u32 findTypedefSymbolNameIdByTypeInTable(UTI type);
 
+    u32 getAllRemainingCulamGeneratedTypedefSymbolsInTable(std::map<u32, Symbol*>& mapref);
+
     //Table of Variable Data Members:
 
     virtual u32 getTotalSymbolSize();
@@ -66,8 +68,6 @@ namespace MFM{
     s32 getTotalVariableSymbolsBitSize(std::set<UTI>& seensetref);
 
     s32 getMaxVariableSymbolsBitSize(std::set<UTI>& seensetref);  //for quark union
-
-    void initializeElementDefaultsForEval(UlamValue& uvsite, UTI cuti);
 
     //void packBitsForTableOfVariableDataMembers();  //after type labeling, before code gen
 

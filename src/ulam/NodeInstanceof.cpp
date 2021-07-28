@@ -37,9 +37,9 @@ namespace MFM {
     return m_state.getUlamTypeByIndex(newType)->safeCast(nuti);
   } //safeToCastTo
 
-  UTI NodeInstanceof::checkAndLabelType()
+  UTI NodeInstanceof::checkAndLabelType(Node * thisparentnode)
   {
-    NodeStorageof::checkAndLabelType();
+    NodeStorageof::checkAndLabelType(thisparentnode);
 
     UTI oftype = NodeStorageof::getOfType(); //deref'd
     if(m_state.okUTItoContinue(oftype))
@@ -58,6 +58,7 @@ namespace MFM {
 
 	if(!isaref)
 	  Node::setReferenceAble(TBOOL_FALSE); //t3660
+
       }
     return getNodeType();
   } //checkAndLabelType
@@ -68,14 +69,14 @@ namespace MFM {
     UlamValue ptr;
     UlamValue atomuv;
 
-    UTI auti = getOfType();
+    UTI auti = getNodeType(); //t41469
     UlamType * aut = m_state.getUlamTypeByIndex(auti);
     ULAMCLASSTYPE aclasstype = aut->getUlamClassType();
 
     u32 atop = 1;
     atop = m_state.m_funcCallStack.getAbsoluteStackIndexOfSlot(atop);
     if(m_state.isAtom(auti))
-      atomuv = UlamValue::makeAtom(auti);
+      atomuv = NodeStorageof::evalAtomOfExpr();  //t3286
     else if(aclasstype == UC_ELEMENT)
       atomuv = UlamValue::makeDefaultAtom(auti, m_state);
     else if(aclasstype == UC_QUARK)
@@ -93,6 +94,7 @@ namespace MFM {
     m_state.m_funcCallStack.storeUlamValueAtStackIndex(atomuv, atop); //stackframeslotindex ?
 
     ptr = UlamValue::makePtr(atop, STACK, auti, m_state.determinePackable(auti), m_state, 0);
+    ptr.setPtrTargetEffSelfType(auti); //t41318, t41384
     ptr.setUlamValueTypeIdx(PtrAbs);
     return ptr;
   } //makeUlamValuePtr
@@ -209,7 +211,7 @@ namespace MFM {
   void NodeInstanceof::genCodeToStoreInto(File * fp, UVPass& uvpass)
   {
     //lhs
-    assert(getStoreIntoAble() == TBOOL_TRUE); //not so..why not!
+    //assert(getStoreIntoAble() == TBOOL_TRUE); //not so..why not? (t41503) constantof defaultvalue
     genCode(fp, uvpass); //t41085
 
     //tmp variable becomes the object of the constructor call (t41085)

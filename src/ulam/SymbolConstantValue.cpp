@@ -106,7 +106,7 @@ namespace MFM {
 
     fp->write(" = ");
 
-    if(tetyp == Class)
+    if((tetyp == Class) || (tetyp == UAtom)) //t41483
       {
 	std::string classhexstr;
 	SymbolWithValue::getClassValueAsHexString(classhexstr); //t41277
@@ -155,6 +155,11 @@ namespace MFM {
   void SymbolConstantValue::setClassArgAsDefaultValue()
   {
     m_isClassArgDefaultValue = true;
+  }
+
+  void SymbolConstantValue::clearClassArgAsDefaultValue()
+  {
+    m_isClassArgDefaultValue = false;
   }
 
   bool SymbolConstantValue::isClassArgDefaultValue()

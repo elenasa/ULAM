@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3733_test_compiler_elementandquark_castatomtoclassref_error
 #!
-##./QW.ulam:8:18: ERROR: Cannot explicitly cast Atom(96) to type: QW.
+##./QW.ulam:8:18: ERROR: Cannot explicitly cast Atom to type: QW.
 ##./QW.ulam:8:5: ERROR: Initial value expression for: sra, initialization is invalid.
 ##./QW.ulam:8:5: ERROR: Storage expression for: sra, is invalid.
 ./QW.ulam:8:5: ERROR: Initialization for: sra, must be referenceable.

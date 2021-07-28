@@ -5,7 +5,7 @@
 ##
 #!
 Exit status: 3
-Ue_Foo : Soo(3u) { constant Unsigned(3) soosize = 1u;  Bool(7) sp(false);  Unsigned(32) a(3u);  :Soo(3u)< Unsigned(3) us(1u);  constant Unsigned(3) v = 3u; > Int(32) test() {  System s;  Foo f;  self a . f us . cast = self a . 3u = self sp . self a . 1u cast == cast = s ( self sp . ! cast )assert . typedef Soo(1u) Soo3;  s ( true )assert . self a . cast return } }
+Ue_Foo : Soo(3u) { constant Unsigned(3) soosize = 1u;  Bool(7) sp(false);  Unsigned a(3u);  :Soo(3u)< Unsigned(3) us(1u);  constant Unsigned(3) v = 3u; > Int test() {  System s;  Foo f;  self a . f us . cast = self a . 3u = self sp . self a . 1u cast == cast = s ( self sp . ! cast )assert . typedef Soo(1u) Soo3;  s ( true )assert . self a . cast return } }
 Uq_Soo(Unsigned(3) v) { Unsigned(UNKNOWN) us(notready);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
@@ -14,8 +14,8 @@ Uq_System { <NOMAIN> }
 #>Foo.ulam
   ulam 3;
 local constant Unsigned(3) soosize = 3u;
-local typedef Soo(soosize) Soo3;
-element Foo : Soo(soosize) {
+local typedef Soo(soosize) Soo3; //which soosize? local?
+element Foo : Soo(soosize) { //member soosize
   Bool(7) sp;
   constant Unsigned(3) soosize = 1u; //okay to redeclare
   Unsigned a = 73;
@@ -23,12 +23,12 @@ element Foo : Soo(soosize) {
     System s;
     Foo f;
     a = f.us;
-    a = Soo3.sizeof;
-    sp = (a == soosize);
+    a = Soo3.sizeof; //which? later typedef or local?..local?
+    sp = (a == soosize); //compared to member soosize? false
     s.assert(!sp);
 
     typedef Soo(soosize) Soo3; //okay to redeclare
-    s.assert(Soo3.sizeof == soosize);
+    s.assert(Soo3.sizeof == soosize); //compared to member sooosize, true
     return (Int) a; //=3
   }
 }

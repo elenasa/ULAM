@@ -7,9 +7,9 @@
 ##
 #!
 Exit status: 16
-Ue_Test { Unsigned(32) m_len(16u);  Int(32) test() {  SystemU3 s;  QU qus;  qus m_array 0 [] . "once upon a time" = s ( qus m_array 0 [] . )print . self m_len . 16u = s ( self m_len . )print . s ( self m_len . 16u cast == )assert . self m_len . cast return } }
+Ue_Test { Unsigned m_len(16u);  Int test() {  SystemU3 s;  QU qus;  qus m_array 0 [] . "once upon a time" = s ( qus m_array 0 [] . )print . self m_len . 16u = s ( self m_len . )print . s ( self m_len . 16u cast == )assert . self m_len . cast return } }
 Uq_SystemU3 : System { :System<> <NOMAIN> }
-Uq_QU +System { Bool(1) n(false);  Int(3) i(0);  Bits(5) t(0);  String m_array[1](UNINITIALIZED_STRING);  +System<> <NOMAIN> }
+Uq_QU +System { Bool n(false);  Int(3) i(0);  Bits(5) t(0);  String m_array[1](UNINITIALIZED_STRING);  +System<> <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 ## Quark-unions can now have String data members, and t.f. a String array (see t41093).

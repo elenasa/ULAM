@@ -132,13 +132,13 @@ namespace MFM {
     return CAST_HAZY;
   } //safeToCastTo
 
-  UTI NodeTerminalProxy::checkAndLabelType()
+  UTI NodeTerminalProxy::checkAndLabelType(Node * thisparentnode)
   {
     //when minmaxsizeof a selected member; and for clones,
     //when m_uti is a String, we must c&l m_nodeOf to find its symbol (t3960)
     if((!m_state.okUTItoContinue(m_uti) || m_state.isAStringType(m_uti)) && m_nodeOf)
       {
-	UTI ofuti = m_nodeOf->checkAndLabelType();
+	UTI ofuti = m_nodeOf->checkAndLabelType(this);
 	if(m_state.okUTItoContinue(ofuti))
 	  {
 	    std::ostringstream msg;
@@ -213,7 +213,7 @@ namespace MFM {
 	nodeType = setConstantTypeForNode(m_funcTok); //enough info to set this constant node's type
 	if((m_funcTok.m_type == TOK_KW_LENGTHOF))
 	  {
-	    if(replaceOurselvesLengthOf())
+	    if(replaceOurselvesLengthOf(thisparentnode))
 	      {
 		m_state.setGoAgain();
 
@@ -228,7 +228,7 @@ namespace MFM {
     return nodeType; //getNodeType(); //updated to Unsigned, hopefully
   } //checkandLabelType
 
-  bool NodeTerminalProxy::replaceOurselvesLengthOf()
+  bool NodeTerminalProxy::replaceOurselvesLengthOf(Node * parentnode)
   {
     bool rtnb = false;
     if(m_state.isAClass(m_uti) && m_state.isClassACustomArray(m_uti) && m_state.hasAClassCustomArrayLengthof(m_uti))
@@ -236,7 +236,7 @@ namespace MFM {
 	//replace node with func call to 'alengthof'
 	Node * newnode = buildAlengthofFuncCallNode();
 	assert(newnode);
-	AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+	AssertBool swapOk = Node::exchangeNodeWithParent(newnode, parentnode);
 	assert(swapOk);
 
 	m_nodeOf = NULL; //recycled
@@ -249,7 +249,7 @@ namespace MFM {
 	Node * newnode = constantFoldLengthofConstantString();
 	if(newnode)
 	  {
-	    AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+	    AssertBool swapOk = Node::exchangeNodeWithParent(newnode, parentnode);
 	    assert(swapOk);
 
 	    rtnb = true;
@@ -648,7 +648,7 @@ namespace MFM {
 
     if(m_nodeTypeDesc)
       {
-	m_uti = m_nodeTypeDesc->checkAndLabelType();
+	m_uti = m_nodeTypeDesc->checkAndLabelType(this);
       }
 
     if(isReadyConstant())
@@ -657,11 +657,16 @@ namespace MFM {
     if(!m_state.okUTItoContinue(m_uti) || !m_state.isComplete(m_uti))
       {
 	std::ostringstream msg;
-	msg << "Proxy Type: " << m_state.getUlamTypeNameBriefByIndex(m_uti).c_str();
-	msg << " is still incomplete and unknown for its '";
+	msg << "Proxy Type";
+	if(m_state.okUTItoContinue(m_uti) && !m_state.isHolder(m_uti))
+	  msg << ": " << m_state.getUlamTypeNameBriefByIndex(m_uti).c_str();
+	if(m_uti == Nav)
+	  msg << " is invalid for its '";
+	else
+	  msg << " is still incomplete and unknown for its '";
 	msg << m_funcTok.getTokenString() << "'";
 	if(m_state.okUTItoContinue(m_uti) || m_state.isStillHazy(m_uti))
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //error/t3298
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //error/t3298,t41204
 	else
 	  {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);

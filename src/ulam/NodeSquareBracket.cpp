@@ -70,8 +70,33 @@ namespace MFM {
     return true; //not for array declaration; includes custom array items
   }
 
+  bool NodeSquareBracket::isAConstant()
+  {
+    return m_nodeLeft->isAConstant() && m_nodeRight->isAConstant();
+  }
+
+  bool NodeSquareBracket::isAConstantClass()
+  {
+    return m_nodeLeft->isAConstantClassArray() && m_nodeRight->isAConstant(); //t41484
+  }
+
+  bool NodeSquareBracket::isAConstantClassArray()
+  {
+    return m_nodeLeft->isAConstantClassArray();
+  }
+
+  void NodeSquareBracket::setClassType(UTI cuti)
+  {
+    //noop (t41484)
+  }
+
+  bool NodeSquareBracket::isEmptyArraysizeDecl()
+  {
+    return (m_nodeRight == NULL);
+  }
+
   // used to select an array item; not for declaration
-  UTI NodeSquareBracket::checkAndLabelType()
+  UTI NodeSquareBracket::checkAndLabelType(Node * thisparentnode)
   {
     assert(m_nodeLeft);
     u32 errorCount = 0;
@@ -79,7 +104,7 @@ namespace MFM {
     UTI newType = Nav; //init
     UTI idxuti = Nav;
 
-    UTI leftType = m_nodeLeft->checkAndLabelType();
+    UTI leftType = m_nodeLeft->checkAndLabelType(this);
 
     //Not caught during parsing since array size may be blank if declared with initialization
     if(!m_nodeRight)
@@ -95,7 +120,7 @@ namespace MFM {
     //for example, f.chance[i] where i is local, same as f.func(i);
     NodeBlock * currBlock = m_state.getCurrentBlock();
     m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock); //currblock doesn't change
-    UTI rightType = m_nodeRight->checkAndLabelType();
+    UTI rightType = m_nodeRight->checkAndLabelType(this);
 
     //Dave ish07152020: RHS (a customarray arg) function call
     // exchanges itself for implicit self, and returns Hzy type for the new
@@ -139,11 +164,25 @@ namespace MFM {
 	      {
 		//ok!
 	      }
+	    else if(lut->isPrimitiveType())
+	      {
+		//ok! (t3765)
+	      }
+	    else if(letyp == UAtom)
+	      {
+		//overload operator[] supercedes custom array (t41492)
+		if(NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode(thisparentnode))
+		  {
+		    m_state.setGoAgain();
+		    delete this; //suicide is painless..
+		    return Hzy;
+		  }
+	      }
 	    else
 	      {
 		assert(letyp == Class);
 		//overload operator[] supercedes custom array (t41129)
-		if(NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode())
+		if(NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode(thisparentnode))
 		  {
 		    m_state.setGoAgain();
 		    delete this; //suicide is painless..
@@ -162,7 +201,7 @@ namespace MFM {
 		    // either an array of custom array classes, or a custom array;
 		    // Note: A diff approach, substitute a func call node for sq bkt, not used.
 		    UTI caType = m_state.getAClassCustomArrayType(leftType);
-		    if(!m_state.isComplete(caType))
+		    if(!m_state.okUTItoContinue(caType) || !m_state.isComplete(caType))
 		      {
 			std::ostringstream msg;
 			msg << "Incomplete Custom Array Type: ";
@@ -179,7 +218,7 @@ namespace MFM {
 			else
 			  {
 			    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-			    newType = Hzy;
+			    newType = Hzy; //t3549
 			    hazyCount++;
 			  }
 		      }
@@ -212,6 +251,7 @@ namespace MFM {
 		    msg << m_state.getUlamTypeNameByIndex(leftType).c_str();
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 		    setNodeType(Hzy);
+		    clearSymbolPtr();
 		    m_state.setGoAgain();
 		    return Hzy;
 		  }
@@ -286,7 +326,7 @@ namespace MFM {
 		  {
 		    //replace node with func call to 'aref' (t41000, t41001)
 		    Node * newnode = buildArefFuncCallNode();
-		    AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+		    AssertBool swapOk = Node::exchangeNodeWithParent(newnode, thisparentnode);
 		    assert(swapOk);
 
 		    m_nodeRight = NULL; //recycled
@@ -370,7 +410,11 @@ namespace MFM {
 	  m_state.abortShouldntGetHere();
       }
     setNodeType(newType);
-    if(newType == Hzy) m_state.setGoAgain(); //covers non-error(debug) messages for incompletes
+    if(newType == Hzy)
+      {
+	clearSymbolPtr();
+	m_state.setGoAgain(); //covers non-error(debug) messages for incompletes
+      }
     return newType;
   } //checkAndLabelType
 
@@ -400,6 +444,15 @@ namespace MFM {
   bool NodeSquareBracket::getConstantValue(BV8K& bval)
   {
     return getConstantArrayItemValue(bval);
+  }
+
+  bool NodeSquareBracket::initDataMembersConstantValue(BV8K& bvref, BV8K& bvmask)
+  {
+    //bvref contains default value at pos 0
+    bool rtnok = getConstantValue(bvref); //overwrites
+    if(rtnok)
+      bvmask.SetBits(0, m_state.getUlamTypeByIndex(getNodeType())->getSizeofUlamType()); //t41484
+    return rtnok;
   }
 
   //here, we check for existence, do we can default to custom array, aref.
@@ -687,6 +740,15 @@ namespace MFM {
     return UlamValue();
   }
 
+  void NodeSquareBracket::clearSymbolPtr()
+  {
+    //if symbol is in a stub, there's no guarantee the stub
+    // won't be replace by another duplicate class once its
+    // pending args have been resolved.
+    if(m_nodeLeft)
+      m_nodeLeft->clearSymbolPtr();
+  }
+
   bool NodeSquareBracket::getSymbolPtr(Symbol *& symptrref)
   {
     if(m_nodeLeft)
@@ -776,11 +838,6 @@ namespace MFM {
     return m_nodeLeft->installSymbolVariable(args, asymptr);
   } //installSymbolVariable
 
-  bool NodeSquareBracket::assignClassArgValueInStubCopy()
-  {
-    return true;
-  }
-
   // eval() no longer performed before check and label
   // returns false if error; UNKNOWNSIZE is not an error!
   bool NodeSquareBracket::getArraysizeInBracket(s32 & rtnArraySize, UTI& sizetype)
@@ -794,7 +851,7 @@ namespace MFM {
 	return true;
       }
 
-    sizetype = m_nodeRight->checkAndLabelType(); //t3504
+    sizetype = m_nodeRight->checkAndLabelType(this); //t3504
     if((sizetype == Nav))
       {
 	rtnArraySize = UNKNOWNSIZE;
@@ -877,8 +934,8 @@ namespace MFM {
     //else continue..
 
     genCodeToStoreInto(fp, uvpass);
-
-    if(!(isString || m_nodeLeft->isAConstant()) || m_state.isReference(uvpass.getPassTargetType())) //t3953,t3973, not isAltRefType t3908, nor constant class (t41266)
+    UTI tt = uvpass.getPassTargetType();
+    if(!(isString || m_nodeLeft->isAConstant()) || (m_state.isReference(tt) && !m_state.isAtom(tt))) //t3953,t3973, not isAltRefType t3908, nor constant class (t41266), not constantatomarrayitem (t41484)
       Node::genCodeReadIntoATmpVar(fp, uvpass);
     else
       m_state.clearCurrentObjSymbolsForCodeGen();
@@ -932,7 +989,9 @@ namespace MFM {
       {
 	Node::genCodeReadArrayItemFromAConstantClassIntoATmpVar(fp, luvpass, offset);
 	uvpass = luvpass;
-	if(m_state.isAClass(cossuti))
+	if(m_state.isAtom(cossuti)) //t41484, in a T
+	  return;
+	else if(m_state.isAClass(cossuti))
 	  Node::genCodeConvertATmpVarIntoBitVector(fp, uvpass); //not for t41198, for t41263
 	else if(m_state.isAStringType(cossuti)) //t41274, t41267, t41273
 	  uvpass.setPassTargetType(m_state.getUlamTypeAsDeref(luvpass.getPassTargetType()));

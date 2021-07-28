@@ -35,12 +35,12 @@ namespace MFM {
     return true;
   }
 
-  UTI NodeConditionalAs::checkAndLabelType()
+  UTI NodeConditionalAs::checkAndLabelType(Node * thisparentnode)
   {
     assert(m_nodeLeft);
     UTI newType = Bool;
 
-    UTI luti = m_nodeLeft->checkAndLabelType(); //side-effect
+    UTI luti = m_nodeLeft->checkAndLabelType(this); //side-effect
     if(luti == Nav)
       {
 	std::ostringstream msg;
@@ -133,7 +133,7 @@ namespace MFM {
       }
 
     assert(m_nodeTypeDesc);
-    UTI ruti = m_nodeTypeDesc->checkAndLabelType();
+    UTI ruti = m_nodeTypeDesc->checkAndLabelType(this);
     if(m_state.okUTItoContinue(ruti))
       {
 	UlamType * rut = m_state.getUlamTypeByIndex(ruti);
@@ -245,15 +245,34 @@ namespace MFM {
 	      m_state.abortUndefinedUlamClassType();
 	  }
       }
+    else
+      {
+		std::ostringstream msg;
+	if(ruti == Nav)
+	  msg << "Invalid ";
+	else
+	  msg << "Incomplete ";
+	msg << "righthand type of conditional operator '" << getName();
+	msg << "' " << m_state.m_pool.getDataAsString(m_nodeTypeDesc->getTypeNameId()).c_str();
+	if(ruti == Nav)
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    newType = Nav;
+	  }
+	else
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);//t3336,t3741,t41315,t41518
+	    newType = Hzy;
+	  }
+      }
 
     if(m_state.okUTItoContinue(newType) && !m_state.isComplete(ruti))
       {
 	std::ostringstream msg;
-	msg << "Righthand type of conditional operator '" << getName() << "': ";
-	msg << m_state.getUlamTypeNameByIndex(ruti).c_str();
-	msg << ", is still incomplete";
+	msg << "Righthand type of conditional operator '" << getName() << "' ";
+	msg << "is still incomplete";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	newType = Hzy; //goagain set by nodetypedesc
+	newType = Hzy; //goagain set by nodetypedesc (t41518)
       }
 
     setNodeType(newType);
@@ -284,15 +303,21 @@ namespace MFM {
     assert(m_state.isPtr(luti));
     luti = pluv.getPtrTargetType();
     assert(m_state.okUTItoContinue(luti));
-    UlamType * lut = m_state.getUlamTypeByIndex(luti);
 
-    if(m_state.isAtom(luti))
+    UlamValue luv = m_state.getPtrTarget(pluv);
+
+    bool leftisatom = m_state.isAtom(luti) || m_state.isAtom(luv.getUlamValueTypeIdx()); //t3754,t3837
+    if(leftisatom)
       {
 	//an atom can be element or quark in eval-land, so let's get specific!
-	UlamValue luv = m_state.getPtrTarget(pluv);
-	luti = luv.getUlamValueTypeIdx();
-	lut = m_state.getUlamTypeByIndex(luti);
+	UTI leffself = luv.getUlamValueEffSelfTypeIdx(); //?
+	if(leffself != Nouti)
+	  {
+	    luti = leffself;
+	  }
       }
+
+    UlamType * lut = m_state.getUlamTypeByIndex(luti);
 
     bool asit = false;
     UTI ruti = getRightType();
@@ -342,7 +367,7 @@ namespace MFM {
 	// like 'is'
 	// was inclusive result for eval purposes (atoms and element types are orthogonal)
 	// now optional for debugging
-#define _LET_ATOM_AS_ELEMENT
+	//#define _LET_ATOM_AS_ELEMENT
 #ifndef _LET_ATOM_AS_ELEMENT
 	if(m_state.isAtom(luti)) return evalStatusReturn(UNEVALUABLE);
 	asit = (UlamType::compare(luti, ruti, m_state) == UTIC_SAME);
@@ -363,16 +388,20 @@ namespace MFM {
     if(asit)
       {
 	UTI asuti = ruti; //as deref'd type
-	u32 relpos = 0;
-	if(!m_state.isAtom(luti))
-	  {
-	    AssertBool gotrelpos = m_state.getABaseClassRelativePositionInAClass(luti, ruti, relpos);
-	    assert(gotrelpos); //t3589
-	  }
+	u32 relpos = 0u;
+	u32 adjust = 0u;
+	if(rclasstype != UC_ELEMENT)
+	{
+	  AssertBool gotrelpos = m_state.getABaseClassRelativePositionInAClass(luti, ruti, relpos);
+	  assert(gotrelpos); //t3589
+	}
 	//else (t3637) n/a for atoms, use 0?
 
-	UlamValue ptr = UlamValue::makePtr(pluv.getPtrSlotIndex(), pluv.getPtrStorage(), asuti, m_state.determinePackable(asuti), m_state, pluv.getPtrPos() + relpos, pluv.getPtrNameId());
+	if((leftisatom || m_state.isAtom(luti)) && (pluv.getPtrPos() == 0))
+	  adjust = ATOMFIRSTSTATEBITPOS; //t3563, t3637
 
+	UlamValue ptr = UlamValue::makePtr(pluv.getPtrSlotIndex(), pluv.getPtrStorage(), asuti, m_state.determinePackable(asuti), m_state, pluv.getPtrPos() + relpos + adjust, pluv.getPtrNameId());
+	ptr.setPtrTargetEffSelfType(luti); //t41318, t41384
 	ptr.checkForAbsolutePtr(pluv);
 
 	m_state.m_currentAutoObjPtr = ptr;

@@ -2,7 +2,7 @@
 #=t3181_test_compiler_element_argcastconstant
 #!
 Exit status: 1
-Ue_Foo { System s();  Bool(3) m_b(true);  Int(4) m_i(1);  Int(32) test() {  self m_i . 1 cast = Bool(3) b;  b true cast = self m_b . self ( true cast )check . cast = self s . ( self m_b . )print . self m_b . cast return } }
+Ue_Foo { System s();  Bool(3) m_b(true);  Int(4) m_i(1);  Int test() {  self m_i . 1 cast = Bool(3) b;  b true cast = self m_b . self ( true cast )check . cast = self s . ( self m_b . )print . self m_b . cast return } }
 Uq_System { <NOMAIN> }
 #>Foo.ulam
   ulam 1;

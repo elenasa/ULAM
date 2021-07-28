@@ -6,7 +6,7 @@
 ##
 #!
 Exit status: 0
-Ue_Foo { System s();  Bool(1) first(false);  Soo su( Unsigned(3) us(4u);  Bool(3) cbs(false);  :Coo< Bool(3) cb(true); >);  Int(32) test() {  Foo f;  self first . self su . ( 1 cast )check . = { self first . cond { self s . ( self first . cast )print . 96u cast return } if } self s . ( true )assert . 0 cast return } }
+Ue_Foo { System s();  Bool first(false);  Soo su( Unsigned(3) us(4u);  Bool(3) cbs(false);  :Coo< Bool(3) cb(true); >);  Int test() {  Foo f;  self first . self su . ( 1 cast )check . = { self first . cond { self s . ( self first . cast )print . 96u cast return } if } self s . ( true )assert . 0 cast return } }
 Uq_Soo : Coo { Unsigned(3) us( 4u);  Bool(3) cbs(false);  :Coo< Bool(3) cb( true); > <NOMAIN> }
 Uq_Coo { Bool(3) cb( true);  <NOMAIN> }
 Uq_System { <NOMAIN> }

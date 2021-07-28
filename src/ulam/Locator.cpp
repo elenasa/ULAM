@@ -64,4 +64,24 @@ namespace MFM {
     return ( m_lineNo == 0 && m_byteNo == 0);
   }
 
+  bool Locator::operator<(const Locator & loc2) const
+  {
+    if(m_pathIdx < loc2.m_pathIdx) return true;  //?
+    if(m_pathIdx > loc2.m_pathIdx) return false; //?
+
+    if(m_lineNo < loc2.m_lineNo) return true;
+    if(m_lineNo > loc2.m_lineNo) return false;
+
+    if(m_byteNo < loc2.m_byteNo) return true;
+    if(m_byteNo > loc2.m_byteNo) return false;
+
+    return false;
+  }
+
+  bool Locator::operator==(const Locator & loc2) const
+  {
+    return((m_pathIdx == loc2.m_pathIdx) && (m_lineNo == loc2.m_lineNo) &&(m_byteNo == loc2.m_byteNo));
+  }
+
+
 } //end MFM

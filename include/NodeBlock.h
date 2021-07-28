@@ -1,8 +1,9 @@
 /**                                        -*- mode:C++ -*-
  * NodeBlock.h - Basic Node for handling Blocks for ULAM
  *
- * Copyright (C) 2014-2021 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2019 The Regents of the University of New Mexico.
  * Copyright (C) 2014-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -77,7 +78,7 @@ namespace MFM{
 
     void appendNextNode(Node * node);
 
-    virtual UTI checkAndLabelType();
+    virtual UTI checkAndLabelType(Node * thisparentnode);
 
     virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
 
@@ -122,13 +123,13 @@ namespace MFM{
   protected:
     SymbolTableOfVariables m_ST;
 
+    SymbolTable * getSymbolTablePtr(); //use with caution, esp. with inheritance
     //void genCodeDeclsForVariableDataMembers(File * fp, ULAMCLASSTYPE classtype);
 
   private:
     NodeBlock * m_prevBlockNode;
     NodeStatements * m_nodeEndingStmt; //ptr to last statement node while parsing.
 
-    SymbolTable * getSymbolTablePtr(); //use with caution, esp. with inheritance
 
   };
 

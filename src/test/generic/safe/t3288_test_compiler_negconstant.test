@@ -11,7 +11,7 @@
 ##      */
 #!
 Exit status: 3
-Ue_Fu { System s();  Int(3) n(-4);  Int(3) m(3);  Unsigned(3) u(3u);  Int(32) test() {  self n . -4 cast = self s . ( self n . )print . self s . ( -4 cast )print . self s . ( 3 cast )print . self s . ( self n . -4 == )assert . self m . self n . - = self s . ( self m . )print . self u . self n . - cast = self s . ( self u . cast )print . self m . cast return } }
+Ue_Fu { System s();  Int(3) n(-4);  Int(3) m(3);  Unsigned(3) u(3u);  Int test() {  self n . -4 cast = self s . ( self n . )print . self s . ( -4 cast )print . self s . ( 3 cast )print . self s . ( self n . -4 == )assert . self m . self n . - = self s . ( self m . )print . self u . self n . - cast = self s . ( self u . cast )print . self m . cast return } }
 Uq_System { <NOMAIN> }
 #>Fu.ulam
   ulam 1;

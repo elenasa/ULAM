@@ -1,20 +1,20 @@
 ## -*- mode:ulam -*-
 #=t3685_test_compiler_elementandquark_elementinstanceoffunccallarg
-##      gen code output: (2 asserts)
 ##
-##        unevaluable without assuming atoms as elements (c should be false)
+##      gen code output: (2 asserts)
 ##
 #!
 Exit status: 0
-Ue_A : QW { Bool(1) b(true);  Bool(1) c(true);  :QW<> Int(32) test() {  System s;  self b . self ( self.instanceof )func . = s ( self b . )assert . Atom(96) a;  self c . self ( a )func . = s ( self c . ! )assert . 0 cast return } }
+Ue_A : QW { Bool b(true);  Bool c(false);  :QW<> Int test() {  System s;  self b . self ( self.instanceof )func . = s ( self b . )assert . Atom a;  self c . self ( a )func . = s ( self c . ! )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 Uq_QW { <NOMAIN> }
 ##
 ## Dave requested a way to get default values for Self (within a quark);
 ## a loophole, since a quark would be an undefined atom, but as a ref, its done (t3679)
-## As of ulam-3, loophole no longer needed; now it is a runtime check, rather than compile time restriction.
+## As of ulam-3, loophole no longer needed; now it is a runtime check,
+## rather than compile time restriction.
 ##
-## simialr to 3684, except arg is not a ref, and we use instanceof rather than atomof
+## similar to 3684, except arg is not a ref, and we use instanceof rather than atomof
 ##
 #>A.ulam
   ulam 2;

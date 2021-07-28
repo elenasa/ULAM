@@ -156,13 +156,13 @@ namespace MFM{
     return CAST_BAD;
   }
 
-  UTI NodeList::checkAndLabelType()
+  UTI NodeList::checkAndLabelType(Node * thisparentnode)
   {
     UTI rtnuti = Void;
     for(u32 i = 0; i < m_nodes.size(); i++)
       {
 	assert(m_nodes[i]);
-	UTI puti = m_nodes[i]->checkAndLabelType();
+	UTI puti = m_nodes[i]->checkAndLabelType(this);
 	if(puti == Nav)
 	  {
 	    std::ostringstream msg;
@@ -252,6 +252,7 @@ namespace MFM{
   void NodeList::addNodeToList(Node * argNode)
   {
     m_nodes.push_back(argNode);
+    argNode->updateLineage(getNodeNo()); //t41228?
   }
 
   u32 NodeList::getNumberOfNodes() const

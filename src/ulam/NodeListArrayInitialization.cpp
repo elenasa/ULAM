@@ -98,6 +98,7 @@ namespace MFM{
 
   void NodeListArrayInitialization::setClassType(UTI cuti) //from parent
   {
+    //sets the array to all the same type, not for constant atom arrays.
     assert(m_state.okUTItoContinue(cuti));
     if(m_state.okUTItoContinue(cuti) && m_state.isAClass(cuti))
       {
@@ -106,12 +107,17 @@ namespace MFM{
 	  {
 	    if(m_nodes[i]->isClassInit())
 	      m_nodes[i]->setClassType(scalaruti);
-	    //else quietly fail?
+	    else if(m_nodes[i]->isAConstantClass())
+	      {
+		//noop (t41509, t41234)
+	      }
+	    //else
+	    //quietly fail (t41234)
 	  }
       }
   }
 
-  UTI NodeListArrayInitialization::checkAndLabelType()
+  UTI NodeListArrayInitialization::checkAndLabelType(Node * thisparentnode)
   {
     //the size of the list may be less than the array size
     UTI rtnuti = Node::getNodeType(); //init to Void; //ok
@@ -123,7 +129,7 @@ namespace MFM{
 
     for(u32 i = 0; i < m_nodes.size(); i++)
       {
-	UTI puti = m_nodes[i]->checkAndLabelType();
+	UTI puti = m_nodes[i]->checkAndLabelType(this);
 	if(!m_state.okUTItoContinue(puti))
 	  {
 	    std::ostringstream msg;
@@ -174,7 +180,7 @@ namespace MFM{
   {
     assert(n < m_nodes.size()); //error/t3446
 
-    UTI foldeduti = m_nodes[n]->constantFold(); //c&l possibly redone
+    UTI foldeduti = m_nodes[n]->constantFold(this); //c&l possibly redone
     ULAMTYPE etyp = m_state.getUlamTypeByIndex(foldeduti)->getUlamTypeEnum();
 
     //insure constant value fits in its array's bitsize
@@ -273,8 +279,8 @@ namespace MFM{
 
     //if(isEmptyList()) return true; //noop, t41201
 
-    if(m_state.isAClass(nuti))
-      return buildClassArrayValueInitialization(bvtmp); //t41185
+    if(m_state.isAClass(nuti) || m_state.isAtom(nuti))
+      return buildClassArrayValueInitialization(bvtmp); //t41185,t41485 atom array
 
     for(u32 i = 0; i < n; i++)
       {
@@ -318,23 +324,31 @@ namespace MFM{
       }
 
     UlamValue ituv = m_state.m_nodeEvalStack.popArg();
-
-    u64 foldedconst;
-    u32 itemlen = m_state.getBitSize(nuti);
-
-    if(itemlen <= MAXBITSPERINT)
-      foldedconst = ituv.getImmediateData(itemlen, m_state);
-    else if(itemlen <= MAXBITSPERLONG)
-      foldedconst = ituv.getImmediateDataLong(itemlen, m_state);
-    else
-      m_state.abortGreaterThanMaxBitsPerLong();
-
     evalNodeEpilog();
 
-    bvtmp.WriteLong(pos * itemlen, itemlen, foldedconst);
+    u32 itemlen = m_state.getBitSize(nuti);
+    if(itemlen == BITSPERATOM)
+      {
+	ituv.getDataBig(pos * itemlen, BITSPERATOM, bvtmp); //t41484
+      }
+    else
+      {
+	u64 foldedconst;
+
+	if(itemlen <= MAXBITSPERINT)
+	  foldedconst = ituv.getImmediateData(itemlen, m_state);
+	else if(itemlen <= MAXBITSPERLONG)
+	  foldedconst = ituv.getImmediateDataLong(itemlen, m_state);
+	else
+	  m_state.abortGreaterThanMaxBitsPerLong();
+
+	bvtmp.WriteLong(pos * itemlen, itemlen, foldedconst);
+      }
+
     return true;
   } //buildArrayItemInitialValue
 
+  //given bvtmp has arraysize copies of default class value;
   bool NodeListArrayInitialization::buildClassArrayValueInitialization(BV8K& bvtmp)
   {
     UTI nuti = Node::getNodeType();
@@ -357,13 +371,6 @@ namespace MFM{
 	rtnok &= buildClassArrayItemInitialValue(i, i, bvtmp); //yikes! (was |=) (t41185) all or none
 	if(!rtnok)
 	  break;
-      }
-
-    //fill in default class if nothing provided for a non-empty array
-    if((n == 0) && (arraysize > 0))
-      {
-	rtnok = m_state.getDefaultClassValue(nuti, bvtmp); //uses scalar uti
-	n = 1; //ready to fall thru and propagate as needed
       }
 
     if(rtnok)
@@ -393,16 +400,27 @@ namespace MFM{
     UTI scalaruti = m_state.getUlamTypeAsScalar(nuti);
     UlamType * scalarut = m_state.getUlamTypeByIndex(scalaruti);
     u32 itemlen = scalarut->getSizeofUlamType();
-    u32 adjust = 0; //(classtype == UC_ELEMENT ? ATOMFIRSTSTATEBITPOS : 0);
 
     BV8K bvclass;
-    bvtmp.CopyBV(pos * itemlen + adjust, 0, itemlen - adjust, bvclass); //zero-based item
-    if(m_nodes[n]->isAConstantClass())
+    bvtmp.CopyBV(pos * itemlen, 0, itemlen, bvclass); //zero-based item
+
+    if(m_nodes[n]->isAConstant() && m_state.isAtom(nuti))
+      {
+	//cast to .constantof or named constant
+	BV8K bvmask;
+	if(m_nodes[n]->initDataMembersConstantValue(bvclass, bvmask)) //at pos 0
+	  {
+	    bvclass.CopyBV(0, pos * itemlen, itemlen, bvtmp); //frompos, topos, len, destBV
+	    rtnb = true;
+	  }
+      }
+    else if(m_nodes[n]->isAConstantClass())
       {
 	BV8K bvmask;
-	if(((NodeConstantClass *) m_nodes[n])->initDataMembersConstantValue(bvclass, bvmask)) //at pos 0
+	//	if(((NodeConstantClass *) m_nodes[n])->initDataMembersConstantValue(bvclass, bvmask)) //at pos 0
+	if(m_nodes[n]->initDataMembersConstantValue(bvclass, bvmask)) //at pos 0
 	  {
-	    bvclass.CopyBV(0, pos * itemlen + adjust, itemlen - adjust, bvtmp); //frompos, topos, len, destBV
+	    bvclass.CopyBV(0, pos * itemlen, itemlen, bvtmp); //frompos, topos, len, destBV
 	    rtnb = true;
 	  }
       }
@@ -411,7 +429,7 @@ namespace MFM{
 	BV8K bvmask;
 	if(((NodeListClassInit *) m_nodes[n])->initDataMembersConstantValue(bvclass, bvmask)) //at pos 0
 	  {
-	    bvclass.CopyBV(0, pos * itemlen + adjust, itemlen - adjust, bvtmp); //frompos, topos, len, destBV
+	    bvclass.CopyBV(0, pos * itemlen, itemlen, bvtmp); //frompos, topos, len, destBV
 	    rtnb = true;
 	  }
       }

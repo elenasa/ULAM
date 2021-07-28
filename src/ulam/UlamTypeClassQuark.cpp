@@ -34,11 +34,32 @@ namespace MFM {
     //now allowing atoms to be cast as quarks, as well as elements;
     // also allowing subclasses to be cast as their superclass (u1.2.2)
     if(vetyp == UAtom)
-      brtn = false; //cast atom to a quark ref (in eval)?
+      {
+	//cast atom to a quark ref (in eval)? t41315,8, t41499
+	UTI veffself = val.getUlamValueEffSelfTypeIdx();
+	assert(veffself != Nouti);
+	valtypidx = veffself;
+      }
+
+    if(isReference())
+      {
+	UTI dereftypidx = m_state.getUlamTypeAsDeref(typidx);
+	if(UlamType::compare(valtypidx, dereftypidx, m_state) == UTIC_SAME)
+	  {
+	    val.setUlamValueTypeIdx(typidx);
+	  }
+	else if(m_state.isClassASubclassOf(valtypidx, dereftypidx))
+	  {
+	    val.setUlamValueTypeIdx(typidx);
+	  }
+	else
+	  {
+	    brtn = false;
+	  }
+      }
     else if(UlamType::compare(valtypidx, typidx, m_state) == UTIC_SAME)
       {
-	//if same type nothing to do; if atom, shows as element in eval-land.
-	//val.setAtomElementTypeIdx(typidx); //?
+	//if same type nothing to do;
       }
     else if(m_state.isClassASubclassOf(valtypidx, typidx))
       {
@@ -139,6 +160,7 @@ namespace MFM {
   {
     s32 len = getTotalBitSize(); //could be 0, includes arrays
     s32 baselen = isScalar() ? getBitsizeAsBaseClass() : len; //could be 0, default when effself not self (ulam-5)
+    assert(baselen >= 0);
     s32 bitsize = getBitSize();
 
     //class instance idx is always the scalar uti
@@ -426,15 +448,16 @@ namespace MFM {
 
 	    //write the data members first
 	    //here.. 'd' UlamRef is initially pointing to them.
-	    u32 myblen = getBitsizeAsBaseClass();
+	    s32 myblen = getBitsizeAsBaseClass();
+	    assert(myblen >= 0);
 	    if(myblen > 0)
 	      {
 		fp->write("/*data members first*/ ");
 		fp->write("UlamRef<EC>(*this,0,"); //t3172
-		fp->write_decimal_unsigned(myblen);
+		fp->write_decimal(myblen);
 		fp->write("u).Write(");
 		fp->write("tmpbv.Read(0u,");
-		fp->write_decimal_unsigned(myblen);
+		fp->write_decimal(myblen);
 		fp->write("u)); ");
 	      }
 
@@ -686,16 +709,17 @@ namespace MFM {
 	fp->write("else {");
 	//write the data members first
 	//here.. 'd' UlamRef is initially pointing to them.
-	u32 myblen = getBitsizeAsBaseClass();
+	s32 myblen = getBitsizeAsBaseClass();
+	assert(myblen >= 0);
 	if(myblen > 0)
 	  {
 	    fp->write("/*data members first*/ ");
 	    fp->write("BVS::Write(");
 	    fp->write("0u,");
-	    fp->write_decimal_unsigned(myblen);
+	    fp->write_decimal(myblen);
 	    fp->write("u,");
 	    fp->write("UlamRef<EC>(d,0,"); //t3230
-	    fp->write_decimal_unsigned(myblen);
+	    fp->write_decimal(myblen);
 	    fp->write("u).Read()); ");
 	  }
 

@@ -2,7 +2,7 @@
 #=t41095_test_compiler_elementinheritedquark_purevirtualfunccall_fail
 ##
 ## gen err:
-## /home/elenas/WORK/ulam/repo/MFM-fork/MFM/src/core/include/UlamClass.h:262: FAILED: PURE_VIRTUAL_CALLED
+## /home/elenas/e56/WORK/ulam/repo/MFM-fork/MFM/src/core/include/UlamRef.tcc:291: FAILED: PURE_VIRTUAL_CALLED
 ##
 #!
 ./E2.ulam:3:43: ERROR: Virtual function 'Uf_5afunc11102321i' is pure; cannot be called directly in baseclass: Sub1.

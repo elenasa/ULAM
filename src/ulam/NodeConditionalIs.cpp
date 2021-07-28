@@ -15,12 +15,12 @@ namespace MFM {
     return new NodeConditionalIs(*this);
   }
 
-  UTI NodeConditionalIs::checkAndLabelType()
+  UTI NodeConditionalIs::checkAndLabelType(Node * thisparentnode)
   {
     assert(m_nodeLeft);
     UTI newType = Bool;  //except for 'Has'
 
-    UTI luti = m_nodeLeft->checkAndLabelType();  //side-effect
+    UTI luti = m_nodeLeft->checkAndLabelType(this);  //side-effect
     if(luti == Nav)
       {
 	std::ostringstream msg;
@@ -87,7 +87,7 @@ namespace MFM {
       }
 
     assert(m_nodeTypeDesc);
-    UTI ruti = m_nodeTypeDesc->checkAndLabelType();
+    UTI ruti = m_nodeTypeDesc->checkAndLabelType(this);
     if(m_state.okUTItoContinue(ruti))
       {
 	UlamType * rut = m_state.getUlamTypeByIndex(ruti);
@@ -116,13 +116,32 @@ namespace MFM {
 	      }
 	  }
       }
+    else
+      {
+	std::ostringstream msg;
+	if(ruti == Nav)
+	  msg << "Invalid ";
+	else
+	  msg << "Incomplete ";
+	msg << "righthand type of conditional operator '" << getName();
+	msg << "' " << m_state.m_pool.getDataAsString(m_nodeTypeDesc->getTypeNameId()).c_str();
+	if(ruti == Nav)
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    newType = Nav;
+	  }
+	else
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	    newType = Hzy; //t3328,t3861,t3862,t3868,t3742
+	  }
+      }
 
     if(m_state.okUTItoContinue(newType) && !m_state.isComplete(ruti))
       {
 	std::ostringstream msg;
-	msg << "Righthand type of conditional operator '" << getName() << "': ";
-	msg << m_state.getUlamTypeNameBriefByIndex(ruti).c_str();
-	msg << ", is still incomplete";
+	msg << "Righthand type of conditional operator '" << getName() << "' ";
+	msg << "is still incomplete";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	newType = Hzy; //goagain set by nodetypedesc
       }
@@ -169,7 +188,8 @@ namespace MFM {
     // DO 'IS':
     UTI luti = pluv.getUlamValueTypeIdx();
     assert(m_state.isPtr(luti));
-    luti = pluv.getPtrTargetType();
+    UlamValue luv = m_state.getPtrTarget(pluv);
+    luti = luv.getUlamValueTypeIdx();
     UTI ruti = getRightType();
 
     UTI derefluti = m_state.getUlamTypeAsDeref(luti);
@@ -181,7 +201,11 @@ namespace MFM {
     bool isit = ((UlamType::compare(derefluti,ruti,m_state) == UTIC_SAME) || m_state.isClassASubclassOf(derefluti, ruti));
 #else
     bool isit = (m_state.isAtom(luti) || (UlamType::compare(derefluti,ruti,m_state) == UTIC_SAME) || m_state.isClassASubclassOf(derefluti, ruti));
-
+    if(m_state.isAtom(luti))
+      {
+	UTI leffself = luv.getUlamValueEffSelfTypeIdx();
+	isit = (leffself != Nouti) && ((UlamType::compare(leffself,ruti,m_state) == UTIC_SAME) || m_state.isClassASubclassOf(leffself, ruti)); //t41484, t3255, t41495
+      }
 #endif
 
     UlamValue rtnuv = UlamValue::makeImmediate(nuti, (u32) isit, m_state);

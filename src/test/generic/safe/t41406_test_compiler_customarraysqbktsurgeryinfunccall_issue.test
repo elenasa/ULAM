@@ -5,7 +5,7 @@
 ##  Unsigned Arg: 4
 #!
 Exit status: -11
-Ue_R { Int(32) test() {  System s;  Foo f;  f ( )behave . 0 cast return } }
+Ue_R { Int test() {  System s;  Foo f;  f ( )behave . 0 cast return } }
 Uq_System { <NOMAIN> }
 Ue_Foo { typedef Unsigned(6) SN;  Bool(7) m_backLeft( true);  System s();  <NOMAIN> }
 Uq_EventWindow { typedef Unsigned(6) SiteNum;  <NOMAIN> }

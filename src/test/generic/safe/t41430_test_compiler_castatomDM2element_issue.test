@@ -5,8 +5,8 @@
 ##        unevaluable without assuming atoms as elements
 #!
 Exit status: -11
-Ue_Tu { Int(32) test() {  Foo foot;  foot ( )behave . { foot mA . Tu is cond { Tu f = foot mA . cast;  } if } Atom(96)& aref = foot mA . cast;  { aref Tu as cond { Tu& aref;  Tu f = aref cast;  } if } 0 cast return } }
-Un_Foo { Atom(96) mA(Atom(96));  <NOMAIN> }
+Ue_Tu { Int test() {  Foo foot;  foot ( )behave . { foot mA . Tu is cond { Tu f = foot mA . cast;  } if } Atom& aref = foot mA . cast;  { aref Tu as cond { Tu& aref;  Tu f = aref cast;  } if } 0 cast return } }
+Un_Foo { Atom mA(Atom);  <NOMAIN> }
 ##
 ## informed by Dave's ish 3/9/21 (see also t3277); was generated code gcc compiler error
 ##

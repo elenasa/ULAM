@@ -3,15 +3,15 @@
 ##      //No error about zero bitsize!!
 ##
 ## was Wed Jun  1 16:36:26 2016
-## Ue_TypedefIssue(Unsigned(32) tif) { typedef Unsigned(UNKNOWN) Symmetry[UNKNOWN];  Unsigned(UNKNOWN) x[UNKNOWN](notready);  Bool(1) b(false);  Vector(vec) t(notready);  <NOMAIN> }
+## Ue_TypedefIssue(Unsigned tif) { typedef Unsigned(UNKNOWN) Symmetry[UNKNOWN];  Unsigned(UNKNOWN) x[UNKNOWN](notready);  Bool b(false);  Vector(vec) t(notready);  <NOMAIN> }
 ## now:
-## Ue_TypedefIssue(Unsigned(32) tif) { typedef 0Holder(UNKNOWN) Symmetry;  0Holder(UNKNOWN) x(notready);  Bool(1) b(false);  Vector(vec) t(notready);  <NOMAIN> }
+## Ue_TypedefIssue(Unsigned tif) { typedef 0Holder(UNKNOWN) Symmetry;  0Holder(UNKNOWN) x(notready);  Bool b(false);  Vector(vec) t(notready);  <NOMAIN> }
 ##
 #!
 Exit status: 12
-Ue_R { Int(32) test() {  TypedefIssue(2u) ish;  ish ( )foo2 . return } }
-Uq_Vector(Unsigned(32) vec) { typedef Unsigned(UNKNOWN) Channel;  typedef Unsigned(UNKNOWN) Symmetry[UNKNOWN];  Unsigned(UNKNOWN) m[UNKNOWN](notready);  <NOMAIN> }
-Ue_TypedefIssue(Unsigned(32) tif) { typedef Unsigned(UNKNOWN) Symmetry[UNKNOWN];  Unsigned(UNKNOWN) x[UNKNOWN](notready);  Bool(1) b(false);  Vector(vec) t(notready);  <NOMAIN> }
+Ue_R { Int test() {  TypedefIssue(2u) ish;  ish ( )foo2 . return } }
+Uq_Vector(Unsigned vec) { typedef Unsigned(UNKNOWN) Channel;  typedef Unsigned(UNKNOWN) Symmetry[UNKNOWN];  Unsigned(UNKNOWN) m[UNKNOWN](notready);  <NOMAIN> }
+Ue_TypedefIssue(Unsigned tif) { typedef unresolved Symmetry;  unresolved x(notready);  Bool b(false);  Vector(vec) t(notready);  <NOMAIN> }
 ##
 ##      //informed by 3337, array subscript delayed.
 ##      //informed by 3269, UNSEEN..

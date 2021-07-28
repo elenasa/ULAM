@@ -2,10 +2,10 @@
 #=t3381_test_compiler_unseenclassesholdertypedef_doubledots
 #!
 Exit status: 0
-Ue_F { Int(32) test() {  0 cast return } }
-Ue_A { typedef Int(32) ZZ;  <NOMAIN> }
+Ue_F { Int test() {  0 cast return } }
+Ue_A { typedef Int ZZ;  <NOMAIN> }
 Uq_X { typedef B Y;  <NOMAIN> }
-Ue_B { typedef Int(32) Z;  <NOMAIN> }
+Ue_B { typedef Int Z;  <NOMAIN> }
 ##
 ##      // B before X too..(informed by t3380)
 #>F.ulam

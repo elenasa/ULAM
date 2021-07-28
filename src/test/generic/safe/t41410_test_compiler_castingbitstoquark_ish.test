@@ -2,12 +2,12 @@
 #=t41410_test_compiler_castingbitstoquark_ish
 #!
 Exit status: -11
-Ue_Anchor10 : QSegment(4u) { System s();  :QSegment(4u)< constant Unsigned(32) cMSG_BITS = 4u;  typedef QIMsg(4u) QC_QIMsg;  QIMsg(4u) mMessageBuffer( typedef Bits(4) Payload;  Bits(4) mPayload(0);  constant Unsigned(32) bits = 4u;  typedef Unary(2) Direction;  constant Unary(2) cEMPTY = 0u;  constant Unary(2) cUP = 1u;  constant Unary(2) cDOWN = 3u;  Unary(2) mDirection(0u); );  :QSeg< typedef Unsigned(5) SegPtr;  typedef Unsigned(2) Type; >> ^QSeg< typedef Unsigned(5) SegPtr;  typedef Unsigned(2) Type; > Int(32) test() {  typedef Bits(4) MPayload;  SegPkt10 pkt;  pkt mCN . 3u = pkt mUpbound . true = self mMessageBuffer . mPayload . pkt cast = SegPkt10 pkt2 = self mMessageBuffer . mPayload . cast;  self s . ( pkt mCN . pkt2 mCN . == )assert . self s . ( pkt2 mUpbound . )assert . 0 cast return } }
-Uq_SegPkt10 { typedef Unsigned(3) CN;  constant Unsigned(3) cNO_OP = 0u;  constant Unsigned(3) cSET_LENGTH = 1u;  constant Unsigned(3) cSET_STRETCH = 2u;  constant Unsigned(3) cSET_ANGLE = 3u;  constant Unsigned(3) cSET_FLEX = 4u;  constant Unsigned(3) cGROW_HEAD = 5u;  constant Unsigned(3) cRSV6 = 6u;  constant Unsigned(3) cRSV7 = 7u;  Bool(1) mUpbound(false);  Unsigned(3) mCN(0);  <NOMAIN> }
-Uq_QSegment(Unsigned(32) cMSG_BITS) : QSeg { typedef QIMsg(bits) QC_QIMsg;  QIMsg(bits) mMessageBuffer(notready);  :QSeg< typedef Unsigned(5) SegPtr;  typedef Unsigned(2) Type; > <NOMAIN> }
+Ue_Anchor10 : QSegment(4u) { System s();  :QSegment(4u)< constant Unsigned cMSG_BITS = 4u;  typedef QIMsg(4u) QC_QIMsg;  QIMsg(4u) mMessageBuffer( typedef Bits(4) Payload;  Bits(4) mPayload(0);  constant Unsigned bits = 4u;  typedef Unary(2) Direction;  constant Unary(2) cEMPTY = 0u;  constant Unary(2) cUP = 1u;  constant Unary(2) cDOWN = 3u;  Unary(2) mDirection(0u); );  :QSeg< typedef Unsigned(5) SegPtr;  typedef Unsigned(2) Type; >> ^QSeg< typedef Unsigned(5) SegPtr;  typedef Unsigned(2) Type; > Int test() {  typedef Bits(4) MPayload;  SegPkt10 pkt;  pkt mCN . 3u = pkt mUpbound . true = self mMessageBuffer . mPayload . pkt cast = SegPkt10 pkt2 = self mMessageBuffer . mPayload . cast;  self s . ( pkt mCN . pkt2 mCN . == )assert . self s . ( pkt2 mUpbound . )assert . 0 cast return } }
+Uq_SegPkt10 { typedef Unsigned(3) CN;  constant Unsigned(3) cNO_OP = 0u;  constant Unsigned(3) cSET_LENGTH = 1u;  constant Unsigned(3) cSET_STRETCH = 2u;  constant Unsigned(3) cSET_ANGLE = 3u;  constant Unsigned(3) cSET_FLEX = 4u;  constant Unsigned(3) cGROW_HEAD = 5u;  constant Unsigned(3) cRSV6 = 6u;  constant Unsigned(3) cRSV7 = 7u;  Bool mUpbound(false);  Unsigned(3) mCN(0);  <NOMAIN> }
+Uq_QSegment(Unsigned cMSG_BITS) : QSeg { typedef QIMsg(bits) QC_QIMsg;  QIMsg(bits) mMessageBuffer(notready);  :QSeg< typedef Unsigned(5) SegPtr;  typedef Unsigned(2) Type; > <NOMAIN> }
 Uq_System { <NOMAIN> }
 Uq_QSeg { typedef Unsigned(5) SegPtr;  typedef Unsigned(2) Type;  <NOMAIN> }
-Uq_QIMsg(Unsigned(32) bits) { typedef Bits(UNKNOWN) Payload;  typedef Unary(2) Direction;  constant Unary(2) cEMPTY = 0u;  constant Unary(2) cUP = 1u;  constant Unary(2) cDOWN = 3u;  Unary(2) mDirection(0);  Bits(UNKNOWN) mPayload(notready);  <NOMAIN> }
+Uq_QIMsg(Unsigned bits) { typedef Bits(UNKNOWN) Payload;  typedef Unary(2) Direction;  constant Unary(2) cEMPTY = 0u;  constant Unary(2) cUP = 1u;  constant Unary(2) cDOWN = 3u;  Unary(2) mDirection(0);  Bits(UNKNOWN) mPayload(notready);  <NOMAIN> }
 ##
 ## informed by Dave's ish 2/24/2021: implementation missing.
 ##
@@ -49,7 +49,7 @@ quark SegPkt10 {
   constant CN cRSV6        = 6u;
   constant CN cRSV7        = 7u;
 
-  Bool(1) mUpbound;
+  Bool mUpbound;
   CN mCN;
 }
 

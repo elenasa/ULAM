@@ -31,7 +31,7 @@ NodeBinaryOpArithDivide::NodeBinaryOpArithDivide(const NodeBinaryOpArithDivide& 
     return methodname.str();
   } //methodNameForCodeGen
 
-  UTI NodeBinaryOpArithDivide::castThyselfToResultType(UTI rt, UTI lt, UTI newType)
+  UTI NodeBinaryOpArithDivide::castThyselfToResultType(UTI rt, UTI lt, UTI newType, Node *& parentnoderef)
   {
     UTI nuti = newType;
     //because the result bitsize for division should be the left bitsize
@@ -51,14 +51,15 @@ NodeBinaryOpArithDivide::NodeBinaryOpArithDivide(const NodeBinaryOpArithDivide& 
 	  {
 	    NNO pno = Node::getYourParentNo(); //save
 	    assert(pno);
+
 	    //not using use makeCastingNode since don't want recursive c&l call
 	    Node * castNode = Node::newCastingNode(this, nuti);
 	    assert(castNode);
 
-	    Node * parentNode = m_state.findNodeNoInThisClassForParent(pno);
-	    assert(parentNode);
+	    assert(parentnoderef);
+	    assert(pno == parentnoderef->getNodeNo());
 
-	    AssertBool swapOk = parentNode->exchangeKids(this, castNode);
+	    AssertBool swapOk = parentnoderef->exchangeKids(this, castNode);
 	    assert(swapOk);
 
 	    std::ostringstream msg;
@@ -68,8 +69,10 @@ NodeBinaryOpArithDivide::NodeBinaryOpArithDivide(const NodeBinaryOpArithDivide& 
 	    msg << " while compiling class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	    castNode->setYourParentNo(pno); //inverts normal update lineage
-	    setYourParentNo(castNode->getNodeNo());
+	    //castNode->setYourParentNo(pno); //inverts normal update lineage
+	    //setYourParentNo(castNode->getNodeNo());
+	    castNode->updateLineage(pno);
+	    parentnoderef = castNode;
 	  }
       }
     return nuti;

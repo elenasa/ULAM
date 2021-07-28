@@ -17,6 +17,11 @@ namespace MFM {
     return new NodeFuncDecl(*this);
   }
 
+  void NodeFuncDecl::clearSymbolPtr()
+  {
+    m_funcSymbolPtr = NULL;
+  }
+
   u32 NodeFuncDecl::getfunctionid() const
   {
     assert(m_funcSymbolPtr);
@@ -37,7 +42,7 @@ namespace MFM {
 
   void NodeFuncDecl::genTypeAndNameEntryAsComment(File * fp, s32 totalsize, u32& accumsize) { }
 
-  UTI NodeFuncDecl::checkAndLabelType()
+  UTI NodeFuncDecl::checkAndLabelType(Node * thisparentnode)
   {
     if(!m_funcSymbolPtr)
       {
@@ -57,14 +62,30 @@ namespace MFM {
 	msg << "Function symbol '";
 	msg << m_state.m_pool.getDataAsString(m_fid).c_str();
 	msg << "' cannot be found";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	setNodeType(Nav);
-	return Nav;
+
+	if(m_state.isClassAStub(m_state.getCompileThisIdx()))
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	    setNodeType(Hzy);
+	    m_state.setGoAgain();
+	    return Hzy; //t3336 (with new CSNT::fullyInstantiate method)
+	  }
+	else
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    setNodeType(Nav);
+	    return Nav;
+	  }
       }
 
     assert(m_funcSymbolPtr);
     UTI nodeType = m_funcSymbolPtr->getUlamTypeIdx();
     setNodeType(nodeType);
+    if(nodeType == Hzy)
+      {
+	clearSymbolPtr();
+	m_state.setGoAgain();
+      }
     return nodeType;
   }
 

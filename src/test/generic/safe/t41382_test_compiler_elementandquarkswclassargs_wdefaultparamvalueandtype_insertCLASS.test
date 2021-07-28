@@ -3,31 +3,31 @@
 ##
 ## gen output:
 ##
-##   String(4) Arg: "P"
-##   String(4) Arg: "P"
-##   String(4) Arg: "P"
-##   String(4) Arg: "P"
-##   String(7) Arg: "Ue_10111P10" (+ 3 asserts)
+##   String(2) Arg: "P"
+##   String(2) Arg: "P"
+##   String(2) Arg: "P"
+##   String(2) Arg: "P"
+##   String(3) Arg: "Ue_10111P10" (+ 3 asserts)
 ##   String(1) Arg: "Q" (+ assert)
-##   String(120) Arg: "Q(Int(32) b,Unsigned(4) s)" (+ assert)
-##   String(220) Arg: "Q(Int(32) b=4,Unsigned(4) s=2u)" (+ 5 asserts)
-##   String(253) Arg: "Q(4,2u)" (+ assert)
-##   String(262) Arg: "Uq_10121Q12102321i1410141u12" (+ 2 asserts)
+##   String(8) Arg: "Q(Int b,Unsigned(4) s)" (+ assert)
+##   String(12) Arg: "Q(Int b=4,Unsigned(4) s=2u)" (+ 5 asserts)
+##   String(13) Arg: "Q(4,2u)" (+ assert)
+##   String(14) Arg: "Uq_10121Q12102321i1410141u12" (+ 2 asserts)
 ##   String(1) Arg: "Q" (+ assert)
-##   String(20) Arg: "Q(Int(32) b,Unsigned(3) s)" (+ assert)
-##   String(48) Arg: "Q(Int(32) b=3,Unsigned(3) s=1u)" (+ 5 asserts)
-##   String(81) Arg: "Q(3,1u)" (+ assert)
-##   String(90) Arg: "Uq_10111Q12102321i1310131u11" (+ 2 asserts)
+##   String(4) Arg: "Q(Int b,Unsigned(3) s)" (+ assert)
+##   String(5) Arg: "Q(Int b=3,Unsigned(3) s=1u)" (+ 5 asserts)
+##   String(6) Arg: "Q(3,1u)" (+ assert)
+##   String(7) Arg: "Uq_10111Q12102321i1310131u11" (+ 2 asserts)
 ##   String(1) Arg: "Q" (+ assert)
-##   String(120) Arg: "Q(Int(32) b,Unsigned(4) s)" (+ assert)
-##   String(148) Arg: "Q(Int(32) b=4,Unsigned(4) s=1u)" (+ 5 asserts)
-##   String(181) Arg: "Q(4,1u)" (+ assert)
-##   String(190) Arg: "Uq_10111Q12102321i1410141u11" (+ assert)
+##   String(8) Arg: "Q(Int b,Unsigned(4) s)" (+ assert)
+##   String(9) Arg: "Q(Int b=4,Unsigned(4) s=1u)" (+ 5 asserts)
+##   String(10) Arg: "Q(4,1u)" (+ assert)
+##   String(11) Arg: "Uq_10111Q12102321i1410141u11" (+ assert)
 ##
 #!
 Exit status: 4
-Ue_P { Bool(1) b(false);  Int(32) test() {  SystemU3 s;  s ( "P" )print . s ( "P" )print . s ( "P" )print . s ( "P" )print . s ( "Ue_10111P10" )print . s ( true )assert . s ( true )assert . Q(4,2u) z;  s ( true )assert . z ( )printclassnames . Q(3,1u) q;  s ( true )assert . q ( )printclassnames . Q(4,1u) w;  s ( true )assert . w ( )printclassnames . 4u cast return } }
-Uq_Q(Int(32) b = 3, Unsigned(UNKNOWN) s = NONREADYCONST) { typedef Unsigned(UNKNOWN) Foo;  Unsigned(UNKNOWN) f(notready);  <NOMAIN> }
+Ue_P { Bool b(false);  Int test() {  SystemU3 s;  s ( "P" )print . s ( "P" )print . s ( "P" )print . s ( "P" )print . s ( "Ue_10111P10" )print . s ( true )assert . s ( true )assert . Q(4,2u) z;  s ( true )assert . z ( )printclassnames . Q(3,1u) q;  s ( true )assert . q ( )printclassnames . Q(4,1u) w;  s ( true )assert . w ( )printclassnames . 4u cast return } }
+Uq_Q(Int b = 3, Unsigned(UNKNOWN) s = NONREADYCONST) { typedef Unsigned(UNKNOWN) Foo;  Unsigned(UNKNOWN) f(notready);  <NOMAIN> }
 Uq_SystemU3 : System { :System<> <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
@@ -76,19 +76,26 @@ quark Q(Int b = 3, Unsigned(b) s = 1u) {
     sq.assert(__CLASS__.lengthof==1);
 
     sq.print(__CLASS_SIGNATURE__);
-    sq.assert(__CLASS_SIGNATURE__.lengthof==26);
+    sq.print(__CLASS_SIGNATURE__.lengthof);
+    sq.assert(__CLASS_SIGNATURE__.lengthof==22);
+
 
     sq.print(__CLASS_PRETTY__);
-    sq.assert(__CLASS_PRETTY__.lengthof==31);
-    sq.assert(__CLASS_PRETTY__[9]==' ');
-    sq.assert(__CLASS_PRETTY__[25]==__CLASS_PRETTY__[9]);
-    sq.assert(__CLASS_PRETTY__[11]=='=');
-    sq.assert(__CLASS_PRETTY__[27]==__CLASS_PRETTY__[11]);
+    sq.print(__CLASS_PRETTY__.lengthof);
+    sq.assert(__CLASS_PRETTY__.lengthof==27);
+
+    //start count with [0]
+    sq.assert(__CLASS_PRETTY__[5]==' ');
+    sq.assert(__CLASS_PRETTY__[21]==__CLASS_PRETTY__[5]);
+    sq.assert(__CLASS_PRETTY__[7]=='=');
+    sq.assert(__CLASS_PRETTY__[23]==__CLASS_PRETTY__[7]);
 
     sq.print(__CLASS_SIMPLE__);
+    sq.print(__CLASS_SIMPLE__.lengthof);
     sq.assert(__CLASS_SIMPLE__.lengthof==7);
 
     sq.print(__CLASS_MANGLED__);
+    sq.print(__CLASS_MANGLED__.lengthof);
     sq.assert(__CLASS_MANGLED__.lengthof==28);
   }
 }
@@ -96,7 +103,7 @@ quark Q(Int b = 3, Unsigned(b) s = 1u) {
 #:SystemU3.ulam
   ulam 3;
 quark SystemU3 : System {
-  Void print(String s) native;
+  Void print(String s) native; //String(index) Arg:
 }
 
 #:System.ulam

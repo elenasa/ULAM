@@ -2,7 +2,7 @@
 #=t3464_test_compiler_quarkshift_error
 #!
 ./A.ulam:7:11: ERROR: Non-primitive type <Bar> is not supported as right operand type for binary <<.
-./A.ulam:7:7: ERROR: Assignment is invalid; LHS: Int(32); RHS: erroneous.
+./A.ulam:7:7: ERROR: Assignment is invalid; LHS: Int; RHS: erroneous.
 Unrecoverable Program Type Label FAILURE.
 ##
 ##      //quark has no toInt method: ulam-3 looks for overload operator when class on lhs

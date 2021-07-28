@@ -1,0 +1,43 @@
+## -*- mode:ulam -*-
+#=t41518_test_compiler_elementinheritance_varrefuseofundefinedclasstypedefinbase_ish_error
+#!
+./Moo.ulam:6:13: ERROR: Typedef 'MyContainer' in class Moo remains undefined.
+./Moo.ulam:6:10: ERROR: Incomplete righthand type of conditional operator 'as' MyContainer.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by 20210703_004343 ish: lhs memberselect, undefined classname asserted:
+## culamtest: NodeMemberSelect.cpp:208: virtual MFM::u16 MFM::NodeMemberSelect::checkAndLabelType(MFM::Node*): Assertion `isDefined' failed.
+##
+#>Moo.ulam
+ ulam 3;
+quark Moo {
+  Unsigned(3) us = 4u;
+  Bool func(Atom& a)
+  {
+    if(a as MyContainer)
+    {
+      MyContainer & root = (MyContainer&) a;
+      if(root.isEmpty())
+	return true;
+    }
+    return false;
+  }
+
+  Bool isEmpty()
+  {
+    return true;
+  }
+}
+
+#:Foo.ulam
+  ulam 3;
+element Foo : Moo {
+  typedef Moo MyContainer;
+  Bool(7) sp;
+  Int test() {
+    sp = func(self.atomof);
+    return 0;
+  }
+}
+
+#.

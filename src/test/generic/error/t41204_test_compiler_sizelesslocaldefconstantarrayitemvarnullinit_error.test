@@ -1,28 +1,29 @@
 ## -*- mode:ulam -*-
 #=t41204_test_compiler_sizelesslocaldefconstantarrayitemvarnullinit_error
 #!
-./P.ulam:7:7: ERROR: Incomplete NodeConstantArray for type: Int(32)[UNKNOWN], used with constant symbol name 'by'.
-./P.ulam:7:7: ERROR: Constant value expression for: b, is not ready, still hazy.
-./Q.ulam:2:42: ERROR: Incomplete Terminal Proxy for type: V(a).
-./Q.ulam:2:37: ERROR: Incomplete descriptor for type: V(a) (UTI 39).
-./Q.ulam:2:42: ERROR: Proxy Type: V(a) is still incomplete and unknown for its 'sizeof'.
+./P.ulam:7:7: ERROR: Incomplete NodeConstantArray for type: Int[UNKNOWN], used with constant symbol name 'by'.
+./P.ulam:7:7: ERROR: Constant value expression for: b, is not ready, still hazy, while compiling P (UTI 31).
+./Q.ulam:2:42: ERROR: Proxy Type is still incomplete and unknown for its 'sizeof'.
 ./Q.ulam:2:24: ERROR: Constant value expression for 's', is not yet ready.
-./Q.ulam:2:24: ERROR: Incomplete NodeConstantDef for type: Unsigned(32), used with symbol name 's', after folding.
-./Q.ulam:2:39: ERROR: Not ready constant for type: Int(32), used with constant symbol name 'b'.
-./Q.ulam:2:39: ERROR: Constant value expression for: a, is not ready, still hazy.
-./P.ulam:7:5: ERROR: Incomplete descriptor for type: Q(b,s) (UTI 35).
-./P.ulam:7:5: ERROR: Incomplete Variable Decl for type: Q(b,s), used with variable symbol name 'w'.
-./P.ulam:8:13: ERROR: Incomplete identifier for type: Q(b,s), used with list symbol name 'w'.
+./Q.ulam:2:24: ERROR: Incomplete Constant Def for type: Unsigned, used with symbol name 's', after folding.
+./Q.ulam:2:39: ERROR: Not ready constant for type: Int, used with symbol name 'b', while compiling Q(b,s) (UTI 35).
+./Q.ulam:2:39: ERROR: Constant value expression for: a, is not ready, still hazy, while compiling Q(b,s) (UTI 35).
+./P.ulam:7:5: ERROR: Incomplete Variable Decl for type: Q(b,s) used with variable symbol name 'w'.
+./P.ulam:7:5: ERROR: Variable for: 'w', is still hazy.
+./P.ulam:8:13: ERROR: Incomplete identifier for a type Q(b,s), used with list symbol name 'w'.
 ./P.ulam:8:15: ERROR: Undetermined type for missing member 'w' Proxy.
 ./P.ulam:8:7: ERROR: Argument 1 is incomplete.
-./P.ulam:9:10: ERROR: Incomplete identifier for type: Q(b,s), used with list symbol name 'w'.
+./P.ulam:9:10: ERROR: Incomplete identifier for a type Q(b,s), used with list symbol name 'w'.
 ./P.ulam:9:12: ERROR: Undetermined type for missing member 'w' Proxy.
-./P.ulam:11:18: ERROR: Incomplete identifier for type: Q(b,s), used with list symbol name 'w'.
+./P.ulam:11:18: ERROR: Incomplete identifier for a type Q(b,s), used with list symbol name 'w'.
 ./P.ulam:11:20: ERROR: Undetermined type for missing member 'w' Proxy.
 ./P.ulam:11:13: ERROR: Cannot cast a nonready type.
 ./P.ulam:11:5: ERROR: Function return type is still unresolved: unresolved.
-./P.ulam:2:16: ERROR: Incomplete NodeConstantDef for type: Int(32)[UNKNOWN], used with symbol name 'by'.
-./P.ulam:2:16: ERROR: Constant value expression for: by, is not ready.
+./Q.ulam:3:20: ERROR: Not ready constant for type: Unsigned, used with symbol name 's', while compiling Q(b,s) (UTI 35).
+./Q.ulam:3:11: ERROR: Type Bitsize specifier, within (), is not ready.
+./Q.ulam:3:11: ERROR: Incomplete Typedef used with alias name 'Foo'.
+./Q.ulam:4:3: ERROR: Incomplete Variable Decl for type used with variable symbol name 'f'.
+./Q.ulam:4:3: ERROR: Variable for: 'f', is still hazy.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t41203, array without initialization or size (last 2 errors output).

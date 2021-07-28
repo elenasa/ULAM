@@ -2,8 +2,8 @@
 #=t3521_test_compiler_elementandquarkswclassargs_wdefaultparam
 #!
 Exit status: 7
-Ue_P { Bool(1) b(false);  Int(32) test() {  Q(3) q;  Q(4) w;  q 3 . w 4 . +b return } }
-Uq_Q(Int(32) s = 3) { typedef Unsigned(UNKNOWN) Foo;  <NOMAIN> }
+Ue_P { Bool b(false);  Int test() {  Q(3) q;  Q(4) w;  q 3 . w 4 . +b return } }
+Uq_Q(Int s = 3) { typedef Unsigned(UNKNOWN) Foo;  <NOMAIN> }
 ##
 ## first test of class parameters with default values
 ##

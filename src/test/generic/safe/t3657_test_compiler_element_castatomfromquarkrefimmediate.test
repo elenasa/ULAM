@@ -2,11 +2,11 @@
 #=t3657_test_compiler_element_castatomfromquarkrefimmediate
 ##
 ## gen output: 3 asserts
-## eval: bb is false; should be true
+##
 #!
-Exit status: -11
-Ue_Foo : QPerc { :QPerc< Bool(1) bb(false); > Int(32) test() {  System s;  QPerc q;  q bb . true = s ( q bb . )assert . QPerc& qref = q cast;  s ( qref bb . )assert . QPerc b = QPerc.instanceof;  s ( b bb . q bb . != )assert . Atom(96) c = Foo.instanceof cast;  Atom(96) d = self.atomof cast;  self d cast = Atom(96) e;  e self.instanceof = Foo f;  f e cast = ; 0 cast return } }
-Uq_QPerc { Bool(1) bb(false);  <NOMAIN> }
+Exit status: 0
+Ue_Foo : QPerc { :QPerc< Bool bb(false); > Int test() {  System s;  QPerc q;  q bb . true = s ( q bb . )assert . QPerc& qref = q cast;  s ( qref bb . )assert . QPerc b = QPerc.instanceof;  s ( b bb . q bb . != )assert . Atom c = Foo.instanceof cast;  Atom d = self.atomof cast;  self d cast = Atom e;  e self.instanceof = Foo f;  f e cast = ; 0 cast return } }
+Uq_QPerc { Bool bb(false);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 ## informed by a Dave ish 2/19/2016;

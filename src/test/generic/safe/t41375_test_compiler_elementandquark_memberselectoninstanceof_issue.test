@@ -5,9 +5,9 @@
 ##
 #!
 Exit status: 6
-Ue_A : System { Bool(1) b(false);  :System<> Int(32) test() {  self ( Parameters.instanceof 6u . )print . self ( Parameters.instanceof 6u . 6u cast == )assert . Parameters.instanceof 6u . cast return } }
+Ue_A : System { Bool b(false);  :System<> Int test() {  self ( Parameters.instanceof 6u . )print . self ( Parameters.instanceof 6u . 6u cast == )assert . Parameters.instanceof 6u . cast return } }
 Uq_System { <NOMAIN> }
-Ue_Parameters { constant Unsigned(32) cp = 6u;  <NOMAIN> }
+Ue_Parameters { constant Unsigned cp = 6u;  <NOMAIN> }
 ##
 ## informed by Daves ish/wish 20191118, and t41091:
 ##        parser skipped parseRestOfFactor after factor started with a Type.

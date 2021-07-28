@@ -39,6 +39,15 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
+  void NodeMemberSelect::clearSymbolPtr()
+  {
+    //if symbol is in a stub, there's no guarantee the stub
+    // won't be replace by another duplicate class once its
+    // pending args have been resolved.
+    if(m_nodeRight)
+      m_nodeRight->clearSymbolPtr();
+  }
+
   bool NodeMemberSelect::getSymbolPtr(Symbol *& symptrref)
   {
     if(m_nodeRight)
@@ -121,25 +130,29 @@ namespace MFM {
     return m_nodeRight->safeToCastTo(newType);
   } //safeToCastTo
 
-  UTI NodeMemberSelect::checkAndLabelType()
+  UTI NodeMemberSelect::checkAndLabelType(Node * thisparentnode)
   {
     assert(m_nodeLeft && m_nodeRight);
     UTI nuti = getNodeType();
-    UTI luti = m_nodeLeft->checkAndLabelType(); //side-effect
+    UTI luti = m_nodeLeft->checkAndLabelType(this); //side-effect
 
     if(!m_state.isComplete(luti))
       {
 	std::ostringstream msg;
-	msg << "Member selected is incomplete class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
-	msg << ", check and label fails this time around";
 	if(luti == Nav)
 	  {
+	    msg << "Member selected, ";
+	    msg << m_nodeLeft->getName();
+	    msg << ", is invalid here";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    nuti = Nav; //error/t3460
 	  }
 	else
 	  {
+	    msg << "Member selected is an incomplete class: ";
+	    //msg << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
+	    msg << m_nodeLeft->getName();
+	    msg << ", check and label fails this time around"; //t41511
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    if(nuti != Nav)
 	      nuti = Hzy; //avoid clobbering Nav
@@ -195,8 +208,15 @@ namespace MFM {
     std::string className = m_state.getUlamTypeNameBriefByIndex(luti); //help me debug
 
     SymbolClass * csym = NULL;
-    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(luti, csym);
-    assert(isDefined);
+    if(!m_state.alreadyDefinedSymbolClass(luti, csym))
+      {
+	std::ostringstream msg;
+	msg << "Member selected is not a defined class: ";
+	msg << className.c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	setNodeType(Nav);
+	return Nav; //t41518
+      }
 
     NodeBlockClass * memberClassNode = csym->getClassBlockNode();
     assert(memberClassNode);  //e.g. forgot the closing brace on quark definition
@@ -227,7 +247,7 @@ namespace MFM {
    //set up compiler state to use the member class block for symbol searches
     m_state.pushClassContextUsingMemberClassBlock(memberClassNode);
 
-    UTI rightType = m_nodeRight->checkAndLabelType();
+    UTI rightType = m_nodeRight->checkAndLabelType(this);
 
     //clear up compiler state to no longer use the member class block for symbol searches
     m_state.popClassContext();
@@ -390,11 +410,6 @@ namespace MFM {
     return false;
   } //trimToTheElement
 
-  bool NodeMemberSelect::assignClassArgValueInStubCopy()
-  {
-    return true; //nothing to do
-  }
-
   bool NodeMemberSelect::isFunctionCall()
   {
     return m_nodeRight->isFunctionCall(); //based like storeintoable, on right
@@ -421,7 +436,7 @@ namespace MFM {
 
     if(m_nodeLeft->isAConstant())
       {
-	//probably need evaltostoreinto for rhs, since not DM.
+	//probably need evaltostoreinto for rhs, since not DM. (? t41507)
 	//m_state.abortNotImplementedYet(); //t41198, t41209, t41217
 	//return UNEVALUABLE;
       }
@@ -599,16 +614,19 @@ namespace MFM {
 
     m_nodeLeft->genCodeToStoreInto(fp, luvpass);
 
+    UVPass ruvpass; //fresh (t41473?), consistent w genCodeToStoreInto
     //NodeIdent can't do it, because it doesn't know it's not a stand-alone element.
     // here, we know there's rhs of member select, which needs to adjust to state bits.
     if(passalongUVPass())
       {
-	uvpass = luvpass;
+	ruvpass = luvpass;
       }
+    //else
 
     //check the back (not front) to process multiple member selections (e.g. t3818)
-    m_nodeRight->genCode(fp, uvpass);  //leave any array item as-is for gencode.
+    m_nodeRight->genCode(fp, ruvpass);  //leave any array item as-is for gencode.
 
+    uvpass = ruvpass;
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************?
   } //genCode
 

@@ -2,6 +2,7 @@
 #=t41408_test_compiler_neg2typebitvalue_ish_error
 #!
 ./QIMsg.ulam:5:11: ERROR: Type Bitsize specifier for Unary type, within (), is a negative numeric constant expression: -2.
+./QIMsg.ulam:5:11: ERROR: Invalid Typedef used with alias name 'Direction'.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by Dave's ish1 2/23/2021: error message was unhelpful due to
@@ -32,7 +33,7 @@ element Anchor10 : QSegX {
 
 /*
 quark SegPkt10 {
-  Bool(1) mUpbound;
+  Bool mUpbound;
 }
 */
 

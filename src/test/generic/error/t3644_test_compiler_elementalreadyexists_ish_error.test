@@ -1,10 +1,10 @@
 ## -*- mode:ulam -*-
 #=t3644_test_compiler_elementalreadyexists_ish_error
 #!
-./Foo.ulam:3:3: ERROR: Class with parameters seen with the same name: Bar.
+./Foo.ulam:3:3: ERROR: Class with parameters seen with the same name: Bar; No shadow typedef in class scope, Foo.
 Unrecoverable Program Type Label FAILURE.
 ##
-## informed by a Dave ish 1/23/2016; (order matters)
+## informed by a Dave ish 1/23/2016; (order matters?) see also t3554.
 ##
 #>Foo.ulam
   ulam 1;

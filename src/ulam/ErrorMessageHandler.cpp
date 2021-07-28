@@ -11,7 +11,10 @@ namespace MFM {
     //awaits init() call by owner
   }
 
-  ErrorMessageHandler::~ErrorMessageHandler(){}
+  ErrorMessageHandler::~ErrorMessageHandler()
+  {
+    m_seenToUserMessages.clear();
+  }
 
 
   void  ErrorMessageHandler::init(CompilerState * state, bool debugMode, bool infoMode, bool noteMode, bool warnMode, bool waitMode, File * fp)
@@ -23,7 +26,8 @@ namespace MFM {
     m_noteMode = noteMode;
     m_warnMode = warnMode;
     m_waitMode = waitMode;
-    m_fOut = fp;
+    setFileOutput(fp);
+    clearCounts();
   }
 
   void ErrorMessageHandler::changeWaitToErrMode()
@@ -75,13 +79,13 @@ namespace MFM {
 	  outputMsg(loc,message,srcDebug.str().c_str(), "debug", false);
 	else
 	  {
-	    if(m_state->isClassATemplate(m_state->getCompileThisIdx()))
-	      outputMsg(loc,message,srcDebug.str().c_str(), "debug", false);
-	    else
+	    if(m_state->turnWaitMessageIntoErrorMessage())
 	      {
 		outputMsg(loc,message,srcDebug.str().c_str(), "ERROR");
 		incErrorCount();
 	      }
+	    else
+	      outputMsg(loc,message,srcDebug.str().c_str(), "debug", false);
 	  }
 	break;
       default:
@@ -116,7 +120,6 @@ namespace MFM {
     return m_warningCount;
   }
 
-
   void ErrorMessageHandler::clearCounts()
   {
     m_errorCount = 0;
@@ -135,15 +138,22 @@ namespace MFM {
     // debugMethod not given to user
     if(m_fOut && toUser)
       {
+	std::ostringstream msg;
+	msg << ulamloc << " " << label << ": " << message << ".\n";
+	std::string msgstr(msg.str());
+	std::pair<std::set<std::string>::iterator,bool> ret;
+	ret = m_seenToUserMessages.insert(msgstr);
+	if(ret.second) //false if already existed, i.e. not added
+	  m_fOut->write(msgstr.c_str());
+#if 0
 	m_fOut->write(ulamloc);
 	m_fOut->write(" ");
 	m_fOut->write(label);
 	m_fOut->write(": ");
 	m_fOut->write(message);
 	m_fOut->write(".\n");
+#endif
       }
   }
-
-
 
 }  // end MFM

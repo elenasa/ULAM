@@ -1,9 +1,9 @@
 /**                                        -*- mode:C++ -*-
  * NodeBlockClass.h - Basic Node for handling Classes for ULAM
  *
- * Copyright (C) 2014-2021 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2019 The Regents of the University of New Mexico.
  * Copyright (C) 2014-2021 Ackleyshack LLC.
- * Copyright (C) 2021 The Living Computation Foundation.
+ * Copyright (C) 2020-2021 The Living Computation Foundation.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -92,31 +92,19 @@ namespace MFM{
 
     virtual bool isAClassBlock();
 
+    void setDataMembersParseTree(UTI cuti, NodeBlockClass & fromClassBlock);
+    void resetDataMembersParseTree(UTI cuti, NodeBlockClass & fromClassBlock);
+    void setDataMembersSymbolTable(UTI cuti, NodeBlockClass & fromClassBlock);
 
-    void clearBaseClassBlockList();
+    SymbolTable * getFunctionSymbolTablePtr();
 
-    void clearSharedBaseClassBlockList();
+    void setMemberFunctionsSymbolTable(UTI cuti, NodeBlockClass& fromClassBlock);
 
-    void initBaseClassBlockList();
-
-    void initSharedBaseClassBlockList();
-
-    void setBaseClassBlockPointer(NodeBlockClass *, u32 item);
-
-    void setSharedBaseClassBlockPointer(NodeBlockClass *, u32 item);
-
-    NodeBlockClass * getBaseClassBlockPointer(u32 item);
-
-    NodeBlockClass * getSharedBaseClassBlockPointer(u32 item);
-
-    bool isBaseClassLinkReady(UTI cuti, u32 item);
-
-    bool isSharedBaseClassLinkReady(UTI cuti, u32 item);
-
+    bool isBaseClassBlockReady(UTI cuti, UTI baseuti);
 
     virtual bool hasStringDataMembers();
 
-    virtual UTI checkAndLabelType();
+    virtual UTI checkAndLabelType(Node * thisparentnode);
 
     bool checkParameterNodeTypes();
 
@@ -134,19 +122,21 @@ namespace MFM{
 
     u32 getNumberOfArgumentNodes();
 
+    NodeList * getListOfArgumentNodes();
+
     virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
 
     u32 getLocalsFilescopeType();
 
     bool hasCustomArray();
 
-    void checkCustomArrayTypeFunctions();
+    void checkCustomArrayTypeFunctions(UTI cuti);
 
-    UTI getCustomArrayTypeFromGetFunction();
+    UTI getCustomArrayTypeFromGetFunction(UTI cuti);
 
-    u32 getCustomArrayIndexTypeFromGetFunction(Node * rnode, UTI& idxuti, bool& hasHazyArgs);
+    u32 getCustomArrayIndexTypeFromGetFunction(UTI cuti, Node * rnode, UTI& idxuti, bool& hasHazyArgs);
 
-    bool hasCustomArrayLengthofFunction();
+    bool hasCustomArrayLengthofFunction(UTI cuti);
 
     virtual bool buildDefaultValue(u32 wlen, BV8K& dvref); //starts here, called by SymbolClass
 
@@ -181,6 +171,8 @@ namespace MFM{
 
     void addFuncIdToScope(u32 id, Symbol * symptr);
 
+    u32 getNumberOfFuncSymbolsInTableHere();
+
     u32 getNumberOfFuncSymbolsInTable();
 
     u32 getSizeOfFuncSymbolsInTable();
@@ -211,8 +203,6 @@ namespace MFM{
 
     virtual void generateBuiltinConstantClassOrArrayInitializationFunction(File * fp, bool declOnly);
 
-    void initElementDefaultsForEval(UlamValue& uv, UTI cuti);
-
     NodeBlockFunctionDefinition * findTestFunctionNode();
 
     NodeBlockFunctionDefinition * findCustomArrayLengthofFunctionNode();
@@ -223,6 +213,7 @@ namespace MFM{
     virtual void addMemberDescriptionsToInfoMap(ClassMemberMap& classmembers);
 
     virtual void generateTestInstance(File * fp, bool runtest);
+    virtual void generateIncludeTestMain(File * fp);
 
   protected:
     SymbolTableOfFunctions m_functionST;
@@ -230,8 +221,8 @@ namespace MFM{
 
   private:
 
-    std::vector<NodeBlockClass *> m_nodeBaseClassBlockList; // NodeBlockClass * m_superBlockNode;
-    std::vector<NodeBlockClass *> m_nodeSharedBaseClassBlockList; // NodeBlockClass * m_superBlockNode;
+    //std::vector<NodeBlockClass *> m_nodeBaseClassBlockList; // NodeBlockClass * m_superBlockNode;
+    //std::vector<NodeBlockClass *> m_nodeSharedBaseClassBlockList; // NodeBlockClass * m_superBlockNode;
 
     bool m_buildingDefaultValueInProgress;
     bool m_bitPackingInProgress;
@@ -252,7 +243,7 @@ namespace MFM{
     void genCodeHeaderLocalsFilescope(File * fp);
 
     void genCodeDataMemberChartAsComment(File * fp, UTI cuti); //at end of header
-    void genBaseClassTypeAndNameEntryAsComment(File * fp, UTI nuti, s32 atpos, u32& accumsize, u32 baseitem); //for base classes
+    void genBaseClassTypeAndNameEntryAsComment(File * fp, UTI nuti, s32 atpos, u32& accumsize, u32 baseitem, bool dupflag); //for base classes
 
     void genThisUlamBaseClassAsAHeaderComment(File * fp);
 

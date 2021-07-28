@@ -107,7 +107,7 @@ namespace MFM {
     m_oftype = oftyp;
   }
 
-  UTI NodeStorageof::checkAndLabelType()
+  UTI NodeStorageof::checkAndLabelType(Node * thisparentnode)
   {
   UTI nuti = Nouti;
 
@@ -116,7 +116,7 @@ namespace MFM {
       //m_nodeOf if variable subject; o.w. nodeTypeDescriptor if Type subject
       if(m_nodeOf)
 	{
-	  UTI ofuti = m_nodeOf->checkAndLabelType();
+	  UTI ofuti = m_nodeOf->checkAndLabelType(this);
 	  if(m_state.okUTItoContinue(ofuti))
 	    {
 	      std::ostringstream msg;
@@ -151,7 +151,7 @@ namespace MFM {
       else if(m_nodeTypeDesc)
 	{
 	  //Of a Type (lhs)
-	  nuti = m_nodeTypeDesc->checkAndLabelType(); //sets goagain if hzy
+	  nuti = m_nodeTypeDesc->checkAndLabelType(this); //sets goagain if hzy
 	}
       else
 	m_state.abortShouldntGetHere();
@@ -251,7 +251,7 @@ namespace MFM {
     // quark or nonclass data member;
     evalNodeProlog(0); //new current node eval frame pointer
 
-    makeRoomForSlots(1); //always 1 slot for ptr
+    makeRoomForSlots(1); //always 1 slot for ptr (t41507 vs t41033)
 
     UlamValue uvp = makeUlamValuePtr(); //virtual
     if(!uvp.isPtr()) return evalStatusReturn(ERROR);
@@ -269,6 +269,8 @@ namespace MFM {
   {
     evalNodeProlog(0); //new current node eval frame pointer
 
+    makeRoomForSlots(1); //always 1 slot for ptr (t41507 vs t41033)
+
     // return ptr to this local var (from NodeIdent's makeUlamValuePtr)
     UlamValue rtnUVPtr = makeUlamValuePtr(); //virtual
 
@@ -280,5 +282,36 @@ namespace MFM {
     evalNodeEpilog();
     return NORMAL;
   } //evalToStoreInto
+
+  UlamValue NodeStorageof::evalAtomOfExpr()
+  {
+    UTI nuti = getNodeType();
+
+    assert(m_nodeOf);
+    assert(m_state.isAtom(nuti));
+
+    UlamValue ofuv = UlamValue::makeAtom();
+    ofuv.setUlamValueEffSelfTypeIdx(m_state.getEmptyElementUTI());
+
+    // need effective self of atom (t3286)
+    evalNodeProlog(0); //new current node eval frame pointer
+
+    u32 slots = makeRoomForSlots(1); //always 1 slot for ptr
+
+    EvalStatus evs = m_nodeOf->eval();
+    if(evs == NORMAL)
+      ofuv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(slots);
+    evalNodeEpilog();
+
+    return ofuv;
+  } //evalAtomOfExpr
+
+  void NodeStorageof::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
+  {
+    depth += m_state.slotsNeeded(getNodeType());
+
+    if(m_nodeOf)
+      m_nodeOf->calcMaxDepth(depth, maxdepth, base);
+  } //calcMaxDepth
 
 } //end MFM

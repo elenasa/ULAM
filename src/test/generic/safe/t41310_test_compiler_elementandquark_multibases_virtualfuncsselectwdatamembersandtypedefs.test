@@ -8,12 +8,12 @@
 ##
 #!
 Exit status: 0
-Ue_Foo +System { Int(32) m_c4(212);  Int(32) m_a4(110);  +System<> Int(32) test() {  E4 e4;  typedef QBase2 QB2;  self m_c4 . e4 QB2 . ( )vfuncc . = self ( self m_c4 . )print . self ( self m_c4 . 212 cast == )assert . typedef QBase1 QB1;  self m_a4 . e4 QB1 . ( )vfunca . = self ( self m_a4 . )print . self ( self m_a4 . 110 cast == )assert . self ( e4 m_b1 . )assert . e4 m_b1 . false = Int(32) a4 = e4 QBase1 . ( )vfunca .;  self ( a4 )print . self ( a4 110 cast == )assert . self ( e4 m_b1 . )assert . 0 cast return } }
+Ue_Foo +System { Int m_c4(212);  Int m_a4(110);  +System<> Int test() {  E4 e4;  typedef QBase2 QB2;  self m_c4 . e4 QB2 . ( )vfuncc . = self ( self m_c4 . )print . self ( self m_c4 . 212 cast == )assert . typedef QBase1 QB1;  self m_a4 . e4 QB1 . ( )vfunca . = self ( self m_a4 . )print . self ( self m_a4 . 110 cast == )assert . self ( e4 m_b1 . )assert . e4 m_b1 . false = Int a4 = e4 QBase1 . ( )vfunca .;  self ( a4 )print . self ( a4 110 cast == )assert . self ( e4 m_b1 . )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
-Ue_E4 : QBase3 +QBase2 +QBase1 { typedef QBase2 QB2;  :QBase3< Bool(1) m_b3(false); > +QBase2< Bool(1) m_b2(false); > +QBase1< Bool(1) m_b1(false); > <NOMAIN> }
-Uq_QBase3 : QBase1 { Bool(1) m_b3(false);  :QBase1< Bool(1) m_b1(false); > <NOMAIN> }
-Uq_QBase1 { Bool(1) m_b1(false);  <NOMAIN> }
-Uq_QBase2 { Bool(1) m_b2(false);  <NOMAIN> }
+Ue_E4 : QBase3 +QBase2 +QBase1 { typedef QBase2 QB2;  :QBase3< Bool m_b3(false); > +QBase2< Bool m_b2(false); > +QBase1< Bool m_b1(false); > <NOMAIN> }
+Uq_QBase3 : QBase1 { Bool m_b3(false);  :QBase1< Bool m_b1(false); > <NOMAIN> }
+Uq_QBase1 { Bool m_b1(false);  <NOMAIN> }
+Uq_QBase2 { Bool m_b2(false);  <NOMAIN> }
 ##
 ##       informed by t41309; here we want to pick a base class' 'override instead,
 ##       and change its data member (but which one? SHARED!); using typedefs

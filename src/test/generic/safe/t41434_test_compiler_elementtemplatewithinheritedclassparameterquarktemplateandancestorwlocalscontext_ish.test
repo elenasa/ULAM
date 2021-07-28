@@ -6,12 +6,12 @@
 ##
 #!
 Exit status: 0
-Ue_R { Int(32) test() {  System s;  Foo foo;  foo ( )behave . { foo ( )func . 27u cast == cond 0 cast return if } s ( false )assert . -1 cast return } }
+Ue_R { Int test() {  System s;  Foo foo;  foo ( )behave . { foo ( )func . 27u cast == cond 0 cast return if } s ( false )assert . -1 cast return } }
 Uq_System { <NOMAIN> }
 Ue_Foo : T3 { /* empty class block */ }
-Uq_T1(Unsigned(32) u, Bool(1) b) { Bool(1) mb(notready);  <NOMAIN> }
-Uq_T2(Bool(1) z, Unsigned(32) q, Unsigned(32) other) : T1(u,b) { Unsigned(5) mq(notready);  :T112< Bool(1) mb(notready); > <NOMAIN> }
-Uq_T3 : T2(true,1u,27u) { :T2(true,1u,27u)< Unsigned(5) mq( 1u); > ^T1(1u,true)< Bool(1) mb( 1u); > <NOMAIN> }
+Uq_T1(Unsigned u, Bool b) { Bool mb(notready);  <NOMAIN> }
+Uq_T2(Bool z, Unsigned q, Unsigned other) : T1(u,b) { Unsigned(5) mq(notready);  :T112< Bool mb(notready); > <NOMAIN> }
+Uq_T3 : T2(true,1u,27u) { :T2(true,1u,27u)< Unsigned(5) mq( 1u); > ^T1(1u,true)< Bool mb( 1u); > <NOMAIN> }
 ##
 ## informed by Dave ish 3/24/2021. Clone argument nodes for ClassInstance assumed context was a class;
 ##    But it was a locals file scope. Easy fix.
@@ -34,19 +34,24 @@ element R {
 }
 
 
-#:Foo.ulam
-  quark T1(Unsigned u, Bool b) {
+#:T1.ulam
+  ulam 5;
+quark T1(Unsigned u, Bool b) {
   Unsigned func() { return u; } // NOT virtual
   Bool mb = b;
 }
 
+#:T2.ulam
+  ulam 5;
 quark T2(Bool z, Unsigned q, Unsigned other) : T1(q,z) {
   Unsigned func() { return other; }
   Unsigned(5) mq = (Unsigned(5)) q;
 }
 
-local typedef T2(true, 1u, 27u) MyT2;
+#:T3.ulam
+  ulam 5;
 
+local typedef T2(true, 1u, 27u) MyT2;
 quark T3 : MyT2 {
   Void behave() {
     System s;
@@ -54,6 +59,8 @@ quark T3 : MyT2 {
   }
 }
 
+#:Foo.ulam
+  ulam 5;
 element Foo : T3 { }
 
 

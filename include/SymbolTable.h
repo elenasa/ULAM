@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * SymbolTable.h -  Basic handling of Table of Symbols for ULAM
  *
- * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2017 Ackleyshack LLC.
+ * Copyright (C) 2014-2021 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2021 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file SymbolTable.h -  Basic handling of Table of Symbols for ULAM
   \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2017 All rights reserved.
+  \date (C) 2014-2021 All rights reserved.
   \gpl
 */
 
@@ -39,6 +39,7 @@
 
 #include <map>
 #include <vector>
+#include <sstream>
 #include "Symbol.h"
 #include "itype.h"
 #include "File.h"
@@ -59,7 +60,13 @@ namespace MFM{
     SymbolTable(const SymbolTable& ref);
     virtual ~SymbolTable();
 
+    void copyATableHere(const SymbolTable & fmst);
+    SymbolTable& operator=(const SymbolTable& fmst);
+    void mergeATableHere(const SymbolTable & fmst);
+    void mergedTableDifferences(const SymbolTable & fmst, SymbolTable & diffst);
+
     virtual bool isInTable(u32 id, Symbol * & symptrref);
+    virtual bool isInTable(u32 id, Symbol * & symptrref) const;
     virtual void addToTable(u32 id, Symbol * s);
     virtual void replaceInTable(u32 oldid, u32 newid, Symbol * s);
     virtual void replaceInTable(Symbol * oldsym, Symbol * newsym);
@@ -68,8 +75,11 @@ namespace MFM{
     virtual Symbol * getSymbolPtr(u32 id);
 
     virtual u32 getTableSize();
+    virtual u32 getTableSize() const;
 
     virtual u32 getTotalSymbolSize();
+
+    u32 tableTokenNamesAsAString(std::string& str);
 
   protected:
     std::map<u32, Symbol* > m_idToSymbolPtr;

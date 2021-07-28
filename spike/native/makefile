@@ -25,7 +25,7 @@ default: all
 all:
 	$(CXX) -c $(CFLAGS) -D MFM_BUILD_DATE=1 -D MFM_BUILD_TIME=2 -I include -I $(MFM_INCLUDES) -I $(MFM_PLATFORM_INCL) ./src/*.cpp
 # mfmcore intentionally linked twice
-	$(CXX) -L $(MFM_BUILD_CORE) -L $(MFM_BUILD_SIM) -L $(MFM_BUILD_PLATFORM) ./*.o -l mfmcore -l mfmsim -l mfmplatform-linux -l mfmcore -pthread -o main
+	$(CXX) -L $(MFM_BUILD_CORE) -L $(MFM_BUILD_SIM) -L $(MFM_BUILD_PLATFORM) ./*.o -l mfmcore -l mfmsim -l mfmplatform-linux -l mfmcore -ldl -pthread -o main
 #	valgrind ./main
 
 clean: 	FORCE

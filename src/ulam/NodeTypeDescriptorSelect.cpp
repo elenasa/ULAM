@@ -71,7 +71,7 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-  UTI NodeTypeDescriptorSelect::checkAndLabelType()
+  UTI NodeTypeDescriptorSelect::checkAndLabelType(Node * thisparentnode)
   {
     UTI it = getNodeType();
     if(isReadyType())
@@ -80,7 +80,7 @@ namespace MFM {
     if(resolveType(it))
       {
 	m_ready = true; //set here
-	m_uti = it; //given reset here
+	it = NodeTypeDescriptor::resetGivenUTI(it); //may revert to its root
       }
     setNodeType(it);
     if(it == Hzy) m_state.setGoAgain();
@@ -100,14 +100,14 @@ namespace MFM {
     // we are in a "chain" of type selects..
     assert(m_nodeSelect);
 
-    UTI seluti = m_nodeSelect->checkAndLabelType();
+    UTI seluti = m_nodeSelect->checkAndLabelType(this);
     if(m_nodeSelect->isReadyType())
       {
+	u32 tokid = m_state.getTokenDataAsStringId(m_typeTok); //t3806,7,8 t41312, t41517
 	UlamType * selut = m_state.getUlamTypeByIndex(seluti);
 	ULAMTYPE seletyp = selut->getUlamTypeEnum();
 	if(seletyp == Class)
 	  {
-	    u32 tokid = m_state.getTokenDataAsStringId(m_typeTok); //t3806,7,8 t41312
 	    // find our id in the "selected" class, must be a typedef (t3267)
 	    Symbol * asymptr = NULL;
 	    bool hazyKin = false;
@@ -124,7 +124,7 @@ namespace MFM {
 		    else //t3862
 		      {
 			UTI mappedUTI;
-			if(m_state.mappedIncompleteUTI(seluti, auti, mappedUTI))
+			if(m_state.mappedIncompleteUTI(seluti, auti, mappedUTI)) //3375
 			  {
 			    std::ostringstream msg;
 			    msg << "Substituting Mapped UTI" << mappedUTI << ", ";
@@ -143,47 +143,118 @@ namespace MFM {
 
 		    if(rtnb)
 		      {
-			if(m_state.hasUnknownTypeInThisClassResolver(auti))
+			UTI nuti = givenUTI(); //t3384
+			bool isreferencetype = (getReferenceType() != ALT_NOT) || m_state.isAltRefType(nuti); //t41490
+			if(m_state.hasUnknownTypeInThisClassResolver(nuti))
 			  {
-			    m_state.removeKnownTypeTokenFromThisClassResolver(auti);
-			    m_state.cleanupExistingHolder(auti, rtnuti);
+			    m_state.removeKnownTypeTokenFromThisClassResolver(nuti);
+			    if(m_state.isHolder(nuti)) //t41361, might have been resolved already
+			      m_state.cleanupExistingHolder(nuti, rtnuti);
 			  }
 			else if(m_state.isHolder(rtnuti))
 			  {
 			    rtnuti = Hzy; //not so fast!!
 			    rtnb = false;
 			  }
+			else if(isreferencetype)
+			  {
+			    rtnb = resolveReferenceType(rtnuti); //t41491
+			  }
 		      }
 		  }
 		else
 		  {
-		    //error id is not a typedef
 		    std::ostringstream msg;
-		    msg << "Not a typedef '" << m_state.getTokenDataAsString(m_typeTok).c_str();
-		    msg << "' in another class, " ;;
+		    msg << "Not a typedef '" << m_state.m_pool.getDataAsString(tokid).c_str();
+		    msg << "' in selected class, " ;;
 		    msg << m_state.getUlamTypeNameBriefByIndex(seluti).c_str();
-		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //was WARN
 		    rtnuti = Nav; //?
+		    m_state.abortNeedsATest();
 		  }
 	      }
 	    else
 	      {
 		//error! id not found
 		std::ostringstream msg;
-		msg << "Undefined Typedef '" << m_state.getTokenDataAsString(m_typeTok).c_str();
-		msg << "' in another class, " ;;
+		msg << "Undefined Typedef '" << m_state.m_pool.getDataAsString(tokid).c_str();
+		msg << "' in selected class, " ;;
 		msg << m_state.getUlamTypeNameByIndex(seluti).c_str();
-		if(!hazyKin)
+		if(hazyKin)
 		  {
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+		    rtnuti = Hzy;  //t3267
+		  }
+		else
+		  {
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    rtnuti = Nav;
+		  }
+	      }
+	  }
+	else if(seletyp == LocalsFileScope)
+	  {
+	    NodeBlockLocals * lblock = m_state.getLocalsScopeBlockByIndex(seluti); //t41528
+	    assert(lblock);
+
+	    Symbol * ltdsymptr = NULL;
+	    if(lblock->isIdInScope(tokid, ltdsymptr))
+	      {
+		UTI auti = ltdsymptr->getUlamTypeIdx();
+		if(ltdsymptr->isTypedef())
+		  {
+		    if(ltdsymptr->isCulamGeneratedTypedef())
+		      {
+			if(ltdsymptr->isCulamGeneratedTypedefAliased())
+			  {
+			    UTI ltdalias = auti;
+			    m_state.findRootUTIAlias(auti, ltdalias);
+			    rtnuti = ltdalias;
+			    rtnb = true;
+			  }
+			else
+			  {
+			    rtnuti = Hzy;
+			  }
+		      }
+		    else if(m_state.isComplete(auti))
+		      {
+			rtnuti = auti;
+			rtnb = true;
+		      }
+		    else
+		      rtnuti = Hzy;
+		  }
+		else
+		  {
+		    //error id is not a typedef
+		    std::ostringstream msg;
+		    msg << "Not a typedef '" << m_state.m_pool.getDataAsString(tokid).c_str();
+		    msg << "' in locals scope, " ;;
+		    msg << m_state.getUlamTypeNameBriefByIndex(seluti).c_str();
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //was WARN
+		    rtnuti = Nav; //?
+		    m_state.abortNeedsATest();
+		  }
+	      }
+	    else
+	      {
+		//error! id not found, check for a class in global scope!!
+		SymbolClassName * cnsym = NULL;
+		if(!m_state.alreadyDefinedSymbolClassName(tokid, cnsym))
+		  {
+		    std::ostringstream msg;
+		    msg << "Undefined Typedef '" << m_state.m_pool.getDataAsString(tokid).c_str();
+		    msg << "' in locals scope, " ;;
+		    msg << m_state.getUlamTypeNameByIndex(seluti).c_str();
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //new
 		    rtnuti = Nav;
 		  }
 		else
 		  {
-		    msg <<" while compiling: ";
-		    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-		    rtnuti = Hzy;
+		    assert(!cnsym->isClassTemplate());
+		    rtnuti = cnsym->getUlamTypeIdx();
+		    rtnb = true;
 		  }
 	      }
 	  }
@@ -192,7 +263,7 @@ namespace MFM {
 	    //error has to be a class
 	    std::ostringstream msg;
 	    msg << "Type selected by '" << m_state.getTokenDataAsString(m_typeTok).c_str();
-	    msg << "' is NOT another class, " ;
+	    msg << "' is NOT another class nor locals scope, " ;
 	    msg << m_state.getUlamTypeNameBriefByIndex(seluti).c_str();
 	    msg << ", rather a " << UlamType::getUlamTypeEnumAsString(seletyp) << " type,";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);

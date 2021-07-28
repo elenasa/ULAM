@@ -1,0 +1,47 @@
+## -*- mode:ulam -*-
+#=t41467_test_compiler_controlstatementsmissingcondition_ish_error
+#!
+./T.ulam:8:2: ERROR: Unexpected token <TOK_NUMBER_SIGNED>; Expected (.
+./T.ulam:12:2: ERROR: Unexpected token <TOK_IDENTIFIER>; Expected (.
+./T.ulam:18:2: ERROR: Unexpected token <TOK_NUMBER_SIGNED>; Expected (.
+./T.ulam:23:2: ERROR: Unexpected token <TOK_NUMBER_UNSIGNED>; Expected (.
+Unrecoverable Program Parse FAILURE: <T.ulam>
+##
+##  informed by Dave's ish 20210528
+##
+#>T.ulam
+ ulam 1;
+element T{
+  Bool mOnce;
+  Int test(){
+    if(mOnce)
+    {
+      while
+	1; //why does this compile?
+    }
+    else {
+      if
+	advance(); //or this??
+    }
+
+    if(mOnce)
+    {
+      for
+	2;
+    }
+    else
+    {
+      which
+	3u;
+      ;
+    }
+    return 0;
+  }
+
+  Void advance()
+  {
+    mOnce = false;
+  }
+}
+
+#.

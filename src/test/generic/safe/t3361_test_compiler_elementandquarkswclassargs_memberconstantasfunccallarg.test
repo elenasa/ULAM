@@ -2,9 +2,9 @@
 #=t3361_test_compiler_elementandquarkswclassargs_memberconstantasfunccallarg
 #!
 Exit status: -2
-Ue_R { Int(32) test() {  Foo(0) f;  f ( )copy . return } }
-Ue_Foo(Int(32) a) { <NOMAIN> }
-Uq_Booly(Unsigned(3) firstRange, Unsigned(3) lastRange, Bool(1) bomb) { constant Int(32) cALL_FIX2 = -2;  constant Int(32) cALL_FIX4 = -4;  <NOMAIN> }
+Ue_R { Int test() {  Foo(0) f;  f ( )copy . return } }
+Ue_Foo(Int a) { <NOMAIN> }
+Uq_Booly(Unsigned(3) firstRange, Unsigned(3) lastRange, Bool bomb) { constant Int cALL_FIX2 = -2;  constant Int cALL_FIX4 = -4;  <NOMAIN> }
 ##
 ##      //informed by issue (see 3359): required 3 conditions; caused by missing ClassContext pop after Constant surgery.
 ##      // 1. func call (behave) has at least 2 MEMBER-SELECTED constant args,

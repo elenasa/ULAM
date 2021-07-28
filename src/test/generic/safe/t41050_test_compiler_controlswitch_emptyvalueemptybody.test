@@ -2,7 +2,7 @@
 #=t41050_test_compiler_controlswitch_emptyvalueemptybody
 #!
 Exit status: 0
-Ue_EWE { Int(32) test() {  { typedef Bool(1) _SWITCHTYPEDEF12;  _1: } 0 cast return } }
+Ue_EWE { Int test() {  { typedef Bool _SWITCHTYPEDEF12;  _1: } 0 cast return } }
 #>EWE.ulam
   ulam 3;
 element EWE {

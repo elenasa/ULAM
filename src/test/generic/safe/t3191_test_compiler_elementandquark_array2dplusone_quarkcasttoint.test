@@ -4,7 +4,7 @@
 ##
 #!
 Exit status: 1
-Ue_Foo { Unsigned(1) m_array[64](0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,1u,1u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u);  Int(32) test() {  C2D c;  c self ( 0 cast 0 cast )func . = self m_array . 1 cast c ( )toInt . +b [] 1 cast = self m_array . c ( )toInt . [] 1 cast = self m_array . c ( )toInt . [] cast return } }
+Ue_Foo { Unsigned(1) m_array[64](0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,1u,1u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u);  Int test() {  C2D c;  c self ( 0 cast 0 cast )func . = self m_array . 1 cast c ( )toInt . +b [] 1 cast = self m_array . c ( )toInt . [] 1 cast = self m_array . c ( )toInt . [] cast return } }
 Uq_C2D { typedef Int(8) IE;  Int(8) m_width(0);  Int(8) m_height(0);  Int(8) m_x(0);  Int(8) m_y(0);  <NOMAIN> }
 #>Foo.ulam
   ulam 1;

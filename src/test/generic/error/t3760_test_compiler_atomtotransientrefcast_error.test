@@ -2,7 +2,7 @@
 #=t3760_test_compiler_atomtotransientrefcast_error
 #!
 ./R.ulam:7:17: ERROR: Cannot cast an atom to transient A&.
-./R.ulam:7:17: ERROR: Cannot explicitly cast Atom(96) to type: A(7)&.
+./R.ulam:7:17: ERROR: Cannot explicitly cast Atom to type: A(7)&.
 ./R.ulam:7:5: ERROR: Initial value expression for: atref, initialization is invalid.
 ./R.ulam:7:5: ERROR: Storage expression for: atref, is invalid.
 Unrecoverable Program Type Label FAILURE.

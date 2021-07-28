@@ -10,7 +10,7 @@
 ##      */
 #!
 Exit status: 25
-Ue_A { Bool(7) b(false);  Int(32) d(25);  System s();  Int(32) test() {  self d . self ( 4 cast 5 cast )times . = self s . ( self d . )print . self d . return } }
+Ue_A { Bool(7) b(false);  Int d(25);  System s();  Int test() {  self d . self ( 4 cast 5 cast )times . = self s . ( self d . )print . self d . return } }
 Uq_System { <NOMAIN> }
 ##
 ##      // using ++e instead of e+=1

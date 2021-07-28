@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t41281_test_compiler_nestedquestioncolon_comparisonop_error
 #!
-./Foo.ulam:26:67: ERROR: Use a comparison operation to convert Unsigned(3) to Bool(1) for '?:'.
+./Foo.ulam:26:67: ERROR: Use a comparison operation to convert Unsigned(3) to Bool for '?:'.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## ISH informed by Dave splat QMembrane code 2/24/19, t41280

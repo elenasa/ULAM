@@ -3,10 +3,6 @@
 #!
 ./QBase.ulam:3:6: ERROR: cycle error!!! QU(CYCLE).
 ./QBase.ulam:2:7: ERROR: cycle error!! QBase(UNKNOWN).
-./QBase.ulam:3:6: ERROR: cycle error!!! QU(CYCLE).
-./QBase.ulam:2:7: ERROR: cycle error!! QBase(UNKNOWN).
-./QBase.ulam:3:6: ERROR: cycle error!!! QU(CYCLE).
-./QBase.ulam:2:7: ERROR: cycle error!! QBase(UNKNOWN).
 Unrecoverable Program Type Label FAILURE.
 ##
 #>C.ulam

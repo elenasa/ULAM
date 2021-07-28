@@ -1,6 +1,7 @@
 #include "Resolver.h"
 #include "CompilerState.h"
 #include "SymbolClass.h"
+#include "SymbolTypedef.h"
 
 namespace MFM {
 
@@ -120,19 +121,38 @@ namespace MFM {
     return aok;
   } //statusUnknownType
 
+  //see also CS:statusUnknownClassTypeInThisLocalsScope
   bool Resolver::checkUnknownTypeToResolve(UTI huti, const Token& tok)
   {
     bool aok = false;
+
+    if(m_state.isComplete(huti))
+      return true; //short-circuit, known (t41287,8), t41436 hzy but known.
+
     ULAMTYPE etyp = m_state.getBaseTypeFromToken(tok);
     if((etyp == Hzy) || (etyp == Holder))
       return false;
 
-    if(m_state.isComplete(huti))
-      return true; //short-circuit, known (t41287,8)
-
     u32 tokid = m_state.getTokenDataAsStringId(tok);
     UTI kuti = Nav;
-    if(etyp == Class)
+
+    //a typedef (e.g. t3379, 3381)
+    UTI tmpscalar = Nouti;
+    Symbol * tdsymptr = NULL;
+    if(m_state.getUlamTypeByTypedefNameInClassHierarchyThenLocalsScope(tokid, kuti, tmpscalar, tdsymptr))
+      {
+	assert(tdsymptr && tdsymptr->isTypedef());
+	if(tdsymptr->isCulamGeneratedTypedef())
+	  {
+	    if(tdsymptr->isCulamGeneratedTypedefAliased())
+	      return true;
+	    else //handled by CS::checkforAnyRemainingCulamGeneratedTypedefsInThisContext
+	      return false;
+	  }
+	aok = !m_state.isHolder(kuti);
+      }
+
+    if(!aok && (etyp == Class))
       {
 	SymbolClassName * cnsym = NULL; //no way a template or stub
 	if(!m_state.alreadyDefinedSymbolClassName(tokid, cnsym))
@@ -142,7 +162,7 @@ namespace MFM {
 	      {
 		aok = false; //still a holder
 		UTI mappedUTI;
-		if(m_state.findaUTIAlias(huti, mappedUTI))
+		if(m_state.findRootUTIAlias(huti, mappedUTI))
 		  {
 		    if(m_state.alreadyDefinedSymbolClass(mappedUTI, csym))
 		      {
@@ -150,7 +170,6 @@ namespace MFM {
 			AssertBool isDefined = m_state.alreadyDefinedSymbolClassName(cid, cnsym);
 			assert(isDefined);
 		      }
-
 		    kuti = mappedUTI; //t3862
 		  }
 	      }
@@ -183,6 +202,13 @@ namespace MFM {
 		SymbolClass * csym = NULL;
 		if(m_state.alreadyDefinedSymbolClass(huti, csym))
 		  kuti = csym->getUlamTypeIdx(); //perhaps an alias
+		else if(cnsym->hasMappedUTI(huti))
+		  {
+		    UTI mappedUTI = Nouti;
+		    AssertBool gotmapped = cnsym->hasMappedUTI(huti,mappedUTI);
+		    assert(gotmapped);
+		    kuti = mappedUTI;
+		  }
 		else
 		  {
 		    std::ostringstream msg;
@@ -197,19 +223,16 @@ namespace MFM {
 	      kuti = cnsym->getUlamTypeIdx();
 	  }
       } //end class type
-	//else
+    //else
 
-    if(!aok)
-      {
-	//a typedef (e.g. t3379, 3381)
-	UTI tmpscalar = Nouti;
-	if(m_state.getUlamTypeByTypedefName(tokid, kuti, tmpscalar))
-	  aok = !m_state.isHolder(kuti);
-      }
 
     if(aok)
       {
 	assert(!m_state.isHolder(kuti));
+	ALT alth = m_state.getReferenceType(huti);
+	ALT altk = m_state.getReferenceType(kuti);
+	if(alth != altk)
+	  kuti = m_state.getUlamTypeAsRef(kuti, alth); //t41455
 	m_state.cleanupExistingHolder(huti, kuti);
       }
     return aok;
@@ -322,21 +345,6 @@ namespace MFM {
     return m_unknownTypeTokens.size();
   } //reportAnyUnknownTypeNames
 
-  bool Resolver::assignClassArgValuesInStubCopy()
-  {
-    bool aok = true;
-    // context already set by caller
-    std::vector<NodeConstantDef *>::iterator vit = m_nonreadyClassArgSubtrees.begin();
-    while(vit != m_nonreadyClassArgSubtrees.end())
-      {
-	NodeConstantDef * ceNode = *vit;
-	if(ceNode)
-	  aok &= ceNode->assignClassArgValueInStubCopy();
-	vit++;
-      } //while thru vector of incomplete args only
-    return aok;
-  } //assignClassArgValuesInStubCopy
-
   u32 Resolver::countNonreadyClassArgs()
   {
     return m_nonreadyClassArgSubtrees.size();
@@ -368,9 +376,10 @@ namespace MFM {
     bool rtnb = true;
     UTI context = getContextForPendingArgValues();
     assert(!m_state.isAClass(context) || (m_state.getAClassBlock(context) != NULL));
+
     m_state.pushClassOrLocalContextAndDontUseMemberBlock(context);
 
-    m_state.m_pendingArgStubContext = m_classUTI; //set for folding surgery
+    m_state.m_pendingArgStubContext = context; //set for folding surgery (t41221)
     m_state.m_pendingArgTypeStubContext = getContextForPendingArgTypes(); //set for resolving types
 
     bool defaultval = false;
@@ -379,6 +388,7 @@ namespace MFM {
     NodeBlockClass * stubclassblock = stubcsym->getClassBlockNode();
     assert(stubclassblock);
     Locator saveStubLoc = stubclassblock->getNodeLocation();
+    NodeList * stubargnodes = stubclassblock->getListOfArgumentNodes(); //args parent
 
     std::vector<NodeConstantDef *> leftCArgs;
     std::vector<NodeConstantDef *>::iterator vit = m_nonreadyClassArgSubtrees.begin();
@@ -388,12 +398,11 @@ namespace MFM {
 	if(ceNode)
 	  {
 	    //use default value if there is one AND there isn't a constant expression (t3893)
-	    //defaultval = ceNode->hasDefaultSymbolValue() && !ceNode->hasConstantExpr();
 	    defaultval = ceNode->isClassArgumentItsDefaultValue(); //t41431
 
 	    //OMG! if this was a default value for class arg, t3891,
 	    // we want to use the class stub/template as the 'context' rather than where the
-	    // stub was declared.
+	    // stub was declared (stub, not template: t41438,9, t41444,5).
 	    if(defaultval && !pushedtemplate)
 	      {
 		assert(stubcsym);
@@ -401,15 +410,14 @@ namespace MFM {
 		assert(templateparent);
 		NodeBlockClass * templateclassblock = templateparent->getClassBlockNode();
 		//temporarily change stub loc, in case of local filescope, incl arg/params
-		//stubclassblock->resetNodeLocations(templateclassblock->getNodeLocation());
 		stubclassblock->setNodeLocation(templateclassblock->getNodeLocation());
-
-		m_state.pushClassContext(m_classUTI, stubclassblock, stubclassblock, false, NULL);
+		m_state.pushClassContext(m_classUTI, stubclassblock, stubclassblock, false, NULL); //t41438,9, t41444,5 fail w templateblock.
 		pushedtemplate = true;
+		m_state.m_pendingArgStubContext = m_classUTI; //t41225
 	      }
 	    assert(defaultval == pushedtemplate); //once a default, always a default
 
-	    UTI uti = ceNode->checkAndLabelType();
+	    UTI uti = ceNode->checkAndLabelType(stubargnodes);
 	    if(m_state.okUTItoContinue(uti)) //i.e. ready
 	      {
 		m_state.addCompleteUlamTypeToContextBlockSet(uti, stubclassblock); //t3895
@@ -429,6 +437,7 @@ namespace MFM {
 
     m_state.m_pendingArgStubContext = Nouti; //clear flag
     m_state.m_pendingArgTypeStubContext = Nouti; //clear flag
+
     m_state.popClassContext(); //restore previous context
 
     //clean up, replace vector with vector of those still unresolved
@@ -517,17 +526,21 @@ namespace MFM {
     return brtn;
   } //findMappedUTI
 
-  void Resolver::cloneUTImap(SymbolClass * csym)
+  void Resolver::cloneUTImapForNonclasses(SymbolClass * csym)
   {
     std::map<UTI, UTI>::iterator mit = m_mapUTItoUTI.begin();
     while(mit != m_mapUTItoUTI.end())
       {
 	UTI a = mit->first;
 	UTI b = mit->second;
-	csym->mapUTItoUTI(a, b);
+	//let classes be newly mapped. t41225,8, t41434,t41436, t41431,3
+	//see also CompilerState::mapIncompleteUTIForAClassInstance for
+	// unknown token type situation, instead of copy of stub.
+	if(!m_state.isAClass(a))
+	  csym->mapUTItoUTI(a, b);
 	mit++;
       }
-  } //cloneUTImap
+  } //cloneUTImapForNonclasses
 
   void Resolver::cloneUnknownTypesTokenMap(SymbolClass * csym)
   {

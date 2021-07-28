@@ -6,7 +6,7 @@
 ##
 #!
 Exit status: 0
-Ue_B { System s();  Int(32) test() {  Int(3) arr[3];  self s . ( 9u )print . 0 cast return } }
+Ue_B { System s();  Int test() {  Int(3) arr[3];  self s . ( 9u )print . 0 cast return } }
 Uq_System { <NOMAIN> }
 #>B.ulam
   ulam 1;

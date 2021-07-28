@@ -8,8 +8,8 @@
 ##
 #!
 Exit status: 7
-Ue_T { Int(32) i(7);  Int(32) j(3);  System s();  Int(32) test() {  Int(3) a;  Int(4) b;  S(3,1) m;  self i . m ( b )func . = self s . ( self i . )print . self j . m ( a )func . = self s . ( self j . )print . self i . return } }
-Uq_S(Int(32) x, Int(32) y) { Int(UNKNOWN) i(notready);  Int(UNKNOWN) j(notready);  <NOMAIN> }
+Ue_T { Int i(7);  Int j(3);  System s();  Int test() {  Int(3) a;  Int(4) b;  S(3,1) m;  self i . m ( b )func . = self s . ( self i . )print . self j . m ( a )func . = self s . ( self j . )print . self i . return } }
+Uq_S(Int x, Int y) { Int(UNKNOWN) i(notready);  Int(UNKNOWN) j(notready);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##    //informed by t3332
 ##    /* S(3,2) m; gives errors:

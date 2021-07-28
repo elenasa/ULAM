@@ -68,14 +68,18 @@ namespace MFM {
     return state->m_pool.getDataAsString(keyid);
   } //getUlamKeyTypeSignatureNameAndBitSize
 
-  const std::string & UlamKeyTypeSignature::getUlamKeyTypeSignatureNameAndSize(CompilerState * state)
+  const std::string & UlamKeyTypeSignature::getUlamKeyTypeSignatureNameAndSize(bool defaultbitsize, CompilerState * state)
   {
     std::ostringstream key;
 
     if(m_referenceType == ALT_CONSTREF)
       key << "constant ";
 
-    key << getUlamKeyTypeSignatureNameAndBitSize(state);
+    if(defaultbitsize)
+      key << getUlamKeyTypeSignatureName(state); //skip bitsize when default size
+    else
+      key << getUlamKeyTypeSignatureNameAndBitSize(state);
+
     //arraysize
     if(m_arraySize >= 0)
       key << "[" << m_arraySize << "]";

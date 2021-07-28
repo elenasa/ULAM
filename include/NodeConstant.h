@@ -2,7 +2,8 @@
  * NodeConstant.h - Node handling NamedConstants for ULAM
  *
  * Copyright (C) 2015-2019 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2019 Ackleyshack LLC.
+ * Copyright (C) 2015-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +30,7 @@
   \file NodeConstant.h - Node handling Named Constants for ULAM
   \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2019 All rights reserved.
+  \date (C) 2015-2021 All rights reserved.
   \gpl
 */
 
@@ -50,6 +51,8 @@ namespace MFM{
   public:
 
     NodeConstant(const Token& tok, SymbolWithValue * symptr, NodeTypeDescriptor * typedesc, CompilerState & state);
+
+    NodeConstant(const Token& tok, NNO stblockno, UTI constantType, NodeTypeDescriptor * typedesc, CompilerState & state);
 
     NodeConstant(const NodeConstant& ref);
 
@@ -81,9 +84,7 @@ namespace MFM{
 
     virtual FORECAST safeToCastTo(UTI newType);
 
-    virtual UTI checkAndLabelType();
-
-    virtual bool assignClassArgValueInStubCopy();
+    virtual UTI checkAndLabelType(Node * thisparentnode);
 
     virtual EvalStatus eval();
 
@@ -96,7 +97,7 @@ namespace MFM{
   protected:
     const Token m_token;
     NodeTypeDescriptor * m_nodeTypeDesc; //can be NULL
-    SymbolWithValue * m_constSymbol;
+    SymbolWithValue * m_constSymbol; //not owner
     bool m_ready;
     UTI m_constType;
 
@@ -114,7 +115,9 @@ namespace MFM{
     NodeBlock * m_currBlockPtr; //could be NULL
     SymbolTmpVar * m_tmpvarSymbol;
 
-    TBOOL replaceOurselves(Symbol * symptr);
+    virtual void clearSymbolPtr();
+
+    virtual TBOOL replaceOurselves(Symbol * symptr, Node * parentnode);
     UTI checkUsedBeforeDeclared();
     UlamValue makeUlamValuePtr();
 

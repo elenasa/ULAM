@@ -14,7 +14,7 @@
 ##      */
 #!
 Exit status: 640
-Ue_A { typedef Int(64) BigSite[10];  Int(32) test() {  System s;  Int(64) site[10];  { Int(32) i = 0 cast;  i 10 cast < cond { Int(64) k = i 2147483647 +b cast;  site i [] k = s ( site i [] cast )print . } _1: i 1 += while } 640u cast return } }
+Ue_A { typedef Int(64) BigSite[10];  Int test() {  System s;  Int(64) site[10];  { Int i = 0 cast;  i 10 cast < cond { Int(64) k = i 2147483647 +b cast;  site i [] k = s ( site i [] cast )print . } _1: i 1 += while } 640u cast return } }
 Uq_System { <NOMAIN> }
 ##
 ##      //informed by t3276:
@@ -57,7 +57,7 @@ Void assert(Bool b) native;
 ##      // good for isolating bug!
 ##      //bool rtn1 = fms->add("A.ulam"," element A {\ntypedef Int(64) BigSite[1];\nInt test(){ Int(64) k = 512;\n BigSite site; site[0] = k; return site.sizeof;\n }\n }\n");
 ##
-##      //./A.ulam:3:23: ERROR: Cast problem! Value type: Int(32) failed to be cast as type: Int(64).
-##      //bool rtn1 = fms->add("A.ulam"," element A {\ntypedef Int(32) BigSite[1];\nInt test(){ Int(64) k = 512;\n BigSite site; for(Int i = 0; i < 1; ++i){\n site[i] = k;\n }\n return site.sizeof;\n }\n }\n");
+##      //./A.ulam:3:23: ERROR: Cast problem! Value type: Int failed to be cast as type: Int(64).
+##      //bool rtn1 = fms->add("A.ulam"," element A {\ntypedef Int BigSite[1];\nInt test(){ Int(64) k = 512;\n BigSite site; for(Int i = 0; i < 1; ++i){\n site[i] = k;\n }\n return site.sizeof;\n }\n }\n");
 ##
 #.

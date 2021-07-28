@@ -10,8 +10,19 @@ namespace MFM {
 
   SymbolTable::SymbolTable(const SymbolTable& ref) : m_state(ref.m_state)
   {
-    std::map<u32, Symbol* >::const_iterator it = ref.m_idToSymbolPtr.begin();
-    while(it != ref.m_idToSymbolPtr.end())
+    copyATableHere(ref);
+  }
+
+  SymbolTable::~SymbolTable()
+  {
+    //need to delete contents; ownership transferred here!!
+    this->clearTheTable();
+  }
+
+  void SymbolTable::copyATableHere(const SymbolTable & fmst)
+  {
+    std::map<u32, Symbol* >::const_iterator it = fmst.m_idToSymbolPtr.begin();
+    while(it != fmst.m_idToSymbolPtr.end())
       {
 	u32 fid = it->first;
 	Symbol * found = it->second;
@@ -21,10 +32,69 @@ namespace MFM {
       }
   }
 
-  SymbolTable::~SymbolTable()
+  SymbolTable& SymbolTable::operator=(const SymbolTable& fmst)
   {
-    //need to delete contents; ownership transferred here!!
-    this->clearTheTable();
+    copyATableHere(fmst);
+    return *this;
+  }
+
+  void SymbolTable::mergeATableHere(const SymbolTable & fmst)
+  {
+    std::map<u32, Symbol* >::const_iterator it = fmst.m_idToSymbolPtr.begin();
+    while(it != fmst.m_idToSymbolPtr.end())
+      {
+	u32 fid = it->first;
+	Symbol * found = it->second;
+	Symbol * copyof = NULL;
+	if(!isInTable(fid,copyof))
+	  {
+	    copyof = found->clone();
+	    addToTable(fid, copyof);
+	  }
+	it++;
+      }
+  }
+
+  void SymbolTable::mergedTableDifferences(const SymbolTable & fmst, SymbolTable & diffst)
+  {
+    u32 myTableSize = getTableSize();
+    u32 fromTableSize = fmst.getTableSize();
+    assert(myTableSize > fromTableSize);
+    std::map<u32, Symbol* >::const_iterator it = m_idToSymbolPtr.begin();
+    while(it != m_idToSymbolPtr.end())
+      {
+	u32 fid = it->first;
+	Symbol * found = it->second;
+	Symbol * copyof = NULL;
+	if(!fmst.isInTable(fid, copyof))
+	  {
+	    copyof = found->clone();
+	    diffst.addToTable(fid, copyof);
+	  }
+	//else already here! skip clone
+	it++;
+      }
+    assert(getTableSize() == fmst.getTableSize() + diffst.getTableSize());
+  }
+
+  u32 SymbolTable::tableTokenNamesAsAString(std::string& str)
+  {
+    u32 count = 0;
+    std::map<u32, Symbol* >::const_iterator it = m_idToSymbolPtr.begin();
+    std::ostringstream msg;
+    while(it != m_idToSymbolPtr.end())
+      {
+	//u32 fid = it->first;
+	Symbol * sym = it->second;
+	Token * pTok = sym->getTokPtr();
+	if(count > 0)
+	  msg << ", ";
+	msg << m_state.getTokenDataAsString(*pTok).c_str();
+	count++;
+	it++;
+      }
+    str = msg.str();
+    return count;
   }
 
   void SymbolTable::clearTheTable()
@@ -53,11 +123,24 @@ namespace MFM {
     return false;
   } //isInTable
 
+  bool SymbolTable::isInTable(u32 id, Symbol * & symptrref) const
+  {
+    if(m_idToSymbolPtr.empty()) return false;
+    std::map<u32, Symbol* >::const_iterator it = m_idToSymbolPtr.find(id);
+    if(it != m_idToSymbolPtr.end())
+      {
+	symptrref = it->second;
+	assert( symptrref->getId() == id);
+	return true;
+      }
+    return false;
+  } //isInTable
+
   void SymbolTable::addToTable(u32 id, Symbol* sptr)
   {
     std::pair<std::map<u32, Symbol *>::iterator, bool> reti;
     reti = m_idToSymbolPtr.insert(std::pair<u32,Symbol*> (id,sptr));
-    assert(reti.second); //false if already existed, i.e. not added (leak?)
+    assert(reti.second); //false if already existed, i.e. not added (leak?) t41440???
   }
 
   void SymbolTable::replaceInTable(u32 oldid, u32 newid, Symbol * s)
@@ -69,6 +152,15 @@ namespace MFM {
 	assert(oldsym == s);
 	m_idToSymbolPtr.erase(it);
       }
+
+    std::map<u32,Symbol*>::iterator nit = m_idToSymbolPtr.find(newid);
+    if(nit != m_idToSymbolPtr.end())
+      {
+	Symbol * newsym = nit->second;
+	assert(newsym != s);
+	m_idToSymbolPtr.erase(nit);
+      }
+
     addToTable(newid, s);
   } //replaceInTable
 
@@ -111,6 +203,11 @@ namespace MFM {
   } //getSymbolPtr
 
   u32 SymbolTable::getTableSize()
+  {
+    return (m_idToSymbolPtr.empty() ? 0 : m_idToSymbolPtr.size());
+  }
+
+  u32 SymbolTable::getTableSize() const
   {
     return (m_idToSymbolPtr.empty() ? 0 : m_idToSymbolPtr.size());
   }

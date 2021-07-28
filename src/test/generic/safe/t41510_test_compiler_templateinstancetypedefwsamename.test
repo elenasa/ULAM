@@ -1,0 +1,33 @@
+## -*- mode:ulam -*-
+#=t41510_test_compiler_templateinstancetypedefwsamename
+#!
+Exit status: 5
+Ue_Foo : Moo(5) { Bool(7) sp(true);  Unsigned af(5u);  :Moo(5)< Unsigned(5) us(4u);  constant Int a = 5; > Int test() {  Foo f;  self af . f us . cast = self af . 5u = self sp . self af . 5u cast == cast = self af . cast return } }
+Uq_Moo(Int a) { Unsigned(UNKNOWN) us(notready);  <NOMAIN> }
+##
+##  informed by t3875, except using locals typedef with instance with same name as template,
+##  should not assert; should work.
+##
+#>Foo.ulam
+  ulam 3;
+local typedef Moo(5) Moo;
+element Foo : local.Moo {
+  Bool(7) sp;
+  Unsigned af = 73;
+  Int test() {
+    Foo f;
+    af = f.us;
+    af = local.Moo.sizeof;
+    sp = (af == 5u);
+    return (Int) af; //=5
+  }
+}
+
+#:Moo.ulam
+  ulam 1;
+quark Moo(Int a) {
+  Unsigned(a) us = 4u;
+}
+
+
+#.

@@ -6,8 +6,8 @@
 ##
 #!
 Exit status: 0
-Ue_MyElement { Int(32) test() {  self ( pFOO(3u) 12u cast )func . 0 cast return } }
-Ue_MyParms {parameter Unsigned(32) pFOO = 3u;  <NOMAIN> }
+Ue_MyElement { Int test() {  self ( pFOO(3u) 12u cast )func . 0 cast return } }
+Ue_MyParms {parameter Unsigned pFOO = 3u;  <NOMAIN> }
 ##
 ## informed by t41146, user ish 11/5/2017:
 ## //when seen usage comes first, the error was caught by NodeConstant, not Parser;

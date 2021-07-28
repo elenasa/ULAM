@@ -383,8 +383,9 @@ namespace MFM {
     sumbrtn &= m_state.m_programDefST.checkForUnknownTypeNamesInTableOfClasses();
 
     //checkAndLabelTypes: lineage updated incrementally
-    sumbrtn &= m_state.m_programDefST.labelTableOfClasses(); //labelok, stubs not labeled, checks goagain flag!
     sumbrtn &= m_state.checkAndLabelPassForLocals();
+    sumbrtn &= m_state.m_programDefST.labelTableOfClasses(); //labelok, stubs not labeled, checks goagain flag!
+
     return sumbrtn;
   } //resolvingLoop
 

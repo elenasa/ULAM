@@ -9,14 +9,14 @@ namespace MFM {
 
   NodeBinaryOpEqualBitwise::~NodeBinaryOpEqualBitwise(){}
 
-  UTI NodeBinaryOpEqualBitwise::checkAndLabelType()
+  UTI NodeBinaryOpEqualBitwise::checkAndLabelType(Node * thisparentnode)
   {
     //UTI nodeType = NodeBinaryOp::checkAndLabelType(); //dup Bitwise calcNodeType
     //copied from NodeBinaryOp's c&l
     assert(m_nodeLeft && m_nodeRight);
 
-    UTI leftType = m_nodeLeft->checkAndLabelType();
-    UTI rightType = m_nodeRight->checkAndLabelType();
+    UTI leftType = m_nodeLeft->checkAndLabelType(this);
+    UTI rightType = m_nodeRight->checkAndLabelType(this);
 
     if(!m_state.okUTItoContinue(leftType))
       {
@@ -33,7 +33,7 @@ namespace MFM {
     //replace node with func call to matching function overload operator for class
     // of left, with argument of right (t41104);
     // quark toInt must be used on rhs of operators (t3191, t3200, t3513, t3648,9)
-    if(NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode())
+    if(NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode(thisparentnode))
       {
 	m_state.setGoAgain();
 	delete this; //suicide is painless..
@@ -62,15 +62,10 @@ namespace MFM {
       }
 
     //before constant folding; if needed (e.g. Remainder, Divide)
-    castThyselfToResultType(rightType, leftType, newType);
-
-    if(m_state.okUTItoContinue(newType) && isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
-      newType = constantFold();
-
-    UTI nodeType = newType;
+    castThyselfToResultType(rightType, leftType, newType, thisparentnode);
 
     //specific for bitwise equal..
-    if(m_state.okUTItoContinue(nodeType))
+    if(m_state.okUTItoContinue(newType))
       {
 	TBOOL stor = NodeBinaryOpEqual::checkStoreIntoAble();
 	if(stor == TBOOL_FALSE)
@@ -80,6 +75,7 @@ namespace MFM {
 	  }
 	else if(stor == TBOOL_HAZY)
 	  {
+	    newType = Hzy;
 	    setNodeType(Hzy);
 	    m_state.setGoAgain();
 	  }
@@ -95,7 +91,12 @@ namespace MFM {
 	setNodeType(newType);
 	if(newType == Hzy) m_state.setGoAgain();
       }
-    return getNodeType();
+
+    //t3109,10,11, t3221, t41122,3,6, t41298,9, t41421
+    if(m_state.okUTItoContinue(newType) && isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
+      return constantFold(thisparentnode);
+
+    return newType;
   } //checkandlabeltype
 
   UTI NodeBinaryOpEqualBitwise::calcNodeType(UTI lt, UTI rt)  //bitwise

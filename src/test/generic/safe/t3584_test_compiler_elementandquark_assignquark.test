@@ -2,8 +2,8 @@
 #=t3584_test_compiler_elementandquark_assignquark
 #!
 Exit status: 1
-Ue_Foo { Bar m_bar( Bool(1) val_b[3](false,false,false); );  Int(32) test() {  Foo f;  Foo g;  g m_bar . val_b 1 [] . true = f m_bar . g m_bar . = f m_bar . val_b 1 [] . cast return } }
-Uq_Bar { Bool(1) val_b[3](false,false,false);  <NOMAIN> }
+Ue_Foo { Bar m_bar( Bool val_b[3](false,false,false); );  Int test() {  Foo f;  Foo g;  g m_bar . val_b 1 [] . true = f m_bar . g m_bar . = f m_bar . val_b 1 [] . cast return } }
+Uq_Bar { Bool val_b[3](false,false,false);  <NOMAIN> }
 #>Foo.ulam
   ulam 1;
 use Bar;

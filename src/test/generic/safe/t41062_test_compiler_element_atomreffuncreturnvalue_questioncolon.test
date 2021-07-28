@@ -7,7 +7,7 @@
 ##
 #!
 Exit status: -11
-Ue_Foo { Int(32) test() {  System s;  Atom(96) f3;  Atom(96)& r = self ( f3 cast false )caller2 .;  s ( r Foo is ! )assert . Atom(96) a = self ( f3 cast true )caller3 .;  s ( a Foo is )assert . 0 cast return } }
+Ue_Foo { Int test() {  System s;  Atom f3;  Atom& r = self ( f3 cast false )caller2 .;  s ( r Foo is ! )assert . Atom a = self ( f3 cast true )caller3 .;  s ( a Foo is )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t41033, Dave email 2/10/2017 and t41031

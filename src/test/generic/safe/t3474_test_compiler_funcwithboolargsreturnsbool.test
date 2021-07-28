@@ -4,7 +4,7 @@
 ##
 #!
 Exit status: 0
-Ue_Tu { Bool(3) me(false);  Int(32) test() {  self me . self ( )func . cast = self me . self ( self me . self me . )func2 . cast = self me . cast return } }
+Ue_Tu { Bool(3) me(false);  Int test() {  self me . self ( )func . cast = self me . self ( self me . self me . )func2 . cast = self me . cast return } }
 #>Tu.ulam
   ulam 1;
 element Tu {

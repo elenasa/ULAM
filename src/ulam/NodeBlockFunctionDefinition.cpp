@@ -4,6 +4,7 @@
 #include "SymbolVariable.h"
 #include "SymbolVariableStack.h"
 #include "SymbolFunctionName.h"
+#include "NodeVarDecl.h"
 
 namespace MFM {
 
@@ -38,7 +39,7 @@ namespace MFM {
   void NodeBlockFunctionDefinition::updateLineage(NNO pno)
   {
     NodeBlock::updateLineage(pno);
-    m_state.pushCurrentBlock(this); //before?
+    m_state.pushCurrentBlock(this);
     if(m_nodeTypeDesc)
       {
 	m_nodeTypeDesc->updateLineage(getNodeNo());
@@ -174,7 +175,7 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-  UTI NodeBlockFunctionDefinition::checkAndLabelType()
+  UTI NodeBlockFunctionDefinition::checkAndLabelType(Node * thisparentnode)
   {
     assert(m_funcSymbol);
     UTI fit = m_funcSymbol->getUlamTypeIdx();
@@ -182,39 +183,49 @@ namespace MFM {
     UTI cuti = m_state.getCompileThisIdx();
 
     // don't want to leave Nav dangling
+    assert(m_nodeTypeDesc);
     if(m_nodeTypeDesc)
-      {
-	it = m_nodeTypeDesc->checkAndLabelType();
-      }
+      it = m_nodeTypeDesc->checkAndLabelType(this);
 
-    checkParameterNodeTypes();
-
-    if(!m_state.isComplete(it))
+    if(it == Nav)
       {
 	std::ostringstream msg;
-	msg << "Incomplete Function Return type: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-	msg << ", used with function name '" << getName() << "'";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	msg << "Invalid Function Return type ";
+	msg << "used with function name '" << getName() << "'";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
     else
       {
-	if(m_state.okUTItoContinue(fit) && (fit != it)) //exact UTI match
-	{
-	  std::ostringstream msg;
-	  msg << "Resetting function symbol UTI" << fit;
-	  msg << ", " << m_state.getUlamTypeNameByIndex(fit).c_str();
-	  msg << " by type descriptor type: ";
-	  msg << m_state.getUlamTypeNameByIndex(it).c_str();
-	  msg << "' UTI" << it;
-	  msg << " used with function name '" << getName();
-	  msg <<  " while labeling class: ";
-	  msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	  m_state.mapTypesInCurrentClass(fit, it);
-	  m_funcSymbol->resetUlamType(it); //consistent!
-	  //m_state.updateUTIAliasForced(fit, it); //Mon Jun  6 13:45:15 2016 ?
-	}
+	checkParameterNodeTypes();
+
+	if(!m_state.isComplete(it))
+	  {
+	    std::ostringstream msg;
+	    msg << "Incomplete Function Return type: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+	    msg << ", used with function name '" << getName() << "'";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	    it = Hzy; //t3653
+	  }
+	else
+	  {
+	    if(m_state.okUTItoContinue(it) && (fit != it)) //exact UTI match
+	      {
+		std::ostringstream msg;
+		msg << "Resetting function symbol UTI" << fit;
+		msg << ", " << m_state.getUlamTypeNameByIndex(fit).c_str();
+		msg << " by type descriptor type: ";
+		msg << m_state.getUlamTypeNameByIndex(it).c_str();
+		msg << "' UTI" << it;
+		msg << " used with function name '" << getName();
+		msg <<  " while labeling class: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		//m_state.mapTypesInCurrentClass(fit, it);
+		m_funcSymbol->resetUlamType(it); //consistent!
+		//m_state.updateUTIAliasForced(fit, it); //Mon Jun  6 13:45:15 2016 ?
+	      }
+	  }
       }
 
     setNodeType(it);
@@ -223,17 +234,19 @@ namespace MFM {
       return Nav; //bail for this iteration
 
     if(it == Hzy)
-      return Hzy; //bail for this iteration
-
-    if(m_state.okUTItoContinue(it))
       {
-	bool isref = m_state.isAltRefType(it) && !m_state.isConstantRefType(it);
-	if(m_state.isAClass(it) || isref)
-	  setStoreIntoAble(TBOOL_TRUE); //t3912 (class)
-
-	if(!isref)
-	  setReferenceAble(TBOOL_FALSE); //set after storeintoable t3661,2; t3630
+	m_state.setGoAgain();
+	return Hzy; //bail for this iteration
       }
+
+    assert(m_state.okUTItoContinue(it));
+
+    bool isref = m_state.isAltRefType(it) && !m_state.isConstantRefType(it);
+    if(m_state.isAClass(it) || isref)
+      setStoreIntoAble(TBOOL_TRUE); //t3912 (class)
+
+    if(!isref)
+      setReferenceAble(TBOOL_FALSE); //set after storeintoable t3661,2; t3630
 
     m_state.pushCurrentBlock(this);
 
@@ -253,7 +266,7 @@ namespace MFM {
 
     if(m_nodeNext) //non-empty function
       {
-	m_nodeNext->checkAndLabelType(); //side-effect
+	m_nodeNext->checkAndLabelType(this); //side-effect
 	if(!m_state.checkFunctionReturnNodeTypes(m_funcSymbol)) //gives some errors
 	  setNodeType(Nav); //tries to avoid assert in resolving loop; return sets goagain
       }
@@ -270,7 +283,7 @@ namespace MFM {
 
   bool NodeBlockFunctionDefinition::checkParameterNodeTypes()
   {
-    UTI puti = m_nodeParameterList->checkAndLabelType();
+    UTI puti = m_nodeParameterList->checkAndLabelType(this);
     return m_state.okUTItoContinue(puti);
   }
 
@@ -285,6 +298,16 @@ namespace MFM {
     return m_nodeParameterList->getNodePtr(pidx);
   }
 
+  UTI NodeBlockFunctionDefinition::getParameterNodeGivenType(u32 pidx)
+  {
+    NodeVarDecl * parmdef = (NodeVarDecl *) getParameterNode(pidx);
+    assert(parmdef);
+    NodeTypeDescriptor * typedesc = NULL;
+    AssertBool gottype = parmdef->getNodeTypeDescriptorPtr(typedesc);
+    assert(gottype);
+    return typedesc->givenUTI();
+  }
+
   void NodeBlockFunctionDefinition::makeSuperSymbol(s32 slot)
   {
     UTI cuti = m_state.getCompileThisIdx();
@@ -296,10 +319,8 @@ namespace MFM {
     u32 superid = m_state.m_pool.getIndexForDataString("super");
     if(!NodeBlock::isIdInScope(superid, (Symbol *&) supersym))
       {
-	if(superuti != Nouti)
+	if(m_state.okUTItoContinue(superuti) && !m_state.isHolder(superuti)) //t41013
 	  {
-	    assert(m_state.okUTItoContinue(superuti));
-
 	    Token superTok(TOK_KW_SUPER, getNodeLocation(), 0);
 	    supersym = new SymbolVariableStack(superTok, m_state.getUlamTypeAsRef(superuti, ALT_REF), slot, m_state);
 	    assert(supersym);

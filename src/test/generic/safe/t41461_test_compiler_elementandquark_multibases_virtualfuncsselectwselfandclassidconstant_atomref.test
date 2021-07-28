@@ -1,0 +1,75 @@
+## -*- mode:ulam -*-
+#=t41461_test_compiler_elementandquark_multibases_virtualfuncsselectwselfandclassidconstant_atomref
+##
+## gen output:
+##   Int Arg: 2
+##   Int Arg: 4
+##   Int Arg: 4 (+ assert)
+##   Int Arg: 3
+##   Int Arg: 9
+##   Int Arg: 9 (+ assert)
+##
+#!
+Exit status: -11
+Ue_MyElement : Sub(2) +Sub(3) { constant Unsigned ids[2] = { 0x1, 0x2 };  :Sub(2)< constant Int cVAL = 2;  :Q<>> +Sub(3)< constant Int cVAL = 3;  :Q<>> ^Q<> Int test() {  System s;  Atom copy = self.atomof cast;  MyElement& other = copy cast;  { Unsigned i = 0 cast;  i 2u < cond { Unsigned ci = ids i [];  Int v = other Q ci .[] ( )val .;  s ( v )print . Int sqv = v v *;  s ( sqv )print . s ( other Q ci .[] ( )sqr . )print . s ( sqv other Q ci .[] ( )sqr . == )assert . } _1: i 1 cast += while } 2u cast return } }
+Uq_Q { <NOMAIN> }
+Uq_Sub(Int cVAL) : Q { :Q<> <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+##       informed by Dave ish (1 of 3) 03092020; and t41391 + t41457
+##
+#>MyElement.ulam
+  ulam 5;
+quark Q {
+  virtual Int val() ;
+  virtual Int sqr() { return val() * val(); }
+}
+
+quark Sub(Int cVAL) : Q {
+  @Override
+  virtual Int val() { return cVAL; }
+}
+
+local typedef Sub(2) Sub2;
+local typedef Sub(3) Sub3;
+
+element MyElement : Sub2 + Sub3 {
+  constant Unsigned ids[] = { Sub2.classidof, Sub3.classidof };
+
+  Int test() {
+    System s;
+    Atom copy = self.atomof;
+    Self & other = (Self&) copy;
+
+    for (Unsigned i = 0; i < ids.lengthof; ++i) {
+      Unsigned ci = ids[i];
+      Int v = other.Q[ci].val();
+      s.print(v);
+      Int sqv = v * v;
+      s.print(sqv);
+      s.print(other.Q[ci].sqr());
+      s.assert(sqv == other.Q[ci].sqr());
+    }
+
+    // log.printf("sqr(%d) = %d\n", self.Q[ci].val(), self.Q[ci].sqr());
+    ////OUTPUT:
+    //MSG: s[37,15] t[0,0]: sqr(2) = 4
+    //MSG: s[37,15] t[0,0]: sqr(3) = 4
+    return ids.lengthof;
+  }
+}
+
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

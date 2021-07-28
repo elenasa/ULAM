@@ -100,13 +100,13 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-  UTI NodeControlIf::checkAndLabelType()
+  UTI NodeControlIf::checkAndLabelType(Node * thisparentnode)
   {
-    NodeControl::checkAndLabelType(); //does condition and true
+    NodeControl::checkAndLabelType(thisparentnode); //does condition and true
 
     if(m_nodeElse)
       {
-	m_nodeElse->checkAndLabelType();
+	m_nodeElse->checkAndLabelType(this);
       }
 
     return getNodeType(); //Bool

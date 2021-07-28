@@ -2,14 +2,14 @@
 #=t3837_test_compiler_element_quarkrefatomof_issue
 ##
 ##  gen output (+ interleaved asserts)
-##  Int Arg: 2
 ##  Unsigned Arg: 1
 ##  Unsigned Arg: 96
+##  Int Arg: 2
 ##
 #!
-Exit status: -11
-Ue_Foo : QPerc { Int(32) mi(0);  :QPerc< Bool(1) bb(false); > Int(32) test() {  System s;  Atom(96) a = Foo.instanceof cast;  QPerc& qref = a cast;  Atom(96) aqinas = qref.atomof cast;  self mi . qref ( )func . = s ( 1u )print . s ( true )assert . s ( 96u )print . s ( true )assert . s ( self mi . )print . self bb . self mi . 2 cast == = s ( self bb . )assert . self mi . return } }
-Uq_QPerc { Bool(1) bb(false);  <NOMAIN> }
+Exit status: 2
+Ue_Foo : QPerc { Int mi(2);  :QPerc< Bool bb(true); > Int test() {  System s;  Atom a = Foo.instanceof cast;  QPerc& qref = a cast;  Atom aqinas = qref.atomof cast;  self mi . qref ( )func . = s ( 1u )print . s ( true )assert . s ( 96u )print . s ( true )assert . s ( self mi . )print . self bb . self mi . 2 cast == = s ( self bb . )assert . self mi . return } }
+Uq_QPerc { Bool bb(false);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t3835, a Dave ish 7/1/2016;

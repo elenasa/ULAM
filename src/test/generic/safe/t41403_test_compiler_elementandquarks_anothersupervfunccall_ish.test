@@ -7,7 +7,7 @@ Uq_ReversingThreads : SpatialThreads { :SpatialThreads<> <NOMAIN> }
 Uq_SpatialThreads { <NOMAIN> }
 Uq_System { <NOMAIN> }
 Uq_QSerious : ReversingThreads { :ReversingThreads<> ^SpatialThreads<> <NOMAIN> }
-Ue_Std12 : QSerious { :QSerious< :ReversingThreads< :SpatialThreads<>> ^SpatialThreads<>> ^ReversingThreads< :SpatialThreads<>> ^SpatialThreads<> Int(32) test() {  self ( )behave . 0 cast return } }
+Ue_Std12 : QSerious { :QSerious< :ReversingThreads< :SpatialThreads<>> ^SpatialThreads<>> ^ReversingThreads< :SpatialThreads<>> ^SpatialThreads<> Int test() {  self ( )behave . 0 cast return } }
 ##
 ## informed by Dave ish 5/2/2020, virtuals, pure, and super;(see also t41397)
 ## revealed think-o in UlamRef search for non-dominating, most-specific class in call stack

@@ -49,17 +49,16 @@ namespace MFM {
   {
     UTI vuti = m_varSymbol->getUlamTypeIdx();
     UlamKeyTypeSignature vkey = m_state.getUlamKeyTypeSignatureByIndex(vuti);
-    UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-    ULAMTYPE vetyp = vut->getUlamTypeEnum();
 
     if(m_state.isConstantRefType(vuti))
       fp->write(" constant"); //t41242,3
 
     fp->write(" ");
 
-    fp->write(m_state.getUlamTypeNameBriefByIndex(vuti).c_str());
-    if(vetyp != Class)
-      fp->write("&"); //<--the only difference!!!
+    fp->write(m_state.getUlamTypeNameBriefByIndex(vuti).c_str()); //includes ref & (t3611)
+
+    //if(vetyp != Class)
+    //  fp->write("&"); //<--the only difference!!! e.g.t3611
 
     fp->write(" ");
     fp->write(getName());
@@ -170,7 +169,7 @@ namespace MFM {
     return rscr;
   } //safeToCastTo
 
-  bool NodeVarRef::checkReferenceCompatibility(UTI uti)
+  bool NodeVarRef::checkReferenceCompatibility(UTI uti, Node * parentnode)
   {
     assert(m_state.okUTItoContinue(uti));
     if((!m_state.getUlamTypeByIndex(uti)->isAltRefType()))
@@ -185,17 +184,20 @@ namespace MFM {
     return true; //ok
   } //checkReferenceCompatibility
 
-  UTI NodeVarRef::checkAndLabelType()
+  UTI NodeVarRef::checkAndLabelType(Node * thisparentnode)
   {
-    UTI it = NodeVarDecl::checkAndLabelType();
+    UTI it = NodeVarDecl::checkAndLabelType(thisparentnode);
     u32 errCount= 0;
     u32 hazyCount = 0;
     if(!m_state.okUTItoContinue(it))
       {
 	if(it == Nav)
 	  errCount++;
-	if((it == Hzy) || m_state.isStillHazy(it))
+	else if((it == Hzy) || m_state.isStillHazy(it))
 	  hazyCount++;
+	else if(m_state.isHolder(it))
+	  hazyCount++;
+	//else
 	assert(it != Nouti);
       }
     ////requires non-constant, non-funccall value
@@ -242,6 +244,7 @@ namespace MFM {
 	if(hazyCount)
 	  {
 	    setNodeType(Hzy);
+	    clearSymbolPtr();
 	    m_state.setGoAgain();
 	    return Hzy; //short-circuit
 	  }
@@ -301,7 +304,11 @@ namespace MFM {
 	  Node::setStoreIntoAble(TBOOL_TRUE);
       }
     setNodeType(it);
-    if(it == Hzy) m_state.setGoAgain();
+    if(it == Hzy)
+      {
+	clearSymbolPtr();
+	m_state.setGoAgain();
+      }
     return getNodeType();
   } //checkAndLabelType
 
@@ -383,12 +390,15 @@ namespace MFM {
     // 'pos' modified by this data member symbol's packed bit position
   UlamValue NodeVarRef::makeUlamValuePtr()
   {
+    UTI nuti = getNodeType();
     u32 pos = 0;
     if(m_varSymbol->isDataMember())
-      pos = m_varSymbol->getPosOffset();
-
-    UlamValue ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + pos, m_varSymbol->getId());
-
+      {
+	pos = m_varSymbol->getPosOffset();
+	m_state.abortShouldntGetHere(); //dm are not refs.
+      }
+    UlamValue ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), nuti, m_state.determinePackable(nuti), m_state, m_state.m_currentObjPtr.getPtrPos() + pos, m_varSymbol->getId());
+    //not sure about setPtrTargetEffSelfType..is it in m_currentObjPtr??
     ptr.checkForAbsolutePtr(m_state.m_currentObjPtr);
     return ptr;
   } //makeUlamValuePtr

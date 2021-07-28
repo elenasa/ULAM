@@ -2,8 +2,8 @@
 #=t3598_test_compiler_elementandquarkinheritancetemplatemix_wfunccall_issue
 #!
 Exit status: 1
-Ue_Tu : Foo(1,true) { :Foo(1,true)< Unary(2) phase(0u);  constant Int(32) a = 1;  constant Bool(1) b = true;  typedef Unary(2) Phase;  constant Unary(2) cBLUE = 0u;  constant Unary(2) cRED = 1u;  constant Unary(2) cGREEN = 3u; > Int(32) test() {  { self ( self phase . )prev . cond 1 cast return if } 2 cast return } }
-Uq_Foo(Int(32) a, Bool(1) b) { typedef Unary(2) Phase;  Unary(2) phase(0);  constant Unary(2) cBLUE = 0u;  constant Unary(2) cRED = 1u;  constant Unary(2) cGREEN = 3u;  <NOMAIN> }
+Ue_Tu : Foo(1,true) { :Foo(1,true)< Unary(2) phase(0u);  constant Int a = 1;  constant Bool b = true;  typedef Unary(2) Phase;  constant Unary(2) cBLUE = 0u;  constant Unary(2) cRED = 1u;  constant Unary(2) cGREEN = 3u; > Int test() {  { self ( self phase . )prev . cond 1 cast return if } 2 cast return } }
+Uq_Foo(Int a, Bool b) { typedef Unary(2) Phase;  Unary(2) phase(0);  constant Unary(2) cBLUE = 0u;  constant Unary(2) cRED = 1u;  constant Unary(2) cGREEN = 3u;  <NOMAIN> }
 ##
 ##       //classes can inherit from a template instance, and vis versa
 ##       informed by t3576 and t3597, trying to make CLife issue happen from working test

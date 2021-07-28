@@ -7,10 +7,10 @@
 ##
 #!
 Exit status: 3
-Uq_Typo(Int(32) a) : Bar { /* empty class block */ }
-Uq_Bar : Gah { Bool(1) sp(false);  :Gah< Unsigned(3) bu( 7u); > <NOMAIN> }
+Uq_Typo(Int a) : Bar { /* empty class block */ }
+Uq_Bar : Gah { Bool sp(false);  :Gah< Unsigned(3) bu( 7u); > <NOMAIN> }
 Uq_Gah { Unsigned(3) bu( 7u);  <NOMAIN> }
-Ue_Eltypo : Typo(1) { Unsigned(3) first(3u);  Unsigned(3) second(3u);  Typo(1) t( constant Int(32) a = 1;  :Bar< Bool(1) sp(false);  :Gah< Unsigned(3) bu(7u); >> ^Gah< Unsigned(3) bu(7u); >);  :Typo(1)< constant Int(32) a = 1;  :Bar< Bool(1) sp(false);  :Gah< Unsigned(3) bu(3u); >> ^Gah< Unsigned(3) bu(3u); >> ^Bar< Bool(1) sp(false);  :Gah< Unsigned(3) bu(3u); >> ^Gah< Unsigned(3) bu(3u); > Int(32) test() {  System s;  Eltypo& me = self;  { self Bar as cond { Bar& self;  super ( 3u cast )func . s ( self bu . cast )print . s ( self bu . cast 3 cast == )assert . me first . super bu . = } if s ( false )assert . else } s ( self bu . cast )print . s ( self bu . cast 3 cast == )assert . s ( self first . cast )print . s ( self first . cast 3 cast == )assert . self second . self bu . = self second . cast return } }
+Ue_Eltypo : Typo(1) { Unsigned(3) first(3u);  Unsigned(3) second(3u);  Typo(1) t( constant Int a = 1;  :Bar< Bool sp(false);  :Gah< Unsigned(3) bu(7u); >> ^Gah< Unsigned(3) bu(7u); >);  :Typo(1)< constant Int a = 1;  :Bar< Bool sp(false);  :Gah< Unsigned(3) bu(3u); >> ^Gah< Unsigned(3) bu(3u); >> ^Bar< Bool sp(false);  :Gah< Unsigned(3) bu(3u); >> ^Gah< Unsigned(3) bu(3u); > Int test() {  System s;  Eltypo& me = self;  { self Bar as cond { Bar& self;  super ( 3u cast )func . s ( self bu . cast )print . s ( self bu . cast 3 cast == )assert . me first . super bu . = } if s ( false )assert . else } s ( self bu . cast )print . s ( self bu . cast 3 cast == )assert . s ( self first . cast )print . s ( self first . cast 3 cast == )assert . self second . self bu . = self second . cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by 3821, except as 'super.func()', instead of implicit self

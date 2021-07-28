@@ -120,7 +120,7 @@ namespace MFM {
     m_nodeEndingStmt = nextNode;
   } //appendNextNode
 
-  UTI NodeBlock::checkAndLabelType()
+  UTI NodeBlock::checkAndLabelType(Node * thisparentnode)
   {
     assert(m_nodeNext);
     //especially important for template instances (prev ptr nullified on instantiation)
@@ -132,7 +132,7 @@ namespace MFM {
 
     m_state.pushCurrentBlock(this);
 
-    m_nodeNext->checkAndLabelType();
+    m_nodeNext->checkAndLabelType(this);
 
     m_state.popClassContext(); //restores m_prevBlockNode
 
@@ -273,6 +273,11 @@ namespace MFM {
 
   void NodeBlock::genCode(File * fp, UVPass& uvpass)
   {
+    //20210606 Dave's ish, pointer.functioncall following native, var arg function call
+    //         w unused return (t41473 doesn't recreate problem yet)
+    UVPass uvpass2clear;
+    uvpass = uvpass2clear; //refresh
+
     m_state.indentUlamCode(fp);
     fp->write("{\n");
 

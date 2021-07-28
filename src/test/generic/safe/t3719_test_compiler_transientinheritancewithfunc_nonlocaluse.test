@@ -5,8 +5,8 @@
 ##
 #!
 Exit status: 39
-Ue_R { System s();  Int(32) h(39);  Int(32) test() {  Foo f;  f ( )behave . self h . f size . = self s . ( self h . )print . self s . ( self h . 39 cast == )assert . self h . return } }
-Un_Foo { Bool(1) first(false);  Soo su( Unsigned(3) us( 4u);  :Coo< Bool(3) cb( true); >);  Int(32) size(0);  <NOMAIN> }
+Ue_R { System s();  Int h(39);  Int test() {  Foo f;  f ( )behave . self h . f size . = self s . ( self h . )print . self s . ( self h . 39 cast == )assert . self h . return } }
+Un_Foo { Bool first(false);  Soo su( Unsigned(3) us( 4u);  :Coo< Bool(3) cb( true); >);  Int size(0);  <NOMAIN> }
 Un_Soo : Coo { Unsigned(3) us( 4u);  :Coo< Bool(3) cb( true); > <NOMAIN> }
 Un_Coo { Bool(3) cb( true);  <NOMAIN> }
 Uq_System { <NOMAIN> }

@@ -1,8 +1,9 @@
 /**                                        -*- mode:C++ -*-
  * NodeCast.h - Basic Node for handling Type Casting for ULAM
- *
+o *
  * Copyright (C) 2014-2019 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2019 Ackleyshack LLC.
+ * Copyright (C) 2014-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +30,7 @@
   \file NodeCast.h - Basic Node for handling Type Casting for ULAM
   \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2019 All rights reserved.
+  \date (C) 2014-2021 All rights reserved.
   \gpl
 */
 
@@ -70,17 +71,27 @@ namespace MFM{
 
     UTI getCastType();
 
+    UTI getCastedType();
+
     void setExplicitCast();
 
     virtual bool isExplicitCast();
 
+    virtual bool isExplicitReferenceCast(); //only NodeCast may return true
+
+    virtual bool isACast();
+
     virtual bool isAConstant();
+
+    virtual bool isAConstantClass();
+
+    virtual bool initDataMembersConstantValue(BV8K& bvref, BV8K& bvmask);
 
     virtual bool isReadyConstant();
 
     virtual bool isNegativeConstant();
 
-    virtual bool isWordSizeConstant();
+    virtual bool isWordSizeConstant(u32 wordsize);
 
     virtual bool isFunctionCall();
 
@@ -88,11 +99,11 @@ namespace MFM{
 
     virtual bool isArrayItem();
 
-    virtual bool isExplicitReferenceCast(); //only NodeCast may return true
+    virtual bool getSymbolPtr(Symbol *& symptrref);
 
     virtual FORECAST safeToCastTo(UTI newType);
 
-    virtual UTI checkAndLabelType();
+    virtual UTI checkAndLabelType(Node * thisparentnode);
 
     virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
 

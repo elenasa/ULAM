@@ -11,7 +11,7 @@ Uq_QMemBase { Int(3) bmem(0);  <NOMAIN> }
 Uq_QSubBase1 : QMemBase { /* empty class block */ }
 Uq_QSubBase2 : QMemBase { :QMemBase< Int(3) bmem(0); > <NOMAIN> }
 Uq_QSubBase3 { QMemBase m_qmem( Int(3) bmem(0); );  <NOMAIN> }
-Ue_Foo { Bool(1) brtn[4](true,true,true,false);  QMemBase m1( Int(3) bmem(1); );  Int(32) test() {  System s;  QMemBase m2;  QSubBase3 q3;  self brtn . 0 [] self m1 . ( )vfunc . 3 cast == = s ( self brtn . 0 [] )assert . self brtn . 1 [] m2 ( )vfunc . 3 cast == = s ( self brtn . 1 [] )assert . self brtn . 2 [] q3 m_qmem . ( )vfunc . 3 cast == = s ( self brtn . 2 [] )assert . 0 cast return } }
+Ue_Foo { Bool brtn[4](true,true,true,false);  QMemBase m1( Int(3) bmem(1); );  Int test() {  System s;  QMemBase m2;  QSubBase3 q3;  self brtn . 0 [] self m1 . ( )vfunc . 3 cast == = s ( self brtn . 0 [] )assert . self brtn . 1 [] m2 ( )vfunc . 3 cast == = s ( self brtn . 1 [] )assert . self brtn . 2 [] q3 m_qmem . ( )vfunc . 3 cast == = s ( self brtn . 2 [] )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t3604..looking for a test knownatcompiletime vfunc call

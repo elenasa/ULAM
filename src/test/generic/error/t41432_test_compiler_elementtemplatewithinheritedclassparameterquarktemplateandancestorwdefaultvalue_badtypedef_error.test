@@ -4,7 +4,7 @@
 ./Crackle.ulam:9:19: ERROR: Unexpected token <TOK_OPEN_PAREN>; Expected ;.
 ./Crackle.ulam:5:1: ERROR: Empty/Incomplete Class Definition 'Crackle'; Possible missing ending curly brace.
 ./Crackle.ulam:10:3: ERROR: Invalid Class Type <Zary>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
-./Crackle.ulam:5:11: ERROR: Invalid Type: Crackle.
+./R.ulam:16:5: ERROR: Invalid Type: Crackle.
  ERROR: No parse tree for This Class: Crackle.
 Unrecoverable Program Parse FAILURE: <Crackle.ulam>
 ./Pop.ulam:2:7: ERROR: Context Crackle(UNKNOWN) needed to fix any unseen class instances of template 'Pop' is missing its class definition; Bailing...

@@ -84,19 +84,19 @@ namespace MFM {
     return rtnOK;
   } //checkSafeToCastTo
 
-  UTI NodeBinaryOpEqual::checkAndLabelType()
+  UTI NodeBinaryOpEqual::checkAndLabelType(Node * thisparentnode)
   {
     assert(m_nodeLeft && m_nodeRight);
 
-    UTI leftType = m_nodeLeft->checkAndLabelType();
-    UTI rightType = m_nodeRight->checkAndLabelType();
+    UTI leftType = m_nodeLeft->checkAndLabelType(this);
+    UTI rightType = m_nodeRight->checkAndLabelType(this);
 
     if(!m_state.neitherNAVokUTItoContinue(leftType, rightType))
       {
 	std::ostringstream msg;
 	msg << "Assignment is invalid";
 	msg << "; LHS: ";
-	msg << m_state.getUlamTypeNameByIndex(leftType);
+	msg << m_state.getUlamTypeNameByIndex(leftType); //t41388
 	msg << "; RHS: ";
 	msg << m_state.getUlamTypeNameByIndex(rightType);
 
@@ -158,7 +158,7 @@ namespace MFM {
     if(lut->getUlamTypeEnum() == Class)
       {
 	bool rhsIsClassOrAtom = m_state.isAClass(rightType) || m_state.isAtom(rightType);
-	TBOOL replaced = replaceOurselves(rhsIsClassOrAtom);
+	TBOOL replaced = replaceOurselves(rhsIsClassOrAtom, thisparentnode);
 
 	if(replaced == TBOOL_HAZY)
 	  newType = Hzy;
@@ -210,7 +210,7 @@ namespace MFM {
       } //else the same
   }
 
-  TBOOL NodeBinaryOpEqual::replaceOurselves(bool classoratom)
+  TBOOL NodeBinaryOpEqual::replaceOurselves(bool classoratom, Node * parentnode)
   {
     //here, when lefthand side is a class
     TBOOL rtntb = TBOOL_FALSE;
@@ -218,7 +218,7 @@ namespace MFM {
     if(!classoratom)
       {
 	//try for operator overload first (e.g. (pre) +=,-=, (post) ++,-- )
-	if(NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode())
+	if(NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode(parentnode))
 	  {
 	    rtntb = TBOOL_TRUE;
 	  }
@@ -235,7 +235,7 @@ namespace MFM {
 	  }
 	else if(newnode)
 	  {
-	    AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+	    AssertBool swapOk = Node::exchangeNodeWithParent(newnode, parentnode);
 	    assert(swapOk);
 
 	    m_nodeLeft = NULL; //recycle as memberselect
@@ -628,13 +628,6 @@ namespace MFM {
   void NodeBinaryOpEqual::appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len)
   {
     m_state.abortShouldntGetHere(); //unused
-  }
-
-  void NodeBinaryOpEqual::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
-  {
-    assert(m_nodeRight);
-    m_nodeRight->calcMaxDepth(depth, maxdepth, base); //funccall?
-    return; //work done by NodeStatements and NodeBlock
   }
 
   void NodeBinaryOpEqual::genCode(File * fp, UVPass& uvpass)

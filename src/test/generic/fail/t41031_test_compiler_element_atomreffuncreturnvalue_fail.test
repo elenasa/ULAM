@@ -2,11 +2,11 @@
 #=t41031_test_compiler_element_atomreffuncreturnvalue_fail
 ##
 ## gen error:
-## include/Ue_10173Foo10.tcc:94: FAILED: UNRETURNABLE_REFERENCE
+## include/Ue_10103Foo10.tcc:78: FAILED: UNRETURNABLE_REFERENCE
 ##
 #!
 Exit status: -1
-Ue_Foo { Int(32) test() {  Atom(96) f3;  Atom(96)& r = self ( f3 cast )caller2 .;  0 cast return } }
+Ue_Foo { Int test() {  Atom f3;  Atom& r = self ( f3 cast )caller2 .;  0 cast return } }
 ##
 ## informed by Dave email 2/10/2017 and t41029, see safe/t41033
 ##

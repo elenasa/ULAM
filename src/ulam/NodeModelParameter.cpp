@@ -6,6 +6,9 @@ namespace MFM {
 
   NodeModelParameter::NodeModelParameter(const Token& tok, SymbolModelParameterValue * symptr, NodeTypeDescriptor * typedesc, CompilerState & state) : NodeConstant(tok, symptr, typedesc, state) { }
 
+  NodeModelParameter::NodeModelParameter(const Token& tok, NNO stblockno, UTI constantType, NodeTypeDescriptor * typedesc, CompilerState & state) : NodeConstant(tok, stblockno, constantType, typedesc, state)
+  { }
+
   NodeModelParameter::NodeModelParameter(const NodeModelParameter& ref) : NodeConstant(ref) {}
 
   NodeModelParameter::~NodeModelParameter(){}
@@ -63,7 +66,8 @@ namespace MFM {
 
     Symbol * asymptr = NULL;
     bool hazyKin = false;
-    if(m_state.alreadyDefinedSymbol(m_token.m_dataindex, asymptr, hazyKin) && !hazyKin)
+    //if(m_state.alreadyDefinedSymbol(m_token.m_dataindex, asymptr, hazyKin) && !hazyKin)
+    if(m_state.alreadyDefinedSymbol(m_token.m_dataindex, asymptr, hazyKin)) //t3503
       {
 	if(asymptr->isModelParameter())
 	  {
@@ -92,13 +96,10 @@ namespace MFM {
     m_state.popClassContext(); //restore
   } //checkForSymbol
 
-  //class context set prior to calling us; purpose is to get
-  // the value of this constant from the context before
-  // constant folding happens.
-  bool NodeModelParameter::assignClassArgValueInStubCopy()
+  TBOOL NodeModelParameter::replaceOurselves(Symbol * symptr, Node * parentnode)
   {
-    return true; //nothing to do
-  } //assignClassArgValueInStubCopy
+    return TBOOL_FALSE; //nothing to do (t3503)
+  }
 
   void NodeModelParameter::genCode(File * fp, UVPass& uvpass)
   {

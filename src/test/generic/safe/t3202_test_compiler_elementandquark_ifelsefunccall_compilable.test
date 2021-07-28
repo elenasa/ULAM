@@ -2,8 +2,8 @@
 #=t3202_test_compiler_elementandquark_ifelsefunccall_compilable
 #!
 Exit status: 0
-Ue_Foo { System s();  Bar bar1( Bool(1) b(true);  Unsigned(3) x(1u);  Unsigned(3) y(2u); );  Bar bar2( Bool(1) b(false);  Unsigned(3) x(3u);  Unsigned(3) y(0u); );  Int(4) i(2);  Int(4) j(0);  Int(32) test() {  Int(32) d;  d 1 cast = self bar1 . ( d 2 cast )set . self bar2 . ( 3 cast 0 cast )set . self i . self bar1 . ( )toInt . cast = self j . self bar2 . ( )toInt . cast = self s . ( self i . )print . self s . ( self j . )print . 0 cast return } }
-Uq_Bar { Bool(1) b(false);  Unsigned(3) x(0);  Unsigned(3) y(0);  <NOMAIN> }
+Ue_Foo { System s();  Bar bar1( Bool b(true);  Unsigned(3) x(1u);  Unsigned(3) y(2u); );  Bar bar2( Bool b(false);  Unsigned(3) x(3u);  Unsigned(3) y(0u); );  Int(4) i(2);  Int(4) j(0);  Int test() {  Int d;  d 1 cast = self bar1 . ( d 2 cast )set . self bar2 . ( 3 cast 0 cast )set . self i . self bar1 . ( )toInt . cast = self j . self bar2 . ( )toInt . cast = self s . ( self i . )print . self s . ( self j . )print . 0 cast return } }
+Uq_Bar { Bool b(false);  Unsigned(3) x(0);  Unsigned(3) y(0);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 #>Foo.ulam

@@ -9,13 +9,13 @@
 namespace MFM {
 
   NodeBlockClass::NodeBlockClass(NodeBlock * prevBlockNode, CompilerState & state) : NodeBlockContext(prevBlockNode, state), m_functionST(state), m_virtualmethodMaxIdx(UNKNOWNSIZE), m_buildingDefaultValueInProgress(false), m_bitPackingInProgress(false), m_isEmpty(false), m_registeredForTestInstance(false)
-
   {
     m_nodeParameterList = new NodeList(state);
     assert(m_nodeParameterList);
     m_nodeArgumentList = new NodeList(state);
     assert(m_nodeArgumentList);
-    initBaseClassBlockList();
+    //    initBaseClassBlockList();
+    updateLineage(0); //t41228?
   }
 
   NodeBlockClass::NodeBlockClass(const NodeBlockClass& ref) : NodeBlockContext(ref), m_functionST(ref.m_functionST) /* deep copy */, m_virtualmethodMaxIdx(ref.m_virtualmethodMaxIdx), m_buildingDefaultValueInProgress(false), m_bitPackingInProgress(false), m_isEmpty(ref.m_isEmpty), m_registeredForTestInstance(false), m_nodeParameterList(NULL), m_nodeArgumentList(NULL)
@@ -27,7 +27,7 @@ namespace MFM {
     assert(m_nodeParameterList);
     m_nodeArgumentList = new NodeList(m_state);
     assert(m_nodeArgumentList);
-    initBaseClassBlockList();
+    //initBaseClassBlockList();
     m_state.popClassContext();
   }
 
@@ -37,8 +37,8 @@ namespace MFM {
     m_nodeParameterList = NULL;
     delete m_nodeArgumentList;
     m_nodeArgumentList = NULL;
-    clearBaseClassBlockList();
-    clearSharedBaseClassBlockList();
+    //clearBaseClassBlockList();
+    //clearSharedBaseClassBlockList();
   }
 
   Node * NodeBlockClass::instantiate()
@@ -259,8 +259,8 @@ namespace MFM {
 	//skip UrSelf to avoid extensive changes to all test answers
 	if(m_state.okUTItoContinue(superuti) && !m_state.isUrSelf(superuti))
 	  {
-	    NodeBlockClass * superblock = getBaseClassBlockPointer(0);
-	    if(!isBaseClassLinkReady(cuti,0))
+	    NodeBlockClass * superblock = m_state.getAClassBlock(superuti);
+	    if(!isBaseClassBlockReady(cuti, superuti))
 	      {
 		//use SCN instead of SC in case of stub (use template's classblock)
 		SymbolClassName * supercnsym = NULL;
@@ -284,9 +284,9 @@ namespace MFM {
 	while(i < basecount)
 	  {
 	    UTI baseuti = csym->getBaseClass(i);
-	    NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
+	    NodeBlockClass * basecblock = m_state.getAClassBlock(baseuti);
 
-	    if(!isBaseClassLinkReady(cuti, i))
+	    if(!isBaseClassBlockReady(cuti, baseuti))
 	      {
 		//use SCN instead of SC in case of stub (use template's classblock)
 		SymbolClassName * basecnsym = NULL;
@@ -312,9 +312,9 @@ namespace MFM {
 	    UTI baseuti = csym->getSharedBaseClass(j);
 	    if(!m_state.isUrSelf(baseuti))
 	      {
-		NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(j);
+		NodeBlockClass * shbasecblock = m_state.getAClassBlock(baseuti);
 
-		if(!isSharedBaseClassLinkReady(cuti, j))
+		if(!isBaseClassBlockReady(cuti, baseuti))
 		  {
 		    //use SCN instead of SC in case of stub (use template's classblock)
 		    SymbolClassName * basecnsym = NULL;
@@ -359,7 +359,7 @@ namespace MFM {
 	//skip UrSelf to avoid extensive changes to all test answers
 	if(m_state.okUTItoContinue(superuti) && !m_state.isUrSelf(superuti))
 	  {
-	    NodeBlockClass * superblock = getBaseClassBlockPointer(0);
+	    NodeBlockClass * superblock = m_state.getAClassBlock(superuti);
 	    assert(superblock && UlamType::compare(superblock->getNodeType(), superuti, m_state) == UTIC_SAME);
 	    u32 relpos = csym->getBaseClassRelativePosition(0);
 	    fp->write(" :");
@@ -375,7 +375,7 @@ namespace MFM {
 	while(i < basecount)
 	  {
 	    UTI baseuti = csym->getBaseClass(i);
-	    NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
+	    NodeBlockClass * basecblock = m_state.getAClassBlock(baseuti);
 	    assert(basecblock && UlamType::compare(basecblock->getNodeType(), baseuti, m_state) == UTIC_SAME);
 	    u32 relpos = csym->getBaseClassRelativePosition(i);
 	    fp->write(" +");
@@ -394,7 +394,8 @@ namespace MFM {
 	    UTI baseuti = csym->getSharedBaseClass(j);
 	    if(!m_state.isUrSelf(baseuti)) //t3102
 	      {
-		NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(j);
+		//NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(j);
+		NodeBlockClass * shbasecblock = m_state.getAClassBlock(baseuti);
 		assert(shbasecblock && UlamType::compare(shbasecblock->getNodeType(), baseuti, m_state) == UTIC_SAME);
 
 		s32 bitem = csym->isABaseClassItem(baseuti);
@@ -462,8 +463,8 @@ namespace MFM {
 	//skip UrSelf to avoid extensive changes to all test answers
 	if(m_state.okUTItoContinue(superuti) && !m_state.isUrSelf(superuti))
 	  {
-	    NodeBlockClass * superblock = getBaseClassBlockPointer(0);
-	    if(!isBaseClassLinkReady(cuti, 0))
+	    NodeBlockClass * superblock = m_state.getAClassBlock(superuti);
+	    if(!isBaseClassBlockReady(cuti, superuti))
 	      {
 		//use SCN instead of SC in case of stub (use template's classblock)
 		SymbolClassName * supercnsym = NULL;
@@ -481,9 +482,9 @@ namespace MFM {
 	while(i < basecount)
 	  {
 	    UTI baseuti = csym->getBaseClass(i);
-	    NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
+	    NodeBlockClass * basecblock = m_state.getAClassBlock(baseuti);
 
-	    if(!isBaseClassLinkReady(cuti, i))
+	    if(!isBaseClassBlockReady(cuti, baseuti))
 	      {
 		//use SCN instead of SC in case of stub (use template's classblock)
 		SymbolClassName * basecnsym = NULL;
@@ -502,9 +503,9 @@ namespace MFM {
 	while(j < sharedbasecount)
 	  {
 	    UTI sbaseuti = csym->getSharedBaseClass(j);
-	    NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(j);
+	    NodeBlockClass * shbasecblock = m_state.getAClassBlock(sbaseuti);
 
-	    if(!isSharedBaseClassLinkReady(cuti, j))
+	    if(!isBaseClassBlockReady(cuti, sbaseuti))
 	      {
 		//use SCN instead of SC in case of stub (use template's classblock)
 		SymbolClassName * basecnsym = NULL;
@@ -527,10 +528,7 @@ namespace MFM {
 
   const char * NodeBlockClass::getName()
   {
-    UTI cuti = getNodeType();
-    if(!m_state.okUTItoContinue(cuti))
-      cuti = m_state.getCompileThisIdx(); //maybe be hzy template, getNodeType(); (t3565)
-    return m_state.getUlamKeyTypeSignatureByIndex(cuti).getUlamKeyTypeSignatureName(&m_state).c_str();
+    return m_state.m_pool.getDataAsString(m_nameid).c_str();
   }
 
   const std::string NodeBlockClass::prettyNodeName()
@@ -551,104 +549,85 @@ namespace MFM {
     return true; //used in searches for already defined symbol
   }
 
-  NodeBlockClass * NodeBlockClass::getBaseClassBlockPointer(u32 item)
+  void NodeBlockClass::setDataMembersParseTree(UTI cuti, NodeBlockClass & fromClassBlock)
   {
-    if(item < m_nodeBaseClassBlockList.size())
-      return m_nodeBaseClassBlockList[item];
-    return NULL;
+    assert((cuti == getNodeType()) || (getNodeType() == Hzy));
+    assert(m_nodeNext == NULL);
+    NodeStatements * fmnode = fromClassBlock.m_nodeNext;
+    if(fmnode == NULL)
+      return;
+    m_nodeNext = (NodeStatements *) fmnode->instantiate(); //t3888
+    assert(m_nodeNext);
   }
 
-  NodeBlockClass * NodeBlockClass::getSharedBaseClassBlockPointer(u32 item)
+  void NodeBlockClass::resetDataMembersParseTree(UTI cuti, NodeBlockClass & fromClassBlock)
   {
-    if(item < m_nodeSharedBaseClassBlockList.size())
-      return m_nodeSharedBaseClassBlockList[item];
-    return NULL;
-  }
-
-  void NodeBlockClass::setBaseClassBlockPointer(NodeBlockClass * classblock, u32 item)
-  {
-    if(m_nodeBaseClassBlockList.size() == item) //append
-      m_nodeBaseClassBlockList.push_back(classblock);
-    else
-      m_nodeBaseClassBlockList[item] = classblock; //replace
-  }
-
-  void NodeBlockClass::setSharedBaseClassBlockPointer(NodeBlockClass * classblock, u32 item)
-  {
-    if(m_nodeSharedBaseClassBlockList.size() == item) //append
-      m_nodeSharedBaseClassBlockList.push_back(classblock);
-    else
-      m_nodeSharedBaseClassBlockList[item] = classblock; //replace
-  }
-
-  void NodeBlockClass::clearBaseClassBlockList()
-  {
-    for(u32 i=0; i < m_nodeBaseClassBlockList.size(); i++)
-      m_nodeBaseClassBlockList[i] = NULL; //we don't own the blocks, so don't destroy
-    m_nodeBaseClassBlockList.clear();
-  }
-
-  void NodeBlockClass::clearSharedBaseClassBlockList()
-  {
-    for(u32 i=0; i < m_nodeSharedBaseClassBlockList.size(); i++)
-      m_nodeSharedBaseClassBlockList[i] = NULL; //we don't own the blocks, so don't destroy
-    m_nodeSharedBaseClassBlockList.clear();
-  }
-
-  void NodeBlockClass::initBaseClassBlockList()
-  {
-    clearBaseClassBlockList();
-    setBaseClassBlockPointer(NULL, 0); //super
-  }
-
-  void NodeBlockClass::initSharedBaseClassBlockList()
-  {
-    clearSharedBaseClassBlockList();
-  }
-
-  bool NodeBlockClass::isBaseClassLinkReady(UTI cuti, u32 item)
-  {
-    //call for known subclasses only
-    SymbolClass * csym = NULL;
-    if(m_state.alreadyDefinedSymbolClass(cuti, csym))
+    assert((cuti == getNodeType()) || (getNodeType() == Hzy));
+    if(m_nodeNext)
       {
-	assert(item < (csym->getBaseClassCount() + 1));
-	UTI baseuti = csym->getBaseClass(item);
-	if(!m_state.okUTItoContinue(baseuti))
-	  return false; //t41013 (for super)
-
-	//this is a subclass.
-	NodeBlockClass * basecblock = getBaseClassBlockPointer(item);
-	if(basecblock == NULL)
-	  return false;
-
-	UTI sblockuti = basecblock->getNodeType();
-	return !(!m_state.okUTItoContinue(sblockuti) || (UlamType::compare(sblockuti, baseuti, m_state) != UTIC_SAME));
+	delete m_nodeNext;
+	m_nodeNext = NULL;
       }
-    return false;
-  } //isBaseClassLinkReady
-
-  bool NodeBlockClass::isSharedBaseClassLinkReady(UTI cuti, u32 item)
-  {
-    //call for known subclasses only
-    SymbolClass * csym = NULL;
-    if(m_state.alreadyDefinedSymbolClass(cuti, csym))
+    if(m_node)
       {
-	assert(item < (csym->getSharedBaseClassCount()));
-	UTI baseuti = csym->getSharedBaseClass(item);
-	if(!m_state.okUTItoContinue(baseuti))
-	  return false;
-
-	//this is a subclass.
-	NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(item);
-	if(shbasecblock == NULL)
-	  return false;
-
-	UTI shblockuti = shbasecblock->getNodeType();
-	return !(!m_state.okUTItoContinue(shblockuti) || (UlamType::compare(shblockuti, baseuti, m_state) != UTIC_SAME));
+	delete m_node;
+	m_node = NULL;
       }
-    return false;
-  } //isSharedBaseClassLinkReady
+    setDataMembersParseTree(cuti, fromClassBlock);
+  }
+
+  void NodeBlockClass::setDataMembersSymbolTable(UTI cuti, NodeBlockClass& fromClassBlock)
+  {
+    assert((cuti == getNodeType()) || (getNodeType() == Hzy));
+    u32 totablesize = NodeBlock::getNumberOfSymbolsInTable();
+    if(totablesize==0)
+      this->getSymbolTablePtr()->copyATableHere(*fromClassBlock.getSymbolTablePtr());
+    else
+      this->getSymbolTablePtr()->mergeATableHere(*fromClassBlock.getSymbolTablePtr());
+  } //setDataMemberSymbolsTable
+
+  SymbolTable * NodeBlockClass::getFunctionSymbolTablePtr()
+  {
+    return &m_functionST;
+  }
+
+  void NodeBlockClass::setMemberFunctionsSymbolTable(UTI cuti, NodeBlockClass& fromClassBlock)
+  {
+    assert((cuti == getNodeType()) || (getNodeType() == Hzy)); //t3460
+    u32 fromtablesize = fromClassBlock.getNumberOfFuncSymbolsInTableHere();
+    u32 totablesize = getNumberOfFuncSymbolsInTableHere();
+    assert(totablesize==0);
+    m_functionST = *((SymbolTableOfFunctions *) fromClassBlock.getFunctionSymbolTablePtr());
+    assert(m_functionST.getTableSize()==fromtablesize);
+  }
+
+  bool NodeBlockClass::isBaseClassBlockReady(UTI cuti, UTI baseuti)
+  {
+    if(!m_state.okUTItoContinue(baseuti))
+      return false; //t41013 (for super)
+
+    if(m_state.isHolder(baseuti))
+      return false; //t3756,7, t3865,t3889...
+
+    if(!m_state.isAClass(baseuti))
+      return false; //holder turned into primitive (t41517, t41519);
+
+    //assert(m_state.isARootUTI(baseuti)); //sanity? nope, used by checkHazyKin
+
+    if(m_state.isClassAStub(baseuti))
+      return false; //t41435;t3565,t3652,t41007,t41221,2,t41476;t41298,9;
+
+    NodeBlockClass * basecblock = m_state.getAClassBlock(baseuti);
+    if(basecblock == NULL)
+      return false;
+
+    UTI sblockuti = basecblock->getNodeType();
+    if(!m_state.okUTItoContinue(sblockuti))
+      return false;
+
+    ULAMTYPECOMPARERESULTS cmpresult = UlamType::compare(sblockuti, baseuti, m_state);
+    return !(cmpresult != UTIC_SAME);
+  } //isBaseClassBlockReady
 
   bool NodeBlockClass::hasStringDataMembers()
   {
@@ -664,7 +643,7 @@ namespace MFM {
 	    //skip UrSelf to avoid extensive changes to all test answers
 	    if((superuti != Nouti) && !m_state.isUrSelf(superuti))
 	      {
-		NodeBlockClass * superblock = getBaseClassBlockPointer(0);
+		NodeBlockClass * superblock = m_state.getAClassBlock(superuti);
 		if(superblock != NULL)
 		  hasStrings |= superblock->hasStringDataMembers();
 	      }
@@ -674,7 +653,8 @@ namespace MFM {
 	    u32 i = 1;
 	    while(!hasStrings && (i < basecount))
 	      {
-		NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
+		UTI baseuti = csym->getBaseClass(i);
+		NodeBlockClass * basecblock = m_state.getAClassBlock(baseuti);
 		if(basecblock != NULL)
 		  hasStrings |= basecblock->hasStringDataMembers();
 		i++;
@@ -685,7 +665,8 @@ namespace MFM {
 	    u32 j = 0;
 	    while(!hasStrings && (j < shbasecount))
 	      {
-		NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(j);
+		UTI baseuti = csym->getSharedBaseClass(j);
+		NodeBlockClass * shbasecblock = m_state.getAClassBlock(baseuti);
 		if(shbasecblock != NULL)
 		  hasStrings |= shbasecblock->hasStringDataMembers();
 		j++;
@@ -695,23 +676,28 @@ namespace MFM {
     return hasStrings;
   } //hasStringsDataMembers
 
-  UTI NodeBlockClass::checkAndLabelType()
+  UTI NodeBlockClass::checkAndLabelType(Node * thisparentnode)
   {
+    UTI nuti = m_state.getCompileThisIdx(); //may be Hzy getNodeType();
+
     //do first, might be important!
     checkParameterNodeTypes();
 
     //Argument c&l handled during pending arg step of resolving loop
     //if(!checkArgumentNodeTypes())
 
+    //all member typedefs have been seen by now.
+    m_state.checkforAnyRemainingCulamGeneratedTypedefsInThisContext(nuti); //returns bool, errs
+
     // Inheritance checks (ulam-5)
     checkMultipleInheritances();
 
-    //side-effect DataMember VAR DECLS
+    //side-effect DataMember VAR DECLS, named constants, typedefs
     if(m_nodeNext)
-      m_nodeNext->checkAndLabelType();
+      m_nodeNext->checkAndLabelType(this);
 
     // label all the function definition bodies
-    m_functionST.labelTableOfFunctions();
+    m_functionST.labelTableOfFunctions(this);
 
     // check that a 'test' function returns Int (ulam convention)
     checkTestFunctionReturnType();
@@ -724,409 +710,529 @@ namespace MFM {
   } //checkAndLabelType
 
 
-UTI NodeBlockClass::checkMultipleInheritances()
-{
-  UTI nuti = m_state.getCompileThisIdx(); //may be Hzy getNodeType();
+  UTI NodeBlockClass::checkMultipleInheritances()
+  {
+    UTI nuti = m_state.getCompileThisIdx(); //may be Hzy getNodeType();
 
-  //make progress even when not yet complete (t41009,t41010, t3874, t41184)
-  //  if(!m_state.isComplete(nuti)) return Hzy;
+    //make progress even when not yet complete (t41009,t41010, t3874, t41184)
+    //  if(!m_state.isComplete(nuti)) return Hzy;
+    if(m_state.isUrSelf(nuti))
+      return nuti; //t41521
 
-  bool brtnhzy = false;
+    bool brtnhzy = false;
+    bool errs = false;
 
-  SymbolClass * csym = NULL;
-  AssertBool isDefined = m_state.alreadyDefinedSymbolClass(nuti, csym);
-  assert(isDefined);
+    SymbolClass * csym = NULL;
+    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(nuti, csym);
+    assert(isDefined);
 
-  //ulam-5 supports multiple base classes; superclass optional
-  u32 basecount = csym->getBaseClassCount() + 1; //include super
-  u32 i = 0;
-  while(i < basecount)
-    {
-      UTI baseuti = csym->getBaseClass(i);
-      //skip the ancestor of a template
-      if(m_state.okUTItoContinue(baseuti))
-	{
-	  if(m_state.isHolder(baseuti) || !m_state.isComplete(baseuti)) //t3874, t41010 (super)
-	    {
-	      UTI mappedUTI = baseuti;
-	      if(m_state.mappedIncompleteUTI(nuti, baseuti, mappedUTI))
-		{
-		  //shouldn't happen, caught at parse time (t3900, t3901)
-		  assert(UlamType::compare(nuti, baseuti, m_state) != UTIC_SAME);
+    //try not to duplicate the baseuti for superclass (t41228?), special case.
+    u32 superid = m_state.m_pool.getIndexForDataString("Super");
+    UTI supertdef = Nouti;
+    UTI scalarsupertdef = Nouti; //Nav if unseen at time of parsing (t3806)
+    if(m_state.getUlamTypeByTypedefName(superid, supertdef, scalarsupertdef))
+      {
+	if(m_state.okUTItoContinue(supertdef) && !m_state.isHolder(supertdef)) //t41005
+	  {
+	    UTI superalias = supertdef;
+	    m_state.findRootUTIAlias(supertdef, superalias); //t41228, t41523
+	    UTI superuti = csym->getBaseClass(0);
+	    m_state.resetABaseClassItem(nuti, superuti, superalias, 0); //t41431
+	  }
+      }
 
-		  std::ostringstream msg;
-		  msg << "Substituting mapped UTI" << mappedUTI;
-		  msg << ", " << m_state.getUlamTypeNameBriefByIndex(mappedUTI).c_str();
-		  msg << " for BASE CLASS holder type: '";
-		  msg << m_state.getUlamTypeNameByIndex(baseuti).c_str();
-		  msg << "' UTI" << baseuti << " while labeling class: ";
-		  msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-		  //need to break the chain; e.g. don't want template symbol addresses used
-		  setBaseClassBlockPointer(NULL, i); //force to try again!! avoid inf loop
-		  m_state.resetABaseClassType(nuti, baseuti, mappedUTI);
-		  baseuti = mappedUTI;
-		  brtnhzy |= true;
-		}
-	    }
+    //ulam-5 supports multiple base classes; superclass optional
+    u32 basecount = csym->getBaseClassCount() + 1; //include super
+    u32 i = 0;
+    while(i < basecount)
+      {
+	UTI baseuti = csym->getBaseClass(i);
+	//skip the ancestor of a template
+	if(m_state.okUTItoContinue(baseuti))
+	  {
+	    if(m_state.isHolder(baseuti) || !m_state.isComplete(baseuti)) //t3874, t41010 (super)
+	      {
+		UTI mappedUTI = baseuti;
+		if(m_state.mappedIncompleteUTI(nuti, baseuti, mappedUTI) && m_state.isAClass(mappedUTI))
+		  {
+		    if(UlamType::compare(nuti, baseuti, m_state) == UTIC_SAME)
+		      {
+			//shouldn't happen, used to be caught at parse time (t3900, t3901)
+			std::ostringstream msg;
+			msg << "Class Definition '";
+			msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+			msg << "'; Inheritance from invalid Class '";
+			msg << m_state.getUlamTypeNameBriefByIndex(baseuti).c_str();
+			msg << "': same types";
+			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+			//setBaseClassBlockPointer(NULL, i);
+			errs |= true;
+		      }
+		    else
+		      {
+			m_state.findRootUTIAlias(mappedUTI, mappedUTI); //con't w root
+			//if(baseuti!=mappedUTI) //t41431, t41517
+			if((UlamType::compare(mappedUTI, baseuti, m_state) != UTIC_SAME) && !m_state.isClassAStubCopy(mappedUTI))
+			  {
+			    std::ostringstream msg;
+			    msg << "Substituting mapped UTI" << mappedUTI;
+			    msg << ", " << m_state.getUlamTypeNameBriefByIndex(mappedUTI).c_str();
+			    msg << " for BASE CLASS holder type: '";
+			    msg << m_state.getUlamTypeNameByIndex(baseuti).c_str();
+			    msg << "' UTI" << baseuti << " while labeling class: ";
+			    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+			    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+			    //need to break the chain; e.g. don't want template symbol addresses used
+			    //  setBaseClassBlockPointer(NULL, i); //force to try again!! avoid inf loop
+			    m_state.resetABaseClassItem(nuti, baseuti, mappedUTI, i); //t41448,t41452 stubcopy
+			    baseuti = mappedUTI;
+			  }//else
+			brtnhzy |= true;
+		      }
+		  }
+		else if(!m_state.isAClass(mappedUTI) && !m_state.isHolder(mappedUTI))
+		  {
+		    std::ostringstream msg;
+		    msg << "Non-class type: ";
+		    if(i == 0)
+		      msg << "invalid superclass for class '";
+		    else
+		      msg << "invalid baseclass (" << i << ") for class '";
+		    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str() << "'";
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    //setBaseClassBlockPointer(NULL, i); //t41517
+		    m_state.resetABaseClassItem(nuti, baseuti, Nav, i); //t3554?
+		    errs |= true;
+		  }
+		else
+		  {
+		    brtnhzy |= true; //t41514, t41513?
+		  }
+	      }
+	    else if(!m_state.isHolder(baseuti))
+	      {
+		u32 baseid = m_state.getUlamTypeNameIdByIndex(baseuti);
+		UTI mappedbase = baseuti;
+		if(m_state.findRootUTIAlias(baseuti, mappedbase)) //t3326
+		  {
+		    if(m_state.isAClass(mappedbase))
+		      {
+			m_state.resetABaseClassItem(nuti, baseuti, mappedbase, i);
+			baseuti = mappedbase;
+		      }
+		    else
+		      {
+			std::ostringstream msg;
+			msg << "Non-class typedef: ";
+			msg << m_state.m_pool.getDataAsString(baseid).c_str();
+			if(i == 0)
+			  msg << " invalid superclass for class '"; //t41517
+			else
+			  msg << " invalid baseclass (" << i << ") for class '";
+			msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str() << "'";
+			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+			//setBaseClassBlockPointer(NULL, i);
+			m_state.resetABaseClassItem(nuti, baseuti, Nav, i);
+			errs |= true;
+		      }
+		  }
+		//else no alias
+	      }
+	    else  //a holder
+	      brtnhzy |= true;
+	  }
+	else //not ok
+	  brtnhzy |= true;
 
-	  //this is a subclass.
-	  if(!isBaseClassLinkReady(nuti, i))
-	    {
-	      if(!m_state.isComplete(baseuti))
-		{
-		  std::ostringstream msg;
-		  msg << "Subclass '";
-		  msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-		  msg << "' inherits from '";
+	//this is a subclass.
+	if(!isBaseClassBlockReady(nuti, baseuti))
+	  {
+	    if((baseuti != Nouti) && !m_state.isComplete(baseuti))
+	      {
+		std::ostringstream msg;
+		msg << "Subclass '";
+		msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+		//msg << "' (UTI " << nuti << ")";
+		msg << "' inherits from ";
 
-		  if(m_state.isClassAStub(baseuti))
-		    {
-		      msg << m_state.getUlamTypeNameBriefByIndex(baseuti).c_str();
+		if(m_state.isClassAStub(baseuti))
+		  {
+		    msg << m_state.getUlamTypeNameBriefByIndex(baseuti).c_str();
+		    msg << ", a class with pending arguments or ancestors";
+		    brtnhzy |= true;
+		  }
+		else if(m_state.isHolder(baseuti))
+		  {
+		    u32 cgid = m_state.findNameIdOfCulamGeneratedTypedefTypeInThisContext(baseuti);
+		    if(cgid > 0)
+		      {
+			msg << m_state.m_pool.getDataAsString(cgid).c_str();
+			msg << ", a class that was never defined";
+		      }
+		    else
+		      {
+			//O(n) search of localdefs for nicer error message (t3875, t41010)
+			u32 lostid = m_state.findTypedefNameIdInLocalsScopeByIndex(baseuti);
+			if(lostid > 0)
+			  {
+			    msg << m_state.m_pool.getDataAsString(lostid).c_str();
+			    msg << ", an unresolved local filescope typedef";
+			  }
+			else
+			  msg << "a holder class";
+		      }
+		    brtnhzy |= true;
+		  }
+		else
+		  {
+		    msg << "an incomplete class, item " << i ;
+		    //msg << m_state.getUlamTypeNameBriefByIndex(baseuti).c_str();
+		    brtnhzy |= false; //t3889, t3831, t3674, t41204, t41428, t41454
+		  }
+		//msg << " (UTI " << baseuti << ")";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+		//need to break the chain; e.g. don't want template symbol addresses used
+		//setBaseClassBlockPointer(NULL, i); //force to try again!! avoid inf loop
+	      }
+	  }
+	i++;
+      } //end while
 
-		      msg << "', a class with pending arguments or ancestors";
-		      brtnhzy |= true;
-		    }
-		  else if(m_state.isHolder(baseuti))
-		    {
-		      //O(n) search of localdefs for nicer error message (t3875, t41010)
-		      u32 lostid = m_state.findTypedefNameIdInLocalsScopeByIndex(baseuti);
-		      if(lostid > 0)
+    //ulam-5 supports shared base classes;
+    u32 shbasecount = csym->getSharedBaseClassCount();
+    u32 j = 0;
+    while(j < shbasecount)
+      {
+	UTI baseuti = csym->getSharedBaseClass(j);
+	//skip the ancestor of a template
+	if(m_state.okUTItoContinue(baseuti))
+	  {
+	    if(m_state.isHolder(baseuti) || !m_state.isComplete(baseuti)) //t3874, t41010 (super)
+	      {
+		UTI mappedUTI = baseuti;
+		if(m_state.mappedIncompleteUTI(nuti, baseuti, mappedUTI))
+		  {
+		    //shouldn't happen, caught at parse time (t3900, t3901)
+		    assert(UlamType::compare(nuti, baseuti, m_state) != UTIC_SAME);
+
+		    m_state.findRootUTIAlias(mappedUTI, mappedUTI); //con't w root
+		    //if(baseuti != mappedUTI)
+		    if(UlamType::compare(baseuti, mappedUTI, m_state) == UTIC_NOTSAME)
+		      {
+			std::ostringstream msg;
+			msg << "Substituting mapped UTI" << mappedUTI;
+			msg << ", " << m_state.getUlamTypeNameBriefByIndex(mappedUTI).c_str();
+			msg << " for SHARED BASE CLASS holder type: '";
+			msg << m_state.getUlamTypeNameByIndex(baseuti).c_str();
+			msg << "' UTI" << baseuti << " while labeling class: ";
+			msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+			//need to break the chain; e.g. don't want template symbol addresses used
+			//setSharedBaseClassBlockPointer(NULL, j); //force to try again!! avoid inf loop
+			m_state.resetABaseClassType(nuti, baseuti, mappedUTI);
+			baseuti = mappedUTI;
+		      }
+		    brtnhzy |= true;
+		  }
+	      }
+
+	    //this is a subclass.
+	    if(!isBaseClassBlockReady(nuti, baseuti))
+	      {
+		//not a direct shared base
+		if(!m_state.isComplete(baseuti))
+		  {
+		    std::ostringstream msg;
+		    msg << "Subclass '";
+		    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+		    //msg << "' (UTI " << nuti << ")";
+
+		    msg << "' inherits from shared base ";
+
+		    if(m_state.isClassAStub(baseuti))
+		      {
+			msg << m_state.getUlamTypeNameBriefByIndex(baseuti).c_str();
+
+			msg << ", a class with pending arguments or ancestors";
+			brtnhzy |= true;
+		      }
+		    else if(m_state.isHolder(baseuti))
+		      {
+			//O(n) search of localdefs for nicer error message (t3875, t41010)
+			u32 lostid = m_state.findTypedefNameIdInLocalsScopeByIndex(baseuti);
+			if(lostid > 0)
+			  {
+			    msg << m_state.m_pool.getDataAsString(lostid).c_str();
+			    msg << ", an unresolved local filescope typedef";
+			  }
+			else
 			{
-			  msg << m_state.m_pool.getDataAsString(lostid).c_str();
-			  msg << "', an unresolved local filescope typedef";
+			  //msg << m_state.getUlamTypeNameBriefByIndex(baseuti).c_str();
+			  msg << "a holder class";
 			}
-		      else
-			{
-			  msg << m_state.getUlamTypeNameBriefByIndex(baseuti).c_str();
-			  msg << "', a holder class";
-			}
-		      brtnhzy |= true;
-		    }
-		  else
-		    {
-		      msg << m_state.getUlamTypeNameBriefByIndex(baseuti).c_str();
-		      msg << "', an incomplete class";
-		      brtnhzy |= false; //t3889, t3831, t3674
-		    }
+			brtnhzy |= true;
+		      }
+		    else
+		      {
+			//msg << m_state.getUlamTypeNameBriefByIndex(baseuti).c_str();
+			msg << "an incomplete class";
+			brtnhzy |= false; //t3889, t3831, t3674
+		      }
+		    //msg << " (UTI " << baseuti << ")";
 
-		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-		  //need to break the chain; e.g. don't want template symbol addresses used
-		  setBaseClassBlockPointer(NULL, i); //force to try again!! avoid inf loop
-		}
-	    }
-	}
-      i++;
-    } //end while
+		    s32 bitem = csym->isABaseClassItem(baseuti);
+		    if(bitem < 0) //not a direct shared base
+		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+		    //else drop msg
+		    //need to break the chain; e.g. don't want template symbol addresses used
+		    //setSharedBaseClassBlockPointer(NULL, j); //force to try again!! avoid inf loop
+		  }
+	      }
+	  }
+	j++;
+      } //end while
 
-  //ulam-5 supports shared base classes;
-  u32 shbasecount = csym->getSharedBaseClassCount();
-  u32 j = 0;
-  while(j < shbasecount)
-    {
-      UTI baseuti = csym->getSharedBaseClass(j);
-      //skip the ancestor of a template
-      if(m_state.okUTItoContinue(baseuti))
-	{
-	  if(m_state.isHolder(baseuti) || !m_state.isComplete(baseuti)) //t3874, t41010 (super)
-	    {
-	      UTI mappedUTI = baseuti;
-	      if(m_state.mappedIncompleteUTI(nuti, baseuti, mappedUTI))
-		{
-		  //shouldn't happen, caught at parse time (t3900, t3901)
-		  assert(UlamType::compare(nuti, baseuti, m_state) != UTIC_SAME);
+    if(errs)
+      {
+	setNodeType(Nav);
+	return Nav; //t41519
+      }
 
-		  std::ostringstream msg;
-		  msg << "Substituting mapped UTI" << mappedUTI;
-		  msg << ", " << m_state.getUlamTypeNameBriefByIndex(mappedUTI).c_str();
-		  msg << " for SHARED BASE CLASS holder type: '";
-		  msg << m_state.getUlamTypeNameByIndex(baseuti).c_str();
-		  msg << "' UTI" << baseuti << " while labeling class: ";
-		  msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-		  //need to break the chain; e.g. don't want template symbol addresses used
-		  setSharedBaseClassBlockPointer(NULL, j); //force to try again!! avoid inf loop
-		  m_state.resetABaseClassType(nuti, baseuti, mappedUTI);
-		  baseuti = mappedUTI;
-		  brtnhzy |= true;
-		}
-	    }
+    if(brtnhzy) //any base class is hazy..
+      {
+	setNodeType(Hzy); //t41150
+	m_state.setGoAgain();
+	return Hzy; //short-circuit holders and stubs (e.g. t41010, t3831, t3889)
+      }
 
-	  //this is a subclass.
-	  if(!isSharedBaseClassLinkReady(nuti, j))
-	    {
-	      //not a direct shared base
-	      if(!m_state.isComplete(baseuti))
-		{
-		  std::ostringstream msg;
-		  msg << "Subclass '";
-		  msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-		  msg << "' inherits from shared base '";
+    //o.w. continue..
 
-		  if(m_state.isClassAStub(baseuti))
-		    {
-		      msg << m_state.getUlamTypeNameBriefByIndex(baseuti).c_str();
 
-		      msg << "', a class with pending arguments or ancestors";
-		      brtnhzy |= true;
-		    }
-		  else if(m_state.isHolder(baseuti))
-		    {
-		      //O(n) search of localdefs for nicer error message (t3875, t41010)
-		      u32 lostid = m_state.findTypedefNameIdInLocalsScopeByIndex(baseuti);
-		      if(lostid > 0)
-			{
-			  msg << m_state.m_pool.getDataAsString(lostid).c_str();
-			  msg << "', an unresolved local filescope typedef";
-			}
-		      else
-			{
-			  msg << m_state.getUlamTypeNameBriefByIndex(baseuti).c_str();
-			  msg << "', a holder class";
-			}
-		      brtnhzy |= true;
-		    }
-		  else
-		    {
-		      msg << m_state.getUlamTypeNameBriefByIndex(baseuti).c_str();
-		      msg << "', an incomplete class";
-		      brtnhzy |= false; //t3889, t3831, t3674
-		    }
+    //bool errs = false;
+    i = 0;
+    while(i < basecount)
+      {
+	UTI baseuti = csym->getBaseClass(i);
 
-		  s32 bitem = csym->isABaseClassItem(baseuti);
-		  if(bitem < 0)
+	//look up this instance
+	SymbolClass * basecsym = NULL;
+
+	if(m_state.alreadyDefinedSymbolClass(baseuti, basecsym))
+	  {
+	    NodeBlockClass * baseclassblock = basecsym->getClassBlockNode();
+
+	    if(!isBaseClassBlockReady(nuti, baseuti))
+	      {
+		std::ostringstream msg;
+		msg << "Subclass '";
+		msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+		if(baseclassblock->getNodeType() == Nav)
+		  {
+		    msg << "' inherits from illegal '";
+		    msg << m_state.getUlamTypeNameBriefByIndex(baseuti).c_str() << "'";
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    errs = true;
+		  }
+		else
+		  {
+		    msg << "' inherits from unready '";
+		    msg << m_state.getUlamTypeNameBriefByIndex(baseuti).c_str() << "'";
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-		  //else drop msg
-		  //need to break the chain; e.g. don't want template symbol addresses used
-		  setSharedBaseClassBlockPointer(NULL, j); //force to try again!! avoid inf loop
-		}
-	    }
-	}
-      j++;
-    } //end while
+		    brtnhzy = true;
+		  }
+	      }
+	  }
+	else
+	  {
+	  }
+	i++;
+      } //end while
 
+    j = 0;
+    while(j < shbasecount)
+      {
+	UTI baseuti = csym->getSharedBaseClass(j);
+	s32 bitem = csym->isABaseClassItem(baseuti);
 
-  if(brtnhzy) //any base class is hazy..
-    {
-      setNodeType(Hzy); //t41150
-      m_state.setGoAgain();
-      return Hzy; //short-circuit holders and stubs (e.g. t41010, t3831, t3889)
-    }
+	//look up this instance
+	SymbolClass * basecsym = NULL;
+	if(m_state.alreadyDefinedSymbolClass(baseuti, basecsym))
+	  {
+	    NodeBlockClass * baseclassblock = basecsym->getClassBlockNode();
 
-  //o.w. continue..
+	    if(!isBaseClassBlockReady(nuti, baseuti))
+	      {
+		std::ostringstream msg;
+		msg << "Subclass '";
+		msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+		if(baseclassblock->getNodeType() == Nav)
+		  {
+		    msg << "' inherits from illegal shared base '";
+		    msg << m_state.getUlamTypeNameBriefByIndex(baseuti).c_str() << "'";
+		    if(bitem < 0) //not a direct shared base
+		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    //else drop the msg
+		    errs = true;
+		  }
+		else
+		  {
+		    msg << "' inherits from unready shared base '";
+		    msg << m_state.getUlamTypeNameBriefByIndex(baseuti).c_str() << "'";
+		    if(bitem < 0) //not a direct shared base
+		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+		    //else drop the msg
+		    brtnhzy = true;
+		  }
+	      }
+	  }
+	j++;
+      } //end while
 
-  bool errs = false;
-  i = 0;
-  while(i < basecount)
-    {
-      UTI baseuti = csym->getBaseClass(i);
+    if(errs)
+      {
+	setNodeType(Nav);
+	return Nav; //t41013, t3599 (super)
+      }
+    else if(brtnhzy)
+      {
+	setNodeType(Hzy);
+	m_state.setGoAgain();
+	return Hzy;
+      }
+    //else
+    setNodeType(nuti); //t41150
 
-      //look up this instance
-      SymbolClass * basecsym = NULL;
-      if(m_state.alreadyDefinedSymbolClass(baseuti, basecsym))
-	{
-	  NodeBlockClass * baseclassblock = basecsym->getClassBlockNode();
-	  setBaseClassBlockPointer(baseclassblock, i); //fixed
+    //super links ready or not
+    i = 0;
+    while(i < basecount)
+      {
+	UTI baseuti = csym->getBaseClass(i);
+	if(m_state.okUTItoContinue(baseuti))
+	  {
+	    ULAMCLASSTYPE baseclasstype = m_state.getUlamTypeByIndex(baseuti)->getUlamClassType();
+	    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(nuti)->getUlamClassType();
+	    if(classtype == UC_TRANSIENT)
+	      {
+		//allow transients to inherit from either transients or quarks (t3723,t3725);
+		// but not quark-union (t41352)
+		if((baseclasstype != UC_TRANSIENT) && (baseclasstype != UC_QUARK))
+		  {
+		    std::ostringstream msg;
+		    msg << "Subclass '";
+		    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+		    msg << "' inherits from '";
+		    msg << m_state.getUlamTypeNameBriefByIndex(baseuti).c_str();
+		    msg << "', a class that's neither a transient nor a quark";
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    errs = true;
+		  }
+	      }
+	    else if(baseclasstype != UC_QUARK)
+	      {
+		//O(n) search of localdefs for nicer error message (t3875, t41010)
+		u32 lostid = m_state.findTypedefNameIdInLocalsScopeByIndex(baseuti);
+		if(lostid > 0)
+		  {
+		    std::ostringstream msg;
+		    msg << "Subclass '";
+		    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+		    msg << "' inherits from '";
+		    msg << m_state.m_pool.getDataAsString(lostid).c_str();
+		    msg << "', an unresolved local filescope typedef";
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    errs = true;
+		  }
+		else
+		  {
+		    //for all others (elements and quarks)
+		    //must be "seen" by now; e.g.typedef array of quarks t3674,t3862,t41150
+		    std::ostringstream msg;
+		    msg << "Subclass '";
+		    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+		    msg << "' inherits from '";
+		    msg << m_state.getUlamTypeNameBriefByIndex(baseuti).c_str();
+		    msg << "', a class that's not a quark";
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    errs = true;
+		  }
+	      } //else
+	  } //not ready
+	i++;
+      } //end while
 
-	  if(!isBaseClassLinkReady(nuti, i))
-	    {
-	      setBaseClassBlockPointer(NULL, i); //force to try again!! avoid inf loop
-	      std::ostringstream msg;
-	      msg << "Subclass '";
-	      msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-	      if(baseclassblock->getNodeType() == Nav)
-		{
-		  msg << "' inherits from illegal '";
-		  msg << m_state.getUlamTypeNameBriefByIndex(baseuti).c_str() << "'";
-		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		  errs = true;
-		}
-	      else
-		{
-		  msg << "' inherits from unready '";
-		  msg << m_state.getUlamTypeNameBriefByIndex(baseuti).c_str() << "'";
-		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-		  brtnhzy = true;
-		}
-	    }
-	}
-      i++;
-    } //end while
+    //super links ready or not
+    j = 0;
+    while(j < shbasecount)
+      {
+	UTI baseuti = csym->getSharedBaseClass(j);
+	s32 bitem = csym->isABaseClassItem(baseuti);
 
-  j = 0;
-  while(j < shbasecount)
-    {
-      UTI baseuti = csym->getSharedBaseClass(j);
+	if(m_state.okUTItoContinue(baseuti))
+	  {
+	    ULAMCLASSTYPE baseclasstype = m_state.getUlamTypeByIndex(baseuti)->getUlamClassType();
+	    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(nuti)->getUlamClassType();
+	    if(classtype == UC_TRANSIENT)
+	      {
+		//allow transients to inherit from either transients or quarks (t3723,t3725)
+		if((baseclasstype != UC_TRANSIENT) && (baseclasstype != UC_QUARK))
+		  {
+		    std::ostringstream msg;
+		    msg << "Subclass '";
+		    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+		    msg << "' inherits from shared base '";
+		    msg << m_state.getUlamTypeNameBriefByIndex(baseuti).c_str();
+		    msg << "', a class that's neither a transient nor a quark";
+		    if(bitem < 0) //not a direct shared base
+		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    //else drop msg
+		    errs = true;
+		  }
+	      }
+	    else if(baseclasstype != UC_QUARK)
+	      {
+		//O(n) search of localdefs for nicer error message (t3875, t41010)
+		u32 lostid = m_state.findTypedefNameIdInLocalsScopeByIndex(baseuti);
+		if(lostid > 0)
+		  {
+		    std::ostringstream msg;
+		    msg << "Subclass '";
+		    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+		    msg << "' inherits from shared base '";
+		    msg << m_state.m_pool.getDataAsString(lostid).c_str();
+		    msg << "', an unresolved local filescope typedef";
+		    if(bitem < 0) //not a direct shared base
+		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    //else drop msg
+		    errs = true;
+		  }
+		else
+		  {
+		    //for all others (elements and quarks)
+		    //must be "seen" by now; e.g.typedef array of quarks t3674,t3862,t41150
+		    std::ostringstream msg;
+		    msg << "Subclass '";
+		    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+		    msg << "' inherits from shared base '";
+		    msg << m_state.getUlamTypeNameBriefByIndex(baseuti).c_str();
+		    msg << "', a class that's not a quark";
+		    if(bitem < 0) //not a direct shared base
+		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    //else drop msg
+		    errs = true;
+		  }
+	      } //else
+	  } //not ready
+	j++;
+      } //end while
 
-      //look up this instance
-      SymbolClass * basecsym = NULL;
-      if(m_state.alreadyDefinedSymbolClass(baseuti, basecsym))
-	{
-	  NodeBlockClass * baseclassblock = basecsym->getClassBlockNode();
-	  setSharedBaseClassBlockPointer(baseclassblock, j); //fixed
-
-	  if(!isSharedBaseClassLinkReady(nuti, j))
-	    {
-	      setSharedBaseClassBlockPointer(NULL, j); //force to try again!! avoid inf loop
-	      std::ostringstream msg;
-	      msg << "Subclass '";
-	      msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-	      if(baseclassblock->getNodeType() == Nav)
-		{
-		  msg << "' inherits from illegal shared base '";
-		  msg << m_state.getUlamTypeNameBriefByIndex(baseuti).c_str() << "'";
-		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		  errs = true;
-		}
-	      else
-		{
-		  msg << "' inherits from unready shared base '";
-		  msg << m_state.getUlamTypeNameBriefByIndex(baseuti).c_str() << "'";
-		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-		  brtnhzy = true;
-		}
-	    }
-	}
-      j++;
-    } //end while
-
-  if(errs)
-    {
+    if(errs)
       setNodeType(Nav);
-      return Nav; //t41013, t3599 (super)
-    }
-  else if(brtnhzy)
-    {
-      setNodeType(Hzy);
-      m_state.setGoAgain();
-      return Hzy;
-    }
-  //else
-  setNodeType(nuti); //t41150
 
-  //super links ready or not
-  i = 0;
-  while(i < basecount)
-    {
-      UTI baseuti = csym->getBaseClass(i);
-      if(m_state.okUTItoContinue(baseuti))
-	{
-	  ULAMCLASSTYPE baseclasstype = m_state.getUlamTypeByIndex(baseuti)->getUlamClassType();
-	  ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(nuti)->getUlamClassType();
-	  if(classtype == UC_TRANSIENT)
-	    {
-	      //allow transients to inherit from either transients or quarks (t3723,t3725);
-	      // but not quark-union (t41352)
-	      if((baseclasstype != UC_TRANSIENT) && (baseclasstype != UC_QUARK))
-		{
-		  std::ostringstream msg;
-		  msg << "Subclass '";
-		  msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-		  msg << "' inherits from '";
-		  msg << m_state.getUlamTypeNameBriefByIndex(baseuti).c_str();
-		  msg << "', a class that's neither a transient nor a quark";
-		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		  errs = true;
-		}
-	    }
-	  else if(baseclasstype != UC_QUARK)
-	    {
-	      //O(n) search of localdefs for nicer error message (t3875, t41010)
-	      u32 lostid = m_state.findTypedefNameIdInLocalsScopeByIndex(baseuti);
-	      if(lostid > 0)
-		{
-		  std::ostringstream msg;
-		  msg << "Subclass '";
-		  msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-		  msg << "' inherits from '";
-		  msg << m_state.m_pool.getDataAsString(lostid).c_str();
-		  msg << "', an unresolved local filescope typedef";
-		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		  errs = true;
-		}
-	      else
-		{
-		  //for all others (elements and quarks)
-		  //must be "seen" by now; e.g.typedef array of quarks t3674,t3862,t41150
-		  std::ostringstream msg;
-		  msg << "Subclass '";
-		  msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-		  msg << "' inherits from '";
-		  msg << m_state.getUlamTypeNameBriefByIndex(baseuti).c_str();
-		  msg << "', a class that's not a quark";
-		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		  errs = true;
-		}
-	    } //else
-	} //not ready
-      i++;
-    } //end while
+    //done with inheritance checks, return.
+    return getNodeType();
+  } //checkMultipleInheritances
 
-  //super links ready or not
-  j = 0;
-  while(j < shbasecount)
-    {
-      UTI baseuti = csym->getSharedBaseClass(j);
-      if(m_state.okUTItoContinue(baseuti))
-	{
-	  ULAMCLASSTYPE baseclasstype = m_state.getUlamTypeByIndex(baseuti)->getUlamClassType();
-	  ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(nuti)->getUlamClassType();
-	  if(classtype == UC_TRANSIENT)
-	    {
-	      //allow transients to inherit from either transients or quarks (t3723,t3725)
-	      if((baseclasstype != UC_TRANSIENT) && (baseclasstype != UC_QUARK))
-		{
-		  std::ostringstream msg;
-		  msg << "Subclass '";
-		  msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-		  msg << "' inherits from shared base '";
-		  msg << m_state.getUlamTypeNameBriefByIndex(baseuti).c_str();
-		  msg << "', a class that's neither a transient nor a quark";
-		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		  errs = true;
-		}
-	    }
-	  else if(baseclasstype != UC_QUARK)
-	    {
-	      //O(n) search of localdefs for nicer error message (t3875, t41010)
-	      u32 lostid = m_state.findTypedefNameIdInLocalsScopeByIndex(baseuti);
-	      if(lostid > 0)
-		{
-		  std::ostringstream msg;
-		  msg << "Subclass '";
-		  msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-		  msg << "' inherits from shared base '";
-		  msg << m_state.m_pool.getDataAsString(lostid).c_str();
-		  msg << "', an unresolved local filescope typedef";
-		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		  errs = true;
-		}
-	      else
-		{
-		  //for all others (elements and quarks)
-		  //must be "seen" by now; e.g.typedef array of quarks t3674,t3862,t41150
-		  std::ostringstream msg;
-		  msg << "Subclass '";
-		  msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-		  msg << "' inherits from shared base '";
-		  msg << m_state.getUlamTypeNameBriefByIndex(baseuti).c_str();
-		  msg << "', a class that's not a quark";
-		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		  errs = true;
-		}
-	    } //else
-	} //not ready
-      j++;
-    } //end while
-
-  if(errs)
-    setNodeType(Nav);
-
-  //done with inheritance checks, return.
-  return getNodeType();
-} //checkMultipleInheritances
-
-void NodeBlockClass::checkTestFunctionReturnType()
+  void NodeBlockClass::checkTestFunctionReturnType()
   {
     NodeBlockFunctionDefinition * funcNode = findTestFunctionNode();
     if(funcNode)
@@ -1169,7 +1275,7 @@ void NodeBlockClass::checkTestFunctionReturnType()
 	UTI cuti = m_state.getCompileThisIdx(); //getNodeType() maybe Hzy
 	u32 nparms = m_nodeParameterList->getNumberOfNodes();
 	assert((nparms == 0) || m_state.isClassATemplate(cuti));
-	m_nodeParameterList->checkAndLabelType();
+	m_nodeParameterList->checkAndLabelType(this);
 	//delay template parameter type check for instance argument type check
 	//since potential problems may still be Hazy. (t3894,5,8)
       }
@@ -1220,7 +1326,7 @@ void NodeBlockClass::checkTestFunctionReturnType()
 		    msg << "Class argument types are limited to ";
 		    msg << MAXBITSPERINT << " bits by MFM::UlamTypeInfo: ";
 		    msg << aut->getUlamTypeName().c_str() << " (arg " << i+1 << ") in class ";
-		    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+		    msg << getName();
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		    m_nodeArgumentList->setNodeType(Nav);
 		  }
@@ -1232,7 +1338,7 @@ void NodeBlockClass::checkTestFunctionReturnType()
 			msg << "Class arguments of type String are limited to scalars ";
 			msg << "by MFM::UlamTypeInfo: ";
 			msg << aut->getUlamTypeName().c_str() << " (arg " << i+1 << ") in class ";
-			msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+			msg << getName(); //t41324
 			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 			m_nodeArgumentList->setNodeType(Nav);
 		      }
@@ -1244,7 +1350,7 @@ void NodeBlockClass::checkTestFunctionReturnType()
 			msg << MAX_CLASS_PARAMETER_ARRAY_LENGTH;
 			msg << " items by MFM::UlamTypeInfo: ";
 			msg << aut->getUlamTypeName().c_str() << " (arg " << i+1 << ") in class ";
-			msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+			msg << getName();
 			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 			m_nodeArgumentList->setNodeType(Nav);
 		      }
@@ -1263,22 +1369,27 @@ void NodeBlockClass::checkTestFunctionReturnType()
   void NodeBlockClass::addArgumentNode(Node * nodeArg)
   {
     assert(m_nodeArgumentList); //must be a template class instance
-    assert(!m_state.isClassATemplate(getNodeType()));
+    //assert(getNodeType()==Hzy ||!m_state.isClassATemplate(this)); t41138
     m_nodeArgumentList->addNodeToList(nodeArg);
   }
 
   Node * NodeBlockClass::getArgumentNode(u32 n)
   {
     assert(m_nodeArgumentList); //must be a template class instance
-    assert(!m_state.isClassATemplate(getNodeType()));
+    assert(getNodeType()==Hzy ||!m_state.isClassATemplate(this));
     return m_nodeArgumentList->getNodePtr(n);
   }
 
   u32 NodeBlockClass::getNumberOfArgumentNodes()
   {
     assert(m_nodeArgumentList); //must be a template class instance
-    assert(!m_state.isClassATemplate(getNodeType()));
+    assert(getNodeType()==Hzy || !m_state.isClassATemplate(this)); //t41407,11,12,13
     return m_nodeArgumentList->getNumberOfNodes();
+  }
+
+  NodeList * NodeBlockClass::getListOfArgumentNodes()
+  {
+    return m_nodeArgumentList;
   }
 
   void NodeBlockClass::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
@@ -1388,7 +1499,7 @@ void NodeBlockClass::checkTestFunctionReturnType()
 	UTI baseuti = csym->getBaseClass(i);
 	if(baseuti != Nouti)
 	  {
-	    NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
+	    NodeBlockClass * basecblock = m_state.getAClassBlock(baseuti);
 	    assert(basecblock);
 
 	    s32 basesmaxidx = basecblock->getVirtualMethodMaxIdx();
@@ -1446,12 +1557,13 @@ void NodeBlockClass::checkTestFunctionReturnType()
     return locuti;
   }
 
-void NodeBlockClass::checkCustomArrayTypeFunctions()
+void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
   {
     if(isEmpty()) return;
 
     // custom array flag set at parse time
-    UTI cuti = getNodeType();
+    if(!m_state.okUTItoContinue(cuti)) return; //20210328 ish 033651
+
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
     if(((UlamTypeClass *) cut)->isCustomArray())
       m_functionST.checkCustomArrayTypeFuncs();
@@ -1470,7 +1582,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	assert(baseuti != Hzy);
 	if(baseuti != Nouti)
 	  {
-	    NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
+	    NodeBlockClass * basecblock = m_state.getAClassBlock(baseuti);
 	    if(!basecblock) //might be during resolving loop, not set yet
 	      {
 		std::ostringstream msg;
@@ -1482,24 +1594,32 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 		msg << "No check of custom array type functions";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	      }
-	    basecblock->checkCustomArrayTypeFunctions();
+	    basecblock->checkCustomArrayTypeFunctions(baseuti);
 	  }
 	i++;
       } //end while
   } //checkCustomArrayTypeFunctions
 
-  UTI NodeBlockClass::getCustomArrayTypeFromGetFunction()
+  UTI NodeBlockClass::getCustomArrayTypeFromGetFunction(UTI cuti)
   {
     UTI catype = m_functionST.getCustomArrayReturnTypeGetFunction();
     if(catype == Nouti)
       {
-	UTI cuti = getNodeType();
+	if(!m_state.okUTItoContinue(cuti))
+	  return cuti; //t3549
+
 	if(m_state.isClassAStub(cuti))
 	  {
 	    //search template
 	    NodeBlockClass * prevblock = (NodeBlockClass *) getPreviousBlockPointer();
 	    assert(prevblock);
-	    catype = prevblock->getCustomArrayTypeFromGetFunction();
+	    UTI tuti = prevblock->getNodeType();
+	    if(!m_state.okUTItoContinue(tuti))
+	      {
+		tuti = m_state.getTemplateTypeOfStub(cuti);
+		assert(m_state.okUTItoContinue(tuti));
+	      }
+	    catype = prevblock->getCustomArrayTypeFromGetFunction(tuti);
 	  }
 
 	if(catype == Nouti)
@@ -1517,9 +1637,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 		UTI baseuti = csym->getBaseClass(i);
 		if(baseuti != Nouti)
 		  {
-		    NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
+		    NodeBlockClass *  basecblock = m_state.getAClassBlock(baseuti); //t3549
 		    assert(basecblock);
-		    catype = basecblock->getCustomArrayTypeFromGetFunction();
+		    catype = basecblock->getCustomArrayTypeFromGetFunction(baseuti);
 		  }
 		i++;
 	      } //end while
@@ -1528,18 +1648,24 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     return catype; //from first base class?
   } //getCustomArrayTypeFromGetFunction
 
-  u32 NodeBlockClass::getCustomArrayIndexTypeFromGetFunction(Node * rnode, UTI& idxuti, bool& hasHazyArgs)
+  u32 NodeBlockClass::getCustomArrayIndexTypeFromGetFunction(UTI cuti, Node * rnode, UTI& idxuti, bool& hasHazyArgs)
   {
     u32 camatches = m_functionST.getCustomArrayIndexTypeGetFunction(rnode, idxuti, hasHazyArgs);
     if(camatches == 0)
       {
-	UTI cuti = getNodeType();
+	//UTI cuti = getNodeType(); //t3549 Hzy
 	if(m_state.isClassAStub(cuti))
 	  {
 	    //search template
 	    NodeBlockClass * prevblock = (NodeBlockClass *) getPreviousBlockPointer();
 	    assert(prevblock);
-	    camatches = prevblock->getCustomArrayIndexTypeFromGetFunction(rnode, idxuti, hasHazyArgs);
+	    UTI tuti = prevblock->getNodeType();
+	    if(!m_state.okUTItoContinue(tuti))
+	      {
+		tuti = m_state.getTemplateTypeOfStub(cuti);
+		assert(m_state.okUTItoContinue(tuti));
+	      }
+	    camatches = prevblock->getCustomArrayIndexTypeFromGetFunction(tuti, rnode, idxuti, hasHazyArgs);
 	  }
 
 	if(camatches == 0)
@@ -1557,22 +1683,25 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 		UTI baseuti = csym->getBaseClass(i);
 		if(baseuti != Nouti)
 		  {
-		    NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
+		    NodeBlockClass * basecblock = m_state.getAClassBlock(baseuti);
 		    assert(basecblock);
 		    bool tmphzyargs = false;
-		    camatches += basecblock->getCustomArrayIndexTypeFromGetFunction(rnode, idxuti, tmphzyargs);
+		    camatches += basecblock->getCustomArrayIndexTypeFromGetFunction(baseuti, rnode, idxuti, tmphzyargs);
 		    hasHazyArgs |= tmphzyargs;
 		  }
 		i++;
 	      } //end while
 	  }
       }
-    return camatches; //search all base classes, just super, or first one with a match???
+    return camatches; //search all base classes, not just super, or first one with a match.
   } //getCustomArrayIndexTypeFromGetFunction
 
-  bool NodeBlockClass::hasCustomArrayLengthofFunction()
+  bool NodeBlockClass::hasCustomArrayLengthofFunction(UTI cuti)
   {
-    UTI cuti = getNodeType();
+    //UTI cuti = getNodeType(); maybe Hzy
+    if(!m_state.okUTItoContinue(cuti))
+      return false; //t3938
+
     bool camatch = m_functionST.hasCustomArrayLengthofFunction();
 
     if(!camatch)
@@ -1582,7 +1711,13 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	    //search template
 	    NodeBlockClass * prevblock = (NodeBlockClass *) getPreviousBlockPointer();
 	    assert(prevblock);
-	    camatch = prevblock->hasCustomArrayLengthofFunction();
+	    UTI tuti = prevblock->getNodeType();
+	    if(!m_state.okUTItoContinue(tuti))
+	      {
+		tuti = m_state.getTemplateTypeOfStub(cuti);
+		assert(m_state.okUTItoContinue(tuti));
+	      }
+	    camatch = prevblock->hasCustomArrayLengthofFunction(tuti);
 	  }
       }
 
@@ -1601,9 +1736,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	    UTI baseuti = csym->getBaseClass(i);
 	    if(baseuti != Nouti)
 	      {
-		NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
+		NodeBlockClass * basecblock = m_state.getAClassBlock(baseuti);
 		assert(basecblock);
-		camatch += basecblock->hasCustomArrayLengthofFunction();
+		camatch += basecblock->hasCustomArrayLengthofFunction(baseuti);
 	      }
 	    i++;
 	  } //end while
@@ -1614,17 +1749,36 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
   //starts here, called by SymbolClass
   bool NodeBlockClass::buildDefaultValue(u32 wlen, BV8K& dvref)
   {
+    UTI nuti = getNodeType();
+    assert(m_state.okUTItoContinue(nuti));
     if(m_buildingDefaultValueInProgress)
-      return false;
-
+      {
+	std::ostringstream msg;
+	msg << "Building default value in progress for class ";
+	msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+	msg << "; requested member of same type";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //t41477
+	return false;
+      }
     m_buildingDefaultValueInProgress = true; //set
 
     bool aok = true;
-    UTI nuti = getNodeType();
 
     // ulam-5 data members precede base classes
     if(m_nodeNext)
       aok = m_nodeNext->buildDefaultValue(wlen, dvref); //side-effect for dm vardecls
+
+    if(!aok)
+      {
+	std::ostringstream msg;
+	msg << "Building default value for class ";
+	msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+	msg << " failed";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //t41477
+	m_state.setGoAgain(); //was ERR (t41490)
+	m_buildingDefaultValueInProgress = false; //clear
+	return false;
+      }
 
     m_buildingDefaultValueInProgress = false; //clear
 
@@ -1690,7 +1844,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     bool aok = true;
     UTI nuti = getNodeType();
-
+    assert(m_state.okUTItoContinue(nuti));
     //ulam-5 supports multiple base classes; superclass optional
     //ulam-5 supports shared base classes;
     SymbolClass * csym = NULL;
@@ -1704,7 +1858,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	UTI baseuti = csym->getBaseClass(i);
 	if(baseuti != Nouti)
 	  {
-	    NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
+	    NodeBlockClass * basecblock = m_state.getAClassBlock(baseuti);
 	    assert(basecblock);
 	    aok &= basecblock->buildDefaultValueForClassConstantDefs();
 	  }
@@ -1782,47 +1936,30 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
   u32 NodeBlockClass::getNumberOfSymbolsInTable()
   {
     UTI nuti = getNodeType();
+    assert(m_state.okUTItoContinue(nuti));
+    s32 count = 0;
 
-    s32 supers = 0;
+    BaseclassWalker walker;
+    walker.init(nuti);
 
-    //ulam-5 supports multiple base classes; superclass optional
-    SymbolClass * csym = NULL;
-    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(nuti, csym);
-    assert(isDefined);
-
-    u32 basecount = csym->getBaseClassCount() + 1; //include super
-    u32 i = 0;
-    while(i < basecount)
+    //ulam-5 supports multiple base classes; superclass optional;
+    UTI baseuti = Nouti;
+    while(walker.getNextBase(baseuti, m_state) )
       {
-	UTI baseuti = csym->getBaseClass(i);
-	if((baseuti != Nouti) && !csym->isDirectSharedBase(i))
+	SymbolClass * basecsym = NULL;
+	if(m_state.alreadyDefinedSymbolClass(baseuti, basecsym))
 	  {
-	    NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
-	    assert(basecblock);
-	    supers += basecblock->getNumberOfSymbolsInTable();
+	    NodeBlockClass * cblock = basecsym->getClassBlockNode();
+	    assert(cblock);
+
+	    u32 bcnt = cblock->NodeBlock::getNumberOfSymbolsInTable();
+	    count += bcnt;
+
+	    walker.addAncestorsOf(basecsym); //search all
 	  }
-	i++;
       } //end while
 
-    //ulam-5 supports shared base classes;
-    UTI cuti = m_state.getCompileThisIdx();
-    if(nuti == cuti) //count shared symbols only once!
-      {
-	u32 shbasecount = csym->getSharedBaseClassCount();
-	u32 j = 0;
-	while(j < shbasecount)
-	  {
-	    UTI baseuti = csym->getSharedBaseClass(j);
-	    if(baseuti != Nouti)
-	      {
-		NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(j);
-		assert(shbasecblock);
-		supers += shbasecblock->getNumberOfSymbolsInTable();
-	      }
-	    j++;
-	  } //end while
-      }
-    return supers + NodeBlock::getNumberOfSymbolsInTable();
+    return count;
   } //getNumberOfSymbolsInTable
 
   u32 NodeBlockClass::getNumberOfPotentialClassArgumentSymbols()
@@ -1833,6 +1970,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
   u32 NodeBlockClass::getSizeOfSymbolsInTable()
   {
     UTI nuti = getNodeType();
+    assert(m_state.okUTItoContinue(nuti));
     s32 supers = 0;
 
     //ulam-5 supports multiple base classes; superclass optional
@@ -1847,7 +1985,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	UTI baseuti = csym->getBaseClass(i);
 	if((baseuti != Nouti) && !csym->isDirectSharedBase(i))
 	  {
-	    NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
+	    NodeBlockClass * basecblock = m_state.getAClassBlock(baseuti);
 	    assert(basecblock);
 	    supers += basecblock->getSizeOfSymbolsInTable();
 	  }
@@ -1865,7 +2003,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	    UTI baseuti = csym->getSharedBaseClass(i);
 	    if(baseuti != Nouti)
 	      {
-		NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(j);
+		NodeBlockClass * shbasecblock = m_state.getAClassBlock(baseuti);
 		assert(shbasecblock);
 		supers += shbasecblock->getSizeOfSymbolsInTable();
 	      }
@@ -1891,11 +2029,13 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     while(i < basecount)
       {
 	UTI baseuti = csym->getBaseClass(i);
+	if(baseuti == Hzy)
+	  return UNKNOWNSIZE; //t41301
+
 	assert(baseuti != Hzy);
 	if(baseuti != Nouti)
 	  {
 	    s32 bs = m_state.getBitSize(baseuti); //may contain shared bits!
-	    //s32 bs = m_state.getBaseClassBitSize(baseuti); //only dm bits!
 	    if(bs < 0)
 	      return bs; //error if any base class size is negative
 	    else
@@ -1934,8 +2074,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     while(i < basecount)
       {
 	UTI baseuti = csym->getBaseClass(i);
-	assert(baseuti != Hzy);
-	if((baseuti != Nouti))
+	//assert(baseuti != Hzy);
+	//if((baseuti != Nouti))
+	if(m_state.okUTItoContinue(baseuti)) //t41426
 	  {
 	    s32 bs = m_state.getBitSize(baseuti); //may contain shared bits!
 	    if(bs < 0)
@@ -1970,55 +2111,44 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_functionST.addToTable(id, symptr);
   }
 
+  u32 NodeBlockClass::getNumberOfFuncSymbolsInTableHere()
+  {
+    return m_functionST.getTableSize();
+  }
+
   u32 NodeBlockClass::getNumberOfFuncSymbolsInTable()
   {
     UTI nuti = getNodeType();
-    s32 superfs = 0;
+    assert(m_state.okUTItoContinue(nuti));
+    s32 count = 0;
 
-    //ulam-5 supports multiple base classes; superclass optional
-    SymbolClass * csym = NULL;
-    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(nuti, csym);
-    assert(isDefined);
+    BaseclassWalker walker;
+    walker.init(nuti);
 
-    u32 basecount = csym->getBaseClassCount() + 1; //include super
-    u32 i = 0;
-    while(i < basecount)
+    //ulam-5 supports multiple base classes; superclass optional;
+    UTI baseuti = Nouti;
+    while(walker.getNextBase(baseuti, m_state) )
       {
-	UTI baseuti = csym->getBaseClass(i);
-	if((baseuti != Nouti) && !csym->isDirectSharedBase(i))
+	SymbolClass * basecsym = NULL;
+	if(m_state.alreadyDefinedSymbolClass(baseuti, basecsym))
 	  {
-	    NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
-	    assert(basecblock);
-	    superfs += basecblock->getNumberOfFuncSymbolsInTable();
+	    NodeBlockClass * cblock = basecsym->getClassBlockNode();
+	    assert(cblock);
+
+	    u32 fcnt = cblock->getNumberOfFuncSymbolsInTableHere();
+	    count += fcnt;
+
+	    walker.addAncestorsOf(basecsym); //search all
 	  }
-	i++;
       } //end while
 
-    //ulam-5 supports shared base classes;
-    UTI cuti = m_state.getCompileThisIdx();
-    if(nuti == cuti) //count shared func symbols once!
-      {
-	u32 shbasecount = csym->getSharedBaseClassCount();
-	u32 j = 0;
-	while(j < shbasecount)
-	  {
-	    UTI baseuti = csym->getSharedBaseClass(j);
-	    if(baseuti != Nouti)
-	      {
-		NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(i);
-		assert(shbasecblock);
-		superfs += shbasecblock->getNumberOfFuncSymbolsInTable();
-	      }
-	    j++;
-	  } //end while
-      }
-
-    return superfs + m_functionST.getTableSize();
+    return count;
   } //getNumberOfFuncSymbolsInTable
 
   u32 NodeBlockClass::getSizeOfFuncSymbolsInTable()
   {
     UTI nuti = getNodeType();
+    assert(m_state.okUTItoContinue(nuti));
     s32 superfs = 0;
 
     //ulam-5 supports multiple base classes; superclass optional
@@ -2033,7 +2163,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	UTI baseuti = csym->getBaseClass(i);
 	if((baseuti != Nouti) && !csym->isDirectSharedBase(i))
 	  {
-	    NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
+	    NodeBlockClass * basecblock = m_state.getAClassBlock(baseuti);
 	    assert(basecblock);
 	    superfs += basecblock->getSizeOfFuncSymbolsInTable();
 	  }
@@ -2051,7 +2181,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	    UTI baseuti = csym->getSharedBaseClass(j);
 	    if(baseuti != Nouti)
 	      {
-		NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(j);
+		NodeBlockClass * shbasecblock = m_state.getAClassBlock(baseuti);
 		assert(shbasecblock);
 		superfs += shbasecblock->getSizeOfFuncSymbolsInTable();
 	      }
@@ -2065,69 +2195,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
   void NodeBlockClass::updatePrevBlockPtrOfFuncSymbolsInTable()
   {
     m_functionST.updatePrevBlockPtrAcrossTableOfFunctions(this);
+    m_functionST.linkToParentNodesAcrossTableOfFunctions(this); //all the function defs (missing for full instantiation?)
   }
-
-  void NodeBlockClass::initElementDefaultsForEval(UlamValue& uv, UTI cuti)
-  {
-    UTI buti = getNodeType();
-
-    UlamType * but = m_state.getUlamTypeByIndex(buti);
-    if((but->getUlamClassType() == UC_TRANSIENT) && (but->getTotalBitSize() > MAXSTATEBITS))
-      return; //cannot do eval on a huge transient
-
-    //ulam-5 data members precede bases; all bases are shared
-    m_ST.initializeElementDefaultsForEval(uv, cuti);
-
-    //ulam-5 shared bases come after all the base class data members
-    if(UlamType::compare(cuti, buti, m_state) != UTIC_SAME)
-      return;
-
-    //ulam-5 supports multiple base classes; superclass optional
-    SymbolClass * csym = NULL;
-    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(buti, csym);
-    assert(isDefined);
-
-    u32 basecount = csym->getBaseClassCount() + 1; //include super
-    u32 i = 0;
-    while(i < basecount)
-      {
-	UTI baseuti = csym->getBaseClass(i);
-	assert(baseuti != Hzy);
-	if((baseuti != Nouti)) // && !csym->isDirectSharedBase(i))
-	  {
-	    NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
-	    assert(basecblock);
-	    m_state.pushClassContext(baseuti, basecblock, basecblock, false, NULL);
-	    basecblock->initElementDefaultsForEval(uv, cuti);
-	    m_state.popClassContext(); //restore
-	  }
-	i++;
-      } //end while
-
-    //ulam-5 supports shared base classes;
-    u32 shbasecount = csym->getSharedBaseClassCount();
-    u32 j = 0;
-    while(j < shbasecount)
-      {
-	UTI baseuti = csym->getSharedBaseClass(j);
-	assert(baseuti != Hzy);
-	if(baseuti != Nouti)
-	  {
-	    s32 bitem = csym->isABaseClassItem(baseuti);
-	    if(bitem < 0)
-	      {
-		//not a direct shared base
-		NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(j);
-		assert(shbasecblock);
-		m_state.pushClassContext(baseuti, shbasecblock, shbasecblock, false, NULL);
-		shbasecblock->initElementDefaultsForEval(uv, cuti);
-		m_state.popClassContext(); //restore
-	      }
-	  }
-	j++;
-      } //end while
-    return;
-  } //initElementDefaultsForEval
 
   //don't set nextNode since it'll get deleted with program.
   NodeBlockFunctionDefinition * NodeBlockClass::findTestFunctionNode()
@@ -2197,9 +2266,14 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     //ulam-5 supports multiple base classes; superclass optional
     UTI nuti = getNodeType();
+    if(nuti == Hzy)
+      return TBOOL_HAZY; //t41517'
+
     SymbolClass * csym = NULL;
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(nuti, csym);
     assert(isDefined);
+
+    BasesTableTypeMap maptype2pos;
 
     u32 basecount = csym->getBaseClassCount() + 1; //include super
     u32 i = 0;
@@ -2213,7 +2287,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
 	if((baseuti != Nouti))// && !csym->isDirectSharedBase(i))
 	  {
-	    NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
+	    NodeBlockClass * basecblock = m_state.getAClassBlock(baseuti);
 	    if(!basecblock)
 	      {
 		std::ostringstream msg;
@@ -2235,8 +2309,31 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
 	    s32 baseoffset = m_state.getBaseClassBitSize(baseuti);
 	    assert(baseoffset >= 0); //t3318,t3755
-	    csym->setBaseClassRelativePosition(i, reloffset); //t3102, t3536 before updating reloffset
-	    reloffset += baseoffset;
+
+	    bool dupflag = false;
+	    u32 pos = reloffset;
+	    BasesTableTypeMap::iterator it = maptype2pos.find(baseuti);
+	    if(it != maptype2pos.end())
+	      {
+		pos = it->second;
+		dupflag = true; //could continue, if we wanted to..
+#if 1
+		std::ostringstream msg;
+		msg << "Subclass '";
+		msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+		msg << "' inherits directly from '";
+		msg << m_state.getUlamTypeNameBriefByIndex(baseuti).c_str();
+		msg << "', a duplicated baseclass, item " << i;
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		return TBOOL_FALSE; //t41526
+#endif
+	      }
+	    else
+	      {
+		maptype2pos.insert(std::pair<UTI, u32>(baseuti, pos));
+		reloffset += baseoffset;
+	      }
+	    csym->setBaseClassRelativePosition(i, pos, dupflag); //t3102, t3536 before updating reloffset
 	  }
 	i++;
       } //end while
@@ -2255,23 +2352,33 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 		return TBOOL_HAZY;
 	      }
 
-	    if(baseuti != Nouti)
+	    if((baseuti != Nouti))
 	      {
-		NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(j);
+		//not a direct shared base
+		NodeBlockClass * shbasecblock = m_state.getAClassBlock(baseuti);
 		if(!shbasecblock)
 		  {
-		    std::ostringstream msg;
-		    msg << "Subclass '";
-		    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-		    msg << "' inherits from '";
-		    msg << m_state.getUlamTypeNameBriefByIndex(baseuti).c_str();
-		    msg << "', an INCOMPLETE Shared Base class; ";
-		    msg << "No bit packing of variable data members";
-		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-		    return TBOOL_HAZY;
+		    //check again in case first time was before shared basecount set
+		    //(i.e. nuti incomplete) t41485
+		    checkMultipleInheritances();
+		    shbasecblock = m_state.getAClassBlock(baseuti);
+
+		    if(!shbasecblock)
+		      {
+			std::ostringstream msg;
+			msg << "Subclass '";
+			msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+			msg << "' inherits from '";
+			msg << m_state.getUlamTypeNameBriefByIndex(baseuti).c_str();
+			msg << "', an INCOMPLETE Shared Base class; ";
+			msg << "No bit packing of variable data members";
+			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+			return TBOOL_HAZY;
+		      }
 		  }
 
 		assert(UlamType::compare(shbasecblock->getNodeType(), baseuti, m_state) == UTIC_SAME);
+
 		if(!m_state.isComplete(baseuti))
 		  {
 		    return TBOOL_HAZY;
@@ -2282,10 +2389,20 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 		if(bitem < 0)
 		  {
 		    //not a direct shared base
-		    csym->setSharedBaseClassRelativePosition(j, reloffset); //directshared
-		    reloffset += baseoffset;
+		    u32 shpos = reloffset;
+		    BasesTableTypeMap::iterator it = maptype2pos.find(baseuti);
+		    if(it != maptype2pos.end())
+		      {
+			shpos = it->second;
+		      }
+		    else
+		      {
+			//maptype2pos.insert(std::pair<UTI, u32>(baseuti, shpos));
+			reloffset += baseoffset;
+		      }
+		    csym->setSharedBaseClassRelativePosition(j, shpos); //directshared
 		  }
-		else
+		else //t41485
 		  {
 		    assert(csym->isDirectSharedBase(bitem));
 		    u32 directsharedoffset = csym->getBaseClassRelativePosition(bitem);
@@ -2412,6 +2529,24 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     u32 accumsize = 0;
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
     s32 totalsize = cut->getTotalBitSize(); //actual for elements(as in mangled name)
+    s32 freesize = 0;
+    ULAMCLASSTYPE ct = cut->getUlamClassType();
+    switch(ct)
+      {
+      case UC_ELEMENT:
+	freesize = MAXSTATEBITS - totalsize;
+	break;
+      case UC_QUARK:
+	freesize = MAXBITSPERQUARK - totalsize;
+	break;
+      case UC_TRANSIENT:
+	freesize = MAXBITSPERTRANSIENT - totalsize;
+	break;
+      case UC_LOCALSFILESCOPE:
+	return; //t3852 moot
+      default:
+	m_state.abortShouldntGetHere();
+      }
     SymbolClass * csym = NULL;
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cuti, csym);
     assert(isDefined);
@@ -2421,17 +2556,19 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.indent(fp);
     fp->write("| COMPONENTS of ");
     fp->write(cut->getUlamTypeClassNameBrief(cuti).c_str());
-    fp->write(" (");
+    fp->write(" <");
     fp->write_decimal_unsigned(csym->getRegistryNumber());
-    fp->write(")");
+    fp->write(">");
     fp->write(" (");
     fp->write_decimal(totalsize);
-    fp->write(" bits total) are: \n");
+    fp->write(" bits/");
+    fp->write_decimal(freesize);
+    fp->write(" unused): \n");
     m_state.indent(fp);
     fp->write("| \n"); //blank
 
     m_state.indent(fp);
-    fp->write("| Pos\t| Bits\t| Name\t| Type (classid)\n");
+    fp->write("| Pos\t| Bits\t| Name\t| Type <classid>\n");
 
     //ulam-5 data members precede base classes
     if(m_nodeNext)
@@ -2449,9 +2586,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	UTI baseuti = csym->getBaseClass(i);
 	if(m_state.okUTItoContinue(baseuti)) //skips implicit/default super here
 	  {
-	    NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
+	    NodeBlockClass * basecblock = m_state.getAClassBlock(baseuti);
 
-	    if(!isBaseClassLinkReady(cuti, i))
+	    if(!isBaseClassBlockReady(cuti, baseuti))
 	      {
 		//use SCN instead of SC in case of stub (use template's classblock)
 		SymbolClassName * basecnsym = NULL;
@@ -2460,8 +2597,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 		basecblock = basecnsym->getClassBlockNode();
 	      }
 	    assert(basecblock);
+	    bool dupflag = csym->isADuplicateBaseClass(i);
 	    s32 pos = csym->getBaseClassRelativePosition(i);
-	    basecblock->genBaseClassTypeAndNameEntryAsComment(fp, baseuti, pos, accumsize, i); //no recursion
+	    basecblock->genBaseClassTypeAndNameEntryAsComment(fp, baseuti, pos, accumsize, i, dupflag); //no recursion
 	  }
 	i++;
       } //end while
@@ -2472,8 +2610,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     while(j < shbasecount)
       {
 	UTI baseuti = csym->getSharedBaseClass(j);
-	NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(j);
-	if(!isSharedBaseClassLinkReady(cuti, j))
+	NodeBlockClass * shbasecblock = m_state.getAClassBlock(baseuti);
+
+	if(!isBaseClassBlockReady(cuti, baseuti))
 	  {
 	    //use SCN instead of SC in case of stub (use template's classblock)
 	    SymbolClassName * basecnsym = NULL;
@@ -2487,7 +2626,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	if(bitem < 0) //not a direct shared base
 	  {
 	    s32 pos = csym->getSharedBaseClassRelativePosition(j);
-	    shbasecblock->genBaseClassTypeAndNameEntryAsComment(fp, baseuti, pos, accumsize, j+1000); //no recursion
+	    shbasecblock->genBaseClassTypeAndNameEntryAsComment(fp, baseuti, pos, accumsize, j+1000, false); //no recursion
 	  }
 	j++;
       } //end while
@@ -2499,7 +2638,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     GCNL;
   } //genClassDataMemberChartAsComment
 
-  void NodeBlockClass::genBaseClassTypeAndNameEntryAsComment(File * fp, UTI nuti, s32 atpos, u32& accumsize, u32 baseitem)
+  void NodeBlockClass::genBaseClassTypeAndNameEntryAsComment(File * fp, UTI nuti, s32 atpos, u32& accumsize, u32 baseitem, bool dupflag)
   {
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     s32 nsize = nut->getBitsizeAsBaseClass();
@@ -2518,16 +2657,17 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     SymbolClass * csym = NULL;
     if(m_state.alreadyDefinedSymbolClass(nuti, csym))
       {
-	fp->write(" (");
+	fp->write(" <");
 	fp->write_decimal_unsigned(csym->getRegistryNumber());
-	fp->write(")");
+	fp->write(">");
       }
     fp->write("\n");
 
     //quarkunions don't accumulate sizes of dm, they use max dm size;
-    //quarkunions cannot be base classes, or have any (except UrSelf); (t3209, t41145)
-    assert((atpos == (s32) accumsize) || m_state.isClassAQuarkUnion(m_state.getCompileThisIdx()));
-    accumsize += nsize;
+    //quarkunions can now be base classes, and have some (including UrSelf); (t3209, t41145)
+    assert(dupflag || (atpos == (s32) accumsize) || m_state.isClassAQuarkUnion(m_state.getCompileThisIdx()));
+    if(!dupflag)
+      accumsize += nsize;
   } //genBaseClassTypeAndNameEntryAsComment
 
   void NodeBlockClass::genCodeHeaderQuark(File * fp)
@@ -3253,6 +3393,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
   void NodeBlockClass::generateInternalIsMethodForElement(File * fp, bool declOnly)
   {
     UTI cuti = getNodeType();
+    assert(m_state.okUTItoContinue(cuti));
 
     if(declOnly)
       {
@@ -3402,6 +3543,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
   void NodeBlockClass::genCodeBuiltInFunctionGetRelPosRelatedInstanceByRegistrationNumber(File * fp)
   {
     UTI nuti = getNodeType();
+    assert(m_state.okUTItoContinue(nuti));
 
     SymbolClass * csym = NULL;
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(nuti, csym);
@@ -3736,6 +3878,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
   void NodeBlockClass::genCodeBuiltInFunctionIsDirectBaseClassByRegistrationNumber(File * fp)
   {
     UTI nuti = getNodeType();
+    assert(m_state.okUTItoContinue(nuti));
 
     SymbolClass * csym = NULL;
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(nuti, csym);
@@ -3807,7 +3950,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	fp->write("() const;"); GCNL;
 	fp->write("\n");
 
-	if(classtype != UC_ELEMENT)
+	if((classtype != UC_ELEMENT) && (classtype != UC_LOCALSFILESCOPE))
 	  {
 	    m_state.indent(fp);
 	    fp->write("virtual u32 ");
@@ -3852,6 +3995,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     //elements are never a baseclass, fail.
     if(classtype == UC_ELEMENT) return;
 
+    //locals filescope are never a baseclass, fail. //3852
+    if(classtype == UC_LOCALSFILESCOPE) return;
+
     //next, returns base class size:
     m_state.indent(fp);
     fp->write("template<class EC>\n");
@@ -3873,7 +4019,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     m_state.indent(fp);
     fp->write("return ");
-    fp->write_decimal_unsigned(cut->getBitsizeAsBaseClass());
+    s32 baselen = cut->getBitsizeAsBaseClass();
+    assert(baselen >= 0);
+    fp->write_decimal(baselen);
     fp->write(";"); GCNL;
 
     m_state.m_currentIndentLevel--;
@@ -4050,6 +4198,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
   bool NodeBlockClass::genCodeBuiltInFunctionBuildingDefaultDataMembers(File * fp)
   {
     UTI nuti = getNodeType();
+    assert(m_state.okUTItoContinue(nuti));
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     assert(nut->isScalar());
 
@@ -4083,7 +4232,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	return;
       }
 
-    //get all initialized data members in quark
+    //get all initialized data members in quark (w strings t41093,t41167,t41468)
     u32 qval = 0;
     AssertBool isDefaultQuark = m_state.getDefaultQuark(cuti, qval);
     assert(isDefaultQuark);
@@ -4106,23 +4255,11 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     m_state.m_currentIndentLevel++;
 
-    //Strings cannot be initialized in Unions (t41093)
-    if(hasStringDataMembers() && !m_state.isClassAQuarkUnion(cuti))
-      {
-	//must by the only data member then (max size Quark == size of String) t41167
-	genCodeBuiltInFunctionBuildingDefaultDataMembers(fp);
-
-	m_state.indent(fp);
-	fp->write("return initBV.Read(0u, QUARK_SIZE);"); GCNL;
-      }
-    else
-      {
-	m_state.indent(fp);
-	fp->write("return ");
-	fp->write_hexadecimal(qval);
-	fp->write("; //=");
-	fp->write_decimal_unsigned(qval); GCNL;
-      }
+    m_state.indent(fp);
+    fp->write("return ");
+    fp->write_hexadecimal(qval);
+    fp->write("; //=");
+    fp->write_decimal_unsigned(qval); GCNL;
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
@@ -4508,6 +4645,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
   void NodeBlockClass::generateInternalTypeAccessorsForElement(File * fp, bool declOnly)
   {
     UTI cuti = getNodeType();
+    assert(m_state.okUTItoContinue(cuti));
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
 
     if(declOnly)
@@ -4671,6 +4809,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
   void NodeBlockClass::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
   {
     UTI nuti = getNodeType();
+    assert(m_state.okUTItoContinue(nuti));
 
     if(m_nodeNext)
       m_nodeNext->generateUlamClassInfo(fp, declOnly, dmcount);
@@ -4693,7 +4832,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	if(baseuti != Nouti)
 	  {
 	    //then include any of its relatives:
-	    NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
+	    NodeBlockClass * basecblock = m_state.getAClassBlock(baseuti);
 	    assert(basecblock);
 	    basecblock->generateUlamClassInfo(fp, declOnly, dmcount);
 	  }
@@ -4714,7 +4853,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	    s32 bitem = csym->isABaseClassItem(baseuti);
 	    if(bitem < 0)
 	      {
-		NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(j);
+		NodeBlockClass * shbasecblock = m_state.getAClassBlock(baseuti);
 		assert(shbasecblock);
 		shbasecblock->generateUlamClassInfo(fp, declOnly, dmcount);
 	      }
@@ -5089,7 +5228,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	if(baseuti != Nouti)
 	  {
 	    //then include any of its relatives:
-	    NodeBlockClass * basecblock = getBaseClassBlockPointer(i);
+	    NodeBlockClass * basecblock = m_state.getAClassBlock(baseuti);
 	    assert(basecblock);
 	    basecblock->generateTestInstance(fp, runtest);
 	  }
@@ -5106,7 +5245,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	if(baseuti != Nouti)
 	  {
 	    //then include any of its relatives:
-	    NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(j);
+	    NodeBlockClass * shbasecblock = m_state.getAClassBlock(baseuti);
 	    assert(shbasecblock);
 	    shbasecblock->generateTestInstance(fp, runtest);
 	  }
@@ -5220,5 +5359,14 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.indent(fp);
     fp->write("}\n");
   } //generateTestInstanceRun
+
+  void NodeBlockClass::generateIncludeTestMain(File * fp)
+  {
+    UTI nuti = getNodeType();
+    m_state.indent(fp);
+    fp->write("#include \"");
+    fp->write(m_state.getFileNameForAClassHeader(nuti).c_str());
+    fp->write("\"\n");
+  }
 
 } //end MFM

@@ -46,9 +46,9 @@ namespace MFM {
     m_state.abortShouldntGetHere();
   }
 
-  UTI NodeModelParameterDef::checkAndLabelType()
+  UTI NodeModelParameterDef::checkAndLabelType(Node * thisparentnode)
   {
-    UTI nodeType = NodeConstantDef::checkAndLabelType();
+    UTI nodeType = NodeConstantDef::checkAndLabelType(thisparentnode);
     if(m_state.okUTItoContinue(nodeType))
       {
 	UlamType * nut = m_state.getUlamTypeByIndex(nodeType);
@@ -86,7 +86,8 @@ namespace MFM {
 
     Symbol * asymptr = NULL;
     bool hazyKin = false;
-    if(m_state.alreadyDefinedSymbol(m_cid, asymptr, hazyKin) && !hazyKin)
+    //    if(m_state.alreadyDefinedSymbol(m_cid, asymptr, hazyKin) && !hazyKin)
+    if(m_state.alreadyDefinedSymbol(m_cid, asymptr, hazyKin)) //t3443
       {
 	if(asymptr->isModelParameter())
 	  {

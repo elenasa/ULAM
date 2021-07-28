@@ -8,7 +8,7 @@
 ##      //node terminal proxy
 #!
 Exit status: 96
-Ue_Fu { System s();  Int(32) u(0);  Int(32) v(96);  Int(32) test() {  self u . 0u cast = self s . ( self u . )print . self v . 96u cast = self s . ( self v . )print . self v . return } }
+Ue_Fu { System s();  Int u(0);  Int v(96);  Int test() {  self u . 0u cast = self s . ( self u . )print . self v . 96u cast = self s . ( self v . )print . self v . return } }
 Uq_System { <NOMAIN> }
 #>Fu.ulam
   ulam 1;

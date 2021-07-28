@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t41385_test_compiler_elementandquarkwclassargs_multibasesisasbase_virtualfuncswsharedancestoranddatamembercopies_error
 #!
-./QBase1.ulam:5:15: ERROR: Virtual Function: vfunca() has conflicting Originating declarations in multiple base classes, QBase1(false) and QBase1(true) while compiling E4.
+./QBase1.ulam:5:15: ERROR: Virtual Function: vfunca() has conflicting Originating declarations in multiple base classes: QBase1(false) and QBase1(true), while compiling E4.
 Unrecoverable Program Type Label FAILURE.
 ##
 ##       informed by t41384: except with different QBase1 base for QBaseLast

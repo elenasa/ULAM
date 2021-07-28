@@ -1,9 +1,9 @@
 /**                                        -*- mode:C++ -*-
  * Node.h - Basic Node of Nodes for ULAM
  *
- * Copyright (C) 2014-2021 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2019 The Regents of the University of New Mexico.
  * Copyright (C) 2014-2021 Ackleyshack LLC.
- * Copyright (C) 2020 The Living Computation Foundation.
+ * Copyright (C) 2020-2021 The Living Computation Foundation.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -138,6 +138,8 @@ enum EvalStatus {ERROR, NOTREADY, NORMAL, RETURN, BREAK, CONTINUE, UNEVALUABLE};
 
     std::string getNodeLocationAsString() const;
 
+    virtual void clearSymbolPtr();
+
     virtual bool getSymbolPtr(Symbol *& symptrref);
 
     virtual bool getStorageSymbolPtr(Symbol *& symptrref);
@@ -154,6 +156,8 @@ enum EvalStatus {ERROR, NOTREADY, NORMAL, RETURN, BREAK, CONTINUE, UNEVALUABLE};
 
     virtual bool belongsToVOWN(UTI vown);
 
+    virtual bool isACast();
+
     virtual bool isAConstant();
 
     virtual bool isAConstantClass();
@@ -164,13 +168,15 @@ enum EvalStatus {ERROR, NOTREADY, NORMAL, RETURN, BREAK, CONTINUE, UNEVALUABLE};
 
     virtual bool isNegativeConstant();
 
-    virtual bool isWordSizeConstant();
+    virtual bool isWordSizeConstant(u32 wordsize);
 
     virtual bool isFunctionCall();
 
     virtual bool isAConstructorFunctionCall();
 
     virtual bool isArrayItem();
+
+    virtual bool isEmptyArraysizeDecl();
 
     virtual bool isAList();
 
@@ -188,15 +194,15 @@ enum EvalStatus {ERROR, NOTREADY, NORMAL, RETURN, BREAK, CONTINUE, UNEVALUABLE};
 
     virtual FORECAST safeToCastTo(UTI newType);
 
-    virtual UTI checkAndLabelType();
+    virtual UTI checkAndLabelType(Node * thisparentnode);
 
-    bool exchangeNodeWithParent(Node * newnode);
+    bool exchangeNodeWithParent(Node * newnode, Node * parent);
 
     virtual bool trimToTheElement(Node ** fromleftnode, Node *& rtnnodeptr);
 
     virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
 
-    virtual UTI constantFold();
+    virtual UTI constantFold(Node * parentnode);
 
     virtual bool buildDefaultValue(u32 wlen, BV8K& dvref);
 
@@ -211,8 +217,6 @@ enum EvalStatus {ERROR, NOTREADY, NORMAL, RETURN, BREAK, CONTINUE, UNEVALUABLE};
     virtual bool installSymbolModelParameterValue(TypeArgs& args, Symbol *& asymptr);
 
     virtual bool installSymbolVariable(TypeArgs& args,  Symbol *& asymptr);
-
-    virtual bool assignClassArgValueInStubCopy();
 
     virtual EvalStatus eval() = 0;
     virtual EvalStatus evalToStoreInto();
@@ -322,12 +326,18 @@ enum EvalStatus {ERROR, NOTREADY, NORMAL, RETURN, BREAK, CONTINUE, UNEVALUABLE};
     //index of last tmp symbol object; o.w.-1
     s32 isCurrentObjectsContainingATmpVarSymbol();
 
+    //index of first DM symbol object; o.w.-1
+    s32 isCurrentObjectsContainingFirstDataMember();
+
     // used by genHiddenArg2 for function calls;
     std::string calcPosOfCurrentObjectClassesAsString(const UVPass& uvpass, bool adjstEle, bool askeffselfarg, UTI funcclassarg);
 
     //called when (implicit self) data member is a complete class;
     //pos known at compile time (e.g. t3541)
     u32 calcDataMemberPosOfCurrentObjectClasses(bool askingeffself, UTI funcclassarg);
+
+    //called when storage is a ref, but pos from first data member is known at compile time
+    u32 calcDataMemberPosOfCurrentObjectClassesFromFirstDMIndex(u32 firstdmindex);
 
     //true means we can't know rel pos of 'stg' until runtime; o.w. known at compile time.
     bool askEffectiveSelfAtRuntimeForRelPosOfBase(UTI funcclassarg = Nouti);
@@ -371,6 +381,7 @@ enum EvalStatus {ERROR, NOTREADY, NORMAL, RETURN, BREAK, CONTINUE, UNEVALUABLE};
     void genCodeReadArrayItemFromAConstantClassIntoATmpVar(File * fp, UVPass & luvpass, UVPass & ruvpass);
 
     virtual void checkForSymbol();
+    virtual TBOOL replaceOurselves(Symbol * symptr, Node * parentnode);
 
     void genCodeReadElementTypeField(File * fp, UVPass & uvpass);
     void restoreElementTypeForAncestorCasting(File * fp, UVPass & uvpass);

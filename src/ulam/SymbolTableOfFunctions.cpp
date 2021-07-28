@@ -110,7 +110,7 @@ namespace MFM {
     return rtnfound;
   } //findNodeNoAcrossTableOfFunctions
 
-  void SymbolTableOfFunctions::labelTableOfFunctions()
+  void SymbolTableOfFunctions::labelTableOfFunctions(Node * thisparentnode)
   {
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
     while(it != m_idToSymbolPtr.end())
@@ -118,7 +118,7 @@ namespace MFM {
 	Symbol * sym = it->second;
 	if(sym->isFunction())
 	  {
-	    ((SymbolFunctionName *) sym)->labelFunctions();
+	    ((SymbolFunctionName *) sym)->labelFunctions(thisparentnode);
 	  }
 	it++;
       }

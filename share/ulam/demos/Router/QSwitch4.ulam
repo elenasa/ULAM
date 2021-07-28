@@ -33,7 +33,7 @@ quark QSwitch4(Unsigned cBITS) : QBox(cBITS)
     Unsigned idx = m_position;
     if (idx >= cPORT_BASE_IDX &&
         idx <= cPORT_BASE_IDX + cPORT_WIDTH) {
-      if (ew[3] is Wall) 
+      if (ew[3] is Wall)
       {
         WallPort wport;
         wport.init(m_sym);
@@ -41,7 +41,7 @@ quark QSwitch4(Unsigned cBITS) : QBox(cBITS)
         ret = true;
       }
 
-      if (ew[22] is Empty) 
+      if (ew[22] is Empty)
       {
         Wall wall;
         ew[22] = wall;
@@ -101,4 +101,3 @@ element TSwitch4 : QSwitch4(4)
   Void behave() { update(); }
 
 }
-

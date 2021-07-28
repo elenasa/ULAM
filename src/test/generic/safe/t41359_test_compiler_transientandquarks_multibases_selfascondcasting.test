@@ -8,7 +8,7 @@
 ## big transients are  unevaluable
 #!
 Exit status: -11
-Ue_RS { Int(32) test() {  T3 wow;  wow ( )behave . 0 cast return } }
+Ue_RS { Int test() {  T3 wow;  wow ( )behave . 0 cast return } }
 Un_T3 : T2 +T0 +T1 { T2 mT3_T2( T1 mT2_T1( T0 mT1_T0( Unsigned(5) mT0[2]( { 0u, 1u }); );  Unsigned(5) mT1[1]( { 3u });  :T0< Unsigned(5) mT0[2]( { 0u, 1u }); >);  T0 mT2_T0( Unsigned(5) mT0[2]( { 0u, 1u }); );  Unsigned(5) mT2[5]( { 7u, 8u, 9u, 10u, 11u });  :T1< T0 mT1_T0( Unsigned(5) mT0[2]( { 0u, 1u }); );  Unsigned(5) mT1[1]( { 3u }); > +T0< Unsigned(5) mT0[2]( { 0u, 1u }); >);  T1 mT3_T1( T0 mT1_T0( Unsigned(5) mT0[2]( { 0u, 1u }); );  Unsigned(5) mT1[1]( { 3u });  :T0< Unsigned(5) mT0[2]( { 0u, 1u }); >);  T0 mT3_T0( Unsigned(5) mT0[2]( { 0u, 1u }); );  Unsigned(5) mT3[6]( { 12u, 13u, 14u, 15u, 16u, 17u });  :T2< T1 mT2_T1( T0 mT1_T0( Unsigned(5) mT0[2]( { 0u, 1u }); );  Unsigned(5) mT1[1]( { 3u });  :T0< Unsigned(5) mT0[2]( { 0u, 1u }); >);  T0 mT2_T0( Unsigned(5) mT0[2]( { 0u, 1u }); );  Unsigned(5) mT2[5]( { 7u, 8u, 9u, 10u, 11u }); > +T0< Unsigned(5) mT0[2]( { 0u, 1u }); > +T1< T0 mT1_T0( Unsigned(5) mT0[2]( { 0u, 1u }); );  Unsigned(5) mT1[1]( { 3u }); > <NOMAIN> }
 Uq_T0 { Unsigned(5) mT0[2]( { 0u, 1u });  <NOMAIN> }
 Uq_T1 : T0 { T0 mT1_T0( Unsigned(5) mT0[2]( { 0u, 1u }); );  Unsigned(5) mT1[1]( { 3u });  :T0< Unsigned(5) mT0[2]( { 0u, 1u }); > <NOMAIN> }

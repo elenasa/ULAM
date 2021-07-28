@@ -11,6 +11,9 @@ namespace MFM {
     m_constType = m_constSymbol->getUlamTypeIdx();
   }
 
+  NodeConstantArray::NodeConstantArray(const Token& tok, NNO stblockno, UTI constantType, NodeTypeDescriptor * typedesc, CompilerState & state) : Node(state), m_token(tok), m_nodeTypeDesc(typedesc), m_constSymbol(NULL), m_constType(constantType), m_currBlockNo(stblockno), m_currBlockPtr(NULL)
+  { }
+
   NodeConstantArray::NodeConstantArray(const NodeConstantArray& ref) : Node(ref), m_token(ref.m_token), m_nodeTypeDesc(NULL), m_constSymbol(NULL), m_constType(ref.m_constType), m_currBlockNo(ref.m_currBlockNo), m_currBlockPtr(NULL)
   {
     //can we use the same address for a constant symbol?
@@ -61,6 +64,15 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
+  void NodeConstantArray::clearSymbolPtr()
+  {
+    //if symbol is in a stub, there's no guarantee the stub
+    // won't be replace by another duplicate class once its
+    // pending args have been resolved.
+    m_constSymbol = NULL;
+    setBlock(NULL);
+  }
+
   bool NodeConstantArray::getSymbolPtr(Symbol *& symptrref)
   {
     symptrref = m_constSymbol;
@@ -83,6 +95,11 @@ namespace MFM {
     return true;
   }
 
+  bool NodeConstantArray::isAConstantClassArray()
+  {
+    return m_state.isAClass(m_constType); //t41484, though doesn't match the node!
+  }
+
   FORECAST NodeConstantArray::safeToCastTo(UTI newType)
   {
     if(isReadyConstant())
@@ -93,21 +110,22 @@ namespace MFM {
     return CAST_HAZY;
   } //safeToCastTo
 
-  UTI NodeConstantArray::checkAndLabelType()
+  UTI NodeConstantArray::checkAndLabelType(Node * thisparentnode)
   {
     UTI it = Nav;
 
-    bool stubcopy = m_state.isClassAStub(m_state.getCompileThisIdx());
+    bool astub = m_state.isClassAStub(m_state.getCompileThisIdx());
 
     //instantiate, look up in class block; skip if stub copy and already ready.
-    if(!stubcopy && m_constSymbol == NULL)
+    //if(!stubcopy && m_constSymbol == NULL)
+    if(m_constSymbol == NULL)
       checkForSymbol();
     else
-      stubcopy = m_state.hasClassAStubInHierarchy(m_state.getCompileThisIdx()); //includes ancestors
+      astub = m_state.hasClassAStubInHierarchy(m_state.getCompileThisIdx()); //includes ancestors
 
     if(m_constSymbol)
       it = checkUsedBeforeDeclared(); //m_constSymbol->getUlamTypeIdx();
-    else if(stubcopy)
+    else if(astub)
       {
 	assert(m_state.okUTItoContinue(m_constType));
 	setNodeType(m_constType); //t3565, t3640, t3641, t3642, t3652
@@ -121,7 +139,7 @@ namespace MFM {
 	if(!m_state.isComplete(it)) //reloads to recheck
 	  {
 	    UTI mappedUTI = it;
-	    if(m_state.findaUTIAlias(it, mappedUTI))
+	    if(m_state.findRootUTIAlias(it, mappedUTI))
 	      {
 		std::ostringstream msg;
 		msg << "REPLACE " << prettyNodeName().c_str() << " for type: ";
@@ -149,14 +167,18 @@ namespace MFM {
     if(!isReadyConstant())
       {
 	it = Hzy;
-	if(!stubcopy)
-	  m_constSymbol = NULL; //lookup again too! (e.g. inherited template instances)
+	//if(!astub)
+	//  m_constSymbol = NULL; //lookup again too! (e.g. inherited template instances)
       }
 
     setNodeType(it);
     Node::setStoreIntoAble(TBOOL_FALSE);
 
-    if(it == Hzy) m_state.setGoAgain();
+    if(it == Hzy)
+      {
+	clearSymbolPtr();
+	m_state.setGoAgain();
+      }
     return it;
   } //checkAndLabelType
 
@@ -269,43 +291,6 @@ namespace MFM {
     assert(currBlock);
     return currBlock;
   }
-
-  //class context set prior to calling us; purpose is to get
-  // the value of this constant from the context before
-  // constant folding happens.
-  bool NodeConstantArray::assignClassArgValueInStubCopy()
-  {
-    // insure current block NNOs match
-    if(m_currBlockNo != m_state.getCurrentBlockNo())
-      {
-	std::ostringstream msg;
-	msg << "Block NNO " << m_currBlockNo << " for '";
-	msg << m_state.getTokenDataAsString(m_token).c_str();
-	msg << "' does not match the current block no ";
-	msg << m_state.getCurrentBlockNo();
-	msg << "; its value cannot be used in stub copy, with class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	return false;
-      }
-
-    if(isReadyConstant())
-      return true; //nothing to do
-
-    bool isready = false;
-    Symbol * asymptr = NULL;
-    bool hazyKin = false;
-    if(m_state.alreadyDefinedSymbol(m_token.m_dataindex, asymptr, hazyKin))
-      {
-	assert(hazyKin); //always hazy, right?
-	if(asymptr->isConstant() && ((SymbolConstantValue *) asymptr)->isReady()) //???
-	  {
-	    isready = true;
-	    //note: m_constSymbol may be NULL; ok in this circumstance (i.e. stub copy).
-	  }
-      }
-    return isready;
-  } //assignClassArgValueInStubCopy
 
   bool NodeConstantArray::getArrayValue(BV8K& bvtmp)
   {

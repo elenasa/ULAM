@@ -117,8 +117,7 @@ namespace MFM {
 	  {
 	    //even though it may fail at runtime:
 	    //(down)casting fm super to sub..only if fm-ref && to-ref
-	    //	    if(!isfmref || !isAltRefType())
-	    if(!isfmref) //only if fm-ref???
+	    if(!isfmref)
 	      scr = CAST_BAD; //t3756, t3757
 	  }
 	else if(m_state.isClassASubclassOf(fmderef, cuti))
@@ -204,7 +203,7 @@ namespace MFM {
 #if 0
     //for DEBUGG ONLY!!
     UTI aliasuti;
-    if(m_state.findaUTIAlias(cuti, aliasuti))
+    if(m_state.findRootUTIAlias(cuti, aliasuti))
       {
 	//when array or ref, the kuti is the scalar/deref uti, the aliasuti is same as cuti;
 	//stubs get here via printPostfix on template classes;
@@ -227,10 +226,10 @@ namespace MFM {
       namestr << ((SymbolClassNameTemplate *) cnsym)->formatAnInstancesArgValuesAsCommaDelimitedString(uti).c_str();
 
      //note: any "[arraysize]" comes with variable name, not class type (like C decl).
-    if(getReferenceType() != ALT_NOT)
+    if(isref)
       namestr << "&";
     return namestr.str();
-  } //getUlamTypeNameBrief
+  } //getUlamTypeClassNameBrief
 
   //see SymbolVariableDataMember printPostfix for recursive output
   void UlamTypeClass::getDataAsString(const u32 data, char * valstr, char prefix)
@@ -290,6 +289,9 @@ namespace MFM {
 
     if(getUlamClassType() == UC_UNSEEN)
       return false; //forgotten?
+
+    if((getUlamClassType() != UC_ELEMENT) && !isReference() && isScalar() && (getBitsizeAsBaseClass() == UNKNOWNSIZE))
+      return false;
 
     return UlamType::isComplete();
   }

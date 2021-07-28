@@ -7,8 +7,8 @@
 ##
 #!
 Exit status: 12
-Ue_Foo { Gah m_gah( String str( );  Bits(32) its(16); );  Int(32) test() {  SystemU3 s;  Unsigned(32) len;  self m_gah . str . "hello worlds" = s ( self m_gah . str . )print . len 12u = s ( len 12u cast == )assert . self m_gah . its . 16 cast = s ( self m_gah . its . cast )print . s ( self m_gah . its . 16 cast == )assert . len cast return } }
-Uq_Gah { Bits(32) its(0);  String str(UNINITIALIZED_STRING);  <NOMAIN> }
+Ue_Foo { Gah m_gah( String str( );  Bits its(16); );  Int test() {  SystemU3 s;  Unsigned len;  self m_gah . str . "hello worlds" = s ( self m_gah . str . )print . len 12u = s ( len 12u cast == )assert . self m_gah . its . 16 cast = s ( self m_gah . its . cast )print . s ( self m_gah . its . 16 cast == )assert . len cast return } }
+Uq_Gah { Bits its(0);  String str(UNINITIALIZED_STRING);  <NOMAIN> }
 Uq_SystemU3 : System { :System<> <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
@@ -35,7 +35,7 @@ element Foo {
 #:Gah.ulam
   ulam 3;
 union Gah{
-  Bits(32) its;
+  Bits its;
   String str; //cannot be initialized
 }
 

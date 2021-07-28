@@ -4,11 +4,11 @@
 ## gen output: (1 assert)
 ##
 ## eval error; gencode compiles benign.
-## Ue_R { Int(32) test() {  R tw;  ( )func tw = ( )funcme tw = ( )funcref tw CAST?needed = 0 cast return } }
+## Ue_R { Int test() {  R tw;  ( )func tw = ( )funcme tw = ( )funcref tw CAST?needed = 0 cast return } }
 ##
 #!
 Exit status: 0
-Ue_R { Bool(3) first(true);  Int(32) test() {  System s;  R tw;  tw first . true cast = self ( )func . tw = self ( )funcme . tw = self ( )funcref . tw = s ( self first . cast )assert . 0 cast return } }
+Ue_R { Bool(3) first(true);  Int test() {  System s;  R tw;  tw first . true cast = self ( )func . tw = self ( )funcme . tw = self ( )funcref . tw = s ( self first . cast )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t3790, t41054

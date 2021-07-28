@@ -9,7 +9,11 @@
 
 namespace MFM {
 
-  UlamTypeClassElement::UlamTypeClassElement(const UlamKeyTypeSignature key, CompilerState & state) : UlamTypeClass(key, state) { }
+  UlamTypeClassElement::UlamTypeClassElement(const UlamKeyTypeSignature key, CompilerState & state) : UlamTypeClass(key, state)
+  {
+    m_wordLengthTotal = calcWordSize(getSizeofUlamType());
+    m_wordLengthItem = calcWordSize(BITSPERATOM);
+  }
 
   ULAMCLASSTYPE UlamTypeClassElement::getUlamClassType()
   {
@@ -42,7 +46,12 @@ namespace MFM {
     else if(vetype == UAtom)
       {
 	UTI dereftypidx = m_state.getUlamTypeAsDeref(typidx);
-	val.setAtomElementTypeIdx(dereftypidx); //for testing purposes, assume ok (e.g. t3754)
+	UTI veffself = val.getUlamValueEffSelfTypeIdx();
+	assert(veffself != Nouti);
+	if(UlamType::compare(veffself,dereftypidx,m_state)==UTIC_SAME)
+	  val.setUlamValueTypeIdx(dereftypidx); //for testing purposes, assume ok (e.g. t3754)
+	else
+	  brtn = false; //t41484
       }
     //else true
     return brtn;

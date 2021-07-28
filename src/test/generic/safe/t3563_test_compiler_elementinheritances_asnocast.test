@@ -2,12 +2,12 @@
 #=t3563_test_compiler_elementinheritances_asnocast
 ##
 ## gencode output (+ assert): (should be)
-## Bool(3) Arg: 0x7 (true)
+##   Int Arg: 73
+##   Bool(3) Arg: 0x7 (true)
 ##
-## eval fails since atom type doesnt have element type, e.g.: Atom a = f;
 #!
-Exit status: -11
-Ue_Foo : Soo { Bool(7) sp(false);  Int(32) a(73);  :Soo< Unsigned(3) us(4u);  :Coo< Bool(3) cb(true); >> ^Coo< Bool(3) cb(true); > Int(32) test() {  System s;  Foo f;  Atom(96) a = f cast;  { a Coo as cond { Coo& a;  { a cb . cond { s ( a cb . )print . s ( a cb . cast )assert . 1 cast return } if } } if } s ( false )assert . 0 cast return } }
+Exit status: 1
+Ue_Foo : Soo { Bool(7) sp(true);  Int a(73);  :Soo< Unsigned(3) us(4u);  :Coo< Bool(3) cb(true); >> ^Coo< Bool(3) cb(true); > Int test() {  System s;  Foo f;  Atom a = f cast;  { a Coo as cond { Coo& a;  s ( self a . )print . { a cb . cond { self sp . true cast = s ( a cb . )print . s ( a cb . cast )assert . 1 cast return } if } } if } s ( false )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 Uq_Soo : Coo { Unsigned(3) us( 4u);  :Coo< Bool(3) cb( true); > <NOMAIN> }
 Uq_Coo { Bool(3) cb( true);  <NOMAIN> }
@@ -28,8 +28,10 @@ element Foo : Soo {
     Atom a = f;
     if(a as Coo)
     {
+      s.print(self.a); //==73
       if(a.cb)
       {
+	self.sp = true;
 	s.print(a.cb);
 	s.assert(a.cb);
 	return 1;

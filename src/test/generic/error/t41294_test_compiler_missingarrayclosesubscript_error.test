@@ -7,7 +7,7 @@ Unrecoverable Program Parse FAILURE: <A.ulam>
 ##
 #>A.ulam
 element A {
- typedef Int(32) BigSite[10];
+ typedef Int BigSite[10];
  Int test(){
    BigSite site;
    site[i = i;

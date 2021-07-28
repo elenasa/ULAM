@@ -1,0 +1,41 @@
+## -*- mode:ulam -*-
+#=t41509_test_compiler_transientconstantwelementarraydatamemberinitwconstantof
+#!
+Exit status: 0
+Ue_Test { Bool m_testb(false);  Int m_testi(0);  Int test() {  0 cast return } }
+Ue_R { Bool m_rb(false);  Int m_ri(0);  <NOMAIN> }
+Un_T { Bool m_sp(false);  Int m_i(0);  Atom m_a(Atom);  R m_relarr[3]( Bool m_rb(false);  Int m_ri(0); ), ( Bool m_rb(false);  Int m_ri(0); ), ( Bool m_rb(false);  Int m_ri(0); );  <NOMAIN> }
+##
+##    //informed by t41234, except makes use of constantof in element array data member initialization;
+##    see also t41512 with test body; this case was too good to ignore.
+##
+#>Test.ulam
+  ulam 3;
+local constant R cer = { .m_rb = false, .m_ri = 77 };
+local constant R cer2 = { .m_rb = true, .m_ri = 99 };
+local constant R cer3 = R.constantof;
+element Test {
+  Bool m_testb;
+  Int m_testi;
+  Int test(){
+    return 0;
+  }
+}
+
+#:T.ulam
+ ulam 3;
+transient T {
+  Bool m_sp;
+  Int m_i;
+  Atom m_a;
+  R m_relarr[3];
+}
+
+#:R.ulam
+  ulam 3;
+element R {
+  Bool m_rb;
+  Int m_ri;
+}
+
+#.

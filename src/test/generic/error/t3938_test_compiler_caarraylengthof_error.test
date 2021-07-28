@@ -4,7 +4,7 @@
 ./Eltypo.ulam:5:23: ERROR: Proxy Type 'lengthof' is not supported for custom array: EventWindow; Function 'alengthof()' is not defined.
 ./Eltypo.ulam:5:5: ERROR: Initial value expression for: len, initialization is invalid.
 ./Eltypo.ulam:6:14: ERROR: Proxy Type 'lengthof' is not supported for custom array: EventWindow; Function 'alengthof()' is not defined.
-./Eltypo.ulam:6:9: ERROR: Assignment is invalid; LHS: Unsigned(32); RHS: erroneous.
+./Eltypo.ulam:6:9: ERROR: Assignment is invalid; LHS: Unsigned; RHS: erroneous.
 ./Eltypo.ulam:7:15: ERROR: Proxy Type 'lengthof' is not supported for custom array: EventWindow; Function 'alengthof()' is not defined.
 Unrecoverable Program Type Label FAILURE.
 ##

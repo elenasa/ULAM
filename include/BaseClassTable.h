@@ -2,7 +2,8 @@
  * BaseClassTable.h - Table of base classes for ULAM
  *
  * Copyright (C) 2019 The Regents of the University of New Mexico.
- * Copyright (C) 2019 Ackleyshack LLC.
+ * Copyright (C) 2019-2021 Ackleyshack LLC.
+ * Copyright (C) 2021 The Living Computation Foundation.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +30,7 @@
   \file BaseClassTable.h -  Table of base classes for ULAM
   \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2019 All rights reserved.
+  \date (C) 2019-2021 All rights reserved.
   \gpl
 */
 
@@ -47,6 +48,7 @@ namespace MFM
     UTI m_base;
     u32 m_numbaseshared; //rounds out the struct size
     s32 m_basepos; //UNKNOWN < 0
+    bool m_dupflag; //true for direct duplicates that don't accumulate size
   };
 
   // key is base class index in this class

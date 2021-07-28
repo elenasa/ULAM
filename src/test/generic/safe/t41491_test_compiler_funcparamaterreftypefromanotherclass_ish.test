@@ -1,0 +1,65 @@
+## -*- mode:ulam -*-
+#=t41491_test_compiler_funcparameterreftypefromanotherclass_ish
+##  gen output: (+ interleaved asserts)
+##    Unsigned Arg: 6
+##    Unsigned Arg: 0
+#!
+Exit status: 0
+Ue_T { Unsigned(6) sn(0u);  Int test() {  System s;  s ( self sn . cast )print . s ( self sn . 6u cast == )assert . Foo foo;  foo ( self sn . cast )func . s ( self sn . cast )print . s ( self sn . 0u cast == )assert . 0 cast return } }
+Uq_EventWindow { typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry;  <NOMAIN> }
+Uq_System { <NOMAIN> }
+Ue_Foo { <NOMAIN> }
+##
+##  informed by Dave's ish 20210621_041827
+##  Was error: ./Foo.ulam:3:25: ERROR: Variable reference 'sn', is invalid.
+##  Bug in NodeTypeDescriptorSelect: forgot to check for a reference type.
+##
+#>T.ulam
+ ulam 5;
+element T {
+  EventWindow.SiteNum sn = 6u;
+
+  Int test(){
+    System s;
+    s.print(sn);
+    s.assert(sn==6u);
+
+    Foo foo;
+    foo.func(sn);
+
+    s.print(sn);
+    s.assert(sn==0u);
+    return 0;
+  }
+}
+
+#:Foo.ulam
+  ulam 5;
+element Foo {
+  Void func(EventWindow.SiteNum& snrefarg)
+  {
+    snrefarg = 0u;
+    return;
+  }
+}
+
+#:EventWindow.ulam
+  ulam 3;
+quark EventWindow {
+  typedef Unsigned(6) SiteNum;
+  typedef Unsigned(3) Symmetry;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+
+#.

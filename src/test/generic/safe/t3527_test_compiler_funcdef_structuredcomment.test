@@ -15,7 +15,7 @@
 ##
 #!
 Exit status: 15
-Ue_A { typedef Int(8) I8;  Int(8) ano(0);  constant Int(8) tries = 127;  Int(8) bno(127);  parameter Int(8) pyes = 127;  Int(8) d(15);  Int(8) e(3);  Int(32) test() {  self d . self ( 4 cast 5 cast )times . cast = self d . cast return } }
+Ue_A { typedef Int(8) I8;  Int(8) ano(0);  constant Int(8) tries = 127;  Int(8) bno(127);  parameter Int(8) pyes = 127;  Int(8) d(15);  Int(8) e(3);  Int test() {  self d . self ( 4 cast 5 cast )times . cast = self d . cast return } }
 ##
 ##informed by t3115
 ##

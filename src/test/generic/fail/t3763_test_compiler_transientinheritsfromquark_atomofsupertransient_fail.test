@@ -6,7 +6,7 @@
 ##
 #!
 Exit status: -1
-Ue_R { Bool(1) b(false);  Int(32) test() {  A at;  Atom(96) atom = at ( )func .;  0 cast return } }
+Ue_R { Bool b(false);  Int test() {  A at;  Atom atom = at ( )func .;  0 cast return } }
 Un_A : QB { Int(7) spi( 3);  :QB< Bool(7) sp( true); > <NOMAIN> }
 Uq_QB { Bool(7) sp( true);  <NOMAIN> }
 #>R.ulam

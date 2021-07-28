@@ -9,7 +9,7 @@
 ##Unrecoverable Program Type Label FAILURE.
 #!
 Exit status: -11
-Ue_D { Int(32) test() {  QPort4 s;  s ( )update . 0 cast return } }
+Ue_D { Int test() {  QPort4 s;  s ( )update . 0 cast return } }
 Uq_QPort4 { typedef Unsigned(6) SiteNum;  EventWindow ew( typedef Unsigned(6) SiteNum; );  <NOMAIN> }
 Uq_EventWindow { typedef Unsigned(6) SiteNum;  <NOMAIN> }
 ##

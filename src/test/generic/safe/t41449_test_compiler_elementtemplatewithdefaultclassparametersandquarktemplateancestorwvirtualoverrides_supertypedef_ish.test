@@ -1,0 +1,164 @@
+## -*- mode:ulam -*-
+#=t41449_test_compiler_elementtemplatewithdefaultclassparametersandquarktemplateancestorwvirtualoverrides_supertypedef_ish
+#!
+Exit status: 0
+Ue_R { Int test() {  System s;  DemoGST demo;  0 cast return } }
+Uq_System { <NOMAIN> }
+Ue_DemoGST : GeneralSpatialTree(4) { :GeneralSpatialTree(4)< constant Unsigned cBITSNEEDED = 6u;  typedef Unsigned(6) EWPtr;  typedef Unsigned(2) RGBState;  constant Unsigned(2) cRED_STATE = 0u;  constant Unsigned(2) cGREEN_STATE = 1u;  constant Unsigned(2) cBLUE_STATE = 2u;  constant Unsigned(2) cDEAD_STATE = 3u;  Unsigned(6) mParentSN(0);  Unsigned(2) mRGBState( 0u);  typedef GeneralSpatialTreeVisitor(4) GSTV; > <NOMAIN> }
+Uq_GeneralSpatialTree(Unary(4) cRADIUS = 15u) { constant Unsigned cBITSNEEDED = cRADIUS 1u <= ?  3u :  cRADIUS 2u == ?  4u :  cRADIUS 3u == ?  5u :  6u;  typedef Unsigned(UNKNOWN) EWPtr;  typedef Unsigned(2) RGBState;  constant Unsigned(2) cRED_STATE = 0u;  constant Unsigned(2) cGREEN_STATE = 1u;  constant Unsigned(2) cBLUE_STATE = 2u;  constant Unsigned(2) cDEAD_STATE = 3u;  Unsigned(UNKNOWN) mParentSN(notready);  Unsigned(2) mRGBState(notready);  typedef GeneralSpatialTreeVisitor(cRADIUSV) GSTV;  <NOMAIN> }
+Un_GeneralSpatialTreeVisitor(Unary(4) cRADIUSV = 15u) { typedef GeneralSpatialTree(cRADIUS) GST;  <NOMAIN> }
+Un_DemoGSTV : GeneralSpatialTreeVisitor(4) { typedef GeneralSpatialTree(4) GST;  :GeneralSpatialTreeVisitor(4)< typedef GeneralSpatialTree(4) GST; > <NOMAIN> }
+##
+## variation on t41436, DemoGST typedef with Super.GST
+##
+#>R.ulam
+  ulam 5;
+element R {
+  Int test()
+  {
+    System s;
+    DemoGST demo;
+
+    return 0;
+  }
+}
+
+#:GeneralSpatialTree.ulam
+  ulam 5;
+quark GeneralSpatialTree(Unary(4) cRADIUS = 4u) {
+  constant Unsigned cBITSNEEDED =
+    (cRADIUS <= 1u ? 3u :
+       (cRADIUS == 2u ? 4u :
+         (cRADIUS == 3u ? 5u : 6u)));
+  typedef Unsigned(cBITSNEEDED) EWPtr;
+
+  typedef Unsigned(2) RGBState;
+  constant RGBState cRED_STATE = 0u;
+  constant RGBState cGREEN_STATE = 1u;
+  constant RGBState cBLUE_STATE = 2u;
+  constant RGBState cDEAD_STATE = 3u;
+
+  // DATA MEMBERS
+  EWPtr mParentSN;
+  RGBState mRGBState = cRED_STATE;
+
+  typedef GeneralSpatialTreeVisitor(cRADIUS) GSTV;
+
+  // Death API
+
+  Bool die() { mRGBState = cDEAD_STATE; return true; }
+  Bool isDead() { return mRGBState == cDEAD_STATE; }
+
+  Bool decompose() {
+    if (!isDead()) return false;
+    // AND DECOMPOSE...[edited]
+    mRGBState = cDEAD_STATE;
+    return true;
+  }
+
+  // TREE API
+  Bool hasParentPtr() { return mParentSN != 0u; }
+
+  Bool traverse(GSTV & gstv) {
+    if (decompose()) return true;              // Yah We Changed Stuff
+
+    Unsigned cond = mRGBState;
+    which (cond)
+    {
+      case cDEAD_STATE:
+	{ /* "unreachable" */ }
+	case cRED_STATE:
+	  {
+	    if (!hasParentPtr() && gstv.initTraverse(self))
+	      return false;   // Root's got nothing, but OK if caller has other biz
+
+	    if (gstv.preorderStep(self))
+	      return false;         // Pre-order wants a retry later; caller biz OK
+
+	    mRGBState = cGREEN_STATE;
+	    return true;            // We changed state
+	  }
+	case cGREEN_STATE:
+	  {
+	    // Are my kids all blue?
+	    if (gstv.postorderStep(self))
+	      return false;        // Post-order wants a retry later; caller biz OK
+
+	    mRGBState = cBLUE_STATE;
+	    return true;          // We changed state
+	  }
+	case cBLUE_STATE:
+	  {
+	    // Is my parent blue?
+	    if (hasParentPtr()) {
+	      return false;       // We're waiting but caller can work
+	    }
+	    mRGBState = cRED_STATE;
+	    return true;          // We changed state
+	  }
+    }
+    return false;
+  }
+}
+
+transient GeneralSpatialTreeVisitor(Unary(4) cRADIUSV = 4u) {
+  typedef GeneralSpatialTree(cRADIUSV) GST;
+
+  /** \return false if new traversal set up, true if nothing changed and need to retry this step */
+  virtual Bool initTraverse(GST & root) ;
+
+  /** \return false if done, true if nothing changed and need to retry this step*/
+  virtual Bool preorderStep(GST & gst) ;
+
+  /** \return false if done, true if nothing changed and need to retry this step*/
+  virtual Bool postorderStep(GST & gst) ;
+}
+
+transient DemoGSTV : GeneralSpatialTreeVisitor() {
+  //^^^ Also fails with: transient DemoGSTV : GeneralSpatialTreeVisitor(4u)
+  //./GeneralSpatialTree.ulam:19:37: ERROR: Not ready constant for type: Unary(4), used with constant symbol name 'cRADIUS', while compiling GeneralSpatialTreeVisitor(4) (UTI 70).
+  //./GeneralSpatialTree.ulam:19:37: ERROR: Constant value expression for: cRADIUSV, is not ready, still hazy, while compiling GeneralSpatialTreeVisitor(4) (UTI 70).
+  //typedef GeneralSpatialTree() GST;
+  typedef Super.GST GST;
+  //^^^ Also fails with:  typedef GeneralSpatialTree(4u) GST;
+
+  @Override
+  virtual Bool initTraverse(GST& root) {
+    return false;
+  }
+  //^^^ fails with:  virtual Bool initTraverse(GeneralSpatialTree(4u)& root)
+
+  @Override
+  virtual Bool preorderStep(GST& gst) {
+    return false;
+  }
+  @Override
+  virtual Bool postorderStep(GST& gst) {
+    return false;
+  }
+}
+
+#:DemoGST.ulam
+  ulam 5;
+element DemoGST : GeneralSpatialTree() {
+  Void behave() {
+    DemoGSTV gstv;
+    if (traverse(gstv)) return;
+    //DebugUtils du;
+    //du.printContext();
+  }
+}
+
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

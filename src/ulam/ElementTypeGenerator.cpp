@@ -5,41 +5,34 @@ namespace MFM {
 
   ElementTypeGenerator::ElementTypeGenerator() : m_maxNumberOfTypes(MAX_ELEMENT_TYPE), m_next(0), m_counter(2) { }
 
-  ElementTypeGenerator::ElementTypeGenerator(u32 n) : m_maxNumberOfTypes(n), m_next(U32_MAX), m_counter(2) {
-    assert(n > 0 && n < MAX_ELEMENT_TYPE);
-    generateTypes();
+  ElementTypeGenerator::~ElementTypeGenerator()
+  {
+    m_sequentialTypeMap.clear();
+    m_setOfKnownTypes.clear();
+    m_mapOfKnownTypes.clear();
   }
 
-  ElementTypeGenerator::~ElementTypeGenerator() {}
-
-  void ElementTypeGenerator::generateTypes()
-  {
-    for(u32 i = 0; i < m_maxNumberOfTypes; i++)
-      {
-	//m_sequentialTypeMap[i] = i + 1; LAME FIRST-CUT
-	u32 type = makeAType();
-	m_sequentialTypeMap[i] = type;
-      }
-  } //generateTypes
-
-  void ElementTypeGenerator::beginIteration()
-  {
-    m_next = 0;
-  }
-
-  ELE_TYPE ElementTypeGenerator::getNextType()
-  {
-    assert(m_next < m_maxNumberOfTypes);
-    return m_sequentialTypeMap[m_next++];
-  }
-
-  ELE_TYPE ElementTypeGenerator::makeNextType()
+  ELE_TYPE ElementTypeGenerator::makeNextType(UTI cuti)
   {
     //incremental version
     assert(m_next < m_maxNumberOfTypes);
-    ELE_TYPE type = makeAType();
+    ELE_TYPE type = makeAType(cuti);
     m_sequentialTypeMap[m_next] = type;
+    AssertBool added = addTypeToMap(type,cuti);
+    assert(added);
     return m_sequentialTypeMap[m_next++];
+  }
+
+  UTI ElementTypeGenerator::findElementTypeClass(ELE_TYPE ele)
+  {
+    std::map<ELE_TYPE, UTI>::iterator it = m_mapOfKnownTypes.find(ele);
+
+    if(it != m_mapOfKnownTypes.end())
+      {
+	assert(ele == it->first);
+	return it->second;
+      }
+    return Nouti; //not found
   }
 
   /////////////////////////////////////////////////
@@ -51,7 +44,7 @@ namespace MFM {
   //borrowed from MFM ElementTypeNumberMap<EC>: a fixed sequence,
   // where types are far apart, and get progressively closer with more elements;
   // Empty is a special case that is handled separately; zero is the undefined type;
-  ELE_TYPE ElementTypeGenerator::makeAType()
+  ELE_TYPE ElementTypeGenerator::makeAType(UTI cuti)
   {
     u32 type;
     do {
@@ -79,6 +72,13 @@ namespace MFM {
   {
     std::pair<std::set<ELE_TYPE>::iterator,bool> ret;
     ret = m_setOfKnownTypes.insert(type);
+    return ret.second; //false if already in the set, true if newly added
+  }
+
+  bool ElementTypeGenerator::addTypeToMap(ELE_TYPE type, UTI cuti)
+  {
+    std::pair<std::map<ELE_TYPE,UTI>::iterator,bool> ret;
+    ret = m_mapOfKnownTypes.insert(std::pair<ELE_TYPE, UTI>(type,cuti));
     return ret.second; //false if already in the set, true if newly added
   }
 

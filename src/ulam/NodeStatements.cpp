@@ -12,10 +12,7 @@ namespace MFM {
 
   NodeStatements::NodeStatements(const NodeStatements& ref) : Node(ref), m_node(NULL), m_nodeNext(NULL)
   {
-    if(ref.m_node)
-      m_node = ref.m_node->instantiate();
-    if(ref.m_nodeNext)
-      m_nodeNext = (NodeStatements *) ref.m_nodeNext->instantiate();
+    copyAParseTreeHere(ref);
   }
 
   NodeStatements::~NodeStatements()
@@ -24,6 +21,14 @@ namespace MFM {
     m_nodeNext = NULL;
     delete m_node;
     m_node = NULL;
+  }
+
+  void NodeStatements::copyAParseTreeHere(const NodeStatements& ref)
+  {
+    if(ref.m_node)
+      m_node = ref.m_node->instantiate();
+    if(ref.m_nodeNext)
+      m_nodeNext = (NodeStatements *) ref.m_nodeNext->instantiate();
   }
 
   Node * NodeStatements::instantiate()
@@ -171,15 +176,15 @@ namespace MFM {
     return false;
   }
 
-  UTI NodeStatements::checkAndLabelType()
+  UTI NodeStatements::checkAndLabelType(Node * thisparentnode)
   {
     assert(m_node);
 
     //unlike statements, blocks don't have an m_node
-    m_node->checkAndLabelType(); //side-effect
+    m_node->checkAndLabelType(this); //side-effect
 
     if(m_nodeNext)
-      m_nodeNext->checkAndLabelType(); //side-effect
+      m_nodeNext->checkAndLabelType(this); //side-effect
 
     //statements don't have types
     setNodeType(Void);
@@ -199,7 +204,7 @@ namespace MFM {
     bool aok = true;
     if(m_node)
       aok &= m_node->buildDefaultValue(wlen, dvref); //yikes! (was |=) (t41185)
-    if(aok && m_nodeNext) //why go on? (t41185)
+    if(m_nodeNext) //why go on? (t41185)
       aok &= m_nodeNext->buildDefaultValue(wlen, dvref);
     return aok;
   }
@@ -209,7 +214,7 @@ namespace MFM {
     bool aok = true;
     if(m_node)
       aok &= m_node->buildDefaultValueForClassConstantDefs();
-    if(aok && m_nodeNext) //why go on
+    if(m_nodeNext) //why go on
       aok &= m_nodeNext->buildDefaultValueForClassConstantDefs();
     return aok;
   }

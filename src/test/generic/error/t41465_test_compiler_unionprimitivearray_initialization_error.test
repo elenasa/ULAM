@@ -1,0 +1,58 @@
+## -*- mode:ulam -*-
+#=t41464_test_compiler_unionprimitivearray_entireassignwocasting
+#!
+./A.ulam:6:36: ERROR: Data member 'sa' initialization attempt clobbers a previous initialization value.
+./A.ulam:9:25: ERROR: Data member 'sarr1' initialization attempt clobbers a previous initialization value.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by t41464: initialized unions at declaration, over writes more than once? (see also t3451)
+##
+##
+#>A.ulam
+  ulam 3;
+use QA;
+element A {
+ Int test() {
+   System s;
+   QA qa2 = { .sarr2 = {1, 2, 3}, .sa = 0, .sarr1 = {4, 5} }; //unions initializable when mask all zeros
+   s.print(qa2.sa); //==291
+
+   QA qa1 = { .sa = 0, .sarr1 = { 4, 5} }; //unions initializable when mask all zeros
+   s.print(qa1.sa); //==261
+
+   qa2.sarr1 = qa1.sarr1;  //the same size
+   s.print(qa2.sarr2[0]);
+   s.print(qa2.sarr2[1]);
+   s.print(qa2.sarr2[2]);
+   s.assert(qa2.sarr1[0] == qa1.sarr1[0]);
+   s.assert(qa2.sarr1[1] == qa1.sarr1[1]);
+
+   QA qa3 = { .sa = 291 };
+   s.assert(qa3.sarr2[0] == 1);
+   s.assert(qa3.sarr2[1] == 2);
+   s.assert(qa3.sarr2[2] == 3);
+   return 0;
+ }
+}
+
+#:QA.ulam
+  ulam 5;
+union QA
+{
+  Unsigned(6) sarr1[2];
+  Unsigned(4) sarr2[3];
+  Unsigned(12) sa; //not necessary
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

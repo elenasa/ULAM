@@ -10,7 +10,7 @@
 ##
 #!
 Exit status: 1
-Ue_A { System s();  Bool(7) spb(false);  Int(32) c(0);  Int(32) d(1);  Int(32) test() {  Int(32) a;  Int(32) b;  a b self c . 1 cast = = = self c . a b +b = self s . ( self c . )print . self c . self c . a -b b -b = self s . ( self c . )print . a self c . b * = self s . ( a )print . b b b / = self s . ( b )print . self d . a b +b self c . +b = self s . ( self d . )print . a b +b self c . +b return } }
+Ue_A { System s();  Bool(7) spb(false);  Int c(0);  Int d(1);  Int test() {  Int a;  Int b;  a b self c . 1 cast = = = self c . a b +b = self s . ( self c . )print . self c . self c . a -b b -b = self s . ( self c . )print . a self c . b * = self s . ( a )print . b b b / = self s . ( b )print . self d . a b +b self c . +b = self s . ( self d . )print . a b +b self c . +b return } }
 Uq_System { <NOMAIN> }
 ##      // multiple statements, each of the binary ops, where all idents == 1
 ##      // when using the same variable for each result, the final value is returned throughout.

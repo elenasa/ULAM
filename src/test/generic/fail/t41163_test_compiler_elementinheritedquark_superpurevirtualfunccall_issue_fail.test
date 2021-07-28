@@ -2,7 +2,7 @@
 #=t41163_test_compiler_elementinheritedquark_superpurevirtualfunccall_issue_fail
 ##
 ## gen error:
-## /home/elenas/WORK/ulam/repo/MFM-fork/MFM/src/core/include/UlamClass.h:262: FAILED: PURE_VIRTUAL_CALLED
+## /home/elenas/WORK/ulam/repo/MFM-fork/MFM/src/core/include/UlamRef.h:291: FAILED: PURE_VIRTUAL_CALLED
 ## gen output: (1 assert)
 ##
 #!

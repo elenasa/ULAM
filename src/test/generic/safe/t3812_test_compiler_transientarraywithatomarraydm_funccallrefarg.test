@@ -4,9 +4,9 @@
 ##
 #!
 Exit status: -11
-Ue_R { Bool(1) b(false);  Bool(1) c(false);  Int(32) test() {  System s;  QW qw;  Foo foo;  A ar[3];  ar 1 [] mAtoo 2 [] . foo cast = self ( ar 1 [] mAtoo 2 [] . cast 1u cast )setATre . self b . qw ( ar 1 [] mAtoo 2 [] . cast )aunc . = s ( self b . )assert . ar 2 [] mAtoo 1 [] . foo cast = Atom(96)& arref = ar 2 [] mAtoo 1 [] . cast;  arref foo cast = self ( arref 2u cast )setATre . self c . qw ( arref )aunc . = s ( self c . )assert . 0 cast return } }
+Ue_R { Bool b(false);  Bool c(false);  Int test() {  System s;  QW qw;  Foo foo;  A ar[3];  ar 1 [] mAtoo 2 [] . foo cast = self ( ar 1 [] mAtoo 2 [] . cast 1u cast )setATre . self b . qw ( ar 1 [] mAtoo 2 [] . cast )aunc . = s ( self b . )assert . ar 2 [] mAtoo 1 [] . foo cast = Atom& arref = ar 2 [] mAtoo 1 [] . cast;  arref foo cast = self ( arref 2u cast )setATre . self c . qw ( arref )aunc . = s ( self c . )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
-Un_A : QW { Bool(7) sp(false);  Atom(96) mAtoo[3](Atom(96)[3]Atom(96)[3]Atom(96)[3]);  :QW<> <NOMAIN> }
+Un_A : QW { Bool(7) sp(false);  Atom mAtoo[3](Atom,Atom,Atom);  :QW<> <NOMAIN> }
 Uq_QW { <NOMAIN> }
 Ue_Foo { Unary(3) mTre(0);  <NOMAIN> }
 ##

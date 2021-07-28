@@ -1,0 +1,65 @@
+## -*- mode:ulam -*-
+#=t41492_test_compiler_elementandconstantatomarray_constantreffuncparamatom
+##
+##  gen output (1 assert)
+##
+#!
+Exit status: 0
+Ue_Foo { typedef Bar Pop[2];  typedef Atom AA2[2];  System s();  Bool(3) b(true);  Int(4) m_i(0);  constant Bar m_bar2[2] = { 0xff807fa0, 0x0, 0x0, 0xff807fa0, 0x0, 0x0 };  constant Atom cAtoms[2] = { 0xff807fa0, 0x0, 0x0, 0xff807fa0, 0x0, 0x0 };  Int test() {  self b . self ( cAtoms cast 1 cast )check . cast = self s . ( self b . cast )assert . 0 cast return } }
+Ue_Bar { Bool val_b[3]( { false, true, false });  <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## informed by t41251, except function parameter is a constant array ref of constant Atoms
+##
+#>Foo.ulam
+  ulam 3;
+element Foo {
+  typedef Bar Pop[2];
+  typedef Atom AA2[2]; //reqd for func param type
+
+  System s;
+  Bool(3) b;
+  Int(4) m_i;
+  constant Pop m_bar2 = { };
+  constant AA2 cAtoms = m_bar2; //this works!!
+
+  Bool check(constant Pop& brefarg, Int x) {
+    return brefarg[x].val_b[x];
+  }
+
+  Bool check(constant AA2& brefarg, Int x) {
+    Atom a = brefarg[x];
+    if(a as Bar)
+      return a.val_b[x];
+    return false;
+  }
+
+  Int test() {
+    b = check(cAtoms,1);
+    s.assert(b);
+    return 0;
+  }
+}
+
+#:Bar.ulam
+  ulam 1;
+element Bar {
+  Bool val_b[3] = {false, true, false};
+  Void reset(Bool b) {
+    b = false;
+  }
+  //  Atom& aref(Int index) native;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

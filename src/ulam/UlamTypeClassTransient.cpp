@@ -28,12 +28,39 @@ namespace MFM {
     UTI valtypidx = val.getUlamValueTypeIdx();
     UlamType * fmut = m_state.getUlamTypeByIndex(valtypidx);
     assert(fmut->isScalar() && isScalar());
-    //now allowing atoms to be cast as transients, as well as elements;
     // also allowing subclasses to be cast as their superclass (u1.2.2)
-    if(!(UlamType::compare(valtypidx, typidx, m_state) == UTIC_SAME))
+    if(isReference())
       {
-	brtn = false;
+	UTI dereftypidx = m_state.getUlamTypeAsDeref(typidx);
+	if(UlamType::compare(valtypidx, dereftypidx, m_state) == UTIC_SAME)
+	  {
+	    val.setUlamValueTypeIdx(typidx);
+	  }
+	else if(m_state.isClassASubclassOf(valtypidx, dereftypidx))
+	  {
+	    val.setUlamValueTypeIdx(typidx);
+	  }
+	else
+	  {
+	    brtn = false;
+	  }
       }
+    else if(UlamType::compare(valtypidx, typidx, m_state) == UTIC_SAME)
+      {
+	//if same type nothing to do;
+      }
+    else if(m_state.isClassASubclassOf(valtypidx, typidx))
+      {
+	s32 len = getTotalBitSize();
+	assert(len != UNKNOWNSIZE);
+	if(len > MAXSTATEBITS)
+	  m_state.abortNotSupported(); //for eval transients are limited to statebits
+	UlamValue newval = UlamValue::makeAtom(typidx);
+	m_state.extractTransientBaseFromSubclassForEval(val, typidx, newval);
+	val = newval;
+      }
+    else
+      brtn = false;
     return brtn;
   } //end cast
 
@@ -164,6 +191,7 @@ namespace MFM {
     assert(getUlamClassType() == UC_TRANSIENT);
     s32 len = getTotalBitSize(); //could be 0, includes arrays
     s32 baselen = isScalar() ? getBitsizeAsBaseClass() : len; //could be 0, default when effself not self (ulam-5)
+    assert(baselen >= 0);
 
     //class instance idx is always the scalar uti
     UTI scalaruti =  m_key.getUlamKeyTypeSignatureClassInstanceIdx();
@@ -462,17 +490,18 @@ namespace MFM {
 	    //write the data members first
 	    //here.. 'targ' BV is the complete, 'this' UlamRef
 	    // may be different effSelf within larger context
-	    u32 myblen = getBitsizeAsBaseClass();
+	    s32 myblen = getBitsizeAsBaseClass();
+	    assert(myblen >= 0);
 	    if(myblen > 0)
 	      {
 		fp->write("/*data members first*/ ");
 		if(myblen <= MAXBITSPERINT)
 		  {
 		    fp->write("UlamRef<EC>(*this,0,");
-		    fp->write_decimal_unsigned(myblen);
+		    fp->write_decimal(myblen);
 		    fp->write("u).Write(");
 		    fp->write("targ.Read(0u,");
-		    fp->write_decimal_unsigned(myblen);
+		    fp->write_decimal(myblen);
 		    fp->write("u)); ");
 		  }
 		else
@@ -723,7 +752,8 @@ namespace MFM {
 	fp->write("else {");
 	//write the data members first
 	//here.. 'd' UlamRef is initially pointing to them.
-	u32 myblen = getBitsizeAsBaseClass();
+	s32 myblen = getBitsizeAsBaseClass();
+	assert(myblen >= 0);
 	if(myblen > 0)
 	  {
 	    fp->write("/*data members first*/ ");
@@ -731,10 +761,10 @@ namespace MFM {
 	      {
 		fp->write("BVS::Write(");
 		fp->write("0u,");
-		fp->write_decimal_unsigned(myblen);
+		fp->write_decimal(myblen);
 		fp->write("u,");
 		fp->write("UlamRef<EC>(d,0,");
-		fp->write_decimal_unsigned(myblen);
+		fp->write_decimal(myblen);
 		fp->write("u).Read()); ");
 	      }
 	    else

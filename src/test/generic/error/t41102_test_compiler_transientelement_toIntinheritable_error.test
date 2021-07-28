@@ -1,9 +1,9 @@
 ## -*- mode:ulam -*-
 #=t41102_test_compiler_transientelement_toIntinheritable_error
 #!
-./Foo.ulam:8:10: ERROR: Use explicit cast to convert Foo(65) to Int(32) for =.
-./Foo.ulam:9:13: ERROR: Cannot explicitly cast Foo(65) to type: Int(32).
-./Foo.ulam:9:10: ERROR: Assignment is invalid; LHS: Int(32); RHS: erroneous.
+./Foo.ulam:8:10: ERROR: Use explicit cast to convert Foo(65) to Int for =.
+./Foo.ulam:9:13: ERROR: Cannot explicitly cast Foo(65) to type: Int.
+./Foo.ulam:9:10: ERROR: Assignment is invalid; LHS: Int; RHS: erroneous.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t3996

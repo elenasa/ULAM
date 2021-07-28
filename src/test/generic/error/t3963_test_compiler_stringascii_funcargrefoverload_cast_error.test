@@ -4,7 +4,7 @@
 ./HelloWorldString.ulam:8:13: ERROR: Cannot explicitly cast a constant, "Hello world", type String, to a reference type, String&.
 ./HelloWorldString.ulam:8:5: ERROR: Argument 1 has a problem.
 ./HelloWorldString.ulam:9:12: ERROR: (1) 'getLength' has no defined function with 1 matching argument type: String, and cannot be called.
-./HelloWorldString.ulam:9:10: ERROR: Assignment is invalid; LHS: Int(32); RHS: erroneous.
+./HelloWorldString.ulam:9:10: ERROR: Assignment is invalid; LHS: unresolved; RHS: erroneous.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t3962

@@ -1,0 +1,48 @@
+## -*- mode:ulam -*-
+#=t41527_test_compiler_elementtemplateinheritance_classparametertypenotinlocalsscope_error
+#!
+Exit status: 0
+Ue_Test { Int test() {  WT(1u,2u) wt;  wt ( )behave . 0 cast return } }
+Ue_WT(Unsigned(3) cET, Unsigned(3) cWT) : UrSelf +QT(cQ,cRR) { :UrSelf<> +QT12<> <NOMAIN> }
+Uq_Q : R { typedef Unsigned(3) QQ;  :R<> <NOMAIN> }
+Uq_QT(holder cQ, holder cRR) : Q { :Q< typedef Unsigned(3) QQ; > <NOMAIN> }
+Uq_R { /* empty class block */ }
+##
+## informed by t41527; locals scope of use, W(1,2), oddly, couldnt find QQ typedef (aborted)
+##
+#>Test.ulam
+ ulam 3;
+element Test {
+  Int test()
+  {
+    WT(1,2) wt;
+    wt.behave();
+    return 0;
+  }
+}
+
+#:WT.ulam
+  ulam 5;
+local typedef Q.QQ QQ;
+element WT(local.QQ cET,local.QQ cWT) : UrSelf + QT(cET,cWT)
+{
+  Void behave() {
+    func();
+  }
+}
+
+#:Q.ulam
+  ulam 3;
+quark Q : R {
+  typedef Unsigned(3) QQ;
+  virtual Int func() ;
+}
+
+quark QT(QQ cQ, QQ cRR) : Q {
+  @Override
+  Int func() { return cQ + cRR; }
+}
+
+quark R { }
+
+#.

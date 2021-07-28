@@ -5,11 +5,11 @@
 ##   Unsigned : 5
 #!
 Exit status: -11
-Ue_R { Int(32) test() {  System s;  TW tw;  tw m_five . 5 cast = s ( tw m_five . cast )print . s ( tw m_five . cast 5 == )assert . Base& ref = tw cast;  s ( ref m_five . cast 5 == )assert . TW& tapple = ref cast;  s ( tapple m_five . cast 5 == )assert . TW tapple2;  tapple2 ref cast = s ( tapple2 m_five . cast 5 == )assert . 0 cast return } }
+Ue_R { Int test() {  System s;  TW tw;  tw m_five . 5 cast = s ( tw m_five . cast )print . s ( tw m_five . cast 5 == )assert . Base& ref = tw cast;  s ( ref m_five . cast 5 == )assert . TW& tapple = ref cast;  s ( tapple m_five . cast 5 == )assert . TW tapple2;  tapple2 ref cast = s ( tapple2 m_five . cast 5 == )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
-Un_TW : W { Bool(1) b(false);  Bool(1) c(false);  :W< Bool(1) bw(false); > ^Base< Unary(5) m_five(0); > <NOMAIN> }
+Un_TW : W { Bool b(false);  Bool c(false);  :W< Bool bw(false); > ^Base< Unary(5) m_five(0); > <NOMAIN> }
 Uq_Base { Unary(5) m_five(0);  <NOMAIN> }
-Un_W : Base { Bool(1) bw(false);  :Base< Unary(5) m_five(0); > <NOMAIN> }
+Un_W : Base { Bool bw(false);  :Base< Unary(5) m_five(0); > <NOMAIN> }
 ##
 ## informed by t3756
 ##

@@ -5,6 +5,8 @@
 #include "NodeTerminal.h"
 #include "CompilerState.h"
 #include "MapConstantDesc.h"
+#include "NodeTypeDescriptorArray.h"
+#include "Parity2D_4x4.h"
 
 namespace MFM {
 
@@ -46,7 +48,7 @@ namespace MFM {
   void NodeConstantDef::updateLineage(NNO pno)
   {
     setYourParentNo(pno);
-    assert(m_state.getCurrentBlockNo() == m_currBlockNo);
+    assert(m_state.getCurrentBlockNo() == m_currBlockNo); //changes to m_constSymbol's ST
     if(m_nodeExpr)
       m_nodeExpr->updateLineage(getNodeNo());
     if(m_nodeTypeDesc)
@@ -89,7 +91,14 @@ namespace MFM {
   void NodeConstantDef::printPostfix(File * fp)
   {
     //in case the node belongs to the template, use the symbol uti, o.w. 0Nav. (t41221)
-    UTI suti = m_constSymbol ? m_constSymbol->getUlamTypeIdx() : getNodeType();
+    UTI suti = getNodeType();
+    if(m_nodeTypeDesc)
+      suti = m_nodeTypeDesc->givenUTI();
+    else if(m_constSymbol)
+      suti = m_constSymbol->getUlamTypeIdx();
+    else
+      m_state.abortNotImplementedYet();
+
     //see also SymbolConstantValue
     fp->write(" constant");
 
@@ -162,11 +171,23 @@ namespace MFM {
     return (m_constSymbol != NULL); //true;
   }
 
+  void NodeConstantDef::clearSymbolPtr()
+  {
+    //if symbol is in a stub, there's no guarantee the stub
+    // won't be replace by another duplicate class once its
+    // pending args have been resolved.
+    if(!(m_constSymbol->isClassParameter() || m_constSymbol->isClassArgument()))
+      {
+	m_constSymbol = NULL;
+	setBlock(NULL);
+      }
+  }
+
   void NodeConstantDef::setSymbolPtr(SymbolWithValue * cvsymptr)
   {
     assert(cvsymptr);
     m_constSymbol = cvsymptr;
-    m_currBlockNo = cvsymptr->getBlockNoOfST();
+    setBlockNo(cvsymptr->getBlockNoOfST()); //also clears block ptr (t41224)
     assert(m_currBlockNo);
   }
 
@@ -174,6 +195,34 @@ namespace MFM {
   {
     return m_cid;
   }
+
+  bool NodeConstantDef::setSymbolValue(const BV8K& bv)
+  {
+    assert(m_constSymbol);
+    bool rtnb = false;
+    if(m_constSymbol->isClassParameter())
+      {
+	assert(hasDefaultSymbolValue());
+	m_constSymbol->setInitValue(bv); //t41438??
+	rtnb = m_constSymbol->isInitValueReady();
+      }
+      else if(m_constSymbol->isClassArgument() && isClassArgumentItsDefaultValue())
+	{
+	  m_constSymbol->setValue(bv); //isReady now! (e.g. ClassArgument, ModelParameter)
+	  rtnb = m_constSymbol->isReady();
+	}
+      else if(isDataMemberInit())
+	{
+	  m_constSymbol->setInitValue(bv); //(isInitValueReady now)! t41168
+	  rtnb = m_constSymbol->isInitValueReady();
+	}
+      else
+	{
+	  m_constSymbol->setValue(bv); //isReady now! (e.g. ClassArgument, ModelParameter)
+	  rtnb = m_constSymbol->isReady();
+	}
+      return rtnb;
+  } //setSymbolValue
 
   bool NodeConstantDef::getNodeTypeDescriptorPtr(NodeTypeDescriptor *& nodetypedescref)
   {
@@ -190,12 +239,37 @@ namespace MFM {
     if(m_nodeTypeDesc == NULL)
       {
 	m_nodeTypeDesc = nodetypedesc; //tfr ownership here
-	if(m_constSymbol)
-	  m_nodeTypeDesc->resetGivenUTI(m_constSymbol->getUlamTypeIdx()); //invariant?
+	//if(m_constSymbol)
+	//  m_constSymbol->resetUlamType(m_nodeTypeDesc->givenUTI()); //or keep hazy
+	////  m_nodeTypeDesc->resetGivenUTI(m_constSymbol->getUlamTypeIdx()); //invariant?
 	return true;
       }
     return false;
   }
+
+  bool NodeConstantDef::getNodeExprPtr(Node *& nodeexprref)
+  {
+    if(m_nodeExpr)
+      {
+	nodeexprref = m_nodeExpr;
+	return true;
+      }
+    return false;
+  }
+
+  bool NodeConstantDef::setNodeExpr(Node * nodeexprref)
+  {
+    if(m_nodeExpr == NULL)
+      {
+	m_nodeExpr = nodeexprref; //tfr ownership here
+	m_nodeExpr->updateLineage(getNodeNo());
+	if(m_constSymbol)
+	  m_constSymbol->setHasInitValue();
+	return true;
+      }
+    return false;
+  }
+
 
   bool NodeConstantDef::hasDefaultSymbolValue()
   {
@@ -215,7 +289,7 @@ namespace MFM {
     return false;
   }
 
-  UTI NodeConstantDef::checkAndLabelType()
+  UTI NodeConstantDef::checkAndLabelType(Node * thisparentnode)
   {
     UTI nuti = getNodeType(); //expression type
 
@@ -235,31 +309,23 @@ namespace MFM {
 
     UTI suti = m_constSymbol->getUlamTypeIdx();
     UTI cuti = m_state.getCompileThisIdx();
-    bool changeScope = (m_state.m_pendingArgStubContext != m_state.m_pendingArgTypeStubContext) && (m_constSymbol->isClassParameter() || m_constSymbol->isClassArgument()) && !isClassArgumentItsDefaultValue(); //t3328, t41153, t41209, t41214,7,8, t41224,t41431
-
-    if(changeScope)
-      {
-	//not m_pendingArgStubContext (t3328,9, t3330,2, t41153, t41209, t41214,7,8, t41224
-	UTI contextForArgTypes = m_state.m_pendingArgTypeStubContext;
-	assert(contextForArgTypes != Nouti);
-	assert(!m_state.isAClass(contextForArgTypes) || (m_state.getAClassBlock(contextForArgTypes)!=NULL));
-	m_state.pushClassOrLocalCurrentBlock(contextForArgTypes); //doesn't change compileThisIdx
-      }
-
+    UTI contextForArgTypes = m_state.m_pendingArgTypeStubContext;
+    bool changeScope = false;
     // type of the constant
     if(m_nodeTypeDesc)
       {
 	bool changeScopeForTypesOnly = false;
-
-	if(!changeScope && (m_state.m_pendingArgTypeStubContext != Nouti))
+	if(contextForArgTypes != Nouti)
 	  {
 	    assert(m_constSymbol->isClassParameter() || m_constSymbol->isClassArgument());
-	    m_state.pushClassOrLocalContextAndDontUseMemberBlock(m_state.m_pendingArgTypeStubContext);
+	    m_state.pushClassOrLocalContextAndDontUseMemberBlock(contextForArgTypes);
 	    changeScopeForTypesOnly = true; //t41216, error/t41218
 	  }
 
-	UTI duti = m_nodeTypeDesc->checkAndLabelType(); //clobbers any expr it
-	if(m_state.okUTItoContinue(duti) && (suti != duti))
+	UTI duti = m_nodeTypeDesc->checkAndLabelType(this); //clobbers any expr it
+	if(duti == Nav)
+	  suti = Nav;
+	else if(m_state.okUTItoContinue(duti) && (suti != duti))
 	  {
 	    std::ostringstream msg;
 	    msg << "REPLACING Symbol UTI" << suti;
@@ -272,11 +338,16 @@ namespace MFM {
 	    msg << " UTI" << cuti;
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	    m_constSymbol->resetUlamType(duti); //consistent!
-	    m_state.mapTypesInCurrentClass(suti, duti);
 	    suti = duti;
 	  }
 	if(changeScopeForTypesOnly)
 	  m_state.popClassContext(); //restore
+      }
+    else
+      {
+	//no m_nodeTypeDesc: e.g. class arg of unseen template, fixed later (t3370)
+	assert(m_constSymbol && m_constSymbol->isClassArgument()); //sanity check
+	assert((contextForArgTypes != Nouti) && m_state.isClassAStub(contextForArgTypes) && !m_state.isASeenClass(contextForArgTypes)); //sanity check, cuti might be its context
       }
 
     // move before m_nodeExpr "Void" check (t3883, error/t3451);
@@ -284,16 +355,21 @@ namespace MFM {
     if(!m_state.okUTItoContinue(suti) || !m_state.isComplete(suti))
       {
 	std::ostringstream msg;
-	msg << "Incomplete " << prettyNodeName().c_str() << " for type: ";
-	msg << m_state.getUlamTypeNameByIndex(suti).c_str();
-	msg << ", used with symbol name '" << getName() << "'";
-	if(m_state.okUTItoContinue(suti) || m_state.isStillHazy(suti)) //41288?
+	if(suti == Nav)
+	  msg << "Invalid Constant Def type ";
+	else
+	  msg << "Incomplete Constant Def for type";
+	if(m_state.okUTItoContinue(suti) && !m_state.isHolder(suti))
+	  msg << ": " << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
+	msg << " used with symbol name '" << getName() << "'";
+	//msg << " while compiling UTI" << cuti;
+	if(suti == Nav)
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	else
 	  {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    suti = Hzy; //since not error; wait to goagain until not Nav
 	  }
-	else
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
 
     ULAMTYPE etyp = m_state.getUlamTypeByIndex(suti)->getUlamTypeEnum();
@@ -316,11 +392,10 @@ namespace MFM {
     // NOASSIGN REQUIRED (e.g. for class parameters) doesn't have to have this!
     if(m_nodeExpr)
       {
-	nuti = m_nodeExpr->checkAndLabelType();
+	nuti = m_nodeExpr->checkAndLabelType(this);
 
 	if(changeScope)
 	  m_state.popClassContext(); //restore
-
 
 	if(nuti == Nav)
 	  {
@@ -344,8 +419,11 @@ namespace MFM {
 	    msg << "Constant value expression for: ";
 	    msg << m_state.m_pool.getDataAsString(m_cid).c_str();
 	    msg << ", is not ready, still hazy";
+	    msg << ", while compiling " << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	    msg << " (UTI " << cuti << ")";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    setNodeType(Hzy);
+	    clearSymbolPtr();
 	    m_state.setGoAgain();
 	    return Hzy; //short-circuit
 	  }
@@ -361,7 +439,6 @@ namespace MFM {
 	    else
 	      {
 		//only possible if array type with initializers;
-		//assert(!m_state.okUTItoContinue(suti) || !m_state.isScalar(suti));
 		if(m_state.okUTItoContinue(suti) && m_state.isScalar(suti))
 		  {
 		    //error scalar with {} error (t41389, t41390)
@@ -373,18 +450,18 @@ namespace MFM {
 		    return Nav;
 		  }
 
-		if(!m_state.okUTItoContinue(suti) && m_nodeTypeDesc)
+		if(!m_state.okUTItoContinue(suti) && m_nodeTypeDesc && m_nodeTypeDesc->isEmptyArraysizeDecl())
 		  {
 		    UTI duti = m_nodeTypeDesc->getNodeType();
 		    UlamType * dut = m_state.getUlamTypeByIndex(duti);
-		    if(m_state.okUTItoContinue(duti) && !dut->isComplete())
-		      {
-			assert(!dut->isScalar()); //t41390
-			//assert(dut->isPrimitiveType()); t41261
+		    UTI scalarduti = m_nodeTypeDesc->getScalarType();
 
-			//if here, assume arraysize depends on number of initializers
-			s32 bitsize = dut->getBitSize();
+		    if(m_state.okUTItoContinue(scalarduti) && !dut->isComplete())
+		      {
+			//if here, empty arraysize depends on number of initializers
+			s32 bitsize = m_state.getBitSize(scalarduti);
 			u32 n = ((NodeList *) m_nodeExpr)->getNumberOfNodes();
+			duti = m_nodeTypeDesc->givenUTI(); //Hzy not helpful, reload with given
 			m_state.setUTISizes(duti, bitsize, n);
 
 			if(m_state.isComplete(duti))
@@ -400,8 +477,6 @@ namespace MFM {
 			    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 			    m_constSymbol->resetUlamType(duti); //consistent!
 			    suti = m_constSymbol->getUlamTypeIdx(); //reset after alias (t3890, t3891)
-			    m_nodeExpr->setNodeType(duti); //replace Void too!
-			    nuti = duti;
 			  }
 		      }
 		    //else
@@ -499,6 +574,7 @@ namespace MFM {
 		msg << "not ready";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 		setNodeType(Hzy);
+		clearSymbolPtr();
 		m_state.setGoAgain();
 		return Hzy; //short-circuit (t3893)
 	      }
@@ -565,19 +641,9 @@ namespace MFM {
 	      {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 		setNodeType(Hzy);
+		clearSymbolPtr();
 		m_state.setGoAgain();
 		return Hzy;
-	      }
-	  }
-	else if(!m_constSymbol->isClassParameter())
-	  {
-	    //Expression and symbol have different UTI, but a class..So CHANGE symbol type? WHAT??
-	    // t41209, t41213, t41214
-	    if(m_state.getUlamTypeNameIdByIndex(nuti) == m_state.getUlamTypeNameIdByIndex(suti))
-	      {
-		m_constSymbol->resetUlamType(nuti);
-		suti = nuti; //t3451?
-		//alias missing?
 	      }
 	  }
       }
@@ -599,10 +665,10 @@ namespace MFM {
 	else if(m_state.isStillHazy(foldrtn))
 	  {
 	    std::ostringstream msg;
-	    msg << "Incomplete " << prettyNodeName().c_str() << " for type: ";
+	    msg << "Incomplete Constant Def for type: ";
 	    msg << m_state.getUlamTypeNameByIndex(suti).c_str();
 	    msg << ", used with symbol name '" << getName() << "', after folding";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //t41204
 	    setNodeType(Hzy);
 	  }
 	else //if(!m_state.isAClass(foldrtn)) //t41198
@@ -617,7 +683,11 @@ namespace MFM {
 	    //else t41192
 	  }
       }
-    if(getNodeType() == Hzy) m_state.setGoAgain();
+    if(getNodeType() == Hzy)
+      {
+	clearSymbolPtr();
+	m_state.setGoAgain();
+      }
     return getNodeType();
   } //checkAndLabelType
 
@@ -637,9 +707,6 @@ namespace MFM {
 	  {
 	    m_constSymbol = (SymbolConstantValue *) asymptr;
 	    m_constSymbol->setDeclNodeNo(getNodeNo());
-
-	    if(m_nodeTypeDesc)
-	      m_nodeTypeDesc->resetGivenUTI(m_constSymbol->getUlamTypeIdx()); // invariant?
 	  }
 	else
 	  {
@@ -778,7 +845,7 @@ namespace MFM {
     //scalar classes wait until after c&l to build default value;
     // but pieces can be folded in advance;
     // t41198 (might be better to replace node with NodeInitDM?)
-    if(m_state.isAClass(uti))
+    if(m_state.isAClass(uti) || m_state.isAtom(uti)) //t41483 constant atom
       {
 	UTI rtnuti = Nav;
 	if(m_nodeExpr->isAList()) //t3451, t41209
@@ -806,12 +873,13 @@ namespace MFM {
 	    BV8K bvtmp;
 	    if(m_nodeExpr->getConstantValue(bvtmp))
 	      {
-		m_constSymbol->setValue(bvtmp);
+		setSymbolValue(bvtmp);
 		rtnuti = m_nodeExpr->getNodeType();
 		u32 tmpslotnum = m_state.m_constantStack.getAbsoluteTopOfStackIndexOfNextSlot();
 		assignConstantSlotIndex(tmpslotnum);
 	      }
-	    //else no good
+	    else
+	      rtnuti = Hzy; //t41509
 	  }
 	else
 	  m_state.abortShouldntGetHere();
@@ -873,17 +941,7 @@ namespace MFM {
 
     //cast first, also does safeCast
     UlamType * ut = m_state.getUlamTypeByIndex(uti);
-    if(ut->cast(cnstUV, uti))
-      {
-	u32 wordsize = m_state.getTotalWordSize(uti);
-	if(wordsize == MAXBITSPERINT)
-	  newconst = cnstUV.getImmediateData(m_state);
-	else if(wordsize == MAXBITSPERLONG)
-	  newconst = cnstUV.getImmediateDataLong(m_state);
-	else
-	  m_state.abortGreaterThanMaxBitsPerLong();
-      }
-    else
+    if(!ut->cast(cnstUV, uti))
       {
 	std::ostringstream msg;
 	msg << "Constant value expression for '";
@@ -892,6 +950,14 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	return Nav;
       }
+
+    u32 wordsize = m_state.getTotalWordSize(uti);
+    if(wordsize == MAXBITSPERINT)
+      newconst = cnstUV.getImmediateData(m_state);
+    else if(wordsize == MAXBITSPERLONG)
+      newconst = cnstUV.getImmediateDataLong(m_state);
+    else
+      m_state.abortGreaterThanMaxBitsPerLong();
 
     // BUT WHY when Symbol is all we need/want? because it indicates
     // there's a default value before c&l (see SCNT::getTotalParametersWithDefaultValues) (t3526)
@@ -909,12 +975,7 @@ namespace MFM {
     BV8K bvtmp;
     u32 len = m_state.getTotalBitSize(uti);
     bvtmp.WriteLong(0u, len, newconst); //is newconst packed?
-    if(m_constSymbol->isClassParameter())
-      m_constSymbol->setInitValue(bvtmp); //(isInitValueReady now)!
-    else if(isDataMemberInit())
-      m_constSymbol->setInitValue(bvtmp); //(isInitValueReady now)!
-    else
-      m_constSymbol->setValue(bvtmp); //isReady now! (e.g. ClassArgument, ModelParameter)
+    setSymbolValue(bvtmp);
 
     //for primitive constants too; eval support for function constant parameters (t41240)
     u32 tmpslotnum = m_state.m_constantStack.getAbsoluteTopOfStackIndexOfNextSlot();
@@ -955,8 +1016,9 @@ namespace MFM {
 
 		m_state.getDefaultAsArray(scalarut->getSizeofUlamType(), nut->getArraySize(), 0, bvclass, bvtmp); //t41179
 	      }
+	    //else (e.g. atom bvtmp is zeros)
 
-	    if(((NodeList *) m_nodeExpr)->buildArrayValueInitialization(bvtmp))
+	    if(((NodeList *) m_nodeExpr)->buildArrayValueInitialization(bvtmp)) //t41492 redo
 	      brtn = true;
 	  }
 	//else no good (error/t41181)
@@ -966,27 +1028,41 @@ namespace MFM {
 
     if(brtn)
       {
-	if(m_constSymbol->isClassParameter())
-	  m_constSymbol->setInitValue(bvtmp);
-	else if(isDataMemberInit())
-	  m_constSymbol->setInitValue(bvtmp); //t41168
-	else
-	  m_constSymbol->setValue(bvtmp); //isReady now! (e.g. ClassArgument, ModelParameter)
+	setSymbolValue(bvtmp);
       }
     return brtn;
   } //foldArrayInitExpression
 
   bool NodeConstantDef::buildDefaultValue(u32 wlen, BV8K& bvref)
   {
-    AssertBool rtnok = buildDefaultValueForClassConstantDefs();
-    assert(rtnok);
-    return true; //pass on
+    UTI nuti = getNodeType();
+    if(!m_state.okUTItoContinue(nuti) || !m_state.isComplete(nuti))
+      {
+	std::ostringstream msg;
+	msg << "Building default value for member constant '";
+	msg << m_state.m_pool.getDataAsString(m_cid).c_str();
+	msg << "' not ready";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	m_state.goAgain();
+	return false; //t41478
+      }
+
+    bool rtnok = buildDefaultValueForClassConstantDefs();
+    if(!rtnok)
+      {
+	std::ostringstream msg;
+	msg << "Building default value for member constant '";
+	msg << m_state.m_pool.getDataAsString(m_cid).c_str();
+	msg << "' failed";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //t41477
+      }
+    return rtnok;
   } //buildDefaultValue
 
   bool NodeConstantDef::buildDefaultValueForClassConstantDefs()
   {
     UTI nuti = getNodeType();
-    assert(m_state.okUTItoContinue(nuti) && m_state.isComplete(nuti));
+    assert(m_state.okUTItoContinue(nuti) && m_state.isComplete(nuti)); //t41478 (see caller above)
 
     if(!m_state.isAClass(nuti)) //t41198
       return true;
@@ -1001,7 +1077,7 @@ namespace MFM {
 	//no node expression, use default value
 	if((rtnok = m_state.getDefaultClassValue(nuti, bvtmp))) //uses scalar uti
 	  {
-	    m_constSymbol->setValue(bvtmp);
+	    setSymbolValue(bvtmp);
 	  }
 	return rtnok;
       }
@@ -1010,7 +1086,7 @@ namespace MFM {
     if(m_nodeExpr->isAConstantClass())
       {
 	if((rtnok = m_nodeExpr->getConstantValue(bvtmp)))
-	  m_constSymbol->setValue(bvtmp);
+	  setSymbolValue(bvtmp);
       }
     else if(m_nodeExpr->isAList())
       {
@@ -1020,11 +1096,11 @@ namespace MFM {
 	      {
 		BV8K bvmask;
 		if((rtnok = ((NodeListClassInit *) m_nodeExpr)->initDataMembersConstantValue(bvtmp,bvmask))) //passes along default value
-		  m_constSymbol->setValue(bvtmp);
+		  setSymbolValue(bvtmp);
 	      }
 	    else
 	      {
-		m_constSymbol->setValue(bvtmp); //empty list uses default
+		setSymbolValue(bvtmp); //empty list uses default
 		rtnok = true;
 	      }
 	  } // else no default, perhaps not ready
@@ -1041,17 +1117,11 @@ namespace MFM {
     // for unseen classes that needed their args "fixed" to proper param name
     // this fixes the saved m_cid while clonePendingClassArgumentsForStubClassInstance
     // (the m_cid is used during full instantiation).
-    if(m_constSymbol->getId() != getSymbolId())
+    if((m_constSymbol->getId() != getSymbolId()))
       {
 	m_cid = m_constSymbol->getId();
       }
   } //fixPendingArgumentNode
-
-  bool NodeConstantDef::assignClassArgValueInStubCopy()
-  {
-    assert(m_nodeExpr);
-    return m_nodeExpr->assignClassArgValueInStubCopy();
-  }
 
   bool NodeConstantDef::cloneTypeDescriptorForPendingArgumentNode(NodeConstantDef * templateparamdef)
   {
@@ -1065,23 +1135,44 @@ namespace MFM {
 	NodeTypeDescriptor * pnodetypedesc = NULL;
 	if(templateparamdef->getNodeTypeDescriptorPtr(pnodetypedesc))
 	  {
-	    NodeTypeDescriptor * copynodetypedesc = new NodeTypeDescriptor(*pnodetypedesc, true);
+	    NodeTypeDescriptor * copynodetypedesc = (NodeTypeDescriptor *) pnodetypedesc->instantiate(); //t41209?
 	    assert(copynodetypedesc);
 	    copynodetypedesc->setNodeLocation(getNodeLocation()); //same loc as this node
 
-	    UTI copyuti = copynodetypedesc->givenUTI(); //save
 	    AssertBool isset = setNodeTypeDescriptor(copynodetypedesc); //resets givenuti too.
 	    assert(isset);
 
-	    UTI newuti = m_nodeTypeDesc->givenUTI();
-	    assert(m_constSymbol && (m_constSymbol->getUlamTypeIdx() == newuti)); //invariant? (likely null symbol, see checkForSymbol)
-
-	    assert(copyuti == pnodetypedesc->givenUTI()); //used keep type
+	    assert(m_constSymbol && ((m_constSymbol->getUlamTypeIdx() == Hzy) || (m_constSymbol->getUlamTypeIdx() == m_nodeTypeDesc->givenUTI()))); //invariant? (likely null symbol, see checkForSymbol) t41361, t3326
 	    aok = true;
 	  }
       }
     return aok;
   } //cloneTypeDescriptorForPendingArgumentNode
+
+    bool NodeConstantDef::cloneDefaultValueExpressionForPendingArgumentNode(NodeConstantDef * templateparamdef)
+  {
+    bool aok = false;
+    // for unseen classes that needed their args "fixed"
+    // this grabs the Template's m_nodeExpr after the class was seen
+    // (the default value is to help resolve pending argument values (t41436)
+    if(m_nodeExpr == NULL)
+      {
+	//clone the template's node type descriptor for this stub's pending argument
+	Node * pnodeexpr = NULL;
+	if(templateparamdef->getNodeExprPtr(pnodeexpr))
+	  {
+	    Node * copynodeexpr = pnodeexpr->instantiate();
+	    assert(copynodeexpr);
+	    copynodeexpr->setNodeLocation(getNodeLocation()); //same loc as this node
+
+	    AssertBool isset = setNodeExpr(copynodeexpr);
+	    assert(isset);
+
+	    aok = true;
+	  }
+      }
+    return aok;
+  } //cloneDefaultValueExpressionForPendingArgumentNode
 
   EvalStatus NodeConstantDef::eval()
   {
@@ -1110,12 +1201,13 @@ namespace MFM {
 	setupStackWithPrimitiveForEval(slotsneeded);
 	cslotidx += slotsneeded;
       }
-    else if(m_state.isAClass(nuti)) //t41198
+    else if(m_state.isAClass(nuti) || m_state.isAtom(nuti)) //t41198, t41483,4
       {
 	//array of classes??
-	//eval doesn't support transients (> atom size) (t41231)
+	// eval doesn't support transients (> atom size) (t41231)
+	// without a slot index, eval will return NOTREADY (-12) (t41266)
 	ULAMCLASSTYPE nclasstype = nut->getUlamClassType();
-	if((nclasstype == UC_ELEMENT) || (nclasstype == UC_QUARK) || ((nclasstype == UC_TRANSIENT) && (nut->getTotalBitSize() <= MAXSTATEBITS)))
+	if((nclasstype == UC_ELEMENT) || (nclasstype == UC_QUARK) || ((nclasstype == UC_TRANSIENT) && (nut->getTotalBitSize() <= MAXSTATEBITS)) || m_state.isAtom(nuti))
 	  {
 	    u32 slotsneeded = m_state.slotsNeeded(nuti);
 	    assert(m_constSymbol);
@@ -1244,7 +1336,7 @@ namespace MFM {
     assert(m_nodeExpr); //empty init is empty list, not null (t41262); could be a NodeConstantClass
 
     ULAMCLASSTYPE classtype = nut->getUlamClassType();
-    assert((classtype == UC_QUARK) || (classtype == UC_ELEMENT) || ((classtype == UC_TRANSIENT) && (nut->getTotalBitSize() <= MAXSTATEBITS)));
+    assert((classtype == UC_QUARK) || (classtype == UC_ELEMENT) || ((classtype == UC_TRANSIENT) && (nut->getTotalBitSize() <= MAXSTATEBITS)) || m_state.isAtom(nuti));
 
     PACKFIT packFit = nut->getPackable();
     if((packFit == PACKEDLOADABLE))
@@ -1263,7 +1355,6 @@ namespace MFM {
 
 	m_state.m_constantStack.storeUlamValueAtStackIndex(immUV, ((SymbolConstantValue *) m_constSymbol)->getConstantStackFrameAbsoluteSlotIndex());
       }
-    //else if(!m_nodeExpr)
     else if(m_nodeExpr->isAList() && ((NodeList*) m_nodeExpr)->isEmptyList())
       {
 	//unpacked, no inits for class, use default; support arrays
@@ -1311,11 +1402,39 @@ namespace MFM {
 	      }
 	    else if(classtype == UC_ELEMENT) //(t41230,8,9 t41243)
 	      {
+		itemlen = BITSPERATOM;
 		BV8K elval;
 		bvclass.CopyBV(j * itemlen, 0u, itemlen, elval); //fmpos, topos, len, destbv
 		classUV = UlamValue::makeAtom(scalaruti);
-		classUV.putDataBig(ATOMFIRSTSTATEBITPOS, itemlen, elval);
+		classUV.putDataBig(0u, itemlen, elval); //1st arg was ATOMFIRSTSTATEBITPOS
 	      }
+	    else if(m_state.isAtom(scalaruti)) //(t41483,4)
+	      {
+		BV8K atval;
+		bvclass.CopyBV(j * itemlen, 0u, itemlen, atval); //fmpos, topos, len, destbv
+		classUV = UlamValue::makeAtom();
+		classUV.putDataBig(0, itemlen, atval);
+
+		UTI euti = Nouti;
+		u32 elewcorr = classUV.getAtomElementTypeIdx();
+		u32 eletype = 0;
+		AssertBool gotele = Parity2D_4x4::Remove2DParity(elewcorr, eletype);
+		assert(gotele);
+		ELE_TYPE ele = (ELE_TYPE) eletype;
+		if(ele != UNDEFINED_ELEMENT_TYPE)
+		  {
+		    euti = m_state.lookupClassByElementType(ele);
+		    if(euti != Nouti)
+		      {
+			assert(m_state.isAClass(euti));
+			classUV.setUlamValueEffSelfTypeIdx(euti);
+		      }
+		  }
+		else
+		  classUV.setUlamValueEffSelfTypeIdx(m_state.getEmptyElementUTI());
+	      }
+	    else
+	      m_state.abortNotImplementedYet(); //transient array?
 
 	    m_state.m_constantStack.storeUlamValueAtStackIndex(classUV, baseslot + j);
 	  }
@@ -1367,8 +1486,6 @@ namespace MFM {
       {
 	if(m_constSymbol->isLocalsFilescopeDef() ||  m_constSymbol->isDataMember())
 	  {
-	    //u32 arraysize = nut->getArraySize();
-
 	    //as a "data member", locals filescope, or class arguement:
 	    // initialized in no-arg constructor (non-const)
 	    m_state.indentUlamCode(fp);
@@ -1427,7 +1544,7 @@ namespace MFM {
 	m_constSymbol->printPostfixValue(fp);
 	GCNL;
       }
-    else if(etyp == Class)
+    else if((etyp == Class) || (etyp == UAtom)) //t41483
       {
 	std::string estr;
 	AssertBool gotVal = m_constSymbol->getClassValueAsHexString(estr);
@@ -1455,9 +1572,14 @@ namespace MFM {
 	    m_state.indentUlamCode(fp);
 	    fp->write("const u32 _init");
 	    fp->write(m_constSymbol->getMangledName().c_str());
-	    fp->write("[(");
-	    fp->write_decimal_unsigned(len); //== [nwords]
-	    fp->write(" + 31)/32] = { ");
+	    if(len == 0)
+	      fp->write("[1] = { ");
+	    else
+	      {
+		fp->write("[(");
+		fp->write_decimal_unsigned(len); //== [nwords]
+		fp->write(" + 31)/32] = { ");
+	      }
 	    fp->write(estr.c_str());
 	    fp->write(" };\n");
 
@@ -1499,9 +1621,10 @@ namespace MFM {
   {
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    ULAMCLASSTYPE classtype = nut->getUlamClassType();
+    //ULAMCLASSTYPE classtype = nut->getUlamClassType();
+    ULAMTYPE etyp = nut->getUlamTypeEnum();
 
-    if(nut->isScalar() && (classtype == UC_NOTACLASS))
+    if(nut->isScalar() && !((etyp == Class) || (etyp == UAtom)))//t41483
       return;
 
     //constant array: Class or Primitive (not class arg primitive) //t3894
@@ -1515,9 +1638,14 @@ namespace MFM {
 	m_state.indent(fp);
 	fp->write("typedef u32 TypeForInit");
 	fp->write(m_constSymbol->getMangledName().c_str());
-	fp->write("[(");
-	fp->write_decimal_unsigned(len);
-	fp->write(" + 31)/32];\n");
+	if(len == 0)
+	  fp->write("[1];\n"); //t41520
+	else
+	  {
+	    fp->write("[(");
+	    fp->write_decimal_unsigned(len);
+	    fp->write(" + 31)/32];\n");
+	  }
 
 	//unique function to initialize STATIC constant (classes and array) "data members";
 	// not called in class no-arg constructor, but in .tcc (t41198)
@@ -1566,10 +1694,17 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("static ");
     fp->write("u32 ");
-    fp->write("initVal[(");
-    fp->write_decimal_unsigned(len);
-    fp->write(" + 31)/32] = ");
-    if(netyp == Class)
+    fp->write("initVal");
+    if(len == 0)
+      fp->write("[1] = ");
+    else
+      {
+	fp->write("[(");
+	fp->write_decimal_unsigned(len);
+	fp->write(" + 31)/32] = ");
+      }
+
+    if((netyp == Class) || (netyp == UAtom)) //t41483
       {
 	std::string estr;
 	AssertBool gotVal = m_constSymbol->getClassValueAsHexString(estr);

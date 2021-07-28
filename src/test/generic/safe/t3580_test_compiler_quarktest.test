@@ -7,8 +7,8 @@
 #!
 Exit status: 0
 Exit status: 0
-Ue_R { Int(32) test() {  Ish myish;  myish ( )test . return } }
-Uq_Ish { Int(32) test() {  Unsigned(8) val = 0 cast;  val cast return } }
+Ue_R { Int test() {  Ish myish;  myish ( )test . return } }
+Uq_Ish { Int test() {  Unsigned(8) val = 0 cast;  val cast return } }
 ##
 ## sure quark's can have a test method, but codegen requires an element to call it.
 ##

@@ -3,7 +3,8 @@
  *                               Array Subscripts for ULAM
  *
  * Copyright (C) 2014-2018 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2018 Ackleyshack LLC.
+ * Copyright (C) 2014-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -30,7 +31,7 @@
   \file NodeSquareBracket.h - Basic Node for handling Array Subscripts for ULAM
   \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2018  All rights reserved.
+  \date (C) 2014-2021  All rights reserved.
   \gpl
 */
 
@@ -68,13 +69,23 @@ namespace MFM{
 
     virtual bool isArrayItem();
 
-    virtual UTI checkAndLabelType();
+    virtual bool isAConstant();
+
+    virtual bool isAConstantClass();
+
+    virtual bool isAConstantClassArray();
+
+    virtual void setClassType(UTI cuti);
+
+    virtual bool isEmptyArraysizeDecl();
+
+    virtual UTI checkAndLabelType(Node * thisparentnode);
 
     virtual bool getConstantValue(BV8K& bval);
 
-    virtual bool trimToTheElement(Node ** fromleftnode, Node *& rtnnodeptr);
+    virtual bool initDataMembersConstantValue(BV8K& bvref, BV8K& bvmask);
 
-    virtual bool assignClassArgValueInStubCopy();
+    virtual bool trimToTheElement(Node ** fromleftnode, Node *& rtnnodeptr);
 
     virtual EvalStatus eval();
 
@@ -103,6 +114,8 @@ namespace MFM{
   private:
     bool m_isCustomArray;
     SymbolTmpVar * m_tmpvarSymbol;
+
+    virtual void clearSymbolPtr();
 
     Node * buildArefFuncCallNode();
 

@@ -35,15 +35,24 @@ namespace MFM {
 
   const std::string UlamType::getUlamTypeName()
   {
-    //return m_key.getUlamKeyTypeSignatureAsString(&m_state);
-    return m_key.getUlamKeyTypeSignatureNameAndSize(&m_state); //wo classinstance,w bits&arrays (t3137)
-    // REMINDER!! error due to disappearing string:
+    return m_key.getUlamKeyTypeSignatureNameAndSize((getBitSize() == ULAMTYPE_DEFAULTBITSIZE[getUlamTypeEnum()]), &m_state); //wo classinstance, w bits&arrays(t3137),no default bitsize (t41324)
+    // REMINDERS!! error due to disappearing string:
+    //    return m_key.getUlamKeyTypeSignatureAsString(&m_state);
     //    return m_key.getUlamKeyTypeSignatureAsString().c_str();
   }
 
   const std::string UlamType::getUlamTypeNameBrief()
   {
-    return m_key.getUlamKeyTypeSignatureNameAndBitSize(&m_state); //no arrays, nor ref w Bit-Size
+    std::ostringstream namestr;
+    if(getBitSize() == ULAMTYPE_DEFAULTBITSIZE[getUlamTypeEnum()])
+      namestr << m_key.getUlamKeyTypeSignatureName(&m_state).c_str(); //no default bitsize
+    else
+      namestr << m_key.getUlamKeyTypeSignatureNameAndBitSize(&m_state).c_str();
+
+    if(isAltRefType())
+      namestr << "&";
+    return namestr.str(); //no arrays, refs, bitsize if not default size
+    //return m_key.getUlamKeyTypeSignatureNameAndBitSize(&m_state); //no arrays, nor ref w Bit-Size
   }
 
   const std::string UlamType::getUlamTypeClassNameBrief(UTI cuti)
@@ -126,7 +135,7 @@ namespace MFM {
 	msg << "Casting different Array sizes: ";
 	msg << m_state.getUlamTypeNameByIndex(typidx).c_str();
 	msg << " TO " ;
-	msg << getUlamTypeName().c_str();
+	msg << getUlamTypeName().c_str(); //t41429
 	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 	bOK = false;
       }
@@ -157,7 +166,11 @@ namespace MFM {
       return false;
 
     if(key1.getUlamKeyTypeSignatureClassInstanceIdx() != key2.getUlamKeyTypeSignatureClassInstanceIdx())
-      return false; //t3963
+      {
+	ULAMTYPECOMPARERESULTS cicr = UlamType::compareWithWildArrayItemALTKey(key1.getUlamKeyTypeSignatureClassInstanceIdx(),key2.getUlamKeyTypeSignatureClassInstanceIdx(), m_state);
+	if(cicr != UTIC_SAME)
+	  return false; //t3963
+      }
 
     //skip rest in the case of array item, continue with usual size fit;
     //must check (t3884, t3651, t3653, t3817, t41071,3 t41100)
@@ -175,12 +188,12 @@ namespace MFM {
 
   void UlamType::getDataAsString(const u32 data, char * valstr, char prefix)
   {
-    sprintf(valstr,"%s", getUlamTypeName().c_str());
+    sprintf(valstr,"%s", getUlamTypeNameBrief().c_str());
   }
 
   void UlamType::getDataLongAsString(const u64 data, char * valstr, char prefix)
   {
-    sprintf(valstr,"%s", getUlamTypeName().c_str());
+    sprintf(valstr,"%s", getUlamTypeNameBrief().c_str());
   }
 
   s32 UlamType::getDataAsCs32(const u32 data)
@@ -605,8 +618,16 @@ namespace MFM {
     if(key1.getUlamKeyTypeSignatureBitSize() != key2.getUlamKeyTypeSignatureBitSize())
       return UTIC_NOTSAME;
 
-    if(key1.getUlamKeyTypeSignatureClassInstanceIdx() != key2.getUlamKeyTypeSignatureClassInstanceIdx())
-      return UTIC_NOTSAME; //t3412
+    UTI ci1 = key1.getUlamKeyTypeSignatureClassInstanceIdx();
+    UTI ci2 = key2.getUlamKeyTypeSignatureClassInstanceIdx();
+    if(ci1 != ci2)
+      {
+	//related t41436 (20210328 ish 045328 template instance ancestor comparison)
+	UlamKeyTypeSignature ci1key = state.getUlamTypeByIndex(ci1)->getUlamKeyTypeSignature();
+	UlamKeyTypeSignature ci2key = state.getUlamTypeByIndex(ci2)->getUlamKeyTypeSignature();
+	if(!(ci1key == ci2key))
+	  return UTIC_NOTSAME; //t3412 different class args
+      }
 
     ALT alt1 = key1.getUlamKeyTypeSignatureReferenceType();
     ALT alt2 = key2.getUlamKeyTypeSignatureReferenceType();
@@ -682,8 +703,15 @@ namespace MFM {
     if(key1.getUlamKeyTypeSignatureBitSize() != key2.getUlamKeyTypeSignatureBitSize())
       return UTIC_NOTSAME;
 
-    if(key1.getUlamKeyTypeSignatureClassInstanceIdx() != key2.getUlamKeyTypeSignatureClassInstanceIdx())
-      return UTIC_NOTSAME;
+    UTI ci1 = key1.getUlamKeyTypeSignatureClassInstanceIdx();
+    UTI ci2 = key2.getUlamKeyTypeSignatureClassInstanceIdx();
+    if(ci1 != ci2)
+      {
+	UlamKeyTypeSignature ci1key = state.getUlamTypeByIndex(ci1)->getUlamKeyTypeSignature();
+	UlamKeyTypeSignature ci2key = state.getUlamTypeByIndex(ci2)->getUlamKeyTypeSignature();
+	if(!(ci1key == ci2key))
+	  return UTIC_NOTSAME;
+      }
 
     ALT alt1 = key1.getUlamKeyTypeSignatureReferenceType();
     ALT alt2 = key2.getUlamKeyTypeSignatureReferenceType();

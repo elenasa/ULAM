@@ -5,7 +5,7 @@
 ##
 #!
 Exit status: 0
-Ue_Foo { Int(32) test() {  System s;  s ( true )assert . 0 cast return } }
+Ue_Foo { Int test() {  System s;  s ( true )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t41283; QuestionColon is not a local block even though within a local block;

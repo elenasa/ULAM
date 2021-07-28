@@ -8,10 +8,10 @@
 ##
 #!
 Exit status: 0
-Ue_R { Int(32) test() {  System s;  A(1u) a1;  Unsigned(32) a1cid = a1 ( )getClassid .;  s ( a1cid )print . s ( a1cid 1u cast == )assert . Unsigned(32) a2cid = A(2u).instanceof ( )getClassid .;  s ( a2cid )print . s ( a2cid 2u cast == )assert . Unsigned(32) a1rn = a1[3u];  s ( a1rn )print . s ( a1rn 3u cast == )assert . Unsigned(32) a2rn = A(2u)[4u];  s ( a2rn )print . s ( a2rn 4u cast == )assert . 0 cast return } }
+Ue_R { Int test() {  System s;  A(1u) a1;  Unsigned a1cid = a1 ( )getClassid .;  s ( a1cid )print . s ( a1cid 1u cast == )assert . Unsigned a2cid = A(2u).instanceof ( )getClassid .;  s ( a2cid )print . s ( a2cid 2u cast == )assert . Unsigned a1rn = a1[3u];  s ( a1rn )print . s ( a1rn 3u cast == )assert . Unsigned a2rn = A(2u)[4u];  s ( a2rn )print . s ( a2rn 4u cast == )assert . 0 cast return } }
 Ue_Ele2 { /* empty class block */ }
 Uq_System { <NOMAIN> }
-Ue_A(Unsigned(32) cid) { constant Unsigned(32) c_cid = cid;  <NOMAIN> }
+Ue_A(Unsigned cid) { constant Unsigned c_cid = cid;  <NOMAIN> }
 Ue_Ele1 { /* empty class block */ }
 ##
 ## Based on Dave question 04292020: can a classid be a template arg? Yes.

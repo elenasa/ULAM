@@ -1,7 +1,8 @@
 ## -*- mode:ulam -*-
 #=t3593_test_compiler_unaryzeroarrayindex_error
 #!
-./Ish2.ulam:13:1: ERROR: Invalid size (0) to set for primitive type: Unsigned.
+./Ish2.ulam:12:1: ERROR: Invalid size (0) to set for primitive type: Unsigned.
+./Ish2.ulam:9:5: ERROR: Incomplete Variable Decl for type used with variable symbol name 'tunsigned'.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by error/t3592
@@ -14,7 +15,6 @@ element Ish2 {
 
   Int test()
   {
-    System s;
     constant Phase cP = 0;
     Unsigned((Phase) (cP - 1)) tunsigned;
     return phase;

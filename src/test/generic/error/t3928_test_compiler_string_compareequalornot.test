@@ -2,7 +2,7 @@
 #=t3928_test_compiler_string_compareequalornot
 #!
 ##Exit status: 0
-##Ue_A { Bool(1) b1(true);  Bool(1) b2(true);  Int(32) test() {  String s = "foo";  s "bar" = b1 s "bar" == = b2 s "foo" != = 0 cast return } }
+##Ue_A { Bool b1(true);  Bool b2(true);  Int test() {  String s = "foo";  s "bar" = b1 s "bar" == = b2 s "foo" != = 0 cast return } }
 ./A.ulam:7:12: ERROR: Incompatible types for binary == : String, String; Suggest casting to a numeric type first.
 ./A.ulam:7:7: ERROR: Assignment is invalid; LHS: unresolved; RHS: erroneous.
 ./A.ulam:8:12: ERROR: Incompatible types for binary != : String, String; Suggest casting to a numeric type first.

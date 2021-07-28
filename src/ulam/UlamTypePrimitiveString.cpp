@@ -46,11 +46,11 @@ namespace MFM {
   const std::string UlamTypePrimitiveString::getUlamTypeName()
   {
     std::ostringstream key;
+    key << m_key.getUlamKeyTypeSignatureName(&m_state); //one size for all Strings
 
-    key << getUlamTypeNameBrief();
     if(!isScalar())
       {
-	s32 arraysize = getArraySize();
+	s32 arraysize = getArraySize(); //casting diff array sizes (t41429,t41324,t3976)
 	if(arraysize >= 0)
 	  key << "[" << arraysize << "]";
 	else if(arraysize == UNKNOWNSIZE)
@@ -68,7 +68,14 @@ namespace MFM {
 
   const std::string UlamTypePrimitiveString::getUlamTypeNameBrief()
   {
-    return m_key.getUlamKeyTypeSignatureName(&m_state); //one size for all Strings
+    std::ostringstream key;
+    key << m_key.getUlamKeyTypeSignatureName(&m_state); //one size for all Strings
+
+    if(UlamType::isAltRefType())
+      key << "&"; //only when ulam programmer put in the & (t3948)
+
+    u32 keyid = m_state.m_pool.getIndexForDataString(key.str());
+    return m_state.m_pool.getDataAsString(keyid);
   }
 
   const std::string UlamTypePrimitiveString::getUlamTypeImmediateMangledName()

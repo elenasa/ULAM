@@ -2,8 +2,8 @@
 #=t3711_test_compiler_transient
 #!
 Exit status: 1
-Ue_Foo { Int(32) test() {  Too t;  1 cast return } }
-Un_Too { Bool(7) sp(false);  Int(32) a(0);  <NOMAIN> }
+Ue_Foo { Int test() {  Too t;  1 cast return } }
+Un_Too { Bool(7) sp(false);  Int a(0);  <NOMAIN> }
 ##
 ## FIRST TRANSIENT TEST EVER in the history of the universe!!!
 ## Wed Apr 27 09:52:51 2016 esa

@@ -8,11 +8,11 @@
 ##
 #!
 Exit status: 0
-Ue_Foo +System { +System<> Int(32) test() {  E4 e4;  e4 ( 3 cast )vfunc . self ( e4 m_foo . )print . self ( e4 m_foo . -3 cast == )assert . 0 cast return } }
+Ue_Foo +System { +System<> Int test() {  E4 e4;  e4 ( 3 cast )vfunc . self ( e4 m_foo . )print . self ( e4 m_foo . -3 cast == )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
-Ue_E4 : Mid { :Mid<> ^Top< Int(32) m_foo(0); > <NOMAIN> }
-Uq_Mid : Top { :Top< Int(32) m_foo(0); > <NOMAIN> }
-Uq_Top { Int(32) m_foo(0);  <NOMAIN> }
+Ue_E4 : Mid { :Mid<> ^Top< Int m_foo(0); > <NOMAIN> }
+Uq_Mid : Top { :Top< Int m_foo(0); > <NOMAIN> }
+Uq_Top { Int m_foo(0);  <NOMAIN> }
 Uq_SystemU3 : System { :System<> <NOMAIN> }
 ##
 ##       informed by t41321, t41161, and Daves java example 6/13/19

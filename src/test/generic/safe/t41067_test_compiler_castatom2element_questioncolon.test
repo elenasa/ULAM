@@ -5,11 +5,9 @@
 ##	 Int Arg: 1
 ##	 Int Arg: 1
 ##
-## atom and element types unevaluable
-##
 #!
-Exit status: -11
-Ue_Tu { System s();  Int(32) me(1);  Int(32) test() {  Atom(96) a = self.atomof cast;  Tu t = a Tu is ?  a cast :  self cast;  t me . 2 cast = self s . ( t me . )print . self s . ( t me . 2 cast == )assert . self s . ( self me . )print . self s . ( self me . 1 cast == )assert . Tu& tref = a Tu is ?  a cast :  t cast;  self s . ( tref me . )print . self s . ( tref me . 1 cast == )assert . self me . return } }
+Exit status: 1
+Ue_Tu { System s();  Int me(1);  Int test() {  Atom a = self.atomof cast;  Tu t = a Tu is ?  a cast :  self cast;  t me . 2 cast = self s . ( t me . )print . self s . ( t me . 2 cast == )assert . self s . ( self me . )print . self s . ( self me . 1 cast == )assert . Tu& tref = a Tu is ?  a cast :  t cast;  self s . ( tref me . )print . self s . ( tref me . 1 cast == )assert . self me . return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t3277

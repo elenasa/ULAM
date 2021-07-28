@@ -66,7 +66,6 @@ namespace MFM
     u32 reportAnyUnknownTypeNames();
 
     //these exist in a stubs only!
-    bool assignClassArgValuesInStubCopy();
     u32 countNonreadyClassArgs();
     bool statusNonreadyClassArguments(SymbolClass * stubcsym);
     void linkConstantExpressionForPendingArg(NodeConstantDef * ceNode);
@@ -79,7 +78,7 @@ namespace MFM
     bool mapUTItoUTI(UTI fmuti, UTI touti);
     bool findMappedUTI(UTI auti, UTI& mappedUTI);
 
-    void cloneUTImap(SymbolClass * csym);
+    void cloneUTImapForNonclasses(SymbolClass * csym);
     void cloneUnknownTypesTokenMap(SymbolClass * csym);
 
   protected:

@@ -5,13 +5,14 @@
 ##
 #!
 Exit status: 96
-Ue_Foo { System s();  Bool(1) first(false);  Soo(1,2u) su( constant Int(32) a = 1;  constant Unsigned(32) b = 2u;  Unsigned(3) us(4u);  :Coo(1)< Bool(1) cb(true);  constant Int(32) a = 1;  typedef Unsigned(3) U3; >);  Int(32) test() {  Foo f;  { f su . cb . cond { self s . ( f su . cb . cast )print . self s . ( f su . cb . )assert . 96u cast return } if } 0 cast return } }
+Ue_Foo { System s();  Bool first(false);  Soo(1,2u) su( constant Int a = 1;  constant Unsigned b = 2u;  Unsigned(3) us(4u);  :Coo(1)< Bool cb(true);  constant Int a = 1;  typedef Unsigned(3) U3; >);  Int test() {  Foo f;  { f su . cb . cond { self s . ( f su . cb . cast )print . self s . ( f su . cb . )assert . 96u cast return } if } 0 cast return } }
 Uq_System { <NOMAIN> }
-Uq_Soo(Int(32) a, Unsigned(32) b) : Coo(a) { Unsigned(3) us( 4u);  :Coo11< typedef Unsigned(3) U3;  Bool(UNKNOWN) cb(notready); > <NOMAIN> }
-Uq_Coo(Int(32) a) { typedef Unsigned(3) U3;  Bool(UNKNOWN) cb(notready);  <NOMAIN> }
+Uq_Soo(Int a, Unsigned b) : Coo(a) { holder us(notready);  :Coo11< typedef Unsigned(3) U3;  Bool(UNKNOWN) cb(notready); > <NOMAIN> }
+Uq_Coo(Int a) { typedef Unsigned(3) U3;  Bool(UNKNOWN) cb(notready);  <NOMAIN> }
 ##
 ## quark inheritance, templated with typedef
 ## Coo has a typedef used by Soo (see t3555 for non-templated inheritance w typedef)
+## (see t3384 breaks)
 ##
 #>Foo.ulam
   ulam 2;
@@ -23,12 +24,10 @@ element Foo {
     Foo f;
 
     // tmp var works:
-    //Soo sootmp = f.su;
+    //Soo(1,2) sootmp = f.su;
     //if(sootmp.cb)
 
-    //if(f.su.us > 0) works
-    //if(f as Soo)
-    // if(f.cb) works
+    //if(f.su.us > 0) //works
     if(f.su.cb)
     {
       s.print(f.su.cb);
@@ -42,6 +41,7 @@ element Foo {
 #:Soo.ulam
   ulam 2;
 quark Soo(Int a, Unsigned b) : Coo(a) {
+  //typedef Coo(a).U3 U3;  //WORKS WITH THIS!! does this mean typedefs are not inherited???
   U3 us = 4u;
 }
 

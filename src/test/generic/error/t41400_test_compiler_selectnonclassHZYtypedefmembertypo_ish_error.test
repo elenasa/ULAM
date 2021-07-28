@@ -2,16 +2,9 @@
 #=t41400_test_compiler_selectnonclassHZYtypedefmembertypo_ish_error
 #!
 ./A.ulam:16:15: ERROR: Expected data member or function call to follow member select by type 'Stage'.
+./A.ulam:6:3: ERROR: Class with parameters seen with the same name: Stage; No shadow typedef in class scope, A.
 Unrecoverable Program Parse FAILURE: <A.ulam>
-./QBase.ulam:3:26: ERROR: Typedef alias 'Stage' already exists as an unseen class type: Stage, first noticed at: ..
-./A.ulam:16:15: ERROR: .. Another typedef for 'Stage' visible from here might clear the ambiguity.
-./QBase.ulam:3:26: ERROR: Invalid typedef of base type <Unsigned> and name 'Stage' (missing symbol).
-./QBase.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'QBase'; Possible missing ending curly brace.
-./QBase.ulam:3:31: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
-./QBase.ulam:2:7: ERROR: Invalid Type: QBase.
- ERROR: No parse tree for This Class: QBase.
 Unrecoverable Program Parse FAILURE: <QBase.ulam>
-./QBase.ulam:4:1: ERROR: Invalid Class Type <}>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 Unrecoverable Program Parse FAILURE: <System.ulam>
 ##
 ## informed by t41398, except Stage typo is Hzy when parsed

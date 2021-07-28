@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t41248_test_compiler_element_constantrefprimitive_differentsizes_error
 #!
-./Foo.ulam:22:14: ERROR: Reference variable cbref's type constant Bool(3)&, and its initial value type Bool(1), are incompatible.
+./Foo.ulam:22:14: ERROR: Reference variable cbref's type constant Bool(3)&, and its initial value type Bool, are incompatible.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t41242, except different sizes, though safe to cast, an error

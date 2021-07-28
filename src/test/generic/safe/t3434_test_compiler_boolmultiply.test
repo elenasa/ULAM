@@ -10,7 +10,7 @@
 ##      */
 #!
 Exit status: 1
-Ue_A { Bool(1) b(true);  System s();  Bool(3) a(true);  Unary(3) d(3u);  Unsigned(6) e(3u);  Int(32) test() {  self a . true cast = self e . self d . self a . cast cast 3 cast * cast = cast = self s . ( self d . )print . self s . ( self d . cast 3 == )assert . self s . ( self e . cast )print . self s . ( self e . cast 3 cast == )assert . self b . self d . cast 0 cast != = self b . cast return } }
+Ue_A { Bool b(true);  System s();  Bool(3) a(true);  Unary(3) d(3u);  Unsigned(6) e(3u);  Int test() {  self a . true cast = self e . self d . self a . cast cast 3 cast * cast = cast = self s . ( self d . )print . self s . ( self d . cast 3 == )assert . self s . ( self e . cast )print . self s . ( self e . cast 3 cast == )assert . self b . self d . cast 0 cast != = self b . cast return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
   ulam 1;
@@ -46,9 +46,9 @@ Void assert(Bool b) native;
 ##
 ##      //here's what happens when we try to multiple bools and save in a bool;
 ##      // note1: cast as a unary the product is true (==1)
-##      // note2: cast as an Int(32), the exit status is 1
+##      // note2: cast as an Int, the exit status is 1
 ##      // cannot multiply 1-bit Bool * 3 since 3 doesn't fit in 3 bits.
 ##      //      bool rtn1 = fms->add("A.ulam","use System;\nelement A {\nSystem s;\nBool(3) a, c;\n Bool b;\nUnary(3) d,e;\nInt test() {\na = true;\n d = b = a * 3;\n s.print(d);\n e = c = a * 3;\n s.print(c);\n s.print(d);\n return b;\n }\n }\n");
-##      //./A.ulam:11:5: ERROR: Attempting to implicitly cast a non-Bool type, RHS: Unary(3), to a Bool type: Bool(1) for binary operator= without casting. (b = d;)
+##      //./A.ulam:11:5: ERROR: Attempting to implicitly cast a non-Bool type, RHS: Unary(3), to a Bool type: Bool for binary operator= without casting. (b = d;)
 ##
 #.

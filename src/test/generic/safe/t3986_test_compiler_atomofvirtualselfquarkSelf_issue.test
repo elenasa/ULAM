@@ -1,12 +1,13 @@
 ## -*- mode:ulam -*-
 #=t3986_test_compiler_atomofvirtualselfquarkSelf_issue
 #!
-Exit status: -11
-Ue_HelloWorldString : FString("Hello World") { :FString("Hello World")< constant String fstring = "Hello World";  :FontString<>> ^FontString<> Int(32) test() {  self ( )behave . 0 cast return } }
+Exit status: 0
+Ue_HelloWorldString : FString("Hello World") { :FString("Hello World")< constant String fstring = "Hello World";  :FontString<>> ^FontString<> Int test() {  self ( )behave . 0 cast return } }
 Uq_FString(String fstring) : FontString { :FontString<> <NOMAIN> }
 Uq_FontString { <NOMAIN> }
 ##
-## informed by ish 1/5/2017: atomref no longer inherits from UlamRef, cast needs getUlamRef() call generated.
+## informed by ish 1/5/2017: atomref no longer inherits from UlamRef,
+##                           cast needs getUlamRef() call generated.
 ##
 #>HelloWorldString.ulam
   ulam 3;

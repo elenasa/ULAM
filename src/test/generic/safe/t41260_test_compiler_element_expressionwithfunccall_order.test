@@ -5,7 +5,7 @@
 ##
 #!
 Exit status: 0
-Ue_Foo { Int(32) test() {  System s;  Foo f;  Unsigned(32) var1 = f ( )func . 1u cast +b;  s ( var1 1u cast == )assert . Unsigned(32) var2 = 1u cast f ( )func . +b;  s ( var2 1u cast == )assert . 0 cast return } }
+Ue_Foo { Int test() {  System s;  Foo f;  Unsigned var1 = f ( )func . 1u cast +b;  s ( var1 1u cast == )assert . Unsigned var2 = 1u cast f ( )func . +b;  s ( var2 1u cast == )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## ish, informed by Dave 3/14/18 generated SPLAT code (see error/t41259)

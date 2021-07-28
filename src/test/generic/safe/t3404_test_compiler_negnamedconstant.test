@@ -9,7 +9,7 @@
 ##      */
 #!
 Exit status: 0
-Ue_Fu { System s();  constant Int(3) n = -3;  Unsigned(3) u(3u);  Int(32) test() {  self s . ( -3 )print . self s . ( -3 cast )print . self s . ( -4 )print . self s . ( 3 )print . self u . 3 cast = self s . ( self u . cast )print . 0 cast return } }
+Ue_Fu { System s();  constant Int(3) n = -3;  Unsigned(3) u(3u);  Int test() {  self s . ( -3 )print . self s . ( -3 cast )print . self s . ( -4 )print . self s . ( 3 )print . self u . 3 cast = self s . ( self u . cast )print . 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ##      //informed by t3288

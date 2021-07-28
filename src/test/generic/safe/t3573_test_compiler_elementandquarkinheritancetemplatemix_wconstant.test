@@ -2,9 +2,9 @@
 #=t3573_test_compiler_elementandquarkinheritancetemplatemix_wconstant
 #!
 Exit status: 4
-Ue_R { Int(32) test() {  Tu(1) tu;  tu 4 . return } }
-Ue_Tu(Int(32) x) : Foo { /* empty class block */ }
-Uq_Foo { constant Int(32) mi = 4;  <NOMAIN> }
+Ue_R { Int test() {  Tu(1) tu;  tu 4 . return } }
+Ue_Tu(Int x) : Foo { /* empty class block */ }
+Uq_Foo { constant Int mi = 4;  <NOMAIN> }
 ##
 ##       //template classes can inherit from a regular class
 ##       informed by t3567, error/t3556

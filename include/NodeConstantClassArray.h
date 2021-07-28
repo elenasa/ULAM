@@ -2,7 +2,8 @@
  * NodeConstantClassArray.h - Node handling Named Constant Class arrays for ULAM
  *
  * Copyright (C) 2018 The Regents of the University of New Mexico.
- * Copyright (C) 2018 Ackleyshack LLC.
+ * Copyright (C) 2018-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +30,7 @@
   \file NodeConstantClassArray.h - Node handling Named Constant arrays for ULAM
   \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2018 All rights reserved.
+  \date (C) 2018-2021 All rights reserved.
   \gpl
 */
 
@@ -50,6 +51,8 @@ namespace MFM{
   public:
 
     NodeConstantClassArray(const Token& tok, SymbolWithValue * symptr, NodeTypeDescriptor * typedesc, CompilerState & state);
+
+    NodeConstantClassArray(const Token& tok, NNO stblockno, UTI constantType, NodeTypeDescriptor * typedesc, CompilerState & state);
 
     NodeConstantClassArray(const NodeConstantClassArray& ref);
 
@@ -79,9 +82,7 @@ namespace MFM{
 
     virtual FORECAST safeToCastTo(UTI newType);
 
-    virtual UTI checkAndLabelType();
-
-    virtual bool assignClassArgValueInStubCopy();
+    virtual UTI checkAndLabelType(Node * thisparentnode);
 
     virtual bool getConstantValue(BV8K& bval);
 
@@ -105,6 +106,8 @@ namespace MFM{
     NNO m_currBlockNo;
     NodeBlock * m_currBlockPtr; //could be NULL
     SymbolTmpVar * m_tmpvarSymbol;
+
+    virtual void clearSymbolPtr();
 
     void setBlockNo(NNO n);
     NNO getBlockNo() const;

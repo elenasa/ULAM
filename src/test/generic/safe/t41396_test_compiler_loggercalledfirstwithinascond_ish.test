@@ -6,7 +6,7 @@
 ##
 #!
 Exit status: 9
-Ue_MyElement { Int(32) test() {  SystemU3 log;  Atom(96)& a = self.atomof;  { a MyElement as cond { MyElement& a;  log ( "die" )prints . { a ( )funcccc . cond 9 cast return if } } if } 0 cast return } }
+Ue_MyElement { Int test() {  SystemU3 log;  Atom& a = self.atomof;  { a MyElement as cond { MyElement& a;  log ( "die" )prints . { a ( )funcccc . cond 9 cast return if } } if } 0 cast return } }
 Uq_SystemU3 : System { :System<> <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

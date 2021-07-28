@@ -2,13 +2,11 @@
 #=t3693_test_compiler_atomcasttoquarkselfrefasself
 ##      gen code output: (1 asserts)
 ##
-##        unevaluable: expected exit status 1
-##
 #!
-Exit status: -11
-Ue_A : QW { Bool(1) b(false);  Bool(1) c(false);  :QW< Bool(1) bw(true); > Int(32) test() {  System s;  self bw . true = QW q = self ( )func .;  self b . q bw . = s ( self b . )assert . self b . cast return } }
+Exit status: 1
+Ue_A : QW { Bool b(true);  Bool c(false);  :QW< Bool bw(true); > Int test() {  System s;  self bw . true = QW q = self ( )func .;  self b . q bw . = s ( self b . )assert . self b . cast return } }
 Uq_System { <NOMAIN> }
-Uq_QW { Bool(1) bw(false);  <NOMAIN> }
+Uq_QW { Bool bw(false);  <NOMAIN> }
 ##
 ## Dave requested a way to get default values for Self (within a quark);
 ## a loophole, since a quark would be an undefined atom, but as a ref, its done (t3679)
@@ -40,7 +38,7 @@ quark QW {
   {
     Atom a = self.atomof;
     Self& sra = (Self&) a;  //see t3692
-    //Cannot explicitly cast Atom(96) to type: QW
+    //Cannot explicitly cast Atom to type: QW
     //Self sra = (Self) a; //cast turns into immediate with self's values
     Self sa = sra; //cast turns into immediate with self's values
     return sa;

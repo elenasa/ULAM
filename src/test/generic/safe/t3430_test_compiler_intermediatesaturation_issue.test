@@ -3,7 +3,7 @@
 ##      //correctly g and f are different!
 #!
 Exit status: 0
-Ue_A { typedef Int(9) Foo;  Int(9) f(255);  Int(9) g(254);  Int(32) test() {  self g . self f . 255 = = self f . self f . cast 1 cast +b cast 1 cast -b cast = self g . 1 cast += self g . 1 cast -= self f . self g . == cast return } }
+Ue_A { typedef Int(9) Foo;  Int(9) f(255);  Int(9) g(254);  Int test() {  self g . self f . 255 = = self f . self f . cast 1 cast +b cast 1 cast -b cast = self g . 1 cast += self g . 1 cast -= self f . self g . == cast return } }
 #>A.ulam
   ulam 1;
 element A {

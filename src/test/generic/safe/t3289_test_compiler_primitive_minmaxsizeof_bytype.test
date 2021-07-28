@@ -19,7 +19,7 @@
 ##      //constant fold minus
 #!
 Exit status: 0
-Ue_Fu { System s();  Int(32) test() {  self s . ( 4u )print . ; self s . ( -8 )print . self s . ( 7 )print . self s . ( 32u )print . self s . ( 0u )print . self s . ( 4294967295u )print . self s . ( 3u )print . self s . ( 0u )print . self s . ( 7u )print . self s . ( 3u )print . self s . ( 0u )print . self s . ( 7u )print . self s . ( 2u )print . 0 cast return } }
+Ue_Fu { System s();  Int test() {  self s . ( 4u )print . ; self s . ( -8 )print . self s . ( 7 )print . self s . ( 32u )print . self s . ( 0u )print . self s . ( 4294967295u )print . self s . ( 3u )print . self s . ( 0u )print . self s . ( 7u )print . self s . ( 3u )print . self s . ( 0u )print . self s . ( 7u )print . self s . ( 2u )print . 0 cast return } }
 Uq_System { <NOMAIN> }
 #>Fu.ulam
   ulam 1;

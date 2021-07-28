@@ -1,13 +1,11 @@
 ## -*- mode:ulam -*-
 #=t3585_test_compiler_elementquarkinheritance_returnatomasquarkSelf
+##
 ## gencode output (interleaved asserts):
-##Unsigned Arg: 1
-##
-## cus evals as 6u and fails; expects 1u/
-##
+##   Unsigned Arg: 1
 #!
-Exit status: -11
-Ue_Foo : Soo { Bool(1) first(false);  Unsigned(3) cus(6u);  :Soo< Unsigned(3) sus(4u);  :Coo< Unsigned(3) us(2u);  Bool(3) cb(true); >> ^Coo< Unsigned(3) us(2u);  Bool(3) cb(true); > Int(32) test() {  System s;  Coo c = self ( )func .;  self cus . c us . = s ( c us . cast )print . s ( c us . cast 1 cast == )assert . c us . cast return } }
+Exit status: 1
+Ue_Foo : Soo { Bool first(false);  Unsigned(3) cus(1u);  :Soo< Unsigned(3) sus(4u);  :Coo< Unsigned(3) us(2u);  Bool(3) cb(true); >> ^Coo< Unsigned(3) us(2u);  Bool(3) cb(true); > Int test() {  System s;  Coo c = self ( )func .;  self cus . c us . = s ( c us . cast )print . s ( c us . cast 1 cast == )assert . c us . cast return } }
 Uq_Soo : Coo { Unsigned(3) sus( 4u);  :Coo< Unsigned(3) us( 2u);  Bool(3) cb( true); > <NOMAIN> }
 Uq_Coo { Unsigned(3) us( 2u);  Bool(3) cb( true);  <NOMAIN> }
 Uq_System { <NOMAIN> }

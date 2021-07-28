@@ -1,9 +1,9 @@
 /**                                        -*- mode:C++ -*-
  * SymbolClassNameTemplate.h -  Class Symbol "Template" for ULAM
  *
- * Copyright (C) 2015-2020 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2020 Ackleyshack LLC.
- * Copyright (C) 2020 The Living Computation Foundation.
+ * Copyright (C) 2015-2021 The Regents of the University of New Mexico.
+ * Copyright (C) 2015-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -30,7 +30,7 @@
   \file SymbolClassNameTemplate.h -  Class Symbol "Template" for ULAM
   \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2020 All rights reserved.
+  \date (C) 2015-2021 All rights reserved.
   \gpl
 */
 
@@ -81,10 +81,6 @@ namespace MFM{
 
     SymbolClass * makeAStubClassInstance(const Token& typeTok, UTI cuti); //to hold class args, and cUTI
     SymbolClass * copyAStubClassInstance(UTI instance, UTI newuti, UTI argvaluecontext, UTI argtypecontext, Locator newloc);
-
-    bool checkTemplateAncestorsBeforeAStubInstantiation(SymbolClass * stubcsym); //or private?
-
-    void mergeClassInstancesFromTEMP();
 
     /** replaces temporary class argument names, updates the ST, and the class type */
     void fixAnyUnseenClassInstances();
@@ -153,12 +149,31 @@ namespace MFM{
     bool takeAnInstancesArgValues(SymbolClass * fm, SymbolClass * to);
     bool copyAnInstancesArgValues(SymbolClass * fm, SymbolClass * to);
     void cloneAnInstancesUTImap(SymbolClass * fm, SymbolClass * to);
-    void initBaseClassListForAStubClassInstance(SymbolClass * & newclassinstance);
+    void initBaseClassListForAStubClassInstance(SymbolClass * newclassinstance);
+    bool checkTemplateAncestorsAndUpdateStubBeforeAStubInstantiation(SymbolClass * stubcsym);
+    bool verifySelfAndSuperTypedefs(UTI cuti, SymbolClass * csym);
+    void mergeClassInstancesFromTEMP();
+
+    void upgradeStubCopyToAStubClassInstance(UTI suti, SymbolClass * csym);
+    bool flagpAsAStubForTemplate(UTI compilingthis); //helper
+    bool flagpAsAStubForTemplateMemberStub(UTI compilingthis); //helper
+    u32 findClassInstancesByLocation(Locator loc, std::set<UTI>& asetref);
 
     bool checkSFINAE(SymbolClass * sym);
 
-    std::map<UTI, SymbolClass* > m_stubsToDelete;
-    void trashStub(UTI uti, SymbolClass * symptr);
+    struct less_than_loc
+    {
+      //see operator< in Locator
+      inline bool operator() (const Locator loc1, const Locator loc2)
+      {
+	return (loc1 < loc2);
+      }
+    };
+
+    std::map<UTI, std::map<Locator,u32>, less_than_loc > m_locStubsDeleted;
+    void trashStub(UTI duputi, SymbolClass * symptr);
+    void outputLocationsOfTrashedStubs(u32 toomany, UTI dupi);
+    void addClassInstanceByLocation(Locator loc, UTI uti);
   };
 
 }

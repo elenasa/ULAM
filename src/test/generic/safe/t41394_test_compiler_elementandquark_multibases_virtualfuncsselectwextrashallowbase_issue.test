@@ -5,7 +5,7 @@
 ##
 #!
 Exit status: 0
-Ue_Foo { Int(32) m_c4(0);  Int(32) m_a4(0);  Int(32) test() {  Bounce ball;  ball ( )behave . 0 cast return } }
+Ue_Foo { Int m_c4(0);  Int m_a4(0);  Int test() {  Bounce ball;  ball ( )behave . 0 cast return } }
 Ue_Bounce : QBases +Random { :QBases<> +Random<> ^QSuperBase<> ^QSuperDuperBase< constant Unsigned(8) cBLACK[4] = { }; > <NOMAIN> }
 Uq_QBases : QSuperBase { /* empty class block */ }
 Uq_Random { <NOMAIN> }

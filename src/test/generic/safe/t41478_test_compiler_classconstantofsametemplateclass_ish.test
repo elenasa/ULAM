@@ -1,0 +1,62 @@
+## -*- mode:ulam -*-
+#=t41478_test_compiler_classconstantofsametemplateclass_ish
+## gen output: (+ interleave asserts)
+##  Unsigned Arg: 2
+##  Unsigned Arg: 3
+##  Unsigned Arg: 1
+#!
+Exit status: 6
+Ue_T { Int test() {  System s;  typedef Foo(false,0u) MyFoo;  constant Foo(true,2u) f = { };  s ( f mDM1 . cast )print . s ( f mDM1 . cast 2 cast == )assert . constant Foo(false,0u) mf = { .mDM1 = 3u };  s ( mf mDM1 . cast )print . s ( mf mDM1 . cast 3 cast == )assert . constant Foo(false,1u) nf = { };  s ( nf mDM1 . cast )print . s ( nf mDM1 . cast 1 cast == )assert . f mDM1 . cast mf mDM1 . cast +b cast nf mDM1 . cast +b cast return } }
+Uq_System { <NOMAIN> }
+Uq_Foo(Bool b, Unsigned(3) m) { Unsigned(3) mDM1(notready);  Bool mDM2(notready);  typedef Foo(true,2u) QFoo;  typedef Foo12 MooFoo;  typedef Foo(b,m) NewFoo;  <NOMAIN> }
+##
+##  informed by Dave's ish 20210610, see error/t41477,t41479, and t41480
+##  a way to change data member initial values while still using the class' default value
+##  as member typedef of same template class. Important that f, mf, and nf are constants.
+##
+#>T.ulam
+ ulam 5;
+element T {
+
+  Int test(){
+    System s;
+    typedef Foo(false,0) MyFoo;
+    constant MyFoo.QFoo f = { };
+    s.print(f.mDM1);
+    s.assert(f.mDM1==2);
+    constant MyFoo.MooFoo mf = { .mDM1 = 3 };
+    s.print(mf.mDM1);
+    s.assert(mf.mDM1==3);
+    constant MyFoo.NewFoo nf = {};
+    s.print(nf.mDM1);
+    s.assert(nf.mDM1==1);
+    return (Int) (f.mDM1 + mf.mDM1 + nf.mDM1);
+
+  }
+}
+
+#:Foo.ulam
+  ulam 5;
+quark Foo(Bool b, Unsigned(3) m) {
+  Unsigned(3) mDM1 = m;
+  Bool mDM2 = b;
+
+  typedef Foo(true, 2) QFoo;
+
+  typedef Self MooFoo; //defaults
+
+  typedef Foo(b,m+1) NewFoo;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t41429_test_compiler_castingstringarraytobooltovalidatestringindex_error
 #!
-./System.ulam:11:0: ERROR: Casting different Array sizes: String[3] TO Bool(1).
+./System.ulam:11:0: ERROR: Casting different Array sizes: String[3] TO Bool.
 ./A.ulam:15:6: ERROR: Consider implementing array casts: Cannot cast array into scalar.
 ./A.ulam:18:6: ERROR: Array casts currently not supported.
 Unrecoverable Program Type Label FAILURE.

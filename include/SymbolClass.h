@@ -76,24 +76,32 @@ namespace MFM{
 
     bool isDirectSharedBase(u32 item) const;
     u32 getNumberSharingBase(u32 item) const;
+    u32 getNumberSharingSharedBase(u32 item) const;
     u32 countDirectSharedBases() const;
     u32 findDirectSharedBases(std::map<UTI, u32>& svbmapref);
 
     void appendBaseClass(UTI baseclass, bool sharedbase);
     void updateBaseClass(UTI oldclasstype, u32 item, UTI newbaseclass);
     void setBaseClass(UTI baseclass, u32 item, bool sharedbase = true);
+    void setSuperBaseClass(UTI superuti);
+    void updateSuperTypedef(UTI superuti);
+
     s32 getBaseClassRelativePosition(u32 item) const;
-    void setBaseClassRelativePosition(u32 item, u32 pos);
+    void setBaseClassRelativePosition(u32 item, u32 pos, bool dupflag);
+    bool isADuplicateBaseClass(u32 item);
 
     UTI getSharedBaseClass(u32 item);
     s32 isASharedBaseClassItem(UTI buti);
     s32 isASharedBaseClassItemSearch(UTI buti);
     u32 getSharedBaseClassCount() const;
+    void updateSharedBaseClass(UTI oldclasstype, u32 item, UTI newbaseclass);
+    void appendSharedBaseClass(UTI baseclass, u32 numshared);
 
     s32 getSharedBaseClassRelativePosition(u32 item) const;
     void setSharedBaseClassRelativePosition(u32 item, u32 pos);
 
     void setClassBlockNode(NodeBlockClass * node);
+    void resetClassBlockNode(NodeBlockClass * node);
 
     NodeBlockClass * getClassBlockNode();
 
@@ -110,6 +118,16 @@ namespace MFM{
     bool isStub();
 
     void unsetStub();
+
+    bool isStubCopy();
+
+    void unsetStubCopy();
+
+    void setStubCopy();
+
+    UTI getStubCopyOf();
+
+    void setStubCopyOf(UTI stubuti);
 
     UTI getCustomArrayType(); //by function return type
 
@@ -145,7 +163,7 @@ namespace MFM{
 
     void linkConstantExpressionForPendingArg(NodeConstantDef * constNode);
     bool pendingClassArgumentsForClassInstance();
-    void cloneArgumentNodesForClassInstance(SymbolClass * fmcsym, UTI argvaluecontext, UTI argtypecontext, bool toStub);
+    void cloneArgumentNodesForClassInstance(SymbolClass * fmcsym, UTI argvaluecontext, UTI argtypecontext);
     void cloneResolverUTImap(SymbolClass * csym);
     void cloneUnknownTypesMapInClass(SymbolClass * to);
 
@@ -156,11 +174,10 @@ namespace MFM{
 
     bool mapUTItoUTI(UTI auti, UTI mappedUTI);
     bool hasMappedUTI(UTI auti, UTI& mappedUTI);
+    bool hasMappedUTI(UTI auti); //helps w debugging
 
     bool assignRegistryNumber(u32 n); //ulam-4
     u32 getRegistryNumber(); //ulam-4, assign when UTI is ok ulam-5
-    bool assignElementType(ELE_TYPE n); //ulam-4
-    bool assignEmptyElementType(); //ulam-4
     ELE_TYPE getElementType(); //ulam-4
 
     virtual void generateCode(FileManager * fm);
@@ -200,6 +217,13 @@ namespace MFM{
 
     void buildIsBitVectorByRegNum(BV8K& bitvecref);
 
+    void partialInstantiationOfMemberNodesAndSymbols(NodeBlockClass & fromclassblock);
+
+    bool isStubForTemplate();
+    UTI getStubForTemplateType();
+    void setStubForTemplateType(UTI ttype);
+    void clearStubForTemplate();
+
   protected:
     Resolver * m_resolver;
 
@@ -210,6 +234,11 @@ namespace MFM{
     SymbolClassNameTemplate * m_parentTemplate;
     bool m_quarkunion;
     bool m_stub;
+    bool m_stubcopy;
+    bool m_stubForTemplate; //ulam-5 (t41440, t41224)
+    UTI m_stubForTemplateType;
+    UTI m_stubcopyOf;
+    bool m_stubcopyfromseentemplatestub;
     BV8K m_defaultValue; //BitVector
     bool m_isreadyDefaultValue;
     bool m_bitsPacked;
@@ -223,13 +252,14 @@ namespace MFM{
     void clearBaseAsShared(u32 item);
     void setNumberSharingBase(u32 item, u32 numshared);
     s32 isABaseClassItemSearch(UTI buti);
-    u32 getNumberSharingSharedBase(u32 item) const;
-    void appendSharedBaseClass(UTI baseclass, u32 numshared);
-    void updateSharedBaseClass(UTI oldclasstype, u32 item, UTI newbaseclass);
 
-    void assignClassArgValuesInStubCopy();
+    void setStubForTemplate();
 
     bool resolveHasMappedUTI(UTI auti, UTI& mappedUTI);
+    bool resolveHasMappedUTI(UTI auti); //helps w debugging
+
+    bool assignElementType(ELE_TYPE n); //ulam-4
+    bool assignEmptyElementType(); //ulam-4
 
     void generateHeaderPreamble(File * fp);
     void genIfndefForHeaderFile(File * fp);

@@ -77,14 +77,24 @@ namespace MFM {
     AssertBool isScalars = (fmut->isScalar() && isScalar());
     assert(isScalars);
 
-    // what change is to be made ????
     // atom type vs. class type
-    // how can it be both in an UlamValue?
-    // what of its contents?
-    // val = UlamValue::makeAtom(valtypidx);
+    // how can it be both in an UlamValue? new effself field (ulam-5)
 
     if((fmut->getUlamClassType() == UC_ELEMENT) || m_state.isAtom(valtypidx) || ((fmut->getUlamTypeEnum() == Class) && fmut->isAltRefType()))
-      val.setUlamValueTypeIdx(typidx); //try this
+      {
+	if(!m_state.isAtom(valtypidx))
+	  {
+	    UTI dereftypidx = m_state.getUlamTypeAsDeref(valtypidx);
+	    UTI feffself = val.getUlamValueEffSelfTypeIdx();
+	    if(feffself == Nouti)
+	      val.setUlamValueEffSelfTypeIdx(dereftypidx); //for testing, assume ok (e.g. t3754,t3277)
+	    else
+	      brtn = (UlamType::compare(feffself,dereftypidx,m_state)==UTIC_SAME); //sanity (t41487, t41484)
+	  }
+
+	if(brtn)
+	  val.setUlamValueTypeIdx(typidx); //try this (t41484?, t3255)
+      }
     else
       brtn = false;
     return brtn;
@@ -342,6 +352,13 @@ namespace MFM {
     fp->write("AtomBitStorage<EC>");
     fp->write("(targ) { }"); GCNL;
 
+    //constructor for constants (t41483); MFM Element Type not in place yet
+    m_state.indent(fp);
+    fp->write(mangledName.c_str());
+    fp->write("(const u32 * const ");
+    fp->write("arg) : AtomBitStorage<EC>() { if(arg==NULL) FAIL(NULL_POINTER); ");
+    fp->write("this->m_stg.GetBits().FromArray(arg); }"); GCNL;
+
     //copy constructor
     m_state.indent(fp);
     fp->write(mangledName.c_str());
@@ -420,6 +437,19 @@ namespace MFM {
 	fp->write("(0u, rtnunpbv); return rtnunpbv; ");
 	fp->write("} //reads entire BV"); GCNL;
       }
+
+    if(!isScalar())
+      {
+	//array item reads; entire PACKEDLOADABLE array read handled by Read()
+	//2nd argument generated for compatibility with underlying method (t41484)
+	m_state.indent(fp);
+	fp->write("const ");
+	fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //T, u64, or u32
+	fp->write(" readArrayItem(");
+	fp->write("const u32 index, const u32 itemlen) const { return BVS::");
+	fp->write(readArrayItemMethodForCodeGen().c_str());
+	fp->write("(index * itemlen); }"); GCNL; //rel offset
+      }
   } //genUlamTypeReadDefinitionForC
 
   void UlamTypeAtom::genUlamTypeWriteDefinitionForC(File * fp)
@@ -454,6 +484,18 @@ namespace MFM {
 	fp->write(writeMethodForCodeGen().c_str());
 	fp->write("(0u, bv); ");
 	fp->write("} //writes entire BV"); GCNL;
+      }
+
+    if(!isScalar())
+      {
+	// writes an item of array (t41484)
+	//3rd argument generated for compatibility with underlying method
+	m_state.indent(fp);
+	fp->write("void writeArrayItem(const ");
+	fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //T, u64, u32
+	fp->write("& v, const u32 index, const u32 itemlen) { BVS::");
+	fp->write(writeArrayItemMethodForCodeGen().c_str());
+	fp->write("(index * itemlen, v); }"); GCNL;  //reloffset, val
       }
   } //genUlamTypeWriteDefinitionForC
 

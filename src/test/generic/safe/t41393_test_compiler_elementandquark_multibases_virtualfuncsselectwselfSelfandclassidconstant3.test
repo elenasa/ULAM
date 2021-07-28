@@ -11,9 +11,9 @@
 ##
 #!
 Exit status: -11
-Ue_MyElement : Sub(2) +Sub(3) { constant Unsigned(32) ids[2] = { 0x1, 0x2 };  :Sub(2)< constant Int(32) cVAL = 2;  :Q<>> +Sub(3)< constant Int(32) cVAL = 3;  :Q<>> ^Q<> Int(32) test() {  System s;  { Unsigned(32) i = 0 cast;  i 2u < cond { Unsigned(32) ci = ids i [];  Int(32) v = self Q ci .[] ( )val .;  s ( v )print . Int(32) sqv = v v *;  s ( sqv )print . s ( self Q ci .[] ( )sqr . )print . s ( sqv self Q ci .[] ( )sqr . == )assert . } _1: i 1 cast += while } 2u cast return } }
+Ue_MyElement : Sub(2) +Sub(3) { constant Unsigned ids[2] = { 0x1, 0x2 };  :Sub(2)< constant Int cVAL = 2;  :Q<>> +Sub(3)< constant Int cVAL = 3;  :Q<>> ^Q<> Int test() {  System s;  { Unsigned i = 0 cast;  i 2u < cond { Unsigned ci = ids i [];  Int v = self Q ci .[] ( )val .;  s ( v )print . Int sqv = v v *;  s ( sqv )print . s ( self Q ci .[] ( )sqr . )print . s ( sqv self Q ci .[] ( )sqr . == )assert . } _1: i 1 cast += while } 2u cast return } }
 Uq_Q { <NOMAIN> }
-Uq_Sub(Int(32) cVAL) : Q { :Q<> <NOMAIN> }
+Uq_Sub(Int cVAL) : Q { :Q<> <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 ##       informed by Dave ish (3 of 3) 03092020; like t41392,

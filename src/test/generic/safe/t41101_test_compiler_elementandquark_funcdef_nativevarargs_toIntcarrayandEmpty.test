@@ -10,11 +10,11 @@
 ##	 unevaluable because eval is unable to return a non-void native function in an empty block
 #!
 Exit status: -11
-Ue_A { Math math();  Int(32) test() {  System s;  QW qw;  CAQ caq;  Int(32) m = self math . ( qw ( )toInt . cast -4 caq ( 7 cast )aref . )max .;  s ( m )print . s ( m 4 cast == )assert . Int(32) no = self math . ( )max .;  s ( no )print . s ( no -2147483648 == )assert . m return } }
+Ue_A { Math math();  Int test() {  System s;  QW qw;  CAQ caq;  Int m = self math . ( qw ( )toInt . cast -4 caq ( 7 cast )aref . )max .;  s ( m )print . s ( m 4 cast == )assert . Int no = self math . ( )max .;  s ( no )print . s ( no -2147483648 == )assert . m return } }
 Uq_Math { <NOMAIN> }
 Uq_System { <NOMAIN> }
 Uq_QW { <NOMAIN> }
-Uq_CAQ { constant Int(32) cInt[8] = { -1 cast, 1 cast, -2 cast, 2 cast, -3 cast, 3 cast, -4 cast, 4 cast };  <NOMAIN> }
+Uq_CAQ { constant Int cInt[8] = { -1 cast, 1 cast, -2 cast, 2 cast, -3 cast, 3 cast, -4 cast, 4 cast };  <NOMAIN> }
 ##
 ## informed t3250; 3 More var arg cases: casted quark w toInt, custom array, and no var args
 ##

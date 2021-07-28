@@ -46,7 +46,7 @@ quark QW : Qbase{
   {
     Atom a = self.atomof;
     Self& sra = (Self&) a; //new way!
-    //Self sra = (Self) a; //Cannot explicitly cast Atom(96) to type: QW
+    //Self sra = (Self) a; //Cannot explicitly cast Atom to type: QW
     return sra;
   }
 }

@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t41090_test_compiler_elementinheritedquark_instanceofwconstructor_withsuper_error
 #!
-./Sub1.ulam:7:18: ERROR: Member selected must be a Class, not type: Atom(96); suggest using a Conditional-As.
+./Sub1.ulam:7:18: ERROR: Member selected must be a Class, not type: Atom; suggest using a Conditional-As.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## instanceof is a virtual function; it behaves differently with objects and references;
