@@ -464,8 +464,9 @@ namespace MFM {
     if(m_nodeTypeDesc)
       {
 	UTI duti = m_nodeTypeDesc->checkAndLabelType(this); //sets goagain
-	if((duti != vit) && (m_state.okUTItoContinue(duti) || m_varSymbol->isFunctionParameter()) )
-	  //if(duti != vit) //even if Hzy, e.g. func param (t3810)
+	if(duti == Nav)
+	  vit = Nav; //t41203
+	else if((duti != vit) && ((m_state.okUTItoContinue(duti) && !m_state.isHolder(duti)) || m_varSymbol->isFunctionParameter())) //even if Hzy, e.g. func param (t3810)
 	  {
 	    std::ostringstream msg;
 	    msg << "REPLACING Symbol UTI" << vit;
@@ -503,6 +504,8 @@ namespace MFM {
 	if(m_state.okUTItoContinue(vit) && !m_state.isHolder(vit))
 	  msg << ": " << m_state.getUlamTypeNameBriefByIndex(vit).c_str();
 	msg << " used with variable symbol name '" << getName() << "'";
+	//msg << "(id" << m_vid << ")"; //debug (t41298,9)
+	//msg << ", while compiling UTI" << cuti; //debug (t41298,9)
 	if(m_state.okUTItoContinue(vit) || m_state.isStillHazy(vit))
 	  {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);

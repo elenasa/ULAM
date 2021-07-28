@@ -589,8 +589,18 @@ namespace MFM {
     UTI uti;
     UlamType * ut = NULL;
 
-    if(!isDefined(key,ut) || (utype == Class) || ((utype != Class) && (key.getUlamKeyTypeSignatureBitSize() == UNKNOWNSIZE)) || (key.getUlamKeyTypeSignatureArraySize() == UNKNOWNSIZE))
+    s32 keybs = key.getUlamKeyTypeSignatureBitSize();
+    s32 keyarr = key.getUlamKeyTypeSignatureArraySize();
+
+    //if(!isDefined(key,ut) || (utype == Class) || ((utype != Class) && (key.getUlamKeyTypeSignatureBitSize() == UNKNOWNSIZE)) || (key.getUlamKeyTypeSignatureArraySize() == UNKNOWNSIZE))
+    if((keybs != UNKNOWNSIZE) && (keyarr != UNKNOWNSIZE) && isDefined(key, ut))
       {
+	AssertBool isDefined = anyDefinedUTI(key,uti);
+	assert(isDefined);
+      }
+    else
+      {
+	//if((utype == Class) || (keybs == UNKNOWNSIZE) || (keyarr == UNKNOWNSIZE) )
 	uti = m_indexToUlamKey.size();  //next index based on key
 	if(utype == Class)
 	  {
@@ -651,11 +661,6 @@ namespace MFM {
 	assert(isDef);
 
 	initUTIAlias(uti);
-      }
-    else
-      {
-	AssertBool isDefined = anyDefinedUTI(key,uti);
-	assert(isDefined);
       }
     return uti;
   } //makeUlamType
@@ -7435,7 +7440,7 @@ namespace MFM {
     bool rtnb = block->isAClassBlock(); //t3172
     UTI buti = block->getNodeType(); //Int when eval test function (t41315)
 
-    if(rtnb && !isClassAStub(buti))
+    if(rtnb && !isClassAStub(buti) && !isHolder(buti))
       {
 	if(!okUTItoContinue(buti))
 	  rtnb = true; //HZY classes are not stubs (t41434)
@@ -7453,15 +7458,15 @@ namespace MFM {
 		while(!hasHazyKin && (i < basecount))
 		  {
 		    UTI baseuti = csym->getBaseClass(i);
-		    if(baseuti != Nouti) //super is optional
-		      hasHazyKin = !((NodeBlockClass *) block)->isBaseClassLinkReady(buti,i);
+		    if((baseuti != Nouti) && !isUrSelf(baseuti)) //super is optional, urSelf ok
+		      hasHazyKin = !((NodeBlockClass *) block)->isBaseClassBlockReady(buti,baseuti);
 		    i++;
 		  } //end while
 		rtnb = hasHazyKin;
 	      }
 	  }
       }
-    //true if isaclass, AND either isastub, OR has hazykin (ie a baseclasslink notready)
+    //true if isaclass, AND either isastub, a holder, OR has hazykin (ie a baseclasslink notready)
     return rtnb;
   }
 

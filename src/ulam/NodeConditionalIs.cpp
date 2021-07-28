@@ -116,6 +116,26 @@ namespace MFM {
 	      }
 	  }
       }
+    else
+      {
+	std::ostringstream msg;
+	if(ruti == Nav)
+	  msg << "Invalid ";
+	else
+	  msg << "Incomplete ";
+	msg << "righthand type of conditional operator '" << getName();
+	msg << "' " << m_state.m_pool.getDataAsString(m_nodeTypeDesc->getTypeNameId()).c_str();
+	if(ruti == Nav)
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    newType = Nav;
+	  }
+	else
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	    newType = Hzy; //t3328,t3861,t3862,t3868,t3742
+	  }
+      }
 
     if(m_state.okUTItoContinue(newType) && !m_state.isComplete(ruti))
       {
