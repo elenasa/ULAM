@@ -101,7 +101,7 @@ namespace MFM{
     u64 convertForthAndBackLong(const u64 data, UTI fituti);
     bool fitsInBits32compare(UTI fituti);
 
-    u32 getNameId();
+    virtual u32 getNameId();
 
   protected:
     virtual EvalStatus makeTerminalValue(UlamValue& uvarg); //used by eval only

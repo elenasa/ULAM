@@ -5490,7 +5490,7 @@ Node * Parser::wrapFactor(Node * leftNode)
 
     if(rtnNode)
       {
-	u32 numParams = fsymptr->getNumberOfParameters();
+	u32 numParams = rtnNode->getNumberOfParameters();
 	if(isConstr && (numParams == 0))
 	  {
 	    std::ostringstream msg;
@@ -5596,9 +5596,11 @@ Node * Parser::wrapFactor(Node * leftNode)
 	  {
 	    //parameter IS a variable (declaration).
 	    //ownership stays with NodeBlockFunctionDefinition's ST
-	    if(argNode->getSymbolPtr(argSym))
-	      fsym->addParameterSymbol(argSym);
-	    else
+	    if(!argNode->getSymbolPtr(argSym))
+#if 0
+	      // fsym->addParameterSymbol(argSym);
+	      //else
+#endif
 	      MSG(&pTok, "No symbol from parameter declaration", ERR);
 
 	    //potentially needed to resolve its node type

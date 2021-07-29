@@ -102,6 +102,8 @@ enum EvalStatus {ERROR, NOTREADY, NORMAL, RETURN, BREAK, CONTINUE, UNEVALUABLE};
 
     virtual const char * getName() = 0;
 
+    virtual u32 getNameId();
+
     virtual u32 getTypeNameId();
 
     virtual const std::string prettyNodeName() = 0;

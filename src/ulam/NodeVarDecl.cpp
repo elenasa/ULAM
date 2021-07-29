@@ -150,17 +150,31 @@ namespace MFM {
     return m_state.m_pool.getDataAsString(m_vid).c_str();
   }
 
+  u32 NodeVarDecl::getNameId()
+  {
+    return m_vid;
+  }
+
+  const std::string NodeVarDecl::getMangledName()
+  {
+    assert(m_varSymbol);
+    return m_varSymbol->getMangledName();
+  }
+
   u32 NodeVarDecl::getTypeNameId()
   {
     if(m_nodeTypeDesc)
       return m_nodeTypeDesc->getTypeNameId();
 
     UTI nuti = getNodeType();
-    assert(m_state.okUTItoContinue(nuti));
-    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    //skip bitsize if default size
-    if(nut->getBitSize() == ULAMTYPE_DEFAULTBITSIZE[nut->getUlamTypeEnum()])
-      return m_state.m_pool.getIndexForDataString(nut->getUlamTypeNameOnly());
+    if(m_state.okUTItoContinue(nuti))
+      {
+	assert(m_state.okUTItoContinue(nuti));
+	UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+	//skip bitsize if default size
+	if(nut->getBitSize() == ULAMTYPE_DEFAULTBITSIZE[nut->getUlamTypeEnum()])
+	  return m_state.m_pool.getIndexForDataString(nut->getUlamTypeNameOnly());
+      } //else t3411,t3412,t3514
     return m_state.m_pool.getIndexForDataString(m_state.getUlamTypeNameBriefByIndex(nuti));
   } //getTypeNameId
 
@@ -192,6 +206,12 @@ namespace MFM {
 	return true;
       }
     return false;
+  }
+
+  bool NodeVarDecl::isAConstantFunctionParameter()
+  {
+    assert(m_varSymbol);
+    return m_varSymbol->isFunctionParameter() && ((SymbolVariableStack*)m_varSymbol)->isConstantFunctionParameter();
   }
 
   void NodeVarDecl::setInitExpr(Node * node)
@@ -1288,6 +1308,18 @@ namespace MFM {
     fp->write(";"); GCNL; //func call args aren't NodeVarDecl's
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCode
+
+#if 0
+  void NodeVarDecl::genCodeFunctionDefinitionParameter(File * fp)
+  {
+    UTI nuti = getNodeType();
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    fp->write(nut->getLocalStorageTypeAsString().c_str()); //for C++
+    fp->write("&"); //gen C++ reference for funcs args; avoids g++ synthesized copy constructor
+    fp->write(" ");
+    fp->write(m_varSymbol->getMangledName().c_str());
+  }
+#endif
 
   void NodeVarDecl::genCodeConstantArrayInitialization(File * fp)
   {

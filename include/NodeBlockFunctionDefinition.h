@@ -70,6 +70,8 @@ class NodeBlockFunctionDefinition : public NodeBlock
 
     virtual void printPostfix(File * fp);
 
+    //const std::string getParameterNamesWithTypes();
+
     virtual UTI checkAndLabelType(Node * thisparentnode);
 
     bool checkParameterNodeTypes();
@@ -80,6 +82,10 @@ class NodeBlockFunctionDefinition : public NodeBlock
 
     UTI getParameterNodeGivenType(u32 pidx);
 
+    u32 getNumberOfParameters();
+
+    bool isAConstantParameter(u32 pidx);
+
     void makeSuperSymbol(s32 slot);
 
     virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
@@ -89,6 +95,10 @@ class NodeBlockFunctionDefinition : public NodeBlock
     virtual EvalStatus eval();
 
     virtual EvalStatus evalToStoreInto();
+
+    u32 getParameterNameId(u32 n);
+
+    u32 getParameterTypeNameId(u32 n);
 
     virtual const char * getName();
 
@@ -113,6 +123,8 @@ class NodeBlockFunctionDefinition : public NodeBlock
     void setFuncSymbolPtr(SymbolFunction * fsymptr); //during instantiation
 
     virtual void genCode(File * fp, UVPass& uvpass);
+
+    void genCodeMangledParameterForFunctionDefinition(File * fp, u32 n);
 
   protected:
 

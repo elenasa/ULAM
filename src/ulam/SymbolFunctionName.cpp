@@ -479,9 +479,12 @@ namespace MFM {
 
     if(camatches == 1)
       {
+#if 0
 	Symbol * asym = fsym->getParameterSymbolPtr(0); //1st arg is index
 	assert(asym);
 	idxuti = asym->getUlamTypeIdx();
+#endif
+	idxuti = fsym->getParameterType(0);
       }
 
     argNodes.clear();

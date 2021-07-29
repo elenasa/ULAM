@@ -85,6 +85,15 @@ namespace MFM {
     fp->write(id);
   } //print
 
+  u32 Node::getNameId()
+  {
+    std::ostringstream msg;
+    msg << "virtual u32 " << prettyNodeName().c_str();
+    msg << "::getNameId(){} is needed!!";
+    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+    return 0; //NodeTerminal, NodeVarDecl both have them
+  }
+
   u32 Node::getTypeNameId()
   {
     m_state.abortShouldntGetHere(); //NodeVarDecl, NodeBlockFuncDef does work
@@ -2641,11 +2650,14 @@ namespace MFM {
     argIdentNode->installSymbolVariable(typeargs, argSym);
     assert(argSym);
 
-    //NodeTypedescriptor for 'node' type?
-    Node * argNode = new NodeVarDecl((SymbolVariable*) argSym, NULL, m_state);
+    //NodeTypedescriptor for 'node' type? t3412
+    NodeTypeDescriptor * argnodetype = new NodeTypeDescriptor(typeargs.m_typeTok, argSym->getUlamTypeIdx(), m_state);
+    assert(argnodetype);
+
+    Node * argNode = new NodeVarDecl((SymbolVariable*) argSym, argnodetype, m_state);
     assert(argNode);
     argNode->setNodeLocation(loc);
-    fsymptr->addParameterSymbol(argSym); //ownership stays w NodeBlockFunctionDefinition's ST
+    //    fsymptr->addParameterSymbol(argSym); //ownership stays w NodeBlockFunctionDefinition's ST
     //uses "decl" nodeno of argIdentNode since it had to be created first (e.g. t3411, t3412, t3514)
     ((SymbolVariableStack *) argSym)->setDeclNodeNo(argIdentNode->getNodeNo()); //fix
 

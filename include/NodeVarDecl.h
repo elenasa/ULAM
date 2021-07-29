@@ -71,6 +71,10 @@ namespace MFM{
 
     virtual const char * getName();
 
+    virtual u32 getNameId();
+
+    const std::string getMangledName();
+
     virtual u32 getTypeNameId();
 
     virtual const std::string prettyNodeName();
@@ -78,6 +82,8 @@ namespace MFM{
     virtual bool getSymbolPtr(Symbol *& symptrref);
 
     bool getNodeTypeDescriptorPtr(NodeTypeDescriptor *& nodetypedescref);
+
+    bool isAConstantFunctionParameter();
 
     virtual void setInitExpr(Node * node);
 
@@ -108,6 +114,8 @@ namespace MFM{
     virtual EvalStatus evalToStoreInto();
 
     virtual void genCode(File * fp, UVPass& uvpass);
+
+    //    void genCodeFunctionDefinitionParameter(File * fp);
 
     virtual void genCodeConstantArrayInitialization(File * fp);
 

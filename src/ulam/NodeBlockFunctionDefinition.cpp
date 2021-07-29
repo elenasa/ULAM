@@ -102,22 +102,23 @@ namespace MFM {
   void NodeBlockFunctionDefinition::printPostfix(File * fp)
   {
     fp->write(" ");
-    fp->write(m_state.getUlamTypeNameBriefByIndex(m_funcSymbol->getUlamTypeIdx()).c_str()); //short type name
+    //fp->write(m_state.getUlamTypeNameBriefByIndex(m_funcSymbol->getUlamTypeIdx()).c_str()); //short type name
+    fp->write(m_state.getUlamTypeNameBriefByIndex(getNodeType()).c_str()); //short type name
     fp->write(" ");
     fp->write(getName());
     // has no m_node!
     // declaration has no m_nodeNext!!
     fp->write("(");
-    u32 numparams = m_funcSymbol->getNumberOfParameters();
+    u32 numparams = getNumberOfParameters();
 
     for(u32 i = 0; i < numparams; i++)
       {
 	if(i > 0)
 	  fp->write(", ");
-
+#if 0
 	Symbol * asym = m_funcSymbol->getParameterSymbolPtr(i);
 	assert(asym);
-	fp->write(m_state.getUlamTypeNameBriefByIndex(asym->getUlamTypeIdx()).c_str()); //short type name
+	fp->write(m_state.getUlamTypeNameBriefByIndex(auti).c_str()); //short type name
 	fp->write(" ");
 	fp->write(m_state.m_pool.getDataAsString(asym->getId()).c_str());
 
@@ -137,7 +138,8 @@ namespace MFM {
 	  {
 	    fp->write("[UNKNOWN]");
 	  }
-
+#endif
+	m_nodeParameterList->printPostfix(fp, i);
       }
     fp->write(")");
 
@@ -150,6 +152,23 @@ namespace MFM {
     else
       fp->write(";");
   } //printPostfix
+
+#if 0
+  const std::string NodeBlockFunctionDefinition::getParameterNamesWithTypes()
+  {
+    return m_nodeParameterList->getTypesAndNamesAsString(); //comma delimited, human readable
+  }
+#endif
+
+  u32 NodeBlockFunctionDefinition::getParameterNameId(u32 n)
+  {
+    return m_nodeParameterList->getNameId(n);
+  }
+
+  u32 NodeBlockFunctionDefinition::getParameterTypeNameId(u32 n)
+  {
+    return m_nodeParameterList->getTypeNameId(n);
+  }
 
   const char * NodeBlockFunctionDefinition::getName()
   {
@@ -306,6 +325,16 @@ namespace MFM {
     AssertBool gottype = parmdef->getNodeTypeDescriptorPtr(typedesc);
     assert(gottype);
     return typedesc->givenUTI();
+  }
+
+  u32 NodeBlockFunctionDefinition::getNumberOfParameters()
+  {
+    return m_nodeParameterList->getNumberOfNodes();
+  }
+
+  bool NodeBlockFunctionDefinition::isAConstantParameter(u32 pidx)
+  {
+    return m_nodeParameterList->isAConstantFunctionParameter(pidx);
   }
 
   void NodeBlockFunctionDefinition::makeSuperSymbol(s32 slot)
@@ -569,5 +598,12 @@ namespace MFM {
     m_state.m_gencodingAVirtualFunctionInThisOriginatingClass = Nouti; //clear
     m_state.popClassContext(); //restores NodeBlock::getPreviousBlockPointer()
   } //genCode
+
+#if 0
+  void NodeBlockFunctionDefinition::genCodeMangledParameterForFunctionDefinition(File * fp, u32 n)
+  {
+    m_nodeParameterList->genCodeFuncDefParameter(fp, n);
+  }
+#endif
 
 } //end MFM
