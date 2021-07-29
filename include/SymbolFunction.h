@@ -59,12 +59,10 @@ namespace MFM{
 
     virtual Symbol * clone();
 
-    //void addParameterSymbol(Symbol * argSym);
     u32 getNumberOfParameters();
     void getVectorOfParameterTypes(std::vector<UTI>& pTypesref);
     u32 getTotalParameterSlots();
 
-    //Symbol * getParameterSymbolPtr(u32 n);
     UTI getParameterType(u32 n);
     UTI getParameterGivenType(u32 n);
     ALT getParameterGivenReferenceType(u32 n);
@@ -130,7 +128,6 @@ namespace MFM{
 
 
   private:
-    //    std::vector<Symbol *> m_parameterSymbols;  // variable or function can be an args
     NodeBlockFunctionDefinition * m_functionNode;
     const u32 m_declOrderNum; //must be unique among overloaded funcs of same name
     bool m_hasVariableArgs;

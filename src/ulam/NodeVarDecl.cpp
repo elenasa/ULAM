@@ -1309,18 +1309,6 @@ namespace MFM {
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCode
 
-#if 0
-  void NodeVarDecl::genCodeFunctionDefinitionParameter(File * fp)
-  {
-    UTI nuti = getNodeType();
-    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    fp->write(nut->getLocalStorageTypeAsString().c_str()); //for C++
-    fp->write("&"); //gen C++ reference for funcs args; avoids g++ synthesized copy constructor
-    fp->write(" ");
-    fp->write(m_varSymbol->getMangledName().c_str());
-  }
-#endif
-
   void NodeVarDecl::genCodeConstantArrayInitialization(File * fp)
   {
     m_state.abortShouldntGetHere(); //see NodeVarDeclDM

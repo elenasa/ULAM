@@ -75,8 +75,6 @@ namespace MFM{
 
     virtual void print(File * fp);
 
-    //const std::string getTypesAndNamesAsString();
-
     virtual const char * getName();
 
     u32 getNameId(u32 n);
@@ -130,8 +128,6 @@ namespace MFM{
     void genCode(File * fp, UVPass& uvpass, u32 n);
 
     void genCodeToStoreInto(File * fp, UVPass& uvpass, u32 n);
-
-    //void genCodeFuncDefParameter(File * fp, u32 n);
 
     virtual void genCodeConstantArrayInitialization(File * fp);
 

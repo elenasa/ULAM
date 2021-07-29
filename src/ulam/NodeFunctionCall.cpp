@@ -238,10 +238,6 @@ namespace MFM {
 	    u32 numParams = funcSymbol->getNumberOfParameters();
 	    for(u32 i = 0; i < numParams; i++)
 	      {
-#if 0
-		//Symbol * psym = funcSymbol->getParameterSymbolPtr(i);
-		//assert(psym && psym->isFunctionParameter()); //sanity
-#endif
 		UTI puti = funcSymbol->getParameterType(i);
 		if(m_state.isAltRefType(puti))
 		  {
@@ -257,7 +253,6 @@ namespace MFM {
 			    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 			    numHazyFound++;
 			  }
-			//else if(!((SymbolVariableStack *) psym)->isConstantFunctionParameter())
 			else if(!funcSymbol->isConstantParameter(i))
 			  {
 			    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
@@ -376,11 +371,6 @@ namespace MFM {
 	  u32 numParams = m_funcSymbol->getNumberOfParameters();
 	  for(u32 i = 0; i < numParams; i++)
 	    {
-#if 0
-	      Symbol * psym = m_funcSymbol->getParameterSymbolPtr(i);
-	      UTI ptype = psym->getUlamTypeIdx();
-#endif
-
 	      UTI ptype = m_funcSymbol->getParameterType(i);
 	      Node * argNode = m_argumentNodes->getNodePtr(i);
 	      UTI atype = argNode->getNodeType();

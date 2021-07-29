@@ -148,27 +148,6 @@ namespace MFM{
     fp->write(")");
   } //print
 
-#if 0
-  const std::string NodeList::getTypesAndNamesAsString()
-  {
-    std::ostringstream tnstr;
-    tnstr << "(";
-
-    for(u32 i = 0; i < m_nodes.size(); i++)
-      {
-	assert(m_nodes[i]);
-	if(i > 0)
-	  tnstr << ", ";
-
-	tnstr << m_state.getUlamTypeNameBriefByIndex(m_nodes[i]->getNodeType()).c_str();
-	tnstr <<" ";
-	tnstr << m_nodes[i]->getName();
-      }
-    tnstr << ")";
-    return tnstr.str();
-  }
-#endif
-
   const char * NodeList::getName()
   {
     return "list";
@@ -386,15 +365,6 @@ namespace MFM{
     assert(m_nodes[n]);
     m_nodes[n]->genCodeToStoreInto(fp, uvpass);
   }
-
-#if 0
-  void NodeList::genCodeFuncDefParameter(File * fp, u32 n)
-  {
-    assert(n < m_nodes.size());
-    assert(m_nodes[n]);
-    m_nodes[n]->genCodeFunctionDefinitionParameter(fp);
-  }
-#endif
 
   void NodeList::genCodeConstantArrayInitialization(File * fp)
   {

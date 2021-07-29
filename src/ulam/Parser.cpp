@@ -5597,10 +5597,6 @@ Node * Parser::wrapFactor(Node * leftNode)
 	    //parameter IS a variable (declaration).
 	    //ownership stays with NodeBlockFunctionDefinition's ST
 	    if(!argNode->getSymbolPtr(argSym))
-#if 0
-	      // fsym->addParameterSymbol(argSym);
-	      //else
-#endif
 	      MSG(&pTok, "No symbol from parameter declaration", ERR);
 
 	    //potentially needed to resolve its node type

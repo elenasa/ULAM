@@ -70,8 +70,6 @@ class NodeBlockFunctionDefinition : public NodeBlock
 
     virtual void printPostfix(File * fp);
 
-    //const std::string getParameterNamesWithTypes();
-
     virtual UTI checkAndLabelType(Node * thisparentnode);
 
     bool checkParameterNodeTypes();

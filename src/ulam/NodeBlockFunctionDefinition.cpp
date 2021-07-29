@@ -115,30 +115,6 @@ namespace MFM {
       {
 	if(i > 0)
 	  fp->write(", ");
-#if 0
-	Symbol * asym = m_funcSymbol->getParameterSymbolPtr(i);
-	assert(asym);
-	fp->write(m_state.getUlamTypeNameBriefByIndex(auti).c_str()); //short type name
-	fp->write(" ");
-	fp->write(m_state.m_pool.getDataAsString(asym->getId()).c_str());
-
-	s32 arraysize = 0;
-	if(asym->isDataMember() && !asym->isFunction())
-	  {
-	    arraysize = m_state.getArraySize( ((SymbolVariable *) asym)->getUlamTypeIdx());
-	  }
-
-	if(arraysize > NONARRAYSIZE)
-	  {
-	    fp->write("[");
-	    fp->write_decimal(arraysize);
-	    fp->write("]");
-	  }
-	else if(arraysize == UNKNOWNSIZE)
-	  {
-	    fp->write("[UNKNOWN]");
-	  }
-#endif
 	m_nodeParameterList->printPostfix(fp, i);
       }
     fp->write(")");
@@ -153,12 +129,6 @@ namespace MFM {
       fp->write(";");
   } //printPostfix
 
-#if 0
-  const std::string NodeBlockFunctionDefinition::getParameterNamesWithTypes()
-  {
-    return m_nodeParameterList->getTypesAndNamesAsString(); //comma delimited, human readable
-  }
-#endif
 
   u32 NodeBlockFunctionDefinition::getParameterNameId(u32 n)
   {
@@ -598,12 +568,5 @@ namespace MFM {
     m_state.m_gencodingAVirtualFunctionInThisOriginatingClass = Nouti; //clear
     m_state.popClassContext(); //restores NodeBlock::getPreviousBlockPointer()
   } //genCode
-
-#if 0
-  void NodeBlockFunctionDefinition::genCodeMangledParameterForFunctionDefinition(File * fp, u32 n)
-  {
-    m_nodeParameterList->genCodeFuncDefParameter(fp, n);
-  }
-#endif
 
 } //end MFM
