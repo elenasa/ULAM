@@ -10,9 +10,6 @@ namespace MFM {
 
   SymbolClassNameTemplate::~SymbolClassNameTemplate()
   {
-    // symbols belong to  NodeBlockClass's ST; deleted there.
-    //m_parameterSymbols.clear();
-
     // possible stub instances that were never fully instantiated
     std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
     while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
@@ -89,7 +86,7 @@ namespace MFM {
   {
     NodeBlockClass * templateclassblock = getClassBlockNode();
     assert(templateclassblock); //fails if UNSEEN during parsing
-    return templateclassblock->getNumberOfParameterNodes(); //m_parameterSymbols.size();
+    return templateclassblock->getNumberOfParameterNodes();
   }
 
   bool SymbolClassNameTemplate::parameterHasDefaultValue(u32 n)
@@ -2384,7 +2381,6 @@ namespace MFM {
 	NodeConstantDef * paramConstDef = (NodeConstantDef *) templateclassNode->getParameterNode(i);
 	assert(paramConstDef);
 	u32 aid = paramConstDef->getNameId();
-	//	u32 aid = m_parameterSymbols[i]->getId();
 
 	Symbol * clonesym = NULL;
 	bool hazyKin = false; //don't care
@@ -2470,60 +2466,6 @@ namespace MFM {
     instancesArgs.clear(); //don't delete the symbols
     return true;
   } //copyAnInstancesArgValues
-
-  void SymbolClassNameTemplate::printClassTemplateArgsForPostfix(File * fp)
-  {
-    NodeBlockClass * templateclassNode = getClassBlockNode();
-    assert(templateclassNode);
-
-    u32 pcnt = 0;
-
-    fp->write("(");
-
-    u32 numparams = getNumberOfParameters();
-    for (u32 i = 0; i < numparams; i++)
-      {
-	NodeConstantDef * paramConstDef = (NodeConstantDef *) templateclassNode->getParameterNode(i);
-	assert(paramConstDef);
-	u32 pid = paramConstDef->getNameId();
-	UTI puti = paramConstDef->getTypeDescriptorGivenType();
-
-	if(pcnt > 0)
-	  fp->write(", ");
-
-	fp->write(m_state.getUlamTypeNameBriefByIndex(puti).c_str());
-	fp->write(" ");
-	fp->write(m_state.m_pool.getDataAsString(pid).c_str());
-
-	if(!m_state.isScalar(puti))
-	  {
-	    s32 arraysize = m_state.getArraySize(puti);
-	    fp->write("[");
-	    if(arraysize >= 0)
-	      fp->write_decimal(arraysize);
-	    else if(arraysize == UNKNOWNSIZE)
-	      fp->write("UNKNOWN"); //t3894
-	    else if(arraysize != NONARRAYSIZE)
-	      {
-		fp->write_decimal(arraysize);
-		fp->write("?");
-	      }
-	    fp->write("]");
-	  }
-
-	if(parameterHasDefaultValue(pcnt))
-	  {
-	    Symbol * psym = NULL;
-	    AssertBool gotpsym = paramConstDef->getSymbolPtr(psym);
-	    assert(gotpsym);
-
-	    fp->write(" = ");
-	    ((SymbolConstantValue *) psym)->printPostfixValue(fp);
-	  }
-	pcnt++;
-      } //next param
-    fp->write(")");
-  } //printClassTemplateArgsForPostfix
 
   // done promptly after the full instantiation
   void SymbolClassNameTemplate::cloneAnInstancesUTImap(SymbolClass * fm, SymbolClass * to)

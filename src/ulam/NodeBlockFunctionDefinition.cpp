@@ -102,7 +102,6 @@ namespace MFM {
   void NodeBlockFunctionDefinition::printPostfix(File * fp)
   {
     fp->write(" ");
-    //fp->write(m_state.getUlamTypeNameBriefByIndex(m_funcSymbol->getUlamTypeIdx()).c_str()); //short type name
     fp->write(m_state.getUlamTypeNameBriefByIndex(getNodeType()).c_str()); //short type name
     fp->write(" ");
     fp->write(getName());

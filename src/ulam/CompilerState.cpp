@@ -1157,7 +1157,7 @@ namespace MFM {
 	    suti = stubcopyof; //continue as if the original..
 	    if(cnsym->hasInstanceMappedUTI(cuti, suti, mappedUTI))
 	      {
-		UTI muti = mappedUTI;
+		UTI muti = mappedUTI; //stubcopyof already used in this class, ok to reuse
 		findRootUTIAlias(muti, mappedUTI);
 		return mappedUTI;  //20210726-2 ish; err/t41448
 		//suti = mappedUTI; SCNT:450 assert failed '!twasastubcopy'

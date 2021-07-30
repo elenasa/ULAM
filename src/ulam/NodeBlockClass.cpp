@@ -171,12 +171,31 @@ namespace MFM {
     fp->write(getName());  //unmangled
 
     //output class template parameter type and name
-    if(m_nodeParameterList->getNumberOfNodes() > 0)
+    u32 numparams = getNumberOfParameterNodes();
+    if(numparams > 0)
       {
+
+#if 0
 	SymbolClassNameTemplate * cnsym = NULL;
 	AssertBool isDefined = m_state.alreadyDefinedSymbolClassNameTemplate(m_state.getUlamTypeNameIdByIndex(cuti), cnsym);
 	assert(isDefined);
 	cnsym->printClassTemplateArgsForPostfix(fp); //m_nodeParameterList->print(fp);
+#endif
+
+	u32 pcnt = 0;
+
+	fp->write("(");
+
+	for (u32 i = 0; i < numparams; i++)
+	  {
+	    if(pcnt > 0)
+	      fp->write(", ");
+
+	    m_nodeParameterList->printPostfix(fp, i);
+	    pcnt++;
+	  } //next param
+
+	fp->write(")");
       }
 
     //inheritance

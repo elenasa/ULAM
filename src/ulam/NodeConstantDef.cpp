@@ -105,10 +105,12 @@ namespace MFM {
     else
       m_state.abortNotImplementedYet();
 
-    //see also SymbolConstantValue
-    fp->write(" constant");
+    bool isclassparam = m_constSymbol && m_constSymbol->isClassParameter(); //3352..
 
-    fp->write(" ");
+    //see also SymbolConstantValue
+    if(!isclassparam)
+      fp->write(" constant ");
+
     fp->write(m_state.getUlamTypeNameBriefByIndex(suti).c_str());
     fp->write(" ");
     fp->write(m_state.m_pool.getDataAsString(m_cid).c_str());
@@ -126,12 +128,19 @@ namespace MFM {
 	fp->write("[UNKNOWN]");
       }
 
-    if(m_nodeExpr)
+    if(!isclassparam && m_nodeExpr)
       {
 	fp->write(" =");
 	m_nodeExpr->printPostfix(fp);
       }
-    fp->write("; ");
+
+    if(!isclassparam)
+      fp->write("; ");
+    else if(hasConstantExpr())
+      {
+	fp->write(" = ");
+	m_constSymbol->printPostfixValue(fp); //t3525..
+      }
   } //printPostfix
 
   void NodeConstantDef::noteTypeAndName(UTI cuti, s32 totalsize, u32& accumsize)

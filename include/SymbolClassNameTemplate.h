@@ -130,8 +130,6 @@ namespace MFM{
 
     virtual void generateTestInstanceForClassInstances(File * fp, bool runtest);
 
-    void printClassTemplateArgsForPostfix(File * fp);
-
    protected:
 
   private:
