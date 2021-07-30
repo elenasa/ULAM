@@ -75,6 +75,8 @@ namespace MFM{
 
     const std::string getMangledName();
 
+    UTI getGivenUTI();
+
     virtual u32 getTypeNameId();
 
     virtual const std::string prettyNodeName();

@@ -1292,6 +1292,7 @@ namespace MFM {
   Node * NodeBlockClass::getParameterNode(u32 n)
   {
     assert(m_nodeParameterList); //must be a template
+    assert(n < getNumberOfParameterNodes());
     //assert(m_state.isClassATemplate(getNodeType()));
     return m_nodeParameterList->getNodePtr(n);
   }

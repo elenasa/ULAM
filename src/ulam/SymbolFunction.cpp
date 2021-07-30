@@ -90,12 +90,14 @@ namespace MFM {
   {
     NodeBlockFunctionDefinition * funcdef = getFunctionNode();
     assert(funcdef);
-    Node * pnode = funcdef->getParameterNode(n);
+    NodeVarDecl * pnode = (NodeVarDecl*) funcdef->getParameterNode(n);
     assert(pnode);
-    UTI puti = Nouti;
+    UTI puti = pnode->getGivenUTI();
+#if 0
     NodeTypeDescriptor * ptypedesc = NULL;
     if(((NodeVarDecl*)pnode)->getNodeTypeDescriptorPtr(ptypedesc))
       puti = ptypedesc->givenUTI();
+#endif
     return puti;
   }
 

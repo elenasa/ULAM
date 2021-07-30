@@ -145,6 +145,17 @@ namespace MFM {
     return "CONSTDEF?";
   }
 
+  u32 NodeConstantDef::getNameId()
+  {
+    return m_cid;
+  }
+
+  UTI NodeConstantDef::getGivenUTI()
+  {
+    assert(m_nodeTypeDesc);
+    return m_nodeTypeDesc->givenUTI();
+  }
+
   u32 NodeConstantDef::getTypeNameId()
   {
     //like NodeVarDecl; used for Ulam Class Signature for Target Map

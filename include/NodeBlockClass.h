@@ -220,10 +220,6 @@ namespace MFM{
     s32 m_virtualmethodMaxIdx;
 
   private:
-
-    //std::vector<NodeBlockClass *> m_nodeBaseClassBlockList; // NodeBlockClass * m_superBlockNode;
-    //std::vector<NodeBlockClass *> m_nodeSharedBaseClassBlockList; // NodeBlockClass * m_superBlockNode;
-
     bool m_buildingDefaultValueInProgress;
     bool m_bitPackingInProgress;
     bool m_isEmpty; //replaces separate node

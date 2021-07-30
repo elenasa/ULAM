@@ -161,6 +161,12 @@ namespace MFM {
     return m_varSymbol->getMangledName();
   }
 
+  UTI NodeVarDecl::getGivenUTI()
+  {
+    assert(m_nodeTypeDesc);
+    return m_nodeTypeDesc->givenUTI();
+  }
+
   u32 NodeVarDecl::getTypeNameId()
   {
     if(m_nodeTypeDesc)
