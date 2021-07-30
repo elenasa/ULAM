@@ -65,6 +65,12 @@ namespace MFM {
     return false;
   } //exhangeKids
 
+  NodeTypeDescriptor * NodeConstantDef::cloneTypeDescriptor()
+  {
+    assert(m_nodeTypeDesc);
+    return (NodeTypeDescriptor *) m_nodeTypeDesc->instantiate();
+  }
+
   bool NodeConstantDef::findNodeNo(NNO n, Node *& foundNode)
   {
     if(Node::findNodeNo(n, foundNode))
@@ -150,12 +156,6 @@ namespace MFM {
     return m_cid;
   }
 
-  UTI NodeConstantDef::getGivenUTI()
-  {
-    assert(m_nodeTypeDesc);
-    return m_nodeTypeDesc->givenUTI();
-  }
-
   u32 NodeConstantDef::getTypeNameId()
   {
     //like NodeVarDecl; used for Ulam Class Signature for Target Map
@@ -170,6 +170,18 @@ namespace MFM {
       return m_state.m_pool.getIndexForDataString(nut->getUlamTypeNameOnly());
     return m_state.m_pool.getIndexForDataString(m_state.getUlamTypeNameBriefByIndex(nuti));
   } //getTypeNameId
+
+  UTI NodeConstantDef::getTypeDescriptorGivenType()
+  {
+    assert(m_nodeTypeDesc);
+    return m_nodeTypeDesc->givenUTI();
+  }
+
+  ALT NodeConstantDef::getTypeDescriptorRefType()
+  {
+    assert(m_nodeTypeDesc);
+    return m_nodeTypeDesc->getReferenceType();
+  }
 
   const std::string NodeConstantDef::prettyNodeName()
   {
@@ -1143,10 +1155,11 @@ namespace MFM {
     if(m_nodeTypeDesc == NULL)
       {
 	//clone the template's node type descriptor for this stub's pending argument
-	NodeTypeDescriptor * pnodetypedesc = NULL;
-	if(templateparamdef->getNodeTypeDescriptorPtr(pnodetypedesc))
+	//	NodeTypeDescriptor * pnodetypedesc = NULL;
+	//if(templateparamdef->getNodeTypeDescriptorPtr(pnodetypedesc))
 	  {
-	    NodeTypeDescriptor * copynodetypedesc = (NodeTypeDescriptor *) pnodetypedesc->instantiate(); //t41209?
+	    //	    NodeTypeDescriptor * copynodetypedesc = (NodeTypeDescriptor *) pnodetypedesc->instantiate(); //t41209?
+	    NodeTypeDescriptor * copynodetypedesc = templateparamdef->cloneTypeDescriptor(); //t41209
 	    assert(copynodetypedesc);
 	    copynodetypedesc->setNodeLocation(getNodeLocation()); //same loc as this node
 

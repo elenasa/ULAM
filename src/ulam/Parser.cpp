@@ -580,10 +580,6 @@ namespace MFM {
 		((SymbolConstantValue *) argSym)->setClassParameterFlag();
 		if(((NodeConstantDef *) argNode)->hasConstantExpr()) //before any folding
 		  ((SymbolWithValue *) argSym)->setHasInitValue(); //default value
-#if 0
-		//ownership stays with NodeBlockClass's ST
-		cntsym->addParameterSymbol((SymbolConstantValue *) argSym);
-#endif
 	      }
 	    else
 	      MSG(&pTok, "No symbol from class parameter declaration", ERR);
@@ -3086,12 +3082,7 @@ namespace MFM {
 	    NodeConstantDef * paramConstDef = (NodeConstantDef *) templateclassNode->getParameterNode(parmIdx);
 	    assert(paramConstDef);
 	    u32 pid = paramConstDef->getNameId();
-	    UTI puti = paramConstDef->getGivenUTI();
-
-#if 0
-	    //	    SymbolConstantValue * paramSym = ctsym->getParameterSymbolPtr(parmIdx);
-	    //assert(paramSym);
-#endif
+	    UTI puti = paramConstDef->getTypeDescriptorGivenType();
 
 	    Token argTok(TOK_IDENTIFIER, pTok.m_locator, pid); //use current locator
 	    UTI auti = m_state.mapIncompleteUTIForAClassInstance(cuti, puti, pTok.m_locator);

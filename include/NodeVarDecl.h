@@ -75,15 +75,15 @@ namespace MFM{
 
     const std::string getMangledName();
 
-    UTI getGivenUTI();
-
     virtual u32 getTypeNameId();
+
+    virtual UTI getTypeDescriptorGivenType();
+
+    virtual ALT getTypeDescriptorRefType();
 
     virtual const std::string prettyNodeName();
 
     virtual bool getSymbolPtr(Symbol *& symptrref);
-
-    bool getNodeTypeDescriptorPtr(NodeTypeDescriptor *& nodetypedescref);
 
     bool isAConstantFunctionParameter();
 
@@ -117,8 +117,6 @@ namespace MFM{
 
     virtual void genCode(File * fp, UVPass& uvpass);
 
-    //    void genCodeFunctionDefinitionParameter(File * fp);
-
     virtual void genCodeConstantArrayInitialization(File * fp);
 
     virtual void generateBuiltinConstantClassOrArrayInitializationFunction(File * fp, bool declOnly);
@@ -136,6 +134,9 @@ namespace MFM{
 
     virtual void clearSymbolPtr();
     virtual void checkForSymbol();
+
+    bool getNodeTypeDescriptorPtr(NodeTypeDescriptor *& nodetypedescref);
+
     virtual void printTypeAndName(File * fp);
     virtual bool checkSafeToCastTo(UTI fromType, UTI& newType);
     EvalStatus evalInitExpr();

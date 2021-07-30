@@ -106,6 +106,10 @@ enum EvalStatus {ERROR, NOTREADY, NORMAL, RETURN, BREAK, CONTINUE, UNEVALUABLE};
 
     virtual u32 getTypeNameId();
 
+    virtual UTI getTypeDescriptorGivenType();
+
+    virtual ALT getTypeDescriptorRefType();
+
     virtual const std::string prettyNodeName() = 0;
 
     const std::string nodeName(const std::string& prettyFunction);

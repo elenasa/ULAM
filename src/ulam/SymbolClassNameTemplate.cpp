@@ -85,13 +85,6 @@ namespace MFM {
       }
   } //getClassMemberDescriptionsForClassInstances
 
-#if 0
-  void SymbolClassNameTemplate::addParameterSymbol(SymbolConstantValue * sym)
-  {
-    m_parameterSymbols.push_back(sym); //just a pointer; classblock owns the constdef node (& symbol)
-  }
-#endif
-
   u32 SymbolClassNameTemplate::getNumberOfParameters()
   {
     NodeBlockClass * templateclassblock = getClassBlockNode();
@@ -130,43 +123,15 @@ namespace MFM {
     u32 numparams = getNumberOfParameters();
     for(u32 i = 0; i < numparams; i++)
       {
-#if 0
-	Symbol * sym = m_parameterSymbols[i];
-#endif
 	NodeConstantDef * paramConstDef = (NodeConstantDef *) templateclassblock->getParameterNode(i);
 	assert(paramConstDef);
-	UTI puti = paramConstDef->getGivenUTI();
+	UTI puti = paramConstDef->getTypeDescriptorGivenType();
 
 	//types could be incomplete, sizes unknown for template
 	totalsizes += m_state.slotsNeeded(puti);
       }
     return totalsizes;
   } //getTotalParameterSlots
-
-#if 0
-  SymbolConstantValue * SymbolClassNameTemplate::getParameterSymbolPtr(u32 n)
-  {
-    assert(n < m_parameterSymbols.size());
-    return m_parameterSymbols[n];
-  }
-#endif
-
-#if 0
-  SymbolConstantValue * SymbolClassNameTemplate::findParameterSymbolByNameId(u32 pnid)
-  {
-    SymbolConstantValue * rtnparamsymbol = NULL;
-    for(u32 i = 0; i < m_parameterSymbols.size(); i++)
-      {
-	Symbol * sym = m_parameterSymbols[i];
-	if(sym->getId() == pnid)
-	  {
-	    rtnparamsymbol = (SymbolConstantValue *) sym;
-	    break;
-	  }
-      }
-    return rtnparamsymbol;
-  } //findParameterSymbolByNameId
-#endif
 
   bool SymbolClassNameTemplate::isClassTemplate()
   {
@@ -725,11 +690,6 @@ namespace MFM {
 		else
 		  {
 		    lastDefaultParamUsed = i;
-#if 0
-		    SymbolConstantValue * psym = m_parameterSymbols[i];
-		    u32 pid = psym->getId();
-#endif
-
 		    if(!cblock->isIdInScope(pid,argsym))
 		      {
 			Symbol * psym = NULL;
@@ -743,8 +703,6 @@ namespace MFM {
 			cblock->addIdToScope(pid, asym2);
 
 			// possible pending value for default param
-			//NodeConstantDef * paramConstDef = (NodeConstantDef *) templateclassblock->getParameterNode(i);
-			//assert(paramConstDef);
 			NodeConstantDef * argConstDef = (NodeConstantDef *) paramConstDef->instantiate();
 			assert(argConstDef);
 			//fold later; non ready expressions saved by UTI in m_nonreadyClassArgSubtrees (stub)
@@ -810,16 +768,12 @@ namespace MFM {
     //update the class instance's ST, and Resolver with defaults.
     for(u32 i = defaultstartidx; i < numparams; i++)
       {
-#if 0
-	SymbolConstantValue * paramSym = getParameterSymbolPtr(i);
-	assert(paramSym);
-#endif
 	NodeConstantDef * paramConstDef = (NodeConstantDef *) templateclassblock->getParameterNode(i);
 	assert(paramConstDef);
 	u32 pid = paramConstDef->getNameId();
 
 	Symbol * paramSym = NULL;
-	AssertBool gotpsym = paramConstDef->getSymbolPtr( paramSym);
+	AssertBool gotpsym = paramConstDef->getSymbolPtr(paramSym);
 	assert(gotpsym);
 
 	SymbolConstantValue * asym2;
@@ -843,8 +797,6 @@ namespace MFM {
 	  }
 
 	// possible pending value for default param
-	//NodeConstantDef * paramConstDef = (NodeConstantDef *) templateclassblock->getParameterNode(i);
-	//assert(paramConstDef);
 	NodeConstantDef * argConstDef = (NodeConstantDef *) paramConstDef->instantiate();
 	assert(argConstDef);
 	//fold later; non ready expressions saved by UTI in m_nonreadyClassArgSubtrees (stub)
@@ -1000,58 +952,6 @@ namespace MFM {
 	      }
 	  } //next param
 
-#if 0
-	//format values into stream
-	std::vector<SymbolConstantValue *>::iterator pit = m_parameterSymbols.begin();
-	while(pit != m_parameterSymbols.end())
-	  {
-	    bool isok = false;
-	    SymbolConstantValue * psym = *pit;
-	    Symbol * asym = NULL;
-	    bool hazyKin = false; //don't care
-	    AssertBool isDefined = m_state.alreadyDefinedSymbol(psym->getId(), asym, hazyKin);
-	    assert(isDefined);
-	    UTI auti = asym->getUlamTypeIdx();
-	    if(dereftypes)
-	      auti = m_state.getUlamTypeAsDeref(auti);
-
-	    UlamType * aut = m_state.getUlamTypeByIndex(auti);
-
-	    //append 'instance's arg (mangled) type; little 'c' for a class type parameter (t41209)
-	    args << aut->UlamType::getUlamTypeMangledType().c_str();
-	    assert(!aut->isAltRefType());
-	    if(!aut->isScalar())
-	      {
-		std::string arrvalstr;
-		if((isok = ((SymbolConstantValue *) asym)->getArrayValueAsString(arrvalstr)))
-		  args << arrvalstr; //lex'd by array of u32's
-	      }
-	    else if(m_state.isAClass(auti))
-	      {
-		//check for this sooner! can't figure how to make a class chasing its tail.
-		assert(UlamType::compare(auti, instance, m_state) != UTIC_SAME);
-
-		std::string ccvalstr;
-		if((isok = ((SymbolConstantValue *)asym)->getValueAsHexString(ccvalstr)))
-		  args << ToLeximited(ccvalstr);
-	      }
-	    else
-	      {
-		//append 'instance's arg value (scalar)
-		std::string argstr;
-		if((isok = ((SymbolConstantValue *) asym)->getLexValue(argstr)))
-		  args << argstr.c_str();
-	      }
-
-	    if(!isok)
-	      {
-		std::string astr = m_state.m_pool.getDataAsString(asym->getId());
-		args << ToLeximited(astr);
-	      }
-	    pit++;
-	  } //next param
-#endif
-
 	m_state.popClassContext(); //restore
       }
     return args.str();
@@ -1156,54 +1056,6 @@ namespace MFM {
 	    args << astr.c_str();
 	  }
       } //next param
-
-#if 0
-    //format values into stream
-    std::vector<SymbolConstantValue *>::iterator pit = m_parameterSymbols.begin();
-    while(pit != m_parameterSymbols.end())
-      {
-	if(n++ > 0)
-	  args << ",";
-
-	SymbolConstantValue * psym = *pit;
-	//get 'instance's value
-	bool isok = false;
-	Symbol * asym = NULL;
-	bool hazyKin = false; //don't care
-	AssertBool isDefined = m_state.alreadyDefinedSymbol(psym->getId(), asym, hazyKin);
-	assert(isDefined);
-	UTI auti = asym->getUlamTypeIdx();
-	UlamType * aut = m_state.getUlamTypeByIndex(auti);
-	if(aut->isComplete())
-	  {
-	    if(!aut->isScalar())
-	      {
-		std::string arrvalstr;
-		if((isok = ((SymbolConstantValue *) asym)->getArrayValueAsString(arrvalstr)))
-		  args << arrvalstr;  //lex'd array of u32's
-	      }
-	    else if(m_state.isAClass(auti))
-	      {
-		std::string ccvalstr;
-		if((isok = ((SymbolConstantValue *)asym)->getValueAsHexString(ccvalstr)))
-		  args << "0x" << ccvalstr; //t41209
-	      }
-	    else
-	      {
-		std::string valstr;
-		if((isok = ((SymbolConstantValue *) asym)->getScalarValueAsString(valstr)))
-		  args << valstr;    //pretty
-	      } //isscalar
-	  } //iscomplete
-
-	if(!isok)
-	  {
-	    std::string astr = m_state.m_pool.getDataAsString(asym->getId());
-	    args << astr.c_str();
-	  }
-	pit++;
-      } //next param
-#endif
 
     args << ")";
 
@@ -1331,70 +1183,6 @@ namespace MFM {
 
 	    pcnt++;
 	  } //next param
-
-#if 0
-
-	std::vector<SymbolConstantValue *>::iterator pit = m_parameterSymbols.begin();
-	while(pit != m_parameterSymbols.end())
-	  {
-	    SymbolConstantValue * psym = *pit;
-	    assert(psym->isClassParameter());
-
-	    if((signa || argvals) && (pcnt > 0))
-	      sig << ",";
-
-	    //get 'instance's arg value
-	    bool isok = false;
-	    Symbol * asym = NULL;
-	    bool hazyKin = false; //don't care
-	    AssertBool isDefined = m_state.alreadyDefinedSymbol(psym->getId(), asym, hazyKin);
-	    assert(isDefined);
-	    UTI auti = asym->getUlamTypeIdx();
-	    UlamType * aut = m_state.getUlamTypeByIndex(auti);
-
-	    if(signa)
-	      {
-		sig << m_state.getUlamTypeNameBriefByIndex(asym->getUlamTypeIdx()).c_str();
-		sig << " " << m_state.m_pool.getDataAsString(asym->getId()).c_str(); //param
-	      }
-
-	    if(argvals)
-	      {
-		if(signa)
-		  sig << "=";
-
-		if(aut->isComplete())
-		  {
-		    if(!aut->isScalar())
-		      {
-			std::string arrvalstr;
-			if((isok = ((SymbolConstantValue *) asym)->getArrayValueAsString(arrvalstr)))
-			  sig << arrvalstr;  //lex'd array of u32's
-		      }
-		    else if(m_state.isAClass(auti))
-		      {
-			std::string ccvalstr;
-			if((isok = ((SymbolConstantValue *)asym)->getValueAsHexString(ccvalstr)))
-			  sig << "0x" << ccvalstr; //t41209
-		      }
-		    else
-		      {
-			std::string valstr;
-			if((isok = ((SymbolConstantValue *) asym)->getScalarValueAsString(valstr)))
-			  sig << valstr;    //pretty
-		      } //isscalar
-		  } //iscomplete
-
-		if(!isok)
-		  {
-		    sig << "BAD_VALUE";
-		  }
-	      } //argvals
-
-	    pcnt++;
-	    pit++;
-	  } //next param
-#endif
 
 	if(signa || argvals)
 	  sig << ")";
@@ -2583,18 +2371,6 @@ namespace MFM {
 	instancesArgs.push_back((SymbolConstantValue *) asym);
       } //next param
 
-#if 0
-    std::vector<SymbolConstantValue *>::iterator pit = m_parameterSymbols.begin();
-    while(pit != m_parameterSymbols.end())
-      {
-	SymbolConstantValue * psym = *pit;
-	//save 'instance's arg constant symbols in a temporary list
-	Symbol * asym = NULL;
-	m_state.takeSymbolFromCurrentScope(psym->getId(), asym); //ownership transferred to temp list; NULL if using default value
-	instancesArgs.push_back((SymbolConstantValue *) asym);
-	pit++;
-      } //next param
-#endif
     m_state.popClassContext(); //restore
 
     NodeBlockClass * toclassblock = to->getClassBlockNode();
@@ -2710,7 +2486,7 @@ namespace MFM {
 	NodeConstantDef * paramConstDef = (NodeConstantDef *) templateclassNode->getParameterNode(i);
 	assert(paramConstDef);
 	u32 pid = paramConstDef->getNameId();
-	UTI puti = paramConstDef->getGivenUTI();
+	UTI puti = paramConstDef->getTypeDescriptorGivenType();
 
 	if(pcnt > 0)
 	  fp->write(", ");
@@ -2746,48 +2522,6 @@ namespace MFM {
 	  }
 	pcnt++;
       } //next param
-
-#if 0
-    std::vector<SymbolConstantValue *>::iterator pit = m_parameterSymbols.begin();
-    while(pit != m_parameterSymbols.end())
-      {
-	SymbolConstantValue * psym = *pit;
-	assert(psym->isClassParameter());
-	UTI puti = psym->getUlamTypeIdx();
-
-	if(pcnt > 0)
-	  fp->write(", ");
-
-	fp->write(m_state.getUlamTypeNameBriefByIndex(puti).c_str());
-	fp->write(" ");
-	fp->write(m_state.m_pool.getDataAsString(psym->getId()).c_str());
-
-	if(!m_state.isScalar(puti))
-	  {
-	    s32 arraysize = m_state.getArraySize(puti);
-	    fp->write("[");
-	    if(arraysize >= 0)
-	      fp->write_decimal(arraysize);
-	    else if(arraysize == UNKNOWNSIZE)
-	      fp->write("UNKNOWN"); //t3894
-	    else if(arraysize != NONARRAYSIZE)
-	      {
-		fp->write_decimal(arraysize);
-		fp->write("?");
-	      }
-	    fp->write("]");
-	  }
-
-	if(parameterHasDefaultValue(pcnt))
-	  {
-	    fp->write(" = ");
-	    psym->printPostfixValue(fp);
-	  }
-	pcnt++;
-	pit++;
-      } //next param
-#endif
-
     fp->write(")");
   } //printClassTemplateArgsForPostfix
 

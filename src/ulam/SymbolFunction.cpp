@@ -92,12 +92,7 @@ namespace MFM {
     assert(funcdef);
     NodeVarDecl * pnode = (NodeVarDecl*) funcdef->getParameterNode(n);
     assert(pnode);
-    UTI puti = pnode->getGivenUTI();
-#if 0
-    NodeTypeDescriptor * ptypedesc = NULL;
-    if(((NodeVarDecl*)pnode)->getNodeTypeDescriptorPtr(ptypedesc))
-      puti = ptypedesc->givenUTI();
-#endif
+    UTI puti = pnode->getTypeDescriptorGivenType();
     return puti;
   }
 
@@ -107,10 +102,7 @@ namespace MFM {
     assert(funcdef);
     Node * pnode = funcdef->getParameterNode(n);
     assert(pnode);
-    ALT preftype = ALT_NOT;
-    NodeTypeDescriptor * ptypedesc = NULL;
-    if(((NodeVarDecl*)pnode)->getNodeTypeDescriptorPtr(ptypedesc))
-      preftype = ptypedesc->getReferenceType();
+    ALT preftype = pnode->getTypeDescriptorRefType();
     return preftype;
   }
 

@@ -161,12 +161,6 @@ namespace MFM {
     return m_varSymbol->getMangledName();
   }
 
-  UTI NodeVarDecl::getGivenUTI()
-  {
-    assert(m_nodeTypeDesc);
-    return m_nodeTypeDesc->givenUTI();
-  }
-
   u32 NodeVarDecl::getTypeNameId()
   {
     if(m_nodeTypeDesc)
@@ -183,6 +177,19 @@ namespace MFM {
       } //else t3411,t3412,t3514
     return m_state.m_pool.getIndexForDataString(m_state.getUlamTypeNameBriefByIndex(nuti));
   } //getTypeNameId
+
+
+  UTI NodeVarDecl::getTypeDescriptorGivenType()
+  {
+    assert(m_nodeTypeDesc);
+    return m_nodeTypeDesc->givenUTI();
+  }
+
+  ALT NodeVarDecl::getTypeDescriptorRefType()
+  {
+    assert(m_nodeTypeDesc);
+    return m_nodeTypeDesc->getReferenceType();
+  }
 
   const std::string NodeVarDecl::prettyNodeName()
   {

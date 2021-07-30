@@ -100,6 +100,24 @@ namespace MFM {
     return 0;
   }
 
+  UTI Node::getTypeDescriptorGivenType()
+  {
+    std::ostringstream msg;
+    msg << "virtual UTI " << prettyNodeName().c_str();
+    msg << "::getTypeDescriptorGivenType(){} is needed!!";
+    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+    return Nav; //NodeVarDecl and NodeConstantDef both have them
+  }
+
+  ALT Node::getTypeDescriptorRefType()
+  {
+    std::ostringstream msg;
+    msg << "virtual ALT " << prettyNodeName().c_str();
+    msg << "::getTypeDescriptorRefType(){} is needed!!";
+    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+    return ALT_NOT; //NodeVarDecl, and NodeConstantDef
+  }
+
   void Node::noteTypeAndName(UTI cuti, s32 totalsize, u32& accumsize)
   {
     m_state.abortShouldntGetHere(); //NodeVarDeclDM does work; NodeConstantDef, NodeTypedef bypass

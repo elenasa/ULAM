@@ -60,6 +60,8 @@ namespace MFM{
 
     virtual bool exchangeKids(Node * oldnptr, Node * newnptr);
 
+    NodeTypeDescriptor * cloneTypeDescriptor();
+
     virtual bool findNodeNo(NNO n, Node *& foundNode);
 
     virtual void checkAbstractInstanceErrors();
@@ -76,9 +78,11 @@ namespace MFM{
 
     virtual u32 getNameId();
 
-    UTI getGivenUTI();
-
     virtual u32 getTypeNameId();
+
+    virtual UTI getTypeDescriptorGivenType();
+
+    virtual ALT getTypeDescriptorRefType();
 
     virtual const std::string prettyNodeName();
 
@@ -87,8 +91,6 @@ namespace MFM{
     virtual void setSymbolPtr(SymbolWithValue * cvsymptr);
 
     virtual u32 getSymbolId();
-
-    virtual bool getNodeTypeDescriptorPtr(NodeTypeDescriptor *& nodetypedescref);
 
     bool setNodeTypeDescriptor(NodeTypeDescriptor * nodetypedesc);
 
@@ -170,6 +172,8 @@ namespace MFM{
 
     void setBlock(NodeBlock * ptr);
     bool setSymbolValue(const BV8K& bv);
+
+    bool getNodeTypeDescriptorPtr(NodeTypeDescriptor *& nodetypedescref);
 
     void setupStackWithPrimitiveForEval(u32 slots);
     void setupStackWithConstantClassForEval(u32 slots);

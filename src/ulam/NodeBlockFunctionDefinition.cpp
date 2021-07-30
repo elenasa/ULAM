@@ -291,10 +291,8 @@ namespace MFM {
   {
     NodeVarDecl * parmdef = (NodeVarDecl *) getParameterNode(pidx);
     assert(parmdef);
-    NodeTypeDescriptor * typedesc = NULL;
-    AssertBool gottype = parmdef->getNodeTypeDescriptorPtr(typedesc);
-    assert(gottype);
-    return typedesc->givenUTI();
+    UTI puti = parmdef->getTypeDescriptorGivenType();
+    return puti;
   }
 
   u32 NodeBlockFunctionDefinition::getNumberOfParameters()
