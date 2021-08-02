@@ -72,6 +72,8 @@ namespace MFM{
 
     void setupBlockNo();
 
+    virtual bool getSymbolPtr(const Symbol *& symptrref);
+
     virtual bool compareSymbolPtrs(Symbol * ptr);
 
     virtual bool hasASymbol();
@@ -106,8 +108,6 @@ namespace MFM{
     UTI m_constType;
 
     virtual void checkForSymbol();
-
-    virtual bool getSymbolPtr(Symbol *& symptrref);
 
     virtual void clearSymbolPtr();
 

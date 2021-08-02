@@ -71,7 +71,7 @@ namespace MFM {
     assert(m_currBlockNo);
   }
 
-  bool NodeIdent::getSymbolPtr(Symbol *& symptrref)
+  bool NodeIdent::getSymbolPtr(const Symbol *& symptrref)
   {
     symptrref = m_varSymbol;
     return (m_varSymbol != NULL); //true not-null
@@ -88,7 +88,7 @@ namespace MFM {
     return (m_varSymbol == ptr);
   }
 
-  bool NodeIdent::getStorageSymbolPtr(Symbol *& symptrref)
+  bool NodeIdent::getStorageSymbolPtr(const Symbol *& symptrref)
   {
     UTI nuti = getNodeType();
     assert(m_state.okUTItoContinue(nuti));

@@ -91,6 +91,8 @@ namespace MFM{
 
     virtual bool cloneSymbol(Symbol *& symptrref);
 
+    virtual bool getSymbolPtr(const Symbol *& symptrref);
+
     bool isAConstantFunctionParameter();
 
     virtual void setInitExpr(Node * node);
@@ -139,10 +141,9 @@ namespace MFM{
     NodeTypeDescriptor * m_nodeTypeDesc; //can be NULL
 
     virtual void checkForSymbol();
-    virtual bool getSymbolPtr(Symbol *& symptrref);
     virtual void clearSymbolPtr();
 
-    bool getNodeTypeDescriptorPtr(NodeTypeDescriptor *& nodetypedescref);
+    bool getNodeTypeDescriptorPtr(const NodeTypeDescriptor *& nodetypedescref);
 
     virtual void printTypeAndName(File * fp);
     virtual bool checkSafeToCastTo(UTI fromType, UTI& newType);

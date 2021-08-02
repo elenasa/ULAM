@@ -256,12 +256,12 @@ namespace MFM {
     return false;
   }
 
-  bool Node::getSymbolPtr(Symbol *& symptrref)
+  bool Node::getSymbolPtr(const Symbol *& symptrref)
   {
     return false;
   }
 
-  bool Node::getStorageSymbolPtr(Symbol *& symptrref)
+  bool Node::getStorageSymbolPtr(const Symbol *& symptrref)
   {
     return false;
   }

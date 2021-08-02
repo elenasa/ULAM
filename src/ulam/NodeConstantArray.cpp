@@ -73,7 +73,7 @@ namespace MFM {
     setBlock(NULL);
   }
 
-  bool NodeConstantArray::getSymbolPtr(Symbol *& symptrref)
+  bool NodeConstantArray::getSymbolPtr(const Symbol *& symptrref)
   {
     symptrref = m_constSymbol;
     return (m_constSymbol != NULL); //true;

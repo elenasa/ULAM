@@ -71,6 +71,8 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
+    virtual bool getSymbolPtr(const Symbol *& symptrref);
+
     virtual UTI checkAndLabelType(Node * thisparentnode);
 
     virtual TBOOL packBitsInOrderOfDeclaration(u32& offset);
@@ -103,8 +105,6 @@ namespace MFM{
 
   protected:
     virtual void checkForSymbol();
-
-    virtual bool getSymbolPtr(Symbol *& symptrref);
 
     virtual void clearSymbolPtr();
 

@@ -77,7 +77,7 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-  bool NodeMemberSelectByBaseClassType::getStorageSymbolPtr(Symbol *& symptrref)
+  bool NodeMemberSelectByBaseClassType::getStorageSymbolPtr(const Symbol *& symptrref)
   {
     MSG(getNodeLocationAsString().c_str(), "No storage symbol", ERR);
     return false;

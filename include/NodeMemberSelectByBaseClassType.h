@@ -64,6 +64,8 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
+    virtual bool getStorageSymbolPtr(const Symbol *& symptrref);
+
     virtual bool hasASymbolDataMember();
 
     virtual FORECAST safeToCastTo(UTI newType);
@@ -92,9 +94,6 @@ namespace MFM{
     virtual bool passalongUVPass();
 
     virtual TBOOL checkStoreIntoAble();
-
-    virtual bool getStorageSymbolPtr(Symbol *& symptrref);
-
 
   private:
 

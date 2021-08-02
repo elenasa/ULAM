@@ -972,7 +972,7 @@ namespace MFM {
     m_funcSymbol = NULL;
   }
 
-  bool NodeFunctionCall::getSymbolPtr(Symbol *& symptrref)
+  bool NodeFunctionCall::getSymbolPtr(const Symbol *& symptrref)
   {
     symptrref = m_funcSymbol;
     return true;

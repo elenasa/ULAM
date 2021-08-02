@@ -205,7 +205,7 @@ namespace MFM {
     setBlock(NULL);
   }
 
-  bool NodeVarDecl::hasASymbol()
+    bool NodeVarDecl::hasASymbol()
   {
     return (m_varSymbol != NULL);
   }
@@ -234,13 +234,13 @@ namespace MFM {
     return rtnb;
   }
 
-  bool NodeVarDecl::getSymbolPtr(Symbol *& symptrref)
+  bool NodeVarDecl::getSymbolPtr(const Symbol *& symptrref)
   {
     symptrref = m_varSymbol;
     return (m_varSymbol != NULL);
   }
 
-  bool NodeVarDecl::getNodeTypeDescriptorPtr(NodeTypeDescriptor *& nodetypedescref)
+  bool NodeVarDecl::getNodeTypeDescriptorPtr(const NodeTypeDescriptor *& nodetypedescref)
   {
     if(m_nodeTypeDesc)
       {

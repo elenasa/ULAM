@@ -86,6 +86,8 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
+    virtual bool getSymbolPtr(const Symbol *& symptrref);
+
     virtual bool cloneSymbol(Symbol *& symptrref);
 
     virtual void setSymbolPtr(SymbolWithValue * cvsymptr);
@@ -166,8 +168,6 @@ namespace MFM{
 
     virtual void checkForSymbol();
 
-    virtual bool getSymbolPtr(Symbol *& symptrref);
-
     virtual void clearSymbolPtr();
 
     virtual bool isDataMemberInit();
@@ -179,7 +179,7 @@ namespace MFM{
     void setBlock(NodeBlock * ptr);
     bool setSymbolValue(const BV8K& bv);
 
-    bool getNodeTypeDescriptorPtr(NodeTypeDescriptor *& nodetypedescref);
+    bool getNodeTypeDescriptorPtr(const NodeTypeDescriptor *& nodetypedescref);
 
     void setupStackWithPrimitiveForEval(u32 slots);
     void setupStackWithConstantClassForEval(u32 slots);

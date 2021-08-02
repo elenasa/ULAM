@@ -69,6 +69,10 @@ namespace MFM{
 
     virtual bool compareSymbolPtrs(Symbol * ptr);
 
+    virtual bool getSymbolPtr(const Symbol *& symptrref);
+
+    virtual bool getStorageSymbolPtr(const Symbol *& symptrref);
+
     virtual bool getSymbolPtr(SymbolVariable *& symptrref) const;
 
     virtual u32 getSymbolId();
@@ -128,10 +132,6 @@ namespace MFM{
 
 
   protected:
-
-    virtual bool getSymbolPtr(Symbol *& symptrref);
-
-    virtual bool getStorageSymbolPtr(Symbol *& symptrref);
 
   private:
     const Token m_token;

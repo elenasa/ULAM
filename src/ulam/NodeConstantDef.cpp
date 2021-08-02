@@ -155,9 +155,6 @@ namespace MFM {
 
   const char * NodeConstantDef::getName()
   {
-    //if(m_constSymbol)
-    //  return m_state.m_pool.getDataAsString(m_constSymbol->getId()).c_str();
-    //return "CONSTDEF?";
     return m_state.m_pool.getDataAsString(m_cid).c_str();
   }
 
@@ -211,7 +208,7 @@ namespace MFM {
     return rtnb;
   }
 
-  bool NodeConstantDef::getSymbolPtr(Symbol *& symptrref)
+  bool NodeConstantDef::getSymbolPtr(const Symbol *& symptrref)
   {
     symptrref = m_constSymbol;
     return (m_constSymbol != NULL); //true;
@@ -281,7 +278,7 @@ namespace MFM {
       return rtnb;
   } //setSymbolValue
 
-  bool NodeConstantDef::getNodeTypeDescriptorPtr(NodeTypeDescriptor *& nodetypedescref)
+  bool NodeConstantDef::getNodeTypeDescriptorPtr(const NodeTypeDescriptor *& nodetypedescref)
   {
     if(m_nodeTypeDesc)
       {
@@ -296,9 +293,6 @@ namespace MFM {
     if(m_nodeTypeDesc == NULL)
       {
 	m_nodeTypeDesc = nodetypedesc; //tfr ownership here
-	//if(m_constSymbol)
-	//  m_constSymbol->resetUlamType(m_nodeTypeDesc->givenUTI()); //or keep hazy
-	////  m_nodeTypeDesc->resetGivenUTI(m_constSymbol->getUlamTypeIdx()); //invariant?
 	return true;
       }
     return false;
@@ -1189,20 +1183,15 @@ namespace MFM {
     if(m_nodeTypeDesc == NULL)
       {
 	//clone the template's node type descriptor for this stub's pending argument
-	//	NodeTypeDescriptor * pnodetypedesc = NULL;
-	//if(templateparamdef->getNodeTypeDescriptorPtr(pnodetypedesc))
-	  {
-	    //	    NodeTypeDescriptor * copynodetypedesc = (NodeTypeDescriptor *) pnodetypedesc->instantiate(); //t41209?
-	    NodeTypeDescriptor * copynodetypedesc = templateparamdef->cloneTypeDescriptor(); //t41209
-	    assert(copynodetypedesc);
-	    copynodetypedesc->setNodeLocation(getNodeLocation()); //same loc as this node
+	NodeTypeDescriptor * copynodetypedesc = templateparamdef->cloneTypeDescriptor(); //t41209
+	assert(copynodetypedesc);
+	copynodetypedesc->setNodeLocation(getNodeLocation()); //same loc as this node
 
-	    AssertBool isset = setNodeTypeDescriptor(copynodetypedesc); //resets givenuti too.
-	    assert(isset);
+	AssertBool isset = setNodeTypeDescriptor(copynodetypedesc); //resets givenuti too.
+	assert(isset);
 
-	    assert(m_constSymbol && ((m_constSymbol->getUlamTypeIdx() == Hzy) || (m_constSymbol->getUlamTypeIdx() == m_nodeTypeDesc->givenUTI()))); //invariant? (likely null symbol, see checkForSymbol) t41361, t3326
-	    aok = true;
-	  }
+	assert(m_constSymbol && ((m_constSymbol->getUlamTypeIdx() == Hzy) || (m_constSymbol->getUlamTypeIdx() == m_nodeTypeDesc->givenUTI()))); //invariant? (likely null symbol, see checkForSymbol) t41361, t3326
+	aok = true;
       }
     return aok;
   } //cloneTypeDescriptorForPendingArgumentNode
@@ -1679,7 +1668,6 @@ namespace MFM {
   {
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    //ULAMCLASSTYPE classtype = nut->getUlamClassType();
     ULAMTYPE etyp = nut->getUlamTypeEnum();
 
     if(nut->isScalar() && !((etyp == Class) || (etyp == UAtom)))//t41483

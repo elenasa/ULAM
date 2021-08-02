@@ -90,6 +90,8 @@ namespace MFM{
 
     u32 getNumberOfArguments();
 
+    virtual bool getSymbolPtr(const Symbol *& symptrref);
+
     virtual bool hasASymbol();
 
     virtual u32 getSymbolId();
@@ -109,8 +111,6 @@ namespace MFM{
     virtual std::string genModelParameterHiddenArgs(s32 epi);
 
     virtual void genLocalMemberNameOfMethod(File * fp);
-
-    virtual bool getSymbolPtr(Symbol *& symptrref);
 
     virtual void clearSymbolPtr();
 

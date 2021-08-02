@@ -87,7 +87,7 @@ namespace MFM {
     setBlock(NULL);
   }
 
-  bool NodeConstant::getSymbolPtr(Symbol *& symptrref)
+  bool NodeConstant::getSymbolPtr(const Symbol *& symptrref)
   {
     symptrref = m_constSymbol;
     return (m_constSymbol != NULL); //true;

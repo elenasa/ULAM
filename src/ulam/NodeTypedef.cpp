@@ -114,7 +114,7 @@ namespace MFM {
     setBlock(NULL);
   }
 
-  bool NodeTypedef::getSymbolPtr(Symbol *& symptrref)
+  bool NodeTypedef::getSymbolPtr(const Symbol *& symptrref)
   {
     symptrref = m_typedefSymbol;
     return true;

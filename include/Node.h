@@ -148,6 +148,10 @@ enum EvalStatus {ERROR, NOTREADY, NORMAL, RETURN, BREAK, CONTINUE, UNEVALUABLE};
 
     virtual bool cloneSymbol(Symbol *& symptrref);
 
+    virtual bool getSymbolPtr(const Symbol *& symptrref);
+
+    virtual bool getStorageSymbolPtr(const Symbol *& symptrref);
+
     virtual bool getSymbolPtr(Symbol *& symptrref) const;
 
     virtual bool getSymbolValue(BV8K& bv);
@@ -293,10 +297,6 @@ enum EvalStatus {ERROR, NOTREADY, NORMAL, RETURN, BREAK, CONTINUE, UNEVALUABLE};
   protected:
 
     CompilerState & m_state;  //for printing error messages with path
-
-    virtual bool getSymbolPtr(Symbol *& symptrref);
-
-    virtual bool getStorageSymbolPtr(Symbol *& symptrref);
 
     virtual bool checkSafeToCastTo(UTI fromType, UTI& newType);
 
