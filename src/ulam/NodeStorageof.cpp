@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "NodeStorageof.h"
+#include "NodeMemberSelect.h"
 #include "CompilerState.h"
 #include "SymbolVariableStack.h"
 
@@ -97,6 +98,17 @@ namespace MFM {
     return (m_state.isAtom(newType) ? CAST_CLEAR : CAST_BAD);
   } //safeToCastTo
 
+  bool NodeStorageof::hasASymbol()
+  {
+    return m_nodeOf && m_nodeOf->hasASymbol();
+  }
+
+  u32 NodeStorageof::getSymbolId()
+  {
+    assert(m_nodeOf);
+    return m_nodeOf->getSymbolId();
+  }
+
   UTI NodeStorageof::getOfType()
   {
     return m_oftype;
@@ -186,17 +198,7 @@ namespace MFM {
 	      if(m_nodeOf)
 		{
 		  if(m_nodeOf->isAMemberSelect()) //t3699
-		    {
-		      Symbol * rhsym = NULL;
-		      Symbol * lhsym = NULL;
-		      m_nodeOf->getStorageSymbolPtr(lhsym);
-		      m_nodeOf->getSymbolPtr(rhsym);
-		      if(lhsym)
-			msg << m_state.m_pool.getDataAsString(lhsym->getId()).c_str();
-		      msg << ".";
-		      if(rhsym)
-			msg << m_state.m_pool.getDataAsString(rhsym->getId()).c_str();
-		    }
+		    msg << ((NodeMemberSelect *) m_nodeOf)->getFullName().c_str();
 		  else
 		    msg << m_nodeOf->getName();
 		}

@@ -80,6 +80,8 @@ namespace MFM{
 
     virtual bool isAConstructorFunctionCall();
 
+    virtual bool isAVirtualFunctionCall();
+
     virtual EvalStatus eval();
 
     virtual EvalStatus evalToStoreInto();
@@ -88,7 +90,11 @@ namespace MFM{
 
     u32 getNumberOfArguments();
 
-    virtual bool getSymbolPtr(Symbol *& symptrref);
+    //virtual bool getSymbolPtr(const Symbol *& symptrref);
+
+    virtual bool hasASymbol();
+
+    virtual u32 getSymbolId();
 
     virtual void genCode(File * fp, UVPass& uvpass);
 
@@ -105,6 +111,8 @@ namespace MFM{
     virtual std::string genModelParameterHiddenArgs(s32 epi);
 
     virtual void genLocalMemberNameOfMethod(File * fp);
+
+    virtual bool getSymbolPtr(Symbol *& symptrref);
 
   private:
 

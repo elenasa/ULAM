@@ -82,6 +82,14 @@ namespace MFM {
     return (m_constSymbol != NULL); //true;
   }
 
+#if 0
+  bool NodeConstantClassArray::getSymbolPtr(const Symbol *& symptrref)
+  {
+    symptrref = m_constSymbol;
+    return (m_constSymbol != NULL); //true;
+  }
+#endif
+
   bool NodeConstantClassArray::hasASymbolDataMember()
   {
     assert(m_constSymbol);

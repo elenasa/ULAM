@@ -577,31 +577,39 @@ namespace MFM {
 
 	if((offsetInt >= arraysize))
 	  {
+#if 0
 	    Symbol * lsymptr;
 	    u32 lid = 0;
 	    if(getSymbolPtr(lsymptr))
 	      lid = lsymptr->getId();
+#endif
+
+	    u32 lid = m_nodeLeft->hasASymbol() ? m_nodeLeft->getSymbolId() : m_nodeLeft->getNameId();
 
 	    std::ostringstream msg;
 	    msg << "Array subscript [" << offsetInt << "] exceeds the size (" << arraysize;
 	    msg << ") of array '" << m_state.m_pool.getDataAsString(lid).c_str() << "'";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    return evalStatusReturn(ERROR);
+	    return evalStatusReturn(ERROR); //t3842,5
 	  }
       }
     else
       {
+#if 0
 	Symbol * lsymptr;
 	u32 lid = 0;
 	if(getSymbolPtr(lsymptr))
 	  lid = lsymptr->getId();
+#endif
+	//	bool lms = m_nodeLeft->isAMemberSelect();
+	u32 lid = m_nodeLeft->hasASymbol() ? m_nodeLeft->getSymbolId() : m_nodeLeft->getNameId();
 
 	std::ostringstream msg;
 	msg << "Array subscript of array '";
 	msg << m_state.m_pool.getDataAsString(lid).c_str();
 	msg << "' requires a numeric type";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	return evalStatusReturn(ERROR);
+	return evalStatusReturn(ERROR); //t3321
       }
 
     Node::assignReturnValueToStack(pluv.getValAt(offsetInt, m_state));
@@ -706,17 +714,20 @@ namespace MFM {
     else
       {
 	s32 arraysize = m_state.getArraySize(auti);
+#if 0
 	Symbol * lsymptr;
 	u32 lid = 0;
 	if(getSymbolPtr(lsymptr))
 	  lid = lsymptr->getId();
+#endif
+	u32 lid = m_nodeLeft->hasASymbol() ? m_nodeLeft->getSymbolId() : m_nodeLeft->getNameId();
 
 	std::ostringstream msg;
 	msg << "Array subscript [" << offsetInt << "] exceeds the size (" << arraysize;
 	msg << ") of array '" << m_state.m_pool.getDataAsString(lid).c_str() << "'";
 	msg << " to store into";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	return evalStatusReturn(ERROR);
+	return evalStatusReturn(ERROR); //t3427
       }
 
     evalNodeEpilog();
@@ -749,7 +760,24 @@ namespace MFM {
       m_nodeLeft->clearSymbolPtr();
   }
 
-  bool NodeSquareBracket::getSymbolPtr(Symbol *& symptrref)
+  u32 NodeSquareBracket::getSymbolId()
+  {
+    if(m_nodeLeft)
+      return m_nodeLeft->getSymbolId();
+    return getNameId();
+  }
+
+  bool NodeSquareBracket::hasASymbol()
+  {
+    if(m_nodeLeft)
+      return m_nodeLeft->hasASymbol();
+
+    MSG(getNodeLocationAsString().c_str(), "No symbol", ERR);
+    return false;
+  }
+
+#if 0
+  bool NodeSquareBracket::getSymbolPtr(const Symbol *& symptrref)
   {
     if(m_nodeLeft)
       return m_nodeLeft->getSymbolPtr(symptrref);
@@ -758,11 +786,12 @@ namespace MFM {
     return false;
   }
 
-  bool NodeSquareBracket::getStorageSymbolPtr(Symbol *& symptrref)
+  bool NodeSquareBracket::getStorageSymbolPtr(const Symbol *& symptrref)
   {
     assert(m_nodeLeft);
-    return m_nodeLeft->getStorageSymbolPtr(symptrref);
+    return m_nodeLeft->getSymbolPtr(symptrref); //???
   }
+#endif
 
   //see also NodeIdent
   bool NodeSquareBracket::installSymbolTypedef(TypeArgs& args, Symbol *& asymptr)

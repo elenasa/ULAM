@@ -124,6 +124,11 @@ namespace MFM {
     return true;
   }
 
+  bool NodeTerminal::hasASymbol()
+  {
+    return false;
+  }
+
   FORECAST NodeTerminal::safeToCastTo(UTI newType)
   {
     if(m_state.isAltRefType(newType))

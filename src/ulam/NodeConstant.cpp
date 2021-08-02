@@ -93,6 +93,30 @@ namespace MFM {
     return (m_constSymbol != NULL); //true;
   }
 
+#if 0
+  bool NodeConstant::getSymbolPtr(const Symbol *& symptrref)
+  {
+    symptrref = m_constSymbol;
+    return (m_constSymbol != NULL); //true;
+  }
+#endif
+
+  bool NodeConstant::compareSymbolPtrs(Symbol * ptr)
+  {
+    return (m_constSymbol == ptr);
+  }
+
+  bool NodeConstant::hasASymbol()
+  {
+    return (m_constSymbol != NULL);
+  }
+
+  u32 NodeConstant::getSymbolId()
+  {
+    assert(m_constSymbol);
+    return m_constSymbol->getId();
+  }
+
   bool NodeConstant::hasASymbolDataMember()
   {
     assert(m_constSymbol);

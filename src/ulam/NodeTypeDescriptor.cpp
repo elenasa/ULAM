@@ -319,7 +319,8 @@ namespace MFM {
 	  }
 
 	//maybe a culam-generated typedef holder.. (t3565)
-	if(nuti == Hzy)
+	//if(nuti == Hzy)
+	if((nuti == Hzy) || m_state.isHolder(nuti))
 	  {
 	    UTI tduti = Nouti;
 	    UTI tmpforscalaruti = Nouti;

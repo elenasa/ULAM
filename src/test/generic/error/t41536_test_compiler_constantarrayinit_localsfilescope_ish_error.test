@@ -1,0 +1,46 @@
+## -*- mode:ulam -*-
+#=t41536_test_compiler_constantarrayinit_localsfilescope_ish_error
+#!
+./Q.ulam:2:16: ERROR: Incomplete Constant Def for type used with constant name 'cBLACK' in locals filescope.
+./Q.ulam:3:16: ERROR: Incomplete Constant Def for type used with constant name 'cYELLOW' in locals filescope.
+Unrecoverable Program GenCode FAILURE.
+##
+## ish 20210802 ARGB typedef not found in UrSelf for localsfilescope; compiler assert hit when
+##  NodeConstantDef::cloneAndAppend had no symbol. (see also t41534,5)
+##
+#>A.ulam
+  ulam 3;
+element A {
+  Int test(){
+    Q q;
+    return 0;
+  }
+}
+
+#:Q.ulam
+  ulam 5;
+local constant ARGB cBLACK = { 0xff, 0x00, 0x00, 0x00 };
+local constant ARGB cYELLOW = { 0xff, 0xff, 0xff, 0x00 };
+
+element Q {
+  // How are (local) constant( array)s to be used?  None of these build:
+  //  ARGB getFg() { return cBLACK; }
+  //
+  //  ARGB getFg() { return cBLACK.instanceof; }
+  //
+  //  ARGB getFg() { return local.cBLACK.instanceof; }
+  //
+  //  ARGB getFg() { ARGB ret = cBLACK; return ret; }
+  //
+  //  ARGB getFg() { return cBLACK.constantof; }
+  //
+  //  ARGB getFg() { return func(cBLACK); }
+  //  ARGB func(ARGB a) { return a; }
+  //
+  //  ARGB getFg() { constant ARGB a = cBLACK; return a; }
+  //
+  constant ARGB cCLASSBLACK = { 0xff, 0x00, 0x00, 0x00 };
+  ARGB getFg() { return cCLASSBLACK; }
+}
+
+#.

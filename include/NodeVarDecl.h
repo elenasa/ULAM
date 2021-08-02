@@ -83,7 +83,15 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
-    virtual bool getSymbolPtr(Symbol *& symptrref);
+    virtual bool hasASymbol();
+
+    virtual u32 getSymbolId();
+
+    virtual bool getSymbolValue(BV8K& bv);
+
+    virtual bool cloneSymbol(Symbol *& symptrref);
+
+    //virtual bool getSymbolPtr(const Symbol *& symptrref);
 
     bool isAConstantFunctionParameter();
 
@@ -134,6 +142,7 @@ namespace MFM{
 
     virtual void clearSymbolPtr();
     virtual void checkForSymbol();
+    virtual bool getSymbolPtr(Symbol *& symptrref);
 
     bool getNodeTypeDescriptorPtr(NodeTypeDescriptor *& nodetypedescref);
 

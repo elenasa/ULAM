@@ -68,6 +68,8 @@ namespace MFM{
 
     virtual bool isReadyConstant();
 
+    virtual bool hasASymbol();
+
     virtual FORECAST safeToCastTo(UTI newType);
 
     virtual UTI checkAndLabelType(Node * thisparentnode);

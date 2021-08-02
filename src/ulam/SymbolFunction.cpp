@@ -8,7 +8,7 @@
 
 namespace MFM {
 
-  SymbolFunction::SymbolFunction(const Token& id, UTI typetoreturn, CompilerState& state ) : Symbol(id,typetoreturn,state), m_functionNode(NULL), m_declOrderNum(state.getNextFunctionOrderNumber()), m_hasVariableArgs(false), m_isVirtual(false), m_pureVirtual(false), m_insureVirtualOverride(false), m_virtualIdx(9999), m_virtualOrigUTI(Nouti), m_isConstructor(false), m_definedinaQuark(false), m_signatureid(0)
+  SymbolFunction::SymbolFunction(const Token& id, UTI typetoreturn, CompilerState& state ) : Symbol(id,typetoreturn,state), m_functionNode(NULL), m_declOrderNum(state.getNextFunctionOrderNumber()), m_hasVariableArgs(false), m_isVirtual(false), m_pureVirtual(false), m_insureVirtualOverride(false), m_virtualIdx(UNRELIABLEPOS), m_virtualOrigUTI(Nouti), m_isConstructor(false), m_definedinaQuark(false), m_signatureid(0)
   {
     setDataMemberClass(m_state.getCompileThisIdx()); // by definition all function definitions are data members
   }

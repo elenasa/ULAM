@@ -129,7 +129,7 @@ namespace MFM {
     UlamValue atomuv;
 
     UTI nuti = getNodeType();
-    UTI auti = getOfType();
+    UTI auti = getOfType(); //deref'ed
 
     assert(m_nodeOf);
     if(m_nodeOf->hasASymbolSelf())
@@ -147,13 +147,16 @@ namespace MFM {
 	return selfuvp;
       } //done
 
+#if 0
     Symbol * vsym = NULL;
-    m_nodeOf->getSymbolPtr(vsym);
+    m_nodeOf->getSymbolPtr(vsym); //a datamember's protected symbol
+#endif
 
     if(m_state.getReferenceType(auti) == ALT_AS)
       {
 	assert(0);
-	return ((SymbolVariableStack *) vsym)->getAutoPtrForEval(); //haha! we're done.
+	//return ((SymbolVariableStack *) vsym)->getAutoPtrForEval(); //haha! we're done.
+	return m_nodeOf->getSymbolAutoPtrForEval(); //haha! we're done.
       }
 
     if(m_nodeOf->hasASymbolDataMember())
@@ -170,15 +173,17 @@ namespace MFM {
 	    ptr.checkForAbsolutePtr(m_state.m_currentObjPtr);
 	  }
       }
-    else if(vsym != NULL)
+    //else if(vsym != NULL)
+    else if(m_nodeOf->hasASymbol())
       {
-	UTI vuti = getOfType();
+	UTI vuti = m_nodeOf->getNodeType(); //t3701,t3835,t3837
 	UlamType * vut = m_state.getUlamTypeByIndex(vuti);
 
 	if(vut->getUlamClassType() == UC_QUARK)
 	  {
-	    if(m_state.isReference(vsym->getUlamTypeIdx()))
-	      ptr = ((SymbolVariableStack *) vsym)->getAutoPtrForEval(); //t3835
+	    if(m_state.isReference(vuti)) //t3701,t3835,t3837
+	      //	      ptr = ((SymbolVariableStack *) vsym)->getAutoPtrForEval(); //t3835
+	      ptr = m_nodeOf->getSymbolAutoPtrForEval(); //t3835
 	    else
 	      {
 		m_state.abortNeedsATest(); //this would be an error
@@ -187,8 +192,9 @@ namespace MFM {
 	  }
 	else
 	  {
-	    //local variable on the stack; could be array ptr!
-	    ptr = UlamValue::makePtr(((SymbolVariableStack *) vsym)->getStackFrameSlotIndex(), STACK, auti, m_state.determinePackable(auti), m_state, 0, vsym->getId()); //id?
+	    //local variable on the stack; could be array ptr! (t41531)
+	    //ptr = UlamValue::makePtr(((SymbolVariableStack *) vsym)->getStackFrameSlotIndex(), STACK, auti, m_state.determinePackable(auti), m_state, 0, vsym->getId()); //id?
+	    ptr = UlamValue::makePtr(m_nodeOf->getSymbolStackFrameSlotIndex(), STACK, auti, m_state.determinePackable(auti), m_state, 0, m_nodeOf->getNameId()); //id?
 	    ptr.setPtrTargetEffSelfType(auti); //missing?
 	  }
       }
@@ -214,9 +220,18 @@ namespace MFM {
 
     if(m_nodeOf->hasASymbolReference() && (m_state.getUlamTypeByIndex(getOfType())->getUlamClassType() == UC_QUARK))
       {
+	m_nodeOf->genCodeToStoreInto(fp, uvpass);
+
 	Symbol * stgcos = NULL;
+	Symbol * cos = NULL;
+	Node::loadStorageAndCurrentObjectSymbols(stgcos, cos);
+
+	m_state.clearCurrentObjSymbolsForCodeGen(); //t3663
+
+#if 0
 	AssertBool gotstg = m_nodeOf->getStorageSymbolPtr(stgcos);
 	assert(gotstg);
+#endif
 
 	m_state.indentUlamCode(fp);
 	fp->write("if(");
@@ -298,9 +313,17 @@ namespace MFM {
 
     if(m_nodeOf->hasASymbolReference() && (m_state.getUlamTypeByIndex(getOfType())->getUlamClassType() == UC_QUARK))
       {
+	m_nodeOf->genCodeToStoreInto(fp, uvpass);
+
 	Symbol * stgcos = NULL;
+	Symbol * cos = NULL;
+	Node::loadStorageAndCurrentObjectSymbols(stgcos, cos);
+
+	m_state.clearCurrentObjSymbolsForCodeGen(); //t3756..
+#if 0
 	AssertBool gotstg = m_nodeOf->getStorageSymbolPtr(stgcos);
 	assert(gotstg);
+#endif
 
 	m_state.indentUlamCode(fp);
 	fp->write("if(");

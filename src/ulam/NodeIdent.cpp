@@ -44,6 +44,11 @@ namespace MFM {
     return m_state.getTokenDataAsString(m_token).c_str();
   }
 
+  u32 NodeIdent::getNameId()
+  {
+    return m_token.m_dataindex;
+  }
+
   const std::string NodeIdent::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
@@ -78,6 +83,11 @@ namespace MFM {
     return (m_varSymbol != NULL); //true not-null
   }
 
+  bool NodeIdent::compareSymbolPtrs(Symbol * ptr)
+  {
+    return (m_varSymbol == ptr);
+  }
+
   bool NodeIdent::getStorageSymbolPtr(Symbol *& symptrref)
   {
     UTI nuti = getNodeType();
@@ -92,6 +102,17 @@ namespace MFM {
 	return true;
       }
     return false;
+  }
+
+  u32 NodeIdent::getSymbolId()
+  {
+    assert(m_varSymbol);
+    return m_varSymbol->getId();
+  }
+
+  bool NodeIdent::hasASymbol()
+  {
+    return (m_varSymbol != NULL);
   }
 
   bool NodeIdent::hasASymbolDataMember()
@@ -123,6 +144,34 @@ namespace MFM {
     assert(hasASymbolReference());
     //alternatively, m_varSymbol->isFunctionParameter() && isConstantFunctionParameter()
     return (m_state.isConstantRefType(m_varSymbol->getUlamTypeIdx()));
+  }
+
+  s32 NodeIdent::getSymbolStackFrameSlotIndex()
+  {
+    assert(m_varSymbol);
+    assert(!hasASymbolDataMember());
+    return ((SymbolVariableStack*) m_varSymbol)->getStackFrameSlotIndex();
+  }
+
+  UlamValue NodeIdent::getSymbolAutoPtrForEval()
+  {
+    assert(m_varSymbol);
+    assert(!hasASymbolDataMember());
+    return ((SymbolVariableStack*) m_varSymbol)->getAutoPtrForEval();
+  }
+
+  UTI NodeIdent::getSymbolAutoStorageTypeForEval()
+  {
+    assert(m_varSymbol);
+    assert(!hasASymbolDataMember());
+    return ((SymbolVariableStack *) m_varSymbol)->getAutoStorageTypeForEval();
+  }
+
+  u32 NodeIdent::getSymbolDataMemberPosOffset()
+  {
+    assert(m_varSymbol);
+    assert(hasASymbolDataMember());
+    return ((SymbolVariableDataMember *) m_varSymbol)->getPosOffset();
   }
 
   void NodeIdent::setupBlockNo()
@@ -575,11 +624,18 @@ namespace MFM {
 
     if(parentnode->isAMemberSelect())
       {
+#if 0
 	Symbol * rhsym = NULL;
 	if(!parentnode->getSymbolPtr(rhsym))
 	  vuti = Hzy; //t41152
 
 	implicitself = (rhsym != m_varSymbol); //rhsym null wont match
+#endif
+
+	s32 nodeorder = ((NodeMemberSelect *) parentnode)->findNodeKidOrder(this);
+	assert(nodeorder >= 0); //t41152?
+
+	implicitself = (nodeorder == 0); //as lhs, self implied
       }
     //else
 

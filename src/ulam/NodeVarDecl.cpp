@@ -205,6 +205,43 @@ namespace MFM {
     setBlock(NULL);
   }
 
+  bool NodeVarDecl::hasASymbol()
+  {
+    return (m_varSymbol != NULL);
+  }
+
+  u32 NodeVarDecl::getSymbolId()
+  {
+    assert(m_varSymbol);
+    return m_varSymbol->getId();
+  }
+
+  bool NodeVarDecl::getSymbolValue(BV8K& bv)
+  {
+    assert(m_varSymbol);
+    return m_varSymbol->getValueReadyToPrint(bv);
+  }
+
+  bool NodeVarDecl::cloneSymbol(Symbol *& symptrref)
+  {
+    bool rtnb = (m_varSymbol != NULL) && !hasASymbolDataMember(); //true;
+    if(rtnb)
+      {
+	SymbolVariable * sym = new SymbolVariableStack(* (SymbolVariableStack *) m_varSymbol);
+	rtnb = (sym != NULL);
+	symptrref = sym;
+      }
+    return rtnb;
+  }
+
+#if 0
+  bool NodeVarDecl::getSymbolPtr(const Symbol *& symptrref)
+  {
+    symptrref = m_varSymbol;
+    return (m_varSymbol != NULL);
+  }
+#endif
+
   bool NodeVarDecl::getSymbolPtr(Symbol *& symptrref)
   {
     symptrref = m_varSymbol;
@@ -746,9 +783,14 @@ namespace MFM {
 
 	if(m_state.okUTItoContinue(eit) && m_state.okUTItoContinue(vit))
 	  {
+#if 0
 	    Symbol * initsym = NULL;
 	    m_nodeInitExpr->getSymbolPtr(initsym);
-	    if(initsym && (initsym == m_varSymbol))
+#endif
+
+	    //if(initsym && (initsym == m_varSymbol))
+	    //if(m_nodeInitExpr->hasASymbol() && !m_nodeInitExpr->isFunctionCall() && (m_nodeInitExpr->getSymbolId() == m_varSymbol->getId()))
+	    if(m_nodeInitExpr->compareSymbolPtrs(m_varSymbol))
 	      {
 		std::ostringstream msg;
 		msg << "Initial value expression for: '";
@@ -757,7 +799,7 @@ namespace MFM {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		setNodeType(Nav);
 		clearSymbolPtr();
-		return Nav; //t41486
+		return Nav; //t41486,9; t3923 (funccall w same id);
 	      }
 	  }
 

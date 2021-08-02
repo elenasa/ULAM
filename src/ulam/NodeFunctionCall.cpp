@@ -568,11 +568,17 @@ namespace MFM {
 
     if(parentnode->isAMemberSelect())
       {
+#if 0
 	Symbol * rhsym = NULL;
 	if(!parentnode->getSymbolPtr(rhsym))
 	  futi = Hzy;
 
 	implicitself = (rhsym != m_funcSymbol);
+#endif
+	s32 nodeorder = ((NodeMemberSelect *) parentnode)->findNodeKidOrder(this);
+	assert(nodeorder >= 0);
+
+	implicitself = (nodeorder == 0); //as lhs, self implied
       }
     //else
 
@@ -631,6 +637,12 @@ namespace MFM {
   {
     assert(m_funcSymbol);
     return m_funcSymbol->isConstructorFunction();
+  }
+
+  bool NodeFunctionCall::isAVirtualFunctionCall()
+  {
+    assert(m_funcSymbol);
+    return m_funcSymbol->isVirtualFunction();
   }
 
   // since functions are defined at the class-level; a function call
@@ -971,6 +983,25 @@ namespace MFM {
   {
     symptrref = m_funcSymbol;
     return true;
+  }
+
+#if 0
+  bool NodeFunctionCall::getSymbolPtr(const Symbol *& symptrref)
+  {
+    symptrref = m_funcSymbol;
+    return true;
+  }
+#endif
+
+  bool NodeFunctionCall::hasASymbol()
+  {
+    return (m_funcSymbol != NULL);
+  }
+
+  u32 NodeFunctionCall::getSymbolId()
+  {
+    assert(m_funcSymbol);
+    return m_funcSymbol->getId();
   }
 
   bool NodeFunctionCall::getVirtualFunctionForEval(UlamValue & atomPtr, NodeBlockFunctionDefinition *& rtnfunc)

@@ -146,9 +146,26 @@ namespace MFM {
     return m_node->isArrayItem();
   }
 
-  bool NodeCast::getSymbolPtr(Symbol *& symptrref)
+#if 0
+  bool NodeCast::getSymbolPtr(const Symbol *& symptrref)
   {
     return m_node->getSymbolPtr(symptrref);
+  }
+#endif
+
+  bool NodeCast::hasASymbol()
+  {
+    return m_node->hasASymbol();
+  }
+
+  u32 NodeCast::getSymbolId()
+  {
+    return m_node->getSymbolId();
+  }
+
+  bool NodeCast::compareSymbolPtrs(Symbol * ptr)
+  {
+    return m_node->compareSymbolPtrs(ptr);
   }
 
   FORECAST NodeCast::safeToCastTo(UTI newType)

@@ -87,11 +87,14 @@ namespace MFM {
 
   u32 Node::getNameId()
   {
+    return m_state.m_pool.getIndexForDataString(getName());
+#if 0
     std::ostringstream msg;
     msg << "virtual u32 " << prettyNodeName().c_str();
     msg << "::getNameId(){} is needed!!";
     MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
     return 0; //NodeTerminal, NodeVarDecl both have them
+#endif
   }
 
   u32 Node::getTypeNameId()
@@ -239,6 +242,26 @@ namespace MFM {
       }
   }
 
+  bool Node::cloneSymbol(Symbol *& symptrref)
+  {
+    std::ostringstream msg;
+    msg << "virtual bool " << prettyNodeName().c_str();
+    msg << "::cloneSymbol(Symbol *& symptrref){} is needed!!";
+    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+    return false;
+  }
+
+  bool Node::getSymbolPtr(Symbol *& symptrref) const
+  {
+#if 0
+    std::ostringstream msg;
+    msg << "virtual bool " << prettyNodeName().c_str();
+    msg << "::getSymbolPtr(Symbol *& symptrref) const {} is needed!!";
+    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+#endif
+    return false;
+  }
+
   bool Node::getSymbolPtr(Symbol *& symptrref)
   {
     return false;
@@ -246,6 +269,46 @@ namespace MFM {
 
   bool Node::getStorageSymbolPtr(Symbol *& symptrref)
   {
+    return false;
+  }
+
+  bool Node::getSymbolValue(BV8K& bv)
+  {
+    std::ostringstream msg;
+    msg << "virtual bool " << prettyNodeName().c_str();
+    msg << "::getSymbolValue(BV8K& bv){} is needed!!";
+    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+    return false;
+  }
+
+  bool Node::compareSymbolPtrs(Symbol * ptr)
+  {
+#if 0
+    std::ostringstream msg;
+    msg << "virtual bool " << prettyNodeName().c_str();
+    msg << "::compareSymbolPtrs(Symbol * ptr) {} is needed!!";
+    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+#endif
+    return false;
+  }
+
+  u32 Node::getSymbolId()
+  {
+    std::ostringstream msg;
+    msg << "virtual u32 " << prettyNodeName().c_str();
+    msg << "::getSymbolId(){} is needed!!";
+    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+    return 0;
+  }
+
+  bool Node::hasASymbol()
+  {
+#if 0
+    std::ostringstream msg;
+    msg << "virtual bool " << prettyNodeName().c_str();
+    msg << "::hasASymbol(){} is needed!!";
+    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+#endif
     return false;
   }
 
@@ -273,6 +336,43 @@ namespace MFM {
   {
     assert(hasASymbolReference());
     return false;
+  }
+
+  s32 Node::getSymbolStackFrameSlotIndex()
+  {
+    std::ostringstream msg;
+    msg << "virtual s32 " << prettyNodeName().c_str();
+    msg << "::getSymbolStackFrameSlotIndex(){} is needed!!";
+    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+    return -1;
+  }
+
+  UlamValue Node::getSymbolAutoPtrForEval()
+  {
+    UlamValue uv;
+    std::ostringstream msg;
+    msg << "virtual UlamValue " << prettyNodeName().c_str();
+    msg << "::getSymbolAutoPtrForEval(){} is needed!!";
+    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+    return uv;
+  }
+
+  UTI Node::getSymbolAutoStorageTypeForEval()
+  {
+    std::ostringstream msg;
+    msg << "virtual UTI " << prettyNodeName().c_str();
+    msg << "::getSymbolAutoStorageTypeForEval(){} is needed!!";
+    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+    return Nav;
+  }
+
+  u32 Node::getSymbolDataMemberPosOffset()
+  {
+    std::ostringstream msg;
+    msg << "virtual u32 " << prettyNodeName().c_str();
+    msg << "::getSymbolDataMemberPosOffset(){} is needed!!";
+    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+    return UNRELIABLEPOS;
   }
 
   bool Node::belongsToVOWN(UTI vown)
@@ -327,6 +427,11 @@ namespace MFM {
   }
 
   bool Node::isAConstructorFunctionCall()
+  {
+    return false;
+  }
+
+  bool Node::isAVirtualFunctionCall()
   {
     return false;
   }

@@ -146,9 +146,18 @@ enum EvalStatus {ERROR, NOTREADY, NORMAL, RETURN, BREAK, CONTINUE, UNEVALUABLE};
 
     virtual void clearSymbolPtr();
 
-    virtual bool getSymbolPtr(Symbol *& symptrref);
+    virtual bool cloneSymbol(Symbol *& symptrref);
 
-    virtual bool getStorageSymbolPtr(Symbol *& symptrref);
+    virtual bool getSymbolPtr(Symbol *& symptrref) const;
+    //    virtual bool getStorageSymbolPtr(const Symbol *& symptrref);
+
+    virtual bool getSymbolValue(BV8K& bv);
+
+    virtual bool compareSymbolPtrs(Symbol * ptr);
+
+    virtual u32 getSymbolId();
+
+    virtual bool hasASymbol();
 
     virtual bool hasASymbolDataMember();
 
@@ -159,6 +168,14 @@ enum EvalStatus {ERROR, NOTREADY, NORMAL, RETURN, BREAK, CONTINUE, UNEVALUABLE};
     virtual bool hasASymbolReference();
 
     virtual bool hasASymbolReferenceConstant();
+
+    virtual s32 getSymbolStackFrameSlotIndex();
+
+    virtual UlamValue getSymbolAutoPtrForEval();
+
+    virtual UTI getSymbolAutoStorageTypeForEval();
+
+    virtual u32 getSymbolDataMemberPosOffset();
 
     virtual bool belongsToVOWN(UTI vown);
 
@@ -179,6 +196,8 @@ enum EvalStatus {ERROR, NOTREADY, NORMAL, RETURN, BREAK, CONTINUE, UNEVALUABLE};
     virtual bool isFunctionCall();
 
     virtual bool isAConstructorFunctionCall();
+
+    virtual bool isAVirtualFunctionCall();
 
     virtual bool isArrayItem();
 
@@ -275,6 +294,10 @@ enum EvalStatus {ERROR, NOTREADY, NORMAL, RETURN, BREAK, CONTINUE, UNEVALUABLE};
   protected:
 
     CompilerState & m_state;  //for printing error messages with path
+
+    virtual bool getSymbolPtr(Symbol *& symptrref);
+
+    virtual bool getStorageSymbolPtr(Symbol *& symptrref);
 
     virtual bool checkSafeToCastTo(UTI fromType, UTI& newType);
 

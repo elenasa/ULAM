@@ -91,9 +91,13 @@ namespace MFM{
 
     virtual EvalStatus evalToStoreInto();
 
-    virtual bool getSymbolPtr(Symbol *& symptrref);
+    //virtual bool getSymbolPtr(const Symbol *& symptrref);
 
-    virtual bool getStorageSymbolPtr(Symbol *& symptrref);
+    //virtual bool getStorageSymbolPtr(const Symbol *& symptrref);
+
+    virtual u32 getSymbolId();
+
+    virtual bool hasASymbol();
 
     virtual bool installSymbolTypedef(TypeArgs& args, Symbol *& asymptr);
     virtual bool installSymbolConstantValue(TypeArgs& args, Symbol *& asymptr);

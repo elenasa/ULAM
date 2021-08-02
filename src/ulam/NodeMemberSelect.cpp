@@ -34,6 +34,21 @@ namespace MFM {
     return ".";
   }
 
+  const std::string NodeMemberSelect::getFullName()
+  {
+    std::ostringstream fullnm;
+    bool lhassym = m_nodeLeft->hasASymbol();
+    bool rhassym = m_nodeRight->hasASymbol();
+    u32 lsid = lhassym ? m_nodeLeft->getSymbolId() : m_nodeLeft->getNameId();
+    u32 rsid = rhassym ? m_nodeRight->getSymbolId() : m_nodeRight->getNameId();
+    if(lsid > 0)
+      fullnm << m_state.m_pool.getDataAsString(lsid).c_str();
+    fullnm << ".";
+    if(rsid > 0)
+      fullnm << m_state.m_pool.getDataAsString(rsid).c_str();
+    return fullnm.str();
+  }
+
   const std::string NodeMemberSelect::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
@@ -48,7 +63,8 @@ namespace MFM {
       m_nodeRight->clearSymbolPtr();
   }
 
-  bool NodeMemberSelect::getSymbolPtr(Symbol *& symptrref)
+#if 0
+  bool NodeMemberSelect::getSymbolPtr(const Symbol *& symptrref)
   {
     if(m_nodeRight)
       return m_nodeRight->getSymbolPtr(symptrref);
@@ -57,13 +73,43 @@ namespace MFM {
     return false;
   }
 
-  bool NodeMemberSelect::getStorageSymbolPtr(Symbol *& symptrref)
+  bool NodeMemberSelect::getStorageSymbolPtr(const Symbol *& symptrref)
   {
     if(m_nodeLeft)
       return m_nodeLeft->getSymbolPtr(symptrref); //includes quarks, transients
 
     MSG(getNodeLocationAsString().c_str(), "No storage symbol", ERR);
     return false;
+  }
+#endif
+
+  bool NodeMemberSelect::compareSymbolPtrs(Symbol * ptr)
+  {
+    return m_nodeRight->compareSymbolPtrs(ptr);
+  }
+
+  bool NodeMemberSelect::hasASymbol()
+  {
+    assert(m_nodeRight);
+    return m_nodeRight->hasASymbol();
+  }
+
+  u32 NodeMemberSelect::getSymbolId()
+  {
+    assert(m_nodeRight);
+    return m_nodeRight->getSymbolId();
+  }
+
+  bool NodeMemberSelect::hasAStorageSymbol()
+  {
+    assert(m_nodeLeft);
+    return m_nodeLeft->hasASymbol();
+  }
+
+  u32 NodeMemberSelect::getStorageSymbolId()
+  {
+    assert(m_nodeLeft);
+    return m_nodeLeft->getSymbolId();
   }
 
   bool NodeMemberSelect::hasASymbolDataMember()
@@ -117,6 +163,17 @@ namespace MFM {
   {
     assert(isAMemberSelect());
     return false;
+  }
+
+  s32 NodeMemberSelect::findNodeKidOrder(const Node * anode) const
+  {
+    s32 order = -2; //UNKNOWN
+    if(anode == m_nodeLeft)
+      order = 0;
+    else if(anode == m_nodeRight)
+      order = 1;
+    //else
+    return order;
   }
 
   const std::string NodeMemberSelect::methodNameForCodeGen()
@@ -261,11 +318,16 @@ namespace MFM {
 	  {
 	    if(m_nodeLeft->isAMemberSelect() && ((NodeMemberSelect *) m_nodeLeft)->isAMemberSelectByRegNum())
 	      {
+
+#if 0
 		Symbol * fsymptr = NULL;
 		AssertBool gotfunc = m_nodeRight->getSymbolPtr(fsymptr);
 		assert(gotfunc);
 		assert(fsymptr->isFunction());
-		if(!((SymbolFunction *) fsymptr)->isVirtualFunction())
+		//if(!((SymbolFunction *) fsymptr)->isVirtualFunction())
+#endif
+
+		if(!(m_nodeRight->isAVirtualFunctionCall()))
 		  {
 		    std::ostringstream msg;
 		    msg << "Member selected by classId must be a VIRTUAL function, ";
@@ -300,6 +362,9 @@ namespace MFM {
     assert(!m_nodeRight->isFunctionCall());
     if(!m_nodeRight->isAConstant())
       {
+	assert(m_nodeRight->hasASymbolDataMember());
+
+#if 0
 	Symbol * sym = NULL;
 	if(m_nodeRight->getSymbolPtr(sym))
 	  {
@@ -319,24 +384,37 @@ namespace MFM {
 	      }
 	    else
 	      rpos = dmsym->getPosOffset();
-
-	    //okay to fold (possible refactor TODO); Element Types and Strings still un-fixed.
-	    if(rpos != 9999)
-	      {
-		if(lclasstype == UC_ELEMENT)
-		  rpos += ATOMFIRSTSTATEBITPOS;
-
-		BV8K bvcctmp;
-		bool gotVal = m_nodeLeft->getConstantValue(bvcctmp);
-
-		if(gotVal)
-		  {
-		    u32 rlen = rut->getSizeofUlamType();
-		    bvcctmp.CopyBV(rpos, 0, rlen, bvmsel);
-		    rtnok = true;
-		  } //no left class value
-	      } //rpos not reliable
 	  } //no right symbol ptr
+
+#endif
+
+	u32 rpos = m_nodeRight->getSymbolDataMemberPosOffset();
+	if(rpos == UNRELIABLEPOS)
+	  {
+	    TBOOL packed = m_state.tryToPackAClass(leftType);
+	    if(packed == TBOOL_TRUE)
+	      {
+		rpos = m_nodeRight->getSymbolDataMemberPosOffset();
+	      }
+	    //else cannot pack yet
+	  }
+
+	//okay to fold (possible refactor TODO); Element Types and Strings still un-fixed.
+	if(rpos != UNRELIABLEPOS)
+	  {
+	    if(lclasstype == UC_ELEMENT)
+	      rpos += ATOMFIRSTSTATEBITPOS;
+
+	    BV8K bvcctmp;
+	    bool gotVal = m_nodeLeft->getConstantValue(bvcctmp);
+
+	    if(gotVal)
+	      {
+		u32 rlen = rut->getSizeofUlamType();
+		bvcctmp.CopyBV(rpos, 0, rlen, bvmsel);
+		rtnok = true;
+	      } //no left class value
+	  } //rpos not reliable
       }
     else
       {

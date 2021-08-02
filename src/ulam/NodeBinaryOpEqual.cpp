@@ -320,18 +320,8 @@ namespace MFM {
 	UTI lt = m_nodeLeft->getNodeType();
 	std::ostringstream msg;
 	msg << "Unmodifiable lefthand side of assignment expression '";
-	if(m_nodeLeft->isAMemberSelect()) //t3133
-	  {
-	    Symbol * rhsym = NULL;
-	    Symbol * lhsym = NULL;
-	    m_nodeLeft->getStorageSymbolPtr(lhsym);
-	    m_nodeLeft->getSymbolPtr(rhsym);
-	    if(lhsym)
-	      msg << m_state.m_pool.getDataAsString(lhsym->getId()).c_str();
-	    msg << ".";
-	    if(rhsym)
-	      msg << m_state.m_pool.getDataAsString(rhsym->getId()).c_str();
-	  }
+	if(m_nodeLeft->isAMemberSelect()) //t3133,t3413,t41195,t41250
+	  msg << ((NodeMemberSelect *) m_nodeLeft)->getFullName().c_str();
 	else
 	  msg << m_nodeLeft->getName();
 	msg << "', type: " << m_state.getUlamTypeNameByIndex(lt).c_str(); //t41186

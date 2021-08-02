@@ -197,6 +197,27 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
+
+  bool NodeConstantDef::cloneSymbol(Symbol *& symptrref)
+  {
+    bool rtnb = (m_constSymbol != NULL); //true;
+    if(rtnb)
+      {
+	SymbolConstantValue * sym = new SymbolConstantValue(* (SymbolConstantValue *) m_constSymbol);
+	rtnb = (sym != NULL);
+	symptrref = sym;
+      }
+    return rtnb;
+  }
+
+#if 0
+  bool NodeConstantDef::getSymbolPtr(const Symbol *& symptrref)
+  {
+    symptrref = m_constSymbol;
+    return (m_constSymbol != NULL); //true;
+  }
+#endif
+
   bool NodeConstantDef::getSymbolPtr(Symbol *& symptrref)
   {
     symptrref = m_constSymbol;
@@ -223,9 +244,20 @@ namespace MFM {
     assert(m_currBlockNo);
   }
 
+  bool NodeConstantDef::hasASymbol()
+  {
+    return m_constSymbol != NULL;
+  }
+
   u32 NodeConstantDef::getSymbolId()
   {
     return m_cid;
+  }
+
+  bool NodeConstantDef::getSymbolValue(BV8K& bv)
+  {
+    assert(m_constSymbol);
+    return m_constSymbol->getValueReadyToPrint(bv);
   }
 
   bool NodeConstantDef::setSymbolValue(const BV8K& bv)
@@ -1787,11 +1819,27 @@ namespace MFM {
     //include scalars for generated comments; arrays for constructor initialization
     NodeConstantDef * cloneofme = (NodeConstantDef *) this->instantiate();
     assert(cloneofme);
+#if 0
     SymbolConstantValue * csymptr = NULL;
     AssertBool isSym = this->getSymbolPtr((Symbol *&) csymptr);
     assert(isSym);
     ((NodeConstantDef *) cloneofme)->setSymbolPtr(csymptr); //another ptr to same symbol
-    cloneVec.push_back(cloneofme);
+#endif
+
+    if(m_constSymbol == NULL)
+      {
+	std::ostringstream msg;
+	msg << "Incomplete Constant Def for type";
+	msg << " used with constant name '";
+	msg << m_state.m_pool.getDataAsString(getNameId()).c_str() << "'";
+	msg << " in locals filescope";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //t41536
+      }
+    else
+      {
+	((NodeConstantDef *) cloneofme)->setSymbolPtr(m_constSymbol); //another ptr to same symbol
+	cloneVec.push_back(cloneofme);
+      }
   }
 
   void NodeConstantDef::generateTestInstance(File * fp, bool runtest)

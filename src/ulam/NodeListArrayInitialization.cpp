@@ -456,12 +456,20 @@ namespace MFM{
     Node * parentNode = m_state.findNodeNoInThisClassOrLocalsScope(pno); //also checks localsfilescope
     assert(parentNode);
 
+#if 0
     SymbolWithValue * vsym = NULL;
     AssertBool gotSymbol = parentNode->getSymbolPtr((Symbol *&) vsym);
     assert(gotSymbol);
 
     BV8K dval;
     AssertBool aok = vsym->getValueReadyToPrint(dval);
+    assert(aok);
+#endif
+
+    assert(parentNode->hasASymbol()); //t3250, t3882
+
+    BV8K dval;
+    AssertBool aok = parentNode->getSymbolValue(dval); //t3250..
     assert(aok);
 
     bool isString = m_state.isAStringType(nuti);
@@ -525,7 +533,7 @@ namespace MFM{
 	  m_state.abortGreaterThanMaxBitsPerLong();
       }
 
-    uvpass = UVPass::makePass(tmpvarnum, nstor, nuti, m_state.determinePackable(nuti), m_state, 0, vsym->getId());
+    uvpass = UVPass::makePass(tmpvarnum, nstor, nuti, m_state.determinePackable(nuti), m_state, 0, parentNode->getSymbolId());
   } //genCode
 
   void NodeListArrayInitialization::genCodeClassInitArray(File * fp, UVPass& uvpass)

@@ -569,12 +569,13 @@ namespace MFM {
 
 	m_state.m_parsingVariableSymbolTypeFlag = STF_NEEDSATYPE;
 
-	Symbol * argSym = NULL;
+	//Symbol * argSym = NULL;
 
 	//could be null symbol already in scope
 	if(argNode)
 	  {
-	    //parameter IS a NodeConstantdef
+#if 0
+	    //parameter IS a NodeConstantdef; moved to makeConstdefSymbol
 	    if(argNode->getSymbolPtr(argSym))
 	      {
 		((SymbolConstantValue *) argSym)->setClassParameterFlag();
@@ -583,6 +584,7 @@ namespace MFM {
 	      }
 	    else
 	      MSG(&pTok, "No symbol from class parameter declaration", ERR);
+#endif
 
 	    //potentially needed to resolve its node type
 	    assert(cblock);
@@ -5591,28 +5593,31 @@ Node * Parser::wrapFactor(Node * leftNode)
 	//local.Type allowed (t3870,71)
 	unreadToken();
 	NodeVarDecl * argNode = parseFunctionParameterDecl();
-	Symbol * argSym = NULL;
+	//Symbol * argSym = NULL;
 
 	//could be null symbol already in scope
 	if(argNode)
 	  {
 	    //parameter IS a variable (declaration).
 	    //ownership stays with NodeBlockFunctionDefinition's ST
+#if 0
 	    if(!argNode->getSymbolPtr(argSym))
 	      MSG(&pTok, "No symbol from parameter declaration", ERR);
-
+#endif
 	    //potentially needed to resolve its node type
 	    fblock->addParameterNode(argNode); //transfer owner
 
-	    if(fsym->takesVariableArgs() && argSym)
+	    //if(fsym->takesVariableArgs() && argSym)
+	    if(fsym->takesVariableArgs())
 	      {
 		std::ostringstream msg;
 		msg << "Parameter '";
-		msg << m_state.m_pool.getDataAsString(argSym->getId()).c_str();
+		//	msg << m_state.m_pool.getDataAsString(argSym->getId()).c_str();
+		msg << m_state.m_pool.getDataAsString(argNode->getNameId()).c_str();
 		msg << "' appears after ellipses (...)";
 		MSG(&pTok, msg.str().c_str(), ERR);
 	      }
-	  }
+	  } //else error given
       }
     else if(pTok.m_type == TOK_EQUAL)
       {
@@ -6058,6 +6063,15 @@ Node * Parser::wrapFactor(Node * leftNode)
 
 	    if(!rtnNode)
 	      m_state.clearStructuredCommentToken(); //t3524
+	    else
+	      {
+		if(m_state.m_parsingVariableSymbolTypeFlag == STF_CLASSPARAMETER)
+		  {
+		    ((SymbolConstantValue *) asymptr)->setClassParameterFlag();
+		    if(((NodeConstantDef *) rtnNode)->hasConstantExpr()) //before any folding
+		      ((SymbolWithValue *) asymptr)->setHasInitValue(); //default value
+		  }
+	      }
 	  }
       }
     else
