@@ -91,9 +91,7 @@ namespace MFM{
 
     virtual EvalStatus evalToStoreInto();
 
-    //virtual bool getSymbolPtr(const Symbol *& symptrref);
-
-    //virtual bool getStorageSymbolPtr(const Symbol *& symptrref);
+    virtual void clearSymbolPtr();
 
     virtual u32 getSymbolId();
 
@@ -118,8 +116,6 @@ namespace MFM{
   private:
     bool m_isCustomArray;
     SymbolTmpVar * m_tmpvarSymbol;
-
-    virtual void clearSymbolPtr();
 
     Node * buildArefFuncCallNode();
 

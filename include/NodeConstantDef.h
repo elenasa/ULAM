@@ -88,8 +88,6 @@ namespace MFM{
 
     virtual bool cloneSymbol(Symbol *& symptrref);
 
-    //virtual bool getSymbolPtr(const Symbol *& symptrref);
-
     virtual void setSymbolPtr(SymbolWithValue * cvsymptr);
 
     virtual bool hasASymbol();
@@ -170,13 +168,13 @@ namespace MFM{
 
     virtual bool getSymbolPtr(Symbol *& symptrref);
 
+    virtual void clearSymbolPtr();
+
     virtual bool isDataMemberInit();
 
   private:
     NNO m_currBlockNo;
     NodeBlock * m_currBlockPtr;
-
-    virtual void clearSymbolPtr();
 
     void setBlock(NodeBlock * ptr);
     bool setSymbolValue(const BV8K& bv);

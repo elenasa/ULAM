@@ -147,11 +147,6 @@ namespace MFM {
 	return selfuvp;
       } //done
 
-#if 0
-    Symbol * vsym = NULL;
-    m_nodeOf->getSymbolPtr(vsym); //a datamember's protected symbol
-#endif
-
     if(m_state.getReferenceType(auti) == ALT_AS)
       {
 	assert(0);
@@ -227,11 +222,6 @@ namespace MFM {
 	Node::loadStorageAndCurrentObjectSymbols(stgcos, cos);
 
 	m_state.clearCurrentObjSymbolsForCodeGen(); //t3663
-
-#if 0
-	AssertBool gotstg = m_nodeOf->getStorageSymbolPtr(stgcos);
-	assert(gotstg);
-#endif
 
 	m_state.indentUlamCode(fp);
 	fp->write("if(");
@@ -320,10 +310,6 @@ namespace MFM {
 	Node::loadStorageAndCurrentObjectSymbols(stgcos, cos);
 
 	m_state.clearCurrentObjSymbolsForCodeGen(); //t3756..
-#if 0
-	AssertBool gotstg = m_nodeOf->getStorageSymbolPtr(stgcos);
-	assert(gotstg);
-#endif
 
 	m_state.indentUlamCode(fp);
 	fp->write("if(");

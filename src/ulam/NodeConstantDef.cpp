@@ -155,9 +155,10 @@ namespace MFM {
 
   const char * NodeConstantDef::getName()
   {
-    if(m_constSymbol)
-      return m_state.m_pool.getDataAsString(m_constSymbol->getId()).c_str();
-    return "CONSTDEF?";
+    //if(m_constSymbol)
+    //  return m_state.m_pool.getDataAsString(m_constSymbol->getId()).c_str();
+    //return "CONSTDEF?";
+    return m_state.m_pool.getDataAsString(m_cid).c_str();
   }
 
   u32 NodeConstantDef::getNameId()
@@ -209,14 +210,6 @@ namespace MFM {
       }
     return rtnb;
   }
-
-#if 0
-  bool NodeConstantDef::getSymbolPtr(const Symbol *& symptrref)
-  {
-    symptrref = m_constSymbol;
-    return (m_constSymbol != NULL); //true;
-  }
-#endif
 
   bool NodeConstantDef::getSymbolPtr(Symbol *& symptrref)
   {
@@ -1819,12 +1812,6 @@ namespace MFM {
     //include scalars for generated comments; arrays for constructor initialization
     NodeConstantDef * cloneofme = (NodeConstantDef *) this->instantiate();
     assert(cloneofme);
-#if 0
-    SymbolConstantValue * csymptr = NULL;
-    AssertBool isSym = this->getSymbolPtr((Symbol *&) csymptr);
-    assert(isSym);
-    ((NodeConstantDef *) cloneofme)->setSymbolPtr(csymptr); //another ptr to same symbol
-#endif
 
     if(m_constSymbol == NULL)
       {

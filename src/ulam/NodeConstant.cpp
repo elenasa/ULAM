@@ -93,14 +93,6 @@ namespace MFM {
     return (m_constSymbol != NULL); //true;
   }
 
-#if 0
-  bool NodeConstant::getSymbolPtr(const Symbol *& symptrref)
-  {
-    symptrref = m_constSymbol;
-    return (m_constSymbol != NULL); //true;
-  }
-#endif
-
   bool NodeConstant::compareSymbolPtrs(Symbol * ptr)
   {
     return (m_constSymbol == ptr);

@@ -61,9 +61,7 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
-    //    virtual bool getSymbolPtr(const Symbol *& symptrref);
-
-    //virtual bool getStorageSymbolPtr(const Symbol *& symptrref);
+    virtual void clearSymbolPtr();
 
     virtual bool hasASymbol();
 
@@ -131,9 +129,8 @@ namespace MFM{
     virtual bool passalongUVPass();
 
     SymbolTmpVar * m_tmpvarSymbol;
-  private:
 
-    virtual void clearSymbolPtr();
+  private:
 
     void setStoreIntoAbleAndReferenceAble();
 

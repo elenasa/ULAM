@@ -146,13 +146,6 @@ namespace MFM {
     return m_node->isArrayItem();
   }
 
-#if 0
-  bool NodeCast::getSymbolPtr(const Symbol *& symptrref)
-  {
-    return m_node->getSymbolPtr(symptrref);
-  }
-#endif
-
   bool NodeCast::hasASymbol()
   {
     return m_node->hasASymbol();

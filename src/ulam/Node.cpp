@@ -88,13 +88,6 @@ namespace MFM {
   u32 Node::getNameId()
   {
     return m_state.m_pool.getIndexForDataString(getName());
-#if 0
-    std::ostringstream msg;
-    msg << "virtual u32 " << prettyNodeName().c_str();
-    msg << "::getNameId(){} is needed!!";
-    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-    return 0; //NodeTerminal, NodeVarDecl both have them
-#endif
   }
 
   u32 Node::getTypeNameId()
@@ -232,8 +225,7 @@ namespace MFM {
 
   void Node::clearSymbolPtr()
   {
-    Symbol * symptr = NULL;
-    if(getSymbolPtr(symptr))
+    if(hasASymbol())
       {
 	std::ostringstream msg;
 	msg << "virtual void " << prettyNodeName().c_str();
@@ -254,10 +246,12 @@ namespace MFM {
   bool Node::getSymbolPtr(Symbol *& symptrref) const
   {
 #if 0
-    std::ostringstream msg;
-    msg << "virtual bool " << prettyNodeName().c_str();
-    msg << "::getSymbolPtr(Symbol *& symptrref) const {} is needed!!";
-    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+      {
+	std::ostringstream msg;
+	msg << "virtual bool " << prettyNodeName().c_str();
+	msg << "::getSymbolPtr(Symbol *& symptrref) const {} is needed!!";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+      }
 #endif
     return false;
   }
@@ -284,10 +278,12 @@ namespace MFM {
   bool Node::compareSymbolPtrs(Symbol * ptr)
   {
 #if 0
-    std::ostringstream msg;
-    msg << "virtual bool " << prettyNodeName().c_str();
-    msg << "::compareSymbolPtrs(Symbol * ptr) {} is needed!!";
-    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+      {
+	std::ostringstream msg;
+	msg << "virtual bool " << prettyNodeName().c_str();
+	msg << "::compareSymbolPtrs(Symbol * ptr) {} is needed!!";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+      }
 #endif
     return false;
   }
@@ -303,12 +299,14 @@ namespace MFM {
 
   bool Node::hasASymbol()
   {
-#if 0
-    std::ostringstream msg;
-    msg << "virtual bool " << prettyNodeName().c_str();
-    msg << "::hasASymbol(){} is needed!!";
-    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-#endif
+    Symbol * sym = NULL;
+    if(getSymbolPtr(sym))
+      {
+	std::ostringstream msg;
+	msg << "virtual bool " << prettyNodeName().c_str();
+	msg << "::hasASymbol(){} is needed!!";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+      }
     return false;
   }
 

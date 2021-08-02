@@ -624,14 +624,6 @@ namespace MFM {
 
     if(parentnode->isAMemberSelect())
       {
-#if 0
-	Symbol * rhsym = NULL;
-	if(!parentnode->getSymbolPtr(rhsym))
-	  vuti = Hzy; //t41152
-
-	implicitself = (rhsym != m_varSymbol); //rhsym null wont match
-#endif
-
 	s32 nodeorder = ((NodeMemberSelect *) parentnode)->findNodeKidOrder(this);
 	assert(nodeorder >= 0); //t41152?
 

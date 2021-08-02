@@ -456,16 +456,6 @@ namespace MFM{
     Node * parentNode = m_state.findNodeNoInThisClassOrLocalsScope(pno); //also checks localsfilescope
     assert(parentNode);
 
-#if 0
-    SymbolWithValue * vsym = NULL;
-    AssertBool gotSymbol = parentNode->getSymbolPtr((Symbol *&) vsym);
-    assert(gotSymbol);
-
-    BV8K dval;
-    AssertBool aok = vsym->getValueReadyToPrint(dval);
-    assert(aok);
-#endif
-
     assert(parentNode->hasASymbol()); //t3250, t3882
 
     BV8K dval;

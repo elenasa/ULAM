@@ -568,13 +568,6 @@ namespace MFM {
 
     if(parentnode->isAMemberSelect())
       {
-#if 0
-	Symbol * rhsym = NULL;
-	if(!parentnode->getSymbolPtr(rhsym))
-	  futi = Hzy;
-
-	implicitself = (rhsym != m_funcSymbol);
-#endif
 	s32 nodeorder = ((NodeMemberSelect *) parentnode)->findNodeKidOrder(this);
 	assert(nodeorder >= 0);
 
@@ -984,14 +977,6 @@ namespace MFM {
     symptrref = m_funcSymbol;
     return true;
   }
-
-#if 0
-  bool NodeFunctionCall::getSymbolPtr(const Symbol *& symptrref)
-  {
-    symptrref = m_funcSymbol;
-    return true;
-  }
-#endif
 
   bool NodeFunctionCall::hasASymbol()
   {

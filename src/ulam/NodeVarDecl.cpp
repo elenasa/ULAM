@@ -234,14 +234,6 @@ namespace MFM {
     return rtnb;
   }
 
-#if 0
-  bool NodeVarDecl::getSymbolPtr(const Symbol *& symptrref)
-  {
-    symptrref = m_varSymbol;
-    return (m_varSymbol != NULL);
-  }
-#endif
-
   bool NodeVarDecl::getSymbolPtr(Symbol *& symptrref)
   {
     symptrref = m_varSymbol;
@@ -783,13 +775,6 @@ namespace MFM {
 
 	if(m_state.okUTItoContinue(eit) && m_state.okUTItoContinue(vit))
 	  {
-#if 0
-	    Symbol * initsym = NULL;
-	    m_nodeInitExpr->getSymbolPtr(initsym);
-#endif
-
-	    //if(initsym && (initsym == m_varSymbol))
-	    //if(m_nodeInitExpr->hasASymbol() && !m_nodeInitExpr->isFunctionCall() && (m_nodeInitExpr->getSymbolId() == m_varSymbol->getId()))
 	    if(m_nodeInitExpr->compareSymbolPtrs(m_varSymbol))
 	      {
 		std::ostringstream msg;

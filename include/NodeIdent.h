@@ -63,9 +63,9 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
-    virtual void clearSymbolPtr();
-
     void setSymbolPtr(SymbolVariable * vsymptr);
+
+    virtual void clearSymbolPtr();
 
     virtual bool compareSymbolPtrs(Symbol * ptr);
 
@@ -138,6 +138,7 @@ namespace MFM{
     SymbolVariable * m_varSymbol;
     NNO m_currBlockNo;
     NodeBlock * m_currBlockPtr;
+
 
     void setBlockNo(NNO n);
     NNO getBlockNo() const;

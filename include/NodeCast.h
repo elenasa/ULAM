@@ -105,8 +105,6 @@ namespace MFM{
 
     virtual bool compareSymbolPtrs(Symbol * ptr);
 
-    //virtual bool getSymbolPtr(const Symbol *& symptrref);
-
     virtual FORECAST safeToCastTo(UTI newType);
 
     virtual UTI checkAndLabelType(Node * thisparentnode);
@@ -131,8 +129,6 @@ namespace MFM{
     virtual UlamValue makeImmediateLongUnaryOp(UTI type, u64 data, u32 len); //noop
 
     virtual UTI calcNodeType(UTI uti); //override
-
-    //    virtual bool getSymbolPtr(Symbol *& symptrref);
 
   private:
     UTI m_castToBe; //instead of nodetype used for Nav, Hzy, etc.

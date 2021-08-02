@@ -90,8 +90,6 @@ namespace MFM{
 
     u32 getNumberOfArguments();
 
-    //virtual bool getSymbolPtr(const Symbol *& symptrref);
-
     virtual bool hasASymbol();
 
     virtual u32 getSymbolId();
@@ -114,14 +112,14 @@ namespace MFM{
 
     virtual bool getSymbolPtr(Symbol *& symptrref);
 
+    virtual void clearSymbolPtr();
+
   private:
 
     const Token m_functionNameTok;
     SymbolFunction * m_funcSymbol;
     NodeList * m_argumentNodes;
     SymbolTmpVar * m_tmpvarSymbol;
-
-    virtual void clearSymbolPtr();
 
     TBOOL lookagainincaseimplicitselfchanged(Node * parentnode);
     UTI specifyimplicitselfexplicitly(Node * parentnode);

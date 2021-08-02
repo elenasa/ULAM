@@ -940,8 +940,6 @@ namespace MFM {
 	assert(cloneNode);
 	assert(ceNode->getNodeNo() == cloneNode->getNodeNo());
 
-	//assert(ptcsym->getParameterSymbolPtr(i)->getId()==ceNode->getSymbolId()); //sanity
-
 	Symbol * cvsym = NULL;
 	AssertBool isDefined = classblock->isIdInScope(cloneNode->getSymbolId(), cvsym);
 	assert(isDefined);

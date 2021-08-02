@@ -577,13 +577,6 @@ namespace MFM {
 
 	if((offsetInt >= arraysize))
 	  {
-#if 0
-	    Symbol * lsymptr;
-	    u32 lid = 0;
-	    if(getSymbolPtr(lsymptr))
-	      lid = lsymptr->getId();
-#endif
-
 	    u32 lid = m_nodeLeft->hasASymbol() ? m_nodeLeft->getSymbolId() : m_nodeLeft->getNameId();
 
 	    std::ostringstream msg;
@@ -595,13 +588,6 @@ namespace MFM {
       }
     else
       {
-#if 0
-	Symbol * lsymptr;
-	u32 lid = 0;
-	if(getSymbolPtr(lsymptr))
-	  lid = lsymptr->getId();
-#endif
-	//	bool lms = m_nodeLeft->isAMemberSelect();
 	u32 lid = m_nodeLeft->hasASymbol() ? m_nodeLeft->getSymbolId() : m_nodeLeft->getNameId();
 
 	std::ostringstream msg;
@@ -714,12 +700,6 @@ namespace MFM {
     else
       {
 	s32 arraysize = m_state.getArraySize(auti);
-#if 0
-	Symbol * lsymptr;
-	u32 lid = 0;
-	if(getSymbolPtr(lsymptr))
-	  lid = lsymptr->getId();
-#endif
 	u32 lid = m_nodeLeft->hasASymbol() ? m_nodeLeft->getSymbolId() : m_nodeLeft->getNameId();
 
 	std::ostringstream msg;
@@ -775,23 +755,6 @@ namespace MFM {
     MSG(getNodeLocationAsString().c_str(), "No symbol", ERR);
     return false;
   }
-
-#if 0
-  bool NodeSquareBracket::getSymbolPtr(const Symbol *& symptrref)
-  {
-    if(m_nodeLeft)
-      return m_nodeLeft->getSymbolPtr(symptrref);
-
-    MSG(getNodeLocationAsString().c_str(), "No symbol", ERR);
-    return false;
-  }
-
-  bool NodeSquareBracket::getStorageSymbolPtr(const Symbol *& symptrref)
-  {
-    assert(m_nodeLeft);
-    return m_nodeLeft->getSymbolPtr(symptrref); //???
-  }
-#endif
 
   //see also NodeIdent
   bool NodeSquareBracket::installSymbolTypedef(TypeArgs& args, Symbol *& asymptr)

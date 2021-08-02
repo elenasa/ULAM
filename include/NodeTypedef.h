@@ -106,14 +106,14 @@ namespace MFM{
 
     virtual bool getSymbolPtr(Symbol *& symptrref);
 
+    virtual void clearSymbolPtr();
+
   private:
     SymbolTypedef * m_typedefSymbol;
     u32 m_tdid; //to instantiate
     NNO m_currBlockNo;
     NodeBlock * m_currBlockPtr;
     NodeTypeDescriptor * m_nodeTypeDesc; //can be NULL
-
-    virtual void clearSymbolPtr();
 
     NNO getBlockNo();
     void setupBlockNo();

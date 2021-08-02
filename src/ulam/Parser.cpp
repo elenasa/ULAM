@@ -574,18 +574,6 @@ namespace MFM {
 	//could be null symbol already in scope
 	if(argNode)
 	  {
-#if 0
-	    //parameter IS a NodeConstantdef; moved to makeConstdefSymbol
-	    if(argNode->getSymbolPtr(argSym))
-	      {
-		((SymbolConstantValue *) argSym)->setClassParameterFlag();
-		if(((NodeConstantDef *) argNode)->hasConstantExpr()) //before any folding
-		  ((SymbolWithValue *) argSym)->setHasInitValue(); //default value
-	      }
-	    else
-	      MSG(&pTok, "No symbol from class parameter declaration", ERR);
-#endif
-
 	    //potentially needed to resolve its node type
 	    assert(cblock);
 	    cblock->addParameterNode(argNode);
@@ -5600,19 +5588,12 @@ Node * Parser::wrapFactor(Node * leftNode)
 	  {
 	    //parameter IS a variable (declaration).
 	    //ownership stays with NodeBlockFunctionDefinition's ST
-#if 0
-	    if(!argNode->getSymbolPtr(argSym))
-	      MSG(&pTok, "No symbol from parameter declaration", ERR);
-#endif
-	    //potentially needed to resolve its node type
 	    fblock->addParameterNode(argNode); //transfer owner
 
-	    //if(fsym->takesVariableArgs() && argSym)
 	    if(fsym->takesVariableArgs())
 	      {
 		std::ostringstream msg;
 		msg << "Parameter '";
-		//	msg << m_state.m_pool.getDataAsString(argSym->getId()).c_str();
 		msg << m_state.m_pool.getDataAsString(argNode->getNameId()).c_str();
 		msg << "' appears after ellipses (...)";
 		MSG(&pTok, msg.str().c_str(), ERR);

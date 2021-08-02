@@ -174,14 +174,6 @@ namespace MFM {
     u32 numparams = getNumberOfParameterNodes();
     if(numparams > 0)
       {
-
-#if 0
-	SymbolClassNameTemplate * cnsym = NULL;
-	AssertBool isDefined = m_state.alreadyDefinedSymbolClassNameTemplate(m_state.getUlamTypeNameIdByIndex(cuti), cnsym);
-	assert(isDefined);
-	cnsym->printClassTemplateArgsForPostfix(fp); //m_nodeParameterList->print(fp);
-#endif
-
 	u32 pcnt = 0;
 
 	fp->write("(");

@@ -689,18 +689,11 @@ namespace MFM {
 		    lastDefaultParamUsed = i;
 		    if(!cblock->isIdInScope(pid,argsym))
 		      {
-#if 0
-			Symbol * psym = NULL;
-			AssertBool gotpsym = paramConstDef->getSymbolPtr(psym);
-			assert(gotpsym);
-#endif
-
 			// and make a new symbol that's like the default param
 			Symbol * clonesym = NULL;
 			AssertBool gotclonesym = paramConstDef->cloneSymbol(clonesym);
 			assert(gotclonesym);
 
-			//SymbolConstantValue * asym2 = new SymbolConstantValue(* (SymbolConstantValue *) psym);
 			SymbolConstantValue * asym2 = (SymbolConstantValue *) clonesym;
 			asym2->setClassArgAsDefaultValue(); //t41431
 			cblock->addIdToScope(pid, asym2);
@@ -774,18 +767,13 @@ namespace MFM {
 	NodeConstantDef * paramConstDef = (NodeConstantDef *) templateclassblock->getParameterNode(i);
 	assert(paramConstDef);
 	u32 pid = paramConstDef->getNameId();
-#if 0
-	Symbol * paramSym = NULL;
-	AssertBool gotpsym = paramConstDef->getSymbolPtr(paramSym);
-	assert(gotpsym);
-#endif
+
 	SymbolConstantValue * asym2;
 	Symbol * asym = NULL;
 	bool hazyKin = false; //don't care
 	if(!m_state.alreadyDefinedSymbol(pid, asym, hazyKin))
 	  {
 	    // and make a new symbol that's like the default param
-	    //asym2 = new SymbolConstantValue(* (SymbolConstantValue *) paramSym);
 	    AssertBool gotasym = paramConstDef->cloneSymbol(asym);
 	    assert(gotasym);
 	    asym2 = (SymbolConstantValue *) asym;
@@ -2465,7 +2453,6 @@ namespace MFM {
       {
 	SymbolConstantValue * asym = instancesArgs[i];
 	SymbolConstantValue * asym2 = new SymbolConstantValue(*asym); //don't keep type!! (t41227)
-	//asym2->setBlockNoOfST(toclassblock->getNodeNo());
 	m_state.addSymbolToCurrentScope(asym2);
       } //next arg
 

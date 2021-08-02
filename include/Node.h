@@ -149,7 +149,6 @@ enum EvalStatus {ERROR, NOTREADY, NORMAL, RETURN, BREAK, CONTINUE, UNEVALUABLE};
     virtual bool cloneSymbol(Symbol *& symptrref);
 
     virtual bool getSymbolPtr(Symbol *& symptrref) const;
-    //    virtual bool getStorageSymbolPtr(const Symbol *& symptrref);
 
     virtual bool getSymbolValue(BV8K& bv);
 

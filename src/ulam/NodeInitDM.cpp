@@ -781,13 +781,7 @@ namespace MFM {
     //include scalars for generated comments; arrays for constructor initialization
     NodeInitDM * cloneofme = (NodeInitDM *) this->instantiate();
     assert(cloneofme);
-#if 0
-    SymbolConstantValue * csymptr = NULL;
-    AssertBool isSym = this->getSymbolPtr((Symbol *&) csymptr);
-    assert(isSym);
-    ((NodeInitDM *) cloneofme)->setSymbolPtr(csymptr); //another ptr to same symbol
-#endif
-
+    assert(m_constSymbol);
     ((NodeInitDM *) cloneofme)->setSymbolPtr(m_constSymbol); //another ptr to same symbol
     cloneVec.push_back(cloneofme);
   }

@@ -63,26 +63,6 @@ namespace MFM {
       m_nodeRight->clearSymbolPtr();
   }
 
-#if 0
-  bool NodeMemberSelect::getSymbolPtr(const Symbol *& symptrref)
-  {
-    if(m_nodeRight)
-      return m_nodeRight->getSymbolPtr(symptrref);
-
-    MSG(getNodeLocationAsString().c_str(), "No symbol", ERR);
-    return false;
-  }
-
-  bool NodeMemberSelect::getStorageSymbolPtr(const Symbol *& symptrref)
-  {
-    if(m_nodeLeft)
-      return m_nodeLeft->getSymbolPtr(symptrref); //includes quarks, transients
-
-    MSG(getNodeLocationAsString().c_str(), "No storage symbol", ERR);
-    return false;
-  }
-#endif
-
   bool NodeMemberSelect::compareSymbolPtrs(Symbol * ptr)
   {
     return m_nodeRight->compareSymbolPtrs(ptr);
@@ -318,15 +298,6 @@ namespace MFM {
 	  {
 	    if(m_nodeLeft->isAMemberSelect() && ((NodeMemberSelect *) m_nodeLeft)->isAMemberSelectByRegNum())
 	      {
-
-#if 0
-		Symbol * fsymptr = NULL;
-		AssertBool gotfunc = m_nodeRight->getSymbolPtr(fsymptr);
-		assert(gotfunc);
-		assert(fsymptr->isFunction());
-		//if(!((SymbolFunction *) fsymptr)->isVirtualFunction())
-#endif
-
 		if(!(m_nodeRight->isAVirtualFunctionCall()))
 		  {
 		    std::ostringstream msg;
@@ -363,31 +334,6 @@ namespace MFM {
     if(!m_nodeRight->isAConstant())
       {
 	assert(m_nodeRight->hasASymbolDataMember());
-
-#if 0
-	Symbol * sym = NULL;
-	if(m_nodeRight->getSymbolPtr(sym))
-	  {
-	    assert(sym->isDataMember());
-	    SymbolVariableDataMember * dmsym = (SymbolVariableDataMember *) sym;
-	    u32 rpos = 9999;
-	    if(!dmsym->isPosOffsetReliable())
-	      {
-		TBOOL packed = m_state.tryToPackAClass(leftType);
-		if(packed == TBOOL_TRUE)
-		  {
-		    m_nodeRight->getSymbolPtr(sym); //refresh
-		    dmsym = (SymbolVariableDataMember *) sym;
-		    rpos = dmsym->getPosOffset();
-		  }
-		//else cannot pack yet
-	      }
-	    else
-	      rpos = dmsym->getPosOffset();
-	  } //no right symbol ptr
-
-#endif
-
 	u32 rpos = m_nodeRight->getSymbolDataMemberPosOffset();
 	if(rpos == UNRELIABLEPOS)
 	  {

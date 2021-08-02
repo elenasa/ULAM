@@ -70,8 +70,6 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
-    //virtual bool getSymbolPtr(const Symbol *& symptrref);
-
     virtual bool hasASymbol();
 
     virtual u32 getSymbolId();
@@ -112,12 +110,12 @@ namespace MFM{
 
     virtual bool getSymbolPtr(Symbol *& symptrref);
 
+    virtual void clearSymbolPtr();
+
   private:
     NNO m_currBlockNo;
     NodeBlock * m_currBlockPtr; //could be NULL
     SymbolTmpVar * m_tmpvarSymbol;
-
-    virtual void clearSymbolPtr();
 
     void setupBlockNo();
     void setBlockNo(NNO n);
