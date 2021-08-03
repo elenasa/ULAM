@@ -407,9 +407,10 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	if(suti == Nav)
-	  msg << "Invalid Constant Def type ";
+	  msg << "Invalid ";
 	else
-	  msg << "Incomplete Constant Def for type";
+	  msg << "Incomplete ";
+	msg << prettyNodeName().c_str() << " for type";
 	if(m_state.okUTItoContinue(suti) && !m_state.isHolder(suti))
 	  msg << ": " << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
 	msg << " used with symbol name '" << getName() << "'";
@@ -716,9 +717,10 @@ namespace MFM {
 	else if(m_state.isStillHazy(foldrtn))
 	  {
 	    std::ostringstream msg;
-	    msg << "Incomplete Constant Def for type: ";
-	    msg << m_state.getUlamTypeNameByIndex(suti).c_str();
-	    msg << ", used with symbol name '" << getName() << "', after folding";
+	    msg << "Incomplete " << prettyNodeName().c_str() << " for type";
+	    if(m_state.okUTItoContinue(suti) && !m_state.isHolder(suti))
+	      msg << ": " << m_state.getUlamTypeNameByIndex(suti).c_str();
+	    msg << " used with symbol name '" << getName() << "', after folding";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //t41204
 	    setNodeType(Hzy);
 	  }
@@ -1804,7 +1806,7 @@ namespace MFM {
     if(m_constSymbol == NULL)
       {
 	std::ostringstream msg;
-	msg << "Incomplete Constant Def for type";
+	msg << "Incomplete " << prettyNodeName().c_str() << " for type";
 	msg << " used with constant name '";
 	msg << m_state.m_pool.getDataAsString(getNameId()).c_str() << "'";
 	msg << " in locals filescope";

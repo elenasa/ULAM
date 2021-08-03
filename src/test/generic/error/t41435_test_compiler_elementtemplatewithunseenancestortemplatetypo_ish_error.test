@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t41435_test_compiler_elementtemplatewithunseenancestortemplatetypo_ish_error
 #!
-./R.ulam:5:5: ERROR: Incomplete Variable Decl for type: S used with variable symbol name 'doggy'.
+./R.ulam:5:5: ERROR: Incomplete NodeVarDecl for type: S used with variable symbol name 'doggy'.
 ./R.ulam:5:5: ERROR: Variable for: 'doggy', is still hazy.
 ./S.ulam:2:9: ERROR: Subclass 'S' inherits from Watchdog, a class with pending arguments or ancestors.
 ./S.ulam:2:13: ERROR: UNSEEN class type <Watchdog> was never defined in Watchdog.ulam; check for capitalization or spelling typos.

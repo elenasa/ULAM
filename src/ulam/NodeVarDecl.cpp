@@ -562,7 +562,7 @@ namespace MFM {
     if(!m_state.okUTItoContinue(vit) || !m_state.isComplete(vit))
       {
 	std::ostringstream msg;
-	msg << "Incomplete Variable Decl for type";
+	msg << "Incomplete " << prettyNodeName().c_str() << " for type";
 	if(m_state.okUTItoContinue(vit) && !m_state.isHolder(vit))
 	  msg << ": " << m_state.getUlamTypeNameBriefByIndex(vit).c_str();
 	msg << " used with variable symbol name '" << getName() << "'";

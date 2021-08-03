@@ -1,12 +1,12 @@
 ## -*- mode:ulam -*-
 #=t41536_test_compiler_constantarrayinit_localsfilescope_ish_error
 #!
-./Q.ulam:2:16: ERROR: Incomplete Constant Def for type used with constant name 'cBLACK' in locals filescope.
-./Q.ulam:3:16: ERROR: Incomplete Constant Def for type used with constant name 'cYELLOW' in locals filescope.
+./Q.ulam:2:16: ERROR: Incomplete NodeConstantDef for type used with constant name 'cBLACK' in locals filescope.
+./Q.ulam:3:16: ERROR: Incomplete NodeConstantDef for type used with constant name 'cYELLOW' in locals filescope.
 Unrecoverable Program GenCode FAILURE.
 ##
 ## ish 20210802 ARGB typedef not found in UrSelf for localsfilescope; compiler assert hit when
-##  NodeConstantDef::cloneAndAppend had no symbol. (see also t41534,5)
+##  NodeConstantDef::cloneAndAppend had no symbol during genCode since unused. (see also t41534,5)
 ##
 #>A.ulam
   ulam 3;

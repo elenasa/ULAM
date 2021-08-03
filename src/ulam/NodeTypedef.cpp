@@ -356,6 +356,7 @@ namespace MFM {
   void NodeTypedef::genCode(File * fp, UVPass& uvpass)
   {
 #if 0
+    assert(m_typedefSymbol);
     m_state.indentUlamCode(fp);
     fp->write("//typedef ");
 
@@ -387,7 +388,7 @@ namespace MFM {
 
   void NodeTypedef::cloneAndAppendNode(std::vector<Node *> & cloneVec)
   {
-    //for comment purposes (e.g. t3883)
+    //for comment purposes in .h (e.g. t3883); no symbol needed since doesn't genCode.
     NodeTypedef * cloneofme = (NodeTypedef *) this->instantiate();
     assert(cloneofme);
     cloneVec.push_back(cloneofme);

@@ -120,9 +120,10 @@ namespace MFM {
     if(!m_state.okUTItoContinue(suti) || !m_state.isComplete(suti))
       {
 	std::ostringstream msg;
-	msg << "Incomplete " << prettyNodeName().c_str() << " for type: ";
-	msg << m_state.getUlamTypeNameByIndex(suti).c_str();
-	msg << ", used with symbol name '" << getName() << "'";
+	msg << "Incomplete " << prettyNodeName().c_str() << " for type";
+	if(m_state.okUTItoContinue(suti) && !m_state.isHolder(suti))
+	  msg << ": " << m_state.getUlamTypeNameByIndex(suti).c_str();
+	msg << " used with symbol name '" << getName() << "'";
 	if(m_state.okUTItoContinue(suti) || m_state.isStillHazy(suti))
 	  {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
@@ -307,9 +308,10 @@ namespace MFM {
 	else if(foldrtn == Hzy)
 	  {
 	    std::ostringstream msg;
-	    msg << "Incomplete " << prettyNodeName().c_str() << " for type: ";
-	    msg << m_state.getUlamTypeNameByIndex(suti).c_str();
-	    msg << ", used with symbol name '" << getName() << "', after folding";
+	    msg << "Incomplete " << prettyNodeName().c_str() << " for type";
+	    if(m_state.okUTItoContinue(suti) && !m_state.isHolder(suti))
+	      msg << ": " << m_state.getUlamTypeNameByIndex(suti).c_str();
+	    msg << " used with symbol name '" << getName() << "', after folding";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    setNodeType(Hzy);
 	  }

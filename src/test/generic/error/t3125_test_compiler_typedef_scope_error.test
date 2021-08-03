@@ -2,7 +2,7 @@
 #=t3125_test_compiler_typedef_scope_error
 #!
 ./D.ulam:9:5: ERROR: Typedef 'Bar' in class D remains undefined.
-./D.ulam:9:5: ERROR: Incomplete Variable Decl for type used with variable symbol name 'f'.
+./D.ulam:9:5: ERROR: Incomplete NodeVarDecl for type used with variable symbol name 'f'.
 ./D.ulam:9:5: ERROR: Variable for: 'f', is still hazy.
 ./D.ulam:10:5: ERROR: Incomplete identifier for a type used with list symbol name 'f'.
 ./D.ulam:11:12: ERROR: Incomplete identifier for a type used with list symbol name 'f'.
