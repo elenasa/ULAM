@@ -2,7 +2,7 @@
 #=t41397_test_compiler_elementandquarks_supervfunccall_ish
 ##   gencode output (1 assert)
 #!
-./Computonium.ulam:6:8: ERROR: (2) Virtual function 'Uf_5phase10' is pure; cannot be called for eval.
+./Computonium.ulam:6:8: ERROR: (2) Virtual function 'Uf_5phase10' is pure; cannot be called for eval in class Computonium.
 Exit status: -1
 Unrecoverable Program Test FAILURE.
 ##

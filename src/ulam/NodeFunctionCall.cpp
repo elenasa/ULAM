@@ -210,7 +210,7 @@ namespace MFM {
 		    UTI auti = argNodes[i]->getNodeType();
 		    msg << m_state.getUlamTypeNameBriefByIndex(auti).c_str() << ", ";
 		  }
-		msg << "explicit casting is required"; //ulamexports:DebugUtils
+		msg << "explicit casting is required"; //ulamexports:DebugUtils, t3479,t41132
 	      }
 	    else
 	      {
@@ -219,6 +219,8 @@ namespace MFM {
 	    if(hasHazyArgs)
 	      {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+		if(!m_state.m_err.isWaitModeWaiting())
+		  m_state.noteAmbiguousFunctionSignaturesInAClassHierarchy(cuti, funcid, argNodes, numFuncs);	//20210804 Dave request!
 		numHazyFound++;
 	      }
 	    else
@@ -1080,6 +1082,7 @@ namespace MFM {
 	      msg << "ambiguous";
 	    else
 	      msg << "not found";
+	    msg << " in class " << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
 
@@ -1088,6 +1091,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Function '" << funcSymbol->getMangledNameWithTypes().c_str();
 	    msg << "' is not virtual";
+	    msg << " in class " << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    rtnok = false;
 	  }
@@ -1096,6 +1100,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "(1) Virtual function '" << funcSymbol->getMangledNameWithTypes().c_str();
 	    msg << "' is pure; cannot be called for eval";
+	    msg << " in class " << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    rtnok = false;
 	  }
@@ -1113,6 +1118,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "(2) Virtual function '" << m_funcSymbol->getMangledNameWithTypes().c_str();
 	    msg << "' is pure; cannot be called for eval";
+	    msg << " in class " << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    rtnok = false; //t41094, t41158, t41160, t41313
 	  }

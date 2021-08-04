@@ -1996,6 +1996,8 @@ namespace MFM {
 	    std::ostringstream note;
 	    note << "Pure: ";
 	    note << m_vtable[i].m_funcPtr->getFunctionNameWithTypes().c_str();
+	    note << ", originating class: ";
+	    note << m_state.getUlamTypeNameBriefByIndex(m_vtable[i].m_origClassUTI).c_str();
 	    MSG(m_state.getFullLocationAsString(getLoc()).c_str(), note.str().c_str(), NOTE);
 	  }
       }

@@ -5038,7 +5038,7 @@ namespace MFM {
 		      {
 			std::ostringstream msg;
 			if(tmpfsym->isVirtualFunction()) //t41329 non-virtual func;
-			  msg << "Virtual ";
+			  msg << "Virtual "; //t41305, t41437
 			msg << "Function: "  << m_pool.getDataAsString(tmpfsym->getId()).c_str();
 			msg << "(";
 			for (u32 i = 0; i < argNodes.size(); i++)
