@@ -2,10 +2,10 @@
 #=t41482_test_compiler_abstractduetothesepurefunctions_ish_error
 #!
 ./T.ulam:4:5: ERROR: 'aw' is type AtomWire, which is abstract due to these pure functions..
-./AtomStream.ulam:8:14: NOTE: Pure: Unsigned(6) getNextSN(Bool left), in AtomWire.
-./AtomStream.ulam:9:16: NOTE: Pure: Bool isPeer(Bool left), in AtomWire.
-./AtomPayload.ulam:5:16: NOTE: Pure: Bool loadFrom(Atom a), in AtomWire.
-./AtomPayload.ulam:6:16: NOTE: Pure: Bool storeTo(Atom& a), in AtomWire.
+./AtomStream.ulam:8:14: NOTE: Still pure in AtomWire: Unsigned(6) getNextSN(Bool left).
+./AtomStream.ulam:9:16: NOTE: Still pure in AtomWire: Bool isPeer(Bool left).
+./AtomPayload.ulam:5:16: NOTE: Still pure in AtomWire: Bool loadFrom(Atom a).
+./AtomPayload.ulam:6:16: NOTE: Still pure in AtomWire: Bool storeTo(Atom& a).
 ./AtomWire.ulam:2:9: ERROR: Element 'AtomWire' is abstract due to these pure functions..
 Unrecoverable Program Type Label FAILURE.
 ##

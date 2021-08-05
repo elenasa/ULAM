@@ -2,7 +2,7 @@
 #=t41133_test_compiler_elementandquark_overloadfunccallabstractnonrefarg_error
 #!
 ./Fail.ulam:7:13: ERROR: 'bs' is type ByteSource, which is abstract due to these pure functions..
-./ByteSource.ulam:3:15: NOTE: Pure: Int readByte(), in ByteSource.
+./ByteSource.ulam:3:15: NOTE: Still pure in ByteSource: Int readByte().
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t41131,t41132
