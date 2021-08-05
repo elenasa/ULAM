@@ -1993,12 +1993,14 @@ namespace MFM {
       {
 	if(m_vtable[i].m_isPure)
 	  {
+	    Locator floc = m_vtable[i].m_funcPtr->getLoc();
 	    std::ostringstream note;
 	    note << "Pure: ";
 	    note << m_vtable[i].m_funcPtr->getFunctionNameWithTypes().c_str();
-	    note << ", originating class: ";
-	    note << m_state.getUlamTypeNameBriefByIndex(m_vtable[i].m_origClassUTI).c_str();
-	    MSG(m_state.getFullLocationAsString(getLoc()).c_str(), note.str().c_str(), NOTE);
+	    //note << ", originating class: ";
+	    //note << m_state.getUlamTypeNameBriefByIndex(m_vtable[i].m_origClassUTI).c_str();
+	    note << ", in " << m_state.getUlamTypeNameBriefByIndex(getUlamTypeIdx()).c_str();
+	    MSG(m_state.getFullLocationAsString(floc).c_str(), note.str().c_str(), NOTE);
 	  }
       }
   } //notePureFunctionSignatures
