@@ -47,12 +47,29 @@ namespace MFM {
 
   void NodeSquareBracket::printOp(File * fp)
   {
-    NodeBinaryOp::printOp(fp);
+    fp->write(" []"); //was NodeBinaryOp::printOp(fp); t41461,..
   }
 
   const char * NodeSquareBracket::getName()
   {
-    return "[]";
+    std::ostringstream str;
+    str << getFullName();
+    return str.str().c_str(); //t41252,t41076,t3885
+  }
+
+  u32 NodeSquareBracket::getNameId()
+  {
+    return m_state.m_pool.getIndexForDataString("[]");
+  }
+
+  const std::string NodeSquareBracket::getFullName()
+  {
+    std::ostringstream fullnm;
+    fullnm << m_nodeLeft->getName();
+    fullnm << "[";
+    fullnm << m_nodeRight->getName();
+    fullnm << "]";
+    return fullnm.str();
   }
 
   const std::string NodeSquareBracket::prettyNodeName()
@@ -129,7 +146,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Incomplete RH Type: " << m_state.getUlamTypeNameBriefByIndex(rightType).c_str();
-	msg << " used with " << getName();
+	msg << " used with []"; // << getName();
 	if(rightType==Hzy)
 	  {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
@@ -156,7 +173,7 @@ namespace MFM {
 	      {
 		std::ostringstream msg;
 		msg << "Incomplete Type: " << m_state.getUlamTypeNameBriefByIndex(leftType).c_str();
-		msg << " used with " << getName();
+		msg << " used with []"; // << getName();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 		hazyCount++;
 	      }
@@ -192,7 +209,7 @@ namespace MFM {
 		  {
 		    std::ostringstream msg;
 		    msg << "Invalid Type: " << m_state.getUlamTypeNameBriefByIndex(leftType).c_str();
-		    msg << " used with " << getName();
+		    msg << " used with []"; // << getName();
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		    errorCount++;
 		  }
@@ -208,7 +225,8 @@ namespace MFM {
 			msg << m_state.getUlamTypeNameBriefByIndex(caType).c_str();
 			msg << " used with class: ";
 			msg << m_state.getUlamTypeNameBriefByIndex(leftType).c_str();
-			msg << getName();
+			//msg << getName();
+			msg << "[]";
 			if(caType == Nav)
 			  {
 			    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
@@ -459,14 +477,14 @@ namespace MFM {
   Node * NodeSquareBracket::buildOperatorOverloadFuncCallNode()
   {
     UTI leftType = m_nodeLeft->getNodeType();
-    TokenType opTokType = Token::getTokenTypeFromString(getName());
+    TokenType opTokType = Token::getTokenTypeFromString("[]"); //was getName()
     assert(opTokType != TOK_LAST_ONE);
     Token opTok(opTokType, getNodeLocation(), 0);
     u32 opolId = Token::getOperatorOverloadFullNameId(opTok, &m_state);
     if(opolId == 0)
       {
 	std::ostringstream msg;
-	msg << "Overload for operator " << getName();
+	msg << "Overload for operator []"; // << getName();
 	msg << " is not supported as operand for class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(leftType).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
@@ -480,7 +498,7 @@ namespace MFM {
       {
 	// ambiguous (>1) overload will produce an error later
 	//fill in func symbol during type labeling;
-	return Node::buildOperatorOverloadFuncCallNodeHelper(m_nodeLeft, m_nodeRight, getName());
+	return Node::buildOperatorOverloadFuncCallNodeHelper(m_nodeLeft, m_nodeRight, "[]" /*getName()*/);
       }//else use default struct equal, or wait for hazy arg
 
     //redo check and type labeling done by caller!!

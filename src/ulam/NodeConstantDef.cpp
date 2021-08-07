@@ -241,7 +241,7 @@ namespace MFM {
 
   u32 NodeConstantDef::getSymbolId()
   {
-    return m_cid;
+    return m_cid; //same as getNameId, t3498, t41162
   }
 
   bool NodeConstantDef::getSymbolValue(BV8K& bv)
@@ -777,7 +777,7 @@ namespace MFM {
 	if(!hazyKin)
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	else
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //was debug
       }
     m_state.popClassContext(); //restore
   } //checkForSymbols

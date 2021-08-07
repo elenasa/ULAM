@@ -531,7 +531,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "cycle error!! " << m_state.getUlamTypeNameByIndex(getUlamTypeIdx()).c_str();
-	MSG(Symbol::getTokPtr(), msg.str().c_str(),ERR);
+	MSG(Symbol::getTokPtr(), msg.str().c_str(), ERR);
 	aok = false; //t41427
       }
     else if(totalbits == EMPTYSYMBOLTABLE)
@@ -541,7 +541,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Union " << m_state.getUlamTypeNameByIndex(getUlamTypeIdx()).c_str();
 	    msg << " has no data members; Bitsize is 0";
-	    MSG(Symbol::getTokPtr(), msg.str().c_str(),ERR);
+	    MSG(Symbol::getTokPtr(), msg.str().c_str(), ERR);
 	    aok = false; //t41426
 	  }
 	else
@@ -881,7 +881,7 @@ namespace MFM {
 	msg << classname.c_str() << ">; ";
 	msg << "exceeds the maximum length (" << MAX_FILENAME_LENGTH;
 	msg << ") before extensions, length is " << cnamelen;
-	MSG(Symbol::getTokPtr(), msg.str().c_str(),ERR);
+	MSG(Symbol::getTokPtr(), msg.str().c_str(), ERR);
 	istoolong = true;
       }
     return istoolong;

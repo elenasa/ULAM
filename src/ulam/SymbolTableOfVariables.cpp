@@ -230,7 +230,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "cycle error!!!! " << m_state.getUlamTypeNameByIndex(suti).c_str();
-	    MSG(sym->getTokPtr(), msg.str().c_str(),ERR);
+	    MSG(sym->getTokPtr(), msg.str().c_str(), ERR);
 	    maxsize = CYCLEFLAG;
 	    break;
 	  }

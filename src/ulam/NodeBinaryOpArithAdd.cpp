@@ -16,9 +16,7 @@ namespace MFM {
 
   void NodeBinaryOpArithAdd::printOp(File * fp)
   {
-    char myname[16];
-    sprintf(myname," %sb", getName());
-    fp->write(myname);
+    fp->write(" +b");
   }
 
   const char * NodeBinaryOpArithAdd::getName()

@@ -63,6 +63,8 @@ namespace MFM{
 
     virtual const char * getName();
 
+    virtual u32 getNameId();
+
     virtual const std::string prettyNodeName();
 
     virtual const std::string methodNameForCodeGen();
@@ -116,6 +118,8 @@ namespace MFM{
   private:
     bool m_isCustomArray;
     SymbolTmpVar * m_tmpvarSymbol;
+
+    const std::string getFullName();
 
     Node * buildArefFuncCallNode();
 

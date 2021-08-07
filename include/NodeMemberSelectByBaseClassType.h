@@ -58,7 +58,11 @@ namespace MFM{
 
     virtual Node * instantiate();
 
+    virtual void printOp(File * fp);
+
     virtual const char * getName();
+
+    virtual u32 getNameId();
 
     virtual void printPostfix(File * fp);
 
@@ -99,6 +103,8 @@ namespace MFM{
 
     Node * m_nodeVTclassrn; //runtime var: class VTable Registration Number
     SymbolTmpVar * m_tmpvarSymbolVTclassrn;
+
+    const std::string getFullName();
 
     void makeUVPassForCodeGen(UVPass& uvpass);
   };

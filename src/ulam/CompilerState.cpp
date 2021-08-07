@@ -828,7 +828,7 @@ namespace MFM {
 	{
 	  std::ostringstream msg;
 	  msg << "Undefined ULAMTYPE base type <" << utype << ">" ;
-	  MSG2("",msg.str().c_str(),DEBUG);
+	  MSG2("",msg.str().c_str(), DEBUG);
 	  abortUndefinedUlamType();
 	}
       };
@@ -1246,7 +1246,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Undefined UTI <" << typidx << "> Max is: "
 	    << m_indexToUlamKey.size() << ", returning Nav INSTEAD";
-	MSG2("", msg.str().c_str(),DEBUG);
+	MSG2("", msg.str().c_str(), DEBUG);
 	typidx = 0;
 	abortShouldntGetHere();
       }
@@ -3828,8 +3828,7 @@ namespace MFM {
 			  {
 			    if(isHolder(tduti) && isAClass(tduti))
 			      {
-				removeIncompleteClassSymbolFromProgramTable(getUlamTypeNameIdByIndex(tduti)); //t41513??
-				//removeIncompleteClassSymbolFromProgramTable(tdid); //t41513??
+				removeIncompleteClassSymbolFromProgramTable(getUlamTypeNameIdByIndex(tduti)); //t41513?
 			      }
 
 			    UTI ltd = ltdsymptr->getUlamTypeIdx();

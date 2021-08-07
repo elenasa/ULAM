@@ -587,7 +587,7 @@ namespace MFM {
 	    msg << m_state.m_pool.getDataAsString(csym->getId()).c_str(); //not a uti
 	    msg << "' is insufficient for the required number of template parameters (";
 	    msg << numparams << ")";
-	    MSG(Symbol::getTokPtr(), msg.str().c_str(),ERR);
+	    MSG(Symbol::getTokPtr(), msg.str().c_str(), ERR);
 	    it++;
 	    continue;
 	  }
@@ -601,7 +601,7 @@ namespace MFM {
 	    msg << m_state.m_pool.getDataAsString(csym->getId()).c_str(); //not a uti
 	    msg << "' is beyond the required number of template parameters (";
 	    msg << numparams << ")";
-	    MSG(Symbol::getTokPtr(), msg.str().c_str(),ERR);
+	    MSG(Symbol::getTokPtr(), msg.str().c_str(), ERR);
 	    it++;
 	    continue;
 	  }
@@ -614,7 +614,7 @@ namespace MFM {
 	    msg << " needed to fix any unseen class instances of template '";
 	    msg << m_state.m_pool.getDataAsString(csym->getId()).c_str(); //not a uti
 	    msg << "' is missing its class definition; Bailing..";
-	    MSG(Symbol::getTokPtr(), msg.str().c_str(),ERR);  //t41432
+	    MSG(Symbol::getTokPtr(), msg.str().c_str(), ERR);  //t41432
 	    it++;
 	    continue;
 	  }
@@ -642,7 +642,7 @@ namespace MFM {
 
 	    NodeConstantDef * paramConstDef = (NodeConstantDef *) templateclassblock->getParameterNode(i);
 	    assert(paramConstDef);
-	    u32 pid = paramConstDef->getNameId();
+	    u32 pid = paramConstDef->getSymbolId();
 
 	    if(cblock->isIdInScope(sid,argsym))
 	      {
@@ -682,7 +682,7 @@ namespace MFM {
 		    msg << m_state.m_pool.getDataAsString(csym->getId()).c_str(); //not a uti
 		    msg << "' comes after the last default parameter value used (";
 		    msg << lastDefaultParamUsed << ") to fix";
-		    MSG(Symbol::getTokPtr(), msg.str().c_str(),ERR);
+		    MSG(Symbol::getTokPtr(), msg.str().c_str(), ERR);
 		  }
 		else
 		  {
@@ -718,7 +718,7 @@ namespace MFM {
 	    msg << m_state.m_pool.getDataAsString(csym->getId()).c_str(); //not a uti
 	    msg << "' did not match the required number of parameters (";
 	    msg << numparams << ") to fix";
-	    MSG(Symbol::getTokPtr(), msg.str().c_str(),ERR);
+	    MSG(Symbol::getTokPtr(), msg.str().c_str(), ERR);
 	  }
 
 	if(firstDefaultParamUsed >= 0)
@@ -766,7 +766,7 @@ namespace MFM {
       {
 	NodeConstantDef * paramConstDef = (NodeConstantDef *) templateclassblock->getParameterNode(i);
 	assert(paramConstDef);
-	u32 pid = paramConstDef->getNameId();
+	u32 pid = paramConstDef->getSymbolId();
 
 	SymbolConstantValue * asym2;
 	Symbol * asym = NULL;
@@ -900,7 +900,7 @@ namespace MFM {
 	    bool isok = false;
 	    NodeConstantDef * paramConstDef = (NodeConstantDef *) templateclassNode->getParameterNode(i);
 	    assert(paramConstDef);
-	    u32 pid = paramConstDef->getNameId();
+	    u32 pid = paramConstDef->getSymbolId();
 
 	    Symbol * asym = NULL;
 	    bool hazyKin = false; //don't care
@@ -1011,7 +1011,7 @@ namespace MFM {
 
 	NodeConstantDef * paramConstDef = (NodeConstantDef *) templateclassNode->getParameterNode(i);
 	assert(paramConstDef);
-	u32 pid = paramConstDef->getNameId();
+	u32 pid = paramConstDef->getSymbolId();
 
 	//get 'instance's value
 	bool isok = false;
@@ -1121,7 +1121,7 @@ namespace MFM {
 	  {
 	    NodeConstantDef * paramConstDef = (NodeConstantDef *) templateclassNode->getParameterNode(i);
 	    assert(paramConstDef);
-	    u32 pid = paramConstDef->getNameId();
+	    u32 pid = paramConstDef->getSymbolId();
 
 	    if((signa || argvals) && (pcnt > 0))
 	      sig << ",";
@@ -2094,7 +2094,7 @@ namespace MFM {
 		std::ostringstream msg;
 		msg << "CLASS INSTANCE '" << m_state.getUlamTypeNameBriefByIndex(uti).c_str();
 		msg << "' SIZED " << totalbits << " FAILED";
-		MSG(Symbol::getTokPtr(), msg.str().c_str(),ERR);
+		MSG(Symbol::getTokPtr(), msg.str().c_str(), ERR);
 		NodeBlockClass * classNode = csym->getClassBlockNode();
 		assert(classNode);
 		classNode->setNodeType(Nav); //avoid assert in resolving loop
@@ -2136,7 +2136,7 @@ namespace MFM {
 	msg << (m_scalarClassInstanceIdxToSymbolPtr.size() > 1 ? "s ALL " : " ");
 	msg << "sized SUCCESSFULLY for template '";
 	msg << m_state.m_pool.getDataAsString(getId()).c_str() << "'";
-	MSG(Symbol::getTokPtr(), msg.str().c_str(),DEBUG);
+	MSG(Symbol::getTokPtr(), msg.str().c_str(), DEBUG);
       }
     lostClasses.clear();
     return aok;
@@ -2341,7 +2341,7 @@ namespace MFM {
 	msg << m_state.m_pool.getDataAsString(fm->getId()).c_str(); //not a uti
 	msg << "' is beyond the required number of template parameters (";
 	msg << numparams << "); Not fully instantiated";
-	MSG(Symbol::getTokPtr(), msg.str().c_str(),ERR);
+	MSG(Symbol::getTokPtr(), msg.str().c_str(), ERR);
 	return false;
       }
 
@@ -2356,7 +2356,7 @@ namespace MFM {
       {
 	NodeConstantDef * paramConstDef = (NodeConstantDef *) templateclassNode->getParameterNode(i);
 	assert(paramConstDef);
-	u32 pid = paramConstDef->getNameId();
+	u32 pid = paramConstDef->getSymbolId();
 
 	//save 'instance's arg constant symbols in a temporary list
 	Symbol * asym = NULL;
@@ -2376,7 +2376,7 @@ namespace MFM {
 
 	NodeConstantDef * paramConstDef = (NodeConstantDef *) templateclassNode->getParameterNode(i);
 	assert(paramConstDef);
-	u32 aid = paramConstDef->getNameId();
+	u32 aid = paramConstDef->getSymbolId();
 
 	Symbol * clonesym = NULL;
 	bool hazyKin = false; //don't care

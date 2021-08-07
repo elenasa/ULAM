@@ -403,7 +403,7 @@ namespace MFM {
 		if(rscr == CAST_BAD)
 		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		else
-		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //was debug
 	      } //not atom
 	  } //not safe
 	else

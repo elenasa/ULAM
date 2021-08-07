@@ -196,12 +196,7 @@ namespace MFM {
 	      std::ostringstream msg;
 	      msg << "Invalid non-class type provided: '";
 	      if(m_nodeOf)
-		{
-		  if(m_nodeOf->isAMemberSelect()) //t3699
-		    msg << ((NodeMemberSelect *) m_nodeOf)->getFullName().c_str();
-		  else
-		    msg << m_nodeOf->getName();
-		}
+		msg << m_nodeOf->getName();
 	      else
 		msg << m_state.getUlamTypeNameBriefByIndex(getOfType()).c_str();
 	      msg << getName() << "'";

@@ -24,29 +24,29 @@ namespace MFM {
 
   void NodeMemberSelect::printOp(File * fp)
   {
-    char myname[16];
-    sprintf(myname," %s", getName());
-    fp->write(myname);
+    fp->write(" .");
+  }
+
+  u32 NodeMemberSelect::getNameId()
+  {
+    return m_state.m_pool.getIndexForDataString(".");
   }
 
   const char * NodeMemberSelect::getName()
   {
-    return ".";
+    //return ".";
+    std::ostringstream str;
+    str << getFullName();
+    return str.str().c_str();
   }
 
   const std::string NodeMemberSelect::getFullName()
   {
     std::ostringstream fullnm;
-    bool lhassym = m_nodeLeft->hasASymbol();
-    bool rhassym = m_nodeRight->hasASymbol();
-    u32 lsid = lhassym ? m_nodeLeft->getSymbolId() : m_nodeLeft->getNameId();
-    u32 rsid = rhassym ? m_nodeRight->getSymbolId() : m_nodeRight->getNameId();
-    if(lsid > 0)
-      fullnm << m_state.m_pool.getDataAsString(lsid).c_str();
+    fullnm << m_nodeLeft->getName();
     fullnm << ".";
-    if(rsid > 0)
-      fullnm << m_state.m_pool.getDataAsString(rsid).c_str();
-    return fullnm.str();
+    fullnm << m_nodeRight->getName();
+    return fullnm.str(); //t41250
   }
 
   const std::string NodeMemberSelect::prettyNodeName()

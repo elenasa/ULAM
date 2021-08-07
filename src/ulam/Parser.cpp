@@ -3071,7 +3071,7 @@ namespace MFM {
 	    assert(templateclassNode);
 	    NodeConstantDef * paramConstDef = (NodeConstantDef *) templateclassNode->getParameterNode(parmIdx);
 	    assert(paramConstDef);
-	    u32 pid = paramConstDef->getNameId();
+	    u32 pid = paramConstDef->getSymbolId();
 	    UTI puti = paramConstDef->getTypeDescriptorGivenType();
 
 	    Token argTok(TOK_IDENTIFIER, pTok.m_locator, pid); //use current locator
@@ -5334,7 +5334,6 @@ Node * Parser::wrapFactor(Node * leftNode)
 	    msg << m_state.m_pool.getDataAsString(mpId).c_str();
 	    msg << "' cannot be based on a class nor array type";
 	    MSG(&eTok, msg.str().c_str(), ERR); //t3217
-	    //exprNode = parseArrayOrClassInitialization(mpId); //returns a NodeList
 	  }
 	else
 	  {
@@ -5581,7 +5580,6 @@ Node * Parser::wrapFactor(Node * leftNode)
 	//local.Type allowed (t3870,71)
 	unreadToken();
 	NodeVarDecl * argNode = parseFunctionParameterDecl();
-	//Symbol * argSym = NULL;
 
 	//could be null symbol already in scope
 	if(argNode)

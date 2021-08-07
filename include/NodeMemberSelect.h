@@ -57,7 +57,7 @@ namespace MFM{
 
     virtual const char * getName();
 
-    const std::string getFullName();
+    virtual u32 getNameId();
 
     virtual const std::string prettyNodeName();
 
@@ -131,6 +131,8 @@ namespace MFM{
     SymbolTmpVar * m_tmpvarSymbol;
 
   private:
+
+    const std::string getFullName();
 
     void setStoreIntoAbleAndReferenceAble();
 

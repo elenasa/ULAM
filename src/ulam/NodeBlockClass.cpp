@@ -776,14 +776,12 @@ namespace MFM {
 			msg << m_state.getUlamTypeNameBriefByIndex(baseuti).c_str();
 			msg << "': same types";
 			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-			//setBaseClassBlockPointer(NULL, i);
 			errs |= true;
 		      }
 		    else
 		      {
 			m_state.findRootUTIAlias(mappedUTI, mappedUTI); //con't w root
-			//if(baseuti!=mappedUTI) //t41431, t41517
-			if((UlamType::compare(mappedUTI, baseuti, m_state) != UTIC_SAME) && !m_state.isClassAStubCopy(mappedUTI))
+			if((UlamType::compare(mappedUTI, baseuti, m_state) != UTIC_SAME) && !m_state.isClassAStubCopy(mappedUTI)) //t41431, t41517
 			  {
 			    std::ostringstream msg;
 			    msg << "Substituting mapped UTI" << mappedUTI;
@@ -793,8 +791,6 @@ namespace MFM {
 			    msg << "' UTI" << baseuti << " while labeling class: ";
 			    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
 			    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-			    //need to break the chain; e.g. don't want template symbol addresses used
-			    //  setBaseClassBlockPointer(NULL, i); //force to try again!! avoid inf loop
 			    m_state.resetABaseClassItem(nuti, baseuti, mappedUTI, i); //t41448,t41452 stubcopy
 			    baseuti = mappedUTI;
 			  }//else
@@ -811,7 +807,6 @@ namespace MFM {
 		      msg << "invalid baseclass (" << i << ") for class '";
 		    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str() << "'";
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		    //setBaseClassBlockPointer(NULL, i); //t41517
 		    m_state.resetABaseClassItem(nuti, baseuti, Nav, i); //t3554?
 		    errs |= true;
 		  }
@@ -842,7 +837,6 @@ namespace MFM {
 			  msg << " invalid baseclass (" << i << ") for class '";
 			msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str() << "'";
 			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-			//setBaseClassBlockPointer(NULL, i);
 			m_state.resetABaseClassItem(nuti, baseuti, Nav, i);
 			errs |= true;
 		      }
@@ -902,8 +896,6 @@ namespace MFM {
 		  }
 		//msg << " (UTI " << baseuti << ")";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-		//need to break the chain; e.g. don't want template symbol addresses used
-		//setBaseClassBlockPointer(NULL, i); //force to try again!! avoid inf loop
 	      }
 	  }
 	i++;
@@ -927,7 +919,6 @@ namespace MFM {
 		    assert(UlamType::compare(nuti, baseuti, m_state) != UTIC_SAME);
 
 		    m_state.findRootUTIAlias(mappedUTI, mappedUTI); //con't w root
-		    //if(baseuti != mappedUTI)
 		    if(UlamType::compare(baseuti, mappedUTI, m_state) == UTIC_NOTSAME)
 		      {
 			std::ostringstream msg;

@@ -849,7 +849,7 @@ namespace MFM {
 	    msg << "' is not a valid lefthand side. Eval FAILS";
 	    if(stor == TBOOL_HAZY)
 	      {
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //was debug
 		return evalStatusReturnNoEpilog(NOTREADY);
 	      }
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);

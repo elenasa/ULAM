@@ -148,12 +148,12 @@ namespace MFM {
 
   bool NodeCast::hasASymbol()
   {
-    return m_node->hasASymbol();
+    return m_node->hasASymbol(); //pass thru
   }
 
   u32 NodeCast::getSymbolId()
   {
-    return m_node->getSymbolId();
+    return m_node->getSymbolId(); //pass thru
   }
 
   bool NodeCast::compareSymbolPtrs(Symbol * ptr)
@@ -474,7 +474,7 @@ namespace MFM {
 			  }
 			else
 			  {
-			    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+			    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //was debug
 			    hazinessFound++;
 			  }
 		      }

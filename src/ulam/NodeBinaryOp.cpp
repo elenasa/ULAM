@@ -118,7 +118,7 @@ namespace MFM {
   void NodeBinaryOp::printOp(File * fp)
   {
     char myname[16];
-    sprintf(myname," %s", getName());
+    sprintf(myname," %s", m_state.m_pool.getDataAsString(getNameId()).c_str()); //was getName(),t41376
     fp->write(myname);
   }
 
@@ -270,7 +270,7 @@ namespace MFM {
 	msg << m_state.getUlamTypeNameByIndex(newType).c_str();
 	msg << " for binary " << getName();
 	if(lsafe == CAST_HAZY || rsafe == CAST_HAZY)
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //was debug
 	else
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	rtnOK = false;

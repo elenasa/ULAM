@@ -50,11 +50,39 @@ namespace MFM {
     return new NodeMemberSelectByBaseClassType(*this);
   }
 
-  const char * NodeMemberSelectByBaseClassType::getName()
+  void NodeMemberSelectByBaseClassType::printOp(File * fp)
   {
     if(m_nodeVTclassrn)
-      return ".[]";
-    return ".";
+      fp->write(" .[]"); //t41386
+    else
+      fp->write(" ."); //t41386
+  }
+
+  const char * NodeMemberSelectByBaseClassType::getName()
+  {
+    std::ostringstream str;
+    str << getFullName();
+    return str.str().c_str();
+  }
+
+  u32 NodeMemberSelectByBaseClassType::getNameId()
+  {
+    if(m_nodeVTclassrn)
+      return m_state.m_pool.getIndexForDataString(".[]");
+    return m_state.m_pool.getIndexForDataString(".");
+  }
+
+  const std::string NodeMemberSelectByBaseClassType::getFullName()
+  {
+    std::ostringstream fullnm;
+    fullnm << m_nodeLeft->getName();
+    fullnm << ".";
+    fullnm << m_nodeRight->getName();
+    fullnm << "[";
+    if(m_nodeVTclassrn)
+      fullnm << m_nodeVTclassrn->getName();
+    fullnm << "]";
+    return fullnm.str();
   }
 
   void NodeMemberSelectByBaseClassType::printPostfix(File * fp)

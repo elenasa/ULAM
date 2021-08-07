@@ -320,10 +320,7 @@ namespace MFM {
 	UTI lt = m_nodeLeft->getNodeType();
 	std::ostringstream msg;
 	msg << "Unmodifiable lefthand side of assignment expression '";
-	if(m_nodeLeft->isAMemberSelect()) //t3133,t3413,t41195,t41250
-	  msg << ((NodeMemberSelect *) m_nodeLeft)->getFullName().c_str();
-	else
-	  msg << m_nodeLeft->getName();
+	msg << m_nodeLeft->getName();
 	msg << "', type: " << m_state.getUlamTypeNameByIndex(lt).c_str(); //t41186
 	if(m_nodeLeft->isFunctionCall())
 	  msg << "; may be a function call";

@@ -53,7 +53,7 @@ namespace MFM {
 	      }
 	    else
 	      {
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //hazy
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //hazy (was debug?)
 		newType = Hzy;
 	      }
 	  }
