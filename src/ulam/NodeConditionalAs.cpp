@@ -44,8 +44,8 @@ namespace MFM {
     if(luti == Nav)
       {
 	std::ostringstream msg;
-	msg << "Invalid lefthand type of conditional operator '" << getName();
-	msg << "'";
+	msg << "Invalid lefthand type of conditional operator '";
+	msg  << getName() << "'";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(Nav);
 	return Nav; //short-circuit
@@ -54,8 +54,8 @@ namespace MFM {
     if(luti == Hzy)
       {
 	std::ostringstream msg;
-	msg << "Incomplete lefthand type of conditional operator '" << getName();
-	msg << "'";
+	msg << "Incomplete lefthand type of conditional operator '";
+	msg  << getName() << "'";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	setNodeType(Hzy);
 	m_state.setGoAgain();
@@ -70,8 +70,8 @@ namespace MFM {
     if(!lut->isScalar())
       {
 	std::ostringstream msg;
-	msg << "Invalid lefthand type of conditional operator '" << getName();
-	msg << "'; must be a scalar";
+	msg << "Invalid lefthand type of conditional operator '";
+	msg  << getName() << "'; must be a scalar";
 	if(!m_state.isHolder(luti))
 	  msg << ", not " << lut->getUlamTypeNameBrief().c_str() << " array";
 	if((lclasstype == UC_UNSEEN) || m_state.isStillHazy(luti))
@@ -91,8 +91,8 @@ namespace MFM {
     if(!(m_state.isAtom(luti) || (letyp == Class)))
       {
 	std::ostringstream msg;
-	msg << "Invalid lefthand type of conditional operator '" << getName();
-	msg << "'; must be an atom or class";
+	msg << "Invalid lefthand type of conditional operator '";
+	msg  << getName() << "'; must be an atom or class";
 	if(!m_state.isHolder(luti))
 	  msg << ", not " << lut->getUlamTypeNameBrief().c_str();
 	if((lclasstype == UC_UNSEEN) || m_state.isStillHazy(luti))
@@ -112,8 +112,8 @@ namespace MFM {
     if(m_nodeLeft->isArrayItem() || m_nodeLeft->isFunctionCall())
       {
 	std::ostringstream msg;
-	msg << "Invalid lefthand type of conditional operator '" << getName();
-	msg << "'; suggest a reference variable";
+	msg << "Invalid lefthand type of conditional operator '";
+	msg  << getName() << "'; suggest a reference variable";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	newType = Nav;
 	setNodeType(Nav);

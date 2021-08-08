@@ -542,6 +542,11 @@ namespace MFM {
     return m_state.m_pool.getDataAsString(m_nameid).c_str();
   }
 
+  u32 NodeBlockClass::getNameId()
+  {
+    return m_nameid;
+  }
+
   const std::string NodeBlockClass::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);

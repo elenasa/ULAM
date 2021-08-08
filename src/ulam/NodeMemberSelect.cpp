@@ -35,18 +35,19 @@ namespace MFM {
   const char * NodeMemberSelect::getName()
   {
     //return ".";
-    std::ostringstream str;
-    str << getFullName();
-    return str.str().c_str();
+    return getFullName();
   }
 
-  const std::string NodeMemberSelect::getFullName()
+  const char * NodeMemberSelect::getFullName()
   {
     std::ostringstream fullnm;
     fullnm << m_nodeLeft->getName();
     fullnm << ".";
     fullnm << m_nodeRight->getName();
-    return fullnm.str(); //t41250
+
+    //return fullnm.str(); //t41250 invalid read -V
+    u32 sidx = m_state.m_pool.getIndexForDataString(fullnm.str());
+    return m_state.m_pool.getDataAsString(sidx).c_str();
   }
 
   const std::string NodeMemberSelect::prettyNodeName()

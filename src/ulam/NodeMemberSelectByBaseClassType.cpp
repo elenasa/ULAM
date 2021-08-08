@@ -60,9 +60,7 @@ namespace MFM {
 
   const char * NodeMemberSelectByBaseClassType::getName()
   {
-    std::ostringstream str;
-    str << getFullName();
-    return str.str().c_str();
+    return getFullName();
   }
 
   u32 NodeMemberSelectByBaseClassType::getNameId()
@@ -72,7 +70,7 @@ namespace MFM {
     return m_state.m_pool.getIndexForDataString(".");
   }
 
-  const std::string NodeMemberSelectByBaseClassType::getFullName()
+  const char * NodeMemberSelectByBaseClassType::getFullName()
   {
     std::ostringstream fullnm;
     fullnm << m_nodeLeft->getName();
@@ -82,7 +80,9 @@ namespace MFM {
     if(m_nodeVTclassrn)
       fullnm << m_nodeVTclassrn->getName();
     fullnm << "]";
-    return fullnm.str();
+
+    u32 sidx = m_state.m_pool.getIndexForDataString(fullnm.str());
+    return m_state.m_pool.getDataAsString(sidx).c_str();
   }
 
   void NodeMemberSelectByBaseClassType::printPostfix(File * fp)

@@ -205,7 +205,7 @@ namespace MFM {
     setBlock(NULL);
   }
 
-    bool NodeVarDecl::hasASymbol()
+  bool NodeVarDecl::hasASymbol()
   {
     return (m_varSymbol != NULL);
   }
@@ -224,7 +224,7 @@ namespace MFM {
 
   bool NodeVarDecl::cloneSymbol(Symbol *& symptrref)
   {
-    bool rtnb = (m_varSymbol != NULL) && !hasASymbolDataMember(); //true;
+    bool rtnb = hasASymbol() && !hasASymbolDataMember(); //true;
     if(rtnb)
       {
 	SymbolVariable * sym = new SymbolVariableStack(* (SymbolVariableStack *) m_varSymbol);

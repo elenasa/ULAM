@@ -72,12 +72,12 @@ namespace MFM {
   const char * NodeTypeDescriptor::getName()
   {
     return m_state.getTokenDataAsString(m_typeTok).c_str();
-  } //getName
+  }
 
   u32 NodeTypeDescriptor::getTypeNameId()
   {
     return m_state.getTokenDataAsStringId(m_typeTok); //e.g. t3924
-  } //getTypeNameId
+  }
 
   const std::string NodeTypeDescriptor::prettyNodeName()
   {

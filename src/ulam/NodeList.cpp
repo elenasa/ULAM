@@ -18,6 +18,7 @@ namespace MFM{
     for(u32 i = 0; i < numparams; i++)
       {
 	Node * anode = ref.getNodePtr(i);
+	assert(anode);
 	Node * clone = anode->instantiate();
 	addNodeToList(clone);
       }

@@ -141,7 +141,14 @@ namespace MFM {
 
   const char * NodeBlockFunctionDefinition::getName()
   {
+    assert(m_funcSymbol);
     return m_state.m_pool.getDataAsString(m_funcSymbol->getId()).c_str();
+  }
+
+  u32 NodeBlockFunctionDefinition::getNameId()
+  {
+    assert(m_funcSymbol);
+    return m_funcSymbol->getId();
   }
 
   u32 NodeBlockFunctionDefinition::getTypeNameId()

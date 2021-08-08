@@ -51,6 +51,7 @@ namespace MFM{
 
     NodeConstantDef(SymbolWithValue * symptr, NodeTypeDescriptor * nodetype, CompilerState & state);
     NodeConstantDef(const NodeConstantDef& ref);
+    NodeConstantDef(const NodeConstantDef& ref, bool keepType);
 
     virtual ~NodeConstantDef();
 

@@ -132,7 +132,8 @@ namespace MFM{
 
   private:
 
-    const std::string getFullName();
+    //const std::string getFullName();
+    const char * getFullName();
 
     void setStoreIntoAbleAndReferenceAble();
 

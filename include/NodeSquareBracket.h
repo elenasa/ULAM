@@ -119,7 +119,7 @@ namespace MFM{
     bool m_isCustomArray;
     SymbolTmpVar * m_tmpvarSymbol;
 
-    const std::string getFullName();
+    const char * getFullName();
 
     Node * buildArefFuncCallNode();
 

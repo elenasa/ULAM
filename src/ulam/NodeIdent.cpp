@@ -46,7 +46,7 @@ namespace MFM {
 
   u32 NodeIdent::getNameId()
   {
-    return m_token.m_dataindex;
+    return m_state.getTokenDataAsStringId(m_token);
   }
 
   const std::string NodeIdent::prettyNodeName()

@@ -54,6 +54,11 @@ namespace MFM {
     return m_state.m_pool.getDataAsString(m_cid).c_str();
   }
 
+  u32 NodeInitDM::getNameId()
+  {
+    return m_cid;
+  }
+
   const std::string NodeInitDM::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);

@@ -100,6 +100,11 @@ namespace MFM {
     return m_state.m_pool.getDataAsString(m_tdid).c_str(); //safer
   }
 
+  u32 NodeTypedef::getNameId()
+  {
+    return m_tdid;
+  }
+
   const std::string NodeTypedef::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
@@ -117,7 +122,7 @@ namespace MFM {
   bool NodeTypedef::getSymbolPtr(const Symbol *& symptrref)
   {
     symptrref = m_typedefSymbol;
-    return true;
+    return (m_typedefSymbol != NULL); //true
   } //getSymbolPtr
 
   UTI NodeTypedef::checkAndLabelType(Node * thisparentnode)

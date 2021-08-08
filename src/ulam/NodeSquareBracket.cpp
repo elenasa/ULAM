@@ -52,9 +52,7 @@ namespace MFM {
 
   const char * NodeSquareBracket::getName()
   {
-    std::ostringstream str;
-    str << getFullName();
-    return str.str().c_str(); //t41252,t41076,t3885
+    return getFullName(); //t41252,t41076,t3885
   }
 
   u32 NodeSquareBracket::getNameId()
@@ -62,14 +60,15 @@ namespace MFM {
     return m_state.m_pool.getIndexForDataString("[]");
   }
 
-  const std::string NodeSquareBracket::getFullName()
+  const char * NodeSquareBracket::getFullName()
   {
     std::ostringstream fullnm;
     fullnm << m_nodeLeft->getName();
     fullnm << "[";
     fullnm << m_nodeRight->getName();
     fullnm << "]";
-    return fullnm.str();
+    u32 sidx = m_state.m_pool.getIndexForDataString(fullnm.str());
+    return m_state.m_pool.getDataAsString(sidx).c_str();
   }
 
   const std::string NodeSquareBracket::prettyNodeName()
@@ -225,8 +224,7 @@ namespace MFM {
 			msg << m_state.getUlamTypeNameBriefByIndex(caType).c_str();
 			msg << " used with class: ";
 			msg << m_state.getUlamTypeNameBriefByIndex(leftType).c_str();
-			//msg << getName();
-			msg << "[]";
+			msg << "[]"; // getName();
 			if(caType == Nav)
 			  {
 			    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
@@ -595,22 +593,17 @@ namespace MFM {
 
 	if((offsetInt >= arraysize))
 	  {
-	    u32 lid = m_nodeLeft->hasASymbol() ? m_nodeLeft->getSymbolId() : m_nodeLeft->getNameId();
-
 	    std::ostringstream msg;
 	    msg << "Array subscript [" << offsetInt << "] exceeds the size (" << arraysize;
-	    msg << ") of array '" << m_state.m_pool.getDataAsString(lid).c_str() << "'";
+	    msg << ") of array '" << m_nodeLeft->getName() << "'";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    return evalStatusReturn(ERROR); //t3842,5
 	  }
       }
     else
       {
-	u32 lid = m_nodeLeft->hasASymbol() ? m_nodeLeft->getSymbolId() : m_nodeLeft->getNameId();
-
 	std::ostringstream msg;
-	msg << "Array subscript of array '";
-	msg << m_state.m_pool.getDataAsString(lid).c_str();
+	msg << "Array subscript of array '" << getName();
 	msg << "' requires a numeric type";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	return evalStatusReturn(ERROR); //t3321
@@ -718,11 +711,10 @@ namespace MFM {
     else
       {
 	s32 arraysize = m_state.getArraySize(auti);
-	u32 lid = m_nodeLeft->hasASymbol() ? m_nodeLeft->getSymbolId() : m_nodeLeft->getNameId();
 
 	std::ostringstream msg;
 	msg << "Array subscript [" << offsetInt << "] exceeds the size (" << arraysize;
-	msg << ") of array '" << m_state.m_pool.getDataAsString(lid).c_str() << "'";
+	msg << ") of array '" << m_nodeLeft->getName() << "'";
 	msg << " to store into";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	return evalStatusReturn(ERROR); //t3427

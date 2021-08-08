@@ -100,6 +100,8 @@ class NodeBlockFunctionDefinition : public NodeBlock
 
     virtual const char * getName();
 
+    virtual u32 getNameId();
+
     virtual u32 getTypeNameId();
 
     virtual const std::string prettyNodeName();

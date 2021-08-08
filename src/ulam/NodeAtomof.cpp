@@ -149,8 +149,7 @@ namespace MFM {
 
     if(m_state.getReferenceType(auti) == ALT_AS)
       {
-	assert(0);
-	//return ((SymbolVariableStack *) vsym)->getAutoPtrForEval(); //haha! we're done.
+	m_state.abortShouldntGetHere();
 	return m_nodeOf->getSymbolAutoPtrForEval(); //haha! we're done.
       }
 
@@ -177,7 +176,6 @@ namespace MFM {
 	if(vut->getUlamClassType() == UC_QUARK)
 	  {
 	    if(m_state.isReference(vuti)) //t3701,t3835,t3837
-	      //	      ptr = ((SymbolVariableStack *) vsym)->getAutoPtrForEval(); //t3835
 	      ptr = m_nodeOf->getSymbolAutoPtrForEval(); //t3835
 	    else
 	      {
@@ -188,7 +186,6 @@ namespace MFM {
 	else
 	  {
 	    //local variable on the stack; could be array ptr! (t41531)
-	    //ptr = UlamValue::makePtr(((SymbolVariableStack *) vsym)->getStackFrameSlotIndex(), STACK, auti, m_state.determinePackable(auti), m_state, 0, vsym->getId()); //id?
 	    ptr = UlamValue::makePtr(m_nodeOf->getSymbolStackFrameSlotIndex(), STACK, auti, m_state.determinePackable(auti), m_state, 0, m_nodeOf->getNameId()); //id?
 	    ptr.setPtrTargetEffSelfType(auti); //missing?
 	  }

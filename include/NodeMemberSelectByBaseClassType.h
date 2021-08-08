@@ -104,7 +104,7 @@ namespace MFM{
     Node * m_nodeVTclassrn; //runtime var: class VTable Registration Number
     SymbolTmpVar * m_tmpvarSymbolVTclassrn;
 
-    const std::string getFullName();
+    const char * getFullName();
 
     void makeUVPassForCodeGen(UVPass& uvpass);
   };

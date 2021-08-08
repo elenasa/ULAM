@@ -2913,6 +2913,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Overload for operator " << getName();
+	//msg << m_state.m_pool.getDataAsString(getNameId()).c_str();
 	msg << " is not supported as operand for class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(selectNode->getNodeType()).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);

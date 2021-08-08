@@ -941,9 +941,10 @@ namespace MFM {
 	assert(ceNode->getNodeNo() == cloneNode->getNodeNo());
 
 	Symbol * cvsym = NULL;
-	AssertBool isDefined = classblock->isIdInScope(cloneNode->getSymbolId(), cvsym);
-	assert(isDefined);
-	cloneNode->setSymbolPtr((SymbolConstantValue *) cvsym); //sets declnno
+	AssertBool isDefined = classblock->isIdInScope(parmNode->getNameId(), cvsym);
+	assert(isDefined); //t3498,9..
+	//if(isDefined)
+	  cloneNode->setSymbolPtr((SymbolConstantValue *) cvsym); //sets declnno
 
 	linkConstantExpressionForPendingArg(cloneNode); //resolve later; adds to classblock, etc.
       } //end forloop
