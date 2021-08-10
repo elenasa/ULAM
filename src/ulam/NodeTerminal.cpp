@@ -58,7 +58,7 @@ namespace MFM {
 
   const char * NodeTerminal::getName()
   {
-    u32 id = getNameId();
+    u32 id = NodeTerminal::getNameId();
     return m_state.m_pool.getDataAsString(id).c_str();
   } //getName
 
@@ -321,7 +321,7 @@ namespace MFM {
   void NodeTerminal::makeTerminalPassForCodeGen(UVPass& uvpass)
   {
     UTI nuti = getNodeType();
-    u32 tid = getNameId();
+    u32 tid = NodeTerminal::getNameId();
 
     //TMPSTORAGE is TERMINAL, and VarNum is zero.
     uvpass = UVPass::makePass(0, TERMINAL, nuti, m_state.determinePackable(nuti), m_state, 0, tid);

@@ -1,0 +1,61 @@
+## -*- mode:ulam -*-
+#=t41537_test_compiler_instanceofclassidofmaxof_disabledfeature
+##
+##  gen output: (+ assert)
+##    Unsigned Arg: 4294967295
+##
+#!
+Exit status: 0
+Ue_R { Unsigned mycid(2u);  Unsigned maxcid(4294967295u);  Int test() {  System s;  self mycid . .instanceof[2u] = self maxcid . 4294967295u = s ( self maxcid . )print . s ( self maxcid . 4294967295u == )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+Ue_A(Unsigned cid) { constant Unsigned c_cid = cid;  <NOMAIN> }
+Ue_Ele2 { /* empty class block */ }
+##
+## informed by talk 8/8/21, series of of-operators; misunderstanding:
+##    Disabled special case feature: max classid == 5u (see ClassUtils);
+##    instead max of classid type (Unsigned).
+##
+##
+##
+#>R.ulam
+  ulam 5;
+element R
+{
+  Unsigned mycid = 0;
+  Unsigned maxcid = 0;
+
+  Int test() {
+    System s;
+    mycid = A(Ele2.classidof).instanceof.classidof;
+    maxcid = A(Ele2.classidof).instanceof.classidof.maxof; //sizeof==32bits
+    s.print(maxcid);
+    s.assert(maxcid == Unsigned.maxof); //was 5u
+    return 0;
+  }
+}
+
+#:A.ulam
+  ulam 5;
+element A(Unsigned cid)
+{
+  constant Unsigned c_cid = cid;
+  Unsigned getClassid()  { return c_cid; }
+}
+
+#:Ele2.ulam
+  ulam 5;
+element Ele2 {
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.
