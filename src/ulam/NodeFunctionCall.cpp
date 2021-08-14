@@ -1499,6 +1499,8 @@ namespace MFM {
 	  msg << "' is pure; cannot be called directly in baseclass: ";
 	  msg << m_state.getUlamTypeNameBriefByIndex(decosuti).c_str();
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+
+	  csym->notePureFunctionSignature(vt);
 	}
       else if(knownatcompiletime)
 	{
@@ -1755,12 +1757,16 @@ namespace MFM {
 	SymbolClass * cvfsym = NULL;
 	AssertBool iscvfDefined = m_state.alreadyDefinedSymbolClass(cvfuti, cvfsym);
 	assert(iscvfDefined);
-	if(cvfsym->isPureVTableEntry(vfidx))
+	u32 cvfoffset = cvfsym->getVTstartoffsetOfRelatedOriginatingClass(vownuti);
+	assert(cvfoffset < UNRELIABLEPOS); //20210824-131235 ish, forgot cvfoffset.
+	if(cvfsym->isPureVTableEntry(vfidx + cvfoffset))
 	  {
 	    std::ostringstream msg;
 	    msg << "Virtual function '" << m_funcSymbol->getMangledNameWithTypes().c_str();
-	    msg << "' is pure; cannot be called";
+	    msg << "' is pure; cannot be called.";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+
+	    cvfsym->notePureFunctionSignature(vfidx + cvfoffset);
 	  }
       }
 

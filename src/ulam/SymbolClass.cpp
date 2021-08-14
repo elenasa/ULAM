@@ -1993,16 +1993,22 @@ namespace MFM {
     for(u32 i = 0; i < vtsize; i++)
       {
 	if(m_vtable[i].m_isPure)
-	  {
-	    Locator floc = m_vtable[i].m_funcPtr->getLoc();
-	    std::ostringstream note;
-	    note << "Still pure in ";
-	    note << m_state.getUlamTypeNameBriefByIndex(getUlamTypeIdx()).c_str();
-	    note << ": " << m_vtable[i].m_funcPtr->getFunctionNameWithTypes().c_str();
-	    MSG(m_state.getFullLocationAsString(floc).c_str(), note.str().c_str(), NOTE);
-	  }
+	  notePureFunctionSignature(i);
       }
   } //notePureFunctionSignatures
+
+  void SymbolClass::notePureFunctionSignature(u32 idx)
+  {
+    assert(idx < m_vtable.size());
+    assert(m_vtable[idx].m_isPure);
+
+    Locator floc = m_vtable[idx].m_funcPtr->getLoc();
+    std::ostringstream note;
+    note << "Still pure in ";
+    note << m_state.getUlamTypeNameBriefByIndex(getUlamTypeIdx()).c_str();
+    note << ": " << m_vtable[idx].m_funcPtr->getFunctionNameWithTypes().c_str();
+    MSG(m_state.getFullLocationAsString(floc).c_str(), note.str().c_str(), NOTE);
+  } //notePureFunctionSignature
 
   std::string SymbolClass::getMangledFunctionNameForVTableEntry(u32 idx)
   {

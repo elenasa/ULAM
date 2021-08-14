@@ -205,6 +205,7 @@ namespace MFM{
     UTI getClassForVTableEntry(u32 idx);
     UTI getOriginatingClassForVTableEntry(u32 idx);
     void notePureFunctionSignatures();
+    void notePureFunctionSignature(u32 idx);
     std::string getMangledFunctionNameForVTableEntry(u32 idx);
     std::string getMangledFunctionNameWithTypesForVTableEntry(u32 idx);
     u32 getVFuncIndexForVTableEntry(u32 idx);

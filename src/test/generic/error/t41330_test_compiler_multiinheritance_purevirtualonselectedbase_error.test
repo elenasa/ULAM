@@ -3,6 +3,7 @@
 ##
 #!
 ./Foo.ulam:16:25: ERROR: Virtual function 'Uf_6vfuncb10' is pure; cannot be called directly in baseclass: QBaseLast.
+./QBaseLast.ulam:5:15: NOTE: Still pure in QBaseLast: Int vfuncb().
 Unrecoverable Program GenCode FAILURE.
 ##
 ##  specific virtual could be pure. specific base class can be checked at compile time.
