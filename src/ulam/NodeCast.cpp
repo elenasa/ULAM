@@ -300,7 +300,7 @@ namespace MFM {
 		errorsFound++;
 	      }
 	  }
-	else if(m_state.isAtomRef(tobeType) && (nclasstype == UC_QUARK) && !nut->isAltRefType())
+	else if(m_state.isAtomRef(tobeType) && (nclasstype == UC_QUARK) && !nut->isReference())
 	  {
 	    std::ostringstream msg;
 	    msg << "Cannot cast a non-reference quark, ";
@@ -760,7 +760,7 @@ namespace MFM {
 	genCodeReadIntoATmpVar(fp, uvpass); // cast.
       }
     else if(m_state.isAltRefType(tobeType)) //to ref type
-      genCodeCastAsReference(fp, uvpass); //minimal casting
+      genCodeCastToAReference(fp, uvpass); //minimal casting
     else if(m_state.isAltRefType(nodeType)) //from ref type
       genCodeCastFromAReference(fp, uvpass);
   } //genCode
@@ -774,7 +774,7 @@ namespace MFM {
       }
     //    else
     if(m_state.isAltRefType(getCastType())) //to ref type
-      genCodeToStoreIntoCastAsReference(fp, uvpass); //noop
+      genCodeToStoreIntoCastToAReference(fp, uvpass); //noop
     else if(m_state.isAltRefType(m_node->getNodeType())) //from ref type
       genCodeToStoreIntoCastFromAReference(fp, uvpass); //noop
   } //genCodeToStoreInto
@@ -2215,7 +2215,7 @@ namespace MFM {
   } //genPositionOfBaseIntoATmpVar (helper)
 
   //SAME TYPES, to a reference, from either a reference or not
-  void NodeCast::genCodeCastAsReference(File * fp, UVPass & uvpass)
+  void NodeCast::genCodeCastToAReference(File * fp, UVPass & uvpass)
   {
     UTI fromuti = uvpass.getPassTargetType();
     UTI tobeType = getCastType();
@@ -2224,7 +2224,7 @@ namespace MFM {
 	return; //no casting, need to know for writing
       }
     uvpass.setPassTargetType(tobeType); //minimal casting
-  } //genCodeCastAsReference
+  } //genCodeCastToAReference
 
   //SAME TYPES, from a reference, to a non-reference
   void NodeCast::genCodeCastFromAReference(File * fp, UVPass & uvpass)
@@ -2238,7 +2238,7 @@ namespace MFM {
   } //genCodeCastFromAReference
 
   //SAME TYPES, to a reference, from either a reference or not, or different ref type
-  void NodeCast::genCodeToStoreIntoCastAsReference(File * fp, UVPass & uvpass)
+  void NodeCast::genCodeToStoreIntoCastToAReference(File * fp, UVPass & uvpass)
   {
     UTI tobeType = getCastType();
     if(isAConstantClass() || isAConstant())
@@ -2247,7 +2247,7 @@ namespace MFM {
       }
     uvpass.setPassTargetType(tobeType); //minimal casting, t3812
     return;
-  } //genCodeToStoreIntoCastAsReference
+  } //genCodeToStoreIntoCastToAReference
 
   void NodeCast::genCodeToStoreIntoCastFromAReference(File * fp, UVPass & uvpass)
   {

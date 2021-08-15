@@ -153,9 +153,9 @@ namespace MFM{
 
     void genPositionOfBaseIntoATmpVar(File * fp, u32 tmpvarpos, UVPass & uvpass, Symbol * stgcos, Symbol * cos); //helper
 
-    void genCodeCastAsReference(File * fp, UVPass & uvpass);
+    void genCodeCastToAReference(File * fp, UVPass & uvpass);
     void genCodeCastFromAReference(File * fp, UVPass & uvpass);
-    void genCodeToStoreIntoCastAsReference(File * fp, UVPass & uvpass);
+    void genCodeToStoreIntoCastToAReference(File * fp, UVPass & uvpass);
     void genCodeToStoreIntoCastFromAReference(File * fp, UVPass & uvpass);
   };
 

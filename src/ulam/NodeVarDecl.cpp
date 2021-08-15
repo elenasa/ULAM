@@ -377,7 +377,7 @@ namespace MFM {
 		if(newt->isAltRefType() && newt->getUlamClassType() == UC_QUARK)
 		  msg << "; .atomof may help";
 		if(rscr == CAST_HAZY)
-		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //was debug?
 		else
 		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	      }
