@@ -318,8 +318,15 @@ namespace MFM {
 	      {
 		std::ostringstream msg;
 		msg << "Cannot explicitly cast ";
-		msg << m_state.getUlamTypeNameByIndex(nodeType).c_str(); //t3956 String(20)?
-		msg << " to type: " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
+		if(m_state.isAClass(nodeType))
+		  msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str(); //t3996
+		else
+		  msg << m_state.getUlamTypeNameByIndex(nodeType).c_str(); //t3956 String(20)?
+		msg << " to type: ";
+		if(m_state.isAClass(tobeType))
+		  msg << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str();
+		else
+		  msg << m_state.getUlamTypeNameByIndex(tobeType).c_str();
 		if((tobe->getUlamTypeEnum() == Bool) && !tobe->isAltRefType()) //t41197, t3962
 		  msg << "; Consider using a comparison operation";
 		else if(m_state.isAtom(tobeType) && (nclasstype == UC_QUARK))

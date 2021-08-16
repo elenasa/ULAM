@@ -50,6 +50,8 @@ namespace MFM {
 	std::ostringstream msg;
 	if(etyp == Bool)
 	  msg << "Use a comparison operation";
+	else if(etyp == UAtom)
+	  msg << "Use .atomof"; //t41540
 	else if(etyp == String)
 	  msg << "Invalid";
 	else if(!m_state.isScalar(newType) || !m_state.isScalar(ruti))
@@ -57,9 +59,15 @@ namespace MFM {
 	else
 	  msg << "Use explicit cast";
 	msg << " to convert "; // the real converting-message
-	msg << m_state.getUlamTypeNameByIndex(ruti).c_str();
+	if(m_state.isAClass(ruti))
+	  msg << m_state.getUlamTypeNameBriefByIndex(ruti).c_str();
+	else
+	  msg << m_state.getUlamTypeNameByIndex(ruti).c_str();
 	msg << " to ";
-	msg << m_state.getUlamTypeNameByIndex(newType).c_str();
+	if(m_state.isAClass(newType))
+	  msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
+	else
+	  msg << m_state.getUlamTypeNameByIndex(newType).c_str();
 	msg << " for " << getName();
 	if(scr == CAST_HAZY)
 	  {

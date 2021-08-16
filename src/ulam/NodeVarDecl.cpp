@@ -396,14 +396,20 @@ namespace MFM {
 		else
 		  msg << "Use explicit cast";
 		msg << " to convert "; // the real converting-message
-		msg << m_state.getUlamTypeNameByIndex(newType).c_str();
+		if(m_state.isAClass(newType))
+		  msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
+		else
+		  msg << m_state.getUlamTypeNameByIndex(newType).c_str();
 		msg << " to ";
-		msg << m_state.getUlamTypeNameByIndex(nuti).c_str();
+		if(m_state.isAClass(nuti))
+		  msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+		else
+		  msg << m_state.getUlamTypeNameByIndex(nuti).c_str();
 		msg << " for variable initialization";
 		if(rscr == CAST_BAD)
 		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		else
-		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //was debug
+		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //duplicate error
 	      } //not atom
 	  } //not safe
 	else
