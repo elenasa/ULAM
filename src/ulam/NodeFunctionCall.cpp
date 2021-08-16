@@ -11,14 +11,15 @@
 
 namespace MFM {
 
-  NodeFunctionCall::NodeFunctionCall(const Token& tok, SymbolFunction * fsym, CompilerState & state) : Node(state), m_functionNameTok(tok), m_funcSymbol(fsym), m_argumentNodes(NULL), m_tmpvarSymbol(NULL)
+  NodeFunctionCall::NodeFunctionCall(const Token& tok, SymbolFunction * fsym, CompilerState & state) : Node(state), m_functionNameTok(tok), m_funcSymbol(fsym), m_argumentNodes(NULL), m_tmpvarSymbol(NULL), m_useEffSelfForEval(false)
   {
     m_argumentNodes = new NodeList(state);
     assert(m_argumentNodes);
     m_argumentNodes->setNodeLocation(tok.m_locator); //same as func call
   }
 
-  NodeFunctionCall::NodeFunctionCall(const NodeFunctionCall& ref) : Node(ref), m_functionNameTok(ref.m_functionNameTok), m_funcSymbol(NULL), m_argumentNodes(NULL), m_tmpvarSymbol(NULL){
+  NodeFunctionCall::NodeFunctionCall(const NodeFunctionCall& ref) : Node(ref), m_functionNameTok(ref.m_functionNameTok), m_funcSymbol(NULL), m_argumentNodes(NULL), m_tmpvarSymbol(NULL), m_useEffSelfForEval(ref.m_useEffSelfForEval)
+  {
     m_argumentNodes = (NodeList *) ref.m_argumentNodes->instantiate();
   }
 
@@ -293,6 +294,7 @@ namespace MFM {
 	      {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 		numHazyFound++;
+		listuti = Nouti; //t41543
 	      }
 	    else
 	      {
@@ -483,6 +485,21 @@ namespace MFM {
 
 	if(!isref)
 	  setReferenceAble(TBOOL_FALSE); //set after storeintoable t3661,2; t3630
+
+	if(isAVirtualFunctionCall() && thisparentnode->isAMemberSelect())
+	  {
+	    NodeMemberSelect * parent = (NodeMemberSelect *) thisparentnode;
+	    if(parent->isAMemberSelectByRegNum())
+	      m_useEffSelfForEval = false;
+	    else if(parent->hasASymbolSuper())
+	      m_useEffSelfForEval = false; //t3743, t41161, t41338, t41397
+	    else
+	      if(!parent->hasAStorageSymbol()) //e.g. a specific baseclass type
+	      m_useEffSelfForEval = false; //t41311
+	    else if(parent->hasASymbolReference()) //after super
+	      m_useEffSelfForEval = true;
+	    //else m_useEffSelfForEval = false;
+	  }
       }
     return it;
   } //checkAndLabelType
@@ -1035,6 +1052,14 @@ namespace MFM {
       } //else can't be an autolocal
 
     UTI cuti = atomPtr.getPtrTargetType(); //must be a class
+    UTI atomeffself = atomPtr.getPtrTargetEffSelfType();
+    if(m_useEffSelfForEval && (atomeffself != Nouti) && (atomeffself != cuti))
+      {
+	//useEffSelfForEval flag set during c&l to distinguish btn specified base/super,
+	// and ALT-AS/refs during eval for virtual functions lookup
+	cuti = atomeffself; //t41541,t3743
+      }
+
     SymbolClass * vcsym = NULL;
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cuti, vcsym);
     assert(isDefined);
@@ -1752,13 +1777,13 @@ namespace MFM {
     // too limiting (ulam-5) to limit to 'super' special case:
     //   t3606, t3608, t3774, t3779, t3788, t3794, t3795, t3967, t41131
     // once cos is a ref, all bets off! unclear effSelf, e.g. cos is 'self'
-    if(!m_state.isReference(cosuti) && (m_state.getUlamTypeAsDeref(cosuti) != cvfuti)) //multiple bases possible (ulam-5); issue +t41361; not isAltRefType ish 20210815
+    if(!m_state.isReference(cosuti) && (m_state.getUlamTypeAsDeref(cosuti) != cvfuti)) //multiple bases possible (ulam-5); issue +t41361; not isAltRefType ish 20210815 +t41541
       {
 	SymbolClass * cvfsym = NULL;
 	AssertBool iscvfDefined = m_state.alreadyDefinedSymbolClass(cvfuti, cvfsym);
 	assert(iscvfDefined);
 	u32 cvfoffset = cvfsym->getVTstartoffsetOfRelatedOriginatingClass(vownuti);
-	assert(cvfoffset < UNRELIABLEPOS); //20210824-131235 ish, forgot cvfoffset.
+	assert(cvfoffset < UNRELIABLEPOS); //20210814-131235 ish, forgot cvfoffset.
 	if(cvfsym->isPureVTableEntry(vfidx + cvfoffset))
 	  {
 	    std::ostringstream msg;

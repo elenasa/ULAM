@@ -120,6 +120,7 @@ namespace MFM{
     SymbolFunction * m_funcSymbol;
     NodeList * m_argumentNodes;
     SymbolTmpVar * m_tmpvarSymbol;
+    bool m_useEffSelfForEval;
 
     TBOOL lookagainincaseimplicitselfchanged(Node * parentnode);
     UTI specifyimplicitselfexplicitly(Node * parentnode);

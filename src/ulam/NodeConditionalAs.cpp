@@ -247,7 +247,7 @@ namespace MFM {
       }
     else
       {
-		std::ostringstream msg;
+	std::ostringstream msg;
 	if(ruti == Nav)
 	  msg << "Invalid ";
 	else

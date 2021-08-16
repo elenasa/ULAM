@@ -282,7 +282,8 @@ namespace MFM {
       }
     //else //t41010, t41145
 
-   //set up compiler state to use the member class block for symbol searches
+    //set up compiler state to use the member class block for symbol searches
+    // no concept of effective self for virtual function call search during c&l (t41543)
     m_state.pushClassContextUsingMemberClassBlock(memberClassNode);
 
     UTI rightType = m_nodeRight->checkAndLabelType(this);

@@ -97,7 +97,6 @@ element Test : System {
     brtn[4] = (e3.bfunc() == 39);
     assert(brtn[4]);
 
-
     return 0;
   }
 }
