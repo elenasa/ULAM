@@ -3258,7 +3258,8 @@ namespace MFM {
       {
 	if(m_state.m_currentObjSymbolsForCodeGen.empty() || (stgcos->isSelf() && (stgcos == cos)))
 	  {
-	    if(!funcinbase)
+	    //if(!funcinbase)
+	    if(!funcinbase && !askEffSelf) //t41544?
 	      hiddenarg2 << m_state.getHiddenArgName(); //same ur
 	  }
 	else if(cos->isDataMember())

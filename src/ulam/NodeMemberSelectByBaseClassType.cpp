@@ -453,7 +453,7 @@ namespace MFM {
       }
   } //genCodeToStoreInto
 
-  bool NodeMemberSelectByBaseClassType::passalongUVPass()
+  bool NodeMemberSelectByBaseClassType::passalongUVPass(bool toRHS)
   {
     return true; //pass along
   }

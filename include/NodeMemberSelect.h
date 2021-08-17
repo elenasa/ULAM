@@ -126,7 +126,7 @@ namespace MFM{
 
     virtual TBOOL checkStoreIntoAble();
 
-    virtual bool passalongUVPass();
+    virtual bool passalongUVPass(bool toRHS = false);
 
     SymbolTmpVar * m_tmpvarSymbol;
 

@@ -151,7 +151,7 @@ namespace MFM {
 
     m_nodeLeft->genCodeToStoreInto(fp, luvpass);
 
-    if(passalongUVPass()) //true
+    if(passalongUVPass(true)) //true
       {
 	uvpass = luvpass;
       }
@@ -179,7 +179,7 @@ namespace MFM {
     m_nodeLeft->genCodeToStoreInto(fp, luvpass);
 
     UVPass ruvpass;
-    if(passalongUVPass()) //true
+    if(passalongUVPass(true)) //true
       {
 	ruvpass = luvpass;
       }
@@ -195,7 +195,7 @@ namespace MFM {
     m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
   } //genCodeToStoreInto
 
-  bool NodeMemberSelectOnConstructorCall::passalongUVPass()
+  bool NodeMemberSelectOnConstructorCall::passalongUVPass(bool toRHS)
   {
     return true; //pass along
   }

@@ -643,7 +643,7 @@ namespace MFM {
     UVPass ruvpass; //fresh (t41473?), consistent w genCodeToStoreInto
     //NodeIdent can't do it, because it doesn't know it's not a stand-alone element.
     // here, we know there's rhs of member select, which needs to adjust to state bits.
-    if(passalongUVPass())
+    if(passalongUVPass(true))
       {
 	ruvpass = luvpass;
       }
@@ -677,10 +677,11 @@ namespace MFM {
     // here, we know there's rhs of member select, which needs to adjust to state bits.
     //process multiple member selections (e.g. t3817)
     UVPass ruvpass;
-    if(passalongUVPass())
+    if(passalongUVPass(true))
       {
 	ruvpass = luvpass;  //t3615, t3803
       }
+    //else
 
     m_nodeRight->genCodeToStoreInto(fp, ruvpass); //uvpass contains the member selected, or cos obj symbol?
 
@@ -688,7 +689,7 @@ namespace MFM {
 
     //tmp variable needed for any function call not returning a ref (t41006), including 'aref'(t41005); func calls returning a ref already made tmpvar.
     // uvpass not necessarily returning a reference type (t3913,4,5,7);
-    // t41035 returns a primitive ref; t3946, t3948
+    // fail/t41035 returns a primitive ref; t3946, t3948
     if(m_nodeRight->isFunctionCall() && !m_state.isStringATmpVar(uvpass.getPassNameId()))
       {
 	m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, NULL); //dm to avoid leaks
@@ -696,7 +697,7 @@ namespace MFM {
       }
   } //genCodeToStoreInto
 
-  bool NodeMemberSelect::passalongUVPass()
+  bool NodeMemberSelect::passalongUVPass(bool toRHS)
   {
     bool rtnb = false; //don't pass along
     if(!m_state.m_currentObjSymbolsForCodeGen.empty())
@@ -707,6 +708,13 @@ namespace MFM {
 	//t3913, t3915 tmpref may not be a ref, but may need adjusting (i.e. anonymous element returned)
 	// t3706 not isAltRefType; t41307,9,10 isBaseClassRef (ulam-5); t41314 pass if self;
 	rtnb = cossym->isSelf() || (!cosut->isReference() && (!cossym->isTmpVarSymbol() || Node::needAdjustToStateBits(cosuti) || ((SymbolTmpVar *) cossym)->isBaseClassRef())) || (cosut->getReferenceType() == ALT_AS) /* AS, but not ARRAYITEM (t41396, t3706) */  ;
+      }
+    else
+      {
+	if(toRHS)
+	  rtnb = m_nodeRight->isFunctionCall(); //t41544
+	else //toLHS
+	  rtnb = m_nodeLeft->isFunctionCall(); //? consistent w rhs
       }
     return rtnb;
   }
