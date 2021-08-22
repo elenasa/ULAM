@@ -5504,7 +5504,8 @@ Node * Parser::wrapFactor(Node * leftNode)
 	else
 	  {
 	    //transfers ownership, if added
-	    bool isAdded = ((SymbolFunctionName *) fnSym)->overloadFunction(fsymptr);
+	    SymbolFunction * anyotherSym = NULL;
+	    bool isAdded = ((SymbolFunctionName *) fnSym)->overloadFunction(fsymptr, anyotherSym);
 	    if(!isAdded)
 	      {
 		//this is a duplicate function definition with same parameters and given name!!
@@ -5512,8 +5513,21 @@ Node * Parser::wrapFactor(Node * leftNode)
 		std::ostringstream msg;
 		msg << "Duplicate defined function '";
 		msg << m_state.m_pool.getDataAsString(fsymptr->getId());
-		msg << "' with the same parameters" ;
+		msg << "' with the same parameters." ;
 		MSG(&args.m_typeTok, msg.str().c_str(), ERR);
+
+		assert(anyotherSym);
+		std::ostringstream note;
+		note << anyotherSym->getFunctionNameWithTypes().c_str(); //t41545
+		MSG(m_state.getFullLocationAsString(anyotherSym->getLoc()).c_str(), note.str().c_str(), NOTE);
+
+		if(UlamType::compare(fsymptr->getUlamTypeIdx(), anyotherSym->getUlamTypeIdx(), m_state) != UTIC_SAME)
+		  {
+		    std::ostringstream note2;
+		    note2 << "(even when return types differ)";
+		    MSG(&args.m_typeTok, note2.str().c_str(), NOTE);
+		  }
+
 		delete fsymptr; //also deletes the NodeBlockFunctionDefinition
 		rtnNode = NULL;
 	      }

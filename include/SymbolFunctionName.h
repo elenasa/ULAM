@@ -69,6 +69,7 @@ namespace MFM{
     void setOperatorOverloadFunctionName();
 
     bool overloadFunction(SymbolFunction * fsym);
+    bool overloadFunction(SymbolFunction * fsym, SymbolFunction *& ovfsymref);
 
     u32 addFunctionsToThisTable(std::map<std::string, SymbolFunction *>& mapref); //for virtual index calc
 

@@ -190,6 +190,16 @@ namespace MFM {
     for(u32 i = 0; i < numParams; i++)
       {
 	UTI suti = getParameterType(i);
+	if((suti == Hzy) || m_state.isHolder(suti))
+	  {
+	    suti = getParameterGivenType(i); //?
+	  }
+	else if(suti == Nouti)
+	  {
+	    suti = getParameterGivenType(i); //t41545
+	  }
+	//else
+
 	UlamType * sut = m_state.getUlamTypeByIndex(suti);
 	u32 pid = getParameterNameId(i);
 	if(i > 0)

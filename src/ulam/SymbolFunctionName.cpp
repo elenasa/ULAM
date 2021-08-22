@@ -67,13 +67,19 @@ namespace MFM {
 
   bool SymbolFunctionName::overloadFunction(SymbolFunction * fsym)
   {
+    SymbolFunction * anyotherSym = NULL; //dropped
+    return overloadFunction(fsym,anyotherSym);
+  } //overloadFunction
+
+  bool SymbolFunctionName::overloadFunction(SymbolFunction * fsym, SymbolFunction *& ovfsymref)
+  {
     bool overloaded = false;
     // return types may differ, as long as params are different
 
     std::string mangled = fsym->getMangledNameWithUTIparameters();
 
     //if doesn't already exist, potentially overload it by inserting into map.
-    SymbolFunction * anyotherSym;
+    SymbolFunction * anyotherSym = NULL;
     if(!isDefined(mangled, anyotherSym))
       {
 	std::pair<std::map<std::string,SymbolFunction *>::iterator,bool> ret;
@@ -81,6 +87,8 @@ namespace MFM {
 	overloaded = ret.second; //false if already existed, i.e. not added
 	assert(overloaded); //shouldn't be a duplicate, we've checked by now.
       }
+
+    ovfsymref = anyotherSym;
     return overloaded;
   } //overloadFunction
 
