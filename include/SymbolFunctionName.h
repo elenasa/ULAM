@@ -64,6 +64,7 @@ namespace MFM{
     virtual bool isFunction();
 
     virtual const std::string getMangledPrefix();
+    u32 getFunctionNameId();
 
     bool isOperatorOverloadFunctionName();
     void setOperatorOverloadFunctionName();

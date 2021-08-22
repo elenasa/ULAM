@@ -80,6 +80,7 @@ namespace MFM{
     const u32 getOrderNumber() const;
 
     virtual const std::string getMangledPrefix();
+    u32 getFunctionNameId();
 
     const std::string getFunctionNameWithTypes();
     const std::string getMangledNameWithTypes(bool dereftypes = false);

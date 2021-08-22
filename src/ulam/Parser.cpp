@@ -5512,7 +5512,7 @@ Node * Parser::wrapFactor(Node * leftNode)
 		//return types may differ
 		std::ostringstream msg;
 		msg << "Duplicate defined function '";
-		msg << m_state.m_pool.getDataAsString(fsymptr->getId());
+		msg << m_state.m_pool.getDataAsString(fsymptr->getFunctionNameId()); //t41546 op+
 		msg << "' with the same parameters." ;
 		MSG(&args.m_typeTok, msg.str().c_str(), ERR);
 
@@ -5548,7 +5548,7 @@ Node * Parser::wrapFactor(Node * leftNode)
 		fsymptr->markForVariableArgs(false);
 		std::ostringstream msg;
 		msg << "Variable args (...) supported for native functions only; not '";
-		msg << m_state.m_pool.getDataAsString(fsymptr->getId()).c_str() << "'";
+		msg << m_state.m_pool.getDataAsString(fsymptr->getFunctionNameId()).c_str() << "'";
 		MSG(rtnNode->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	      }
 	  }

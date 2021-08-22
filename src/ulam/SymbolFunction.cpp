@@ -26,7 +26,7 @@ namespace MFM {
 	m_functionNode = NULL; //is this possible?
 	std::ostringstream msg;
 	msg << "Undefined function block '";
-	msg << m_state.m_pool.getDataAsString(getId()).c_str() << "'";
+	msg << m_state.m_pool.getDataAsString(getFunctionNameId()).c_str() << "'";
 	MSG(Symbol::getTokPtr(), msg.str().c_str(), ERR);
       }
   }
@@ -173,6 +173,16 @@ namespace MFM {
     return "Uf_";
   }
 
+  u32 SymbolFunction::getFunctionNameId()
+  {
+    Token * idTokPtr = getTokPtr();
+    assert(idTokPtr);
+    u32 id = getId();
+    if(idTokPtr->isOperatorOverloadIdentToken(&m_state))
+      id = idTokPtr->getUlamNameIdForOperatorOverloadToken(&m_state);
+    return id;
+  }
+
   const std::string SymbolFunction::getFunctionNameWithTypes()
   {
     NodeBlockFunctionDefinition * funcdef = getFunctionNode();
@@ -182,7 +192,7 @@ namespace MFM {
     std::ostringstream fname;
     fname << m_state.getUlamTypeNameBriefByIndex(futi).c_str(); //return type
     fname << " ";
-    fname << m_state.m_pool.getDataAsString(getId()); //ulam func name
+    fname << m_state.m_pool.getDataAsString(getFunctionNameId()); //ulam func name
 
     fname << "(";
 
