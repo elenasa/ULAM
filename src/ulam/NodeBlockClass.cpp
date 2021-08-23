@@ -4560,7 +4560,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
     assert(isDefined);
 
     u32 maxregistry = m_state.getMaxNumberOfRegisteredUlamClasses();
-    assert(maxregistry < MAX_REGISTRY_NUMBER);  //UlamClassRegistry<EC>::TABLE_SIZE
     s32 maxidx = getVirtualMethodMaxIdx();
     assert(maxidx >= 0);
 

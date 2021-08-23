@@ -144,7 +144,7 @@ namespace MFM {
     "*/\n\n";
 
   //use of this in the initialization list seems to be okay;
-  CompilerState::CompilerState(): m_linesForDebug(false), m_programDefST(*this), m_parsingLocalDef(false), m_parsingFUNCid(0), m_nextFunctionOrderNumber(1), m_parsingThisClass(Nouti), m_parsingVariableSymbolTypeFlag(STF_NEEDSATYPE), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_pendingArgStubContext(0), m_pendingArgTypeStubContext(0), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0), m_urSelfUTI(Nouti), m_emptyElementUTI(Nouti)
+  CompilerState::CompilerState(): m_linesForDebug(false), m_programDefST(*this), m_parsingLocalDef(false), m_parsingFUNCid(0), m_nextFunctionOrderNumber(1), m_parsingThisClass(Nouti), m_parsingVariableSymbolTypeFlag(STF_NEEDSATYPE), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_pendingArgStubContext(0), m_pendingArgTypeStubContext(0), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0), m_urSelfUTI(Nouti), m_emptyElementUTI(Nouti), m_classIdBits(CLASSIDBITS)
   {
     m_classIdRegistryUTI.push_back(0); //initialize 0 for UrSelf
     m_err.init(this, debugOn, infoOn, noteOn, warnOn, waitOn, NULL);
@@ -3954,9 +3954,16 @@ namespace MFM {
     return rtnid;
   } //findNameIdOfCulamGeneratedTypedefTypeInThisContext (unused)
 
+  u32 CompilerState::getClassIdBits()
+  {
+    return m_classIdBits;  //== _getLogBase2(m_state.getMaxNumberOfRegisteredUlamClasses()) + 1;
+  }
+
   u32 CompilerState::getMaxNumberOfRegisteredUlamClasses()
   {
-    return m_classIdRegistryUTI.size();
+    u32 maxregistry = m_classIdRegistryUTI.size();
+    assert(maxregistry < MAX_REGISTRY_NUMBER); //UlamClassRegistry<EC>::TABLE_SIZE
+    return maxregistry;
   }
 
   void CompilerState::defineRegistrationNumberForUlamClasses()
@@ -7067,6 +7074,7 @@ namespace MFM {
 	m_classIdRegistryUTI[0] = cuti;  //assigned at last
 	return 0;
       }
+    assert(getMaxNumberOfRegisteredUlamClasses() < MAX_REGISTRY_NUMBER);
     m_classIdRegistryUTI.push_back(cuti);
     return m_classIdRegistryUTI.size() - 1;
   } //assignClassId

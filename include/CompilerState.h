@@ -181,6 +181,8 @@ namespace MFM{
     UTI m_urSelfUTI; //original ancestor of all classes
     UTI m_emptyElementUTI; //the Empty element class
 
+    u32 m_classIdBits;
+
     CompilerState();
     ~CompilerState();
 
@@ -446,6 +448,7 @@ namespace MFM{
     bool checkforAnyRemainingCulamGeneratedTypedefsInThisContext(UTI thisarg);
     u32 findNameIdOfCulamGeneratedTypedefTypeInThisContext(UTI typearg);
 
+    u32 getClassIdBits();
     u32 getMaxNumberOfRegisteredUlamClasses();
     void defineRegistrationNumberForUlamClasses(); //ulam-4
     void defineRegistrationNumberForLocals(); //ulam-4

@@ -1,19 +1,19 @@
 ## -*- mode:ulam -*-
-#=t41537_test_compiler_instanceofclassidofmaxof_disabledfeature
+#=t41537_test_compiler_instanceofclassidofmaxof
 ##
 ##  gen output: (+ asserts)
 ##    Unsigned Arg: 2
-##    Unsigned Arg: 6
-##    Unsigned Arg: 3
+##    Unsigned Arg: 1000
+##    Unsigned Arg: 10
 ##
 #!
 Exit status: 0
-Ue_R { Unsigned cidsz(3u);  Unsigned maxcid(6u);  Int test() {  System s;  Unsigned mycid = .instanceof[2u];  s ( mycid )print . s ( mycid 2u cast == )assert . self maxcid . 6u = s ( self maxcid . )print . s ( self maxcid . 6u cast == )assert . self cidsz . 3u = s ( self cidsz . )print . s ( self cidsz . 3u cast == )assert . 0 cast return } }
+Ue_R { Unsigned cidsz(10u);  Unsigned maxcid(1000u);  Int test() {  System s;  Unsigned mycid = .instanceof[2u];  s ( mycid )print . s ( mycid 2u cast == )assert . self maxcid . 1000u = s ( self maxcid . )print . s ( self maxcid . 1000u cast == )assert . self cidsz . 10u = s ( self cidsz . )print . s ( self cidsz . 10u cast == )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 Ue_A(Unsigned cid) { constant Unsigned c_cid = cid;  <NOMAIN> }
 Ue_Ele2 { /* empty class block */ }
 ##
-## informed by talk 8/8/21 and 8/23/21 with Dave, series of of-Operators;
+## informed by talk 8/8/21 and 8/23/21 with Dave, series of of-Operators; see also t41549.
 ##    Special case feature: maxof classidof; sizeof classidof == log2 bits for maxof + 1
 ##
 #>R.ulam
@@ -25,17 +25,17 @@ element R
 
   Int test() {
     System s;
-    Unsigned mycid = A(Ele2.classidof).instanceof.classidof; //
+    Unsigned mycid = A(Ele2.classidof).instanceof.classidof;
     s.print(mycid);
     s.assert(mycid == 2u);
 
     maxcid = A(Ele2.classidof).instanceof.classidof.maxof;
     s.print(maxcid);
-    s.assert(maxcid == 6u); //was Unsigned.maxof
+    s.assert(maxcid == 1000u); //was Unsigned.maxof
 
-    cidsz = A(Ele2.classidof).instanceof.classidof.sizeof; //sizeof==3bits
+    cidsz = A(Ele2.classidof).instanceof.classidof.sizeof; //sizeof==10bits
     s.print(cidsz);
-    s.assert(cidsz == 3u);
+    s.assert(cidsz == 10u);
     return 0;
   }
 }

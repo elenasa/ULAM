@@ -90,6 +90,10 @@ namespace MFM {
 #define MAX_NUMERICSTRING_LENGTH (255)
 #endif //MAX_NUMERICSTRING_LENGTH
 
+#ifndef CLASSIDBITS
+#define CLASSIDBITS (_getLogBase2(MAX_REGISTRY_NUMBER) + 1)
+#endif //CLASSIDBITS
+
 #ifndef ELE_TYPE
 #define ELE_TYPE u16
 #endif

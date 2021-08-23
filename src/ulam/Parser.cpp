@@ -4174,6 +4174,19 @@ namespace MFM {
   {
     assert(Token::isTokenAType(tTok)); //was unread.
 
+    if(m_state.isThisLocalsFileScope())
+      {
+	if((tTok.m_type == TOK_KW_TYPE_SELF) || tTok.m_type == TOK_KW_TYPE_SUPER)
+	  {
+	    std::ostringstream msg;
+	    msg << "Illegal token <" << m_state.getTokenDataAsString(tTok).c_str();
+	    msg << "> in locals filescope context";
+	    MSG(&tTok, msg.str().c_str(), ERR);
+	    getTokensUntil(TOK_SEMICOLON); //perhaps read until semi-colon
+	    return NULL; //t41550
+	  }
+      }
+
     TypeArgs typeargs;
     NodeTypeDescriptor * typeNode = parseTypeDescriptor(typeargs);
     assert(typeNode);

@@ -392,13 +392,6 @@ namespace MFM {
 	    m_state.abortShouldntGetHere(); //replaced with func call when provided, o.w. parse err
 	  }
       }
-        else if(checkForClassIdOfType())
-      {
-	if((m_funcTok.m_type == TOK_KW_MAXOF))
-	  m_constant.uval = m_state.getMaxNumberOfRegisteredUlamClasses(); //reset t41537
-	else if(m_funcTok.m_type == TOK_KW_SIZEOF)
-	  m_constant.uval = _getLogBase2(m_state.getMaxNumberOfRegisteredUlamClasses()) + 1;
-      }
 
     if(evs == NORMAL)
       {
@@ -434,13 +427,6 @@ namespace MFM {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	    m_state.abortShouldntGetHere(); //replaced with func call when provided, o.w. parse err
 	  }
-      }
-    else if(checkForClassIdOfType())
-      {
-	if((m_funcTok.m_type == TOK_KW_MAXOF))
-	  m_constant.uval = m_state.getMaxNumberOfRegisteredUlamClasses(); //reset t41537
-	else if(m_funcTok.m_type == TOK_KW_SIZEOF)
-	  m_constant.uval = _getLogBase2(m_state.getMaxNumberOfRegisteredUlamClasses()) + 1;
       }
 
     return NodeTerminal::genCode(fp, uvpass);
@@ -490,7 +476,7 @@ namespace MFM {
 	  //User String length must wait until after c&l; sizeof string == 32 (t3929)
 	  //consistent with C; (not array size if non-scalar)
 	  if(checkForClassIdOfType())
-	    m_constant.uval = _getLogBase2(m_state.getMaxNumberOfRegisteredUlamClasses()) + 1;
+	    m_constant.uval = m_state.getClassIdBits();
 	  else
 	    m_constant.uval =  cut->getSizeofUlamType(); //unsigned
 	  rtnB = true;
@@ -540,8 +526,8 @@ namespace MFM {
 	{
 	  if(cut->isMinMaxAllowed())
 	    {
-	      if(checkForClassIdOfType()) //t41537, is max ready?
-		m_constant.uval = m_state.getMaxNumberOfRegisteredUlamClasses();
+	      if(checkForClassIdOfType()) //t41537,t41549
+		m_constant.uval = MAX_REGISTRY_NUMBER;
 	      else
 		m_constant.uval = cut->getMax();
 	      rtnB = true;
