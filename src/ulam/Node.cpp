@@ -1454,6 +1454,8 @@ namespace MFM {
     fp->write(writeMethodForCodeGen(luti, luvpass).c_str());
     fp->write("(");
     fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
+    if(ruvpass.getPassStorage() == TMPBITVAL)
+	fp->write(".read()"); //t41548
     fp->write(");"); GCNL;
 
     // inheritance cast needs the lhs type restored after the generated write

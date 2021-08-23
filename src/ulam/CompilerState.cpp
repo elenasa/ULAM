@@ -6132,7 +6132,9 @@ namespace MFM {
     if(WritePacked(packed))
       {
 	UlamValue atval = getPtrTarget(rptr); //entire array in one slot
-	assert(!atval.isPtr());
+	//assert(!atval.isPtr());
+	if(atval.isPtr())
+	  return assignValuePtr(lptr, rptr); //t41548
 
 	//redo what getPtrTarget use to do, when types didn't match due to
 	//an element/quark or a requested scalar of an arraytype
