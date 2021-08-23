@@ -1,35 +1,41 @@
 ## -*- mode:ulam -*-
 #=t41537_test_compiler_instanceofclassidofmaxof_disabledfeature
 ##
-##  gen output: (+ assert)
-##    Unsigned Arg: 4294967295
+##  gen output: (+ asserts)
+##    Unsigned Arg: 2
+##    Unsigned Arg: 6
+##    Unsigned Arg: 3
 ##
 #!
 Exit status: 0
-Ue_R { Unsigned mycid(2u);  Unsigned maxcid(4294967295u);  Int test() {  System s;  self mycid . .instanceof[2u] = self maxcid . 4294967295u = s ( self maxcid . )print . s ( self maxcid . 4294967295u == )assert . 0 cast return } }
+Ue_R { Unsigned cidsz(3u);  Unsigned maxcid(6u);  Int test() {  System s;  Unsigned mycid = .instanceof[2u];  s ( mycid )print . s ( mycid 2u cast == )assert . self maxcid . 6u = s ( self maxcid . )print . s ( self maxcid . 6u cast == )assert . self cidsz . 3u = s ( self cidsz . )print . s ( self cidsz . 3u cast == )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 Ue_A(Unsigned cid) { constant Unsigned c_cid = cid;  <NOMAIN> }
 Ue_Ele2 { /* empty class block */ }
 ##
-## informed by talk 8/8/21, series of of-operators; misunderstanding:
-##    Disabled special case feature: max classid == 5u (see ClassUtils);
-##    instead max of classid type (Unsigned).
-##
-##
+## informed by talk 8/8/21 and 8/23/21 with Dave, series of of-Operators;
+##    Special case feature: maxof classidof; sizeof classidof == log2 bits for maxof + 1
 ##
 #>R.ulam
   ulam 5;
 element R
 {
-  Unsigned mycid = 0;
+  Unsigned cidsz = 0;
   Unsigned maxcid = 0;
 
   Int test() {
     System s;
-    mycid = A(Ele2.classidof).instanceof.classidof;
-    maxcid = A(Ele2.classidof).instanceof.classidof.maxof; //sizeof==32bits
+    Unsigned mycid = A(Ele2.classidof).instanceof.classidof; //
+    s.print(mycid);
+    s.assert(mycid == 2u);
+
+    maxcid = A(Ele2.classidof).instanceof.classidof.maxof;
     s.print(maxcid);
-    s.assert(maxcid == Unsigned.maxof); //was 5u
+    s.assert(maxcid == 6u); //was Unsigned.maxof
+
+    cidsz = A(Ele2.classidof).instanceof.classidof.sizeof; //sizeof==3bits
+    s.print(cidsz);
+    s.assert(cidsz == 3u);
     return 0;
   }
 }

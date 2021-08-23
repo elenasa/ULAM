@@ -392,9 +392,12 @@ namespace MFM {
 	    m_state.abortShouldntGetHere(); //replaced with func call when provided, o.w. parse err
 	  }
       }
-    else if((m_funcTok.m_type == TOK_KW_MAXOF) && checkForClassIdOfType())
+        else if(checkForClassIdOfType())
       {
-	m_constant.uval = m_state.getMaxNumberOfRegisteredUlamClasses(); //reset t41537
+	if((m_funcTok.m_type == TOK_KW_MAXOF))
+	  m_constant.uval = m_state.getMaxNumberOfRegisteredUlamClasses(); //reset t41537
+	else if(m_funcTok.m_type == TOK_KW_SIZEOF)
+	  m_constant.uval = _getLogBase2(m_state.getMaxNumberOfRegisteredUlamClasses()) + 1;
       }
 
     if(evs == NORMAL)
@@ -432,9 +435,12 @@ namespace MFM {
 	    m_state.abortShouldntGetHere(); //replaced with func call when provided, o.w. parse err
 	  }
       }
-    else if((m_funcTok.m_type == TOK_KW_MAXOF) && checkForClassIdOfType())
+    else if(checkForClassIdOfType())
       {
-	m_constant.uval = m_state.getMaxNumberOfRegisteredUlamClasses(); //reset t41537
+	if((m_funcTok.m_type == TOK_KW_MAXOF))
+	  m_constant.uval = m_state.getMaxNumberOfRegisteredUlamClasses(); //reset t41537
+	else if(m_funcTok.m_type == TOK_KW_SIZEOF)
+	  m_constant.uval = _getLogBase2(m_state.getMaxNumberOfRegisteredUlamClasses()) + 1;
       }
 
     return NodeTerminal::genCode(fp, uvpass);
@@ -483,7 +489,10 @@ namespace MFM {
 	{
 	  //User String length must wait until after c&l; sizeof string == 32 (t3929)
 	  //consistent with C; (not array size if non-scalar)
-	  m_constant.uval =  cut->getSizeofUlamType(); //unsigned
+	  if(checkForClassIdOfType())
+	    m_constant.uval = _getLogBase2(m_state.getMaxNumberOfRegisteredUlamClasses()) + 1;
+	  else
+	    m_constant.uval =  cut->getSizeofUlamType(); //unsigned
 	  rtnB = true;
 	}
 	break;
@@ -730,9 +739,8 @@ namespace MFM {
 
   bool NodeTerminalProxy::checkForClassIdOfType()
   {
-    //disabled 'feature': special case of classid.maxof can return max
-    //classid (t41537); but, consistently returns of max of the type of classid, Unsigned;
-#if 0
+    //special case of classidof.maxof returns max classid (t41537);
+    //and, classidof.sizeof (consistently) returns bits for classidof.maxof
     assert(m_state.okUTItoContinue(m_uti)); //is complete too!
     if(m_nodeOf)
       {
@@ -740,7 +748,6 @@ namespace MFM {
 	Token classidtok(TOK_KW_CLASSIDOF, getNodeLocation(), 0);
 	return (classidtok.getTokenStringId() == ofnameid);
       }
-#endif
     return false; //t3783..
   } //checkForClassIdOfType
 
