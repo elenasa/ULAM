@@ -1,0 +1,57 @@
+## -*- mode:ulam -*-
+#=t41547_test_compiler_dminittoconstantfromanotherclass_ish
+##
+## gen output: (+ assert)
+##    Unsigned Arg: 6
+#!
+Exit status: 0
+Ue_A { Int test() {  System s;  Foo f;  s ( f mVal . )print . s ( f mVal . 6u cast == )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+Ue_Foo { Unsigned mVal( 6u);  <NOMAIN> }
+Uq_FooT(Unsigned cN) { constant Unsigned cTHE_N = cN;  <NOMAIN> }
+Uq_SubFoo : FooT(6u) { /* empty class block */ }
+##
+## informed by ish 20210815-181415, and t41541; use effself inside as-cond gencode for virtualfunc call.
+##
+#>A.ulam
+  ulam 3;
+element A {
+  Int test(){
+    System s;
+    Foo f;
+    s.print(f.mVal);
+    s.assert(f.mVal==6u);
+    return 0;
+  }
+}
+
+#:FooT.ulam
+  ulam 5;
+quark FooT(Unsigned cN) {
+  constant Unsigned cTHE_N = cN;
+}
+
+#:SubFoo.ulam
+  ulam 5;
+quark SubFoo : FooT(6u) { }
+
+#:Foo.ulam
+  ulam 5;
+element Foo {
+  //WORKS but bad for DRY:        Unsigned mVal = FooT(6u).cTHE_N;
+  //WORKS but bad for modularity: Unsigned mVal = SubFoo.Super.cTHE_N;
+  Unsigned mVal = SubFoo.cTHE_N; // Could work?
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

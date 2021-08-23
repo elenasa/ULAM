@@ -4354,12 +4354,14 @@ namespace MFM {
 	    if(memberblock) //could be null during parsing e.g. parseMemberSelectExpr->parseIdentExpr
 	      cuti = memberblock->getNodeType();
 	    else
-	      {
-		hasHazyKin = true;
-		return false; //wait
-	      }
+	      cuti = Hzy;
 	  }
-	assert(okUTItoContinue(cuti));
+	if(!okUTItoContinue(cuti))
+	  {
+	    hasHazyKin = true;
+	    return false; //wait
+	  }
+	//assert(okUTItoContinue(cuti));
 
 	found = alreadyDefinedSymbolByAncestorOf(cuti, dataindex, symptr, tmphazys);
 	hasHazyKin = tmphazykin || tmphazys;

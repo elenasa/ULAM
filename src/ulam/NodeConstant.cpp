@@ -176,6 +176,7 @@ namespace MFM {
 
     if(m_nodeTypeDesc)
       {
+	//NodeConstant uses its NodeTypeDescriptor to identify the specified class where it is defined (t41547)
 	UTI duti = m_nodeTypeDesc->checkAndLabelType(this); //clobbers any expr it
 	if(!m_state.okUTItoContinue(duti))
 	  {
@@ -309,6 +310,8 @@ namespace MFM {
 
     if(m_state.useMemberBlock())
       m_state.pushCurrentBlock(currBlock); //e.g. memberselect needed for already defined
+    else if(m_nodeTypeDesc)
+      m_state.pushClassContextUsingMemberClassBlock((NodeBlockClass *) currBlock); //t41547
     else
       m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
 

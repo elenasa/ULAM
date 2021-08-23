@@ -31,7 +31,7 @@ element KeyExprRep {
     s.assert(keyexpr_x13[1].m_rightIndex==4u); //reads constant class array item
 
     //read entire constant class array
-    KeyExprNode mykeyexpr_x13[5] = KeyExprNode keyexpr_x13;
+    KeyExprNode mykeyexpr_x13[5] = keyexpr_x13; // KeyExprNode? after = ?
     s.print(mykeyexpr_x13[2].m_keyCode);
     s.assert(mykeyexpr_x13[2].m_keyCode==keyexpr_x13[2].m_keyCode); //reads constant class array item
     return 0;
