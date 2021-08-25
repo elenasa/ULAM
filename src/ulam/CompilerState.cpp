@@ -539,6 +539,8 @@ namespace MFM {
     if(isaclass)
       {
 	makeAnonymousClassFromHolder(huti, tok.m_locator); //default is not a class
+	if(!isUnseenClassId(tokid)) //for ulamexports, ish 20210825
+	  addUnseenClassId(tokid);
       }
     return huti;
   } //makeCulamGeneratedTypedefSymbolInCurrentContext
