@@ -616,7 +616,9 @@ namespace MFM{
     const std::string getSwitchTypedefNameAsString(s32 num);
     const std::string getInitDoneVarAsString(s32 num);
     const std::string getVFuncPtrTmpNumAsString(s32 num);
+    const std::string getParserSymbolTypeFlagAsString();
     const std::string getParserSymbolTypeFlagAsString(SYMBOLTYPEFLAG stf);
+
 
     /** for conditional h/as-magic */
     void saveIdentTokenForConditionalAs(const Token& iTok, const Token& cTok);

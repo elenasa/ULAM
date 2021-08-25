@@ -6670,6 +6670,11 @@ namespace MFM {
     return labelname.str();
   }
 
+  const std::string CompilerState::getParserSymbolTypeFlagAsString()
+  {
+    return getParserSymbolTypeFlagAsString(m_parsingVariableSymbolTypeFlag);
+  }
+
   const std::string CompilerState::getParserSymbolTypeFlagAsString(SYMBOLTYPEFLAG stf)
   {
     std::ostringstream labelname; //into
@@ -6680,21 +6685,30 @@ namespace MFM {
 	labelname << "class ancestor";
 	break;
       case STF_DATAMEMBER:
-      case STF_MEMBERCONSTANT:
 	labelname << "data member";
 	break;
       case STF_FUNCPARAMETER:
 	labelname << "function parameter";
 	break;
       case STF_FUNCLOCALVAR:
-	labelname << "local function variable";
+	labelname << "function variable";
 	break;
       case STF_FUNCARGUMENT:
 	labelname << "function argument";
 	break;
       case STF_FUNCLOCALREF:
-	labelname << "local function reference variable";
+	labelname << "function reference variable";
 	break;
+      case STF_FUNCLOCALCONSTREF:
+	labelname << "function constant reference variable";
+	break;
+      case STF_MEMBERCONSTANT:
+	labelname << "member constant";
+	break;
+      case STF_MEMBERTYPEDEF:
+	labelname << "member typedef";
+	break;
+
       case STF_NEEDSATYPE:
       default:
 	labelname << "symbol of unflagged useage";

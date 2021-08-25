@@ -2764,8 +2764,30 @@ namespace MFM {
 	    getNextToken(dTok);
 	  }
       }
+    else if(typeargs.m_forFactor && (dTok.m_type == TOK_IDENTIFIER))
+      {
+	// not a dot (t41551, t3113)
+	std::ostringstream msg;
+	msg << "Type incorrectly used as a " ;
+	if(m_state.m_parsingVariableSymbolTypeFlag == STF_NEEDSATYPE)
+	  msg << "factor (no dot)";
+	else
+	  msg << m_state.getParserSymbolTypeFlagAsString().c_str(); //t41306..
+	msg << ": ";
+	msg << m_state.getTokenDataAsString(typeargs.m_typeTok).c_str();
+	msg << "; followed by unexpected identifier <";
+	msg << m_state.getTokenDataAsString(dTok).c_str() << ">";
+	MSG(&pTok, msg.str().c_str(), ERR);
 
+	if(delAfterDotFails)
+	  {
+	    delete typeNode;
+	    typeNode = NULL;
+	  }
+	//else fall thru
+      }
     //else fall thru
+
     if(dTok.m_type == TOK_AMP)
       {
 	typeargs.m_declRef = typeargs.m_hasConstantTypeModifier ? ALT_CONSTREF : ALT_REF; //a declared reference (was ALT_REF)
@@ -2956,7 +2978,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "While parsing a ";
-	msg << m_state.getParserSymbolTypeFlagAsString(m_state.m_parsingVariableSymbolTypeFlag).c_str();
+	msg << m_state.getParserSymbolTypeFlagAsString().c_str();
 	msg << " for ";
 	msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str() ;
 	msg << ": due to unrecoverable problems in template: ";
@@ -3281,11 +3303,11 @@ namespace MFM {
 
 	// in the future, we will only be able to find it via its UTI, not a token.
 	// the UTI should be the anothertduti (unless numdots is only 1).
-
+#if 0
 	Token pTok; //look ahead after the dot
 	getNextToken(pTok);
 	unreadToken();
-
+#endif
 	if(numDots > 1)//t41437 pTok is maxof, was '&& Token::isTokenAType(pTok))'
 	  {
 	    //make an 'anonymous class'
@@ -3297,6 +3319,8 @@ namespace MFM {
 	else
 	  {
 	    unreadToken(); //put dot back, minof or maxof perhaps?
+	    numDots--; //update count here??
+
 	    std::ostringstream msg;
 	    msg << "Unexpected input!! Token <" << args.m_typeTok.getTokenEnumNameFromPool(&m_state).c_str();
 	    msg << "> is not a 'seen' class type: <";
@@ -3395,7 +3419,7 @@ namespace MFM {
     m_state.pushClassContextUsingMemberClassBlock(memberClassBlock);
 
     Token pTok;
-    //after the dot
+    //after the dot; this is when the dot is lost and becomes "optional" (see t41551)
     getNextToken(pTok);
     if(Token::isTokenAType(pTok))
       {
@@ -4188,6 +4212,7 @@ namespace MFM {
       }
 
     TypeArgs typeargs;
+    typeargs.m_forFactor = true; //t41551
     NodeTypeDescriptor * typeNode = parseTypeDescriptor(typeargs);
     assert(typeNode);
     UTI uti = typeNode->givenUTI();
@@ -4200,7 +4225,7 @@ namespace MFM {
 	getNextToken(iTok);
 	if(iTok.m_type == TOK_IDENTIFIER)
 	  {
-	    //assumes we saw a 'dot' prior, be careful
+	    //assumes we saw a 'dot' prior, be careful t41551
 	    unreadToken();
 	    rtnNode = parseNamedConstantFromAnotherClass(typeargs, typeNode);
 	    rtnNode = parseRestOfFactor(rtnNode); //dm of constant class? t41198
@@ -4229,6 +4254,7 @@ namespace MFM {
 	    //clean up, some kind of error parsing min/max/sizeof
 	    delete typeNode;
 	    typeNode = NULL;
+	    unreadToken(); //t3680
 	  }
       }
     else

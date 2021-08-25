@@ -1,0 +1,40 @@
+## -*- mode:ulam -*-
+#=t41551_test_compiler_parsingtypefollowedbyaspace_error
+#!
+./KeyExprRep.ulam:14:36: ERROR: Type incorrectly used as a function variable: KeyExprRep; followed by unexpected identifier <keyexpr_x13>.
+Unrecoverable Program Parse FAILURE: <KeyExprRep.ulam>
+##
+## informed by t41261,6; KeyExprNode after = fails because constant isn't there, but KeyExprRep is ok?
+##    Parser catches the missing dot after search for possible typedef from another class,
+##    with new m_forFactor flag.
+##
+#>KeyExprRep.ulam
+  ulam 3;
+use KeyExprNode;
+local constant KeyExprNode keyexpr_x13[] = {
+   { .m_leftIndex = 1, .m_rightIndex = 2, .m_keyCode = 0, .m_op = '|' }, // [0]
+   { .m_leftIndex = 3, .m_rightIndex = 4, .m_keyCode = 0, .m_op = '&' }, // [1]
+   { .m_leftIndex = 0, .m_rightIndex = 0, .m_keyCode = 'c', .m_op = 0 }, // [2]
+   { .m_leftIndex = 0, .m_rightIndex = 0, .m_keyCode = 'a', .m_op = 0 }, // [3]
+   { .m_leftIndex = 0, .m_rightIndex = 0, .m_keyCode = 'b', .m_op = 0 }, // [4] , EXTRA COMMA at the end??? no difference
+ };
+element KeyExprRep {
+
+  Int test() {
+    //read entire constant class array
+    KeyExprNode mykeyexpr_x13[5] = KeyExprRep keyexpr_x13; // KeyExprNode? after = ? no dot
+    return 0;
+  }
+}
+
+#:KeyExprNode.ulam
+  ulam 3;
+quark KeyExprNode {
+  typedef Unsigned(8) Byte;
+  Byte m_leftIndex;  // for [,|&~]
+  Byte m_rightIndex; // for [,|&]
+  Byte m_keyCode;    // [a-zA-Z.@_?] or 0
+  Byte m_op;         // [,|&~] or 0
+}
+
+#.
