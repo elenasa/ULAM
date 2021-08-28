@@ -275,7 +275,12 @@ namespace MFM {
     if(m_currBlockPtr)
       return m_currBlockPtr;
 
-    NodeBlock * currBlock = (NodeBlock *) m_state.findNodeNoInThisClassOrLocalsScope(m_currBlockNo);
+    NodeBlock * currBlock = NULL;
+    if(m_nodeTypeDesc && m_state.isAClass(m_nodeTypeDesc->getNodeType()))
+      currBlock = (NodeBlock *) m_state.findNodeNoInAClassOrLocalsScope(m_currBlockNo, m_nodeTypeDesc->getNodeType()); //t41555
+    else
+      currBlock = (NodeBlock *) m_state.findNodeNoInThisClassOrLocalsScope(m_currBlockNo);
+
     if(!currBlock)
       {
 	UTI anotherclassuti = m_state.findAClassByNodeNo(m_currBlockNo);

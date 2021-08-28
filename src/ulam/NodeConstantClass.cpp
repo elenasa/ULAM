@@ -325,7 +325,7 @@ namespace MFM {
 
     NodeBlock * currBlock = NULL;
     if(m_nodeTypeDesc && m_state.isAClass(m_nodeTypeDesc->getNodeType()))
-      currBlock = (NodeBlock *) m_state.findNodeNoInAClassOrLocalsScope(m_currBlockNo, m_nodeTypeDesc->getNodeType()); //ish 20210828-094439
+      currBlock = (NodeBlock *) m_state.findNodeNoInAClassOrLocalsScope(m_currBlockNo, m_nodeTypeDesc->getNodeType()); //t41554
     else
       currBlock = (NodeBlock *) m_state.findNodeNoInThisClassOrLocalsScope(m_currBlockNo);
 

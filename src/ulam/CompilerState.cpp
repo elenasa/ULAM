@@ -1127,6 +1127,15 @@ namespace MFM {
 	    return asref; //hzy
 	  }
 
+	bool isClassArrayType = !sut->isScalar(); //t41555
+	if(isClassArrayType)
+	  {
+	    UTI ascalar = mapIncompleteUTIForCurrentClassInstance(getUlamTypeAsScalar(suti), loc);
+	    if(okUTItoContinue(ascalar) && !isHolder(ascalar))
+	      return getUlamTypeAsArrayOfScalar(ascalar);
+	    return ascalar; //hzy?
+	  }
+
 	//t3859, t3328, t3873
 	bool classnamesame = (cnsymOfIncomplete->getId() == cnsym->getId());
 	if(classnamesame)
