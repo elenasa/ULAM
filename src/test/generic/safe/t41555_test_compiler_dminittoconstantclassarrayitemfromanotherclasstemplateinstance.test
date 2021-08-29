@@ -2,16 +2,16 @@
 #=t41555_test_compiler_dminittoconstantclassarrayitemfromanotherclasstemplateinstance
 ##
 ##  gen output: (+ interleaved asserts)
+##    Unsigned Arg: 3
 ##    Int Arg: 62
 ##    Int Arg: 62
 ##
 #!
 Exit status: 0
-Ue_T { typedef B2DT(6) MyB2D;  Int test() {  System s;  C2DT(6u) ourmaxsiz = cARR_C2D 2 [];  s ( ourmaxsiz ( )getX . )print . s ( ourmaxsiz ( )getX . 62 cast == )assert . s ( ourmaxsiz ( )getY . )print . s ( ourmaxsiz ( )getY . ourmaxsiz ( )getX . == )assert . 0 cast return } }
+Ue_T { typedef B2DT(6) MyB2D;  Unsigned m_arrsiz(3u);  Int m_x(62);  Int test() {  System s;  self m_arrsiz . 3u = s ( self m_arrsiz . )print . s ( self m_arrsiz . 3u cast == )assert . C2DT(6u) ourmaxsiz = cARR_C2D self m_arrsiz . 1u cast -b [];  self m_x . ourmaxsiz ( )getX . = s ( self m_x . )print . s ( self m_x . 62 cast == )assert . s ( ourmaxsiz ( )getY . )print . s ( ourmaxsiz ( )getY . self m_x . == )assert . 0 cast return } }
 Uq_B2DT(Int coordBits) { typedef Unsigned(UNKNOWN) Coord;  typedef C2DT(coordBits) MyC2D;  constant Unsigned(UNKNOWN) cILLEGAL = unresolved maxof .;  constant Unsigned(UNKNOWN) cMAXVAL = unresolved maxof . 1u -b;  constant Unsigned(UNKNOWN) cMINVAL = unresolved minof .;  constant C2DT(coordBits) cMAX_C2D = { .m_width = cMAXVAL, .m_height = cMAXVAL };  constant C2DT(coordBits) cMIN_C2D = { .m_width = cMINVAL, .m_height = cMINVAL };  constant C2DT(coordBits) cZED_C2D = { .m_width = CONSTANT?, .m_height = CONSTANT? };  constant C2DT(coordBits) cARR_C2D[UNKNOWN] = { cZED_C2D, cMIN_C2D, cMAX_C2D };  <NOMAIN> }
 Uq_System { <NOMAIN> }
 Uq_C2DT(Unsigned coordBits) { typedef Unsigned(UNKNOWN) Coord;  Unsigned(UNKNOWN) m_width(notready);  Unsigned(UNKNOWN) m_height(notready);  <NOMAIN> }
-Uq_B2D : B2DT(6) { /* empty class block */ }
 ##
 ##  informed by Dave's ish 20210828-094439, see also t41554,t41553
 ##
@@ -19,14 +19,20 @@ Uq_B2D : B2DT(6) { /* empty class block */ }
   ulam 5;
 element T{
   typedef B2DT(6) MyB2D;
-
+  Unsigned m_arrsiz;
+  Int m_x;
   Int test(){
     System s;
-    MyB2D.MyC2D ourmaxsiz = MyB2D.cARR_C2D[2];
-    s.print(ourmaxsiz.getX());
-    s.assert(ourmaxsiz.getX()==62);
+    m_arrsiz = MyB2D.cARR_C2D.lengthof;
+    s.print(m_arrsiz);
+    s.assert(m_arrsiz == 3u);
+
+    MyB2D.MyC2D ourmaxsiz = MyB2D.cARR_C2D[m_arrsiz-1u];
+    m_x = ourmaxsiz.getX();
+    s.print(m_x);
+    s.assert(m_x==62);
     s.print(ourmaxsiz.getY());
-    s.assert(ourmaxsiz.getY() == ourmaxsiz.getX());
+    s.assert(ourmaxsiz.getY() == m_x);
     return 0;
   }
 }
@@ -44,14 +50,10 @@ quark B2DT(Int coordBits) {
     constant MyC2D cMAX_C2D = { .m_width = cMAXVAL, .m_height = cMAXVAL };
     constant MyC2D cMIN_C2D = { .m_width = cMINVAL, .m_height = cMINVAL };
     constant MyC2D cZED_C2D = { .m_width = 0, .m_height = 0 };
-    constant MyC2D cARR_C2D[3] = { cZED_C2D, cMIN_C2D, cMAX_C2D };
+    constant MyC2D cARR_C2D[] = { cZED_C2D, cMIN_C2D, cMAX_C2D };
 
 
 }
-
-quark B2D : B2DT(6) {
-}
-
 
 #:C2DT.ulam
   ulam 3;

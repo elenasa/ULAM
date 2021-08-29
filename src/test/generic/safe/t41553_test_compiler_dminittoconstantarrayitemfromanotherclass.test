@@ -11,7 +11,7 @@ Ue_Foo { Unsigned mVal( 6u);  <NOMAIN> }
 Uq_FooT(Unsigned cN) { constant Unsigned cTHE_N[UNKNOWN] = { cN };  <NOMAIN> }
 Uq_SubFoo : FooT(6u) { /* empty class block */ }
 ##
-## informed by t41547, only a constant array.
+## informed by t41547, only a constant array. see also t41555 for constant class array.
 ##
 #>A.ulam
   ulam 3;

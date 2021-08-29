@@ -161,19 +161,9 @@ namespace MFM {
 	      } //else
 	  }
 
-#if 0
-	// right node is type descriptor, can't test here!! BUT WHERE??
-	if(!m_nodeRight->isFunctionCall())
-	  {
-	    std::ostringstream msg;
-	    msg << "Selected Base Class Type ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-	    msg << " is not followed by a function call, ";
-	    msg << "and cannot be used in this context";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    nuti = Nav;
-	  }
-#endif
+	// note: right node is type descriptor, can't test here for invalid function call;
+	// see Parser::parseNamedConstantFromAnotherClass (t41556)
+
 	setNodeType(nuti); //right type
       }
 

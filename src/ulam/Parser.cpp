@@ -3303,11 +3303,7 @@ namespace MFM {
 
 	// in the future, we will only be able to find it via its UTI, not a token.
 	// the UTI should be the anothertduti (unless numdots is only 1).
-#if 0
-	Token pTok; //look ahead after the dot
-	getNextToken(pTok);
-	unreadToken();
-#endif
+
 	if(numDots > 1)//t41437 pTok is maxof, was '&& Token::isTokenAType(pTok))'
 	  {
 	    //make an 'anonymous class'
@@ -3527,10 +3523,28 @@ namespace MFM {
     getNextToken(iTok);
     assert(iTok.m_type == TOK_IDENTIFIER);
 
-    //fix during NodeConstant c&l
-    rtnNode = new NodeConstant(iTok, NULL, typedescNode, m_state);
-    assert(rtnNode);
-    rtnNode->setNodeLocation(iTok.m_locator);
+    Token tmpTok;
+    getNextToken(tmpTok);
+    unreadToken();
+
+    if(tmpTok.m_type == TOK_OPEN_PAREN)
+      {
+	u32 basetypeid = typedescNode->getTypeNameId();
+	std::ostringstream msg;
+	msg << "Suspect class type '";
+	msg << m_state.m_pool.getDataAsString(basetypeid).c_str();
+	msg << "' is followed by a function call to: ";
+	msg << m_state.getTokenDataAsString(iTok).c_str();
+	msg << ", and cannot be used in this context; an object is required";
+	MSG(&tmpTok, msg.str().c_str(), ERR); //t41556
+      }
+    else
+      {
+	//fix during NodeConstant c&l
+	rtnNode = new NodeConstant(iTok, NULL, typedescNode, m_state);
+	assert(rtnNode);
+	rtnNode->setNodeLocation(iTok.m_locator);
+      }
     return rtnNode;
   } //parseNamedConstantFromAnotherClass
 
@@ -3569,7 +3583,7 @@ namespace MFM {
   Node * Parser::parseLvalExpr(const Token& identTok)
   {
     //function calls and func defs are not valid; until constructor calls came along
-    //if(pTok.m_type == TOK_OPEN_PAREN) no longer necessarily an error
+    //if(getNextToken(pTok).m_type == TOK_OPEN_PAREN) no longer necessarily an error
 
     Symbol * asymptr = NULL;
     // may continue when symbol not defined yet (e.g. Decl)
@@ -3892,10 +3906,16 @@ namespace MFM {
     //cannot call a function if a local variable name shadows it
     if(currBlock && currBlock->isIdInScope(identTok.m_dataindex,asymptr))
       {
+	UTI auti = asymptr->getUlamTypeIdx();
+
 	std::ostringstream msg;
 	msg << "'" << m_state.m_pool.getDataAsString(asymptr->getId()).c_str();
-	msg << "' cannot be a function because it is already declared as a variable of type ";
-	msg << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str();
+	msg << "' cannot be a function because it is already declared as a variable";
+	if(m_state.okUTItoContinue(auti) && !m_state.isHolder(auti))
+	  {
+	    msg << " of type ";
+	    msg << m_state.getUlamTypeNameByIndex(auti).c_str();
+	  }
 	msg << " at: ."; //..
 	MSG(&identTok, msg.str().c_str(), ERR);
 
@@ -5833,12 +5853,26 @@ Node * Parser::wrapFactor(Node * leftNode)
 
     if(!isConstr && currClassBlock->isIdInScope(identTok.m_dataindex,asymptr) && !asymptr->isFunction())
       {
+	UTI auti = asymptr->getUlamTypeIdx();
+
 	std::ostringstream msg;
 	msg << "'" << m_state.m_pool.getDataAsString(asymptr->getId()).c_str();
-	msg << "' cannot be used again as a function, it has a previous definition as '";
-	msg << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str();
-	msg << " " << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << "'";
+	msg << "' cannot be used again as a function, it has a previous definition";
+
+	if(m_state.okUTItoContinue(auti) && !m_state.isHolder(auti))
+	  {
+	    msg << " of type '";
+	    msg << m_state.getUlamTypeNameByIndex(auti).c_str();
+	    msg << "'";
+	  }
+	//else
+
+	msg << " at: ."; //..
 	MSG(&args.m_typeTok, msg.str().c_str(), ERR);
+
+	std::ostringstream imsg;
+	imsg << ".. this location";
+	MSG(m_state.getFullLocationAsString(asymptr->getLoc()).c_str(), imsg.str().c_str(), ERR);
       } //keep going..more errors (t3284)
 
     //not in scope, or not yet defined, or possible overloading
@@ -5879,12 +5913,26 @@ Node * Parser::wrapFactor(Node * leftNode)
 	  {
 	    if(asymptr)
 	      {
+		UTI auti = asymptr->getUlamTypeIdx();
+
 		std::ostringstream msg;
 		msg << "'" << m_state.m_pool.getDataAsString(asymptr->getId()).c_str();
-		msg << "' has a previous declaration as '";
-		msg << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str();
-		msg << "' and cannot be used as a variable";
+		msg << "' cannot be a variable because it has a previous declaration";
+
+		if(m_state.okUTItoContinue(auti) && !m_state.isHolder(auti))
+		  {
+		    msg << " of type '";
+		    msg << m_state.getUlamTypeNameByIndex(auti).c_str();
+		    msg << "'";
+		  }
+		//else
+
+		msg << " at: ."; //..
 		MSG(&args.m_typeTok, msg.str().c_str(), ERR);
+
+		std::ostringstream imsg;
+		imsg << ".. this location";
+		MSG(m_state.getFullLocationAsString(asymptr->getLoc()).c_str(), imsg.str().c_str(), ERR);
 	      }
 	    else
 	      {
@@ -5966,8 +6014,14 @@ Node * Parser::wrapFactor(Node * leftNode)
 		UTI auti = asymptr->getUlamTypeIdx();
 		std::ostringstream msg;
 		msg << "'" << m_state.m_pool.getDataAsString(asymid).c_str();
-		msg << "' cannot be a typedef because it is already declared as ";
-		msg << m_state.getUlamTypeNameBriefByIndex(auti).c_str();
+		msg << "' cannot be a typedef because it is already declared";
+
+		if(m_state.okUTItoContinue(auti) && !m_state.isHolder(auti))
+		  {
+		    msg << " as type '";
+		    msg << m_state.getUlamTypeNameBriefByIndex(auti).c_str();
+		  }
+
 		msg << " at: ."; //..
 		MSG(&args.m_typeTok, msg.str().c_str(), ERR); //t3698, t3391
 
@@ -6038,10 +6092,19 @@ Node * Parser::wrapFactor(Node * leftNode)
 	  {
 	    if(asymptr)
 	      {
+		UTI auti = asymptr->getUlamTypeIdx();
 		std::ostringstream msg;
 		msg << "'" << m_state.m_pool.getDataAsString(asymptr->getId()).c_str();
-		msg << "' cannot be a named constant because it is already declared as ";
-		msg << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str(); //t41463
+		msg << "' cannot be a named constant because it is already declared";
+
+		if(m_state.okUTItoContinue(auti) && !m_state.isHolder(auti))
+		  {
+		    msg << " as type '";
+		    msg << m_state.getUlamTypeNameByIndex(auti).c_str(); //t41463
+		    msg << "'";
+		  }
+		//else
+
 		msg << " at: ."; //..
 		MSG(&args.m_typeTok, msg.str().c_str(), ERR); //t41130,t3872,t41163
 
@@ -6130,10 +6193,20 @@ Node * Parser::wrapFactor(Node * leftNode)
 	  {
 	    if(asymptr)
 	      {
+		UTI auti = asymptr->getUlamTypeIdx();
+
 		std::ostringstream msg;
 		msg << "'" << m_state.m_pool.getDataAsString(asymptr->getId()).c_str();
 		msg << "' cannot be a Model Parameter data member because it is already declared as ";
-		msg << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str();
+
+		if(m_state.okUTItoContinue(auti) && !m_state.isHolder(auti))
+		  {
+		    msg << " as type '";
+		    msg << m_state.getUlamTypeNameByIndex(auti).c_str();
+		    msg << "'";
+		  }
+		//else
+
 		msg << " at: ."; //..
 		MSG(&args.m_typeTok, msg.str().c_str(), ERR);
 

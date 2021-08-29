@@ -1,12 +1,12 @@
 ## -*- mode:ulam -*-
-#=t41548_test_compiler_returnwithassignment
+#=t41548_test_compiler_returnwithassignment_operatoroverload_ish
 #!
 Exit status: 0
 Ue_T { typedef Int(7) Coord;  Int test() {  System s;  C2D incr = incr ( 1 cast 2 cast )Self .;  C2D inat = inat ( 2 cast 4 cast )Self .;  inat ( incr )operator+= . 0 cast return } }
 Uq_C2D { typedef Int(7) Coord;  Int(7) m_width(0);  Int(7) m_height(0);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
-##  informed by Dave's C2D share, should work
+##  informed by Dave's C2D share, should work. see also t3177.
 ##
 #>T.ulam
   ulam 5;
