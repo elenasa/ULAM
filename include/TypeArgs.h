@@ -58,6 +58,7 @@ namespace MFM{
     bool m_hasConstantTypeModifier;
     bool m_forMemberSelect;
     bool m_forFactor;
+    bool m_danglingDot;
 
     TypeArgs();
     TypeArgs(const TypeArgs& tref);

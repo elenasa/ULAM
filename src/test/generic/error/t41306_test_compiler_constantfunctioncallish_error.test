@@ -2,7 +2,9 @@
 #=t41306_test_compiler_constantfunctioncallish_error
 #!
 ./QFoo.ulam:10:23: ERROR: Type incorrectly used as a function argument: TreeID; followed by unexpected identifier <treeID>.
+./QFoo.ulam:10:30: ERROR: Expected a dot prior to named constant 'treeID'.
 ./QFoo.ulam:10:38: ERROR: Type incorrectly used as a function argument: GeneID; followed by unexpected identifier <geneID>.
+./QFoo.ulam:10:45: ERROR: Expected a dot prior to named constant 'geneID'.
 Unrecoverable Program Parse FAILURE: <QFoo.ulam>
 ##
 ## 5/19/19 user Spencer Harmon submitted ish: culam asserted due to

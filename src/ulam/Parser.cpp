@@ -2505,12 +2505,22 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Invalid Type for named variable";
 	MSG(&iTok, msg.str().c_str(), ERR);
-	unreadToken();
+	unreadToken(); //for location
 	return false;
       }
 
     if(iTok.m_type == TOK_IDENTIFIER)
       {
+	if(typeargs.m_danglingDot)
+	  {
+	    std::ostringstream msg;
+	    msg << "Unexpected dot before named variable '";
+	    msg << m_state.getTokenDataAsString(iTok).c_str() << "'";
+	    MSG(&iTok, msg.str().c_str(), ERR); //t41560
+	    //unreadToken();
+	    return false;
+	  }
+
 	UTI passuti = typeNode->givenUTI(); //before it may become an array
 	NodeVarDecl * rtnNode = makeVariableSymbol(typeargs, iTok, typeNode);
 	if(rtnNode)
@@ -2790,17 +2800,35 @@ namespace MFM {
 
     if(dTok.m_type == TOK_AMP)
       {
-	typeargs.m_declRef = typeargs.m_hasConstantTypeModifier ? ALT_CONSTREF : ALT_REF; //a declared reference (was ALT_REF)
-	typeargs.m_referencedUTI = castUTI; //?
-	typeargs.m_assignOK = true; //required
-	typeargs.m_isStmt = true; //unless a func param
+	if(typeargs.m_danglingDot)
+	  {
+	    std::ostringstream msg;
+	    msg << "Unexpected reference token '" ;
+	    msg << m_state.getTokenDataAsString(dTok).c_str();
+	    msg << "' after a dot";
+	    MSG(&dTok, msg.str().c_str(), ERR);
 
-	// change uti to reference key
-	UTI refuti = castUTI;
-	if(m_state.okUTItoContinue(castUTI) && !m_state.isHolder(castUTI)) //t41153
-	  refuti = m_state.getUlamTypeAsRef(castUTI, typeargs.m_declRef); //t3692
-	assert(typeNode);
-	typeNode->setReferenceType(typeargs.m_declRef, castUTI, refuti);
+	    if(delAfterDotFails)
+	      {
+		delete typeNode;
+		typeNode = NULL;
+	      }
+	  }
+
+	if(typeNode)
+	  {
+	    typeargs.m_declRef = typeargs.m_hasConstantTypeModifier ? ALT_CONSTREF : ALT_REF; //a declared reference (was ALT_REF)
+	    typeargs.m_referencedUTI = castUTI; //?
+	    typeargs.m_assignOK = true; //required
+	    typeargs.m_isStmt = true; //unless a func param
+
+	    // change uti to reference key
+	    UTI refuti = castUTI;
+	    if(m_state.okUTItoContinue(castUTI) && !m_state.isHolder(castUTI)) //t41153
+	      refuti = m_state.getUlamTypeAsRef(castUTI, typeargs.m_declRef); //t3692
+	    assert(typeNode);
+	    typeNode->setReferenceType(typeargs.m_declRef, castUTI, refuti);
+	  }
       }
     else
       unreadToken();
@@ -3213,6 +3241,8 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Bit size after Open Paren is missing, type: ";
 	    msg << m_state.getTokenAsATypeName(args.m_typeTok).c_str();
+	    if(args.m_typeTok.m_type == TOK_KW_TYPE_VOID)
+	      msg << "; Void size is zero"; //t41105,t41370
 	    MSG(&bTok, msg.str().c_str(), ERR);
 	  }
 	else
@@ -3414,6 +3444,7 @@ namespace MFM {
     //set up compiler state to use the member class block for symbol searches
     m_state.pushClassContextUsingMemberClassBlock(memberClassBlock);
 
+    args.m_danglingDot = true;
     Token pTok;
     //after the dot; this is when the dot is lost and becomes "optional" (see t41551)
     getNextToken(pTok);
@@ -3481,6 +3512,7 @@ namespace MFM {
 
 	    args.m_anothertduti = tduti; //don't lose it!
 	    args.m_declListOrTypedefScalarType = tdscalaruti;
+	    args.m_danglingDot = false;
 	    rtnb = true;
 
 	    //link this selection to NodeTypeDescriptor;
@@ -3742,6 +3774,18 @@ namespace MFM {
 	    getNextToken(vtrnTok);
 	    if(vtrnTok.m_type == TOK_OPEN_SQUARE)
 	      {
+		if(typeargs.m_danglingDot)
+		  {
+		    std::ostringstream msg;
+		    msg << "Unexpected '[' after a dot" ;
+		    MSG(&vtrnTok, msg.str().c_str(), ERR);
+		    delete rtnNode; //also deletes leftNode
+		    rtnNode = NULL;
+		    delete nextmembertypeNode;
+		    nextmembertypeNode = NULL;
+		    return NULL;
+		  }
+
 		vtrnNode = parseExpression();
 		if(vtrnNode == NULL)
 		  {
@@ -3752,7 +3796,7 @@ namespace MFM {
 		    rtnNode = NULL;
 		    delete nextmembertypeNode;
 		    nextmembertypeNode = NULL;
-		    return rtnNode; //NULL
+		    return NULL;
 		  }
 		vtrnNode->setNodeLocation(vtrnTok.m_locator); //t41376
 
@@ -3765,7 +3809,7 @@ namespace MFM {
 		    nextmembertypeNode = NULL;
 		    delete vtrnNode;
 		    vtrnNode = NULL;
-		    return rtnNode; //NULL
+		    return NULL;
 		  }
 	      }
 	    else
@@ -3780,7 +3824,7 @@ namespace MFM {
 	    Token tmpTok;
 	    getNextToken(tmpTok);
 	    unreadToken();
-	    if(tmpTok.m_type != TOK_DOT)
+	    if((tmpTok.m_type != TOK_DOT) && !typeargs.m_danglingDot)
 	      {
 		std::ostringstream msg;
 		msg << "Expected data member or function call to follow member select by type '";
@@ -3795,7 +3839,10 @@ namespace MFM {
 	    unreadToken(); //pTok
 	    rtnNode = parseMinMaxSizeofType(rtnNode, Nouti, NULL); //ate dot, possible min/max/sizeof
 	    if(!rtnNode)
-	      delete classInstanceNode; //t41110 leak
+	      {
+		delete classInstanceNode; //t41110 leak
+		typeargs.m_danglingDot = true;
+	      }
 	  }
       } //while
     return rtnNode;
@@ -4237,18 +4284,35 @@ namespace MFM {
     assert(typeNode);
     UTI uti = typeNode->givenUTI();
 
-    //returns either a terminal or proxy
-    Node * rtnNode = parseMinMaxSizeofType(NULL, uti, typeNode); //optionally, gets next dot token
+    Token dTok;
+    getNextToken(dTok);
+    unreadToken();
+
+    Node * rtnNode = NULL;
+    if(typeargs.m_danglingDot || (dTok.m_type == TOK_DOT))
+      //returns either a terminal or proxy
+      rtnNode = parseMinMaxSizeofType(NULL, uti, typeNode); //optionally, gets next dot token
+
     if(!rtnNode)
       {
 	Token iTok;
 	getNextToken(iTok);
 	if(iTok.m_type == TOK_IDENTIFIER)
 	  {
-	    //assumes we saw a 'dot' prior, be careful t41551
-	    unreadToken();
-	    rtnNode = parseNamedConstantFromAnotherClass(typeargs, typeNode);
-	    rtnNode = parseRestOfFactor(rtnNode); //dm of constant class? t41198
+	    if(typeargs.m_danglingDot || (dTok.m_type == TOK_DOT))
+	      {
+		//assumes we saw a 'dot' prior, be careful
+		unreadToken();
+		rtnNode = parseNamedConstantFromAnotherClass(typeargs, typeNode);
+		rtnNode = parseRestOfFactor(rtnNode); //dm of constant class? t41198
+	      }
+	    else
+	      {
+		std::ostringstream msg;
+		msg << "Expected a dot prior to named constant '";
+		msg << m_state.getTokenDataAsString(iTok).c_str() << "'";
+		MSG(&iTok, msg.str().c_str(), ERR); //t41551,t41306
+	      }
 	  }
 	else if(iTok.m_type == TOK_CLOSE_PAREN)
 	  {

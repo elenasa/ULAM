@@ -1,14 +1,15 @@
 ## -*- mode:ulam -*-
 #=t41560_test_compiler_elementandquark_multibases_standalonevirtualfunccallnoargsbytype_error
 #!
-./Foo.ulam:8:15: ERROR: Initial value of 'vfuncb' has no constructor arguments.
+./Foo.ulam:8:15: ERROR: Unexpected dot before named variable 'vfuncb'.
+./Foo.ulam:8:21: ERROR: Invalid Statement (possible missing semicolon).
 Unrecoverable Program Parse FAILURE: <Foo.ulam>
 Unrecoverable Program Parse FAILURE: <E4.ulam>
 Unrecoverable Program Parse FAILURE: <QBase1.ulam>
 Unrecoverable Program Parse FAILURE: <QBase3.ulam>
 Unrecoverable Program Parse FAILURE: <System.ulam>
 ##
-##   see also t41558; here 'vfuncb' has no arguments, so cannot be confused with a constr
+##   see also t41558 and t41557; here 'vfuncb' has no arguments, so cannot be confused with a constr
 ##
 #>Foo.ulam
   ulam 4;
@@ -18,7 +19,7 @@ element Foo {
   {
     System s;
 
-    E4.QBase3.vfuncb(); //constr call, makes local var 'vfuncb' of type QBase3
+    E4.QBase3.vfuncb(); //illegal attempt at constr call
     s.print(vfuncb.m_b3);
     s.assert(vfuncb.m_b3);
 

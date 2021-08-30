@@ -17,7 +17,7 @@ element Foo {
 
   Int test()
   {
-    E4.QBase3.vfuncb(3); //constructor call, makes vfuncb of type QBase3
+    E4.QBase3 vfuncb(3); //constructor call, makes vfuncb of type QBase3
     return vfuncb.vfuncb(3)); //error!!
   }
 }

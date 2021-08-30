@@ -21,7 +21,7 @@ element Foo {
   {
     System s;
 
-    E4.QBase3.vfuncb(3); //constr call, makes local var 'vfuncb' of type QBase3
+    E4.QBase3 vfuncb(3); //constr call, makes local var 'vfuncb' of type QBase3
     s.print(vfuncb.m_b3);
     s.assert(vfuncb.m_b3);
 
