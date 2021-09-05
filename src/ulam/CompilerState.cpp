@@ -4861,7 +4861,7 @@ namespace MFM {
 			std::ostringstream msg;
 			if(tmpfsym->isVirtualFunction())
 			  msg << "Virtual ";
-			msg << "Function: "  << m_pool.getDataAsString(tmpfsym->getId()).c_str();
+			msg << "Function: "  << m_pool.getDataAsString(tmpfsym->getFunctionNameId()).c_str();
 			msg << "(";
 			for (u32 i = 0; i < typeVec.size(); i++)
 			  {
@@ -5058,7 +5058,7 @@ namespace MFM {
 			std::ostringstream msg;
 			if(tmpfsym->isVirtualFunction()) //t41329 non-virtual func;
 			  msg << "Virtual "; //t41305, t41437
-			msg << "Function: "  << m_pool.getDataAsString(tmpfsym->getId()).c_str();
+			msg << "Function: "  << m_pool.getDataAsString(tmpfsym->getFunctionNameId()).c_str();
 			msg << "(";
 			for (u32 i = 0; i < argNodes.size(); i++)
 			  {
@@ -5432,11 +5432,11 @@ namespace MFM {
 	if((it != Void) && !fsym->isNativeFunctionDeclaration() && (!fsym->isVirtualFunction() || !fsym->isPureVirtualFunction()) && !fsym->isConstructorFunction())
 	  {
 	    std::ostringstream msg;
-	    msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str();
+	    msg << "Function '" << m_pool.getDataAsString(fsym->getFunctionNameId()).c_str();
 	    msg << "''s Return Statement is missing; Return type: ";
 	    msg << getUlamTypeNameByIndex(it).c_str();
 	    MSG2(fsym->getTokPtr(), msg.str().c_str(), ERR);
-	    return false;
+	    return false; //t41564 overload op[];
 	  }
 	return true; //okay to skip return statement for void function
       }
@@ -5448,7 +5448,7 @@ namespace MFM {
 	if(!isComplete(rType))
 	  {
 	    std::ostringstream msg;
-	    msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str();
+	    msg << "Function '" << m_pool.getDataAsString(fsym->getFunctionNameId()).c_str();
 	    msg << "''s Return type's: " << getUlamTypeNameByIndex(it).c_str();
 	    msg << " does not match incomplete resulting type";
 	    msg << " " << getUlamTypeNameByIndex(rType).c_str();
@@ -5464,7 +5464,7 @@ namespace MFM {
 	    if(rBUT != itBUT)
 	      {
 		std::ostringstream msg;
-		msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str();
+		msg << "Function '" << m_pool.getDataAsString(fsym->getFunctionNameId()).c_str();
 		msg << "''s Return type's " << getUlamTypeNameByIndex(it).c_str();
 		msg << " base type <" << UlamType::getUlamTypeEnumAsString(itBUT);
 		msg << "> does not match resulting type's ";
@@ -5481,7 +5481,7 @@ namespace MFM {
 		if(getArraySize(rType) != getArraySize(it))
 		  {
 		    std::ostringstream msg;
-		    msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str();
+		    msg << "Function '" << m_pool.getDataAsString(fsym->getFunctionNameId()).c_str();
 		    msg << "''s Return type's " << getUlamTypeNameByIndex(it).c_str();
 		    msg << " array size [" << getArraySize(it);
 		    msg << "] does not match resulting type's ";
@@ -5493,7 +5493,7 @@ namespace MFM {
 		if(getBitSize(rType) != getBitSize(it))
 		  {
 		    std::ostringstream msg;
-		    msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str();
+		    msg << "Function '" << m_pool.getDataAsString(fsym->getFunctionNameId()).c_str();
 		    msg << "''s Return type's " << getUlamTypeNameByIndex(it).c_str();
 		    msg << " bit size (" << getBitSize(it);
 		    msg << ") does not match resulting type's ";
@@ -5505,7 +5505,7 @@ namespace MFM {
 		if(getReferenceType(rType) != getReferenceType(it))
 		  {
 		    std::ostringstream msg;
-		    msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str();
+		    msg << "Function '" << m_pool.getDataAsString(fsym->getFunctionNameId()).c_str();
 		    msg << "''s Return type's " << getUlamTypeNameByIndex(it).c_str();
 		    msg << " reference type <" << getReferenceType(it);
 		    msg << "> does not match resulting type's ";
