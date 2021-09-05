@@ -536,6 +536,10 @@ namespace MFM {
     if(m_state.isAClass(nuti))
       return nuti; //t41484 (e.g. node sq bkt)
 
+    u32 wordsize = m_state.getTotalWordSize(nuti);
+    if(wordsize > MAXBITSPERLONG)
+      return nuti; //t41563?
+
     NNO pno = Node::getYourParentNo();
     assert(pno);
 

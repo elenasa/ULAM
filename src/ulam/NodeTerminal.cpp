@@ -379,6 +379,10 @@ namespace MFM {
       {
 	rtnb = fitsInBits64(destuti);
       }
+    else if((dest->getUlamTypeEnum() == Bits) && (dest->getTotalBitSize() >= nut->getTotalBitSize()))
+      {
+	rtnb = true; //Any non-class type to Bits that's at least as big == a safe cast (t41563)
+      }
     else
       {
 	std::ostringstream msg;

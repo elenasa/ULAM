@@ -838,6 +838,9 @@ namespace MFM {
 	method = "ReadLong";
 	break;
       case 96:
+	if(isPrimitiveType())
+	  method = "ReadBV";
+	else
 	method = "ReadBig";
 	break;
       default:
@@ -860,7 +863,10 @@ namespace MFM {
 	method = "WriteLong";
 	break;
       case 96:
-	method = "WriteBig";
+	if(isPrimitiveType())
+	  method = "WriteBV";
+	else
+	  method = "WriteBig";
 	break;
       default:
 	method = "WriteBV"; //template arg deduced by gcc
@@ -882,7 +888,10 @@ namespace MFM {
 	method = "ReadLong"; //ReadArrayLong
 	break;
       case 96:
-	method = "ReadBig";
+	if(isPrimitiveType())
+	  method = "ReadBV";
+	else
+	  method = "ReadBig";
 	break;
       default:
 	method = "ReadBV"; //template arg deduced by gcc
@@ -904,7 +913,10 @@ namespace MFM {
 	method = "WriteLong"; //WriteArrayLong
 	break;
       case 96:
-	method = "WriteBig";
+	if(isPrimitiveType())
+	  method = "WriteBV";
+	else
+	  method = "WriteBig";
 	break;
       default:
 	method = "WriteBV"; //template arg deduced by gcc

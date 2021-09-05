@@ -55,14 +55,22 @@ namespace MFM {
       brtn = castTo64(val, typidx);
     else
       {
-	std::ostringstream msg;
-	msg << "Casting to an unsupported word size: " << wordsize;
-	msg << ", Value Type and bit size was: ";
-	msg << valtypidx << "," << m_state.getBitSize(valtypidx);
-	msg << " TO: ";
-	msg << typidx << "," << getBitSize();
-	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
-	brtn = false;
+	if(valwordsize <= wordsize)
+	  {
+	    val.setUlamValueTypeIdx(typidx); //t41563?
+	    brtn = true;
+	  }
+	else
+	  {
+	    std::ostringstream msg;
+	    msg << "Casting to an unsupported word size: " << wordsize;
+	    msg << ", Value Type and bit size was: ";
+	    msg << valtypidx << "," << m_state.getBitSize(valtypidx);
+	    msg << " TO: ";
+	    msg << typidx << "," << getBitSize();
+	    MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
+	    brtn = false;
+	  }
       }
     return brtn;
   } //cast
