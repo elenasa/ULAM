@@ -927,12 +927,17 @@ namespace MFM {
     if(m_state.isAStringType(cosuti) && (cstor == TMPTBV))
       return genCodeReadStringArrayIntoATmpVar(fp, uvpass); //t41277
 
+    bool varcomesfirst = ((cstor == TMPTBV) && cosut->isScalar() && (cosut->getTotalBitSize() > MAXBITSPERLONG)); //t41562, not arrays: t3704,6,7,9, t3896,7,9
+
     s32 tmpVarNum = m_state.getNextTmpVarNumber();
     m_state.indentUlamCode(fp);
     fp->write(tmpStorageTypeForRead(cosuti, uvpass).c_str());
     fp->write(" ");
     fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNum, cstor).c_str());
-    fp->write(" = ");
+    if(varcomesfirst)
+      fp->write(";\n");
+    else
+      fp->write(" = ");
 
     // all the cases where = is used; else BitVector constructor for converting a tmpvar
     if(!isCurrentObjectALocalVariableOrArgument())
@@ -978,14 +983,26 @@ namespace MFM {
 	      }
 	    else
 	      {
+		if(varcomesfirst)
+		  m_state.indentUlamCode(fp); //t3704
+
 		genLocalMemberNameOfMethod(fp, uvpass);
 
 		//read method based on last cos
 		fp->write(readMethodForCodeGen(cosuti, uvpass).c_str());
 
-		// local quark or primitive (i.e. 'notaclass'); has an immediate type:
-		// uses local variable name, and immediate read method
-		fp->write("();"); GCNL;
+		if(varcomesfirst)
+		  {
+		    fp->write("(0u, ");
+		    fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNum, cstor).c_str());
+		    fp->write(");"); GCNL;
+		  }
+		else
+		  {
+		    // local quark or primitive (i.e. 'notaclass'); has an immediate type:
+		    // uses local variable name, and immediate read method
+		    fp->write("();"); GCNL;
+		  }
 	      }
 	  }
       }
@@ -1399,13 +1416,18 @@ namespace MFM {
     // with immediate quarks, they are read into a tmpreg as other immediates
     // with immediate elements, too! value is not a terminal
     TMPSTORAGE rstor = ruvpass.getPassStorage();
+    u32 rlen = ruvpass.getPassLen();
+    if((rstor == TMPTBV) && rut->isScalar() && (rlen > MAXBITSPERLONG))
+      {
+	fp->write("0u, "); //t41562
+      }
+
     fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
 
     if((rstor == TMPBITVAL) || (rstor == TMPAUTOREF))
       fp->write(".read()");
-    else if((rstor == TMPTBV) && rut->isScalar()) //t41416 Transient in tmpvar..used without WriteBV.
+    else if((rstor == TMPTBV) && rut->isScalar() && (rlen <= MAXBITSPERLONG)) //t41416 Transient in tmpvar..used without WriteBV.
       {
-	u32 rlen = ruvpass.getPassLen();
 	if(rlen <= MAXBITSPERINT)
 	  fp->write(".Read(");
 	else if(rlen <= MAXBITSPERLONG)

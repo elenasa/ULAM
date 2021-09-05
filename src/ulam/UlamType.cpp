@@ -343,7 +343,7 @@ namespace MFM {
 	break;
       default:
 	{
-	  assert(!isScalar());
+	  //assert(!isScalar()); t41562
 	  //ctype = getTmpStorageTypeAsString(getItemWordSize()); //u32, u64 (inf loop)
 	  std::ostringstream cstr;
 	  if(sizebyints == (s32) getItemWordSize())

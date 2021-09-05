@@ -11,26 +11,14 @@ namespace MFM {
   UlamTypePrimitiveBits::UlamTypePrimitiveBits(const UlamKeyTypeSignature key, CompilerState & state) : UlamTypePrimitive(key, state)
   {
     s32 bitsize = getBitSize();
-    if(bitsize <= 0)
-      {
-	m_max = m_min = 0;
-      }
-    else if(bitsize <= MAXBITSPERINT)
+    m_max = m_min = 0; //not allowed
+    if(bitsize <= MAXBITSPERTRANSIENT)
       {
 	m_wordLengthTotal = calcWordSize(getTotalBitSize());
 	m_wordLengthItem = calcWordSize(bitsize);
-	m_max = calcBitsizeUnsignedMax(bitsize);
-	m_min = 0;
-      }
-    else if(bitsize <= MAXBITSPERLONG)
-      {
-	m_wordLengthTotal = calcWordSize(getTotalBitSize());
-	m_wordLengthItem = calcWordSize(bitsize);
-	m_max = calcBitsizeUnsignedMaxLong(bitsize);
-	m_min = 0;
       }
     else
-      m_state.abortGreaterThanMaxBitsPerLong();
+      m_state.abortGreaterThanMaxBitsPerLong(); //per transient
   }
 
    ULAMTYPE UlamTypePrimitiveBits::getUlamTypeEnum()

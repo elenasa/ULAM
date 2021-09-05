@@ -1,21 +1,18 @@
 ## -*- mode:ulam -*-
-#=t41418_test_compiler_castingbitstobigtransientarray_error
+#=t41562_test_compiler_castingbitstobigtransient
+##
+##  gen output: 2 asserts
+##
 #!
-./System.ulam:11:0: ERROR: Trying to exceed allotted bit size (32) for a base quark QIMsg(120u) with 122 bits.
-./System.ulam:11:0: ERROR: Trying to exceed allotted bit size (32) for quark QIMsg(120u) with 122 bits.
-./QIMsg.ulam:3:7: NOTE: Components of QIMsg(120u) are..
-./QIMsg.ulam:9:3: NOTE: (2 of 122 bits, at 0) Unary(2) mDirection.
-./QIMsg.ulam:10:3: NOTE: (120 of 122 bits, at 2) Bits(120) mPayload.
-./QIMsg.ulam:3:7: ERROR: CLASS INSTANCE 'QIMsg(120u)' SIZED 122 FAILED.
-Unrecoverable Program Type Label FAILURE.
+Exit status: -11
+Ue_Anchor10 { System s();  Int test() {  QSegment(120u) x;  typedef Bits(120) MPayload;  SegPkt10 pkt[3];  pkt 1 [] mCN . 3u = pkt 1 [] mUpbound . true = x mMessageBuffer . mPayload . pkt 1 [] cast = pkt 2 [] x mMessageBuffer . mPayload . cast = self s . ( pkt 1 [] mCN . pkt 2 [] mCN . == )assert . self s . ( pkt 2 [] mUpbound . )assert . 0 cast return } }
+Un_SegPkt10 { typedef Unsigned(3) CN;  constant Unsigned(3) cNO_OP = 0u;  constant Unsigned(3) cSET_LENGTH = 1u;  constant Unsigned(3) cSET_STRETCH = 2u;  constant Unsigned(3) cSET_ANGLE = 3u;  constant Unsigned(3) cSET_FLEX = 4u;  constant Unsigned(3) cGROW_HEAD = 5u;  constant Unsigned(3) cRSV6 = 6u;  constant Unsigned(3) cRSV7 = 7u;  Bool mUpbound(false);  Unsigned(3) mCN(0);  String mStr( "Hello World");  Atom mAtom(Atom);  <NOMAIN> }
+Un_QSegment(Unsigned cMSG_BITS) : QSeg { typedef QIMsg(bits) QC_QIMsg;  QIMsg(bits) mMessageBuffer(notready);  :QSeg< typedef Unsigned(5) SegPtr;  typedef Unsigned(2) Type; > <NOMAIN> }
+Uq_System { <NOMAIN> }
+Uq_QSeg { typedef Unsigned(5) SegPtr;  typedef Unsigned(2) Type;  <NOMAIN> }
+Un_QIMsg(Unsigned bits) { typedef Bits(UNKNOWN) Payload;  typedef Unary(2) Direction;  constant Unary(2) cEMPTY = 0u;  constant Unary(2) cUP = 1u;  constant Unary(2) cDOWN = 3u;  Unary(2) mDirection(0);  Bits(UNKNOWN) mPayload(notready);  <NOMAIN> }
 ##
-## informed by Dave's ish 2/24/2021: Transient array and Bit casting new (see t41416).
-##             worried about change to Node::genCodeWriteFromATmpVar when rstor is TMPTBV,
-##             the new type for transient tmpvars. Tests t3975,t3896 had big arrays that
-##             were unhappy with the code change to Node.cpp;
-##             Hence, we are testing Transient arrays here. Seems ok.
-##
-##  was ./QIMsg.ulam:4:11: ERROR: Type Bitsize specifier for base type: Bits, has a constant value of 120 that exceeds the maximum bitsize 64.
+## informed by t41418
 ##
 #>Anchor10.ulam
   ulam 5;
@@ -28,15 +25,17 @@ local typedef QSegment(cMSG_BITS) QSegX;
    \symmetries none
    \color #448
  */
-element Anchor10 : QSegX {
+//element Anchor10 : QSegX {
+element Anchor10 {
     System s;
   Int test() {
+    QSegX x;
     typedef QSegX.QC_QIMsg.Payload MPayload;
     SegPkt10 pkt[3];
     pkt[1].mCN = SegPkt10.cSET_ANGLE;
     pkt[1].mUpbound = true;
-    mMessageBuffer.mPayload = (MPayload) pkt[1];
-    pkt[2] = (SegPkt10) mMessageBuffer.mPayload;
+    x.mMessageBuffer.mPayload = (MPayload) pkt[1];
+    pkt[2] = (SegPkt10) x.mMessageBuffer.mPayload;
 
     s.assert(pkt[1].mCN==pkt[2].mCN);
     s.assert(pkt[2].mUpbound);
@@ -74,7 +73,7 @@ quark QSeg {
 
 /** Base class for a 1D fragile data transport system.  To be subclassed by SPLAT code.
  */
-quark QSegment(Unsigned cMSG_BITS) : QSeg {
+transient QSegment(Unsigned cMSG_BITS) : QSeg {
   // Data members
   typedef QIMsg(cMSG_BITS) QC_QIMsg;
   QC_QIMsg mMessageBuffer;
@@ -84,7 +83,7 @@ quark QSegment(Unsigned cMSG_BITS) : QSeg {
 #:QIMsg.ulam
   ulam 5;
 /** An internal message */
-quark QIMsg(Unsigned bits) {
+transient QIMsg(Unsigned bits) {
   typedef Bits(bits) Payload;
   typedef Unary(2) Direction;
   constant Direction cEMPTY = 0u;
