@@ -928,6 +928,7 @@ namespace MFM {
       return genCodeReadStringArrayIntoATmpVar(fp, uvpass); //t41277
 
     bool varcomesfirst = ((cstor == TMPTBV) && cosut->isScalar() && (cosut->getTotalBitSize() > MAXBITSPERLONG)); //t41562, not arrays: t3704,6,7,9, t3896,7,9
+    const std::string rmethod = readMethodForCodeGen(cosuti, uvpass);
 
     s32 tmpVarNum = m_state.getNextTmpVarNumber();
     m_state.indentUlamCode(fp);
@@ -935,7 +936,11 @@ namespace MFM {
     fp->write(" ");
     fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNum, cstor).c_str());
     if(varcomesfirst)
-      fp->write(";\n");
+      {
+	fp->write(";\n");
+
+	m_state.indentUlamCode(fp);
+      }
     else
       fp->write(" = ");
 
@@ -951,12 +956,29 @@ namespace MFM {
 	    genMemberNameOfMethod(fp, uvpass);
 
 	    // the READ method
-	    fp->write(readMethodForCodeGen(cosuti, uvpass).c_str());
-	    fp->write("(");
-
-	    // a data member quark, or the element itself should both GetBits from self
-	    // now, quark's self is treated as the entire atom/element storage
-	    fp->write(");"); GCNL; //PLS generate name of var here!!! (t3543, t3512)
+	    fp->write(rmethod.c_str());
+	    if(varcomesfirst)
+	      {
+		if(rmethod[0] == 'r')
+		  {
+		    //read
+		  }
+		else
+		  {
+		    fp->write("(0u, ");
+		  }
+		fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNum, cstor).c_str());
+		fp->write(");"); GCNL; //t41563
+	      }
+	    else
+	      {
+		// a data member quark, or the element itself should both GetBits from self
+		// now, quark's self is treated as the entire atom/element storage
+		fp->write("(); /* ");
+		fp->write(m_state.m_pool.getDataAsString(cos->getId()).c_str());
+		fp->write(" */"); //PLS generate name of var here!!! (t3543, t3512)
+		GCNL;
+	      }
 	  }
       }
     else
@@ -967,7 +989,7 @@ namespace MFM {
 	    genModelParameterMemberNameOfMethod(fp, epi);
 
 	    //read method based on last cos
-	    fp->write(readMethodForCodeGen(cosuti, uvpass).c_str());
+	    fp->write(rmethod.c_str());
 
 	    fp->write("(");
 
@@ -983,17 +1005,16 @@ namespace MFM {
 	      }
 	    else
 	      {
-		if(varcomesfirst)
-		  m_state.indentUlamCode(fp); //t3704
-
 		genLocalMemberNameOfMethod(fp, uvpass);
 
 		//read method based on last cos
-		fp->write(readMethodForCodeGen(cosuti, uvpass).c_str());
+		fp->write(rmethod.c_str());
 
 		if(varcomesfirst)
 		  {
-		    fp->write("(0u, ");
+		    fp->write("(");
+		    if(rmethod[0] == 'R')
+		      fp->write("0u, ");
 		    fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNum, cstor).c_str());
 		    fp->write(");"); GCNL;
 		  }
@@ -1388,6 +1409,7 @@ namespace MFM {
 	genCodeReadElementTypeField(fp, typuvpass);
       }
 
+    const std::string wmethod = writeMethodForCodeGen(cosuti, luvpass);
     m_state.indentUlamCode(fp);
 
     // a data member quark, or the element itself should both GetBits from self;
@@ -1398,7 +1420,7 @@ namespace MFM {
 	genMemberNameOfMethod(fp, luvpass);
 
 	// the WRITE method
-	fp->write(writeMethodForCodeGen(cosuti, luvpass).c_str());
+	fp->write(wmethod.c_str());
 	fp->write("(");
       }
     else
@@ -1408,7 +1430,7 @@ namespace MFM {
 	//local
 	genLocalMemberNameOfMethod(fp, luvpass);
 
-	fp->write(writeMethodForCodeGen(cosuti, luvpass).c_str());
+	fp->write(wmethod.c_str());
 	fp->write("(");
       }
 
@@ -1419,7 +1441,9 @@ namespace MFM {
     u32 rlen = ruvpass.getPassLen();
     if((rstor == TMPTBV) && rut->isScalar() && (rlen > MAXBITSPERLONG))
       {
-	fp->write("0u, "); //t41562
+	if(wmethod[0] == 'W')
+	  fp->write("0u, "); //t41562
+	//else 'write'
       }
 
     fp->write(ruvpass.getTmpVarAsString(m_state).c_str());

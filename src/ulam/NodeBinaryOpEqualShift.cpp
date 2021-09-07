@@ -161,7 +161,13 @@ namespace MFM {
 	m_state.abortUndefinedUlamPrimitiveType();
 	break;
       };
-    methodname << nut->getTotalWordSize();
+
+    u32 twsize = nut->getTotalWordSize();
+    if(twsize < MAXBITSPERLONG)
+      methodname << twsize;
+    else
+      methodname << "BV";
+
     return methodname.str();
   } //methodNameForCodeGen
 

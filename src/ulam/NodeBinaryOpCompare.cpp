@@ -234,7 +234,13 @@ namespace MFM {
 	methodname << "NAV";
 	break;
       };
-    methodname << lut->getTotalWordSize();
+
+    u32 twsize = lut->getTotalWordSize();
+    if(twsize <= MAXBITSPERLONG)
+      methodname << twsize;
+    else
+      methodname << "BV";
+
     return methodname.str();
   } // methodNameForCodeGen
 
@@ -392,31 +398,43 @@ namespace MFM {
     m_nodeLeft->genCode(fp, luvpass); //updates m_currentObjSymbol
 
     UTI nuti = getNodeType();
-    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti); //bool
+
+    TMPSTORAGE lstor = luvpass.getPassStorage(); //t41563
+    bool varcomesfirst = (lstor == TMPTBV); //t41563
+
     s32 tmpVarNum = m_state.getNextTmpVarNumber();
 
     m_state.indentUlamCode(fp);
     fp->write("const ");
     fp->write(nut->getTmpStorageTypeAsString().c_str()); //e.g. u32, s32, u64..
     fp->write(" ");
-
     fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPREGISTER).c_str());
     fp->write(" = ");
 
-    fp->write(methodNameForCodeGen().c_str());
-    fp->write("(");
+    if(varcomesfirst)
+      {
+	fp->write(luvpass.getTmpVarAsString(m_state).c_str());
+	fp->write(".");
+	fp->write(methodNameForCodeGen().c_str());
+	fp->write("(");
+	fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
+	fp->write(");"); GCNL; //t41563
+      }
+    else
+      {
+	fp->write(methodNameForCodeGen().c_str());
+	fp->write("(");
 
-    UTI luti = luvpass.getPassTargetType(); //reset
-    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
-
-    fp->write(", ");
-    fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
-    fp->write(", ");
-
-    //compare needs size of left/right nodes (only difference!)
-    fp->write_decimal(m_state.getUlamTypeByIndex(luti)->getTotalBitSize());
-
-    fp->write(");"); GCNL;
+	UTI luti = luvpass.getPassTargetType(); //reset
+	fp->write(luvpass.getTmpVarAsString(m_state).c_str());
+	fp->write(", ");
+	fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
+	fp->write(", ");
+	//compare needs size of left/right nodes (only difference!)
+	fp->write_decimal(m_state.getUlamTypeByIndex(luti)->getTotalBitSize());
+	fp->write(");"); GCNL;
+      }
 
     uvpass = UVPass::makePass(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, 0);  //P
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************

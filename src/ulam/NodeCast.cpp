@@ -797,6 +797,7 @@ namespace MFM {
 
     UTI tobeType = getCastType(); //tobe
     UlamType * tobe = m_state.getUlamTypeByIndex(tobeType);
+    TMPSTORAGE tostor = tobe->getTmpStorageTypeForTmpVar();
 
     s32 tmpVarNum =  uvpass.getPassVarNum();
     UTI vuti = uvpass.getPassTargetType(); //replace
@@ -819,45 +820,94 @@ namespace MFM {
 
    //Primitive types:
    s32 tmpVarCastNum = m_state.getNextTmpVarNumber();
+   bool varcomesfirst = false;
+   if(tostor == TMPTBV)
+     varcomesfirst = true; //t41563
 
    m_state.indentUlamCode(fp);
-   fp->write("const ");
+   if(!varcomesfirst)
+     fp->write("const ");
    fp->write(tobe->getTmpStorageTypeAsString().c_str()); //e.g. u32, s32, u64, etc.
    fp->write(" ");
-   fp->write(m_state.getTmpVarAsString(tobeType, tmpVarCastNum, TMPREGISTER).c_str());
-   fp->write(" = ");
-
-   // write the cast method (e.g. _Unsigned32ToInt32, _Int32ToUnary32, etc..)
-   fp->write(tobe->castMethodForCodeGen(vuti).c_str());
-   fp->write("(");
-
-   if(isTerminal)
+   fp->write(m_state.getTmpVarAsString(tobeType, tmpVarCastNum, tostor).c_str()); //t41563
+   if(varcomesfirst)
      {
-       fp->write(m_state.m_pool.getDataAsString(uvpass.getPassNameId()).c_str());
+       fp->write(";"); GCNL;
+
+       u32 tbs = tobe->getTotalBitSize();
+       u32 vbs = vut->getTotalBitSize();
+
+       m_state.indentUlamCode(fp);
+
+       if(vbs < tbs)
+	 {
+	   //from smaller var/bv to larger bitsize BV
+	   fp->write(m_state.getTmpVarAsString(tobeType, tmpVarCastNum, tostor).c_str()); //t41563
+	   fp->write(".Clear();\n");
+
+	   m_state.indentUlamCode(fp);
+	   fp->write(m_state.getTmpVarAsString(tobeType, tmpVarCastNum, tostor).c_str()); //t41563
+	   fp->write(".");
+	   fp->write(vut->writeMethodForCodeGen().c_str());
+	   fp->write("(");
+	   fp->write_decimal_unsigned(tbs - vbs);
+	   fp->write("u, ");
+	   fp->write_decimal_unsigned(vbs);
+	   fp->write("u, ");
+	   fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum, vstor).c_str());
+	   fp->write(");"); GCNL;
+	 }
+       else
+	 {
+	   //from larger bitsize BV to smaller BV
+	   assert(vstor == TMPTBV);
+	   fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum, vstor).c_str());
+	   fp->write(".CopyBV(");
+	   fp->write_decimal_unsigned(vbs - tbs); //from right-most bits
+	   fp->write("u, 0u, ");
+	   fp->write_decimal_unsigned(tbs);
+	   fp->write("u, ");
+	   fp->write(m_state.getTmpVarAsString(tobeType, tmpVarCastNum, tostor).c_str()); //t41563
+	   fp->write("); /* fm, to, len, dest */"); GCNL;
+	 }
      }
    else
      {
-       fp->write(m_state.getTmpVarAsString(tobeType, tmpVarNum, vstor).c_str());
-       if(vstor == TMPBITVAL)
-	 fp->write(".read()");
-       if(vstor == TMPAUTOREF)
-	 m_state.abortNeedsATest();
+       fp->write(" = ");
+
+       // write the cast method (e.g. _Unsigned32ToInt32, _Int32ToUnary32, etc..)
+       fp->write(tobe->castMethodForCodeGen(vuti).c_str());
+       fp->write("(");
+
+       if(isTerminal)
+	 {
+	   fp->write(m_state.m_pool.getDataAsString(uvpass.getPassNameId()).c_str());
+	 }
+       else
+	 {
+	   fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum, vstor).c_str()); //t41563
+	   if(vstor == TMPBITVAL)
+	     fp->write(".read()");
+	   if(vstor == TMPAUTOREF)
+	     m_state.abortNeedsATest();
+	 }
+
+       fp->write(", ");
+
+       assert(!(m_state.isAtom(tobeType) || m_state.isAtom(vuti)));
+       //LENGTH of node being casted (Uh_AP_mi::LENGTH ?)
+       //fp->write(m_state.getBitVectorLengthAsStringForCodeGen(nodetype).c_str());
+       fp->write_decimal(vut->getTotalBitSize()); //src length
+
+       fp->write(", ");
+       fp->write_decimal(tobe->getTotalBitSize()); //tobe length
+
+       if(m_state.isAStringType(vuti) && (tobe->getUlamTypeEnum() == Bool))  //validate string t41425
+	 fp->write(", Ug_globalNumberofStrings"); //max user string index, global
+
+       fp->write(");"); GCNL;
      }
 
-   fp->write(", ");
-
-   assert(!(m_state.isAtom(tobeType) || m_state.isAtom(vuti)));
-   //LENGTH of node being casted (Uh_AP_mi::LENGTH ?)
-   //fp->write(m_state.getBitVectorLengthAsStringForCodeGen(nodetype).c_str());
-   fp->write_decimal(vut->getTotalBitSize()); //src length
-
-   fp->write(", ");
-   fp->write_decimal(tobe->getTotalBitSize()); //tobe length
-
-   if(m_state.isAStringType(vuti) && (tobe->getUlamTypeEnum() == Bool))  //validate string t41425
-     fp->write(", Ug_globalNumberofStrings"); //max user string index, global
-
-   fp->write(");"); GCNL;
 
    //support constant function parameters using constant primitive types (t41240)
    UTI derefTobe = m_state.getUlamTypeAsDeref(tobeType);
@@ -867,7 +917,7 @@ namespace MFM {
    if(isTerminal)
      uvpass = UVPass::makePass(tmpVarCastNum, TMPREGISTER, derefTobe, m_state.determinePackable(tobeType), m_state, 0, 0); //POS 0 rightjustified.
    else
-     uvpass = UVPass::makePass(tmpVarCastNum, tobe->getTmpStorageTypeForTmpVar(), derefTobe, m_state.determinePackable(tobeType), m_state, 0, uvpass.getPassApplyDelta(), uvpass.getPassNameId()); //POS 0 rightjustified; pass along name id and apply delta
+     uvpass = UVPass::makePass(tmpVarCastNum, tostor, derefTobe, m_state.determinePackable(tobeType), m_state, 0, uvpass.getPassApplyDelta(), uvpass.getPassNameId()); //POS 0 rightjustified; pass along name id and apply delta
    //   m_state.clearCurrentObjSymbolsForCodeGen(); //clear by now
   } //genCodeReadIntoATmpVar
 

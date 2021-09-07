@@ -210,7 +210,13 @@ namespace MFM {
 	methodname << "NAV";
 	break;
       };
-    methodname << nut->getTotalWordSize();
+
+    u32 twsize = nut->getTotalWordSize();
+    if(twsize <= MAXBITSPERLONG)
+      methodname << twsize; //not for Big Bits
+    else
+      methodname << "BV";  //t41563
+
     return methodname.str();
   } // methodNameForCodeGen
 

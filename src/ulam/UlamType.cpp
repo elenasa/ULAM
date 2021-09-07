@@ -339,8 +339,11 @@ namespace MFM {
 	ctype = "u64";
 	break;
       case 96:
-	ctype = "BV96";
-	break;
+	if(!isPrimitiveType())
+	  {
+	    ctype = "BV96";
+	    break;
+	  }
       default:
 	{
 	  //assert(!isScalar()); t41562

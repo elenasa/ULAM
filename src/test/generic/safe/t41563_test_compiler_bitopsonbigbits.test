@@ -1,16 +1,16 @@
 ## -*- mode:ulam -*-
 #=t41563_test_compiler_bitopsonbigbits
 ##
-##  gen output: 2 asserts
-##
+##  gen output:
+##    String(1) Arg: "nonzero"
+##    String(3) Arg: "still nonzero"
+##    String(6) Arg: "now zero"
 #!
 Exit status: -11
-Ue_Anchor10 { System s();  Int test() {  QSegment(120u) x;  typedef Bits(120) MPayload;  SegPkt10 pkt[3];  pkt 1 [] mCN . 3u = pkt 1 [] mUpbound . true = x mMessageBuffer . mPayload . pkt 1 [] cast = pkt 2 [] x mMessageBuffer . mPayload . cast = self s . ( pkt 1 [] mCN . pkt 2 [] mCN . == )assert . self s . ( pkt 2 [] mUpbound . )assert . 0 cast return } }
-Un_SegPkt10 { typedef Unsigned(3) CN;  constant Unsigned(3) cNO_OP = 0u;  constant Unsigned(3) cSET_LENGTH = 1u;  constant Unsigned(3) cSET_STRETCH = 2u;  constant Unsigned(3) cSET_ANGLE = 3u;  constant Unsigned(3) cSET_FLEX = 4u;  constant Unsigned(3) cGROW_HEAD = 5u;  constant Unsigned(3) cRSV6 = 6u;  constant Unsigned(3) cRSV7 = 7u;  Bool mUpbound(false);  Unsigned(3) mCN(0);  String mStr( "Hello World");  Atom mAtom(Atom);  <NOMAIN> }
-Un_QSegment(Unsigned cMSG_BITS) : QSeg { typedef QIMsg(bits) QC_QIMsg;  QIMsg(bits) mMessageBuffer(notready);  :QSeg< typedef Unsigned(5) SegPtr;  typedef Unsigned(2) Type; > <NOMAIN> }
+Ue_QE { Int test() {  Q q;  q ( )func . 0 cast return } }
+Un_Q { constant Unsigned cSIZE = 66u;  constant Unsigned cHALF = 33u;  typedef Bits(66) CBits;  Bits(66) mBits(0);  <NOMAIN> }
+Uq_SystemU3 : System { :System<> <NOMAIN> }
 Uq_System { <NOMAIN> }
-Uq_QSeg { typedef Unsigned(5) SegPtr;  typedef Unsigned(2) Type;  <NOMAIN> }
-Un_QIMsg(Unsigned bits) { typedef Bits(UNKNOWN) Payload;  typedef Unary(2) Direction;  constant Unary(2) cEMPTY = 0u;  constant Unary(2) cUP = 1u;  constant Unary(2) cDOWN = 3u;  Unary(2) mDirection(0);  Bits(UNKNOWN) mPayload(notready);  <NOMAIN> }
 ##
 ## informed by Dave 9/4/21
 ##
@@ -52,6 +52,23 @@ transient Q {
       du.print("now nonzero");
     else
       du.print("now zero");
+
+    v = 0;
+    v = ((CBits) 1u)<<cHALF;
+    du.print((Unsigned) v); //65536 cSIZE==32
+    v = v >> cHALF;
+    du.print((Unsigned) v); //1
+    if (v != 0u)
+      du.print("v now nonzero");
+    else
+      du.print("v now zero");
+
+    if (v == 1u)
+      du.print("v now one");
+    else
+      du.print("v not one");
+
+
   }
 }
 

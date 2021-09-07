@@ -12,13 +12,18 @@ namespace MFM {
   {
     s32 bitsize = getBitSize();
     m_max = m_min = 0; //not allowed
-    if(bitsize <= MAXBITSPERTRANSIENT)
+    if(bitsize <= MAXBITSPERLONG)
       {
 	m_wordLengthTotal = calcWordSize(getTotalBitSize());
 	m_wordLengthItem = calcWordSize(bitsize);
       }
+    else if(bitsize <= MAXBITSPERTRANSIENT)
+      {
+	m_wordLengthTotal = MAXBITSPERTRANSIENT;
+	m_wordLengthItem = MAXBITSPERTRANSIENT;
+      }
     else
-      m_state.abortGreaterThanMaxBitsPerLong(); //per transient
+      m_state.abortGreaterThanMaxBitsPerBiggestBV(); //per transient
   }
 
    ULAMTYPE UlamTypePrimitiveBits::getUlamTypeEnum()
