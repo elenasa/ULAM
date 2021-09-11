@@ -341,9 +341,9 @@ namespace MFM {
       case 96:
 	if(!isPrimitiveType())
 	  {
-	    ctype = "BV96";
+	    ctype = "BV96"; //atom, element, maybe 1 transient, or quark array
 	    break;
-	  }
+	  } //else fall thru
       default:
 	{
 	  //assert(!isScalar()); t41562
@@ -844,7 +844,7 @@ namespace MFM {
 	if(isPrimitiveType())
 	  method = "ReadBV";
 	else
-	method = "ReadBig";
+	  method = "ReadBig";
 	break;
       default:
 	method = "ReadBV"; //template arg deduced by gcc

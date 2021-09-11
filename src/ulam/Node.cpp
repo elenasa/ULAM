@@ -924,14 +924,19 @@ namespace MFM {
     if((cosut->getUlamClassType() == UC_TRANSIENT))
       return genCodeReadTransientIntoATmpVar(fp, uvpass);
 
-    if(m_state.isAStringType(cosuti) && (cstor == TMPTBV))
-      return genCodeReadStringArrayIntoATmpVar(fp, uvpass); //t41277
+    //if(m_state.isAStringType(cosuti) && (cstor == TMPTBV))
+    if(m_state.isAStringType(cosuti) && !cosut->isScalar())
+      return genCodeReadStringArrayIntoATmpVar(fp, uvpass); //t41277,t3975
 
-    bool varcomesfirst = ((cstor == TMPTBV) && cosut->isScalar() && (cosut->getTotalBitSize() > MAXBITSPERLONG)); //t41562, not arrays: t3704,6,7,9, t3896,7,9
+    //bool varcomesfirst = ((cstor == TMPTBV) && cosut->isScalar() && (cosut->getTotalBitSize() > MAXBITSPERLONG)); //t41562, not arrays: t3704,6,7,9, t3896,7,9
+    bool varcomesfirst = (cstor == TMPTBV) && (cosut->getSizeofUlamType() > MAXBITSPERLONG); //t41562, entire arrays: t3704,6,7,9, t3896,7,9; t3255 (TMPTATOM);
+
     const std::string rmethod = readMethodForCodeGen(cosuti, uvpass);
 
     s32 tmpVarNum = m_state.getNextTmpVarNumber();
     m_state.indentUlamCode(fp);
+    if(!varcomesfirst)
+      fp->write("const "); //missing??
     fp->write(tmpStorageTypeForRead(cosuti, uvpass).c_str());
     fp->write(" ");
     fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNum, cstor).c_str());
@@ -1069,7 +1074,8 @@ namespace MFM {
     ULAMCLASSTYPE nclasstype = ncut->getUlamClassType();
 
     bool cosIsTheConstantClass = (cos == ncsym);
-
+    //bool varcomesfirst = (coslen > MAXBITSPERLONG) || (cstor == TMPTBV);
+    bool varcomesfirst = cosIsTheConstantClass && ((coslen > MAXBITSPERLONG) || (cstor == TMPTBV)); //t41232
 
     if(cosIsTheConstantClass) //cos is the constant class
       {
@@ -1080,7 +1086,7 @@ namespace MFM {
       }
     else
       {
-	//that is cos is a data member of our constant class,
+	//that is cos is a data member of our constant class, t41232
 	assert(cos->isDataMember()); //namedconstantclassidx < (cosSize - 1))
 	assert(namedconstantclassidx < (cosSize - 1));
 	assert(((SymbolVariableDataMember *) cos)->isPosOffsetReliable());
@@ -1094,7 +1100,15 @@ namespace MFM {
     fp->write(cosut->getTmpStorageTypeAsString().c_str()); //u32, T, BV non-const
     fp->write(" ");
     fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNum, cstor).c_str());
-    fp->write(" = ");
+    if(!varcomesfirst)
+      fp->write(" = ");
+    else
+      {
+	fp->write("; // constant value of ");
+	fp->write(m_state.m_pool.getDataAsString(ncsym->getId()).c_str()); //t41234
+	GCNL;
+	m_state.indentUlamCode(fp);
+      }
 
     if(!cosIsTheConstantClass) //t41209
       {
@@ -1121,6 +1135,12 @@ namespace MFM {
 	fp->write(", uc).");
 	fp->write(cosut->readMethodForCodeGen().c_str()); //t41232 (e.g. element dm in transient)
 	fp->write("()");
+      }
+    else if(varcomesfirst)
+      {
+	fp->write(".read(");
+	fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNum, cstor).c_str());
+	fp->write(")");	//t41234
       }
     else
       fp->write(".read()");
@@ -1282,34 +1302,53 @@ namespace MFM {
     UTI cosuti = cos->getUlamTypeIdx();
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
     TMPSTORAGE cstor = cosut->getTmpStorageTypeForTmpVar();
+    u32 coslen = cosut->getSizeofUlamType();
     UTI stgcosuti = stgcos->getUlamTypeIdx();
 
     s32 tmpVarNum = m_state.getNextTmpVarNumber(); //t41271
     bool isLocal = Node::isCurrentObjectALocalVariableOrArgument();
 
+    bool varcomesfirst = (coslen > MAXBITSPERLONG) || (cstor == TMPTBV); //t3715,t41269,t41416?
+    const std::string rmethod = readMethodForCodeGen(cosuti, uvpass);
+
+    m_state.indentUlamCode(fp);
+    if(!varcomesfirst)
+      fp->write("const ");
+
+    fp->write(tmpStorageTypeForRead(cosuti, uvpass).c_str());
+    fp->write(" ");
+    fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNum, cstor).c_str());
+    if(varcomesfirst)
+      {
+	fp->write(";"); GCNL;
+      }
+    else
+      fp->write(" = ");
+
     if(isLocal && !cos->isDataMember())
       {
 	//including TmpVarSymbol (t41272); not data member since needs UlamRef (t41269)
-	m_state.indentUlamCode(fp);
-	fp->write("const ");
-	fp->write(tmpStorageTypeForRead(cosuti, uvpass).c_str());
-	fp->write(" ");
-	fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNum, cstor).c_str());
-	fp->write(" = ");
-	//read method based on last cos
-	genLocalMemberNameOfMethod(fp, uvpass);
-	fp->write(readMethodForCodeGen(cosuti, uvpass).c_str());
-	fp->write("();"); GCNL;
+	if(varcomesfirst)
+	  {
+	    m_state.indentUlamCode(fp); //not const
+	    genLocalMemberNameOfMethod(fp, uvpass);
+	    fp->write(rmethod.c_str());
+	    fp->write("(");
+	    fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNum, cstor).c_str());
+	    fp->write(");"); GCNL; //t3715
+	  }
+	else
+	  {
+	    //read method based on last cos
+	    genLocalMemberNameOfMethod(fp, uvpass);
+	    fp->write(rmethod.c_str());
+	    fp->write("();"); GCNL;
+	  }
       }
     else
       {
-	m_state.indentUlamCode(fp); //not const
-	fp->write(tmpStorageTypeForRead(cosuti, uvpass).c_str());
-	fp->write(" ");
-	fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNum, cstor).c_str());
-	fp->write(";"); GCNL;
-
-	m_state.indentUlamCode(fp); //not const
+	if(varcomesfirst)
+	  m_state.indentUlamCode(fp); //not const
 	if(stgcos->isSelf() && (stgcos == cos))
 	  genSelfNameOfMethod(fp); //transient as-cond (t41359)
 	else if(!isLocal)
@@ -1318,17 +1357,24 @@ namespace MFM {
 	  genLocalMemberNameOfMethod(fp, uvpass); //transient const ref func arg (t41271)
 
 	//read method based on last cos
-	fp->write(readMethodForCodeGen(cosuti, uvpass).c_str());
+	fp->write(rmethod.c_str());
 	if(cos->isDataMember() || m_state.isAltRefType(stgcosuti))
 	  {
-	    fp->write("(0u, "); //pos part of local member name (UlamRef) (e.g. t3739, 3788, 3789, 3795, 3805)
-	    fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNum, cstor).c_str()); //t41269
-	    fp->write(");"); GCNL;
+	    if(coslen > MAXBITSPERLONG)
+	      {
+		fp->write("(0u, "); //pos part of local member name (UlamRef) (e.g. t3739, 3788, 3789, 3795, 3805)
+		fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNum, cstor).c_str()); //t41269
+		fp->write(");"); GCNL;
+	      }
+	    else
+	      {
+		fp->write("();"); GCNL; //t3739
+	      }
 	  }
 	else
 	  {
-	    fp->write("("); //use immediate's read for gather among scattered bases (ulam-5); t41359
-	    fp->write(");"); GCNL;
+	    //use immediate's read for gather among scattered bases (ulam-5); t41359
+	    fp->write("();"); GCNL;
 	  }
       }
     uvpass = UVPass::makePass(tmpVarNum, cstor, cosuti, m_state.determinePackable(cosuti), m_state, 0, 0); //POS 0 justified (atom-based).
@@ -1409,6 +1455,36 @@ namespace MFM {
 	genCodeReadElementTypeField(fp, typuvpass);
       }
 
+    TMPSTORAGE rstor = ruvpass.getPassStorage();
+    u32 rlen = rut->getSizeofUlamType(); //ruvpass.getPassLen(); item size; t3710 element
+
+    //bool varcomesfirst = (rlen > MAXBITSPERLONG) && (!m_state.isAtom(ruti) || !m_state.isScalar(ruti)); //t3223 atomref
+    //bool varcomesfirst = (rstor != TMPTBV) && (rlen > MAXBITSPERLONG) && (!m_state.isAtom(ruti) || !m_state.isScalar(ruti)); //t3223 atomref; t3896 already a bitvector
+    bool varcomesfirst = (rstor != TMPTBV) && (rstor != TMPTATOM) && (rlen > MAXBITSPERLONG); //t3223 atomref; t3896 already a bitvector; t3277 already a T;
+    s32 tmpVarFirstNum = m_state.getNextTmpVarNumber();
+    if(varcomesfirst)
+      {
+	const std::string rmethod = readMethodForCodeGen(ruti, ruvpass);
+	m_state.indentUlamCode(fp);
+	fp->write(tmpStorageTypeForRead(ruti, ruvpass).c_str());
+	fp->write(" ");
+	fp->write(m_state.getTmpVarAsString(ruti, tmpVarFirstNum, rstor).c_str());
+	fp->write(";\n");
+
+	m_state.indentUlamCode(fp);
+	fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
+	fp->write(".");
+	fp->write(rmethod.c_str());
+	fp->write("(");
+	if(rmethod[0] == 'R')
+	  {
+	    fp->write_decimal_unsigned(ruvpass.getPassPos());
+	    fp->write("u, ");
+	  }
+	fp->write(m_state.getTmpVarAsString(ruti, tmpVarFirstNum, rstor).c_str());
+      	fp->write(");"); GCNL;
+      }
+
     const std::string wmethod = writeMethodForCodeGen(cosuti, luvpass);
     m_state.indentUlamCode(fp);
 
@@ -1437,8 +1513,6 @@ namespace MFM {
     //VALUE TO BE WRITTEN:
     // with immediate quarks, they are read into a tmpreg as other immediates
     // with immediate elements, too! value is not a terminal
-    TMPSTORAGE rstor = ruvpass.getPassStorage();
-    u32 rlen = ruvpass.getPassLen();
     if((rstor == TMPTBV) && rut->isScalar() && (rlen > MAXBITSPERLONG))
       {
 	if(wmethod[0] == 'W')
@@ -1446,24 +1520,18 @@ namespace MFM {
 	//else 'write'
       }
 
-    fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
+    if(varcomesfirst)
+	fp->write(m_state.getTmpVarAsString(ruti, tmpVarFirstNum, rstor).c_str());
+    else
+      fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
 
-    if((rstor == TMPBITVAL) || (rstor == TMPAUTOREF))
-      fp->write(".read()");
-    else if((rstor == TMPTBV) && rut->isScalar() && (rlen <= MAXBITSPERLONG)) //t41416 Transient in tmpvar..used without WriteBV.
+    if(!varcomesfirst)
       {
-	if(rlen <= MAXBITSPERINT)
-	  fp->write(".Read(");
-	else if(rlen <= MAXBITSPERLONG)
-	  fp->write(".ReadLong(");
-	else
-	  m_state.abortShouldntGetHere();
-	fp->write_decimal_unsigned(ruvpass.getPassPos());
-	fp->write(",");
-	fp->write_decimal_unsigned(rlen);
-	fp->write(")");
-      } //else //t3975,t3896 (big arrays)
-    //else fall-thru
+	if((rstor == TMPBITVAL) || (rstor == TMPAUTOREF))
+	  fp->write(".read()");
+	//else fall-thru
+      }
+
     fp->write(");"); GCNL;
 
     // inheritance cast needs the lhs type restored after the generated write
@@ -1529,6 +1597,8 @@ namespace MFM {
       }
 
     UTI cosuti = cos->getUlamTypeIdx();
+    UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
+    u32 coslen = cosut->getSizeofUlamType();
     u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
 
     m_state.indentUlamCode(fp);
@@ -1543,20 +1613,27 @@ namespace MFM {
 	genLocalMemberNameOfMethod(fp, luvpass);
       }
 
-    fp->write(writeMethodForCodeGen(cosuti, luvpass).c_str()); //t3739
+    fp->write(writeMethodForCodeGen(cosuti, luvpass).c_str());
     if(cosSize > 1)
       {
 	assert(cos->isDataMember()); //sanity
-	fp->write("(0u, "); //pos part of local member name (UlamRef);t41355
+	if(coslen > MAXBITSPERLONG)
+	  fp->write("(0u, "); //pos part of local member name (UlamRef);t41355
+	else
+	  fp->write("("); //t3739
+
+	fp->write(ruvpass.getTmpVarAsString(m_state).c_str()); //tmp var ref
+	fp->write(");"); GCNL;
       }
     else
       {
 	fp->write("("); //use immediate's write for distrib among scattered bases (ulam-5); t41358
+	fp->write(ruvpass.getTmpVarAsString(m_state).c_str()); //tmp var ref
+	fp->write(");"); GCNL;
       }
-    fp->write(ruvpass.getTmpVarAsString(m_state).c_str()); //tmp var ref
+
     //if((ruvpass.getPassStorage() == TMPBITVAL) && m_state.isAClass(ruvpass.getPassTargetType()))
     //  fp->write(".read()"); //t41355, t3715 (primitive)
-    fp->write(");"); GCNL;
 
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeWriteToTransientFromATmpVar
@@ -1727,26 +1804,42 @@ namespace MFM {
     //e.g. could be primitive ref from aref (t3653, t41333,6)
     UTI derefvuti = m_state.getUlamTypeAsDeref(vuti); //type after read
     UlamType * derefvut = m_state.getUlamTypeByIndex(derefvuti);
+    TMPSTORAGE dstor = derefvut->getTmpStorageTypeForTmpVar();
+
+    bool varcomesfirst = (derefvut->getSizeofUlamType() > MAXBITSPERLONG) || (dstor == TMPTBV);; //t3704
 
     // write out immediate tmp BitValue as an intermediate tmpVar
     s32 tmpVarNum2 = m_state.getNextTmpVarNumber();
-    TMPSTORAGE tmp2stor = derefvut->getTmpStorageTypeForTmpVar();
 
     m_state.indentUlamCode(fp);
-    fp->write("const ");
+    if(!varcomesfirst)
+      fp->write("const ");
 
     fp->write(derefvut->getTmpStorageTypeAsString().c_str()); //u32
     fp->write(" ");
-    fp->write(m_state.getTmpVarAsString(derefvuti, tmpVarNum2, tmp2stor).c_str());
-    fp->write(" = ");
+    fp->write(m_state.getTmpVarAsString(derefvuti, tmpVarNum2, dstor).c_str());
 
-    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
-    fp->write(".read();"); GCNL;
+    if(varcomesfirst)
+      {
+	fp->write(";\n");
+
+	m_state.indentUlamCode(fp);
+	fp->write(uvpass.getTmpVarAsString(m_state).c_str());
+	fp->write(".read(");
+	fp->write(m_state.getTmpVarAsString(derefvuti, tmpVarNum2, dstor).c_str());
+	fp->write(");"); GCNL; //t3704
+      }
+    else
+      {
+	fp->write(" = ");
+	fp->write(uvpass.getTmpVarAsString(m_state).c_str());
+	fp->write(".read();"); GCNL;
+      }
 
     // use immediate read for entire array; doesn't make sense for custom arrays
     assert(!isCurrentObjectAnArrayItem(vuti, uvpass)); //sanity
 
-    uvpass = UVPass::makePass(tmpVarNum2, tmp2stor, derefvuti, m_state.determinePackable(derefvuti), m_state, 0, 0); //POS 0 rightjustified (atom-based).
+    uvpass = UVPass::makePass(tmpVarNum2, dstor, derefvuti, m_state.determinePackable(derefvuti), m_state, 0, 0); //POS 0 rightjustified (atom-based).
     uvpass.setPassPos(0); //entire register
     m_state.clearCurrentObjSymbolsForCodeGen(); //forgotten?
   } //genCodeConvertABitVectorIntoATmpVar

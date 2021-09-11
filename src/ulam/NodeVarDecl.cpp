@@ -942,8 +942,8 @@ namespace MFM {
     if((classtype == UC_TRANSIENT) && (len > MAXSTATEBITS))
       return evalStatusReturnNoEpilog(UNEVALUABLE);
 
-    if((nut->getUlamTypeEnum() == Bits) && (len > MAXBITSPERLONG))
-      return evalStatusReturnNoEpilog(UNEVALUABLE); //t41563
+    if((nut->getUlamTypeEnum() == Bits) && nut->isScalar() && (len > MAXBITSPERLONG))
+      return evalStatusReturnNoEpilog(UNEVALUABLE); //t41563,t3877
 
     assert(m_varSymbol->getUlamTypeIdx() == nuti); //is it so? if so, some cleanup needed
 

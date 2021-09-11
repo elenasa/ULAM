@@ -373,7 +373,7 @@ namespace MFM {
 
     m_state.m_currentObjSymbolsForCodeGen.push_back(m_constSymbol); //*********UPDATED GLOBAL;
 
-    // UNCLEAR: should this be consistent with constants?
+    // UNCLEAR: should this be consistent with constants? t3896?
     Node::genCodeReadIntoATmpVar(fp, uvpass);
   } //genCode
 

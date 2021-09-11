@@ -1,5 +1,7 @@
 ## -*- mode:ulam -*-
 #=t41416_test_compiler_castingbitstotransient_ish
+##
+##  gen output: 2 asserts
 #!
 Exit status: -11
 Ue_Anchor10 : QSegment(4u) { System s();  :QSegment(4u)< constant Unsigned cMSG_BITS = 4u;  typedef QIMsg(4u) QC_QIMsg;  QIMsg(4u) mMessageBuffer( typedef Bits(4) Payload;  Bits(4) mPayload(0);  constant Unsigned bits = 4u;  typedef Unary(2) Direction;  constant Unary(2) cEMPTY = 0u;  constant Unary(2) cUP = 1u;  constant Unary(2) cDOWN = 3u;  Unary(2) mDirection(0u); );  :QSeg< typedef Unsigned(5) SegPtr;  typedef Unsigned(2) Type; >> ^QSeg< typedef Unsigned(5) SegPtr;  typedef Unsigned(2) Type; > Int test() {  typedef Bits(4) MPayload;  SegPkt10 pkt;  pkt mCN . 3u = pkt mUpbound . true = self mMessageBuffer . mPayload . pkt cast = SegPkt10 pkt2 = self mMessageBuffer . mPayload . cast;  self s . ( pkt mCN . pkt2 mCN . == )assert . self s . ( pkt2 mUpbound . )assert . 0 cast return } }

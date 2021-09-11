@@ -1,5 +1,5 @@
 ## -*- mode:ulam -*-
-#=t41563_test_compiler_bitopsonbigbits
+#=t41565_test_compiler_bitopsonbigbits_opsequal
 ##
 ##  gen output:
 ##    String(1) Arg: "nonzero"
@@ -17,7 +17,7 @@ Un_Q { constant Unsigned cSIZE = 66u;  constant Unsigned cHALF = 22u;  typedef B
 Uq_SystemU3 : System { :System<> <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
-## informed by Dave 9/4/21, see also t41565
+## informed by Dave 9/4/21, see also t41563
 ##
 #>QE.ulam
   ulam 5;
@@ -33,7 +33,7 @@ element QE {
   ulam 5;
 transient Q {
   constant Unsigned cSIZE = 66u;
-  constant Unsigned cHALF = cSIZE/3u; //thirds better to debug
+  constant Unsigned cHALF = cSIZE/3u; //thirds easier to debug
   typedef Bits(cSIZE) CBits;
   CBits mBits;
 
@@ -41,7 +41,6 @@ transient Q {
     SystemU3 du;
     mBits = 0u;
     CBits v;
-
     v = ((CBits) 1u)<<cHALF;
 
     mBits |= v;
@@ -63,11 +62,11 @@ transient Q {
       du.print("now zero");
 
     //right shift case: (w cast to Unsigned)
-    v = 0;
-    v = ((CBits) 1u) << cHALF;
-    du.print((Unsigned) v); //65536 when cSIZE==32
-    v = v >> cHALF;
-    //v >>= cHALF; see t41565
+    v = 1u;
+    v <<= cHALF;
+    du.print((Unsigned) v); //==0; 65536 when cSIZE==32
+
+    v >>= cHALF;
     du.print((Unsigned) v); //1
     if (v != 0u)
       du.print("v now nonzero");

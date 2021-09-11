@@ -534,10 +534,20 @@ namespace MFM {
     fp->write("(const ");
     fp->write(mangledName.c_str()); //u32
     fp->write("& other) : BVS() { "); //-Wextra
-    fp->write("this->write");
-    fp->write("(other.");
-    fp->write("read");
-    fp->write("()); }"); GCNL;
+    if(len > MAXBITSPERLONG)
+      {
+	fp->write(getTmpStorageTypeAsString().c_str()); //BV
+	fp->write(" tmpbv; other.read(tmpbv);");
+	fp->write("this->write");
+	fp->write("(tmpbv); }"); GCNL;
+      }
+    else
+      {
+	fp->write("this->write");
+	fp->write("(other.");
+	fp->write("read");
+	fp->write("()); }"); GCNL;
+      }
 
     //constructor from ref of same type
     m_state.indent(fp);
@@ -545,8 +555,18 @@ namespace MFM {
     fp->write("(const ");
     fp->write(automangledName.c_str());
     fp->write("<EC>& d) { "); //uc consistent with atomref
-    fp->write("this->write(");
-    fp->write("d.read()); }"); GCNL;
+    if(len > MAXBITSPERLONG)
+      {
+	fp->write(getTmpStorageTypeAsString().c_str()); //BV
+	fp->write(" tmpbv; d.read(tmpbv);");
+	fp->write("this->write");
+	fp->write("(tmpbv); }"); GCNL;
+      }
+    else
+      {
+	fp->write("this->write(");
+	fp->write("d.read()); }"); GCNL;
+      }
 
     //default destructor (intentionally left out
 

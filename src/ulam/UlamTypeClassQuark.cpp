@@ -406,6 +406,21 @@ namespace MFM {
 	fp->write("else { return Usi(*this).read(); } }"); GCNL;
       }
 
+    //overload PACKED arrays, as well as UNPACKED ones
+    if(getTotalBitSize() > MAXBITSPERLONG)
+      {
+	m_state.indent(fp);
+	fp->write("void ");
+	fp->write(" read(");
+	fp->write(getTmpStorageTypeAsString().c_str()); //BV
+	fp->write("& rtnbv) const { ");
+	fp->write("if(&Us::THE_INSTANCE==this->GetEffectiveSelfPointer()){ ");
+	fp->write("this->GetStorage().");
+	fp->write(readMethodForCodeGen().c_str()); //just the guts
+	fp->write("(this->GetPos(),rtnbv); /*entire quark array */}");
+	fp->write("else { Usi(*this).read(rtnbv); } }"); GCNL;
+      }
+
     //scalar and entire PACKEDLOADABLE array handled by read method
     if(!isScalar())
       {
@@ -687,8 +702,18 @@ namespace MFM {
     fp->write("(const ");
     fp->write(mangledName.c_str());
     fp->write("<EC> & arg) : BVS() { "); //Wextra
-    fp->write("write(arg.");
-    fp->write("read()); }"); GCNL;
+    if(len > MAXBITSPERLONG)
+      {
+	fp->write(getTmpStorageTypeAsString().c_str()); //BV t3707
+	fp->write(" tmpbv; arg.read(tmpbv);");
+	fp->write("this->write");
+	fp->write("(tmpbv); }"); GCNL;
+      }
+    else
+      {
+	fp->write("write(arg.");
+	fp->write("read()); }"); GCNL;
+      }
 
     //constructor for constants
     m_state.indent(fp);
@@ -784,7 +809,8 @@ namespace MFM {
   void UlamTypeClassQuark::genUlamTypeReadDefinitionForC(File * fp)
   {
     u32 totbitsize = getTotalBitSize();
-    if(totbitsize <= BITSPERATOM) //Big 96bit array is unpacked, but.. (t3776,t3969)
+    //    if(totbitsize <= BITSPERATOM) //Big 96bit array is unpacked, but.. (t3776,t3969)
+    if(totbitsize <= MAXBITSPERLONG) //Big 96bit array is unpacked, but.. (t3776,t3969)
       {
 	m_state.indent(fp);
 	fp->write("const ");
@@ -806,14 +832,11 @@ namespace MFM {
       {
 	//UNPACKED
 	m_state.indent(fp);
-	fp->write("const ");
+	fp->write("void ");
+	fp->write(" read(");
 	fp->write(getTmpStorageTypeAsString().c_str()); //BV
-	fp->write(" read");
-	fp->write("() const { ");
-	fp->write(getTmpStorageTypeAsString().c_str()); //BV
-	fp->write(" rtnunpbv; this->BVS::");
-	fp->write(readMethodForCodeGen().c_str());
-	fp->write("(0u, rtnunpbv); return rtnunpbv; ");
+	fp->write("& rtnbv) const { ");
+	fp->write("this->BVS::ReadBV(0u, rtnbv);");
 	fp->write("} //reads entire BV"); GCNL;
       }
 
