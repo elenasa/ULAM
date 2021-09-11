@@ -536,6 +536,10 @@ namespace MFM {
     if(m_state.isAClass(nuti))
       return nuti; //t41484 (e.g. node sq bkt)
 
+    u32 wordsize = m_state.getTotalWordSize(nuti);
+    if(wordsize > MAXBITSPERLONG)
+      return nuti; //t41563?
+
     NNO pno = Node::getYourParentNo();
     assert(pno);
 
@@ -764,26 +768,46 @@ namespace MFM {
 
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    TMPSTORAGE nstor = nut->getTmpStorageTypeForTmpVar(); //t41563
+    bool varcomesfirst = (nstor == TMPTBV); //t41563
+
     s32 tmpVarNum = m_state.getNextTmpVarNumber();
 
     m_state.indentUlamCode(fp);
-    fp->write("const ");
+    if(!varcomesfirst)
+      fp->write("const ");
     fp->write(nut->getTmpStorageTypeAsString().c_str()); //e.g. u32, s32, u64..
     fp->write(" ");
 
-    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPREGISTER).c_str());
-    fp->write(" = ");
+    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, nstor).c_str());
+    if(varcomesfirst)
+      {
+	fp->write(";"); GCNL;
 
-    fp->write(methodNameForCodeGen().c_str());
-    fp->write("(");
-    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
-    fp->write(", ");
-    fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
-    fp->write(", ");
-    fp->write_decimal(nut->getTotalBitSize()); //if scalar, it's just the bitsize
-    fp->write(");"); GCNL;
+	m_state.indentUlamCode(fp);
+	fp->write(luvpass.getTmpVarAsString(m_state).c_str());
+	fp->write(".");
+	fp->write(methodNameForCodeGen().c_str());
+	fp->write("(");
+	fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
+	fp->write(", ");
+	fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, nstor).c_str());
+	fp->write(");"); GCNL; //t41563
+      }
+    else
+      {
+	fp->write(" = ");
+	fp->write(methodNameForCodeGen().c_str());
+	fp->write("(");
+	fp->write(luvpass.getTmpVarAsString(m_state).c_str());
+	fp->write(", ");
+	fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
+	fp->write(", ");
+	fp->write_decimal(nut->getTotalBitSize()); //if scalar, it's just the bitsize
+	fp->write(");"); GCNL;
+      }
 
-    uvpass = UVPass::makePass(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //P
+    uvpass = UVPass::makePass(tmpVarNum, nstor, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //P
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
   } //genCode
 

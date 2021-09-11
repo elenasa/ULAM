@@ -209,12 +209,22 @@ namespace MFM {
     // "safeness" based on deref of newtype
     if(UlamType::compareForAssignment(lt, rt, m_state) != UTIC_SAME)
       {
-	if(checkSafeToCastTo(rt, newtyperef))
+	//special case for Bits to Bits assignments; if lbs < rbs, i.e. not safe-to-cast, drop bits
+	if((m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum() == Bits) && (m_state.getUlamTypeByIndex(rt)->getUlamTypeEnum() == Bits))
 	  {
 	    UTI derefLeft = m_state.getUlamTypeAsDeref(lt); //tmp deref type
 	    if(!Node::makeCastingNode(m_nodeRight, derefLeft, m_nodeRight))
 	      newtyperef = Nav; //error
-	  } //else not safe, error msg, newTyperef changed
+	    else
+	      newtyperef = derefLeft; //t41563
+	  }
+	else if(checkSafeToCastTo(rt, newtyperef))
+	  {
+	    UTI derefLeft = m_state.getUlamTypeAsDeref(lt); //tmp deref type
+	    if(!Node::makeCastingNode(m_nodeRight, derefLeft, m_nodeRight))
+	      newtyperef = Nav; //error
+	  }
+	//else not safe, error msg, newTyperef changed
       } //else the same
   }
 

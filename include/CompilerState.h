@@ -749,6 +749,7 @@ namespace MFM{
     bool isStillHazy(UTI uti);
 
     inline void abortGreaterThanMaxBitsPerLong() { assert(0); }
+    inline void abortGreaterThanMaxBitsPerBiggestBV() { assert(0); }
     inline void abortUndefinedUlamType() { assert(0); }
     inline void abortUndefinedUlamClassType() { assert(0); }
     inline void abortUndefinedUlamPrimitiveType() { assert(0); }

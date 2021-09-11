@@ -1180,14 +1180,16 @@ namespace MFM {
     if(nuti != Void)
       {
 	UTI vuti = uvpass.getPassTargetType();
+	UlamType * vut = m_state.getUlamTypeByIndex(vuti);
 	// skip reading classes and atoms
-	if(m_state.getUlamTypeByIndex(vuti)->isPrimitiveType())
+	if(vut->isPrimitiveType() && (vut->getTotalBitSize() <= MAXBITSPERLONG))
 	  {
 	    //e.g. t3653, t3946, t41001,7,34,71,73, t41333,6, t41351,3, t41358,9
 	    Node::genCodeConvertABitVectorIntoATmpVar(fp, uvpass); //inc uvpass slot
 	  }
-	//else class or atom stays as a tmpbitval (e.g. t41143)
+	//else class or atom stays as a tmpbitval (e.g. t41143), tmptbv primitives/arrays
       }
+
   } //genCode
 
   // during genCode of a single function body "self" doesn't change!!!

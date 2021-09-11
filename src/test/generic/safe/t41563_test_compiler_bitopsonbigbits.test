@@ -1,0 +1,102 @@
+## -*- mode:ulam -*-
+#=t41563_test_compiler_bitopsonbigbits
+##
+##  gen output:
+##    String(1) Arg: "nonzero"
+##    String(3) Arg: "still nonzero"
+##    String(6) Arg: "now zero"
+##    Unsigned Arg: 4194304
+##    Unsigned Arg: 1
+##    String(7) Arg: "v now nonzero"
+##    String(9) Arg: "v now one"
+##
+#!
+Exit status: -11
+Ue_QE { Int test() {  Q q;  q ( )func . 0 cast return } }
+Un_Q { constant Unsigned cSIZE = 66u;  constant Unsigned cHALF = 22u;  typedef Bits(66) CBits;  Bits(66) mBits(0);  <NOMAIN> }
+Uq_SystemU3 : System { :System<> <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## informed by Dave 9/4/21, see also t41565
+##
+#>QE.ulam
+  ulam 5;
+element QE {
+  Int test() {
+    Q q;
+    q.func();
+    return 0;
+  }
+}
+
+#:Q.ulam
+  ulam 5;
+transient Q {
+  constant Unsigned cSIZE = 66u;
+  constant Unsigned cHALF = cSIZE/3u; //thirds better to debug
+  typedef Bits(cSIZE) CBits;
+  CBits mBits;
+
+  Void func() {
+    SystemU3 du;
+    mBits = 0u;
+    CBits v;
+
+    v = ((CBits) 1u)<<cHALF;
+
+    mBits |= v;
+    if (mBits != 0u)
+      du.print("nonzero"); //YES!
+    else
+      du.print("zero");
+
+    mBits &= v;
+    if (mBits != 0u)
+      du.print("still nonzero"); //HERE!!
+    else
+      du.print("still zero");
+
+    mBits ^= v;
+    if (mBits != 0u)
+      du.print("now nonzero");
+    else
+      du.print("now zero");
+
+    //right shift case: (w cast to Unsigned)
+    v = 0;
+    v = ((CBits) 1u) << cHALF;
+    du.print((Unsigned) v); //65536 when cSIZE==32
+    v = v >> cHALF;
+    //v >>= cHALF; see t41565
+    du.print((Unsigned) v); //1
+    if (v != 0u)
+      du.print("v now nonzero");
+    else
+      du.print("v now zero");
+
+    if ((Unsigned) v == 1u)
+      du.print("v now one"); //YES!!
+    else
+      du.print("v not one");
+  }
+}
+
+#:SystemU3.ulam
+  ulam 3;
+quark SystemU3 : System {
+  Void print(String s) native;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.
