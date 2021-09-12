@@ -449,24 +449,44 @@ namespace MFM {
 
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    TMPSTORAGE nstor = nut->getTmpStorageTypeForTmpVar(); //t41567
+    bool varcomesfirst = (nstor == TMPTBV); //t41567
+
     s32 tmpVarNum = m_state.getNextTmpVarNumber();
 
     m_state.indentUlamCode(fp);
-    fp->write("const ");
+
+    if(!varcomesfirst)
+      fp->write("const ");
     fp->write(nut->getTmpStorageTypeAsString().c_str()); //e.g. u32, s32, u64..
     fp->write(" ");
+    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, nstor).c_str());
 
-    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPREGISTER).c_str());
-    fp->write(" = ");
+    if(varcomesfirst)
+      {
+	fp->write(";"); GCNL;
 
-    fp->write(methodNameForCodeGen().c_str());
-    fp->write("(");
-    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
-    fp->write(", ");
-    fp->write_decimal(nut->getBitSize());
-    fp->write(");"); GCNL;
+	m_state.indentUlamCode(fp);
+	fp->write(uvpass.getTmpVarAsString(m_state).c_str());
+	fp->write(".");
+	fp->write(methodNameForCodeGen().c_str());
+	fp->write("(");
+	fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, nstor).c_str());
+	fp->write(");"); GCNL; //t41567
+      }
+    else
+      {
+	fp->write(" = ");
 
-    uvpass = UVPass::makePass(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //POS 0 rightjustified.
+	fp->write(methodNameForCodeGen().c_str());
+	fp->write("(");
+	fp->write(uvpass.getTmpVarAsString(m_state).c_str());
+	fp->write(", ");
+	fp->write_decimal(nut->getBitSize());
+	fp->write(");"); GCNL;
+      }
+
+    uvpass = UVPass::makePass(tmpVarNum, nstor, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //POS 0 rightjustified.
   } //genCode
 
   void NodeUnaryOp::genCodeToStoreInto(File * fp, UVPass& uvpass)

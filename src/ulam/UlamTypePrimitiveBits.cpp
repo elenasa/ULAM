@@ -96,6 +96,7 @@ namespace MFM {
       case Bool:
       case Unary:
       case Bits:
+      case Class:
 	val = UlamValue::makeImmediate(typidx, data, m_state); //overwrite val
 	break;
       case String:
@@ -131,6 +132,7 @@ namespace MFM {
       case Bool:
       case Unary:
       case Bits:
+      case Class:
 	val = UlamValue::makeImmediateLong(typidx, data, m_state); //overwrite val
 	break;
       default:

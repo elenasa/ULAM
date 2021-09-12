@@ -59,6 +59,13 @@ namespace MFM {
 	m_state.extractTransientBaseFromSubclassForEval(val, typidx, newval);
 	val = newval;
       }
+    else if(fmut->getUlamTypeEnum() == Bits)
+      {
+	if(getTotalBitSize() == fmut->getTotalBitSize())
+	  val.setUlamValueTypeIdx(typidx); //t41570
+	else
+	  brtn = false;
+      }
     else
       brtn = false;
     return brtn;

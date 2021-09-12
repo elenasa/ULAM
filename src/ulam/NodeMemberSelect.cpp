@@ -648,6 +648,26 @@ namespace MFM {
 	ruvpass = luvpass;
       }
     //else
+    else if(m_nodeLeft->isACast()) //t41570
+      {
+	//needs to be read early before rhs.
+	s32 tmpimmediatestgvar = m_state.getNextTmpVarNumber();
+	UTI luti = luvpass.getPassTargetType();
+	UlamType * lut = m_state.getUlamTypeByIndex(luti);
+
+	m_state.indentUlamCode(fp);
+	fp->write(lut->getLocalStorageTypeAsString().c_str());
+	fp->write(" ");
+	fp->write(m_state.getTmpVarAsString(luti, tmpimmediatestgvar, TMPBITVAL).c_str());
+	fp->write("(");
+	fp->write(luvpass.getTmpVarAsString(m_state).c_str());
+	fp->write(");"); GCNL; //t41570
+
+	//replace luvpass with stgpass for tmpvar symbol (t41570)
+	UVPass stgpass = UVPass::makePass(tmpimmediatestgvar, TMPBITVAL, luti, m_state.determinePackable(luti), m_state, 0, 0); //POS 0 justified (atom-based).
+	m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(stgpass, NULL); //dm to avoid leaks
+	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
+      }
 
     //check the back (not front) to process multiple member selections (e.g. t3818)
     m_nodeRight->genCode(fp, ruvpass);  //leave any array item as-is for gencode.
@@ -681,7 +701,26 @@ namespace MFM {
       {
 	ruvpass = luvpass;  //t3615, t3803
       }
-    //else
+    else if(m_nodeLeft->isACast()) //t41570
+      {
+	//needs to be read early before rhs.
+	s32 tmpimmediatestgvar = m_state.getNextTmpVarNumber();
+	UTI luti = luvpass.getPassTargetType();
+	UlamType * lut = m_state.getUlamTypeByIndex(luti);
+
+	m_state.indentUlamCode(fp);
+	fp->write(lut->getLocalStorageTypeAsString().c_str());
+	fp->write(" ");
+	fp->write(m_state.getTmpVarAsString(luti, tmpimmediatestgvar, TMPBITVAL).c_str());
+	fp->write("(");
+	fp->write(luvpass.getTmpVarAsString(m_state).c_str());
+	fp->write(");"); GCNL; //t41570
+
+	//replace luvpass with stgpass for tmpvar symbol (t41570)
+	UVPass stgpass = UVPass::makePass(tmpimmediatestgvar, TMPBITVAL, luti, m_state.determinePackable(luti), m_state, 0, 0); //POS 0 justified (atom-based).
+	m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(stgpass, NULL); //dm to avoid leaks
+	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
+      }
 
     m_nodeRight->genCodeToStoreInto(fp, ruvpass); //uvpass contains the member selected, or cos obj symbol?
 
@@ -692,6 +731,8 @@ namespace MFM {
     // fail/t41035 returns a primitive ref; t3946, t3948
     if(m_nodeRight->isFunctionCall() && !m_state.isStringATmpVar(uvpass.getPassNameId()))
       {
+	if(m_tmpvarSymbol)
+	  delete m_tmpvarSymbol; //?? avoid leaks
 	m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, NULL); //dm to avoid leaks
 	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
       }

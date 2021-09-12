@@ -766,10 +766,15 @@ namespace MFM {
       {
 	genCodeReadIntoATmpVar(fp, uvpass); // cast.
       }
-    else if(m_state.isAltRefType(tobeType)) //to ref type
+
+    //else
+      if(m_state.isAltRefType(tobeType)) //to ref type
       genCodeCastToAReference(fp, uvpass); //minimal casting
     else if(m_state.isAltRefType(nodeType)) //from ref type
       genCodeCastFromAReference(fp, uvpass);
+    else if(isExplicitCast())
+      uvpass.setPassTargetType(getCastType()); //minimal casting; e.g. to/fm Bits (t41570)
+    assert(uvpass.getPassTargetType() == getCastType());
   } //genCode
 
  void NodeCast::genCodeToStoreInto(File * fp, UVPass& uvpass)
@@ -784,6 +789,9 @@ namespace MFM {
       genCodeToStoreIntoCastToAReference(fp, uvpass); //noop
     else if(m_state.isAltRefType(m_node->getNodeType())) //from ref type
       genCodeToStoreIntoCastFromAReference(fp, uvpass); //noop
+    else if(isExplicitCast())
+      uvpass.setPassTargetType(getCastType()); //minimal casting; e.g. to/fm Bits (t41570)
+    assert(uvpass.getPassTargetType() == getCastType());
   } //genCodeToStoreInto
 
   void NodeCast::genCodeReadIntoATmpVar(File * fp, UVPass& uvpass)
@@ -2312,7 +2320,7 @@ namespace MFM {
     UTI tobeType = getCastType();
     UlamType * tobe = m_state.getUlamTypeByIndex(tobeType);
     assert(!tobe->isAltRefType());
-    assert(m_state.isAtom(tobeType) || m_state.isASeenElement(tobeType) || m_state.isAPrimitiveType(tobeType)); //sanity? terr/t3681,t3843; t3583,t3611
+    assert(m_state.isAtom(tobeType) || m_state.isASeenElement(tobeType) || m_state.isAPrimitiveType(tobeType) || (uvpass.getPassTargetType() == tobeType)); //sanity? terr/t3681,t3843; t3583,t3611; done t3562
     uvpass.setPassTargetType(tobeType); //minimal casting; including atomref to atom(non-ref)
     m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of lhs
   } //genCodeCastFromAReference

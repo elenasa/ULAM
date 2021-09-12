@@ -72,6 +72,7 @@
 #include "NodeUnaryOpBang.h"
 #include "NodeUnaryOpMinus.h"
 #include "NodeUnaryOpPlus.h"
+#include "NodeUnaryOpTwiddle.h"
 #include "NodeVarDeclDM.h"
 #include "NodeVarRef.h"
 #include "NodeVarRefAs.h"
@@ -4185,6 +4186,7 @@ namespace MFM {
       case TOK_MINUS:
       case TOK_PLUS:
       case TOK_BANG:
+      case TOK_TWIDDLE:
       case TOK_PLUS_PLUS:
       case TOK_MINUS_MINUS:
 	unreadToken();
@@ -4742,6 +4744,7 @@ Node * Parser::wrapFactor(Node * leftNode)
       case TOK_MINUS: //t41055
       case TOK_PLUS:
       case TOK_BANG:
+      case TOK_TWIDDLE:
       case TOK_PLUS_PLUS:
       case TOK_MINUS_MINUS:
       case TOK_NUMBER_SIGNED:
@@ -6806,6 +6809,11 @@ Node * Parser::wrapFactor(Node * leftNode)
 	break;
       case TOK_BANG:
 	rtnNode = new NodeUnaryOpBang(factorNode, m_state);
+	assert(rtnNode);
+	rtnNode->setNodeLocation(pTok.m_locator);
+	break;
+      case TOK_TWIDDLE:
+	rtnNode = new NodeUnaryOpTwiddle(factorNode, m_state);
 	assert(rtnNode);
 	rtnNode->setNodeLocation(pTok.m_locator);
 	break;

@@ -936,7 +936,7 @@ namespace MFM {
     s32 tmpVarNum = m_state.getNextTmpVarNumber();
     m_state.indentUlamCode(fp);
     if(!varcomesfirst)
-      fp->write("const "); //missing??
+      fp->write("const ");
     fp->write(tmpStorageTypeForRead(cosuti, uvpass).c_str());
     fp->write(" ");
     fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNum, cstor).c_str());
@@ -1015,7 +1015,7 @@ namespace MFM {
 		//read method based on last cos
 		fp->write(rmethod.c_str());
 
-		if(varcomesfirst)
+		if(varcomesfirst && (cosut->getSizeofUlamType() > MAXBITSPERLONG))
 		  {
 		    fp->write("(");
 		    if(rmethod[0] == 'R')
@@ -4545,8 +4545,11 @@ namespace MFM {
 	else if(sym->isSuper())
 	  {
 	    //'super' offset needed when not asking effself (t3749, t41333)
+	    //(did not check gotsuprelpos?)
 	    u32 suprelpos = 0;
-	    AssertBool gotsuprelpos = m_state.getABaseClassRelativePositionInAClass(cuti, suti, suprelpos);
+	    AssertBool gotsuprelpos =
+	      m_state.getABaseClassRelativePositionInAClass(cuti, suti, suprelpos);
+	    assert(gotsuprelpos);
 	    pos += suprelpos;
 	    firstdmindex++;
 	  }
@@ -4571,11 +4574,14 @@ namespace MFM {
 		    assert(!((SymbolTmpVar *) sym)->isBaseClassRegNum());
 		    if(!((SymbolTmpVar *) sym)->isBaseClassRef())
 		      {
-			u32 tmprelpos; //error/t41313
-			AssertBool gottmp = m_state.getABaseClassRelativePositionInAClass(cuti, suti, tmprelpos);
-			assert(gottmp);
+			if(m_state.isClassASubclassOf(cuti, suti))
+			  {
+			    u32 tmprelpos; //error/t41313
+			    AssertBool gottmp = m_state.getABaseClassRelativePositionInAClass(cuti, suti, tmprelpos);
+			    assert(gottmp);
 
-			pos += tmprelpos;
+			    pos += tmprelpos;
+			  }
 			pos += sym->getPosOffset();
 		      }
 		    else //ignore BaseClassTypes (implicit in data member class of next symbol)
@@ -4585,11 +4591,14 @@ namespace MFM {
 		else
 		  {
 		    //not a tmpvar
-		    u32 relpos;
-		    AssertBool gotRelPos = m_state.getABaseClassRelativePositionInAClass(cuti, sdmclass, relpos);
-		    assert(gotRelPos);
+		    if(m_state.isClassASubclassOf(cuti, sdmclass))
+		      {
+			u32 relpos;
+			AssertBool gotRelPos = m_state.getABaseClassRelativePositionInAClass(cuti, sdmclass, relpos);
+			assert(gotRelPos);
 
-		    pos += relpos;
+			pos += relpos;
+		      }
 		    pos += sym->getPosOffset();
 		  }
 	      }
@@ -4600,10 +4609,13 @@ namespace MFM {
 		    pos += sym->getPosOffset(); //not rel base pos (t3541,3)
 		    if(!askingeffself)
 		      {
-			u32 relpos;
-			AssertBool gotRelPos = m_state.getABaseClassRelativePositionInAClass(cuti, sdmclass, relpos);
-			assert(gotRelPos);
-			pos += relpos;
+			if(m_state.isClassASubclassOf(cuti, sdmclass))
+			  {
+			    u32 relpos;
+			    AssertBool gotRelPos = m_state.getABaseClassRelativePositionInAClass(cuti, sdmclass, relpos);
+			    assert(gotRelPos);
+			    pos += relpos;
+			  } //else t41570
 		      } //else askingeffself so don't add relpos
 		  } //else a tmpvar (e.g. arrayitem) t3542
 	      }
@@ -4712,7 +4724,7 @@ namespace MFM {
       }
     else if(stgcos->isDataMember()) //implicit self,t3541,t3832(arrayitem==tmp&&ref&&dm);
       {
-	assert(stgcos->isTmpVarSymbol()); //implicit self mostly gone; e.g. t3175 aitem
+	//assert(stgcos->isTmpVarSymbol()); //implicit self mostly gone; e.g. t3175 aitem; t41570 cast
 	askEffSelf = false;
       }
     else if(stgcos->isSelf() && (cosSize > 1) && m_state.m_currentObjSymbolsForCodeGen[1]->isDataMember()) //explicit self, not BT

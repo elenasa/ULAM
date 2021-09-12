@@ -17,7 +17,7 @@ Un_Q { constant Unsigned cSIZE = 66u;  constant Unsigned cHALF = 22u;  typedef B
 Uq_SystemU3 : System { :System<> <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
-## informed by Dave 9/4/21, see also t41565
+## informed by Dave 9/4/21, see also t41565 for ops equal version.
 ##
 #>QE.ulam
   ulam 5;
@@ -44,19 +44,19 @@ transient Q {
 
     v = ((CBits) 1u)<<cHALF;
 
-    mBits |= v;
+    mBits = mBits | v;
     if (mBits != 0u)
       du.print("nonzero"); //YES!
     else
       du.print("zero");
 
-    mBits &= v;
+    mBits = mBits & v;
     if (mBits != 0u)
       du.print("still nonzero"); //HERE!!
     else
       du.print("still zero");
 
-    mBits ^= v;
+    mBits = mBits ^ v;
     if (mBits != 0u)
       du.print("now nonzero");
     else

@@ -3,7 +3,7 @@
 ##
 ##  gen output: 2 asserts
 #!
-Exit status: -11
+Exit status: 0
 Ue_Anchor10 { System s();  Int test() {  typedef Bits(67) MPayload;  SegPkt10 pkt;  QSegment(67u) x;  pkt mCN . HexU64(0x0, 0x3) = pkt mUpbound . true cast = x mMessageBuffer . mPayload . pkt cast = SegPkt10 pkt2 = x mMessageBuffer . mPayload . cast;  self s . ( pkt mCN . pkt2 mCN . == )assert . self s . ( pkt2 mUpbound . cast )assert . 0 cast return } }
 Un_SegPkt10 { typedef Unsigned(64) CN;  constant Unsigned(64) cNO_OP = HexU64(0x0, 0x0);  constant Unsigned(64) cSET_LENGTH = HexU64(0x0, 0x1);  constant Unsigned(64) cSET_STRETCH = HexU64(0x0, 0x2);  constant Unsigned(64) cSET_ANGLE = HexU64(0x0, 0x3);  constant Unsigned(64) cSET_FLEX = HexU64(0x0, 0x4);  constant Unsigned(64) cGROW_HEAD = HexU64(0x0, 0x5);  constant Unsigned(64) cRSV6 = HexU64(0x0, 0x6);  constant Unsigned(64) cRSV7 = HexU64(0x0, 0x7);  Bool(3) mUpbound(false);  Unsigned(64) mCN(0);  <NOMAIN> }
 Un_QSegment(Unsigned cMSG_BITS) : QSeg { typedef QIMsg(bits) QC_QIMsg;  QIMsg(bits) mMessageBuffer(notready);  :QSeg< typedef Unsigned(5) SegPtr;  typedef Unsigned(2) Type; > <NOMAIN> }
