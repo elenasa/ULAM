@@ -647,25 +647,12 @@ namespace MFM {
       {
 	ruvpass = luvpass;
       }
-    //else
-    else if(m_nodeLeft->isACast()) //t41570
+    else if(m_nodeLeft->isACast())
       {
-	//needs to be read early before rhs.
-	s32 tmpimmediatestgvar = m_state.getNextTmpVarNumber();
-	UTI luti = luvpass.getPassTargetType();
-	UlamType * lut = m_state.getUlamTypeByIndex(luti);
+	//needs to be read early before rhs. t41570
+	Node::genCodeConvertATmpVarIntoBitVector(fp,luvpass);
 
-	m_state.indentUlamCode(fp);
-	fp->write(lut->getLocalStorageTypeAsString().c_str());
-	fp->write(" ");
-	fp->write(m_state.getTmpVarAsString(luti, tmpimmediatestgvar, TMPBITVAL).c_str());
-	fp->write("(");
-	fp->write(luvpass.getTmpVarAsString(m_state).c_str());
-	fp->write(");"); GCNL; //t41570
-
-	//replace luvpass with stgpass for tmpvar symbol (t41570)
-	UVPass stgpass = UVPass::makePass(tmpimmediatestgvar, TMPBITVAL, luti, m_state.determinePackable(luti), m_state, 0, 0); //POS 0 justified (atom-based).
-	m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(stgpass, NULL); //dm to avoid leaks
+	m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(luvpass, NULL); //dm to avoid leaks
 	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
       }
 
@@ -701,24 +688,15 @@ namespace MFM {
       {
 	ruvpass = luvpass;  //t3615, t3803
       }
-    else if(m_nodeLeft->isACast()) //t41570
+    else if(m_nodeLeft->isACast())
       {
+	//consistent w genCode, but unclear if its needed here: unmodifiable cast.x as lhs
+	m_state.abortNeedsATest();
+
 	//needs to be read early before rhs.
-	s32 tmpimmediatestgvar = m_state.getNextTmpVarNumber();
-	UTI luti = luvpass.getPassTargetType();
-	UlamType * lut = m_state.getUlamTypeByIndex(luti);
+	Node::genCodeConvertATmpVarIntoBitVector(fp,luvpass);
 
-	m_state.indentUlamCode(fp);
-	fp->write(lut->getLocalStorageTypeAsString().c_str());
-	fp->write(" ");
-	fp->write(m_state.getTmpVarAsString(luti, tmpimmediatestgvar, TMPBITVAL).c_str());
-	fp->write("(");
-	fp->write(luvpass.getTmpVarAsString(m_state).c_str());
-	fp->write(");"); GCNL; //t41570
-
-	//replace luvpass with stgpass for tmpvar symbol (t41570)
-	UVPass stgpass = UVPass::makePass(tmpimmediatestgvar, TMPBITVAL, luti, m_state.determinePackable(luti), m_state, 0, 0); //POS 0 justified (atom-based).
-	m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(stgpass, NULL); //dm to avoid leaks
+	m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(luvpass, NULL); //dm to avoid leaks
 	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
       }
 
@@ -726,13 +704,13 @@ namespace MFM {
 
     uvpass = ruvpass;
 
-    //tmp variable needed for any function call not returning a ref (t41006), including 'aref'(t41005); func calls returning a ref already made tmpvar.
+    //tmp variable needed for any function call not returning a ref (t41006), including 'aref'(t41005);
+    // func calls returning a ref already made tmpvar.
     // uvpass not necessarily returning a reference type (t3913,4,5,7);
     // fail/t41035 returns a primitive ref; t3946, t3948
     if(m_nodeRight->isFunctionCall() && !m_state.isStringATmpVar(uvpass.getPassNameId()))
       {
-	if(m_tmpvarSymbol)
-	  delete m_tmpvarSymbol; //?? avoid leaks
+	assert(!m_tmpvarSymbol); //t41572 can't call func on cast
 	m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, NULL); //dm to avoid leaks
 	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
       }

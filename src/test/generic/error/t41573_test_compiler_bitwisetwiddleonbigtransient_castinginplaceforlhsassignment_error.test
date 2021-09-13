@@ -1,0 +1,52 @@
+## -*- mode:ulam -*-
+#=t41573_test_compiler_bitwisetwiddleonbigtransient_castinginplaceforlhsassignment_error
+#!
+./Test.ulam:14:17: ERROR: Unmodifiable lefthand side of assignment expression 'cast.m_i', type: Int.
+./Test.ulam:16:17: ERROR: Unmodifiable lefthand side of assignment expression 'cast.m_b', type: Bool.
+Unrecoverable Program Type Label FAILURE.
+##
+## big transient test of bitwise complement. see t41572 and t41574.
+##
+#>Test.ulam
+  ulam 5;
+element Test {
+  Int m_i;
+  Bool m_b;
+  System s;
+  typedef Bits(T.sizeof) BT;
+  Int test() {
+    T f;
+    BT g = ~ ((BT) f);
+    m_i = ((T) g).m_i;
+    s.print(m_i);
+    s.assert(m_i==-1);
+
+    ((T) g).m_i = 0;
+
+    ((T) g).m_b = false;
+    s.assert(!((T) g).m_b);
+
+    return 0;
+  }
+}
+
+#:T.ulam
+  ulam 5;
+transient T {
+  Bool m_b; //comment out for MAXBITSPERINT
+  Int m_i;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

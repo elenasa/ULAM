@@ -1,0 +1,52 @@
+## -*- mode:ulam -*-
+#=t41574_test_compiler_bitwisetwiddleonbigtransient_castinginplace_funcreturnsrefforlhsassignment_error
+#!
+./Test.ulam:14:13: ERROR: Member selected must be a modifiable lefthand side: 'cast' requires a variable.
+Unrecoverable Program Type Label FAILURE.
+##
+## big transient test of bitwise complement. see t41573
+##
+#>Test.ulam
+  ulam 5;
+element Test {
+  Int m_i;
+  Bool m_b;
+  System s;
+  typedef Bits(T.sizeof) BT;
+  Int test() {
+    T f;
+    BT g = ~ ((BT) f);
+    m_i = ((T) g).m_i;
+    s.print(m_i);
+    s.assert(m_i==-1);
+
+    ((T) g).func() = 0;
+
+    return 0;
+  }
+}
+
+#:T.ulam
+  ulam 5;
+transient T {
+  Bool m_b; //comment out for MAXBITSPERINT
+  Int m_i;
+  Int& func()
+  {
+    return m_i;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.
