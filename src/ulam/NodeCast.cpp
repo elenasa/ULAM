@@ -263,7 +263,7 @@ namespace MFM {
 		  {
 		    std::ostringstream msg;
 		    msg << "Cannot cast "; //Bits
-		    msg << nut->getUlamTypeNameBrief().c_str() << " to "; //non-constructor void
+		    msg << nut->getUlamTypeName().c_str() << " to "; //non-constructor void
 		    if(tclasstype == UC_QUARK)
 		      msg << "quark ";
 		    else if(tclasstype == UC_TRANSIENT)
@@ -276,6 +276,24 @@ namespace MFM {
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		    errorsFound++;
 		  }
+
+		if(m_state.isReference(tobeType))
+		  {
+		    std::ostringstream msg;
+		    msg << "Cannot cast "; //Bits
+		    msg << nut->getUlamTypeName().c_str() << " to "; //non-constructor void
+		    msg << "a reference ";
+		    if(tclasstype == UC_QUARK)
+		      msg << "quark ";
+		    else if(tclasstype == UC_TRANSIENT)
+		      msg << "transient ";
+		    else
+		      m_state.abortShouldntGetHere();
+
+		    msg << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str();
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    errorsFound++; //t41575
+		  }
 	      }
 	    else if(!m_state.isAtom(nodeType))
 	      {
@@ -284,7 +302,7 @@ namespace MFM {
 		msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str(); //non-atom
 		msg << " to " << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str(); //to a class
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		errorsFound++;
+		errorsFound++; //t41576
 	      }
 	    else if(tclasstype == UC_QUARK)
 	      {
