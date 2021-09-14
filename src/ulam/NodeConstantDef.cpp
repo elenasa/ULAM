@@ -1429,11 +1429,11 @@ namespace MFM {
 
 	if(classtype == UC_QUARK) //(t41262)
 	  {
-	    assert(itemlen <= MAXBITSPERINT);
-	    u32 dval = 0;
+	    assert(itemlen <= MAXBITSPERQUARK);
+	    u64 dval = 0;
 	    AssertBool gotDefault = m_state.getDefaultQuark(nuti, dval); //uses scalar uti
 	    //assert(gotDefault); //too dramatic for eval
-	    defaultUV = UlamValue::makeImmediateClass(scalaruti, (u32) dval, itemlen);
+	    defaultUV = UlamValue::makeImmediateLongClass(scalaruti, (u32) dval, itemlen);
 	  }
 	else if(classtype == UC_ELEMENT)
 	  defaultUV = UlamValue::makeDefaultAtom(scalaruti, m_state);

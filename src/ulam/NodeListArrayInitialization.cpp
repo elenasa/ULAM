@@ -473,7 +473,6 @@ namespace MFM{
     m_state.indentUlamCode(fp);
     fp->write("const ");
 
-    //if((nut->getPackable() != PACKEDLOADABLE) || isString)
     if((nut->getPackable() != PACKEDLOADABLE)) // >MAXBITSPERLONG (strings same t3975)
       {
 	u32 uvals[ARRAY_LEN8K];
@@ -517,7 +516,8 @@ namespace MFM{
 	else if(nwords == 2) //64
 	  {
 	    //right justify single u64 (t3979)
-	    fp->write_decimal_unsignedlong(dval.ReadLong(0u, len));
+	    //fp->write_decimal_unsignedlong(dval.ReadLong(0u, len));
+	    fp->write_hexadecimallong(dval.ReadLong(0u, len));
 	    fp->write(";"); GCNL;
 	  }
 	else

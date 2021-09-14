@@ -207,6 +207,8 @@ namespace MFM {
       }
     else
       {
+	if(pos + len > BITSPERATOM)
+	  len = state.getBaseClassBitSize(targetType); //t41579
 	assert((packed == UNPACKED) || (pos > 0 && (pos + len) <= BITSPERATOM));
 	rtnUV.m_uv.m_ptrValue.m_posInAtom = pos;
       }

@@ -1704,7 +1704,7 @@ namespace MFM {
     return ctype; // use its own type
   }
 
-  bool CompilerState::getDefaultQuark(UTI cuti, u32& dqref)
+  bool CompilerState::getDefaultQuark(UTI cuti, u64& dqref)
   {
     if(!okUTItoContinue(cuti)) return false; //short-circuit
 
@@ -2074,7 +2074,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Trying to exceed allotted bit size (" << MAXSTATEBITS << ") for element ";
 	    msg << ut->getUlamTypeClassNameBrief(utiArg).c_str() << " with " << total << " bits";
-	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
+	    MSG2(getFullLocationAsString(getCompileThisLoc()).c_str(), msg.str().c_str(), ERR);
 
 	    noteClassDataMembersTypeAndName(utiArg, total); //t3155
 	    return false;
@@ -2088,7 +2088,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Trying to exceed allotted bit size (" << MAXBITSPERQUARK << ") for quark ";
 	    msg << ut->getUlamTypeClassNameBrief(utiArg).c_str() << " with " << total << " bits";
-	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
+	    MSG2(getFullLocationAsString(getCompileThisLoc()).c_str(), msg.str().c_str(), ERR);
 
 	    noteClassDataMembersTypeAndName(utiArg, total); //t41013
 	    return false;
@@ -2102,7 +2102,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Trying to exceed allotted bit size (" << MAXBITSPERTRANSIENT << ") for transient ";
 	    msg << ut->getUlamTypeClassNameBrief(utiArg).c_str() << " with " << total << " bits";
-	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
+	    MSG2(getFullLocationAsString(getCompileThisLoc()).c_str(), msg.str().c_str(), ERR);
 
 	    noteClassDataMembersTypeAndName(utiArg, total);
 	    return false;
@@ -2174,7 +2174,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Trying to exceed allotted bit size (" << MAXBITSPERQUARK << ") for a base quark ";
 	    msg << ut->getUlamTypeClassNameBrief(utiArg).c_str() << " with " << basebitsize << " bits";
-	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
+	    MSG2(getFullLocationAsString(getCompileThisLoc()).c_str(), msg.str().c_str(), ERR);
 	    return false;
 	  }
       }
@@ -2186,7 +2186,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Trying to exceed allotted bit size (" << MAXBITSPERTRANSIENT << ") for a base transient ";
 	    msg << ut->getUlamTypeClassNameBrief(utiArg).c_str() << " with " << basebitsize << " bits";
-	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
+	    MSG2(getFullLocationAsString(getCompileThisLoc()).c_str(), msg.str().c_str(), ERR);
 	    return false;
 	  }
       }
@@ -2404,7 +2404,7 @@ namespace MFM {
 	    // disallow an array of Void(0)'s (t3389)
 	    std::ostringstream msg;
 	    msg << "Invalid Void type array: " << ut->getUlamTypeName().c_str();
-	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
+	    MSG2(getFullLocationAsString(getCompileThisLoc()).c_str(), msg.str().c_str(), ERR);
 	    return false;
 	  }
       }
@@ -2412,7 +2412,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Invalid nonzero bitsize (" << bitsize << ") for Void type";
-	MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
+	MSG2(getFullLocationAsString(getCompileThisLoc()).c_str(), msg.str().c_str(), ERR);
 	return false;
       }
     else if(total > MAXBITSPERTRANSIENT)
@@ -2420,7 +2420,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Trying to exceed allotted bit size (" << MAXBITSPERTRANSIENT << ") for array ";
 	msg << ut->getUlamTypeNameBrief().c_str() << " with " << total << " bits";
-	MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
+	MSG2(getFullLocationAsString(getCompileThisLoc()).c_str(), msg.str().c_str(), ERR);
 	return false;
       }
     //else
@@ -6511,7 +6511,7 @@ namespace MFM {
   void CompilerState::outputTextAsCommentWithLocationUpdate(File * fp, Locator nodeloc)
   {
     outputTextAsComment(fp, nodeloc);
-    m_locOfNextLineText = nodeloc;
+    m_locOfNextLineText = nodeloc; //during codeGen: NodeStatements, NodeBlockFunctionDef
   }
 
   void CompilerState::outputLineNumberForDebugging(File * fp, Locator nodeloc)
@@ -7137,6 +7137,13 @@ namespace MFM {
     AssertBool isDefined = m_classContextStack.getCurrentClassContext(cc);
     assert(isDefined);
     return cc.getCompileThisIdx();
+  }
+
+  Locator CompilerState::getCompileThisLoc()
+  {
+    NodeBlockContext * cblock = getContextBlock();
+    assert(cblock);
+    return cblock->getNodeLocation();
   }
 
   SymbolClass * CompilerState::getCurrentSelfSymbolForCodeGen()

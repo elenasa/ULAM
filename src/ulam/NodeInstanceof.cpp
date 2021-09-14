@@ -81,10 +81,10 @@ namespace MFM {
       atomuv = UlamValue::makeDefaultAtom(auti, m_state);
     else if(aclasstype == UC_QUARK)
       {
-	u32 dq = 0;
+	u64 dq = 0;
 	AssertBool isDefinedQuark = m_state.getDefaultQuark(auti, dq); //returns scalar dq
 	assert(isDefinedQuark);
-	atomuv = UlamValue::makeImmediateClass(auti, dq, aut->getTotalBitSize());
+	atomuv = UlamValue::makeImmediateLongClass(auti, dq, aut->getTotalBitSize());
       }
     else if(aclasstype == UC_TRANSIENT)
       atomuv = UlamValue::makeDefaultAtom(auti, m_state); //size limited to atom for eval

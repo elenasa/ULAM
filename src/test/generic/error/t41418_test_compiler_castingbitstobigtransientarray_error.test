@@ -1,8 +1,8 @@
 ## -*- mode:ulam -*-
 #=t41418_test_compiler_castingbitstobigtransientarray_error
 #!
-./System.ulam:11:0: ERROR: Trying to exceed allotted bit size (32) for a base quark QIMsg(120u) with 122 bits.
-./System.ulam:11:0: ERROR: Trying to exceed allotted bit size (32) for quark QIMsg(120u) with 122 bits.
+./QIMsg.ulam:3:7: ERROR: Trying to exceed allotted bit size (64) for a base quark QIMsg(120u) with 122 bits.
+./QIMsg.ulam:3:7: ERROR: Trying to exceed allotted bit size (64) for quark QIMsg(120u) with 122 bits.
 ./QIMsg.ulam:3:7: NOTE: Components of QIMsg(120u) are..
 ./QIMsg.ulam:9:3: NOTE: (2 of 122 bits, at 0) Unary(2) mDirection.
 ./QIMsg.ulam:10:3: NOTE: (120 of 122 bits, at 2) Bits(120) mPayload.

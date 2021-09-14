@@ -124,7 +124,7 @@ namespace MFM {
     if(isCustomArray())
       return m_state.getCustomArrayGetMangledFunctionName(); //returns a ref
 
-    if(getBitSize() < MAXBITSPERLONG)
+    if(getBitSize() <= MAXBITSPERLONG)
       return UlamType::writeArrayItemMethodForCodeGen();
 
     return "WriteBV";

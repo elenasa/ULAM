@@ -650,7 +650,7 @@ namespace MFM {
     MSG(m_state.getFullLocationAsString(getLoc()).c_str(), msg.str().c_str(), INFO);
   } //printBitSizeOfClass
 
-  bool SymbolClass::getDefaultQuark(u32& dqref)
+  bool SymbolClass::getDefaultQuark(u64& dqref)
   {
     assert(getUlamClass() == UC_QUARK);
 
@@ -660,7 +660,7 @@ namespace MFM {
 	getDefaultValue(dk);
       }
     u32 len = m_state.getBitSize(getUlamTypeIdx());
-    dqref = m_defaultValue.Read(0u, len); //return value
+    dqref = m_defaultValue.ReadLong(0u, len); //return value
     return m_isreadyDefaultValue;
   } //getDefaultQuark
 

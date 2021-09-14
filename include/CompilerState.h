@@ -261,7 +261,7 @@ namespace MFM{
 
     UTI getUlamTypeOfConstant(ULAMTYPE etype);
     UTI getDefaultUlamTypeOfConstant(UTI ctype);
-    bool getDefaultQuark(UTI cuti, u32& dqref);
+    bool getDefaultQuark(UTI cuti, u64& dqref);
     bool getPackedDefaultClass(UTI auti, u64& dpkref);
     void getDefaultAsPackedArray(UTI auti, u64 dval, u64& darrval);
     void getDefaultAsPackedArray(u32 len, u32 bitsize, u32 arraysize, u32 pos, u64 dval, u64& darrval);
@@ -676,6 +676,8 @@ namespace MFM{
     u32 getCompileThisId();
 
     UTI getCompileThisIdx();
+
+    Locator getCompileThisLoc();
 
     SymbolClass * getCurrentSelfSymbolForCodeGen();
 

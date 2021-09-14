@@ -2325,7 +2325,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 	      {
 		pos = it->second;
 		dupflag = true; //could continue, if we wanted to..
-#if 1
+
 		std::ostringstream msg;
 		msg << "Subclass '";
 		msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
@@ -2334,7 +2334,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 		msg << "', a duplicated baseclass, item " << i;
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		return TBOOL_FALSE; //t41526
-#endif
 	      }
 	    else
 	      {
@@ -4233,15 +4232,18 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
     if(declOnly)
       {
 	m_state.indent(fp);
-	fp->write("virtual u32 ");
+	fp->write("virtual u64 ");
 	fp->write(m_state.getBuildDefaultAtomFunctionName(cuti));
 	fp->write("( ) const;"); GCNL;
 	fp->write("\n");
 	return;
       }
 
+    UlamType * cut = m_state.getUlamTypeByIndex(cuti);
+    u32 len = cut->getTotalBitSize();
+
     //get all initialized data members in quark (w strings t41093,t41167,t41468)
-    u32 qval = 0;
+    u64 qval = 0;
     AssertBool isDefaultQuark = m_state.getDefaultQuark(cuti, qval);
     assert(isDefaultQuark);
 
@@ -4249,10 +4251,11 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
     fp->write("template<class EC>\n");
 
     m_state.indent(fp);
-    fp->write("u32 ");
+    //fp->write(cut->getTmpStorageTypeAsString().c_str()); //u32,u64
+    fp->write("u64 "); //virtual method defined in MFM::UlamQuark.h
 
     //include the mangled class::
-    fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
+    fp->write(cut->getUlamTypeMangledName().c_str());
     fp->write("<EC>");
 
     fp->write("::");
@@ -4265,9 +4268,18 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 
     m_state.indent(fp);
     fp->write("return ");
-    fp->write_hexadecimal(qval);
+    if(qval == 0)
+      fp->write_decimal_unsigned(0);
+    else if(len <= MAXBITSPERINT)
+      fp->write_hexadecimal((u32) qval);
+    else
+      fp->write_hexadecimallong(qval);
     fp->write("; //=");
-    fp->write_decimal_unsigned(qval); GCNL;
+    if(len <= MAXBITSPERINT)
+      fp->write_decimal_unsigned((u32) qval);
+    else
+      fp->write_decimal_unsignedlong(qval);
+    GCNL;
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);

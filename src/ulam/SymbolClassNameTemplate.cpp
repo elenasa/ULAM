@@ -2047,6 +2047,11 @@ namespace MFM {
 	  }
 	else
 	  {
+	    //push context for location in any error message e.g. t41418
+	    NodeBlockClass * classNode = csym->getClassBlockNode();
+	    assert(classNode);
+	    m_state.pushClassContext(cuti, classNode, classNode, false, NULL);
+
 	    UlamType * cut = m_state.getUlamTypeByIndex(cuti);
 
 	    if(cut->isComplete()) //uti != cuti
@@ -2056,14 +2061,10 @@ namespace MFM {
 	      }
 	    else
 	      {
-		NodeBlockClass * classNode = csym->getClassBlockNode();
-		assert(classNode);
-		m_state.pushClassContext(cuti, classNode, classNode, false, NULL);
 
 		std::set<UTI> seenset;
 		seenset.insert(cuti);
 		aok = csym->trySetBitsizeWithUTIValues(basebits, mybits, seenset);
-		m_state.popClassContext(); //restore
 
 		if(aok)
 		  {
@@ -2085,6 +2086,7 @@ namespace MFM {
 		m_state.setBaseClassBitSize(uti, mybits); //noop for elements
 		m_state.updateUTIAliasForced(uti, cuti); //redo alias (t3652, t41384)
 	      }
+	    m_state.popClassContext(); //restore
 	  }
 
 	if(aok)

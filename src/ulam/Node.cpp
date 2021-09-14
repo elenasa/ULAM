@@ -924,11 +924,9 @@ namespace MFM {
     if((cosut->getUlamClassType() == UC_TRANSIENT))
       return genCodeReadTransientIntoATmpVar(fp, uvpass);
 
-    //if(m_state.isAStringType(cosuti) && (cstor == TMPTBV))
     if(m_state.isAStringType(cosuti) && !cosut->isScalar())
       return genCodeReadStringArrayIntoATmpVar(fp, uvpass); //t41277,t3975
 
-    //bool varcomesfirst = ((cstor == TMPTBV) && cosut->isScalar() && (cosut->getTotalBitSize() > MAXBITSPERLONG)); //t41562, not arrays: t3704,6,7,9, t3896,7,9
     bool varcomesfirst = (cstor == TMPTBV) && (cosut->getSizeofUlamType() > MAXBITSPERLONG); //t41562, entire arrays: t3704,6,7,9, t3896,7,9; t3255 (TMPTATOM);
 
     const std::string rmethod = readMethodForCodeGen(cosuti, uvpass);
@@ -1074,7 +1072,6 @@ namespace MFM {
     ULAMCLASSTYPE nclasstype = ncut->getUlamClassType();
 
     bool cosIsTheConstantClass = (cos == ncsym);
-    //bool varcomesfirst = (coslen > MAXBITSPERLONG) || (cstor == TMPTBV);
     bool varcomesfirst = cosIsTheConstantClass && ((coslen > MAXBITSPERLONG) || (cstor == TMPTBV)); //t41232
 
     if(cosIsTheConstantClass) //cos is the constant class
@@ -1458,8 +1455,6 @@ namespace MFM {
     TMPSTORAGE rstor = ruvpass.getPassStorage();
     u32 rlen = rut->getSizeofUlamType(); //ruvpass.getPassLen(); item size; t3710 element
 
-    //bool varcomesfirst = (rlen > MAXBITSPERLONG) && (!m_state.isAtom(ruti) || !m_state.isScalar(ruti)); //t3223 atomref
-    //bool varcomesfirst = (rstor != TMPTBV) && (rlen > MAXBITSPERLONG) && (!m_state.isAtom(ruti) || !m_state.isScalar(ruti)); //t3223 atomref; t3896 already a bitvector
     bool varcomesfirst = (rstor != TMPTBV) && (rstor != TMPTATOM) && (rlen > MAXBITSPERLONG); //t3223 atomref; t3896 already a bitvector; t3277 already a T;
     s32 tmpVarFirstNum = m_state.getNextTmpVarNumber();
     if(varcomesfirst)

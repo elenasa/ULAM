@@ -163,7 +163,7 @@ namespace MFM {
       };
 
     u32 twsize = nut->getTotalWordSize();
-    if(twsize < MAXBITSPERLONG)
+    if(twsize <= MAXBITSPERLONG)
       methodname << twsize;
     else
       methodname << "BV";
