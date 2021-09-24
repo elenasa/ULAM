@@ -197,7 +197,7 @@ namespace MFM {
 	    else
 	      {
 		assert(letyp == Class);
-		//overload operator[] supercedes custom array (t41129)
+		//overload operator[] supercedes custom array (t41129, t41583)
 		if(NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode(thisparentnode))
 		  {
 		    m_state.setGoAgain();
@@ -471,10 +471,11 @@ namespace MFM {
     return rtnok;
   }
 
-  //here, we check for existence, do we can default to custom array, aref.
+  //here, we check for existence, or we can default to custom array, aref.
   Node * NodeSquareBracket::buildOperatorOverloadFuncCallNode()
   {
-    UTI leftType = m_nodeLeft->getNodeType();
+    UTI leftType = m_nodeLeft->getNodeType(); //refs handled (t41583)
+
     TokenType opTokType = Token::getTokenTypeFromString("[]"); //was getName()
     assert(opTokType != TOK_LAST_ONE);
     Token opTok(opTokType, getNodeLocation(), 0);
@@ -492,7 +493,9 @@ namespace MFM {
     //may need to fall back to a custom array
     Symbol * fnsymptr = NULL;
     bool hazyKin = false;
-    if(m_state.isFuncIdInAClassScopeOrAncestor(leftType, opolId, fnsymptr, hazyKin) && !hazyKin)
+    //ish 20210907 failed due to hazyKin (see also t41583):
+    //  ./L2PlateSequencer.ulam:28:22: ERROR: Invalid Type: Plex& used with [].
+    if(m_state.isFuncIdInAClassScopeOrAncestor(leftType, opolId, fnsymptr, hazyKin))// && !hazyKin)
       {
 	// ambiguous (>1) overload will produce an error later
 	//fill in func symbol during type labeling;
