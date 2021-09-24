@@ -626,6 +626,12 @@ namespace MFM {
 		m_state.statusUnknownTypeInThisClassResolver(vit);
 		vit = eit;
 	      }
+	    //switch block variable non-ref (t41581)
+	    if(m_state.isAltRefType(vit))
+	      {
+		vit = m_state.getUlamTypeAsDeref(vit);
+		m_varSymbol->resetUlamType(vit); //consistent!
+	      }
 	  }
 
 	//note: Void flags a list of constant initializers (unknown type).

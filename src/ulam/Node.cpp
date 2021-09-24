@@ -2131,7 +2131,6 @@ namespace MFM {
     if(!cosut->isScalar() && vut->isScalar())
       return genCodeArrayItemRefInit(fp, uvpass, vsymptr);
 
-    //    ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
     ULAMTYPE vetyp = vut->getUlamTypeEnum();
     u32 pos = 0;
 

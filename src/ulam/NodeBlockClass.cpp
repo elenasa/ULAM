@@ -2082,8 +2082,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
     while(i < basecount)
       {
 	UTI baseuti = csym->getBaseClass(i);
-	//assert(baseuti != Hzy);
-	//if((baseuti != Nouti))
 	if(m_state.okUTItoContinue(baseuti)) //t41426
 	  {
 	    s32 bs = m_state.getBitSize(baseuti); //may contain shared bits!
@@ -2101,8 +2099,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
     s32 mybs = m_ST.getMaxVariableSymbolsBitSize(seensetref);
     if(mybs < 0)
       return mybs; //negative size is error
-    else if(mybs == 0) // <2?
-      return EMPTYSYMBOLTABLE; //t41426
+
+    //else if(mybs == 0) // <2?
+    //  return EMPTYSYMBOLTABLE; //t41426,t41582
 
     basebits = superbs;
     mybits = mybs;
