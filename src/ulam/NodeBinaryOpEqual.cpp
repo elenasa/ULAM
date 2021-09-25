@@ -236,10 +236,7 @@ namespace MFM {
     if(!classoratom)
       {
 	//try for operator overload first (e.g. (pre) +=,-=, (post) ++,-- )
-	if(NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode(parentnode))
-	  {
-	    rtntb = TBOOL_TRUE;
-	  }
+	rtntb = NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode(parentnode);
       }
     else
       {

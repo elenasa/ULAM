@@ -187,22 +187,34 @@ namespace MFM {
 	    else if(letyp == UAtom)
 	      {
 		//overload operator[] supercedes custom array (t41492)
-		if(NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode(thisparentnode))
+		TBOOL rtntb = NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode(thisparentnode);
+		if(rtntb == TBOOL_TRUE)
 		  {
 		    m_state.setGoAgain();
 		    delete this; //suicide is painless..
 		    return Hzy;
 		  }
+		else if(rtntb == TBOOL_HAZY)
+		  {
+		    hazyCount++;
+		  }
+		//else
 	      }
 	    else
 	      {
 		assert(letyp == Class);
 		//overload operator[] supercedes custom array (t41129, t41583)
-		if(NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode(thisparentnode))
+		TBOOL rtntb = NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode(thisparentnode);
+		if(rtntb == TBOOL_TRUE)
 		  {
 		    m_state.setGoAgain();
 		    delete this; //suicide is painless..
 		    return Hzy;
+		  }
+		else if(rtntb == TBOOL_HAZY)
+		  {
+		    newType = Hzy;
+		    hazyCount++;
 		  }
 		else if(!m_isCustomArray)
 		  {
@@ -472,7 +484,7 @@ namespace MFM {
   }
 
   //here, we check for existence, or we can default to custom array, aref.
-  Node * NodeSquareBracket::buildOperatorOverloadFuncCallNode()
+  Node * NodeSquareBracket::buildOperatorOverloadFuncCallNode(bool& hazyArg)
   {
     UTI leftType = m_nodeLeft->getNodeType(); //refs handled (t41583)
 
@@ -492,15 +504,16 @@ namespace MFM {
 
     //may need to fall back to a custom array
     Symbol * fnsymptr = NULL;
-    bool hazyKin = false;
+    hazyArg = false;
     //ish 20210907 failed due to hazyKin (see also t41583):
     //  ./L2PlateSequencer.ulam:28:22: ERROR: Invalid Type: Plex& used with [].
-    if(m_state.isFuncIdInAClassScopeOrAncestor(leftType, opolId, fnsymptr, hazyKin))// && !hazyKin)
+    if(m_state.isFuncIdInAClassScopeOrAncestor(leftType, opolId, fnsymptr, hazyArg) && !hazyArg)
       {
 	// ambiguous (>1) overload will produce an error later
 	//fill in func symbol during type labeling;
 	return Node::buildOperatorOverloadFuncCallNodeHelper(m_nodeLeft, m_nodeRight, "[]" /*getName()*/);
-      }//else use default struct equal, or wait for hazy arg
+      }
+    //else use default struct equal, or wait for hazy arg
 
     //redo check and type labeling done by caller!!
     return NULL; //replace right node with new branch

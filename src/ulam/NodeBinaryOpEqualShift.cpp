@@ -32,12 +32,19 @@ namespace MFM {
 
     //replace node with func call to matching function overload operator for class
     // of left, with argument of right;
-    if(NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode(thisparentnode))
+    TBOOL rtntb = NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode(thisparentnode);
+    if(rtntb == TBOOL_TRUE)
       {
 	m_state.setGoAgain();
 	delete this; //suicide is painless..
 	return Hzy;
       }
+    else if(rtntb == TBOOL_HAZY)
+      {
+	m_state.setGoAgain();
+	return Hzy;
+      }
+    //else
 
     UTI newType = calcNodeType(leftType, rightType); //does safety check
 

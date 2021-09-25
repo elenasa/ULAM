@@ -140,7 +140,8 @@ namespace MFM {
     UlamType * ut = m_state.getUlamTypeByIndex(uti);
     if((ut->getUlamTypeEnum() == Class))
       {
-	Node * newnode = buildOperatorOverloadFuncCallNode();
+	bool hazyKin = false;
+	Node * newnode = buildOperatorOverloadFuncCallNode(hazyKin);
 	if(newnode)
 	  {
 	    AssertBool swapOk = Node::exchangeNodeWithParent(newnode, thisparentnode);
@@ -150,6 +151,12 @@ namespace MFM {
 
 	    m_state.setGoAgain();
 	    delete this; //suicide is painless..
+	    return Hzy;
+	  }
+	else if(hazyKin)
+	  {
+	    m_state.setGoAgain();
+	    setNodeType(Hzy);
 	    return Hzy;
 	  }
 	//else should fail again as non-primitive;
@@ -180,7 +187,7 @@ namespace MFM {
     return newType;
   } //checkAndLabelType
 
-  Node * NodeUnaryOp::buildOperatorOverloadFuncCallNode()
+  Node * NodeUnaryOp::buildOperatorOverloadFuncCallNode(bool & hazyArg)
   {
     return Node::buildOperatorOverloadFuncCallNodeHelper(m_node, NULL, getName());
   } //buildOperatorOverloadFuncCallNode

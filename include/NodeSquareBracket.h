@@ -113,7 +113,7 @@ namespace MFM{
 
   protected:
 
-    virtual Node * buildOperatorOverloadFuncCallNode();
+    virtual Node * buildOperatorOverloadFuncCallNode(bool& hazyArg);
 
   private:
     bool m_isCustomArray;
