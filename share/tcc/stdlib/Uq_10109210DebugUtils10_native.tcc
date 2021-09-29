@@ -184,7 +184,8 @@ namespace MFM{
     const UlamClass<EC> * effSelf = Ur_1a.GetEffectiveSelf();
     MFM_API_ASSERT_NONNULL(effSelf);
     u32 effSelfLen = effSelf->GetClassLength();
-    UlamRef<EC> effref(Ur_1a, -Ur_1a.GetPosToEffectiveSelf(), effSelfLen);
+    typename UlamRef<EC>::UsageType usage = effSelf->AsUlamElement() ? UlamRef<EC>::ELEMENTAL : UlamRef<EC>::CLASSIC;
+    UlamRef<EC> effref(Ur_1a, -Ur_1a.GetPosToEffectiveSelf(), effSelfLen, effSelf, usage);
     DebugPrint<EC>(uc, effref, buff);
     buff.Printf("\n");
     if (buff.GetLength() > 0)
