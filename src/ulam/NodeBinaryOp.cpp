@@ -215,14 +215,15 @@ namespace MFM {
     return newType;
   } //checkAndLabelType
 
-  bool NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode(Node * parentnode)
+  TBOOL NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode(Node * parentnode)
   {
     assert(m_nodeLeft && m_nodeRight);
     UTI lt = m_nodeLeft->getNodeType();
     if(!m_state.isAClass(lt))
-      return false;
+      return TBOOL_FALSE;
 
-    Node * newnode = buildOperatorOverloadFuncCallNode();
+    bool hazyKin = false;
+    Node * newnode = buildOperatorOverloadFuncCallNode(hazyKin);
     if(newnode)
       {
 	AssertBool swapOk = Node::exchangeNodeWithParent(newnode, parentnode);
@@ -231,13 +232,15 @@ namespace MFM {
 	m_nodeLeft = NULL; //recycle as memberselect
 	m_nodeRight = NULL; //recycle as func call arg
 
-	return true; //return Hzy;
+	return TBOOL_TRUE; //return Hzy;
       }
-    return false;
+    else if(hazyKin)
+      return TBOOL_HAZY;
+    return TBOOL_FALSE;
   } //buildandreplaceOperatorOverloadFuncCallNode
 
   //no existence checking; error if overload doesn't exist for class and this binary op.
-  Node * NodeBinaryOp::buildOperatorOverloadFuncCallNode()
+  Node * NodeBinaryOp::buildOperatorOverloadFuncCallNode(bool& hazyArg)
   {
     return Node::buildOperatorOverloadFuncCallNodeHelper(m_nodeLeft, m_nodeRight, getName());
   } //buildOperatorOverloadFuncCallNode

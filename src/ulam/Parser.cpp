@@ -1667,20 +1667,32 @@ namespace MFM {
     // decl was first in the block for-loop;
     //loose pieces joined by NodeControlWhile:
     //end of while loop label, linked to end of body; (for-loop) before assign statement
-    Node * labelNode = new NodeLabel(loopnum, m_state);
-    assert(labelNode);
-    labelNode->setNodeLocation(fwtok.m_locator);
+    // skip continue loop label if 'continue' never used, like switch breaks;
+    NodeStatements * labelstmt = NULL;
+    u32 contloopnum = m_state.m_parsingControlLoopsSwitchStack.getNearestContinueExitNumberIfUsed();
+    if(contloopnum > 0)
+      {
+	assert(contloopnum == loopnum);
+	Node * labelNode = new NodeLabel(loopnum, m_state);
+	assert(labelNode);
+	labelNode->setNodeLocation(fwtok.m_locator);
 
-    NodeStatements * labelstmt = new NodeStatements(labelNode, m_state);
-    assert(labelstmt);
-    truestmt->setNextNode(labelstmt);
+	labelstmt = new NodeStatements(labelNode, m_state);
+	assert(labelstmt);
+	truestmt->setNextNode(labelstmt);
+      }
+    else
+      m_state.abortNeedsATest();
 
     NodeStatements * assignstmt = NULL; //for-loop
     if(assignNodeForLoop)
       {
 	assignstmt = new NodeStatements(assignNodeForLoop, m_state);
 	assert(assignstmt);
-	labelstmt->setNextNode(assignstmt);
+	if(labelstmt != NULL)
+	  labelstmt->setNextNode(assignstmt);
+	else
+	  truestmt->setNextNode(assignstmt); //for optional label
       }
 
     NodeControlWhile * whileNode = new NodeControlWhile(condNode, truestmt, m_state);
@@ -1700,7 +1712,7 @@ namespace MFM {
 
     //before parsing the SWITCH statement, need a new scope
     NodeBlock * currBlock = m_state.getCurrentBlock();
-    NodeBlock * rtnNode = new NodeBlockSwitch(currBlock, switchnum, m_state);
+    NodeBlockSwitch * rtnNode = new NodeBlockSwitch(currBlock, switchnum, m_state);
     assert(rtnNode);
     rtnNode->setNodeLocation(swTok.m_locator);
 
@@ -1810,12 +1822,21 @@ namespace MFM {
     if(casesNode)
       rtnNode->appendNextNode(casesNode);
 
-    //label for end-of-switch breaks (t41018)
-    u32 swexitnum = m_state.m_parsingControlLoopsSwitchStack.getNearestBreakExitNumber();
-    Node * labelNode = new NodeLabel(swexitnum, m_state);
-    assert(labelNode);
-    labelNode->setNodeLocation(pTok.m_locator);
-    rtnNode->appendNextNode(labelNode);
+    //label for end-of-switch breaks (t41018); bypass label if no breaks (t41580)
+    u32 swexitnum = m_state.m_parsingControlLoopsSwitchStack.getNearestBreakExitNumberIfUsed();
+    if(swexitnum > 0)
+      {
+	Node * labelNode = new NodeLabel(swexitnum, m_state);
+	assert(labelNode);
+	labelNode->setNodeLocation(pTok.m_locator);
+	rtnNode->appendNextNode(labelNode);
+      }
+
+    if(defaultcaseNode != NULL)
+      {
+	//	((NodeBlockSwitch*)rtnNode)->setDefaultCaseNodeNo(defaultcaseNode->getNodeNo()); //t41046,..
+	rtnNode->setDefaultCaseNodeNo(defaultcaseNode->getNodeNo()); //t41046,..
+      }
 
     delete swvalueIdent; //copies made, clean up
     m_state.popClassContext(); //the pop
@@ -1853,6 +1874,7 @@ namespace MFM {
 	return NULL;
       }
 
+    bool isdefaultcase = (casecondition == defaultNode); //t41580
     NodeBlock * trueNode = NULL;
     // support as-condition as case expression (t41045,46,47,48)
     if(m_state.m_parsingConditionalAs)
@@ -1869,14 +1891,28 @@ namespace MFM {
 	return NULL; //stop this maddness
       }
 
-    NodeControlIf * ifNode = new NodeControlIf(casecondition, trueNode, NULL, m_state);
-    assert(ifNode);
-    ifNode->setNodeLocation(casecondition->getNodeLocation());
+    //no cases after default case; 'if' needed when defaultcase is first/only (t41037)
+    NodeControlIf * ifNode = NULL;
+    if(!isdefaultcase || (switchNode == NULL))
+      {
+	ifNode = new NodeControlIf(casecondition, trueNode, NULL, m_state);
+	assert(ifNode);
+	ifNode->setNodeLocation(casecondition->getNodeLocation());
 
-    if(switchNode != NULL)
-      switchNode->setElseNode(ifNode); //link to previous if-
+	if(switchNode != NULL)
+	  switchNode->setElseNode(ifNode); //link to previous if-
+	else
+	  switchNode = ifNode; //set parent ref, t41037,8
+      }
     else
-      switchNode = ifNode; //set parent ref
+      {
+	assert(switchNode != NULL);
+	switchNode->setElseNode(trueNode); //link to previous if-
+	delete casecondition; //terminal true unneeded
+	casecondition = NULL;
+	defaultNode = trueNode;
+      }
+
     return parseNextCase(swvalueIdent, ifNode, defaultNode); //recurse
   } //parseNextCase
 
@@ -1997,8 +2033,8 @@ namespace MFM {
 	return NULL; //stop this maddness
       }
 
-    //multi-cases (t41020)
-    if(caseCond != NULL)
+    //multi-cases (t41020), t41580 (skip defaultcase's if(true))
+    if((caseCond != NULL) && (casecondition != defaultcase))
       {
 	NodeBinaryOpLogicalOr * newcaseCond = new NodeBinaryOpLogicalOr(caseCond, casecondition, m_state);
 	assert(newcaseCond);

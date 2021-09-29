@@ -7,7 +7,7 @@
 ##
 #!
 Exit status: 0
-Ue_A { System s();  Int a(0);  Int b(1);  Int test() {  self a . 1 cast = self b . 0 cast = { typedef Int _SWITCHTYPEDEF12;  Int Uh_switchcond12 = self a . 1 -=;  true cond { self b . 1 cast = } if _1: } self s . ( self b . )print . self s . ( self b . 1 cast == )assert . self s . ( self a . )print . self s . ( self a . 0 cast == )assert . self a . return } }
+Ue_A { System s();  Int a(0);  Int b(1);  Int test() {  self a . 1 cast = self b . 0 cast = { typedef Int _SWITCHTYPEDEF12;  Int Uh_switchcond12 = self a . 1 -=;  true cond { self b . 1 cast = } if } self s . ( self b . )print . self s . ( self b . 1 cast == )assert . self s . ( self a . )print . self s . ( self a . 0 cast == )assert . self a . return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t41037: gcc permits default case anywhere, but only hit if nothing else does

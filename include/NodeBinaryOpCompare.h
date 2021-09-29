@@ -71,7 +71,7 @@ namespace MFM{
 
     virtual UTI calcNodeType(UTI lt, UTI rt);
 
-    virtual Node * buildOperatorOverloadFuncCallNode();
+    virtual Node * buildOperatorOverloadFuncCallNode(bool& hazyArg);
 
   private:
 

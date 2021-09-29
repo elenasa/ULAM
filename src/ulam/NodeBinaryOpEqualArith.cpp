@@ -85,7 +85,8 @@ namespace MFM {
     if(lut->getUlamTypeEnum() == Class)
       {
 	//try for operator overload first (e.g. (pre) +=,-=, (post) ++,-- ) t41117,8
-	if(NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode(thisparentnode))
+	TBOOL rtntb = NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode(thisparentnode);
+	if(rtntb == TBOOL_TRUE)
 	  {
 	    m_state.setGoAgain();
 	    delete this; //suicide is painless..
@@ -99,8 +100,17 @@ namespace MFM {
 	    msg << " and ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(rightType).c_str();
 	    msg << " used with binary " << getName();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    newType = Nav; //error
+	    if(rtntb == TBOOL_HAZY)
+	      {
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+		m_state.setGoAgain();
+		newType = Hzy;
+	      }
+	    else
+	      {
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		newType = Nav; //error
+	      }
 	  }
       }
     else

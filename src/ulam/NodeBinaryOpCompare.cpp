@@ -68,8 +68,9 @@ namespace MFM {
     return newType;
   } //checkAndLabelType
 
-  Node * NodeBinaryOpCompare::buildOperatorOverloadFuncCallNode()
+  Node * NodeBinaryOpCompare::buildOperatorOverloadFuncCallNode(bool& hazyArg)
   {
+    hazyArg = false;
     Token identTok;
     TokenType opTokType = Token::getTokenTypeFromString(getName());
     assert(opTokType != TOK_LAST_ONE);
@@ -89,11 +90,9 @@ namespace MFM {
 
     //may need to negate the opposite comparison, if this one isn't defined (t41109)
     UTI luti = m_nodeLeft->getNodeType();
-
     Symbol * fnsymptr = NULL;
-    bool hazyKin = false; //unused
     bool useInverseOp = false;
-    if(!m_state.isFuncIdInAClassScopeOrAncestor(luti, opolId, fnsymptr, hazyKin))
+    if(!m_state.isFuncIdInAClassScopeOrAncestor(luti, opolId, fnsymptr, hazyArg))
       {
 	//try inverse!
 	const char * invopname = getInverseOpName();
@@ -104,16 +103,18 @@ namespace MFM {
 	opTok.init(opTokType, getNodeLocation(), 0);
 	opolId = Token::getOperatorOverloadFullNameId(opTok, &m_state);
 	assert(opolId != 0);
-	hazyKin = false;
 
-	if(!m_state.isFuncIdInAClassScopeOrAncestor(luti, opolId, fnsymptr, hazyKin))
+	if(!m_state.isFuncIdInAClassScopeOrAncestor(luti, opolId, fnsymptr, hazyArg))
 	  {
 	    std::ostringstream msg;
 	    msg << "Overload for operator '" << getName();
 	    msg << "' and its inverse '" << invopname;
 	    msg << "' are not supported as operand for class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    if(hazyArg)
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	    else
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    return NULL;
 	  }
 	else //continue with a bang
