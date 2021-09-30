@@ -59,6 +59,20 @@ quark ClassUtils {
 
   Bool isDirectBase(ClassId classId, ClassId directBaseId) native;
 
+  /** \returns the total size (in bits) of class \c classId, if it
+      exists, or Unsigned.maxof if it does not
+      
+      \since 5.0
+   */
+  Unsigned getClassSize(ClassId classId) native;
+
+  /** \returns the total size (in bits) of the object referred to by
+      \c ur, or Unsigned.maxof if some internal error occurs
+      
+      \since 5.0
+   */
+  Unsigned getClassSize(UrSelf & ur) { return getClassSize(getClassId(ur)); }
+
   Unsigned getBaseClassCount(ClassId classId) native;
 
   Unsigned getDirectBaseClassCount(ClassId classId) native;
