@@ -925,13 +925,17 @@ namespace MFM {
 	    objclass = m_state.m_currentObjPtr.getPtrTargetEffSelfType(); //t41496
 	    assert((objclass != Nouti) && m_state.isAClass(objclass));
 	  }
-	assert((UlamType::compareForUlamValueAssignment(dmclass, objclass, m_state) == UTIC_SAME) || m_state.isClassASubclassOf(objclass, dmclass)); //sanity, right? t3915
-	// return ptr to this data member within the m_currentObjPtr
-	// 'pos' modified by this data member symbol's packed bit position;
-	// and relative position of its class in m_currentObjPtr (ulam-5);
+
 	u32 relposofbase = 0;
-	AssertBool gotpos = m_state.getABaseClassRelativePositionInAClass(objclass, dmclass, relposofbase);
-	assert(gotpos);
+	if((UlamType::compareForUlamValueAssignment(dmclass, objclass, m_state) == UTIC_SAME) || m_state.isClassASubclassOf(objclass, dmclass))
+	  {
+	    // return ptr to this data member within the m_currentObjPtr
+	    // 'pos' modified by this data member symbol's packed bit position;
+	    // and relative position of its class in m_currentObjPtr (ulam-5);
+	    AssertBool gotpos = m_state.getABaseClassRelativePositionInAClass(objclass, dmclass, relposofbase);
+	    assert(gotpos);
+	  }
+	//else not data member of a base class (t41584)
 
 	ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), nuti, m_state.determinePackable(nuti), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset() + relposofbase, m_varSymbol->getId());
 	if(m_state.isAClass(nuti))
