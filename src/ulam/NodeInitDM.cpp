@@ -54,6 +54,11 @@ namespace MFM {
     return m_state.m_pool.getDataAsString(m_cid).c_str();
   }
 
+  u32 NodeInitDM::getNameId()
+  {
+    return m_cid;
+  }
+
   const std::string NodeInitDM::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
@@ -120,9 +125,10 @@ namespace MFM {
     if(!m_state.okUTItoContinue(suti) || !m_state.isComplete(suti))
       {
 	std::ostringstream msg;
-	msg << "Incomplete " << prettyNodeName().c_str() << " for type: ";
-	msg << m_state.getUlamTypeNameByIndex(suti).c_str();
-	msg << ", used with symbol name '" << getName() << "'";
+	msg << "Incomplete " << prettyNodeName().c_str() << " for type";
+	if(m_state.okUTItoContinue(suti) && !m_state.isHolder(suti))
+	  msg << ": " << m_state.getUlamTypeNameByIndex(suti).c_str();
+	msg << " used with symbol name '" << getName() << "'";
 	if(m_state.okUTItoContinue(suti) || m_state.isStillHazy(suti))
 	  {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
@@ -307,9 +313,10 @@ namespace MFM {
 	else if(foldrtn == Hzy)
 	  {
 	    std::ostringstream msg;
-	    msg << "Incomplete " << prettyNodeName().c_str() << " for type: ";
-	    msg << m_state.getUlamTypeNameByIndex(suti).c_str();
-	    msg << ", used with symbol name '" << getName() << "', after folding";
+	    msg << "Incomplete " << prettyNodeName().c_str() << " for type";
+	    if(m_state.okUTItoContinue(suti) && !m_state.isHolder(suti))
+	      msg << ": " << m_state.getUlamTypeNameByIndex(suti).c_str();
+	    msg << " used with symbol name '" << getName() << "', after folding";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    setNodeType(Hzy);
 	  }
@@ -374,7 +381,7 @@ namespace MFM {
 	if(!hazyKin)
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	else
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //was debug
       }
   } //checkForSymbols
 
@@ -781,10 +788,8 @@ namespace MFM {
     //include scalars for generated comments; arrays for constructor initialization
     NodeInitDM * cloneofme = (NodeInitDM *) this->instantiate();
     assert(cloneofme);
-    SymbolConstantValue * csymptr = NULL;
-    AssertBool isSym = this->getSymbolPtr((Symbol *&) csymptr);
-    assert(isSym);
-    ((NodeInitDM *) cloneofme)->setSymbolPtr(csymptr); //another ptr to same symbol
+    assert(m_constSymbol);
+    ((NodeInitDM *) cloneofme)->setSymbolPtr(m_constSymbol); //another ptr to same symbol
     cloneVec.push_back(cloneofme);
   }
 

@@ -488,7 +488,7 @@ namespace MFM {
 	    msg << ", " << m_state.m_pool.getDataAsString(cid).c_str();
 	    lostClassesIds.pop_back();
 	  }
-	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),DEBUG);
+	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
       }
     lostClassesIds.clear();
     return aok;

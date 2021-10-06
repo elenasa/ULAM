@@ -68,6 +68,8 @@ namespace MFM{
 
     virtual bool isReadyConstant();
 
+    virtual bool hasASymbol();
+
     virtual FORECAST safeToCastTo(UTI newType);
 
     virtual UTI checkAndLabelType(Node * thisparentnode);
@@ -101,7 +103,7 @@ namespace MFM{
     u64 convertForthAndBackLong(const u64 data, UTI fituti);
     bool fitsInBits32compare(UTI fituti);
 
-    u32 getNameId();
+    virtual u32 getNameId();
 
   protected:
     virtual EvalStatus makeTerminalValue(UlamValue& uvarg); //used by eval only

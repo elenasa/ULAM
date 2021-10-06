@@ -2,6 +2,7 @@
 #=t41313_test_compiler_elementandquark_multibases_virtualfuncsselectpure_error
 #!
 ./E4.ulam:17:24: ERROR: Virtual function 'Uf_6vfunca10' is pure; cannot be called directly in baseclass: QBase1.
+./QBase1.ulam:6:15: NOTE: Still pure in QBase1: Int vfunca().
 Unrecoverable Program GenCode FAILURE.
 ##
 ##  informed by t41312; when a base class virtual function is pure (see also t41330)

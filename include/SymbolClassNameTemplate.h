@@ -51,14 +51,10 @@ namespace MFM{
 
     virtual void getClassMemberDescriptionsForClassInstances(ClassMemberMap& classmembers);
 
-    void addParameterSymbol(SymbolConstantValue * argSym);
     u32 getNumberOfParameters();
     bool parameterHasDefaultValue(u32 n);
     u32 getTotalParametersWithDefaultValues();
-
     u32 getTotalParameterSlots();
-    SymbolConstantValue * getParameterSymbolPtr(u32 n);
-    SymbolConstantValue * findParameterSymbolByNameId(u32 pnid);
 
     virtual bool isClassTemplate();
     bool isClassTemplate(UTI cuti);
@@ -134,13 +130,9 @@ namespace MFM{
 
     virtual void generateTestInstanceForClassInstances(File * fp, bool runtest);
 
-    void printClassTemplateArgsForPostfix(File * fp);
-
    protected:
 
   private:
-    //ordered class parameters
-    std::vector<SymbolConstantValue *> m_parameterSymbols;  // like named constants; symbols owned by m_ST.
     std::map<UTI, SymbolClass* > m_scalarClassInstanceIdxToSymbolPtr;
     std::map<UTI, SymbolClass* > m_scalarClassInstanceIdxToSymbolPtrTEMP; //iteration in progress
     std::map<std::string, SymbolClass* > m_scalarClassArgStringsToSymbolPtr; //merged set

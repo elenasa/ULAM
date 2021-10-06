@@ -94,12 +94,13 @@ namespace MFM{
 
   protected:
 
+    virtual void clearSymbolPtr();
+
   private:
     SymbolFunction * m_funcSymbolPtr; //not owner
     const u32 m_fid; //to instantiate, fm symbol
     const u32 m_ordernum;  //to instantiate, must be unique among ea fid, fm symbol
 
-    void clearSymbolPtr();
     u32 getfunctionid() const; //helper to set constant dm
     u32 getfunctionordernum() const; //helper to set contant dm
 

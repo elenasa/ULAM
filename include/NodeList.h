@@ -69,11 +69,17 @@ namespace MFM{
 
     virtual void resetNodeLocations(Locator loc);
 
-    virtual void print(File * fp);
-
     virtual void printPostfix(File * fp);
 
+    void printPostfix(File * fp, u32 n);
+
+    virtual void print(File * fp);
+
     virtual const char * getName();
+
+    u32 getNameId(u32 n);
+
+    u32 getTypeNameId(u32 n);
 
     virtual const std::string prettyNodeName();
 
@@ -110,6 +116,8 @@ namespace MFM{
     virtual bool isAConstant();
 
     bool isAConstant(u32 n);
+
+    bool isAConstantFunctionParameter(u32 n);
 
     bool isFunctionCall(u32 n);
 

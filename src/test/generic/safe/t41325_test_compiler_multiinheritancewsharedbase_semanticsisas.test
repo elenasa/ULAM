@@ -32,7 +32,7 @@
 ## Int(3) Arg: 0x7
 ##
 #!
-Exit status: -11
+Exit status: 0
 Ue_R { Int test() {  System s;  Foo f;  f ( )behave . 0 cast return } }
 Uq_System { <NOMAIN> }
 Ue_Foo : Secondary +Intermediate { Bool(7) sp(false);  System s();  :Secondary< Bool m_b2(false); > +Intermediate< Int(4) m_i4( 2);  Int(4) m_a4( 3); > ^Base< Bool bsp( true);  Int(3) m_i3( -1); > <NOMAIN> }

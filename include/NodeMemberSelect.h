@@ -57,11 +57,21 @@ namespace MFM{
 
     virtual const char * getName();
 
+    virtual u32 getNameId();
+
     virtual const std::string prettyNodeName();
 
-    virtual bool getSymbolPtr(Symbol *& symptrref);
+    virtual void clearSymbolPtr();
 
-    virtual bool getStorageSymbolPtr(Symbol *& symptrref);
+    virtual bool hasASymbol();
+
+    virtual u32 getSymbolId();
+
+    virtual bool hasAStorageSymbol();
+
+    virtual u32 getStorageSymbolId();
+
+    virtual bool compareSymbolPtrs(Symbol * ptr);
 
     virtual bool hasASymbolDataMember();
 
@@ -80,6 +90,8 @@ namespace MFM{
     virtual bool isAMemberSelect();
 
     virtual bool isAMemberSelectByRegNum(); //orig here
+
+    s32 findNodeKidOrder(const Node * anode) const;
 
     virtual const std::string methodNameForCodeGen();
 
@@ -114,12 +126,14 @@ namespace MFM{
 
     virtual TBOOL checkStoreIntoAble();
 
-    virtual bool passalongUVPass();
+    virtual bool passalongUVPass(bool toRHS = false);
 
     SymbolTmpVar * m_tmpvarSymbol;
+
   private:
 
-    virtual void clearSymbolPtr();
+    //const std::string getFullName();
+    const char * getFullName();
 
     void setStoreIntoAbleAndReferenceAble();
 

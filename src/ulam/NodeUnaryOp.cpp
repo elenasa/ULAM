@@ -140,7 +140,8 @@ namespace MFM {
     UlamType * ut = m_state.getUlamTypeByIndex(uti);
     if((ut->getUlamTypeEnum() == Class))
       {
-	Node * newnode = buildOperatorOverloadFuncCallNode();
+	bool hazyKin = false;
+	Node * newnode = buildOperatorOverloadFuncCallNode(hazyKin);
 	if(newnode)
 	  {
 	    AssertBool swapOk = Node::exchangeNodeWithParent(newnode, thisparentnode);
@@ -150,6 +151,12 @@ namespace MFM {
 
 	    m_state.setGoAgain();
 	    delete this; //suicide is painless..
+	    return Hzy;
+	  }
+	else if(hazyKin)
+	  {
+	    m_state.setGoAgain();
+	    setNodeType(Hzy);
 	    return Hzy;
 	  }
 	//else should fail again as non-primitive;
@@ -180,7 +187,7 @@ namespace MFM {
     return newType;
   } //checkAndLabelType
 
-  Node * NodeUnaryOp::buildOperatorOverloadFuncCallNode()
+  Node * NodeUnaryOp::buildOperatorOverloadFuncCallNode(bool & hazyArg)
   {
     return Node::buildOperatorOverloadFuncCallNodeHelper(m_node, NULL, getName());
   } //buildOperatorOverloadFuncCallNode
@@ -449,24 +456,44 @@ namespace MFM {
 
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    TMPSTORAGE nstor = nut->getTmpStorageTypeForTmpVar(); //t41567
+    bool varcomesfirst = (nstor == TMPTBV); //t41567
+
     s32 tmpVarNum = m_state.getNextTmpVarNumber();
 
     m_state.indentUlamCode(fp);
-    fp->write("const ");
+
+    if(!varcomesfirst)
+      fp->write("const ");
     fp->write(nut->getTmpStorageTypeAsString().c_str()); //e.g. u32, s32, u64..
     fp->write(" ");
+    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, nstor).c_str());
 
-    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPREGISTER).c_str());
-    fp->write(" = ");
+    if(varcomesfirst)
+      {
+	fp->write(";"); GCNL;
 
-    fp->write(methodNameForCodeGen().c_str());
-    fp->write("(");
-    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
-    fp->write(", ");
-    fp->write_decimal(nut->getBitSize());
-    fp->write(");"); GCNL;
+	m_state.indentUlamCode(fp);
+	fp->write(uvpass.getTmpVarAsString(m_state).c_str());
+	fp->write(".");
+	fp->write(methodNameForCodeGen().c_str());
+	fp->write("(");
+	fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, nstor).c_str());
+	fp->write(");"); GCNL; //t41567
+      }
+    else
+      {
+	fp->write(" = ");
 
-    uvpass = UVPass::makePass(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //POS 0 rightjustified.
+	fp->write(methodNameForCodeGen().c_str());
+	fp->write("(");
+	fp->write(uvpass.getTmpVarAsString(m_state).c_str());
+	fp->write(", ");
+	fp->write_decimal(nut->getBitSize());
+	fp->write(");"); GCNL;
+      }
+
+    uvpass = UVPass::makePass(tmpVarNum, nstor, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //POS 0 rightjustified.
   } //genCode
 
   void NodeUnaryOp::genCodeToStoreInto(File * fp, UVPass& uvpass)

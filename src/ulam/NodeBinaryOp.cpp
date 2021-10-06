@@ -118,7 +118,7 @@ namespace MFM {
   void NodeBinaryOp::printOp(File * fp)
   {
     char myname[16];
-    sprintf(myname," %s", getName());
+    sprintf(myname," %s", m_state.m_pool.getDataAsString(getNameId()).c_str()); //was getName(),t41376
     fp->write(myname);
   }
 
@@ -215,14 +215,15 @@ namespace MFM {
     return newType;
   } //checkAndLabelType
 
-  bool NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode(Node * parentnode)
+  TBOOL NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode(Node * parentnode)
   {
     assert(m_nodeLeft && m_nodeRight);
     UTI lt = m_nodeLeft->getNodeType();
     if(!m_state.isAClass(lt))
-      return false;
+      return TBOOL_FALSE;
 
-    Node * newnode = buildOperatorOverloadFuncCallNode();
+    bool hazyKin = false;
+    Node * newnode = buildOperatorOverloadFuncCallNode(hazyKin);
     if(newnode)
       {
 	AssertBool swapOk = Node::exchangeNodeWithParent(newnode, parentnode);
@@ -231,13 +232,15 @@ namespace MFM {
 	m_nodeLeft = NULL; //recycle as memberselect
 	m_nodeRight = NULL; //recycle as func call arg
 
-	return true; //return Hzy;
+	return TBOOL_TRUE; //return Hzy;
       }
-    return false;
+    else if(hazyKin)
+      return TBOOL_HAZY;
+    return TBOOL_FALSE;
   } //buildandreplaceOperatorOverloadFuncCallNode
 
   //no existence checking; error if overload doesn't exist for class and this binary op.
-  Node * NodeBinaryOp::buildOperatorOverloadFuncCallNode()
+  Node * NodeBinaryOp::buildOperatorOverloadFuncCallNode(bool& hazyArg)
   {
     return Node::buildOperatorOverloadFuncCallNodeHelper(m_nodeLeft, m_nodeRight, getName());
   } //buildOperatorOverloadFuncCallNode
@@ -270,7 +273,7 @@ namespace MFM {
 	msg << m_state.getUlamTypeNameByIndex(newType).c_str();
 	msg << " for binary " << getName();
 	if(lsafe == CAST_HAZY || rsafe == CAST_HAZY)
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //was debug
 	else
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	rtnOK = false;
@@ -536,6 +539,10 @@ namespace MFM {
     if(m_state.isAClass(nuti))
       return nuti; //t41484 (e.g. node sq bkt)
 
+    u32 wordsize = m_state.getTotalWordSize(nuti);
+    if(wordsize > MAXBITSPERLONG)
+      return nuti; //t41563?
+
     NNO pno = Node::getYourParentNo();
     assert(pno);
 
@@ -764,26 +771,46 @@ namespace MFM {
 
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    TMPSTORAGE nstor = nut->getTmpStorageTypeForTmpVar(); //t41563
+    bool varcomesfirst = (nstor == TMPTBV); //t41563
+
     s32 tmpVarNum = m_state.getNextTmpVarNumber();
 
     m_state.indentUlamCode(fp);
-    fp->write("const ");
+    if(!varcomesfirst)
+      fp->write("const ");
     fp->write(nut->getTmpStorageTypeAsString().c_str()); //e.g. u32, s32, u64..
     fp->write(" ");
 
-    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPREGISTER).c_str());
-    fp->write(" = ");
+    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, nstor).c_str());
+    if(varcomesfirst)
+      {
+	fp->write(";"); GCNL;
 
-    fp->write(methodNameForCodeGen().c_str());
-    fp->write("(");
-    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
-    fp->write(", ");
-    fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
-    fp->write(", ");
-    fp->write_decimal(nut->getTotalBitSize()); //if scalar, it's just the bitsize
-    fp->write(");"); GCNL;
+	m_state.indentUlamCode(fp);
+	fp->write(luvpass.getTmpVarAsString(m_state).c_str());
+	fp->write(".");
+	fp->write(methodNameForCodeGen().c_str());
+	fp->write("(");
+	fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
+	fp->write(", ");
+	fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, nstor).c_str());
+	fp->write(");"); GCNL; //t41563
+      }
+    else
+      {
+	fp->write(" = ");
+	fp->write(methodNameForCodeGen().c_str());
+	fp->write("(");
+	fp->write(luvpass.getTmpVarAsString(m_state).c_str());
+	fp->write(", ");
+	fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
+	fp->write(", ");
+	fp->write_decimal(nut->getTotalBitSize()); //if scalar, it's just the bitsize
+	fp->write(");"); GCNL;
+      }
 
-    uvpass = UVPass::makePass(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //P
+    uvpass = UVPass::makePass(tmpVarNum, nstor, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //P
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
   } //genCode
 

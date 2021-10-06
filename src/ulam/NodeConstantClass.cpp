@@ -79,10 +79,21 @@ namespace MFM {
     setBlock(NULL);
   }
 
-  bool NodeConstantClass::getSymbolPtr(Symbol *& symptrref)
+  bool NodeConstantClass::getSymbolPtr(const Symbol *& symptrref)
   {
     symptrref = m_constSymbol;
     return (m_constSymbol != NULL); //true;
+  }
+
+  bool NodeConstantClass::hasASymbol()
+  {
+    return (m_constSymbol != NULL);
+  }
+
+  u32 NodeConstantClass::getSymbolId()
+  {
+    assert(m_constSymbol);
+    return m_constSymbol->getId();
   }
 
   bool NodeConstantClass::hasASymbolDataMember()
@@ -168,10 +179,10 @@ namespace MFM {
 	    if(!m_state.isComplete(it)) //reloads to recheck
 	      {
 		std::ostringstream msg;
-		msg << "Incomplete " << prettyNodeName().c_str() << " for type: ";
-		msg << m_state.getUlamTypeNameByIndex(it).c_str();
-		msg << ", used with constant symbol name '";
-		msg << m_state.getTokenDataAsString(m_token).c_str() << "'";
+		msg << "Incomplete " << prettyNodeName().c_str() << " for type";
+		if(m_state.okUTItoContinue(it) && !m_state.isHolder(it))
+		  msg << ": " << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+		msg << " used with constant symbol name '" << getName() << "'";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 		//wait until updateConstant tried.
 	      }
@@ -236,7 +247,7 @@ namespace MFM {
 	if(!hazyKin)
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	else
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //was debug
       }
     m_state.popClassContext(); //restore
 
@@ -312,7 +323,12 @@ namespace MFM {
     if(m_currBlockPtr)
       return m_currBlockPtr;
 
-    NodeBlock * currBlock = (NodeBlock *) m_state.findNodeNoInThisClassOrLocalsScope(m_currBlockNo);
+    NodeBlock * currBlock = NULL;
+    if(m_nodeTypeDesc && m_state.isAClass(m_nodeTypeDesc->getNodeType()))
+      currBlock = (NodeBlock *) m_state.findNodeNoInAClassOrLocalsScope(m_currBlockNo, m_nodeTypeDesc->getNodeType()); //t41554
+    else
+      currBlock = (NodeBlock *) m_state.findNodeNoInThisClassOrLocalsScope(m_currBlockNo);
+
     if(!currBlock)
       {
 	UTI anotherclassuti = m_state.findAClassByNodeNo(m_currBlockNo);

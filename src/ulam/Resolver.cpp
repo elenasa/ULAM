@@ -27,7 +27,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Class Instances with non-ready argument constant subtrees cleared: ";
 	msg << nonreadyG;
-	MSG("",msg.str().c_str(),DEBUG);
+	MSG("",msg.str().c_str(), DEBUG);
 
 	std::vector<NodeConstantDef *>::iterator vit = m_nonreadyClassArgSubtrees.begin();
 	while(vit != m_nonreadyClassArgSubtrees.end())
@@ -47,7 +47,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Class Regular/Template with unknown Types cleared: ";
 	msg << unknowns;
-	MSG("", msg.str().c_str(),DEBUG);
+	MSG("", msg.str().c_str(), DEBUG);
       }
     m_unknownTypeTokens.clear();
   } //clearLeftoverUnknownTypeTokens
@@ -493,7 +493,7 @@ namespace MFM {
 	msg << "Substituting previously mapped UTI" << mappedfmuti;
 	msg << " for the from UTI" << fmuti << ", while mapping to: " << touti;
 	msg << " in class " << m_state.getUlamTypeNameBriefByIndex(m_classUTI).c_str();
-	MSG("",msg.str().c_str(),DEBUG);
+	MSG("",msg.str().c_str(), DEBUG);
 	fmuti = mappedfmuti;
       }
 

@@ -2,19 +2,16 @@
 #=t41138_test_compiler_element_missingrhsassignment_insideforloopassert_ish_error
 #!
 ./Foo.ulam:16:14: ERROR: Right operand of binary = is missing; Assignment deleted.
-./Foo.ulam:17:2: ERROR: Invalid Statement (possible missing semicolon).
-./UrSelf.ulam:22:0: ERROR: Invalid Statement (possible missing semicolon).
-./Foo.ulam:8:5: ERROR: Incomplete true block; for-loop.
-./Foo.ulam:5:5: ERROR: Not close curly.
-./Foo.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'Check2'; Possible missing ending curly brace.
+./Foo.ulam:3:3: ERROR: Class with parameters seen with the same name: C2D; No shadow typedef in class scope, Check2.
  ERROR: No parse tree for This Class: Foo.
 Unrecoverable Program Parse FAILURE: <Foo.ulam>
 ./C2D.ulam:2:7: ERROR: Conflicting class args previously seen for class with no parameters 'C2D'.
 ./Foo.ulam:16:23: ERROR: Invalid Type: C2D.
 Unrecoverable Program Parse FAILURE: <C2D.ulam>
 ##
-## 8/30/2017 Dave ish making class exercises: anonymous class instance caused RHS of assignment to be null within a for-loop;
-##             assert in pushClassBlock hit; assert inappropriate as block MAY be null.
+## 8/30/2017 Dave ish making class exercises:
+##           anonymous class instance caused RHS of assignment to be null within a for-loop;
+##           assert in pushClassBlock hit; assert inappropriate as block MAY be null.
 ##
 #>Foo.ulam
   ulam 3;

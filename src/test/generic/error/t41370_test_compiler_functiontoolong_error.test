@@ -3,7 +3,7 @@
 #!
 ./Foo.ulam:6:260: ERROR: Lexer could not complete Identifier <thisisaverylongstringthatexceedsthatlengthallowedbylinuxwhichistwohundredfiftyfivebuttakingthelongestextensionintoaccountwemustsubtracteightallowingustotestthemanglednamewiththisverylongstringthatneedsafewmoreletterstoproperlytestthelimitationdiscussed0123>; Must be less than 256 length, not 256.
 ./Foo.ulam:10:263: ERROR: Lexer could not complete Identifier <thisisaverylongstringthatexceedsthatlengthallowedbylinuxwhichistwohundredfiftyfivebuttakingthelongestextensionintoaccountwemustsubtracteightallowingustotestthemanglednamewiththisverylongstringthatneedsafewmoreletterstoproperlytestthelimitationdiscussed0123>; Must be less than 256 length, not 256.
-./Foo.ulam:10:264: ERROR: Bit size after Open Paren is missing, type: Void.
+./Foo.ulam:10:264: ERROR: Bit size after Open Paren is missing, type: Void; Void size is zero.
 ./Foo.ulam:10:267: ERROR: Name of variable/function '{': Identifier must begin with a lower-case letter.
 ./Foo.ulam:3:1: ERROR: Empty/Incomplete Class Definition 'Foo'; Possible missing ending curly brace.
 ./Foo.ulam:10:267: ERROR: Invalid Class Type <{>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.

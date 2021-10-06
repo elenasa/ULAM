@@ -55,6 +55,18 @@ namespace MFM {
     return "Uz_"; //?
   }
 
+  u32 SymbolFunctionName::getFunctionNameId()
+  {
+    u32 id = getId();
+    if(isOperatorOverloadFunctionName())
+      {
+	Token * idTokPtr = getTokPtr();
+	assert(idTokPtr);
+	id = idTokPtr->getUlamNameIdForOperatorOverloadToken(&m_state);
+      }
+    return id;
+  }
+
   bool SymbolFunctionName::isOperatorOverloadFunctionName()
   {
     return m_isOperatorOverload;
@@ -67,13 +79,19 @@ namespace MFM {
 
   bool SymbolFunctionName::overloadFunction(SymbolFunction * fsym)
   {
+    SymbolFunction * anyotherSym = NULL; //dropped
+    return overloadFunction(fsym,anyotherSym);
+  } //overloadFunction
+
+  bool SymbolFunctionName::overloadFunction(SymbolFunction * fsym, SymbolFunction *& ovfsymref)
+  {
     bool overloaded = false;
     // return types may differ, as long as params are different
 
     std::string mangled = fsym->getMangledNameWithUTIparameters();
 
     //if doesn't already exist, potentially overload it by inserting into map.
-    SymbolFunction * anyotherSym;
+    SymbolFunction * anyotherSym = NULL;
     if(!isDefined(mangled, anyotherSym))
       {
 	std::pair<std::map<std::string,SymbolFunction *>::iterator,bool> ret;
@@ -81,6 +99,8 @@ namespace MFM {
 	overloaded = ret.second; //false if already existed, i.e. not added
 	assert(overloaded); //shouldn't be a duplicate, we've checked by now.
       }
+
+    ovfsymref = anyotherSym;
     return overloaded;
   } //overloadFunction
 
@@ -327,7 +347,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Check overloaded function '";
-	    msg << m_state.m_pool.getDataAsString(fsym->getId()).c_str();
+	    msg << m_state.m_pool.getDataAsString(fsym->getFunctionNameId()).c_str();
 	    msg << "' has a duplicate definition (";
 	    msg << fsym->getMangledNameWithTypes().c_str();
 	    msg << ")";
@@ -373,7 +393,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Check overloaded function '";
-	    msg << m_state.m_pool.getDataAsString(fsym->getId()).c_str();
+	    msg << m_state.m_pool.getDataAsString(fsym->getFunctionNameId()).c_str();
 	    msg << "' with different return types (";
 	    msg << m_state.getUlamTypeNameBriefByIndex(rtntype).c_str();
 	    msg << ", " << m_state.getUlamTypeNameBriefByIndex(futi).c_str();
@@ -418,7 +438,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Custom array get method '";
-	    msg << m_state.m_pool.getDataAsString(fsym->getId()).c_str();
+	    msg << m_state.m_pool.getDataAsString(fsym->getFunctionNameId()).c_str();
 	    msg << "' cannot return Void ";
 	    probcount++;
 	  }
@@ -426,7 +446,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Custom array get methods '";
-	    msg << m_state.m_pool.getDataAsString(fsym->getId()).c_str();
+	    msg << m_state.m_pool.getDataAsString(fsym->getFunctionNameId()).c_str();
 	    msg << "' cannot have different return types: ";
 	    msg << m_state.getUlamTypeNameByIndex(futi).c_str();
 	    msg << ", ";
@@ -479,9 +499,7 @@ namespace MFM {
 
     if(camatches == 1)
       {
-	Symbol * asym = fsym->getParameterSymbolPtr(0); //1st arg is index
-	assert(asym);
-	idxuti = asym->getUlamTypeIdx();
+	idxuti = fsym->getParameterType(0);
       }
 
     argNodes.clear();
@@ -560,7 +578,7 @@ namespace MFM {
 
   void SymbolFunctionName::printUnresolvedLocalVariablesInFunctionDefs()
   {
-    u32 fid = getId();
+    u32 fid = getFunctionNameId();
     std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
     while(it != m_mangledFunctionNames.end())
       {
@@ -594,7 +612,7 @@ namespace MFM {
 	    std::string fkey = it->first;
 	    std::ostringstream msg;
 	    msg << (ncnt - fcntnavs) << " nodes with erroneous types remain in function '";
-	    msg << m_state.m_pool.getDataAsString(getId());
+	    msg << m_state.m_pool.getDataAsString(getFunctionNameId());
 	    msg << "' (" << fkey.c_str() << ")";
 	    MSG(func->getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
 	    countNavs += (ncnt - fcntnavs);
@@ -605,7 +623,7 @@ namespace MFM {
 	    std::string fkey = it->first;
 	    std::ostringstream msg;
 	    msg << (hcnt - fcnthzy) << " nodes with unresolved types remain in function '";
-	    msg << m_state.m_pool.getDataAsString(getId());
+	    msg << m_state.m_pool.getDataAsString(getFunctionNameId());
 	    msg << "' (" << fkey.c_str() << ")";
 	    MSG(func->getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
 	    countHzy += (hcnt - fcnthzy);
@@ -616,7 +634,7 @@ namespace MFM {
 	    std::string fkey = it->first;
 	    std::ostringstream msg;
 	    msg << (nocnt - fcntunset) << " nodes with unset types remain in function '";
-	    msg << m_state.m_pool.getDataAsString(getId());
+	    msg << m_state.m_pool.getDataAsString(getFunctionNameId());
 	    msg << "' (" << fkey.c_str() << ")";
 	    MSG(func->getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
 	    countUnset += (nocnt - fcntunset);
@@ -634,7 +652,7 @@ namespace MFM {
 	  msg << "all " <<  numfuncs << " functions '";
 	else
 	  msg << " a single function '";
-	msg << m_state.m_pool.getDataAsString(getId()) << "' in class: ";
+	msg << m_state.m_pool.getDataAsString(getFunctionNameId()) << "' in class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(m_state.getFullLocationAsString(getLoc()).c_str(), msg.str().c_str(), INFO);
       }
@@ -648,7 +666,7 @@ namespace MFM {
 	  msg << "all " <<  numfuncs << " functions '";
 	else
 	  msg << " a single function '";
-	msg << m_state.m_pool.getDataAsString(getId()) << "' in class: ";
+	msg << m_state.m_pool.getDataAsString(getFunctionNameId()) << "' in class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(m_state.getFullLocationAsString(getLoc()).c_str(), msg.str().c_str(), INFO);
       }
@@ -662,7 +680,7 @@ namespace MFM {
 	  msg << "all " <<  numfuncs << " functions '";
 	else
 	  msg << " a single function '";
-	msg << m_state.m_pool.getDataAsString(getId()) << "' in class: ";
+	msg << m_state.m_pool.getDataAsString(getFunctionNameId()) << "' in class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(m_state.getFullLocationAsString(getLoc()).c_str(), msg.str().c_str(), INFO);
       }

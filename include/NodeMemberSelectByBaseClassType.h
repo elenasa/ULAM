@@ -58,13 +58,17 @@ namespace MFM{
 
     virtual Node * instantiate();
 
+    virtual void printOp(File * fp);
+
     virtual const char * getName();
+
+    virtual u32 getNameId();
 
     virtual void printPostfix(File * fp);
 
     virtual const std::string prettyNodeName();
 
-    virtual bool getStorageSymbolPtr(Symbol *& symptrref);
+    virtual bool getStorageSymbolPtr(const Symbol *& symptrref);
 
     virtual bool hasASymbolDataMember();
 
@@ -91,7 +95,7 @@ namespace MFM{
   protected:
 
     virtual bool doBinaryOperation(s32 lslot, s32 rslot, u32 slots);
-    virtual bool passalongUVPass();
+    virtual bool passalongUVPass(bool toRHS = false);
 
     virtual TBOOL checkStoreIntoAble();
 
@@ -99,6 +103,8 @@ namespace MFM{
 
     Node * m_nodeVTclassrn; //runtime var: class VTable Registration Number
     SymbolTmpVar * m_tmpvarSymbolVTclassrn;
+
+    const char * getFullName();
 
     void makeUVPassForCodeGen(UVPass& uvpass);
   };

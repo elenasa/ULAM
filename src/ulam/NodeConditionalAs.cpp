@@ -44,8 +44,8 @@ namespace MFM {
     if(luti == Nav)
       {
 	std::ostringstream msg;
-	msg << "Invalid lefthand type of conditional operator '" << getName();
-	msg << "'";
+	msg << "Invalid lefthand type of conditional operator '";
+	msg  << getName() << "'";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(Nav);
 	return Nav; //short-circuit
@@ -54,8 +54,8 @@ namespace MFM {
     if(luti == Hzy)
       {
 	std::ostringstream msg;
-	msg << "Incomplete lefthand type of conditional operator '" << getName();
-	msg << "'";
+	msg << "Incomplete lefthand type of conditional operator '";
+	msg  << getName() << "'";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	setNodeType(Hzy);
 	m_state.setGoAgain();
@@ -70,8 +70,8 @@ namespace MFM {
     if(!lut->isScalar())
       {
 	std::ostringstream msg;
-	msg << "Invalid lefthand type of conditional operator '" << getName();
-	msg << "'; must be a scalar";
+	msg << "Invalid lefthand type of conditional operator '";
+	msg  << getName() << "'; must be a scalar";
 	if(!m_state.isHolder(luti))
 	  msg << ", not " << lut->getUlamTypeNameBrief().c_str() << " array";
 	if((lclasstype == UC_UNSEEN) || m_state.isStillHazy(luti))
@@ -91,8 +91,8 @@ namespace MFM {
     if(!(m_state.isAtom(luti) || (letyp == Class)))
       {
 	std::ostringstream msg;
-	msg << "Invalid lefthand type of conditional operator '" << getName();
-	msg << "'; must be an atom or class";
+	msg << "Invalid lefthand type of conditional operator '";
+	msg  << getName() << "'; must be an atom or class";
 	if(!m_state.isHolder(luti))
 	  msg << ", not " << lut->getUlamTypeNameBrief().c_str();
 	if((lclasstype == UC_UNSEEN) || m_state.isStillHazy(luti))
@@ -112,8 +112,8 @@ namespace MFM {
     if(m_nodeLeft->isArrayItem() || m_nodeLeft->isFunctionCall())
       {
 	std::ostringstream msg;
-	msg << "Invalid lefthand type of conditional operator '" << getName();
-	msg << "'; suggest a reference variable";
+	msg << "Invalid lefthand type of conditional operator '";
+	msg  << getName() << "'; suggest a reference variable";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	newType = Nav;
 	setNodeType(Nav);
@@ -247,7 +247,7 @@ namespace MFM {
       }
     else
       {
-		std::ostringstream msg;
+	std::ostringstream msg;
 	if(ruti == Nav)
 	  msg << "Invalid ";
 	else
@@ -305,12 +305,12 @@ namespace MFM {
     assert(m_state.okUTItoContinue(luti));
 
     UlamValue luv = m_state.getPtrTarget(pluv);
+    UTI leffself = luv.getUlamValueEffSelfTypeIdx(); //t41539
 
     bool leftisatom = m_state.isAtom(luti) || m_state.isAtom(luv.getUlamValueTypeIdx()); //t3754,t3837
     if(leftisatom)
       {
 	//an atom can be element or quark in eval-land, so let's get specific!
-	UTI leffself = luv.getUlamValueEffSelfTypeIdx(); //?
 	if(leffself != Nouti)
 	  {
 	    luti = leffself;
@@ -329,6 +329,11 @@ namespace MFM {
 	if(m_state.isClassASubclassOf(luti, ruti))
 	  {
 	    asit = true;
+	  }
+	else if((leffself != Nouti) && m_state.isClassASubclassOf(leffself, ruti))
+	  {
+	    asit = true; //we must have a quark ref (t41539)
+	    luti = leffself; //t41011,t41012,t41319,t41325,t41539 (no longer unevaluable)
 	  }
 	else
 	  {
@@ -429,7 +434,7 @@ namespace MFM {
     UTI lnuti = m_nodeLeft->getNodeType();
     if(m_state.isAtom(lnuti))
       return genCodeAtomAs(fp, uvpass); //reads into tmpvar
-    else if(m_state.isAltRefType(lnuti))
+    else if(m_state.isReference(lnuti)) //not isAltRefType, consistent w NodeConditionalIs
       return genCodeReferenceAs(fp, uvpass); //doesn't read into tmpvar
     //else ClassAs.. reads into tmp var.
 
@@ -543,7 +548,7 @@ namespace MFM {
     UVPass luvpass;
     m_nodeLeft->genCodeToStoreInto(fp, luvpass); //loads lhs into tmp (T)
     UTI luti = luvpass.getPassTargetType(); //replace
-    assert(m_state.isAltRefType(luti));
+    assert(m_state.isReference(luti));
 
     Symbol * stgcos = NULL;
     if(m_state.m_currentObjSymbolsForCodeGen.empty())

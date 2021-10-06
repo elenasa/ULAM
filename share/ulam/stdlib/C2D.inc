@@ -41,6 +41,16 @@
     return self;
   }
 
+  Self & operator*=(Self other) {
+    self = self * other;
+    return self;
+  }
+
+  Self & operator/=(Self other) {
+    self = self / other;
+    return self;
+  }
+
   Self clamp(Self below, Self above) {
     return (self | below) & above;
   }
@@ -100,6 +110,18 @@
     return self;
   }
 
+  /** The minimum of the x and y coordinates, as an Int
+
+      \since v5.0
+  */
+  Int minc() { return (x < y) ? x : y; }
+
+  /** The maximum of the x and y coordinates, as an Int
+
+      \since v5.0
+  */
+  Int maxc() { return (x > y) ? x : y; }
+
   /** True if each dimension of \c other is between 0 and our
       dimension's value - 1. Always false if self.x or self.y
       is <= 0.  
@@ -120,12 +142,23 @@
     return x * other.x + y * other.y;
   }
 
+  /** OBSOLETED 202108150259 USE Int dot(Self) instead 
+  
   Int operator*(Self other) {
     return dot(other);
+  }
+  */
+
+  Self operator*(Self other) {
+    return make((Coord) (x * other.x), (Coord) (y * other.y));
   }
 
   Self operator*(Coord scalar) {
     return make((Coord) (x * scalar), (Coord) (y * scalar));
+  }
+
+  Self operator/(Self other) {
+    return make((Coord) (x / other.x), (Coord) (y / other.y));
   }
 
   Self operator/(Coord scalar) {
@@ -140,12 +173,20 @@
     return add(other);
   }
 
+  Self operator+(Coord scalar) {
+    return make((Coord) (x + scalar), (Coord) (y + scalar));
+  }
+
   Self subtract(Self other) {
     return make((Coord) (x - other.x), (Coord) (y - other.y));
   }
 
   Self operator-(Self other) {
     return subtract(other);
+  }
+
+  Self operator-(Coord scalar) {
+    return make((Coord) (x - scalar), (Coord) (y - scalar));
   }
 
   Self negate() {
@@ -202,9 +243,14 @@
   }
 
   Self abs(Self of) {
-    if (of.x < 0) of.x = -of.x;
-    if (of.y < 0) of.y = -of.y;
+    if (of.x < 0) of.x = (Coord) - (Int) of.x; // excessive casting so
+    if (of.y < 0) of.y = (Coord) - (Int) of.y; // Coord can be Unsigned
     return of;
+  }
+
+  Unsigned area() {
+    Self a = abs();
+    return (Unsigned) (a.x * a.y);
   }
 
   Unsigned manhattanDistance(Self other) {
@@ -224,7 +270,21 @@
     \since v2.1
   */
   Unsigned euclideanSquaredLength() {
-    return (Unsigned) (self * self);
+    return (Unsigned) self.dot(self);
+  }
+
+  Self takey(Self fromother) {
+    fromother.x = self.x;
+    return fromother;
+  }
+
+  Self takex(Self fromother) {
+    fromother.y = self.y;
+    return fromother;
+  }
+
+  Self take(Self fromx, Self fromy) {
+    return takex(fromx).takey(fromy);
   }
 
 //}

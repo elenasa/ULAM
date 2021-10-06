@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t41428_test_compiler_quarkinheritancewithcycle_error
 #!
-./C.ulam:5:5: ERROR: Incomplete Variable Decl for type: QU used with variable symbol name 'qu'.
+./C.ulam:5:5: ERROR: Incomplete NodeVarDecl for type: QU used with variable symbol name 'qu'.
 ./C.ulam:5:5: ERROR: Variable for: 'qu', is still hazy.
 ./QU.ulam:2:7: ERROR: Subclass 'QU' inherits from an incomplete class, item 0.
 ./QB.ulam:2:7: ERROR: Subclass 'QB' inherits from an incomplete class, item 0.

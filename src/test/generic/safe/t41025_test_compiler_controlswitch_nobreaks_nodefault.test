@@ -7,7 +7,7 @@
 ##
 #!
 Exit status: 0
-Ue_A { System s();  Int a(0);  Int b(2);  Int test() {  self a . 1 cast = self b . 0 cast = { typedef Int _SWITCHTYPEDEF12;  Int Uh_switchcond12 = self a . 1 -=;  Uh_switchcond12 0 cast == cond { self b . 2 cast = } if Uh_switchcond12 -1 cast == cond { self b . 3 cast = } if else _1: } self s . ( self b . )print . self s . ( self b . 2 cast == )assert . self s . ( self a . )print . self s . ( self a . 0 cast == )assert . self a . return } }
+Ue_A { System s();  Int a(0);  Int b(2);  Int test() {  self a . 1 cast = self b . 0 cast = { typedef Int _SWITCHTYPEDEF12;  Int Uh_switchcond12 = self a . 1 -=;  Uh_switchcond12 0 cast == cond { self b . 2 cast = } if Uh_switchcond12 -1 cast == cond { self b . 3 cast = } if else } self s . ( self b . )print . self s . ( self b . 2 cast == )assert . self s . ( self a . )print . self s . ( self a . 0 cast == )assert . self a . return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t41016: un-nested switch does not need breaks! no fall through. default optional.

@@ -33,4 +33,20 @@ namespace MFM{
     }
   }
 
+  template<class EC>
+  void Uq_10156Logger10<EC>::Uf_9215setIncludeFlags(const UlamContext<EC>& uc, UlamRef<EC>& ur, Ui_Ut_102321u<EC>& Uv_5flags) const
+  {
+    u32 iflags = Uv_5flags.read();
+    LOG.SetIncludeFlags((Logger::IncludeFlags) iflags);
+  } // Uf_9215setIncludeFlags
+
+  template<class EC>
+  Ui_Ut_102321u<EC> Uq_10156Logger10<EC>::Uf_9215getIncludeFlags(const UlamContext<EC>& uc, UlamRef<EC>& ur) const
+  {
+    const u32 iflags = LOG.GetIncludeFlags();
+    Ui_Ut_102321u<EC> ret(iflags);
+    return ret;
+  } // Uf_9215getIncludeFlags
+
+
 } //MFM

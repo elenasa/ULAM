@@ -1,0 +1,53 @@
+## -*- mode:ulam -*-
+#=t41556_test_compiler_elementandquark_multibases_virtualfunccallbytypeasfactor_error
+#!
+./Foo.ulam:8:30: ERROR: Suspect class type 'E4.QBase3' is followed by a function call to: vfuncb, and cannot be used in this context; an object is required.
+./Foo.ulam:8:9: ERROR: Initial value of 'b4' is missing.
+./Foo.ulam:8:30: ERROR: Invalid Statement (possible missing semicolon).
+Unrecoverable Program Parse FAILURE: <Foo.ulam>
+Unrecoverable Program Parse FAILURE: <E4.ulam>
+Unrecoverable Program Parse FAILURE: <QBase1.ulam>
+Unrecoverable Program Parse FAILURE: <QBase3.ulam>
+##
+##   informed by t41305; caught while looking for named constant in another class, see also t41556
+##
+#>Foo.ulam
+  ulam 4;
+element Foo {
+
+  Int test()
+  {
+    E4 e4;
+
+    Int b4 = E4.QBase3.vfuncb(); //error without object, e4
+    return 0;
+  }
+}
+
+
+#:E4.ulam
+  ulam 5;
+element E4 : QBase3 +QBase1 {
+  virtual Int vfuncc() { return 412; }
+  virtual Int vfunca() { return 410; }
+  virtual Void behave() { }
+}
+
+#:QBase1.ulam
+    ulam 4;
+quark QBase1 {
+  Bool m_b1;
+  Void funcNotVirtualSoIrrelevantHere() { }
+  virtual Int vfuncb() { return 111; }   //ambiguous
+  virtual Int vfunca() { return 110; }
+}
+
+
+#:QBase3.ulam
+  ulam 4;
+quark QBase3 {
+  Bool m_b3;
+  virtual Int vfuncb() { return 311; }
+}
+
+#.

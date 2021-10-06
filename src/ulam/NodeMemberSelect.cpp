@@ -24,14 +24,30 @@ namespace MFM {
 
   void NodeMemberSelect::printOp(File * fp)
   {
-    char myname[16];
-    sprintf(myname," %s", getName());
-    fp->write(myname);
+    fp->write(" .");
+  }
+
+  u32 NodeMemberSelect::getNameId()
+  {
+    return m_state.m_pool.getIndexForDataString(".");
   }
 
   const char * NodeMemberSelect::getName()
   {
-    return ".";
+    //return ".";
+    return getFullName();
+  }
+
+  const char * NodeMemberSelect::getFullName()
+  {
+    std::ostringstream fullnm;
+    fullnm << m_nodeLeft->getName();
+    fullnm << ".";
+    fullnm << m_nodeRight->getName();
+
+    //return fullnm.str(); //t41250 invalid read -V
+    u32 sidx = m_state.m_pool.getIndexForDataString(fullnm.str());
+    return m_state.m_pool.getDataAsString(sidx).c_str();
   }
 
   const std::string NodeMemberSelect::prettyNodeName()
@@ -48,22 +64,33 @@ namespace MFM {
       m_nodeRight->clearSymbolPtr();
   }
 
-  bool NodeMemberSelect::getSymbolPtr(Symbol *& symptrref)
+  bool NodeMemberSelect::compareSymbolPtrs(Symbol * ptr)
   {
-    if(m_nodeRight)
-      return m_nodeRight->getSymbolPtr(symptrref);
-
-    MSG(getNodeLocationAsString().c_str(), "No symbol", ERR);
-    return false;
+    return m_nodeRight->compareSymbolPtrs(ptr);
   }
 
-  bool NodeMemberSelect::getStorageSymbolPtr(Symbol *& symptrref)
+  bool NodeMemberSelect::hasASymbol()
   {
-    if(m_nodeLeft)
-      return m_nodeLeft->getSymbolPtr(symptrref); //includes quarks, transients
+    assert(m_nodeRight);
+    return m_nodeRight->hasASymbol();
+  }
 
-    MSG(getNodeLocationAsString().c_str(), "No storage symbol", ERR);
-    return false;
+  u32 NodeMemberSelect::getSymbolId()
+  {
+    assert(m_nodeRight);
+    return m_nodeRight->getSymbolId();
+  }
+
+  bool NodeMemberSelect::hasAStorageSymbol()
+  {
+    assert(m_nodeLeft);
+    return m_nodeLeft->hasASymbol();
+  }
+
+  u32 NodeMemberSelect::getStorageSymbolId()
+  {
+    assert(m_nodeLeft);
+    return m_nodeLeft->getSymbolId();
   }
 
   bool NodeMemberSelect::hasASymbolDataMember()
@@ -117,6 +144,17 @@ namespace MFM {
   {
     assert(isAMemberSelect());
     return false;
+  }
+
+  s32 NodeMemberSelect::findNodeKidOrder(const Node * anode) const
+  {
+    s32 order = -2; //UNKNOWN
+    if(anode == m_nodeLeft)
+      order = 0;
+    else if(anode == m_nodeRight)
+      order = 1;
+    //else
+    return order;
   }
 
   const std::string NodeMemberSelect::methodNameForCodeGen()
@@ -244,7 +282,8 @@ namespace MFM {
       }
     //else //t41010, t41145
 
-   //set up compiler state to use the member class block for symbol searches
+    //set up compiler state to use the member class block for symbol searches
+    // no concept of effective self for virtual function call search during c&l (t41543)
     m_state.pushClassContextUsingMemberClassBlock(memberClassNode);
 
     UTI rightType = m_nodeRight->checkAndLabelType(this);
@@ -261,11 +300,7 @@ namespace MFM {
 	  {
 	    if(m_nodeLeft->isAMemberSelect() && ((NodeMemberSelect *) m_nodeLeft)->isAMemberSelectByRegNum())
 	      {
-		Symbol * fsymptr = NULL;
-		AssertBool gotfunc = m_nodeRight->getSymbolPtr(fsymptr);
-		assert(gotfunc);
-		assert(fsymptr->isFunction());
-		if(!((SymbolFunction *) fsymptr)->isVirtualFunction())
+		if(!(m_nodeRight->isAVirtualFunctionCall()))
 		  {
 		    std::ostringstream msg;
 		    msg << "Member selected by classId must be a VIRTUAL function, ";
@@ -300,43 +335,34 @@ namespace MFM {
     assert(!m_nodeRight->isFunctionCall());
     if(!m_nodeRight->isAConstant())
       {
-	Symbol * sym = NULL;
-	if(m_nodeRight->getSymbolPtr(sym))
+	assert(m_nodeRight->hasASymbolDataMember());
+	u32 rpos = m_nodeRight->getSymbolDataMemberPosOffset();
+	if(rpos == UNRELIABLEPOS)
 	  {
-	    assert(sym->isDataMember());
-	    SymbolVariableDataMember * dmsym = (SymbolVariableDataMember *) sym;
-	    u32 rpos = 9999;
-	    if(!dmsym->isPosOffsetReliable())
+	    TBOOL packed = m_state.tryToPackAClass(leftType);
+	    if(packed == TBOOL_TRUE)
 	      {
-		TBOOL packed = m_state.tryToPackAClass(leftType);
-		if(packed == TBOOL_TRUE)
-		  {
-		    m_nodeRight->getSymbolPtr(sym); //refresh
-		    dmsym = (SymbolVariableDataMember *) sym;
-		    rpos = dmsym->getPosOffset();
-		  }
-		//else cannot pack yet
+		rpos = m_nodeRight->getSymbolDataMemberPosOffset();
 	      }
-	    else
-	      rpos = dmsym->getPosOffset();
+	    //else cannot pack yet
+	  }
 
-	    //okay to fold (possible refactor TODO); Element Types and Strings still un-fixed.
-	    if(rpos != 9999)
+	//okay to fold (possible refactor TODO); Element Types and Strings still un-fixed.
+	if(rpos != UNRELIABLEPOS)
+	  {
+	    if(lclasstype == UC_ELEMENT)
+	      rpos += ATOMFIRSTSTATEBITPOS;
+
+	    BV8K bvcctmp;
+	    bool gotVal = m_nodeLeft->getConstantValue(bvcctmp);
+
+	    if(gotVal)
 	      {
-		if(lclasstype == UC_ELEMENT)
-		  rpos += ATOMFIRSTSTATEBITPOS;
-
-		BV8K bvcctmp;
-		bool gotVal = m_nodeLeft->getConstantValue(bvcctmp);
-
-		if(gotVal)
-		  {
-		    u32 rlen = rut->getSizeofUlamType();
-		    bvcctmp.CopyBV(rpos, 0, rlen, bvmsel);
-		    rtnok = true;
-		  } //no left class value
-	      } //rpos not reliable
-	  } //no right symbol ptr
+		u32 rlen = rut->getSizeofUlamType();
+		bvcctmp.CopyBV(rpos, 0, rlen, bvmsel);
+		rtnok = true;
+	      } //no left class value
+	  } //rpos not reliable
       }
     else
       {
@@ -617,11 +643,18 @@ namespace MFM {
     UVPass ruvpass; //fresh (t41473?), consistent w genCodeToStoreInto
     //NodeIdent can't do it, because it doesn't know it's not a stand-alone element.
     // here, we know there's rhs of member select, which needs to adjust to state bits.
-    if(passalongUVPass())
+    if(passalongUVPass(true))
       {
 	ruvpass = luvpass;
       }
-    //else
+    else if(m_nodeLeft->isACast())
+      {
+	//needs to be read early before rhs. t41570
+	Node::genCodeConvertATmpVarIntoBitVector(fp,luvpass);
+
+	m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(luvpass, NULL); //dm to avoid leaks
+	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
+      }
 
     //check the back (not front) to process multiple member selections (e.g. t3818)
     m_nodeRight->genCode(fp, ruvpass);  //leave any array item as-is for gencode.
@@ -651,26 +684,39 @@ namespace MFM {
     // here, we know there's rhs of member select, which needs to adjust to state bits.
     //process multiple member selections (e.g. t3817)
     UVPass ruvpass;
-    if(passalongUVPass())
+    if(passalongUVPass(true))
       {
 	ruvpass = luvpass;  //t3615, t3803
+      }
+    else if(m_nodeLeft->isACast())
+      {
+	//consistent w genCode, but unclear if its needed here: unmodifiable cast.x as lhs
+	m_state.abortNeedsATest();
+
+	//needs to be read early before rhs.
+	Node::genCodeConvertATmpVarIntoBitVector(fp,luvpass);
+
+	m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(luvpass, NULL); //dm to avoid leaks
+	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
       }
 
     m_nodeRight->genCodeToStoreInto(fp, ruvpass); //uvpass contains the member selected, or cos obj symbol?
 
     uvpass = ruvpass;
 
-    //tmp variable needed for any function call not returning a ref (t41006), including 'aref'(t41005); func calls returning a ref already made tmpvar.
+    //tmp variable needed for any function call not returning a ref (t41006), including 'aref'(t41005);
+    // func calls returning a ref already made tmpvar.
     // uvpass not necessarily returning a reference type (t3913,4,5,7);
-    // t41035 returns a primitive ref; t3946, t3948
+    // fail/t41035 returns a primitive ref; t3946, t3948
     if(m_nodeRight->isFunctionCall() && !m_state.isStringATmpVar(uvpass.getPassNameId()))
       {
+	assert(!m_tmpvarSymbol); //t41572 can't call func on cast
 	m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, NULL); //dm to avoid leaks
 	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
       }
   } //genCodeToStoreInto
 
-  bool NodeMemberSelect::passalongUVPass()
+  bool NodeMemberSelect::passalongUVPass(bool toRHS)
   {
     bool rtnb = false; //don't pass along
     if(!m_state.m_currentObjSymbolsForCodeGen.empty())
@@ -681,6 +727,13 @@ namespace MFM {
 	//t3913, t3915 tmpref may not be a ref, but may need adjusting (i.e. anonymous element returned)
 	// t3706 not isAltRefType; t41307,9,10 isBaseClassRef (ulam-5); t41314 pass if self;
 	rtnb = cossym->isSelf() || (!cosut->isReference() && (!cossym->isTmpVarSymbol() || Node::needAdjustToStateBits(cosuti) || ((SymbolTmpVar *) cossym)->isBaseClassRef())) || (cosut->getReferenceType() == ALT_AS) /* AS, but not ARRAYITEM (t41396, t3706) */  ;
+      }
+    else
+      {
+	if(toRHS)
+	  rtnb = m_nodeRight->isFunctionCall(); //t41544
+	else //toLHS
+	  rtnb = m_nodeLeft->isFunctionCall(); //? consistent w rhs
       }
     return rtnb;
   }

@@ -32,12 +32,19 @@ namespace MFM {
 
     //replace node with func call to matching function overload operator for class
     // of left, with argument of right;
-    if(NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode(thisparentnode))
+    TBOOL rtntb = NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode(thisparentnode);
+    if(rtntb == TBOOL_TRUE)
       {
 	m_state.setGoAgain();
 	delete this; //suicide is painless..
 	return Hzy;
       }
+    else if(rtntb == TBOOL_HAZY)
+      {
+	m_state.setGoAgain();
+	return Hzy;
+      }
+    //else
 
     UTI newType = calcNodeType(leftType, rightType); //does safety check
 
@@ -161,7 +168,13 @@ namespace MFM {
 	m_state.abortUndefinedUlamPrimitiveType();
 	break;
       };
-    methodname << nut->getTotalWordSize();
+
+    u32 twsize = nut->getTotalWordSize();
+    if(twsize <= MAXBITSPERLONG)
+      methodname << twsize;
+    else
+      methodname << "BV";
+
     return methodname.str();
   } //methodNameForCodeGen
 
@@ -219,26 +232,48 @@ namespace MFM {
 
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    TMPSTORAGE nstor = nut->getTmpStorageTypeForTmpVar(); //t41563
+    bool varcomesfirst = (nstor == TMPTBV); //t41563
+
     s32 tmpVarNum = m_state.getNextTmpVarNumber();
 
     m_state.indentUlamCode(fp);
-    fp->write("const ");
+    if(!varcomesfirst)
+      fp->write("const ");
+
     fp->write(nut->getTmpStorageTypeAsString().c_str()); //e.g. u32, s32, u64..
     fp->write(" ");
+    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, nstor).c_str());
 
-    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPREGISTER).c_str());
-    fp->write(" = ");
+    if(varcomesfirst)
+      {
+	fp->write(";"); GCNL;
 
-    fp->write(methodNameForCodeGen().c_str());
-    fp->write("(");
-    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
-    fp->write(", ");
-    fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
-    fp->write(", ");
-    fp->write_decimal(nut->getBitSize());
-    fp->write(");"); GCNL;
+	m_state.indentUlamCode(fp);
+	fp->write(uvpass.getTmpVarAsString(m_state).c_str());
+	fp->write(".");
+	fp->write(methodNameForCodeGen().c_str());
+	fp->write("(");
+	fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
+	fp->write(", ");
+	fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, nstor).c_str());
+	fp->write(");"); GCNL; //t41565
+      }
+    else
+      {
+	fp->write(" = ");
 
-    uvpass = UVPass::makePass(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, uvpass.getPassPos(), uvpass.getPassNameId()); //P
+	fp->write(methodNameForCodeGen().c_str());
+	fp->write("(");
+	fp->write(uvpass.getTmpVarAsString(m_state).c_str());
+	fp->write(", ");
+	fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
+	fp->write(", ");
+	fp->write_decimal(nut->getBitSize());
+	fp->write(");"); GCNL;
+      }
+
+    uvpass = UVPass::makePass(tmpVarNum, nstor, nuti, m_state.determinePackable(nuti), m_state, uvpass.getPassPos(), uvpass.getPassNameId()); //P
 
     // current object globals should pertain to lhs for the write
     genCodeWriteFromATmpVar(fp, luvpass, uvpass); //uses rhs' tmpvar; orig lhs

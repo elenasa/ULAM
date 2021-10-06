@@ -52,7 +52,7 @@ namespace MFM {
   const char * NodeTypeDescriptorSelect::getName()
   {
     return NodeTypeDescriptor::getName();
-  } //getName
+  }
 
   u32 NodeTypeDescriptorSelect::getTypeNameId()
   {

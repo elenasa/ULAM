@@ -1,0 +1,158 @@
+## -*- mode:ulam -*-
+#=t41555_test_compiler_dminittoconstantclassarrayitemfromanotherclasstemplateinstance
+##
+##  gen output: (+ interleaved asserts)
+##    Unsigned Arg: 3
+##    Int Arg: 62
+##    Int Arg: 62
+##
+#!
+Exit status: 0
+Ue_T { typedef B2DT(6) MyB2D;  Unsigned m_arrsiz(3u);  Int m_x(62);  Int test() {  System s;  self m_arrsiz . 3u = s ( self m_arrsiz . )print . s ( self m_arrsiz . 3u cast == )assert . C2DT(6u) ourmaxsiz = cARR_C2D self m_arrsiz . 1u cast -b [];  self m_x . ourmaxsiz ( )getX . = s ( self m_x . )print . s ( self m_x . 62 cast == )assert . s ( ourmaxsiz ( )getY . )print . s ( ourmaxsiz ( )getY . self m_x . == )assert . 0 cast return } }
+Uq_B2DT(Int coordBits) { typedef Unsigned(UNKNOWN) Coord;  typedef C2DT(coordBits) MyC2D;  constant Unsigned(UNKNOWN) cILLEGAL = unresolved maxof .;  constant Unsigned(UNKNOWN) cMAXVAL = unresolved maxof . 1u -b;  constant Unsigned(UNKNOWN) cMINVAL = unresolved minof .;  constant C2DT(coordBits) cMAX_C2D = { .m_width = cMAXVAL, .m_height = cMAXVAL };  constant C2DT(coordBits) cMIN_C2D = { .m_width = cMINVAL, .m_height = cMINVAL };  constant C2DT(coordBits) cZED_C2D = { .m_width = CONSTANT?, .m_height = CONSTANT? };  constant C2DT(coordBits) cARR_C2D[UNKNOWN] = { cZED_C2D, cMIN_C2D, cMAX_C2D };  <NOMAIN> }
+Uq_System { <NOMAIN> }
+Uq_C2DT(Unsigned coordBits) { typedef Unsigned(UNKNOWN) Coord;  Unsigned(UNKNOWN) m_width(notready);  Unsigned(UNKNOWN) m_height(notready);  <NOMAIN> }
+##
+##  informed by Dave's ish 20210828-094439, see also t41554,t41553
+##
+#>T.ulam
+  ulam 5;
+element T{
+  typedef B2DT(6) MyB2D;
+  Unsigned m_arrsiz;
+  Int m_x;
+  Int test(){
+    System s;
+    m_arrsiz = MyB2D.cARR_C2D.lengthof;
+    s.print(m_arrsiz);
+    s.assert(m_arrsiz == 3u);
+
+    MyB2D.MyC2D ourmaxsiz = MyB2D.cARR_C2D[m_arrsiz-1u];
+    m_x = ourmaxsiz.getX();
+    s.print(m_x);
+    s.assert(m_x==62);
+    s.print(ourmaxsiz.getY());
+    s.assert(ourmaxsiz.getY() == m_x);
+    return 0;
+  }
+}
+
+#:B2DT.ulam
+  ulam 3;
+quark B2DT(Int coordBits) {
+    typedef Unsigned(coordBits) Coord;
+    typedef C2DT(coordBits) MyC2D;
+
+    constant Coord cILLEGAL = Coord.maxof;
+    constant Coord cMAXVAL = Coord.maxof-1u;
+    constant Coord cMINVAL = Coord.minof;
+
+    constant MyC2D cMAX_C2D = { .m_width = cMAXVAL, .m_height = cMAXVAL };
+    constant MyC2D cMIN_C2D = { .m_width = cMINVAL, .m_height = cMINVAL };
+    constant MyC2D cZED_C2D = { .m_width = 0, .m_height = 0 };
+    constant MyC2D cARR_C2D[] = { cZED_C2D, cMIN_C2D, cMAX_C2D };
+
+
+}
+
+#:C2DT.ulam
+  ulam 3;
+quark C2DT(Unsigned coordBits) {
+  typedef Unsigned(coordBits) Coord;
+  Coord m_width;
+  Coord m_height;
+
+  Void init(Int x, Int y) {
+    m_width = (Coord) x;
+    m_height = (Coord) y;
+    return;
+  }
+
+
+  Int getIndex(Int a, Int b){
+    return ((m_height-b) * m_width + (m_height-a));
+  }
+  Int getX()
+  {
+    return m_width;
+  }
+  Int getY()
+  {
+    return m_height;
+  }
+
+  Self(Int ax, Int ay) {
+    init(ax,ay);
+  }
+
+  Self operator*(Self other) {
+    return make((Coord) (m_width * other.m_width), (Coord) (m_height * other.m_height));
+  }
+
+  Self operator*(Coord scalar) {
+    return make((Coord) (m_width * scalar), (Coord) (m_height * scalar));
+  }
+
+  Self add(Self other) {
+    return make((Coord) (m_width + other.m_width), (Coord) (m_height + other.m_height));
+  }
+
+  Self operator+(Self other) {
+    return add(other);
+  }
+
+  Self operator+(Coord scalar) {
+    return make((Coord) (m_width + scalar), (Coord) (m_height + scalar));
+  }
+
+  Self subtract(Self other) {
+    return make((Coord) (m_width - other.m_width), (Coord) (m_height - other.m_height));
+  }
+
+  Self operator-(Self other) {
+    return subtract(other);
+  }
+
+  Self operator-(Coord scalar) {
+    return make((Coord) (m_width - scalar), (Coord) (m_height - scalar));
+  }
+
+  Self negate() {
+    return make((Coord) -(Int) m_width, (Coord) -(Int) m_height);
+  }
+
+  Self operator-() {
+    return negate();
+  }
+
+  Self operator+() {
+    return self;
+  }
+
+  Self make(Int x, Int y)
+  {
+    Self ret;
+    ret.init(x,y);
+    return ret;
+  }
+
+  Self & operator+=(Self other) {
+    // This single statement should work..
+    return self = self + other;
+    // self = self + other;
+    // return self;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

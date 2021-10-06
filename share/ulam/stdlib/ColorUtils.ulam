@@ -46,7 +46,7 @@ quark ColorUtils {
   /** \returns the color that is \c percentOfThis of \c this, and
    * (100u-percentOfThis) of \c that.
    *
-   * \since ulam-5
+   * \since 5.0
    */
   ARGB between(ARGB this, ARGB that, Unsigned percentOfThis) {
     if (percentOfThis > 100u) percentOfThis = 100u;

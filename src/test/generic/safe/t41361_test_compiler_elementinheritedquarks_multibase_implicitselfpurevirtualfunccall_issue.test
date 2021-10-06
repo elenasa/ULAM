@@ -21,6 +21,7 @@ Uq_C2D { Int(6) m_width( 9);  Int(6) m_height( 4);  <NOMAIN> }
 ##
 ## informed by Dave ish 10/19/19; cannot recreate with this simplified test.
 ## nor with this more complicated version. what is missing?
+## see also complex ish 8/14/2021 where SeedTestWorm called virtfunc on tw, and erronously found "pure".
 ## eval fails, but gen code is fine; catches MatingBond.
 ##
 ## NOTEWORTHY: MatingBond typedef in Bond, is canonical example of stub-copies (uses) vary based

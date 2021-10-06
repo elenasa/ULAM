@@ -57,7 +57,7 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
-    virtual bool getStorageSymbolPtr(Symbol *& symptrref);
+    virtual bool getStorageSymbolPtr(const Symbol *& symptrref);
 
     virtual bool hasASymbolDataMember();
 
@@ -78,7 +78,7 @@ namespace MFM{
   protected:
 
     virtual bool doBinaryOperation(s32 lslot, s32 rslot, u32 slots);
-    virtual bool passalongUVPass();
+    virtual bool passalongUVPass(bool toRHS = false);
 
   private:
 

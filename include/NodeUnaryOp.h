@@ -94,7 +94,7 @@ namespace MFM{
 
     Node * m_node;
 
-    virtual Node * buildOperatorOverloadFuncCallNode();
+    virtual Node * buildOperatorOverloadFuncCallNode(bool& hazyArg);
 
     virtual UTI calcNodeType(UTI uti) = 0;
 

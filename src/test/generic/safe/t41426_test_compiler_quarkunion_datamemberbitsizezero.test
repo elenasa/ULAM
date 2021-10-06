@@ -1,0 +1,62 @@
+## -*- mode:ulam -*-
+#=t41426_test_compiler_quarkunion_datamemberbitsizezero
+##
+##  gen output:
+##     String(1) Arg: "Hello World"
+##
+#!
+Exit status: 0
+Ue_C { Bool a(false);  Int test() {  QU qu;  qu m_str . "Hello World" = qu s . ( qu m_str . )print . 0 cast return } }
+Uq_QU +QBase { SystemU3 s( :System<>);  Int m_z[0]();  +QBase< String m_str(UNINITIALIZED_STRING); > <NOMAIN> }
+Uq_QBase { String m_str(UNINITIALIZED_STRING);  <NOMAIN> }
+Uq_SystemU3 : System { :System<> <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## Union with Zero-bit DMs okay (see QU):
+## (was)  ./QU.ulam:2:7: ERROR: Union QU(UNKNOWN) has no data members; Bitsize is 0.
+##
+## see also t41582 unions with constants and typedefs only.
+##
+#>C.ulam
+  ulam 1;
+element C {
+  Bool a;
+  Int test() {
+    QU qu;
+    qu.m_str = "Hello World";
+    qu.s.print(qu.m_str);
+    return 0;
+  }
+}
+
+#:QU.ulam
+  ulam 5;
+union QU + QBase{
+  SystemU3 s;
+  Int m_z[0];
+}
+
+#:QBase.ulam
+  ulam 5;
+union QBase {
+  String m_str;
+}
+
+#:SystemU3.ulam
+  ulam 3;
+quark SystemU3 : System {
+  Void print(String s) native;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

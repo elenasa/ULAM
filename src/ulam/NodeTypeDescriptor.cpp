@@ -72,12 +72,12 @@ namespace MFM {
   const char * NodeTypeDescriptor::getName()
   {
     return m_state.getTokenDataAsString(m_typeTok).c_str();
-  } //getName
+  }
 
   u32 NodeTypeDescriptor::getTypeNameId()
   {
     return m_state.getTokenDataAsStringId(m_typeTok); //e.g. t3924
-  } //getTypeNameId
+  }
 
   const std::string NodeTypeDescriptor::prettyNodeName()
   {
@@ -318,7 +318,8 @@ namespace MFM {
 	    nuti = kuti;
 	  }
 
-	//maybe a culam-generated typedef holder.. (t3565)
+	//holder, culam-generated typedef, not resolveable as a holder. (t3565, t41536)
+	//if((nuti == Hzy) || m_state.isHolder(nuti))
 	if(nuti == Hzy)
 	  {
 	    UTI tduti = Nouti;

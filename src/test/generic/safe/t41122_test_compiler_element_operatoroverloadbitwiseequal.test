@@ -12,7 +12,7 @@ Ue_Foo { Bool first(false);  Bits m_it(0);  Int(4) m_i(0);  Int test() {  System
 Uq_System { <NOMAIN> }
 ##
 ## first test to parse bitwise equal for an element
-## informed by t41115.
+## informed by t41115. see also t41571 for bitwise complement overload.
 ##
 #>Foo.ulam
   ulam 3;

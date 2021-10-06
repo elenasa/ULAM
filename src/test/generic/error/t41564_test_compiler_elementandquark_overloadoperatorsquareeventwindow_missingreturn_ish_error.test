@@ -1,0 +1,65 @@
+## -*- mode:ulam -*-
+#=t41564_test_compiler_elementandquark_overloadoperatorsquareeventwindow_missingreturn_ish_error
+#!
+./EventWindow.ulam:7:9: ERROR: Function 'operator[]''s Return Statement is missing; Return type: Atom&.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by Dave 9/3/21, and t41129
+##
+#>EventWindowTest.ulam
+  ulam 1;
+element EventWindowTest {
+  EventWindow ew;
+  Int test() {
+    System s;
+    Int rtn = -1;
+    EventWindowTest ewt;
+
+    // unsure of this EventWindow spike; testing parsing only here
+    ew[0] = ewt;
+    Atom aw = ew[0];  // This is me!
+
+    Atom a = ewt;
+    if (a is EventWindowTest)
+      rtn = 0;
+    else
+      rtn = 1;
+    s.print(rtn);
+    s.assert(rtn == 0);
+    return rtn;
+  }
+}
+
+#:EventWindow.ulam
+  ulam 3;
+quark EventWindow {
+  Bool sp; //different quark size for overload rather than custom array
+  Atom& operator[](Int index) native;
+
+  //5b5d
+  Atom& operator[](Atom& a)
+  {
+    //return a; MISSING!!!
+  }
+
+  Atom aref(Int index)
+  {
+    Atom a; //superceded by overload operator[]
+    return a;
+  }
+
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+
+#.

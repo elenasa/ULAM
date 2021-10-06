@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t41286_test_compiler_transienttoobig_issue_error
 #!
-./SPLATInstance.ulam:64:0: ERROR: Trying to exceed allotted bit size (8192) for transient SPLATRuleSet with 17061 bits.
+./SPLATRuleSet.ulam:2:11: ERROR: Trying to exceed allotted bit size (8192) for transient SPLATRuleSet with 17061 bits.
 ./SPLATRuleSet.ulam:2:11: NOTE: Components of SPLATRuleSet are..
 ./SPLATRuleSet.ulam:4:3: NOTE: (0 of 17061 bits, at 0) SPLATControl splatControl.
 ./SPLATRuleSet.ulam:7:3: NOTE: (3316 of 17061 bits, at 0) SPLATKeyStateSelf m_keyStateSelf.

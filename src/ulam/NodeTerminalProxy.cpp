@@ -101,6 +101,11 @@ namespace MFM {
     return m_funcTok.getTokenString();
   }
 
+  u32 NodeTerminalProxy::getNameId()
+  {
+    return m_funcTok.getTokenStringId();
+  }
+
   const std::string NodeTerminalProxy::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
@@ -423,6 +428,7 @@ namespace MFM {
 	    m_state.abortShouldntGetHere(); //replaced with func call when provided, o.w. parse err
 	  }
       }
+
     return NodeTerminal::genCode(fp, uvpass);
   }
 
@@ -469,7 +475,10 @@ namespace MFM {
 	{
 	  //User String length must wait until after c&l; sizeof string == 32 (t3929)
 	  //consistent with C; (not array size if non-scalar)
-	  m_constant.uval =  cut->getSizeofUlamType(); //unsigned
+	  if(checkForClassIdOfType())
+	    m_constant.uval = m_state.getClassIdBits();
+	  else
+	    m_constant.uval =  cut->getSizeofUlamType(); //unsigned
 	  rtnB = true;
 	}
 	break;
@@ -517,7 +526,10 @@ namespace MFM {
 	{
 	  if(cut->isMinMaxAllowed())
 	    {
-	      m_constant.uval = cut->getMax();
+	      if(checkForClassIdOfType()) //t41537,t41549
+		m_constant.uval = MAX_REGISTRY_NUMBER;
+	      else
+		m_constant.uval = cut->getMax();
 	      rtnB = true;
 	    }
 	  else
@@ -710,5 +722,19 @@ namespace MFM {
       }
     return true;
   } //checkForClassType
+
+  bool NodeTerminalProxy::checkForClassIdOfType()
+  {
+    //special case of classidof.maxof returns max classid (t41537);
+    //and, classidof.sizeof (consistently) returns bits for classidof.maxof
+    assert(m_state.okUTItoContinue(m_uti)); //is complete too!
+    if(m_nodeOf)
+      {
+	u32 ofnameid = m_nodeOf->getNameId();
+	Token classidtok(TOK_KW_CLASSIDOF, getNodeLocation(), 0);
+	return (classidtok.getTokenStringId() == ofnameid);
+      }
+    return false; //t3783..
+  } //checkForClassIdOfType
 
 } //end MFM

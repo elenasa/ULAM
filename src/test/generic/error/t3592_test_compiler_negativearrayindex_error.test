@@ -2,7 +2,7 @@
 #=t3592_test_compiler_negativearrayindex_error
 #!
 ./Ish2.ulam:9:5: ERROR: Type Bitsize specifier for Unsigned type, within (), is a negative numeric constant expression: -1.
-./Ish2.ulam:9:5: ERROR: Incomplete Variable Decl for type used with variable symbol name 'tunsigned'.
+./Ish2.ulam:9:5: ERROR: Incomplete NodeVarDecl for type used with variable symbol name 'tunsigned'.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by safe/t3591 (see also t3593)

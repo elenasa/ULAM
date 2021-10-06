@@ -1142,7 +1142,7 @@ sub runUlamCompilations
     }
     push @args, "-i", "$ULAM_ROOT/share/ulam/stdlib";
     push @args, "-i", "$ULAM_ROOT/share/ulam/core";
-    push @args, @ulamFiles;
+    push @args, sort(@ulamFiles);
     print " Compile ".join(", ",@ulamFiles).": "
         if verbose();
 

@@ -1,14 +1,14 @@
 ## -*- mode:ulam -*-
 #=t41204_test_compiler_sizelesslocaldefconstantarrayitemvarnullinit_error
 #!
-./P.ulam:7:7: ERROR: Incomplete NodeConstantArray for type: Int[UNKNOWN], used with constant symbol name 'by'.
+./P.ulam:7:7: ERROR: Incomplete NodeConstantArray for type: Int[UNKNOWN] used with constant symbol name 'by'.
 ./P.ulam:7:7: ERROR: Constant value expression for: b, is not ready, still hazy, while compiling P (UTI 31).
 ./Q.ulam:2:42: ERROR: Proxy Type is still incomplete and unknown for its 'sizeof'.
 ./Q.ulam:2:24: ERROR: Constant value expression for 's', is not yet ready.
-./Q.ulam:2:24: ERROR: Incomplete Constant Def for type: Unsigned, used with symbol name 's', after folding.
+./Q.ulam:2:24: ERROR: Incomplete NodeConstantDef for type: Unsigned used with symbol name 's', after folding.
 ./Q.ulam:2:39: ERROR: Not ready constant for type: Int, used with symbol name 'b', while compiling Q(b,s) (UTI 35).
 ./Q.ulam:2:39: ERROR: Constant value expression for: a, is not ready, still hazy, while compiling Q(b,s) (UTI 35).
-./P.ulam:7:5: ERROR: Incomplete Variable Decl for type: Q(b,s) used with variable symbol name 'w'.
+./P.ulam:7:5: ERROR: Incomplete NodeVarDecl for type: Q(b,s) used with variable symbol name 'w'.
 ./P.ulam:7:5: ERROR: Variable for: 'w', is still hazy.
 ./P.ulam:8:13: ERROR: Incomplete identifier for a type Q(b,s), used with list symbol name 'w'.
 ./P.ulam:8:15: ERROR: Undetermined type for missing member 'w' Proxy.
@@ -22,7 +22,7 @@
 ./Q.ulam:3:20: ERROR: Not ready constant for type: Unsigned, used with symbol name 's', while compiling Q(b,s) (UTI 35).
 ./Q.ulam:3:11: ERROR: Type Bitsize specifier, within (), is not ready.
 ./Q.ulam:3:11: ERROR: Incomplete Typedef used with alias name 'Foo'.
-./Q.ulam:4:3: ERROR: Incomplete Variable Decl for type used with variable symbol name 'f'.
+./Q.ulam:4:3: ERROR: Incomplete NodeVarDeclDM for type used with variable symbol name 'f'.
 ./Q.ulam:4:3: ERROR: Variable for: 'f', is still hazy.
 Unrecoverable Program Type Label FAILURE.
 ##

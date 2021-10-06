@@ -40,6 +40,11 @@ namespace MFM {
     m_waitMode = true;
   }
 
+  bool ErrorMessageHandler::isWaitModeWaiting()
+  {
+    return m_waitMode;
+  }
+
   void ErrorMessageHandler::buildMessage(const Token * atTok, const char * message, const char * file, const char * func, u32 atline, MSGTYPE mtype)
   {
     buildMessage(m_state->getTokenLocationAsString(atTok).c_str(), message, file, func, atline, mtype);

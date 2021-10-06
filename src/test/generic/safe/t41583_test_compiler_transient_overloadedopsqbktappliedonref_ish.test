@@ -1,0 +1,60 @@
+## -*- mode:ulam -*-
+#=t41583_test_compiler_transient_overloadedopsqbktappliedonref_ish
+##
+##  gen output:
+##     Int Arg: 4
+#!
+Exit status: -11
+Ue_C { Bool a(false);  Int test() {  Plex x;  L2PlateSequencer l2;  l2 ( x cast )checkScan . 0 cast return } }
+Un_Plex { Atom m_atom(Atom);  <NOMAIN> }
+Un_L2PlateSequencer { <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+##  informed by 20210907 ish. does not recreate the ish (due to hazykin), error was:
+## ./L2PlateSequencer.ulam:28:22: ERROR: Invalid Type: Plex& used with [].
+##
+#>C.ulam
+  ulam 1;
+element C {
+  Bool a;
+  Int test() {
+    Plex x;
+    L2PlateSequencer l2;
+    l2.checkScan(x);
+    return 0;
+  }
+}
+
+#:L2PlateSequencer.ulam
+  ulam 5;
+transient L2PlateSequencer {
+  Bool checkScan(Plex & plex){
+    Int viw = 4;
+    Atom & a = plex[viw];
+    return true;
+  }
+}
+
+#:Plex.ulam
+  ulam 5;
+transient Plex {
+  Atom m_atom;
+  Atom & operator[](Int ewi) {
+    System s;
+    s.print(ewi);
+    return m_atom;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

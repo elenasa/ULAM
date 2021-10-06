@@ -64,11 +64,13 @@ namespace MFM{
     virtual bool isFunction();
 
     virtual const std::string getMangledPrefix();
+    u32 getFunctionNameId();
 
     bool isOperatorOverloadFunctionName();
     void setOperatorOverloadFunctionName();
 
     bool overloadFunction(SymbolFunction * fsym);
+    bool overloadFunction(SymbolFunction * fsym, SymbolFunction *& ovfsymref);
 
     u32 addFunctionsToThisTable(std::map<std::string, SymbolFunction *>& mapref); //for virtual index calc
 

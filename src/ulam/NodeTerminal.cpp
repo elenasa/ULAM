@@ -58,7 +58,7 @@ namespace MFM {
 
   const char * NodeTerminal::getName()
   {
-    u32 id = getNameId();
+    u32 id = NodeTerminal::getNameId();
     return m_state.m_pool.getDataAsString(id).c_str();
   } //getName
 
@@ -122,6 +122,11 @@ namespace MFM {
   bool NodeTerminal::isReadyConstant()
   {
     return true;
+  }
+
+  bool NodeTerminal::hasASymbol()
+  {
+    return false;
   }
 
   FORECAST NodeTerminal::safeToCastTo(UTI newType)
@@ -316,7 +321,7 @@ namespace MFM {
   void NodeTerminal::makeTerminalPassForCodeGen(UVPass& uvpass)
   {
     UTI nuti = getNodeType();
-    u32 tid = getNameId();
+    u32 tid = NodeTerminal::getNameId();
 
     //TMPSTORAGE is TERMINAL, and VarNum is zero.
     uvpass = UVPass::makePass(0, TERMINAL, nuti, m_state.determinePackable(nuti), m_state, 0, tid);
@@ -373,6 +378,10 @@ namespace MFM {
     else if(fwordsize <= MAXBITSPERLONG) //64
       {
 	rtnb = fitsInBits64(destuti);
+      }
+    else if((dest->getUlamTypeEnum() == Bits) && (dest->getTotalBitSize() >= nut->getTotalBitSize()))
+      {
+	rtnb = true; //Any non-class type to Bits that's at least as big == a safe cast (t41563)
       }
     else
       {

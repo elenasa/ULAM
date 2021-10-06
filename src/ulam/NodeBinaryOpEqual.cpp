@@ -50,6 +50,8 @@ namespace MFM {
 	std::ostringstream msg;
 	if(etyp == Bool)
 	  msg << "Use a comparison operation";
+	else if(etyp == UAtom)
+	  msg << "Use .atomof"; //t41540
 	else if(etyp == String)
 	  msg << "Invalid";
 	else if(!m_state.isScalar(newType) || !m_state.isScalar(ruti))
@@ -57,9 +59,15 @@ namespace MFM {
 	else
 	  msg << "Use explicit cast";
 	msg << " to convert "; // the real converting-message
-	msg << m_state.getUlamTypeNameByIndex(ruti).c_str();
+	if(m_state.isAClass(ruti))
+	  msg << m_state.getUlamTypeNameBriefByIndex(ruti).c_str();
+	else
+	  msg << m_state.getUlamTypeNameByIndex(ruti).c_str();
 	msg << " to ";
-	msg << m_state.getUlamTypeNameByIndex(newType).c_str();
+	if(m_state.isAClass(newType))
+	  msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
+	else
+	  msg << m_state.getUlamTypeNameByIndex(newType).c_str();
 	msg << " for " << getName();
 	if(scr == CAST_HAZY)
 	  {
@@ -201,12 +209,22 @@ namespace MFM {
     // "safeness" based on deref of newtype
     if(UlamType::compareForAssignment(lt, rt, m_state) != UTIC_SAME)
       {
-	if(checkSafeToCastTo(rt, newtyperef))
+	//special case for Bits to Bits assignments; if lbs < rbs, i.e. not safe-to-cast, drop bits
+	if((m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum() == Bits) && (m_state.getUlamTypeByIndex(rt)->getUlamTypeEnum() == Bits))
 	  {
 	    UTI derefLeft = m_state.getUlamTypeAsDeref(lt); //tmp deref type
 	    if(!Node::makeCastingNode(m_nodeRight, derefLeft, m_nodeRight))
 	      newtyperef = Nav; //error
-	  } //else not safe, error msg, newTyperef changed
+	    else
+	      newtyperef = derefLeft; //t41563
+	  }
+	else if(checkSafeToCastTo(rt, newtyperef))
+	  {
+	    UTI derefLeft = m_state.getUlamTypeAsDeref(lt); //tmp deref type
+	    if(!Node::makeCastingNode(m_nodeRight, derefLeft, m_nodeRight))
+	      newtyperef = Nav; //error
+	  }
+	//else not safe, error msg, newTyperef changed
       } //else the same
   }
 
@@ -218,10 +236,7 @@ namespace MFM {
     if(!classoratom)
       {
 	//try for operator overload first (e.g. (pre) +=,-=, (post) ++,-- )
-	if(NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode(parentnode))
-	  {
-	    rtntb = TBOOL_TRUE;
-	  }
+	rtntb = NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode(parentnode);
       }
     else
       {
@@ -320,20 +335,7 @@ namespace MFM {
 	UTI lt = m_nodeLeft->getNodeType();
 	std::ostringstream msg;
 	msg << "Unmodifiable lefthand side of assignment expression '";
-	if(m_nodeLeft->isAMemberSelect()) //t3133
-	  {
-	    Symbol * rhsym = NULL;
-	    Symbol * lhsym = NULL;
-	    m_nodeLeft->getStorageSymbolPtr(lhsym);
-	    m_nodeLeft->getSymbolPtr(rhsym);
-	    if(lhsym)
-	      msg << m_state.m_pool.getDataAsString(lhsym->getId()).c_str();
-	    msg << ".";
-	    if(rhsym)
-	      msg << m_state.m_pool.getDataAsString(rhsym->getId()).c_str();
-	  }
-	else
-	  msg << m_nodeLeft->getName();
+	msg << m_nodeLeft->getName();
 	msg << "', type: " << m_state.getUlamTypeNameByIndex(lt).c_str(); //t41186
 	if(m_nodeLeft->isFunctionCall())
 	  msg << "; may be a function call";

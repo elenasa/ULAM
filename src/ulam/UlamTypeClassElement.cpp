@@ -367,11 +367,24 @@ namespace MFM {
   void UlamTypeClassElement::genUlamTypeAutoReadDefinitionForC(File * fp)
   {
     //ref param to avoid excessive copying;
+    if(isScalar())
+      {
+	m_state.indent(fp);
+	fp->write(getTmpStorageTypeAsString().c_str()); //T or BV
+	fp->write(" read() const { ");
+	fp->write("return ");
+	fp->write("UlamRef<EC>::");
+	fp->write(readMethodForCodeGen().c_str());
+	fp->write("(); /* read entire element ref */ }"); GCNL;
+      }
+
+    //overload scalar read, as well as entire array
     m_state.indent(fp);
-    fp->write(getTmpStorageTypeAsString().c_str()); //T or BV
-    fp->write(" read() const { ");
-    fp->write("return ");
-    fp->write("UlamRef<EC>::");
+    fp->write("void ");
+    fp->write(" read(");
+    fp->write(getTmpStorageTypeAsString().c_str()); //T
+    fp->write("& rtnbv) const { ");
+    fp->write("rtnbv = UlamRef<EC>::");
     fp->write(readMethodForCodeGen().c_str());
     if(isScalar())
       {
@@ -611,6 +624,7 @@ namespace MFM {
 
   void UlamTypeClassElement::genUlamTypeReadDefinitionForC(File * fp)
   {
+
     if(isScalar())
       {
 	m_state.indent(fp);
@@ -620,19 +634,26 @@ namespace MFM {
 	fp->write("return ABS::");
 	fp->write(readMethodForCodeGen().c_str());
 	fp->write("(); }"); GCNL; //done
+
+	//overload scalar read
+	m_state.indent(fp);
+	fp->write("void ");
+	fp->write(" read(");
+	fp->write(getTmpStorageTypeAsString().c_str()); //T
+	fp->write("& rtnbv) const { ");
+	fp->write("rtnbv = ABS::");
+	fp->write(readMethodForCodeGen().c_str());
+	fp->write("(); }"); GCNL; //done
       }
     else
       {
 	//array (packed or UNPACKED)
 	m_state.indent(fp);
-	fp->write("const ");
+	fp->write("void ");
+	fp->write(" read(");
 	fp->write(getTmpStorageTypeAsString().c_str()); //BV
-	fp->write(" read");
-	fp->write("() const { ");
-	fp->write(getTmpStorageTypeAsString().c_str()); //BV
-	fp->write(" rtnunpbv; this->BVS::");
-	fp->write(readMethodForCodeGen().c_str());
-	fp->write("(0u, rtnunpbv); return rtnunpbv; ");
+	fp->write("& rtnbv) const { ");
+	fp->write("this->BVS::ReadBV(0u, rtnbv);");
 	fp->write("} //reads entire BV"); GCNL;
       }
 

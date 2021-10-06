@@ -71,6 +71,8 @@ namespace MFM
 
     void revertToWaitMode();
 
+    bool isWaitModeWaiting();
+
     void setFileOutput(File * fp);
 
     u32 getErrorCount();

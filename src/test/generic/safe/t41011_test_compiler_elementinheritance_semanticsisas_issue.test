@@ -4,7 +4,7 @@
 ## gen output (assert)
 ##
 #!
-Exit status: -11
+Exit status: 0
 Ue_R { Int test() {  System s;  Foo f;  f ( )behave . 0 cast return } }
 Uq_System { <NOMAIN> }
 Ue_Foo : Intermediate { Bool(7) sp(false);  System s();  :Intermediate<> ^Base<> <NOMAIN> }

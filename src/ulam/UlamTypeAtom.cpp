@@ -249,13 +249,32 @@ namespace MFM {
 
   void UlamTypeAtom::genUlamTypeAutoReadDefinitionForC(File * fp)
   {
-    assert(isScalar());
+    if(isScalar())
+      {
+	m_state.indent(fp);
+	fp->write(getTmpStorageTypeAsString().c_str()); //T
+	fp->write(" read() const { ");
+	fp->write("return UlamRef<EC>::");
+	fp->write(readMethodForCodeGen().c_str());
+	fp->write("(); /* read entire atom */ }"); GCNL; //done
+      }
+
+    //overload scalar read, as well as entire array
     m_state.indent(fp);
+    fp->write("void ");
+    fp->write(" read(");
     fp->write(getTmpStorageTypeAsString().c_str()); //T
-    fp->write(" read() const { ");
-    fp->write("return UlamRef<EC>::");
+    fp->write("& rtnbv) const { ");
+    fp->write("rtnbv = UlamRef<EC>::");
     fp->write(readMethodForCodeGen().c_str());
-    fp->write("(); /* read entire atom */ }"); GCNL; //done
+    if(isScalar())
+      {
+	fp->write("(); /* read entire atom ref */ }"); GCNL;
+      }
+    else
+      {
+	fp->write("(); /* read entire atom array ref */ }"); GCNL;
+      }
   } //genUlamTypeAutoReadDefinitionForC
 
   void UlamTypeAtom::genUlamTypeAutoWriteDefinitionForC(File * fp)
@@ -415,6 +434,7 @@ namespace MFM {
   {
     if(isScalar())
       {
+	//e.g. used in scalar copy constructor
 	m_state.indent(fp);
 	fp->write("const ");
 	fp->write(getTmpStorageTypeAsString().c_str()); //T
@@ -422,19 +442,26 @@ namespace MFM {
 	fp->write("return ABS::");
 	fp->write(readMethodForCodeGen().c_str());
 	fp->write("(); }"); GCNL; //done
+
+	//overload scalar read
+	m_state.indent(fp);
+	fp->write("void ");
+	fp->write(" read(");
+	fp->write(getTmpStorageTypeAsString().c_str()); //T
+	fp->write("& rtnbv) const { ");
+	fp->write("rtnbv = ABS::");
+	fp->write(readMethodForCodeGen().c_str());
+	fp->write("(); }"); GCNL; //done
       }
     else
       {
 	//UNPACKED
 	m_state.indent(fp);
-	fp->write("const ");
+	fp->write("void ");
+	fp->write(" read(");
 	fp->write(getTmpStorageTypeAsString().c_str()); //BV
-	fp->write(" read");
-	fp->write("() const { ");
-	fp->write(getTmpStorageTypeAsString().c_str()); //BV
-	fp->write(" rtnunpbv; this->BVS::");
-	fp->write(readMethodForCodeGen().c_str());
-	fp->write("(0u, rtnunpbv); return rtnunpbv; ");
+	fp->write("& rtnbv) const { ");
+	fp->write("this->BVS::ReadBV(0u, rtnbv);");
 	fp->write("} //reads entire BV"); GCNL;
       }
 
@@ -638,12 +665,7 @@ namespace MFM {
 
   void UlamTypeAtom::genUlamTypeAutoReadArrayDefinitionForC(File * fp)
   {
-    m_state.indent(fp);
-    fp->write(getTmpStorageTypeAsString().c_str()); //T
-    fp->write(" read() const { ");
-    fp->write("return UlamRef<EC>::");
-    fp->write(readMethodForCodeGen().c_str());
-    fp->write("(); /* read entire atom array */ }"); GCNL; //done
+    genUlamTypeAutoReadDefinitionForC(fp);
 
     //Unpacked Read Array Item;
     m_state.indent(fp);

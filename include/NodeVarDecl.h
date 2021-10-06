@@ -71,13 +71,29 @@ namespace MFM{
 
     virtual const char * getName();
 
+    virtual u32 getNameId();
+
+    const std::string getMangledName();
+
     virtual u32 getTypeNameId();
+
+    virtual UTI getTypeDescriptorGivenType();
+
+    virtual ALT getTypeDescriptorRefType();
 
     virtual const std::string prettyNodeName();
 
-    virtual bool getSymbolPtr(Symbol *& symptrref);
+    virtual bool hasASymbol();
 
-    bool getNodeTypeDescriptorPtr(NodeTypeDescriptor *& nodetypedescref);
+    virtual u32 getSymbolId();
+
+    virtual bool getSymbolValue(BV8K& bv);
+
+    virtual bool cloneSymbol(Symbol *& symptrref);
+
+    virtual bool getSymbolPtr(const Symbol *& symptrref);
+
+    bool isAConstantFunctionParameter();
 
     virtual void setInitExpr(Node * node);
 
@@ -124,8 +140,11 @@ namespace MFM{
     Node * m_nodeInitExpr;
     NodeTypeDescriptor * m_nodeTypeDesc; //can be NULL
 
-    virtual void clearSymbolPtr();
     virtual void checkForSymbol();
+    virtual void clearSymbolPtr();
+
+    bool getNodeTypeDescriptorPtr(const NodeTypeDescriptor *& nodetypedescref);
+
     virtual void printTypeAndName(File * fp);
     virtual bool checkSafeToCastTo(UTI fromType, UTI& newType);
     EvalStatus evalInitExpr();

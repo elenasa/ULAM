@@ -1,0 +1,53 @@
+## -*- mode:ulam -*-
+#=t41557_test_compiler_elementandquark_multibases_standalonevirtualfunccallbytype_error
+#!
+./Foo.ulam:7:19: ERROR: 'vfuncb' cannot be a function because it is already declared as a variable at: ..
+./Foo.ulam:6:15: ERROR: .. this location.
+./Foo.ulam:7:26: ERROR: Invalid Statement (possible missing semicolon).
+Unrecoverable Program Parse FAILURE: <Foo.ulam>
+Unrecoverable Program Parse FAILURE: <E4.ulam>
+Unrecoverable Program Parse FAILURE: <QBase1.ulam>
+Unrecoverable Program Parse FAILURE: <QBase3.ulam>
+##
+##   see also t41556,8
+##
+#>Foo.ulam
+  ulam 4;
+element Foo {
+
+  Int test()
+  {
+    E4.QBase3 vfuncb(3); //constructor call, makes vfuncb of type QBase3
+    return vfuncb.vfuncb(3)); //error!!
+  }
+}
+
+
+#:E4.ulam
+  ulam 5;
+element E4 : QBase3 +QBase1 {
+  virtual Int vfuncc() { return 412; }
+  virtual Int vfunca() { return 410; }
+  virtual Void behave() { }
+}
+
+#:QBase1.ulam
+    ulam 4;
+quark QBase1 {
+  Bool m_b1;
+  Void funcNotVirtualSoIrrelevantHere() { }
+  virtual Int vfuncb(Int b) { return 111; }   //ambiguous
+  virtual Int vfunca() { return 110; }
+}
+
+
+#:QBase3.ulam
+  ulam 4;
+quark QBase3 {
+  Bool m_b3;
+  virtual Int vfuncb(Int b) { return 311; }
+  Self(Int b)
+  { m_b3 = (b < 3); }
+}
+
+#.

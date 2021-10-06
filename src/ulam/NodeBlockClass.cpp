@@ -171,12 +171,23 @@ namespace MFM {
     fp->write(getName());  //unmangled
 
     //output class template parameter type and name
-    if(m_nodeParameterList->getNumberOfNodes() > 0)
+    u32 numparams = getNumberOfParameterNodes();
+    if(numparams > 0)
       {
-	SymbolClassNameTemplate * cnsym = NULL;
-	AssertBool isDefined = m_state.alreadyDefinedSymbolClassNameTemplate(m_state.getUlamTypeNameIdByIndex(cuti), cnsym);
-	assert(isDefined);
-	cnsym->printClassTemplateArgsForPostfix(fp); //m_nodeParameterList->print(fp);
+	u32 pcnt = 0;
+
+	fp->write("(");
+
+	for (u32 i = 0; i < numparams; i++)
+	  {
+	    if(pcnt > 0)
+	      fp->write(", ");
+
+	    m_nodeParameterList->printPostfix(fp, i);
+	    pcnt++;
+	  } //next param
+
+	fp->write(")");
       }
 
     //inheritance
@@ -531,6 +542,11 @@ namespace MFM {
     return m_state.m_pool.getDataAsString(m_nameid).c_str();
   }
 
+  u32 NodeBlockClass::getNameId()
+  {
+    return m_nameid;
+  }
+
   const std::string NodeBlockClass::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
@@ -765,14 +781,12 @@ namespace MFM {
 			msg << m_state.getUlamTypeNameBriefByIndex(baseuti).c_str();
 			msg << "': same types";
 			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-			//setBaseClassBlockPointer(NULL, i);
 			errs |= true;
 		      }
 		    else
 		      {
 			m_state.findRootUTIAlias(mappedUTI, mappedUTI); //con't w root
-			//if(baseuti!=mappedUTI) //t41431, t41517
-			if((UlamType::compare(mappedUTI, baseuti, m_state) != UTIC_SAME) && !m_state.isClassAStubCopy(mappedUTI))
+			if((UlamType::compare(mappedUTI, baseuti, m_state) != UTIC_SAME) && !m_state.isClassAStubCopy(mappedUTI)) //t41431, t41517
 			  {
 			    std::ostringstream msg;
 			    msg << "Substituting mapped UTI" << mappedUTI;
@@ -782,8 +796,6 @@ namespace MFM {
 			    msg << "' UTI" << baseuti << " while labeling class: ";
 			    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
 			    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-			    //need to break the chain; e.g. don't want template symbol addresses used
-			    //  setBaseClassBlockPointer(NULL, i); //force to try again!! avoid inf loop
 			    m_state.resetABaseClassItem(nuti, baseuti, mappedUTI, i); //t41448,t41452 stubcopy
 			    baseuti = mappedUTI;
 			  }//else
@@ -800,7 +812,6 @@ namespace MFM {
 		      msg << "invalid baseclass (" << i << ") for class '";
 		    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str() << "'";
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		    //setBaseClassBlockPointer(NULL, i); //t41517
 		    m_state.resetABaseClassItem(nuti, baseuti, Nav, i); //t3554?
 		    errs |= true;
 		  }
@@ -831,7 +842,6 @@ namespace MFM {
 			  msg << " invalid baseclass (" << i << ") for class '";
 			msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str() << "'";
 			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-			//setBaseClassBlockPointer(NULL, i);
 			m_state.resetABaseClassItem(nuti, baseuti, Nav, i);
 			errs |= true;
 		      }
@@ -891,8 +901,6 @@ namespace MFM {
 		  }
 		//msg << " (UTI " << baseuti << ")";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-		//need to break the chain; e.g. don't want template symbol addresses used
-		//setBaseClassBlockPointer(NULL, i); //force to try again!! avoid inf loop
 	      }
 	  }
 	i++;
@@ -916,7 +924,6 @@ namespace MFM {
 		    assert(UlamType::compare(nuti, baseuti, m_state) != UTIC_SAME);
 
 		    m_state.findRootUTIAlias(mappedUTI, mappedUTI); //con't w root
-		    //if(baseuti != mappedUTI)
 		    if(UlamType::compare(baseuti, mappedUTI, m_state) == UTIC_NOTSAME)
 		      {
 			std::ostringstream msg;
@@ -1292,6 +1299,7 @@ namespace MFM {
   Node * NodeBlockClass::getParameterNode(u32 n)
   {
     assert(m_nodeParameterList); //must be a template
+    assert(n < getNumberOfParameterNodes());
     //assert(m_state.isClassATemplate(getNodeType()));
     return m_nodeParameterList->getNodePtr(n);
   }
@@ -2074,8 +2082,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
     while(i < basecount)
       {
 	UTI baseuti = csym->getBaseClass(i);
-	//assert(baseuti != Hzy);
-	//if((baseuti != Nouti))
 	if(m_state.okUTItoContinue(baseuti)) //t41426
 	  {
 	    s32 bs = m_state.getBitSize(baseuti); //may contain shared bits!
@@ -2093,8 +2099,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
     s32 mybs = m_ST.getMaxVariableSymbolsBitSize(seensetref);
     if(mybs < 0)
       return mybs; //negative size is error
-    else if(mybs == 0) // <2?
-      return EMPTYSYMBOLTABLE; //t41426
+
+    //else if(mybs == 0) // <2?
+    //  return EMPTYSYMBOLTABLE; //t41426,t41582
 
     basebits = superbs;
     mybits = mybs;
@@ -2317,7 +2324,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 	      {
 		pos = it->second;
 		dupflag = true; //could continue, if we wanted to..
-#if 1
+
 		std::ostringstream msg;
 		msg << "Subclass '";
 		msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
@@ -2326,7 +2333,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 		msg << "', a duplicated baseclass, item " << i;
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		return TBOOL_FALSE; //t41526
-#endif
 	      }
 	    else
 	      {
@@ -4225,15 +4231,18 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
     if(declOnly)
       {
 	m_state.indent(fp);
-	fp->write("virtual u32 ");
+	fp->write("virtual u64 ");
 	fp->write(m_state.getBuildDefaultAtomFunctionName(cuti));
 	fp->write("( ) const;"); GCNL;
 	fp->write("\n");
 	return;
       }
 
+    UlamType * cut = m_state.getUlamTypeByIndex(cuti);
+    u32 len = cut->getTotalBitSize();
+
     //get all initialized data members in quark (w strings t41093,t41167,t41468)
-    u32 qval = 0;
+    u64 qval = 0;
     AssertBool isDefaultQuark = m_state.getDefaultQuark(cuti, qval);
     assert(isDefaultQuark);
 
@@ -4241,10 +4250,11 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
     fp->write("template<class EC>\n");
 
     m_state.indent(fp);
-    fp->write("u32 ");
+    //fp->write(cut->getTmpStorageTypeAsString().c_str()); //u32,u64
+    fp->write("u64 "); //virtual method defined in MFM::UlamQuark.h
 
     //include the mangled class::
-    fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
+    fp->write(cut->getUlamTypeMangledName().c_str());
     fp->write("<EC>");
 
     fp->write("::");
@@ -4257,9 +4267,18 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 
     m_state.indent(fp);
     fp->write("return ");
-    fp->write_hexadecimal(qval);
+    if(qval == 0)
+      fp->write_decimal_unsigned(0);
+    else if(len <= MAXBITSPERINT)
+      fp->write_hexadecimal((u32) qval);
+    else
+      fp->write_hexadecimallong(qval);
     fp->write("; //=");
-    fp->write_decimal_unsigned(qval); GCNL;
+    if(len <= MAXBITSPERINT)
+      fp->write_decimal_unsigned((u32) qval);
+    else
+      fp->write_decimal_unsignedlong(qval);
+    GCNL;
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
@@ -4552,7 +4571,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
     assert(isDefined);
 
     u32 maxregistry = m_state.getMaxNumberOfRegisteredUlamClasses();
-    assert(maxregistry < MAX_REGISTRY_NUMBER);  //UlamClassRegistry<EC>::TABLE_SIZE
     s32 maxidx = getVirtualMethodMaxIdx();
     assert(maxidx >= 0);
 

@@ -57,9 +57,16 @@ namespace MFM{
 
     virtual UTI checkAndLabelType(Node * thisparentnode);
 
+    virtual void genCode(File * fp, UVPass& uvpass);
+
     virtual bool isASwitchBlock();
 
     u32 getSwitchNumber();
+
+    NNO getDefaultCaseNodeNo();
+
+    void setDefaultCaseNodeNo(NNO dnno);
+
 
   protected:
 
@@ -67,6 +74,7 @@ namespace MFM{
   private:
 
     u32 m_switchnum; //condition variable
+    NNO m_defaultcaseNodeNo;
 
   };
 

@@ -181,6 +181,8 @@ namespace MFM{
     UTI m_urSelfUTI; //original ancestor of all classes
     UTI m_emptyElementUTI; //the Empty element class
 
+    u32 m_classIdBits;
+
     CompilerState();
     ~CompilerState();
 
@@ -259,7 +261,7 @@ namespace MFM{
 
     UTI getUlamTypeOfConstant(ULAMTYPE etype);
     UTI getDefaultUlamTypeOfConstant(UTI ctype);
-    bool getDefaultQuark(UTI cuti, u32& dqref);
+    bool getDefaultQuark(UTI cuti, u64& dqref);
     bool getPackedDefaultClass(UTI auti, u64& dpkref);
     void getDefaultAsPackedArray(UTI auti, u64 dval, u64& darrval);
     void getDefaultAsPackedArray(u32 len, u32 bitsize, u32 arraysize, u32 pos, u64 dval, u64& darrval);
@@ -446,6 +448,7 @@ namespace MFM{
     bool checkforAnyRemainingCulamGeneratedTypedefsInThisContext(UTI thisarg);
     u32 findNameIdOfCulamGeneratedTypedefTypeInThisContext(UTI typearg);
 
+    u32 getClassIdBits();
     u32 getMaxNumberOfRegisteredUlamClasses();
     void defineRegistrationNumberForUlamClasses(); //ulam-4
     void defineRegistrationNumberForLocals(); //ulam-4
@@ -613,7 +616,9 @@ namespace MFM{
     const std::string getSwitchTypedefNameAsString(s32 num);
     const std::string getInitDoneVarAsString(s32 num);
     const std::string getVFuncPtrTmpNumAsString(s32 num);
+    const std::string getParserSymbolTypeFlagAsString();
     const std::string getParserSymbolTypeFlagAsString(SYMBOLTYPEFLAG stf);
+
 
     /** for conditional h/as-magic */
     void saveIdentTokenForConditionalAs(const Token& iTok, const Token& cTok);
@@ -671,6 +676,8 @@ namespace MFM{
     u32 getCompileThisId();
 
     UTI getCompileThisIdx();
+
+    Locator getCompileThisLoc();
 
     SymbolClass * getCurrentSelfSymbolForCodeGen();
 
@@ -744,6 +751,7 @@ namespace MFM{
     bool isStillHazy(UTI uti);
 
     inline void abortGreaterThanMaxBitsPerLong() { assert(0); }
+    inline void abortGreaterThanMaxBitsPerBiggestBV() { assert(0); }
     inline void abortUndefinedUlamType() { assert(0); }
     inline void abortUndefinedUlamClassType() { assert(0); }
     inline void abortUndefinedUlamPrimitiveType() { assert(0); }
