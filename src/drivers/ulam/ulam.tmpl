@@ -239,14 +239,16 @@ Getopt::Long::Configure ("noauto_abbrev"); # I find auto_abbrev unnerving
 
 sub findStandardTool {
     my $tname = shift;
+    pISC("## Find standard tool '$tname'");
     my $tool = `/usr/bin/which $tname`;
     chomp($tool);
+    IDie("'$tname' not found") unless $tool ne "";
     return blessShellReaching($tool);
 }
 
 sub blessShellReaching {
     my $taintedPath = shift;
-     $taintedPath =~ m!^([-+_/a-zA-Z0-9]*)$!
+     $taintedPath =~ m!^([-+_/a-zA-Z0-9]+)$!
          or UDie("'$taintedPath' contains unexpected characters!");
     return $1;
 }
