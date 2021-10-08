@@ -55,7 +55,7 @@ transient WindowScanner {
    * \returns the max-weighted allocated category
    * \sa allocateCategory
    *
-   * \since ulam-5
+   * \since 5.0
    */
   Category allocateMaxCategory() {
     Category cat = allocateCategory();

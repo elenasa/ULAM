@@ -87,10 +87,26 @@ namespace MFM {
     setBlock(NULL);
   }
 
-  bool NodeConstant::getSymbolPtr(Symbol *& symptrref)
+  bool NodeConstant::getSymbolPtr(const Symbol *& symptrref)
   {
     symptrref = m_constSymbol;
     return (m_constSymbol != NULL); //true;
+  }
+
+  bool NodeConstant::compareSymbolPtrs(Symbol * ptr)
+  {
+    return (m_constSymbol == ptr);
+  }
+
+  bool NodeConstant::hasASymbol()
+  {
+    return (m_constSymbol != NULL);
+  }
+
+  u32 NodeConstant::getSymbolId()
+  {
+    assert(m_constSymbol);
+    return m_constSymbol->getId();
   }
 
   bool NodeConstant::hasASymbolDataMember()
@@ -160,6 +176,7 @@ namespace MFM {
 
     if(m_nodeTypeDesc)
       {
+	//NodeConstant uses its NodeTypeDescriptor to identify the specified class where it is defined (t41547)
 	UTI duti = m_nodeTypeDesc->checkAndLabelType(this); //clobbers any expr it
 	if(!m_state.okUTItoContinue(duti))
 	  {
@@ -244,10 +261,10 @@ namespace MFM {
 	    if(!m_state.isComplete(it)) //reloads to recheck
 	      {
 		std::ostringstream msg;
-		msg << "Incomplete " << prettyNodeName().c_str() << " for type: ";
-		msg << m_state.getUlamTypeNameByIndex(it).c_str();
-		msg << ", used with constant symbol name '";
-		msg << m_state.getTokenDataAsString(m_token).c_str() << "'";
+		msg << "Incomplete " << prettyNodeName().c_str() << " for type";
+		if(m_state.okUTItoContinue(it) && !m_state.isHolder(it))
+		  msg << ": " << m_state.getUlamTypeNameByIndex(it).c_str();
+		msg << " used with constant symbol name '" << getName() << "'";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 		//wait until updateConstant tried.
 	      }
@@ -293,6 +310,8 @@ namespace MFM {
 
     if(m_state.useMemberBlock())
       m_state.pushCurrentBlock(currBlock); //e.g. memberselect needed for already defined
+    else if(m_nodeTypeDesc)
+      m_state.pushClassContextUsingMemberClassBlock((NodeBlockClass *) currBlock); //t41547
     else
       m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
 
@@ -339,7 +358,7 @@ namespace MFM {
 	if(!hazyKin)
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	else
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //was debug
       }
     m_state.popClassContext(); //restore
   } //checkForSymbol

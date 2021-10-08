@@ -50,11 +50,39 @@ namespace MFM {
     return new NodeMemberSelectByBaseClassType(*this);
   }
 
-  const char * NodeMemberSelectByBaseClassType::getName()
+  void NodeMemberSelectByBaseClassType::printOp(File * fp)
   {
     if(m_nodeVTclassrn)
-      return ".[]";
-    return ".";
+      fp->write(" .[]"); //t41386
+    else
+      fp->write(" ."); //t41386
+  }
+
+  const char * NodeMemberSelectByBaseClassType::getName()
+  {
+    return getFullName();
+  }
+
+  u32 NodeMemberSelectByBaseClassType::getNameId()
+  {
+    if(m_nodeVTclassrn)
+      return m_state.m_pool.getIndexForDataString(".[]");
+    return m_state.m_pool.getIndexForDataString(".");
+  }
+
+  const char * NodeMemberSelectByBaseClassType::getFullName()
+  {
+    std::ostringstream fullnm;
+    fullnm << m_nodeLeft->getName();
+    fullnm << ".";
+    fullnm << m_nodeRight->getName();
+    fullnm << "[";
+    if(m_nodeVTclassrn)
+      fullnm << m_nodeVTclassrn->getName();
+    fullnm << "]";
+
+    u32 sidx = m_state.m_pool.getIndexForDataString(fullnm.str());
+    return m_state.m_pool.getDataAsString(sidx).c_str();
   }
 
   void NodeMemberSelectByBaseClassType::printPostfix(File * fp)
@@ -77,7 +105,7 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-  bool NodeMemberSelectByBaseClassType::getStorageSymbolPtr(Symbol *& symptrref)
+  bool NodeMemberSelectByBaseClassType::getStorageSymbolPtr(const Symbol *& symptrref)
   {
     MSG(getNodeLocationAsString().c_str(), "No storage symbol", ERR);
     return false;
@@ -133,19 +161,9 @@ namespace MFM {
 	      } //else
 	  }
 
-#if 0
-	// right node is type descriptor, can't test here!! BUT WHERE??
-	if(!m_nodeRight->isFunctionCall())
-	  {
-	    std::ostringstream msg;
-	    msg << "Selected Base Class Type ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-	    msg << " is not followed by a function call, ";
-	    msg << "and cannot be used in this context";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    nuti = Nav;
-	  }
-#endif
+	// note: right node is type descriptor, can't test here for invalid function call;
+	// see Parser::parseNamedConstantFromAnotherClass (t41556)
+
 	setNodeType(nuti); //right type
       }
 
@@ -425,7 +443,7 @@ namespace MFM {
       }
   } //genCodeToStoreInto
 
-  bool NodeMemberSelectByBaseClassType::passalongUVPass()
+  bool NodeMemberSelectByBaseClassType::passalongUVPass(bool toRHS)
   {
     return true; //pass along
   }

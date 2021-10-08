@@ -29,8 +29,8 @@ element A : QW {
 
     //case 3: (assign) genCodeCastAncestorQuarkAsSubElement
     //./A.ulam:15:15: ERROR: Cannot explicitly cast Qbase& to type: A.
-    //A apple2;
-    //apple2 = (A) qref; //unused var (qref read)
+    ////A apple2;
+    ////apple2 = (A) qref; //unused var (qref read)
 
     //case 4: Atom To Element
     A apple3 = (A) qref.atomof;

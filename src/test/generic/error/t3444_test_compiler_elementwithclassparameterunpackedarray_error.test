@@ -1,9 +1,9 @@
 ## -*- mode:ulam -*-
 #=t3444_test_compiler_elementwithclassparameterunpackedarray_error
 #!
-./T.ulam:7:7: ERROR: Incomplete Constant Def for type used with symbol name 'y'.
+./T.ulam:7:7: ERROR: Incomplete NodeConstantDef for type used with symbol name 'y'.
 ./T.ulam:7:7: ERROR: Constant value expression for class argument: y, is not ready.
-./T.ulam:7:5: ERROR: Incomplete Variable Decl for type: S(y,3) used with variable symbol name 'n'.
+./T.ulam:7:5: ERROR: Incomplete NodeVarDecl for type: S(y,3) used with variable symbol name 'n'.
 ./T.ulam:7:5: ERROR: Variable for: 'n', is still hazy.
 ./S.ulam:2:9: ERROR: Typedef 'BigSite' in class S(y,3) remains undefined.
 Unrecoverable Program Type Label FAILURE.

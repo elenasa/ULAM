@@ -65,11 +65,23 @@ namespace MFM {
       {
 	s32 len = getTotalBitSize();
 	assert(len != UNKNOWNSIZE);
-	if(len > MAXBITSPERINT)
-	  m_state.abortNotSupported(); //quarks are max 32 bits
-	UlamValue newval = UlamValue::makeImmediateClass(typidx, 0, len);
+	UlamValue newval;
+	if(len <= MAXBITSPERINT)
+	  newval = UlamValue::makeImmediateClass(typidx, 0, len);
+	else if(len <= MAXBITSPERLONG)
+	  newval = UlamValue::makeImmediateLongClass(typidx, 0, len);
+	else
+	  m_state.abortNotSupported(); //quarks are max 64 bits
+
 	m_state.extractQuarkBaseFromSubclassForEval(val, typidx, newval);
 	val = newval;
+      }
+    else if(fmut->getUlamTypeEnum() == Bits)
+      {
+	if(getTotalBitSize() == fmut->getTotalBitSize())
+	  val.setUlamValueTypeIdx(typidx);
+	else
+	  brtn = false;
       }
     else
       brtn = false;
@@ -103,16 +115,12 @@ namespace MFM {
 
   const std::string UlamTypeClassQuark::readMethodForCodeGen()
   {
-    if(!isScalar())
-      return UlamType::readMethodForCodeGen();
-    return "Read"; //quarks only 32 bits
+    return UlamType::readMethodForCodeGen();
   }
 
   const std::string UlamTypeClassQuark::writeMethodForCodeGen()
   {
-    if(!isScalar())
-      return UlamType::writeMethodForCodeGen();
-    return "Write"; //quarks only 32 bits
+    return UlamType::writeMethodForCodeGen();
   }
 
   bool UlamTypeClassQuark::needsImmediateType()
@@ -406,6 +414,21 @@ namespace MFM {
 	fp->write("else { return Usi(*this).read(); } }"); GCNL;
       }
 
+    //overload PACKED arrays, as well as UNPACKED ones
+    if(getTotalBitSize() > MAXBITSPERLONG)
+      {
+	m_state.indent(fp);
+	fp->write("void ");
+	fp->write(" read(");
+	fp->write(getTmpStorageTypeAsString().c_str()); //BV
+	fp->write("& rtnbv) const { ");
+	fp->write("if(&Us::THE_INSTANCE==this->GetEffectiveSelfPointer()){ ");
+	fp->write("this->GetStorage().");
+	fp->write(readMethodForCodeGen().c_str()); //just the guts
+	fp->write("(this->GetPos(),rtnbv); /*entire quark array */}");
+	fp->write("else { Usi(*this).read(rtnbv); } }"); GCNL;
+      }
+
     //scalar and entire PACKEDLOADABLE array handled by read method
     if(!isScalar())
       {
@@ -414,7 +437,7 @@ namespace MFM {
 	//reads an item of array;
 	//2nd argument generated for compatibility with underlying method
 	m_state.indent(fp);
-	fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //s32 or u32
+	fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //u32,u64
 	fp->write(" readArrayItem(");
 	fp->write("const u32 index, const u32 itemlen) const { return "); //was const after )
 	fp->write("UlamRef<EC>(");
@@ -455,8 +478,11 @@ namespace MFM {
 		fp->write("/*data members first*/ ");
 		fp->write("UlamRef<EC>(*this,0,"); //t3172
 		fp->write_decimal(myblen);
-		fp->write("u).Write(");
-		fp->write("tmpbv.Read(0u,");
+		fp->write("u).");
+		fp->write(writeMethodForCodeGen().c_str());
+		fp->write("(tmpbv.");
+		fp->write(readMethodForCodeGen().c_str());
+		fp->write("(0u,");
 		fp->write_decimal(myblen);
 		fp->write("u)); ");
 	      }
@@ -483,7 +509,11 @@ namespace MFM {
 		    fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(baseuti));
 		    fp->write("u)- this->GetPosToEffectiveSelf(),");
 		    fp->write_decimal_unsigned(blen);
-		    fp->write("u).Write(tmpbv.Read("); //no true t41358
+		    fp->write("u)."); //no true t41358
+		    fp->write(writeMethodForCodeGen().c_str());
+		    fp->write("(tmpbv."); //no true t41358
+		    fp->write(readMethodForCodeGen().c_str());
+		    fp->write("(");
 		    fp->write_decimal_unsigned(csym->getSharedBaseClassRelativePosition(j));
 		    fp->write("u,");
 		    fp->write_decimal_unsigned(blen);
@@ -524,7 +554,7 @@ namespace MFM {
 	//3rd argument generated for compatibility with underlying method
 	m_state.indent(fp);
 	fp->write("void writeArrayItem(const ");
-	fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //s32 or u32
+	fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //u32, u64
 	fp->write("& v, const u32 index, const u32 itemlen) { ");
 	fp->write("UlamRef<EC>(");
 	fp->write("*this, index * itemlen, "); //rel offset
@@ -607,7 +637,7 @@ namespace MFM {
     fp->write_decimal_unsigned(bitsize);
     fp->write("};"); GCNL;
 
-    u32 dqval = 0;
+    u64 dqval = 0;
     bool hasDQ = m_state.getDefaultQuark(scalaruti, dqval);
 
     m_state.indent(fp);
@@ -658,7 +688,8 @@ namespace MFM {
 	else
 	  {
 	    u32 arraysize = getArraySize();
-	    fp->write("u32 tmpdq = Us::THE_INSTANCE.getDefaultQuark(); ");
+	    fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //u32, u64 (t3649)
+	    fp->write(" tmpdq = Us::THE_INSTANCE.getDefaultQuark(); ");
 	    fp->write("for(u32 j = 0; j < ");
 	    fp->write_decimal_unsigned(arraysize);
 	    fp->write("u; j++) ");
@@ -687,10 +718,20 @@ namespace MFM {
     fp->write("(const ");
     fp->write(mangledName.c_str());
     fp->write("<EC> & arg) : BVS() { "); //Wextra
-    fp->write("write(arg.");
-    fp->write("read()); }"); GCNL;
+    if(len > MAXBITSPERLONG)
+      {
+	fp->write(getTmpStorageTypeAsString().c_str()); //BV t3707
+	fp->write(" tmpbv; arg.read(tmpbv);");
+	fp->write("this->write");
+	fp->write("(tmpbv); }"); GCNL;
+      }
+    else
+      {
+	fp->write("write(arg.");
+	fp->write("read()); }"); GCNL;
+      }
 
-    //constructor for constants
+    //constructor for constants, array of u32 regardless of quark size (t41555)
     m_state.indent(fp);
     fp->write(mangledName.c_str());
     fp->write("(const u32 * const ");
@@ -714,13 +755,16 @@ namespace MFM {
 	if(myblen > 0)
 	  {
 	    fp->write("/*data members first*/ ");
-	    fp->write("BVS::Write(");
-	    fp->write("0u,");
+	    fp->write("BVS::");
+	    fp->write(writeMethodForCodeGen().c_str());
+	    fp->write("(0u,");
 	    fp->write_decimal(myblen);
 	    fp->write("u,");
 	    fp->write("UlamRef<EC>(d,0,"); //t3230
 	    fp->write_decimal(myblen);
-	    fp->write("u).Read()); ");
+	    fp->write("u).");
+	    fp->write(readMethodForCodeGen().c_str());
+	    fp->write("()); ");
 	  }
 
 	//then, write each of its non-zero size (shared) base classes
@@ -737,7 +781,9 @@ namespace MFM {
 	    u32 blen = m_state.getBaseClassBitSize(baseuti);
 	    if(blen > 0)
 	      {
-		fp->write("BVS::Write(");
+		fp->write("BVS::");
+		fp->write(writeMethodForCodeGen().c_str());
+		fp->write("(");
 		fp->write_decimal_unsigned(csym->getSharedBaseClassRelativePosition(j));
 		fp->write("u,");
 		fp->write_decimal_unsigned(blen);
@@ -746,10 +792,11 @@ namespace MFM {
 		fp->write(m_state.getGetRelPosMangledFunctionName(baseuti));
 		fp->write("(");
 		fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(baseuti));
-		//	    fp->write("u)-d.GetPosToEffectiveSelf(),");
 		fp->write("u),");
 		fp->write_decimal_unsigned(blen);
-		fp->write("u, UlamRef<EC>::CLASSIC, true).Read()); /*"); //(always true!)
+		fp->write("u, UlamRef<EC>::CLASSIC, true).");
+		fp->write(readMethodForCodeGen().c_str());
+		fp->write("()); /*"); //(always true!)
 		fp->write(m_state.getUlamTypeNameBriefByIndex(baseuti).c_str());
 		fp->write(" */ ");
 	      }
@@ -784,7 +831,7 @@ namespace MFM {
   void UlamTypeClassQuark::genUlamTypeReadDefinitionForC(File * fp)
   {
     u32 totbitsize = getTotalBitSize();
-    if(totbitsize <= BITSPERATOM) //Big 96bit array is unpacked, but.. (t3776,t3969)
+    if(totbitsize <= MAXBITSPERLONG) //Big 96bit array is unpacked, but.. (t3776,t3969)
       {
 	m_state.indent(fp);
 	fp->write("const ");
@@ -806,14 +853,11 @@ namespace MFM {
       {
 	//UNPACKED
 	m_state.indent(fp);
-	fp->write("const ");
+	fp->write("void ");
+	fp->write(" read(");
 	fp->write(getTmpStorageTypeAsString().c_str()); //BV
-	fp->write(" read");
-	fp->write("() const { ");
-	fp->write(getTmpStorageTypeAsString().c_str()); //BV
-	fp->write(" rtnunpbv; this->BVS::");
-	fp->write(readMethodForCodeGen().c_str());
-	fp->write("(0u, rtnunpbv); return rtnunpbv; ");
+	fp->write("& rtnbv) const { ");
+	fp->write("this->BVS::ReadBV(0u, rtnbv);");
 	fp->write("} //reads entire BV"); GCNL;
       }
 
@@ -827,7 +871,7 @@ namespace MFM {
 	//2nd argument generated for compatibility with underlying method
 	m_state.indent(fp);
 	fp->write("const ");
-	fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //s32 or u32
+	fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //u32, u64 (t3649,t3668,tt3707,t3844)
 	fp->write(" readArrayItem(");
 	fp->write("const u32 index, const u32 itemlen) const { return BVS::"); //was const after )
 	fp->write(readArrayItemMethodForCodeGen().c_str());
@@ -839,7 +883,6 @@ namespace MFM {
   void UlamTypeClassQuark::genUlamTypeWriteDefinitionForC(File * fp)
   {
     u32 totbitsize = getTotalBitSize();
-    //    if(totbitsize <= BITSPERATOM) //Big 96bit array is unpacked, but.. (t3969)
     if(totbitsize <= MAXBITSPERLONG) //Big 96bit array is unpacked, but.. (t3969)
       {
 	m_state.indent(fp);
@@ -883,7 +926,7 @@ namespace MFM {
 	//3rd argument generated for compatibility with underlying method
 	m_state.indent(fp);
 	fp->write("void writeArrayItem(const ");
-	fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //s32 or u32
+	fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //u32, u64
 	fp->write("& v, const u32 index, const u32 itemlen) { BVS::");
 	fp->write(writeArrayItemMethodForCodeGen().c_str());
 	fp->write("(index * itemlen, "); //rel offset

@@ -100,6 +100,11 @@ namespace MFM {
     return m_state.m_pool.getDataAsString(m_tdid).c_str(); //safer
   }
 
+  u32 NodeTypedef::getNameId()
+  {
+    return m_tdid;
+  }
+
   const std::string NodeTypedef::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
@@ -114,10 +119,10 @@ namespace MFM {
     setBlock(NULL);
   }
 
-  bool NodeTypedef::getSymbolPtr(Symbol *& symptrref)
+  bool NodeTypedef::getSymbolPtr(const Symbol *& symptrref)
   {
     symptrref = m_typedefSymbol;
-    return true;
+    return (m_typedefSymbol != NULL); //true
   } //getSymbolPtr
 
   UTI NodeTypedef::checkAndLabelType(Node * thisparentnode)
@@ -356,6 +361,7 @@ namespace MFM {
   void NodeTypedef::genCode(File * fp, UVPass& uvpass)
   {
 #if 0
+    assert(m_typedefSymbol);
     m_state.indentUlamCode(fp);
     fp->write("//typedef ");
 
@@ -387,7 +393,7 @@ namespace MFM {
 
   void NodeTypedef::cloneAndAppendNode(std::vector<Node *> & cloneVec)
   {
-    //for comment purposes (e.g. t3883)
+    //for comment purposes in .h (e.g. t3883); no symbol needed since doesn't genCode.
     NodeTypedef * cloneofme = (NodeTypedef *) this->instantiate();
     assert(cloneofme);
     cloneVec.push_back(cloneofme);

@@ -99,9 +99,7 @@ namespace MFM {
 
   void NodeQuestionColon::printOp(File * fp)
   {
-    char myname[16];
-    sprintf(myname,"%s", getName());
-    fp->write(myname);
+    fp->write("?:");
   } //printOp
 
   const std::string NodeQuestionColon::methodNameForCodeGen()

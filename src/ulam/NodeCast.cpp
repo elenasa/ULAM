@@ -146,9 +146,19 @@ namespace MFM {
     return m_node->isArrayItem();
   }
 
-  bool NodeCast::getSymbolPtr(Symbol *& symptrref)
+  bool NodeCast::hasASymbol()
   {
-    return m_node->getSymbolPtr(symptrref);
+    return m_node->hasASymbol(); //pass thru
+  }
+
+  u32 NodeCast::getSymbolId()
+  {
+    return m_node->getSymbolId(); //pass thru
+  }
+
+  bool NodeCast::compareSymbolPtrs(Symbol * ptr)
+  {
+    return m_node->compareSymbolPtrs(ptr);
   }
 
   FORECAST NodeCast::safeToCastTo(UTI newType)
@@ -253,7 +263,7 @@ namespace MFM {
 		  {
 		    std::ostringstream msg;
 		    msg << "Cannot cast "; //Bits
-		    msg << nut->getUlamTypeNameBrief().c_str() << " to "; //non-constructor void
+		    msg << nut->getUlamTypeName().c_str() << " to "; //non-constructor void
 		    if(tclasstype == UC_QUARK)
 		      msg << "quark ";
 		    else if(tclasstype == UC_TRANSIENT)
@@ -266,6 +276,24 @@ namespace MFM {
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		    errorsFound++;
 		  }
+
+		if(m_state.isReference(tobeType))
+		  {
+		    std::ostringstream msg;
+		    msg << "Cannot cast "; //Bits
+		    msg << nut->getUlamTypeName().c_str() << " to "; //non-constructor void
+		    msg << "a reference ";
+		    if(tclasstype == UC_QUARK)
+		      msg << "quark ";
+		    else if(tclasstype == UC_TRANSIENT)
+		      msg << "transient ";
+		    else
+		      m_state.abortShouldntGetHere();
+
+		    msg << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str();
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    errorsFound++; //t41575
+		  }
 	      }
 	    else if(!m_state.isAtom(nodeType))
 	      {
@@ -274,7 +302,7 @@ namespace MFM {
 		msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str(); //non-atom
 		msg << " to " << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str(); //to a class
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		errorsFound++;
+		errorsFound++; //t41576
 	      }
 	    else if(tclasstype == UC_QUARK)
 	      {
@@ -290,7 +318,7 @@ namespace MFM {
 		errorsFound++;
 	      }
 	  }
-	else if(m_state.isAtomRef(tobeType) && (nclasstype == UC_QUARK) && !nut->isAltRefType())
+	else if(m_state.isAtomRef(tobeType) && (nclasstype == UC_QUARK) && !nut->isReference())
 	  {
 	    std::ostringstream msg;
 	    msg << "Cannot cast a non-reference quark, ";
@@ -308,8 +336,15 @@ namespace MFM {
 	      {
 		std::ostringstream msg;
 		msg << "Cannot explicitly cast ";
-		msg << m_state.getUlamTypeNameByIndex(nodeType).c_str(); //t3956 String(20)?
-		msg << " to type: " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
+		if(m_state.isAClass(nodeType))
+		  msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str(); //t3996
+		else
+		  msg << m_state.getUlamTypeNameByIndex(nodeType).c_str(); //t3956 String(20)?
+		msg << " to type: ";
+		if(m_state.isAClass(tobeType))
+		  msg << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str();
+		else
+		  msg << m_state.getUlamTypeNameByIndex(tobeType).c_str();
 		if((tobe->getUlamTypeEnum() == Bool) && !tobe->isAltRefType()) //t41197, t3962
 		  msg << "; Consider using a comparison operation";
 		else if(m_state.isAtom(tobeType) && (nclasstype == UC_QUARK))
@@ -464,7 +499,7 @@ namespace MFM {
 			  }
 			else
 			  {
-			    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+			    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //was debug
 			    hazinessFound++;
 			  }
 		      }
@@ -749,10 +784,15 @@ namespace MFM {
       {
 	genCodeReadIntoATmpVar(fp, uvpass); // cast.
       }
-    else if(m_state.isAltRefType(tobeType)) //to ref type
-      genCodeCastAsReference(fp, uvpass); //minimal casting
+
+    //else
+      if(m_state.isAltRefType(tobeType)) //to ref type
+      genCodeCastToAReference(fp, uvpass); //minimal casting
     else if(m_state.isAltRefType(nodeType)) //from ref type
       genCodeCastFromAReference(fp, uvpass);
+    else if(isExplicitCast())
+      uvpass.setPassTargetType(getCastType()); //minimal casting; e.g. to/fm Bits (t41570)
+    assert(uvpass.getPassTargetType() == getCastType());
   } //genCode
 
  void NodeCast::genCodeToStoreInto(File * fp, UVPass& uvpass)
@@ -764,9 +804,12 @@ namespace MFM {
       }
     //    else
     if(m_state.isAltRefType(getCastType())) //to ref type
-      genCodeToStoreIntoCastAsReference(fp, uvpass); //noop
+      genCodeToStoreIntoCastToAReference(fp, uvpass); //noop
     else if(m_state.isAltRefType(m_node->getNodeType())) //from ref type
       genCodeToStoreIntoCastFromAReference(fp, uvpass); //noop
+    else if(isExplicitCast())
+      uvpass.setPassTargetType(getCastType()); //minimal casting; e.g. to/fm Bits (t41570)
+    assert(uvpass.getPassTargetType() == getCastType());
   } //genCodeToStoreInto
 
   void NodeCast::genCodeReadIntoATmpVar(File * fp, UVPass& uvpass)
@@ -780,6 +823,7 @@ namespace MFM {
 
     UTI tobeType = getCastType(); //tobe
     UlamType * tobe = m_state.getUlamTypeByIndex(tobeType);
+    TMPSTORAGE tostor = tobe->getTmpStorageTypeForTmpVar();
 
     s32 tmpVarNum =  uvpass.getPassVarNum();
     UTI vuti = uvpass.getPassTargetType(); //replace
@@ -802,45 +846,103 @@ namespace MFM {
 
    //Primitive types:
    s32 tmpVarCastNum = m_state.getNextTmpVarNumber();
+   bool varcomesfirst = (tostor == TMPTBV); //t41563,5
+
+   u32 tbs = tobe->getTotalBitSize();
+   u32 vbs = vut->getTotalBitSize();
 
    m_state.indentUlamCode(fp);
-   fp->write("const ");
+   if(!varcomesfirst)
+     fp->write("const ");
    fp->write(tobe->getTmpStorageTypeAsString().c_str()); //e.g. u32, s32, u64, etc.
    fp->write(" ");
-   fp->write(m_state.getTmpVarAsString(tobeType, tmpVarCastNum, TMPREGISTER).c_str());
-   fp->write(" = ");
-
-   // write the cast method (e.g. _Unsigned32ToInt32, _Int32ToUnary32, etc..)
-   fp->write(tobe->castMethodForCodeGen(vuti).c_str());
-   fp->write("(");
-
-   if(isTerminal)
+   fp->write(m_state.getTmpVarAsString(tobeType, tmpVarCastNum, tostor).c_str()); //t41563
+   if(varcomesfirst)
      {
-       fp->write(m_state.m_pool.getDataAsString(uvpass.getPassNameId()).c_str());
+       fp->write(";"); GCNL;
+
+       m_state.indentUlamCode(fp);
+
+       if(vbs < tbs)
+	 {
+	   //from smaller var/bv to larger bitsize BV
+	   fp->write(m_state.getTmpVarAsString(tobeType, tmpVarCastNum, tostor).c_str()); //t41563
+	   fp->write(".");
+	   fp->write(vut->writeMethodForCodeGen().c_str());
+	   fp->write("(");
+	   fp->write_decimal_unsigned(tbs - vbs);
+	   fp->write("u, ");
+	   fp->write_decimal_unsigned(vbs);
+	   fp->write("u, ");
+	   fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum, vstor).c_str());
+	   fp->write(");"); GCNL;
+	 }
+       else
+	 {
+	   //from larger bitsize BV to smaller BV
+	   assert(vstor == TMPTBV);
+	   fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum, vstor).c_str());
+	   fp->write(".CopyBV(");
+	   fp->write_decimal_unsigned(vbs - tbs); //from right-most bits
+	   fp->write("u, 0u, ");
+	   fp->write_decimal_unsigned(tbs);
+	   fp->write("u, ");
+	   fp->write(m_state.getTmpVarAsString(tobeType, tmpVarCastNum, tostor).c_str()); //t41563
+	   fp->write("); /* fm, to, len, dest */"); GCNL;
+	 }
+     }
+   else if(vstor == TMPTBV)
+     {
+       //tobe is not a BV, <= 64bits;
+       assert(tbs <= MAXBITSPERLONG);
+       fp->write(" = ");
+       fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum, vstor).c_str());
+       fp->write(".");
+       fp->write(tobe->readMethodForCodeGen().c_str()); //Read, ReadLong..
+       fp->write("(");
+       fp->write_decimal_unsigned(vbs - tbs); //start index, t41565
+       fp->write("u, ");
+       fp->write_decimal_unsigned(tbs); //len
+       fp->write("u);");
+       GCNL;
      }
    else
      {
-       fp->write(m_state.getTmpVarAsString(tobeType, tmpVarNum, vstor).c_str());
-       if(vstor == TMPBITVAL)
-	 fp->write(".read()");
-       if(vstor == TMPAUTOREF)
-	 m_state.abortNeedsATest();
+       fp->write(" = ");
+
+       // write the cast method (e.g. _Unsigned32ToInt32, _Int32ToUnary32, etc..)
+       fp->write(tobe->castMethodForCodeGen(vuti).c_str());
+       fp->write("(");
+
+       if(isTerminal)
+	 {
+	   fp->write(m_state.m_pool.getDataAsString(uvpass.getPassNameId()).c_str());
+	 }
+       else
+	 {
+	   fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum, vstor).c_str()); //t41563
+	   if(vstor == TMPBITVAL)
+	     fp->write(".read()");
+	   if(vstor == TMPAUTOREF)
+	     fp->write(".read()"); //t3653
+	 }
+
+       fp->write(", ");
+
+       assert(!(m_state.isAtom(tobeType) || m_state.isAtom(vuti)));
+       //LENGTH of node being casted (Uh_AP_mi::LENGTH ?)
+       //fp->write(m_state.getBitVectorLengthAsStringForCodeGen(nodetype).c_str());
+       fp->write_decimal(vut->getTotalBitSize()); //src length
+
+       fp->write(", ");
+       fp->write_decimal(tobe->getTotalBitSize()); //tobe length
+
+       if(m_state.isAStringType(vuti) && (tobe->getUlamTypeEnum() == Bool))  //validate string t41425
+	 fp->write(", Ug_globalNumberofStrings"); //max user string index, global
+
+       fp->write(");"); GCNL;
      }
 
-   fp->write(", ");
-
-   assert(!(m_state.isAtom(tobeType) || m_state.isAtom(vuti)));
-   //LENGTH of node being casted (Uh_AP_mi::LENGTH ?)
-   //fp->write(m_state.getBitVectorLengthAsStringForCodeGen(nodetype).c_str());
-   fp->write_decimal(vut->getTotalBitSize()); //src length
-
-   fp->write(", ");
-   fp->write_decimal(tobe->getTotalBitSize()); //tobe length
-
-   if(m_state.isAStringType(vuti) && (tobe->getUlamTypeEnum() == Bool))  //validate string t41425
-     fp->write(", Ug_globalNumberofStrings"); //max user string index, global
-
-   fp->write(");"); GCNL;
 
    //support constant function parameters using constant primitive types (t41240)
    UTI derefTobe = m_state.getUlamTypeAsDeref(tobeType);
@@ -850,7 +952,7 @@ namespace MFM {
    if(isTerminal)
      uvpass = UVPass::makePass(tmpVarCastNum, TMPREGISTER, derefTobe, m_state.determinePackable(tobeType), m_state, 0, 0); //POS 0 rightjustified.
    else
-     uvpass = UVPass::makePass(tmpVarCastNum, tobe->getTmpStorageTypeForTmpVar(), derefTobe, m_state.determinePackable(tobeType), m_state, 0, uvpass.getPassApplyDelta(), uvpass.getPassNameId()); //POS 0 rightjustified; pass along name id and apply delta
+     uvpass = UVPass::makePass(tmpVarCastNum, tostor, derefTobe, m_state.determinePackable(tobeType), m_state, 0, uvpass.getPassApplyDelta(), uvpass.getPassNameId()); //POS 0 rightjustified; pass along name id and apply delta
    //   m_state.clearCurrentObjSymbolsForCodeGen(); //clear by now
   } //genCodeReadIntoATmpVar
 
@@ -1938,6 +2040,7 @@ namespace MFM {
       }
     else
       {
+	bool varcomesfirst = (tstor == TMPTBV);
 	s32 tmpVarSuper = m_state.getNextTmpVarNumber();
 	//immediate cntr makes complete quark fm scattered bases
 	//in its ref (t3560,t3757,t41357)
@@ -1945,11 +2048,24 @@ namespace MFM {
 	fp->write(tobe->getTmpStorageTypeAsString().c_str()); //BV, not const
 	fp->write(" ");
 	fp->write(m_state.getTmpVarAsString(tobeType, tmpVarSuper, tstor).c_str());
-	fp->write(" = ");
+	if(!varcomesfirst)
+	  fp->write(" = ");
+	else
+	  {
+	    fp->write(";"); GCNL;
+	    m_state.indentUlamCode(fp);
+	  }
+
 	fp->write(tobe->getLocalStorageTypeAsString().c_str()); //anonymous immediate
 	fp->write("(");
 	fp->write(m_state.getTmpVarAsString(reftobeType, tmpVarRef, TMPAUTOREF).c_str());
-	fp->write(").read();"); GCNL;
+	fp->write(").read(");
+	if(varcomesfirst)
+	  {
+	    fp->write(m_state.getTmpVarAsString(tobeType, tmpVarSuper, tstor).c_str()); //t41355
+	  }
+	fp->write(");"); GCNL;
+
 
 	//update the uvpass to have the casted quark value
 	uvpass = UVPass::makePass(tmpVarSuper, tstor, tobeType, m_state.determinePackable(tobeType), m_state, 0, 0); //POS 0 rightjustified;
@@ -2205,7 +2321,7 @@ namespace MFM {
   } //genPositionOfBaseIntoATmpVar (helper)
 
   //SAME TYPES, to a reference, from either a reference or not
-  void NodeCast::genCodeCastAsReference(File * fp, UVPass & uvpass)
+  void NodeCast::genCodeCastToAReference(File * fp, UVPass & uvpass)
   {
     UTI fromuti = uvpass.getPassTargetType();
     UTI tobeType = getCastType();
@@ -2214,7 +2330,7 @@ namespace MFM {
 	return; //no casting, need to know for writing
       }
     uvpass.setPassTargetType(tobeType); //minimal casting
-  } //genCodeCastAsReference
+  } //genCodeCastToAReference
 
   //SAME TYPES, from a reference, to a non-reference
   void NodeCast::genCodeCastFromAReference(File * fp, UVPass & uvpass)
@@ -2222,13 +2338,13 @@ namespace MFM {
     UTI tobeType = getCastType();
     UlamType * tobe = m_state.getUlamTypeByIndex(tobeType);
     assert(!tobe->isAltRefType());
-    assert(m_state.isAtom(tobeType) || m_state.isASeenElement(tobeType) || m_state.isAPrimitiveType(tobeType)); //sanity? terr/t3681,t3843; t3583,t3611
+    assert(m_state.isAtom(tobeType) || m_state.isASeenElement(tobeType) || m_state.isAPrimitiveType(tobeType) || (uvpass.getPassTargetType() == tobeType)); //sanity? terr/t3681,t3843; t3583,t3611; done t3562
     uvpass.setPassTargetType(tobeType); //minimal casting; including atomref to atom(non-ref)
     m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of lhs
   } //genCodeCastFromAReference
 
   //SAME TYPES, to a reference, from either a reference or not, or different ref type
-  void NodeCast::genCodeToStoreIntoCastAsReference(File * fp, UVPass & uvpass)
+  void NodeCast::genCodeToStoreIntoCastToAReference(File * fp, UVPass & uvpass)
   {
     UTI tobeType = getCastType();
     if(isAConstantClass() || isAConstant())
@@ -2237,7 +2353,7 @@ namespace MFM {
       }
     uvpass.setPassTargetType(tobeType); //minimal casting, t3812
     return;
-  } //genCodeToStoreIntoCastAsReference
+  } //genCodeToStoreIntoCastToAReference
 
   void NodeCast::genCodeToStoreIntoCastFromAReference(File * fp, UVPass & uvpass)
   {

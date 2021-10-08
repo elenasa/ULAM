@@ -61,8 +61,6 @@ namespace MFM {
 	    msg << " while compiling class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	    //castNode->setYourParentNo(pno); //inverts normal update lineage
-	    //setYourParentNo(castNode->getNodeNo());
 	    castNode->updateLineage(pno);
 	    parentnoderef = castNode; //t41384
 	  }

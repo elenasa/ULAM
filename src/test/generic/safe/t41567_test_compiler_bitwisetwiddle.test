@@ -1,0 +1,53 @@
+## -*- mode:ulam -*-
+#=t41567_test_compiler_bitwisetwiddle
+##
+##  gen output: +3 asserts
+##  Int Arg: -1
+#!
+Exit status: -11
+Ue_Test { Int m_i(-1);  System s();  Int test() {  Bits f = 0 cast;  Bits g = f ~;  self m_i . g cast = self s . ( self m_i . )print . self s . ( self m_i . -1 cast == )assert . Bits(64) flong = 0 cast;  Bits(64) glong = flong ~;  Int(64) ilong = glong cast;  self s . ( ilong -1 cast == )assert . Bits(99) fbv = 0 cast;  Bits(99) gbv = fbv ~;  fbv gbv ~ = Bool iszero = fbv 0 cast ==;  self s . ( iszero )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+##
+## first test of bitwise complement. see t41416.
+##
+#>Test.ulam
+  ulam 5;
+element Test {
+  Int m_i;
+  System s;
+
+  Int test() {
+    Bits f = 0;
+    Bits g = ~f;
+    m_i = (Int) g;
+    s.print(m_i);
+    s.assert(m_i==-1);
+
+    Bits(64) flong = 0;
+    Bits(64) glong = ~flong;
+    Int(64) ilong = (Int(64)) glong;
+    s.assert(ilong==-1);
+
+    Bits(99) fbv = 0;
+    Bits(99) gbv = ~fbv;
+    fbv = ~gbv;
+    Bool iszero = (fbv == 0);
+    s.assert(iszero);
+
+    return 0;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

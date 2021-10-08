@@ -3,7 +3,7 @@
 #!
 ./R.ulam:5:40: ERROR: Unsupported request: 'constantof' constructor call.
 ./R.ulam:5:14: ERROR: Initial value of 'a2cid' is missing.
-./R.ulam:5:51: ERROR: Invalid Statement (possible missing semicolon).
+./R.ulam:5:50: ERROR: Invalid Statement (possible missing semicolon).
 Unrecoverable Program Parse FAILURE: <R.ulam>
 Unrecoverable Program Parse FAILURE: <A.ulam>
 Unrecoverable Program Parse FAILURE: <Ele2.ulam>

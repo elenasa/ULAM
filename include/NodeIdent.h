@@ -59,19 +59,25 @@ namespace MFM{
 
     virtual const char * getName();
 
-    virtual const std::string prettyNodeName();
+    virtual u32 getNameId();
 
-    virtual void clearSymbolPtr();
+    virtual const std::string prettyNodeName();
 
     void setSymbolPtr(SymbolVariable * vsymptr);
 
-    virtual bool getSymbolPtr(Symbol *& symptrref);
+    virtual void clearSymbolPtr();
 
-    bool getSymbolPtr(SymbolVariable *& symptrref) const;
+    virtual bool compareSymbolPtrs(Symbol * ptr);
 
-    void setupBlockNo();
+    virtual bool getSymbolPtr(const Symbol *& symptrref);
 
-    virtual bool getStorageSymbolPtr(Symbol *& symptrref);
+    virtual bool getStorageSymbolPtr(const Symbol *& symptrref);
+
+    virtual bool getSymbolPtr(SymbolVariable *& symptrref) const;
+
+    virtual u32 getSymbolId();
+
+    virtual bool hasASymbol();
 
     virtual bool hasASymbolDataMember();
 
@@ -82,6 +88,16 @@ namespace MFM{
     virtual bool hasASymbolReference();
 
     virtual bool hasASymbolReferenceConstant();
+
+    virtual s32 getSymbolStackFrameSlotIndex();
+
+    virtual UlamValue getSymbolAutoPtrForEval();
+
+    virtual UTI getSymbolAutoStorageTypeForEval();
+
+    virtual u32 getSymbolDataMemberPosOffset();
+
+    void setupBlockNo();
 
     const Token& getToken() const;
 
@@ -122,6 +138,7 @@ namespace MFM{
     SymbolVariable * m_varSymbol;
     NNO m_currBlockNo;
     NodeBlock * m_currBlockPtr;
+
 
     void setBlockNo(NNO n);
     NNO getBlockNo() const;

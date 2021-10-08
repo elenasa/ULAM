@@ -3,7 +3,7 @@
 #!
 ./Tu.ulam:4:19: ERROR: Missing model parameter definition after '=' for 'aep'.
 ./Tu.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'Tu'; Possible missing ending curly brace.
-./Tu.ulam:6:13: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+./Tu.ulam:4:26: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 ./Tu.ulam:2:9: ERROR: Invalid Type: Tu.
  ERROR: No parse tree for This Class: Tu.
 Unrecoverable Program Parse FAILURE: <Tu.ulam>

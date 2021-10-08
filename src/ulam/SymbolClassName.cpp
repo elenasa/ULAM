@@ -389,7 +389,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "CLASS (regular) '" << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	    msg << "' SIZED " << totalbits << " FAILED";
-	    MSG(Symbol::getTokPtr(), msg.str().c_str(),ERR);
+	    MSG(Symbol::getTokPtr(), msg.str().c_str(), ERR);
 	    classNode->setNodeType(Nav); //avoid assert in resolving loop
 	    aok = false; //t3155
 	  }
@@ -398,7 +398,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "CLASS (regular) '" << m_state.getUlamTypeNameByIndex(cuti).c_str();
 	    msg << "' SIZED: " << totalbits;
-	    MSG(Symbol::getTokPtr(), msg.str().c_str(),DEBUG);
+	    MSG(Symbol::getTokPtr(), msg.str().c_str(), DEBUG);
 	    //after setBitSize so not to clobber it.
 	    m_state.setBaseClassBitSize(cuti, totalbits - sharedbits); //noop for elements
 	  }

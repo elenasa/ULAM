@@ -47,12 +47,28 @@ namespace MFM {
 
   void NodeSquareBracket::printOp(File * fp)
   {
-    NodeBinaryOp::printOp(fp);
+    fp->write(" []"); //was NodeBinaryOp::printOp(fp); t41461,..
   }
 
   const char * NodeSquareBracket::getName()
   {
-    return "[]";
+    return getFullName(); //t41252,t41076,t3885
+  }
+
+  u32 NodeSquareBracket::getNameId()
+  {
+    return m_state.m_pool.getIndexForDataString("[]");
+  }
+
+  const char * NodeSquareBracket::getFullName()
+  {
+    std::ostringstream fullnm;
+    fullnm << m_nodeLeft->getName();
+    fullnm << "[";
+    fullnm << m_nodeRight->getName();
+    fullnm << "]";
+    u32 sidx = m_state.m_pool.getIndexForDataString(fullnm.str());
+    return m_state.m_pool.getDataAsString(sidx).c_str();
   }
 
   const std::string NodeSquareBracket::prettyNodeName()
@@ -129,7 +145,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Incomplete RH Type: " << m_state.getUlamTypeNameBriefByIndex(rightType).c_str();
-	msg << " used with " << getName();
+	msg << " used with []"; // << getName();
 	if(rightType==Hzy)
 	  {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
@@ -156,7 +172,7 @@ namespace MFM {
 	      {
 		std::ostringstream msg;
 		msg << "Incomplete Type: " << m_state.getUlamTypeNameBriefByIndex(leftType).c_str();
-		msg << " used with " << getName();
+		msg << " used with []"; // << getName();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 		hazyCount++;
 	      }
@@ -171,28 +187,40 @@ namespace MFM {
 	    else if(letyp == UAtom)
 	      {
 		//overload operator[] supercedes custom array (t41492)
-		if(NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode(thisparentnode))
+		TBOOL rtntb = NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode(thisparentnode);
+		if(rtntb == TBOOL_TRUE)
 		  {
 		    m_state.setGoAgain();
 		    delete this; //suicide is painless..
 		    return Hzy;
 		  }
+		else if(rtntb == TBOOL_HAZY)
+		  {
+		    hazyCount++;
+		  }
+		//else
 	      }
 	    else
 	      {
 		assert(letyp == Class);
-		//overload operator[] supercedes custom array (t41129)
-		if(NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode(thisparentnode))
+		//overload operator[] supercedes custom array (t41129, t41583)
+		TBOOL rtntb = NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode(thisparentnode);
+		if(rtntb == TBOOL_TRUE)
 		  {
 		    m_state.setGoAgain();
 		    delete this; //suicide is painless..
 		    return Hzy;
+		  }
+		else if(rtntb == TBOOL_HAZY)
+		  {
+		    newType = Hzy;
+		    hazyCount++;
 		  }
 		else if(!m_isCustomArray)
 		  {
 		    std::ostringstream msg;
 		    msg << "Invalid Type: " << m_state.getUlamTypeNameBriefByIndex(leftType).c_str();
-		    msg << " used with " << getName();
+		    msg << " used with []"; // << getName();
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		    errorCount++;
 		  }
@@ -208,7 +236,7 @@ namespace MFM {
 			msg << m_state.getUlamTypeNameBriefByIndex(caType).c_str();
 			msg << " used with class: ";
 			msg << m_state.getUlamTypeNameBriefByIndex(leftType).c_str();
-			msg << getName();
+			msg << "[]"; // getName();
 			if(caType == Nav)
 			  {
 			    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
@@ -455,18 +483,19 @@ namespace MFM {
     return rtnok;
   }
 
-  //here, we check for existence, do we can default to custom array, aref.
-  Node * NodeSquareBracket::buildOperatorOverloadFuncCallNode()
+  //here, we check for existence, or we can default to custom array, aref.
+  Node * NodeSquareBracket::buildOperatorOverloadFuncCallNode(bool& hazyArg)
   {
-    UTI leftType = m_nodeLeft->getNodeType();
-    TokenType opTokType = Token::getTokenTypeFromString(getName());
+    UTI leftType = m_nodeLeft->getNodeType(); //refs handled (t41583)
+
+    TokenType opTokType = Token::getTokenTypeFromString("[]"); //was getName()
     assert(opTokType != TOK_LAST_ONE);
     Token opTok(opTokType, getNodeLocation(), 0);
     u32 opolId = Token::getOperatorOverloadFullNameId(opTok, &m_state);
     if(opolId == 0)
       {
 	std::ostringstream msg;
-	msg << "Overload for operator " << getName();
+	msg << "Overload for operator []"; // << getName();
 	msg << " is not supported as operand for class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(leftType).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
@@ -475,13 +504,16 @@ namespace MFM {
 
     //may need to fall back to a custom array
     Symbol * fnsymptr = NULL;
-    bool hazyKin = false;
-    if(m_state.isFuncIdInAClassScopeOrAncestor(leftType, opolId, fnsymptr, hazyKin) && !hazyKin)
+    hazyArg = false;
+    //ish 20210907 failed due to hazyKin (see also t41583):
+    //  ./L2PlateSequencer.ulam:28:22: ERROR: Invalid Type: Plex& used with [].
+    if(m_state.isFuncIdInAClassScopeOrAncestor(leftType, opolId, fnsymptr, hazyArg) && !hazyArg)
       {
 	// ambiguous (>1) overload will produce an error later
 	//fill in func symbol during type labeling;
-	return Node::buildOperatorOverloadFuncCallNodeHelper(m_nodeLeft, m_nodeRight, getName());
-      }//else use default struct equal, or wait for hazy arg
+	return Node::buildOperatorOverloadFuncCallNodeHelper(m_nodeLeft, m_nodeRight, "[]" /*getName()*/);
+      }
+    //else use default struct equal, or wait for hazy arg
 
     //redo check and type labeling done by caller!!
     return NULL; //replace right node with new branch
@@ -577,31 +609,20 @@ namespace MFM {
 
 	if((offsetInt >= arraysize))
 	  {
-	    Symbol * lsymptr;
-	    u32 lid = 0;
-	    if(getSymbolPtr(lsymptr))
-	      lid = lsymptr->getId();
-
 	    std::ostringstream msg;
 	    msg << "Array subscript [" << offsetInt << "] exceeds the size (" << arraysize;
-	    msg << ") of array '" << m_state.m_pool.getDataAsString(lid).c_str() << "'";
+	    msg << ") of array '" << m_nodeLeft->getName() << "'";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    return evalStatusReturn(ERROR);
+	    return evalStatusReturn(ERROR); //t3842,5
 	  }
       }
     else
       {
-	Symbol * lsymptr;
-	u32 lid = 0;
-	if(getSymbolPtr(lsymptr))
-	  lid = lsymptr->getId();
-
 	std::ostringstream msg;
-	msg << "Array subscript of array '";
-	msg << m_state.m_pool.getDataAsString(lid).c_str();
+	msg << "Array subscript of array '" << getName();
 	msg << "' requires a numeric type";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	return evalStatusReturn(ERROR);
+	return evalStatusReturn(ERROR); //t3321
       }
 
     Node::assignReturnValueToStack(pluv.getValAt(offsetInt, m_state));
@@ -706,17 +727,13 @@ namespace MFM {
     else
       {
 	s32 arraysize = m_state.getArraySize(auti);
-	Symbol * lsymptr;
-	u32 lid = 0;
-	if(getSymbolPtr(lsymptr))
-	  lid = lsymptr->getId();
 
 	std::ostringstream msg;
 	msg << "Array subscript [" << offsetInt << "] exceeds the size (" << arraysize;
-	msg << ") of array '" << m_state.m_pool.getDataAsString(lid).c_str() << "'";
+	msg << ") of array '" << m_nodeLeft->getName() << "'";
 	msg << " to store into";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	return evalStatusReturn(ERROR);
+	return evalStatusReturn(ERROR); //t3427
       }
 
     evalNodeEpilog();
@@ -749,19 +766,20 @@ namespace MFM {
       m_nodeLeft->clearSymbolPtr();
   }
 
-  bool NodeSquareBracket::getSymbolPtr(Symbol *& symptrref)
+  u32 NodeSquareBracket::getSymbolId()
   {
     if(m_nodeLeft)
-      return m_nodeLeft->getSymbolPtr(symptrref);
+      return m_nodeLeft->getSymbolId();
+    return getNameId();
+  }
+
+  bool NodeSquareBracket::hasASymbol()
+  {
+    if(m_nodeLeft)
+      return m_nodeLeft->hasASymbol();
 
     MSG(getNodeLocationAsString().c_str(), "No symbol", ERR);
     return false;
-  }
-
-  bool NodeSquareBracket::getStorageSymbolPtr(Symbol *& symptrref)
-  {
-    assert(m_nodeLeft);
-    return m_nodeLeft->getStorageSymbolPtr(symptrref);
   }
 
   //see also NodeIdent

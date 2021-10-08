@@ -1,0 +1,56 @@
+## -*- mode:ulam -*-
+#=t41577_test_compiler_element_operatoroverloadbitwisetwiddle
+##
+##  gen output: (+ assert)
+##      Int Arg: 7
+##
+#!
+Exit status: 0
+Ue_Test { Int my_i(7);  Bool my_b(false);  System s();  Int test() {  T f;  f m_i . 7 cast = self my_i . f ( )operator~ . = self s . ( self my_i . )print . self s . ( self my_i . 7 cast == )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+Ue_T { Bool m_b(false);  Int m_i(0);  <NOMAIN> }
+##
+## element test of bitwise complement overload, see also error/t41576
+##
+#>Test.ulam
+  ulam 5;
+element Test {
+  Int my_i;
+  Bool my_b;
+  System s;
+  Int test() {
+    T f;
+    f.m_i = 7;
+    my_i = ~f;
+    s.print(my_i);
+    s.assert(my_i == 7);
+
+    return 0;
+  }
+}
+
+#:T.ulam
+  ulam 5;
+element T {
+  Bool m_b;
+  Int m_i;
+
+  Int operator~()
+  {
+    return m_i;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

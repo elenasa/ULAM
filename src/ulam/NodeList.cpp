@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include "NodeList.h"
+#include "NodeVarDecl.h"
 #include "CompilerState.h"
 
 namespace MFM{
@@ -17,6 +18,7 @@ namespace MFM{
     for(u32 i = 0; i < numparams; i++)
       {
 	Node * anode = ref.getNodePtr(i);
+	assert(anode);
 	Node * clone = anode->instantiate();
 	addNodeToList(clone);
       }
@@ -125,6 +127,12 @@ namespace MFM{
       }
   } //printPostfix
 
+  void NodeList::printPostfix(File * fp, u32 n)
+  {
+    assert(m_nodes[n]);
+    m_nodes[n]->printPostfix(fp);
+  } //printPostfix
+
   void NodeList::print(File * fp)
   {
     fp->write("(");
@@ -144,6 +152,16 @@ namespace MFM{
   const char * NodeList::getName()
   {
     return "list";
+  }
+
+  u32 NodeList::getNameId(u32 n)
+  {
+    return m_nodes[n]->getNameId();
+  }
+
+  u32 NodeList::getTypeNameId(u32 n)
+  {
+    return m_nodes[n]->getTypeNameId();
   }
 
   const std::string NodeList::prettyNodeName()
@@ -305,6 +323,13 @@ namespace MFM{
     assert(n < m_nodes.size());
     assert(m_nodes[n]);
     return m_nodes[n]->isAConstant();
+  }
+
+  bool NodeList::isAConstantFunctionParameter(u32 n)
+  {
+    assert(n < m_nodes.size());
+    assert(m_nodes[n]);
+    return ((NodeVarDecl*) m_nodes[n])->isAConstantFunctionParameter();
   }
 
   bool NodeList::isFunctionCall(u32 n)

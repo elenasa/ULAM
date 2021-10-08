@@ -67,6 +67,8 @@ namespace MFM{
 
     virtual const char * getName();
 
+    virtual u32 getNameId();
+
     virtual const std::string prettyNodeName();
 
     virtual bool isAConstant();
@@ -102,6 +104,7 @@ namespace MFM{
 
     void genCodeForUserStringLength(File * fp, UVPass& uvpass);
     bool checkForClassType();
+    bool checkForClassIdOfType();
 
   };
 

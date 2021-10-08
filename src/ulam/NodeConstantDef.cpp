@@ -31,6 +31,16 @@ namespace MFM {
       m_nodeTypeDesc = (NodeTypeDescriptor *) ref.m_nodeTypeDesc->instantiate();
   }
 
+  //used for locals filescope temporary class for gencode
+  NodeConstantDef::NodeConstantDef(const NodeConstantDef& ref, bool keepType) : Node(ref), m_constSymbol(NULL), m_nodeExpr(NULL), m_nodeTypeDesc(NULL), m_cid(ref.m_cid), m_currBlockNo(ref.m_currBlockNo), m_currBlockPtr(NULL)
+  {
+    if(ref.m_nodeExpr)
+      m_nodeExpr = ref.m_nodeExpr->instantiate();
+
+    if(ref.m_nodeTypeDesc)
+      m_nodeTypeDesc = new NodeTypeDescriptor(*ref.m_nodeTypeDesc, true);
+  }
+
   NodeConstantDef::~NodeConstantDef()
   {
     delete m_nodeExpr;
@@ -64,6 +74,13 @@ namespace MFM {
       }
     return false;
   } //exhangeKids
+
+  NodeTypeDescriptor * NodeConstantDef::cloneTypeDescriptor()
+  {
+    //maps incomplete type, does not keep type
+    assert(m_nodeTypeDesc);
+    return (NodeTypeDescriptor *) m_nodeTypeDesc->instantiate();
+  }
 
   bool NodeConstantDef::findNodeNo(NNO n, Node *& foundNode)
   {
@@ -99,10 +116,12 @@ namespace MFM {
     else
       m_state.abortNotImplementedYet();
 
-    //see also SymbolConstantValue
-    fp->write(" constant");
+    bool isclassparam = m_constSymbol && m_constSymbol->isClassParameter(); //3352..
 
-    fp->write(" ");
+    //see also SymbolConstantValue
+    if(!isclassparam)
+      fp->write(" constant ");
+
     fp->write(m_state.getUlamTypeNameBriefByIndex(suti).c_str());
     fp->write(" ");
     fp->write(m_state.m_pool.getDataAsString(m_cid).c_str());
@@ -120,12 +139,19 @@ namespace MFM {
 	fp->write("[UNKNOWN]");
       }
 
-    if(m_nodeExpr)
+    if(!isclassparam && m_nodeExpr)
       {
 	fp->write(" =");
 	m_nodeExpr->printPostfix(fp);
       }
-    fp->write("; ");
+
+    if(!isclassparam)
+      fp->write("; ");
+    else if(hasConstantExpr())
+      {
+	fp->write(" = ");
+	m_constSymbol->printPostfixValue(fp); //t3525..
+      }
   } //printPostfix
 
   void NodeConstantDef::noteTypeAndName(UTI cuti, s32 totalsize, u32& accumsize)
@@ -140,9 +166,14 @@ namespace MFM {
 
   const char * NodeConstantDef::getName()
   {
-    if(m_constSymbol)
-      return m_state.m_pool.getDataAsString(m_constSymbol->getId()).c_str();
-    return "CONSTDEF?";
+    if(m_cid > 0)
+      return m_state.m_pool.getDataAsString(m_cid).c_str();
+    return "CONSTDEF?"; //t41536
+  }
+
+  u32 NodeConstantDef::getNameId()
+  {
+    return m_cid;
   }
 
   u32 NodeConstantDef::getTypeNameId()
@@ -160,12 +191,37 @@ namespace MFM {
     return m_state.m_pool.getIndexForDataString(m_state.getUlamTypeNameBriefByIndex(nuti));
   } //getTypeNameId
 
+  UTI NodeConstantDef::getTypeDescriptorGivenType()
+  {
+    assert(m_nodeTypeDesc);
+    return m_nodeTypeDesc->givenUTI();
+  }
+
+  ALT NodeConstantDef::getTypeDescriptorRefType()
+  {
+    assert(m_nodeTypeDesc);
+    return m_nodeTypeDesc->getReferenceType();
+  }
+
   const std::string NodeConstantDef::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-  bool NodeConstantDef::getSymbolPtr(Symbol *& symptrref)
+
+  bool NodeConstantDef::cloneSymbol(Symbol *& symptrref)
+  {
+    bool rtnb = hasASymbol(); //true;
+    if(rtnb)
+      {
+	SymbolConstantValue * sym = new SymbolConstantValue(* (SymbolConstantValue *) m_constSymbol);
+	rtnb = (sym != NULL);
+	symptrref = sym;
+      }
+    return rtnb;
+  }
+
+  bool NodeConstantDef::getSymbolPtr(const Symbol *& symptrref)
   {
     symptrref = m_constSymbol;
     return (m_constSymbol != NULL); //true;
@@ -191,9 +247,21 @@ namespace MFM {
     assert(m_currBlockNo);
   }
 
+  bool NodeConstantDef::hasASymbol()
+  {
+    return (m_constSymbol != NULL);
+  }
+
   u32 NodeConstantDef::getSymbolId()
   {
-    return m_cid;
+    assert(m_constSymbol);
+    return m_constSymbol->getId(); //t3498, t41162, t41536
+  }
+
+  bool NodeConstantDef::getSymbolValue(BV8K& bv)
+  {
+    assert(m_constSymbol);
+    return m_constSymbol->getValueReadyToPrint(bv);
   }
 
   bool NodeConstantDef::setSymbolValue(const BV8K& bv)
@@ -224,7 +292,7 @@ namespace MFM {
       return rtnb;
   } //setSymbolValue
 
-  bool NodeConstantDef::getNodeTypeDescriptorPtr(NodeTypeDescriptor *& nodetypedescref)
+  bool NodeConstantDef::getNodeTypeDescriptorPtr(const NodeTypeDescriptor *& nodetypedescref)
   {
     if(m_nodeTypeDesc)
       {
@@ -239,9 +307,6 @@ namespace MFM {
     if(m_nodeTypeDesc == NULL)
       {
 	m_nodeTypeDesc = nodetypedesc; //tfr ownership here
-	//if(m_constSymbol)
-	//  m_constSymbol->resetUlamType(m_nodeTypeDesc->givenUTI()); //or keep hazy
-	////  m_nodeTypeDesc->resetGivenUTI(m_constSymbol->getUlamTypeIdx()); //invariant?
 	return true;
       }
     return false;
@@ -356,12 +421,13 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	if(suti == Nav)
-	  msg << "Invalid Constant Def type ";
+	  msg << "Invalid ";
 	else
-	  msg << "Incomplete Constant Def for type";
+	  msg << "Incomplete ";
+	msg << prettyNodeName().c_str() << " for type";
 	if(m_state.okUTItoContinue(suti) && !m_state.isHolder(suti))
 	  msg << ": " << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
-	msg << " used with symbol name '" << getName() << "'";
+	msg << " used with symbol name '" << getName() << "'"; //t41536, t3370
 	//msg << " while compiling UTI" << cuti;
 	if(suti == Nav)
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
@@ -665,9 +731,10 @@ namespace MFM {
 	else if(m_state.isStillHazy(foldrtn))
 	  {
 	    std::ostringstream msg;
-	    msg << "Incomplete Constant Def for type: ";
-	    msg << m_state.getUlamTypeNameByIndex(suti).c_str();
-	    msg << ", used with symbol name '" << getName() << "', after folding";
+	    msg << "Incomplete " << prettyNodeName().c_str() << " for type";
+	    if(m_state.okUTItoContinue(suti) && !m_state.isHolder(suti))
+	      msg << ": " << m_state.getUlamTypeNameByIndex(suti).c_str();
+	    msg << " used with symbol name '" << getName() << "', after folding";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //t41204
 	    setNodeType(Hzy);
 	  }
@@ -724,7 +791,7 @@ namespace MFM {
 	if(!hazyKin)
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	else
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //was debug
       }
     m_state.popClassContext(); //restore
   } //checkForSymbols
@@ -1117,7 +1184,7 @@ namespace MFM {
     // for unseen classes that needed their args "fixed" to proper param name
     // this fixes the saved m_cid while clonePendingClassArgumentsForStubClassInstance
     // (the m_cid is used during full instantiation).
-    if((m_constSymbol->getId() != getSymbolId()))
+    if((m_constSymbol->getId() != getNameId()))
       {
 	m_cid = m_constSymbol->getId();
       }
@@ -1132,19 +1199,15 @@ namespace MFM {
     if(m_nodeTypeDesc == NULL)
       {
 	//clone the template's node type descriptor for this stub's pending argument
-	NodeTypeDescriptor * pnodetypedesc = NULL;
-	if(templateparamdef->getNodeTypeDescriptorPtr(pnodetypedesc))
-	  {
-	    NodeTypeDescriptor * copynodetypedesc = (NodeTypeDescriptor *) pnodetypedesc->instantiate(); //t41209?
-	    assert(copynodetypedesc);
-	    copynodetypedesc->setNodeLocation(getNodeLocation()); //same loc as this node
+	NodeTypeDescriptor * copynodetypedesc = templateparamdef->cloneTypeDescriptor(); //t41209
+	assert(copynodetypedesc);
+	copynodetypedesc->setNodeLocation(getNodeLocation()); //same loc as this node
 
-	    AssertBool isset = setNodeTypeDescriptor(copynodetypedesc); //resets givenuti too.
-	    assert(isset);
+	AssertBool isset = setNodeTypeDescriptor(copynodetypedesc); //resets givenuti too.
+	assert(isset);
 
-	    assert(m_constSymbol && ((m_constSymbol->getUlamTypeIdx() == Hzy) || (m_constSymbol->getUlamTypeIdx() == m_nodeTypeDesc->givenUTI()))); //invariant? (likely null symbol, see checkForSymbol) t41361, t3326
-	    aok = true;
-	  }
+	assert(m_constSymbol && ((m_constSymbol->getUlamTypeIdx() == Hzy) || (m_constSymbol->getUlamTypeIdx() == m_nodeTypeDesc->givenUTI()))); //invariant? (likely null symbol, see checkForSymbol) t41361, t3326
+	aok = true;
       }
     return aok;
   } //cloneTypeDescriptorForPendingArgumentNode
@@ -1366,11 +1429,11 @@ namespace MFM {
 
 	if(classtype == UC_QUARK) //(t41262)
 	  {
-	    assert(itemlen <= MAXBITSPERINT);
-	    u32 dval = 0;
+	    assert(itemlen <= MAXBITSPERQUARK);
+	    u64 dval = 0;
 	    AssertBool gotDefault = m_state.getDefaultQuark(nuti, dval); //uses scalar uti
 	    //assert(gotDefault); //too dramatic for eval
-	    defaultUV = UlamValue::makeImmediateClass(scalaruti, (u32) dval, itemlen);
+	    defaultUV = UlamValue::makeImmediateLongClass(scalaruti, (u32) dval, itemlen);
 	  }
 	else if(classtype == UC_ELEMENT)
 	  defaultUV = UlamValue::makeDefaultAtom(scalaruti, m_state);
@@ -1621,7 +1684,6 @@ namespace MFM {
   {
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    //ULAMCLASSTYPE classtype = nut->getUlamClassType();
     ULAMTYPE etyp = nut->getUlamTypeEnum();
 
     if(nut->isScalar() && !((etyp == Class) || (etyp == UAtom)))//t41483
@@ -1751,14 +1813,23 @@ namespace MFM {
 
   void NodeConstantDef::cloneAndAppendNode(std::vector<Node *> & cloneVec)
   {
-    //include scalars for generated comments; arrays for constructor initialization
-    NodeConstantDef * cloneofme = (NodeConstantDef *) this->instantiate();
-    assert(cloneofme);
-    SymbolConstantValue * csymptr = NULL;
-    AssertBool isSym = this->getSymbolPtr((Symbol *&) csymptr);
-    assert(isSym);
-    ((NodeConstantDef *) cloneofme)->setSymbolPtr(csymptr); //another ptr to same symbol
-    cloneVec.push_back(cloneofme);
+    if(m_constSymbol == NULL)
+      {
+	std::ostringstream msg;
+	msg << "Incomplete " << prettyNodeName().c_str() << " for type";
+	msg << " used with constant name '" << getName() << "'";
+	msg << " in locals filescope";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //t41536
+      }
+    else
+      {
+	//include scalars for generated comments; arrays for constructor initialization
+	NodeConstantDef * cloneofme = new NodeConstantDef(*this, true); //(NodeConstantDef *) this->instantiate(); t41536
+	assert(cloneofme);
+
+	((NodeConstantDef *) cloneofme)->setSymbolPtr(m_constSymbol); //another ptr to same symbol
+	cloneVec.push_back(cloneofme);
+      }
   }
 
   void NodeConstantDef::generateTestInstance(File * fp, bool runtest)

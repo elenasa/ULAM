@@ -11,14 +11,15 @@
 
 namespace MFM {
 
-  NodeFunctionCall::NodeFunctionCall(const Token& tok, SymbolFunction * fsym, CompilerState & state) : Node(state), m_functionNameTok(tok), m_funcSymbol(fsym), m_argumentNodes(NULL), m_tmpvarSymbol(NULL)
+  NodeFunctionCall::NodeFunctionCall(const Token& tok, SymbolFunction * fsym, CompilerState & state) : Node(state), m_functionNameTok(tok), m_funcSymbol(fsym), m_argumentNodes(NULL), m_tmpvarSymbol(NULL), m_useEffSelfForEval(false)
   {
     m_argumentNodes = new NodeList(state);
     assert(m_argumentNodes);
     m_argumentNodes->setNodeLocation(tok.m_locator); //same as func call
   }
 
-  NodeFunctionCall::NodeFunctionCall(const NodeFunctionCall& ref) : Node(ref), m_functionNameTok(ref.m_functionNameTok), m_funcSymbol(NULL), m_argumentNodes(NULL), m_tmpvarSymbol(NULL){
+  NodeFunctionCall::NodeFunctionCall(const NodeFunctionCall& ref) : Node(ref), m_functionNameTok(ref.m_functionNameTok), m_funcSymbol(NULL), m_argumentNodes(NULL), m_tmpvarSymbol(NULL), m_useEffSelfForEval(ref.m_useEffSelfForEval)
+  {
     m_argumentNodes = (NodeList *) ref.m_argumentNodes->instantiate();
   }
 
@@ -210,7 +211,7 @@ namespace MFM {
 		    UTI auti = argNodes[i]->getNodeType();
 		    msg << m_state.getUlamTypeNameBriefByIndex(auti).c_str() << ", ";
 		  }
-		msg << "explicit casting is required"; //ulamexports:DebugUtils
+		msg << "explicit casting is required"; //ulamexports:DebugUtils, t3479,t41132
 	      }
 	    else
 	      {
@@ -219,6 +220,8 @@ namespace MFM {
 	    if(hasHazyArgs)
 	      {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+		if(!m_state.m_err.isWaitModeWaiting())
+		  m_state.noteAmbiguousFunctionSignaturesInAClassHierarchy(cuti, funcid, argNodes, numFuncs);	//20210804 Dave request!
 		numHazyFound++;
 	      }
 	    else
@@ -238,9 +241,8 @@ namespace MFM {
 	    u32 numParams = funcSymbol->getNumberOfParameters();
 	    for(u32 i = 0; i < numParams; i++)
 	      {
-		Symbol * psym = funcSymbol->getParameterSymbolPtr(i);
-		assert(psym && psym->isFunctionParameter()); //sanity
-		if(m_state.isAltRefType(psym->getUlamTypeIdx()))
+		UTI puti = funcSymbol->getParameterType(i);
+		if(m_state.isAltRefType(puti))
 		  {
 		    TBOOL argreferable = argNodes[i]->getReferenceAble();
 		    if(argreferable != TBOOL_TRUE)
@@ -254,7 +256,7 @@ namespace MFM {
 			    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 			    numHazyFound++;
 			  }
-			else if(!((SymbolVariableStack *) psym)->isConstantFunctionParameter())
+			else if(!funcSymbol->isConstantParameter(i))
 			  {
 			    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 			    numErrorsFound++; //t41189
@@ -292,6 +294,7 @@ namespace MFM {
 	      {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 		numHazyFound++;
+		listuti = Nouti; //t41543
 	      }
 	    else
 	      {
@@ -372,8 +375,7 @@ namespace MFM {
 	  u32 numParams = m_funcSymbol->getNumberOfParameters();
 	  for(u32 i = 0; i < numParams; i++)
 	    {
-	      Symbol * psym = m_funcSymbol->getParameterSymbolPtr(i);
-	      UTI ptype = psym->getUlamTypeIdx();
+	      UTI ptype = m_funcSymbol->getParameterType(i);
 	      Node * argNode = m_argumentNodes->getNodePtr(i);
 	      UTI atype = argNode->getNodeType();
 	      if(UlamType::compareForArgumentMatching(ptype, atype, m_state) == UTIC_NOTSAME) //o.w. known same
@@ -483,6 +485,21 @@ namespace MFM {
 
 	if(!isref)
 	  setReferenceAble(TBOOL_FALSE); //set after storeintoable t3661,2; t3630
+
+	if(isAVirtualFunctionCall() && thisparentnode->isAMemberSelect())
+	  {
+	    NodeMemberSelect * parent = (NodeMemberSelect *) thisparentnode;
+	    if(parent->isAMemberSelectByRegNum())
+	      m_useEffSelfForEval = false;
+	    else if(parent->hasASymbolSuper())
+	      m_useEffSelfForEval = false; //t3743, t41161, t41338, t41397
+	    else
+	      if(!parent->hasAStorageSymbol()) //e.g. a specific baseclass type
+	      m_useEffSelfForEval = false; //t41311
+	    else if(parent->hasASymbolReference()) //after super
+	      m_useEffSelfForEval = true;
+	    //else m_useEffSelfForEval = false;
+	  }
       }
     return it;
   } //checkAndLabelType
@@ -570,11 +587,10 @@ namespace MFM {
 
     if(parentnode->isAMemberSelect())
       {
-	Symbol * rhsym = NULL;
-	if(!parentnode->getSymbolPtr(rhsym))
-	  futi = Hzy;
+	s32 nodeorder = ((NodeMemberSelect *) parentnode)->findNodeKidOrder(this);
+	assert(nodeorder >= 0);
 
-	implicitself = (rhsym != m_funcSymbol);
+	implicitself = (nodeorder == 0); //as lhs, self implied
       }
     //else
 
@@ -633,6 +649,12 @@ namespace MFM {
   {
     assert(m_funcSymbol);
     return m_funcSymbol->isConstructorFunction();
+  }
+
+  bool NodeFunctionCall::isAVirtualFunctionCall()
+  {
+    assert(m_funcSymbol);
+    return m_funcSymbol->isVirtualFunction();
   }
 
   // since functions are defined at the class-level; a function call
@@ -969,10 +991,21 @@ namespace MFM {
     m_funcSymbol = NULL;
   }
 
-  bool NodeFunctionCall::getSymbolPtr(Symbol *& symptrref)
+  bool NodeFunctionCall::getSymbolPtr(const Symbol *& symptrref)
   {
     symptrref = m_funcSymbol;
     return true;
+  }
+
+  bool NodeFunctionCall::hasASymbol()
+  {
+    return (m_funcSymbol != NULL);
+  }
+
+  u32 NodeFunctionCall::getSymbolId()
+  {
+    assert(m_funcSymbol);
+    return m_funcSymbol->getId();
   }
 
   bool NodeFunctionCall::getVirtualFunctionForEval(UlamValue & atomPtr, NodeBlockFunctionDefinition *& rtnfunc)
@@ -1019,6 +1052,14 @@ namespace MFM {
       } //else can't be an autolocal
 
     UTI cuti = atomPtr.getPtrTargetType(); //must be a class
+    UTI atomeffself = atomPtr.getPtrTargetEffSelfType();
+    if(m_useEffSelfForEval && (atomeffself != Nouti) && (atomeffself != cuti))
+      {
+	//useEffSelfForEval flag set during c&l to distinguish btn specified base/super,
+	// and ALT-AS/refs during eval for virtual functions lookup
+	cuti = atomeffself; //t41541,t3743
+      }
+
     SymbolClass * vcsym = NULL;
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cuti, vcsym);
     assert(isDefined);
@@ -1066,6 +1107,7 @@ namespace MFM {
 	      msg << "ambiguous";
 	    else
 	      msg << "not found";
+	    msg << " in class " << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
 
@@ -1074,6 +1116,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Function '" << funcSymbol->getMangledNameWithTypes().c_str();
 	    msg << "' is not virtual";
+	    msg << " in class " << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    rtnok = false;
 	  }
@@ -1082,6 +1125,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "(1) Virtual function '" << funcSymbol->getMangledNameWithTypes().c_str();
 	    msg << "' is pure; cannot be called for eval";
+	    msg << " in class " << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    rtnok = false;
 	  }
@@ -1099,6 +1143,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "(2) Virtual function '" << m_funcSymbol->getMangledNameWithTypes().c_str();
 	    msg << "' is pure; cannot be called for eval";
+	    msg << " in class " << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    rtnok = false; //t41094, t41158, t41160, t41313
 	  }
@@ -1135,14 +1180,16 @@ namespace MFM {
     if(nuti != Void)
       {
 	UTI vuti = uvpass.getPassTargetType();
+	UlamType * vut = m_state.getUlamTypeByIndex(vuti);
 	// skip reading classes and atoms
-	if(m_state.getUlamTypeByIndex(vuti)->isPrimitiveType())
+	if(vut->isPrimitiveType() && (vut->getTotalBitSize() <= MAXBITSPERLONG))
 	  {
 	    //e.g. t3653, t3946, t41001,7,34,71,73, t41333,6, t41351,3, t41358,9
 	    Node::genCodeConvertABitVectorIntoATmpVar(fp, uvpass); //inc uvpass slot
 	  }
-	//else class or atom stays as a tmpbitval (e.g. t41143)
+	//else class or atom stays as a tmpbitval (e.g. t41143), tmptbv primitives/arrays
       }
+
   } //genCode
 
   // during genCode of a single function body "self" doesn't change!!!
@@ -1479,6 +1526,8 @@ namespace MFM {
 	  msg << "' is pure; cannot be called directly in baseclass: ";
 	  msg << m_state.getUlamTypeNameBriefByIndex(decosuti).c_str();
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+
+	  csym->notePureFunctionSignature(vt);
 	}
       else if(knownatcompiletime)
 	{
@@ -1730,17 +1779,21 @@ namespace MFM {
     // too limiting (ulam-5) to limit to 'super' special case:
     //   t3606, t3608, t3774, t3779, t3788, t3794, t3795, t3967, t41131
     // once cos is a ref, all bets off! unclear effSelf, e.g. cos is 'self'
-    if(!m_state.isAltRefType(cosuti) && (m_state.getUlamTypeAsDeref(cosuti) != cvfuti)) //multiple bases possible (ulam-5); issue +(t41361)
+    if(!m_state.isReference(cosuti) && (m_state.getUlamTypeAsDeref(cosuti) != cvfuti)) //multiple bases possible (ulam-5); issue +t41361; not isAltRefType ish 20210815 +t41541
       {
 	SymbolClass * cvfsym = NULL;
 	AssertBool iscvfDefined = m_state.alreadyDefinedSymbolClass(cvfuti, cvfsym);
 	assert(iscvfDefined);
-	if(cvfsym->isPureVTableEntry(vfidx))
+	u32 cvfoffset = cvfsym->getVTstartoffsetOfRelatedOriginatingClass(vownuti);
+	assert(cvfoffset < UNRELIABLEPOS); //20210814-131235 ish, forgot cvfoffset.
+	if(cvfsym->isPureVTableEntry(vfidx + cvfoffset))
 	  {
 	    std::ostringstream msg;
 	    msg << "Virtual function '" << m_funcSymbol->getMangledNameWithTypes().c_str();
-	    msg << "' is pure; cannot be called";
+	    msg << "' is pure; cannot be called.";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+
+	    cvfsym->notePureFunctionSignature(vfidx + cvfoffset);
 	  }
       }
 

@@ -339,11 +339,14 @@ namespace MFM {
 	ctype = "u64";
 	break;
       case 96:
-	ctype = "BV96";
-	break;
+	if(!isPrimitiveType())
+	  {
+	    ctype = "BV96"; //atom, element, maybe 1 transient, or quark array
+	    break;
+	  } //else fall thru
       default:
 	{
-	  assert(!isScalar());
+	  //assert(!isScalar()); t41562
 	  //ctype = getTmpStorageTypeAsString(getItemWordSize()); //u32, u64 (inf loop)
 	  std::ostringstream cstr;
 	  if(sizebyints == (s32) getItemWordSize())
@@ -838,7 +841,10 @@ namespace MFM {
 	method = "ReadLong";
 	break;
       case 96:
-	method = "ReadBig";
+	if(isPrimitiveType())
+	  method = "ReadBV";
+	else
+	  method = "ReadBig";
 	break;
       default:
 	method = "ReadBV"; //template arg deduced by gcc
@@ -860,7 +866,10 @@ namespace MFM {
 	method = "WriteLong";
 	break;
       case 96:
-	method = "WriteBig";
+	if(isPrimitiveType())
+	  method = "WriteBV";
+	else
+	  method = "WriteBig";
 	break;
       default:
 	method = "WriteBV"; //template arg deduced by gcc
@@ -882,7 +891,10 @@ namespace MFM {
 	method = "ReadLong"; //ReadArrayLong
 	break;
       case 96:
-	method = "ReadBig";
+	if(isPrimitiveType())
+	  method = "ReadBV";
+	else
+	  method = "ReadBig";
 	break;
       default:
 	method = "ReadBV"; //template arg deduced by gcc
@@ -904,7 +916,10 @@ namespace MFM {
 	method = "WriteLong"; //WriteArrayLong
 	break;
       case 96:
-	method = "WriteBig";
+	if(isPrimitiveType())
+	  method = "WriteBV";
+	else
+	  method = "WriteBig";
 	break;
       default:
 	method = "WriteBV"; //template arg deduced by gcc

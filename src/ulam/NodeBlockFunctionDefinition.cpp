@@ -102,42 +102,19 @@ namespace MFM {
   void NodeBlockFunctionDefinition::printPostfix(File * fp)
   {
     fp->write(" ");
-    fp->write(m_state.getUlamTypeNameBriefByIndex(m_funcSymbol->getUlamTypeIdx()).c_str()); //short type name
+    fp->write(m_state.getUlamTypeNameBriefByIndex(getNodeType()).c_str()); //short type name
     fp->write(" ");
     fp->write(getName());
     // has no m_node!
     // declaration has no m_nodeNext!!
     fp->write("(");
-    u32 numparams = m_funcSymbol->getNumberOfParameters();
+    u32 numparams = getNumberOfParameters();
 
     for(u32 i = 0; i < numparams; i++)
       {
 	if(i > 0)
 	  fp->write(", ");
-
-	Symbol * asym = m_funcSymbol->getParameterSymbolPtr(i);
-	assert(asym);
-	fp->write(m_state.getUlamTypeNameBriefByIndex(asym->getUlamTypeIdx()).c_str()); //short type name
-	fp->write(" ");
-	fp->write(m_state.m_pool.getDataAsString(asym->getId()).c_str());
-
-	s32 arraysize = 0;
-	if(asym->isDataMember() && !asym->isFunction())
-	  {
-	    arraysize = m_state.getArraySize( ((SymbolVariable *) asym)->getUlamTypeIdx());
-	  }
-
-	if(arraysize > NONARRAYSIZE)
-	  {
-	    fp->write("[");
-	    fp->write_decimal(arraysize);
-	    fp->write("]");
-	  }
-	else if(arraysize == UNKNOWNSIZE)
-	  {
-	    fp->write("[UNKNOWN]");
-	  }
-
+	m_nodeParameterList->printPostfix(fp, i);
       }
     fp->write(")");
 
@@ -151,9 +128,26 @@ namespace MFM {
       fp->write(";");
   } //printPostfix
 
+
+  u32 NodeBlockFunctionDefinition::getParameterNameId(u32 n)
+  {
+    return m_nodeParameterList->getNameId(n);
+  }
+
+  u32 NodeBlockFunctionDefinition::getParameterTypeNameId(u32 n)
+  {
+    return m_nodeParameterList->getTypeNameId(n);
+  }
+
   const char * NodeBlockFunctionDefinition::getName()
   {
-    return m_state.m_pool.getDataAsString(m_funcSymbol->getId()).c_str();
+    return m_state.m_pool.getDataAsString(getNameId()).c_str();
+  }
+
+  u32 NodeBlockFunctionDefinition::getNameId()
+  {
+    assert(m_funcSymbol);
+    return m_funcSymbol->getFunctionNameId();
   }
 
   u32 NodeBlockFunctionDefinition::getTypeNameId()
@@ -302,10 +296,18 @@ namespace MFM {
   {
     NodeVarDecl * parmdef = (NodeVarDecl *) getParameterNode(pidx);
     assert(parmdef);
-    NodeTypeDescriptor * typedesc = NULL;
-    AssertBool gottype = parmdef->getNodeTypeDescriptorPtr(typedesc);
-    assert(gottype);
-    return typedesc->givenUTI();
+    UTI puti = parmdef->getTypeDescriptorGivenType();
+    return puti;
+  }
+
+  u32 NodeBlockFunctionDefinition::getNumberOfParameters()
+  {
+    return m_nodeParameterList->getNumberOfNodes();
+  }
+
+  bool NodeBlockFunctionDefinition::isAConstantParameter(u32 pidx)
+  {
+    return m_nodeParameterList->isAConstantFunctionParameter(pidx);
   }
 
   void NodeBlockFunctionDefinition::makeSuperSymbol(s32 slot)

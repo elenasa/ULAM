@@ -327,7 +327,7 @@ namespace MFM {
 	      else if(twordsize <= MAXBITSPERLONG)
 		{
 		  s64 sval = _Int64ToCs64(val, tbs);
-		  fp->write_decimal_long(sval);
+		  fp->write_hexadecimallong(sval); //t3849,50,51
 		}
 	      else
 		m_state.abortGreaterThanMaxBitsPerLong();
@@ -350,7 +350,7 @@ namespace MFM {
 	      if( tbs <= MAXBITSPERINT)
 		fp->write_decimal_unsigned(val);
 	      else if( tbs <= MAXBITSPERLONG)
-		fp->write_decimal_unsignedlong(val);
+		fp->write_hexadecimallong(val);
 	      else
 		m_state.abortGreaterThanMaxBitsPerLong(); //TBD > 64
 	      fp->write("u");

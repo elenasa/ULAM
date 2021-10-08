@@ -71,6 +71,10 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
+    virtual bool hasASymbol();
+
+    virtual u32 getSymbolId();
+
     virtual FORECAST safeToCastTo(UTI newType);
 
     virtual UTI checkAndLabelType(Node * thisparentnode);

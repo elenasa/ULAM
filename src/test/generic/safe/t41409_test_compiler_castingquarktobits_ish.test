@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t41409_test_compiler_castingquarktobits_ish
 #!
-Exit status: -11
+Exit status: 0
 Ue_Anchor10 : QSegment(1u) { :QSegment(1u)< constant Unsigned cMSG_BITS = 1u;  typedef QIMsg(1u) QC_QIMsg;  QIMsg(1u) mMessageBuffer( typedef Bits(1) Payload;  Bits(1) mPayload(0);  constant Unsigned bits = 1u;  typedef Unary(2) Direction;  constant Unary(2) cEMPTY = 0u;  constant Unary(2) cUP = 1u;  constant Unary(2) cDOWN = 3u;  Unary(2) mDirection(0u); );  :QSeg< typedef Unsigned(5) SegPtr;  typedef Unsigned(2) Type; >> ^QSeg< typedef Unsigned(5) SegPtr;  typedef Unsigned(2) Type; > Int test() {  typedef Bits(1) MPayload;  SegPkt10 pkt;  self mMessageBuffer . mPayload . pkt cast = 0 cast return } }
 Uq_SegPkt10 { Bool mUpbound(false);  <NOMAIN> }
 Uq_QSegment(Unsigned cMSG_BITS) : QSeg { typedef QIMsg(bits) QC_QIMsg;  QIMsg(bits) mMessageBuffer(notready);  :QSeg< typedef Unsigned(5) SegPtr;  typedef Unsigned(2) Type; > <NOMAIN> }

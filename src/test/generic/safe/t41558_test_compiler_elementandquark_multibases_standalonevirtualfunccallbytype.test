@@ -1,0 +1,71 @@
+## -*- mode:ulam -*-
+#=t41558_test_compiler_elementandquark_multibases_standalonevirtualfunccallbytype
+##  gen output (+ assert)
+##     Bool(3) Arg: 0x7 (true)
+#!
+Exit status: 0
+Ue_Foo { Int test() {  System s;  QBase3 vfuncb = vfuncb ( 3 cast )Self .;  s ( vfuncb m_b3 . cast )print . s ( vfuncb m_b3 . )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+Ue_E4 : QBase3 +QBase1 { :QBase3< Bool m_b3(false); > +QBase1< Bool m_b1(false); > <NOMAIN> }
+Uq_QBase3 { Bool m_b3(false);  <NOMAIN> }
+Uq_QBase1 { Bool m_b1(false);  <NOMAIN> }
+##
+##   see also t41556,7; here without calling virtual function on variable with same name;
+##   and t41560 without arguments
+##
+#>Foo.ulam
+  ulam 4;
+element Foo {
+
+  Int test()
+  {
+    System s;
+
+    E4.QBase3 vfuncb(3); //constr call, makes local var 'vfuncb' of type QBase3
+    s.print(vfuncb.m_b3);
+    s.assert(vfuncb.m_b3);
+
+    return 0;
+  }
+}
+
+
+#:E4.ulam
+  ulam 5;
+element E4 : QBase3 +QBase1 {
+  virtual Int vfuncc() { return 412; }
+  virtual Int vfunca() { return 410; }
+  virtual Void behave() { }
+}
+
+#:QBase1.ulam
+    ulam 4;
+quark QBase1 {
+  Bool m_b1;
+  Void funcNotVirtualSoIrrelevantHere() { }
+  virtual Int vfuncb(Int b) { return 111; }   //ambiguous
+  virtual Int vfunca() { return 110; }
+}
+
+
+#:QBase3.ulam
+  ulam 4;
+quark QBase3 {
+  Bool m_b3;
+  virtual Int vfuncb(Int b) { return 311; }
+  Self(Int b)
+  { m_b3 = (b > 2); }
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

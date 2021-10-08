@@ -464,7 +464,11 @@ namespace MFM {
     m_state.indentUlamCode(fp);
     fp->write("return ");
     fp->write("(");
-    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
+
+    if(!m_state.isAtom(uvpass.getPassTargetType()) && uvpass.getPassNameId()==m_state.m_pool.getIndexForDataString("self"))
+      fp->write(m_state.getHiddenArgName()); //t41548,t3558
+    else
+      fp->write(uvpass.getTmpVarAsString(m_state).c_str());
 
     fp->write(");"); GCNL;
   } //genCodeToStoreInto

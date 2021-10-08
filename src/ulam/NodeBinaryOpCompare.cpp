@@ -68,8 +68,9 @@ namespace MFM {
     return newType;
   } //checkAndLabelType
 
-  Node * NodeBinaryOpCompare::buildOperatorOverloadFuncCallNode()
+  Node * NodeBinaryOpCompare::buildOperatorOverloadFuncCallNode(bool& hazyArg)
   {
+    hazyArg = false;
     Token identTok;
     TokenType opTokType = Token::getTokenTypeFromString(getName());
     assert(opTokType != TOK_LAST_ONE);
@@ -89,11 +90,9 @@ namespace MFM {
 
     //may need to negate the opposite comparison, if this one isn't defined (t41109)
     UTI luti = m_nodeLeft->getNodeType();
-
     Symbol * fnsymptr = NULL;
-    bool hazyKin = false; //unused
     bool useInverseOp = false;
-    if(!m_state.isFuncIdInAClassScopeOrAncestor(luti, opolId, fnsymptr, hazyKin))
+    if(!m_state.isFuncIdInAClassScopeOrAncestor(luti, opolId, fnsymptr, hazyArg))
       {
 	//try inverse!
 	const char * invopname = getInverseOpName();
@@ -104,16 +103,18 @@ namespace MFM {
 	opTok.init(opTokType, getNodeLocation(), 0);
 	opolId = Token::getOperatorOverloadFullNameId(opTok, &m_state);
 	assert(opolId != 0);
-	hazyKin = false;
 
-	if(!m_state.isFuncIdInAClassScopeOrAncestor(luti, opolId, fnsymptr, hazyKin))
+	if(!m_state.isFuncIdInAClassScopeOrAncestor(luti, opolId, fnsymptr, hazyArg))
 	  {
 	    std::ostringstream msg;
 	    msg << "Overload for operator '" << getName();
 	    msg << "' and its inverse '" << invopname;
 	    msg << "' are not supported as operand for class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    if(hazyArg)
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	    else
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    return NULL;
 	  }
 	else //continue with a bang
@@ -234,7 +235,13 @@ namespace MFM {
 	methodname << "NAV";
 	break;
       };
-    methodname << lut->getTotalWordSize();
+
+    u32 twsize = lut->getTotalWordSize();
+    if(twsize <= MAXBITSPERLONG)
+      methodname << twsize;
+    else
+      methodname << "BV";
+
     return methodname.str();
   } // methodNameForCodeGen
 
@@ -392,31 +399,43 @@ namespace MFM {
     m_nodeLeft->genCode(fp, luvpass); //updates m_currentObjSymbol
 
     UTI nuti = getNodeType();
-    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti); //bool
+
+    TMPSTORAGE lstor = luvpass.getPassStorage(); //t41563
+    bool varcomesfirst = (lstor == TMPTBV); //t41563
+
     s32 tmpVarNum = m_state.getNextTmpVarNumber();
 
     m_state.indentUlamCode(fp);
     fp->write("const ");
     fp->write(nut->getTmpStorageTypeAsString().c_str()); //e.g. u32, s32, u64..
     fp->write(" ");
-
     fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPREGISTER).c_str());
     fp->write(" = ");
 
-    fp->write(methodNameForCodeGen().c_str());
-    fp->write("(");
+    if(varcomesfirst)
+      {
+	fp->write(luvpass.getTmpVarAsString(m_state).c_str());
+	fp->write(".");
+	fp->write(methodNameForCodeGen().c_str());
+	fp->write("(");
+	fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
+	fp->write(");"); GCNL; //t41563
+      }
+    else
+      {
+	fp->write(methodNameForCodeGen().c_str());
+	fp->write("(");
 
-    UTI luti = luvpass.getPassTargetType(); //reset
-    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
-
-    fp->write(", ");
-    fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
-    fp->write(", ");
-
-    //compare needs size of left/right nodes (only difference!)
-    fp->write_decimal(m_state.getUlamTypeByIndex(luti)->getTotalBitSize());
-
-    fp->write(");"); GCNL;
+	UTI luti = luvpass.getPassTargetType(); //reset
+	fp->write(luvpass.getTmpVarAsString(m_state).c_str());
+	fp->write(", ");
+	fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
+	fp->write(", ");
+	//compare needs size of left/right nodes (only difference!)
+	fp->write_decimal(m_state.getUlamTypeByIndex(luti)->getTotalBitSize());
+	fp->write(");"); GCNL;
+      }
 
     uvpass = UVPass::makePass(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, 0);  //P
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************

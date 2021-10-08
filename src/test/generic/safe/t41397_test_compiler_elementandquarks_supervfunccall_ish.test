@@ -2,9 +2,12 @@
 #=t41397_test_compiler_elementandquarks_supervfunccall_ish
 ##   gencode output (1 assert)
 #!
-./Computonium.ulam:6:8: ERROR: (2) Virtual function 'Uf_5phase10' is pure; cannot be called for eval.
-Exit status: -1
-Unrecoverable Program Test FAILURE.
+Exit status: 0
+Uq_ReversingThreads : SpatialThreads { :SpatialThreads< Bool sp(false); > ^Computonium<> <NOMAIN> }
+Uq_SpatialThreads : Computonium { Bool sp(false);  :Computonium<> <NOMAIN> }
+Uq_Computonium { <NOMAIN> }
+Uq_System { <NOMAIN> }
+Ue_Std12 : ReversingThreads { :ReversingThreads< :SpatialThreads< Bool sp(false);  :Computonium<>> ^Computonium<>> ^SpatialThreads< Bool sp(false);  :Computonium<>> ^Computonium<> Int test() {  self ( )behave . 0 cast return } }
 ##
 ## informed by Dave ish 4/25/2020, virtuals, pure, and super;
 ## revealed think-o in UlamRef search for non-dominating, most-specific class in call stack

@@ -51,6 +51,7 @@ namespace MFM{
 
     NodeConstantDef(SymbolWithValue * symptr, NodeTypeDescriptor * nodetype, CompilerState & state);
     NodeConstantDef(const NodeConstantDef& ref);
+    NodeConstantDef(const NodeConstantDef& ref, bool keepType);
 
     virtual ~NodeConstantDef();
 
@@ -59,6 +60,8 @@ namespace MFM{
     virtual void updateLineage(NNO pno);
 
     virtual bool exchangeKids(Node * oldnptr, Node * newnptr);
+
+    NodeTypeDescriptor * cloneTypeDescriptor();
 
     virtual bool findNodeNo(NNO n, Node *& foundNode);
 
@@ -74,17 +77,27 @@ namespace MFM{
 
     virtual const char * getName();
 
+    virtual u32 getNameId();
+
     virtual u32 getTypeNameId();
+
+    virtual UTI getTypeDescriptorGivenType();
+
+    virtual ALT getTypeDescriptorRefType();
 
     virtual const std::string prettyNodeName();
 
-    virtual bool getSymbolPtr(Symbol *& symptrref);
+    virtual bool getSymbolPtr(const Symbol *& symptrref);
+
+    virtual bool cloneSymbol(Symbol *& symptrref);
 
     virtual void setSymbolPtr(SymbolWithValue * cvsymptr);
 
+    virtual bool hasASymbol();
+
     virtual u32 getSymbolId();
 
-    virtual bool getNodeTypeDescriptorPtr(NodeTypeDescriptor *& nodetypedescref);
+    virtual bool getSymbolValue(BV8K& bv);
 
     bool setNodeTypeDescriptor(NodeTypeDescriptor * nodetypedesc);
 
@@ -156,16 +169,18 @@ namespace MFM{
 
     virtual void checkForSymbol();
 
+    virtual void clearSymbolPtr();
+
     virtual bool isDataMemberInit();
 
   private:
     NNO m_currBlockNo;
     NodeBlock * m_currBlockPtr;
 
-    virtual void clearSymbolPtr();
-
     void setBlock(NodeBlock * ptr);
     bool setSymbolValue(const BV8K& bv);
+
+    bool getNodeTypeDescriptorPtr(const NodeTypeDescriptor *& nodetypedescref);
 
     void setupStackWithPrimitiveForEval(u32 slots);
     void setupStackWithConstantClassForEval(u32 slots);

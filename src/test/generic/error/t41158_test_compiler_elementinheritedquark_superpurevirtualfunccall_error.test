@@ -3,6 +3,7 @@
 ##
 #!
 ./Sub1.ulam:3:43: ERROR: Virtual function 'Uf_5afunc11102321i' is pure; cannot be called directly in baseclass: Base.
+./Base.ulam:3:15: NOTE: Still pure in Base: Int afunc(Int a).
 Unrecoverable Program GenCode FAILURE.
 ##
 ## informed by t41094

@@ -144,7 +144,7 @@ namespace MFM {
     "*/\n\n";
 
   //use of this in the initialization list seems to be okay;
-  CompilerState::CompilerState(): m_linesForDebug(false), m_programDefST(*this), m_parsingLocalDef(false), m_parsingFUNCid(0), m_nextFunctionOrderNumber(1), m_parsingThisClass(Nouti), m_parsingVariableSymbolTypeFlag(STF_NEEDSATYPE), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_pendingArgStubContext(0), m_pendingArgTypeStubContext(0), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0), m_urSelfUTI(Nouti), m_emptyElementUTI(Nouti)
+  CompilerState::CompilerState(): m_linesForDebug(false), m_programDefST(*this), m_parsingLocalDef(false), m_parsingFUNCid(0), m_nextFunctionOrderNumber(1), m_parsingThisClass(Nouti), m_parsingVariableSymbolTypeFlag(STF_NEEDSATYPE), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_pendingArgStubContext(0), m_pendingArgTypeStubContext(0), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0), m_urSelfUTI(Nouti), m_emptyElementUTI(Nouti), m_classIdBits(CLASSIDBITS)
   {
     m_classIdRegistryUTI.push_back(0); //initialize 0 for UrSelf
     m_err.init(this, debugOn, infoOn, noteOn, warnOn, waitOn, NULL);
@@ -539,6 +539,8 @@ namespace MFM {
     if(isaclass)
       {
 	makeAnonymousClassFromHolder(huti, tok.m_locator); //default is not a class
+	if(!isUnseenClassId(tokid)) //for ulamexports, ish 20210825
+	  addUnseenClassId(tokid);
       }
     return huti;
   } //makeCulamGeneratedTypedefSymbolInCurrentContext
@@ -575,6 +577,7 @@ namespace MFM {
       {
 	//no key, make new type, how to know baseUT? bitsize?
 	uti = makeUlamType(key, bUT, classtype); //returns uti
+	findRootUTIAlias(uti,uti); //?
       }
     else
       {
@@ -827,7 +830,7 @@ namespace MFM {
 	{
 	  std::ostringstream msg;
 	  msg << "Undefined ULAMTYPE base type <" << utype << ">" ;
-	  MSG2("",msg.str().c_str(),DEBUG);
+	  MSG2("",msg.str().c_str(), DEBUG);
 	  abortUndefinedUlamType();
 	}
       };
@@ -1124,6 +1127,15 @@ namespace MFM {
 	    return asref; //hzy
 	  }
 
+	bool isClassArrayType = !sut->isScalar(); //t41555
+	if(isClassArrayType)
+	  {
+	    UTI ascalar = mapIncompleteUTIForCurrentClassInstance(getUlamTypeAsScalar(suti), loc);
+	    if(okUTItoContinue(ascalar) && !isHolder(ascalar))
+	      return getUlamTypeAsArrayOfScalar(ascalar);
+	    return ascalar; //hzy?
+	  }
+
 	//t3859, t3328, t3873
 	bool classnamesame = (cnsymOfIncomplete->getId() == cnsym->getId());
 	if(classnamesame)
@@ -1154,13 +1166,14 @@ namespace MFM {
 	if(isastubcopy)
 	  {
 	    suti = stubcopyof; //continue as if the original..
-	    sut = getUlamTypeByIndex(suti);
 	    if(cnsym->hasInstanceMappedUTI(cuti, suti, mappedUTI))
 	      {
-		UTI muti = mappedUTI;
-		findRootUTIAlias(muti, mappedUTI); //?
-		return mappedUTI;  //20210726-2 ish
+		UTI muti = mappedUTI; //stubcopyof already used in this class, ok to reuse
+		findRootUTIAlias(muti, mappedUTI);
+		return mappedUTI;  //20210726-2 ish; err/t41448
+		//suti = mappedUTI; SCNT:450 assert failed '!twasastubcopy'
 	      }
+	    sut = getUlamTypeByIndex(suti);
 	  }
 
 	//o.w. make a stub copy...
@@ -1244,7 +1257,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Undefined UTI <" << typidx << "> Max is: "
 	    << m_indexToUlamKey.size() << ", returning Nav INSTEAD";
-	MSG2("", msg.str().c_str(),DEBUG);
+	MSG2("", msg.str().c_str(), DEBUG);
 	typidx = 0;
 	abortShouldntGetHere();
       }
@@ -1691,7 +1704,7 @@ namespace MFM {
     return ctype; // use its own type
   }
 
-  bool CompilerState::getDefaultQuark(UTI cuti, u32& dqref)
+  bool CompilerState::getDefaultQuark(UTI cuti, u64& dqref)
   {
     if(!okUTItoContinue(cuti)) return false; //short-circuit
 
@@ -2061,7 +2074,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Trying to exceed allotted bit size (" << MAXSTATEBITS << ") for element ";
 	    msg << ut->getUlamTypeClassNameBrief(utiArg).c_str() << " with " << total << " bits";
-	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
+	    MSG2(getFullLocationAsString(getCompileThisLoc()).c_str(), msg.str().c_str(), ERR);
 
 	    noteClassDataMembersTypeAndName(utiArg, total); //t3155
 	    return false;
@@ -2075,7 +2088,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Trying to exceed allotted bit size (" << MAXBITSPERQUARK << ") for quark ";
 	    msg << ut->getUlamTypeClassNameBrief(utiArg).c_str() << " with " << total << " bits";
-	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
+	    MSG2(getFullLocationAsString(getCompileThisLoc()).c_str(), msg.str().c_str(), ERR);
 
 	    noteClassDataMembersTypeAndName(utiArg, total); //t41013
 	    return false;
@@ -2089,7 +2102,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Trying to exceed allotted bit size (" << MAXBITSPERTRANSIENT << ") for transient ";
 	    msg << ut->getUlamTypeClassNameBrief(utiArg).c_str() << " with " << total << " bits";
-	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
+	    MSG2(getFullLocationAsString(getCompileThisLoc()).c_str(), msg.str().c_str(), ERR);
 
 	    noteClassDataMembersTypeAndName(utiArg, total);
 	    return false;
@@ -2161,7 +2174,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Trying to exceed allotted bit size (" << MAXBITSPERQUARK << ") for a base quark ";
 	    msg << ut->getUlamTypeClassNameBrief(utiArg).c_str() << " with " << basebitsize << " bits";
-	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
+	    MSG2(getFullLocationAsString(getCompileThisLoc()).c_str(), msg.str().c_str(), ERR);
 	    return false;
 	  }
       }
@@ -2173,7 +2186,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Trying to exceed allotted bit size (" << MAXBITSPERTRANSIENT << ") for a base transient ";
 	    msg << ut->getUlamTypeClassNameBrief(utiArg).c_str() << " with " << basebitsize << " bits";
-	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
+	    MSG2(getFullLocationAsString(getCompileThisLoc()).c_str(), msg.str().c_str(), ERR);
 	    return false;
 	  }
       }
@@ -2274,7 +2287,8 @@ namespace MFM {
     bool foundroot = false;
     u32 cntr = 0;
     UTI finduti = auti;
-    while(!foundroot && (cntr++ < 5))
+    const u32 MAXCHAIN = 7;
+    while(!foundroot && (cntr++ < MAXCHAIN))
       {
 	UTI xuti = finduti;
 	finduti = m_unionRootUTI[xuti];
@@ -2287,7 +2301,7 @@ namespace MFM {
 	UlamKeyTypeSignature key = getUlamTypeByIndex(finduti)->getUlamKeyTypeSignature();
 	assert(finduti == key.getUlamKeyTypeSignatureClassInstanceIdx()); //invarient
       }
-    assert(cntr <= 5); //5 big enough?
+    assert(cntr <= MAXCHAIN); //big enough?
     if(auti != finduti)
       {
 	aliasuti = finduti; //no change o.w.
@@ -2390,7 +2404,7 @@ namespace MFM {
 	    // disallow an array of Void(0)'s (t3389)
 	    std::ostringstream msg;
 	    msg << "Invalid Void type array: " << ut->getUlamTypeName().c_str();
-	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
+	    MSG2(getFullLocationAsString(getCompileThisLoc()).c_str(), msg.str().c_str(), ERR);
 	    return false;
 	  }
       }
@@ -2398,7 +2412,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Invalid nonzero bitsize (" << bitsize << ") for Void type";
-	MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
+	MSG2(getFullLocationAsString(getCompileThisLoc()).c_str(), msg.str().c_str(), ERR);
 	return false;
       }
     else if(total > MAXBITSPERTRANSIENT)
@@ -2406,7 +2420,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Trying to exceed allotted bit size (" << MAXBITSPERTRANSIENT << ") for array ";
 	msg << ut->getUlamTypeNameBrief().c_str() << " with " << total << " bits";
-	MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
+	MSG2(getFullLocationAsString(getCompileThisLoc()).c_str(), msg.str().c_str(), ERR);
 	return false;
       }
     //else
@@ -3825,8 +3839,7 @@ namespace MFM {
 			  {
 			    if(isHolder(tduti) && isAClass(tduti))
 			      {
-				removeIncompleteClassSymbolFromProgramTable(getUlamTypeNameIdByIndex(tduti)); //t41513??
-				//removeIncompleteClassSymbolFromProgramTable(tdid); //t41513??
+				removeIncompleteClassSymbolFromProgramTable(getUlamTypeNameIdByIndex(tduti)); //t41513?
 			      }
 
 			    UTI ltd = ltdsymptr->getUlamTypeIdx();
@@ -3952,9 +3965,16 @@ namespace MFM {
     return rtnid;
   } //findNameIdOfCulamGeneratedTypedefTypeInThisContext (unused)
 
+  u32 CompilerState::getClassIdBits()
+  {
+    return m_classIdBits;  //== _getLogBase2(m_state.getMaxNumberOfRegisteredUlamClasses()) + 1;
+  }
+
   u32 CompilerState::getMaxNumberOfRegisteredUlamClasses()
   {
-    return m_classIdRegistryUTI.size();
+    u32 maxregistry = m_classIdRegistryUTI.size();
+    assert(maxregistry < MAX_REGISTRY_NUMBER); //UlamClassRegistry<EC>::TABLE_SIZE
+    return maxregistry;
   }
 
   void CompilerState::defineRegistrationNumberForUlamClasses()
@@ -4352,12 +4372,14 @@ namespace MFM {
 	    if(memberblock) //could be null during parsing e.g. parseMemberSelectExpr->parseIdentExpr
 	      cuti = memberblock->getNodeType();
 	    else
-	      {
-		hasHazyKin = true;
-		return false; //wait
-	      }
+	      cuti = Hzy;
 	  }
-	assert(okUTItoContinue(cuti));
+	if(!okUTItoContinue(cuti))
+	  {
+	    hasHazyKin = true;
+	    return false; //wait
+	  }
+	//assert(okUTItoContinue(cuti));
 
 	found = alreadyDefinedSymbolByAncestorOf(cuti, dataindex, symptr, tmphazys);
 	hasHazyKin = tmphazykin || tmphazys;
@@ -4839,7 +4861,7 @@ namespace MFM {
 			std::ostringstream msg;
 			if(tmpfsym->isVirtualFunction())
 			  msg << "Virtual ";
-			msg << "Function: "  << m_pool.getDataAsString(tmpfsym->getId()).c_str();
+			msg << "Function: "  << m_pool.getDataAsString(tmpfsym->getFunctionNameId()).c_str();
 			msg << "(";
 			for (u32 i = 0; i < typeVec.size(); i++)
 			  {
@@ -5035,8 +5057,8 @@ namespace MFM {
 		      {
 			std::ostringstream msg;
 			if(tmpfsym->isVirtualFunction()) //t41329 non-virtual func;
-			  msg << "Virtual ";
-			msg << "Function: "  << m_pool.getDataAsString(tmpfsym->getId()).c_str();
+			  msg << "Virtual "; //t41305, t41437
+			msg << "Function: "  << m_pool.getDataAsString(tmpfsym->getFunctionNameId()).c_str();
 			msg << "(";
 			for (u32 i = 0; i < argNodes.size(); i++)
 			  {
@@ -5410,11 +5432,11 @@ namespace MFM {
 	if((it != Void) && !fsym->isNativeFunctionDeclaration() && (!fsym->isVirtualFunction() || !fsym->isPureVirtualFunction()) && !fsym->isConstructorFunction())
 	  {
 	    std::ostringstream msg;
-	    msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str();
+	    msg << "Function '" << m_pool.getDataAsString(fsym->getFunctionNameId()).c_str();
 	    msg << "''s Return Statement is missing; Return type: ";
 	    msg << getUlamTypeNameByIndex(it).c_str();
 	    MSG2(fsym->getTokPtr(), msg.str().c_str(), ERR);
-	    return false;
+	    return false; //t41564 overload op[];
 	  }
 	return true; //okay to skip return statement for void function
       }
@@ -5426,7 +5448,7 @@ namespace MFM {
 	if(!isComplete(rType))
 	  {
 	    std::ostringstream msg;
-	    msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str();
+	    msg << "Function '" << m_pool.getDataAsString(fsym->getFunctionNameId()).c_str();
 	    msg << "''s Return type's: " << getUlamTypeNameByIndex(it).c_str();
 	    msg << " does not match incomplete resulting type";
 	    msg << " " << getUlamTypeNameByIndex(rType).c_str();
@@ -5442,7 +5464,7 @@ namespace MFM {
 	    if(rBUT != itBUT)
 	      {
 		std::ostringstream msg;
-		msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str();
+		msg << "Function '" << m_pool.getDataAsString(fsym->getFunctionNameId()).c_str();
 		msg << "''s Return type's " << getUlamTypeNameByIndex(it).c_str();
 		msg << " base type <" << UlamType::getUlamTypeEnumAsString(itBUT);
 		msg << "> does not match resulting type's ";
@@ -5459,7 +5481,7 @@ namespace MFM {
 		if(getArraySize(rType) != getArraySize(it))
 		  {
 		    std::ostringstream msg;
-		    msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str();
+		    msg << "Function '" << m_pool.getDataAsString(fsym->getFunctionNameId()).c_str();
 		    msg << "''s Return type's " << getUlamTypeNameByIndex(it).c_str();
 		    msg << " array size [" << getArraySize(it);
 		    msg << "] does not match resulting type's ";
@@ -5471,7 +5493,7 @@ namespace MFM {
 		if(getBitSize(rType) != getBitSize(it))
 		  {
 		    std::ostringstream msg;
-		    msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str();
+		    msg << "Function '" << m_pool.getDataAsString(fsym->getFunctionNameId()).c_str();
 		    msg << "''s Return type's " << getUlamTypeNameByIndex(it).c_str();
 		    msg << " bit size (" << getBitSize(it);
 		    msg << ") does not match resulting type's ";
@@ -5483,7 +5505,7 @@ namespace MFM {
 		if(getReferenceType(rType) != getReferenceType(it))
 		  {
 		    std::ostringstream msg;
-		    msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str();
+		    msg << "Function '" << m_pool.getDataAsString(fsym->getFunctionNameId()).c_str();
 		    msg << "''s Return type's " << getUlamTypeNameByIndex(it).c_str();
 		    msg << " reference type <" << getReferenceType(it);
 		    msg << "> does not match resulting type's ";
@@ -6128,7 +6150,9 @@ namespace MFM {
     if(WritePacked(packed))
       {
 	UlamValue atval = getPtrTarget(rptr); //entire array in one slot
-	assert(!atval.isPtr());
+	//assert(!atval.isPtr());
+	if(atval.isPtr())
+	  return assignValuePtr(lptr, rptr); //t41548
 
 	//redo what getPtrTarget use to do, when types didn't match due to
 	//an element/quark or a requested scalar of an arraytype
@@ -6487,7 +6511,7 @@ namespace MFM {
   void CompilerState::outputTextAsCommentWithLocationUpdate(File * fp, Locator nodeloc)
   {
     outputTextAsComment(fp, nodeloc);
-    m_locOfNextLineText = nodeloc;
+    m_locOfNextLineText = nodeloc; //during codeGen: NodeStatements, NodeBlockFunctionDef
   }
 
   void CompilerState::outputLineNumberForDebugging(File * fp, Locator nodeloc)
@@ -6657,6 +6681,11 @@ namespace MFM {
     return labelname.str();
   }
 
+  const std::string CompilerState::getParserSymbolTypeFlagAsString()
+  {
+    return getParserSymbolTypeFlagAsString(m_parsingVariableSymbolTypeFlag);
+  }
+
   const std::string CompilerState::getParserSymbolTypeFlagAsString(SYMBOLTYPEFLAG stf)
   {
     std::ostringstream labelname; //into
@@ -6667,21 +6696,30 @@ namespace MFM {
 	labelname << "class ancestor";
 	break;
       case STF_DATAMEMBER:
-      case STF_MEMBERCONSTANT:
 	labelname << "data member";
 	break;
       case STF_FUNCPARAMETER:
 	labelname << "function parameter";
 	break;
       case STF_FUNCLOCALVAR:
-	labelname << "local function variable";
+	labelname << "function variable";
 	break;
       case STF_FUNCARGUMENT:
 	labelname << "function argument";
 	break;
       case STF_FUNCLOCALREF:
-	labelname << "local function reference variable";
+	labelname << "function reference variable";
 	break;
+      case STF_FUNCLOCALCONSTREF:
+	labelname << "function constant reference variable";
+	break;
+      case STF_MEMBERCONSTANT:
+	labelname << "member constant";
+	break;
+      case STF_MEMBERTYPEDEF:
+	labelname << "member typedef";
+	break;
+
       case STF_NEEDSATYPE:
       default:
 	labelname << "symbol of unflagged useage";
@@ -7061,6 +7099,7 @@ namespace MFM {
 	m_classIdRegistryUTI[0] = cuti;  //assigned at last
 	return 0;
       }
+    assert(getMaxNumberOfRegisteredUlamClasses() < MAX_REGISTRY_NUMBER);
     m_classIdRegistryUTI.push_back(cuti);
     return m_classIdRegistryUTI.size() - 1;
   } //assignClassId
@@ -7098,6 +7137,13 @@ namespace MFM {
     AssertBool isDefined = m_classContextStack.getCurrentClassContext(cc);
     assert(isDefined);
     return cc.getCompileThisIdx();
+  }
+
+  Locator CompilerState::getCompileThisLoc()
+  {
+    NodeBlockContext * cblock = getContextBlock();
+    assert(cblock);
+    return cblock->getNodeLocation();
   }
 
   SymbolClass * CompilerState::getCurrentSelfSymbolForCodeGen()

@@ -2,7 +2,7 @@
 #=t41511_test_compiler_elementinheritancetemplateinstance_withlocaldefskeyword_error
 #!
 ./Foo.ulam:3:9: ERROR: Subclass 'Foo' inherits from MyMoo, an unresolved local filescope typedef.
-./Foo.ulam:8:5: ERROR: Incomplete Variable Decl for type: Foo used with variable symbol name 'f'.
+./Foo.ulam:8:5: ERROR: Incomplete NodeVarDecl for type: Foo used with variable symbol name 'f'.
 ./Foo.ulam:8:5: ERROR: Variable for: 'f', is still hazy.
 ./Foo.ulam:9:9: ERROR: Incomplete identifier for a type Foo, used with list symbol name 'f'.
 ./Foo.ulam:9:11: ERROR: Member selected is an incomplete class: f, check and label fails this time around.

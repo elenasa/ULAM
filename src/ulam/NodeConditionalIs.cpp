@@ -225,7 +225,7 @@ namespace MFM {
     UTI lnuti = m_nodeLeft->getNodeType();
     if(m_state.isAtom(lnuti))
       return genCodeAtomIs(fp, uvpass); //reads into tmpvar
-    else if(m_state.isAltRefType(lnuti))
+    else if(m_state.isReference(lnuti)) //not isAltRefType, incl ALT_AS (t41538)
       return genCodeReferenceIs(fp, uvpass); //doesn't read into tmpvar
     //else ClassIs.. reads into tmp var.
 
@@ -334,7 +334,7 @@ namespace MFM {
     UVPass luvpass;
     m_nodeLeft->genCodeToStoreInto(fp, luvpass); //loads lhs into tmp (T)
     UTI luti = luvpass.getPassTargetType(); //replace
-    assert(m_state.isAltRefType(luti));
+    assert(m_state.isReference(luti)); //t41538
 
     Symbol * stgcos = NULL;
     if(m_state.m_currentObjSymbolsForCodeGen.empty())

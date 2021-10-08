@@ -33,7 +33,7 @@ namespace MFM {
     return methodname.str();
   } //methodNameForCodeGen
 
-  Node * NodeBinaryOpEqualArithPreDecr::buildOperatorOverloadFuncCallNode()
+  Node * NodeBinaryOpEqualArithPreDecr::buildOperatorOverloadFuncCallNode(bool& hazyArg)
   {
     //pre incr/decr has no argument
     delete m_nodeRight;

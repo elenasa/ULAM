@@ -456,15 +456,13 @@ namespace MFM{
     Node * parentNode = m_state.findNodeNoInThisClassOrLocalsScope(pno); //also checks localsfilescope
     assert(parentNode);
 
-    SymbolWithValue * vsym = NULL;
-    AssertBool gotSymbol = parentNode->getSymbolPtr((Symbol *&) vsym);
-    assert(gotSymbol);
+    assert(parentNode->hasASymbol()); //t3250, t3882
 
     BV8K dval;
-    AssertBool aok = vsym->getValueReadyToPrint(dval);
+    AssertBool aok = parentNode->getSymbolValue(dval); //t3250..
     assert(aok);
 
-    bool isString = m_state.isAStringType(nuti);
+    //bool isString = m_state.isAStringType(nuti);
     s32 tmpvarnum = m_state.getNextTmpVarNumber();
     TMPSTORAGE nstor = nut->getTmpStorageTypeForTmpVar();
     u32 nwords = nut->getTotalNumberOfWords();
@@ -475,7 +473,7 @@ namespace MFM{
     m_state.indentUlamCode(fp);
     fp->write("const ");
 
-    if((nut->getPackable() != PACKEDLOADABLE) || isString)
+    if((nut->getPackable() != PACKEDLOADABLE)) // >MAXBITSPERLONG (strings same t3975)
       {
 	u32 uvals[ARRAY_LEN8K];
 	dval.ToArray(uvals); //the magic! (32-bit ints)
@@ -501,7 +499,7 @@ namespace MFM{
       {
 	u32 len = nut->getTotalBitSize();
 
-	//entire array packedloadable (t3863)
+	//entire array packedloadable (u32,u64) (t3863)
 	fp->write(nut->getTmpStorageTypeAsString().c_str()); //entire array, u32 or u64
 	fp->write(" ");
 	fp->write(m_state.getTmpVarAsString(nuti, tmpvarnum, nstor).c_str());
@@ -518,14 +516,15 @@ namespace MFM{
 	else if(nwords == 2) //64
 	  {
 	    //right justify single u64 (t3979)
-	    fp->write_decimal_unsignedlong(dval.ReadLong(0u, len));
+	    //fp->write_decimal_unsignedlong(dval.ReadLong(0u, len));
+	    fp->write_hexadecimallong(dval.ReadLong(0u, len));
 	    fp->write(";"); GCNL;
 	  }
 	else
 	  m_state.abortGreaterThanMaxBitsPerLong();
       }
 
-    uvpass = UVPass::makePass(tmpvarnum, nstor, nuti, m_state.determinePackable(nuti), m_state, 0, vsym->getId());
+    uvpass = UVPass::makePass(tmpvarnum, nstor, nuti, m_state.determinePackable(nuti), m_state, 0, parentNode->getSymbolId());
   } //genCode
 
   void NodeListArrayInitialization::genCodeClassInitArray(File * fp, UVPass& uvpass)

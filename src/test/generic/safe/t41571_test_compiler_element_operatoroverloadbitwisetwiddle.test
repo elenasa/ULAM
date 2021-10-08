@@ -1,0 +1,67 @@
+## -*- mode:ulam -*-
+#=t41571_test_compiler_element_operatoroverloadbitwisetwiddle
+##
+##  gen code output: (+ interleaved asserts)
+##	 Unsigned Arg: 4
+##	 Bool(3) Arg: 0x0 (false)
+##	 Bool(3) Arg: 0x0 (false)
+##	 Int Arg: -5
+##
+#!
+Exit status: -5
+Ue_Foo { Bool first(false);  Bits m_it(0);  Int(4) m_i(0);  Int test() {  System s;  Foo f;  f m_it . 4u cast = s ( f m_it . cast )print . s ( f m_it . 4u cast == )assert . typedef Bits(96) FT;  s ( f first . cast )print . s ( f first . ! )assert . f f ( )operator~ . = s ( f first . cast )print . s ( f first . ! )assert . s ( f m_it . cast )print . s ( f m_it . cast -5 cast == )assert . f m_it . cast return } }
+Uq_System { <NOMAIN> }
+##
+## first test of overloaded bitwise complement operator~ (7e)
+## informed by t41122.
+##
+#>Foo.ulam
+  ulam 3;
+element Foo {
+  Bool first;
+  Bits m_it;
+  Int(4) m_i;
+  Int test() {
+    System s;
+    Foo f;
+
+    f.m_it = 0x4;
+    s.print((Unsigned) f.m_it); //prints 4
+    s.assert(f.m_it == 0x4);
+
+    typedef Bits(Foo.sizeof) FT;
+    s.print(f.first);
+    s.assert(!f.first);
+    f = ~f;
+
+    s.print(f.first);
+    s.assert(!f.first); //stays the same w operator~ overload
+
+    s.print((Int) f.m_it); //prints -5
+    s.assert((Int) f.m_it == -5);
+
+    return (Int) f.m_it;
+  }
+
+  //7e
+  Self operator~()
+  {
+    m_it = ~m_it;
+    return self;
+  }
+
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

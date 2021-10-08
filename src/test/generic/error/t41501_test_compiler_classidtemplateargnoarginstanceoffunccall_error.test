@@ -3,7 +3,7 @@
 #!
 ./R.ulam:5:40: ERROR: Initial value of 'instanceof' has no constructor arguments.
 ./R.ulam:5:14: ERROR: Initial value of 'a2cid' is missing.
-./R.ulam:5:53: ERROR: Invalid Statement (possible missing semicolon).
+./R.ulam:5:52: ERROR: Invalid Statement (possible missing semicolon).
 Unrecoverable Program Parse FAILURE: <R.ulam>
 Unrecoverable Program Parse FAILURE: <A.ulam>
 Unrecoverable Program Parse FAILURE: <Ele2.ulam>

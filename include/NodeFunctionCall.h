@@ -80,6 +80,8 @@ namespace MFM{
 
     virtual bool isAConstructorFunctionCall();
 
+    virtual bool isAVirtualFunctionCall();
+
     virtual EvalStatus eval();
 
     virtual EvalStatus evalToStoreInto();
@@ -88,7 +90,11 @@ namespace MFM{
 
     u32 getNumberOfArguments();
 
-    virtual bool getSymbolPtr(Symbol *& symptrref);
+    virtual bool getSymbolPtr(const Symbol *& symptrref);
+
+    virtual bool hasASymbol();
+
+    virtual u32 getSymbolId();
 
     virtual void genCode(File * fp, UVPass& uvpass);
 
@@ -106,14 +112,15 @@ namespace MFM{
 
     virtual void genLocalMemberNameOfMethod(File * fp);
 
+    virtual void clearSymbolPtr();
+
   private:
 
     const Token m_functionNameTok;
     SymbolFunction * m_funcSymbol;
     NodeList * m_argumentNodes;
     SymbolTmpVar * m_tmpvarSymbol;
-
-    virtual void clearSymbolPtr();
+    bool m_useEffSelfForEval;
 
     TBOOL lookagainincaseimplicitselfchanged(Node * parentnode);
     UTI specifyimplicitselfexplicitly(Node * parentnode);

@@ -150,19 +150,46 @@ namespace MFM {
     return m_state.m_pool.getDataAsString(m_vid).c_str();
   }
 
+  u32 NodeVarDecl::getNameId()
+  {
+    return m_vid;
+  }
+
+  const std::string NodeVarDecl::getMangledName()
+  {
+    assert(m_varSymbol);
+    return m_varSymbol->getMangledName();
+  }
+
   u32 NodeVarDecl::getTypeNameId()
   {
     if(m_nodeTypeDesc)
       return m_nodeTypeDesc->getTypeNameId();
 
     UTI nuti = getNodeType();
-    assert(m_state.okUTItoContinue(nuti));
-    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    //skip bitsize if default size
-    if(nut->getBitSize() == ULAMTYPE_DEFAULTBITSIZE[nut->getUlamTypeEnum()])
-      return m_state.m_pool.getIndexForDataString(nut->getUlamTypeNameOnly());
+    if(m_state.okUTItoContinue(nuti))
+      {
+	assert(m_state.okUTItoContinue(nuti));
+	UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+	//skip bitsize if default size
+	if(nut->getBitSize() == ULAMTYPE_DEFAULTBITSIZE[nut->getUlamTypeEnum()])
+	  return m_state.m_pool.getIndexForDataString(nut->getUlamTypeNameOnly());
+      } //else t3411,t3412,t3514
     return m_state.m_pool.getIndexForDataString(m_state.getUlamTypeNameBriefByIndex(nuti));
   } //getTypeNameId
+
+
+  UTI NodeVarDecl::getTypeDescriptorGivenType()
+  {
+    assert(m_nodeTypeDesc);
+    return m_nodeTypeDesc->givenUTI();
+  }
+
+  ALT NodeVarDecl::getTypeDescriptorRefType()
+  {
+    assert(m_nodeTypeDesc);
+    return m_nodeTypeDesc->getReferenceType();
+  }
 
   const std::string NodeVarDecl::prettyNodeName()
   {
@@ -178,13 +205,42 @@ namespace MFM {
     setBlock(NULL);
   }
 
-  bool NodeVarDecl::getSymbolPtr(Symbol *& symptrref)
+  bool NodeVarDecl::hasASymbol()
+  {
+    return (m_varSymbol != NULL);
+  }
+
+  u32 NodeVarDecl::getSymbolId()
+  {
+    assert(m_varSymbol);
+    return m_varSymbol->getId();
+  }
+
+  bool NodeVarDecl::getSymbolValue(BV8K& bv)
+  {
+    assert(m_varSymbol);
+    return m_varSymbol->getValueReadyToPrint(bv);
+  }
+
+  bool NodeVarDecl::cloneSymbol(Symbol *& symptrref)
+  {
+    bool rtnb = hasASymbol() && !hasASymbolDataMember(); //true;
+    if(rtnb)
+      {
+	SymbolVariable * sym = new SymbolVariableStack(* (SymbolVariableStack *) m_varSymbol);
+	rtnb = (sym != NULL);
+	symptrref = sym;
+      }
+    return rtnb;
+  }
+
+  bool NodeVarDecl::getSymbolPtr(const Symbol *& symptrref)
   {
     symptrref = m_varSymbol;
     return (m_varSymbol != NULL);
   }
 
-  bool NodeVarDecl::getNodeTypeDescriptorPtr(NodeTypeDescriptor *& nodetypedescref)
+  bool NodeVarDecl::getNodeTypeDescriptorPtr(const NodeTypeDescriptor *& nodetypedescref)
   {
     if(m_nodeTypeDesc)
       {
@@ -192,6 +248,12 @@ namespace MFM {
 	return true;
       }
     return false;
+  }
+
+  bool NodeVarDecl::isAConstantFunctionParameter()
+  {
+    assert(m_varSymbol);
+    return m_varSymbol->isFunctionParameter() && ((SymbolVariableStack*)m_varSymbol)->isConstantFunctionParameter();
   }
 
   void NodeVarDecl::setInitExpr(Node * node)
@@ -315,7 +377,7 @@ namespace MFM {
 		if(newt->isAltRefType() && newt->getUlamClassType() == UC_QUARK)
 		  msg << "; .atomof may help";
 		if(rscr == CAST_HAZY)
-		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //was debug?
 		else
 		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	      }
@@ -334,14 +396,20 @@ namespace MFM {
 		else
 		  msg << "Use explicit cast";
 		msg << " to convert "; // the real converting-message
-		msg << m_state.getUlamTypeNameByIndex(newType).c_str();
+		if(m_state.isAClass(newType))
+		  msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
+		else
+		  msg << m_state.getUlamTypeNameByIndex(newType).c_str();
 		msg << " to ";
-		msg << m_state.getUlamTypeNameByIndex(nuti).c_str();
+		if(m_state.isAClass(nuti))
+		  msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+		else
+		  msg << m_state.getUlamTypeNameByIndex(nuti).c_str();
 		msg << " for variable initialization";
 		if(rscr == CAST_BAD)
 		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		else
-		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //duplicate error
 	      } //not atom
 	  } //not safe
 	else
@@ -500,7 +568,7 @@ namespace MFM {
     if(!m_state.okUTItoContinue(vit) || !m_state.isComplete(vit))
       {
 	std::ostringstream msg;
-	msg << "Incomplete Variable Decl for type";
+	msg << "Incomplete " << prettyNodeName().c_str() << " for type";
 	if(m_state.okUTItoContinue(vit) && !m_state.isHolder(vit))
 	  msg << ": " << m_state.getUlamTypeNameBriefByIndex(vit).c_str();
 	msg << " used with variable symbol name '" << getName() << "'";
@@ -557,6 +625,12 @@ namespace MFM {
 		m_state.cleanupExistingHolder(vit, eit);
 		m_state.statusUnknownTypeInThisClassResolver(vit);
 		vit = eit;
+	      }
+	    //switch block variable non-ref (t41581)
+	    if(m_state.isAltRefType(vit))
+	      {
+		vit = m_state.getUlamTypeAsDeref(vit);
+		m_varSymbol->resetUlamType(vit); //consistent!
 	      }
 	  }
 
@@ -713,9 +787,7 @@ namespace MFM {
 
 	if(m_state.okUTItoContinue(eit) && m_state.okUTItoContinue(vit))
 	  {
-	    Symbol * initsym = NULL;
-	    m_nodeInitExpr->getSymbolPtr(initsym);
-	    if(initsym && (initsym == m_varSymbol))
+	    if(m_nodeInitExpr->compareSymbolPtrs(m_varSymbol))
 	      {
 		std::ostringstream msg;
 		msg << "Initial value expression for: '";
@@ -724,7 +796,7 @@ namespace MFM {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		setNodeType(Nav);
 		clearSymbolPtr();
-		return Nav; //t41486
+		return Nav; //t41486,9; t3923 (funccall w same id);
 	      }
 	  }
 
@@ -875,6 +947,9 @@ namespace MFM {
 
     if((classtype == UC_TRANSIENT) && (len > MAXSTATEBITS))
       return evalStatusReturnNoEpilog(UNEVALUABLE);
+
+    if((nut->getUlamTypeEnum() == Bits) && nut->isScalar() && (len > MAXBITSPERLONG))
+      return evalStatusReturnNoEpilog(UNEVALUABLE); //t41563,t3877
 
     assert(m_varSymbol->getUlamTypeIdx() == nuti); //is it so? if so, some cleanup needed
 

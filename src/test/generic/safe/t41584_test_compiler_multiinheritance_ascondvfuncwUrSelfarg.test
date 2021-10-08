@@ -1,0 +1,114 @@
+## -*- mode:ulam -*-
+#=t41584_test_compiler_multiinheritance_ascondvfuncwUrSelfarg
+##
+## gen output:
+##   String(2) Arg: "Foo:"
+##
+#!
+Exit status: 0
+Ue_R { Int test() {  Foo f;  f ( )behave . 0 cast return } }
+Ue_Foo : Secondary +Intermediate { Bool(7) sp(false);  SystemU5 se5( :System<>);  :Secondary< Bool m_b2(false); > +Intermediate< Int(4) m_i4( 2);  Int(4) m_a4( 3); > ^Base< Bool bsp( true);  Int(43) m_i3( HexU64(0xffffffff, 0xffffffff)); > <NOMAIN> }
+Uq_Secondary +Base { Bool m_b2(false);  +Base< Bool bsp( true);  Int(43) m_i3( HexU64(0xffffffff, 0xffffffff)); > <NOMAIN> }
+Uq_Intermediate +Base { Int(4) m_i4( 2);  Int(4) m_a4( 3);  +Base< Bool bsp( true);  Int(43) m_i3( HexU64(0xffffffff, 0xffffffff)); > <NOMAIN> }
+Uq_SystemU5 : System { :System<> <NOMAIN> }
+Uq_Base { Bool bsp( true);  Int(43) m_i3( HexU64(0xffffffff, 0xffffffff));  <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## informed by Dave's DebugUtil native print taking UrSelf& arg (email 9/29/21);
+## here repurposing renderGraphics for a virtual function case.
+##
+#>R.ulam
+  ulam 3;
+element R {
+  Int test() {
+    Foo f;
+    f.behave();
+    return 0;
+  }
+}
+
+#:Foo.ulam
+  ulam 5;
+element Foo : Secondary +Intermediate {
+  Bool(7) sp;
+  SystemU5 se5;
+  Void behave()
+  {
+    Foo other;
+    if(other as Secondary)
+    {
+      se5.print(other, " hello"); //uses effself of 'other'
+    }
+  }
+
+  virtual Void renderGraphics()
+  {
+    se5.print("Foo:");
+  }
+}
+
+#:Intermediate.ulam
+  ulam 5;
+quark Intermediate +Base
+{
+  Int(4) m_i4 = 2;
+  Int(4) m_a4 = 3;
+
+  virtual Void renderGraphics()
+  {
+    SystemU5 s;
+    s.print("Intermediate:");
+  }
+}
+
+#:Secondary.ulam
+  ulam 5;
+quark Secondary +Base
+{
+  Bool m_b2;
+  virtual Void renderGraphics()
+  {
+    SystemU5 s;
+    s.print("Secondary:");
+  }
+}
+
+#:Base.ulam
+  ulam 3;
+quark Base
+{
+  Bool bsp = true;
+  Int(43) m_i3 = -1;
+  virtual Void renderGraphics()
+  {
+    SystemU5 s;
+    s.print("Base:");
+  }
+}
+
+#:SystemU5.ulam
+  ulam 5;
+quark SystemU5 : System {
+  Void print(Unsigned(64) arg) native;
+  Void print(Int(64) arg) native;
+  Void print(String arg) native;
+  Void print(Bits(64) arg) {
+    print((Unsigned(64)) arg);
+  }
+  Void print(UrSelf& urarg, String arg){
+    urarg.renderGraphics(); //virtual in share/ulam/stdlib/UrSelf.ulam
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

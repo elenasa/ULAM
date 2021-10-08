@@ -48,6 +48,11 @@ namespace MFM{
     return m_state.m_pool.getDataAsString(m_classvarId).c_str();
   }
 
+  u32 NodeListClassInit::getNameId()
+  {
+    return m_classvarId;
+  }
+
   const std::string NodeListClassInit::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);

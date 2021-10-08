@@ -69,9 +69,11 @@ namespace MFM{
 
     virtual const char * getName();
 
+    virtual u32 getNameId();
+
     virtual const std::string prettyNodeName();
 
-    virtual bool getSymbolPtr(Symbol *& symptrref);
+    virtual bool getSymbolPtr(const Symbol *& symptrref);
 
     virtual UTI checkAndLabelType(Node * thisparentnode);
 
@@ -106,14 +108,14 @@ namespace MFM{
   protected:
     virtual void checkForSymbol();
 
+    virtual void clearSymbolPtr();
+
   private:
     SymbolTypedef * m_typedefSymbol;
     u32 m_tdid; //to instantiate
     NNO m_currBlockNo;
     NodeBlock * m_currBlockPtr;
     NodeTypeDescriptor * m_nodeTypeDesc; //can be NULL
-
-    virtual void clearSymbolPtr();
 
     NNO getBlockNo();
     void setupBlockNo();

@@ -221,4 +221,16 @@ namespace MFM {
     return rtn;
   } //Uf_9212getClassInfo
 
+
+  template<class EC>
+  Ui_Ut_102321u<EC> Uq_10109210ClassUtils10<EC>::Uf_9212getClassSize(const UlamContext<EC>& uc, UlamRef<EC>& ur, Ui_Ut_102321u<EC>& Uv_7classId) const
+  {
+    u32 classId = Uv_7classId.read();
+    const UlamClassRegistry<EC> & ucr = uc.GetUlamClassRegistry();
+    const UlamClass<EC>* theClass = ucr.GetUlamClassOrNullByIndex(classId);
+    u32 bitsize = theClass ? theClass->GetClassLength() : -1;
+    Ui_Ut_102321u<EC> ret(bitsize);
+    return ret;
+  } // Uf_9212getClassSize
+
 }

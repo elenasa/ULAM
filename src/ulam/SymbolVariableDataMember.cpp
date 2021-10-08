@@ -3,7 +3,7 @@
 
 namespace MFM {
 
-  SymbolVariableDataMember::SymbolVariableDataMember(const Token& id, UTI utype, u32 slot, CompilerState& state) : SymbolVariable(id, utype, state), m_posOffset(9999), m_dataMemberUnpackedSlotIndex(slot)
+  SymbolVariableDataMember::SymbolVariableDataMember(const Token& id, UTI utype, u32 slot, CompilerState& state) : SymbolVariable(id, utype, state), m_posOffset(UNRELIABLEPOS), m_dataMemberUnpackedSlotIndex(slot)
   {
     setDataMemberClass(m_state.getCompileThisIdx());
   }
@@ -60,14 +60,14 @@ namespace MFM {
   //or after bases wo shared bases and shared bases (ulam-5).
   u32 SymbolVariableDataMember::getPosOffset()
   {
-    if(m_posOffset == 9999)
+    if(m_posOffset == UNRELIABLEPOS)
       m_state.abortShouldntGetHere(); //not yet set
     return m_posOffset;
   }
 
   bool SymbolVariableDataMember::isPosOffsetReliable()
   {
-    return (m_posOffset != 9999);
+    return (m_posOffset != UNRELIABLEPOS);
   }
 
   void SymbolVariableDataMember::setPosOffset(u32 offsetIntoAtom)

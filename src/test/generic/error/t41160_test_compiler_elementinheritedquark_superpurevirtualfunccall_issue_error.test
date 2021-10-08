@@ -3,6 +3,7 @@
 ##
 #!
 ./Sub1.ulam:5:11: ERROR: Virtual function 'Uf_4func10' is pure; cannot be called directly in baseclass: Sup.
+./Sup.ulam:4:16: NOTE: Still pure in Sup: Void func().
 Unrecoverable Program GenCode FAILURE.
 ##
 ## pure virtual called on a super, should be catchable by ulam compiler,

@@ -18,6 +18,7 @@ namespace MFM {
     struct LoopSwitchDesc desc;
     desc.m_token = tok;
     desc.m_tmpvarexitnum = exitnum;
+    desc.m_uses = 0;
     m_stack.push_back(desc);
   }
 
@@ -36,9 +37,26 @@ namespace MFM {
     u32 rtn = 0; //zero uses c++ break
     LoopSwitchDesc desc = m_stack.back();
     if(desc.m_token.m_type == TOK_KW_SWITCH)
-      rtn = desc.m_tmpvarexitnum;
+      {
+	rtn = desc.m_tmpvarexitnum;
+	m_stack.back().m_uses++; //t41016,etc..
+      }
     return rtn;
   } //getNearestBreakExitNumber
+
+  u32 ParsingLoopsSwitchStack::getNearestBreakExitNumberIfUsed()
+  {
+    assert(okToParseABreak());
+
+    u32 rtn = 0; //zero uses c++ break
+    LoopSwitchDesc desc = m_stack.back();
+    if(desc.m_token.m_type == TOK_KW_SWITCH)
+      {
+	if(desc.m_uses > 0)
+	  rtn = desc.m_tmpvarexitnum; //for label
+      }
+    return rtn;
+  } //getNearestBreakExitNumberIfUsed
 
   u32 ParsingLoopsSwitchStack::getNearestContinueExitNumber()
   {
@@ -53,12 +71,34 @@ namespace MFM {
 	if((desc.m_token.m_type == TOK_KW_WHILE) || (desc.m_token.m_type == TOK_KW_FOR))
 	  {
 	    rtn = desc.m_tmpvarexitnum;
+	    rit->m_uses++;
 	    break;
 	  }
 	//else skip switches
       }
     return rtn;
   } //getNearestContinueExitNumber
+
+  u32 ParsingLoopsSwitchStack::getNearestContinueExitNumberIfUsed()
+  {
+    if(m_stack.size() == 0)
+      return 0; //not in a loop or switch
+
+    u32 rtn = 0;
+    std::vector<LoopSwitchDesc>::reverse_iterator rit;
+    for(rit = m_stack.rbegin(); rit != m_stack.rend(); rit++)
+      {
+	LoopSwitchDesc desc = *rit;
+	if((desc.m_token.m_type == TOK_KW_WHILE) || (desc.m_token.m_type == TOK_KW_FOR))
+	  {
+	    if(rit->m_uses > 0)
+	      rtn = desc.m_tmpvarexitnum;
+	    break;
+	  }
+	//else skip switches
+      }
+    return rtn;
+  } //getNearestContinueExitNumberIfUsed
 
   bool ParsingLoopsSwitchStack::okToParseAContinue()
   {

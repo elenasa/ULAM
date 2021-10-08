@@ -44,6 +44,11 @@ namespace MFM {
     return m_state.getTokenDataAsString(m_token).c_str();
   }
 
+  u32 NodeIdent::getNameId()
+  {
+    return m_state.getTokenDataAsStringId(m_token);
+  }
+
   const std::string NodeIdent::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
@@ -66,7 +71,7 @@ namespace MFM {
     assert(m_currBlockNo);
   }
 
-  bool NodeIdent::getSymbolPtr(Symbol *& symptrref)
+  bool NodeIdent::getSymbolPtr(const Symbol *& symptrref)
   {
     symptrref = m_varSymbol;
     return (m_varSymbol != NULL); //true not-null
@@ -78,7 +83,12 @@ namespace MFM {
     return (m_varSymbol != NULL); //true not-null
   }
 
-  bool NodeIdent::getStorageSymbolPtr(Symbol *& symptrref)
+  bool NodeIdent::compareSymbolPtrs(Symbol * ptr)
+  {
+    return (m_varSymbol == ptr);
+  }
+
+  bool NodeIdent::getStorageSymbolPtr(const Symbol *& symptrref)
   {
     UTI nuti = getNodeType();
     assert(m_state.okUTItoContinue(nuti));
@@ -92,6 +102,17 @@ namespace MFM {
 	return true;
       }
     return false;
+  }
+
+  u32 NodeIdent::getSymbolId()
+  {
+    assert(m_varSymbol);
+    return m_varSymbol->getId();
+  }
+
+  bool NodeIdent::hasASymbol()
+  {
+    return (m_varSymbol != NULL);
   }
 
   bool NodeIdent::hasASymbolDataMember()
@@ -123,6 +144,34 @@ namespace MFM {
     assert(hasASymbolReference());
     //alternatively, m_varSymbol->isFunctionParameter() && isConstantFunctionParameter()
     return (m_state.isConstantRefType(m_varSymbol->getUlamTypeIdx()));
+  }
+
+  s32 NodeIdent::getSymbolStackFrameSlotIndex()
+  {
+    assert(m_varSymbol);
+    assert(!hasASymbolDataMember());
+    return ((SymbolVariableStack*) m_varSymbol)->getStackFrameSlotIndex();
+  }
+
+  UlamValue NodeIdent::getSymbolAutoPtrForEval()
+  {
+    assert(m_varSymbol);
+    assert(!hasASymbolDataMember());
+    return ((SymbolVariableStack*) m_varSymbol)->getAutoPtrForEval();
+  }
+
+  UTI NodeIdent::getSymbolAutoStorageTypeForEval()
+  {
+    assert(m_varSymbol);
+    assert(!hasASymbolDataMember());
+    return ((SymbolVariableStack *) m_varSymbol)->getAutoStorageTypeForEval();
+  }
+
+  u32 NodeIdent::getSymbolDataMemberPosOffset()
+  {
+    assert(m_varSymbol);
+    assert(hasASymbolDataMember());
+    return ((SymbolVariableDataMember *) m_varSymbol)->getPosOffset();
   }
 
   void NodeIdent::setupBlockNo()
@@ -575,11 +624,10 @@ namespace MFM {
 
     if(parentnode->isAMemberSelect())
       {
-	Symbol * rhsym = NULL;
-	if(!parentnode->getSymbolPtr(rhsym))
-	  vuti = Hzy; //t41152
+	s32 nodeorder = ((NodeMemberSelect *) parentnode)->findNodeKidOrder(this);
+	assert(nodeorder >= 0); //t41152?
 
-	implicitself = (rhsym != m_varSymbol); //rhsym null wont match
+	implicitself = (nodeorder == 0); //as lhs, self implied
       }
     //else
 
@@ -801,7 +849,7 @@ namespace MFM {
 	    msg << "' is not a valid lefthand side. Eval FAILS";
 	    if(stor == TBOOL_HAZY)
 	      {
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //was debug
 		return evalStatusReturnNoEpilog(NOTREADY);
 	      }
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
@@ -877,13 +925,17 @@ namespace MFM {
 	    objclass = m_state.m_currentObjPtr.getPtrTargetEffSelfType(); //t41496
 	    assert((objclass != Nouti) && m_state.isAClass(objclass));
 	  }
-	assert((UlamType::compareForUlamValueAssignment(dmclass, objclass, m_state) == UTIC_SAME) || m_state.isClassASubclassOf(objclass, dmclass)); //sanity, right? t3915
-	// return ptr to this data member within the m_currentObjPtr
-	// 'pos' modified by this data member symbol's packed bit position;
-	// and relative position of its class in m_currentObjPtr (ulam-5);
+
 	u32 relposofbase = 0;
-	AssertBool gotpos = m_state.getABaseClassRelativePositionInAClass(objclass, dmclass, relposofbase);
-	assert(gotpos);
+	if((UlamType::compareForUlamValueAssignment(dmclass, objclass, m_state) == UTIC_SAME) || m_state.isClassASubclassOf(objclass, dmclass))
+	  {
+	    // return ptr to this data member within the m_currentObjPtr
+	    // 'pos' modified by this data member symbol's packed bit position;
+	    // and relative position of its class in m_currentObjPtr (ulam-5);
+	    AssertBool gotpos = m_state.getABaseClassRelativePositionInAClass(objclass, dmclass, relposofbase);
+	    assert(gotpos);
+	  }
+	//else not data member of a base class (t41584)
 
 	ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), nuti, m_state.determinePackable(nuti), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset() + relposofbase, m_varSymbol->getId());
 	if(m_state.isAClass(nuti))

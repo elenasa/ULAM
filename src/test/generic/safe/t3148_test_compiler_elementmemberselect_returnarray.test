@@ -16,11 +16,13 @@ element Foo {
   typedef Bool BA[6];
   System s;
   BA m_ba;
+
   BA check(Int v) {
- BA rba;
- rba[1] = rba[3] = rba[5] = true;
- return rba;
+    BA rba;
+    rba[1] = rba[3] = rba[5] = true;
+    return rba;
   }
+
   Int test() {
     Foo f;
     f.m_ba[0] = true;

@@ -1,0 +1,52 @@
+## -*- mode:ulam -*-
+#=t41570_test_compiler_bitwisetwiddleonbigtransient_castinginplace
+##
+##  gen output: +2 asserts
+##  Int Arg: -1
+#!
+Exit status: 0
+Ue_Test { Int m_i(-1);  Bool m_b(true);  System s();  typedef Bits(33) BT;  Int test() {  T f;  Bits(33) g = f cast ~;  self m_i . g cast m_i . = self s . ( self m_i . )print . self s . ( self m_i . -1 cast == )assert . self m_b . g cast m_b . = self s . ( g cast m_b . )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+Un_T { Bool m_b(false);  Int m_i(0);  <NOMAIN> }
+##
+## big transient test of bitwise complement. see t41569. cast hit assertion. fixed.
+##
+#>Test.ulam
+  ulam 5;
+element Test {
+  Int m_i;
+  Bool m_b;
+  System s;
+  typedef Bits(T.sizeof) BT;
+  Int test() {
+    T f;
+    BT g = ~ ((BT) f);
+    m_i = ((T) g).m_i; //assertion for error test..
+    s.print(m_i);
+    s.assert(m_i==-1);
+    m_b = ((T) g).m_b;
+    s.assert(((T) g).m_b);
+    return 0;
+  }
+}
+
+#:T.ulam
+  ulam 5;
+transient T {
+  Bool m_b; //comment out for MAXBITSPERINT
+  Int m_i;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

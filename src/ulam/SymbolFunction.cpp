@@ -1,5 +1,6 @@
 #include "SymbolFunction.h"
 #include "NodeBlockFunctionDefinition.h"
+#include "NodeVarDecl.h"
 #include "SymbolClass.h"
 #include "SymbolVariable.h"
 #include "SymbolVariableStack.h"
@@ -7,7 +8,7 @@
 
 namespace MFM {
 
-  SymbolFunction::SymbolFunction(const Token& id, UTI typetoreturn, CompilerState& state ) : Symbol(id,typetoreturn,state), m_functionNode(NULL), m_declOrderNum(state.getNextFunctionOrderNumber()), m_hasVariableArgs(false), m_isVirtual(false), m_pureVirtual(false), m_insureVirtualOverride(false), m_virtualIdx(9999), m_virtualOrigUTI(Nouti), m_isConstructor(false), m_definedinaQuark(false), m_signatureid(0)
+  SymbolFunction::SymbolFunction(const Token& id, UTI typetoreturn, CompilerState& state ) : Symbol(id,typetoreturn,state), m_functionNode(NULL), m_declOrderNum(state.getNextFunctionOrderNumber()), m_hasVariableArgs(false), m_isVirtual(false), m_pureVirtual(false), m_insureVirtualOverride(false), m_virtualIdx(UNRELIABLEPOS), m_virtualOrigUTI(Nouti), m_isConstructor(false), m_definedinaQuark(false), m_signatureid(0)
   {
     setDataMemberClass(m_state.getCompileThisIdx()); // by definition all function definitions are data members
   }
@@ -18,17 +19,6 @@ namespace MFM {
     if(sref.m_functionNode)
       {
 	m_functionNode = (NodeBlockFunctionDefinition *) sref.m_functionNode->instantiate();
-	m_state.pushCurrentBlockAndDontUseMemberBlock(m_functionNode);
-	for(u32 i = 0; i < sref.m_parameterSymbols.size(); i++)
-	  {
-	    u32 pid = sref.m_parameterSymbols[i]->getId();
-	    Symbol * sym = NULL; //NOT here: sref.m_parameterSymbols[i]->clone();
-	    bool hazyKin = false; //don't care?
-	    AssertBool isDefined = m_state.alreadyDefinedSymbol(pid, sym, hazyKin);
-	    assert(isDefined);
-	    m_parameterSymbols.push_back(sym);
-	  }
-	m_state.popClassContext();
 	m_functionNode->setFuncSymbolPtr(this); //might as well
       }
     else
@@ -36,7 +26,7 @@ namespace MFM {
 	m_functionNode = NULL; //is this possible?
 	std::ostringstream msg;
 	msg << "Undefined function block '";
-	msg << m_state.m_pool.getDataAsString(getId()).c_str() << "'";
+	msg << m_state.m_pool.getDataAsString(getFunctionNameId()).c_str() << "'";
 	MSG(Symbol::getTokPtr(), msg.str().c_str(), ERR);
       }
   }
@@ -44,8 +34,6 @@ namespace MFM {
   SymbolFunction::~SymbolFunction()
   {
     delete m_functionNode;
-    // symbols belong to  NodeBlockFunctionDefinition's ST; deleted there.
-    m_parameterSymbols.clear();
   }
 
   Symbol * SymbolFunction::clone()
@@ -58,14 +46,11 @@ namespace MFM {
     return true;
   }
 
-  void SymbolFunction::addParameterSymbol(Symbol * sym)
-  {
-    m_parameterSymbols.push_back(sym);
-  }
-
   u32 SymbolFunction::getNumberOfParameters()
   {
-    return m_parameterSymbols.size();
+    NodeBlockFunctionDefinition * funcdef = getFunctionNode();
+    assert(funcdef);
+    return funcdef->getNumberOfParameters();
   }
 
   void SymbolFunction::getVectorOfParameterTypes(std::vector<UTI>& pTypesref)
@@ -73,9 +58,8 @@ namespace MFM {
     u32 numparams = getNumberOfParameters();
     for(u32 j = 0; j < numparams; j++)
       {
-	Symbol * psym = getParameterSymbolPtr(j);
-	assert(psym);
-	pTypesref.push_back(psym->getUlamTypeIdx());
+	UTI puti = getParameterType(j);
+	pTypesref.push_back(puti);
       }
     assert(pTypesref.size() == numparams);
   }
@@ -83,24 +67,75 @@ namespace MFM {
   u32 SymbolFunction::getTotalParameterSlots()
   {
     u32 totalsizes = 0;
-    for(u32 i = 0; i < m_parameterSymbols.size(); i++)
+    u32 numparams = getNumberOfParameters();
+    for(u32 j = 0; j < numparams; j++)
       {
-	Symbol * sym = m_parameterSymbols[i];
-	totalsizes += m_state.slotsNeeded(sym->getUlamTypeIdx());
+	UTI puti = getParameterType(j);
+	totalsizes += m_state.slotsNeeded(puti);
       }
     return totalsizes;
   }
 
-  Symbol * SymbolFunction::getParameterSymbolPtr(u32 n)
-  {
-    assert(n < m_parameterSymbols.size());
-    return m_parameterSymbols[n];
-  }
-
   UTI SymbolFunction::getParameterType(u32 n)
   {
-    assert(n < m_parameterSymbols.size());
-    return m_parameterSymbols[n]->getUlamTypeIdx();
+    NodeBlockFunctionDefinition * funcdef = getFunctionNode();
+    assert(funcdef);
+    Node * pnode = funcdef->getParameterNode(n);
+    assert(pnode);
+    UTI puti = pnode->getNodeType();
+    return puti;
+  }
+
+  UTI SymbolFunction::getParameterGivenType(u32 n)
+  {
+    NodeBlockFunctionDefinition * funcdef = getFunctionNode();
+    assert(funcdef);
+    NodeVarDecl * pnode = (NodeVarDecl*) funcdef->getParameterNode(n);
+    assert(pnode);
+    UTI puti = pnode->getTypeDescriptorGivenType();
+    return puti;
+  }
+
+  ALT SymbolFunction::getParameterGivenReferenceType(u32 n)
+  {
+    NodeBlockFunctionDefinition * funcdef = getFunctionNode();
+    assert(funcdef);
+    Node * pnode = funcdef->getParameterNode(n);
+    assert(pnode);
+    ALT preftype = pnode->getTypeDescriptorRefType();
+    return preftype;
+  }
+
+  u32 SymbolFunction::getParameterTypeNameId(u32 n)
+  {
+    NodeBlockFunctionDefinition * funcdef = getFunctionNode();
+    assert(funcdef);
+    u32 nid = funcdef->getParameterTypeNameId(n);
+    return nid;
+  }
+
+  u32 SymbolFunction::getParameterNameId(u32 n)
+  {
+    NodeBlockFunctionDefinition * funcdef = getFunctionNode();
+    assert(funcdef);
+    u32 nid = funcdef->getParameterNameId(n);
+    return nid;
+  }
+
+  const std::string SymbolFunction::getParameterMangledName(u32 n)
+  {
+    NodeBlockFunctionDefinition * funcdef = getFunctionNode();
+    assert(funcdef);
+    Node * pnode = funcdef->getParameterNode(n);
+    assert(pnode);
+    return ((NodeVarDecl*)pnode)->getMangledName();
+  }
+
+  bool SymbolFunction::isConstantParameter(u32 n)
+  {
+    NodeBlockFunctionDefinition * funcdef = getFunctionNode();
+    assert(funcdef);
+    return funcdef->isAConstantParameter(n);
   }
 
   void SymbolFunction::markForVariableArgs(bool m)
@@ -138,30 +173,53 @@ namespace MFM {
     return "Uf_";
   }
 
+  u32 SymbolFunction::getFunctionNameId()
+  {
+    Token * idTokPtr = getTokPtr();
+    assert(idTokPtr);
+    u32 id = getId();
+    if(idTokPtr->isOperatorOverloadIdentToken(&m_state))
+      id = idTokPtr->getUlamNameIdForOperatorOverloadToken(&m_state);
+    return id;
+  }
+
   const std::string SymbolFunction::getFunctionNameWithTypes()
   {
+    NodeBlockFunctionDefinition * funcdef = getFunctionNode();
+    assert(funcdef);
+
     UTI futi = getUlamTypeIdx();
     std::ostringstream fname;
     fname << m_state.getUlamTypeNameBriefByIndex(futi).c_str(); //return type
     fname << " ";
-    fname << m_state.m_pool.getDataAsString(getId()); //ulam func name
+    fname << m_state.m_pool.getDataAsString(getFunctionNameId()); //ulam func name
 
     fname << "(";
 
-    u32 numParams = m_parameterSymbols.size();
+    u32 numParams = getNumberOfParameters();
     for(u32 i = 0; i < numParams; i++)
       {
-	Symbol * sym = m_parameterSymbols[i];
-	UTI suti = sym->getUlamTypeIdx();
-	UlamType * sut = m_state.getUlamTypeByIndex(suti);
+	UTI suti = getParameterType(i);
+	if((suti == Hzy) || m_state.isHolder(suti))
+	  {
+	    suti = getParameterGivenType(i); //?
+	  }
+	else if(suti == Nouti)
+	  {
+	    suti = getParameterGivenType(i); //t41545
+	  }
+	//else
 
+	UlamType * sut = m_state.getUlamTypeByIndex(suti);
+	u32 pid = getParameterNameId(i);
 	if(i > 0)
 	  fname << ", ";
 	fname << sut->getUlamTypeNameBrief().c_str();
 	fname << " ";
-	fname << m_state.m_pool.getDataAsString(sym->getId());
+	fname << m_state.m_pool.getDataAsString(pid);
       }
     fname << ")";
+
     return fname.str();
   } //getFunctionNameWithTypes
 
@@ -171,7 +229,7 @@ namespace MFM {
     std::ostringstream mangled;
     mangled << Symbol::getMangledName(); //e.g. Uf_14name, with lexNumbers
 
-    u32 numParams = m_parameterSymbols.size();
+    u32 numParams = getNumberOfParameters();
     mangled << ToLeximitedNumber(numParams); //"10" if none
 
     // append mangled type name, e.g. 1023213Int, for each parameter
@@ -180,10 +238,10 @@ namespace MFM {
     //        during this parse stage, the key remains consistent.
     for(u32 i = 0; i < numParams; i++)
       {
-	Symbol * sym = m_parameterSymbols[i];
-	UTI suti = sym->getUlamTypeIdx();
+	UTI suti = getParameterType(i);
 	if(dereftypes)
 	  suti = m_state.getUlamTypeAsDeref(suti);
+
 	UlamType * sut = m_state.getUlamTypeByIndex(suti);
 
 	// dropping Uprefix; references have "r";
@@ -209,8 +267,9 @@ namespace MFM {
     std::ostringstream mangled;
     mangled << Symbol::getMangledName(); //e.g. Uf_14name, with lexNumbers
 
+    u32 numparams = getNumberOfParameters();
     // use void type when no parameters
-    if(m_parameterSymbols.empty())
+    if(numparams == 0)
       {
 	UTI avuti = Void;
 	mangled << "," << avuti;
@@ -222,13 +281,18 @@ namespace MFM {
     // many UTI -to- one key, how does this impact the scheme?
     // symbols may be initially Hzy, or a holder, temporarily unique w funcdef NodeNo
     // (then best to use parameternode's typedescriptor's givenUTI, except might be same holder)
-    for(u32 i = 0; i < m_parameterSymbols.size(); i++)
+    for(u32 i = 0; i < numparams; i++)
       {
-	Symbol * sym = m_parameterSymbols[i];
-	UTI suti = sym->getUlamTypeIdx();
+	UTI suti = getParameterType(i);
 	if((suti == Hzy) || m_state.isHolder(suti))
 	  {
 	    mangled << "," << suti << "-" << getFunctionNode()->getNodeNo(); //t41132, t3333
+	  }
+	else if(suti == Nouti)
+	  {
+	    mangled << "," << getParameterGivenType(i); //t3140, t41517, t3411, t3412, t3514
+	    if(getParameterGivenReferenceType(i) != ALT_NOT)
+	      mangled << "r"; //t41132
 	  }
 	else
 	  mangled << "," << suti;
@@ -246,22 +310,18 @@ namespace MFM {
   bool SymbolFunction::matchingTypesStrictly(std::vector<UTI> argTypes, bool& hasHazyArgs)
   {
     u32 numArgs = argTypes.size();
-    u32 numParams = m_parameterSymbols.size();
+    u32 numParams = getNumberOfParameters();
 
     // numArgs could be greater if this function takes variable args
     // check number of args first
     if(numArgs < numParams || (numArgs > numParams && !takesVariableArgs()))
       return false;
 
-    NodeBlockFunctionDefinition * fblock = getFunctionNode();
-    assert(fblock);
-
     bool rtnBool = true;
     //next match types; order counts!
     for(u32 i=0; i < numParams; i++)
       {
-	//UTI puti = m_parameterSymbols.at(i)->getUlamTypeIdx();
-	UTI puti = fblock->getParameterNode(i)->getNodeType();
+	UTI puti = getParameterType(i);
 	if(!m_state.okUTItoContinue(puti) || !m_state.isComplete(puti))
 	  {
 	    hasHazyArgs = true;
@@ -296,22 +356,18 @@ namespace MFM {
   bool SymbolFunction::matchingTypes(std::vector<Node *> argNodes, bool& hasHazyArgs, u32& numUTmatch)
   {
     u32 numArgs = argNodes.size();
-    u32 numParams = m_parameterSymbols.size();
+    u32 numParams = getNumberOfParameters();
 
     // numArgs could be greater if this function takes variable args
     // check number of args first
     if(numArgs < numParams || (numArgs > numParams && !takesVariableArgs()))
       return false;
 
-    NodeBlockFunctionDefinition * fblock = getFunctionNode(); //t3810?
-    assert(fblock);
-
     bool rtnBool = true;
     //next, liberally match types; order counts!
     for(u32 i=0; i < numParams; i++)
       {
-	//UTI puti = m_parameterSymbols.at(i)->getUlamTypeIdx();
-	UTI puti = fblock->getParameterNode(i)->getNodeType();
+	UTI puti = getParameterType(i);
 	UTI auti = argNodes[i]->getNodeType();
 	if(!m_state.okUTItoContinue(puti) || !m_state.okUTItoContinue(auti))
 	  {
@@ -326,7 +382,7 @@ namespace MFM {
 	      {
 		if(put->isAltRefType())
 		  {
-		    if(!((SymbolVariableStack *) m_parameterSymbols.at(i))->isConstantFunctionParameter())
+		    if(!isConstantParameter(i))
 		      {
 			rtnBool = false;
 			break;
@@ -701,20 +757,18 @@ namespace MFM {
     fp->write(m_state.getHiddenArgName());
 
     u32 numparams = getNumberOfParameters();
+    NodeBlockFunctionDefinition * funcdef = getFunctionNode();
+    assert(funcdef);
 
     for(u32 i = 0; i < numparams; i++)
       {
 	fp->write(", ");
-
-	Symbol * asym = getParameterSymbolPtr(i);
-	assert(asym);
-	assert(asym->isFunctionParameter()); //sanity
-	UTI auti = asym->getUlamTypeIdx();
+	UTI auti = getParameterType(i);
 	UlamType * aut = m_state.getUlamTypeByIndex(auti);
 	fp->write(aut->getLocalStorageTypeAsString().c_str()); //for C++
 	fp->write("&"); //gen C++ reference for funcs args; avoids g++ synthesized copy constructor
 	fp->write(" ");
-	fp->write(asym->getMangledName().c_str());
+	fp->write(getParameterMangledName(i).c_str()); //t41491-9, t41500, t41476
       }
 
     if(takesVariableArgs())
@@ -829,10 +883,7 @@ namespace MFM {
     for(u32 i = 0; i < numparams; i++)
       {
 	fp->write(", ");
-
-	Symbol * asym = getParameterSymbolPtr(i);
-	assert(asym);
-	UTI auti = asym->getUlamTypeIdx();
+	UTI auti = getParameterType(i);
 	UlamType * aut = m_state.getUlamTypeByIndex(auti);
 	fp->write(aut->getLocalStorageTypeAsString().c_str()); //for C++
 	fp->write("&"); //gen C++ reference for func args; avoids g++ synthesized copy constructor

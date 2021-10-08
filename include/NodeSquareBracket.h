@@ -63,6 +63,8 @@ namespace MFM{
 
     virtual const char * getName();
 
+    virtual u32 getNameId();
+
     virtual const std::string prettyNodeName();
 
     virtual const std::string methodNameForCodeGen();
@@ -91,9 +93,11 @@ namespace MFM{
 
     virtual EvalStatus evalToStoreInto();
 
-    virtual bool getSymbolPtr(Symbol *& symptrref);
+    virtual void clearSymbolPtr();
 
-    virtual bool getStorageSymbolPtr(Symbol *& symptrref);
+    virtual u32 getSymbolId();
+
+    virtual bool hasASymbol();
 
     virtual bool installSymbolTypedef(TypeArgs& args, Symbol *& asymptr);
     virtual bool installSymbolConstantValue(TypeArgs& args, Symbol *& asymptr);
@@ -109,13 +113,13 @@ namespace MFM{
 
   protected:
 
-    virtual Node * buildOperatorOverloadFuncCallNode();
+    virtual Node * buildOperatorOverloadFuncCallNode(bool& hazyArg);
 
   private:
     bool m_isCustomArray;
     SymbolTmpVar * m_tmpvarSymbol;
 
-    virtual void clearSymbolPtr();
+    const char * getFullName();
 
     Node * buildArefFuncCallNode();
 

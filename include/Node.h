@@ -102,7 +102,13 @@ enum EvalStatus {ERROR, NOTREADY, NORMAL, RETURN, BREAK, CONTINUE, UNEVALUABLE};
 
     virtual const char * getName() = 0;
 
+    virtual u32 getNameId();
+
     virtual u32 getTypeNameId();
+
+    virtual UTI getTypeDescriptorGivenType();
+
+    virtual ALT getTypeDescriptorRefType();
 
     virtual const std::string prettyNodeName() = 0;
 
@@ -140,9 +146,21 @@ enum EvalStatus {ERROR, NOTREADY, NORMAL, RETURN, BREAK, CONTINUE, UNEVALUABLE};
 
     virtual void clearSymbolPtr();
 
-    virtual bool getSymbolPtr(Symbol *& symptrref);
+    virtual bool cloneSymbol(Symbol *& symptrref);
 
-    virtual bool getStorageSymbolPtr(Symbol *& symptrref);
+    virtual bool getSymbolPtr(const Symbol *& symptrref);
+
+    virtual bool getStorageSymbolPtr(const Symbol *& symptrref);
+
+    virtual bool getSymbolPtr(Symbol *& symptrref) const;
+
+    virtual bool getSymbolValue(BV8K& bv);
+
+    virtual bool compareSymbolPtrs(Symbol * ptr);
+
+    virtual u32 getSymbolId();
+
+    virtual bool hasASymbol();
 
     virtual bool hasASymbolDataMember();
 
@@ -153,6 +171,14 @@ enum EvalStatus {ERROR, NOTREADY, NORMAL, RETURN, BREAK, CONTINUE, UNEVALUABLE};
     virtual bool hasASymbolReference();
 
     virtual bool hasASymbolReferenceConstant();
+
+    virtual s32 getSymbolStackFrameSlotIndex();
+
+    virtual UlamValue getSymbolAutoPtrForEval();
+
+    virtual UTI getSymbolAutoStorageTypeForEval();
+
+    virtual u32 getSymbolDataMemberPosOffset();
 
     virtual bool belongsToVOWN(UTI vown);
 
@@ -173,6 +199,8 @@ enum EvalStatus {ERROR, NOTREADY, NORMAL, RETURN, BREAK, CONTINUE, UNEVALUABLE};
     virtual bool isFunctionCall();
 
     virtual bool isAConstructorFunctionCall();
+
+    virtual bool isAVirtualFunctionCall();
 
     virtual bool isArrayItem();
 

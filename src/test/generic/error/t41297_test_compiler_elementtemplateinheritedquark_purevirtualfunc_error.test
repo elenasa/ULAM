@@ -2,9 +2,9 @@
 #=t41297_test_compiler_elementtemplateinheritedquark_purevirtualfunc_error
 #!
 ./Foo.ulam:2:9: ERROR: Element 'Foo' is abstract due to these pure functions..
-./Foo.ulam:2:9: NOTE: Pure: Int vfunc().
+./QMemBase.ulam:7:15: NOTE: Still pure in Foo: Int vfunc().
 ./Test.ulam:5:5: ERROR: 'fb' is type FooBase(1), which is abstract due to these pure functions..
-./Test.ulam:5:5: NOTE: Pure: Int vfunc().
+./QMemBase.ulam:7:15: NOTE: Still pure in FooBase(1): Int vfunc().
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t41296, t3607; checks instances of abstract templates,

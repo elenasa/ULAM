@@ -92,6 +92,7 @@ namespace MFM
 	returns 0 if successful, o.w. the return from write(int)
     */
     s32 write_hexadecimal(const u32 data);
+    s32 write_hexadecimallong(const u64 data);
 
     /** Convenience write for newlines to document source of generated code */
     s32 write_tagged_end(const char * filename, s32 lineno);

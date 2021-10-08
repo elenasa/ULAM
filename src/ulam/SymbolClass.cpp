@@ -531,7 +531,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "cycle error!! " << m_state.getUlamTypeNameByIndex(getUlamTypeIdx()).c_str();
-	MSG(Symbol::getTokPtr(), msg.str().c_str(),ERR);
+	MSG(Symbol::getTokPtr(), msg.str().c_str(), ERR);
 	aok = false; //t41427
       }
     else if(totalbits == EMPTYSYMBOLTABLE)
@@ -541,7 +541,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Union " << m_state.getUlamTypeNameByIndex(getUlamTypeIdx()).c_str();
 	    msg << " has no data members; Bitsize is 0";
-	    MSG(Symbol::getTokPtr(), msg.str().c_str(),ERR);
+	    MSG(Symbol::getTokPtr(), msg.str().c_str(), ERR);
 	    aok = false; //t41426
 	  }
 	else
@@ -650,7 +650,7 @@ namespace MFM {
     MSG(m_state.getFullLocationAsString(getLoc()).c_str(), msg.str().c_str(), INFO);
   } //printBitSizeOfClass
 
-  bool SymbolClass::getDefaultQuark(u32& dqref)
+  bool SymbolClass::getDefaultQuark(u64& dqref)
   {
     assert(getUlamClass() == UC_QUARK);
 
@@ -660,7 +660,7 @@ namespace MFM {
 	getDefaultValue(dk);
       }
     u32 len = m_state.getBitSize(getUlamTypeIdx());
-    dqref = m_defaultValue.Read(0u, len); //return value
+    dqref = m_defaultValue.ReadLong(0u, len); //return value
     return m_isreadyDefaultValue;
   } //getDefaultQuark
 
@@ -881,7 +881,7 @@ namespace MFM {
 	msg << classname.c_str() << ">; ";
 	msg << "exceeds the maximum length (" << MAX_FILENAME_LENGTH;
 	msg << ") before extensions, length is " << cnamelen;
-	MSG(Symbol::getTokPtr(), msg.str().c_str(),ERR);
+	MSG(Symbol::getTokPtr(), msg.str().c_str(), ERR);
 	istoolong = true;
       }
     return istoolong;
@@ -940,12 +940,11 @@ namespace MFM {
 	assert(cloneNode);
 	assert(ceNode->getNodeNo() == cloneNode->getNodeNo());
 
-	assert(ptcsym->getParameterSymbolPtr(i)->getId()==ceNode->getSymbolId()); //sanity
-
 	Symbol * cvsym = NULL;
-	AssertBool isDefined = classblock->isIdInScope(cloneNode->getSymbolId(), cvsym);
-	assert(isDefined);
-	cloneNode->setSymbolPtr((SymbolConstantValue *) cvsym); //sets declnno
+	AssertBool isDefined = classblock->isIdInScope(parmNode->getNameId(), cvsym);
+	assert(isDefined); //t3498,9..
+	//if(isDefined)
+	  cloneNode->setSymbolPtr((SymbolConstantValue *) cvsym); //sets declnno
 
 	linkConstantExpressionForPendingArg(cloneNode); //resolve later; adds to classblock, etc.
       } //end forloop
@@ -1994,14 +1993,22 @@ namespace MFM {
     for(u32 i = 0; i < vtsize; i++)
       {
 	if(m_vtable[i].m_isPure)
-	  {
-	    std::ostringstream note;
-	    note << "Pure: ";
-	    note << m_vtable[i].m_funcPtr->getFunctionNameWithTypes().c_str();
-	    MSG(m_state.getFullLocationAsString(getLoc()).c_str(), note.str().c_str(), NOTE);
-	  }
+	  notePureFunctionSignature(i);
       }
   } //notePureFunctionSignatures
+
+  void SymbolClass::notePureFunctionSignature(u32 idx)
+  {
+    assert(idx < m_vtable.size());
+    assert(m_vtable[idx].m_isPure);
+
+    Locator floc = m_vtable[idx].m_funcPtr->getLoc();
+    std::ostringstream note;
+    note << "Still pure in ";
+    note << m_state.getUlamTypeNameBriefByIndex(getUlamTypeIdx()).c_str();
+    note << ": " << m_vtable[idx].m_funcPtr->getFunctionNameWithTypes().c_str();
+    MSG(m_state.getFullLocationAsString(floc).c_str(), note.str().c_str(), NOTE);
+  } //notePureFunctionSignature
 
   std::string SymbolClass::getMangledFunctionNameForVTableEntry(u32 idx)
   {
