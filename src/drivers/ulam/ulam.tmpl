@@ -251,7 +251,7 @@ sub blessShellReaching {
     my $taintedPath = shift;
     $taintedPath =~ /[.][.]/
         and UDie("'$taintedPath' contains '..'!");
-    $taintedPath =~ m!^([.-+_/a-zA-Z0-9]+)$!
+    $taintedPath =~ m!^([-+_/a-zA-Z0-9.]+)$!
         or UDie("'$taintedPath' contains unexpected characters!");
     return $1;
 }
