@@ -179,7 +179,7 @@ sub matchOrCall {
         return "";
     }
     if ($type eq "CODE") {
-        return &$thing($stdout);
+        return &$thing($arg);
     }
     IDie("Unhandled '$thing'\n");
 }
