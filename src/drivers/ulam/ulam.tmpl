@@ -1523,16 +1523,16 @@ sub buildMFZ
     my $mfz = getTool($mfzTool);
 
     {
-        my $HOLD_PATH = $ENV{PATH};
-        $ENV{PATH} = '/bin:/usr/bin'; # collect2 wants to run ld and etc
+        # my $HOLD_PATH = $ENV{PATH};
+        # $ENV{PATH} = '/bin:/usr/bin'; # collect2 wants to run ld and etc
         ($status,$stdout,$stderr) = runThis(undef,undef,$mfz,@mfzmakeargs);
         pISC("## USED PATH ($ENV{PATH})");
-        if (defined($HOLD_PATH)) {
-            $ENV{PATH} = $HOLD_PATH;
-            pISC("## RESET PATH ($ENV{PATH})");
-        } else {
-            delete $ENV{PATH};
-        }
+        # if (defined($HOLD_PATH)) {
+        #     $ENV{PATH} = $HOLD_PATH;
+        #     pISC("## RESET PATH ($ENV{PATH})");
+        # } else {
+        #     delete $ENV{PATH};
+        # }
     }
 
     if ($status ne "") {
