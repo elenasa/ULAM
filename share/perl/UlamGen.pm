@@ -3,7 +3,7 @@ use strict;
 use warnings;
 #202110101643 diagnostics is messing up with appimage-builder due to something causing
 # 'couldn't find diagnostic data' so screw it
-use diagnostics;
+#use diagnostics;
 use Carp;
 
 our $VERSION = 1.002;
