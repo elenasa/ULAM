@@ -211,10 +211,11 @@ namespace MFM {
 			newType = Nav;
 		      }
 		  }
-		else if(!m_state.isAltRefType(luti) && (rclasstype != UC_QUARK))
+		else if(!m_state.isAltRefType(luti) && (rclasstype != UC_QUARK) && (m_state.getReferenceType(luti) != ALT_AS))
 		  {
 		    //quarks can only inherit from other quarks (t41326);
 		    //quark refs cannot be checked at compile time.
+		    // nested-as has ALT_AS reference type (t41585)
 		    std::ostringstream msg;
 		    msg << "Invalid righthand type of conditional operator '" << getName();
 		    msg << "'; must be a quark name, not ";
