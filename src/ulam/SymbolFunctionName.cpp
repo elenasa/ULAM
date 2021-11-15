@@ -252,7 +252,7 @@ namespace MFM {
     return 0;
   } //anyFunctionSymbol
 
-  u32 SymbolFunctionName::noteAmbiguousFunctionSignatures(std::vector<Node *> argNodes, u32 counter, u32 numMatchesFound)
+  u32 SymbolFunctionName::noteAmbiguousFunctionSignatures(std::vector<Node *> argNodes, u32 counter, u32 numMatchesFound, bool noteOn)
   {
     assert(!m_mangledFunctionNames.empty());
     assert(numMatchesFound > 1);
@@ -268,10 +268,13 @@ namespace MFM {
 	if(fsym->matchingTypes(argNodes, hasHazyArgs, numUTmatch)) //with safe casting
 	  {
 	    matchingFuncCount++;
-	    std::ostringstream note;
-	    note << "Match (" << counter + matchingFuncCount << " of " << numMatchesFound << ") : ";
-	    note << fsym->getFunctionNameWithTypes().c_str();
-	    MSG(fsym->getTokPtr(), note.str().c_str(), NOTE);
+	    if(noteOn)
+	      {
+		std::ostringstream note;
+		note << "Match (" << counter + matchingFuncCount << " of " << numMatchesFound << ") : ";
+		note << fsym->getFunctionNameWithTypes().c_str();
+		MSG(fsym->getTokPtr(), note.str().c_str(), NOTE);
+	      }
 	  }
 	it++;
       } //end while

@@ -86,7 +86,7 @@ namespace MFM{
 
     u32 anyFunctionSymbolPtr(SymbolFunction *& funcptr);
 
-    u32 noteAmbiguousFunctionSignatures(std::vector<Node *> argNodes, u32 counter, u32 numMatchesFound);
+    u32 noteAmbiguousFunctionSignatures(std::vector<Node *> argNodes, u32 counter, u32 numMatchesFound, bool noteOn = true);
 
     u32 getDepthSumOfFunctions();
 
