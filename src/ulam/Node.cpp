@@ -1455,7 +1455,7 @@ namespace MFM {
     TMPSTORAGE rstor = ruvpass.getPassStorage();
     u32 rlen = rut->getSizeofUlamType(); //ruvpass.getPassLen(); item size; t3710 element
 
-    bool varcomesfirst = (rstor != TMPTBV) && (rstor != TMPTATOM) && (rlen > MAXBITSPERLONG); //t3223 atomref; t3896 already a bitvector; t3277 already a T;
+    bool varcomesfirst = (rlen > MAXBITSPERLONG) && (rstor != TMPTBV) && (rstor != TMPTATOM) && !m_state.isAtomRef(ruti); //t3223 atomref; t3896 already a bitvector; t3277 already a T; t41589 ew[0] TMPAUTOREF atomref;
     s32 tmpVarFirstNum = m_state.getNextTmpVarNumber();
     if(varcomesfirst)
       {

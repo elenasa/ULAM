@@ -232,9 +232,9 @@ namespace MFM {
     if((as < 0) && !m_unknownArraysizeSubtree->getArraysizeInBracket(as, auti)) //eval
       {
 	rtnuti = Nav;
-	return false; //error, e.g. possible divide by zero
+	return false; //error, e.g. possible divide by zero; t41586 multi-dim primative array decl
       }
-    //else as could still be UNKNOWNSIZE;
+    //else as could still be UNKNOWNSIZE; unset rtnuti??
 
     if(attemptToResolveHolderArrayType(rtnuti, scuti))
     {

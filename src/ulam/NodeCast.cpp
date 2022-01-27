@@ -560,6 +560,13 @@ namespace MFM {
       m_nodeTypeDesc->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
   } //countNavHzyNoutiNodes
 
+  UTI NodeCast::constantFold(Node * parentnode)
+  {
+    if(isAConstantClass())
+      return Node::constantFold(parentnode); //t41591, like localsfilescope do
+    return NodeUnaryOp::constantFold(parentnode);
+  }
+
   EvalStatus NodeCast::eval()
   {
     assert(m_node); //has to be

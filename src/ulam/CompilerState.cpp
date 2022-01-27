@@ -5114,9 +5114,12 @@ namespace MFM {
 
   void CompilerState::noteAmbiguousFunctionSignaturesInAClassHierarchy(UTI cuti, u32 fid, std::vector<Node *> argNodes, u32 matchingFuncCount)
   {
+    std::map<UTI,u32> classsafematchmap; //uti->safematches of most-specific baseclasses
+
     BaseclassWalker walker;
     walker.init(cuti);
 
+    //first while, build map..
     u32 count = 0;
     UTI baseuti = Nouti;
     while(walker.getNextBase(baseuti, *this))
@@ -5132,8 +5135,33 @@ namespace MFM {
 	    Symbol * fnSym = NULL;
 	    if(basecblock->isFuncIdInScope(fid, fnSym))
 	      {
-		safematches = ((SymbolFunctionName *) fnSym)->noteAmbiguousFunctionSignatures(argNodes, count, matchingFuncCount);
-		count += safematches;
+		bool skipthisbase = false;
+		std::map<UTI,u32>::iterator it;
+
+		for(it = classsafematchmap.begin(); it != classsafematchmap.end(); it++)
+		  {
+		    UTI cit = it->first;
+		    if(isClassASubclassOf(cit, baseuti))
+		      {
+			skipthisbase = true; //already have subclass of this baseuti, t41587
+			break;
+		      }
+		    else if(isClassASubclassOf(baseuti, cit))
+		      {
+			count -= it->second;
+			classsafematchmap.erase(it); //switch to more specific baseuti, t41588
+			break;
+		      }
+		    //else
+		  } //end checking classes in set
+
+		if(!skipthisbase)
+		  {
+		    safematches = ((SymbolFunctionName *) fnSym)->noteAmbiguousFunctionSignatures(argNodes, count, matchingFuncCount, false); //no note this time
+		    count += safematches;
+		    classsafematchmap.insert(std::pair<UTI,u32>(baseuti, safematches)); //update map
+		  }
+		//else skip this one, related and less specific.
 	      }
 
 	    popClassContext(); //didn't forget!!
@@ -5142,7 +5170,34 @@ namespace MFM {
 	      walker.addAncestorsOf(basecsym); // check them all..
 	  }
       } //end while
-    assert(count == matchingFuncCount); //sanity
+    assert(count == matchingFuncCount); //sanity (t41587 and ish 20211115 insane!)
+
+    //second time, output notes in map:
+    u32 count2 = 0;
+    std::map<UTI,u32>::iterator it;
+    for(it = classsafematchmap.begin(); it != classsafematchmap.end(); it++)
+      {
+	UTI cit = it->first;
+	SymbolClass * csym = NULL;
+	AssertBool gotclass = alreadyDefinedSymbolClass(cit, csym);
+	assert(gotclass);
+
+	NodeBlockClass * cblock = csym->getClassBlockNode();
+	assert(cblock);
+	pushClassContextUsingMemberClassBlock(cblock);
+
+	u32 safematches = 0;
+	Symbol * fnSym = NULL;
+	cblock->isFuncIdInScope(fid, fnSym);
+	assert(fnSym);
+
+	safematches = ((SymbolFunctionName *) fnSym)->noteAmbiguousFunctionSignatures(argNodes, count2, matchingFuncCount, true); //note this time
+	assert(safematches == it->second); //sanity t3479,t41132
+	count2 += safematches;
+
+	popClassContext(); //didn't forget!!
+      }
+    assert(count2 == matchingFuncCount); //sanity (t41587,8)
     return;
   } //noteAmbiguousFunctionSignaturesInClassHierarchy
 

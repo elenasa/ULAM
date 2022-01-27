@@ -182,7 +182,12 @@ namespace MFM {
 	      }
 	    else if(lut->isPrimitiveType())
 	      {
-		//ok! (t3765)
+		//t51586 better caught at declaration; (ok t3765)
+		std::ostringstream msg;
+		msg << "Invalid scalar primitive Type: " << m_state.getUlamTypeNameBriefByIndex(leftType).c_str();
+		msg << " used with []"; // << getName();
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		errorCount++;
 	      }
 	    else if(letyp == UAtom)
 	      {
@@ -860,6 +865,38 @@ namespace MFM {
   // returns false if error; UNKNOWNSIZE is not an error!
   bool NodeSquareBracket::getArraysizeInBracket(s32 & rtnArraySize, UTI& sizetype)
   {
+    if(m_nodeLeft->isArrayItem()) //subtree in NodeTypeDescriptorArray
+      {
+	s32 lindex;
+	UTI luti;
+	if(((NodeSquareBracket *) m_nodeLeft)->getArraysizeInBracket(lindex, luti)) //recurse
+	  {
+	    if(m_state.okUTItoContinue(luti))
+	      {
+		UlamType * lut = m_state.getUlamTypeByIndex(luti);
+		ULAMTYPE letyp = lut->getUlamTypeEnum();
+		if(!((letyp == Class) || (letyp == String)))
+		  {
+		    std::ostringstream msg;
+		    msg << "Unsupported multi-dimensional array declaration: " << m_nodeLeft->getName();
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    //neither a class custom array nor operator[], nor String (t41586)
+		    return false;
+		  }
+	      }
+	    else
+	      {
+		rtnArraySize = UNKNOWNSIZE;
+		return true;
+	      }
+	  }
+	else
+	  {
+	    rtnArraySize = UNKNOWNSIZE;
+	    return false;
+	  }
+      }
+
     bool noerr = true;
     // since square brackets determine the constant size for this type, else error
     s32 newarraysize = NONARRAYSIZE;

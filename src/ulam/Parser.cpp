@@ -6008,7 +6008,7 @@ Node * Parser::wrapFactor(Node * leftNode)
     Node * lvalNode = parseLvalExpr(identTok); //for optional [] array size
     if(lvalNode)
       {
-	//lvalNode could be either a NodeIdent or a NodeSquareBracket
+	//lvalNode could be either a NodeIdent, a NodeSqBracket, or NodeSqBracket subtree
 	//process identifier...check if already defined in current scope; if not, add it;
 	//returned symbol could be symbolVariable or symbolFunction, detect first.
 	Symbol * asymptr = NULL;
@@ -6934,7 +6934,6 @@ Node * Parser::wrapFactor(Node * leftNode)
     // don't keep the ceForArraySize if the type belongs to another class!
     // we link an array type to its scalar type
 
-    //    if(arraysize != UNKNOWNSIZE)
     if(!((arraysize == UNKNOWNSIZE) || (args.m_arraysize == UNKNOWNSIZE))) //t3172
       {
 	delete ceForArraySize;
