@@ -157,7 +157,7 @@ namespace MFM{
           continue;
 
         default:
-          FAIL(INCOMPLETE_CODE);
+          ubsw.Printf("<unhandled '%%%c'>",ch);
         }
       }
     }
