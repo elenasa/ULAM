@@ -1,0 +1,121 @@
+/** Provide bulk bit storage for access via classids and recasting
+    
+    Bits are labeled left-to-right from 0..usableStorageLength()-1.
+
+    \since 5.0
+ */
+transient BitStorage {
+  //// BitStorage API
+  virtual Unsigned usableStorageLength() ; //< Concrete available size, in bits
+
+  //// BitStorage SERVICES
+  typedef Bits(64) Bits64;
+  
+  /** Write the rightmost \c len (0..64) bits of \c val into this
+      BitStorage, with the leftmost written bit starting at position
+      \c pos
+
+      \fails if \c pos + \c len is greater than the actual size of the
+      underlying storage (which, strictly speaking, is not necessarily
+      equal to \c usableStorageLength(), since the latter is dependent
+      on subclass user code.)
+   */
+  Void write(Bits64 val, Unsigned pos, Unsigned len) native;
+
+  /** Read \c len (0..64) bits from this BitStorage, starting at
+      position \c pos, and return the value right-justified in an
+      otherwise-zeroed Bits64.
+
+      \fails if \c pos + \c len is greater than the actual size of the
+      underlying storage (which, strictly speaking, is not necessarily
+      equal to \c usableStorageLength(), since the latter is dependent
+      on subclass user code.)
+   */
+  Bits64 read(Unsigned pos, Unsigned len) native;
+
+  /** Compute and return a 32 bit CRC of bits 0..\c len - 1 of this
+      BitStorage.  Note that in normal usage, (some suffix of) the CRC
+      will also be stored in the BitStorage starting at postion \c
+      len, but that is not performed or ensured by this function.
+
+      \fails if \c len is greater than the actual size of the
+      underlying storage (which, strictly speaking, is not necessarily
+      equal to \c usableStorageLength(), since the latter is dependent
+      on subclass user code.)
+   */
+  Bits(32) computeChecksum(Unsigned len) native;
+
+  /** \return true iff the 32 bit checksum of the current value of
+      bits 0..\c len-1 of this BitStorage is currently stored in bit
+      positions \c len..\c len+32 of this BitStorage
+   */
+  Bool isChecksumValid(Unsigned len) { return isChecksumValid(len, 32u); }
+
+  /** \return true iff the \c chkbits (0..32) bit checksum of the
+      current value of bits 0..\c len-1 of this BitStorage is
+      currently stored in bit positions \c len..\c len+\c chkbits of
+      this BitStorage
+   */
+  Bool isChecksumValid(Unsigned len, Unary(32) chkbits) {
+    Bits(32) computed = computeChecksum(len);
+    Bits(32) stored = (Bits(32)) read(len,chkbits);
+    Bits(32) mask = Unsigned(32).maxof >> (32u - chkbits);
+    return (computed & mask) == stored;
+  }
+
+  /** Computes the current 32 bit checksum of bits 0..\c len-1 of this
+      BitStorage and stores it in bits \c len..\c len+32 of this BitStorage
+
+      \fails if \c len is greater than the actual size of the
+      underlying storage (which, strictly speaking, is not necessarily
+      equal to \c usableStorageLength(), since the latter is dependent
+      on subclass user code.)
+
+      \returns true unless insufficient bits available for a 32 bit checksum
+   */
+  Bool updateChecksum(Unsigned len) { return updateChecksum(len, 32u); }
+
+  /** Computes the current \c chkbits (0..32) bit checksum of bits
+      0..\c len-1 of this BitStorage and stores it in bits \c len..\c
+      len+\c chkbits of this BitStorage
+
+      \fails if \c len is greater than the actual size of the
+      underlying storage (which, strictly speaking, is not necessarily
+      equal to \c usableStorageLength(), since the latter is dependent
+      on subclass user code.)
+
+      \returns true unless insufficient bits available for a \c
+      chkbits bit checksum
+   */
+  Bool updateChecksum(Unsigned len, Unary(32) chkbits) {
+    if (len + chkbits > usableStorageLength()) return false;
+    Bits(32) computed = computeChecksum(len);
+    write(computed, len, chkbits);
+    return true;
+  }
+
+  /** Renterpret the bits of this BitStorage obj as an instance of the
+      arbitrary quark or transient type specified by \c
+      concreteClassId.  If \c init is true, initialize (the
+      appropriate prefix of) those bits to the default value of
+      concreteClassId.  If \c init is false, the current contents of
+      this BitStorage are not changed.
+
+      Note that elements and Atoms are not supported, directly, via
+      this mechanism since manipulations of the atomic type bits are
+      almost always unwise -- and AtomUtils can handle many such
+      needs.  If you must do such here, wrap the atom in a transient,
+      reinterpret to that transient and then work with its data
+      members -- and expect failures and fragility.
+
+      \fails ILLEGAL_ARGUMENT if \c concreteClassId is not a known classid
+      \fails UNSUPPORTED_OPERATION if it is not a quark or transient
+
+      \fails BAD_CAST if it is not a subclass of UrSelf (should be impossible)
+      \fails ARRAY_INDEX_OUT_OF_BOUNDS if it is too big to fit in mBits (should also be impossible)
+
+      \sa AtomUtils
+  */
+  UrSelf & recast(Unsigned concreteClassId, Bool init) native;
+}
+
