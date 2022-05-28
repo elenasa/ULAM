@@ -108,6 +108,45 @@ namespace MFM{
 
         Format::Type fmt;
         switch (ch) {
+
+#if 0 /*NOT READY FOR PRIME TIME (NEED VARARG REFS)*/
+        case 'v': {
+          const UlamTypeInfoClass * asclass = uti.AsClass();
+          if (!asclass) {
+            if (asprim) { // Let %v == decimal for primitives
+              fmt = Format::DEC;
+              goto printinbase;
+            }
+            continue;
+          }
+
+          if (!uc.HasUlamClassRegistry()) {
+            ubsw.Printf("<<NO UCR (%s)>>", mangled);
+            continue;
+          }
+          const UlamClassRegistry<EC>& ucr = uc.GetUlamClassRegistry();
+
+          const UlamClass<EC> * argclass = ucr.GetUlamClassByMangledName(mangled); 
+          if (!argclass) {
+            ubsw.Printf("<<NO ARGCLASS (%s)>>", mangled);
+            continue;
+          }
+
+          const bool iselt = uti.IsElement();
+          const typename UlamRef<EC>::UsageType argtype =
+            iselt ? UlamRef<EC>::ELEMENTAL : UlamRef<EC>::CLASSIC;
+          const u32 pos = iselt ? 25u : 0u; // ???
+          const u32 len = argclass->GetClassLength();
+
+          UlamRef<EC> effref(pos, len, *arg, argclass, argtype, uc);
+          OString4096 buff;
+          DebugPrint<EC>(uc, effref, buff);
+
+          ubsw.Print(buff.GetBuffer(), buff.GetLength());
+          continue;
+        }
+#endif
+
         case 'x': fmt = Format::HEX; goto printinbase;
         case 'b': fmt = Format::BIN; goto printinbase;
         case 'o': fmt = Format::OCT; goto printinbase;
