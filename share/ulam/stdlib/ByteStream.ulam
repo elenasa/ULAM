@@ -66,6 +66,13 @@ quark ByteStreamWriter +ByteStream {
     return self;
   }
 
+  /**
+     Print a debugging-oriented representation of urs.
+
+     \since 5.0
+   */
+  Self & print(UrSelf & urs) native ;
+
   Self & print(Bool b)
   {
     ASCII ch = '0';

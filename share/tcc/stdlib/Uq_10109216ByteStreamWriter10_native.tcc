@@ -1,11 +1,67 @@
 /**                                      -*- mode:C++ -*- */
 
 #include "UlamDefs.h"
+#include "DebugTools.h"         /* For DebugPrint */
 /*#include "Uq_10106UrSelf10.h"*/
 #include "UlamByteWrappers.h"
 #include <stdarg.h>  /* For ... */
 
+#ifndef Ud_Ui_Ut_r102961a
+#define Ud_Ui_Ut_r102961a
 namespace MFM{
+  template<class EC>
+  struct Ui_Ut_r102961a : public UlamRef<EC>
+  {
+    typedef typename EC::ATOM_CONFIG AC;
+    typedef typename AC::ATOM_TYPE T;
+    enum { BPA = AC::BITS_PER_ATOM };
+
+    T read() const { return UlamRef<EC>::ReadAtom(); /* read entire atom */ } //gcnl:UlamTypeAtom.cpp:259
+    void  read(T& rtnbv) const { rtnbv = UlamRef<EC>::ReadAtom(); /* read entire atom ref */ } //gcnl:UlamTypeAtom.cpp:272
+    void write(const T& v) { UlamRef<EC>::WriteAtom(v); /* write entire atom */ } //gcnl:UlamTypeAtom.cpp:290
+    void write(const AtomRefBitStorage<EC>& v) { UlamRef<EC>::WriteAtom(v.ReadAtom()); /* write entire atom */ } //gcnl:UlamTypeAtom.cpp:298
+    Ui_Ut_r102961a(BitStorage<EC>& targ, u32 startidx, const UlamContext<EC>& uc) : UlamRef<EC>(startidx, BPA, targ, uc.LookupUlamElementTypeFromContext(targ.ReadAtom(startidx).GetType()), UlamRef<EC>::ATOMIC, uc) { } //gcnl:UlamTypeAtom.cpp:209
+    Ui_Ut_r102961a(const UlamRef<EC>& arg, s32 incr) : UlamRef<EC>(arg, incr, BPA, NULL, UlamRef<EC>::ATOMIC) { } //gcnl:UlamTypeAtom.cpp:217
+    Ui_Ut_r102961a(const Ui_Ut_r102961a& arg) : UlamRef<EC>(arg, 0, arg.GetLen(), arg.GetEffectiveSelf(), UlamRef<EC>::ATOMIC) { } //gcnl:UlamTypeAtom.cpp:225
+    Ui_Ut_r102961a& operator=(const Ui_Ut_r102961a& rhs); //declare away //gcnl:UlamTypeAtom.cpp:234
+  };
+} //MFM
+#endif /*Ud_Ui_Ut_r102961a */
+
+namespace MFM{
+
+//! ByteStream.ulam:69:   Self & print(UrSelf & urs)
+  template<class EC>
+  Ui_Uq_r10109216ByteStreamWriter10<EC> Uq_10109216ByteStreamWriter10<EC>::Uf_5print(const UlamContext<EC>& uc, UlamRef<EC>& ur, Ui_Uq_r10106UrSelf10<EC>& Ur_3urs) const
+  {
+    Ui_Uq_r10109216ByteStreamWriter10<EC> ret(ur);
+
+    OString4096 buff;
+    const bool isElementType = (Ur_3urs.GetType() != T::ATOM_UNDEFINED_TYPE); 
+    if(isElementType) {
+      Ui_Ut_r102961a<EC> atomref(Ur_3urs, -Ur_3urs.GetPosToEffectiveSelf() - T::ATOM_FIRST_STATE_BIT); 
+      DebugPrint<EC>(uc, atomref, buff);
+    } else {
+      DebugPrint<EC>(uc, Ur_3urs, buff); // Else better be primitive I guess
+    }
+
+    {
+      VfuncPtr writeByte;
+      UlamRef<EC> vfur(ur, Uq_10109216ByteStreamWriter10<EC>::VOWNED_IDX_Uf_919writeByte1110181u, Uq_10109216ByteStreamWriter10<EC>::THE_INSTANCE, writeByte);
+
+      Uq_10109216ByteStreamWriter10<EC>::Uf_919writeByte1110181u writeByteFunc
+        = (Uq_10109216ByteStreamWriter10<EC>::Uf_919writeByte1110181u) writeByte;
+
+      _UlamByteSinkWrapper<EC> ubsw(uc, vfur, writeByteFunc);
+
+      for (const char * p = buff.GetZString(); *p != 0; ++p) {
+          ubsw.WriteByte(*p);
+      }
+
+    }
+
+    return ret;
+  } // Uf_5print
 
   template<class EC>
   Ui_Uq_r10109216ByteStreamWriter10<EC> Uq_10109216ByteStreamWriter10<EC>::Uf_6printf(const UlamContext<EC>& uc, UlamRef<EC>& ur, Ui_Ut_102201s<EC>& Uv_3fmt, ...) const
