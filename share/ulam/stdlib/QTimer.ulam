@@ -1,0 +1,75 @@
+ulam 5;
+use XTimer;
+
+/**
+   A base class for XTimer and RXTimer access. Provides a virtual API
+   so arbitrary-width (R)XTimer instances can be handled via a uniform
+   interface (at the cost of virtual method calls).
+
+   \sa XTimer
+   \sa QXTimer
+   \sa QRXTimer
+
+   \since 5.0
+   \author Dave Ackley
+   \copyright 2022 Living Computation Foundation
+   \version 1
+   \license lgpl
+ */
+quark QTimer {
+  //// QTimer API
+  virtual Void reset() ;
+
+  virtual Void trigger() ;
+
+  virtual Bool alarm() ;
+
+  virtual Unsigned current() ;
+
+  virtual Void set(Unsigned newv) ;
+
+  virtual Unsigned max() ;
+
+  virtual Unsigned count() ;
+
+  Bool countAlarm() {
+    count();
+    return alarm();
+  }
+}
+
+quark QXTimer(Unary(5) bits, Unsigned triggerLevel, Unsigned k) : QTimer
+{
+  typedef XTimer(bits,triggerLevel,k) MyXTimer;
+
+  typedef MyXTimer.Counter Counter;
+
+  MyXTimer mTimer;
+
+  //// QTimer API
+  @Override virtual Void reset() {            return mTimer.reset(); }
+  @Override virtual Void trigger() {          return mTimer.trigger(); }
+  @Override virtual Bool alarm() {            return mTimer.alarm(); }
+  @Override virtual Unsigned current() {      return mTimer.current(); }
+  @Override virtual Void set(Unsigned newv) { return mTimer.set((Counter) newv); }
+  @Override virtual Unsigned max() {          return mTimer.max(); }
+  @Override virtual Unsigned count() {        return mTimer.count(); }
+}
+
+quark QRXTimer(Unary(5) bits, Unsigned triggerLevel, Unsigned k) : QTimer
+{
+  typedef RXTimer(bits,triggerLevel,k) MyXTimer;
+
+  typedef MyXTimer.Counter Counter;
+
+  MyXTimer mTimer;
+
+  //// QTimer API
+  @Override virtual Void reset() {            return mTimer.reset(); }
+  @Override virtual Void trigger() {          return mTimer.trigger(); }
+  @Override virtual Bool alarm() {            return mTimer.alarm(); }
+  @Override virtual Unsigned current() {      return mTimer.current(); }
+  @Override virtual Void set(Unsigned newv) { return mTimer.set((Counter) newv); }
+  @Override virtual Unsigned max() {          return mTimer.max(); }
+  @Override virtual Unsigned count() {        return mTimer.count(); }
+}
