@@ -1,0 +1,77 @@
+## -*- mode:ulam -*-
+#=t41592_test_compiler_transientwithtransientarraydmpassedtofuncasurselfref_ish
+##      gen code output: (1 asserts)
+##          Bool(3) Arg: 0x7 (true)
+#!
+Exit status: 0
+Ue_R { Bool b(false);  Bool c(false);  Int test() {  System s;  MyElement me;  me ( )behave . 0 cast return } }
+Uq_System { <NOMAIN> }
+Ue_MyElement { <NOMAIN> }
+Un_Foo { Bool bool(false);  <NOMAIN> }
+Un_Bar { Foo mFoos[4]( Bool bool(false); ), ( Bool bool(false); ), ( Bool bool(false); ), ( Bool bool(false); );  <NOMAIN> }
+##
+## informed by Dave 6/2/22 ish:
+##    Fix: NodeCast::genCodeCastDescentdant l2006 assumed zero tmpvarDM meant non-ref stgcos,
+##    but missed the case when stgcos and vuti were the same and refs.
+##
+#>R.ulam
+  ulam 2;
+use System;
+element R {
+  Bool b, c;
+
+  Int test(){
+    System s;
+    MyElement me;
+    me.behave();
+    return 0;
+  }
+}
+
+#:Foo.ulam
+  ulam 5;
+transient Foo {
+  Bool bool;
+}
+
+#:Bar.ulam
+  ulam 5;
+transient Bar {
+  Foo mFoos[4];
+}
+
+
+#:MyElement.ulam
+  ulam 5;
+element MyElement {
+  Void func(UrSelf& urs)
+  {
+    System s;
+    Bool btmp;
+    if(urs as Foo)
+    {
+      btmp = urs.bool;
+    }
+    s.print(btmp);
+    s.assert(btmp);
+  }
+
+  Void behave() {
+    Bar b;
+    b.mFoos[2].bool = true;
+    func(b.mFoos[2]);
+  }
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

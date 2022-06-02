@@ -2003,7 +2003,7 @@ namespace MFM {
       }
     else if(cos->isDataMember())
       {
-	if(tmpvarDM == 0) //stgcos is non-ref, accepts delta arg
+	if(!stgcosut->isReference())//stgcos is non-ref, accepts delta arg
 	  {
 	    if(Node::needAdjustToStateBits(stgcosuti) || Node::needAdjustToStateBits(cosuti)) //t41292, t3735
 	      fp->write(" + T::ATOM_FIRST_STATE_BIT");
@@ -2017,7 +2017,7 @@ namespace MFM {
 	  }
 	else
 	  {
-	    fp->write(");"); GCNL; //cos is data member,t41366
+	    fp->write(");"); GCNL; //cos is data member,t41366,t41592
 	  }
       }
     else if(!stgcosut->isReference()) //not AltRefType, case ALT_AS (t41365)
