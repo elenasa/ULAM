@@ -1,0 +1,87 @@
+## -*- mode:ulam -*-
+#=t41484_test_compiler_constantatomarray
+##
+## gen output: (1 assert only)
+##
+#!
+Exit status: 1
+Ue_KeyExprRep { Bool mb(true);  Int test() {  System s;  Int i = 2 cast;  KeyExprNode keyvar = cKEYS i [];  Atom a = cAtom i [];  { a KeyExprNode is cond { KeyExprNode m_key = a cast;  s ( m_key m_rightIndex . cast )print . s ( m_key m_rightIndex . 2u cast == )assert . } if { self mb . true = s ( true )assert . } else } self mb . cast return } }
+Ue_KeyExprNode { typedef Unsigned(8) Byte;  Unsigned(8) m_leftIndex(0);  Unsigned(8) m_rightIndex(0);  Unsigned(8) m_keyCode(0);  Unsigned(8) m_op(0);  <NOMAIN> }
+Ue_DReg { /* empty class block */ }
+Uq_System { <NOMAIN> }
+##
+## informed by Dave request 4/16/21 for constant atom, started w t41263.
+##  see t41483 for first scalar attempt.
+##
+##
+#>KeyExprRep.ulam
+  ulam 5;
+use KeyExprNode;
+local constant DReg cDReg = { };
+local constant KeyExprNode keyexpr_x13[] = {
+  { .m_leftIndex = 1, .m_rightIndex = 2, .m_keyCode = 0, .m_op = '|' }, // [0]
+  { .m_leftIndex = 3, .m_rightIndex = 4, .m_keyCode = 0, .m_op = '&' }, // [1]
+  { .m_leftIndex = 0, .m_rightIndex = 0, .m_keyCode = 'c', .m_op = 0 }, // [2]
+  { .m_leftIndex = 0, .m_rightIndex = 0, .m_keyCode = 'a', .m_op = 0 }, // [3]
+  { .m_leftIndex = 0, .m_rightIndex = 0, .m_keyCode = 'b', .m_op = 0 }, // [4] , EXTRA COMMA at the end??? no difference
+};
+
+//compare gencode and eval
+local constant KeyExprNode cKEYS[3] = { keyexpr_x13[1], keyexpr_x13[3], keyexpr_x13[0] };
+
+local constant Atom cAtom[3] = { keyexpr_x13[0], keyexpr_x13[3], cDReg };
+
+
+element KeyExprRep {
+  Bool mb;
+  Int test() {
+    System s;
+    Int i = 2;
+
+    KeyExprNode keyvar = cKEYS[i]; //compare gencode
+
+    //Atom a = cKEYS[i]; //cAtom[i];
+    Atom a = cAtom[i];
+
+    if(a is KeyExprNode)
+    {
+      KeyExprNode m_key = (KeyExprNode) a; //keyexpr_x13[0];
+      s.print(m_key.m_rightIndex);
+      s.assert(m_key.m_rightIndex==2u);
+    }
+    else
+    {
+      mb = true;
+      s.assert(true);
+    }
+    return (Int) mb;
+  }
+}
+
+#:KeyExprNode.ulam
+  ulam 3;
+element KeyExprNode {
+  typedef Unsigned(8) Byte;
+  Byte m_leftIndex;  // for [,|&~]
+  Byte m_rightIndex; // for [,|&]
+  Byte m_keyCode;    // [a-zA-Z.@_?] or 0
+  Byte m_op;         // [,|&~] or 0
+}
+
+#:DReg.ulam
+  ulam 1;
+element DReg {
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

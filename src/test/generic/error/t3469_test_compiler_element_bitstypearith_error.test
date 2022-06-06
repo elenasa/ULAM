@@ -3,7 +3,7 @@
 #!
 ./Foo.ulam:7:18: ERROR: Incompatible types for binary + : Bits(3), Bits(3); Suggest casting to a numeric type first.
 ./Foo.ulam:7:9: ERROR: Assignment is invalid; LHS: Bits(3); RHS: erroneous.
-./Foo.ulam:8:1: ERROR: Use explicit cast to return Bits(3) as Int(32).
+./Foo.ulam:8:1: ERROR: Use explicit cast to return Bits(3) as Int.
 Unrecoverable Program Type Label FAILURE.
 ##
 ##      //informed by t3194

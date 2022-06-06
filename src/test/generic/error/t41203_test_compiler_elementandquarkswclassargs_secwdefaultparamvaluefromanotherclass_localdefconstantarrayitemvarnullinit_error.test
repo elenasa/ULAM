@@ -2,6 +2,7 @@
 #=t41203_test_compiler_elementandquarkswclassargs_secwdefaultparamvaluefromanotherclass_localdefconstantarrayitemvarnullinit_error
 #!
 ./V.ulam:5:0: ERROR: Invalid size (0) to set for primitive type: Unsigned.
+./V.ulam:3:3: ERROR: Incomplete NodeVarDeclDM for type used with variable symbol name 'vfoo'.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t3892,  null constant array initialization (all zeros)

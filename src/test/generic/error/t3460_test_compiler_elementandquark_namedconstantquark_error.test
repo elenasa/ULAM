@@ -1,11 +1,13 @@
 ## -*- mode:ulam -*-
 #=t3460_test_compiler_elementandquark_namedconstantquark_error
 #!
-./Foo.ulam:5:12: ERROR: Constant value expression for: barchance, is not a constant.
+./Foo.ulam:5:28: ERROR: Variable 'self' is not defined, or was used before declared in a function.
+./Foo.ulam:5:28: ERROR: Member selected, self, is invalid here.
+./Foo.ulam:5:12: ERROR: Constant value expression for: barchance, is invalid.
 Unrecoverable Program Type Label FAILURE.
 ##
-##      //based on 3217
-##      //constant class can't be initialized to a non-constant (new ulam 3)
+##   based on 3217
+##   constant class can't be initialized to a non-constant (new ulam 3)
 ##
 #>Foo.ulam
   ulam 3;

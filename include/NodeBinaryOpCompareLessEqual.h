@@ -27,7 +27,7 @@
 
 /**
   \file NodeBinaryOpCompareLessEqual.h - Node for handling Less Equal Comparison for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
   \date (C) 2014-2017 rights reserved.
   \gpl

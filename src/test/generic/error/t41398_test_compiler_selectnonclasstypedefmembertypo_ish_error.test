@@ -1,0 +1,47 @@
+## -*- mode:ulam -*-
+#=t41398_test_compiler_selectnonclasstypedefmembertypo_ish_error
+#!
+./A.ulam:15:15: ERROR: Member Select followed by a Type: Stage must be a Class type.
+./A.ulam:15:15: ERROR: Unexpected input!! Token <Stage>.
+./A.ulam:15:20: ERROR: Invalid Statement (possible missing semicolon).
+Unrecoverable Program Parse FAILURE: <A.ulam>
+Unrecoverable Program Parse FAILURE: <System.ulam>
+##
+## Based on Dave ish 04262020: Typo changes function call to constructor, but assert is triggered when typedef already exists.
+## Primitive member select type is an error; Parser error replaces assert (CompilerState:460);
+## (see also t41399, t41400 for Holder and Hzy variations, respectively), and t41401 for safe version.
+##
+#>A.ulam
+  ulam 5;
+element A {
+  typedef Unsigned(3) Stage;
+
+  Stage stage()
+  {
+    return 3;
+  }
+
+  Int test() {
+    System s;
+    A a;
+    Stage stg = a.stage();
+    s.assert(stg==3);
+    s.print(a.Stage()); //TYPO!! is Unsigned
+
+    return (Int) stg;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

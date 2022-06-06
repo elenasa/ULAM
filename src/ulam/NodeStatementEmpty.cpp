@@ -50,7 +50,7 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-  UTI NodeStatementEmpty::checkAndLabelType()
+  UTI NodeStatementEmpty::checkAndLabelType(Node * thisparentnode)
   {
     setNodeType(Void);
     return getNodeType();

@@ -1,0 +1,73 @@
+## -*- mode:ulam -*-
+#=t41367_test_compiler_elementandquark_elementatomoffunccallarg
+##
+##  gen code output: (3 asserts)
+#!
+Exit status: 0
+Ue_A : QW { Unsigned m_int(0u);  :QW< Bool b(true);  Bool c(false);  Bool d(true);  :QBase< Bool m_qb(false); > +System<>> ^QBase< Bool m_qb(false); > ^System<> Int test() {  self ( )behave . 0 cast return } }
+Uq_QW : QBase +System { Bool b(false);  Bool c(false);  Bool d(false);  :QBase< Bool m_qb(false); > +System<> <NOMAIN> }
+Uq_QBase { Bool m_qb(false);  <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## Informed by t3684, and current Dave issue Sat Oct 26 2019
+##  move guts into baseclass behave method.
+##
+#>A.ulam
+  ulam 2;
+use QW;
+element A : QW {
+  Unsigned m_int;
+  Int test(){
+    behave();
+    return 0;
+  }
+}
+
+#:QW.ulam
+  ulam 5;
+quark QW : QBase + System {
+  Bool b, c, d;
+  Void behave()
+  {
+    b = func(self.atomof);
+    assert(b);
+
+    d = func((Atom&) self); //another way
+    assert(d);
+
+    Atom a;
+    c = func(a);
+    assert(!c);
+  }
+
+  Bool doit(Atom& a)
+  {
+    return func(a);
+  }
+
+}
+
+#:QBase.ulam
+  ulam 5;
+quark QBase {
+  Bool m_qb;
+
+  Bool func(Atom& aarg)
+  {
+    return (aarg is Self);
+  }
+
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

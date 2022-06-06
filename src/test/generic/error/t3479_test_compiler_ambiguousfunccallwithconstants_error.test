@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3479_test_compiler_ambiguousfunccallwithconstants_error
 #!
-./Tu.ulam:12:9: ERROR: Ambiguous matches (2) of function <func> called with 1 argument type: Int(2), explicit casting is required.
+./Tu.ulam:12:9: ERROR: Ambiguous matches (2) of function 'func' called with 1 argument type: Int(2), explicit casting is required.
 ./Tu.ulam:4:4: NOTE: Match (1 of 2) : Int(3) func(Int(3) arg).
 ./Tu.ulam:8:4: NOTE: Match (2 of 2) : Int(4) func(Int(4) arg).
 Unrecoverable Program Type Label FAILURE.

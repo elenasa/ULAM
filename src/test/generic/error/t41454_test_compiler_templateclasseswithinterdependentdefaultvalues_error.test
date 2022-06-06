@@ -1,0 +1,40 @@
+## -*- mode:ulam -*-
+#=t41454_test_compiler_templateclasseswithinterdependentdefaultvalues_error
+#!
+./Foo.ulam:2:19: ERROR: Not ready constant for type: Int, used with symbol name 'b', while compiling Foo(a,b) (UTI 32).
+./Foo.ulam:2:11: ERROR: Constant value expression for: a, is not ready, still hazy, while compiling Foo(a,b) (UTI 32).
+./Foo.ulam:2:30: ERROR: Not ready constant for type: Int, used with symbol name 'a', while compiling Foo(a,b) (UTI 32).
+./Foo.ulam:2:22: ERROR: Constant value expression for: b, is not ready, still hazy, while compiling Foo(a,b) (UTI 32).
+./R.ulam:5:5: ERROR: Incomplete NodeVarDecl for type: Foo(a,b) used with variable symbol name 'f'.
+./R.ulam:5:5: ERROR: Variable for: 'f', is still hazy.
+./Foo.ulam:3:7: ERROR: Not ready constant for type: Int, used with symbol name 'a', while compiling Foo(a,b) (UTI 32).
+./Foo.ulam:3:3: ERROR: Type Bitsize specifier, within (), is not ready.
+./Foo.ulam:3:3: ERROR: Incomplete NodeVarDeclDM for type: Int(UNKNOWN) used with variable symbol name 'm_a'.
+./Foo.ulam:3:3: ERROR: Variable for: 'm_a', is still hazy.
+./Foo.ulam:4:7: ERROR: Not ready constant for type: Int, used with symbol name 'b', while compiling Foo(a,b) (UTI 32).
+./Foo.ulam:4:3: ERROR: Type Bitsize specifier, within (), is not ready.
+./Foo.ulam:4:3: ERROR: Incomplete NodeVarDeclDM for type: Int(UNKNOWN) used with variable symbol name 'm_b'.
+./Foo.ulam:4:3: ERROR: Variable for: 'm_b', is still hazy.
+Unrecoverable Program Type Label FAILURE.
+##
+## Dave was worried..
+##
+#>R.ulam
+  ulam 5;
+element R {
+  Int test()
+  {
+    Foo() f;
+    //Foo(1) e; //ok
+    return 0;
+  }
+}
+
+#:Foo.ulam
+  ulam 5;
+quark Foo(Int a = b, Int b = a) {
+  Int(a) m_a;
+  Int(b) m_b;
+}
+
+#.

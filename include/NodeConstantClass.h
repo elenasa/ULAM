@@ -2,7 +2,8 @@
  * NodeConstantClass.h - Node handling Named Constant classes for ULAM
  *
  * Copyright (C) 2018 The Regents of the University of New Mexico.
- * Copyright (C) 2018 Ackleyshack LLC.
+ * Copyright (C) 2018-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +28,9 @@
 
 /**
   \file NodeConstantClass.h - Node handling Named Constant classes for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2018 All rights reserved.
+  \date (C) 2018-2021 All rights reserved.
   \gpl
 */
 
@@ -51,6 +52,8 @@ namespace MFM{
 
     NodeConstantClass(const Token& tok, SymbolWithValue * symptr, NodeTypeDescriptor * typedesc, CompilerState & state);
 
+    NodeConstantClass(const Token& tok, NNO stblockno, UTI constantType, NodeTypeDescriptor * typedesc, CompilerState & state);
+
     NodeConstantClass(const NodeConstantClass& ref);
 
     virtual ~NodeConstantClass();
@@ -67,7 +70,11 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
-    virtual bool getSymbolPtr(Symbol *& symptrref);
+    virtual bool getSymbolPtr(const Symbol *& symptrref);
+
+    virtual bool hasASymbol();
+
+    virtual u32 getSymbolId();
 
     virtual bool hasASymbolDataMember();
 
@@ -81,9 +88,7 @@ namespace MFM{
 
     virtual FORECAST safeToCastTo(UTI newType);
 
-    virtual UTI checkAndLabelType();
-
-    virtual bool assignClassArgValueInStubCopy();
+    virtual UTI checkAndLabelType(Node * thisparentnode);
 
     virtual bool getConstantValue(BV8K& bval);
 
@@ -105,6 +110,8 @@ namespace MFM{
 
     virtual void checkForSymbol();
 
+    virtual void clearSymbolPtr();
+
   private:
     NNO m_currBlockNo;
     NodeBlock * m_currBlockPtr; //could be NULL
@@ -120,7 +127,7 @@ namespace MFM{
 
     UlamValue makeUlamValuePtr();
     void makeUVPassForCodeGen(UVPass& uvpass);
-    void setupStackWithClassForEval();
+    UTI setupStackWithClassForEval(); //return effself type
 
     bool getClassValue(BV8K& bvtmp);
   };

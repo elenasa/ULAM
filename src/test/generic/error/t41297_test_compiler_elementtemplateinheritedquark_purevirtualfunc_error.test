@@ -1,0 +1,62 @@
+## -*- mode:ulam -*-
+#=t41297_test_compiler_elementtemplateinheritedquark_purevirtualfunc_error
+#!
+./Foo.ulam:2:9: ERROR: Element 'Foo' is abstract due to these pure functions..
+./QMemBase.ulam:7:15: NOTE: Still pure in Foo: Int vfunc().
+./Test.ulam:5:5: ERROR: 'fb' is type FooBase(1), which is abstract due to these pure functions..
+./QMemBase.ulam:7:15: NOTE: Still pure in FooBase(1): Int vfunc().
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by t41296, t3607; checks instances of abstract templates,
+## unlike regular Element classes
+##
+#:QMemBase.ulam
+  ulam 2;
+quark QMemBase(Int(3) n) {
+  Int(3) bmem = n;
+  Int func() {
+    return vfunc();
+  }
+  virtual Int vfunc(); //pure
+}
+
+#:QSubBase1.ulam
+  ulam 2;
+quark QSubBase1(Int(3) base) : QMemBase(base)
+{
+  //virtual Int vfunc() {
+  //  return 3;
+  // }
+}
+
+#:QSubBase2.ulam
+  ulam 2;
+quark QSubBase2 : QMemBase(2) {
+  virtual Int vfunc() {
+    return bmem+2; //4
+  }
+}
+
+#:Foo.ulam
+  ulam 4;
+element Foo : QSubBase1(1) {
+  QSubBase2 m2;
+}
+
+#:FooBase.ulam
+  ulam 4;
+element FooBase(Int(3) fbase) : QSubBase1(fbase) {
+  QSubBase2 m2;
+}
+
+#>Test.ulam
+  ulam 2;
+element Test {
+  Int test() {
+    //Foo f; //instance not required to catch regular abstract element
+    FooBase(1) fb; //template instance required to catch abstract element
+    return 0;
+  }
+}
+
+#.

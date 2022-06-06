@@ -1,9 +1,9 @@
 ## -*- mode:ulam -*-
 #=t3761_test_compiler_atomoftransient_error
 #!
-./R.ulam:8:21: ERROR: <at> is a transient; Transients cannot be used with .atomof.
+./R.ulam:8:21: ERROR: 'at' is a transient; Transients cannot be used with .atomof.
 ./R.ulam:8:5: ERROR: Initial value expression for: atom2, initialization is invalid.
-./A.ulam:6:17: ERROR: <self> is a transient reference; Transients cannot be used with .atomof.
+./A.ulam:6:17: ERROR: 'self' is a transient reference; Transients cannot be used with .atomof.
 Unrecoverable Program Type Label FAILURE.
 #>R.ulam
   ulam 2;

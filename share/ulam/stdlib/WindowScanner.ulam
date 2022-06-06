@@ -28,15 +28,39 @@ transient WindowScanner {
 
   SiteNum mSites[cCATEGORY_COUNT];
   Unsigned mWeights[cCATEGORY_COUNT];
+  Bool mIsMax[cCATEGORY_COUNT];     // Which categories are max weighed
+  Unsigned mMaxes[cCATEGORY_COUNT]; // For max weighted categories
   Unsigned mCategoriesInUse;
 
   Void resetCategories() { mCategoriesInUse = 0; }
 
+  /** Allocate a category that pick a winning site randomly in
+   * proportion to the weight it receives during categorization
+   *
+   * \returns the linear-weighted allocated category
+   * \sa allocateMaxCategory
+   */
   Category allocateCategory() {
     if (mCategoriesInUse >= cCATEGORY_COUNT) die();
     Category ret = (Category) mCategoriesInUse;
+    mIsMax[ret] = false;
     ++mCategoriesInUse;
     return ret;
+  }
+
+  /** Allocate a category that pick a winning site uniformly randomly
+   * among all ties for the greatest weight received during
+   * categorization
+   *
+   * \returns the max-weighted allocated category
+   * \sa allocateCategory
+   *
+   * \since 5.0
+   */
+  Category allocateMaxCategory() {
+    Category cat = allocateCategory();
+    mIsMax[cat] = true;
+    return cat;
   }
 
   Unsigned categoriesAvailable() {
@@ -69,7 +93,18 @@ transient WindowScanner {
   }
 
   SiteNum categorize(SiteNum sn, Category categ, Unsigned weight) {
+    Unsigned w = weight;
     if (categ >= mCategoriesInUse) die();
+    if (mIsMax[categ]) {
+      if (weight < mMaxes[categ]) w = 0u; // No chance if already have better
+      else {
+        w = 1u;                       // Equally weight winners
+        if (weight > mMaxes[categ]) { // Actual new winner
+          mMaxes[categ] = weight;     // Remember new winner
+          mWeights[categ] = 0;        // Forget how many old losers
+        }
+      }
+    }
     mWeights[categ] += weight;
     if (mWeights[categ] == 0u) return SiteNum.maxof; // Flag value for bogons adding with no weight
     if (random.create(mWeights[categ]) < weight) {
@@ -79,6 +114,10 @@ transient WindowScanner {
   }
 
   Unsigned getHits(Category categ) { return mWeights[categ]; }
+  Unsigned getMax(Category categ) {
+    if (!mIsMax[categ]) return 0u;
+    return mMaxes[categ];
+  }
   SiteNum getSiteNum(Category categ) { return mSites[categ]; }
   C2D getCoord(Category categ) { return ew.getCoord(mSites[categ]); }
 }

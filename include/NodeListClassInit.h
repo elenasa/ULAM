@@ -2,7 +2,8 @@
  * NodeListClassInit.h - List of class initnodes for ULAM
  *
  * Copyright (C) 2018 The Regents of the University of New Mexico.
- * Copyright (C) 2018 Ackleyshack LLC.
+ * Copyright (C) 2018-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +28,9 @@
 
 /**
   \file NodeListClassInit.h - List of class init nodes for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2018 All rights reserved.
+  \date (C) 2018-2021 All rights reserved.
   \gpl
 */
 
@@ -59,6 +60,8 @@ namespace MFM{
 
     virtual const char * getName();
 
+    virtual u32 getNameId();
+
     virtual const std::string prettyNodeName();
 
     virtual FORECAST safeToCastTo(UTI newType);
@@ -69,7 +72,7 @@ namespace MFM{
 
     virtual bool isClassInit();
 
-    virtual UTI checkAndLabelType();
+    virtual UTI checkAndLabelType(Node * thisparentnode);
 
     virtual EvalStatus evalToStoreInto(u32 n);
 
@@ -81,7 +84,7 @@ namespace MFM{
 
     virtual UTI foldConstantExpression();
 
-    virtual UTI constantFold();
+    virtual UTI constantFold(Node * parentnode);
 
     virtual void genCode(File * fp, UVPass& uvpass);
 

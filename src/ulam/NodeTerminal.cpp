@@ -58,7 +58,7 @@ namespace MFM {
 
   const char * NodeTerminal::getName()
   {
-    u32 id = getNameId();
+    u32 id = NodeTerminal::getNameId();
     return m_state.m_pool.getDataAsString(id).c_str();
   } //getName
 
@@ -67,7 +67,7 @@ namespace MFM {
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     s32 nbitsize = nut->getBitSize();
-    assert(nbitsize >= 0);
+    //assert(nbitsize >= 0); t3668 Hazy, e.g. for countNavHazyNodes..
     ULAMTYPE etyp = nut->getUlamTypeEnum();
     std::ostringstream num;
     switch(etyp)
@@ -124,6 +124,11 @@ namespace MFM {
     return true;
   }
 
+  bool NodeTerminal::hasASymbol()
+  {
+    return false;
+  }
+
   FORECAST NodeTerminal::safeToCastTo(UTI newType)
   {
     if(m_state.isAltRefType(newType))
@@ -154,7 +159,7 @@ namespace MFM {
     return fitsInBits(newType) ? CAST_CLEAR : CAST_BAD;
   } //safeToCastTo
 
-  UTI NodeTerminal::checkAndLabelType()
+  UTI NodeTerminal::checkAndLabelType(Node * thisparentnode)
   {
     //numeric tokens are implicitily 64-bits
     // o.w. 64-bit constants got truncated; but no 32-bit sign extension.
@@ -316,7 +321,7 @@ namespace MFM {
   void NodeTerminal::makeTerminalPassForCodeGen(UVPass& uvpass)
   {
     UTI nuti = getNodeType();
-    u32 tid = getNameId();
+    u32 tid = NodeTerminal::getNameId();
 
     //TMPSTORAGE is TERMINAL, and VarNum is zero.
     uvpass = UVPass::makePass(0, TERMINAL, nuti, m_state.determinePackable(nuti), m_state, 0, tid);
@@ -373,6 +378,10 @@ namespace MFM {
     else if(fwordsize <= MAXBITSPERLONG) //64
       {
 	rtnb = fitsInBits64(destuti);
+      }
+    else if((dest->getUlamTypeEnum() == Bits) && (dest->getTotalBitSize() >= nut->getTotalBitSize()))
+      {
+	rtnb = true; //Any non-class type to Bits that's at least as big == a safe cast (t41563)
       }
     else
       {
@@ -569,34 +578,12 @@ namespace MFM {
     return rtnb;
   } //isNegativeConstant
 
-  // used during check and label for bitwise shift op that has a RHS constant term gt/ge 32;
+  // used during check and label for bitwise shift op that has a RHS constant term gt arg, 32 or 64;
   // since node is not the shiftee, unsigned/int distinction not pertinent
   // false is ok.
-  bool NodeTerminal::isWordSizeConstant()
+  bool NodeTerminal::isWordSizeConstant(u32 wordsize)
   {
-    bool rtnb = false;
-    UlamType * nut = m_state.getUlamTypeByIndex(getNodeType());
-    u32 wordsize = nut->getTotalWordSize();
-    ULAMTYPE etyp = nut->getUlamTypeEnum();
-    if(etyp == Int)
-      {
-	if(wordsize <= MAXBITSPERINT)
-	  rtnb = (m_constant.sval >= MAXBITSPERINT);
-	else if(wordsize <= MAXBITSPERLONG)
-	  rtnb = (m_constant.sval >= MAXBITSPERLONG);
-	else
-	  m_state.abortGreaterThanMaxBitsPerLong();
-      }
-    else if(etyp == Unsigned)
-      {
-	if(wordsize <= MAXBITSPERINT)
-	rtnb = (m_constant.uval >= (u32) MAXBITSPERINT);
-	else if(wordsize <= MAXBITSPERLONG)
-	  rtnb = (m_constant.uval >= (u32) MAXBITSPERLONG);
-	else
-	  m_state.abortGreaterThanMaxBitsPerLong();
-      }
-    return rtnb;
+    return  (m_constant.uval > wordsize); //use to be >=
   } //isWordSizeConstant
 
   void NodeTerminal::genCode(File * fp, UVPass& uvpass)
@@ -644,7 +631,7 @@ namespace MFM {
 	  m_state.abortGreaterThanMaxBitsPerLong();
       }
 
-    if(UlamType::compareForString(nuti, m_state) == UTIC_SAME)
+    if(m_state.isAStringType(nuti))
       {
 	u32 sidx = (m_constant.uval & STRINGIDXMASK);
 	assert((sidx > 0));
@@ -678,7 +665,7 @@ namespace MFM {
 	  if(errMsg)
 	    {
 	      std::ostringstream msg;
-	      msg << "Invalid signed constant <" << numstr.c_str() << ">: ";
+	      msg << "Invalid signed constant '" << numstr.c_str() << "': ";
               msg << errMsg;
 	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    }
@@ -696,7 +683,7 @@ namespace MFM {
 	  if(errMsg)
 	    {
 	      std::ostringstream msg;
-	      msg << "Invalid unsigned constant <" << numstr.c_str() << ">: ";
+	      msg << "Invalid unsigned constant '" << numstr.c_str() << "': ";
               msg << errMsg;
 	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    }

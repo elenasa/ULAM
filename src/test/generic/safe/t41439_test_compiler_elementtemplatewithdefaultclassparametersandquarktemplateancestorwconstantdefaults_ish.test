@@ -1,0 +1,84 @@
+## -*- mode:ulam -*-
+#=t41439_test_compiler_elementtemplatewithdefaultclassparametersandquarktemplateancestorwconstantdefaults_ish
+#!
+Exit status: 7
+Ue_R { Unsigned dsz(4u);  Unsigned psz(3u);  Int test() {  System s;  WatchDog(4u,15u) doggy;  self dsz . 4u = s ( self dsz . )print . s ( self dsz . 4u cast == )assert . WatchDog(3u,7u) puppy;  self psz . 3u = s ( self psz . )print . s ( self psz . 3u cast == )assert . self dsz . self psz . +b cast return } }
+Uq_System { <NOMAIN> }
+Uq_WatchDog(Unsigned(5) myProgressBits = 4u, Unsigned triggerLevel = NONREADYCONST) : RXTimer(bits,triggerLevel,1u) +Update { constant Unary(5) cDOG_BITS = myProgressBits;  constant Unsigned cDOG_MAXOF = Unsigned(UNKNOWN) maxof .;  constant Unsigned cDOG_TRIGGER = triggerLevel;  :RXTimer13< typedef Unsigned(UNKNOWN) Counter; > +Update<> <NOMAIN> }
+Uq_RXTimer(Unary(5) bits, Unsigned triggerLevel, Unsigned k) : XTimer(bits,triggerLevel,k) { typedef Unsigned(UNKNOWN) Counter;  :XTimer13< typedef Unsigned(UNKNOWN) Counter;  Unsigned(UNKNOWN) mCount(notready); > <NOMAIN> }
+Uq_Update { <NOMAIN> }
+Uq_XTimer(Unary(5) bits, Unsigned triggerLevel, Unsigned k) { typedef Unsigned(UNKNOWN) Counter;  Unsigned(UNKNOWN) mCount(notready);  <NOMAIN> }
+Ue_S : WatchDog(4u,15u) { /* empty class block */ }
+##
+## informed by Dave ish 3/28/2021 _033651. Constants within template for default values fails.
+##       use local constants, and other class parameters (see t41438 and t3526); was error test.
+##
+#>R.ulam
+  ulam 5;
+element R {
+  Unsigned dsz;
+  Unsigned psz;
+  Int test()
+  {
+    System s;
+    WatchDog() doggy;
+    dsz = doggy.sizeof;
+    s.print(dsz); //==4u
+    s.assert(dsz==4u);
+
+    WatchDog(3,7) puppy;
+    psz = puppy.sizeof;
+    s.print(psz); //==3u
+    s.assert(psz==3u);
+
+    return (Int) (dsz + psz);
+  }
+}
+
+#:WatchDog.ulam
+  ulam 5;
+quark WatchDog(Unsigned(5) myProgressBits = 4u, Unsigned triggerLevel = cDOG_MAXOF) : RXTimer(cDOG_BITS,cDOG_TRIGGER, 1) + Update {
+  constant Unary(5) cDOG_BITS = myProgressBits;
+  constant Unsigned cDOG_MAXOF = Unsigned(myProgressBits).maxof; //or Unsigned(cDOG_BITS).maxof;
+  constant Unsigned cDOG_TRIGGER = triggerLevel;
+}
+
+#:RXTimer.ulam
+  ulam 5;
+quark RXTimer(Unary(5) bits, Unsigned triggerLevel, Unsigned k) : XTimer(bits,triggerLevel,k) {
+  typedef Super.Counter Counter;
+
+}
+
+#:XTimer.ulam
+  ulam 5;
+quark XTimer(Unary(5) bits, Unsigned triggerLevel, Unsigned k)
+{
+  // With a max counter width of 5, the max value of Counter.maxof is
+  // 31, so 1u<<time cannot overflow
+  typedef Unsigned(bits) Counter;
+  Counter mCount;
+}
+
+#:Update.ulam
+  ulam 5;
+quark Update {
+  virtual Bool update() { return false; }
+}
+
+#:S.ulam
+  ulam 5;
+element S : WatchDog() { }
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

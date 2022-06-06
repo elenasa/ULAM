@@ -26,10 +26,10 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-  UTI NodeAtomof::checkAndLabelType()
+  UTI NodeAtomof::checkAndLabelType(Node * thisparentnode)
   {
     assert(m_nodeOf); //Identifier, not a Type; caught at parse time (right?)
-    UTI nuti = NodeStorageof::checkAndLabelType();
+    UTI nuti = NodeStorageof::checkAndLabelType(thisparentnode);
     if(m_state.okUTItoContinue(nuti))
       {
 	UTI vuti = m_nodeOf->getNodeType();
@@ -51,8 +51,8 @@ namespace MFM {
 		if(!m_nodeOf->hasASymbolDataMember())
 		  {
 		    std::ostringstream msg;
-		    msg << "<" << m_nodeOf->getName();
-		    msg << "> is a quark and cannot be used with ";
+		    msg << "'" << m_nodeOf->getName();
+		    msg << "' is a quark and cannot be used with ";
 		    msg << getName() << "; try a reference or self";
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		    setNodeType(Nav);
@@ -71,8 +71,8 @@ namespace MFM {
 	    else if(ofclasstype == UC_TRANSIENT)
 	      {
 		std::ostringstream msg;
-		msg << "<" << m_nodeOf->getName();
-		msg << "> is a transient";
+		msg << "'" << m_nodeOf->getName();
+		msg << "' is a transient";
 		msg << "; Transients cannot be used with " << getName();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		setNodeType(Nav); //e.g. error/t3761
@@ -82,8 +82,8 @@ namespace MFM {
 	else if(ofclasstype == UC_TRANSIENT)
 	  {
 	    std::ostringstream msg;
-	    msg << "<"  << m_nodeOf->getName();
-	    msg << "> is a transient reference";
+	    msg << "'"  << m_nodeOf->getName();
+	    msg << "' is a transient reference";
 	    msg << "; Transients cannot be used with " << getName();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    setNodeType(Nav); //e.g. error/t3762
@@ -128,9 +128,10 @@ namespace MFM {
     UlamValue ptr;
     UlamValue atomuv;
 
-    UTI auti = getOfType();
-    assert(m_nodeOf);
+    UTI nuti = getNodeType();
+    UTI auti = getOfType(); //deref'ed
 
+    assert(m_nodeOf);
     if(m_nodeOf->hasASymbolSelf())
       {
 	//when "self/atom" is a quark, we're inside a func called on a quark (e.g. dm or local)
@@ -139,19 +140,17 @@ namespace MFM {
 	UlamValue selfuvp = m_state.m_currentSelfPtr;
 	UTI ttype = selfuvp.getPtrTargetType();
 	assert(m_state.okUTItoContinue(ttype));
-	if((m_state.getUlamTypeByIndex(ttype)->getUlamClassType() == UC_QUARK))
+	if((m_state.getUlamTypeByIndex(ttype)->getUlamClassType() == UC_QUARK) && !m_state.isReference(ttype))
 	  {
-	    selfuvp = atomuv; //bail for error
+	    selfuvp = atomuv; //bail for error (fail/t3682)
 	  }
 	return selfuvp;
       } //done
 
     if(m_state.getReferenceType(auti) == ALT_AS)
       {
-	assert(0);
-	Symbol * vsym = NULL;
-	m_nodeOf->getSymbolPtr(vsym);
-	return ((SymbolVariableStack *) vsym)->getAutoPtrForEval(); //haha! we're done.
+	m_state.abortShouldntGetHere();
+	return m_nodeOf->getSymbolAutoPtrForEval(); //haha! we're done.
       }
 
     if(m_nodeOf->hasASymbolDataMember())
@@ -164,24 +163,41 @@ namespace MFM {
 	  {
 	    // return ptr to the m_currentObjPtr that contains this data member within
 	    ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), auti, m_state.determinePackable(getNodeType()), m_state, 0, 0); //id?
-
+	    ptr.setPtrTargetEffSelfType(m_state.m_currentObjPtr.getPtrTargetEffSelfType());
 	    ptr.checkForAbsolutePtr(m_state.m_currentObjPtr);
+	  }
+      }
+    //else if(vsym != NULL)
+    else if(m_nodeOf->hasASymbol())
+      {
+	UTI vuti = m_nodeOf->getNodeType(); //t3701,t3835,t3837
+	UlamType * vut = m_state.getUlamTypeByIndex(vuti);
+
+	if(vut->getUlamClassType() == UC_QUARK)
+	  {
+	    if(m_state.isReference(vuti)) //t3701,t3835,t3837
+	      ptr = m_nodeOf->getSymbolAutoPtrForEval(); //t3835
+	    else
+	      {
+		m_state.abortNeedsATest(); //this would be an error
+		ptr = atomuv; //bail
+	      }
+	  }
+	else
+	  {
+	    //local variable on the stack; could be array ptr! (t41531)
+	    ptr = UlamValue::makePtr(m_nodeOf->getSymbolStackFrameSlotIndex(), STACK, auti, m_state.determinePackable(auti), m_state, 0, m_nodeOf->getNameId()); //id?
+	    ptr.setPtrTargetEffSelfType(auti); //missing?
 	  }
       }
     else
       {
-	UTI vuti = getOfType();
-	UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-	if(vut->getUlamClassType() == UC_QUARK)
-	  ptr = atomuv; //bail
-	else
-	  {
-	  //local variable on the stack; could be array ptr!
-	    Symbol * vsym = NULL;
-	    m_nodeOf->getSymbolPtr(vsym);
-
-	    ptr = UlamValue::makePtr(((SymbolVariableStack *) vsym)->getStackFrameSlotIndex(), STACK, auti, m_state.determinePackable(vuti), m_state, 0, vsym->getId()); //id?
-	  }
+	//no symbol based on Class Type instead, like NodeInstanceof, (t41531)
+	u32 atop = 1;
+	atop = m_state.m_funcCallStack.getAbsoluteStackIndexOfSlot(atop);
+	ptr = UlamValue::makePtr(atop, STACK, nuti, m_state.determinePackable(nuti), m_state, 0);
+	ptr.setPtrTargetEffSelfType(auti);
+	ptr.setUlamValueTypeIdx(PtrAbs);
       }
     return ptr;
   } //makeUlamValuePtr
@@ -192,12 +208,17 @@ namespace MFM {
     assert(getStoreIntoAble() == TBOOL_TRUE);
 
     UTI nuti = getNodeType(); //UAtomRef
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
 
     if(m_nodeOf->hasASymbolReference() && (m_state.getUlamTypeByIndex(getOfType())->getUlamClassType() == UC_QUARK))
       {
+	m_nodeOf->genCodeToStoreInto(fp, uvpass);
+
 	Symbol * stgcos = NULL;
-	AssertBool gotstg = m_nodeOf->getStorageSymbolPtr(stgcos);
-	assert(gotstg);
+	Symbol * cos = NULL;
+	Node::loadStorageAndCurrentObjectSymbols(stgcos, cos);
+
+	m_state.clearCurrentObjSymbolsForCodeGen(); //t3663
 
 	m_state.indentUlamCode(fp);
 	fp->write("if(");
@@ -209,7 +230,6 @@ namespace MFM {
 	fp->write("FAIL(NOT_AN_ELEMENT);"); GCNL;
 	m_state.m_currentIndentLevel--;
 
-	UlamType * nut = m_state.getUlamTypeByIndex(nuti);
 	s32 tmpVarNum = m_state.getNextTmpVarNumber(); //tmp for atomref
 
 	m_state.indentUlamCode(fp); //non-const
@@ -219,7 +239,10 @@ namespace MFM {
 	fp->write("(");
 
 	fp->write(stgcos->getMangledName().c_str()); //ur for self
-	fp->write(", "); //is storage! can't be const (error/t3659)
+	fp->write(", - "); //is storage! can't be const (error/t3659), t3408
+
+	fp->write(stgcos->getMangledName().c_str()); //ur for self, cant assume 0u pos
+	fp->write(".GetPosToEffectiveSelf()"); //t3701
 
 	fp->write(" - T::ATOM_FIRST_STATE_BIT"); //must be an effective element ref (e.g.t3684, t3663)
 	fp->write("); //atomof"); GCNL;
@@ -243,8 +266,28 @@ namespace MFM {
 	m_nodeOf->genCode(fp, uvpass);
 	assert(m_state.m_currentObjSymbolsForCodeGen.empty());
 
-	//e.g. 'return self.atomof;' (e.g. t3408, t3410, t3585, t3631, t3663)
-	uvpass = UVPass::makePass(uvpass.getPassVarNum(), TMPTATOM, nuti, UNPACKED, m_state, uvpass.getPassPos(), uvpass.getPassNameId());
+	if(uvpass.getPassStorage() == TMPBITVAL)
+	  {
+	    //read into a T (t41531)
+	    s32 tmpVarNum2 = m_state.getNextTmpVarNumber(); //tmp for atomref
+	    m_state.indentUlamCode(fp);
+	    fp->write("const ");
+	    fp->write(nut->getTmpStorageTypeAsString().c_str()); //for C++ local vars
+	    fp->write(" ");
+	    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum2, TMPTATOM).c_str());
+	    fp->write(" = ");
+	    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
+	    fp->write(".read();"); GCNL;
+
+	    uvpass = UVPass::makePass(tmpVarNum2, TMPTATOM, nuti, UNPACKED, m_state, uvpass.getPassPos(), uvpass.getPassNameId());
+	  }
+	else
+	  {
+	    assert(uvpass.getPassStorage() == TMPTATOM); //sanity
+	    //e.g. 'return self.atomof;'
+	    //(t3408,t3410,t3585,t3631,t3663,t41503,t41461,t41460,t41143)
+	    uvpass = UVPass::makePass(uvpass.getPassVarNum(), TMPTATOM, nuti, UNPACKED, m_state, uvpass.getPassPos(), uvpass.getPassNameId());
+	  }
       }
   } //genCode
 
@@ -257,9 +300,13 @@ namespace MFM {
 
     if(m_nodeOf->hasASymbolReference() && (m_state.getUlamTypeByIndex(getOfType())->getUlamClassType() == UC_QUARK))
       {
+	m_nodeOf->genCodeToStoreInto(fp, uvpass);
+
 	Symbol * stgcos = NULL;
-	AssertBool gotstg = m_nodeOf->getStorageSymbolPtr(stgcos);
-	assert(gotstg);
+	Symbol * cos = NULL;
+	Node::loadStorageAndCurrentObjectSymbols(stgcos, cos);
+
+	m_state.clearCurrentObjSymbolsForCodeGen(); //t3756..
 
 	m_state.indentUlamCode(fp);
 	fp->write("if(");
@@ -277,26 +324,29 @@ namespace MFM {
 	m_state.indentUlamCode(fp); //non-const
 	fp->write(nut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
 	fp->write(" ");
-	fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPBITVAL).c_str());
+	fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPAUTOREF).c_str());
 	fp->write("(");
 
 	fp->write(stgcos->getMangledName().c_str()); //ur for self
-	fp->write(", "); //is storage! can't be const (error/t3659)
+	fp->write(", -"); //is storage! can't be const (error/t3659)
 
+	//(ulam-5) base class no longer at zero (t3735)
+	fp->write(stgcos->getMangledName().c_str()); //ur for self
+	fp->write(".GetPosToEffectiveSelf()"); //t41007
 	fp->write(" - T::ATOM_FIRST_STATE_BIT"); //must be an effective element ref (e.g.t3684, t3663)
 	fp->write("); //atomof"); GCNL;
 
-	uvpass = UVPass::makePass(tmpVarNum, TMPBITVAL, nuti, UNPACKED, m_state, uvpass.getPassPos(), uvpass.getPassNameId());
+	uvpass = UVPass::makePass(tmpVarNum, TMPAUTOREF, nuti, UNPACKED, m_state, uvpass.getPassPos(), uvpass.getPassNameId());
       }
     else
       {
-	//lhs
+	//lhs: t3223,t3684,t3907,8,9,t41033,42,43,46,51,62
 	assert(getStoreIntoAble() == TBOOL_TRUE);
 	assert(m_nodeOf);
 	m_nodeOf->genCodeToStoreInto(fp, uvpass); //does it handle array item members selected?
 	assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
 
-	uvpass = UVPass::makePass(uvpass.getPassVarNum(), TMPTATOM, getNodeType(), UNPACKED, m_state, uvpass.getPassPos(), uvpass.getPassNameId());
+	uvpass = UVPass::makePass(uvpass.getPassVarNum(), TMPAUTOREF /*TMPTATOM*/, getNodeType(), UNPACKED, m_state, uvpass.getPassPos(), uvpass.getPassNameId());
       }
   } //genCodeToStoreInto
 

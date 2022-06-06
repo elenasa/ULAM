@@ -5,7 +5,7 @@
 #include "NodeBlockFunctionDefinition.h"
 #include "SymbolVariable.h"
 #include "CompilerState.h"
-#include "SymbolTable.h"
+#include "SymbolTableOfFunctions.h"
 #include "MapFunctionDesc.h"
 
 namespace MFM {
@@ -55,6 +55,18 @@ namespace MFM {
     return "Uz_"; //?
   }
 
+  u32 SymbolFunctionName::getFunctionNameId()
+  {
+    u32 id = getId();
+    if(isOperatorOverloadFunctionName())
+      {
+	Token * idTokPtr = getTokPtr();
+	assert(idTokPtr);
+	id = idTokPtr->getUlamNameIdForOperatorOverloadToken(&m_state);
+      }
+    return id;
+  }
+
   bool SymbolFunctionName::isOperatorOverloadFunctionName()
   {
     return m_isOperatorOverload;
@@ -67,13 +79,19 @@ namespace MFM {
 
   bool SymbolFunctionName::overloadFunction(SymbolFunction * fsym)
   {
+    SymbolFunction * anyotherSym = NULL; //dropped
+    return overloadFunction(fsym,anyotherSym);
+  } //overloadFunction
+
+  bool SymbolFunctionName::overloadFunction(SymbolFunction * fsym, SymbolFunction *& ovfsymref)
+  {
     bool overloaded = false;
     // return types may differ, as long as params are different
 
     std::string mangled = fsym->getMangledNameWithUTIparameters();
 
     //if doesn't already exist, potentially overload it by inserting into map.
-    SymbolFunction * anyotherSym;
+    SymbolFunction * anyotherSym = NULL;
     if(!isDefined(mangled, anyotherSym))
       {
 	std::pair<std::map<std::string,SymbolFunction *>::iterator,bool> ret;
@@ -81,8 +99,33 @@ namespace MFM {
 	overloaded = ret.second; //false if already existed, i.e. not added
 	assert(overloaded); //shouldn't be a duplicate, we've checked by now.
       }
+
+    ovfsymref = anyotherSym;
     return overloaded;
   } //overloadFunction
+
+  u32 SymbolFunctionName::addFunctionsToThisTable(std::map<std::string, SymbolFunction *>& mapref)
+  {
+    mapref.insert(m_mangledFunctionNames.begin(), m_mangledFunctionNames.end());
+    return m_mangledFunctionNames.size();
+  }
+
+  SymbolFunction * SymbolFunctionName::getFunctionSymbolByOrderNumber(u32 ordernumarg)
+  {
+    SymbolFunction * foundFSym = NULL;
+    std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
+    while(it != m_mangledFunctionNames.end())
+      {
+	SymbolFunction * fsym = it->second;
+	if(fsym->getOrderNumber() == ordernumarg)
+	  {
+	    foundFSym = fsym;
+	    break;
+	  }
+	++it;
+      }
+    return foundFSym;
+  }
 
   u32 SymbolFunctionName::findMatchingFunctionStrictlyVoid(SymbolFunction *& funcSymbol)
   {
@@ -124,7 +167,7 @@ namespace MFM {
 
     u32 matchingFuncCount = 0;
     std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
-    assert(funcSymbol == NULL);
+    assert(funcSymbol == NULL); //e.g. t3357
 
     while(it != m_mangledFunctionNames.end())
       {
@@ -142,15 +185,16 @@ namespace MFM {
     return matchingFuncCount;
   } //findMatchingFunction
 
-  u32 SymbolFunctionName::findMatchingFunctionWithSafeCasts(std::vector<Node *> argNodes, SymbolFunction *& funcSymbol, bool& hasHazyArgs)
+  u32 SymbolFunctionName::findMatchingFunctionWithSafeCasts(std::vector<Node *> argNodes, SymbolFunction *& funcSymbol, bool& hasHazyArgs, FSTable& fstableref)
   {
     assert(!hasHazyArgs);
-    assert(!funcSymbol);
+    assert(!funcSymbol); //e.g. t3357
 
     if(m_mangledFunctionNames.empty())
       return 0;
 
-    u32 matchingFuncCount = findMatchingFunction(argNodes, funcSymbol, hasHazyArgs); //strictly first
+    //call after check for strictly matching function (findMatchingFunction) fails
+    u32 matchingFuncCount = 0;
 
     //try again with less strict constraints, allow safe casting;
     //track matches with hazy casting for error message output
@@ -158,8 +202,7 @@ namespace MFM {
       {
 	// give priority to safe matches that have same ULAMTYPEs too
 	// e.g. Unsigned(3) arg would safely cast to Int(4), Int(5), and Unsigned param;
-	//      this is ambiguous! but only one is the same Enum; so let's
-	//      call it the winner.
+	// this is ambiguous! but only one is the same Enum; so let's call it the winner.
 	SymbolFunction * funcSymbolMatchingUTArgs = NULL;
 	u32 numFuncsWithAllSameUTArgs = 0;
 	u32 numArgs = argNodes.size();
@@ -169,7 +212,7 @@ namespace MFM {
 	  {
 	    SymbolFunction * fsym = it->second;
 	    u32 numUTmatch = 0;
-	    if(fsym->matchingTypes(argNodes, hasHazyArgs, numUTmatch)) //with safe casting
+	    if(fsym->matchingTypes(argNodes, hasHazyArgs, numUTmatch) && !hasHazyArgs) //with safe casting (e.g. t3562)
 	      {
 		funcSymbol = fsym;
 		matchingFuncCount++;
@@ -178,6 +221,7 @@ namespace MFM {
 		    numFuncsWithAllSameUTArgs++;
 		    funcSymbolMatchingUTArgs = funcSymbol;
 		  }
+		fsym->checkFunctionSignatureTable(fstableref); //updates table..who checks it???
 	      }
 	    it++;
 	  } //end while
@@ -194,30 +238,21 @@ namespace MFM {
 	      }
 	  }
       } //2nd try
-
-    //3rd try: check any super class, unless hazyargs (causes inf loop)
-    //if(matchingFuncCount == 0)
-    if(!hasHazyArgs && matchingFuncCount == 0)
-	return findMatchingFunctionWithSafeCastsInAncestors(argNodes, funcSymbol, hasHazyArgs);
-
     return matchingFuncCount;
   } //findMatchingFunctionWithSafeCasts
 
-  u32 SymbolFunctionName::findMatchingFunctionWithSafeCastsInAncestors(std::vector<Node *> argNodes, SymbolFunction *& funcSymbol, bool& hasHazyArgs)
+  u32 SymbolFunctionName::anyFunctionSymbolPtr(SymbolFunction *& funcptr)
   {
-    Symbol * fnsym = NULL;
-    UTI cuti = m_state.findAClassByNodeNo(getBlockNoOfST());
-    assert(cuti != Nouti);
-    UTI supercuti = m_state.isClassASubclass(cuti);
-    if(supercuti != Nouti)
+    std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
+    if(it != m_mangledFunctionNames.end())
       {
-	if(m_state.isFuncIdInAClassScope(supercuti, getId(), fnsym, hasHazyArgs) && !hasHazyArgs)
-	  return ((SymbolFunctionName *) fnsym)->findMatchingFunctionWithSafeCasts(argNodes, funcSymbol, hasHazyArgs); //recurse ancestors
+	funcptr = it->second;
+	return 1;
       }
     return 0;
-  } //findMatchingFunctionWithSafeCastsInAncestors
+  } //anyFunctionSymbol
 
-  void SymbolFunctionName::noteAmbiguousFunctionSignatures(std::vector<Node *> argNodes, u32 numMatchesFound)
+  u32 SymbolFunctionName::noteAmbiguousFunctionSignatures(std::vector<Node *> argNodes, u32 counter, u32 numMatchesFound, bool noteOn)
   {
     assert(!m_mangledFunctionNames.empty());
     assert(numMatchesFound > 1);
@@ -233,14 +268,17 @@ namespace MFM {
 	if(fsym->matchingTypes(argNodes, hasHazyArgs, numUTmatch)) //with safe casting
 	  {
 	    matchingFuncCount++;
-	    std::ostringstream note;
-	    note << "Match (" << matchingFuncCount << " of " << numMatchesFound << ") : ";
-	    note << fsym->getFunctionNameWithTypes().c_str();
-	    MSG(fsym->getTokPtr(), note.str().c_str(), NOTE);
+	    if(noteOn)
+	      {
+		std::ostringstream note;
+		note << "Match (" << counter + matchingFuncCount << " of " << numMatchesFound << ") : ";
+		note << fsym->getFunctionNameWithTypes().c_str();
+		MSG(fsym->getTokPtr(), note.str().c_str(), NOTE);
+	      }
 	  }
 	it++;
       } //end while
-    assert(numMatchesFound == matchingFuncCount); //sanity
+    return matchingFuncCount;
   } //noteAmbiguousFunctionSignatures
 
   u32 SymbolFunctionName::getDepthSumOfFunctions()
@@ -275,130 +313,16 @@ namespace MFM {
 	s32 base = 0; //1 for frame ptr (was 0)
 	//add size of parameters (+ 1 for hidden) and return size
 	base += m_state.slotsNeeded(fsym->getUlamTypeIdx()); //return type
-	//base += 1; //hidden arg is a symbol, not a node (uc not needed)
-	base += 2; //hidden arg is a symbol, not a node (uc needed ?)
+	base += 2; //hidden arg is a symbol, not a node (uc needed?)
 	base += fsym->getTotalParameterSlots();
 	func->calcMaxDepth(depth, maxdepth, base);
 	maxdepth += 1; //hidden, (frame ptr at zero implicit) (was += 1)
-	maxdepth += base; //??? forgotten?
+	maxdepth += base; //forgotten?
 	func->setMaxDepth(maxdepth);
 	++it;
       }
     return;
   } //calcMaxDepthOfFunctions
-
-  // after all the UTI types are known, including array and bitsize
-  // and before eval() for testing, calc the max index of virtual functions,
-  // where base class functions come first; arg is UNKNOWNSIZE if first time
-  // and any ancestors are already known.
-  void SymbolFunctionName::calcMaxIndexOfVirtualFunctions(s32& maxidx)
-  {
-    UTI cuti = m_state.getCompileThisIdx();
-    u32 fid = getId();
-    UTI superuti = m_state.isClassASubclass(cuti);
-
-    //initialize this classes VTable to super classes' VTable, or empty
-    // some entries may be modified; or table may expand
-    SymbolClass * csym = NULL;
-    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cuti, csym);
-    assert(isDefined);
-
-    std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
-    while(it != m_mangledFunctionNames.end())
-      {
-	SymbolFunction * fsym = it->second;
-
-	//possibly us, or a great-ancestor that has first decl of this func
-	UTI kinuti; // ref to find, Nav if not found
-	s32 vidx = UNKNOWNSIZE; //virtual index
-	bool overriding = false;
-
-	//search for virtual function w exact name/type in superclass
-	// if found, this function must also be virtual
-	assert(superuti != Hzy);
-	if(superuti != Nouti)
-	  {
-	    std::vector<UTI> pTypes;
-	    u32 numparams = fsym->getNumberOfParameters();
-	    for(u32 j = 0; j < numparams; j++)
-	      {
-		Symbol * psym = fsym->getParameterSymbolPtr(j);
-		assert(psym);
-		pTypes.push_back(psym->getUlamTypeIdx());
-	      }
-
-	    SymbolFunction * superfsym = NULL;
-	    //might belong to a great-ancestor (can't tell from isFuncIdInAClassScope())
-	    if(m_state.findMatchingFunctionInAncestor(cuti, fid, pTypes, superfsym, kinuti))
-	      {
-		if(superfsym->isVirtualFunction())
-		  {
-		    //like c++, this fsym should be too!
-		    if(!fsym->isVirtualFunction())
-		      {
-			std::ostringstream msg;
-			msg << "Non-virtual overloaded function <";
-			msg << m_state.m_pool.getDataAsString(fid).c_str();
-			msg << "> has a VIRTUAL ancestor in class: ";
-			msg << m_state.getUlamTypeNameBriefByIndex(kinuti).c_str();
-			MSG(fsym->getTokPtr(), msg.str().c_str(), DEBUG); //was WARN (e.g. behave())
-
-			fsym->setVirtualFunction(); //fix
-			assert(maxidx != UNKNOWNSIZE); //o.w. wouldn't be here yet
-		      }
-		    vidx = superfsym->getVirtualMethodIdx();
-		    kinuti = cuti; //overriding
-		    overriding = true; //t41096, t41097
-		  }
-		else
-		  {
-		    if(fsym->isVirtualFunction())
-		      {
-			//c++, quietly fails
-			std::ostringstream msg;
-			msg << "Virtual overloaded function <";
-			msg << m_state.m_pool.getDataAsString(fid).c_str();
-			msg << "> has a NON-VIRTUAL ancestor in class: ";
-			msg << m_state.getUlamTypeNameBriefByIndex(kinuti).c_str();
-			MSG(fsym->getTokPtr(), msg.str().c_str(), WARN);
-			//probably upsets compiler assert...need a Nav node?
-			kinuti = cuti;
-		      }
-		  }
-	      }
-	    else
-	      kinuti = cuti; //new entry, this class
-	  } //end ancestor check
-	else
-	  kinuti = cuti; //new entry, this class
-
-	if(fsym->isVirtualFunction())
-	  {
-	    if(vidx == UNKNOWNSIZE)
-	      {
-		//table extends with new (next) entry/idx
-		vidx = (maxidx != UNKNOWNSIZE ? maxidx : 0);
-		maxidx = vidx + 1;
-	      }
-	    //else use ancestor index; maxidx stays same; is an override
-	    fsym->setVirtualMethodIdx(vidx);
-	    csym->updateVTable(vidx, fsym, kinuti, fsym->isPureVirtualFunction());
-
-	    //check overriding virtual function when flag set by programmer(t41096,97,98)
-	    if(fsym->getInsureVirtualOverrideFunction() && !overriding)
-	      {
-		std::ostringstream msg;
-		msg << "@Override flag fails virtual function: ";
-		msg << fsym->getFunctionNameWithTypes().c_str();
-		MSG(fsym->getTokPtr(), msg.str().c_str(), ERR);
-	      }
-	  }
-	else
-	  maxidx = (maxidx != UNKNOWNSIZE ? maxidx : 0); //stays same, or known 0
-	++it;
-      } //while
-    return;
-  } //calcMaxIndexOfVirtualFunctions
 
   void SymbolFunctionName::checkAbstractInstanceErrorsInFunctions()
   {
@@ -415,9 +339,8 @@ namespace MFM {
   } //checkAbstractInstanceErrorsInFunctions
 
   // before generating code, remove duplicate funcs to avoid "previously declared" gcc error.
-  void SymbolFunctionName::checkFunctionNames(std::map<std::string, UTI>& mangledFunctionMap, u32& probcount)
+  void SymbolFunctionName::checkFunctionNames(FSTable& mangledFunctionMap, u32& probcount)
   {
-    UTI cuti = m_state.getCompileThisIdx();
     std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
     while(it != m_mangledFunctionNames.end())
       {
@@ -426,12 +349,11 @@ namespace MFM {
 	if(checkForDuplicateFunctionSignature(mangledFunctionMap, probcount, fsym))
 	  {
 	    std::ostringstream msg;
-	    msg << "Check overloaded function <";
-	    msg << m_state.m_pool.getDataAsString(fsym->getId()).c_str();
-	    msg << "> has a duplicate definition (";
+	    msg << "Check overloaded function '";
+	    msg << m_state.m_pool.getDataAsString(fsym->getFunctionNameId()).c_str();
+	    msg << "' has a duplicate definition (";
 	    msg << fsym->getMangledNameWithTypes().c_str();
-	    msg << "), while compiling class: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	    msg << ")";
 	    MSG(fsym->getTokPtr(), msg.str().c_str(), ERR);  //Dave says better to start as error
 	    NodeBlockFunctionDefinition * func = fsym->getFunctionNode();
 	    assert(func);
@@ -443,7 +365,7 @@ namespace MFM {
     return;
   } //checkFunctionNames
 
-  void SymbolFunctionName::checkFunctionNamesInAncestor(std::map<std::string, UTI>& mangledFunctionMap, u32& probcount)
+  void SymbolFunctionName::checkFunctionSignatureReturnTypes(FSTable& mangledFunctionMap, u32& probcount)
   {
     std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
     while(it != m_mangledFunctionNames.end())
@@ -455,41 +377,51 @@ namespace MFM {
 	++it;
       }
     return;
-  } //checkFunctionNamesInAncestors
+  } //checkFunctionSignatureReturnTypes
 
-  bool SymbolFunctionName::checkForDuplicateFunctionSignature(std::map<std::string, UTI>& mangledFunctionMap, u32& probcount, SymbolFunction * fsym)
+  bool SymbolFunctionName::checkForDuplicateFunctionSignature(FSTable& mangledFunctionMap, u32& probcount, SymbolFunction * fsym)
   {
     bool dupfound = false;
     std::string fmangled = fsym->getMangledNameWithTypes(); //key
     UTI futi = fsym->getUlamTypeIdx(); //value of key
-    std::map<std::string, UTI>::iterator it = mangledFunctionMap.find(fmangled);
+    FSTable::iterator it = mangledFunctionMap.find(fmangled);
     if(it != mangledFunctionMap.end())
       {
-	dupfound = true;
-	UTI rtntype = it->second;
+	FSEntry& fsentry = it->second;
+	dupfound = !(fsentry.m_isVirtual); //virtual not duplicate
+	if(dupfound) fsentry.m_matchesFound++;
+
+	UTI rtntype = fsentry.m_rtnType; //it->second;
 	if(UlamType::compare(rtntype, futi, m_state) == UTIC_NOTSAME) //NEVER LEGAL!
 	  {
 	    std::ostringstream msg;
-	    msg << "Check overloaded function <";
-	    msg << m_state.m_pool.getDataAsString(fsym->getId()).c_str();
-	    msg << "> with different return types (";
+	    msg << "Check overloaded function '";
+	    msg << m_state.m_pool.getDataAsString(fsym->getFunctionNameId()).c_str();
+	    msg << "' with different return types (";
 	    msg << m_state.getUlamTypeNameBriefByIndex(rtntype).c_str();
 	    msg << ", " << m_state.getUlamTypeNameBriefByIndex(futi).c_str();
-	    msg << "), while compiling class: ";
+	    msg << "), in ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	    MSG(fsym->getTokPtr(), msg.str().c_str(), ERR);  //Dave says better to start as error
 	    NodeBlockFunctionDefinition * func = fsym->getFunctionNode();
 	    assert(func);
 	    func->setNodeType(Nav); //compiler counts
 	    probcount++;
-
-	    mangledFunctionMap.insert(std::pair<std::string, UTI> (fmangled, futi));
+	    fsentry.m_hasProblem = true;
 	  }
 	//else already in map, dup
       }
     else
-      mangledFunctionMap.insert(std::pair<std::string, UTI> (fmangled, futi));
-
+      {
+	// new entry
+	FSEntry myfsentry;
+	myfsentry.m_rtnType = futi;
+	myfsentry.m_ofClassUTI = getDataMemberClass();
+	myfsentry.m_isVirtual = fsym->isVirtualFunction();
+	myfsentry.m_hasProblem = false;
+	myfsentry.m_matchesFound = 1;
+	mangledFunctionMap.insert(std::pair<std::string, FSEntry> (fmangled, myfsentry));
+      }
     return dupfound;
   } //checkForDuplicateFunctionSignature (helper)
 
@@ -509,7 +441,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Custom array get method '";
-	    msg << m_state.m_pool.getDataAsString(fsym->getId()).c_str();
+	    msg << m_state.m_pool.getDataAsString(fsym->getFunctionNameId()).c_str();
 	    msg << "' cannot return Void ";
 	    probcount++;
 	  }
@@ -517,7 +449,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Custom array get methods '";
-	    msg << m_state.m_pool.getDataAsString(fsym->getId()).c_str();
+	    msg << m_state.m_pool.getDataAsString(fsym->getFunctionNameId()).c_str();
 	    msg << "' cannot have different return types: ";
 	    msg << m_state.getUlamTypeNameByIndex(futi).c_str();
 	    msg << ", ";
@@ -563,14 +495,14 @@ namespace MFM {
     std::vector<Node *> argNodes;
     argNodes.push_back(rnode);
 
+    FSTable tmpfst;
+
     SymbolFunction * fsym = NULL;
-    u32 camatches = findMatchingFunctionWithSafeCasts(argNodes, fsym, hasHazyArgs);
+    u32 camatches = findMatchingFunctionWithSafeCasts(argNodes, fsym, hasHazyArgs, tmpfst);
 
     if(camatches == 1)
       {
-	Symbol * asym = fsym->getParameterSymbolPtr(0); //1st arg is index
-	assert(asym);
-	idxuti = asym->getUlamTypeIdx();
+	idxuti = fsym->getParameterType(0);
       }
 
     argNodes.clear();
@@ -627,7 +559,7 @@ namespace MFM {
     return rtnfound;
   } //findNodeNoInFunctionDefs
 
-  bool SymbolFunctionName::labelFunctions()
+  bool SymbolFunctionName::labelFunctions(Node * thisparentnode)
   {
     bool aok = true; //parameter types
 
@@ -641,7 +573,7 @@ namespace MFM {
 
 	NodeBlockFunctionDefinition * func = fsym->getFunctionNode();
 	assert(func); //how would a function symbol be without a body? perhaps an ACCESSOR to-be-made?
-	func->checkAndLabelType();
+	func->checkAndLabelType(thisparentnode);
 	++it;
       }
     return aok;
@@ -649,7 +581,7 @@ namespace MFM {
 
   void SymbolFunctionName::printUnresolvedLocalVariablesInFunctionDefs()
   {
-    u32 fid = getId();
+    u32 fid = getFunctionNameId();
     std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
     while(it != m_mangledFunctionNames.end())
       {
@@ -682,9 +614,9 @@ namespace MFM {
 	  {
 	    std::string fkey = it->first;
 	    std::ostringstream msg;
-	    msg << (ncnt - fcntnavs) << " nodes with erroneous types remain in function <";
-	    msg << m_state.m_pool.getDataAsString(getId());
-	    msg << "> (" << fkey.c_str() << ")";
+	    msg << (ncnt - fcntnavs) << " nodes with erroneous types remain in function '";
+	    msg << m_state.m_pool.getDataAsString(getFunctionNameId());
+	    msg << "' (" << fkey.c_str() << ")";
 	    MSG(func->getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
 	    countNavs += (ncnt - fcntnavs);
 	  }
@@ -693,9 +625,9 @@ namespace MFM {
 	  {
 	    std::string fkey = it->first;
 	    std::ostringstream msg;
-	    msg << (hcnt - fcnthzy) << " nodes with unresolved types remain in function <";
-	    msg << m_state.m_pool.getDataAsString(getId());
-	    msg << "> (" << fkey.c_str() << ")";
+	    msg << (hcnt - fcnthzy) << " nodes with unresolved types remain in function '";
+	    msg << m_state.m_pool.getDataAsString(getFunctionNameId());
+	    msg << "' (" << fkey.c_str() << ")";
 	    MSG(func->getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
 	    countHzy += (hcnt - fcnthzy);
 	  }
@@ -704,9 +636,9 @@ namespace MFM {
 	  {
 	    std::string fkey = it->first;
 	    std::ostringstream msg;
-	    msg << (nocnt - fcntunset) << " nodes with unset types remain in function <";
-	    msg << m_state.m_pool.getDataAsString(getId());
-	    msg << "> (" << fkey.c_str() << ")";
+	    msg << (nocnt - fcntunset) << " nodes with unset types remain in function '";
+	    msg << m_state.m_pool.getDataAsString(getFunctionNameId());
+	    msg << "' (" << fkey.c_str() << ")";
 	    MSG(func->getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
 	    countUnset += (nocnt - fcntunset);
 	  }
@@ -720,10 +652,10 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Summary: " << countNavs << " nodes with erroneous types remain in ";
 	if(numfuncs > 1)
-	  msg << "all " <<  numfuncs << " functions <";
+	  msg << "all " <<  numfuncs << " functions '";
 	else
-	  msg << " a single function <";
-	msg << m_state.m_pool.getDataAsString(getId()) << "> in class: ";
+	  msg << " a single function '";
+	msg << m_state.m_pool.getDataAsString(getFunctionNameId()) << "' in class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(m_state.getFullLocationAsString(getLoc()).c_str(), msg.str().c_str(), INFO);
       }
@@ -734,10 +666,10 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Summary: " << countHzy << " nodes with unresolved types remain in ";
 	if(numfuncs > 1)
-	  msg << "all " <<  numfuncs << " functions <";
+	  msg << "all " <<  numfuncs << " functions '";
 	else
-	  msg << " a single function <";
-	msg << m_state.m_pool.getDataAsString(getId()) << "> in class: ";
+	  msg << " a single function '";
+	msg << m_state.m_pool.getDataAsString(getFunctionNameId()) << "' in class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(m_state.getFullLocationAsString(getLoc()).c_str(), msg.str().c_str(), INFO);
       }
@@ -748,10 +680,10 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Summary: " << countUnset << " nodes with unset types remain in ";
 	if(numfuncs > 1)
-	  msg << "all " <<  numfuncs << " functions <";
+	  msg << "all " <<  numfuncs << " functions '";
 	else
-	  msg << " a single function <";
-	msg << m_state.m_pool.getDataAsString(getId()) << "> in class: ";
+	  msg << " a single function '";
+	msg << m_state.m_pool.getDataAsString(getFunctionNameId()) << "' in class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(m_state.getFullLocationAsString(getLoc()).c_str(), msg.str().c_str(), INFO);
       }
@@ -771,36 +703,6 @@ namespace MFM {
       }
     return count;
   } //countNativeFuncDecls
-
-  void SymbolFunctionName::generateCodedFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
-  {
-    std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
-
-    while(it != m_mangledFunctionNames.end())
-      {
-	SymbolFunction * fsym = it->second;
-	fsym->generateFunctionDeclaration(fp, declOnly, classtype);
-	++it;
-      }
-  } //generateCodedFunctions
-
-  void SymbolFunctionName::addFunctionDescriptionsToClassMemberMap(UTI classType, ClassMemberMap & classmembers)
-  {
-    std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
-
-    while(it != m_mangledFunctionNames.end())
-      {
-	SymbolFunction * fsym = it->second;
-	FunctionDesc * descptr = new FunctionDesc(fsym, classType, m_state);
-	assert(descptr);
-
-	//concat mangled class and parameter names to avoid duplicate keys into map
-	std::ostringstream fullMangledName;
-	fullMangledName << descptr->m_mangledClassName << "_" << descptr->m_mangledMemberName;
-	classmembers.insert(std::pair<std::string, struct ClassMemberDesc *>(fullMangledName.str(), descptr));
-	++it;
-      }
-  } //addFunctionDescriptionsToClassMemberMap
 
   //private method:
   bool SymbolFunctionName::isDefined(std::string mangledFName, SymbolFunction * & foundSym)

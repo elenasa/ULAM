@@ -7,7 +7,7 @@ Unrecoverable Program Test FAILURE.
 ##
 #>A.ulam
 element A {
- typedef Int(32) BigSite[1];
+ typedef Int BigSite[1];
 Int test(){ BigSite site; for(Int i = 0; i < 10; ++i){
  site[i] = i;
  }

@@ -28,9 +28,7 @@ namespace MFM {
   void NodeBlock::updateLineage(NNO pno)
   {
     if(getPreviousBlockPointer() == NULL)
-      {
-	setPreviousBlockPointer(m_state.getCurrentBlock());
-      }
+      setPreviousBlockPointer(m_state.getCurrentBlock()); //t41283, not for filescope locals
     else
       assert(getPreviousBlockPointer() == m_state.getCurrentBlock());
 
@@ -122,10 +120,11 @@ namespace MFM {
     m_nodeEndingStmt = nextNode;
   } //appendNextNode
 
-  UTI NodeBlock::checkAndLabelType()
+  UTI NodeBlock::checkAndLabelType(Node * thisparentnode)
   {
     assert(m_nodeNext);
     //especially important for template instances (prev ptr nullified on instantiation)
+    //and extremely important to skip for filescope locals (only one per file) e.g. t41283;
     if(getPreviousBlockPointer() == NULL)
       setPreviousBlockPointer(m_state.getCurrentBlock());
     else
@@ -133,7 +132,7 @@ namespace MFM {
 
     m_state.pushCurrentBlock(this);
 
-    m_nodeNext->checkAndLabelType();
+    m_nodeNext->checkAndLabelType(this);
 
     m_state.popClassContext(); //restores m_prevBlockNode
 
@@ -205,6 +204,7 @@ namespace MFM {
 
   void NodeBlock::setPreviousBlockPointer(NodeBlock * b)
   {
+    assert(b != this); //invariant (t41283)
     m_prevBlockNode = b;
   }
 
@@ -228,20 +228,25 @@ namespace MFM {
     return m_ST.getTotalSymbolSize();
   }
 
-  s32 NodeBlock::getBitSizesOfVariableSymbolsInTable()
+  s32 NodeBlock::getBitSizesOfVariableSymbolsInTable(s32& basebits, s32& mybits, std::set<UTI>& seensetref)
   {
+    basebits = 0;
+
     if(m_ST.getTableSize() == 0)
       return EMPTYSYMBOLTABLE; //should allow no variable data members
 
-    return m_ST.getTotalVariableSymbolsBitSize();
+    mybits = m_ST.getTotalVariableSymbolsBitSize(seensetref);
+    return mybits;
   }
 
-  s32 NodeBlock::getMaxBitSizeOfVariableSymbolsInTable()
+  s32 NodeBlock::getMaxBitSizeOfVariableSymbolsInTable(s32& basebits, s32& mybits, std::set<UTI>& seensetref)
   {
+    basebits = 0;
     if(m_ST.getTableSize() == 0)
       return EMPTYSYMBOLTABLE; //should allow no variable data members
 
-    return m_ST.getMaxVariableSymbolsBitSize();
+    mybits = m_ST.getMaxVariableSymbolsBitSize(seensetref);
+    return mybits;
   }
 
   u32 NodeBlock::findTypedefNameIdByType(UTI uti)
@@ -252,12 +257,6 @@ namespace MFM {
   SymbolTable * NodeBlock::getSymbolTablePtr()
   {
     return &m_ST;
-  }
-
-  void NodeBlock::genCodeDeclsForVariableDataMembers(File * fp, ULAMCLASSTYPE classtype)
-  {
-    m_state.abortShouldntGetHere(); //using the NodeVarDecl:genCode approach instead.
-    m_ST.genCodeForTableOfVariableDataMembers(fp, classtype);
   }
 
   void NodeBlock::genModelParameterImmediateDefinitions(File * fp)
@@ -274,6 +273,11 @@ namespace MFM {
 
   void NodeBlock::genCode(File * fp, UVPass& uvpass)
   {
+    //20210606 Dave's ish, pointer.functioncall following native, var arg function call
+    //         w unused return (t41473 doesn't recreate problem yet)
+    UVPass uvpass2clear;
+    uvpass = uvpass2clear; //refresh
+
     m_state.indentUlamCode(fp);
     fp->write("{\n");
 

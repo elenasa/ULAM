@@ -42,4 +42,17 @@ namespace MFM {
     return m_contexts.size();
   }
 
+  u32 ClassContextStack::countClassContextOnStack(const NodeBlockClass * cblock)
+  {
+    u32 count = 0;
+    std::vector<ClassContext>::iterator it;
+
+    for(it = m_contexts.end()--; it >= m_contexts.begin(); it--)
+      {
+	ClassContext cc = *it;
+	if(cc.getContextBlock() == cblock)
+	  count++;
+      }
+    return count;
+  }
 } //MFM

@@ -1,0 +1,36 @@
+//ulam 5;
+use ByteStream;
+
+local constant Unsigned cBUFFER_SIZE = 256u;
+
+transient ByteStreamLogger
+  : ByteStreamArray(cBUFFER_SIZE)
+  + Logger
+{
+  Bool mEnabled = true;
+  Bool mForceOutput = false;
+  Void forceOutput(Bool force) { mForceOutput = force; }
+  Void enable() { mEnabled = true; }
+  Void disable() { mEnabled = false; }
+  Bool isEnabled() { return mEnabled; }
+
+  Self(Bool enabled) { mEnabled = enabled; }
+  
+  @Override
+  Int writeByte(ASCII x) 
+  {
+    if (mForceOutput || (mEnabled && Ulam5StdlibControl.pLOG_ENABLED)) {
+      
+      // Accumulate non-\n bytes in ByteStreamArray
+      if (x != '\n') return super.writeByte(x);
+
+      // On \n, flush accumulate to log and restart
+      log(self);
+      reset();
+
+    }
+    return 0;
+  }
+}
+
+//transient ByteStreamLoggerDISABLED : ByteStreamNull + Logger { }

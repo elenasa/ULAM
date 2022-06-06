@@ -2,13 +2,14 @@
 #=t41162_test_compiler_typedefandsupervirtualfunccall_error
 ##
 #!
-./Sub1.ulam:5:12: ERROR: Variable <super> is not defined, or was used before declared in a function.
-./Sub1.ulam:5:18: ERROR: Member selected is incomplete class: erroneous, check and label fails this time around.
-./E.ulam:7:12: ERROR: Variable <super> is not defined, or was used before declared in a function.
-./E.ulam:7:18: ERROR: Member selected is incomplete class: erroneous, check and label fails this time around.
+./Sub1.ulam:5:12: ERROR: Variable 'super' is not defined, or was used before declared in a function.
+./Sub1.ulam:5:18: ERROR: Member selected, supper.super, is invalid here.
+./E.ulam:7:12: ERROR: Variable 'super' is not defined, or was used before declared in a function.
+./E.ulam:7:18: ERROR: Member selected, supper.super, is invalid here.
 Unrecoverable Program Type Label FAILURE.
 ##
-## cannot use super after a variable; super defined in scope of function definition at c&l, not at class level.
+## cannot use super after a variable;
+## super defined in scope of function definition at c&l, not at class level.
 ## informed by t41160, t41161
 ##
 #>Sup.ulam

@@ -1,0 +1,69 @@
+## -*- mode:ulam -*-
+#=t41409_test_compiler_castingquarktobits_ish
+#!
+Exit status: 0
+Ue_Anchor10 : QSegment(1u) { :QSegment(1u)< constant Unsigned cMSG_BITS = 1u;  typedef QIMsg(1u) QC_QIMsg;  QIMsg(1u) mMessageBuffer( typedef Bits(1) Payload;  Bits(1) mPayload(0);  constant Unsigned bits = 1u;  typedef Unary(2) Direction;  constant Unary(2) cEMPTY = 0u;  constant Unary(2) cUP = 1u;  constant Unary(2) cDOWN = 3u;  Unary(2) mDirection(0u); );  :QSeg< typedef Unsigned(5) SegPtr;  typedef Unsigned(2) Type; >> ^QSeg< typedef Unsigned(5) SegPtr;  typedef Unsigned(2) Type; > Int test() {  typedef Bits(1) MPayload;  SegPkt10 pkt;  self mMessageBuffer . mPayload . pkt cast = 0 cast return } }
+Uq_SegPkt10 { Bool mUpbound(false);  <NOMAIN> }
+Uq_QSegment(Unsigned cMSG_BITS) : QSeg { typedef QIMsg(bits) QC_QIMsg;  QIMsg(bits) mMessageBuffer(notready);  :QSeg< typedef Unsigned(5) SegPtr;  typedef Unsigned(2) Type; > <NOMAIN> }
+Uq_QSeg { typedef Unsigned(5) SegPtr;  typedef Unsigned(2) Type;  <NOMAIN> }
+Uq_QIMsg(Unsigned bits) { typedef Bits(UNKNOWN) Payload;  typedef Unary(2) Direction;  constant Unary(2) cEMPTY = 0u;  constant Unary(2) cUP = 1u;  constant Unary(2) cDOWN = 3u;  Unary(2) mDirection(0);  Bits(UNKNOWN) mPayload(notready);  <NOMAIN> }
+##
+## informed by Dave's ish 2/24/2021: implementation missing.
+##
+#>Anchor10.ulam
+  ulam 5;
+local constant Unsigned cMSG_BITS = SegPkt10.sizeof;
+local typedef QSegment(cMSG_BITS) QSegX;
+
+/**
+   \symbol A1
+   \symmetries none
+   \color #448
+ */
+element Anchor10 : QSegX {
+  Int test() {
+    typedef QSegX.QC_QIMsg.Payload MPayload;
+
+    SegPkt10 pkt;
+    mMessageBuffer.mPayload = (MPayload) pkt; //<- culprit!!!
+    return 0;
+  }
+}
+
+
+quark SegPkt10 {
+  Bool mUpbound;
+}
+
+
+#:QSegment.ulam
+  ulam 5;
+quark QSeg {
+  typedef Unsigned(5) SegPtr; // SN 0..24 (25..31 reserved)
+  typedef Unsigned(2) Type;
+
+}
+
+/** Base class for a 1D fragile data transport system.  To be subclassed by SPLAT code.
+ */
+quark QSegment(Unsigned cMSG_BITS) : QSeg {
+  // Data members
+  typedef QIMsg(cMSG_BITS) QC_QIMsg;
+  QC_QIMsg mMessageBuffer;
+
+}
+
+#:QIMsg.ulam
+  ulam 5;
+/** An internal message */
+quark QIMsg(Unsigned bits) {
+  typedef Bits(bits) Payload;
+  typedef Unary(2) Direction;
+  constant Direction cEMPTY = 0u;
+  constant Direction cUP    = 1u;
+  constant Direction cDOWN  = 2u;
+  Direction mDirection;
+  Payload mPayload;
+}
+
+#.

@@ -3,6 +3,7 @@
 #!
 ./A.ulam:19:7: ERROR: Incomplete condition; which-control failure.
 ./A.ulam:19:7: ERROR: Unexpected token <TOK_KW_TYPE_INT>; Expected }.
+./A.ulam:21:5: ERROR: Expecting Type of data member/function (or, in the midst of errors); Got <return>.
 ./A.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'A'; Possible missing ending curly brace.
 ./A.ulam:21:5: ERROR: Invalid Class Type <return>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 ./A.ulam:2:9: ERROR: Invalid Type: A.

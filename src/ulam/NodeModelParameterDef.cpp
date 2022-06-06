@@ -46,9 +46,9 @@ namespace MFM {
     m_state.abortShouldntGetHere();
   }
 
-  UTI NodeModelParameterDef::checkAndLabelType()
+  UTI NodeModelParameterDef::checkAndLabelType(Node * thisparentnode)
   {
-    UTI nodeType = NodeConstantDef::checkAndLabelType();
+    UTI nodeType = NodeConstantDef::checkAndLabelType(thisparentnode);
     if(m_state.okUTItoContinue(nodeType))
       {
 	UlamType * nut = m_state.getUlamTypeByIndex(nodeType);
@@ -86,7 +86,8 @@ namespace MFM {
 
     Symbol * asymptr = NULL;
     bool hazyKin = false;
-    if(m_state.alreadyDefinedSymbol(m_cid, asymptr, hazyKin) && !hazyKin)
+    //    if(m_state.alreadyDefinedSymbol(m_cid, asymptr, hazyKin) && !hazyKin)
+    if(m_state.alreadyDefinedSymbol(m_cid, asymptr, hazyKin)) //t3443
       {
 	if(asymptr->isModelParameter())
 	  {
@@ -95,20 +96,20 @@ namespace MFM {
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "(1) <" << m_state.m_pool.getDataAsString(m_cid).c_str();
-	    msg << "> is not a model parameter, and cannot be used as one";
+	    msg << "(1) '" << m_state.m_pool.getDataAsString(m_cid).c_str();
+	    msg << "' is not a model parameter, and cannot be used as one";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
       }
     else
       {
 	std::ostringstream msg;
-	msg << "(2) Model Parameter <" << m_state.m_pool.getDataAsString(m_cid).c_str();
-	msg << "> is not defined, and cannot be used";
+	msg << "(2) Model Parameter '" << m_state.m_pool.getDataAsString(m_cid).c_str();
+	msg << "' is not defined, and cannot be used";
 	if(!hazyKin)
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	else
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //was debug
       }
     m_state.popClassContext(); //restore
   } //checkForSymbol
@@ -154,8 +155,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Constant value expression for '";
 	msg << m_state.m_pool.getDataAsString(m_constSymbol->getId()).c_str();
-	msg << "', is erronous while compiling class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	msg << "', is erronous";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	return Nav;
       }
@@ -165,8 +165,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Constant value expression for '";
 	msg << m_state.m_pool.getDataAsString(m_constSymbol->getId()).c_str();
-	msg << "', is not yet ready while compiling class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	msg << "', is not yet ready";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	return Hzy;
       }

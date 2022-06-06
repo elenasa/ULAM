@@ -2,7 +2,8 @@
  * NodeMemberSelectOnConstructorCall.h -  Node for handling Class Constructor Member Selection for ULAM
  *
  * Copyright (C) 2017 The Regents of the University of New Mexico.
- * Copyright (C) 2017 Ackleyshack LLC.
+ * Copyright (C) 2017-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -26,10 +27,10 @@
  */
 
 /**
-  \file NodeMemberSelect.h -  Node for handling Class Constructor Member Selection for ULAM
-  \author Elenas S. Ackley.
+  \file NodeMemberSelectOnConstructionCall.h -  Node for handling Class Constructor Member Selection for ULAM
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2017  All rights reserved.
+  \date (C) 2017-2021  All rights reserved.
   \gpl
 */
 
@@ -56,13 +57,13 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
-    virtual bool getStorageSymbolPtr(Symbol *& symptrref);
+    virtual bool getStorageSymbolPtr(const Symbol *& symptrref);
 
     virtual bool hasASymbolDataMember();
 
     virtual FORECAST safeToCastTo(UTI newType);
 
-    virtual UTI checkAndLabelType();
+    virtual UTI checkAndLabelType(Node * thisparentnode);
 
     virtual bool isAConstructorFunctionCall();
 
@@ -77,7 +78,7 @@ namespace MFM{
   protected:
 
     virtual bool doBinaryOperation(s32 lslot, s32 rslot, u32 slots);
-    virtual bool passalongUVPass();
+    virtual bool passalongUVPass(bool toRHS = false);
 
   private:
 

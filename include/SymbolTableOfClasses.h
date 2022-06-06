@@ -1,8 +1,9 @@
 /**                                        -*- mode:C++ -*-
  * SymbolTableOfClasses.h -  Handling of Table of Class Symbols for ULAM
  *
- * Copyright (C) 2014-2018 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2018 Ackleyshack LLC.
+ * Copyright (C) 2014-2020 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +28,9 @@
 
 /**
   \file SymbolTableOfClasses.h - Handling of Table of Class Symbols for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2018 All rights reserved.
+  \date (C) 2014-2021 All rights reserved.
   \gpl
 */
 
@@ -109,7 +110,9 @@ namespace MFM{
     void generateTestInstancesForTableOfClasses(File * fp);
     void generateTestInstancesRunForTableOfClasses(File * fp);
 
-    u32 defineRegistrationNumberForTableOfClasses(); //ulam-4
+    void defineRegistrationNumberForTableOfClasses(); //ulam-4,ulam-5
+
+    void defineClassNamesAsUserStringsForTableOfClasses(); //ulam-5
 
     void genCodeForTableOfClasses(FileManager * fm);
 

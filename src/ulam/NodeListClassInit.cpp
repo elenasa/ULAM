@@ -48,6 +48,11 @@ namespace MFM{
     return m_state.m_pool.getDataAsString(m_classvarId).c_str();
   }
 
+  u32 NodeListClassInit::getNameId()
+  {
+    return m_classvarId;
+  }
+
   const std::string NodeListClassInit::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
@@ -88,7 +93,7 @@ namespace MFM{
     return true;
   }
 
-  UTI NodeListClassInit::checkAndLabelType()
+  UTI NodeListClassInit::checkAndLabelType(Node * thisparentnode)
   {
     UTI rtnuti = Node::getNodeType();
 
@@ -137,7 +142,7 @@ namespace MFM{
     for(u32 i = 0; i < m_nodes.size(); i++)
       {
 	assert(m_nodes[i]);
-	UTI puti = m_nodes[i]->checkAndLabelType();
+	UTI puti = m_nodes[i]->checkAndLabelType(this);
 	if(puti == Nav)
 	  {
 	    std::ostringstream msg;
@@ -160,7 +165,6 @@ namespace MFM{
 	//else rtnuti remains == m_classUTI
       }
     setNodeType(rtnuti);
-    //    if(rtnuti == Hzy) m_state.setGoAgain(); //since no error msg
     return rtnuti;
   } //checkAndLabelType
 
@@ -191,14 +195,14 @@ namespace MFM{
   UTI NodeListClassInit::foldConstantExpression()
   {
     for(u32 i = 0; i < m_nodes.size(); i++)
-      ((NodeInitDM *) m_nodes[i])->foldConstantExpression();
-
-    m_state.tryToPackAClass(m_classUTI); //t41198 here?
-
+      {
+	((NodeInitDM *) m_nodes[i])->foldConstantExpression();
+	m_state.tryToPackAClass(m_classUTI); //t41198 here?
+      }
     return Node::getNodeType();
   }
 
-  UTI NodeListClassInit::constantFold()
+  UTI NodeListClassInit::constantFold(Node * parentnode)
   {
     return foldConstantExpression(); //t41170
   }

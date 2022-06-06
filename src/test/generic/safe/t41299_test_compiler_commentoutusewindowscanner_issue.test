@@ -1,0 +1,1104 @@
+## -*- mode:ulam -*-
+#=t41299_test_compiler_commentoutusewindowscanner_issue
+#!
+Exit status: 0
+Ue_Foo { Int test() {  TWest tw;  0 cast return } }
+Ue_TWest : SubQ { EventWindow ew( typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry;  typedef Unsigned(3) Dir; );  :SubQ<> ^QContent<> ^SPLATInstance<> <NOMAIN> }
+Uq_SubQ : QContent { :QContent<> ^SPLATInstance<> <NOMAIN> }
+Uq_EventWindow { typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry;  typedef Unsigned(3) Dir;  <NOMAIN> }
+Uq_QContent : SPLATInstance { :SPLATInstance<> <NOMAIN> }
+Un_SPLATKeyState_10QContent_Dot : SPLATKeyStateAny { /* empty class block */ }
+Un_SPLATKeyStateAny : SPLATKeyState { :SPLATKeyState< EventWindow ew( typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry;  typedef Unsigned(3) Dir; );  Random random();  SystemU3 du( :System<>);  SPLATControl splatControl( constant Bool cPRINT_RULES = false;  constant Bool cPRINT_GIVENS = false;  constant Bool cPRINT_VOTES = false;  constant Bool cPRINT_CHECKS = false;  constant Bool cPRINT_CHANGES = false;  constant Bool cPRINT_GIVEN = false;  constant Bool cPRINT_VOTE = false;  constant Bool cPRINT_CHANGE_PRE = false;  constant Bool cPRINT_CHANGE_POST = false; );  typedef Unsigned(16) Votes;  typedef Unsigned(6) SN;  constant Unsigned(6) cUNSET_SN = 63u;  Bool m_haveGiven(false);  Bool m_givenValue(false);  Bool m_haveVote(false);  Unsigned(16) m_voteValue(0);  Bool m_haveChange(false);  Unsigned(6) m_pickSN( 63u);  Atom m_pickAtom(Atom);  Unsigned(6) m_winnerSN( 63u);  Atom m_winnerAtom(Atom);  Unsigned(6) m_numberSites( 0u);  Unsigned m_numberVotes( 0u);  Unsigned(8) m_keyCode( 0u); > <NOMAIN> }
+Un_SPLATKeyState_10QContent_At : SPLATKeyStateSelf { :SPLATKeyStateSelf<> ^SPLATKeyState< EventWindow ew( typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry;  typedef Unsigned(3) Dir; );  Random random();  SystemU3 du( :System<>);  SPLATControl splatControl( constant Bool cPRINT_RULES = false;  constant Bool cPRINT_GIVENS = false;  constant Bool cPRINT_VOTES = false;  constant Bool cPRINT_CHECKS = false;  constant Bool cPRINT_CHANGES = false;  constant Bool cPRINT_GIVEN = false;  constant Bool cPRINT_VOTE = false;  constant Bool cPRINT_CHANGE_PRE = false;  constant Bool cPRINT_CHANGE_POST = false; );  typedef Unsigned(16) Votes;  typedef Unsigned(6) SN;  constant Unsigned(6) cUNSET_SN = 63u;  Bool m_haveGiven(false);  Bool m_givenValue(false);  Bool m_haveVote(false);  Unsigned(16) m_voteValue(0);  Bool m_haveChange(false);  Unsigned(6) m_pickSN( 63u);  Atom m_pickAtom(Atom);  Unsigned(6) m_winnerSN( 63u);  Atom m_winnerAtom(Atom);  Unsigned(6) m_numberSites( 0u);  Unsigned m_numberVotes( 0u);  Unsigned(8) m_keyCode( 0u); > <NOMAIN> }
+Un_SPLATKeyStateSelf : SPLATKeyState { :SPLATKeyState< EventWindow ew( typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry;  typedef Unsigned(3) Dir; );  Random random();  SystemU3 du( :System<>);  SPLATControl splatControl( constant Bool cPRINT_RULES = false;  constant Bool cPRINT_GIVENS = false;  constant Bool cPRINT_VOTES = false;  constant Bool cPRINT_CHECKS = false;  constant Bool cPRINT_CHANGES = false;  constant Bool cPRINT_GIVEN = false;  constant Bool cPRINT_VOTE = false;  constant Bool cPRINT_CHANGE_PRE = false;  constant Bool cPRINT_CHANGE_POST = false; );  typedef Unsigned(16) Votes;  typedef Unsigned(6) SN;  constant Unsigned(6) cUNSET_SN = 63u;  Bool m_haveGiven(false);  Bool m_givenValue(false);  Bool m_haveVote(false);  Unsigned(16) m_voteValue(0);  Bool m_haveChange(false);  Unsigned(6) m_pickSN( 63u);  Atom m_pickAtom(Atom);  Unsigned(6) m_winnerSN( 63u);  Atom m_winnerAtom(Atom);  Unsigned(6) m_numberSites( 0u);  Unsigned m_numberVotes( 0u);  Unsigned(8) m_keyCode( 0u); > <NOMAIN> }
+Un_SPLATRuleSet { SPLATControl splatControl( constant Bool cPRINT_RULES = false;  constant Bool cPRINT_GIVENS = false;  constant Bool cPRINT_VOTES = false;  constant Bool cPRINT_CHECKS = false;  constant Bool cPRINT_CHANGES = false;  constant Bool cPRINT_GIVEN = false;  constant Bool cPRINT_VOTE = false;  constant Bool cPRINT_CHANGE_PRE = false;  constant Bool cPRINT_CHANGE_POST = false; );  SPLATKeyStateSelf m_keyStateSelf( :SPLATKeyState< EventWindow ew( typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry;  typedef Unsigned(3) Dir; );  Random random();  SystemU3 du( :System<>);  SPLATControl splatControl( constant Bool cPRINT_RULES = false;  constant Bool cPRINT_GIVENS = false;  constant Bool cPRINT_VOTES = false;  constant Bool cPRINT_CHECKS = false;  constant Bool cPRINT_CHANGES = false;  constant Bool cPRINT_GIVEN = false;  constant Bool cPRINT_VOTE = false;  constant Bool cPRINT_CHANGE_PRE = false;  constant Bool cPRINT_CHANGE_POST = false; );  typedef Unsigned(16) Votes;  typedef Unsigned(6) SN;  constant Unsigned(6) cUNSET_SN = 63u;  Bool m_haveGiven(false);  Bool m_givenValue(false);  Bool m_haveVote(false);  Unsigned(16) m_voteValue(0);  Bool m_haveChange(false);  Unsigned(6) m_pickSN( 63u);  Atom m_pickAtom(Atom);  Unsigned(6) m_winnerSN( 63u);  Atom m_winnerAtom(Atom);  Unsigned(6) m_numberSites( 0u);  Unsigned m_numberVotes( 0u);  Unsigned(8) m_keyCode( 0u); >);  SPLATKeyStateEmpty m_keyStateEmpty( :SPLATKeyState< EventWindow ew( typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry;  typedef Unsigned(3) Dir; );  Random random();  SystemU3 du( :System<>);  SPLATControl splatControl( constant Bool cPRINT_RULES = false;  constant Bool cPRINT_GIVENS = false;  constant Bool cPRINT_VOTES = false;  constant Bool cPRINT_CHECKS = false;  constant Bool cPRINT_CHANGES = false;  constant Bool cPRINT_GIVEN = false;  constant Bool cPRINT_VOTE = false;  constant Bool cPRINT_CHANGE_PRE = false;  constant Bool cPRINT_CHANGE_POST = false; );  typedef Unsigned(16) Votes;  typedef Unsigned(6) SN;  constant Unsigned(6) cUNSET_SN = 63u;  Bool m_haveGiven(false);  Bool m_givenValue(false);  Bool m_haveVote(false);  Unsigned(16) m_voteValue(0);  Bool m_haveChange(false);  Unsigned(6) m_pickSN( 63u);  Atom m_pickAtom(Atom);  Unsigned(6) m_winnerSN( 63u);  Atom m_winnerAtom(Atom);  Unsigned(6) m_numberSites( 0u);  Unsigned m_numberVotes( 0u);  Unsigned(8) m_keyCode( 0u); >);  SPLATKeyStateAny m_keyStateAny( :SPLATKeyState< EventWindow ew( typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry;  typedef Unsigned(3) Dir; );  Random random();  SystemU3 du( :System<>);  SPLATControl splatControl( constant Bool cPRINT_RULES = false;  constant Bool cPRINT_GIVENS = false;  constant Bool cPRINT_VOTES = false;  constant Bool cPRINT_CHECKS = false;  constant Bool cPRINT_CHANGES = false;  constant Bool cPRINT_GIVEN = false;  constant Bool cPRINT_VOTE = false;  constant Bool cPRINT_CHANGE_PRE = false;  constant Bool cPRINT_CHANGE_POST = false; );  typedef Unsigned(16) Votes;  typedef Unsigned(6) SN;  constant Unsigned(6) cUNSET_SN = 63u;  Bool m_haveGiven(false);  Bool m_givenValue(false);  Bool m_haveVote(false);  Unsigned(16) m_voteValue(0);  Bool m_haveChange(false);  Unsigned(6) m_pickSN( 63u);  Atom m_pickAtom(Atom);  Unsigned(6) m_winnerSN( 63u);  Atom m_winnerAtom(Atom);  Unsigned(6) m_numberSites( 0u);  Unsigned m_numberVotes( 0u);  Unsigned(8) m_keyCode( 0u); >);  SPLATKeyStateOccupied m_keyStateOccupied( :SPLATKeyState< EventWindow ew( typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry;  typedef Unsigned(3) Dir; );  Random random();  SystemU3 du( :System<>);  SPLATControl splatControl( constant Bool cPRINT_RULES = false;  constant Bool cPRINT_GIVENS = false;  constant Bool cPRINT_VOTES = false;  constant Bool cPRINT_CHECKS = false;  constant Bool cPRINT_CHANGES = false;  constant Bool cPRINT_GIVEN = false;  constant Bool cPRINT_VOTE = false;  constant Bool cPRINT_CHANGE_PRE = false;  constant Bool cPRINT_CHANGE_POST = false; );  typedef Unsigned(16) Votes;  typedef Unsigned(6) SN;  constant Unsigned(6) cUNSET_SN = 63u;  Bool m_haveGiven(false);  Bool m_givenValue(false);  Bool m_haveVote(false);  Unsigned(16) m_voteValue(0);  Bool m_haveChange(false);  Unsigned(6) m_pickSN( 63u);  Atom m_pickAtom(Atom);  Unsigned(6) m_winnerSN( 63u);  Atom m_winnerAtom(Atom);  Unsigned(6) m_numberSites( 0u);  Unsigned m_numberVotes( 0u);  Unsigned(8) m_keyCode( 0u); >);  SPLATKeyStateInvalid m_keyStateInvalid( :SPLATKeyState< EventWindow ew( typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry;  typedef Unsigned(3) Dir; );  Random random();  SystemU3 du( :System<>);  SPLATControl splatControl( constant Bool cPRINT_RULES = false;  constant Bool cPRINT_GIVENS = false;  constant Bool cPRINT_VOTES = false;  constant Bool cPRINT_CHECKS = false;  constant Bool cPRINT_CHANGES = false;  constant Bool cPRINT_GIVEN = false;  constant Bool cPRINT_VOTE = false;  constant Bool cPRINT_CHANGE_PRE = false;  constant Bool cPRINT_CHANGE_POST = false; );  typedef Unsigned(16) Votes;  typedef Unsigned(6) SN;  constant Unsigned(6) cUNSET_SN = 63u;  Bool m_haveGiven(false);  Bool m_givenValue(false);  Bool m_haveVote(false);  Unsigned(16) m_voteValue(0);  Bool m_haveChange(false);  Unsigned(6) m_pickSN( 63u);  Atom m_pickAtom(Atom);  Unsigned(6) m_winnerSN( 63u);  Atom m_winnerAtom(Atom);  Unsigned(6) m_numberSites( 0u);  Unsigned m_numberVotes( 0u);  Unsigned(8) m_keyCode( 0u); >);  typedef Int ScratchVar;  Int m_scratchVars[10](0,0,0,0,0,0,0,0,0,0);  typedef Bits(64) BitMap64;  Bits(64) m_givenTrueForNode(0);  <NOMAIN> }
+Un_SPLATKeyState_10QContent_Underline : SPLATKeyStateEmpty { /* empty class block */ }
+Un_SPLATKeyStateEmpty : SPLATKeyState { :SPLATKeyState< EventWindow ew( typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry;  typedef Unsigned(3) Dir; );  Random random();  SystemU3 du( :System<>);  SPLATControl splatControl( constant Bool cPRINT_RULES = false;  constant Bool cPRINT_GIVENS = false;  constant Bool cPRINT_VOTES = false;  constant Bool cPRINT_CHECKS = false;  constant Bool cPRINT_CHANGES = false;  constant Bool cPRINT_GIVEN = false;  constant Bool cPRINT_VOTE = false;  constant Bool cPRINT_CHANGE_PRE = false;  constant Bool cPRINT_CHANGE_POST = false; );  typedef Unsigned(16) Votes;  typedef Unsigned(6) SN;  constant Unsigned(6) cUNSET_SN = 63u;  Bool m_haveGiven(false);  Bool m_givenValue(false);  Bool m_haveVote(false);  Unsigned(16) m_voteValue(0);  Bool m_haveChange(false);  Unsigned(6) m_pickSN( 63u);  Atom m_pickAtom(Atom);  Unsigned(6) m_winnerSN( 63u);  Atom m_winnerAtom(Atom);  Unsigned(6) m_numberSites( 0u);  Unsigned m_numberVotes( 0u);  Unsigned(8) m_keyCode( 0u); > <NOMAIN> }
+Un_SPLATKeyState_10QContent_n : SPLATKeyState { :SPLATKeyState< EventWindow ew( typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry;  typedef Unsigned(3) Dir; );  Random random();  SystemU3 du( :System<>);  SPLATControl splatControl( constant Bool cPRINT_RULES = false;  constant Bool cPRINT_GIVENS = false;  constant Bool cPRINT_VOTES = false;  constant Bool cPRINT_CHECKS = false;  constant Bool cPRINT_CHANGES = false;  constant Bool cPRINT_GIVEN = false;  constant Bool cPRINT_VOTE = false;  constant Bool cPRINT_CHANGE_PRE = false;  constant Bool cPRINT_CHANGE_POST = false; );  typedef Unsigned(16) Votes;  typedef Unsigned(6) SN;  constant Unsigned(6) cUNSET_SN = 63u;  Bool m_haveGiven(false);  Bool m_givenValue(false);  Bool m_haveVote(false);  Unsigned(16) m_voteValue(0);  Bool m_haveChange(false);  Unsigned(6) m_pickSN( 63u);  Atom m_pickAtom(Atom);  Unsigned(6) m_winnerSN( 63u);  Atom m_winnerAtom(Atom);  Unsigned(6) m_numberSites( 0u);  Unsigned m_numberVotes( 0u);  Unsigned(8) m_keyCode( 0u); > <NOMAIN> }
+Un_SPLATKeyState { EventWindow ew( typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry;  typedef Unsigned(3) Dir; );  Random random();  SystemU3 du( :System<>);  SPLATControl splatControl( constant Bool cPRINT_RULES = false;  constant Bool cPRINT_GIVENS = false;  constant Bool cPRINT_VOTES = false;  constant Bool cPRINT_CHECKS = false;  constant Bool cPRINT_CHANGES = false;  constant Bool cPRINT_GIVEN = false;  constant Bool cPRINT_VOTE = false;  constant Bool cPRINT_CHANGE_PRE = false;  constant Bool cPRINT_CHANGE_POST = false; );  typedef Unsigned(16) Votes;  typedef Unsigned(6) SN;  constant Unsigned(6) cUNSET_SN = 63u;  Bool m_haveGiven(false);  Bool m_givenValue(false);  Bool m_haveVote(false);  Unsigned(16) m_voteValue(0);  Bool m_haveChange(false);  Unsigned(6) m_pickSN( 63u);  Atom m_pickAtom(Atom);  Unsigned(6) m_winnerSN( 63u);  Atom m_winnerAtom(Atom);  Unsigned(6) m_numberSites( 0u);  Unsigned m_numberVotes( 0u);  Unsigned(8) m_keyCode( 0u);  <NOMAIN> }
+Un_SPLATRuleSet_10QContent : SPLATRuleSet { SPLATKeyState_10QContent_Dot key_Dot( :SPLATKeyStateAny<> ^SPLATKeyState< EventWindow ew( typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry;  typedef Unsigned(3) Dir; );  Random random();  SystemU3 du( :System<>);  SPLATControl splatControl( constant Bool cPRINT_RULES = false;  constant Bool cPRINT_GIVENS = false;  constant Bool cPRINT_VOTES = false;  constant Bool cPRINT_CHECKS = false;  constant Bool cPRINT_CHANGES = false;  constant Bool cPRINT_GIVEN = false;  constant Bool cPRINT_VOTE = false;  constant Bool cPRINT_CHANGE_PRE = false;  constant Bool cPRINT_CHANGE_POST = false; );  typedef Unsigned(16) Votes;  typedef Unsigned(6) SN;  constant Unsigned(6) cUNSET_SN = 63u;  Bool m_haveGiven(false);  Bool m_givenValue(false);  Bool m_haveVote(false);  Unsigned(16) m_voteValue(0);  Bool m_haveChange(false);  Unsigned(6) m_pickSN( 63u);  Atom m_pickAtom(Atom);  Unsigned(6) m_winnerSN( 63u);  Atom m_winnerAtom(Atom);  Unsigned(6) m_numberSites( 0u);  Unsigned m_numberVotes( 0u);  Unsigned(8) m_keyCode( 0u); >);  SPLATKeyState_10QContent_At key_At( :SPLATKeyStateSelf<> ^SPLATKeyState< EventWindow ew( typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry;  typedef Unsigned(3) Dir; );  Random random();  SystemU3 du( :System<>);  SPLATControl splatControl( constant Bool cPRINT_RULES = false;  constant Bool cPRINT_GIVENS = false;  constant Bool cPRINT_VOTES = false;  constant Bool cPRINT_CHECKS = false;  constant Bool cPRINT_CHANGES = false;  constant Bool cPRINT_GIVEN = false;  constant Bool cPRINT_VOTE = false;  constant Bool cPRINT_CHANGE_PRE = false;  constant Bool cPRINT_CHANGE_POST = false; );  typedef Unsigned(16) Votes;  typedef Unsigned(6) SN;  constant Unsigned(6) cUNSET_SN = 63u;  Bool m_haveGiven(false);  Bool m_givenValue(false);  Bool m_haveVote(false);  Unsigned(16) m_voteValue(0);  Bool m_haveChange(false);  Unsigned(6) m_pickSN( 63u);  Atom m_pickAtom(Atom);  Unsigned(6) m_winnerSN( 63u);  Atom m_winnerAtom(Atom);  Unsigned(6) m_numberSites( 0u);  Unsigned m_numberVotes( 0u);  Unsigned(8) m_keyCode( 0u); >);  SPLATKeyState_10QContent_Underline key_Underline( :SPLATKeyStateEmpty<> ^SPLATKeyState< EventWindow ew( typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry;  typedef Unsigned(3) Dir; );  Random random();  SystemU3 du( :System<>);  SPLATControl splatControl( constant Bool cPRINT_RULES = false;  constant Bool cPRINT_GIVENS = false;  constant Bool cPRINT_VOTES = false;  constant Bool cPRINT_CHECKS = false;  constant Bool cPRINT_CHANGES = false;  constant Bool cPRINT_GIVEN = false;  constant Bool cPRINT_VOTE = false;  constant Bool cPRINT_CHANGE_PRE = false;  constant Bool cPRINT_CHANGE_POST = false; );  typedef Unsigned(16) Votes;  typedef Unsigned(6) SN;  constant Unsigned(6) cUNSET_SN = 63u;  Bool m_haveGiven(false);  Bool m_givenValue(false);  Bool m_haveVote(false);  Unsigned(16) m_voteValue(0);  Bool m_haveChange(false);  Unsigned(6) m_pickSN( 63u);  Atom m_pickAtom(Atom);  Unsigned(6) m_winnerSN( 63u);  Atom m_winnerAtom(Atom);  Unsigned(6) m_numberSites( 0u);  Unsigned m_numberVotes( 0u);  Unsigned(8) m_keyCode( 0u); >);  SPLATKeyState_10QContent_n key_n( :SPLATKeyState< EventWindow ew( typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry;  typedef Unsigned(3) Dir; );  Random random();  SystemU3 du( :System<>);  SPLATControl splatControl( constant Bool cPRINT_RULES = false;  constant Bool cPRINT_GIVENS = false;  constant Bool cPRINT_VOTES = false;  constant Bool cPRINT_CHECKS = false;  constant Bool cPRINT_CHANGES = false;  constant Bool cPRINT_GIVEN = false;  constant Bool cPRINT_VOTE = false;  constant Bool cPRINT_CHANGE_PRE = false;  constant Bool cPRINT_CHANGE_POST = false; );  typedef Unsigned(16) Votes;  typedef Unsigned(6) SN;  constant Unsigned(6) cUNSET_SN = 63u;  Bool m_haveGiven(false);  Bool m_givenValue(false);  Bool m_haveVote(false);  Unsigned(16) m_voteValue(0);  Bool m_haveChange(false);  Unsigned(6) m_pickSN( 63u);  Atom m_pickAtom(Atom);  Unsigned(6) m_winnerSN( 63u);  Atom m_winnerAtom(Atom);  Unsigned(6) m_numberSites( 0u);  Unsigned m_numberVotes( 0u);  Unsigned(8) m_keyCode( 0u); >);  :SPLATRuleSet< SPLATControl splatControl( constant Bool cPRINT_RULES = false;  constant Bool cPRINT_GIVENS = false;  constant Bool cPRINT_VOTES = false;  constant Bool cPRINT_CHECKS = false;  constant Bool cPRINT_CHANGES = false;  constant Bool cPRINT_GIVEN = false;  constant Bool cPRINT_VOTE = false;  constant Bool cPRINT_CHANGE_PRE = false;  constant Bool cPRINT_CHANGE_POST = false; );  SPLATKeyStateSelf m_keyStateSelf( :SPLATKeyState< EventWindow ew( typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry;  typedef Unsigned(3) Dir; );  Random random();  SystemU3 du( :System<>);  SPLATControl splatControl( constant Bool cPRINT_RULES = false;  constant Bool cPRINT_GIVENS = false;  constant Bool cPRINT_VOTES = false;  constant Bool cPRINT_CHECKS = false;  constant Bool cPRINT_CHANGES = false;  constant Bool cPRINT_GIVEN = false;  constant Bool cPRINT_VOTE = false;  constant Bool cPRINT_CHANGE_PRE = false;  constant Bool cPRINT_CHANGE_POST = false; );  typedef Unsigned(16) Votes;  typedef Unsigned(6) SN;  constant Unsigned(6) cUNSET_SN = 63u;  Bool m_haveGiven(false);  Bool m_givenValue(false);  Bool m_haveVote(false);  Unsigned(16) m_voteValue(0);  Bool m_haveChange(false);  Unsigned(6) m_pickSN( 63u);  Atom m_pickAtom(Atom);  Unsigned(6) m_winnerSN( 63u);  Atom m_winnerAtom(Atom);  Unsigned(6) m_numberSites( 0u);  Unsigned m_numberVotes( 0u);  Unsigned(8) m_keyCode( 0u); >);  SPLATKeyStateEmpty m_keyStateEmpty( :SPLATKeyState< EventWindow ew( typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry;  typedef Unsigned(3) Dir; );  Random random();  SystemU3 du( :System<>);  SPLATControl splatControl( constant Bool cPRINT_RULES = false;  constant Bool cPRINT_GIVENS = false;  constant Bool cPRINT_VOTES = false;  constant Bool cPRINT_CHECKS = false;  constant Bool cPRINT_CHANGES = false;  constant Bool cPRINT_GIVEN = false;  constant Bool cPRINT_VOTE = false;  constant Bool cPRINT_CHANGE_PRE = false;  constant Bool cPRINT_CHANGE_POST = false; );  typedef Unsigned(16) Votes;  typedef Unsigned(6) SN;  constant Unsigned(6) cUNSET_SN = 63u;  Bool m_haveGiven(false);  Bool m_givenValue(false);  Bool m_haveVote(false);  Unsigned(16) m_voteValue(0);  Bool m_haveChange(false);  Unsigned(6) m_pickSN( 63u);  Atom m_pickAtom(Atom);  Unsigned(6) m_winnerSN( 63u);  Atom m_winnerAtom(Atom);  Unsigned(6) m_numberSites( 0u);  Unsigned m_numberVotes( 0u);  Unsigned(8) m_keyCode( 0u); >);  SPLATKeyStateAny m_keyStateAny( :SPLATKeyState< EventWindow ew( typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry;  typedef Unsigned(3) Dir; );  Random random();  SystemU3 du( :System<>);  SPLATControl splatControl( constant Bool cPRINT_RULES = false;  constant Bool cPRINT_GIVENS = false;  constant Bool cPRINT_VOTES = false;  constant Bool cPRINT_CHECKS = false;  constant Bool cPRINT_CHANGES = false;  constant Bool cPRINT_GIVEN = false;  constant Bool cPRINT_VOTE = false;  constant Bool cPRINT_CHANGE_PRE = false;  constant Bool cPRINT_CHANGE_POST = false; );  typedef Unsigned(16) Votes;  typedef Unsigned(6) SN;  constant Unsigned(6) cUNSET_SN = 63u;  Bool m_haveGiven(false);  Bool m_givenValue(false);  Bool m_haveVote(false);  Unsigned(16) m_voteValue(0);  Bool m_haveChange(false);  Unsigned(6) m_pickSN( 63u);  Atom m_pickAtom(Atom);  Unsigned(6) m_winnerSN( 63u);  Atom m_winnerAtom(Atom);  Unsigned(6) m_numberSites( 0u);  Unsigned m_numberVotes( 0u);  Unsigned(8) m_keyCode( 0u); >);  SPLATKeyStateOccupied m_keyStateOccupied( :SPLATKeyState< EventWindow ew( typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry;  typedef Unsigned(3) Dir; );  Random random();  SystemU3 du( :System<>);  SPLATControl splatControl( constant Bool cPRINT_RULES = false;  constant Bool cPRINT_GIVENS = false;  constant Bool cPRINT_VOTES = false;  constant Bool cPRINT_CHECKS = false;  constant Bool cPRINT_CHANGES = false;  constant Bool cPRINT_GIVEN = false;  constant Bool cPRINT_VOTE = false;  constant Bool cPRINT_CHANGE_PRE = false;  constant Bool cPRINT_CHANGE_POST = false; );  typedef Unsigned(16) Votes;  typedef Unsigned(6) SN;  constant Unsigned(6) cUNSET_SN = 63u;  Bool m_haveGiven(false);  Bool m_givenValue(false);  Bool m_haveVote(false);  Unsigned(16) m_voteValue(0);  Bool m_haveChange(false);  Unsigned(6) m_pickSN( 63u);  Atom m_pickAtom(Atom);  Unsigned(6) m_winnerSN( 63u);  Atom m_winnerAtom(Atom);  Unsigned(6) m_numberSites( 0u);  Unsigned m_numberVotes( 0u);  Unsigned(8) m_keyCode( 0u); >);  SPLATKeyStateInvalid m_keyStateInvalid( :SPLATKeyState< EventWindow ew( typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry;  typedef Unsigned(3) Dir; );  Random random();  SystemU3 du( :System<>);  SPLATControl splatControl( constant Bool cPRINT_RULES = false;  constant Bool cPRINT_GIVENS = false;  constant Bool cPRINT_VOTES = false;  constant Bool cPRINT_CHECKS = false;  constant Bool cPRINT_CHANGES = false;  constant Bool cPRINT_GIVEN = false;  constant Bool cPRINT_VOTE = false;  constant Bool cPRINT_CHANGE_PRE = false;  constant Bool cPRINT_CHANGE_POST = false; );  typedef Unsigned(16) Votes;  typedef Unsigned(6) SN;  constant Unsigned(6) cUNSET_SN = 63u;  Bool m_haveGiven(false);  Bool m_givenValue(false);  Bool m_haveVote(false);  Unsigned(16) m_voteValue(0);  Bool m_haveChange(false);  Unsigned(6) m_pickSN( 63u);  Atom m_pickAtom(Atom);  Unsigned(6) m_winnerSN( 63u);  Atom m_winnerAtom(Atom);  Unsigned(6) m_numberSites( 0u);  Unsigned m_numberVotes( 0u);  Unsigned(8) m_keyCode( 0u); >);  typedef Int ScratchVar;  Int m_scratchVars[10](0,0,0,0,0,0,0,0,0,0);  typedef Bits(64) BitMap64;  Bits(64) m_givenTrueForNode(0); > <NOMAIN> }
+Un_SPLATRuleDriver { SPLATControl splatControl( constant Bool cPRINT_RULES = false;  constant Bool cPRINT_GIVENS = false;  constant Bool cPRINT_VOTES = false;  constant Bool cPRINT_CHECKS = false;  constant Bool cPRINT_CHANGES = false;  constant Bool cPRINT_GIVEN = false;  constant Bool cPRINT_VOTE = false;  constant Bool cPRINT_CHANGE_PRE = false;  constant Bool cPRINT_CHANGE_POST = false; );  typedef Unsigned(6) SN;  EventWindow ew( typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry;  typedef Unsigned(3) Dir; );  SystemU3 du( :System<>);  constant Unsigned(8) cEND_OF_LHS = 255u;  constant Unsigned(8) cEND_OF_RHS = 254u;  <NOMAIN> }
+Un_SPLATKeyState_11QContent_Dot : SPLATKeyStateAny { /* empty class block */ }
+Un_SPLATKeyState_11QContent_At : SPLATKeyStateSelf { /* empty class block */ }
+Un_SPLATKeyState_11QContent_i : SPLATKeyState { :SPLATKeyState< EventWindow ew( typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry;  typedef Unsigned(3) Dir; );  Random random();  SystemU3 du( :System<>);  SPLATControl splatControl( constant Bool cPRINT_RULES = false;  constant Bool cPRINT_GIVENS = false;  constant Bool cPRINT_VOTES = false;  constant Bool cPRINT_CHECKS = false;  constant Bool cPRINT_CHANGES = false;  constant Bool cPRINT_GIVEN = false;  constant Bool cPRINT_VOTE = false;  constant Bool cPRINT_CHANGE_PRE = false;  constant Bool cPRINT_CHANGE_POST = false; );  typedef Unsigned(16) Votes;  typedef Unsigned(6) SN;  constant Unsigned(6) cUNSET_SN = 63u;  Bool m_haveGiven(false);  Bool m_givenValue(false);  Bool m_haveVote(false);  Unsigned(16) m_voteValue(0);  Bool m_haveChange(false);  Unsigned(6) m_pickSN( 63u);  Atom m_pickAtom(Atom);  Unsigned(6) m_winnerSN( 63u);  Atom m_winnerAtom(Atom);  Unsigned(6) m_numberSites( 0u);  Unsigned m_numberVotes( 0u);  Unsigned(8) m_keyCode( 0u); > <NOMAIN> }
+Un_SPLATKeyState_11QContent_x : SPLATKeyState { :SPLATKeyState< EventWindow ew( typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry;  typedef Unsigned(3) Dir; );  Random random();  SystemU3 du( :System<>);  SPLATControl splatControl( constant Bool cPRINT_RULES = false;  constant Bool cPRINT_GIVENS = false;  constant Bool cPRINT_VOTES = false;  constant Bool cPRINT_CHECKS = false;  constant Bool cPRINT_CHANGES = false;  constant Bool cPRINT_GIVEN = false;  constant Bool cPRINT_VOTE = false;  constant Bool cPRINT_CHANGE_PRE = false;  constant Bool cPRINT_CHANGE_POST = false; );  typedef Unsigned(16) Votes;  typedef Unsigned(6) SN;  constant Unsigned(6) cUNSET_SN = 63u;  Bool m_haveGiven(false);  Bool m_givenValue(false);  Bool m_haveVote(false);  Unsigned(16) m_voteValue(0);  Bool m_haveChange(false);  Unsigned(6) m_pickSN( 63u);  Atom m_pickAtom(Atom);  Unsigned(6) m_winnerSN( 63u);  Atom m_winnerAtom(Atom);  Unsigned(6) m_numberSites( 0u);  Unsigned m_numberVotes( 0u);  Unsigned(8) m_keyCode( 0u); > <NOMAIN> }
+Un_SPLATRuleSet_11QContent : SPLATRuleSet { SPLATKeyState_11QContent_Dot key_Dot( :SPLATKeyStateAny<> ^SPLATKeyState< EventWindow ew( typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry;  typedef Unsigned(3) Dir; );  Random random();  SystemU3 du( :System<>);  SPLATControl splatControl( constant Bool cPRINT_RULES = false;  constant Bool cPRINT_GIVENS = false;  constant Bool cPRINT_VOTES = false;  constant Bool cPRINT_CHECKS = false;  constant Bool cPRINT_CHANGES = false;  constant Bool cPRINT_GIVEN = false;  constant Bool cPRINT_VOTE = false;  constant Bool cPRINT_CHANGE_PRE = false;  constant Bool cPRINT_CHANGE_POST = false; );  typedef Unsigned(16) Votes;  typedef Unsigned(6) SN;  constant Unsigned(6) cUNSET_SN = 63u;  Bool m_haveGiven(false);  Bool m_givenValue(false);  Bool m_haveVote(false);  Unsigned(16) m_voteValue(0);  Bool m_haveChange(false);  Unsigned(6) m_pickSN( 63u);  Atom m_pickAtom(Atom);  Unsigned(6) m_winnerSN( 63u);  Atom m_winnerAtom(Atom);  Unsigned(6) m_numberSites( 0u);  Unsigned m_numberVotes( 0u);  Unsigned(8) m_keyCode( 0u); >);  SPLATKeyState_11QContent_At key_At( :SPLATKeyStateSelf<> ^SPLATKeyState< EventWindow ew( typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry;  typedef Unsigned(3) Dir; );  Random random();  SystemU3 du( :System<>);  SPLATControl splatControl( constant Bool cPRINT_RULES = false;  constant Bool cPRINT_GIVENS = false;  constant Bool cPRINT_VOTES = false;  constant Bool cPRINT_CHECKS = false;  constant Bool cPRINT_CHANGES = false;  constant Bool cPRINT_GIVEN = false;  constant Bool cPRINT_VOTE = false;  constant Bool cPRINT_CHANGE_PRE = false;  constant Bool cPRINT_CHANGE_POST = false; );  typedef Unsigned(16) Votes;  typedef Unsigned(6) SN;  constant Unsigned(6) cUNSET_SN = 63u;  Bool m_haveGiven(false);  Bool m_givenValue(false);  Bool m_haveVote(false);  Unsigned(16) m_voteValue(0);  Bool m_haveChange(false);  Unsigned(6) m_pickSN( 63u);  Atom m_pickAtom(Atom);  Unsigned(6) m_winnerSN( 63u);  Atom m_winnerAtom(Atom);  Unsigned(6) m_numberSites( 0u);  Unsigned m_numberVotes( 0u);  Unsigned(8) m_keyCode( 0u); >);  SPLATKeyState_11QContent_i key_i( :SPLATKeyState< EventWindow ew( typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry;  typedef Unsigned(3) Dir; );  Random random();  SystemU3 du( :System<>);  SPLATControl splatControl( constant Bool cPRINT_RULES = false;  constant Bool cPRINT_GIVENS = false;  constant Bool cPRINT_VOTES = false;  constant Bool cPRINT_CHECKS = false;  constant Bool cPRINT_CHANGES = false;  constant Bool cPRINT_GIVEN = false;  constant Bool cPRINT_VOTE = false;  constant Bool cPRINT_CHANGE_PRE = false;  constant Bool cPRINT_CHANGE_POST = false; );  typedef Unsigned(16) Votes;  typedef Unsigned(6) SN;  constant Unsigned(6) cUNSET_SN = 63u;  Bool m_haveGiven(false);  Bool m_givenValue(false);  Bool m_haveVote(false);  Unsigned(16) m_voteValue(0);  Bool m_haveChange(false);  Unsigned(6) m_pickSN( 63u);  Atom m_pickAtom(Atom);  Unsigned(6) m_winnerSN( 63u);  Atom m_winnerAtom(Atom);  Unsigned(6) m_numberSites( 0u);  Unsigned m_numberVotes( 0u);  Unsigned(8) m_keyCode( 0u); >);  SPLATKeyState_11QContent_x key_x( :SPLATKeyState< EventWindow ew( typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry;  typedef Unsigned(3) Dir; );  Random random();  SystemU3 du( :System<>);  SPLATControl splatControl( constant Bool cPRINT_RULES = false;  constant Bool cPRINT_GIVENS = false;  constant Bool cPRINT_VOTES = false;  constant Bool cPRINT_CHECKS = false;  constant Bool cPRINT_CHANGES = false;  constant Bool cPRINT_GIVEN = false;  constant Bool cPRINT_VOTE = false;  constant Bool cPRINT_CHANGE_PRE = false;  constant Bool cPRINT_CHANGE_POST = false; );  typedef Unsigned(16) Votes;  typedef Unsigned(6) SN;  constant Unsigned(6) cUNSET_SN = 63u;  Bool m_haveGiven(false);  Bool m_givenValue(false);  Bool m_haveVote(false);  Unsigned(16) m_voteValue(0);  Bool m_haveChange(false);  Unsigned(6) m_pickSN( 63u);  Atom m_pickAtom(Atom);  Unsigned(6) m_winnerSN( 63u);  Atom m_winnerAtom(Atom);  Unsigned(6) m_numberSites( 0u);  Unsigned m_numberVotes( 0u);  Unsigned(8) m_keyCode( 0u); >);  :SPLATRuleSet< SPLATControl splatControl( constant Bool cPRINT_RULES = false;  constant Bool cPRINT_GIVENS = false;  constant Bool cPRINT_VOTES = false;  constant Bool cPRINT_CHECKS = false;  constant Bool cPRINT_CHANGES = false;  constant Bool cPRINT_GIVEN = false;  constant Bool cPRINT_VOTE = false;  constant Bool cPRINT_CHANGE_PRE = false;  constant Bool cPRINT_CHANGE_POST = false; );  SPLATKeyStateSelf m_keyStateSelf( :SPLATKeyState< EventWindow ew( typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry;  typedef Unsigned(3) Dir; );  Random random();  SystemU3 du( :System<>);  SPLATControl splatControl( constant Bool cPRINT_RULES = false;  constant Bool cPRINT_GIVENS = false;  constant Bool cPRINT_VOTES = false;  constant Bool cPRINT_CHECKS = false;  constant Bool cPRINT_CHANGES = false;  constant Bool cPRINT_GIVEN = false;  constant Bool cPRINT_VOTE = false;  constant Bool cPRINT_CHANGE_PRE = false;  constant Bool cPRINT_CHANGE_POST = false; );  typedef Unsigned(16) Votes;  typedef Unsigned(6) SN;  constant Unsigned(6) cUNSET_SN = 63u;  Bool m_haveGiven(false);  Bool m_givenValue(false);  Bool m_haveVote(false);  Unsigned(16) m_voteValue(0);  Bool m_haveChange(false);  Unsigned(6) m_pickSN( 63u);  Atom m_pickAtom(Atom);  Unsigned(6) m_winnerSN( 63u);  Atom m_winnerAtom(Atom);  Unsigned(6) m_numberSites( 0u);  Unsigned m_numberVotes( 0u);  Unsigned(8) m_keyCode( 0u); >);  SPLATKeyStateEmpty m_keyStateEmpty( :SPLATKeyState< EventWindow ew( typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry;  typedef Unsigned(3) Dir; );  Random random();  SystemU3 du( :System<>);  SPLATControl splatControl( constant Bool cPRINT_RULES = false;  constant Bool cPRINT_GIVENS = false;  constant Bool cPRINT_VOTES = false;  constant Bool cPRINT_CHECKS = false;  constant Bool cPRINT_CHANGES = false;  constant Bool cPRINT_GIVEN = false;  constant Bool cPRINT_VOTE = false;  constant Bool cPRINT_CHANGE_PRE = false;  constant Bool cPRINT_CHANGE_POST = false; );  typedef Unsigned(16) Votes;  typedef Unsigned(6) SN;  constant Unsigned(6) cUNSET_SN = 63u;  Bool m_haveGiven(false);  Bool m_givenValue(false);  Bool m_haveVote(false);  Unsigned(16) m_voteValue(0);  Bool m_haveChange(false);  Unsigned(6) m_pickSN( 63u);  Atom m_pickAtom(Atom);  Unsigned(6) m_winnerSN( 63u);  Atom m_winnerAtom(Atom);  Unsigned(6) m_numberSites( 0u);  Unsigned m_numberVotes( 0u);  Unsigned(8) m_keyCode( 0u); >);  SPLATKeyStateAny m_keyStateAny( :SPLATKeyState< EventWindow ew( typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry;  typedef Unsigned(3) Dir; );  Random random();  SystemU3 du( :System<>);  SPLATControl splatControl( constant Bool cPRINT_RULES = false;  constant Bool cPRINT_GIVENS = false;  constant Bool cPRINT_VOTES = false;  constant Bool cPRINT_CHECKS = false;  constant Bool cPRINT_CHANGES = false;  constant Bool cPRINT_GIVEN = false;  constant Bool cPRINT_VOTE = false;  constant Bool cPRINT_CHANGE_PRE = false;  constant Bool cPRINT_CHANGE_POST = false; );  typedef Unsigned(16) Votes;  typedef Unsigned(6) SN;  constant Unsigned(6) cUNSET_SN = 63u;  Bool m_haveGiven(false);  Bool m_givenValue(false);  Bool m_haveVote(false);  Unsigned(16) m_voteValue(0);  Bool m_haveChange(false);  Unsigned(6) m_pickSN( 63u);  Atom m_pickAtom(Atom);  Unsigned(6) m_winnerSN( 63u);  Atom m_winnerAtom(Atom);  Unsigned(6) m_numberSites( 0u);  Unsigned m_numberVotes( 0u);  Unsigned(8) m_keyCode( 0u); >);  SPLATKeyStateOccupied m_keyStateOccupied( :SPLATKeyState< EventWindow ew( typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry;  typedef Unsigned(3) Dir; );  Random random();  SystemU3 du( :System<>);  SPLATControl splatControl( constant Bool cPRINT_RULES = false;  constant Bool cPRINT_GIVENS = false;  constant Bool cPRINT_VOTES = false;  constant Bool cPRINT_CHECKS = false;  constant Bool cPRINT_CHANGES = false;  constant Bool cPRINT_GIVEN = false;  constant Bool cPRINT_VOTE = false;  constant Bool cPRINT_CHANGE_PRE = false;  constant Bool cPRINT_CHANGE_POST = false; );  typedef Unsigned(16) Votes;  typedef Unsigned(6) SN;  constant Unsigned(6) cUNSET_SN = 63u;  Bool m_haveGiven(false);  Bool m_givenValue(false);  Bool m_haveVote(false);  Unsigned(16) m_voteValue(0);  Bool m_haveChange(false);  Unsigned(6) m_pickSN( 63u);  Atom m_pickAtom(Atom);  Unsigned(6) m_winnerSN( 63u);  Atom m_winnerAtom(Atom);  Unsigned(6) m_numberSites( 0u);  Unsigned m_numberVotes( 0u);  Unsigned(8) m_keyCode( 0u); >);  SPLATKeyStateInvalid m_keyStateInvalid( :SPLATKeyState< EventWindow ew( typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry;  typedef Unsigned(3) Dir; );  Random random();  SystemU3 du( :System<>);  SPLATControl splatControl( constant Bool cPRINT_RULES = false;  constant Bool cPRINT_GIVENS = false;  constant Bool cPRINT_VOTES = false;  constant Bool cPRINT_CHECKS = false;  constant Bool cPRINT_CHANGES = false;  constant Bool cPRINT_GIVEN = false;  constant Bool cPRINT_VOTE = false;  constant Bool cPRINT_CHANGE_PRE = false;  constant Bool cPRINT_CHANGE_POST = false; );  typedef Unsigned(16) Votes;  typedef Unsigned(6) SN;  constant Unsigned(6) cUNSET_SN = 63u;  Bool m_haveGiven(false);  Bool m_givenValue(false);  Bool m_haveVote(false);  Unsigned(16) m_voteValue(0);  Bool m_haveChange(false);  Unsigned(6) m_pickSN( 63u);  Atom m_pickAtom(Atom);  Unsigned(6) m_winnerSN( 63u);  Atom m_winnerAtom(Atom);  Unsigned(6) m_numberSites( 0u);  Unsigned m_numberVotes( 0u);  Unsigned(8) m_keyCode( 0u); >);  typedef Int ScratchVar;  Int m_scratchVars[10](0,0,0,0,0,0,0,0,0,0);  typedef Bits(64) BitMap64;  Bits(64) m_givenTrueForNode(0); > <NOMAIN> }
+Uq_SPLATInstance { <NOMAIN> }
+Uq_Fail : System { :System<> <NOMAIN> }
+Uq_Random { <NOMAIN> }
+Uq_SystemU3 : System { :System<> <NOMAIN> }
+Ue_SPLATControl { constant Bool cPRINT_RULES = false;  constant Bool cPRINT_GIVENS = false;  constant Bool cPRINT_VOTES = false;  constant Bool cPRINT_CHECKS = false;  constant Bool cPRINT_CHANGES = false;  constant Bool cPRINT_GIVEN = false;  constant Bool cPRINT_VOTE = false;  constant Bool cPRINT_CHANGE_PRE = false;  constant Bool cPRINT_CHANGE_POST = false;  <NOMAIN> }
+Un_SPLATKeyStateOccupied : SPLATKeyState { :SPLATKeyState< EventWindow ew( typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry;  typedef Unsigned(3) Dir; );  Random random();  SystemU3 du( :System<>);  SPLATControl splatControl( constant Bool cPRINT_RULES = false;  constant Bool cPRINT_GIVENS = false;  constant Bool cPRINT_VOTES = false;  constant Bool cPRINT_CHECKS = false;  constant Bool cPRINT_CHANGES = false;  constant Bool cPRINT_GIVEN = false;  constant Bool cPRINT_VOTE = false;  constant Bool cPRINT_CHANGE_PRE = false;  constant Bool cPRINT_CHANGE_POST = false; );  typedef Unsigned(16) Votes;  typedef Unsigned(6) SN;  constant Unsigned(6) cUNSET_SN = 63u;  Bool m_haveGiven(false);  Bool m_givenValue(false);  Bool m_haveVote(false);  Unsigned(16) m_voteValue(0);  Bool m_haveChange(false);  Unsigned(6) m_pickSN( 63u);  Atom m_pickAtom(Atom);  Unsigned(6) m_winnerSN( 63u);  Atom m_winnerAtom(Atom);  Unsigned(6) m_numberSites( 0u);  Unsigned m_numberVotes( 0u);  Unsigned(8) m_keyCode( 0u); > <NOMAIN> }
+Un_SPLATKeyStateInvalid : SPLATKeyState { :SPLATKeyState< EventWindow ew( typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry;  typedef Unsigned(3) Dir; );  Random random();  SystemU3 du( :System<>);  SPLATControl splatControl( constant Bool cPRINT_RULES = false;  constant Bool cPRINT_GIVENS = false;  constant Bool cPRINT_VOTES = false;  constant Bool cPRINT_CHECKS = false;  constant Bool cPRINT_CHANGES = false;  constant Bool cPRINT_GIVEN = false;  constant Bool cPRINT_VOTE = false;  constant Bool cPRINT_CHANGE_PRE = false;  constant Bool cPRINT_CHANGE_POST = false; );  typedef Unsigned(16) Votes;  typedef Unsigned(6) SN;  constant Unsigned(6) cUNSET_SN = 63u;  Bool m_haveGiven(false);  Bool m_givenValue(false);  Bool m_haveVote(false);  Unsigned(16) m_voteValue(0);  Bool m_haveChange(false);  Unsigned(6) m_pickSN( 63u);  Atom m_pickAtom(Atom);  Unsigned(6) m_winnerSN( 63u);  Atom m_winnerAtom(Atom);  Unsigned(6) m_numberSites( 0u);  Unsigned m_numberVotes( 0u);  Unsigned(8) m_keyCode( 0u); > <NOMAIN> }
+Un_WindowScanner { typedef Unsigned(6) SiteNum;  MDist mdist( typedef Unsigned(3) Radius;  typedef Unsigned(6) Index; );  Random random();  EventWindow ew( typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry;  typedef Unsigned(3) Dir; );  Fail fail( :System<>);  typedef Unary(4) Radius;  typedef Unsigned(5) Category;  constant Unsigned cCATEGORY_COUNT = 32u;  Unsigned(6) mSites[32](0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0);  Unsigned mWeights[32](0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0);  Unsigned mCategoriesInUse(0);  <NOMAIN> }
+Uq_MDist { typedef Unsigned(3) Radius;  typedef Unsigned(6) Index;  <NOMAIN> }
+Uq_SiteVisitor { typedef Unsigned(6) SiteNum;  <NOMAIN> }
+Un_SiteVisitorByType : SiteVisitor { typedef Unsigned(6) SiteNum;  typedef Unsigned(16) ElementType;  typedef Unsigned(5) Category;  constant Unsigned cCATEGORY_COUNT = 32u;  Unsigned(16) mType[32](0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0);  Bool mInUse[32](false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false);  :SiteVisitor< typedef Unsigned(6) SiteNum; > <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## ISH informed by Spencer Harmon 4/12/2019: 'use WindowScanner;' has problem parsing Named Constant cUNSET_SN, of Type SN,
+## a typedef, not a class.
+##
+##
+#>Foo.ulam
+ ulam 4;
+element Foo {
+  Int test()
+  {
+    TWest tw;
+    return 0;
+  }
+}
+
+#:TWest.ulam
+  ulam 4;
+/*
+5/11/2019
+This gist is intended to demonstrate an unexpected error with otherwise apparently valid ulam code subclassing a quark written in splat.
+The error should look something like the following:
+
+/usr/share/perl5/vendor_perl/auto/share/dist/App-Splattr/SPLATInstance.ulam:59:15: ERROR: Named Constant 'cUNSET_SN' cannot be a class type: 90.
+/usr/share/perl5/vendor_perl/auto/share/dist/App-Splattr/SPLATInstance.ulam:59:15: ERROR: Invalid constant definition of type <90> and name <cUNSET_SN>.
+/usr/share/perl5/vendor_perl/auto/share/dist/App-Splattr/SPLATInstance.ulam:47:1: ERROR: Empty/Incomplete Class Definition 'SPLATKeyState'; Possible missing ending curly brace.
+
+To see it in action, uncomment "use WindowScanner;" then run "./compile" from the "C211-subclass-pattern" directory.
+The same error does not occur when explicitly importing other quarks from stdlib.
+
+ULAM compilation driver version ulam-4.0.2
+ Built for MFM 5.0.4
+ at 20190405041112 by spencer@home-one
+ from source commits v4.0.1-14-gf4d7c743 (ulam) and v5.0.4-14-g0bcd6bbd (mfm)
+
+~$ splattr -v
+1.005
+
+*/
+
+//use WindowScanner; // COMMENT OUT THIS LINE AND EVERYTHING BUILDS FINE..
+
+element TWest : SubQ{
+  EventWindow ew;
+
+  Bool evaluateRuleSets(){
+    ew.swap(0,1);
+    return true;
+  }
+}
+
+
+#:SubQ.ulam
+  ulam 4;
+quark SubQ : QContent {
+  virtual Bool evaluateRuleSets(){return true;}
+}
+
+#:QContent.ulam
+  ulam 4;
+//ALTERATION IS FUTILE: THIS FILE AUTOMATICALLY GENERATED FROM Membrane/QContent.splat
+//CREATED "Fri Apr 12 05:34:07 2019 GMT" BY /data/ackley/PART4/code/D/SPLAT/splattr FOR ackley
+//BEGIN QContent.ulam (in Membrane/.splatgen)
+
+transient SPLATKeyState_10QContent_Dot : SPLATKeyStateAny {
+} // transient SPLATKeyState_10QContent_Dot
+transient SPLATKeyState_10QContent_At : SPLATKeyStateSelf {
+  // check @  : random.oneIn(100)    // 1% death rate when isolated
+  Bool check(SPLATRuleSet & splATTROoB__rs) {
+  return (
+  random.oneIn(100)    // 1% death rate when isolated
+  );
+  }
+} // transient SPLATKeyState_10QContent_At
+transient SPLATKeyState_10QContent_Underline : SPLATKeyStateEmpty {
+} // transient SPLATKeyState_10QContent_Underline
+transient SPLATKeyState_10QContent_n : SPLATKeyState {
+  // given n  : !(ew[$cursn] is QContent) && !(ew[$cursn] is InnerMembrane)
+  Bool given(SPLATRuleSet & splATTROoB__rs, SN splATTROoB__cursn, Atom & splATTROoB__curatom) {
+    return (
+	    //  !(ew[splATTROoB__cursn] is QContent) && !(ew[splATTROoB__cursn] is InnerMembrane)
+	    !(ew[splATTROoB__cursn] is QContent)
+	    );
+  }
+} // transient SPLATKeyState_10QContent_n
+
+transient SPLATRuleSet_10QContent : SPLATRuleSet {
+  SPLATKeyState_10QContent_Dot key_Dot;
+  SPLATKeyState_10QContent_At key_At;
+  SPLATKeyState_10QContent_Underline key_Underline;
+  SPLATKeyState_10QContent_n key_n;
+  virtual Void reset() {
+    super.reset();
+    key_Dot.define('.');
+    key_At.define('@');
+    key_Underline.define('_');
+    key_n.define('n');
+  }
+  virtual Void beginSiteEval() {
+    super.beginSiteEval();
+    key_Dot.beginSiteEval();
+    key_At.beginSiteEval();
+    key_Underline.beginSiteEval();
+    key_n.beginSiteEval();
+  }
+  virtual SPLATKeyState & getKeyState(ASCII key) {
+    which (key) {
+    case '.': { return key_Dot; }
+    case '@': { return key_At; }
+    case '_': { return key_Underline; }
+    case 'n': { return key_n; }
+    }
+    return super.getKeyState(key);
+  }
+
+  virtual Bool evaluateRules() {
+    SPLATRuleDriver pd;
+    //
+    //  nnnnn     .....
+    //  nnnnn     .....
+    //  nn@nn ->  .._..
+    //  nnnnn     .....
+    //  nnnnn     .....
+    if (pd.evaluateRule(self, "\000@\001n\002n\003n\004n\005n\006n\007n\010n\011n\012n\013n\014n\015n\016n\017n\020n\021n\022n\023n\024n\031n\032n\033n\034n\377\000_\376"))
+      return true;
+    return false;
+  }
+} // SPLATRuleSet_10QContent
+transient SPLATKeyState_11QContent_Dot : SPLATKeyStateAny {
+} // transient SPLATKeyState_11QContent_Dot
+transient SPLATKeyState_11QContent_At : SPLATKeyStateSelf {
+} // transient SPLATKeyState_11QContent_At
+transient SPLATKeyState_11QContent_i : SPLATKeyState {
+  // given i  : ew[$cursn] is InnerMembrane
+  Bool given(SPLATRuleSet & splATTROoB__rs, SN splATTROoB__cursn, Atom & splATTROoB__curatom) {
+    return (
+	    //ew[splATTROoB__cursn] is InnerMembrane
+	    true
+  );
+  }
+} // transient SPLATKeyState_11QContent_i
+transient SPLATKeyState_11QContent_x : SPLATKeyState {
+  // given x  : ew[$cursn] is QContent || ew[$cursn] is Empty
+  Bool given(SPLATRuleSet & splATTROoB__rs, SN splATTROoB__cursn, Atom & splATTROoB__curatom) {
+    return (
+  ew[splATTROoB__cursn] is QContent || ew[splATTROoB__cursn] is Empty
+  );
+  }
+} // transient SPLATKeyState_11QContent_x
+
+transient SPLATRuleSet_11QContent : SPLATRuleSet {
+  SPLATKeyState_11QContent_Dot key_Dot;
+  SPLATKeyState_11QContent_At key_At;
+  SPLATKeyState_11QContent_i key_i;
+  SPLATKeyState_11QContent_x key_x;
+  virtual Void reset() {
+    super.reset();
+    key_Dot.define('.');
+    key_At.define('@');
+    key_i.define('i');
+    key_x.define('x');
+  }
+  virtual Void beginSiteEval() {
+    super.beginSiteEval();
+    key_Dot.beginSiteEval();
+    key_At.beginSiteEval();
+    key_i.beginSiteEval();
+    key_x.beginSiteEval();
+  }
+  virtual SPLATKeyState & getKeyState(ASCII key) {
+    which (key) {
+    case '.': { return key_Dot; }
+    case '@': { return key_At; }
+    case 'i': { return key_i; }
+    case 'x': { return key_x; }
+    }
+    return super.getKeyState(key);
+  }
+
+  virtual Bool evaluateRules() {
+    SPLATRuleDriver pd;
+    //
+    //  @x ->  x@
+    if (pd.evaluateRule(self, "\000@\004x\377\000x\004@\376"))
+      return true;
+    //
+    //  i@ ->  ..
+    if (pd.evaluateRule(self, "\000@\001i\377\376"))
+      return true;
+    return false;
+  }
+} // SPLATRuleSet_11QContent
+
+/** The parent class of membrane-enclosed content
+  \symmetries rotations
+ */
+quark QContent : SPLATInstance {
+  // Data members
+  virtual Bool evaluateRuleSets() {
+    {
+      SPLATRuleSet_10QContent rs;
+      if (rs.evaluateRules()) return true;
+    }
+    {
+      SPLATRuleSet_11QContent rs;
+      if (rs.evaluateRules()) return true;
+    }
+    return false;   // We got nothing
+  }
+
+} // quark QContent
+
+//END QContent.ulam
+
+#:SPLATInstance.ulam
+  ulam 1;
+quark SPLATInstance {
+  virtual Void behave() {
+    if (evaluateRuleSets()) return;
+    if (failIfUnmatched()) {
+      Fail f; f.fail(0x51000005);
+    }
+  }
+  virtual Bool evaluateRuleSets() ;
+
+  /** By default we fail if unmatched */
+  virtual Bool failIfUnmatched() { return true; }
+} //SPLATInstance
+
+#:SPLATKeyState.ulam
+  ulam 3;
+/** '.' allows anything in a live or non-live site, and doesn't change anything */
+transient SPLATKeyStateAny : SPLATKeyState {
+  virtual Bool given(SPLATRuleSet & rs, SN cursn, Atom & curatom) { return true; }
+  virtual Votes vote(SPLATRuleSet & rs, SN cursn, Atom & curatom) { return 1; }
+  virtual Void change(SPLATRuleSet & rs, SN cursn, Atom & curatom) { return; }
+}
+
+transient SPLATKeyState { // a Key is an ASCII used in LHS and/or RHS of a SPLAT rule
+
+  /// Provide the standard names for the standard utilities
+  EventWindow ew;
+  Random random;
+  //DebugUtils du;
+  SystemU3 du;
+
+  /// And one of our own
+  SPLATControl splatControl;
+
+  typedef Unsigned(16) Votes;
+  typedef EventWindow.SiteNum SN;
+  constant SN cUNSET_SN = SN.maxof;
+
+  Bool m_haveGiven; //< given_ has already been called since beginSiteEval
+  Bool m_givenValue;//< the value of the last given_ call
+  Bool m_haveVote; //< vote_ has already been called since beginSiteEval
+  Votes m_voteValue; //< the value of the last vote_ call
+  Bool m_haveChange; //< change_ has already been called since reset_
+
+  Void validSN(SN sn) { if (sn == cUNSET_SN) {Fail f; f.fail(0x5100024);} }
+
+  Votes max(Votes v1,Votes v2) { if (v1 >= v2) return v1; return v2; }
+  Votes min(Votes v1,Votes v2) { if (v1 <= v2) return v1; return v2; }
+
+  /// KeyExpr interpreters
+  Bool interpretGivenExpr(SPLATRuleSet & rs, SN cursn, Atom & curatom, String expr, ASCII ptr) {
+    Fail f;
+    Unsigned idx = ptr*4u;
+
+    if (idx >= expr.lengthof) f.fail(0x51000040);
+    ASCII leftPtr  = expr[idx+0u];
+    ASCII rightPtr = expr[idx+1u];
+    ASCII keyCode  = expr[idx+2u];
+    ASCII op       = expr[idx+3u];
+
+    //// Leaf
+    if (keyCode != 0) {
+      SPLATKeyState & ks = rs.getKeyState(keyCode);
+      Bool ret = ks.given_(rs, cursn, curatom);
+      if (splatControl.cPRINT_GIVEN) {
+        du.print("given_");
+        du.print(cursn);
+        du.print(ret);
+        //du.print(ks); DEBUG
+      }
+      return rs.updateGivenForNode(ptr,ret);
+    }
+
+    //// Operator
+    if (leftPtr == 0)  f.fail(0x51000053);
+    Bool lhs = interpretGivenExpr(rs, cursn, curatom, expr, leftPtr);
+
+    //// Unop ~
+    if (op == '~') return rs.updateGivenForNode(ptr,!lhs);
+
+    //// Short circuits [|&]
+    if (op == '|' && lhs) return rs.updateGivenForNode(ptr,true);
+    if (op == '&' && !lhs) return rs.updateGivenForNode(ptr,false);
+
+    //// Binop rhs [|&,]
+    if (rightPtr == 0)  f.fail(0x51000064);
+    return  rs.updateGivenForNode(ptr,interpretGivenExpr(rs, cursn, curatom, expr, rightPtr));
+  }
+
+  Votes interpretVoteExpr(SPLATRuleSet & rs, SN cursn, Atom & curatom, String expr, ASCII ptr) {
+
+    if (!rs.isGivenTrueForNode(ptr)) return 0;
+
+    Fail f;
+    Unsigned idx = ptr*4u;
+
+    if (idx >= expr.lengthof) f.fail(0x51000072);
+    ASCII leftPtr  = expr[idx+0u];
+    ASCII rightPtr = expr[idx+1u];
+    ASCII keyCode  = expr[idx+2u];
+    ASCII op       = expr[idx+3u];
+
+    //// Leaf
+    if (keyCode != 0) {
+      SPLATKeyState & ks = rs.getKeyState(keyCode);
+      Votes ret = ks.vote_(rs, cursn, curatom);
+      if (splatControl.cPRINT_VOTE) {
+        du.print("vote_");
+        du.print(cursn);
+        du.print(ret);
+        //du.print(ks); DEBUG
+      }
+      return ret;
+    }
+
+    //// Operator
+    if (leftPtr == 0)  f.fail(0x51000121);
+    Votes lhs = interpretVoteExpr(rs, cursn, curatom, expr, leftPtr);
+
+    //// Unop ~
+    if (op == '~') return lhs > 0u ? 0u : 1u;
+
+    //// Binop rhs [|&,]
+    if (rightPtr == 0)  f.fail(0x51000128);
+
+    if (op == ',') return interpretVoteExpr(rs, cursn, curatom, expr, rightPtr);
+    if (op == '|') return (lhs > 0) ? lhs : interpretVoteExpr(rs, cursn, curatom, expr, rightPtr);
+    if (op == '&') return (lhs == 0) ? lhs : interpretVoteExpr(rs, cursn, curatom, expr, rightPtr);
+
+    ///UNREACHABLE
+    f.fail(0x51000100);
+    return 1u;
+  }
+
+  Void interpretChangeExpr(SPLATRuleSet & rs, SN cursn, Atom & curatom, String expr, ASCII ptr) {
+    Fail f;
+    Unsigned idx = ptr*4u;
+
+    if (idx >= expr.lengthof) f.fail(0x51000104);
+    ASCII leftPtr  = expr[idx+0u];
+    ASCII rightPtr = expr[idx+1u];
+    ASCII keyCode  = expr[idx+2u];
+    ASCII op       = expr[idx+3u];
+
+    //// Leaf
+    if (keyCode != 0) {
+      SPLATKeyState & ks = rs.getKeyState(keyCode);
+      if (splatControl.cPRINT_CHANGE_PRE) {
+        du.print("prechange_");
+        du.print(cursn);
+        du.print(ew[cursn]);
+      }
+      ks.change_(rs, cursn, curatom);
+      if (splatControl.cPRINT_CHANGE_POST) {
+        du.print("postchange_");
+        du.print(cursn);
+        du.print(ew[cursn]);
+      }
+    }
+
+    //// Operator
+    if (leftPtr == 0)  f.fail(0x51000117);
+    interpretChangeExpr(rs, cursn, curatom, expr, leftPtr);
+
+    //// Unop ~
+    if (op == '~') return;
+
+    //// Binop rhs [|&,]
+    if (rightPtr == 0)  f.fail(0x51000124);
+    interpretChangeExpr(rs, cursn, curatom, expr, rightPtr);
+  }
+
+  /// SPLAT user accessors
+
+
+  // HANDLING $cursn AND $curatom via arguments
+  // // Accessed by $cursn (only defined in given, vote, and change)
+  // SN m_currentSN = cUNSET_SN;
+  // Void validCurSN() { validSN(m_currentSN); }
+  // SN getCurrentSN() {
+  //   validCurSN();
+  //   return m_currentSN;
+  // }
+
+  // Accessed by $keystate (DISGUSTING HACK? NEVER USE?) (defined in all states)
+  SPLATKeyState & getKeyState() {
+    return self;
+  }
+
+  // HANDLING $cursn AND $curatom via arguments
+  // // Accessed by $curatom (only defined in given, vote, and change)
+  // Atom m_currentAtom;
+  // Atom & getCurrentAtom() {
+  //   validCurSN();
+  //   return m_currentAtom;
+  // }
+
+  // Accessed by $picksn (defined in all codes, but only stable in
+  // check and change)
+  SN m_pickSN = cUNSET_SN;
+  Void validPickSN() { validSN(m_pickSN); }
+  SN getPickSN() {
+    validPickSN();
+    return m_pickSN;
+  }
+
+  // Accessed by $pickatom (defined in all codes, but only stable in
+  // check and change)
+  Atom m_pickAtom;
+  Atom & getPickAtom() {
+    validPickSN();
+    return m_pickAtom;
+  }
+
+  // Accessed by $winsn (defined in all codes, but only valid when
+  // $nvotes > 0, and only stable in check and change)
+  SN m_winnerSN = cUNSET_SN;
+  Void validWinSN() { self.validSN(self.m_winnerSN); }
+  SN getWinnerSN() {
+    self.validWinSN();
+    return self.m_winnerSN;
+  }
+
+  // Accessed by $winatom (defined in all codes, but only valid when
+  // $nvotes > 0, and only stable in check and change)
+  Atom m_winnerAtom;
+  Atom & getWinnerAtom() {
+    self.validWinSN();
+    return m_winnerAtom;
+  }
+
+  // Accessed by $nsites (defined in all codes, only stable in check
+  // and change)
+  SN m_numberSites = 0;
+  SN getNumberSites() { return m_numberSites; }
+
+  // Accessed by $nvotes (defined in all codes, only stable in check
+  // and change)
+  Unsigned m_numberVotes = 0;
+  Unsigned getNumberVotes() { return m_numberVotes; }
+
+  // Overridable vote merging routine.  Default behavior is 'standard'
+  // proportional voting: An m_voteValue of 0 cannot win, otherwise
+  // more votes -> 'more chances to win!'.
+  virtual Bool mergeSiteVote(SPLATRuleSet & rs) {
+    Random r;
+    m_numberVotes += (Unsigned) m_voteValue;
+    return r.oddsOf(m_voteValue, m_numberVotes);           // Proportional vote new winner
+  }
+
+  // Accessed by $key (defined and stable in all codes)
+  ASCII m_keyCode = 0;
+  ASCII getKeyCode() { return m_keyCode; }
+
+  /// Internal SPLATR accessors
+
+  /** Override the given() method to control whether to continue
+      processing the current rule based on this key code and the
+      current site.
+
+      Default given() behavior if not overridden: If the current site
+      is dead, return false to abandon current rule processing,
+      otherwise return true to include this site among the key code
+      picks and allow rule processing to continue
+
+      \returns false to abandon the current rule entirely now, or true
+      allow processing of this site and rule to continue
+   */
+  virtual Bool given(SPLATRuleSet & rs, SN cursn, Atom & curatom) {
+    return ew.isLive(cursn);
+  }
+
+  /** Override the vote() method to determine whether and how strongly
+      this site should be considered as the 'selection' for this key
+      code.  If an LHS contains multiple sites with the same key code
+      (modulo special case rules), the selection among them will be
+      random based on number of votes each received.
+
+      Default vote() behavior: Vote 1 for every appearance of this key
+      code.
+
+      \returns 0 to exclude absolutely this site from possible
+      selection; greater than zero to give that many votes for this
+      site among the selection candidates for this key code.  Note it
+      is not possible to abandon the current rule from a vote()
+      method.
+   */
+  virtual Votes vote(SPLATRuleSet & rs, SN cursn, Atom & curatom) { return 1u; }
+
+  /** Override the check() method to determine whether to abandon rule
+      processing after all relevant LHS sites have been visited.
+      (Note the check method is only called on key codes that _do_
+      appear in the LHS.  It is not called for key codes that appear
+      _only_ in the RHS.)
+
+      Default check() behavior: return true iff any votes were cast
+      for this key code (i.e., $nvotes > 0)
+
+      \return true if processing this rule should continue; false if
+      processing this rule should now be abandoned
+   */
+  virtual Bool check(SPLATRuleSet & rs) {
+    return getNumberVotes() > 0u;
+  }
+
+  /** Override the change() method to alter the RHS behavior of this
+      key code.
+
+      Default change() behavior: Make site be a copy of the winner of
+      the votes for this key code (i.e., ew[$cursn] = $winatom).
+      (Note that $winatom might be an illegal atom, if check() is
+      overridden -- by default, the vote count is not rechecked in
+      change()).  Note it is not possible to abandon the current rule
+      from a change() method.
+
+      \returns Void
+   */
+  virtual Void change(SPLATRuleSet & rs, SN cursn, Atom& curatom) {
+    curatom = self.m_winnerAtom;
+  }
+
+  Bool given_(SPLATRuleSet & rs, SN cursn, Atom & curatom) {
+    if (m_haveGiven) return m_givenValue;
+    m_haveGiven = true;
+    m_givenValue = given(rs, cursn, curatom);
+
+    if (!m_givenValue) return false;
+
+    Random r;
+    if (r.oneIn(++m_numberSites)) {
+      m_pickSN = cursn;          // for now..
+      m_pickAtom = curatom;      // in the clubhouse..
+    }
+
+    return true;
+  }
+
+  Votes vote_(SPLATRuleSet & rs, SN cursn, Atom & curatom) {
+    if (m_haveVote) return m_voteValue;
+
+    if (m_haveGiven && m_givenValue) { // If not given, never call vote()
+      m_voteValue = vote(rs, cursn, curatom);
+      m_haveVote = true;
+    }
+
+    if (m_voteValue == 0u) return 0u;
+
+    if (mergeSiteVote(rs)) {
+      m_winnerSN = cursn;          // for now..
+      m_winnerAtom = curatom;      // in the clubhouse..
+    }
+
+    return m_voteValue;
+  }
+
+  Bool check_(SPLATRuleSet & rs) {
+    return check(rs);
+  }
+
+  Void change_(SPLATRuleSet & rs, SN cursn, Atom & curatom) {
+    //We can't make change dependent on havegiven, because then we
+    //can't introduce new stuff in the RHS.
+    if (m_haveChange) return; // If already changed, done
+    m_haveChange = true;
+    change(rs,cursn,curatom);
+  }
+
+  Bool isDefined() {
+    return m_keyCode != 0;
+  }
+
+  Void undefine() {
+    m_keyCode = 0;
+  }
+
+  Void define(ASCII code) {
+    m_keyCode = code;
+    reset_();
+  }
+
+  virtual Void beginSiteEval() {
+    m_haveGiven = false;   // Have not called given_ on this site
+    m_givenValue = false;  // Value of given_ call on this site, if m_haveGiven, else default no
+    m_haveVote = false;    // Have not called vote_ on this site
+    m_voteValue = 0u;      // Value of vote_ call on this site, if m_haveVote, else default 0u
+    m_haveChange = false;  // Have not called change_ on this site
+  }
+
+  virtual Void reset_() {
+    m_pickSN = cUNSET_SN;
+    m_pickAtom = Empty.instanceof;
+    m_winnerSN = cUNSET_SN;
+    m_winnerAtom = Empty.instanceof;
+    m_numberSites = 0;
+    m_numberVotes = 0;
+  }
+} //SPLATKeyState
+
+/** '@' allows only a centered singleton */
+transient SPLATKeyStateSelf : SPLATKeyState {
+  virtual Bool given(SPLATRuleSet & rs, SN cursn, Atom & curatom) {
+    if (getNumberSites() > 1 || cursn != 0) {
+      Fail f; f.fail(0x51000292);  // @ must only be in center of LHS, doofus
+    }
+    return true;
+  }
+}
+
+/** '_' abandons the rule unless site is live and empty */
+transient SPLATKeyStateEmpty : SPLATKeyState {
+  virtual Bool given(SPLATRuleSet & rs, SN cursn, Atom & curatom) { return ew.isLive(cursn) && curatom is Empty; }
+}
+
+/** '?' allows any non-empty site and doesn't change anything */
+transient SPLATKeyStateOccupied : SPLATKeyState {
+  virtual Bool given(SPLATRuleSet & rs, SN cursn, Atom & curatom) { return !(curatom is Empty); }
+  virtual Votes vote(SPLATRuleSet & rs, SN cursn, Atom & curatom) { return 1; }
+  virtual Void change(SPLATRuleSet & rs, SN cursn, Atom & curatom) { return; }
+}
+
+/** invalid has no key code and fails at everything */
+transient SPLATKeyStateInvalid : SPLATKeyState {
+  Void fail() { Fail f; f.fail(0x51000360); }
+  virtual Bool given(SPLATRuleSet & rs, SN cursn, Atom & curatom) { fail(); return super.given(rs,cursn,curatom); }
+  virtual Votes vote(SPLATRuleSet & rs, SN cursn, Atom & curatom) { fail(); return super.vote(rs,cursn,curatom); }
+  virtual Bool check(SPLATRuleSet & rs) { fail(); return super.check(rs); }
+  virtual Void change(SPLATRuleSet & rs, SN cursn, Atom & curatom) { fail(); return super.change(rs,cursn,curatom); }
+}
+
+
+#:SPLATRuleSet.ulam
+/**
+   A SPLATRuleSet is a group of rules that share a set of
+   KeyState definitions
+ */
+transient SPLATRuleSet {
+  // Access to parameters
+  SPLATControl splatControl;
+
+  // Predefined key states
+  SPLATKeyStateSelf m_keyStateSelf;         // For code @
+  SPLATKeyStateEmpty m_keyStateEmpty;       // For code _
+  SPLATKeyStateAny m_keyStateAny;           // For code .
+  SPLATKeyStateOccupied m_keyStateOccupied; // For code ?
+  SPLATKeyStateInvalid m_keyStateInvalid;   // For unused codes
+
+  // Scratch vars 0..9
+  typedef Int ScratchVar;
+  ScratchVar m_scratchVars[10];
+  Int & getScratchVar(Int index) {
+    return m_scratchVars[index];
+  }
+
+  /** Default getKeyState routine.  If a set of rules involves any
+   * custom key code, the generated subclass of SPLATRuleSet must
+   * override this method return appropriate subclasses of
+   * SPLATKeyState as desired.  Here, by default, the special key
+   * codes are handled and everything else gets an invalid KeyState,
+   * that will fail if used.  In general it is recommended that
+   * subclasses end method overrides with
+   *
+   * 'return super.getKeyState(key)'.
+   */
+
+  virtual SPLATKeyState & getKeyState(ASCII key) {
+    if (key == m_keyStateSelf.getKeyCode()) return m_keyStateSelf;
+    if (key == m_keyStateEmpty.getKeyCode()) return m_keyStateEmpty;
+    if (key == m_keyStateAny.getKeyCode()) return m_keyStateAny;
+    if (key == m_keyStateOccupied.getKeyCode()) return m_keyStateOccupied;
+
+    return m_keyStateInvalid;
+  }
+
+  /** The generated subclass of SPLATRuleSet must define
+   * evaluateRules */
+  virtual Bool evaluateRules() ;
+
+  virtual Void reset() {
+    m_keyStateSelf.define('@');
+    m_keyStateEmpty.define('_');
+    m_keyStateAny.define('.');
+    m_keyStateOccupied.define('?');
+  }
+
+  virtual Void beginSiteEval() {
+    clearAllGivensForNodes();
+    m_keyStateSelf.beginSiteEval();
+    m_keyStateEmpty.beginSiteEval();
+    m_keyStateAny.beginSiteEval();
+    m_keyStateOccupied.beginSiteEval();
+  }
+
+  /* Support for marking keyexpr nodes as known given true */
+  typedef Bits(64) BitMap64;
+  BitMap64 m_givenTrueForNode;
+
+  Void clearAllGivensForNodes() { m_givenTrueForNode = 0; }
+  Bool isGivenTrueForNode(Unsigned i) { return ((m_givenTrueForNode>>i)&1u)!=0u; }
+  Bool updateGivenForNode(Unsigned i, Bool val) {
+    if (val) m_givenTrueForNode |= ((BitMap64) 1u)<<i;
+    return isGivenTrueForNode(i);
+  }
+}
+
+#:SPLATControl.ulam
+  ulam 3;
+/** Parameters for controlling SPLAT execution
+   \symbol SP
+   \color #32c
+ */
+element SPLATControl {
+  /* DEBUG CHANGE parameters to constants */
+  /** Print rules as they are considered */
+  constant Bool cPRINT_RULES = false;
+
+  /** Print givens as they are considered */
+  constant Bool cPRINT_GIVENS = false;
+
+  /** Print votes as they are considered */
+  constant Bool cPRINT_VOTES = false;
+
+  /** Print checks as they are considered */
+  constant Bool cPRINT_CHECKS = false;
+
+  /** Print changes as they are considered */
+  constant Bool cPRINT_CHANGES = false;
+
+  /** Print keyset after given_ */
+  constant Bool cPRINT_GIVEN = false;
+
+  /** Print keyset after vote_ */
+  constant Bool cPRINT_VOTE = false;
+
+  /** Print ew[$cursn] before change_ */
+  constant Bool cPRINT_CHANGE_PRE = false;
+
+  /** Print ew[$cursn] after change_ */
+  constant Bool cPRINT_CHANGE_POST = false;
+}
+
+#:SPLATRuleDriver.ulam
+  ulam 3;
+/**
+   A generic routine to evaluate a single rule within a ruleset
+ */
+transient SPLATRuleDriver {
+  SPLATControl splatControl;
+  typedef EventWindow.SiteNum SN;
+  //typedef ByteStreamArray(250u) MsgBuf;
+  EventWindow ew;
+  //DebugUtils du;
+  SystemU3 du;
+  constant ASCII cEND_OF_LHS = ASCII.maxof;
+  constant ASCII cEND_OF_RHS = cEND_OF_LHS-1;
+
+  Bool evaluateRule(SPLATRuleSet & rs, String rule) {
+    Bool used[256];
+    ASCII usedCodes[41];
+    Unsigned codesUsed = 0;
+    Unsigned rsi = 0; // ruleStringIndex
+    //MsgBuf buf;
+
+    rs.reset();
+
+    // GIVEN and VOTE at all specified sites
+    while (true) {
+      ASCII a1 = rule[rsi++];
+      if (a1 == cEND_OF_LHS) break;
+      ASCII a2 = rule[rsi++];
+      SN sn = (SN) a1;
+      Atom & atom = ew[sn];
+      ASCII keyCode = a2;
+
+      rs.beginSiteEval();
+      SPLATKeyState & ks = rs.getKeyState(keyCode);
+
+      Bool isGiven = ks.given_(rs,sn,atom);
+
+      if (splatControl.cPRINT_GIVENS) {
+        //buf.rewrite();
+        //buf.printf(" given %c at %d => %s", keyCode, sn, isGiven ? "true" : "false");
+        //du.print((ByteStream&) buf);
+      }
+
+      if (!isGiven) return false;
+
+      if (!used[keyCode]) {
+        used[keyCode] = true;
+        usedCodes[codesUsed] = keyCode;
+        ++codesUsed;
+      }
+
+      Unsigned votes = ks.vote_(rs,sn,atom);
+
+      if (splatControl.cPRINT_VOTES) {
+        //buf.rewrite();
+        //buf.printf(" vote %c at %d => %d", keyCode, sn, votes);
+        //du.print((ByteStream&) buf);
+      }
+    }
+
+    // CHECK once per used keycode
+    for (Unsigned i = 0; i < codesUsed; ++i) {
+      ASCII keyCode = usedCodes[i];
+      SPLATKeyState & ks = rs.getKeyState(keyCode);
+      Bool isCheck = ks.check_(rs);
+
+      if (splatControl.cPRINT_CHECKS) {
+        //buf.rewrite();
+        //buf.printf(" check %c => %s", keyCode, isCheck ? "true" : "false");
+        //du.print((ByteStream&) buf);
+      }
+
+      if (!isCheck) return false;
+    }
+
+    // CHANGE at all specified sites
+    while (true) {
+      ASCII a1 = rule[rsi++];
+      if (a1 == cEND_OF_RHS) break;
+      ASCII a2 = rule[rsi++];
+      SN sn = (SN) a1;
+      Atom & atom = ew[sn];
+      ASCII keyCode = a2;
+
+      rs.beginSiteEval();
+      SPLATKeyState & ks = rs.getKeyState(keyCode);
+
+      ks.change_(rs,sn,atom);
+
+      if (splatControl.cPRINT_CHANGES) {
+        //buf.rewrite();
+        //buf.printf(" change %c at %d", keyCode, sn);
+        //du.print((ByteStream&) buf);
+      }
+    }
+
+    return true;
+  }
+}
+
+
+#:WindowScanner.ulam
+ulam 2;
+
+/**
+   A second-generation scanning framework to help automate common
+   event window search and selection tasks -- and avoid unintentional
+   spatial anisotropies due to selection bias.  This class
+   (WindowScanner) provides data storage and drivers.  Subclass
+   SiteVisitor to define particular search parameters.
+
+   \author Dave Ackley
+   \license lgpl
+*/
+transient WindowScanner {
+  typedef EventWindow.SiteNum SiteNum;
+
+  // Utilities
+  MDist mdist;
+  Random random;
+  //DebugUtils debug;
+  EventWindow ew;
+  Fail fail;
+
+  typedef Unary(4) Radius;
+  typedef Unsigned(5) Category;
+  constant Unsigned cCATEGORY_COUNT = Category.maxof + 1;
+
+  Void die() { Fail f; f.fail(); }
+
+  SiteNum mSites[cCATEGORY_COUNT];
+  Unsigned mWeights[cCATEGORY_COUNT];
+  Unsigned mCategoriesInUse;
+
+  Void resetCategories() { mCategoriesInUse = 0; }
+
+  Category allocateCategory() {
+    if (mCategoriesInUse >= cCATEGORY_COUNT) die();
+    Category ret = (Category) mCategoriesInUse;
+    ++mCategoriesInUse;
+    return ret;
+  }
+
+  Unsigned categoriesAvailable() {
+    return (Unsigned) (cCATEGORY_COUNT - mCategoriesInUse);
+  }
+
+  Void initScan() {
+    for (Unsigned c = 0; c < cCATEGORY_COUNT; ++c) {
+      mSites[c] = SiteNum.maxof;
+      mWeights[c] = 0;
+    }
+  }
+
+  Void scan(SiteVisitor& visitor) {
+     scan(visitor, (Radius) 1, (Radius) ew.getRadius());
+   }
+
+  Void scan(SiteVisitor& visitor, Radius inner, Radius outer) {
+    initScan();
+    SiteNum end = mdist.getLastIndex(outer);
+    for (SiteNum sn = mdist.getFirstIndex(inner); sn <= end; ++sn) {
+      Atom a = ew[sn];
+      visitor.visit(self, a, sn);
+    }
+  }
+
+  SiteNum categorize(SiteNum sn, Category categ) {
+    return categorize(sn,categ,1);
+  }
+
+  SiteNum categorize(SiteNum sn, Category categ, Unsigned weight) {
+    if (categ >= mCategoriesInUse) die();
+    mWeights[categ] += weight;
+    if (mWeights[categ] == 0u) return SiteNum.maxof; // Flag value for bogons adding with no weight
+    // debug if (random.create(mWeights[categ]) < weight) {
+    mSites[categ] = sn;
+      //}
+
+    return mSites[categ];
+  }
+
+  Unsigned getHits(Category categ) { return mWeights[categ]; }
+  SiteNum getSiteNum(Category categ) { return mSites[categ]; }
+  //debugging  C2D getCoord(Category categ) { return ew.getCoord(mSites[categ]); }
+}
+
+#:SiteVisitor.ulam
+ulam 2;
+
+/** Interface used by WindowScanner.  Subclass SiteVisitor and define
+    visit() to create a custom scanner.
+
+   \author Dave Ackley
+   \license lgpl
+ */
+quark SiteVisitor {
+  typedef EventWindow.SiteNum SiteNum;
+  virtual Void visit(WindowScanner& ws, Atom & a, SiteNum sn) ;
+}
+
+use WindowScanner;
+use EventWindow;
+
+/** Sample SiteVisitor implementation.  SiteVisitorByType could be
+    used for functionality similar to \c WindowServices, though it is
+    not a drop-in replacemnt.
+
+    \sa WindowServices
+
+    \author Dave Ackley
+    \license lgpl
+ */
+transient SiteVisitorByType : SiteVisitor {
+  typedef EventWindow.SiteNum SiteNum;
+  //AtomUtils au;
+
+  typedef Unsigned(16) ElementType;
+  typedef WindowScanner.Category Category;
+  constant Unsigned cCATEGORY_COUNT = Category.maxof + 1;// XXX Wish it was: WindowScanner.cCATEGORY_COUNT;
+
+  ElementType mType[cCATEGORY_COUNT];
+  Bool mInUse[cCATEGORY_COUNT];
+
+  Void reset() {
+    for (Unsigned i = 0; i < cCATEGORY_COUNT; ++i)
+      unsetType((Category) i);
+  }
+
+  Void setType(Category c, ElementType et) {
+    mType[c] = et;
+    mInUse[c] = true;
+  }
+
+  Void unsetType(Category c) {
+    mInUse[c] = false;
+    mType[c] = 0;
+  }
+
+  virtual Void visit(WindowScanner& wsrv, Atom & a, SiteNum sn)
+  {
+    ElementType et = 15; //(ElementType) au.getType(a);
+    for (Unsigned i = 0; i < cCATEGORY_COUNT; ++i)
+      if (mInUse[i] && mType[i] == et)
+        wsrv.categorize(sn, (Category) i);
+  }
+}
+
+
+#:EventWindow.ulam
+  ulam 1;
+quark EventWindow{
+  typedef Unsigned(6) SiteNum;
+  typedef Unsigned(3) Symmetry;
+  typedef Unsigned(3) Dir;
+
+  Atom& aref(Int index) native;
+  Bool swap(SiteNum index1, SiteNum index2) { return true; } //was native;
+  Bool isLive(SiteNum index) { return true; } //was native
+  Unsigned getRadius() { return 4u; } //was native;
+}
+
+#:Random.ulam
+  ulam 1;
+quark Random {
+  Unsigned create(Unsigned max) {return max/2u; }// native;
+  Bool oddsOf(Unsigned thisMany, Unsigned outOfThisMany) {
+    //return create(outOfThisMany) < thisMany;
+    return true;
+  }
+
+  Bool oneIn(Unsigned odds) { return oddsOf((Unsigned) 1, odds); }
+}
+
+#:MDist.ulam
+  ulam 1;
+quark MDist {
+  typedef Unsigned(3) Radius;
+  typedef Unsigned(6) Index;
+
+  Index getFirstIndex(Radius radius) { return 0; } //native;
+  Index getLastIndex(Radius radius) { return (Index) (radius << 1u); } //native;
+}
+
+
+#:Fail.ulam
+  ulam 3;
+quark Fail : System {
+  Void fail(Bits bits) { print((Int) bits); fail(); }
+  Void fail() { assert(false);} //debug version for native
+}
+
+
+#:SystemU3.ulam
+  ulam 3;
+quark SystemU3 : System {
+  Void print(String s) native;
+  Void print(Atom& aref) { /* tbd */ }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

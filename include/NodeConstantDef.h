@@ -1,8 +1,9 @@
 /**                                        -*- mode:C++ -*-
  * NodeConstantDef.h - Node handling Constant Definition for ULAM
  *
- * Copyright (C) 2015-2018 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2018 Ackleyshack LLC.
+ * Copyright (C) 2015-2019 The Regents of the University of New Mexico.
+ * Copyright (C) 2015-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +28,9 @@
 
 /**
   \file NodeConstantDef.h - Node handling Constant Definition for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2018 All rights reserved.
+  \date (C) 2015-2021 All rights reserved.
   \gpl
 */
 
@@ -50,6 +51,7 @@ namespace MFM{
 
     NodeConstantDef(SymbolWithValue * symptr, NodeTypeDescriptor * nodetype, CompilerState & state);
     NodeConstantDef(const NodeConstantDef& ref);
+    NodeConstantDef(const NodeConstantDef& ref, bool keepType);
 
     virtual ~NodeConstantDef();
 
@@ -59,6 +61,8 @@ namespace MFM{
 
     virtual bool exchangeKids(Node * oldnptr, Node * newnptr);
 
+    NodeTypeDescriptor * cloneTypeDescriptor();
+
     virtual bool findNodeNo(NNO n, Node *& foundNode);
 
     virtual void checkAbstractInstanceErrors();
@@ -67,27 +71,45 @@ namespace MFM{
 
     virtual void printPostfix(File * f);
 
-    virtual void noteTypeAndName(s32 totalsize, u32& accumsize);
+    virtual void noteTypeAndName(UTI cuti, s32 totalsize, u32& accumsize);
+
+    virtual void genTypeAndNameEntryAsComment(File * fp, s32 totalsize, u32& accumsize);
 
     virtual const char * getName();
 
+    virtual u32 getNameId();
+
     virtual u32 getTypeNameId();
+
+    virtual UTI getTypeDescriptorGivenType();
+
+    virtual ALT getTypeDescriptorRefType();
 
     virtual const std::string prettyNodeName();
 
-    virtual bool getSymbolPtr(Symbol *& symptrref);
+    virtual bool getSymbolPtr(const Symbol *& symptrref);
+
+    virtual bool cloneSymbol(Symbol *& symptrref);
 
     virtual void setSymbolPtr(SymbolWithValue * cvsymptr);
 
+    virtual bool hasASymbol();
+
     virtual u32 getSymbolId();
 
-    virtual bool getNodeTypeDescriptorPtr(NodeTypeDescriptor *& nodetypedescref);
+    virtual bool getSymbolValue(BV8K& bv);
 
     bool setNodeTypeDescriptor(NodeTypeDescriptor * nodetypedesc);
 
+    virtual bool getNodeExprPtr(Node *& nodeexprref);
+
+    bool setNodeExpr(Node * nodeexorref);
+
     virtual bool hasDefaultSymbolValue();
 
-    virtual UTI checkAndLabelType();
+    bool isClassArgumentItsDefaultValue();
+
+    virtual UTI checkAndLabelType(Node * thisparentnode);
 
     virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
 
@@ -113,9 +135,9 @@ namespace MFM{
 
     virtual void fixPendingArgumentNode();
 
-    virtual bool assignClassArgValueInStubCopy();
-
     bool cloneTypeDescriptorForPendingArgumentNode(NodeConstantDef * templateparamdef);
+
+    bool cloneDefaultValueExpressionForPendingArgumentNode(NodeConstantDef * templateparamdef);
 
     virtual EvalStatus eval();
 
@@ -147,6 +169,8 @@ namespace MFM{
 
     virtual void checkForSymbol();
 
+    virtual void clearSymbolPtr();
+
     virtual bool isDataMemberInit();
 
   private:
@@ -154,6 +178,9 @@ namespace MFM{
     NodeBlock * m_currBlockPtr;
 
     void setBlock(NodeBlock * ptr);
+    bool setSymbolValue(const BV8K& bv);
+
+    bool getNodeTypeDescriptorPtr(const NodeTypeDescriptor *& nodetypedescref);
 
     void setupStackWithPrimitiveForEval(u32 slots);
     void setupStackWithConstantClassForEval(u32 slots);

@@ -4,7 +4,7 @@
 ## gencode output:
 ## <blank>
 ##
-./Soo.ulam:5:3: ERROR: Data member 'cb' is shadowing an ancestor.
+./Soo.ulam:5:3: ERROR: Data member 'cb' is shadowing an ancestor: Coo.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## quark inheritance, regular (non-template) with data member in subclass overriding super

@@ -104,6 +104,7 @@ CFLAGS+= --param inline-unit-growth=1000 --param large-function-growth=50000
 CFLAGS+= -Wextra -Wno-unused-parameter -Wno-ignored-qualifiers
 # Just say implicit fallthrough is okay until we think about suppressions
 CFLAGS+= -Wno-implicit-fallthrough
+#CFLAGS+= -std=c++11
 
 # Libs from top level
 export LIBS

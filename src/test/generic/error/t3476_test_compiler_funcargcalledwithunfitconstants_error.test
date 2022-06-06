@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3476_test_compiler_funcargcalledwithunfitconstants_error
 #!
-./Tu.ulam:12:9: ERROR: (1) <func> has no defined function with 1 matching argument type: Int(5), and cannot be called.
+./Tu.ulam:12:9: ERROR: (1) 'func' has no defined function with 1 matching argument type: Int(5), and cannot be called.
 Unrecoverable Program Type Label FAILURE.
 ##
 ##      //no longer takes the first one even though constant doesn't fit!

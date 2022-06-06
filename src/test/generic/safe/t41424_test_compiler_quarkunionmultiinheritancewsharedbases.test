@@ -1,0 +1,89 @@
+## -*- mode:ulam -*-
+#=t41424_test_compiler_quarkunionmultiinheritancewsharedbases
+##
+## gen output (+ 2 asserts)
+## Unsigned Arg: 27
+##
+#!
+Exit status: 0
+Ue_R { Unsigned m_foosize(27u);  Int test() {  System s;  Foo f;  f ( )behave . self m_foosize . 27u = s ( self m_foosize . )print . s ( self m_foosize . 27u cast == )assert . s ( true )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+Un_Foo : Q5 { :Q5<> ^Q4<> ^Q3< Unsigned(3) mGah(0);  Unary(2) mUn(0); > ^Q2< Unsigned(2) mBar(0);  Bool mBoo(false); > ^Q< Unsigned(22) mFoo(0);  Bool(7) mB7(false); > <NOMAIN> }
+Uq_Q3 : Q { Unsigned(3) mGah(0);  Unary(2) mUn(0);  :Q< Unsigned(22) mFoo(0);  Bool(7) mB7(false); > <NOMAIN> }
+Uq_Q5 : Q4 +Q { /* empty class block */ }
+Uq_Q4 : Q2 +Q3 { /* empty class block */ }
+Uq_Q { Unsigned(22) mFoo(0);  Bool(7) mB7(false);  <NOMAIN> }
+Uq_Q2 : Q { Unsigned(2) mBar(0);  Bool mBoo(false);  :Q< Unsigned(22) mFoo(0);  Bool(7) mB7(false); > <NOMAIN> }
+##
+## informed by Dave's ish 3/1/2021, Union max bitsize no longer include bases, only max of data members;
+## Shared bases can count unions, thus allowing Unions to be base classes,
+## (see also t41334, t41423)
+##
+#>R.ulam
+  ulam 5;
+element R {
+  Unsigned m_foosize;
+  Int test() {
+    System s;
+    Foo f;
+    f.behave();
+    m_foosize = f.sizeof;
+    s.print(m_foosize);
+    s.assert(m_foosize==27u);
+
+    //union inherits from another union: maxQ3 + maxQ
+    s.assert(Q3.sizeof==25u);
+    return 0;
+  }
+}
+
+#:Foo.ulam
+  ulam 5;
+transient Foo : Q5 {
+  Void behave(){ }
+}
+
+#:Q5.ulam
+  ulam 5;
+quark Q5 : Q4 +Q { }
+
+#:Q4.ulam
+  ulam 5;
+quark Q4 : Q2 +Q3 { }
+
+#:Q3.ulam
+  ulam 5;
+union Q3 : Q
+{
+  Unsigned(3) mGah;
+  Unary(2) mUn;
+}
+
+#:Q2.ulam
+  ulam 5;
+union Q2 : Q
+{
+  Unsigned(2) mBar;
+  Bool mBoo;
+}
+
+#:Q.ulam
+  ulam 5;
+union Q
+{
+  Unsigned(22) mFoo;
+  Bool(7) mB7;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

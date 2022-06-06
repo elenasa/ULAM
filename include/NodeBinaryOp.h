@@ -2,8 +2,9 @@
  * NodeBinaryOp.h - Basic Node for handling Binary Operations for ULAM
  *
  * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2017 Ackleyshack LLC.
- *
+ * Copyright (C) 2014-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation
+*
  * This file is part of the ULAM programming language compilation system.
  *
  * The ULAM programming language compilation system is free software:
@@ -27,9 +28,9 @@
 
 /**
   \file NodeBinaryOp.h - Basic Node for handling Binary Operations for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2017 All rights reserved.
+  \date (C) 2014-2021 All rights reserved.
   \gpl
 */
 
@@ -78,13 +79,11 @@ namespace MFM{
 
     virtual FORECAST safeToCastTo(UTI newType);
 
-    virtual UTI checkAndLabelType();
+    virtual UTI checkAndLabelType(Node * thisparentnode);
 
     virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
 
-    virtual UTI constantFold();
-
-    virtual bool assignClassArgValueInStubCopy();
+    virtual UTI constantFold(Node * parentnode);
 
     virtual EvalStatus eval();
 
@@ -106,7 +105,8 @@ namespace MFM{
     virtual UlamValue makeImmediateLongBinaryOp(UTI type, u64 ldata, u64 rdata, u32 len) = 0;
     virtual void appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len) = 0;
 
-    virtual Node * buildOperatorOverloadFuncCallNode();
+    virtual TBOOL buildandreplaceOperatorOverloadFuncCallNode(Node * parentnode);
+    virtual Node * buildOperatorOverloadFuncCallNode(bool& hazyArg);
 
     virtual UTI calcNodeType(UTI lt, UTI rt) = 0;
     virtual s32 resultBitsize(UTI lt, UTI rt); //op specific
@@ -118,7 +118,7 @@ namespace MFM{
     void calcBitsizeForResultInBits(UTI uti, s32& bs, s32&wordsize); //helper
 
 
-    virtual UTI castThyselfToResultType(UTI rt, UTI lt, UTI newType);
+    virtual UTI castThyselfToResultType(UTI rt, UTI lt, UTI newType, Node *& parentnoderef);
     //common helpers for calcNodeType:
     virtual bool checkSafeToCastTo(UTI fromType, UTI& newType);
 

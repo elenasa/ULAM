@@ -1,0 +1,44 @@
+## -*- mode:ulam -*-
+#=t41526_test_compiler_elementmultiinheritance_duplicatebases_error
+#!
+./Foo.ulam:2:9: ERROR: Subclass 'Foo' inherits directly from 'Bar', a duplicated baseclass, item 2.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by t41524,t41525
+##
+#>Moo.ulam
+ ulam 3;
+quark Moo {
+  typedef Moo Mine;
+  Unsigned(3) m_us = 4u;
+  Unsigned(3) func()
+  {
+    return m_us;
+  }
+}
+
+#:Foo.ulam
+  ulam 5;
+element Foo : Moo + local.Moo + Bar {
+  Bool(7) sp;
+  typedef Bar Moo; //wait for it..2 Bars allowed?
+  Int test() {
+    Mine f; //is class Moo, super first.
+    Unsigned a = f.func();
+    sp = (a == 4u);
+    return (Int) a;
+  }
+}
+
+#:Bar.ulam
+  ulam 3;
+quark Bar {
+  typedef Bar Mine;
+  Unsigned(3) m_bus = 3u;
+  Unsigned(3) func()
+  {
+    return m_bus;
+  }
+}
+
+#.

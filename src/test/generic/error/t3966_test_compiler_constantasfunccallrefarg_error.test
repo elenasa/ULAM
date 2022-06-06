@@ -1,8 +1,8 @@
 ## -*- mode:ulam -*-
 #=t3966_test_compiler_constantasfunccallrefarg_error
 #!
-./Ish.ulam:7:20: ERROR: Cannot explicitly cast Int(4) to type: Int(32)&.
-./Ish.ulam:7:20: ERROR: Cannot explicitly cast a constant, 4, type Int(4), to a reference type, Int(32)&.
+./Ish.ulam:7:20: ERROR: Cannot explicitly cast Int(4) to type: Int&.
+./Ish.ulam:7:20: ERROR: Cannot explicitly cast a constant, 4, type Int(4), to a reference type, Int&.
 ./Ish.ulam:7:12: ERROR: Argument 1 has a problem.
 Unrecoverable Program Type Label FAILURE.
 ##

@@ -5,8 +5,8 @@
 ##
 #!
 Exit status: 1
-Ue_Foo : Bar { :< Bool(1) val_b[3](false,false,false); > Int(32) test() {  System s;  Foo g;  g val_b 1 [] . true = constant Bar& r = g cast;  s ( r val_b 1 [] . )assert . r val_b 1 [] . cast return } }
-Uq_Bar { Bool(1) val_b[3](false,false,false);  <NOMAIN> }
+Ue_Foo : Bar { :Bar< Bool val_b[3](false,false,false); > Int test() {  System s;  Foo g;  g val_b 1 [] . true = constant Bar& r = g cast;  s ( r val_b 1 [] . )assert . r val_b 1 [] . cast return } }
+Uq_Bar { Bool val_b[3](false,false,false);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t3617, except r is a constant ref (and not writeable)

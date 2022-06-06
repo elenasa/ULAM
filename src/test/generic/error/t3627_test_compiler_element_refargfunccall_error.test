@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3627_test_compiler_element_refargfunccall_error
 #!
-./Foo.ulam:17:5: ERROR: (1) <check> has no defined function with 1 matching argument type: Bool(3), and cannot be called.
+./Foo.ulam:17:5: ERROR: (1) 'check' has no defined function with 1 matching argument type: Bool(3), and cannot be called.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t3624

@@ -1,0 +1,73 @@
+## -*- mode:ulam -*-
+#=t41542_test_compiler_virtualfunccallonatomrefasbasebeforesubascond_ish
+## gen output:
+##    Int Arg: 7
+#!
+Exit status: 0
+Ue_A { Int test() {  Q q;  q ( )behave . 0 cast return } }
+Ue_Q : Subplate { :Subplate<> ^Plate< Int(3) m_pl(0); > <NOMAIN> }
+Uq_Subplate : Plate { :Plate< Int(3) m_pl(0); > <NOMAIN> }
+Uq_System { <NOMAIN> }
+Uq_Plate { Int(3) m_pl(0);  <NOMAIN> }
+##
+## informed by ish 20210815-181415, and t41541; use effself inside as-cond gencode for virtualfunc call.
+##
+#>A.ulam
+  ulam 3;
+element A {
+  Int test(){
+    Q q;
+    q.behave();
+    return 0;
+  }
+}
+
+#:Q.ulam
+  ulam 5;
+element Q : Subplate {
+  Void behave() {
+    System f;
+    Atom & a = self.atomof;
+    if (a as Plate) {
+      if (a as Subplate)
+      {
+	Int i = a.vfunc();
+	f.print(i); //==7
+	f.assert(i==7);
+	return; // This should return
+      }
+
+      f.assert(false); //fail("Shouldn't get here");
+    }
+    else
+      f.assert(false); //nor here
+  }
+
+  virtual Int vfunc() { return 7; }
+}
+
+#:Plate.ulam
+  ulam 5;
+quark Plate
+{
+  Int(3) m_pl;
+  virtual Int vfunc(); //pure
+}
+
+quark Subplate : Plate
+{
+  virtual Int vfunc() { return 3; }
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

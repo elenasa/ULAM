@@ -3,7 +3,7 @@
 #!
 Exit status: 1
 Uq_A { Bool(3) y(false);  <NOMAIN> }
-Ue_F { typedef A Foo;  Int(32) test() {  A f;  f y . true cast = { f y . cond f y . cast return if } 0 cast return } }
+Ue_F { typedef A Foo;  Int test() {  A f;  f y . true cast = { f y . cond f y . cast return if } 0 cast return } }
 Ue_E { typedef A P;  <NOMAIN> }
 Ue_D { typedef A X;  <NOMAIN> }
 #>A.ulam

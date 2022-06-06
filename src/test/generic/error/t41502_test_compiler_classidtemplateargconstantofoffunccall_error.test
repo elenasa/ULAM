@@ -1,0 +1,32 @@
+## -*- mode:ulam -*-
+#=t41502_test_compiler_classidtemplateargconstantoffunccall_error
+#!
+./R.ulam:5:51: ERROR: Member selected must be a modifiable lefthand side: '.constantof' requires a variable.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by t41402, except constantof instead of  instanceof, caused segfault
+##
+#>R.ulam
+  ulam 5;
+element R
+{
+  Int test() {
+    Unsigned a2cid = A(Ele2.classidof).constantof.getClassid(); //or driveby templated class func call
+    return 0;
+  }
+}
+
+#:A.ulam
+  ulam 5;
+element A(Unsigned cid)
+{
+  constant Unsigned c_cid = cid;
+  Unsigned getClassid()  { return c_cid; }
+}
+
+#:Ele2.ulam
+  ulam 5;
+element Ele2 {
+}
+
+#.

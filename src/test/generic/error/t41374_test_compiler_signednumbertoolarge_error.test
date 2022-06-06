@@ -1,0 +1,19 @@
+## -*- mode:ulam -*-
+#=t41373_test_compiler_signednumbertoolarge_error
+#!
+./Foo.ulam:5:15: ERROR: Invalid signed constant '11111111111111111111': Positive number overflows Int(64).
+Unrecoverable Program Parse FAILURE: <Foo.ulam>
+##
+## informed by t41373; 20 digits overflows 64-bits.
+##
+#>Foo.ulam
+  ulam 5;
+element Foo {
+  Bool sp;
+  Int test() {
+    Int var = 11111111111111111111; //20 digits overflows 64-bits
+    return var;
+  }
+}
+
+#.

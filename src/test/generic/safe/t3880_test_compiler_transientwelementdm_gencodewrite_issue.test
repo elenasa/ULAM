@@ -2,9 +2,9 @@
 #=t3880_test_compiler_transientwelementdm_gencodewrite_issue
 #!
 Exit status: -11
-Ue_R { Int(32) test() {  Ish e;  e ( )behave . 0 cast return } }
-Ue_Ish { Bool(1) mBool(false);  <NOMAIN> }
-Un_Isht { Ish mIsh( Bool(1) mBool(false); );  <NOMAIN> }
+Ue_R { Int test() {  Ish e;  e ( )behave . 0 cast return } }
+Ue_Ish { Bool mBool(false);  <NOMAIN> }
+Un_Isht { Ish mIsh( Bool mBool(false); );  <NOMAIN> }
 ##
 ## informed by Dave ish2 8/6/2016:
 ##

@@ -1,0 +1,59 @@
+## -*- mode:ulam -*-
+#=t41482_test_compiler_abstractduetothesepurefunctions_ish_error
+#!
+./T.ulam:4:5: ERROR: 'aw' is type AtomWire, which is abstract due to these pure functions..
+./AtomStream.ulam:8:14: NOTE: Still pure in AtomWire: Unsigned(6) getNextSN(Bool left).
+./AtomStream.ulam:9:16: NOTE: Still pure in AtomWire: Bool isPeer(Bool left).
+./AtomPayload.ulam:5:16: NOTE: Still pure in AtomWire: Bool loadFrom(Atom a).
+./AtomPayload.ulam:6:16: NOTE: Still pure in AtomWire: Bool storeTo(Atom& a).
+./AtomWire.ulam:2:9: ERROR: Element 'AtomWire' is abstract due to these pure functions..
+Unrecoverable Program Type Label FAILURE.
+##
+##  informed by Dave's ish 20210613, see also t41481
+##   storeTo wrong due to missing ref arg type
+## note: The Pure notes after the Element 'AtomWire' errmsg are duplicates, and t.f. do not reappear.
+##
+#>T.ulam
+ ulam 5;
+element T {
+  Int test(){
+    AtomWire aw;
+    return 0;
+  }
+}
+
+#:AtomWire.ulam
+  ulam 5;
+element AtomWire + AtomStream {
+}
+
+
+#:AtomStream.ulam
+  ulam 5;
+/** Exchange (quoted) atoms via a peer-to-peer stream
+ */
+quark AtomStream : AtomPayload {
+
+  typedef EventWindow.SiteNum SN;
+  //// QStream API
+  virtual SN getNextSN(Bool left) ;       //< SN of next site toward left (right) Peer, or SN.maxof if none
+  virtual Bool isPeer(Bool left) ;        //< true if we are the left (right) Peer
+}
+
+#:AtomPayload.ulam
+  ulam 5;
+quark AtomPayload {
+
+  //// AtomPayload API
+  virtual Bool loadFrom(Atom a) ;  //< true if a was successfully stored in AtomPayload
+  virtual Bool storeTo(Atom & a) ; //< true if AtomPayload was successfully stored into a
+}
+
+#:EventWindow.ulam
+  ulam 3;
+quark EventWindow {
+  typedef Unsigned(6) SiteNum;
+  typedef Unsigned(3) Symmetry;
+}
+
+#.

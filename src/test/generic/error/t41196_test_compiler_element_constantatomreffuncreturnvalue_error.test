@@ -2,8 +2,8 @@
 #=t41196_test_compiler_element_constantatomreffuncreturnvalue_error
 ##
 #!
-./Foo.ulam:7:7: ERROR: Returning incompatible (reference) types: constant Atom(96)& as non-constant Atom(96)&.
-./Foo.ulam:8:5: ERROR: Returning incompatible (reference) types: constant Atom(96)& as non-constant Atom(96)&.
+./Foo.ulam:7:7: ERROR: Returning incompatible (reference) types: constant Atom& as non-constant Atom&.
+./Foo.ulam:8:5: ERROR: Returning incompatible (reference) types: constant Atom& as non-constant Atom&.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t41033; Dave email 2/10/2017 and t41031

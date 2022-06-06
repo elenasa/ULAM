@@ -109,15 +109,23 @@ namespace MFM {
 	    //default (uninitialized) values
 	    char dstr[40];
 
-	    nut->getDataAsString(0, dstr, 'z');
-	    fp->write(dstr);
-
-	    if(!m_state.isScalar(nuti))
+	    if(nut->isScalar())
 	      {
-		s32 arraysize = m_state.getArraySize(nuti);
-		for(s32 i = 1; i < arraysize; i++)
+		nut->getDataAsString(0, dstr, 'z');
+		fp->write(dstr);
+	      }
+	    else
+	      {
+		//an uninit array outputs type arraysize times (t41484, t3143)
+		UTI scalaruti = m_state.getUlamTypeAsScalar(nuti);
+		UlamType * scalarut = m_state.getUlamTypeByIndex(scalaruti);
+
+		scalarut->getDataAsString(0, dstr, 'z');
+		s32 arraysize = nut->getArraySize();
+		for(s32 i = 0; i < arraysize; i++)
 		  {
-		    nut->getDataAsString(0, dstr, ',');
+		    if(i>0)
+		      fp->write(",");
 		    fp->write(dstr);
 		  }
 	      }
@@ -127,9 +135,16 @@ namespace MFM {
     fp->write("; ");
   } //printPostfix
 
-  void NodeVarDeclDM::noteTypeAndName(s32 totalsize, u32& accumsize)
+  void NodeVarDeclDM::noteTypeAndName(UTI cuti, s32 totalsize, u32& accumsize)
   {
     UTI nuti = getNodeType();
+    if(m_varSymbol)
+      nuti = m_varSymbol->getUlamTypeIdx(); //t41286, node type for class DMs maybe Hzy still.
+    else if(m_nodeTypeDesc)
+      nuti = m_nodeTypeDesc->givenUTI();
+    else
+      m_state.abortNotImplementedYet();
+
     UlamKeyTypeSignature vkey = m_state.getUlamKeyTypeSignatureByIndex(nuti);
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     s32 nsize = nut->getTotalBitSize();
@@ -138,12 +153,7 @@ namespace MFM {
     note << "(" << nsize << " of ";
     note << totalsize << " bits, at " << accumsize << ") ";
 
-    //like NodeVarDecl::printNameAndType
-    if(nut->getUlamTypeEnum() != Class)
-      note << vkey.getUlamKeyTypeSignatureNameAndBitSize(&m_state).c_str();
-    else
-      note << nut->getUlamTypeClassNameBrief(nuti).c_str();
-
+    note << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
     note << " " << getName();
 
     s32 arraysize = nut->getArraySize();
@@ -156,8 +166,60 @@ namespace MFM {
 	note << "[UNKNOWN]";
       }
     MSG(getNodeLocationAsString().c_str(), note.str().c_str(), NOTE);
-    accumsize += nsize;
+
+    //all union data members start at pos 0
+    if(!m_state.isClassAQuarkUnion(cuti))
+      accumsize += nsize;
   } //noteTypeAndName
+
+  void NodeVarDeclDM::genTypeAndNameEntryAsComment(File * fp, s32 totalsize, u32& accumsize)
+  {
+    assert(m_varSymbol);
+    UTI nuti = m_varSymbol->getUlamTypeIdx(); //t41286, node type for class DMs maybe Hzy still.
+
+    UlamKeyTypeSignature vkey = m_state.getUlamKeyTypeSignatureByIndex(nuti);
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    s32 nsize = nut->getSizeofUlamType(); //e.g. 96 for elements
+    s32 pos = m_varSymbol->getPosOffset(); //better data (e.g. quarkunion)
+
+    // "| Position\t| Bitsize\t| Name\t| Type\t| "
+    m_state.indent(fp);
+    fp->write("| ");
+    fp->write_decimal_unsigned(pos); //at
+    fp->write("\t| ");
+    fp->write_decimal(nsize); // of totalsize
+    fp->write("\t| "); //name
+    fp->write(getName());
+    s32 arraysize = nut->getArraySize();
+    if(arraysize > NONARRAYSIZE)
+      {
+	fp->write("[");
+	fp->write_decimal(arraysize);
+	fp->write("]");
+      }
+    else if(arraysize == UNKNOWNSIZE)
+      {
+	fp->write("[UNKNOWN]");
+      }
+
+    fp->write("\t| "); //type
+    //like NodeVarDecl::printNameAndType
+
+    fp->write(m_state.getUlamTypeNameBriefByIndex(nuti).c_str());
+    if(m_state.isAClass(nuti)) //like baseclasses, classid for classes
+      {
+	SymbolClass * csym = NULL;
+	if(m_state.alreadyDefinedSymbolClass(nuti, csym))
+	  {
+	    fp->write(" <");
+	    fp->write_decimal_unsigned(csym->getRegistryNumber());
+	    fp->write(">");
+	  }
+      }
+    fp->write("\n"); //end
+
+    accumsize += nsize;
+  } //genTypeAndNameEntryAsComment
 
   const char * NodeVarDeclDM::getName()
   {
@@ -219,7 +281,7 @@ namespace MFM {
     return rscr;
   } //safeToCastTo
 
-  bool NodeVarDeclDM::checkReferenceCompatibility(UTI uti)
+  bool NodeVarDeclDM::checkReferenceCompatibility(UTI uti, Node * parentnode)
   {
     assert(m_state.okUTItoContinue(uti));
     if(m_state.getUlamTypeByIndex(uti)->isAltRefType())
@@ -234,9 +296,9 @@ namespace MFM {
     return true; //ok
   } //checkReferenceCompatibility
 
-  UTI NodeVarDeclDM::checkAndLabelType()
+  UTI NodeVarDeclDM::checkAndLabelType(Node * thisparentnode)
   {
-    UTI nuti = NodeVarDecl::checkAndLabelType(); //sets node type
+    UTI nuti = NodeVarDecl::checkAndLabelType(thisparentnode); //sets node type
 
     if(!m_state.okUTItoContinue(nuti))
       return nuti;
@@ -256,54 +318,11 @@ namespace MFM {
 	return Nav; //short-circuit
       }
 
-    //don't allow unions to contain string data members (t41093)
-    if(m_state.isClassAQuarkUnion(cuti) && UlamType::compareForString(nuti, m_state) == UTIC_SAME)
-      {
-	std::ostringstream msg;
-	msg << "Data member '";
-	msg << m_state.m_pool.getDataAsString(m_vid).c_str();
-	msg << "' belongs to a quark-union, and cannot be type String";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	setNodeType(Nav);
-	return Nav; //short-circuit
-      }
-
-    //don't allow a subclass to shadow a superclass datamember
-    UTI superuti = m_state.isClassASubclass(cuti);
-    if(superuti != Nouti) //has ancestor
-      {
-	//is a subclass' DM..
-	//check for shadowed superclass DM of same name
-	NodeBlockClass * superclassblock = m_state.getAClassBlock(superuti);
-	assert(superclassblock);
-	m_state.pushClassContextUsingMemberClassBlock(superclassblock);
-
-	Symbol * varSymbolOfSameName = NULL;
-	bool hazyKin = false;
-	if(m_state.alreadyDefinedSymbol(m_vid, varSymbolOfSameName, hazyKin))
-	  {
-	    std::ostringstream msg;
-	    msg << "Data member '";
-	    msg << m_state.m_pool.getDataAsString(m_vid).c_str();
-	    msg << "' is shadowing an ancestor";
-	    if(hazyKin)
-	      {
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-		setNodeType(Hzy);
-		m_state.setGoAgain();
-		m_state.popClassContext();
-		return Hzy; //short-circuit
-	      }
-	    else
-	      {
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		setNodeType(Nav);
-		m_state.popClassContext();
-		return Nav; //short-circuit
-	      }
-	  }
-	m_state.popClassContext();
-      } //end subclass error checking
+    //don't allow a subclass to shadow a base class datamember (error/t41331)
+    TBOOL shadowt = checkForNoShadowingSubclass(cuti);
+    if(shadowt != TBOOL_TRUE)
+      return getNodeType();
+    //else continue...
 
     //NodeVarDecl handles array initialization for both locals & dm
     // since initial expressions must be constant for both (unlike local scalars)
@@ -332,7 +351,7 @@ namespace MFM {
 	    return Nav; //short-circuit
 	  }
 
-	if(it == Hzy)
+	if(m_state.isStillHazy(it))
 	  {
 	    std::ostringstream msg;
 	    msg << "Constant value expression for data member: ";
@@ -340,6 +359,7 @@ namespace MFM {
 	    msg << ", initialization is not ready";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    setNodeType(Hzy);
+	    clearSymbolPtr();
 	    m_state.setGoAgain(); //since not error
 	    return Hzy; //short-circuit
 	  }
@@ -369,6 +389,7 @@ namespace MFM {
 		    if(!(m_varSymbol->isInitValueReady()))
 		      {
 			setNodeType(Hzy);
+			clearSymbolPtr();
 			m_state.setGoAgain(); //since not error
 			return Hzy;
 		      }
@@ -386,6 +407,53 @@ namespace MFM {
       }
     return getNodeType();
   } //checkAndLabelType
+
+  TBOOL NodeVarDeclDM::checkForNoShadowingSubclass(UTI cuti)
+  {
+    std::set<UTI> kinset;
+    bool hazyKin = false;
+    if(m_state.alreadyDefinedSymbolByAncestorsOf(cuti, m_vid, kinset, hazyKin))
+      {
+	u32 kinsetsize = kinset.size();
+
+	std::ostringstream msg;
+	msg << "Data member '";
+	msg << m_state.m_pool.getDataAsString(m_vid).c_str();
+	msg << "' is shadowing ";
+	if(kinsetsize == 1)
+	  msg << "an ancestor: ";
+	else
+	  msg << kinsetsize << " ancestors: ";
+
+	u32 k=0;
+	std::set<UTI>::iterator it;
+	for(it = kinset.begin(); it != kinset.end(); it++, k++)
+	  {
+	    UTI ancestor = *it;
+	    if(m_state.okUTItoContinue(ancestor))
+	      {
+		if(k > 0)
+		  msg << ", ";
+		msg << m_state.getUlamTypeNameBriefByIndex(ancestor).c_str();
+	      }
+	  }
+
+      if(hazyKin)
+	{
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	  setNodeType(Hzy);
+	  m_state.setGoAgain();
+	  return TBOOL_HAZY;
+	}
+      else
+	{
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	  setNodeType(Nav);
+	  return TBOOL_FALSE;
+	}
+      }
+    return TBOOL_TRUE; //aok
+  } //checkForNoShadowingSubclass
 
   bool NodeVarDeclDM::checkDataMemberSizeConstraints()
   {
@@ -406,7 +474,7 @@ namespace MFM {
 	if((len > MAXBITSPERLONG) && (dmclasstype == UC_NOTACLASS) && ut->isScalar() && ut->isNumericType()) //BitField constraint
 	  {
 	    std::ostringstream msg;
-	    msg << "Data member <" << getName() << "> of numeric scalar type: ";
+	    msg << "Data member '" << getName() << "' of numeric scalar type: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
 	    msg << ", total size: " << (s32) m_state.getTotalBitSize(it);
 	    msg << " MUST fit into " << MAXBITSPERLONG << " bits;";
@@ -418,7 +486,7 @@ namespace MFM {
 	if(dmclasstype == UC_ELEMENT)
 	  {
 	    std::ostringstream msg;
-	    msg << "Data member <" << getName() << "> of type: ";
+	    msg << "Data member '" << getName() << "' of type: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
 	    msg << ", is an element, and is NOT permitted; Local variables, quarks, ";
 	    msg << "and Model Parameters do not have this restriction";
@@ -431,7 +499,7 @@ namespace MFM {
 	    if(!ut->isScalar() && (len > MAXSTATEBITS)) //was MAXBITSPERLONG
 	      {
 		std::ostringstream msg;
-		msg << "Data member <" << getName() << "> of class array type: ";
+		msg << "Data member '" << getName() << "' of class array type: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
 		msg << ", total size: " << (s32) len;
 		msg << " MUST fit into " << MAXSTATEBITS << " bits;";
@@ -444,7 +512,7 @@ namespace MFM {
 	if(dmclasstype == UC_TRANSIENT)
 	  {
 	    std::ostringstream msg;
-	    msg << "Data member <" << getName() << "> of type: ";
+	    msg << "Data member '" << getName() << "' of type: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
 	    msg << ", is a transient, and is NOT permitted; Local variables, ";
 	    msg << "do not have this restriction";
@@ -459,7 +527,7 @@ namespace MFM {
 	if(ut->isScalar() && (len > MAXBITSPERINT))
 	  {
 	    std::ostringstream msg;
-	    msg << "Data member <" << getName() << "> of class type: ";
+	    msg << "Data member '" << getName() << "' of class type: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
 	    msg << ", total size: " << (s32) len;
 	    msg << " MUST fit into " << MAXBITSPERINT << " bits";
@@ -491,7 +559,7 @@ namespace MFM {
   {
     UTI nuti = getNodeType();
 
-    if(nuti == Nav || !m_state.isComplete(nuti))
+    if(!m_state.okUTItoContinue(nuti) || !m_state.isComplete(nuti))
       return false; //e.g. not a constant
 
     assert(m_varSymbol);
@@ -505,7 +573,7 @@ namespace MFM {
       return true;
 
     // if here, must be a constant init value..
-    UTI foldeduti = m_nodeInitExpr->constantFold(); //c&l redone
+    UTI foldeduti = m_nodeInitExpr->constantFold(this); //c&l redone
     if(!m_state.okUTItoContinue(foldeduti))
       return false;
 
@@ -533,8 +601,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Constant value expression for data member '";
 	msg << m_state.m_pool.getDataAsString(m_varSymbol->getId()).c_str();
-	msg << "' initialization failed while compiling class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	msg << "' initialization failed";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(Nav);
 	return false;
@@ -545,8 +612,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Constant value expression for data member '";
 	msg << m_state.m_pool.getDataAsString(m_varSymbol->getId()).c_str();
-	msg << "' initialization is not yet ready while compiling class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	msg << "' initialization is not yet ready";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	setNodeType(Hzy);
 	m_state.setGoAgain(); //since not error
@@ -771,9 +837,12 @@ namespace MFM {
 	if(aok)
 	  {
 	    foldDefaultClass(); //init value for m_varSymbol (if not already done), handles arrays t3512
-	    BV8K bvarr;
-	    m_varSymbol->getInitValue(bvarr);
-	    bvarr.CopyBV(0, pos, len, dvref); //both scalar and arrays (t41185, t41267, t3818)
+	    if((aok = m_varSymbol->isInitValueReady()))
+	      {
+		BV8K bvarr;
+		m_varSymbol->getInitValue(bvarr);
+		bvarr.CopyBV(0, pos, len, dvref); //both scalar and arrays (t41185, t41267, t3818)
+	      } //else not ready (t41184)
 	  }
       }
     else if(etyp == UAtom) //this Transient contains an empty atom (t3802)
@@ -834,14 +903,15 @@ namespace MFM {
     s32 arraysize = nut->getArraySize();
 
     BV8K bvtmp;
-    AssertBool gotDefault = m_state.getDefaultClassValue(nuti, bvtmp); //uses scalar
-    assert(gotDefault); //maybe zeros
+    if(m_state.getDefaultClassValue(nuti, bvtmp)) //uses scalar
+      {
+	BV8K bvarr;
+	arraysize = arraysize > 0 ? arraysize : 1;
+	m_state.getDefaultAsArray(bitsize, arraysize, 0u, bvtmp, bvarr);
 
-    BV8K bvarr;
-    arraysize = arraysize > 0 ? arraysize : 1;
-    m_state.getDefaultAsArray(bitsize, arraysize, 0u, bvtmp, bvarr);
-
-    m_varSymbol->setInitValue(bvarr); //t3512
+	m_varSymbol->setInitValue(bvarr); //t3512
+      }
+    //else initValue not ready (e.g. t41184)
   } //foldDefaultClass
 
   TBOOL NodeVarDeclDM::packBitsInOrderOfDeclaration(u32& offset)
@@ -871,7 +941,7 @@ namespace MFM {
 
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     u32 len = nut->getSizeofUlamType();
-    offset += len; //uses atom-based size for element, and actual size for quark data members
+    offset += len; //uses atom-based size for element, and complete size for quark data members
     return TBOOL_TRUE;
   } //packBitsInOrderOfDeclaration
 
@@ -949,8 +1019,10 @@ namespace MFM {
 
   UlamValue NodeVarDeclDM::makeUlamValuePtr()
   {
-    UlamValue ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset(), m_varSymbol->getId());
-
+    UTI nuti = getNodeType();
+    UlamValue ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), nuti, m_state.determinePackable(nuti), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset(), m_varSymbol->getId());
+    if(m_state.isAClass(nuti))
+      ptr.setPtrTargetEffSelfType(nuti);
     ptr.checkForAbsolutePtr(m_state.m_currentObjPtr);
     return ptr;
   } //makeUlamValuePtr
@@ -963,6 +1035,9 @@ namespace MFM {
 
     assert(m_varSymbol->isDataMember());
 
+    UVPass uvpass2clear;
+    uvpass = uvpass2clear; //refresh
+
     return genCodedBitFieldTypedef(fp, uvpass);
   } //genCode
 
@@ -973,6 +1048,7 @@ namespace MFM {
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     ULAMTYPE netyp = nut->getUlamTypeEnum();
 
+    fp->write("//"); //no longer used (ulam-5)
     m_state.indent(fp);
     if((netyp == Class) && nut->isScalar())
       {
@@ -1049,9 +1125,18 @@ namespace MFM {
     fp->write(m_state.getUlamTypeByIndex(nuti)->getUlamTypeMangledName().c_str());
     fp->write("\", \"");
     fp->write(m_state.m_pool.getDataAsString(m_varSymbol->getId()).c_str());
+    fp->write("\", \"");
+
+    //ulam-5, needs baseclass relative start pos
+    UTI dmclass = m_varSymbol->getDataMemberClass();
+    u32 dmclassrelpos = UNRELIABLEPOS;
+    AssertBool gotRelPos = m_state.getABaseClassRelativePositionInAClass(m_state.getCompileThisIdx(), dmclass, dmclassrelpos);
+    assert(gotRelPos);
+
+    fp->write(m_state.getUlamTypeByIndex(dmclass)->getUlamTypeMangledName().c_str());
     fp->write("\", ");
-    fp->write_decimal(m_varSymbol->getPosOffset());
-    fp->write("u); return i; }"); GCNL;
+    fp->write_decimal(m_varSymbol->getPosOffset() + dmclassrelpos);
+    fp->write("u); return i; }\n");
 
     dmcount++; //increment data member count
   } //generateUlamClassInfo

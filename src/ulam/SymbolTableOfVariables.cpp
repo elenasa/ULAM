@@ -3,6 +3,7 @@
 #include <iostream>
 #include "SymbolTableOfVariables.h"
 #include "SymbolModelParameterValue.h"
+#include "SymbolTypedef.h"
 #include "SymbolVariable.h"
 #include "SymbolVariableDataMember.h"
 #include "CompilerState.h"
@@ -82,6 +83,30 @@ namespace MFM {
     return rtnId;
   } //findTypedefSymbolNameIdByTypeInTable
 
+  u32 SymbolTableOfVariables::getAllRemainingCulamGeneratedTypedefSymbolsInTable(std::map<u32, Symbol*>& mapref)
+  {
+    u32 rtnnum = 0;
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	assert(sym);
+	if(sym->isTypedef())
+	  {
+	    if(sym->isCulamGeneratedTypedef())
+	      {
+		UTI sid = sym->getId();
+		std::pair<std::map<u32,Symbol*>::iterator, bool> reti;
+		reti = mapref.insert(std::pair<u32,Symbol*>(sid, sym));
+		assert(reti.second); //false if already existed, i.e. not added.(t41013)
+		rtnnum++;
+	      }
+	  }
+	it++;
+      }
+    return rtnnum;
+  }
+
   //called by NodeBlock.
   u32 SymbolTableOfVariables::getTotalSymbolSize()
   {
@@ -100,7 +125,7 @@ namespace MFM {
     return totalsizes;
   } //getTotalSymbolSize
 
-  s32 SymbolTableOfVariables::getTotalVariableSymbolsBitSize()
+  s32 SymbolTableOfVariables::getTotalVariableSymbolsBitSize(std::set<UTI>& seensetref)
   {
     UTI cuti = m_state.getCompileThisIdx();
     ULAMCLASSTYPE cclasstype = m_state.getUlamTypeByIndex(cuti)->getUlamClassType();
@@ -119,18 +144,26 @@ namespace MFM {
 	  }
 
 	UTI suti = sym->getUlamTypeIdx();
-	s32 symsize = calcVariableSymbolTypeSize(suti); //recursively
+	s32 symsize = UNKNOWNSIZE;
+	if(!m_state.okUTItoContinue(suti))
+	  {
+	    totalsizes = UNKNOWNSIZE;
+	    break; //Hzy possibility (t41301)
+	  }
+	symsize = calcVariableSymbolTypeSize(suti, seensetref); //recursively
 
 	if(symsize == CYCLEFLAG) //was < 0
 	  {
 	    std::ostringstream msg;
 	    msg << "cycle error!!! " << m_state.getUlamTypeNameByIndex(suti).c_str();
 	    MSG(sym->getTokPtr(), msg.str().c_str(), ERR);
+	    totalsizes = CYCLEFLAG; //t41427
+	    break;
 	  }
 	else if(symsize == EMPTYSYMBOLTABLE)
 	  {
 	    symsize = 0;
-	    m_state.setBitSize(suti, symsize); //total bits NOT including arrays
+	    m_state.setUTIBitSize(suti, symsize); //total bits NOT including arrays
 	  }
 	else if(symsize <= UNKNOWNSIZE)
 	  {
@@ -143,7 +176,16 @@ namespace MFM {
 	    break;
 	  }
 	else
-	  m_state.setBitSize(suti, symsize); //symsize does not include arrays
+	  {
+	    //symsize does not include arrays
+	    bool isabaseclass = m_state.isScalar(suti) && m_state.isAClass(suti);
+	    s32 savebasebitsize = 0;
+	    if(isabaseclass) //t41298,9 (atom), t3143 (array)
+	      savebasebitsize = m_state.getBaseClassBitSize(suti);
+	    m_state.setUTIBitSize(suti, symsize);
+	    if(isabaseclass && (savebasebitsize != UNKNOWNSIZE)) //t41298,9 (atom);t41269
+	      m_state.setBaseClassBitSize(suti,savebasebitsize);//restr t3755
+	  }
 
 	UlamType * sut = m_state.getUlamTypeByIndex(suti); //no sooner!
 	s32 arraysize = sut->getArraySize();
@@ -164,13 +206,11 @@ namespace MFM {
     return totalsizes;
   } //getTotalVariableSymbolsBitSize
 
-  s32 SymbolTableOfVariables::getMaxVariableSymbolsBitSize()
+  s32 SymbolTableOfVariables::getMaxVariableSymbolsBitSize(std::set<UTI>& seensetref)
   {
     UTI cuti = m_state.getCompileThisIdx();
-    ULAMCLASSTYPE cclasstype = m_state.getUlamTypeByIndex(cuti)->getUlamClassType();
-    assert(cclasstype == UC_QUARK);
-
     s32 maxsize = 0;
+
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
     while(it != m_idToSymbolPtr.end())
       {
@@ -184,18 +224,20 @@ namespace MFM {
 	  }
 
 	UTI suti = sym->getUlamTypeIdx();
-	s32 symsize = calcVariableSymbolTypeSize(suti); //recursively
+	s32 symsize = calcVariableSymbolTypeSize(suti, seensetref); //recursively
 
 	if(symsize == CYCLEFLAG) //was < 0
 	  {
 	    std::ostringstream msg;
 	    msg << "cycle error!!!! " << m_state.getUlamTypeNameByIndex(suti).c_str();
-	    MSG(sym->getTokPtr(), msg.str().c_str(),ERR);
+	    MSG(sym->getTokPtr(), msg.str().c_str(), ERR);
+	    maxsize = CYCLEFLAG;
+	    break;
 	  }
 	else if(symsize == EMPTYSYMBOLTABLE)
 	  {
 	    symsize = 0;
-	    m_state.setBitSize(suti, symsize); //total bits NOT including arrays
+	    m_state.setUTIBitSize(suti, symsize); //total bits NOT including arrays
 	  }
 	else if(symsize <= UNKNOWNSIZE)
 	  {
@@ -209,7 +251,7 @@ namespace MFM {
 	  }
 	else
 	  {
-	    m_state.setBitSize(suti, symsize); //symsize does not include arrays
+	    m_state.setUTIBitSize(suti, symsize); //symsize does not include arrays
 	  }
 
 	UlamType * sut = m_state.getUlamTypeByIndex(suti); //no sooner!
@@ -250,93 +292,6 @@ namespace MFM {
   }
 #endif
 
-  void SymbolTableOfVariables::initializeElementDefaultsForEval(UlamValue& uvsite, UTI startuti)
-  {
-    if(m_idToSymbolPtr.empty()) return;
-
-    u32 startpos = ATOMFIRSTSTATEBITPOS; //use relative offsets
-
-    std::map<u32, Symbol* >::iterator it = m_idToSymbolPtr.begin();
-    while(it != m_idToSymbolPtr.end())
-      {
-	Symbol * sym = it->second;
-	UTI suti = sym->getUlamTypeIdx();
-	UlamType * sut = m_state.getUlamTypeByIndex(suti);
-
-	//skip quarkunion initializations (o.w. misleading, which value? e.g. t3782)
-	if(sym->isDataMember() && variableSymbolWithCountableSize(sym) && !m_state.isClassAQuarkUnion(suti))
-	  {
-	    s32 len = sut->getTotalBitSize(); //include arrays (e.g. t3512)
-	    assert(sym->isPosOffsetReliable());
-	    u32 pos = sym->getPosOffset();
-
-	    //updates the UV at offset with the default of sym;
-	    // support initialized non-class arrays
-	    if(((SymbolVariableDataMember *) sym)->hasInitValue())
-	      {
-		assert(len <= MAXSTATEBITS);
-		BV8K dval;
-		if(((SymbolVariableDataMember *) sym)->getInitValue(dval))
-		  {
-		    uvsite.putDataBig(pos + startpos, len, dval); //t3772, t3776
-		  }
-	      }
-	    //else nothing to do
-	  } //countable
-	it++;
-      } //while
-    return;
-  } //initializeElementDefaultsForEval
-
-  s32 SymbolTableOfVariables::findPosOfUlamTypeInTable(UTI utype, UTI& insidecuti)
-  {
-    s32 posfound = -1;
-    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
-    while(it != m_idToSymbolPtr.end())
-      {
-	Symbol * sym = it->second;
-	if(sym->isDataMember() && variableSymbolWithCountableSize(sym))
-	  {
-	    UTI suti = sym->getUlamTypeIdx();
-	    if(UlamType::compare(suti, utype, m_state) == UTIC_SAME)
-	      {
-		posfound = sym->getPosOffset();
-		insidecuti = suti;
-		break;
-	      }
-	    else
-	      {
-		// check possible inheritance
-		UTI superuti = m_state.isClassASubclass(suti);
-		assert(superuti != Hzy);
-		if((superuti != Nouti) && (UlamType::compare(superuti, utype, m_state) == UTIC_SAME))
-		  {
-		    posfound = sym->getPosOffset(); //starts at beginning
-		    insidecuti = suti;
-		    break;
-		  }
-	      }
-	  }
-	it++;
-      }
-    return posfound;
-  } //findPosOfUlamTypeInTable
-
-  //replaced with parse tree method to preserve order of declaration
-  void SymbolTableOfVariables::genCodeForTableOfVariableDataMembers(File * fp, ULAMCLASSTYPE classtype)
-  {
-    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
-    while(it != m_idToSymbolPtr.end())
-      {
-	Symbol * sym = it->second;
-	if(!sym->isTypedef() && !sym->isConstant() && sym->isDataMember()) //including model parameters
-	  {
-	    ((SymbolVariable *) sym)->generateCodedVariableDeclarations(fp, classtype);
-	  }
-	it++;
-      }
-  } //genCodeForTableOfVariableDataMembers (unused)
-
   void SymbolTableOfVariables::genModelParameterImmediateDefinitionsForTableOfVariableDataMembers(File *fp)
   {
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
@@ -372,7 +327,7 @@ namespace MFM {
   } //printPostfixValuesForTableOfVariableDataMembers
 
   //PRIVATE HELPER METHODS:
-  s32 SymbolTableOfVariables::calcVariableSymbolTypeSize(UTI arguti)
+  s32 SymbolTableOfVariables::calcVariableSymbolTypeSize(UTI arguti, std::set<UTI>& seensetref)
   {
     if(!m_state.okUTItoContinue(arguti))
       {
@@ -384,9 +339,8 @@ namespace MFM {
 
     UlamType * argut = m_state.getUlamTypeByIndex(arguti);
     s32 totbitsize = argut->getBitSize(); // why not total bit size? findNodeNoInThisClass fails (e.g. t3144, etc)
-    ULAMCLASSTYPE argclasstype = argut->getUlamClassType();
     s32 argarraysize = argut->getArraySize();
-    if(argclasstype == UC_NOTACLASS) //includes Atom type
+    if(!m_state.isAClass(arguti)) //includes Atom type, Hzy arrays
       {
 	if(argarraysize == UNKNOWNSIZE)
 	  return UNKNOWNSIZE; //Thu Feb  8 16:09:50 2018
@@ -413,14 +367,27 @@ namespace MFM {
 	else
 	  {
 	    assert(totbitsize <= UNKNOWNSIZE || m_state.getArraySize(arguti) == UNKNOWNSIZE);
-
-	    m_state.setBitSize(arguti, CYCLEFLAG); //before the recusive call..
-
 	    //get base type, scalar type of class
-	    SymbolClass * csym = NULL;
-	    if(m_state.alreadyDefinedSymbolClass(arguti, csym))
+	    UTI tduti = Nouti;
+	    UTI tdscalaruti = Nouti;
+	    Symbol * tdsymptr = NULL;
+	    u32 nameid = m_state.getUlamTypeNameIdByIndex(arguti);
+	    if(m_state.getUlamTypeByTypedefNameInClassHierarchyThenLocalsScope(nameid, tduti, tdscalaruti, tdsymptr))
 	      {
-		return calcVariableSymbolTypeSize(csym->getUlamTypeIdx()); //NEEDS CORRECTION
+		//don't use getTotalBitSize, assumes 0 bits for UNKNOWN, 1 for UNKNOWN arraysize(t3653)
+		return m_state.getBitSize(tduti); //t3145
+	      }
+	    else
+	      {
+		SymbolClass * csym = NULL;
+		if(m_state.alreadyDefinedSymbolClass(arguti, csym))
+		  {
+		    s32 sizeofclass = calcVariableSymbolTypeSize(csym->getUlamTypeIdx(), seensetref); //CORRECTED
+		    if(sizeofclass >= 0)
+		      return sizeofclass * m_state.getArraySize(arguti);
+		    return sizeofclass; //unknownsize? cycle? empty?
+		    //when do we multiply by the arraysize? (t3653, t3145)
+		  }
 	      }
 	  }
       }
@@ -430,8 +397,7 @@ namespace MFM {
 	  {
 	    return totbitsize;
 	  }
-
-	if(totbitsize == CYCLEFLAG) //was < 0
+	else if(totbitsize == CYCLEFLAG) //was < 0
 	  {
 	    return CYCLEFLAG; //error! cycle
 	  }
@@ -447,14 +413,19 @@ namespace MFM {
 	    if(m_state.alreadyDefinedSymbolClass(arguti, csym))
 	      {
 		s32 csize;
-		UTI cuti = csym->getUlamTypeIdx();
+		UTI cuti = csym->getUlamTypeIdx(); //not arguti(t41233,t41262)
+
 		if((csize = m_state.getBitSize(cuti)) >= 0)
 		  {
 		    return csize;
 		  }
 		else if(csize == CYCLEFLAG)  //was < 0
 		  {
-		    //error! cycle..replace with message
+		    //error! cycle..replace with message..at last.
+		    std::ostringstream msg;
+		    msg << "Class '" << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+		    msg << "' contains a cycle, cannot calculate its bitsize";
+		    MSG(csym->getTokPtr(), msg.str().c_str(), ERR);
 		    return csize;
 		  }
 		else if(csize == EMPTYSYMBOLTABLE)
@@ -478,24 +449,48 @@ namespace MFM {
 		    //a class cannot contain a copy of itself!
 		    if(classblock == m_state.getContextBlock())
 		      {
-			UTI suti = csym->getUlamTypeIdx();
 			std::ostringstream msg;
-			msg << "Class '" << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
+			msg << "Class '" << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 			msg << "' cannot contain a copy of itself"; //error/t3390
 			MSG(csym->getTokPtr(), msg.str().c_str(), ERR);
 			classblock->setNodeType(Nav);
 			return UNKNOWNSIZE;
 		      }
 
-		    m_state.pushClassContext(csym->getUlamTypeIdx(), classblock, classblock, false, NULL);
+		    bool aok = true;
+		    s32 sharedbits = UNKNOWNSIZE;
+		    s32 basebits = 0; //overstated, no sharing
+		    s32 mybits = 0; //main goal of trySetBitsize..
 
-		    if(csym->isQuarkUnion())
-		      csize = classblock->getMaxBitSizeOfVariableSymbolsInTable();
+		    std::pair<std::set<UTI>::iterator,bool> ret = seensetref.insert(cuti);
+		    if(ret.second)
+		      {
+			//first sighting
+			m_state.pushClassContext(cuti, classblock, classblock, false, NULL);
+			aok = csym->trySetBitsizeWithUTIValues(basebits, mybits, seensetref);
+		      }
 		    else
-		      csize = classblock->getBitSizesOfVariableSymbolsInTable(); //data members only
+		      {
+			aok = false;
+			m_state.setUTIBitSize(cuti, CYCLEFLAG);//t41427, t3383
+			return CYCLEFLAG;
+		      }
 
+		    if(aok)
+		      {
+			s32 sharedbitssaved = UNKNOWNSIZE;
+			aok = csym->determineSharedBasesAndTotalBitsize(sharedbitssaved, sharedbits);
+			if(aok)
+			  {
+			    assert(sharedbits >= 0);
+			    assert(sharedbitssaved >= sharedbits);
+			    csize = (mybits + sharedbits); //updates total here!!
+			    //before setUTIsizes, restored later (t3755)
+			    aok = m_state.setBaseClassBitSize(cuti, mybits); //noop for elements
+			  }
+		      }
 		    m_state.popClassContext(); //restore
-		    return csize;
+		    return aok ? csize : UNKNOWNSIZE;
 		  }
 	      }
 	  } //totbitsize == 0

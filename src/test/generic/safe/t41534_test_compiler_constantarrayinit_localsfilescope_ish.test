@@ -1,0 +1,58 @@
+## -*- mode:ulam -*-
+#=t41534_test_compiler_constantarrayinit_localsfilescope_ish
+#!
+Exit status: 0
+Ue_A { Int test() {  Q q;  0 cast return } }
+Ue_Q { constant Unsigned(8) cCLASSBLACK[4] = { 255u, 0u cast, 0u cast, 0u cast };  <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## ish 20210802 ARGB typedef not found in UrSelf for localsfilescope without explicit selection;
+##  compiler assert hit when NodeConstantDef::cloneAndAppend had no symbol. see also t41535,6.
+##
+#>A.ulam
+  ulam 3;
+element A {
+  Int test(){
+    Q q;
+    return 0;
+  }
+}
+
+#:Q.ulam
+  ulam 5;
+local constant UrSelf.ARGB cBLACK = { 0xff, 0x00, 0x00, 0x00 };
+local constant UrSelf.ARGB cYELLOW = { 0xff, 0xff, 0xff, 0x00 };
+
+element Q {
+  // How are (local) constant( array)s to be used?  None of these build:
+  //  ARGB getFg() { return cBLACK; }
+  //
+  //  ARGB getFg() { return cBLACK.instanceof; }
+  //
+  //  ARGB getFg() { return local.cBLACK.instanceof; }
+  //
+  //  ARGB getFg() { ARGB ret = cBLACK; return ret; }
+  //
+  //  ARGB getFg() { return cBLACK.constantof; }
+  //
+  //  ARGB getFg() { return func(cBLACK); }
+  //  ARGB func(ARGB a) { return a; }
+  //
+  //  ARGB getFg() { constant ARGB a = cBLACK; return a; }
+  //
+  constant ARGB cCLASSBLACK = { 0xff, 0x00, 0x00, 0x00 };
+  ARGB getFg() { return cCLASSBLACK; }
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

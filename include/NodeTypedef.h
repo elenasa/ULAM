@@ -1,8 +1,9 @@
 /**                                        -*- mode:C++ -*-
  * NodeTypedef.h - Basic Node handling Typedefs for ULAM
  *
- * Copyright (C) 2014-2018 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2018 Ackleyshack LLC.
+ * Copyright (C) 2014-2019 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +28,9 @@
 
 /**
   \file NodeTypedef.h - Basic Node handling Typedefs for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2018 All rights reserved.
+  \date (C) 2014-2021 All rights reserved.
   \gpl
 */
 
@@ -62,15 +63,19 @@ namespace MFM{
 
     virtual void printPostfix(File * f);
 
-    virtual void noteTypeAndName(s32 totalsize, u32& accumsize);
+    virtual void noteTypeAndName(UTI cuti, s32 totalsize, u32& accumsize);
+
+    virtual void genTypeAndNameEntryAsComment(File * fp, s32 totalsize, u32& accumsize);
 
     virtual const char * getName();
 
+    virtual u32 getNameId();
+
     virtual const std::string prettyNodeName();
 
-    virtual bool getSymbolPtr(Symbol *& symptrref);
+    virtual bool getSymbolPtr(const Symbol *& symptrref);
 
-    virtual UTI checkAndLabelType();
+    virtual UTI checkAndLabelType(Node * thisparentnode);
 
     virtual TBOOL packBitsInOrderOfDeclaration(u32& offset);
 
@@ -103,6 +108,8 @@ namespace MFM{
   protected:
     virtual void checkForSymbol();
 
+    virtual void clearSymbolPtr();
+
   private:
     SymbolTypedef * m_typedefSymbol;
     u32 m_tdid; //to instantiate
@@ -111,6 +118,9 @@ namespace MFM{
     NodeTypeDescriptor * m_nodeTypeDesc; //can be NULL
 
     NNO getBlockNo();
+    void setupBlockNo();
+    void setBlockNo(NNO n);
+
     void setBlock(NodeBlock * ptr);
     NodeBlock * getBlock();
 

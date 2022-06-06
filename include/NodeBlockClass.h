@@ -1,8 +1,9 @@
 /**                                        -*- mode:C++ -*-
  * NodeBlockClass.h - Basic Node for handling Classes for ULAM
  *
- * Copyright (C) 2014-2018 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2018 Ackleyshack LLC.
+ * Copyright (C) 2014-2019 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +28,9 @@
 
 /**
   \file NodeBlockClass.h - Basic Node for handling Classes for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2018 All rights reserved.
+  \date (C) 2014-2021 All rights reserved.
   \gpl
 */
 
@@ -79,11 +80,13 @@ namespace MFM{
 
     void printPostfixDataMembersSymbols(File * fp, s32 slot, u32 startpos, UTI cuti);
 
-    void noteClassTypeAndName(UTI nuti, s32 totalsize, u32& accumsize);
+    void noteBaseClassTypeAndName(UTI nuti, u32 baseitem, bool sharedbase, s32 totalsize, u32& accumsize);
 
     void noteDataMembersParseTree(UTI cuti, s32 totalsize);
 
     virtual const char * getName();
+
+    virtual u32 getNameId();
 
     virtual const std::string prettyNodeName();
 
@@ -91,15 +94,19 @@ namespace MFM{
 
     virtual bool isAClassBlock();
 
-    NodeBlockClass * getSuperBlockPointer();
+    void setDataMembersParseTree(UTI cuti, NodeBlockClass & fromClassBlock);
+    void resetDataMembersParseTree(UTI cuti, NodeBlockClass & fromClassBlock);
+    void setDataMembersSymbolTable(UTI cuti, NodeBlockClass & fromClassBlock);
 
-    void setSuperBlockPointer(NodeBlockClass *);
+    SymbolTable * getFunctionSymbolTablePtr();
 
-    bool isSuperClassLinkReady(UTI cuti);
+    void setMemberFunctionsSymbolTable(UTI cuti, NodeBlockClass& fromClassBlock);
+
+    bool isBaseClassBlockReady(UTI cuti, UTI baseuti);
 
     virtual bool hasStringDataMembers();
 
-    virtual UTI checkAndLabelType();
+    virtual UTI checkAndLabelType(Node * thisparentnode);
 
     bool checkParameterNodeTypes();
 
@@ -117,27 +124,31 @@ namespace MFM{
 
     u32 getNumberOfArgumentNodes();
 
+    NodeList * getListOfArgumentNodes();
+
     virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
 
     u32 getLocalsFilescopeType();
 
     bool hasCustomArray();
 
-    void checkCustomArrayTypeFunctions();
+    void checkCustomArrayTypeFunctions(UTI cuti);
 
-    UTI getCustomArrayTypeFromGetFunction();
+    UTI getCustomArrayTypeFromGetFunction(UTI cuti);
 
-    u32 getCustomArrayIndexTypeFromGetFunction(Node * rnode, UTI& idxuti, bool& hasHazyArgs);
+    u32 getCustomArrayIndexTypeFromGetFunction(UTI cuti, Node * rnode, UTI& idxuti, bool& hasHazyArgs);
 
-    bool hasCustomArrayLengthofFunction();
+    bool hasCustomArrayLengthofFunction(UTI cuti);
 
     virtual bool buildDefaultValue(u32 wlen, BV8K& dvref); //starts here, called by SymbolClass
 
     virtual bool buildDefaultValueForClassConstantDefs();
 
-    u32 checkDuplicateFunctions();
+    void checkDuplicateFunctionsInClassAndAncestors();
 
-    void checkMatchingFunctionsInAncestors(std::map<std::string, UTI>& mangledFunctionMap, u32& probcount);
+    u32 checkDuplicateFunctions(FSTable& mangledFunctionMap, u32& probcount);
+
+    void checkMatchingFunctions();
 
     void calcMaxDepthOfFunctions();
 
@@ -154,13 +165,15 @@ namespace MFM{
 
     virtual u32 getSizeOfSymbolsInTable();
 
-    virtual s32 getBitSizesOfVariableSymbolsInTable();
+    virtual s32 getBitSizesOfVariableSymbolsInTable(s32& basebits, s32& mybits, std::set<UTI>& seensetref);
 
-    virtual s32 getMaxBitSizeOfVariableSymbolsInTable();
+    virtual s32 getMaxBitSizeOfVariableSymbolsInTable(s32& basebits, s32& mybits, std::set<UTI>& seensetref);
 
     virtual bool isFuncIdInScope(u32 id, Symbol * & symptrref);
 
     void addFuncIdToScope(u32 id, Symbol * symptr);
+
+    u32 getNumberOfFuncSymbolsInTableHere();
 
     u32 getNumberOfFuncSymbolsInTable();
 
@@ -192,8 +205,6 @@ namespace MFM{
 
     virtual void generateBuiltinConstantClassOrArrayInitializationFunction(File * fp, bool declOnly);
 
-    void initElementDefaultsForEval(UlamValue& uv, UTI cuti);
-
     NodeBlockFunctionDefinition * findTestFunctionNode();
 
     NodeBlockFunctionDefinition * findCustomArrayLengthofFunctionNode();
@@ -204,15 +215,13 @@ namespace MFM{
     virtual void addMemberDescriptionsToInfoMap(ClassMemberMap& classmembers);
 
     virtual void generateTestInstance(File * fp, bool runtest);
+    virtual void generateIncludeTestMain(File * fp);
 
   protected:
     SymbolTableOfFunctions m_functionST;
     s32 m_virtualmethodMaxIdx;
 
   private:
-
-    NodeBlockClass * m_superBlockNode;
-
     bool m_buildingDefaultValueInProgress;
     bool m_bitPackingInProgress;
     bool m_isEmpty; //replaces separate node
@@ -222,6 +231,7 @@ namespace MFM{
     NodeList * m_nodeParameterList; //constants
     NodeList * m_nodeArgumentList;  //template instance
 
+    UTI checkMultipleInheritances();
     void checkTestFunctionReturnType();
     void checkCustomArrayLengthofFunctionReturnType();
 
@@ -230,7 +240,10 @@ namespace MFM{
     void genCodeHeaderTransient(File * fp);
     void genCodeHeaderLocalsFilescope(File * fp);
 
-    void genThisUlamSuperClassAsAHeaderComment(File * fp);
+    void genCodeDataMemberChartAsComment(File * fp, UTI cuti); //at end of header
+    void genBaseClassTypeAndNameEntryAsComment(File * fp, UTI nuti, s32 atpos, u32& accumsize, u32 baseitem, bool dupflag); //for base classes
+
+    void genThisUlamBaseClassAsAHeaderComment(File * fp);
 
     void genShortNameParameterTypesExtractedForHeaderFile(File * fp);
 
@@ -240,9 +253,24 @@ namespace MFM{
     void genCodeBodyLocalsFilescope(File * fp, UVPass& uvpass);  //specific for this class
 
     void generateCodeForBuiltInClassFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
-
     void genCodeBuiltInFunctionIsMethodRelatedInstance(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
-    void genCodeBuiltInFunctionIsRelatedInstance(File * fp);
+    void genCodeBuiltInIsMethodByRegistrationNumber(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
+    void generateInternalIsMethodForElement(File * fp, bool declOnly);
+
+    void genCodeBuiltInFunctionGetRelPosMethodRelatedInstance(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
+    void genCodeBuiltInFunctionGetRelPosMethodRelatedInstanceByRegistrationNumber(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
+    void genCodeBuiltInFunctionGetRelPosRelatedInstanceByRegistrationNumber(File * fp);
+
+    void genCodeBuiltInFunctionNumberOfBases(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
+    void genCodeBuiltInFunctionNumberOfDirectBases(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
+
+    void genCodeBuiltInFunctionGetOrderedBaseClass(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
+    void generateBuiltInFunctionGetOrderedBaseClassEntry(File * fp); //helper
+
+
+    void genCodeBuiltInFunctionIsDirectBaseClass(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
+    void genCodeBuiltInFunctionIsDirectBaseClassByRegistrationNumber(File * fp); //helper
+
 
     void genCodeBuiltInFunctionGetClassLength(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
     void genCodeBuiltInFunctionGetClassRegistrationNumber(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
@@ -253,8 +281,8 @@ namespace MFM{
     void genCodeBuiltInFunctionBuildDefaultTransient(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
 
     void genCodeBuiltInVirtualTable(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
+    void genCodeBuiltInVirtualTableStartOffsetHelper(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
 
-    void generateInternalIsMethodForElement(File * fp, bool declOnly);
     void generateInternalTypeAccessorsForElement(File * fp, bool declOnly);
     void generateGetPosForQuark(File * fp, bool declOnly);
 
@@ -262,6 +290,8 @@ namespace MFM{
     virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount);
     void generateUlamClassInfoCount(File * fp, bool declOnly, u32 dmcount);
     void generateUlamClassGetMangledName(File * fp, bool declOnly);
+    void generateUlamClassGetMangledNameAsStringIndex(File * fp, bool declOnly);
+    void generateUlamClassGetNameAsStringIndex(File * fp, bool declOnly);
 
     std::string removePunct(std::string str);
 

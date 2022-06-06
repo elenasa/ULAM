@@ -17,7 +17,7 @@ namespace MFM {
       m_nodeScalar = (NodeTypeDescriptor *) ref.m_nodeScalar->instantiate();
 
     if(ref.m_unknownArraysizeSubtree)
-      m_unknownArraysizeSubtree = new NodeSquareBracket(*ref.m_unknownArraysizeSubtree); //mappedUTI?
+      m_unknownArraysizeSubtree = (NodeSquareBracket *) ref.m_unknownArraysizeSubtree->instantiate(); //mappedUTI? t3136?
   }
 
   NodeTypeDescriptorArray::~NodeTypeDescriptorArray()
@@ -79,6 +79,32 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
+  UTI NodeTypeDescriptorArray::resetGivenUTI(UTI guti)
+  {
+    assert(!m_state.isScalar(guti) || m_state.isHolder(guti));
+    UTI galias = guti;
+    if(m_state.findRootUTIAlias(guti, galias)) //t41301
+      {
+	if(m_state.isScalar(galias))
+	  m_state.updateUTIAliasForced(guti,guti); //undo mistaken scalar for array type
+      }
+    UTI arraytype = NodeTypeDescriptor::resetGivenUTI(guti);
+    assert(!m_state.isScalar(arraytype) || m_state.isHolder(arraytype));
+    return arraytype;
+  }
+
+  UTI NodeTypeDescriptorArray::getScalarType()
+  {
+    if(m_nodeScalar)
+	return m_nodeScalar->getNodeType();
+    return Hzy; //t3881, t3768
+  }
+
+  bool NodeTypeDescriptorArray::isEmptyArraysizeDecl()
+  {
+    return m_unknownArraysizeSubtree && m_unknownArraysizeSubtree->isEmptyArraysizeDecl();
+  }
+
   void NodeTypeDescriptorArray::linkConstantExpressionArraysize(NodeSquareBracket * ceForArraySize)
   {
     //tfr owner, no dups
@@ -88,10 +114,11 @@ namespace MFM {
 
   void NodeTypeDescriptorArray::setReferenceType(ALT refarg, UTI referencedUTI, UTI refUTI)
   {
-    m_state.abortShouldntGetHere(); //arrays are linked after reftype is known.
+    //m_state.abortShouldntGetHere(); //arrays are linked after reftype is known.
+    NodeTypeDescriptor::setReferenceType(refarg, referencedUTI, refUTI); //3816
   }
 
-  UTI NodeTypeDescriptorArray::checkAndLabelType()
+  UTI NodeTypeDescriptorArray::checkAndLabelType(Node * thisparentnode)
   {
     UTI it = getNodeType();
 
@@ -103,8 +130,9 @@ namespace MFM {
 
     if(resolveType(it))
       {
+	it = resetGivenUTI(it); //may revert to its root
 	m_ready = true; // set here
-	m_uti = it; //given reset here
+	assert(m_state.isComplete(it));//t41262 true;
 	setNodeType(it);
       }
     else
@@ -117,12 +145,6 @@ namespace MFM {
 
   bool NodeTypeDescriptorArray::resolveType(UTI& rtnuti)
   {
-    if(isReadyType())
-      {
-	rtnuti = getNodeType();
-	return true;
-      }
-
     bool rtnb = false;
     // not node select, we are the array on top of the scalar leaf
     UTI nuti = givenUTI();
@@ -131,7 +153,7 @@ namespace MFM {
 
     // scalar type
     assert(m_nodeScalar);
-    UTI scuti = m_nodeScalar->checkAndLabelType();
+    UTI scuti = m_nodeScalar->checkAndLabelType(this);
 
     if(m_nodeScalar->isReadyType())
       {
@@ -162,19 +184,20 @@ namespace MFM {
 		std::ostringstream msg;
 		msg << "Incomplete descriptor for scalar of array: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(scuti).c_str();
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //was WAIT
 	      }
 	  }
 
 	checkAndMatchBaseUlamTypes(nuti, scuti);
-
-	if(resolveTypeArraysize(nuti, scuti))
+	rtnuti = nuti;
+	if(resolveTypeArraysize(rtnuti, scuti))
 	  {
 	    rtnb = true;
-	    rtnuti = nuti;
 	  }
 	else if(m_state.okUTItoContinue(rtnuti) && !m_state.isComplete(rtnuti))
 	  rtnuti = Hzy; //t3890
+	else if(m_state.isScalar(nuti))
+	  rtnuti = Hzy; //t41301
 	else
 	  rtnuti = nuti; //could be Nav or Hzy
       } //else select not ready, so neither are we!!
@@ -188,28 +211,44 @@ namespace MFM {
   bool NodeTypeDescriptorArray::resolveTypeArraysize(UTI& rtnuti, UTI scuti)
   {
     assert(m_unknownArraysizeSubtree);
-    s32 as = UNKNOWNSIZE;
+    s32 as = m_state.getArraySize(rtnuti); //UNKNOWNSIZE;
+    if(as >= 0)
+      {
+	if(!m_state.isComplete(rtnuti) && m_state.isComplete(scuti))
+	  {
+	    s32 bs = m_state.getBitSize(scuti);
+	    if(!m_state.setUTISizes(rtnuti, bs, as, true)) //update UlamType
+	      {
+		rtnuti = Nav;
+		return false;
+	      }
+	    checkAndMatchClassTypes(rtnuti, scuti);
+	  }
+	return m_state.isComplete(rtnuti);  //might be known now (t3892, t3375)
+      }
+
     UTI auti = Nouti;
     //array of primitives or classes
-    if(!m_unknownArraysizeSubtree->getArraysizeInBracket(as, auti)) //eval
+    if((as < 0) && !m_unknownArraysizeSubtree->getArraysizeInBracket(as, auti)) //eval
       {
 	rtnuti = Nav;
-	return false; //error, e.g. possible divide by zero
+	return false; //error, e.g. possible divide by zero; t41586 multi-dim primative array decl
       }
-    //else as could still be UNKNOWNSIZE;
+    //else as could still be UNKNOWNSIZE; unset rtnuti??
 
-    // do it anyway, progress for the bitsize (t3773)
-    // keep m_unknownArraysizeSubtree in case a template
-    if(!m_state.setUTISizes(rtnuti, m_state.getBitSize(scuti), as)) //update UlamType
-      {
-	rtnuti = Nav;
-	return false;
-      }
-
-    attemptToResolveHolderArrayType(rtnuti, scuti);
-
-    checkAndMatchClassTypes(rtnuti, scuti);
-
+    if(attemptToResolveHolderArrayType(rtnuti, scuti))
+    {
+      //t3765 holder isn't a primitive, so assumed to be a class, which it isn't.
+      // NO dont it anyway, progress for the bitsize (t3773)
+      // keep m_unknownArraysizeSubtree in case a template
+      if(!m_state.setUTISizes(rtnuti, m_state.getBitSize(scuti), as, true)) //update UlamType
+	{
+	  rtnuti = Nav;
+	  return false;
+	}
+      checkAndMatchClassTypes(rtnuti, scuti);
+    }
+    //repeat if holder or bitsize is still unknown, t41301
     return (m_state.isComplete(rtnuti)); //repeat if holder or bitsize is still unknown
   } //resolveTypeArraysize
 
@@ -226,16 +265,21 @@ namespace MFM {
       {
 	//if auti or buti is a holder, but not both, update a key
 	// keep holder's arraysize, and reference type (error/t3839)
+	// holder's aren't arrays, only nonarrays (t3374)
 	UlamKeyTypeSignature akey = aut->getUlamKeyTypeSignature();
 	UlamKeyTypeSignature bkey = but->getUlamKeyTypeSignature();
 	if(aholder)
 	  {
-	    UlamKeyTypeSignature newkey(bkey.getUlamKeyTypeSignatureNameId(), bkey.getUlamKeyTypeSignatureBitSize(), akey.getUlamKeyTypeSignatureArraySize(), bkey.getUlamKeyTypeSignatureClassInstanceIdx(), akey.getUlamKeyTypeSignatureReferenceType());
+	    s32 barraysize = but->getArraySize();
+	    barraysize = barraysize >= 0 ? barraysize : UNKNOWNSIZE; //avoid NONARRAYSIZE (scalar)
+	    UlamKeyTypeSignature newkey(bkey.getUlamKeyTypeSignatureNameId(), bkey.getUlamKeyTypeSignatureBitSize(), barraysize, bkey.getUlamKeyTypeSignatureClassInstanceIdx(), akey.getUlamKeyTypeSignatureReferenceType());
 	    m_state.makeUlamTypeFromHolder(akey, newkey, but->getUlamTypeEnum(), auti, but->getUlamClassType());
 	  }
 	else
 	  {
-	    UlamKeyTypeSignature newkey(akey.getUlamKeyTypeSignatureNameId(), akey.getUlamKeyTypeSignatureBitSize(), bkey.getUlamKeyTypeSignatureArraySize(), akey.getUlamKeyTypeSignatureClassInstanceIdx(), bkey.getUlamKeyTypeSignatureReferenceType());
+	    s32 aarraysize = aut->getArraySize();
+	    aarraysize = aarraysize >= 0 ? aarraysize : UNKNOWNSIZE; //avoid NONARRAYSIZE (scalar)
+	    UlamKeyTypeSignature newkey(akey.getUlamKeyTypeSignatureNameId(), akey.getUlamKeyTypeSignatureBitSize(), aarraysize, akey.getUlamKeyTypeSignatureClassInstanceIdx(), bkey.getUlamKeyTypeSignatureReferenceType());
 	    m_state.makeUlamTypeFromHolder(bkey, newkey, aut->getUlamTypeEnum(), buti, aut->getUlamClassType());
 	  }
 	rtnstat = true;
@@ -283,7 +327,7 @@ namespace MFM {
 	assert(scut->isScalar());
 	//create corresponding array type, keep givenUTI (=auti) just change the key
 	UlamKeyTypeSignature newkey(scut->getUlamTypeNameId(), aut->getBitSize(), aut->getArraySize(), scuti, aut->getReferenceType());
-	ULAMCLASSTYPE aclasstype = aut->getUlamClassType();
+	ULAMCLASSTYPE aclasstype = scut->getUlamClassType(); //t41287
 	m_state.makeUlamTypeFromHolder(newkey, scut->getUlamTypeEnum(), auti, aclasstype);
 
 	std::ostringstream msg;

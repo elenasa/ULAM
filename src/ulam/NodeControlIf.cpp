@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "NodeControlIf.h"
+#include "NodeBlockSwitch.h"
 #include "CompilerState.h"
 
 namespace MFM {
@@ -100,13 +101,13 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-  UTI NodeControlIf::checkAndLabelType()
+  UTI NodeControlIf::checkAndLabelType(Node * thisparentnode)
   {
-    NodeControl::checkAndLabelType(); //does condition and true
+    NodeControl::checkAndLabelType(thisparentnode); //does condition and true
 
     if(m_nodeElse)
       {
-	m_nodeElse->checkAndLabelType();
+	m_nodeElse->checkAndLabelType(this);
       }
 
     return getNodeType(); //Bool
@@ -183,8 +184,18 @@ namespace MFM {
 
     if(m_nodeElse)
       {
+	NodeBlock * currblock = m_state.getCurrentBlock();
+	assert(currblock);
+	bool isdefaultswcase = currblock->isASwitchBlock() && (((NodeBlockSwitch*) currblock)->getDefaultCaseNodeNo() == m_nodeElse->getNodeNo());
+
 	m_state.indentUlamCode(fp);
-	fp->write("else\n");
+	fp->write("else");
+
+
+	if(isdefaultswcase)
+	  fp->write(" //default case"); //t41046,..
+
+	fp->write("\n");
 	m_state.indentUlamCode(fp);
 	fp->write("{\n");
 	m_state.m_currentIndentLevel++;
@@ -193,7 +204,10 @@ namespace MFM {
 
 	m_state.m_currentIndentLevel--;
 	m_state.indentUlamCode(fp);
-	fp->write("} //end else\n");
+	fp->write("} //end else");
+	if(isdefaultswcase)
+	  fp->write(" default case"); //t41046,..
+	fp->write("\n");
       }
   } //genCode
 

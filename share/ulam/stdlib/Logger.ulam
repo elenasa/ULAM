@@ -4,6 +4,8 @@ quark Logger {
   typedef Unsigned(4) Level;
   Level mLevel = 3u;  
 
+  Self(Level newlevel) { setLevel(newlevel); }
+
   Void setLevel(Level newlevel) { mLevel = newlevel; }
   Level getLevel() { return mLevel; }
 
@@ -17,5 +19,19 @@ quark Logger {
   }
 
   Void log(ByteStream & bs) native;
+
+  /** See 'enum IncludeFlags' in MFM/src/core/include/Logger.h for
+      flag bit definitions
+
+      \since 5.0
+   */
+  Void setIncludeFlags(Unsigned flags) native;
+
+  /** See 'enum IncludeFlags' in MFM/src/core/include/Logger.h for
+      flag bit definitions
+
+      \since 5.0
+   */
+  Unsigned getIncludeFlags() native;
 
 }

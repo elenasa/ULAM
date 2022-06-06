@@ -2,7 +2,8 @@
  * ParsingLoopsSwitchStack.h - Parsing Control Loops and Switches in ULAM
  *
  * Copyright (C) 2017 The Regents of the University of New Mexico.
- * Copyright (C) 2017 Ackleyshack LLC.
+ * Copyright (C) 2017,2021 Ackleyshack LLC.
+ * Copyright (C) 2021 The Living Computation Foundation.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +28,9 @@
 
 /**
   \file ParsingLoopsSwitchStack.h -  Parsing Control Loops and Switches in ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2017 All rights reserved.
+  \date (C) 2017,2021 All rights reserved.
   \gpl
 */
 
@@ -46,6 +47,7 @@ namespace MFM
   {
     Token m_token;
     u32 m_tmpvarexitnum;
+    u32 m_uses;
   };
 
   class ParsingLoopsSwitchStack
@@ -61,7 +63,9 @@ namespace MFM
     bool okToParseAContinue();
     u32 getLastExitNumber();
     u32 getNearestBreakExitNumber();
+    u32 getNearestBreakExitNumberIfUsed();
     u32 getNearestContinueExitNumber();
+    u32 getNearestContinueExitNumberIfUsed();
     void pop();
 
   private:

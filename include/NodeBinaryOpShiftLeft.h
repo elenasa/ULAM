@@ -27,7 +27,7 @@
 
 /**
   \file NodeBinaryOpShiftLeft.h - Node for handling Shift Left Operation for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
   \date (C) 2014-2017 All rights reserved.
   \gpl

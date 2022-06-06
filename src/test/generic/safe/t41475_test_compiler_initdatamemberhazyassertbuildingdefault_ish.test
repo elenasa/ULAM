@@ -1,0 +1,65 @@
+## -*- mode:ulam -*-
+#=t41475_test_compiler_initdatamemberhazyassertbuilingdefault_ish
+##
+## gen output:
+##  Unsigned Arg: 20
+##  Unsigned Arg: 6
+##
+#!
+Exit status: 0
+Ue_T { Int test() {  System s;  PlateOperator po;  s ( po mDesiredPlateSize . mX . cast )print . s ( po mDesiredPlateSize . mY . cast )print . 0 cast return } }
+Uq_System { <NOMAIN> }
+Ue_PlateOperator { typedef B2D SizeCoord;  B2D mDesiredPlateSize( { .mX = 20u, .mY = 6u });  <NOMAIN> }
+Uq_B2D : B2DT(7) { /* empty class block */ }
+Uq_B2DT(Unary(8) cBITS_PER_COORD) { constant Unsigned cCOMPILATION_ERROR_UNLESS_BITS_GE_2 = 1u cBITS_PER_COORD 1u -b /;  typedef Unsigned(UNKNOWN) BCoord;  constant Unsigned(UNKNOWN) cILLEGAL = unresolved maxof .;  constant Unsigned(UNKNOWN) cMAXVAL = unresolved maxof . 1u -b;  constant Unsigned(UNKNOWN) cMINVAL = unresolved minof .;  Unsigned(UNKNOWN) mX(notready);  Unsigned(UNKNOWN) mY(notready);  <NOMAIN> }
+##
+##  informed by Daves ish 20210607 042828, still cannot replicate.
+##  Fixed by constant fold NodeBinaryOp not return Hazy after surgery (as well as NodeUnaryOp and NodeBinaryOpEqualBitwise)
+##
+#>T.ulam
+ ulam 5;
+element T{
+  Int test(){
+    System s;
+    PlateOperator po;
+    s.print(po.mDesiredPlateSize.mX); //==20
+    s.print(po.mDesiredPlateSize.mY); //==6
+    return 0;
+  }
+}
+
+#:PlateOperator.ulam
+  ulam 5;
+element PlateOperator {
+  typedef B2D SizeCoord;
+  SizeCoord mDesiredPlateSize = { .mX = 20u, .mY = 6u };
+}
+
+#:B2D.ulam
+  ulam 5;
+quark B2DT(Unary(8) cBITS_PER_COORD) {
+  constant Unsigned cCOMPILATION_ERROR_UNLESS_BITS_GE_2 = 1u/(cBITS_PER_COORD-1u);
+  typedef Unsigned(cBITS_PER_COORD) BCoord;
+  constant BCoord cILLEGAL = BCoord.maxof;
+  constant BCoord cMAXVAL = BCoord.maxof-1u;
+  constant BCoord cMINVAL = BCoord.minof;
+  BCoord mX = cILLEGAL;
+  BCoord mY = cILLEGAL;
+}
+
+quark B2D : B2DT(7) { }
+
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

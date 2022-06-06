@@ -1,0 +1,48 @@
+## -*- mode:ulam -*-
+#=t41519_test_compiler_elementinheritance_invalidinheritancewithprimitivelocalstypedefpriority_error
+#!
+./Gah.ulam:3:21: ERROR: Class Definition 'Gah'; Inheritance from 'Moo', type: Unsigned.
+Unrecoverable Program Parse FAILURE: <Gah.ulam>
+Unrecoverable Program Parse FAILURE: <Moo.ulam>
+##
+## informed by t41516, Primitive locals typedef priority over class, Moo, for Gah inheritance
+## see also (t41510,t41511,t41513); assertions fixed.
+## Member typedefs with same name as a class, not in contention; not parsed yet. Bar error caught
+## later during c&l (see t41517)
+##
+#>Foo.ulam
+  ulam 3;
+local constant Moo cMoo = { };
+element Foo : local.Moo {
+  Bool(7) spf, spg, spb;
+  Int test() {
+    Bar b;
+    spb = (b.sizeof == 6u);
+
+    return 0;
+  }
+}
+
+#:Bar.ulam
+  ulam 5;
+local typedef Int Moo; //shadows a class name
+quark Bar : Moo { //uses member typedef, error caught later during c&l (see t41517)
+  typedef Unsigned Moo; //also shadows a class name; but not super
+  local.Moo m_moo; //uses?
+}
+
+#:Gah.ulam
+  ulam 5;
+local typedef Unsigned Moo;
+element Gah : local.Moo { //parse time error!
+  Moo m_moo;
+}
+
+#:Moo.ulam
+  ulam 5;
+quark Moo {
+  Unsigned(3) us = 4u;
+}
+
+
+#.

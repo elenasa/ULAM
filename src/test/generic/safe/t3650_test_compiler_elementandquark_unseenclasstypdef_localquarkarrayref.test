@@ -4,9 +4,9 @@
 ## gen output: (assert)
 #!
 Exit status: 2
-Ue_Foo { constant Int(32) cx = 7;  typedef Bar(7) Tar;  Int(32) test() {  System s;  Bar(7) tar[4];  Int(32) i = 3 cast;  Bar(7)& tref = tar i [] cast;  tref m_bits . 2 cast = s ( tref ( )toInt . cast 2 cast == )assert . tref ( )toInt . return } }
+Ue_Foo { constant Int cx = 7;  typedef Bar(7) Tar;  Int test() {  System s;  Bar(7) tar[4];  Int i = 3 cast;  Bar(7)& tref = tar i [] cast;  tref m_bits . 2 cast = s ( tref ( )toInt . cast 2 cast == )assert . tref ( )toInt . return } }
 Uq_System { <NOMAIN> }
-Uq_Bar(Int(32) x) { Bits(UNKNOWN) m_bits(notready);  <NOMAIN> }
+Uq_Bar(Int x) { Bits(UNKNOWN) m_bits(notready);  <NOMAIN> }
 ##
 ## informed by t3649 (order matters)
 ##

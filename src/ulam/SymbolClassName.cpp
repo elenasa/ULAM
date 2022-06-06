@@ -54,12 +54,41 @@ namespace MFM {
   {
     assert(instance == getUlamTypeIdx());
     assert(instance != superclass);
-    SymbolClass::setSuperClass(superclass);
+    SymbolClass::setBaseClass(superclass, 0);
   }
 
   UTI SymbolClassName::getSuperClassForClassInstance(UTI instance)
   {
-    return SymbolClass::getSuperClass(); //Nouti is none, not a subclass.
+    return SymbolClass::getBaseClass(0); //Nouti is none, Hzy a stub.
+  }
+
+  void SymbolClassName::appendBaseClassForClassInstance(UTI baseclass, UTI instance, bool sharedbase)
+  {
+    assert(instance == getUlamTypeIdx());
+    assert(instance != baseclass);
+    SymbolClass::appendBaseClass(baseclass, sharedbase);
+  }
+
+  u32 SymbolClassName::getBaseClassCountForClassInstance(UTI instance)
+  {
+    return SymbolClass::getBaseClassCount();
+  }
+
+  UTI SymbolClassName::getBaseClassForClassInstance(UTI instance, u32 item)
+  {
+    return SymbolClass::getBaseClass(item);
+  }
+
+  bool SymbolClassName::updateBaseClassforClassInstance(UTI instance, UTI oldbase, UTI newbaseuti)
+  {
+    bool aok = false;
+    s32 item = isABaseClassItem(oldbase);
+    if(item > 0) //excludes super
+      {
+	SymbolClass::updateBaseClass(oldbase, item, newbaseuti);
+	aok = true;
+      }
+    return aok;
   }
 
   Node * SymbolClassName::findNodeNoInAClassInstance(UTI instance, NNO n)
@@ -76,21 +105,29 @@ namespace MFM {
     return foundNode;
   } //findNodeNoInAClassInstance
 
-  std::string SymbolClassName::formatAnInstancesArgValuesAsAString(UTI instance)
+  std::string SymbolClassName::formatAnInstancesArgValuesAsAString(UTI instance, bool dereftypes)
   {
     UTI basicuti = m_state.getUlamTypeAsDeref(m_state.getUlamTypeAsScalar(instance));
     UTI rootbasicuti = basicuti;
-    m_state.findaUTIAlias(basicuti, rootbasicuti); //in case alias Mon Jun 20 14:39:07 2016
+    m_state.findRootUTIAlias(basicuti, rootbasicuti); //in case alias Mon Jun 20 14:39:07 2016
     assert((rootbasicuti == getUlamTypeIdx()) || (m_state.isARefTypeOfUlamType(rootbasicuti, getUlamTypeIdx()) == UTIC_SAME)); //or could be a reference
     return "10"; //zero args
   } //formatAnInstancesArgValuesAsAString
 
-  std::string SymbolClassName::generateUlamClassSignature()
+  void SymbolClassName::generatePrettyNameAndSignatureOfClassInstancesAsUserStrings()
   {
+    std::string signame = generatePrettyNameOrSignature(getUlamTypeIdx(), false, false);
+    m_state.formatAndGetIndexForDataUserString(signame);
+    return;
+  }
+
+  std::string SymbolClassName::generatePrettyNameOrSignature(UTI instance, bool signa, bool argvals)
+  {
+    //same fancy, signature, or simple
     std::ostringstream sig;
     sig << m_state.m_pool.getDataAsString(getId()).c_str(); //class name
     return sig.str();
-  } //generateUlamClassSignature
+  }
 
   bool SymbolClassName::hasInstanceMappedUTI(UTI instance, UTI auti, UTI& mappedUTI)
   {
@@ -126,11 +163,12 @@ namespace MFM {
 
   void SymbolClassName::checkCustomArraysOfClassInstances()
   {
+    UTI cuti = getUlamTypeIdx();
     NodeBlockClass * classNode = getClassBlockNode();
     assert(classNode);
-    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
+    m_state.pushClassContext(cuti, classNode, classNode, false, NULL);
 
-    classNode->checkCustomArrayTypeFunctions();
+    classNode->checkCustomArrayTypeFunctions(cuti);
     m_state.popClassContext(); //restore
   } //checkCustomArraysOfClassInstances()
 
@@ -140,7 +178,7 @@ namespace MFM {
     assert(classNode);
     m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
 
-    classNode->checkDuplicateFunctions();
+    classNode->checkDuplicateFunctionsInClassAndAncestors();
     m_state.popClassContext(); //restore
   } //checkDuplicateFunctionsForClassInstances
 
@@ -148,25 +186,56 @@ namespace MFM {
   {
     NodeBlockClass * classNode = getClassBlockNode();
     assert(classNode);
-    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
+    UTI cuti = getUlamTypeIdx();
+    if(m_state.isComplete(cuti))
+      {
+	m_state.pushClassContext(cuti, classNode, classNode, false, NULL);
 
-    classNode->calcMaxDepthOfFunctions();
-    m_state.popClassContext(); //restore
+	classNode->calcMaxDepthOfFunctions();
+	m_state.popClassContext(); //restore
+      }
+    else
+      {
+	std::ostringstream msg;
+	msg << " Class '";
+	msg << m_state.getUlamTypeNameByIndex(cuti).c_str();
+	msg << "' is still incomplete; No calc max depth function, error";
+	MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //t3862
+      }
   } //calcMaxDepthOfFunctionsForClassInstances
 
   bool SymbolClassName::calcMaxIndexOfVirtualFunctionsForClassInstances()
   {
+    bool aok = true;
     NodeBlockClass * classNode = getClassBlockNode();
     assert(classNode);
-    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
+    UTI cuti = getUlamTypeIdx();
+    if(m_state.isComplete(cuti))
+      {
+	m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
 
-    classNode->calcMaxIndexOfVirtualFunctions();
-    m_state.popClassContext(); //restore
-    return (classNode->getVirtualMethodMaxIdx() != UNKNOWNSIZE);
+	classNode->calcMaxIndexOfVirtualFunctions();
+	m_state.popClassContext(); //restore
+	aok = (classNode->getVirtualMethodMaxIdx() != UNKNOWNSIZE);
+      }
+    else
+      {
+	std::ostringstream msg;
+	msg << " Class '";
+	msg << m_state.getUlamTypeNameByIndex(cuti).c_str();
+	msg << "' is still incomplete; No calc max index of virtual functions, error";
+	MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //t3862
+      }
+    return aok;
   } //calcMaxIndexOfVirtualFunctionsForClassInstances
 
   void SymbolClassName::checkAbstractInstanceErrorsForClassInstances()
   {
+    //Regular Elements can't be Abstract, since NO subclass can
+    //possibly handle PURE Virtual methods later (t41296); Templates
+    //not checked, just their instances (t41297);
+    SymbolClass::checkAbstractClassError(); //outputs error
+
     NodeBlockClass * classNode = getClassBlockNode();
     assert(classNode);
     m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
@@ -191,7 +260,7 @@ namespace MFM {
 
     m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
 
-    classNode->checkAndLabelType();
+    classNode->checkAndLabelType(NULL);
     m_state.popClassContext(); //restore
   } //checkAndLabelClassFirst
 
@@ -284,23 +353,43 @@ namespace MFM {
   {
     bool aok = true;
     assert(!isClassTemplate());
+    UTI cuti = getUlamTypeIdx();
+
+    if(m_state.isComplete(cuti))
+      return true;
 
     NodeBlockClass * classNode = getClassBlockNode();
     assert(classNode); //infinite loop "Incomplete Class <> was never defined, fails sizing"
-    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
+    m_state.pushClassContext(cuti, classNode, classNode, false, NULL);
 
     s32 totalbits = 0;
-    aok = SymbolClass::trySetBitsizeWithUTIValues(totalbits);
+    s32 sharedbits = UNKNOWNSIZE;
+    s32 basebits = 0; //overstated, no sharing
+    s32 mybits = 0; //main goal of trySetBitsize..
+    std::set<UTI> seenset;
+    seenset.insert(cuti);
+    aok = SymbolClass::trySetBitsizeWithUTIValues(basebits, mybits, seenset);
     if(aok)
       {
-	UTI cuti = getUlamTypeIdx();
-	m_state.setBitSize(cuti, totalbits); //"scalar" Class bitsize  KEY ADJUSTED
+	s32 sharedbitssaved = UNKNOWNSIZE; //incorrectly calculated, may miss some shared bases
+	aok = SymbolClass::determineSharedBasesAndTotalBitsize(sharedbitssaved, sharedbits);
+	if(aok) //3755 QBase not ready
+	  {
+	    assert(sharedbits >= 0);
+	    assert(sharedbitssaved >= sharedbits);
+	    totalbits = (mybits + sharedbits); //updates total here!!
+	  }
+      }
+
+    if(aok)
+      {
+	m_state.setUTIBitSize(cuti, totalbits); //"scalar" Class bitsize  KEY ADJUSTED
 	if(m_state.getBitSize(cuti) != totalbits)
 	  {
 	    std::ostringstream msg;
 	    msg << "CLASS (regular) '" << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	    msg << "' SIZED " << totalbits << " FAILED";
-	    MSG(Symbol::getTokPtr(), msg.str().c_str(),ERR);
+	    MSG(Symbol::getTokPtr(), msg.str().c_str(), ERR);
 	    classNode->setNodeType(Nav); //avoid assert in resolving loop
 	    aok = false; //t3155
 	  }
@@ -309,7 +398,9 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "CLASS (regular) '" << m_state.getUlamTypeNameByIndex(cuti).c_str();
 	    msg << "' SIZED: " << totalbits;
-	    MSG(Symbol::getTokPtr(), msg.str().c_str(),DEBUG);
+	    MSG(Symbol::getTokPtr(), msg.str().c_str(), DEBUG);
+	    //after setBitSize so not to clobber it.
+	    m_state.setBaseClassBitSize(cuti, totalbits - sharedbits); //noop for elements
 	  }
       }
     m_state.popClassContext(); //restore
@@ -343,19 +434,15 @@ namespace MFM {
     SymbolClass::getDefaultValue(dval); //this instance
   } //buildDefaultValueForClassInstances
 
-  void SymbolClassName::buildClassConstantDefaultValuesForClassInstances()
-  {
-    SymbolClass::buildClassConstantDefaultValues(); //this instance
-  } // (unused?)
-
   void SymbolClassName::testForClassInstances(File * fp)
   {
     SymbolClass::testThisClass(fp);
   } //testForClassInstances
 
-  void SymbolClassName::assignRegistrationNumberForClassInstances(u32& count)
+  void SymbolClassName::assignRegistrationNumberForClassInstances()
   {
-    SymbolClass::assignRegistryNumber(count++);
+    u32 n = SymbolClass::getRegistryNumber();
+    assert(n != UNINITTED_REGISTRY_NUMBER); //sanity
   } //assignRegistrationNumberForClassInstances
 
   void SymbolClassName::generateCodeForClassInstances(FileManager * fm)

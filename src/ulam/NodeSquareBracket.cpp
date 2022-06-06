@@ -47,12 +47,28 @@ namespace MFM {
 
   void NodeSquareBracket::printOp(File * fp)
   {
-    NodeBinaryOp::printOp(fp);
+    fp->write(" []"); //was NodeBinaryOp::printOp(fp); t41461,..
   }
 
   const char * NodeSquareBracket::getName()
   {
-    return "[]";
+    return getFullName(); //t41252,t41076,t3885
+  }
+
+  u32 NodeSquareBracket::getNameId()
+  {
+    return m_state.m_pool.getIndexForDataString("[]");
+  }
+
+  const char * NodeSquareBracket::getFullName()
+  {
+    std::ostringstream fullnm;
+    fullnm << m_nodeLeft->getName();
+    fullnm << "[";
+    fullnm << m_nodeRight->getName();
+    fullnm << "]";
+    u32 sidx = m_state.m_pool.getIndexForDataString(fullnm.str());
+    return m_state.m_pool.getDataAsString(sidx).c_str();
   }
 
   const std::string NodeSquareBracket::prettyNodeName()
@@ -70,8 +86,33 @@ namespace MFM {
     return true; //not for array declaration; includes custom array items
   }
 
+  bool NodeSquareBracket::isAConstant()
+  {
+    return m_nodeLeft->isAConstant() && m_nodeRight->isAConstant();
+  }
+
+  bool NodeSquareBracket::isAConstantClass()
+  {
+    return m_nodeLeft->isAConstantClassArray() && m_nodeRight->isAConstant(); //t41484
+  }
+
+  bool NodeSquareBracket::isAConstantClassArray()
+  {
+    return m_nodeLeft->isAConstantClassArray();
+  }
+
+  void NodeSquareBracket::setClassType(UTI cuti)
+  {
+    //noop (t41484)
+  }
+
+  bool NodeSquareBracket::isEmptyArraysizeDecl()
+  {
+    return (m_nodeRight == NULL);
+  }
+
   // used to select an array item; not for declaration
-  UTI NodeSquareBracket::checkAndLabelType()
+  UTI NodeSquareBracket::checkAndLabelType(Node * thisparentnode)
   {
     assert(m_nodeLeft);
     u32 errorCount = 0;
@@ -79,7 +120,7 @@ namespace MFM {
     UTI newType = Nav; //init
     UTI idxuti = Nav;
 
-    UTI leftType = m_nodeLeft->checkAndLabelType();
+    UTI leftType = m_nodeLeft->checkAndLabelType(this);
 
     //Not caught during parsing since array size may be blank if declared with initialization
     if(!m_nodeRight)
@@ -95,53 +136,96 @@ namespace MFM {
     //for example, f.chance[i] where i is local, same as f.func(i);
     NodeBlock * currBlock = m_state.getCurrentBlock();
     m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock); //currblock doesn't change
-    UTI rightType = m_nodeRight->checkAndLabelType();
+    UTI rightType = m_nodeRight->checkAndLabelType(this);
+
+    //Dave ish07152020: RHS (a customarray arg) function call
+    // exchanges itself for implicit self, and returns Hzy type for the new
+    // NodeMemberSelect 'self' node (still Nouti) that has yet to be c&l'd.
+    if(!m_state.isComplete(rightType))
+      {
+	std::ostringstream msg;
+	msg << "Incomplete RH Type: " << m_state.getUlamTypeNameBriefByIndex(rightType).c_str();
+	msg << " used with []"; // << getName();
+	if(rightType==Hzy)
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	    hazyCount++; //t41406
+	  }
+	else //Nav
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    errorCount++; //needs a test
+	  }
+      }
 
     m_state.popClassContext();
 
     if(m_state.isComplete(leftType))
       {
 	UlamType * lut = m_state.getUlamTypeByIndex(leftType);
-
+	ULAMTYPE letyp = lut->getUlamTypeEnum();
 	if(lut->isScalar())
 	  {
-	    m_isCustomArray = m_state.isClassACustomArray(leftType);
+	    m_isCustomArray = m_state.isClassACustomArray(leftType); //e.g. t3653
 
 	    if(lut->isHolder())
 	      {
 		std::ostringstream msg;
 		msg << "Incomplete Type: " << m_state.getUlamTypeNameBriefByIndex(leftType).c_str();
-		msg << " used with " << getName();
+		msg << " used with []"; // << getName();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 		hazyCount++;
 	      }
-	    else if(lut->getUlamTypeEnum() == String)
+	    else if(letyp == String)
 	      {
 		//ok!
 	      }
+	    else if(lut->isPrimitiveType())
+	      {
+		//t51586 better caught at declaration; (ok t3765)
+		std::ostringstream msg;
+		msg << "Invalid scalar primitive Type: " << m_state.getUlamTypeNameBriefByIndex(leftType).c_str();
+		msg << " used with []"; // << getName();
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		errorCount++;
+	      }
+	    else if(letyp == UAtom)
+	      {
+		//overload operator[] supercedes custom array (t41492)
+		TBOOL rtntb = NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode(thisparentnode);
+		if(rtntb == TBOOL_TRUE)
+		  {
+		    m_state.setGoAgain();
+		    delete this; //suicide is painless..
+		    return Hzy;
+		  }
+		else if(rtntb == TBOOL_HAZY)
+		  {
+		    hazyCount++;
+		  }
+		//else
+	      }
 	    else
 	      {
-		assert(lut->getUlamTypeEnum() == Class);
-
-		//overload operator[] supercedes custom array (t41129)
-		Node * newnode = buildOperatorOverloadFuncCallNode();
-		if(newnode)
+		assert(letyp == Class);
+		//overload operator[] supercedes custom array (t41129, t41583)
+		TBOOL rtntb = NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode(thisparentnode);
+		if(rtntb == TBOOL_TRUE)
 		  {
-		    AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
-		    assert(swapOk);
-
-		    m_nodeLeft = NULL; //recycle as memberselect
-		    m_nodeRight = NULL; //recycle as func call arg
-
+		    m_state.setGoAgain();
 		    delete this; //suicide is painless..
-
-		    return newnode->checkAndLabelType(); //done
+		    return Hzy;
+		  }
+		else if(rtntb == TBOOL_HAZY)
+		  {
+		    newType = Hzy;
+		    hazyCount++;
 		  }
 		else if(!m_isCustomArray)
 		  {
 		    std::ostringstream msg;
 		    msg << "Invalid Type: " << m_state.getUlamTypeNameBriefByIndex(leftType).c_str();
-		    msg << " used with " << getName();
+		    msg << " used with []"; // << getName();
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		    errorCount++;
 		  }
@@ -150,14 +234,14 @@ namespace MFM {
 		    // either an array of custom array classes, or a custom array;
 		    // Note: A diff approach, substitute a func call node for sq bkt, not used.
 		    UTI caType = m_state.getAClassCustomArrayType(leftType);
-		    if(!m_state.isComplete(caType))
+		    if(!m_state.okUTItoContinue(caType) || !m_state.isComplete(caType))
 		      {
 			std::ostringstream msg;
 			msg << "Incomplete Custom Array Type: ";
 			msg << m_state.getUlamTypeNameBriefByIndex(caType).c_str();
 			msg << " used with class: ";
 			msg << m_state.getUlamTypeNameBriefByIndex(leftType).c_str();
-			msg << getName();
+			msg << "[]"; // getName();
 			if(caType == Nav)
 			  {
 			    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
@@ -167,7 +251,7 @@ namespace MFM {
 			else
 			  {
 			    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-			    newType = Hzy;
+			    newType = Hzy; //t3549
 			    hazyCount++;
 			  }
 		      }
@@ -200,6 +284,7 @@ namespace MFM {
 		    msg << m_state.getUlamTypeNameByIndex(leftType).c_str();
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 		    setNodeType(Hzy);
+		    clearSymbolPtr();
 		    m_state.setGoAgain();
 		    return Hzy;
 		  }
@@ -223,7 +308,7 @@ namespace MFM {
 	  }
 
 	//set up idxuti..RHS
-	//cant proceed with custom array subscript if lhs is incomplete
+	//cant proceed with custom array subscript if lhs, or rhs, is incomplete
 	if((errorCount == 0) && (hazyCount == 0))
 	  {
 	    if(m_isCustomArray)
@@ -274,15 +359,17 @@ namespace MFM {
 		  {
 		    //replace node with func call to 'aref' (t41000, t41001)
 		    Node * newnode = buildArefFuncCallNode();
-		    AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+		    AssertBool swapOk = Node::exchangeNodeWithParent(newnode, thisparentnode);
 		    assert(swapOk);
 
 		    m_nodeRight = NULL; //recycled
 		    m_nodeLeft = NULL; //recycled
 
+		    m_state.setGoAgain();
+
 		    delete this; //suicide is painless..
 
-		    return newnode->checkAndLabelType();
+		    return Hzy;
 		  }
 	      }
 	    else
@@ -336,10 +423,8 @@ namespace MFM {
 
     if((errorCount == 0) && (hazyCount == 0))
       {
-	UlamType * lut = m_state.getUlamTypeByIndex(leftType);
-	bool isScalar = lut->isScalar();
 	// sq bracket purpose in life is to account for array elements;
-	if((lut->getUlamTypeEnum() == String) && isScalar)
+	if(m_state.isAStringType(leftType) && m_state.isScalar(leftType))
 	  newType = ASCII; //not storeintoable default (t41076)
 	else
 	  {
@@ -358,7 +443,11 @@ namespace MFM {
 	  m_state.abortShouldntGetHere();
       }
     setNodeType(newType);
-    if(newType == Hzy) m_state.setGoAgain(); //covers non-error(debug) messages for incompletes
+    if(newType == Hzy)
+      {
+	clearSymbolPtr();
+	m_state.setGoAgain(); //covers non-error(debug) messages for incompletes
+      }
     return newType;
   } //checkAndLabelType
 
@@ -390,65 +479,49 @@ namespace MFM {
     return getConstantArrayItemValue(bval);
   }
 
-  //here, we check for existence, do we can default to custom array, aref.
-  Node * NodeSquareBracket::buildOperatorOverloadFuncCallNode()
+  bool NodeSquareBracket::initDataMembersConstantValue(BV8K& bvref, BV8K& bvmask)
   {
-    UTI leftType = m_nodeLeft->getNodeType();
-    Token identTok;
-    TokenType opTokType = Token::getTokenTypeFromString(getName());
+    //bvref contains default value at pos 0
+    bool rtnok = getConstantValue(bvref); //overwrites
+    if(rtnok)
+      bvmask.SetBits(0, m_state.getUlamTypeByIndex(getNodeType())->getSizeofUlamType()); //t41484
+    return rtnok;
+  }
+
+  //here, we check for existence, or we can default to custom array, aref.
+  Node * NodeSquareBracket::buildOperatorOverloadFuncCallNode(bool& hazyArg)
+  {
+    UTI leftType = m_nodeLeft->getNodeType(); //refs handled (t41583)
+
+    TokenType opTokType = Token::getTokenTypeFromString("[]"); //was getName()
     assert(opTokType != TOK_LAST_ONE);
     Token opTok(opTokType, getNodeLocation(), 0);
     u32 opolId = Token::getOperatorOverloadFullNameId(opTok, &m_state);
     if(opolId == 0)
       {
 	std::ostringstream msg;
-	msg << "Overload for operator <" << getName();
-	msg << "> is not supported as operand for class: ";
+	msg << "Overload for operator []"; // << getName();
+	msg << " is not supported as operand for class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(leftType).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	return NULL;
       }
 
-    identTok.init(TOK_IDENTIFIER, getNodeLocation(), opolId);
-
     //may need to fall back to a custom array
-    SymbolClass * csym = NULL;
-    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(leftType, csym);
-    assert(isDefined);
-
-    NodeBlockClass * memberClassNode = csym->getClassBlockNode();
-    assert(memberClassNode);  //e.g. forgot the closing brace on quark definition
-
-    assert(m_state.okUTItoContinue(memberClassNode->getNodeType()));
-
-    //set up compiler state to use the member class block for symbol searches
-    m_state.pushClassContextUsingMemberClassBlock(memberClassNode);
-
-    Node * rtnNode = NULL;
     Symbol * fnsymptr = NULL;
-    bool hazyKin = false;
-
-    if(m_state.isFuncIdInClassScope(opolId, fnsymptr, hazyKin) && !hazyKin)
+    hazyArg = false;
+    //ish 20210907 failed due to hazyKin (see also t41583):
+    //  ./L2PlateSequencer.ulam:28:22: ERROR: Invalid Type: Plex& used with [].
+    if(m_state.isFuncIdInAClassScopeOrAncestor(leftType, opolId, fnsymptr, hazyArg) && !hazyArg)
       {
 	// ambiguous (>1) overload will produce an error later
 	//fill in func symbol during type labeling;
-	NodeFunctionCall * fcallNode = new NodeFunctionCall(identTok, NULL, m_state);
-	assert(fcallNode);
-	fcallNode->setNodeLocation(identTok.m_locator);
-
-	fcallNode->addArgument(m_nodeRight);
-
-	NodeMemberSelect * mselectNode = new NodeMemberSelect(m_nodeLeft, fcallNode, m_state);
-	assert(mselectNode);
-	mselectNode->setNodeLocation(identTok.m_locator);
-	rtnNode = mselectNode;
-      }//else use default struct equal, or wait for hazy arg
-
-    //clear up compiler state to no longer use the member class block for symbol searches
-    m_state.popClassContext();
+	return Node::buildOperatorOverloadFuncCallNodeHelper(m_nodeLeft, m_nodeRight, "[]" /*getName()*/);
+      }
+    //else use default struct equal, or wait for hazy arg
 
     //redo check and type labeling done by caller!!
-    return rtnNode; //replace right node with new branch
+    return NULL; //replace right node with new branch
   } //buildOperatorOverloadFuncCallNode
 
   Node * NodeSquareBracket::buildArefFuncCallNode()
@@ -500,8 +573,7 @@ namespace MFM {
     if(nuti == Hzy) return evalStatusReturnNoEpilog(NOTREADY);
 
     UTI leftType = m_nodeLeft->getNodeType();
-    UlamType * lut = m_state.getUlamTypeByIndex(leftType);
-    if((lut->getUlamTypeEnum() == String) && (nuti == ASCII))
+    if(m_state.isAStringType(leftType) && (nuti == ASCII))
       {
 	return evalAUserStringByte();
       }
@@ -542,31 +614,20 @@ namespace MFM {
 
 	if((offsetInt >= arraysize))
 	  {
-	    Symbol * lsymptr;
-	    u32 lid = 0;
-	    if(getSymbolPtr(lsymptr))
-	      lid = lsymptr->getId();
-
 	    std::ostringstream msg;
 	    msg << "Array subscript [" << offsetInt << "] exceeds the size (" << arraysize;
-	    msg << ") of array '" << m_state.m_pool.getDataAsString(lid).c_str() << "'";
+	    msg << ") of array '" << m_nodeLeft->getName() << "'";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    return evalStatusReturn(ERROR);
+	    return evalStatusReturn(ERROR); //t3842,5
 	  }
       }
     else
       {
-	Symbol * lsymptr;
-	u32 lid = 0;
-	if(getSymbolPtr(lsymptr))
-	  lid = lsymptr->getId();
-
 	std::ostringstream msg;
-	msg << "Array subscript of array '";
-	msg << m_state.m_pool.getDataAsString(lid).c_str();
+	msg << "Array subscript of array '" << getName();
 	msg << "' requires a numeric type";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	return evalStatusReturn(ERROR);
+	return evalStatusReturn(ERROR); //t3321
       }
 
     Node::assignReturnValueToStack(pluv.getValAt(offsetInt, m_state));
@@ -671,17 +732,13 @@ namespace MFM {
     else
       {
 	s32 arraysize = m_state.getArraySize(auti);
-	Symbol * lsymptr;
-	u32 lid = 0;
-	if(getSymbolPtr(lsymptr))
-	  lid = lsymptr->getId();
 
 	std::ostringstream msg;
 	msg << "Array subscript [" << offsetInt << "] exceeds the size (" << arraysize;
-	msg << ") of array '" << m_state.m_pool.getDataAsString(lid).c_str() << "'";
+	msg << ") of array '" << m_nodeLeft->getName() << "'";
 	msg << " to store into";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	return evalStatusReturn(ERROR);
+	return evalStatusReturn(ERROR); //t3427
       }
 
     evalNodeEpilog();
@@ -705,19 +762,29 @@ namespace MFM {
     return UlamValue();
   }
 
-  bool NodeSquareBracket::getSymbolPtr(Symbol *& symptrref)
+  void NodeSquareBracket::clearSymbolPtr()
+  {
+    //if symbol is in a stub, there's no guarantee the stub
+    // won't be replace by another duplicate class once its
+    // pending args have been resolved.
+    if(m_nodeLeft)
+      m_nodeLeft->clearSymbolPtr();
+  }
+
+  u32 NodeSquareBracket::getSymbolId()
   {
     if(m_nodeLeft)
-      return m_nodeLeft->getSymbolPtr(symptrref);
+      return m_nodeLeft->getSymbolId();
+    return getNameId();
+  }
+
+  bool NodeSquareBracket::hasASymbol()
+  {
+    if(m_nodeLeft)
+      return m_nodeLeft->hasASymbol();
 
     MSG(getNodeLocationAsString().c_str(), "No symbol", ERR);
     return false;
-  }
-
-  bool NodeSquareBracket::getStorageSymbolPtr(Symbol *& symptrref)
-  {
-    assert(m_nodeLeft);
-    return m_nodeLeft->getStorageSymbolPtr(symptrref);
   }
 
   //see also NodeIdent
@@ -729,6 +796,12 @@ namespace MFM {
       {
 	MSG(getNodeLocationAsString().c_str(), "No Identifier to build typedef symbol", ERR);
 	return false;
+      }
+
+    if(m_nodeLeft->isArrayItem())
+      {
+	MSG(getNodeLocationAsString().c_str(), "Multi-dimensional array typedefs are not supported", ERR);
+	return false; //t41352
       }
 
     if(args.m_arraysize > NONARRAYSIZE)
@@ -788,15 +861,42 @@ namespace MFM {
     return m_nodeLeft->installSymbolVariable(args, asymptr);
   } //installSymbolVariable
 
-  bool NodeSquareBracket::assignClassArgValueInStubCopy()
-  {
-    return true;
-  }
-
   // eval() no longer performed before check and label
   // returns false if error; UNKNOWNSIZE is not an error!
   bool NodeSquareBracket::getArraysizeInBracket(s32 & rtnArraySize, UTI& sizetype)
   {
+    if(m_nodeLeft->isArrayItem()) //subtree in NodeTypeDescriptorArray
+      {
+	s32 lindex;
+	UTI luti;
+	if(((NodeSquareBracket *) m_nodeLeft)->getArraysizeInBracket(lindex, luti)) //recurse
+	  {
+	    if(m_state.okUTItoContinue(luti))
+	      {
+		UlamType * lut = m_state.getUlamTypeByIndex(luti);
+		ULAMTYPE letyp = lut->getUlamTypeEnum();
+		if(!((letyp == Class) || (letyp == String)))
+		  {
+		    std::ostringstream msg;
+		    msg << "Unsupported multi-dimensional array declaration: " << m_nodeLeft->getName();
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    //neither a class custom array nor operator[], nor String (t41586)
+		    return false;
+		  }
+	      }
+	    else
+	      {
+		rtnArraySize = UNKNOWNSIZE;
+		return true;
+	      }
+	  }
+	else
+	  {
+	    rtnArraySize = UNKNOWNSIZE;
+	    return false;
+	  }
+      }
+
     bool noerr = true;
     // since square brackets determine the constant size for this type, else error
     s32 newarraysize = NONARRAYSIZE;
@@ -806,7 +906,7 @@ namespace MFM {
 	return true;
       }
 
-    sizetype = m_nodeRight->checkAndLabelType(); //t3504
+    sizetype = m_nodeRight->checkAndLabelType(this); //t3504
     if((sizetype == Nav))
       {
 	rtnArraySize = UNKNOWNSIZE;
@@ -875,11 +975,10 @@ namespace MFM {
   void NodeSquareBracket::genCode(File * fp, UVPass& uvpass)
   {
     UTI leftType = m_nodeLeft->getNodeType();
-    UlamType * lut = m_state.getUlamTypeByIndex(leftType);
-    bool isString = (lut->getUlamTypeEnum() == String); //t3973, t3953
-    if(isString && lut->isScalar())
+    bool isString = m_state.isAStringType(leftType);
+    if(isString && m_state.isScalar(leftType))
       {
-	return genCodeAUserStringByte(fp, uvpass);
+	return genCodeAUserStringByte(fp, uvpass);//t3973, t3953
       }
     else if(Node::isCurrentObjectsContainingAConstantClass() >= 0)
       {
@@ -890,8 +989,8 @@ namespace MFM {
     //else continue..
 
     genCodeToStoreInto(fp, uvpass);
-
-    if(!(isString || m_nodeLeft->isAConstant()) || m_state.isReference(uvpass.getPassTargetType())) //t3953,t3973, not isAltRefType t3908, nor constant class (t41266)
+    UTI tt = uvpass.getPassTargetType();
+    if(!(isString || m_nodeLeft->isAConstant()) || (m_state.isReference(tt) && !m_state.isAtom(tt))) //t3953,t3973, not isAltRefType t3908, nor constant class (t41266), not constantatomarrayitem (t41484)
       Node::genCodeReadIntoATmpVar(fp, uvpass);
     else
       m_state.clearCurrentObjSymbolsForCodeGen();
@@ -945,9 +1044,11 @@ namespace MFM {
       {
 	Node::genCodeReadArrayItemFromAConstantClassIntoATmpVar(fp, luvpass, offset);
 	uvpass = luvpass;
-	if(m_state.isAClass(cossuti))
+	if(m_state.isAtom(cossuti)) //t41484, in a T
+	  return;
+	else if(m_state.isAClass(cossuti))
 	  Node::genCodeConvertATmpVarIntoBitVector(fp, uvpass); //not for t41198, for t41263
-	else if(cossut->getUlamTypeEnum() == String) //t41274, t41267, t41273
+	else if(m_state.isAStringType(cossuti)) //t41274, t41267, t41273
 	  uvpass.setPassTargetType(m_state.getUlamTypeAsDeref(luvpass.getPassTargetType()));
 	m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, NULL); //dm to avoid leaks
 	m_tmpvarSymbol->setDivinedByConstantClass();

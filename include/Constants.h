@@ -27,7 +27,7 @@
 
 /**
   \file Constants.h Useful common constants for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
   \date (C) 2014-2018 All rights reserved.
   \gpl
@@ -78,6 +78,22 @@ namespace MFM {
 #define MAX_FILENAME_LENGTH (255 - 8)
 #endif //MAX_FILENAME_LENGTH
 
+#ifndef MAX_IDENTIFIER_LENGTH
+#define MAX_IDENTIFIER_LENGTH (255)
+#endif //MAX_IDENTIFIER_LENGTH
+
+#ifndef MAX_USERSTRING_LENGTH
+#define MAX_USERSTRING_LENGTH (255)
+#endif //MAX_USERSTRING_LENGTH
+
+#ifndef MAX_NUMERICSTRING_LENGTH
+#define MAX_NUMERICSTRING_LENGTH (255)
+#endif //MAX_NUMERICSTRING_LENGTH
+
+#ifndef CLASSIDBITS
+#define CLASSIDBITS (_getLogBase2(MAX_REGISTRY_NUMBER) + 1)
+#endif //CLASSIDBITS
+
 #ifndef ELE_TYPE
 #define ELE_TYPE u16
 #endif
@@ -90,7 +106,7 @@ namespace MFM {
   // see TABLE_SIZE in MFM Element.h for max element type (reserved for empty element).
   enum { UNDEFINED_ELEMENT_TYPE = 0, EMPTY_ELEMENT_TYPE = U16_MAX, MAX_ELEMENT_TYPE = U16_MAX, ELEMENT_TYPE_BITS = 16 };
 
-  enum SYMBOLTYPEFLAG { STF_NEEDSATYPE = -2, STF_FUNCPARAMETER = -1, STF_DATAMEMBER = 0,  STF_FUNCLOCALVAR = 1, STF_FUNCARGUMENT = 2, STF_CLASSINHERITANCE = 3, STF_CLASSPARAMETER = 4, STF_FUNCLOCALREF = 5, STF_FUNCLOCALCONSTREF = 6 };
+  enum SYMBOLTYPEFLAG { STF_NEEDSATYPE = -2, STF_FUNCPARAMETER = -1, STF_DATAMEMBER = 0,  STF_FUNCLOCALVAR = 1, STF_FUNCARGUMENT = 2, STF_CLASSINHERITANCE = 3, STF_CLASSPARAMETER = 4, STF_FUNCLOCALREF = 5, STF_FUNCLOCALCONSTREF = 6, STF_MEMBERCONSTANT = 7, STF_MEMBERTYPEDEF = 8 };
 
   enum ULAMTYPECOMPARERESULTS { UTIC_DONTKNOW = -1, UTIC_NOTSAME = 0, UTIC_SAME = 1, UTIC_MUSTBESAME = 2};
 
@@ -100,6 +116,9 @@ namespace MFM {
 
   enum STORAGE { IMMEDIATE = 0, EVENTWINDOW, STACK, EVALRETURN, UNPACKEDSTRUCT, CNSTSTACK};
 
+  /**
+      TMPSTORAGE: in uvpass, primarily used to name tmp variables, also to test for tmpbitval and tmpautoref, immediate types, that could need write/read(); terminal is a number; the rest are based on UlamType* and total bitsize (e.g. transients, element, atom are virtually special cases)
+   */
   enum TMPSTORAGE { TERMINAL = 0, TMPREGISTER, TMPBITVAL, TMPAUTOREF, TMPTATOM, TMPATOMBS, TMPTBV, TMPARRAYIDX };
 
   enum PACKFIT { UNPACKED = 0, PACKED, PACKEDLOADABLE};
@@ -123,7 +142,7 @@ namespace MFM {
 #endif //MAXSTATEBITS
 
 #ifndef MAXBITSPERQUARK
-#define MAXBITSPERQUARK (32)
+#define MAXBITSPERQUARK (64)
 #endif //MAXBITSPERQUARK
 
 #ifndef MAXBITSPERTRANSIENT
@@ -163,11 +182,11 @@ namespace MFM {
 #endif //REGNUMBITS
 
 #ifndef STRINGIDXBITS
-#define STRINGIDXBITS (32)
+#define STRINGIDXBITS (20)
 #endif //STRINGIDXBITS
 
 #ifndef STRINGIDXMASK
-#define STRINGIDXMASK (U32_MAX)
+#define STRINGIDXMASK (calcBitsizeUnsignedMax(STRINGIDXBITS))
 #endif //STRINGIDXMASK
 
 #ifndef UNKNOWNSIZE

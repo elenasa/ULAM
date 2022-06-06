@@ -43,6 +43,11 @@ namespace MFM {
     return false;
   }
 
+  const std::string UlamTypeInternal::getUlamTypeName()
+  {
+    return this->getUlamTypeNameBrief();
+  }
+
   const std::string UlamTypeInternal::readMethodForCodeGen()
   {
     m_state.abortShouldntGetHere();

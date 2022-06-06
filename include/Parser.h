@@ -1,8 +1,9 @@
 /**                                        -*- mode:C++ -*-
  * Parser.h -  Basic Parse handling for ULAM
  *
- * Copyright (C) 2014-2018 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2018 Ackleyshack LLC.
+ * Copyright (C) 2014-2020 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +28,9 @@
 
 /**
   \file Parser.h -  Basic Parse handling for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2018   All rights reserved.
+  \date (C) 2014-2021   All rights reserved.
   \gpl
 */
 
@@ -107,10 +108,14 @@ namespace MFM{
 
     void parseRestOfClassParameters(SymbolClassNameTemplate * ctsym, NodeBlockClass * cblock);
 
-    bool parseRestOfClassInheritance(SymbolClassName * cnsym, SymbolClass *& supercsym, UTI& superuti);
+
+    //ulam 5 supports multiple inheritance
+    bool parseMultipleClassInheritances(SymbolClassName * cnsym);
+    bool parseRestOfMultiClassInheritance(SymbolClassName * cnsym, u32 item, bool sharedVirtualBase);
+    bool parseRestOfMultiClassInheritanceUsingALocaldef(SymbolClassName * cnsym, u32 item, bool sharedVirtualBase);
 
     void setupSuperClassHelper(SymbolClassName * cnsym);
-    void setupSuperClassHelper(SymbolClass * supercsym, SymbolClassName * cnsym);
+    void setupSuperClassHelper(UTI superuti, SymbolClassName * cnsym);
 
    /**
 	<LOCAL_DEF> := 'local' + ( <TYPE_DEF> | <CONST_DEF> ) + ';'
@@ -127,7 +132,7 @@ namespace MFM{
     bool parseRestOfInitialization(const Token& identTok, Node * dNode);
 
     bool makeDeclConstructorCall(const Token& identTok, NodeVarDecl * dNode);
-    Node * makeInstanceofConstructorCall(const Token& fTok, NodeInstanceof * instanceofNode);
+    Node * makeInstanceofConstructorCall(const Token& fTok, Node * memberNode, NodeTypeDescriptor * nodetype);
     NodeFunctionCall * parseConstructorCall(const Token& identTok);
 
     /**
@@ -278,14 +283,7 @@ namespace MFM{
     */
     Node * parseIdentExpr(const Token& identTok);
 
-    /**
-	<MEMBER_SELECT_EXPRESSION> := <IDENT_EXPRESSION> + '.' + <IDENT_EXPRESSION>
-    */
-    Node * parseMemberSelectExpr(const Token& memberTok);
-
     Node * parseRestOfMemberSelectExpr(Node * classInstanceNode);
-
-    Node * parseRestOfQuestionColonExpr(Node * condNode);
 
     Node * parseMinMaxSizeofType(Node * memberNode, UTI utype, NodeTypeDescriptor * nodetype);
     /**
@@ -444,6 +442,11 @@ namespace MFM{
        helper method to make assigment nodes
     */
     NodeBinaryOpEqual * makeAssignExprNode(Node * leftNode);
+
+    /**
+       helper methods to make ternary expression node
+    */
+    Node * makeQuestionColonNode(Node * condNode);
 
     /**
        helper methods to make binary expression nodes

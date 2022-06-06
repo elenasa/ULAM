@@ -1,22 +1,24 @@
 ## -*- mode:ulam -*-
 #=t3554_test_compiler_elementandquarkinheritancetemplate_error
 #!
-./Tu.ulam:3:18: ERROR: Missing Class Arguments for an instance stub of class template 'Foo'.
+./Tu.ulam:3:14: ERROR: Class with parameters seen with the same name: Foo; No shadow typedef in class scope, Tu.
 Unrecoverable Program Parse FAILURE: <Tu.ulam>
 ##
-##       //classes can inherit from a template instance, and vis versa; here, missing class args
+##  classes can inherit from a template instance, and vis versa; here, missing class args
+##  (see also t3644)
 ##
 #>Tu.ulam
-ulam 1;
+  ulam 1;
 use Foo;
 element Tu : Foo {
-Int test(){
-  return -1;
-}
+  Int test(){
+    return -1;
+  }
 }
 
 #:Foo.ulam
-ulam 1;
+  ulam 1;
 element Foo(Int a, Bool b) {
 }
+
 #.

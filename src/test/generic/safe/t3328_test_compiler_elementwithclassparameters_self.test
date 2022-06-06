@@ -1,18 +1,17 @@
 ## -*- mode:ulam -*-
 #=t3328_test_compiler_elementwithclassparameters_self
-#!
-##      // gen output:
+##      // gen output: + interleaved asserts
 ##      //    Bool(3) Arg: 0x7 (true)
 ##      //    Bool(3) Arg: 0x0 (false)
 ##      //Constants have explicit types
-##
-##        unevaluable without assuming atoms as elements
-##
+#!
 Exit status: 1
-Ue_R { System s();  Int(32) test() {  Atom(96) a;  S(1,2) s12;  s12 b2 . s12 ( )func . cast = s ( s12 b2 . )print . s12 b1 . s12 ( a )func . cast = s ( s12 b1 . )print . s12 b2 . cast return } }
+Ue_R { System s();  Int test() {  Atom a;  S(1,2) s12;  s12 b2 . s12 ( )func . cast = self s . ( s12 b2 . )print . self s . ( s12 b2 . cast )assert . s12 b1 . s12 ( a )func . cast = self s . ( s12 b1 . )print . self s . ( s12 b1 . ! cast )assert . s12 b2 . cast return } }
 Uq_System { <NOMAIN> }
-Ue_S(Int(32) x, Int(32) y) { Bool(UNKNOWN) b1(notready);  Bool(UNKNOWN) b2(notready);  <NOMAIN> }
+Ue_S(Int x, Int y) { Bool(UNKNOWN) b1(notready);  Bool(UNKNOWN) b2(notready);  <NOMAIN> }
+##
 ##    //informed by t3255
+##
 #>R.ulam
   ulam 1;
 use System;
@@ -24,8 +23,10 @@ element R{
 
     s12.b2 = s12.func();
     s.print(s12.b2);
+    s.assert(s12.b2);
     s12.b1 = s12.func(a);
     s.print(s12.b1);
+    s.assert(!s12.b1);
     return (Int) s12.b2;
   }
 }

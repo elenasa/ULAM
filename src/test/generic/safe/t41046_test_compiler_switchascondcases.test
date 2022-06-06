@@ -1,12 +1,22 @@
 ## -*- mode:ulam -*-
 #=t41046_test_compiler_switchascondcases
+##
+##  gen output:
+##   String(2) Arg: "EWE foomethod"
+##   String(1) Arg: "Empty foo"
+##   String(1) Arg: "Empty foo"
+##   String(1) Arg: "Empty foo"
 #!
 Exit status: -11
-Ue_EWE : QFoo { :<> Int(32) test() {  EventWindow ew;  Int(32) i = 0 cast;  ew ( 0 cast )aref . EWE.instanceof cast = Atom(96) a = ew ( i )aref . cast;  { i 1 ++ 4 cast < cond { { typedef Bool(1) _SWITCHTYPEDEF13;  a EWE as cond { EWE& a;  a ( )foomethod . a.atomof ew ( i )aref . = } if a QFoo as cond { QFoo& a;  a ( )foomethod . a.atomof ew ( i )aref . = } if true cond { a ew ( i )aref . = } if else else _2: } } _1: while } i return } }
-Uq_QFoo { <NOMAIN> }
+Ue_EWE : QFoo { :QFoo< :SystemU3< :System<>> ^System<>> ^SystemU3< :System<>> ^System<> Int test() {  EventWindow ew;  Int i = 0 cast;  ew ( 0 cast )aref . EWE.instanceof cast = Atom a = ew ( i )aref . cast;  { i 1 ++ 4 cast < cond { { typedef Bool _SWITCHTYPEDEF13;  a EWE as cond { EWE& a;  a ( )foomethod . a.atomof ew ( i )aref . = } if a QFoo as cond { QFoo& a;  a ( )foomethod . a.atomof ew ( i )aref . = } if { a ew ( i )aref . = self ( "Empty foo" )print . } else else } } _1: while } i return } }
+Uq_QFoo : SystemU3 { :SystemU3<> ^System<> <NOMAIN> }
 Uq_EventWindow { <NOMAIN> }
+Uq_SystemU3 : System { :System<> <NOMAIN> }
+Uq_System { <NOMAIN> }
 ##
-##  informed by t41044, t41045    //which statements do not support 'as' conditional, cases do!! (no parens)
+##  informed by t41044, t41045
+##  which statements do not support 'as' conditional, cases do!!
+##  here, no breaks, so 4 times around loop
 ##
 #>EWE.ulam
   ulam 3;
@@ -20,8 +30,8 @@ element EWE : QFoo{
     {
       which()
       {
-      case a as EWE: //WORKS!! (alone)
-	//case (a as EWE): //no parens!
+	//case a as EWE: //WORKS!! (alone)
+	case (a as EWE): //also works w parens
 	{
 	  a.foomethod();
 	  a.atomof = ew[i];
@@ -34,25 +44,48 @@ element EWE : QFoo{
 	otherwise:
 	{
 	  a = ew[i];
+	  print("Empty foo");
 	}
       } //end which
     } //end while
     return i;
   }
 
-  virtual Void foomethod() { }
+  virtual Void foomethod(){
+    print("EWE foomethod");
+  }
 }
 
-quark QFoo {
-  virtual Void foomethod() { }
+quark QFoo : SystemU3 {
+  virtual Void foomethod() {
+    print("QFoo foomethod");
+  }
 }
 
 
 #:EventWindow.ulam
   ulam 3;
 quark EventWindow{
+  //EventWindow.ulam:3:1: ERROR: Only elements may have element parameters: <EventWindow> is a quark.
   Atom& aref(Int index) native;
 }
 
-##    //EventWindow.ulam:3:1: ERROR: Only elements may have element parameters: <EventWindow> is a quark.
+#:SystemU3.ulam
+  ulam 3;
+quark SystemU3 : System {
+  Void print(String s) native;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+
 #.

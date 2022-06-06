@@ -1,0 +1,219 @@
+## -*- mode:ulam -*-
+#=t41301_test_compiler_casttmpvarreftosuperref_issue
+#!
+Exit status: -11
+Ue_Foo { Int test() {  SystemU3 du;  typedef ByteStreamArray(250u) MsgBuf;  ByteStreamArray(250u) buf;  du ( buf cast cast )print . 0 cast return } }
+Uq_SystemU3 : System { :System<> <NOMAIN> }
+Un_ByteStreamArray(Unsigned len) : ByteStream { Unsigned mWrite( 0u);  Unsigned mRead( 0u);  holder mData[UNKNOWN](notready);  :ByteStream<> <NOMAIN> }
+Uq_ByteStream { <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## ISH informed by Spencer Harmon 4/12/2019: 'use WindowScanner;' triggered problem with SPLATRuleDriver print call,
+##  ByteStream& argument used URSelf& parameter match that required implicit casting; (see t41298,41299,t41300)
+##
+#>Foo.ulam
+ ulam 4;
+element Foo {
+  Int test()
+  {
+    SystemU3 du;
+    typedef ByteStreamArray(250u) MsgBuf;
+    MsgBuf buf;
+    du.print((ByteStream&) buf);
+    return 0;
+  }
+}
+
+#:ByteStreamArray.ulam
+  ulam 3;
+transient ByteStreamArray(Unsigned len) : ByteStream {
+
+  Unsigned mWrite = 0;
+  Unsigned mRead = 0;
+  ASCII mData[len];
+
+  Bool stillRoom() { return mWrite < len; }
+
+  @Override
+  Bool canRead() { return true; }
+
+  @Override
+  Bool canWrite() { return true; }
+
+  @Override
+  Int writeByte(ASCII x)
+  {
+    if (stillRoom()) {
+      mData[mWrite++] = x;
+      return 0;
+    }
+    return -1;
+  }
+
+  @Override
+  Int readByte()
+  {
+    if (mRead < mWrite) return mData[mRead++];
+    if (stillRoom()) return -2;
+    return -1;
+  }
+
+  Void reset()
+  {
+    reread();
+    rewrite();
+  }
+
+  Void reread()
+  {
+    mRead = 0;
+  }
+
+  Void rewrite()
+  {
+    mWrite = 0;
+  }
+
+}
+
+#:ByteStream.ulam
+  ulam 3;
+quark ByteStream {
+
+  /**
+     Attempt to read the next byte from the stream.  Return value >= 0
+     is the next byte read.  A return value of -1 means EOF, a return
+     value of -2 means no bytes are immediately available (but some
+     might be later), and a return value <= -3 means some (reasonably)
+     permanent error condition occurred.
+
+     Subclasses of ByteStream that do not support input will FAIL with
+     UNSUPPORTED_OPERATION if this method is invoked.  canRead() can
+     be called to determine if that will happen.
+   */
+  virtual Int readByte()
+  {
+    SystemU3 f;
+    f.print("UNSUPPORTED_OPERATION");
+    f.assert(false);
+    return -3;
+  }
+
+  virtual Bool canRead() ;
+
+  /**
+     Attempt to write the byte x to the stream.  Return value == 0
+     means the byte was sucessfully written.  A return value of -1
+     means EOF, a return value of -2 means no bytes could be written
+     now (but output might be possible later), and a return value <=
+     -3 means some (reasonably) permanent error condition occurred.
+
+     Subclasses of ByteStream that do not support output will FAIL
+     with UNSUPPORTED_OPERATION if this method is invoked.  canWrite()
+     can be called to determine if that will happen.
+   */
+  virtual Int writeByte(ASCII x)
+  {
+    SystemU3 f;
+    f.print("UNSUPPORTED_OPERATION");
+    f.assert(false);
+    return -3;
+  }
+
+  virtual Bool canWrite() ;
+
+  /////
+  // OUTPUT ROUTINES
+  //
+
+  Self & print(String s)
+  {
+    for (Unsigned i = 0; i < s.lengthof; ++i)
+    {
+      ASCII a = s[i];
+      writeByte(a);
+    }
+    return self;
+  }
+
+  Self & print(Bool b)
+  {
+    ASCII ch = '0';
+    if (b) ch = '1';
+    writeByte(ch);
+    return self;
+  }
+
+  Self & print(Unsigned n, Unsigned base)
+  {
+    if (n == 0u) return print("0");
+    if (base == 0u) base = 10u;
+
+    String c = "0123456789abcdefghijklmnopqrstuvwxyz";
+    if (base < 2u || base >= c.lengthof) { System f; f.assert(false); }
+
+    if (n >= base) print(n/base,base);
+
+    writeByte(c[n]);
+
+    return self;
+  }
+
+  Self & print(Int n)
+  {
+    if (n == -2147483648) return print("-2147483648");
+    if (n < 0) {
+      print("-");
+      n = -n;
+    }
+    return print((Unsigned) n, 10u);
+  }
+
+  virtual Unsigned writeBytes(ByteStream & r)
+  {
+    return writeBytes(r, Unsigned.maxof);
+  }
+
+  virtual Unsigned writeBytes(ByteStream & r, Unsigned max)
+  {
+    if (!r.canRead()) return 0;
+
+    for (Unsigned i = 0; i < max; ++i)
+    {
+      Int ch = r.readByte();
+      if (ch < 0) return i;
+      writeByte((ASCII) ch);
+    }
+    return max;
+  }
+
+  virtual Self & writeBytes(String s)
+  {
+    for (Unsigned i = 0; i < s.lengthof; ++i)
+      writeByte(s[i]);
+    return self;
+  }
+
+  // Self & printf(String format, ...) native ;
+}
+
+#:SystemU3.ulam
+  ulam 4;
+quark SystemU3 : System {
+  Void print(String s) native;
+  Void print(Atom& aref) { /* tbd */ }
+  Void print(UrSelf& bsref) { /* tbd */ }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

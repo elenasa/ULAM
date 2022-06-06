@@ -11,26 +11,19 @@ namespace MFM {
   UlamTypePrimitiveBits::UlamTypePrimitiveBits(const UlamKeyTypeSignature key, CompilerState & state) : UlamTypePrimitive(key, state)
   {
     s32 bitsize = getBitSize();
-    if(bitsize <= 0)
-      {
-	m_max = m_min = 0;
-      }
-    else if(bitsize <= MAXBITSPERINT)
+    m_max = m_min = 0; //not allowed
+    if(bitsize <= MAXBITSPERLONG)
       {
 	m_wordLengthTotal = calcWordSize(getTotalBitSize());
 	m_wordLengthItem = calcWordSize(bitsize);
-	m_max = calcBitsizeUnsignedMax(bitsize);
-	m_min = 0;
       }
-    else if(bitsize <= MAXBITSPERLONG)
+    else if(bitsize <= MAXBITSPERTRANSIENT)
       {
-	m_wordLengthTotal = calcWordSize(getTotalBitSize());
-	m_wordLengthItem = calcWordSize(bitsize);
-	m_max = calcBitsizeUnsignedMaxLong(bitsize);
-	m_min = 0;
+	m_wordLengthTotal = MAXBITSPERTRANSIENT;
+	m_wordLengthItem = MAXBITSPERTRANSIENT;
       }
     else
-      m_state.abortGreaterThanMaxBitsPerLong();
+      m_state.abortGreaterThanMaxBitsPerBiggestBV(); //per transient
   }
 
    ULAMTYPE UlamTypePrimitiveBits::getUlamTypeEnum()
@@ -67,14 +60,22 @@ namespace MFM {
       brtn = castTo64(val, typidx);
     else
       {
-	std::ostringstream msg;
-	msg << "Casting to an unsupported word size: " << wordsize;
-	msg << ", Value Type and bit size was: ";
-	msg << valtypidx << "," << m_state.getBitSize(valtypidx);
-	msg << " TO: ";
-	msg << typidx << "," << getBitSize();
-	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
-	brtn = false;
+	if(valwordsize <= wordsize)
+	  {
+	    val.setUlamValueTypeIdx(typidx); //t41563?
+	    brtn = true;
+	  }
+	else
+	  {
+	    std::ostringstream msg;
+	    msg << "Casting to an unsupported word size: " << wordsize;
+	    msg << ", Value Type and bit size was: ";
+	    msg << valtypidx << "," << m_state.getBitSize(valtypidx);
+	    msg << " TO: ";
+	    msg << typidx << "," << getBitSize();
+	    MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
+	    brtn = false;
+	  }
       }
     return brtn;
   } //cast
@@ -95,6 +96,7 @@ namespace MFM {
       case Bool:
       case Unary:
       case Bits:
+      case Class:
 	val = UlamValue::makeImmediate(typidx, data, m_state); //overwrite val
 	break;
       case String:
@@ -130,6 +132,7 @@ namespace MFM {
       case Bool:
       case Unary:
       case Bits:
+      case Class:
 	val = UlamValue::makeImmediateLong(typidx, data, m_state); //overwrite val
 	break;
       default:
@@ -169,8 +172,8 @@ namespace MFM {
 	  //must be Quark! treat as Int if it has a toInt method
 	  if(fmut->isNumericType())
 	    brtn = (bitsize >= MAXBITSPERINT);
-	  else
-	    brtn = false; //t41131 called by matching args (no error msg please)
+	  else //Quark or Transient to Bits requires explicit cast.
+	    brtn = false; //t41412; t41131 called by matching args (no error msg please)
 	}
 	break;
       default:
@@ -180,6 +183,29 @@ namespace MFM {
       };
     return brtn ? CAST_CLEAR : CAST_BAD;
   } //safeCast
+
+  FORECAST UlamTypePrimitiveBits::explicitlyCastable(UTI typidx)
+  {
+    FORECAST scr = UlamTypePrimitive::explicitlyCastable(typidx); //default
+    //    if(scr == CAST_BAD)
+      {
+	UlamType * fmut = m_state.getUlamTypeByIndex(typidx);
+	ULAMTYPE valtypEnum = fmut->getUlamTypeEnum();
+
+	//allow String to be cast to Bits (ulam-5) t41419,t41422
+	if(valtypEnum == String)
+	  scr = CAST_CLEAR;
+
+	//allow quarks and transients to be cast to Bits (ulam-5) t41410,t41416
+	if(valtypEnum == Class)
+	  {
+	    ULAMCLASSTYPE vclasstype = fmut->getUlamClassType();
+	    if((vclasstype == UC_QUARK) || (vclasstype == UC_TRANSIENT))
+	      	  scr = CAST_CLEAR;
+	  }
+      }
+    return scr;
+  } //explicitlyCastable
 
   void UlamTypePrimitiveBits::getDataAsString(const u32 data, char * valstr, char prefix)
   {

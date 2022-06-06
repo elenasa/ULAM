@@ -1,0 +1,53 @@
+## -*- mode:ulam -*-
+#=t41429_test_compiler_castingstringarraytobooltovalidatestringindex_error
+#!
+./System.ulam:11:0: ERROR: Casting different Array sizes: String[3] TO Bool.
+./A.ulam:15:6: ERROR: Consider implementing array casts: Cannot cast array into scalar.
+./A.ulam:18:6: ERROR: Array casts currently not supported.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by t41425
+##
+#>A.ulam
+  ulam 5;
+local constant String arraystr[] = {"yours", "mine", "ours"};
+local typedef Bool BA[3];
+
+/**
+   \symbol A1
+   \symmetries none
+   \color #448
+ */
+element A {
+    SystemU3 s;
+  Int test() {
+
+    //ERROR: Cannot cast array into scalar.
+    (Bool) arraystr ? s.assert(false): s.assert(true);
+
+    //ERROR: Array casts currently not supported.
+    (BA)arraystr ? s.assert(false): s.assert(true);
+
+    return 0;
+  }
+}
+
+#:SystemU3.ulam
+  ulam 3;
+quark SystemU3 : System {
+  Void print(String s) native;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

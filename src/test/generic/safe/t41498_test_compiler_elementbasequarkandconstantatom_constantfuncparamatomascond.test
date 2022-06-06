@@ -1,0 +1,69 @@
+## -*- mode:ulam -*-
+#=t41498_test_compiler_elementbasequarkandconstantatom_constantfuncparamatomascond
+##
+##  gen output (1 assert)
+##
+#!
+Exit status: 0
+Ue_Foo { System s();  Bool(3) b(true);  Int(4) m_i(0);  constant Bar m_bar2 = { 0xff807f82, 0x0, 0x0 };  constant Atom cAtom = { 0xff807f82, 0x0, 0x0 };  Int test() {  self b . self ( cAtom 1 cast )check . cast = self s . ( self b . cast )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+Ue_Bar : QBar { Int(4) m_space(0);  :QBar< Bool val_b[3]( { false, true, false }); > <NOMAIN> }
+Uq_QBar { Bool val_b[3]( { false, true, false });  <NOMAIN> }
+##
+## informed by t41494, baseclass behavior through the constant atom
+##
+#>Foo.ulam
+  ulam 3;
+element Foo {
+  System s;
+  Bool(3) b;
+  Int(4) m_i;
+  constant Bar m_bar2 = { };
+  constant Atom cAtom = m_bar2;
+
+  Bool check(constant QBar& brefarg, Int x) {
+    return brefarg.val_b[x];
+  }
+
+  Bool check(constant Atom aarg, Int x) {
+    if(aarg as QBar)
+      return aarg.val_b[x];
+    return false;
+  }
+
+  Int test() {
+    b = check(cAtom,1);
+    s.assert(b);
+    return 0;
+  }
+}
+
+#:Bar.ulam
+  ulam 1;
+element Bar : QBar
+{
+  Int(4) m_space;
+}
+
+#:QBar.ulam
+  ulam 1;
+quark QBar {
+  Bool val_b[3] = {false, true, false};
+  Void reset(Bool b) {
+    b = false;
+  }
+}
+
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

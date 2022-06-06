@@ -54,6 +54,11 @@ namespace MFM {
     return m_state.m_pool.getDataAsString(m_cid).c_str();
   }
 
+  u32 NodeInitDM::getNameId()
+  {
+    return m_cid;
+  }
+
   const std::string NodeInitDM::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
@@ -83,7 +88,7 @@ namespace MFM {
 	m_nodeExpr->setClassType(uti); //when another class
   }
 
-  UTI NodeInitDM::checkAndLabelType()
+  UTI NodeInitDM::checkAndLabelType(Node * thisparentnode)
   {
     UTI it = Nouti; //expression type
 
@@ -94,7 +99,7 @@ namespace MFM {
     //short circuit, avoid assert
     if(m_constSymbol == NULL)
       {
-	if(m_ofClassUTI == Hzy)
+	if((m_ofClassUTI == Hzy) || m_state.isStillHazy(m_ofClassUTI))
 	  {
 	    setNodeType(Hzy);
 	    std::ostringstream msg;
@@ -108,7 +113,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Invalid Class type used with symbol name '" << getName() << "'";
 	msg << "; cannot init data member in ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_ofClassUTI).c_str();
+	msg << m_state.getUlamTypeNameByIndex(m_ofClassUTI).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	return Nav;
       }
@@ -120,10 +125,11 @@ namespace MFM {
     if(!m_state.okUTItoContinue(suti) || !m_state.isComplete(suti))
       {
 	std::ostringstream msg;
-	msg << "Incomplete " << prettyNodeName().c_str() << " for type: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
-	msg << ", used with symbol name '" << getName() << "'";
-	if(m_state.okUTItoContinue(suti) || (suti == Hzy))
+	msg << "Incomplete " << prettyNodeName().c_str() << " for type";
+	if(m_state.okUTItoContinue(suti) && !m_state.isHolder(suti))
+	  msg << ": " << m_state.getUlamTypeNameByIndex(suti).c_str();
+	msg << " used with symbol name '" << getName() << "'";
+	if(m_state.okUTItoContinue(suti) || m_state.isStillHazy(suti))
 	  {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    suti = Hzy; //since not error; wait to goagain until not Nav
@@ -138,7 +144,7 @@ namespace MFM {
 	//void only valid use is as a func return type
 	std::ostringstream msg;
 	msg << "Invalid use of type ";
-	msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
+	msg << m_state.getUlamTypeNameByIndex(suti).c_str();
 	msg << " with symbol name '" << getName() << "'";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(Nav); //could be clobbered by Hazy node expr
@@ -149,7 +155,7 @@ namespace MFM {
 
     if(m_nodeExpr)
       {
-	it = m_nodeExpr->checkAndLabelType();
+	it = m_nodeExpr->checkAndLabelType(this);
 	if(it == Nav)
 	  {
 	    std::ostringstream msg;
@@ -162,14 +168,12 @@ namespace MFM {
 	    return Nav; //short-circuit
 	  }
 
-	if(it == Hzy)
+	if(m_state.isStillHazy(it))
 	  {
-	    UTI cuti = m_state.getCompileThisIdx();
 	    std::ostringstream msg;
 	    msg << "Initialization value expression for: ";
 	    msg << m_state.m_pool.getDataAsString(m_cid).c_str();
-	    msg << ", is not ready, still hazy while compiling class: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	    msg << ", is not ready, still hazy";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    setNodeType(Hzy);
 	    m_state.setGoAgain();
@@ -293,7 +297,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Invalid initialization of class type ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
+	    msg << m_state.getUlamTypeNameByIndex(suti).c_str();
 	    msg << " with symbol name '" << getName() << "'";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    setNodeType(Nav); //t41180, t41232
@@ -309,9 +313,10 @@ namespace MFM {
 	else if(foldrtn == Hzy)
 	  {
 	    std::ostringstream msg;
-	    msg << "Incomplete " << prettyNodeName().c_str() << " for type: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
-	    msg << ", used with symbol name '" << getName() << "', after folding";
+	    msg << "Incomplete " << prettyNodeName().c_str() << " for type";
+	    if(m_state.okUTItoContinue(suti) && !m_state.isHolder(suti))
+	      msg << ": " << m_state.getUlamTypeNameByIndex(suti).c_str();
+	    msg << " used with symbol name '" << getName() << "', after folding";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    setNodeType(Hzy);
 	  }
@@ -357,7 +362,7 @@ namespace MFM {
 
     Symbol * asymptr = NULL;
     bool hazyKin = false;
-    if(m_state.findSymbolInAClass(m_cid, m_ofClassUTI, asymptr, hazyKin))
+    if(m_state.alreadyDefinedSymbolByAClassOrAncestor(m_ofClassUTI, m_cid, asymptr, hazyKin)) //(e.g. t41182)
       {
 	assert(asymptr);
 	UTI auti = asymptr->getUlamTypeIdx();
@@ -365,18 +370,18 @@ namespace MFM {
 	m_constSymbol = new SymbolConstantValue(cTok, auti, m_state); //t41232
 	assert(m_constSymbol);
 	m_constSymbol->setHasInitValue();
-	assert(!hazyKin);
+	//assert(!hazyKin); //t41184. t3451
       }
     else
       {
 	std::ostringstream msg;
-	msg << "Data Member <" << m_state.m_pool.getDataAsString(m_cid).c_str();
-	msg << "> is not defined, and cannot be initialized for this instance of class ";
+	msg << "Data Member '" << m_state.m_pool.getDataAsString(m_cid).c_str();
+	msg << "' is not defined, and cannot be initialized for this instance of class ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_ofClassUTI).c_str();
 	if(!hazyKin)
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	else
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //was debug
       }
   } //checkForSymbols
 
@@ -415,7 +420,7 @@ namespace MFM {
     return m_nodeExpr->getNodeType(); //could be a name constant class! (t41232)
   } //foldConstantExpression
 
-  UTI NodeInitDM::constantFold()
+  UTI NodeInitDM::constantFold(Node * parentnode)
   {
     m_state.abortShouldntGetHere();
     return foldConstantExpression(); //t41170
@@ -430,13 +435,19 @@ namespace MFM {
     //need updated POS for genCode after c&l
     Symbol * symptr = NULL;
     bool hazyKin = false;
-    AssertBool gotIt = m_state.findSymbolInAClass(m_cid, m_ofClassUTI, symptr, hazyKin);
+    AssertBool gotIt = m_state.alreadyDefinedSymbolByAClassOrAncestor(m_ofClassUTI, m_cid, symptr, hazyKin);
     assert(gotIt);
 
     if(!symptr->isPosOffsetReliable())
       return false;
 
     u32 pos = symptr->getPosOffset();
+
+    // check if by ancestor for base relative position (ulam-5)
+    UTI dmclass = symptr->getDataMemberClass();
+    u32 baserelpos = 0;
+    if(m_state.getABaseClassRelativePositionInAClass(m_ofClassUTI, dmclass, baserelpos))
+      pos += baserelpos; //t41183 m_str
 
     m_posOfDM = pos; //don't include the element adjustment (t41176)
 
@@ -449,6 +460,7 @@ namespace MFM {
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     u32 len = nut->getSizeofUlamType(); //t41168, t41232
 
+    //checks once-write mask has not been set, i.e. zeros; not its underlying value.
     if(!SymbolWithValue::isValueAllZeros(pos, len, bvmask))
       {
 	std::ostringstream msg;
@@ -456,7 +468,7 @@ namespace MFM {
 	msg << " initialization attempt clobbers a previous initialization value";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(Nav); //compiler counts
-	return false; //t3451
+	return false; //t3451, t41465
       }
 
     if(m_state.isAClass(nuti) && !m_constSymbol->isInitValueReady())
@@ -524,12 +536,6 @@ namespace MFM {
   void NodeInitDM::fixPendingArgumentNode()
   {
     m_state.abortShouldntGetHere();
-  }
-
-  bool NodeInitDM::assignClassArgValueInStubCopy()
-  {
-    m_state.abortShouldntGetHere(); //??
-    return false;
   }
 
   EvalStatus NodeInitDM::eval()
@@ -612,7 +618,7 @@ namespace MFM {
 	//refresh 'pos' when a local variable (t41172)
 	Symbol * asymptr = NULL;
 	bool hazyKin = false;
-	AssertBool isDef = m_state.findSymbolInAClass(m_cid, m_ofClassUTI, asymptr, hazyKin);
+	AssertBool isDef = m_state.alreadyDefinedSymbolByAClassOrAncestor(m_ofClassUTI, m_cid, asymptr, hazyKin);
 	assert(isDef);
 	pos = asymptr->getPosOffset();
 	m_posOfDM = pos; //no adjust for elements here (t41230, t41184)
@@ -631,6 +637,7 @@ namespace MFM {
 	//avoid when empty since no "self" defined within initialization scope. t41170
 	rtnstgidx = loadStorageAndCurrentObjectSymbols(stgcos, cos);
 	assert(stgcos && cos);
+	assert(cosSize == m_state.m_currentObjSymbolsForCodeGen.size()); //??
       }
     assert(rtnstgidx <= 0 || useLocalVar);
 
@@ -694,7 +701,7 @@ namespace MFM {
 	fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum4, cstor).c_str());
 	fp->write(");"); GCNL;
 
-	UVPass uvpass2 = UVPass::makePass(tmpVarNum2, cstor, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //default class data member as immediate
+	UVPass uvpass2 = UVPass::makePass(tmpVarNum2, TMPBITVAL, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //default class data member as immediate
 
 	assert(m_nodeExpr);
 	if(nut->isScalar())
@@ -781,10 +788,8 @@ namespace MFM {
     //include scalars for generated comments; arrays for constructor initialization
     NodeInitDM * cloneofme = (NodeInitDM *) this->instantiate();
     assert(cloneofme);
-    SymbolConstantValue * csymptr = NULL;
-    AssertBool isSym = this->getSymbolPtr((Symbol *&) csymptr);
-    assert(isSym);
-    ((NodeInitDM *) cloneofme)->setSymbolPtr(csymptr); //another ptr to same symbol
+    assert(m_constSymbol);
+    ((NodeInitDM *) cloneofme)->setSymbolPtr(m_constSymbol); //another ptr to same symbol
     cloneVec.push_back(cloneofme);
   }
 

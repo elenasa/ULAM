@@ -2,21 +2,24 @@
 
 namespace MFM {
 
-  TypeArgs::TypeArgs() : m_bitsize(UNKNOWNSIZE), m_arraysize(NONARRAYSIZE), m_classInstanceIdx(Nouti), m_anothertduti(Nouti), m_declListOrTypedefScalarType(Nouti), m_assignOK(true), m_isStmt(true), m_declRef(ALT_NOT), m_referencedUTI(Nouti), m_hasConstantTypeModifier(false) {}
+  TypeArgs::TypeArgs() : m_bitsize(UNKNOWNSIZE), m_arraysize(NONARRAYSIZE), m_classInstanceIdx(Nouti), m_anothertduti(Nouti), m_declListOrTypedefScalarType(Nouti), m_assignOK(true), m_isStmt(true), m_declRef(ALT_NOT), m_referencedUTI(Nouti), m_hasConstantTypeModifier(false), m_forMemberSelect(false), m_forFactor(false), m_danglingDot(false) {}
 
   TypeArgs::TypeArgs(const TypeArgs& tref) :
-      m_typeTok(tref.m_typeTok),
-      m_bitsize(tref.m_bitsize),
-      m_arraysize(tref.m_arraysize),
-      m_classInstanceIdx(tref.m_classInstanceIdx),
-      m_anothertduti(tref.m_anothertduti),
-      m_declListOrTypedefScalarType(tref.m_declListOrTypedefScalarType),
-      m_assignOK(tref.m_assignOK),
-      m_isStmt(tref.m_isStmt),
-      m_declRef(tref.m_declRef),
-      m_referencedUTI(tref.m_referencedUTI),
-      m_hasConstantTypeModifier(tref.m_hasConstantTypeModifier)
-    {}
+    m_typeTok(tref.m_typeTok),
+    m_bitsize(tref.m_bitsize),
+    m_arraysize(tref.m_arraysize),
+    m_classInstanceIdx(tref.m_classInstanceIdx),
+    m_anothertduti(tref.m_anothertduti),
+    m_declListOrTypedefScalarType(tref.m_declListOrTypedefScalarType),
+    m_assignOK(tref.m_assignOK),
+    m_isStmt(tref.m_isStmt),
+    m_declRef(tref.m_declRef),
+    m_referencedUTI(tref.m_referencedUTI),
+    m_hasConstantTypeModifier(tref.m_hasConstantTypeModifier),
+    m_forMemberSelect(tref.m_forMemberSelect),
+    m_forFactor(tref.m_forFactor),
+    m_danglingDot(tref.m_danglingDot)
+  {}
 
   TypeArgs::~TypeArgs() {}
 
@@ -38,6 +41,9 @@ namespace MFM {
     m_declRef = tref.m_declRef;
     m_referencedUTI = tref.m_referencedUTI;
     m_hasConstantTypeModifier = tref.m_hasConstantTypeModifier;
+    m_forMemberSelect = tref.m_forMemberSelect;
+    m_forFactor = tref.m_forFactor;
+    m_danglingDot = tref.m_danglingDot;
     return *this;
   }
 

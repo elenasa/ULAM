@@ -1,8 +1,9 @@
 /**                                        -*- mode:C++ -*-
  * NodeBlock.h - Basic Node for handling Blocks for ULAM
  *
- * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2017 Ackleyshack LLC.
+ * Copyright (C) 2014-2019 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +28,9 @@
 
 /**
   \file NodeBlock.h - Basic Node for handling Blocks for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2017 All rights reserved.
+  \date (C) 2014-2021 All rights reserved.
   \gpl
 */
 
@@ -41,6 +42,7 @@
 #include "NodeStatements.h"
 #include "SymbolTableOfVariables.h"
 #include "MapClassMemberDesc.h"
+#include <set>
 
 namespace MFM{
 
@@ -76,7 +78,7 @@ namespace MFM{
 
     void appendNextNode(Node * node);
 
-    virtual UTI checkAndLabelType();
+    virtual UTI checkAndLabelType(Node * thisparentnode);
 
     virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
 
@@ -106,9 +108,9 @@ namespace MFM{
 
     virtual u32 getSizeOfSymbolsInTable();
 
-    virtual s32 getBitSizesOfVariableSymbolsInTable();
+    virtual s32 getBitSizesOfVariableSymbolsInTable(s32& basebits, s32& mybits, std::set<UTI>& seensetref);
 
-    virtual s32 getMaxBitSizeOfVariableSymbolsInTable();
+    virtual s32 getMaxBitSizeOfVariableSymbolsInTable(s32& basebits, s32& mybits, std::set<UTI>& seensetref);
 
     u32 findTypedefNameIdByType(UTI uti);
 
@@ -121,13 +123,13 @@ namespace MFM{
   protected:
     SymbolTableOfVariables m_ST;
 
-    void genCodeDeclsForVariableDataMembers(File * fp, ULAMCLASSTYPE classtype);
+    SymbolTable * getSymbolTablePtr(); //use with caution, esp. with inheritance
+    //void genCodeDeclsForVariableDataMembers(File * fp, ULAMCLASSTYPE classtype);
 
   private:
     NodeBlock * m_prevBlockNode;
     NodeStatements * m_nodeEndingStmt; //ptr to last statement node while parsing.
 
-    SymbolTable * getSymbolTablePtr(); //use with caution, esp. with inheritance
 
   };
 

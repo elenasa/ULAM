@@ -10,30 +10,24 @@ namespace MFM {
 
   NodeBinaryOpShift::~NodeBinaryOpShift() {}
 
-  UTI NodeBinaryOpShift::checkAndLabelType()
+  UTI NodeBinaryOpShift::checkAndLabelType(Node * thisparentnode)
   {
     assert(m_nodeLeft && m_nodeRight);
-    UTI leftType = m_nodeLeft->checkAndLabelType();
-    UTI rightType = m_nodeRight->checkAndLabelType();
-
-    UlamType * lut = m_state.getUlamTypeByIndex(leftType);
-    if((lut->getUlamTypeEnum() == Class))
+    UTI leftType = m_nodeLeft->checkAndLabelType(this);
+    UTI rightType = m_nodeRight->checkAndLabelType(this);
+    TBOOL rtntb = NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode(thisparentnode);
+    if(rtntb == TBOOL_TRUE)
       {
-	Node * newnode = buildOperatorOverloadFuncCallNode(); //virtual
-	if(newnode)
-	  {
-	    AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
-	    assert(swapOk);
-
-	    m_nodeLeft = NULL; //recycle as memberselect
-	    m_nodeRight = NULL; //recycle as func call arg
-
-	    delete this; //suicide is painless..
-
-	    return newnode->checkAndLabelType();
-	  }
-	//else should fail again as non-primitive;
-      } //done
+	m_state.setGoAgain();
+	delete this; //suicide is painless..
+	return Hzy;
+      }
+    else if(rtntb == TBOOL_HAZY)
+      {
+	m_state.setGoAgain();
+	return Hzy;
+      }
+    //else
 
     UTI newType = calcNodeType(leftType, rightType); //Bits, or Nav error
     setNodeType(newType);
@@ -70,8 +64,8 @@ namespace MFM {
 	  }
       } //complete
 
-    if((newType != Nav) && isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
-      return constantFold();
+    if(m_state.okUTItoContinue(newType) && isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
+      return constantFold(thisparentnode);
 
     return newType;
   } //checkAndLabelType
@@ -123,8 +117,8 @@ namespace MFM {
 	bool bok = true;
 	//s32 lbs = resultBitsize(lt, rt);
 	//e.g. t3432, t3463, t3467
-	s32 lbs = UNKNOWNSIZE, wordsize = UNKNOWNSIZE;
-	NodeBinaryOp::calcBitsizeForResultInBits(lt, lbs, wordsize);
+	s32 lbs = UNKNOWNSIZE, lwordsize = UNKNOWNSIZE;
+	NodeBinaryOp::calcBitsizeForResultInBits(lt, lbs, lwordsize);
 
 	//will auto cast to Bits, a downhill cast. using LHS bitsize (not result size).
 	UlamKeyTypeSignature newleftkey(m_state.m_pool.getIndexForDataString("Bits"), lbs);
@@ -179,12 +173,12 @@ namespace MFM {
 	//check for big shift values
 	if(m_nodeRight->isAConstant() && m_nodeRight->isReadyConstant())
 	  {
-	    if(m_nodeRight->isWordSizeConstant())
+	    if(m_nodeRight->isWordSizeConstant(lwordsize))
 	      {
 		std::ostringstream msg;
 		msg << "Shift distance greater than data width, operation ";
 		msg << getName();
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN); //t41470
 	      }
 	  }
 
@@ -222,7 +216,13 @@ namespace MFM {
 	methodname << "NAV";
 	break;
       };
-    methodname << nut->getTotalWordSize();
+
+    u32 twsize = nut->getTotalWordSize();
+    if(twsize <= MAXBITSPERLONG)
+      methodname << twsize; //not for Big Bits
+    else
+      methodname << "BV";  //t41563
+
     return methodname.str();
   } // methodNameForCodeGen
 

@@ -4,13 +4,12 @@
 ##
 #!
 Exit status: 0
-Ue_Test : System { :<> Int(32) test() {  Bool(1) b = true;  ( b )print 0 cast return } }
+Ue_Test : System { :System<> Int test() {  Bool b = true;  self ( b )print . 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ##
 #>Test.ulam
   ulam 2;
-use System;
 element Test : System {
 
   Int test() {

@@ -24,7 +24,7 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-  bool NodeMemberSelectOnConstructorCall::getStorageSymbolPtr(Symbol *& symptrref)
+  bool NodeMemberSelectOnConstructorCall::getStorageSymbolPtr(const Symbol *& symptrref)
   {
     MSG(getNodeLocationAsString().c_str(), "No storage symbol", ERR);
     return false;
@@ -41,9 +41,9 @@ namespace MFM {
     return m_nodeLeft->safeToCastTo(newType);
   } //safeToCastTo
 
-  UTI NodeMemberSelectOnConstructorCall::checkAndLabelType()
+  UTI NodeMemberSelectOnConstructorCall::checkAndLabelType(Node * thisparentnode)
   {
-    UTI nuti = NodeMemberSelect::checkAndLabelType();
+    UTI nuti = NodeMemberSelect::checkAndLabelType(thisparentnode);
     if(m_state.okUTItoContinue(nuti))
       {
 	UTI luti = m_nodeLeft->getNodeType();
@@ -147,15 +147,13 @@ namespace MFM {
     if(NodeMemberSelect::passalongUVPass())
       {
 	luvpass = uvpass;
-	Node::adjustUVPassForElements(luvpass);
       }
 
     m_nodeLeft->genCodeToStoreInto(fp, luvpass);
 
-    if(passalongUVPass()) //true
+    if(passalongUVPass(true)) //true
       {
 	uvpass = luvpass;
-	Node::adjustUVPassForElements(uvpass);
       }
 
     //check the back (not front) to process multiple member selections
@@ -174,7 +172,6 @@ namespace MFM {
     if(NodeMemberSelect::passalongUVPass())
       {
 	luvpass = uvpass;
-	Node::adjustUVPassForElements(luvpass);
       }
 
     // if parent is another MS, we might need to adjust pos first
@@ -182,29 +179,23 @@ namespace MFM {
     m_nodeLeft->genCodeToStoreInto(fp, luvpass);
 
     UVPass ruvpass;
-    if(passalongUVPass()) //true
+    if(passalongUVPass(true)) //true
       {
 	ruvpass = luvpass;
-	Node::adjustUVPassForElements(ruvpass);
       }
 
     m_nodeRight->genCodeToStoreInto(fp, ruvpass); //uvpass contains the member selected, or cos obj symbol?
 
     uvpass = ruvpass;
 
-    //undo any element adjustment now that we are returning an object, not a ref
-    if(Node::needAdjustToStateBits(ruvpass.getPassTargetType()))
-      {
-	u32 rpos = ruvpass.getPassPos();
-	uvpass.setPassPos(rpos - ATOMFIRSTSTATEBITPOS); //t41091
-      }
+    // no longer adjusting pos for elements here; done later explicitly in gencode (ulam-5) t41091.
 
     //tmp variable needed for any function call not returning a ref (constructors return Void).
     m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, NULL); //dm to avoid leaks
     m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
   } //genCodeToStoreInto
 
-  bool NodeMemberSelectOnConstructorCall::passalongUVPass()
+  bool NodeMemberSelectOnConstructorCall::passalongUVPass(bool toRHS)
   {
     return true; //pass along
   }

@@ -6,9 +6,9 @@
 ##
 #!
 Exit status: 3
-Ue_P { Bool(1) b(true);  Int(32) test() {  System s;  Q(3,3u) w;  s ( 3u )print . b true = s ( b )assert . 3u cast return } }
-Uq_Q(Int(32) b = NONREADYCONST, Unsigned(32) s = NONREADYCONST) { typedef Unsigned(UNKNOWN) Foo;  Unsigned(UNKNOWN) f(notready);  <NOMAIN> }
-Uq_V(Int(32) a) { Unsigned(UNKNOWN) vfoo(notready);  <NOMAIN> }
+Ue_P { Bool b(true);  Int test() {  System s;  Q(3,3u) w;  s ( 3u )print . self b . true = s ( self b . )assert . 3u cast return } }
+Uq_Q(Int b = NONREADYCONST, Unsigned s = NONREADYCONST) { typedef Unsigned(UNKNOWN) Foo;  Unsigned(UNKNOWN) f(notready);  <NOMAIN> }
+Uq_V(Int a) { Unsigned(UNKNOWN) vfoo(notready);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t3891,  class param 'b' for Q: provide first arg, based on a P localdef constant array item, with second class param dependent on it

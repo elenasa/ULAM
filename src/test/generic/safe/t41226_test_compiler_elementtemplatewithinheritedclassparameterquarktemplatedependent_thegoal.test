@@ -8,11 +8,11 @@
 ## FAILED: ILLEGAL_ARGUMENT
 #!
 Exit status: 7
-Ue_T { Int(32) test() {  System sys;  E(true) et;  sys ( et 7 . )print . sys ( et 7 . 7 == )assert . sys ( et v . b . cast )print . sys ( et v . b . )assert . et 7 . cast return } }
+Ue_T { Int test() {  System sys;  E(true) et;  sys ( et 7 . )print . sys ( et 7 . 7 == )assert . sys ( et v . b . cast )print . sys ( et v . b . )assert . et 7 . cast return } }
 Uq_System { <NOMAIN> }
-Ue_E(Bool(1) bp) : S(v,bp) { /* empty class block */ }
-Uq_S(Q(flag) v, Bool(1) bp) { constant Int(4) csi = v i .;  <NOMAIN> }
-Uq_Q(Bool(1) flag) { Bool(1) b(notready);  Int(4) i(0);  <NOMAIN> }
+Ue_E(Bool bp) : S(v,bp) { /* empty class block */ }
+Uq_S(Q(flag) v, Bool bp) { constant Int(4) csi = v i .;  <NOMAIN> }
+Uq_Q(Bool flag) { Bool b(notready);  Int(4) i(0);  <NOMAIN> }
 ##
 ##    //informed by t41213, except element E has a dependent ancestor
 ##    //  also like t41225, except quark S has two class params and no ancestor

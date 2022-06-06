@@ -2,7 +2,8 @@
  * SymbolTypedef.h -  Basic handling of Typedef Symbols for ULAM
  *
  * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2017 Ackleyshack LLC.
+ * Copyright (C) 2014-2021 Ackleyshack LLC.
+ * Copyright (C) 2021 The Living Computation Foundation.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +28,9 @@
 
 /**
   \file SymbolTypedef.h -  Basic handling of Typedef Symbols for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2017 All rights reserved.
+  \date (C) 2014-2021 All rights reserved.
   \gpl
 */
 
@@ -66,10 +67,17 @@ namespace MFM{
 
     virtual void setStructuredComment();
 
+    virtual bool isCulamGeneratedTypedef();
+    void setCulamGeneratedTypedef();
+    void clearCulamGeneratedTypedef();
+    virtual bool isCulamGeneratedTypedefAliased();
+    void setCulamGeneratedTypedefAliased();
   protected:
 
   private:
     UTI m_scalarUTI; //when utype is an array
+    bool m_culamgenerated;
+    bool m_culamgeneratedaliased; //good as deleted, but better.
   };
 
 }

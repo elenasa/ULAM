@@ -12,10 +12,7 @@ namespace MFM {
 
   NodeStatements::NodeStatements(const NodeStatements& ref) : Node(ref), m_node(NULL), m_nodeNext(NULL)
   {
-    if(ref.m_node)
-      m_node = ref.m_node->instantiate();
-    if(ref.m_nodeNext)
-      m_nodeNext = (NodeStatements *) ref.m_nodeNext->instantiate();
+    copyAParseTreeHere(ref);
   }
 
   NodeStatements::~NodeStatements()
@@ -24,6 +21,14 @@ namespace MFM {
     m_nodeNext = NULL;
     delete m_node;
     m_node = NULL;
+  }
+
+  void NodeStatements::copyAParseTreeHere(const NodeStatements& ref)
+  {
+    if(ref.m_node)
+      m_node = ref.m_node->instantiate();
+    if(ref.m_nodeNext)
+      m_nodeNext = (NodeStatements *) ref.m_nodeNext->instantiate();
   }
 
   Node * NodeStatements::instantiate()
@@ -108,13 +113,22 @@ namespace MFM {
       m_nodeNext->printPostfix(fp);
   } //printPostfix
 
-  void NodeStatements::noteTypeAndName(s32 totalsize, u32& accumsize)
+  void NodeStatements::noteTypeAndName(UTI cuti, s32 totalsize, u32& accumsize)
   {
     assert(m_node);    //e.g. bad decl
-    m_node->noteTypeAndName(totalsize, accumsize);
+    m_node->noteTypeAndName(cuti, totalsize, accumsize);
 
     if(m_nodeNext)
-      m_nodeNext->noteTypeAndName(totalsize, accumsize);
+      m_nodeNext->noteTypeAndName(cuti, totalsize, accumsize);
+  }
+
+  void NodeStatements::genTypeAndNameEntryAsComment(File * fp, s32 totalsize, u32& accumsize)
+  {
+    assert(m_node);    //e.g. bad decl
+    m_node->genTypeAndNameEntryAsComment(fp, totalsize, accumsize);
+
+    if(m_nodeNext)
+      m_nodeNext->genTypeAndNameEntryAsComment(fp, totalsize, accumsize);
   }
 
   const char * NodeStatements::getName()
@@ -162,15 +176,15 @@ namespace MFM {
     return false;
   }
 
-  UTI NodeStatements::checkAndLabelType()
+  UTI NodeStatements::checkAndLabelType(Node * thisparentnode)
   {
     assert(m_node);
 
     //unlike statements, blocks don't have an m_node
-    m_node->checkAndLabelType(); //side-effect
+    m_node->checkAndLabelType(this); //side-effect
 
     if(m_nodeNext)
-      m_nodeNext->checkAndLabelType(); //side-effect
+      m_nodeNext->checkAndLabelType(this); //side-effect
 
     //statements don't have types
     setNodeType(Void);
@@ -190,7 +204,7 @@ namespace MFM {
     bool aok = true;
     if(m_node)
       aok &= m_node->buildDefaultValue(wlen, dvref); //yikes! (was |=) (t41185)
-    if(aok && m_nodeNext) //why go on? (t41185)
+    if(m_nodeNext) //why go on? (t41185)
       aok &= m_nodeNext->buildDefaultValue(wlen, dvref);
     return aok;
   }
@@ -200,7 +214,7 @@ namespace MFM {
     bool aok = true;
     if(m_node)
       aok &= m_node->buildDefaultValueForClassConstantDefs();
-    if(aok && m_nodeNext) //why go on
+    if(m_nodeNext) //why go on
       aok &= m_nodeNext->buildDefaultValueForClassConstantDefs();
     return aok;
   }
@@ -243,6 +257,15 @@ namespace MFM {
 	rtntb = Node::minTBOOL(rtntb, nodetb);
       }
     return rtntb;
+  }
+
+  void NodeStatements::calcMaxIndexOfVirtualFunctionInOrderOfDeclaration(SymbolClass* csym, s32& maxidx)
+  {
+    m_node->calcMaxIndexOfVirtualFunctionInOrderOfDeclaration(csym, maxidx); //updates maxidx
+    if(m_nodeNext)
+      {
+	m_nodeNext->calcMaxIndexOfVirtualFunctionInOrderOfDeclaration(csym, maxidx);
+      }
   }
 
   void NodeStatements::printUnresolvedVariableDataMembers()
@@ -288,6 +311,13 @@ namespace MFM {
     m_node->genCodeToStoreInto(fp, uvpass);
     if(m_nodeNext)
       m_nodeNext->genCodeToStoreInto(fp, uvpass);
+  }
+
+  void NodeStatements::generateFunctionInDeclarationOrder(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
+  {
+    m_node->generateFunctionInDeclarationOrder(fp, declOnly, classtype);
+    if(m_nodeNext)
+      m_nodeNext->generateFunctionInDeclarationOrder(fp, declOnly, classtype);
   }
 
   void NodeStatements::genCodeExtern(File * fp, bool declOnly)

@@ -27,7 +27,7 @@
 
 /**
   \file UlamType.h -  Basic handling of UlamTypes for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
   \date (C) 2014-2017 All rights reserved.
   \gpl
@@ -58,7 +58,7 @@ namespace MFM{
 
     UlamType * getUlamType(); //returns a pointer to self
 
-    const std::string getUlamTypeName();
+    virtual const std::string getUlamTypeName();
 
     virtual const std::string getUlamTypeNameBrief();
 
@@ -150,6 +150,10 @@ namespace MFM{
 
     virtual u32 getSizeofUlamType();
 
+    virtual s32 getBitsizeAsBaseClass();
+
+    virtual void setBitsizeAsBaseClass(s32 bs);
+
     ALT getReferenceType();
 
     bool isReference();
@@ -230,7 +234,7 @@ namespace MFM{
     static ULAMTYPECOMPARERESULTS compareWithWildArrayItemALTKey(UTI u1, UTI u2, CompilerState& state);
     static ULAMTYPECOMPARERESULTS compareWithWildALTKey(UTI u1, UTI u2, CompilerState& state);
 
-    bool checkArrayCast(UTI typidx);
+    virtual bool checkArrayCast(UTI typidx);
   };
 
 }

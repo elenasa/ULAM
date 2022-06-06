@@ -2,7 +2,8 @@
  * NodeModelParameterDef.h - Node handling Model Parameter Definition for ULAM
  *
  * Copyright (C) 2015-2018 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2018 Ackleyshack LLC.
+ * Copyright (C) 2015-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +28,9 @@
 
 /**
   \file NodeModelParameterDef.h - Node handling Model Parameter Definition for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2018 All rights reserved.
+  \date (C) 2015-2021 All rights reserved.
   \gpl
 */
 
@@ -60,7 +61,7 @@ namespace MFM{
 
     virtual void fixPendingArgumentNode();
 
-    virtual UTI checkAndLabelType();
+    virtual UTI checkAndLabelType(Node * thisparentnode);
 
     virtual bool buildDefaultValue(u32 wlen, BV8K& dvref);
 

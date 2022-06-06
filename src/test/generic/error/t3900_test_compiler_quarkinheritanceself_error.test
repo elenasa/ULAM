@@ -1,8 +1,9 @@
 ## -*- mode:ulam -*-
 #=t3900_test_compiler_quarkinheritanceself_error
 #!
-./Soo.ulam:2:13: ERROR: Class Definition 'Soo'; Inheritance from invalid Class 'Soo'.
+./Soo.ulam:2:13: ERROR: Class Definition 'Soo'; Provides an invalid Baseclass 'Soo'.
 Unrecoverable Program Parse FAILURE: <Soo.ulam>
+./Coo.ulam:2:13: ERROR: Class Definition 'Coo'; Provides an invalid Baseclass 'Coo'.
 Unrecoverable Program Parse FAILURE: <Coo.ulam>
 ##
 ## quark inheritance from self, regular (non-template)
@@ -24,8 +25,8 @@ quark Soo : Soo {
 }
 
 #:Coo.ulam
-  ulam 2;
-quark Coo {
+  ulam 4;
+quark Coo + Coo {
   Bool(3) cb = true;
 }
 

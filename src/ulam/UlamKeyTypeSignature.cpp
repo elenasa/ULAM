@@ -20,7 +20,7 @@ namespace MFM {
     m_classInstanceIdx = cuti;
   }
 
-  const std::string UlamKeyTypeSignature::getUlamKeyTypeSignatureName(CompilerState * state)
+  const std::string & UlamKeyTypeSignature::getUlamKeyTypeSignatureName(CompilerState * state)
   {
     assert(state);
     return state->m_pool.getDataAsString(m_typeNameId);
@@ -51,7 +51,7 @@ namespace MFM {
     return m_referenceType;
   }
 
-  const std::string UlamKeyTypeSignature::getUlamKeyTypeSignatureNameAndBitSize(CompilerState * state)
+  const std::string & UlamKeyTypeSignature::getUlamKeyTypeSignatureNameAndBitSize(CompilerState * state)
   {
     std::ostringstream key;
     key << getUlamKeyTypeSignatureName(state);
@@ -63,18 +63,23 @@ namespace MFM {
       key << "(" << "CYCLE" << ")";
     //else
     //  key << "(" << m_bits << "?)";
-
-    return key.str();
+    //return key.str();
+    u32 keyid = state->m_pool.getIndexForDataString(key.str());
+    return state->m_pool.getDataAsString(keyid);
   } //getUlamKeyTypeSignatureNameAndBitSize
 
-  const std::string UlamKeyTypeSignature::getUlamKeyTypeSignatureNameAndSize(CompilerState * state)
+  const std::string & UlamKeyTypeSignature::getUlamKeyTypeSignatureNameAndSize(bool defaultbitsize, CompilerState * state)
   {
     std::ostringstream key;
 
     if(m_referenceType == ALT_CONSTREF)
       key << "constant ";
 
-    key << getUlamKeyTypeSignatureNameAndBitSize(state);
+    if(defaultbitsize)
+      key << getUlamKeyTypeSignatureName(state); //skip bitsize when default size
+    else
+      key << getUlamKeyTypeSignatureNameAndBitSize(state);
+
     //arraysize
     if(m_arraySize >= 0)
       key << "[" << m_arraySize << "]";
@@ -85,15 +90,17 @@ namespace MFM {
 
     if((m_referenceType == ALT_REF) || (m_referenceType == ALT_CONSTREF))
       key << "&"; //only when ulam programmer put in the &
-    return key.str();
+    //return key.str();
+    u32 keyid = state->m_pool.getIndexForDataString(key.str());
+    return state->m_pool.getDataAsString(keyid);
   } //getUlamKeyTypeSignatureNameAndSize
 
-  const std::string UlamKeyTypeSignature::getUlamKeyTypeSignatureAsString(CompilerState * state)
+  const std::string & UlamKeyTypeSignature::getUlamKeyTypeSignatureAsString(CompilerState * state)
   {
     return UlamKeyTypeSignature::getUlamKeyTypeSignatureAsString(*this, state);
   }
 
-  const std::string UlamKeyTypeSignature::getUlamKeyTypeSignatureAsString(UlamKeyTypeSignature utk, CompilerState* state)
+  const std::string & UlamKeyTypeSignature::getUlamKeyTypeSignatureAsString(UlamKeyTypeSignature utk, CompilerState* state)
   {
     std::ostringstream key;
     key << utk.getUlamKeyTypeSignatureName(state);
@@ -121,7 +128,9 @@ namespace MFM {
     if(utk.m_referenceType != ALT_NOT)
       key << "<" << utk.m_referenceType << ">";
 
-    return key.str();
+    //return key.str();
+    u32 keyid = state->m_pool.getIndexForDataString(key.str());
+    return state->m_pool.getDataAsString(keyid);
   } //getUlamKeyTypeSignatureAsString
 
   bool UlamKeyTypeSignature::operator<(const UlamKeyTypeSignature & key2) const

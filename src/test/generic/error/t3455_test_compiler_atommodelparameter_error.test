@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3455_test_compiler_atommodelparameter_error
 #!
-./Tu.ulam:4:21: ERROR: Variable <self> is not defined, or was used before declared in a function.
+./Tu.ulam:4:21: ERROR: Variable 'self' is not defined, or was used before declared in a function.
 ./Tu.ulam:4:13: ERROR: Constant value expression for: aep, is invalid.
 Unrecoverable Program Type Label FAILURE.
 ##

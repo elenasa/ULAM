@@ -2,7 +2,7 @@
 #=t3116_test_compiler_funcdef_maxdepth_edit
 #!
 Exit status: 1
-Ue_A { Bool(1) c(true);  Int(32) test() {  c ( 1 cast true )foo = c cast return } }
+Ue_A { Bool c(true);  Int test() {  self c . self ( 1 cast true )foo . = self c . cast return } }
 #>A.ulam
 element A {
  Bool foo(Int m, Bool b) {
@@ -19,5 +19,5 @@ element A {
  return (Int) c;
  } Bool c;
  }
-##./A.ulam:9:4: ERROR: Use a comparison operator to convert Int(32) to Bool(1) for operator=.
+##./A.ulam:9:4: ERROR: Use a comparison operator to convert Int to Bool for operator=.
 #.

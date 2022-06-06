@@ -1,0 +1,49 @@
+## -*- mode:ulam -*-
+#=t41430_test_compiler_castatomDM2element_issue
+##
+##      //problem with eval answer is that an atom type appears the same as tu.
+##        unevaluable without assuming atoms as elements
+#!
+Exit status: -11
+Ue_Tu { Int test() {  Foo foot;  foot ( )behave . { foot mA . Tu is cond { Tu f = foot mA . cast;  } if } Atom& aref = foot mA . cast;  { aref Tu as cond { Tu& aref;  Tu f = aref cast;  } if } 0 cast return } }
+Un_Foo { Atom mA(Atom);  <NOMAIN> }
+##
+## informed by Dave's ish 3/9/21 (see also t3277); was generated code gcc compiler error
+##
+#>Tu.ulam
+  ulam 5;
+element Tu {
+  Int test(){
+    Foo foot;
+
+    foot.behave(); //as data member, see generated code
+
+    //local vars here, see generated code
+    if(foot.mA is Tu) {
+      Tu f = (Tu) foot.mA;
+    }
+
+    Atom& aref = foot.mA;
+    if(aref as Tu) {
+      Tu f = aref;
+    }
+    return 0;
+  }
+}
+
+#:Foo.ulam
+  ulam 5;
+transient Foo {
+  Atom mA;
+  Void behave() {
+    if(mA is Tu) {
+      Tu f = (Tu) mA;
+    }
+
+    if(mA as Tu) {
+      Tu f = mA;
+    }
+  }
+}
+
+#.

@@ -1,0 +1,82 @@
+## -*- mode:ulam -*-
+#=t41413_test_compiler_explicitcastingbitstoquark_wrongsizes_ish_error
+#!
+./Anchor10.ulam:19:22: ERROR: Cannot cast Bits(3) to quark SegPkt10(4); Must be same bitsize.
+./Anchor10.ulam:19:5: ERROR: Initial value expression for: pkt2, initialization is invalid.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by Dave's ish 2/24/2021: implementation missing.
+##
+#>Anchor10.ulam
+ ulam 5;
+//local constant Unsigned cMSG_BITS = SegPkt10.sizeof;
+local constant Unsigned cMSG_BITS = 3;
+local typedef QSegment(cMSG_BITS) QSegX;
+
+/**
+   \symbol A1
+   \symmetries none
+   \color #448
+ */
+element Anchor10 : QSegX {
+
+  Int test() {
+    typedef QSegX.QC_QIMsg.Payload MPayload;
+
+    //SegPkt10 pkt;
+    //mMessageBuffer.mPayload = (MPayload) pkt;
+
+    SegPkt10 pkt2 = (SegPkt10) mMessageBuffer.mPayload;  //catches error
+    return 0;
+  }
+}
+
+
+quark SegPkt10 {
+  typedef Unsigned(3) CN;
+  constant CN cNO_OP       = 0u;
+  constant CN cSET_LENGTH  = 1u;
+  constant CN cSET_STRETCH = 2u;
+  constant CN cSET_ANGLE   = 3u;
+  constant CN cSET_FLEX    = 4u;
+  constant CN cGROW_HEAD   = 5u;
+  constant CN cRSV6        = 6u;
+  constant CN cRSV7        = 7u;
+
+  Bool mUpbound;
+  CN mCN;
+}
+
+
+
+#:QSegment.ulam
+  ulam 5;
+quark QSeg {
+  typedef Unsigned(5) SegPtr; // SN 0..24 (25..31 reserved)
+  typedef Unsigned(2) Type;
+
+}
+
+/** Base class for a 1D fragile data transport system.  To be subclassed by SPLAT code.
+ */
+quark QSegment(Unsigned cMSG_BITS) : QSeg {
+  // Data members
+  typedef QIMsg(cMSG_BITS) QC_QIMsg;
+  QC_QIMsg mMessageBuffer;
+
+}
+
+#:QIMsg.ulam
+  ulam 5;
+/** An internal message */
+quark QIMsg(Unsigned bits) {
+  typedef Bits(bits) Payload;
+  typedef Unary(2) Direction;
+  constant Direction cEMPTY = 0u;
+  constant Direction cUP    = 1u;
+  constant Direction cDOWN  = 2u;
+  Direction mDirection;
+  Payload mPayload;
+}
+
+#.

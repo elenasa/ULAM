@@ -9,7 +9,7 @@
 
 namespace MFM {
 
-  UlamTypeClass::UlamTypeClass(const UlamKeyTypeSignature key, CompilerState & state) : UlamType(key, state), m_customArray(false)
+  UlamTypeClass::UlamTypeClass(const UlamKeyTypeSignature key, CompilerState & state) : UlamType(key, state), m_customArray(false), m_bitsizeAsBaseClass(UNKNOWNSIZE)
   {
     m_wordLengthTotal = calcWordSize(getTotalBitSize());
     m_wordLengthItem = calcWordSize(getBitSize());
@@ -28,6 +28,25 @@ namespace MFM {
   bool UlamTypeClass::isPrimitiveType()
   {
     return false;
+  }
+
+  s32 UlamTypeClass::getBitsizeAsBaseClass()
+  {
+    assert(isScalar());
+    assert(!isReference()); //t41366
+    //assert(m_bitsizeAsBaseClass >= 0); //t3318
+    return m_bitsizeAsBaseClass;
+  }
+
+  void UlamTypeClass::setBitsizeAsBaseClass(s32 bs)
+  {
+    assert(isScalar());
+    if(m_bitsizeAsBaseClass > 0)
+      {
+	assert(bs == m_bitsizeAsBaseClass); //don't clobber!
+      }
+    else
+      m_bitsizeAsBaseClass = bs;
   }
 
   bool UlamTypeClass::cast(UlamValue & val, UTI typidx)
@@ -83,10 +102,13 @@ namespace MFM {
 	UlamType * fmut = m_state.getUlamTypeByIndex(typidx);
 	ULAMTYPE fetyp = fmut->getUlamTypeEnum();
 	//no casting from primitive to class; but from atom/atomref to class may be fine (e.g. t3733)
-	if((fetyp != Class) && (fetyp != UAtom))
+	//except allow casting from Bits to class if exact same bitsize (t41416)
+	if((fetyp != Class) && (fetyp != UAtom) && (fetyp != Bits))
 	  return CAST_BAD;
 	else if(m_state.isAtom(typidx))
 	  return CAST_CLEAR;
+	else if(fetyp == Bits)
+	  return CAST_CLEAR; //t41416, bitsize check in NodeCast c&l.
 	//check when casting from class to class
 	bool isfmref = fmut->isAltRefType();
 	UTI fmderef = m_state.getUlamTypeAsDeref(typidx);
@@ -95,7 +117,7 @@ namespace MFM {
 	  {
 	    //even though it may fail at runtime:
 	    //(down)casting fm super to sub..only if fm-ref && to-ref
-	    if(!isfmref || !isAltRefType())
+	    if(!isfmref)
 	      scr = CAST_BAD; //t3756, t3757
 	  }
 	else if(m_state.isClassASubclassOf(fmderef, cuti))
@@ -181,15 +203,17 @@ namespace MFM {
 #if 0
     //for DEBUGG ONLY!!
     UTI aliasuti;
-    if(m_state.findaUTIAlias(cuti, aliasuti))
+    if(m_state.findRootUTIAlias(cuti, aliasuti))
       {
 	//when array or ref, the kuti is the scalar/deref uti, the aliasuti is same as cuti;
 	//stubs get here via printPostfix on template classes;
-	assert(isref || !isScalar() || m_state.isClassAStub(cuti) || (aliasuti == kuti)); //sanity:t3363(stub),t3757,t3806 (stub),3814 (array)
+	//sanity:t3363(stub),t3757,t3806 (stub),3814 (array)
+	assert(isref || !isScalar() || m_state.isClassAStub(cuti) || (aliasuti == kuti));
       }
     else
       {
-	assert(isref || !isScalar() || !isComplete() || (cuti == kuti)); //debug:t3862,t41209,t3143,t3327
+	//debug:t3862,t41209,t3143,t3327
+	assert(isref || !isScalar() || !isComplete() || (cuti == kuti));
       }
 #endif
 
@@ -202,10 +226,10 @@ namespace MFM {
       namestr << ((SymbolClassNameTemplate *) cnsym)->formatAnInstancesArgValuesAsCommaDelimitedString(uti).c_str();
 
      //note: any "[arraysize]" comes with variable name, not class type (like C decl).
-    if(getReferenceType() != ALT_NOT)
+    if(isref)
       namestr << "&";
     return namestr.str();
-  } //getUlamTypeNameBrief
+  } //getUlamTypeClassNameBrief
 
   //see SymbolVariableDataMember printPostfix for recursive output
   void UlamTypeClass::getDataAsString(const u32 data, char * valstr, char prefix)
@@ -266,8 +290,18 @@ namespace MFM {
     if(getUlamClassType() == UC_UNSEEN)
       return false; //forgotten?
 
+    if((getUlamClassType() != UC_ELEMENT) && !isReference() && isScalar() && (getBitsizeAsBaseClass() == UNKNOWNSIZE))
+      return false;
+
     return UlamType::isComplete();
   }
+
+  PACKFIT UlamTypeClass::getPackable()
+  {
+    //if(isCustomArray())
+    //  return m_state.getUlamTypeByIndex(getCustomArrayType())->getPackable(); //t41143
+    return UlamType::getPackable();
+  } //getPackable
 
   const std::string UlamTypeClass::readMethodForCodeGen()
   {
@@ -328,8 +362,6 @@ namespace MFM {
 
   TMPSTORAGE UlamTypeClass::getTmpStorageTypeForTmpVar()
   {
-    if(isCustomArray())
-      return m_state.getUlamTypeByIndex(getCustomArrayType())->getTmpStorageTypeForTmpVar();
     return UlamType::getTmpStorageTypeForTmpVar();
   }
 

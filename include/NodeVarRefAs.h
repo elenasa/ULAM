@@ -1,8 +1,9 @@
 /**                                        -*- mode:C++ -*-
  * NodeVarRefAs.h - Node handling of Conditional-As for ULAM
  *
- * Copyright (C) 2015-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2017 Ackleyshack LLC.
+ * Copyright (C) 2015-2019 The Regents of the University of New Mexico.
+ * Copyright (C) 2015-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +28,9 @@
 
 /**
   \file NodeVarRefAs.h - Node handling of Conditional-As for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2017 All rights reserved.
+  \date (C) 2015-2021 All rights reserved.
   \gpl
 */
 
@@ -65,9 +66,9 @@ namespace MFM{
 
     virtual FORECAST safeToCastTo(UTI newType);
 
-    virtual bool checkReferenceCompatibility(UTI uti);
+    virtual bool checkReferenceCompatibility(UTI uti, Node * parentnode);
 
-    virtual UTI checkAndLabelType();
+    virtual UTI checkAndLabelType(Node * thisparentnode);
 
     virtual TBOOL packBitsInOrderOfDeclaration(u32& offset);
 
@@ -86,6 +87,7 @@ namespace MFM{
   private:
 
     void genCodeRefAsSelf(File * fp, UVPass& uvpass);
+    void makeSuperSymbolForAsBlock();
   };
 
 } //MFM

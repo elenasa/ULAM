@@ -1,8 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3391_test_compiler_quarkwithtypedefofitself_error
 #!
-./Typo.ulam:3:11: ERROR: Self cannot be a typedef because it is already declared as Typo at: ..
-./Typo.ulam:2:7: ERROR: .. this location.
+./Typo.ulam:3:16: ERROR: Invalid typedef Alias <Self>, Type Identifier (2nd arg) must not be a reserved keyword.
 ./Typo.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'Typo'; Possible missing ending curly brace.
 ./Typo.ulam:3:20: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
  ERROR: No parse tree for This Class: ElTypo.

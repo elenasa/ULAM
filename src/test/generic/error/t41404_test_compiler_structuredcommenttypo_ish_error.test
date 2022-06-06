@@ -1,0 +1,25 @@
+## -*- mode:ulam -*-
+#=t41404_test_compiler_structuredcommenttypo_ish_error
+#!
+./Boundary.ulam:1:3: ERROR: Malformed Structured Comment.
+ ERROR: No parse tree for This Class: Boundary.
+Unrecoverable Program Parse FAILURE: <Boundary.ulam>
+##
+## informed by Dave 5/4/2020 t41398; avoid assert.
+##
+#>A.ulam
+  ulam 5;
+element A {
+  Int test() {
+    Boundary bomb;
+    return -1;
+  }
+}
+
+#:Boundary.ulam
+/** \symbol Bd
+    \color #444
+element Boundary {
+}
+
+#.

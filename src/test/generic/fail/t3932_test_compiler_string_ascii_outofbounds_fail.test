@@ -4,7 +4,7 @@
 ## gen output: 1 assert only!
 ##
 ## gen error log:
-## include/Ue_102181A10.tcc:76: FAILED: ARRAY_INDEX_OUT_OF_BOUNDS
+## include/Ue_102181A10.tcc:65: FAILED: ARRAY_INDEX_OUT_OF_BOUNDS
 ##
 #!
 ./A.ulam:14:14: ERROR: String subscript [3] exceeds the length (3) of '"bar"'.

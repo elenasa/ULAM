@@ -2,7 +2,7 @@
 #=t3879_test_compiler_triansientwelementdm_issue
 #!
 Exit status: -11
-Ue_R { Int(32) test() {  Isht t;  0 cast return } }
+Ue_R { Int test() {  Isht t;  0 cast return } }
 Un_Isht { Ish mIsh();  <NOMAIN> }
 Ue_Ish { /* empty class block */ }
 ##

@@ -1,8 +1,9 @@
 /**                                        -*- mode:C++ -*-
  * UlamValue.h -  Basic handling of UlamValues for ULAM
  *
- * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2017 Ackleyshack LLC.
+ * Copyright (C) 2014-2020 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +28,9 @@
 
 /**
   \file UlamValue.h -  Basic handling of UlamValues for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2017 All rights reserved.
+  \date (C) 2014-2021 All rights reserved.
   \gpl
 */
 
@@ -52,25 +53,29 @@ namespace MFM{
     union UV {
 
       struct RawAtom {
-	u16 m_short;
-	UTI m_utypeIdx;
-	u8  m_bits[8];  //oops! not 10 anymore
+	u16 m_effself;
+	UTI m_utypeIdx; //ulam UTI
+	u8  m_bits[12];
       } m_rawAtom;
 
       struct PtrValue {
 	s16 m_slotIndex;
-	UTI m_utypeIdx;
+	UTI m_utypeIdx; //corresponds to AtomBitVector bits 0-15
 	u8  m_posInAtom;
 	s8  m_bitlenInAtom;
 	u8  m_storagetype; //STORAGE
 	u8  m_packed; //PACKFIT
-	u16 m_targetType;
+	UTI m_targetType;
 	u16 m_nameid; //for code gen
+	UTI m_targetEffSelf;
+	u16 m_nomore;
       } m_ptrValue;
 
       struct Storage {
+	u16 m_effself;
+	UTI m_utypeIdx;
 	//AtomBitVector m_atom;
-	//0-15 UTI, 16-24 errcorr. 25-96 designed by element data members
+	//0-15 ElementType, 16-24 errcorr. 25-96 designed by element data members
 	u32 m_atom[AtomBitVector::ARRAY_LENGTH];
       } m_storage;
 
@@ -78,6 +83,7 @@ namespace MFM{
 
 
     UlamValue(); //requires init to avoid Null ptr for type
+    UlamValue(const UlamValue &); //explicit copy ctr needed for c++11
     ~UlamValue();
 
     void clear();
@@ -85,10 +91,10 @@ namespace MFM{
     void init(UTI utype, u32 v, CompilerState& state);
 
     // returns Atom with default values set
-    static UlamValue makeDefaultAtom(UTI elementType, CompilerState& state);
+    static UlamValue makeDefaultAtom(UTI classType, CompilerState& state);
 
     // returns cleared Atom with element type set
-    static UlamValue makeAtom(UTI elementType);
+    static UlamValue makeAtom(UTI classType);
 
     // returns cleared Atom
     static UlamValue makeAtom();
@@ -120,15 +126,21 @@ namespace MFM{
 
     void setUlamValueTypeIdx(UTI utype);
 
-    UTI  getAtomElementTypeIdx();
+    UTI  getUlamValueEffSelfTypeIdx() const;
 
-    void setAtomElementTypeIdx(UTI utype);
+    void setUlamValueEffSelfTypeIdx(UTI utype);
+
+    u32 getAtomElementTypeIdx();
+
+    void setAtomElementTypeIdx(u32 eletypecorr);
 
     bool isPtr() const;
 
     bool isPtrAbs() const;
 
     PACKFIT isTargetPacked(); // Ptr only
+
+    void setTargetPacked(PACKFIT packed); // Ptr only
 
     UlamValue getValAt(u32 offset, CompilerState& state) const; // Ptr only, arrays
 
@@ -144,11 +156,17 @@ namespace MFM{
 
     u32 getPtrPos();
 
+    void setPtrLen(s32 len);
+
     s32 getPtrLen();
 
     UTI getPtrTargetType();
 
     void setPtrTargetType(UTI type);
+
+    UTI getPtrTargetEffSelfType();
+
+    void setPtrTargetEffSelfType(UTI type);
 
     u16 getPtrNameId();
 
@@ -190,6 +208,8 @@ namespace MFM{
     u32 getData(u32 pos, s32 len) const;
 
     u64 getDataLong(u32 pos, s32 len) const;
+
+    void getDataBig(u32 pos, s32 len, BV8K& bvref) const;
 
     void putData(u32 pos, s32 len, u32 data);
 

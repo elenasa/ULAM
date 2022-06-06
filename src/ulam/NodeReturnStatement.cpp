@@ -96,11 +96,11 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-  UTI NodeReturnStatement::checkAndLabelType()
+  UTI NodeReturnStatement::checkAndLabelType(Node * thisparentnode)
   {
     UTI rtnType = m_state.m_currentFunctionReturnType;
     assert(m_node); //a return without an expression (i.e. Void) is NodeStatementEmpty!
-    UTI nodeType = m_node->checkAndLabelType();
+    UTI nodeType = m_node->checkAndLabelType(this);
 
     if(m_state.isComplete(nodeType) && m_state.isComplete(rtnType))
       {
@@ -108,56 +108,66 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Returning incompatible (nonscalar) types: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
+	    msg << m_state.getUlamTypeNameByIndex(nodeType).c_str();
 	    msg << " as ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(rtnType).c_str();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    msg << m_state.getUlamTypeNameByIndex(rtnType).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //t3137
 	    nodeType = Nav;
 	  }
-	//else if(UlamType::compareForArgumentMatching(nodeType, rtnType, m_state) != UTIC_SAME)
 	else if(UlamType::compareForAssignment(nodeType, rtnType, m_state) != UTIC_SAME)
 	  {
 	    if(UlamType::compare(rtnType, Void, m_state) == UTIC_NOTSAME)
 	      {
-		if(m_node->isAConstant() && !m_node->isReadyConstant())
+		if(nodeType == Void)
 		  {
-		    m_node->constantFold();
-		  }
-		ULAMTYPE etyp = m_state.getUlamTypeByIndex(rtnType)->getUlamTypeEnum();
-		FORECAST scr = m_node->safeToCastTo(rtnType);
-		if(scr == CAST_CLEAR)
-		  {
-		    if(!Node::makeCastingNode(m_node, rtnType, m_node))
-		      nodeType = Nav; //no casting node
-		    else
-		      nodeType = m_node->getNodeType(); //casted
+		    std::ostringstream msg;
+		    msg << "Return expression missing for non-void function returning: ";
+		    msg << m_state.getUlamTypeNameBriefByIndex(rtnType).c_str();
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    nodeType = Nav; //t41472
 		  }
 		else
 		  {
-		    std::ostringstream msg;
-		    if(etyp == Bool)
-		      msg << "Use a comparison operation";
-		    else if(etyp == String)
-		      msg << "Invalid";
-		    else if(!m_state.isScalar(rtnType) || !m_state.isScalar(nodeType))
-		      msg << "Not possible";
-		    else
-		      msg << "Use explicit cast";
-		    msg << " to return ";
-		    msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
-		    msg << " as ";
-		    msg << m_state.getUlamTypeNameBriefByIndex(rtnType).c_str();
-		    if(scr == CAST_BAD)
+		    if(m_node->isAConstant() && !m_node->isReadyConstant())
 		      {
-			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-			nodeType = Nav;
+			m_node->constantFold(this);
+		      }
+		    ULAMTYPE etyp = m_state.getUlamTypeByIndex(rtnType)->getUlamTypeEnum();
+		    FORECAST scr = m_node->safeToCastTo(rtnType);
+		    if(scr == CAST_CLEAR)
+		      {
+			if(!Node::makeCastingNode(m_node, rtnType, m_node))
+			  nodeType = Nav; //no casting node
+			else
+			  nodeType = m_node->getNodeType(); //casted
 		      }
 		    else
 		      {
-			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-			nodeType = Hzy;
+			std::ostringstream msg;
+			if(etyp == Bool)
+			  msg << "Use a comparison operation";
+			else if(etyp == String)
+			  msg << "Invalid";
+			else if(!m_state.isScalar(rtnType) || !m_state.isScalar(nodeType))
+			  msg << "Not possible";
+			else
+			  msg << "Use explicit cast";
+			msg << " to return ";
+			msg << m_state.getUlamTypeNameByIndex(nodeType).c_str();
+			msg << " as ";
+			msg << m_state.getUlamTypeNameByIndex(rtnType).c_str();
+			if(scr == CAST_BAD)
+			  {
+			    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+			    nodeType = Nav;
+			  }
+			else
+			  {
+			    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+			    nodeType = Hzy;
+			  }
 		      }
-		  }
+		  } //else not empty return
 	      } //not void
 	    else
 	      {
@@ -178,9 +188,9 @@ namespace MFM {
 		  {
 		    std::ostringstream msg;
 		    msg << "Returning incompatible (reference) types: ";
-		    msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
+		    msg << m_state.getUlamTypeNameByIndex(nodeType).c_str();
 		    msg << " as non-constant ";
-		    msg << m_state.getUlamTypeNameBriefByIndex(rtnType).c_str();
+		    msg << m_state.getUlamTypeNameByIndex(rtnType).c_str();
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		    nodeType = Nav;  //t41196
 		  }
@@ -190,7 +200,7 @@ namespace MFM {
 	      {
 		std::ostringstream msg;
 		msg << "Returning a constant as a non-constant reference type: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(rtnType).c_str();
+		msg << m_state.getUlamTypeNameByIndex(rtnType).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		nodeType = Nav;  //t3965
 	      }
@@ -210,9 +220,9 @@ namespace MFM {
 		    std::ostringstream msg;
 		    msg << "Use explicit cast";
 		    msg << " to return ";
-		    msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
+		    msg << m_state.getUlamTypeNameByIndex(nodeType).c_str();
 		    msg << " as ";
-		    msg << m_state.getUlamTypeNameBriefByIndex(rtnType).c_str();
+		    msg << m_state.getUlamTypeNameByIndex(rtnType).c_str();
 		    if(scr == CAST_BAD)
 		      {
 			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
@@ -421,7 +431,9 @@ namespace MFM {
 	    m_state.indentUlamCode(fp);
 	    fp->write("if(_IsLocal((void *) &");
 	    fp->write(cossym->getMangledName().c_str());
-	    if(m_state.isAltRefType(cosuti))
+	    // test if storage a ref is pointing to is on the stack, not the ref itself;
+	    // use isReference (not isAltRefType) to include ALT_ARRAYITEM which aref's return.
+	    if(m_state.isReference(cosuti)) //t3653, t3916, t3942, t41071,3,4, t41289
 	      fp->write(".GetStorage()");
 	    fp->write("))"); GCNL;
 
@@ -431,7 +443,7 @@ namespace MFM {
 	    m_state.m_currentIndentLevel--;
 	  }
 
-	//no need to make a tmp symbol if the symbol already is one
+	//still need to make a tmp symbol if the symbol already is one
 	// e.g. func call ref returned (t41030-35)
 	//if(!cossym->isTmpVarSymbol()) makes ulamexports EVentWindow very unhappy!
 	{
@@ -452,7 +464,11 @@ namespace MFM {
     m_state.indentUlamCode(fp);
     fp->write("return ");
     fp->write("(");
-    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
+
+    if(!m_state.isAtom(uvpass.getPassTargetType()) && uvpass.getPassNameId()==m_state.m_pool.getIndexForDataString("self"))
+      fp->write(m_state.getHiddenArgName()); //t41548,t3558
+    else
+      fp->write(uvpass.getTmpVarAsString(m_state).c_str());
 
     fp->write(");"); GCNL;
   } //genCodeToStoreInto

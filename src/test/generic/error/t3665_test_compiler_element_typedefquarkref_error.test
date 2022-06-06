@@ -7,8 +7,8 @@
 ./Foo.ulam:10:5: ERROR: Initialization for: a, must be referenceable.
 Unrecoverable Program Type Label FAILURE.
 ##Exit status: -1
-##Ue_Foo { Int(32) test() {  QPerc q;  q bb . true = typedef QPerc& QPR;  QPerc& qref = q cast;  Atom(96)& a = q##ref.storageof cast cast;  0 cast return } }
-##Uq_QPerc { Bool(1) bb(false);  <NOMAIN> }
+##Ue_Foo { Int test() {  QPerc q;  q bb . true = typedef QPerc& QPR;  QPerc& qref = q cast;  Atom& a = q##ref.storageof cast cast;  0 cast return } }
+##Uq_QPerc { Bool bb(false);  <NOMAIN> }
 ##
 ## informed by t3657
 ##

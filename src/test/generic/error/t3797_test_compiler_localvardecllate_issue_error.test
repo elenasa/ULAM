@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3797_test_compiler_localvardecllate_issue_error
 #!
-./A.ulam:4:5: ERROR: Variable <m> is not defined, or was used before declared in a function.
+./A.ulam:4:5: ERROR: Variable 'm' is not defined, or was used before declared in a function.
 ./A.ulam:4:7: ERROR: Assignment is invalid; LHS: erroneous; RHS: Int(3).
 Unrecoverable Program Type Label FAILURE.
 ##

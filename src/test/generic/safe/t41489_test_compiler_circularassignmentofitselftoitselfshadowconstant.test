@@ -1,0 +1,42 @@
+## -*- mode:ulam -*-
+#=t41489_test_compiler_circularassignmentofitselftoitselfshadowconstant
+#!
+Exit status: 0
+Ue_T { Int test() {  KillPlate aw;  0 cast return } }
+Ue_KillPlate { constant Unsigned(6) sn = 6u;  <NOMAIN> }
+Uq_EventWindow { typedef Unsigned(6) SiteNum;  typedef Unsigned(3) Symmetry;  <NOMAIN> }
+##
+##  informed by Dave's ish 20210613, see also t41481, t41486, t41488
+##    shadowing constants with variables; okay when specified.
+##
+#>T.ulam
+ ulam 5;
+element T {
+  Int test(){
+    KillPlate aw;
+    return 0;
+  }
+}
+
+#:KillPlate.ulam
+  ulam 5;
+
+local constant EventWindow.SiteNum sn = 7; //ok, using local.sn
+element KillPlate {
+  constant EventWindow.SiteNum sn = 6;
+  //EventWindow.SiteNum sn = (EventWindow.SiteNum) KillPlate.sn; //also ok as dm, not both.
+  Void behave()
+  {
+    EventWindow ew;
+    EventWindow.SiteNum sn = (EventWindow.SiteNum) KillPlate.sn; //ok, uses member sn, not local
+  }
+}
+
+#:EventWindow.ulam
+  ulam 3;
+quark EventWindow {
+  typedef Unsigned(6) SiteNum;
+  typedef Unsigned(3) Symmetry;
+}
+
+#.

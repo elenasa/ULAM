@@ -3,7 +3,7 @@
 
 namespace MFM {
 
-  SymbolVariableDataMember::SymbolVariableDataMember(const Token& id, UTI utype, u32 slot, CompilerState& state) : SymbolVariable(id, utype, state), m_posOffset(9999), m_dataMemberUnpackedSlotIndex(slot)
+  SymbolVariableDataMember::SymbolVariableDataMember(const Token& id, UTI utype, u32 slot, CompilerState& state) : SymbolVariable(id, utype, state), m_posOffset(UNRELIABLEPOS), m_dataMemberUnpackedSlotIndex(slot)
   {
     setDataMemberClass(m_state.getCompileThisIdx());
   }
@@ -56,59 +56,24 @@ namespace MFM {
     return mangled.str();
   } //getMangledName
 
-  //packed bit position of data members; relative to ATOMFIRSTSTATEBITPOS (or 0u).
+  //packed bit position of data members; relative to ATOMFIRSTSTATEBITPOS,
+  //or after bases wo shared bases and shared bases (ulam-5).
   u32 SymbolVariableDataMember::getPosOffset()
   {
-    if(m_posOffset == 9999)
+    if(m_posOffset == UNRELIABLEPOS)
       m_state.abortShouldntGetHere(); //not yet set
     return m_posOffset;
   }
 
   bool SymbolVariableDataMember::isPosOffsetReliable()
   {
-    return (m_posOffset != 9999);
+    return (m_posOffset != UNRELIABLEPOS);
   }
 
   void SymbolVariableDataMember::setPosOffset(u32 offsetIntoAtom)
   {
     m_posOffset = offsetIntoAtom; //relative to first state bit
   }
-
-  // replaced by NodeVarDecl:genCode to leverage the declaration order preserved by the parse tree.
-  void SymbolVariableDataMember::generateCodedVariableDeclarations(File * fp, ULAMCLASSTYPE classtype)
-  {
-    assert(classtype == UC_ELEMENT); //really?
-    UTI vuti = getUlamTypeIdx();
-    UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-    ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
-
-    m_state.indentUlamCode(fp);
-    fp->write(vut->getUlamTypeMangledName().c_str()); //for C++
-
-    if(vclasstype == UC_QUARK) //called on classtype elements only
-      {
-	fp->write("<");
-	fp->write_decimal(getPosOffset());
-	fp->write(">");
-      }
-    fp->write(" ");
-    fp->write(getMangledName().c_str());
-
-#if 0
-    s32 arraysize = vut->getArraySize();
-    if(arraysize > NONARRAYSIZE)
-      {
-	fp->write("[");
-	fp->write_decimal(arraysize);
-	fp->write("]");
-      }
-    else if(arraysize == UNKNOWNSIZE)
-      {
-	fp->write("[UNKNOWN]");
-      }
-#endif
-    fp->write(";"); GCNL;
-  } //generateCodedVariableDeclarations
 
   // replaces NodeVarDecl:printPostfix to learn the values of Class' storage in center site
   void SymbolVariableDataMember::printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype)
@@ -120,11 +85,7 @@ namespace MFM {
     ULAMTYPE vetyp = vut->getUlamTypeEnum();
 
     fp->write(" ");
-    if(vclasstype == UC_NOTACLASS)
-      fp->write(vkey.getUlamKeyTypeSignatureNameAndBitSize(&m_state).c_str());
-    else
-      fp->write(vut->getUlamTypeClassNameBrief(vuti).c_str());
-
+    fp->write(m_state.getUlamTypeNameBriefByIndex(vuti).c_str());
     fp->write(" ");
     fp->write(m_state.m_pool.getDataAsString(getId()).c_str());
 
@@ -158,11 +119,11 @@ namespace MFM {
 	NodeBlockClass * classNode = csym->getClassBlockNode();
 	assert(classNode);
 	u32 newstartpos = startpos + getPosOffset();
-	s32 len = vut->getBitSize();
+	s32 len = vut->getBitSize(); //t3143
 	for(s32 i = 0; i < size; i++)
 	  classNode->printPostfixDataMembersSymbols(fp, slot, newstartpos + len * i, scalarquark);
       }
-    else
+    else if(vclasstype == UC_NOTACLASS)
       {
 	PACKFIT packFit = m_state.determinePackable(vuti);
 	assert(WritePacked(packFit)); //has to be to fit in an atom/site;
@@ -191,7 +152,7 @@ namespace MFM {
 		if((vetyp == String) && (data == 0))
 		  sprintf(valstr," ");
 		else
-		  vut->getDataAsString(data, valstr, 'z'); //'z' -> no preceeding ','
+		  vut->getDataAsString(data, valstr, 'z'); //'z' -> no preceding ','
 		if(vetyp == Unsigned || vetyp == Unary)
 		  strcat(valstr, "u");
 
@@ -214,7 +175,7 @@ namespace MFM {
 	    else if(len <= MAXBITSPERLONG)
 	      {
 		u64 data = atval.getDataLongFromAtom(nextPtr, m_state);
-		vut->getDataLongAsString(data, valstr, 'z'); //'z' -> no preceeding ','
+		vut->getDataLongAsString(data, valstr, 'z'); //'z' -> no preceding ','
 		if(vetyp == Unsigned || vetyp == Unary)
 		  strcat(valstr, "u");
 
@@ -243,6 +204,11 @@ namespace MFM {
 	fp->write(valstr); //results out here!
 	delete [] valstr;
       } //not a quark
+    else
+      {
+	//an element or transient
+	m_state.abortNotImplementedYet();
+      }
     fp->write("); ");
   } //printPostfixValuesOfVariableDeclarations
 

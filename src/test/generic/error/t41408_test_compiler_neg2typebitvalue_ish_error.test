@@ -1,0 +1,84 @@
+## -*- mode:ulam -*-
+#=t41408_test_compiler_neg2typebitvalue_ish_error
+#!
+./QIMsg.ulam:5:11: ERROR: Type Bitsize specifier for Unary type, within (), is a negative numeric constant expression: -2.
+./QIMsg.ulam:5:11: ERROR: Invalid Typedef used with alias name 'Direction'.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by Dave's ish1 2/23/2021: error message was unhelpful due to
+##      Compiler overload of UNKNOWNSIZE and typedef bitsize of negative 2;
+##      Dave's intention was to flag location with a simple error, haha! (see t41407)
+##
+#>Anchor10.ulam
+  ulam 5;
+//local constant Unsigned cMSG_BITS = SegPkt10.sizeof;
+local constant Unsigned cMSG_BITS = 3;
+local typedef QSegment(cMSG_BITS) QSegX;
+
+/**
+   \symbol A1
+   \symmetries none
+   \color #448
+ */
+element Anchor10 : QSegX {
+  Random random;
+  Int test() {
+    /// Also fails same way with
+    //typedef QSegX.QC_QIMsg OurMsg;
+    //typedef OurMsg.Payload MPayload;
+    typedef QSegX.QC_QIMsg.Payload MPayload;
+    return random.between(MPayload.minof,MPayload.maxof);
+  }
+}
+
+/*
+quark SegPkt10 {
+  Bool mUpbound;
+}
+*/
+
+#:QSegment.ulam
+  ulam 5;
+quark QSeg {
+  typedef Unsigned(5) SegPtr; // SN 0..24 (25..31 reserved)
+  typedef Unsigned(2) Type;
+
+}
+
+/** Base class for a 1D fragile data transport system.  To be subclassed by SPLAT code.
+ */
+quark QSegment(Unsigned cMSG_BITS) : QSeg {
+  // Data members
+  typedef QIMsg(cMSG_BITS) QC_QIMsg;
+  QC_QIMsg mMessageBuffer;
+
+}
+
+#:QIMsg.ulam
+  ulam 5;
+/** An internal message */
+quark QIMsg(Unsigned bits) {
+  typedef Bits(bits) Payload;
+  typedef Unary(-2) Direction;
+  constant Direction cEMPTY = 0u;
+  constant Direction cUP    = 1u;
+  constant Direction cDOWN  = 2u;
+  Direction mDirection;
+  Payload mPayload;
+}
+
+
+#:Random.ulam
+  ulam 1;
+quark Random {
+  Int between(Int lo, Int hi) {
+    if (lo > hi) {
+      Int t = hi;
+      hi = lo;
+      lo = t;
+    }
+    return lo + (Int)(hi - lo + 1);
+  }
+}
+
+#.

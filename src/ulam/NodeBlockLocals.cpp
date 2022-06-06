@@ -15,6 +15,16 @@ namespace MFM {
     return new NodeBlockLocals(*this);
   }
 
+  void NodeBlockLocals::updateLineage(NNO pno)
+  {
+    assert(getPreviousBlockPointer() == NULL);
+
+    setYourParentNo(pno);
+    //has no m_node
+    if(m_nodeNext)
+      m_nodeNext->updateLineage(getNodeNo());
+  } //updateLineage
+
   void NodeBlockLocals::printPostfix(File * fp)
   {
     fp->write(" locals: ");
@@ -37,16 +47,10 @@ namespace MFM {
     return false;
   }
 
-  UTI NodeBlockLocals::checkAndLabelType()
+  UTI NodeBlockLocals::checkAndLabelType(Node * thisparentnode)
   {
-    UTI savnuti = getNodeType();
-    assert(savnuti != Nouti);
-
     //possibly empty (e.g. error/t3875)
-    if(m_nodeNext)
-      NodeBlock::checkAndLabelType();
-    setNodeType(savnuti);
-    return savnuti;
+    return NodeBlockContext::checkAndLabelType(thisparentnode);
   }
 
   void NodeBlockLocals::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
@@ -117,6 +121,18 @@ namespace MFM {
     return;
   } //generateTestInstance
 
+  void NodeBlockLocals::generateIncludeTestMain(File * fp)
+  {
+    UTI locuti = getNodeType();
+    u32 mangledclassid = m_state.getMangledClassNameIdForUlamLocalsFilescope(locuti);
+
+    m_state.indent(fp);
+    fp->write("#include \"");
+    fp->write(m_state.m_pool.getDataAsString(mangledclassid).c_str());
+    fp->write(".h\""); GCNL;
+    return;
+  } //generateIncludeTestMain
+
   bool NodeBlockLocals::assignRegistrationNumberToLocalsBlock(u32 n)
   {
     if (n == UNINITTED_REGISTRY_NUMBER)
@@ -138,11 +154,20 @@ namespace MFM {
 
     m_registryNumberLocalsSafe = n;
     return true;
-  } //assignRegistryNumberToLocalsBlock
+  } //assignRegistrationNumberToLocalsBlock
 
-  u32 NodeBlockLocals::getRegistrationNumberForLocalsBlock() const
+  u32 NodeBlockLocals::getRegistrationNumberForLocalsBlock()
   {
-    assert(m_registryNumberLocalsSafe != UNINITTED_REGISTRY_NUMBER);
+    if(m_registryNumberLocalsSafe == UNINITTED_REGISTRY_NUMBER)
+      {
+	UTI luti = getNodeType();
+	if(m_state.okUTItoContinue(luti))// && m_state.isComplete(luti))
+	  {
+	    u32 n = m_state.assignClassId(luti);
+	    AssertBool rnset = assignRegistrationNumberToLocalsBlock(n);
+	    assert(rnset);
+	  }
+      }
     return m_registryNumberLocalsSafe;
   }
 

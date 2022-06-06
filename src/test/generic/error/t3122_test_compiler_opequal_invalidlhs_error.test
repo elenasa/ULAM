@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3122_test_compiler_opequal_invalidlhs_error
 #!
-./D.ulam:4:7: ERROR: Unmodifiable lefthand side of assignment expression <3>, type: Int(3).
+./D.ulam:4:7: ERROR: Unmodifiable lefthand side of assignment expression '3', type: Int(3).
 Unrecoverable Program Type Label FAILURE.
 ##
 #>D.ulam

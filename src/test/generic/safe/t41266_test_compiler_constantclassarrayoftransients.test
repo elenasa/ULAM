@@ -9,11 +9,11 @@
 ## Big transients unevaluable.
 #!
 Exit status: -11
-Ue_KeyExprRep { Int(32) test() {  System s;  KeyExprNode m_key = keyexpr_x13 0 [];  s ( m_key m_rightIndex . cast )print . s ( m_key m_rightIndex . 2u cast == )assert . s ( keyexpr_x13 1 [] m_rightIndex . cast )print . s ( keyexpr_x13 1 [] m_rightIndex . 4u cast == )assert . KeyExprNode mykeyexpr_x13[5] = keyexpr_x13;  s ( mykeyexpr_x13 2 [] m_keyCode . cast )print . s ( mykeyexpr_x13 2 [] m_keyCode . keyexpr_x13 2 [] m_keyCode . == )assert . 0 cast return } }
+Ue_KeyExprRep { Int test() {  System s;  KeyExprNode m_key = keyexpr_x13 0 [];  s ( m_key m_rightIndex . cast )print . s ( m_key m_rightIndex . 2u cast == )assert . s ( keyexpr_x13 1 [] m_rightIndex . cast )print . s ( keyexpr_x13 1 [] m_rightIndex . 4u cast == )assert . KeyExprNode mykeyexpr_x13[5] = keyexpr_x13;  s ( mykeyexpr_x13 2 [] m_keyCode . cast )print . s ( mykeyexpr_x13 2 [] m_keyCode . keyexpr_x13 2 [] m_keyCode . == )assert . 0 cast return } }
 Un_KeyExprNode { typedef Unsigned(8) Byte;  Unsigned(8) m_leftIndex(0);  Unsigned(8) m_rightIndex(0);  Unsigned(8) m_keyCode(0);  Unsigned(8) m_op(0);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
-## informed by Dave 3/18/18 ish, and t41261: except array of transients instead of quarks constant class array
+## informed by Dave 3/18/18 ish, and t41261: except array of transients instead of quarks constant class array; also see t41551 without dot.
 ##
 ##
 #>KeyExprRep.ulam
@@ -37,7 +37,7 @@ element KeyExprRep {
     s.assert(keyexpr_x13[1].m_rightIndex==4u); //reads constant class array item
 
     //read entire constant class array
-    KeyExprNode mykeyexpr_x13[5] = KeyExprNode keyexpr_x13;
+     KeyExprNode mykeyexpr_x13[5] = KeyExprRep.keyexpr_x13; // optional class after =
     s.print(mykeyexpr_x13[2].m_keyCode);
     s.assert(mykeyexpr_x13[2].m_keyCode==keyexpr_x13[2].m_keyCode); //reads constant class array item
     return 0;

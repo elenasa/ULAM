@@ -2,12 +2,12 @@
 #=t3571_test_compiler_elementandquarkinheritancetemplatemix_wMP_fail
 ##
 ## gen error:
-## include/Ue_10102Tu10_Types.h:159: FAILED: NULL_POINTER
+## include/Ue_10102Tu10_Types.h:225: FAILED: NULL_POINTER
 ##
 #!
 Exit status: 1
-Ue_Tu : Foo(1,true) { :< constant Int(32) a = 1;  constant Bool(1) b = true; > parameter Int(32) mp = 1;  Int(32) test() {  mp(1) return } }
-Uq_Foo(Int(32) a, Bool(1) b) { /* empty class block */ }
+Ue_Tu : Foo(1,true) { parameter Int mp = 1;  :Foo(1,true)< constant Int a = 1;  constant Bool b = true; > Int test() {  mp(1) return } }
+Uq_Foo(Int a, Bool b) { /* empty class block */ }
 ##
 ##       //classes can inherit from a template instance, and vis versa
 ##       informed by t3566, error/t3554

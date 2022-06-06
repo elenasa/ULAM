@@ -27,7 +27,7 @@
 
 /**
   \file ElementTypeGenerator.h Generate MFM Element Types for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
   \date (C) 2018 All rights reserved.
   \gpl
@@ -46,14 +46,11 @@ namespace MFM {
   {
   public:
     ElementTypeGenerator(); //incremental version
-    ElementTypeGenerator(u32 n);
     ~ElementTypeGenerator();
 
-    void generateTypes();
-    void beginIteration();
-    ELE_TYPE getNextType(); //distribution
+    ELE_TYPE makeNextType(UTI cuti); //incremental-version
 
-    ELE_TYPE makeNextType(); //incremental-version
+    UTI findElementTypeClass(ELE_TYPE ele);
 
   private:
     u32 m_maxNumberOfTypes; //generation
@@ -61,9 +58,11 @@ namespace MFM {
     u32 m_counter; //generation
     std::map<u32, ELE_TYPE> m_sequentialTypeMap;
     std::set<ELE_TYPE> m_setOfKnownTypes;
+    std::map<ELE_TYPE, UTI> m_mapOfKnownTypes;
 
-    ELE_TYPE makeAType();
+    ELE_TYPE makeAType(UTI cuti);
     bool addTypeToSet(ELE_TYPE type);
+    bool addTypeToMap(ELE_TYPE type, UTI cuti);
   };
 
 } //MFM

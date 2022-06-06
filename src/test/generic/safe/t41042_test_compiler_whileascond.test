@@ -2,7 +2,7 @@
 #=t41042_test_compiler_whileascond
 #!
 Exit status: -11
-Ue_EWE { Int(32) test() {  EventWindow ew;  Int(32) i = 0 cast;  ew ( 0 cast )aref . EWE.instanceof cast = Atom(96) a = ew ( i )aref . cast;  { a EWE as cond { EWE& a;  a ( )foomethod . { i 4 cast < cond a.atomof ew ( i 1 ++ )aref . = if } } _1: while } i return } }
+Ue_EWE { Int test() {  EventWindow ew;  Int i = 0 cast;  ew ( 0 cast )aref . EWE.instanceof cast = Atom a = ew ( i )aref . cast;  { a EWE as cond { EWE& a;  a ( )foomethod . { i 4 cast < cond a.atomof ew ( i 1 ++ )aref . = if } } _1: while } i return } }
 Uq_EventWindow { <NOMAIN> }
 ##
 ##  while-loop 'as' conditional, no parens, not part of a compound condition

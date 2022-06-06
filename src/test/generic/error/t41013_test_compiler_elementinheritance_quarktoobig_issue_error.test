@@ -1,13 +1,14 @@
 ## -*- mode:ulam -*-
 #=t41013_test_compiler_elementinheritance_quarktoobig_issue_error
 #!
-./System.ulam:10:1: ERROR: Trying to exceed allotted bit size (32) for quark ConstantLabelAndFont(06666f6f626172,33u) with 35 bits.
-./A.ulam:6:7: NOTE: Components of ConstantLabelAndFont(06666f6f626172,33u) are..
-./A.ulam:17:7: NOTE: (25 of 35 bits, at 0) from superclass: ConstantLabel(06666f6f626172).
-./A.ulam:8:3: NOTE: (3 of 35 bits, at 25) Unsigned(3) mFont.
-./A.ulam:9:3: NOTE: (7 of 35 bits, at 28) Unsigned(7) mFreshness.
-./A.ulam:6:7: ERROR: CLASS INSTANCE 'ConstantLabelAndFont(06666f6f626172,33u)' SIZED 35 FAILED.
-./A.ulam:2:9: ERROR: Subclass 'A' inherits from illegal 'ConstantLabelAndFont(06666f6f626172,33u)'.
+./A.ulam:6:7: ERROR: Trying to exceed allotted bit size (64) for quark ConstantLabelAndFont("foobar",33u) with 67 bits.
+./A.ulam:6:7: NOTE: Components of ConstantLabelAndFont("foobar",33u) are..
+./A.ulam:8:3: NOTE: (32 of 67 bits, at 0) Int mBlow.
+./A.ulam:9:3: NOTE: (3 of 67 bits, at 32) Unsigned(3) mFont.
+./A.ulam:10:3: NOTE: (7 of 67 bits, at 35) Unsigned(7) mFreshness.
+./A.ulam:18:7: NOTE: (6 of 67 bits, at 42) from super base class: ConstantLabel("foobar").
+./A.ulam:33:7: NOTE: (19 of 67 bits, at 48) from shared base: Label.
+./A.ulam:6:7: ERROR: CLASS INSTANCE 'ConstantLabelAndFont("foobar",33u)' SIZED 67 FAILED.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by Dave ish 1/19/17, t41007: inherited quark too big, assert too overkill.
@@ -31,6 +32,7 @@ element A : ConstantLabelAndFont("foobar", 33) {
 local  typedef Unsigned(3) FontNumber;
 quark ConstantLabelAndFont(String fstring, Unsigned fn) : ConstantLabel(fstring)
 {
+  Int mBlow; //added, now that quarks can be 64-bits
   FontNumber mFont;
   Unsigned(7) mFreshness;
   Void setFontNumber(FontNumber fn) { mFont = fn; }

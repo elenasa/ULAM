@@ -1,0 +1,35 @@
+## -*- mode:ulam -*-
+#=t41427_test_compiler_quarkwithcycle_error
+#!
+./QBase.ulam:3:6: ERROR: cycle error!!! QU(CYCLE).
+./QBase.ulam:2:7: ERROR: cycle error!! QBase(UNKNOWN).
+Unrecoverable Program Type Label FAILURE.
+##
+#>C.ulam
+  ulam 1;
+element C {
+  Bool a;
+  Int test() {
+    QU qu;
+    return 0;
+  }
+}
+
+#:QU.ulam
+  ulam 5;
+quark QU{
+  QB m_qu;
+}
+
+#:QB.ulam
+  ulam 5;
+quark QB {
+  QBase m_base;
+}
+
+#:QBase.ulam
+  ulam 5;
+quark QBase {
+  QU m_qu;
+}
+#.

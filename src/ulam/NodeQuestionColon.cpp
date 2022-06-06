@@ -99,9 +99,7 @@ namespace MFM {
 
   void NodeQuestionColon::printOp(File * fp)
   {
-    char myname[16];
-    sprintf(myname,"%s", getName());
-    fp->write(myname);
+    fp->write("?:");
   } //printOp
 
   const std::string NodeQuestionColon::methodNameForCodeGen()
@@ -122,7 +120,12 @@ namespace MFM {
 
   bool NodeQuestionColon::isAConstant()
   {
-    return m_nodeLeft->isAConstant() || m_nodeRight->isAConstant();
+    return m_nodeCondition->isAConstant(); //t41280
+  }
+
+  bool NodeQuestionColon::isTernaryExpression()
+  {
+    return true; //for NodeCast
   }
 
   UTI NodeQuestionColon::calcNodeType(UTI lt, UTI rt)
@@ -143,9 +146,9 @@ namespace MFM {
 	//neither same, nor primitive (or void), requires explicit cast
 	std::ostringstream msg;
 	msg << "Use explicit cast to convert ";
-	msg << m_state.getUlamTypeNameBriefByIndex(lt).c_str();
+	msg << m_state.getUlamTypeNameByIndex(lt).c_str();
 	msg << " and ";
-	msg << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
+	msg << m_state.getUlamTypeNameByIndex(rt).c_str();
 	msg << " to be same type for binary " << getName();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	return Nav;
@@ -211,12 +214,12 @@ namespace MFM {
     return newType;
   } //calcNodeType
 
-  UTI NodeQuestionColon::checkAndLabelType()
+  UTI NodeQuestionColon::checkAndLabelType(Node * thisparentnode)
   {
     assert(m_nodeCondition && m_nodeLeft && m_nodeRight);
 
     // condition should be a bool, safely cast
-    UTI condType = m_nodeCondition->checkAndLabelType();
+    UTI condType = m_nodeCondition->checkAndLabelType(this);
     UTI newcondtype = Bool;
 
     if(m_state.okUTItoContinue(condType) && m_state.isComplete(condType))
@@ -226,7 +229,7 @@ namespace MFM {
 	ULAMTYPE ctypEnum = cut->getUlamTypeEnum();
 	if(ctypEnum != Bool)
 	  {
-	    if(NodeBinaryOp::checkSafeToCastTo(condType, newcondtype))
+	    if(Node::checkSafeToCastTo(condType, newcondtype))
 	      {
 		if(!Node::makeCastingNode(m_nodeCondition, Bool, m_nodeCondition))
 		  newcondtype = Nav;
@@ -254,9 +257,9 @@ namespace MFM {
 	newcondtype = Hzy;
       }
 
-    UTI trueType = m_nodeLeft->checkAndLabelType(); //side-effect
+    UTI trueType = m_nodeLeft->checkAndLabelType(this); //side-effect
 
-    UTI falseType = m_nodeRight->checkAndLabelType(); //side-effect
+    UTI falseType = m_nodeRight->checkAndLabelType(this); //side-effect
 
     UTI newType = calcNodeType(trueType, falseType);
 
@@ -267,7 +270,7 @@ namespace MFM {
       {
 	if(UlamType::compareForMakingCastingNode(trueType, newType, m_state) == UTIC_NOTSAME)
 	  {
-	    if(NodeBinaryOp::checkSafeToCastTo(trueType, newType)) //Nav, Hzy or no change; outputs error msg
+	    if(Node::checkSafeToCastTo(trueType, newType)) //Nav, Hzy or no change; outputs error msg
 	      {
 		if(!Node::makeCastingNode(m_nodeLeft, newType, m_nodeLeft, false))
 		  newType = Nav;
@@ -275,7 +278,7 @@ namespace MFM {
 	  }
 	if(m_state.okUTItoContinue(newType) && (UlamType::compareForMakingCastingNode(falseType, newType, m_state) == UTIC_NOTSAME))
 	  {
-	    if(NodeBinaryOp::checkSafeToCastTo(falseType, newType)) //Nav, Hzy or no change; outputs error msg
+	    if(Node::checkSafeToCastTo(falseType, newType)) //Nav, Hzy or no change; outputs error msg
 	      {
 		if(!Node::makeCastingNode(m_nodeRight, newType, m_nodeRight, false))
 		  newType = Nav;
@@ -288,9 +291,9 @@ namespace MFM {
 
     Node::setStoreIntoAble(isAConstant() ? TBOOL_FALSE : TBOOL_TRUE);
 
-    if(m_state.okUTItoContinue(newType) && m_nodeCondition->isAConstant())
+    if(m_state.okUTItoContinue(newType) && this->isAConstant())
       {
-	return constantFold();
+	return constantFold(thisparentnode);
       }
     return newType;
   } //checkAndLabelType
@@ -316,13 +319,9 @@ namespace MFM {
     return NodeBinaryOp::countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
   }
 
-  UTI NodeQuestionColon::constantFold()
+  UTI NodeQuestionColon::constantFold(Node * parentnode)
   {
-    if(!m_nodeCondition->isAConstant())
-      return Nav; //t41059
-
-    //if(!m_nodeCondition->isReadyConstant())
-    //  return Hzy;
+    assert(isAConstant()); //t41059, t41280
 
     bool condbool = false;
 
@@ -342,8 +341,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Constant value expression for binary op" << getName();
-	msg << " is erroneous while compiling class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	msg << " is erroneous";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(Nav);
 	return Nav;
@@ -353,13 +351,17 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Constant value expression for binary op" << getName();
-	msg << " is not yet ready while compiling class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	msg << " is not yet ready";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	setNodeType(Hzy);
 	m_state.setGoAgain(); //for compiler counts
 	return Hzy;
       }
+
+    u32 pno = Node::getYourParentNo();
+    assert(pno);
+    assert(parentnode);
+    assert(parentnode->getNodeNo() == pno);
 
     Node * newnode = NULL;
     if(condbool == false)
@@ -373,12 +375,16 @@ namespace MFM {
 	m_nodeLeft = NULL; //recycling
       }
 
-    AssertBool isSwap = Node::exchangeNodeWithParent(newnode);
+    newnode->updateLineage(pno);
+
+    AssertBool isSwap = Node::exchangeNodeWithParent(newnode, parentnode);
     assert(isSwap);
+
+    m_state.setGoAgain();
 
     delete this; //suicide is painless..
 
-    return newnode->getNodeType(); //already known
+    return Hzy;
   } //constantFold
 
   EvalStatus NodeQuestionColon::eval()
@@ -480,17 +486,16 @@ namespace MFM {
 	return;
       }
 
-    TMPSTORAGE stor = nut->getTmpStorageTypeForTmpVar();
+    TMPSTORAGE nstor = nut->getTmpStorageTypeForTmpVar();
     s32 tmpVarNum = m_state.getNextTmpVarNumber();
 
     if(nuti != Void)
       {
 	//similar to code generated by NodeControlIf
 	m_state.indentUlamCode(fp);
-	////fp->write("const ");
 	fp->write(nut->getTmpStorageTypeAsString().c_str());
 	fp->write(" ");
-	fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, stor).c_str());
+	fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, nstor).c_str());
 	fp->write(";"); GCNL;
       }
 
@@ -506,11 +511,13 @@ namespace MFM {
     if(nuti != Void)
       {
 	m_state.indentUlamCode(fp);
-	fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, stor).c_str());
+	fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, nstor).c_str());
 	fp->write(" = ");
 	fp->write(luvpass.getTmpVarAsString(m_state).c_str());
 	if(luvpass.getPassStorage() == TMPBITVAL)
 	  fp->write(".read()");
+	if(luvpass.getPassStorage() == TMPAUTOREF)
+	  m_state.abortShouldntGetHere(); //not a ref!
 	fp->write(";"); GCNL;
       }
 
@@ -531,11 +538,13 @@ namespace MFM {
     if(nuti != Void)
       {
 	m_state.indentUlamCode(fp);
-	fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, stor).c_str());
+	fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, nstor).c_str());
 	fp->write(" = ");
 	fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
 	if(ruvpass.getPassStorage() == TMPBITVAL)
 	  fp->write(".read()");
+	if(ruvpass.getPassStorage() == TMPAUTOREF)
+	  m_state.abortShouldntGetHere(); //not a ref!
 	fp->write(";"); GCNL;
       }
 
@@ -545,7 +554,7 @@ namespace MFM {
     fp->write(getName());
     fp->write("\n\n");
 
-    uvpass = UVPass::makePass(tmpVarNum, stor, nuti, m_state.determinePackable(nuti), m_state, 0, 0);
+    uvpass = UVPass::makePass(tmpVarNum, nstor, nuti, m_state.determinePackable(nuti), m_state, 0, 0);
 
     //similar to NodeFunctionCall
     // return classes as bitvectors, primitives as tmpregisters (t41140)
@@ -559,6 +568,8 @@ namespace MFM {
 	  {
 	    Node::genCodeConvertABitVectorIntoATmpVar(fp, uvpass); //inc uvpass slot
 	  }
+	else if(uvpass.getPassStorage() == TMPAUTOREF)
+	  m_state.abortShouldntGetHere(); //not a ref!
 	//else ok
       }
 
@@ -569,17 +580,22 @@ namespace MFM {
   {
     assert(m_nodeCondition && m_nodeLeft && m_nodeRight);
     UTI nuti = getNodeType();
+    //pure virtual error when reference code used on non-ref (t41065)
+
     if(m_state.getReferenceType(nuti) != ALT_REF)
       nuti = m_state.getUlamTypeAsRef(nuti); //e.g. called by NodeCast t41071
+
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    ULAMCLASSTYPE nclasstype = nut->getUlamClassType();
 
     s32 tmpVarNum = m_state.getNextTmpVarNumber();
-    //similar to code generated by NodeControlIf
+
+    //similar to code generated by NodeControlIf; UlamRefMutable used
+    // to avoid saving variable that goes out-of-scope after ?: (t41065)
     m_state.indentUlamCode(fp);
-    fp->write(nut->getLocalStorageTypeAsString().c_str());
-    fp->write(" * ");
-    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPAUTOREF).c_str());
-    fp->write(" = NULL;"); GCNL;
+    fp->write("UlamRefMutable<EC> ");
+    fp->write(m_state.getUlamRefMutTmpVarAsString(tmpVarNum).c_str());
+    fp->write(";"); GCNL;
 
     genCodeConditionalExpression(fp, uvpass); //if true
 
@@ -614,13 +630,30 @@ namespace MFM {
     fp->write(getName());
     fp->write("\n\n");
 
+    //use new UlamRefMutable to avoid tmpVarNum contents out-of-scope
+    s32 tmpVarRef = m_state.getNextTmpVarNumber();
+    m_state.indentUlamCode(fp);
+    fp->write("UlamRef<EC> ");
+    fp->write(m_state.getUlamRefTmpVarAsString(tmpVarRef).c_str());
+    fp->write("(");
+    fp->write(m_state.getUlamRefMutTmpVarAsString(tmpVarNum).c_str());
+    fp->write(");"); GCNL;
+
     s32 tmpVarNum2 = m_state.getNextTmpVarNumber();
     m_state.indentUlamCode(fp);
     fp->write(nut->getLocalStorageTypeAsString().c_str());
     fp->write(" ");
     fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum2, TMPAUTOREF).c_str());
-    fp->write(" = (*");
-    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPAUTOREF).c_str());
+    fp->write("(");
+    fp->write(m_state.getUlamRefTmpVarAsString(tmpVarRef).c_str());
+    if(nclasstype == UC_ELEMENT)
+      {
+	fp->write(", 0, &");
+	fp->write(m_state.getTheInstanceMangledNameByIndex(nuti).c_str());
+      }
+    else if(nclasstype == UC_NOTACLASS) //includes atoms!
+      fp->write(", 0"); //t41073
+
     fp->write(");"); GCNL;
 
     uvpass = UVPass::makePass(tmpVarNum2, TMPAUTOREF, nuti, m_state.determinePackable(nuti), m_state, 0, 0);
@@ -654,18 +687,23 @@ namespace MFM {
     fp->write(")"); GCNL;
   } //genCodeConditionalExpression
 
-  void NodeQuestionColon::genCodeToStoreIntoExpression(File * fp, UVPass& uvpass, s32 tmpVarNum)
+  void NodeQuestionColon::genCodeToStoreIntoExpression(File * fp, UVPass& uvpass, s32 tmpvarnum)
   {
     UTI nuti = getNodeType();
-    if(!m_state.isAltRefType(nuti))
+
+    //uses UlamRefMutable for refs (t41073), and casting to ref (t41071)
+    //assert(m_state.isReference(nuti));
+    if(m_state.getReferenceType(nuti) != ALT_REF)
       nuti = m_state.getUlamTypeAsRef(nuti); //e.g. called by NodeCast t41071
+
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
 
+    //here, result of ?: is a ref
     if(!m_state.m_currentObjSymbolsForCodeGen.empty())
       {
 	Symbol * cossym = m_state.m_currentObjSymbolsForCodeGen.back(); //or [0]?
 	UTI cosuti = cossym->getUlamTypeIdx();
-	if((UlamType::compareForString(cosuti, m_state) == UTIC_SAME) && !m_state.isAltRefType(cosuti))
+	if(m_state.isAStringType(cosuti) && !m_state.isAltRefType(cosuti))
 	  {
 	    //special case String ref (t41068)
 	    u32 tmpvarstr = m_state.getNextTmpVarNumber();
@@ -678,14 +716,15 @@ namespace MFM {
 	    fp->write(", 0u, uc);"); GCNL;
 
 	    m_state.indentUlamCode(fp);
-	    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPAUTOREF).c_str());
-	    fp->write(" = &"); //tmp ptr = address of cossym
+	    fp->write(m_state.getUlamRefMutTmpVarAsString(tmpvarnum).c_str());
+	    fp->write(" = ");
 	    fp->write(m_state.getTmpVarAsString(nuti, tmpvarstr, TMPAUTOREF).c_str());
 	    fp->write(";"); GCNL;
 	  }
-	else if(m_state.getReferenceType(cosuti) != ALT_REF)
+	//else if(m_state.getReferenceType(cosuti) != ALT_REF)
+	else if(!m_state.isReference(cosuti))
 	  {
-	      //called by NodeCast t41071
+	    //called by NodeCast t41071
 	    {
 	      // similar to NodeReturn genCodeToStoreInto code
 	      u32 id = cossym->getId();
@@ -701,16 +740,16 @@ namespace MFM {
 	    }
 
 	    m_state.indentUlamCode(fp);
-	    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPAUTOREF).c_str());
-	    fp->write(" = &");
+	    fp->write(m_state.getUlamRefMutTmpVarAsString(tmpvarnum).c_str());
+	    fp->write(" = ");
 	    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
 	    fp->write(";"); GCNL;
 	  }
 	else
 	  {
 	    m_state.indentUlamCode(fp);
-	    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPAUTOREF).c_str());
-	    fp->write(" = &"); //tmp ptr = address of cossym
+	    fp->write(m_state.getUlamRefMutTmpVarAsString(tmpvarnum).c_str());
+	    fp->write(" = ");
 	    fp->write(cossym->getMangledName().c_str());
 	    fp->write(";"); GCNL;
 	  }
@@ -720,8 +759,8 @@ namespace MFM {
       {
 	//t41067
 	m_state.indentUlamCode(fp);
-	fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPAUTOREF).c_str());
-	fp->write(" = &"); //tmp ptr = address of cossym
+	fp->write(m_state.getUlamRefMutTmpVarAsString(tmpvarnum).c_str());
+	fp->write(" = ");
 	fp->write(uvpass.getTmpVarAsString(m_state).c_str());
 	fp->write(";"); GCNL;
       }

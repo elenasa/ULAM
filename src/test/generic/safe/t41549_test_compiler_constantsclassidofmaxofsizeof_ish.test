@@ -1,0 +1,93 @@
+## -*- mode:ulam -*-
+#=t41549_test_compiler_constantsclassidofmaxofsizeof_ish
+##
+##  gen output: (+ asserts)
+##    Unsigned Arg: 10
+##    Unsigned Arg: 1000
+##
+#!
+Exit status: 0
+Ue_R { Int test() {  A aele;  aele ( )func . 0 cast return } }
+Ue_A : ActivatedComplexIdT(10u) { :ActivatedComplexIdT(10u)< typedef Unsigned(10) MyACId;  Unsigned(10) mACId(0); > ^ActivatedComplexId< typedef Unsigned ACId; > <NOMAIN> }
+Uq_ActivatedComplexIdT(Unsigned cTYPE_BITS) : ActivatedComplexId { typedef Unsigned(UNKNOWN) MyACId;  Unsigned(UNKNOWN) mACId(notready);  :ActivatedComplexId< typedef Unsigned ACId; > <NOMAIN> }
+Uq_System { <NOMAIN> }
+Uq_ActivatedComplexId { typedef Unsigned ACId;  <NOMAIN> }
+##
+## informed by ish 08/23/2021 -132405; see also t41537
+## local constants: Not Ready at compiletime for class arguments, data member bitsizes, etc.
+## Currently MAX_REGISTRY_NUMBER is tied to UlamClassRegistry Table Size in MFMS (==1000).
+##  Special case feature: maxof classidof; sizeof classidof == log2 bits for maxof + 1
+##
+#>R.ulam
+  ulam 5;
+element R
+{
+  Int test() {
+    A aele;
+    aele.func();
+    return 0;
+  }
+}
+
+#:A.ulam
+  ulam 5;
+local constant Unsigned cLOCAL_CLASSID_WTH = UrSelf.classidof.maxof;
+local constant Unsigned cCLASSID_BITS = UrSelf.classidof.sizeof;
+
+element A : ActivatedComplexIdT(cCLASSID_BITS)
+{
+  Bool func() {
+    System s;
+    s.print(cCLASSID_BITS);
+    s.print(cLOCAL_CLASSID_WTH);
+    //constant Unsigned cCLASSID_BITS = Self.classidof.sizeof;
+    //ActivatedComplexIdT(cCLASSID_BITS) acid;
+    //acid.setACId(Self.classidof);
+    //return process(acid);
+    return true;
+  }
+
+}
+
+#:ActivatedComplexIdT.ulam
+  ulam 5;
+// Like the tag in a tagged union
+quark ActivatedComplexIdT(Unsigned cTYPE_BITS) : ActivatedComplexId
+{
+  typedef Unsigned(cTYPE_BITS) MyACId;
+  MyACId mACId;
+
+  /// ActivatedComplexId API
+  @Override
+  virtual ACId getACId() { return mACId; }
+
+  @Override
+  virtual Bool setACId(ACId acid) {
+    if (MyACId.maxof < acid) return false;
+    mACId = (MyACId) acid;
+    return true;
+  }
+}
+
+#:ActivatedComplexId.ulam
+  ulam 5;
+quark ActivatedComplexId {
+  //// ActivatedComplexId API
+  typedef Unsigned ACId;
+  virtual ACId getACId() ;
+  virtual Bool setACId(ACId acid) ;
+}
+
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

@@ -6,9 +6,9 @@
 ##
 #!
 Exit status: 0
-Ue_R { Bool(1) b(false);  Int(32) test() {  Fail f;  f ( 1 cast )fail . 0 cast return } }
+Ue_R { Bool b(false);  Int test() {  Fail f;  f ( 1 cast )fail . 0 cast return } }
 Uq_Fail { System s();  <NOMAIN> }
-Un_StringByteSource : ByteSource { :<> String(32) m_string( "");  Unsigned(32) m_index( 0u);  <NOMAIN> }
+Un_StringByteSource : ByteSource { String m_string( "");  Unsigned m_index( 0u);  :ByteSource<> <NOMAIN> }
 Uq_ByteSource { <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

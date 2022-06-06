@@ -1,9 +1,9 @@
 ## -*- mode:ulam -*-
 #=t41153_test_compiler_elementandquark_selfcasttoatom_issue_error
 #!
-Exit status: -11
-Ue_MyElement : QOne(10u) { :< constant Unsigned(32) num = 10u; > Bool(1) sp(false);  Int(32) test() {  Atom(96) abc = self cast;  ( )behave 0 cast return } }
-Uq_QOne(Unsigned(32) num) { <NOMAIN> }
+Exit status: 0
+Ue_MyElement : QOne(10u) { Bool sp(false);  :QOne(10u)< constant Unsigned num = 10u; > Int test() {  Atom abc = self cast;  self ( )behave . 0 cast return } }
+Uq_QOne(Unsigned num) { <NOMAIN> }
 ##
 ## informed by user ish 11/5/2017:
 ## (see also t3905) 2 unused variables generated due to casts to Atom.
@@ -23,6 +23,11 @@ element MyElement : QOne(10)
 
 quark QOne(Unsigned num)
 {
+  //check lexical order (zi, one, vendo) of vowned_idx enum in .h
+  virtual Void vendo() { return; }
+  virtual Int one() { return 1; }
+  virtual Void zi() { return; }
+
   Void behave(){
     // ALL GOOD!!
 

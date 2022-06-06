@@ -66,18 +66,18 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-  UTI NodeTypeBitsize::checkAndLabelType()
+  UTI NodeTypeBitsize::checkAndLabelType(Node * thisparentnode)
   {
     UTI it = getNodeType();
 
     if(it != Nav)
-      it = m_node->checkAndLabelType(); //previous time through
+      it = m_node->checkAndLabelType(this); //previous time through
 
     if(!m_state.okUTItoContinue(it) || !m_state.isComplete(it))
       {
 	std::ostringstream msg;
 	msg << "Type Bitsize specifier, within (), is not ready";
-	if(m_state.okUTItoContinue(it) || (it == Hzy))
+	if(m_state.okUTItoContinue(it) || m_state.isStillHazy(it))
 	  {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //t3787
 	    it = Hzy;
@@ -119,12 +119,6 @@ namespace MFM {
     m_node->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
   }
 
-  bool NodeTypeBitsize::assignClassArgValueInStubCopy()
-  {
-    //return m_node->assignClassArgValueInStubCopy();
-    return true;
-  }
-
   EvalStatus NodeTypeBitsize::eval()
   {
     m_state.abortShouldntGetHere();  //not in parse tree; part of symbol's type
@@ -137,7 +131,7 @@ namespace MFM {
   bool NodeTypeBitsize::getTypeBitSizeInParen(s32& rtnBitSize, ULAMTYPE BUT, UTI& sizetype)
   {
     s32 newbitsize = UNKNOWNSIZE;
-    sizetype = checkAndLabelType();
+    sizetype = checkAndLabelType(this);
     if(sizetype == Nav) //could be hzy
       {
 	return false; //no rtnBitSize
@@ -172,7 +166,7 @@ namespace MFM {
       }
 
     //eval for bit size constant:
-
+    bool evalrtn = false;
     evalNodeProlog(0); //new current frame pointer
     makeRoomForNodeType(getNodeType()); //offset a constant expression
     if(m_node->eval() == NORMAL)
@@ -190,20 +184,21 @@ namespace MFM {
 	      {
 		u32 wordsize = bitut->getTotalWordSize();
 		if(wordsize <= MAXBITSPERINT)
-		  newbitsize = bitUV.getImmediateData(m_state);
+		  newbitsize = bitUV.getImmediateData(m_state); //u32 into s32? t41408
 		else if(wordsize <= MAXBITSPERLONG)
 		  newbitsize = (s32) bitUV.getImmediateDataLong(m_state);
 		else
 		  m_state.abortGreaterThanMaxBitsPerLong();
 	      }
 	    //prepare bitsize into C-format:
-	    newbitsize = bitut->getDataAsCs32(newbitsize);
+	    newbitsize = bitut->getDataAsCs32(newbitsize); //arg expects u32
+	    evalrtn = true; //t41408 compensates for overloaded constant
 	  }
       }
 
     evalNodeEpilog();
 
-    if(newbitsize == UNKNOWNSIZE)
+    if(!evalrtn && (newbitsize == UNKNOWNSIZE)) //overloaded constant (-2)
       {
 	std::ostringstream msg;
 	msg << "Type Bitsize specifier for base type: ";
@@ -215,7 +210,21 @@ namespace MFM {
 	return false;
       }
 
-    if(newbitsize > MAXBITSPERLONG)
+    if(BUT == Bits)
+      {
+	if(newbitsize > MAXBITSPERTRANSIENT)
+	  {
+	    std::ostringstream msg;
+	    msg << "Type Bitsize specifier for base type: ";
+	    msg << UlamType::getUlamTypeEnumAsString(BUT); //Bits
+	    msg << ", has a constant value of " << newbitsize;
+	    msg << " that exceeds the maximum bitsize " << MAXBITSPERTRANSIENT;
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    sizetype = Nav;
+	    return false; //t41558
+	  }
+      }
+    else if(newbitsize > MAXBITSPERLONG)
       {
 	std::ostringstream msg;
 	msg << "Type Bitsize specifier for base type: ";
@@ -236,8 +245,8 @@ namespace MFM {
 	msg << "  Reduced by one to " << newbitsize << " bits" ;
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
       }
-  rtnBitSize = newbitsize;
-  return true;
-} //getTypeBitSizeInParen
+    rtnBitSize = newbitsize;
+    return true;
+  } //getTypeBitSizeInParen
 
 } //end MFM

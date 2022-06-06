@@ -27,7 +27,7 @@
 
 /**
   \file TestCase_EndToEndCompilerPerformance.h -  Load ULAM compiler test details from a file for Performance Timing
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
   \date (C) 2018 All rights reserved.
   \gpl

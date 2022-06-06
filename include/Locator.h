@@ -27,7 +27,7 @@
 
 /**
   \file Locator.h - Basic Location handling of Tokens for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
   \date (C) 2014-2017 All rights reserved.
   \gpl
@@ -58,6 +58,9 @@ class Locator
   void updateLineByteNo(s32 c);
 
   bool hasNeverBeenRead() const;
+
+  bool operator<(const Locator& loc2) const;
+  bool operator==(const Locator & loc2) const;
 
  private:
   u32 m_pathIdx;

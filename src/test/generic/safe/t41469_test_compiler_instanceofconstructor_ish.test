@@ -1,0 +1,97 @@
+## -*- mode:ulam -*-
+#=t41469_test_compiler_instanceofconstructor_ish
+#!
+Exit status: 0
+Ue_T { Int test() {  AtomDeque adq;  Int w = 12 cast;  Int h = 6 cast;  adq mSizeOfPlate . B2D.instanceof ( w h )Self . cast = adq mPosOnPlate . B2D.instanceof ( 0 cast 0 cast )Self . cast = adq ( true adq mPayload . )tryInsert . 0 cast return } }
+Ue_AtomDeque : B2DPlate { typedef Bits MyPayload;  Bits mPayload(0);  Bool mHasPayload(false);  :B2DPlate<> ^B2DTPlate(7)< typedef B2DT(7) B2D;  B2DT(7) mSizeOfPlate( constant Unsigned cCOMPILATION_ERROR_UNLESS_BITS_GE_2 = 0u;  typedef Unsigned(7) BCoord;  constant Unsigned(7) cILLEGAL = 127u;  constant Unsigned(7) cMAXVAL = 126u;  constant Unsigned(7) cMINVAL = 0u;  Unsigned(7) mX( 127u);  Unsigned(7) mY( 127u); );  B2DT(7) mPosOnPlate( constant Unsigned cCOMPILATION_ERROR_UNLESS_BITS_GE_2 = 0u;  typedef Unsigned(7) BCoord;  constant Unsigned(7) cILLEGAL = 127u;  constant Unsigned(7) cMAXVAL = 126u;  constant Unsigned(7) cMINVAL = 0u;  Unsigned(7) mX( 127u);  Unsigned(7) mY( 127u); ); > ^Plate<> <NOMAIN> }
+Uq_B2D : B2DT(7) { /* empty class block */ }
+Uq_B2DPlate : B2DTPlate(7) { /* empty class block */ }
+Uq_B2DTPlate(Unary(8) cBITS_PER_COORD) : Plate { typedef B2DT(cBITS_PER_COORD) B2D;  B2DT(cBITS_PER_COORD) mSizeOfPlate(notready);  B2DT(cBITS_PER_COORD) mPosOnPlate(notready);  :Plate<> <NOMAIN> }
+Uq_Plate { /* empty class block */ }
+Uq_B2DT(Unary(8) cBITS_PER_COORD) { constant Unsigned cCOMPILATION_ERROR_UNLESS_BITS_GE_2 = 1u cBITS_PER_COORD 1u -b /;  typedef Unsigned(UNKNOWN) BCoord;  constant Unsigned(UNKNOWN) cILLEGAL = unresolved maxof .;  constant Unsigned(UNKNOWN) cMAXVAL = unresolved maxof . 1u -b;  constant Unsigned(UNKNOWN) cMINVAL = unresolved minof .;  Unsigned(UNKNOWN) mX(notready);  Unsigned(UNKNOWN) mY(notready);  <NOMAIN> }
+##
+##  informed by Daves ish 20210530, ok to replace stub type with non-stub instanceof;
+##                    and alias them; no assert in NodeTypeDescriptor::resetGivenUTI
+#>T.ulam
+ ulam 5;
+element T{
+
+  Int test(){
+    AtomDeque adq;
+    Int w = 12, h = 6;
+    adq.mSizeOfPlate = B2D.instanceof(w,h); //Incomplete descriptor for type B2DT, requires alias
+    adq.mPosOnPlate = B2D.instanceof(0,0); //Incomplete descriptor for type B2DT, requires alias
+    adq.tryInsert(true, adq.mPayload);
+
+    return 0;
+  }
+}
+
+#:AtomDeque.ulam
+  ulam 5;
+element AtomDeque : B2DPlate
+{
+  typedef Bits MyPayload;
+  MyPayload mPayload;
+  Bool mHasPayload;
+
+  Bool tryInsert(Bool front, MyPayload pay) {
+    Self s;
+    s.mSizeOfPlate = B2D.instanceof(1,1); //also caused assert to happen!!
+    s.mPosOnPlate = B2D.instanceof(0,0);
+    return true;
+  }
+}
+
+#:B2DTPlate.ulam
+  ulam 5;
+quark B2DTPlate(Unary(8) cBITS_PER_COORD) : Plate {
+  typedef B2DT(cBITS_PER_COORD) B2D;
+  B2D mSizeOfPlate;
+  B2D mPosOnPlate;
+}
+
+#:B2DPlate.ulam
+  ulam 5;
+quark B2DPlate : B2DTPlate(7) { }
+
+#:Plate.ulam
+ ulam 5;
+quark Plate {
+}
+
+#:B2DT.ulam
+  ulam 5;
+quark B2DT(Unary(8) cBITS_PER_COORD) {
+  constant Unsigned cCOMPILATION_ERROR_UNLESS_BITS_GE_2 = 1u/(cBITS_PER_COORD-1u);
+  typedef Unsigned(cBITS_PER_COORD) BCoord;
+  constant BCoord cILLEGAL = BCoord.maxof;
+  constant BCoord cMAXVAL = BCoord.maxof-1u;
+  constant BCoord cMINVAL = BCoord.minof;
+  BCoord mX = cILLEGAL;
+  BCoord mY = cILLEGAL;
+
+  Self(Int x, Int y) {
+    init(x,y);
+  }
+
+  Void init(Int x, Int y) {
+    if (x < cMINVAL || x < cMINVAL ||
+        y > cMAXVAL || y > cMAXVAL)
+      invalidate();
+    else {
+      mX = (BCoord) x;
+      mY = (BCoord) y;
+    }
+  }
+
+  Void invalidate() {
+    mX = mY = cILLEGAL;
+  }
+}
+
+#:B2D.ulam
+  ulam 5;
+quark B2D : B2DT(7) { }
+
+#.

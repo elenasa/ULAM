@@ -2,7 +2,8 @@
  * NodeConstantArray.h - Node handling Named Constant arrays for ULAM
  *
  * Copyright (C) 2016-2018 The Regents of the University of New Mexico.
- * Copyright (C) 2016-2018 Ackleyshack LLC.
+ * Copyright (C) 2016-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +28,9 @@
 
 /**
   \file NodeConstantArray.h - Node handling Named Constant arrays for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2016-2018 All rights reserved.
+  \date (C) 2016-2021 All rights reserved.
   \gpl
 */
 
@@ -51,6 +52,8 @@ namespace MFM{
 
     NodeConstantArray(const Token& tok, SymbolWithValue * symptr, NodeTypeDescriptor * typedesc, CompilerState & state);
 
+    NodeConstantArray(const Token& tok, NNO stblockno, UTI constantType, NodeTypeDescriptor * typedesc, CompilerState & state);
+
     NodeConstantArray(const NodeConstantArray& ref);
 
     virtual ~NodeConstantArray();
@@ -67,7 +70,7 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
-    virtual bool getSymbolPtr(Symbol *& symptrref);
+    virtual bool getSymbolPtr(const Symbol *& symptrref);
 
     virtual bool hasASymbolDataMember();
 
@@ -75,11 +78,11 @@ namespace MFM{
 
     virtual bool isAConstant();
 
+    virtual bool isAConstantClassArray();
+
     virtual FORECAST safeToCastTo(UTI newType);
 
-    virtual UTI checkAndLabelType();
-
-    virtual bool assignClassArgValueInStubCopy();
+    virtual UTI checkAndLabelType(Node * thisparentnode);
 
     virtual bool getConstantValue(BV8K& bval);
 
@@ -98,6 +101,9 @@ namespace MFM{
     UTI m_constType;
 
     virtual void checkForSymbol();
+
+    virtual void clearSymbolPtr();
+
 
   private:
     NNO m_currBlockNo;

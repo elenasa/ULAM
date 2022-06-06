@@ -1,17 +1,17 @@
 ## -*- mode:ulam -*-
 #=t3517_test_compiler_elementandquarkswclassargs3_typedeffromanotherclasstypedef_dminit
-#!
 ##
 ## gencode output:
 ##     Bool(3) Arg: 0x7 (true)
 ## assert: arg is 1
 ## after asserts abort: arg is 1
 ##
+#!
 Exit status: 96
-Ue_R { Int(32) test() {  System s;  P(3) pvar;  s ( pvar b . )print . s ( pvar b . cast )assert . 96u cast return } }
+Ue_R { Int test() {  System s;  P(3) pvar;  s ( pvar b . )print . s ( pvar b . cast )assert . 96u cast return } }
 Uq_V { typedef Q(3) Woof;  <NOMAIN> }
-Uq_Q(Int(32) s) { typedef P(a) Foo;  <NOMAIN> }
-Ue_P(Int(32) a) { Bool(UNKNOWN) b(notready);  <NOMAIN> }
+Uq_Q(Int s) { typedef P(a) Foo;  <NOMAIN> }
+Ue_P(Int a) { Bool(UNKNOWN) b(notready);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 ##  informed by 3362

@@ -1,0 +1,50 @@
+## -*- mode:ulam -*-
+#=t41290_test_compiler_localclasssarrayofprimitives_issue
+##
+## gen output: 1 assert
+#!
+Exit status: 1
+Ue_Foo { Int(4) pair[2](1,2);  Int test() {  System s;  Int(5) diff;  Int(4) x = 1 cast;  Int(4) y = 2 cast;  self pair . 0 [] x = self pair . 1 [] y = diff self pair . 1 [] cast self pair . 0 [] cast -b = s ( diff 1 cast == )assert . diff cast return } }
+Uq_Other { typedef Int(4) C2D2[2];  <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## Ish reported by Dave 3/7/19; (see t41289 for ones that work.)
+## An array of classes might be Hazy; assertions hit.
+## Unlike array of quarks (t41287), primitive works!
+##
+#>Foo.ulam
+  ulam 4;
+element Foo {
+  Other.C2D2 pair;
+  Int test() {
+    System s;
+    Int(5) diff;
+    Int(4) x = 1;
+    Int(4) y = 2;
+    pair[0] = x;
+    pair[1] = y;
+    diff = pair[1] - pair[0];
+    s.assert(diff == 1);
+    return diff;
+  }
+}
+
+#:Other.ulam
+  ulam 4;
+quark Other{
+  typedef Int(4) C2D2[2];
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+
+#.

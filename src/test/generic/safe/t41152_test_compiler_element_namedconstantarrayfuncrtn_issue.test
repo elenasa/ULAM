@@ -2,8 +2,8 @@
 #=t41152_test_compiler_element_namedconstantarrayfuncrtn_issue
 #!
 Exit status: 0
-Ue_MyElement { Q q( constant Unsigned(8)[4] cCOLOR = { 0xdd0000 }; );  Int(32) test() {  0 cast return } }
-Uq_Q { constant Unsigned(8)[4] cCOLOR = { 0u cast, 221u, 0u cast, 0u cast };  <NOMAIN> }
+Ue_MyElement { Q q( constant Unsigned(8) cCOLOR[4] = { 0xdd0000 }; );  Int test() {  0 cast return } }
+Uq_Q { constant Unsigned(8) cCOLOR[4] = { 0u cast, 221u, 0u cast, 0u cast };  <NOMAIN> }
 ##
 ## user ish 11/7/2017: gencode errors
 ##

@@ -17,4 +17,5 @@ quark UrSelf
 
   virtual Void behave() { }
   virtual ARGB getColor(Unsigned selector) native ;
+  virtual Void renderGraphics() { }
 }

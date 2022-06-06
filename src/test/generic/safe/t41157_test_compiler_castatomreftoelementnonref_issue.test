@@ -5,7 +5,7 @@
 ##
 #!
 Exit status: -11
-Ue_MyElement { Bool(1) sp(true);  Int(32) test() {  System s;  Node n;  MyElement mel;  mel sp . false = s ( mel sp . ! )assert . mel n ( )func . = s ( mel sp . )assert . 0 cast return } }
+Ue_MyElement { Bool sp(true);  Int test() {  System s;  Node n;  MyElement mel;  mel sp . false = s ( mel sp . ! )assert . mel n ( )func . = s ( mel sp . )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 Uq_Node { EventWindow ew();  <NOMAIN> }
 Uq_EventWindow { <NOMAIN> }

@@ -1,0 +1,85 @@
+## -*- mode:ulam -*-
+#=t41506_test_compiler_elementinheritedquark_constantof_withsuper
+##
+## gen output: (3 asserts)
+##
+#!
+Exit status: -11
+Uq_Base { Bits(4) bits( 12u);  <NOMAIN> }
+Uq_Sub1 : Base { Int(3) sint( -1);  :Base< Bits(4) bits( 12u); > <NOMAIN> }
+Ue_E2 : Sub1 { Bool(7) esp( true);  :Sub1< Int(3) sint( -1); > ^Base< Bits(4) bits( 12u); > <NOMAIN> }
+Ue_Test : System { Bool brtn[3](false,false,false);  :System<> Int test() {  E2 e2;  e2 esp . false cast = e2 sint . 2 = e2 bits . 1u cast = Atom sb1 = e2 ( )func .;  { sb1 Sub1 as cond { Sub1& sb1;  self brtn . 0 [] sb1 sint . -1 cast == = self brtn . 1 [] sb1 bits . 12u cast == = sb1 bits . 3u cast = Atom base = sb1 ( )func .;  { base Base as cond { Base& base;  self brtn . 2 [] base bits . 12u cast == = } if } } if } self ( self brtn . 0 [] )assert . self ( self brtn . 1 [] )assert . self ( self brtn . 2 [] )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+##
+## informed by t3747, except constantof
+##
+#:Base.ulam
+  ulam 2;
+quark Base {
+  Bits(4) bits = 0xc;
+}
+
+#:Sub1.ulam
+  ulam 2;
+use Base;
+quark Sub1 : Base {
+  Int(3) sint = -1;
+  virtual Atom func()
+  {
+    return super.constantof; //same as self.instanceof
+  }
+}
+
+#:E2.ulam
+  ulam 2;
+use Sub1;
+element E2 : Sub1 {
+  Bool(7) esp = true;
+}
+
+#>Test.ulam
+  ulam 2;
+use Base;
+use Sub1;
+use E2;
+use System;
+element Test : System {
+  Bool brtn[3];
+
+  Int test() {
+
+    E2 e2;
+    e2.esp = false;
+    e2.sint = 2;
+    e2.bits = 0x1;
+    Atom sb1 = e2.func();
+    if(sb1 as Sub1)
+    {
+      brtn[0] = (sb1.sint == -1);
+      brtn[1] = (sb1.bits == 0xc);
+      sb1.bits = 0x3;
+
+      Atom base = sb1.func();
+      if(base as Base)
+	brtn[2] = (base.bits == 0xc);
+    }
+    assert(brtn[0]);
+    assert(brtn[1]);
+    assert(brtn[2]);
+
+    return 0;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

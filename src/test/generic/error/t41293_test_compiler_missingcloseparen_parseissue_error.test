@@ -1,0 +1,47 @@
+## -*- mode:ulam -*-
+#=t41293_missingcloseparen_parseissue_error
+#!
+./Foo3.ulam:10:26: ERROR: Unexpected token <TOK_OPEN_CURLY>; Expected ).
+./Foo3.ulam:13:27: ERROR: Unexpected token <TOK_OPEN_CURLY>; Expected ).
+./Foo3.ulam:18:28: ERROR: Unexpected token <TOK_OPEN_CURLY>; Expected ).
+./Foo3.ulam:23:8: ERROR: Unexpected token <TOK_OPEN_CURLY>; Expected ).
+./Foo3.ulam:27:46: ERROR: Unexpected token <;>; expected ')'.
+./Foo3.ulam:27:10: ERROR: Initial value of 'bmem' is missing.
+Unrecoverable Program Parse FAILURE: <Foo3.ulam>
+##
+## ISH informed by Dave 3/24/19
+## Parser knew the close paren was missing, but quietly.
+##
+#>Foo3.ulam
+  ulam 4;
+element Foo3  {
+  Int test() {
+    check();
+    return 0;
+  }
+
+  Unsigned func() { return 3u; }
+  Bool check() {
+    if (self.func() > 0u {
+	Foo3 foo;
+      }
+    if((self).func() > 0u {
+	Foo3 foo;
+      }
+
+    //similarly..
+    while(self.func() < 1u {
+      Foo3 foo;
+    }
+
+    for(Int i = (self).func(); i < 3u; i--
+       {
+	 Foo3 foo;
+       }
+
+    Bool bmem = ((self).func() > 3u ? 0u : 1u;
+    return false;
+      }
+  }
+
+#.

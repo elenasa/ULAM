@@ -2,7 +2,8 @@
  * ErrorMessageHandler.h - Basic Error Message handling for ULAM
  *
  * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2017 Ackleyshack LLC.
+ * Copyright (C) 2014-2021 Ackleyshack LLC.
+ * Copyright (C) 2021 The Living Computation Foundation.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +28,9 @@
 
 /**
   \file ErrorMessageHandler.h - Basic Error Message handling for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2017 All rights reserved.
+  \date (C) 2014-2021 All rights reserved.
   \gpl
 */
 
@@ -40,6 +41,7 @@
 #include <stdio.h>
 #include <string>
 #include <string.h>
+#include <set>
 #include "itype.h"
 #include "Token.h"
 
@@ -69,6 +71,8 @@ namespace MFM
 
     void revertToWaitMode();
 
+    bool isWaitModeWaiting();
+
     void setFileOutput(File * fp);
 
     u32 getErrorCount();
@@ -94,6 +98,8 @@ namespace MFM
 
     u32 m_errorCount;
     u32 m_warningCount;
+
+    std::set<std::string> m_seenToUserMessages;
 
     void incErrorCount();
     void incWarningCount();

@@ -1,8 +1,9 @@
 /**                                        -*- mode:C++ -*-
  * SymbolClass.h -  Basic handling of Class Symbols for ULAM
  *
- * Copyright (C) 2014-2018 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2018 Ackleyshack LLC.
+ * Copyright (C) 2014-2021 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +28,9 @@
 
 /**
   \file SymbolClass.h -  Basic handling of Class Symbols for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2018 All rights reserved.
+  \date (C) 2014-2021 All rights reserved.
   \gpl
 */
 
@@ -45,8 +46,10 @@
 #include "StringPoolUser.h"
 #include "TargetMap.h"
 #include "MapClassMemberDesc.h"
-#include "VirtualTable.h"
+#include "VirtualTable.h" /* VT */
+#include "BaseClassTable.h"
 #include "BitVector.h"
+#include <vector>
 
 namespace MFM{
 
@@ -67,10 +70,38 @@ namespace MFM{
 
     virtual bool isClassTemplate(UTI cuti);
 
-    void setSuperClass(UTI superclass);
-    UTI getSuperClass();
+    u32 getBaseClassCount();
+    UTI getBaseClass(u32 item);
+    s32 isABaseClassItem(UTI puti);
+
+    bool isDirectSharedBase(u32 item) const;
+    u32 getNumberSharingBase(u32 item) const;
+    u32 getNumberSharingSharedBase(u32 item) const;
+    u32 countDirectSharedBases() const;
+    u32 findDirectSharedBases(std::map<UTI, u32>& svbmapref);
+
+    void appendBaseClass(UTI baseclass, bool sharedbase);
+    void updateBaseClass(UTI oldclasstype, u32 item, UTI newbaseclass);
+    void setBaseClass(UTI baseclass, u32 item, bool sharedbase = true);
+    void setSuperBaseClass(UTI superuti);
+    void updateSuperTypedef(UTI superuti);
+
+    s32 getBaseClassRelativePosition(u32 item) const;
+    void setBaseClassRelativePosition(u32 item, u32 pos, bool dupflag);
+    bool isADuplicateBaseClass(u32 item);
+
+    UTI getSharedBaseClass(u32 item);
+    s32 isASharedBaseClassItem(UTI buti);
+    s32 isASharedBaseClassItemSearch(UTI buti);
+    u32 getSharedBaseClassCount() const;
+    void updateSharedBaseClass(UTI oldclasstype, u32 item, UTI newbaseclass);
+    void appendSharedBaseClass(UTI baseclass, u32 numshared);
+
+    s32 getSharedBaseClassRelativePosition(u32 item) const;
+    void setSharedBaseClassRelativePosition(u32 item, u32 pos);
 
     void setClassBlockNode(NodeBlockClass * node);
+    void resetClassBlockNode(NodeBlockClass * node);
 
     NodeBlockClass * getClassBlockNode();
 
@@ -88,7 +119,15 @@ namespace MFM{
 
     void unsetStub();
 
-    bool isCustomArray(); //by ulamtypeclass
+    bool isStubCopy();
+
+    void unsetStubCopy();
+
+    void setStubCopy();
+
+    UTI getStubCopyOf();
+
+    void setStubCopyOf(UTI stubuti);
 
     UTI getCustomArrayType(); //by function return type
 
@@ -96,15 +135,14 @@ namespace MFM{
 
     bool hasCustomArrayLengthof();
 
-    bool trySetBitsizeWithUTIValues(s32& totalbits);
+    bool trySetBitsizeWithUTIValues(s32& basebits, s32& mybits, std::set<UTI>& seensetref);
+    bool determineSharedBasesAndTotalBitsize(s32& sharedbitssaved, s32& sharedbitsize);
 
     void printBitSizeOfClass();
 
-    bool getDefaultQuark(u32& dqref);
+    bool getDefaultQuark(u64& dqref);
     bool getPackedDefaultValue(u64& dpkref);
     bool getDefaultValue(BV8K& dvref); //return true if ready
-
-    bool buildClassConstantDefaultValues();
 
     TBOOL packBitsForClassVariableDataMembers();
 
@@ -125,7 +163,7 @@ namespace MFM{
 
     void linkConstantExpressionForPendingArg(NodeConstantDef * constNode);
     bool pendingClassArgumentsForClassInstance();
-    void cloneArgumentNodesForClassInstance(SymbolClass * fmcsym, UTI argvaluecontext, UTI argtypecontext, bool toStub);
+    void cloneArgumentNodesForClassInstance(SymbolClass * fmcsym, UTI argvaluecontext, UTI argtypecontext);
     void cloneResolverUTImap(SymbolClass * csym);
     void cloneUnknownTypesMapInClass(SymbolClass * to);
 
@@ -136,11 +174,10 @@ namespace MFM{
 
     bool mapUTItoUTI(UTI auti, UTI mappedUTI);
     bool hasMappedUTI(UTI auti, UTI& mappedUTI);
+    bool hasMappedUTI(UTI auti); //helps w debugging
 
     bool assignRegistryNumber(u32 n); //ulam-4
-    u32 getRegistryNumber() const; //ulam-4
-    bool assignElementType(ELE_TYPE n); //ulam-4
-    bool assignEmptyElementType(); //ulam-4
+    u32 getRegistryNumber(); //ulam-4, assign when UTI is ok ulam-5
     ELE_TYPE getElementType(); //ulam-4
 
     virtual void generateCode(FileManager * fm);
@@ -157,16 +194,36 @@ namespace MFM{
     void addClassMemberDescriptionsMapEntry(ClassMemberMap& classmembers);
 
     void initVTable(s32 initialmax);
-    void updateVTable(u32 idx, SymbolFunction * fsym, UTI kinuti, bool isPure);
+    void updateVTable(u32 idx, SymbolFunction * fsym, UTI kinuti, UTI origuti, bool isPure);
+    s32 getVTableSize();
+    s32 getOrigVTableSize();
     VT& getVTableRef();
+    u32 convertVTstartoffsetmap(std::map<u32, u32> & mapbyrnref); //returns count
+    u32 getVTstartoffsetOfRelatedOriginatingClass(UTI origuti);
+    u32 getVTableIndexForOriginatingClass(u32 idx);
     bool isPureVTableEntry(u32 idx);
     UTI getClassForVTableEntry(u32 idx);
+    UTI getOriginatingClassForVTableEntry(u32 idx);
     void notePureFunctionSignatures();
+    void notePureFunctionSignature(u32 idx);
     std::string getMangledFunctionNameForVTableEntry(u32 idx);
     std::string getMangledFunctionNameWithTypesForVTableEntry(u32 idx);
+    u32 getVFuncIndexForVTableEntry(u32 idx);
+    u32 getVFuncNameSignatureIdForVTableEntry(u32 idx);
     struct VTEntry getVTableEntry(u32 idx);
+    struct VTEntry getOrigVTableEntry(u32 idx);
 
     bool isAbstract();
+    bool checkAbstractClassError();
+
+    void buildIsBitVectorByRegNum(BV8K& bitvecref);
+
+    void partialInstantiationOfMemberNodesAndSymbols(NodeBlockClass & fromclassblock);
+
+    bool isStubForTemplate();
+    UTI getStubForTemplateType();
+    void setStubForTemplateType(UTI ttype);
+    void clearStubForTemplate();
 
   protected:
     Resolver * m_resolver;
@@ -178,15 +235,32 @@ namespace MFM{
     SymbolClassNameTemplate * m_parentTemplate;
     bool m_quarkunion;
     bool m_stub;
+    bool m_stubcopy;
+    bool m_stubForTemplate; //ulam-5 (t41440, t41224)
+    UTI m_stubForTemplateType;
+    UTI m_stubcopyOf;
+    bool m_stubcopyfromseentemplatestub;
     BV8K m_defaultValue; //BitVector
     bool m_isreadyDefaultValue;
-    UTI m_superClass; //single inheritance
     bool m_bitsPacked;
     u32 m_registryNumber; //ulam-4
 
     ELE_TYPE m_elementType; //ulam-4
 
-    void assignClassArgValuesInStubCopy();
+    BasesTable m_basestable;
+    BasesTable m_sharedbasestable; //ulam-5
+
+    void clearBaseAsShared(u32 item);
+    void setNumberSharingBase(u32 item, u32 numshared);
+    s32 isABaseClassItemSearch(UTI buti);
+
+    void setStubForTemplate();
+
+    bool resolveHasMappedUTI(UTI auti, UTI& mappedUTI);
+    bool resolveHasMappedUTI(UTI auti); //helps w debugging
+
+    bool assignElementType(ELE_TYPE n); //ulam-4
+    bool assignEmptyElementType(); //ulam-4
 
     void generateHeaderPreamble(File * fp);
     void genIfndefForHeaderFile(File * fp);
@@ -199,8 +273,12 @@ namespace MFM{
 
     static std::string firstletterTolowercase(const std::string s);
 
+    BasesTableTypeMap m_basesVTstart; //includes entire hierarchy and self
     VT m_vtable;
+    VT m_vownedVT;
+    bool m_vtableinitialized;
 
+    bool setVTstartoffsetOfRelatedOriginatingClass(UTI origuti, u32 startoffset);
   };
 
 }

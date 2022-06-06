@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3956_test_compiler_stringascii_casting_error
 #!
-./A.ulam:6:22: ERROR: Cannot explicitly cast String(32) to type: Unsigned(32).
+./A.ulam:6:22: ERROR: Cannot explicitly cast String to type: Unsigned.
 ./A.ulam:6:5: ERROR: Initial value expression for: sidx, initialization is invalid.
 Unrecoverable Program Type Label FAILURE.
 #>A.ulam

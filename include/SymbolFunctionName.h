@@ -1,8 +1,9 @@
 /**                                        -*- mode:C++ -*-
  * SymbolFunctionName.h -  Function Symbol Name handling for ULAM
  *
- * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2017 Ackleyshack LLC.
+ * Copyright (C) 2014-2020 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +28,9 @@
 
 /**
   \file SymbolFunctionName.h -  Function Symbol Name handling for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2017   All rights reserved.
+  \date (C) 2014-2021   All rights reserved.
   \gpl
 */
 
@@ -47,7 +48,7 @@ namespace MFM{
 
   class Node; //forward
   class NodeBlockClass; //forward
-  class SymbolTable; //forward
+  class SymbolTableOfFunctions; //forward
 
   class SymbolFunctionName : public Symbol
   {
@@ -63,11 +64,17 @@ namespace MFM{
     virtual bool isFunction();
 
     virtual const std::string getMangledPrefix();
+    u32 getFunctionNameId();
 
     bool isOperatorOverloadFunctionName();
     void setOperatorOverloadFunctionName();
 
     bool overloadFunction(SymbolFunction * fsym);
+    bool overloadFunction(SymbolFunction * fsym, SymbolFunction *& ovfsymref);
+
+    u32 addFunctionsToThisTable(std::map<std::string, SymbolFunction *>& mapref); //for virtual index calc
+
+    SymbolFunction * getFunctionSymbolByOrderNumber(u32 ordernumarg);
 
     u32 findMatchingFunctionStrictlyByTypes(std::vector<UTI> argTypes, SymbolFunction *& funcSymbol, bool& hasHazyArgs);
 
@@ -75,25 +82,23 @@ namespace MFM{
 
     u32 findMatchingFunction(std::vector<Node*> argNodes, SymbolFunction *& funcSymbol, bool& hasHazyArgs);
 
-    u32 findMatchingFunctionWithSafeCasts(std::vector<Node*> argNodes, SymbolFunction *& funcSymbol, bool& hasHazyArgs);
+    u32 findMatchingFunctionWithSafeCasts(std::vector<Node*> argNodes, SymbolFunction *& funcSymbol, bool& hasHazyArgs, FSTable& fstableref);
 
-    u32 findMatchingFunctionWithSafeCastsInAncestors(std::vector<Node*> argNodes, SymbolFunction *& funcSymbol, bool& hasHazyArgs);
+    u32 anyFunctionSymbolPtr(SymbolFunction *& funcptr);
 
-    void noteAmbiguousFunctionSignatures(std::vector<Node *> argNodes, u32 numMatchesFound);
+    u32 noteAmbiguousFunctionSignatures(std::vector<Node *> argNodes, u32 counter, u32 numMatchesFound, bool noteOn = true);
 
     u32 getDepthSumOfFunctions();
 
     void calcMaxDepthOfFunctions(); //called after all UTI sizes are known
 
-    void calcMaxIndexOfVirtualFunctions(s32& maxidx);
-
     void setupConstantSlotIndexesInFunctions(u32& cslotidx);
 
     void checkAbstractInstanceErrorsInFunctions();
 
-    void checkFunctionNames(std::map<std::string, UTI>& mangledFunctionMap, u32& probcount);
+    void checkFunctionNames(FSTable& mangledFunctionMap, u32& probcount);
 
-    void checkFunctionNamesInAncestor(std::map<std::string, UTI>& mangledFunctionMap, u32& probcount);
+    void checkFunctionSignatureReturnTypes(FSTable& mangledFunctionMap, u32& probcount);
 
     u32 checkCustomArrayGetFunctions(UTI& rtnType);
 
@@ -107,17 +112,13 @@ namespace MFM{
 
     bool findNodeNoInFunctionDefs(NNO n, Node*& foundNode);
 
-    bool labelFunctions();
+    bool labelFunctions(Node * thisparentnode);
 
     void countNavNodesInFunctionDefs(u32& ncnt, u32& hcnt, u32& nocnt);
 
     void printUnresolvedLocalVariablesInFunctionDefs();
 
     u32 countNativeFuncDecls();
-
-    void generateCodedFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
-
-    void addFunctionDescriptionsToClassMemberMap(UTI classType, ClassMemberMap & classmembers);
 
   protected:
 
@@ -126,7 +127,7 @@ namespace MFM{
     std::map<std::string, SymbolFunction *> m_mangledFunctionNames; //mangled func name -> symbol function ptr
 
     bool isDefined(std::string mangledFName, SymbolFunction * & foundSym);
-    bool checkForDuplicateFunctionSignature(std::map<std::string, UTI>& mangledFunctionMap, u32& probcount, SymbolFunction * fsym);
+    bool checkForDuplicateFunctionSignature(FSTable& mangledFunctionMap, u32& probcount, SymbolFunction * fsym);
   };
 
 }

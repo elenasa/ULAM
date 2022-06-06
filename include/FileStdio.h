@@ -27,7 +27,7 @@
 
 /**
   \file FileStdio.h - Basic File handling of Standard IO for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
   \date (C) 2014-2017 All rights reserved.
   \gpl
