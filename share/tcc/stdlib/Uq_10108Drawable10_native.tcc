@@ -58,8 +58,8 @@ namespace MFM{
                                     onColor,
                                     offColor,
                                     mask,
-                                    MAX(1u,((u32)dps)*maskUnits/1024u/4u),
-                                    MAX(1u,((u32)dps)*widthUnits/1024u/4u));
+                                    MAX(1u,((u32)dps)*maskUnits/((u32)ups)), // convert to dits
+                                    MAX(1u,((u32)dps)*widthUnits/((u32)ups))); // ditto
     
   }
 
