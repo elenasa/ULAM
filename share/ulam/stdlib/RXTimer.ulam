@@ -2,9 +2,12 @@ ulam 5;
 use XTimer;
 
 /**
-   A 'reverse' XTimer.  Acts exactly like XTimer except the long
-   duration counts occur first and the short duration counts last.
+   A 'reverse' XTimer.  Acts like XTimer except the long duration
+   counts occur first and the short duration counts last.
+
    \sa XTimer
+   \sa QTimer
+   \sa QRXTimer
 
    \since 5.0
    \author Dave Ackley
@@ -21,7 +24,7 @@ quark RXTimer(Unary(5) bits, Unsigned triggerLevel, Unsigned k) : XTimer(bits,tr
   }
 
   Counter count() {
-    if (!alarm() && r.oneIn((Unsigned) (k<<(triggerLevel - time))))
+    if (!alarm() && r.oneIn((Unsigned) (k<<(triggerLevel - 1u - time))))
       ++time;
     return time;
   }

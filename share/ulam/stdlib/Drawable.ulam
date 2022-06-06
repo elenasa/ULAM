@@ -11,8 +11,8 @@ quark Drawable {
                         onColor,
                         offColor,
                         mask32,
-                        cUNITS_PER_SITE/32,
-                        1u);
+                        cUNITS_PER_SITE/8,
+                        cUNITS_PER_SITE/24);
   }
   Void drawMaskedLine(C2D startUnits, C2D endUnits, ARGB onColor, ARGB offColor, Bits mask32, Unsigned width) {
     drawMaskedLineUnits(startUnits,
@@ -20,7 +20,7 @@ quark Drawable {
                         onColor,
                         offColor,
                         mask32,
-                        cUNITS_PER_SITE/32,
+                        cUNITS_PER_SITE/8,
                         width);
   }
   //  Void drawMaskedLineDit(C2D startDit, C2D endDit, ARGB color, Bits mask32, Unsigned maskDits) native;

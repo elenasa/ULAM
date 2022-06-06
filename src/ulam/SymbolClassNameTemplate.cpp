@@ -193,7 +193,7 @@ namespace MFM {
 
   UTI SymbolClassNameTemplate::getBaseClassForClassInstance(UTI instance, u32 item)
   {
-    UTI baseuti;
+    UTI baseuti = Nouti; // Avoid compiler warning on 16.04
     SymbolClass * csym = NULL;
     if(findClassInstanceByUTI(instance, csym))
       baseuti = csym->getBaseClass(item); //Nouti is none, not a subclass.
