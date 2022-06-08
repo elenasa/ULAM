@@ -1,10 +1,21 @@
 ## -*- mode:ulam -*-
 #=t3526_test_compiler_elementandquarkswclassargs_wdefaultparamvalueandtype
+##
+## gen output (3 asserts)
+##  Unsigned Arg: 2
+##  Unsigned Arg: 1
+##  Unsigned Arg: 1
+##
+## oddly, Qs second parameter changed to Unsigned(4), from Unsigned(UNKNOWN)
+## after insuring NodeConstantDef invariant, nodetypedescriptor givenUTI == symbol UTI (Tue Feb 20 09:07:05 2018)
+##
 #!
 Exit status: 4
-Ue_P { Bool(1) b(false);  Int(32) test() {  Q(4,2u) z;  Q(3,1u) q;  Q(4,1u) w;  4u cast return } }
-Uq_Q(Int(32) b = 3, Unsigned(UNKNOWN) s = NONREADYCONST) { typedef Unsigned(UNKNOWN) Foo;  Unsigned(UNKNOWN) f(notready);  <NOMAIN> }
+Ue_P { Bool b(false);  Int test() {  System s;  Q(4,2u) z;  Unsigned zsz = 2u;  s ( zsz )print . s ( zsz 2u cast == )assert . Q(3,1u) q;  s ( 1u )print . s ( true )assert . Q(4,1u) w;  s ( 1u )print . s ( true )assert . 4u cast return 2u cast return } }
+Uq_Q(Int b = 3, Unsigned(UNKNOWN) s = NONREADYCONST) { typedef Unsigned(UNKNOWN) Foo;  Unsigned(UNKNOWN) f(notready);  <NOMAIN> }
+Uq_System { <NOMAIN> }
 ##
+## (see also t41438)
 ##
 #>P.ulam
   ulam 1;
@@ -12,10 +23,23 @@ use Q;
 element P {
   Bool b;
   Int test() {
-    Q(4, 2) z; //fails
+    System s;
+
+    Q(4, 2) z;
+    Unsigned zsz = z.sizeof;
+    s.print(zsz);
+    s.assert(zsz == 2u);
+
     Q() q; //ok
-    Q(4) w; //ok
+    s.print(q.sizeof);
+    s.assert(q.sizeof == 1);
+
+    Q(4) w; //ok, 2nd arg is default
+    s.print(w.sizeof);
+    s.assert(w.sizeof == 1);
     return (Int) (w.sizeof + q.sizeof + z.sizeof);
+
+    return (Int) z.sizeof;
   }
 }
 
@@ -24,6 +48,18 @@ element P {
 quark Q(Int b = 3, Unsigned(b) s = 1u) {
   typedef Unsigned(s) Foo;
   Foo f;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
 }
 
 #.

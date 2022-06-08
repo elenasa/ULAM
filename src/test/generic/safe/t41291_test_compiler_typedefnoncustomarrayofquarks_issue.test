@@ -1,0 +1,62 @@
+## -*- mode:ulam -*-
+#=t41291_test_compiler_typedefnoncustomarrayofquarks_issue
+##
+## gen output: 1 asserts
+##
+#!
+Exit status: 0
+Ue_Foo { typedef C2D C2D2[2];  Int test() {  System s;  C2D xy = xy ( 1 cast 2 cast )Self .;  C2D pair[2];  pair 0 [] xy = s ( pair 0 [] m_width . 1 cast == )assert . 0 cast return } }
+Uq_C2D { Int(4) m_width(0);  Int(4) m_height(0);  <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## Ish reported by Dave 3/7/19; informed by t41287, t41288, t41289, t41290
+## An array of classes that does NOT need to be a custom array, or accessed directly;
+##
+#>Foo.ulam
+  ulam 4;
+element Foo {
+  typedef C2D C2D2[2];
+  Int test() {
+    System s;
+    C2D xy(1,2);
+
+    C2D2 pair;
+    pair[0] = xy;
+    s.assert(pair[0].m_width == 1);
+    return 0;
+  }
+}
+
+#:C2D.ulam
+  ulam 1;
+quark C2D {
+  Int(4) m_width;
+  Int(4) m_height;
+  Self(Int x, Int y) {
+    m_width = (Int(4)) x;
+    m_height = (Int(4)) y;
+    return;
+  }
+  Void init() {
+    m_width = (Int(4)) 9;
+    m_height = 4;
+    return; /* event window overload */
+  }
+  Int getIndex(Int a, Int b){
+    return ((m_height-b) * m_width + (m_height-a));
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+
+#.

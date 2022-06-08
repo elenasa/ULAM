@@ -1,8 +1,9 @@
 /**                                        -*- mode:C++ -*-
  * Parser.h -  Basic Parse handling for ULAM
  *
- * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2017 Ackleyshack LLC.
+ * Copyright (C) 2014-2020 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +28,9 @@
 
 /**
   \file Parser.h -  Basic Parse handling for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2017   All rights reserved.
+  \date (C) 2014-2021   All rights reserved.
   \gpl
 */
 
@@ -43,6 +44,7 @@
 #include "CompilerState.h"
 #include "Node.h"
 #include "NodeListArrayInitialization.h"
+#include "NodeListClassInit.h"
 #include "NodeBinaryOpEqual.h"
 #include "NodeBinaryOp.h"
 #include "NodeBlock.h"
@@ -106,10 +108,14 @@ namespace MFM{
 
     void parseRestOfClassParameters(SymbolClassNameTemplate * ctsym, NodeBlockClass * cblock);
 
-    bool parseRestOfClassInheritance(SymbolClassName * cnsym, SymbolClass *& supercsym, UTI& superuti);
+
+    //ulam 5 supports multiple inheritance
+    bool parseMultipleClassInheritances(SymbolClassName * cnsym);
+    bool parseRestOfMultiClassInheritance(SymbolClassName * cnsym, u32 item, bool sharedVirtualBase);
+    bool parseRestOfMultiClassInheritanceUsingALocaldef(SymbolClassName * cnsym, u32 item, bool sharedVirtualBase);
 
     void setupSuperClassHelper(SymbolClassName * cnsym);
-    void setupSuperClassHelper(SymbolClass * supercsym, SymbolClassName * cnsym);
+    void setupSuperClassHelper(UTI superuti, SymbolClassName * cnsym);
 
    /**
 	<LOCAL_DEF> := 'local' + ( <TYPE_DEF> | <CONST_DEF> ) + ';'
@@ -126,7 +132,7 @@ namespace MFM{
     bool parseRestOfInitialization(const Token& identTok, Node * dNode);
 
     bool makeDeclConstructorCall(const Token& identTok, NodeVarDecl * dNode);
-    Node * makeInstanceofConstructorCall(const Token& fTok, NodeInstanceof * instanceofNode);
+    Node * makeInstanceofConstructorCall(const Token& fTok, Node * memberNode, NodeTypeDescriptor * nodetype);
     NodeFunctionCall * parseConstructorCall(const Token& identTok);
 
     /**
@@ -241,8 +247,8 @@ namespace MFM{
     NodeTypeDescriptor * parseTypeDescriptor(TypeArgs& typeargs, bool isaclass = false, bool delAfterDotFails = false); //helper
     NodeTypeDescriptor * parseTypeDescriptor(TypeArgs& typeargs, UTI& castUTI, bool isaclassarg, bool delAfterDotFails);
 
-    UTI parseClassArguments(Token& typeTok, bool& isaclass);
-    void parseRestOfClassArguments(SymbolClass * csym, SymbolClassNameTemplate * ctsym, u32& parmIdx);
+    UTI parseClassArguments(TypeArgs& typeargs, bool& isaclass);
+    void parseRestOfClassArguments(SymbolClass * csym, SymbolClassNameTemplate * ctsym, u32& parmIdx, TypeArgs & typeargs);
 
     /** helper for parsing type; returns bitsize, or UNKNOWNSIZE and node with constant expression */
     NodeTypeBitsize * parseTypeBitsize(TypeArgs& args);
@@ -253,7 +259,7 @@ namespace MFM{
     bool parseTypeFromAnotherClassesTypedef(TypeArgs& args, NodeTypeDescriptor *& rtnTypeDesc);
     void parseTypeFromAnotherClassesTypedef(TypeArgs& args, bool& rtnb, u32& numDots, NodeTypeDescriptor *& rtnTypeDesc);
 
-    Node * parseNamedConstantFromAnotherClass(const TypeArgs& args);
+    Node * parseNamedConstantFromAnotherClass(const TypeArgs& args, NodeTypeDescriptor * typedescNode);
 
     /**
        <RETURN_STATMENT> := 'return' + (0 | <ASSIGN_EXPR>)
@@ -277,14 +283,7 @@ namespace MFM{
     */
     Node * parseIdentExpr(const Token& identTok);
 
-    /**
-	<MEMBER_SELECT_EXPRESSION> := <IDENT_EXPRESSION> + '.' + <IDENT_EXPRESSION>
-    */
-    Node * parseMemberSelectExpr(const Token& memberTok);
-
     Node * parseRestOfMemberSelectExpr(Node * classInstanceNode);
-
-    Node * parseRestOfQuestionColonExpr(Node * condNode);
 
     Node * parseMinMaxSizeofType(Node * memberNode, UTI utype, NodeTypeDescriptor * nodetype);
     /**
@@ -347,11 +346,11 @@ namespace MFM{
      */
     Node * parseFactor(bool localbase = false);
 
-    Node * parseFactorStartingWithAType(const Token& tTok, bool allowrefcast);
+    Node * parseFactorStartingWithAType(const Token& tTok, bool allowrefcast, bool allowcasts);
 
     Node * parseRestOfFactor(Node * leftNode);
 
-    Node * parseRestOfCastOrExpression(bool allowRefCasts);
+    Node * parseRestOfCastOrExpression(bool allowRefCasts, bool allowCasts);
 
     Node * parseRestOfTerm(Node * leftNode);
 
@@ -371,13 +370,28 @@ namespace MFM{
 
     Node * parseRestOfAssignExpr(Node * leftNode);
 
+    /** mini recursive ascent parser: for Factor value that starts with a Type yet is not a cast */
+    Node * wrapFactor(Node * leftNode);
+    Node * wrapTerm(Node * leftNode);
+    Node * wrapShiftExpression(Node * leftNode);
+    Node * wrapCompareExpression(Node * leftNode);
+    Node * wrapEqExpression(Node * leftNode);
+    Node * wrapBitExpression(Node * leftNode);
+    Node * wrapLogicalExpression(Node * leftNode);
+    Node * wrapExpression(Node * leftNode);
+    Node * wrapAssignExpr(Node * leftNode);
+
+
     bool parseRestOfDecls(TypeArgs& args, UTI passuti);
     bool parseRestOfDeclInitialization(TypeArgs& args, const Token& identTok, NodeVarDecl * dNode);
-    bool parseRestOfRefInitialization(const Token& identTok, NodeVarDecl * dNode);
+    bool parseRestOfRefInitialization(const Token& identTok, ALT reftype, NodeVarDecl * dNode);
 
-    Node * parseArrayInitialization(u32 identId);
-
+    Node * parseArrayOrClassInitialization(u32 identId);
+    Node * parseArrayInitialization(u32 identId, Locator loc);
     bool parseArrayItemInit(u32 identId, NodeListArrayInitialization * rtnList);
+
+    Node * parseClassInstanceInitialization(u32 classvarId, Locator loc);
+    bool parseClassItemInit(u32 classvarId, UTI classUTI, NodeListClassInit * rtnList);
 
     NodeConstantDef * parseRestOfConstantDef(NodeConstantDef * constNode, bool assignREQ = true, bool isStmt = true);
 
@@ -430,6 +444,11 @@ namespace MFM{
     NodeBinaryOpEqual * makeAssignExprNode(Node * leftNode);
 
     /**
+       helper methods to make ternary expression node
+    */
+    Node * makeQuestionColonNode(Node * condNode);
+
+    /**
        helper methods to make binary expression nodes
     */
     NodeBinaryOp * makeExpressionNode(Node * leftNode);
@@ -462,7 +481,12 @@ namespace MFM{
     /**
        helper method to save subtrees for unknown UTIs
     */
-    void linkOrFreeConstantExpressionArraysize(UTI auti, TypeArgs args, NodeSquareBracket * ceForArraySize, NodeTypeDescriptor *& nodetyperef); //keeper
+    void linkOrFreeConstantExpressionArraysize(UTI auti, const TypeArgs& args, NodeSquareBracket * ceForArraySize, NodeTypeDescriptor *& nodetyperef); //keeper
+
+    /**
+       helper method to sync NodeTypeDescr type with Symbol type (invariant)
+    */
+    void syncTypeDescriptorWithSymbolType(UTI auti, const TypeArgs& args, NodeTypeDescriptor * nodetyperef);
 
     /** helper, gets CLOSE_PAREN for <FACTOR>, CLOSE_SQUARE rest of LVal */
     bool getExpectedToken(TokenType eTokType, Token & myTok, bool quietly = false);

@@ -1,0 +1,57 @@
+## -*- mode:ulam -*-
+#=t41538_test_compiler_atomrefasbasebeforesubisconditional_ish
+## gen output: assert iff fails.
+#!
+Exit status: 0
+Ue_A { Int test() {  Q q;  q ( )behave . 0 cast return } }
+Ue_Q : Subplate { :Subplate<> ^Plate<> <NOMAIN> }
+Uq_Subplate : Plate { /* empty class block */ }
+Uq_System { <NOMAIN> }
+Uq_Plate { /* empty class block */ }
+##
+## informed by ish 20210815, weird as/is interaction; is-cond gencode should treat 'a' like a ref.
+## (see also t41539)
+##
+#>A.ulam
+  ulam 3;
+element A {
+  Int test(){
+    Q q;
+    q.behave();
+    return 0;
+  }
+}
+
+#:Q.ulam
+  ulam 5;
+element Q : Subplate {
+  Void behave() {
+    System f;
+    //Atom & a = ew[0];
+    Atom & a = self.atomof;
+    if (a as Plate) {
+      if (a is Subplate) return; // This should return
+      f.assert(false); //fail("Shouldn't get here");
+    }
+    else
+      f.assert(false); //nor here
+  }
+}
+
+#:Plate.ulam
+  ulam 5;
+quark Plate { }
+quark Subplate : Plate { }
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

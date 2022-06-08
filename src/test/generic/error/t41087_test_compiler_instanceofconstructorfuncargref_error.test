@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t41087_test_compiler_instanceofconstructorfuncargref_error
 #!
-./D.ulam:14:8: ERROR: Invalid argument 1 to function <isOurBackFill>; Cannot be used as a reference parameter.
+./D.ulam:14:8: ERROR: Invalid argument 1 to function 'isOurBackFill'; Cannot be used as a reference parameter.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by error/t3784

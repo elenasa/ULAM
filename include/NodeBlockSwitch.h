@@ -1,8 +1,9 @@
 /**                                        -*- mode:C++ -*-
  * NodeBlockSwitch.h - Node for handling Switch Blocks for ULAM
  *
- * Copyright (C) 2017 The Regents of the University of New Mexico.
- * Copyright (C) 2017 Ackleyshack LLC.
+ * Copyright (C) 2017-2019 The Regents of the University of New Mexico.
+ * Copyright (C) 2017-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +28,9 @@
 
 /**
   \file NodeBlockSwitch.h - Node for handling Switch Blocks for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2017 All rights reserved.
+  \date (C) 2017-2021 All rights reserved.
   \gpl
 */
 
@@ -54,11 +55,18 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
-    virtual UTI checkAndLabelType();
+    virtual UTI checkAndLabelType(Node * thisparentnode);
+
+    virtual void genCode(File * fp, UVPass& uvpass);
 
     virtual bool isASwitchBlock();
 
     u32 getSwitchNumber();
+
+    NNO getDefaultCaseNodeNo();
+
+    void setDefaultCaseNodeNo(NNO dnno);
+
 
   protected:
 
@@ -66,6 +74,7 @@ namespace MFM{
   private:
 
     u32 m_switchnum; //condition variable
+    NNO m_defaultcaseNodeNo;
 
   };
 

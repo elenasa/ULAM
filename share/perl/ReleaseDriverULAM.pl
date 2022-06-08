@@ -50,12 +50,13 @@ EOS
 
 ## PRELIMINARIES TO ALL STEPS
 
-my $ULAM_LANGUAGE_VERSION="ulam2";
+my $ULAM_LANGUAGE_VERSION="ulam2"; # XXX 202206060305: NOT USED??
 
 $| = 1;
 my $GIT_URL = "https://github.com/DaveAckley/ULAM.git";
 my $MFM_GIT_URL = "https://github.com/DaveAckley/MFM.git";
-my @DISTROS = ("precise", "trusty", "xenial");
+#my @DISTROS = ("bionic","precise", "trusty", "xenial");
+my @DISTROS = ("jammy", "focal", "bionic", "xenial");
 
 use Cwd 'abs_path';
 use File::Basename;

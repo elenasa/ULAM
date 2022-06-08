@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3940_test_compiler_caarraylengthofreturntype_error
 #!
-./EventWindow.ulam:4:3: ERROR: By convention, Function 'alengthof''s Return type must be 'Unsigned', not Int(32).
+./EventWindow.ulam:4:3: ERROR: By convention, Function 'alengthof''s Return type must be 'Unsigned', not Int.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t3937, t3233, t3938

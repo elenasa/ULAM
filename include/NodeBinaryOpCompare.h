@@ -2,7 +2,8 @@
  * NodeBinaryOpCompare.h - Basic Node for handling Binary Comparisons for ULAM
  *
  * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2017 Ackleyshack LLC.
+ * Copyright (C) 2014-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +28,9 @@
 
 /**
   \file NodeBinaryOpCompare.h - Basic Node for handling Binary Comparisons for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2017 All rights reserved.
+  \date (C) 2014-2021 All rights reserved.
   \gpl
 */
 
@@ -54,7 +55,7 @@ namespace MFM{
 
     virtual const char * getInverseOpName();
 
-    virtual UTI checkAndLabelType();
+    virtual UTI checkAndLabelType(Node * thisparentnode);
 
     virtual const std::string methodNameForCodeGen();
 
@@ -70,7 +71,10 @@ namespace MFM{
 
     virtual UTI calcNodeType(UTI lt, UTI rt);
 
-    virtual Node * buildOperatorOverloadFuncCallNode();
+    virtual Node * buildOperatorOverloadFuncCallNode(bool& hazyArg);
+
+  private:
+
   };
 
 }

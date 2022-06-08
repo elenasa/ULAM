@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * UlamTypeClass.h -  Basic handling of the Class UlamType for ULAM
  *
- * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2017 Ackleyshack LLC.
+ * Copyright (C) 2014-2019 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2019 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +27,9 @@
 
 /**
   \file UlamTypeClass.h -  Basic handling of the Class UlamType for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2017 All rights reserved.
+  \date (C) 2014-2019 All rights reserved.
   \gpl
 */
 
@@ -58,6 +58,10 @@ namespace MFM{
 
     virtual bool isPrimitiveType();
 
+    virtual s32 getBitsizeAsBaseClass();
+
+    virtual void setBitsizeAsBaseClass(s32 bs);
+
     virtual bool cast(UlamValue& val, UTI typidx);
 
     virtual FORECAST safeCast(UTI typidx);
@@ -74,6 +78,8 @@ namespace MFM{
 
     virtual const std::string getUlamTypeNameBrief();
 
+    virtual const std::string getUlamTypeClassNameBrief(UTI cuti);
+
     virtual void getDataAsString(const u32 data, char * valstr, char prefix);
 
     virtual void getDataLongAsString(const u64 data, char * valstr, char prefix);
@@ -87,6 +93,8 @@ namespace MFM{
     virtual bool isHolder();
 
     virtual bool isComplete();
+
+    PACKFIT getPackable();
 
     virtual const std::string readMethodForCodeGen();
 
@@ -129,7 +137,7 @@ namespace MFM{
 
   private:
     bool m_customArray;
-
+    s32 m_bitsizeAsBaseClass; //excludes all shared ancestors in hierarchy (not elements)
 
   };
 

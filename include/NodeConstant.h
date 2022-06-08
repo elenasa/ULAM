@@ -1,8 +1,9 @@
 /**                                        -*- mode:C++ -*-
  * NodeConstant.h - Node handling NamedConstants for ULAM
  *
- * Copyright (C) 2015-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2017 Ackleyshack LLC.
+ * Copyright (C) 2015-2019 The Regents of the University of New Mexico.
+ * Copyright (C) 2015-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +28,9 @@
 
 /**
   \file NodeConstant.h - Node handling Named Constants for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2017 All rights reserved.
+  \date (C) 2015-2021 All rights reserved.
   \gpl
 */
 
@@ -41,6 +42,7 @@
 #include "NodeTerminal.h"
 #include "SymbolWithValue.h"
 #include "Token.h"
+#include "NodeTypeDescriptor.h"
 
 namespace MFM{
 
@@ -48,7 +50,9 @@ namespace MFM{
   {
   public:
 
-    NodeConstant(const Token& tok, SymbolWithValue * symptr, CompilerState & state);
+    NodeConstant(const Token& tok, SymbolWithValue * symptr, NodeTypeDescriptor * typedesc, CompilerState & state);
+
+    NodeConstant(const Token& tok, NNO stblockno, UTI constantType, NodeTypeDescriptor * typedesc, CompilerState & state);
 
     NodeConstant(const NodeConstant& ref);
 
@@ -56,23 +60,37 @@ namespace MFM{
 
     virtual Node * instantiate();
 
+    virtual void updateLineage(NNO pno);
+
+    virtual bool findNodeNo(NNO n, Node *& foundNode);
+
     virtual void printPostfix(File * fp);
 
     virtual const char * getName();
 
     virtual const std::string prettyNodeName();
 
-    virtual bool getSymbolPtr(Symbol *& symptrref);
+    void setupBlockNo();
+
+    virtual bool getSymbolPtr(const Symbol *& symptrref);
+
+    virtual bool compareSymbolPtrs(Symbol * ptr);
+
+    virtual bool hasASymbol();
+
+    virtual u32 getSymbolId();
 
     virtual bool hasASymbolDataMember();
 
     virtual bool isReadyConstant();
 
+    virtual void setClassType(UTI cuti); //noop
+
+    virtual bool getConstantValue(BV8K& bval);
+
     virtual FORECAST safeToCastTo(UTI newType);
 
-    virtual UTI checkAndLabelType();
-
-    virtual bool assignClassArgValueInStubCopy();
+    virtual UTI checkAndLabelType(Node * thisparentnode);
 
     virtual EvalStatus eval();
 
@@ -80,21 +98,35 @@ namespace MFM{
 
     virtual void genCode(File * fp, UVPass& uvpass);
 
+    virtual void genCodeToStoreInto(File * fp, UVPass& uvpass);
+
   protected:
-    Token m_token;
-    SymbolWithValue * m_constSymbol;
+    const Token m_token;
+    NodeTypeDescriptor * m_nodeTypeDesc; //can be NULL
+    SymbolWithValue * m_constSymbol; //not owner
     bool m_ready;
     UTI m_constType;
 
     virtual void checkForSymbol();
+
+    virtual void clearSymbolPtr();
+
     bool updateConstant();
 
     void setBlockNo(NNO n);
     NNO getBlockNo() const;
+
+    void setBlock(NodeBlock * ptr);
     NodeBlock * getBlock();
 
   private:
     NNO m_currBlockNo;
+    NodeBlock * m_currBlockPtr; //could be NULL
+    SymbolTmpVar * m_tmpvarSymbol;
+
+    virtual TBOOL replaceOurselves(Symbol * symptr, Node * parentnode);
+    UTI checkUsedBeforeDeclared();
+    UlamValue makeUlamValuePtr();
 
   };
 

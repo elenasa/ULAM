@@ -9,14 +9,14 @@ namespace MFM {
 
   NodeBinaryOpEqualBitwise::~NodeBinaryOpEqualBitwise(){}
 
-  UTI NodeBinaryOpEqualBitwise::checkAndLabelType()
+  UTI NodeBinaryOpEqualBitwise::checkAndLabelType(Node * thisparentnode)
   {
     //UTI nodeType = NodeBinaryOp::checkAndLabelType(); //dup Bitwise calcNodeType
     //copied from NodeBinaryOp's c&l
     assert(m_nodeLeft && m_nodeRight);
 
-    UTI leftType = m_nodeLeft->checkAndLabelType();
-    UTI rightType = m_nodeRight->checkAndLabelType();
+    UTI leftType = m_nodeLeft->checkAndLabelType(this);
+    UTI rightType = m_nodeRight->checkAndLabelType(this);
 
     if(!m_state.okUTItoContinue(leftType))
       {
@@ -33,24 +33,19 @@ namespace MFM {
     //replace node with func call to matching function overload operator for class
     // of left, with argument of right (t41104);
     // quark toInt must be used on rhs of operators (t3191, t3200, t3513, t3648,9)
-    UlamType * lut = m_state.getUlamTypeByIndex(leftType);
-    if((lut->getUlamTypeEnum() == Class))
+    TBOOL rtntb = NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode(thisparentnode);
+    if(rtntb == TBOOL_TRUE)
       {
-	Node * newnode = buildOperatorOverloadFuncCallNode();
-	if(newnode)
-	  {
-	    AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
-	    assert(swapOk);
-
-	    m_nodeLeft = NULL; //recycle as memberselect
-	    m_nodeRight = NULL; //recycle as func call arg
-
-	    delete this; //suicide is painless..
-
-	    return newnode->checkAndLabelType();
-	  }
-	//else should fail again as non-primitive;
-      } //done
+	m_state.setGoAgain();
+	delete this; //suicide is painless..
+	return Hzy;
+      }
+    else if(rtntb == TBOOL_HAZY)
+      {
+	m_state.setGoAgain();
+	return Hzy;
+      }
+    //else should fail again as non-primitive;
 
     UTI newType = calcNodeType(leftType, rightType); //does safety check
 
@@ -73,15 +68,10 @@ namespace MFM {
       }
 
     //before constant folding; if needed (e.g. Remainder, Divide)
-    castThyselfToResultType(rightType, leftType, newType);
-
-    if((newType != Nav) && isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
-      newType = constantFold();
-
-    UTI nodeType = newType;
+    castThyselfToResultType(rightType, leftType, newType, thisparentnode);
 
     //specific for bitwise equal..
-    if(m_state.okUTItoContinue(nodeType))
+    if(m_state.okUTItoContinue(newType))
       {
 	TBOOL stor = NodeBinaryOpEqual::checkStoreIntoAble();
 	if(stor == TBOOL_FALSE)
@@ -91,6 +81,7 @@ namespace MFM {
 	  }
 	else if(stor == TBOOL_HAZY)
 	  {
+	    newType = Hzy;
 	    setNodeType(Hzy);
 	    m_state.setGoAgain();
 	  }
@@ -101,7 +92,17 @@ namespace MFM {
 	    return Nav;
 	  }
       }
-    return getNodeType();
+    else
+      {
+	setNodeType(newType);
+	if(newType == Hzy) m_state.setGoAgain();
+      }
+
+    //t3109,10,11, t3221, t41122,3,6, t41298,9, t41421
+    if(m_state.okUTItoContinue(newType) && isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
+      return constantFold(thisparentnode);
+
+    return newType;
   } //checkandlabeltype
 
   UTI NodeBinaryOpEqualBitwise::calcNodeType(UTI lt, UTI rt)  //bitwise
@@ -151,7 +152,6 @@ namespace MFM {
 	    else //hazy
 	      {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-		m_state.setGoAgain(); //for compiler counts
 		newType = Hzy;
 	      }
 	  }
@@ -184,7 +184,13 @@ namespace MFM {
 	m_state.abortUndefinedUlamPrimitiveType();
 	break;
       };
-    methodname << nut->getTotalWordSize();
+
+    u32 twsize = nut->getTotalWordSize();
+    if(twsize <= MAXBITSPERLONG)
+      methodname << twsize;
+    else
+      methodname << "BV"; //t41563
+
     return methodname.str();
   } //methodNameForCodeGen
 
@@ -242,26 +248,48 @@ namespace MFM {
 
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    TMPSTORAGE nstor = nut->getTmpStorageTypeForTmpVar(); //t41563
+    bool varcomesfirst = (nstor == TMPTBV); //t41563
+
     s32 tmpVarNum = m_state.getNextTmpVarNumber();
 
     m_state.indentUlamCode(fp);
-    fp->write("const ");
+    if(!varcomesfirst)
+      fp->write("const ");
+
     fp->write(nut->getTmpStorageTypeAsString().c_str()); //e.g. u32, s32, u64..
     fp->write(" ");
 
-    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPREGISTER).c_str());
-    fp->write(" = ");
+    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, nstor).c_str());
+    if(varcomesfirst)
+      {
+	fp->write(";"); GCNL;
 
-    fp->write(methodNameForCodeGen().c_str());
-    fp->write("(");
-    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
-    fp->write(", ");
-    fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
-    fp->write(", ");
-    fp->write_decimal(nut->getBitSize());
-    fp->write(");"); GCNL;
+	m_state.indentUlamCode(fp);
+	fp->write(uvpass.getTmpVarAsString(m_state).c_str());
+	fp->write(".");
+	fp->write(methodNameForCodeGen().c_str());
+	fp->write("(");
+	fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
+	fp->write(", ");
+	fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, nstor).c_str());
+	fp->write(");"); GCNL; //t41563
+      }
+    else
+      {
+	fp->write(" = ");
 
-    uvpass = UVPass::makePass(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, uvpass.getPassPos(), uvpass.getPassNameId()); //P
+	fp->write(methodNameForCodeGen().c_str());
+	fp->write("(");
+	fp->write(uvpass.getTmpVarAsString(m_state).c_str());
+	fp->write(", ");
+	fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
+	fp->write(", ");
+	fp->write_decimal(nut->getBitSize());
+	fp->write(");"); GCNL;
+      }
+
+    uvpass = UVPass::makePass(tmpVarNum, nstor, nuti, m_state.determinePackable(nuti), m_state, uvpass.getPassPos(), uvpass.getPassNameId()); //P
 
     // current object globals should pertain to lhs for the write
     genCodeWriteFromATmpVar(fp, luvpass, uvpass); //uses rhs' tmpvar; orig lhs

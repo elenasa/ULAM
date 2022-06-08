@@ -5,6 +5,7 @@
 ./EWE.ulam:11:7: ERROR: Incomplete condition; which-control failure.
 ./EWE.ulam:11:7: ERROR: Unexpected token <TOK_OPEN_CURLY>; Expected }.
 ./EWE.ulam:15:5: ERROR: Invalid Statement (possible missing semicolon).
+./EWE.ulam:20:7: ERROR: Expecting Type of data member/function (or, in the midst of errors); Got <otherwise>.
 ./EWE.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'EWE'; Possible missing ending curly brace.
 ./EWE.ulam:20:7: ERROR: Invalid Class Type <otherwise>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 ./EWE.ulam:2:9: ERROR: Invalid Type: EWE.

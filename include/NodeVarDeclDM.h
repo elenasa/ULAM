@@ -1,8 +1,9 @@
 /**                                        -*- mode:C++ -*-
  * NodeVarDeclDM.h -  Data Member Variable Declarations for ULAM
  *
- * Copyright (C) 2015-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2017 Ackleyshack LLC.
+ * Copyright (C) 2015-2019 The Regents of the University of New Mexico.
+ * Copyright (C) 2015-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +28,9 @@
 
 /**
   \file NodeVarDeclDM.h -  Data Member Variable Declarations for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2017 All rights reserved.
+  \date (C) 2015-2021 All rights reserved.
   \gpl
 */
 
@@ -59,7 +60,9 @@ namespace MFM{
 
     virtual void printPostfix(File * f);
 
-    virtual void noteTypeAndName(s32 totalsize, u32& accumsize);
+    virtual void noteTypeAndName(UTI cuti, s32 totalsize, u32& accumsize);
+
+    virtual void genTypeAndNameEntryAsComment(File * fp, s32 totalsize, u32& accumsize);
 
     virtual const char * getName();
 
@@ -67,25 +70,25 @@ namespace MFM{
 
     virtual bool hasASymbolDataMember();
 
+    virtual void setNodeType(UTI uti);
+
     virtual FORECAST safeToCastTo(UTI newType);
 
-    virtual bool checkReferenceCompatibility(UTI uti);
+    virtual bool checkReferenceCompatibility(UTI uti, Node * parentnode);
 
-    virtual UTI checkAndLabelType();
+    virtual UTI checkAndLabelType(Node * thisparentnode);
 
     virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
 
     virtual bool buildDefaultValue(u32 wlen, BV8K& dvref);
 
-    virtual void genCodeDefaultValueStringRegistrationNumber(File * fp, u32 startpos);
-
-    virtual void genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos);
+    virtual bool buildDefaultValueForClassConstantDefs();
 
     virtual void setInitExpr(Node * node); //was setConstantExpr
 
     virtual bool foldArrayInitExpression(); //was foldConstantExpression
 
-    virtual void packBitsInOrderOfDeclaration(u32& offset);
+    virtual TBOOL packBitsInOrderOfDeclaration(u32& offset);
 
     virtual void printUnresolvedVariableDataMembers();
 
@@ -99,7 +102,9 @@ namespace MFM{
 
     virtual void genCodeConstantArrayInitialization(File * fp);
 
-    virtual void generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly);
+    virtual void generateBuiltinConstantClassOrArrayInitializationFunction(File * fp, bool declOnly);
+
+    virtual void generateTestInstance(File * fp, bool runtest);
 
     virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount);
 
@@ -118,6 +123,7 @@ namespace MFM{
     void foldDefaultClass();
     void genCodedBitFieldTypedef(File * fp, UVPass& uvpass);
 
+    TBOOL checkForNoShadowingSubclass(UTI cuti); //during c&l
     bool checkDataMemberSizeConstraints(); //during c&l
   };
 } //MFM

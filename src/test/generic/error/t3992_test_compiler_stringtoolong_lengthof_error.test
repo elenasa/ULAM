@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3992_test_compiler_stringtoolong_lengthof_error
 #!
-./Foo.ulam:2:293: ERROR: Lexer could not complete double quoted string <thisisaverylongstringthatexceedsthatlengthallowedbylinuxwhichistwohundredfiftyfivebuttakingthelongestextensionintoaccountwemustsubtracteightallowingustotestthemanglednamewiththisverylongstringthatneedsafewmoreletterstoproperlytestthelimitationdiscussed0123>; Must be less than 256 length.
+./Foo.ulam:2:293: ERROR: Lexer could not complete double quoted string <thisisaverylongstringthatexceedsthatlengthallowedbylinuxwhichistwohundredfiftyfivebuttakingthelongestextensionintoaccountwemustsubtracteightallowingustotestthemanglednamewiththisverylongstringthatneedsafewmoreletterstoproperlytestthelimitationdiscussed0123>; Must be less than 256 length, not 256.
 ./Foo.ulam:2:34: ERROR: Missing named constant definition after '=' for 'longstring'.
 ./Foo.ulam:2:294: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
  ERROR: No parse tree for This Class: Foo.

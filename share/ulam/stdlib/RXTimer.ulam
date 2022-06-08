@@ -1,0 +1,32 @@
+ulam 5;
+use XTimer;
+
+/**
+   A 'reverse' XTimer.  Acts like XTimer except the long duration
+   counts occur first and the short duration counts last.
+
+   \sa XTimer
+   \sa QTimer
+   \sa QRXTimer
+
+   \since 5.0
+   \author Dave Ackley
+   \copyright 2021 Living Computation Foundation
+   \version 1
+   \license lgpl
+ */
+quark RXTimer(Unary(5) bits, Unsigned triggerLevel, Unsigned k) : XTimer(bits,triggerLevel,k) {
+  typedef Super.Counter Counter;
+  
+  Bool countAlarm() {
+    count();
+    return alarm();
+  }
+
+  Counter count() {
+    if (!alarm() && r.oneIn((Unsigned) (k<<(triggerLevel - 1u - time))))
+      ++time;
+    return time;
+  }
+
+}

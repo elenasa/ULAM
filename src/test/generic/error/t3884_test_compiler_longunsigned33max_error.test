@@ -1,8 +1,8 @@
 ## -*- mode:ulam -*-
 #=t3884_test_compiler_longunsigned33max_error
 #!
-./A.ulam:8:7: ERROR: (1) <print> has no defined function with 1 matching argument type: Unsigned(33), and cannot be called.
-./A.ulam:9:7: ERROR: (1) <print> has no defined function with 1 matching argument type: Unsigned(33), and cannot be called.
+./A.ulam:8:7: ERROR: (1) 'print' has no defined function with 1 matching argument type: Unsigned(33), and cannot be called.
+./A.ulam:9:7: ERROR: (1) 'print' has no defined function with 1 matching argument type: Unsigned(33), and cannot be called.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t3881: uncovered error in calcBitSizeUnsignedMaxLong in Constants.h
@@ -13,7 +13,7 @@ Unrecoverable Program Type Label FAILURE.
 local typedef Unsigned(33) WEIRDOG[5];
 element A {
   Bool b1, b2, b3;
-  constant WEIRDOG rtn3 = {0x123456789u, 0}; //try as DataMEMBER
+  constant WEIRDOG rtn3 = {0x123456789u, 0u}; //try as DataMEMBER
   Int test() {
     System s;
     s.print(rtn3[0]);

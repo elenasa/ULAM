@@ -3,16 +3,16 @@
 
 namespace MFM {
 
-  SymbolConstantValue::SymbolConstantValue(const Token& id, UTI utype, CompilerState & state) : SymbolWithValue(id, utype, state), m_constantStackFrameAbsoluteSlotIndex(0)
+  SymbolConstantValue::SymbolConstantValue(const Token& id, UTI utype, CompilerState & state) : SymbolWithValue(id, utype, state), m_constantStackFrameAbsoluteSlotIndex(0), m_isClassArgDefaultValue(false)
   {
     NodeBlockLocals * localsblock = m_state.findALocalsScopeByNodeNo(this->getBlockNoOfST());
     if(localsblock != NULL)
       setLocalsFilescopeDef(localsblock->getNodeType());
   }
 
-  SymbolConstantValue::SymbolConstantValue(const SymbolConstantValue & sref) : SymbolWithValue(sref), m_constantStackFrameAbsoluteSlotIndex(sref.m_constantStackFrameAbsoluteSlotIndex) {}
+  SymbolConstantValue::SymbolConstantValue(const SymbolConstantValue & sref) : SymbolWithValue(sref), m_constantStackFrameAbsoluteSlotIndex(sref.m_constantStackFrameAbsoluteSlotIndex), m_isClassArgDefaultValue(sref.m_isClassArgDefaultValue) {}
 
-  SymbolConstantValue::SymbolConstantValue(const SymbolConstantValue & sref, bool keepType) : SymbolWithValue(sref, keepType), m_constantStackFrameAbsoluteSlotIndex(sref.m_constantStackFrameAbsoluteSlotIndex) {}
+  SymbolConstantValue::SymbolConstantValue(const SymbolConstantValue & sref, bool keepType) : SymbolWithValue(sref, keepType), m_constantStackFrameAbsoluteSlotIndex(sref.m_constantStackFrameAbsoluteSlotIndex), m_isClassArgDefaultValue(sref.m_isClassArgDefaultValue) {}
 
   SymbolConstantValue::~SymbolConstantValue()
   { }
@@ -82,6 +82,7 @@ namespace MFM {
   void SymbolConstantValue::printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype)
   {
     UTI tuti = getUlamTypeIdx();
+    ULAMTYPE tetyp = m_state.getUlamTypeByIndex(tuti)->getUlamTypeEnum();
 
     fp->write(" constant");
 
@@ -89,9 +90,42 @@ namespace MFM {
     fp->write(m_state.getUlamTypeNameBriefByIndex(tuti).c_str());
     fp->write(" ");
     fp->write(m_state.m_pool.getDataAsString(getId()).c_str());
+
+    s32 arraysize = m_state.getArraySize(tuti);
+    //output the arraysize (optional) t3953
+    if(arraysize > NONARRAYSIZE)
+      {
+	fp->write("[");
+	fp->write_decimal(arraysize);
+	fp->write("]");
+      }
+    else if(arraysize == UNKNOWNSIZE)
+      {
+	fp->write("[UNKNOWN]");
+      }
+
     fp->write(" = ");
 
-    SymbolWithValue::printPostfixValue(fp);
+    if((tetyp == Class) || (tetyp == UAtom)) //t41483
+      {
+	std::string classhexstr;
+	SymbolWithValue::getClassValueAsHexString(classhexstr); //t41277
+	fp->write("{ ");
+	fp->write(classhexstr.c_str());
+	fp->write(" }");
+      }
+    else if(tetyp == String)
+      {
+	std::string str;
+	SymbolWithValue::getStringArrayValueAsString(str); //t3995, t3941
+	if(arraysize != NONARRAYSIZE)
+	  fp->write("{ ");
+	fp->write(str.c_str());
+	if(arraysize != NONARRAYSIZE)
+	  fp->write(" }");
+      }
+    else
+      SymbolWithValue::printPostfixValue(fp);
     fp->write("; ");
   } //printPostfixValuesOfVariableDeclarations
 
@@ -107,15 +141,30 @@ namespace MFM {
 
   void SymbolConstantValue::setConstantStackFrameAbsoluteSlotIndex(u32 slot)
   {
-    assert(!m_state.isScalar(getUlamTypeIdx()));
+    //    assert(!m_state.isScalar(getUlamTypeIdx()) || m_state.isAClass(getUlamTypeIdx()) );
     assert(slot > 0);
     m_constantStackFrameAbsoluteSlotIndex = slot;
   }
 
   u32 SymbolConstantValue::getConstantStackFrameAbsoluteSlotIndex()
   {
-    assert(!m_state.isScalar(getUlamTypeIdx()));
+    // assert(!m_state.isScalar(getUlamTypeIdx()) || m_state.isAClass(getUlamTypeIdx()) );
     return m_constantStackFrameAbsoluteSlotIndex;
+  }
+
+  void SymbolConstantValue::setClassArgAsDefaultValue()
+  {
+    m_isClassArgDefaultValue = true;
+  }
+
+  void SymbolConstantValue::clearClassArgAsDefaultValue()
+  {
+    m_isClassArgDefaultValue = false;
+  }
+
+  bool SymbolConstantValue::isClassArgDefaultValue()
+  {
+    return m_isClassArgDefaultValue;
   }
 
 } //end MFM

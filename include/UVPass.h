@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * UVPass.h -  Basic handling of Passing Tmp Variables for ULAM Code Gen
  *
- * Copyright (C) 2016-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2016-2017 Ackleyshack LLC.
+ * Copyright (C) 2016-2019 The Regents of the University of New Mexico.
+ * Copyright (C) 2016-2019 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +27,9 @@
 
 /**
   \file UVPass.h -  Basic handling of Passing Tmp Variables for ULAM Code Gen
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2016-2017 All rights reserved.
+  \date (C) 2016-2019 All rights reserved.
   \gpl
 */
 
@@ -51,46 +51,56 @@ namespace MFM{
     UVPass(); //requires init to avoid Null ptr for type
     ~UVPass();
 
-    // overload for code gen to "pad" with symbol id, o.w. zero
+  //for backward compatibility, applydelta is false
     static UVPass makePass(u32 varnum, TMPSTORAGE storage, UTI targetType, PACKFIT packed, CompilerState& state, u32 pos, u32 id);
 
-    PACKFIT isTargetPacked(); // Pass only
+    // overload for code gen to "pad" with symbol id, o.w. zero
+    static UVPass makePass(u32 varnum, TMPSTORAGE storage, UTI targetType, PACKFIT packed, CompilerState& state, u32 pos, bool applydelta, u32 id);
+
+
+    PACKFIT isTargetPacked() const; // Pass only
 
     void setPassStorage(TMPSTORAGE s);
 
-    TMPSTORAGE getPassStorage();
+    TMPSTORAGE getPassStorage() const;
 
     void setPassVarNum(s32 s); //was slot index
 
-    s32 getPassVarNum();
+    s32 getPassVarNum() const;
 
     void setPassPos(u32 pos);
 
+    void setPassPosForced(u32 pos);
+
     void setPassPosForElementType(u32 pos, CompilerState& state);
 
-    u32 getPassPos();
+    u32 getPassPos() const;
 
-    u32 getPassLen();
+    u32 getPassLen() const;
 
-    UTI getPassTargetType();
+    bool getPassApplyDelta() const;
+
+    void setPassApplyDelta(bool apply);
+
+    UTI getPassTargetType() const;
 
     void setPassTargetType(UTI type);
 
-    u32 getPassNameId();
+    u32 getPassNameId() const;
 
     void setPassNameId(u32 id);
 
-    const std::string getTmpVarAsString(CompilerState & state);
+    const std::string getTmpVarAsString(CompilerState & state) const;
 
   private:
     u32 m_varNum; //was slotIndex;
     u32 m_posInStorage;
+    bool m_applyDelta; //for code gen, relpos of dm within virtual funcs
     u32 m_bitlenInStorage;
     u8  m_storagetype; //TMPSTORAGE
     u8  m_packed; //PACKFIT
     UTI m_targetType;
     u32 m_nameid; //for code gen
-
   };
 
 } //MFM

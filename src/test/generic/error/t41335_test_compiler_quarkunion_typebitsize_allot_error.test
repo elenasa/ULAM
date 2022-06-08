@@ -1,0 +1,27 @@
+## -*- mode:ulam -*-
+#=t41335_test_compiler_quarkunion_typebitsize_allot_error
+#!
+./QU.ulam:2:7: ERROR: Trying to exceed allotted bit size (64) for quark QU with 72 bits.
+./QU.ulam:2:7: NOTE: Components of QU are..
+./QU.ulam:3:3: NOTE: (72 of 72 bits, at 0) Int(8) m_i[9].
+./QU.ulam:4:3: NOTE: (64 of 72 bits, at 0) Unsigned m_u[2].
+./QU.ulam:2:7: ERROR: CLASS (regular) 'QU' SIZED 72 FAILED.
+Unrecoverable Program Type Label FAILURE.
+##
+#>C.ulam
+ulam 1;
+ element C {
+ Bool a;
+ Int test() {
+   QU qu;
+   return 0;
+ }
+}
+
+#:QU.ulam
+  ulam 2;
+union QU {
+  Int(8) m_i[9];
+  Unsigned m_u[2];
+}
+#.

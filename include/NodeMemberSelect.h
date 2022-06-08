@@ -1,8 +1,9 @@
 /**                                        -*- mode:C++ -*-
  * NodeMemberSelect.h -  Node for handling Class Instance Member Selection for ULAM
  *
- * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2017 Ackleyshack LLC.
+ * Copyright (C) 2014-2020 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +28,9 @@
 
 /**
   \file NodeMemberSelect.h -  Node for handling Class Instance Member Selection for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2017  All rights reserved.
+  \date (C) 2014-2021  All rights reserved.
   \gpl
 */
 
@@ -56,11 +57,21 @@ namespace MFM{
 
     virtual const char * getName();
 
+    virtual u32 getNameId();
+
     virtual const std::string prettyNodeName();
 
-    virtual bool getSymbolPtr(Symbol *& symptrref);
+    virtual void clearSymbolPtr();
 
-    virtual bool getStorageSymbolPtr(Symbol *& symptrref);
+    virtual bool hasASymbol();
+
+    virtual u32 getSymbolId();
+
+    virtual bool hasAStorageSymbol();
+
+    virtual u32 getStorageSymbolId();
+
+    virtual bool compareSymbolPtrs(Symbol * ptr);
 
     virtual bool hasASymbolDataMember();
 
@@ -70,15 +81,27 @@ namespace MFM{
 
     virtual bool hasASymbolReference();
 
+    virtual bool hasASymbolReferenceConstant();
+
+    virtual bool belongsToVOWN(UTI vown);
+
+    virtual bool isAConstant();
+
+    virtual bool isAMemberSelect();
+
+    virtual bool isAMemberSelectByRegNum(); //orig here
+
+    s32 findNodeKidOrder(const Node * anode) const;
+
     virtual const std::string methodNameForCodeGen();
 
     virtual FORECAST safeToCastTo(UTI newType);
 
-    virtual UTI checkAndLabelType();
+    virtual UTI checkAndLabelType(Node * thisparentnode);
+
+    virtual bool getConstantValue(BV8K& bval);
 
     virtual bool trimToTheElement(Node ** fromleftnode, Node *& rtnnodeptr);
-
-    virtual bool assignClassArgValueInStubCopy();
 
     virtual bool isFunctionCall();
 
@@ -101,11 +124,20 @@ namespace MFM{
     virtual UlamValue makeImmediateLongBinaryOp(UTI type, u64 ldata, u64 rdata, u32 len);
     virtual void appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len);
 
-    virtual bool passalongUVPass();
+    virtual TBOOL checkStoreIntoAble();
+
+    virtual bool passalongUVPass(bool toRHS = false);
 
     SymbolTmpVar * m_tmpvarSymbol;
+
   private:
 
+    //const std::string getFullName();
+    const char * getFullName();
+
+    void setStoreIntoAbleAndReferenceAble();
+
+    bool getConstantMemberValue(BV8K& bvmsel);
   };
 
 } //MFM

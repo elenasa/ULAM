@@ -1,0 +1,46 @@
+## -*- mode:ulam -*-
+#=t41474_test_compiler_returnvaluemissing_gencode_error
+#!
+Exit status: 0
+Ue_T { Bool m_border(false);  Int test() {  Plate p;  B2DPacketSense b2dps;  self m_border . b2dps ( p cast )sense . = 0 cast return } }
+Uq_Plate { <NOMAIN> }
+Uq_B2DPacketSense { <NOMAIN> }
+##
+##  Accidental typo B2DPacketSense::sense(): Since we cannot correctly catch this easily (per Dave),
+##  leave it to gcc; (see also t3623, t41472; informed by t41473)
+##
+#>T.ulam
+ ulam 5;
+element T{
+  Bool m_border = true;
+  Int test(){
+    Plate p;
+    B2DPacketSense b2dps;
+    m_border = b2dps.sense(p);
+    return 0;
+  }
+}
+
+#:B2DPacketSense.ulam
+  ulam 5;
+quark B2DPacketSense {
+  /** Return true if packet changed in any way */
+  Bool sense(Plate & p)
+  {
+    if(!p.isPlateBorder()){
+      return false;
+    }
+    //return true; //when missing, NO error???
+  }
+}
+
+#:Plate.ulam
+  ulam 5;
+quark Plate {
+  /** Are we on the border of our plate, based on our pos and size?
+   */
+  Bool isPlateBorder() {
+    return false; //isPlateBorderCoord(positionOnPlate());
+  }
+}
+#.

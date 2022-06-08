@@ -1,8 +1,9 @@
 /**                                        -*- mode:C++ -*-
  * NodeList.h - Basic handling a list of nodes for ULAM
  *
- * Copyright (C) 2015-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2017 Ackleyshack LLC.
+ * Copyright (C) 2015-2018 The Regents of the University of New Mexico.
+ * Copyright (C) 2015-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +28,9 @@
 
 /**
   \file NodeList.h - Basic handling a list of nodes for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2017 All rights reserved.
+  \date (C) 2015-2021 All rights reserved.
   \gpl
 */
 
@@ -68,15 +69,25 @@ namespace MFM{
 
     virtual void resetNodeLocations(Locator loc);
 
-    virtual void print(File * fp);
-
     virtual void printPostfix(File * fp);
+
+    void printPostfix(File * fp, u32 n);
+
+    virtual void print(File * fp);
 
     virtual const char * getName();
 
+    u32 getNameId(u32 n);
+
+    u32 getTypeNameId(u32 n);
+
     virtual const std::string prettyNodeName();
 
-    virtual UTI checkAndLabelType();
+    virtual FORECAST safeToCastTo(UTI newType);
+
+    virtual UTI checkAndLabelType(Node * thisparentnode);
+
+    virtual bool foldArrayInitExpression();
 
     virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);
 
@@ -90,9 +101,11 @@ namespace MFM{
 
     virtual EvalStatus evalToStoreInto(u32 n);
 
-    void addNodeToList(Node * argNode);
+    virtual void addNodeToList(Node * argNode);
 
     u32 getNumberOfNodes() const;
+
+    virtual bool isEmptyList() const;
 
     u32 getTotalSlotsNeeded();
 
@@ -100,7 +113,11 @@ namespace MFM{
 
     UTI getNodeType(u32 n); //overloads Node.h
 
+    virtual bool isAConstant();
+
     bool isAConstant(u32 n);
+
+    bool isAConstantFunctionParameter(u32 n);
 
     bool isFunctionCall(u32 n);
 
@@ -114,7 +131,13 @@ namespace MFM{
 
     virtual void genCodeConstantArrayInitialization(File * fp);
 
-    virtual void generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly);
+    virtual void generateBuiltinConstantClassOrArrayInitializationFunction(File * fp, bool declOnly);
+
+    virtual bool initDataMembersConstantValue(BV8K& bvref, BV8K& bvmask);
+
+    virtual bool buildArrayValueInitialization(BV8K& bvtmp);
+
+    virtual bool buildClassArrayValueInitialization(BV8K& bvtmp);
 
   protected:
     std::vector<Node *> m_nodes;

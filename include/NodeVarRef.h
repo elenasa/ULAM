@@ -2,7 +2,8 @@
  * NodeVarRef.h - Node handling of Variable References for ULAM
  *
  * Copyright (C) 2015-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2017 Ackleyshack LLC.
+ * Copyright (C) 2015-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +28,9 @@
 
 /**
   \file NodeVarRef.h - Node handling of Variable References for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2017 All rights reserved.
+  \date (C) 2015-2021 All rights reserved.
   \gpl
 */
 
@@ -67,11 +68,11 @@ namespace MFM{
 
     virtual FORECAST safeToCastTo(UTI newType);
 
-    virtual bool checkReferenceCompatibility(UTI uti);
+    virtual bool checkReferenceCompatibility(UTI uti, Node * parentnode);
 
-    virtual UTI checkAndLabelType();
+    virtual UTI checkAndLabelType(Node * thisparentnode);
 
-    virtual void packBitsInOrderOfDeclaration(u32& offset);
+    virtual TBOOL packBitsInOrderOfDeclaration(u32& offset);
 
     virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);
 

@@ -1,8 +1,9 @@
 /**                                        -*- mode:C++ -*-
  * NodeTerminalProxy.h - Node handling of Unknown Type Sizes for ULAM
  *
- * Copyright (C) 2016-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2016-2017 Ackleyshack LLC.
+ * Copyright (C) 2016-2020 The Regents of the University of New Mexico.
+ * Copyright (C) 2016-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +28,9 @@
 
 /**
   \file NodeTerminalProxy.h - Node handling Unknown Type Sizes for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2016-2017  All rights reserved.
+  \date (C) 2016-2021  All rights reserved.
   \gpl
 */
 
@@ -66,6 +67,8 @@ namespace MFM{
 
     virtual const char * getName();
 
+    virtual u32 getNameId();
+
     virtual const std::string prettyNodeName();
 
     virtual bool isAConstant();
@@ -74,7 +77,7 @@ namespace MFM{
 
     virtual FORECAST safeToCastTo(UTI newType);
 
-    virtual UTI checkAndLabelType();
+    virtual UTI checkAndLabelType(Node * thisparentnode);
 
     virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
 
@@ -95,10 +98,14 @@ namespace MFM{
     virtual UTI setConstantTypeForNode(const Token& tok);
     bool updateProxy();
 
+    bool replaceOurselvesLengthOf(Node * parentnode);
     Node * buildAlengthofFuncCallNode(); //like toInt cast in Node
     Node* constantFoldLengthofConstantString();
 
     void genCodeForUserStringLength(File * fp, UVPass& uvpass);
+    bool checkForClassType();
+    bool checkForClassIdOfType();
+
   };
 
 } //MFM

@@ -1,0 +1,114 @@
+## -*- mode:ulam -*-
+#=t41420_test_compiler_castingbitstotransientwstring_fail
+## error output:
+##  include/GlobalStringPool.h:45: FAILED: ARRAY_INDEX_OUT_OF_BOUNDS
+#!
+Exit status: -11
+Ue_Anchor10 : QSegment(20u) { SystemU3 s( :System<>);  :QSegment(20u)< constant Unsigned cMSG_BITS = 20u;  typedef QIMsg(20u) QC_QIMsg;  QIMsg(20u) mMessageBuffer( typedef Bits(20) Payload;  Bits(20) mPayload(0);  constant Unsigned bits = 20u;  typedef Unary(2) Direction;  constant Unary(2) cEMPTY = 0u;  constant Unary(2) cUP = 1u;  constant Unary(2) cDOWN = 3u; );  :QSeg< typedef Unsigned(5) SegPtr;  typedef Unsigned(2) Type; >> ^QSeg< typedef Unsigned(5) SegPtr;  typedef Unsigned(2) Type; > Int test() {  typedef Bits(20) MPayload;  SegPkt11 pkt;  self mMessageBuffer . mPayload . pkt cast = self s . ( self mMessageBuffer . mPayload . cast )print . self s . ( pkt mStr . )print . self mMessageBuffer . mPayload . 31 cast = SegPkt11 pkt2 = self mMessageBuffer . mPayload . cast;  self s . ( self mMessageBuffer . mPayload . cast )print . self s . ( pkt2 mStr . )print . 0 cast return } }
+Un_SegPkt11 { typedef Unsigned(3) CN;  constant Unsigned(3) cNO_OP = 0u;  constant Unsigned(3) cSET_LENGTH = 1u;  constant Unsigned(3) cSET_STRETCH = 2u;  constant Unsigned(3) cSET_ANGLE = 3u;  constant Unsigned(3) cSET_FLEX = 4u;  constant Unsigned(3) cGROW_HEAD = 5u;  constant Unsigned(3) cRSV6 = 6u;  constant Unsigned(3) cRSV7 = 7u;  String mStr( "Hello World");  <NOMAIN> }
+Uq_QSegment(Unsigned cMSG_BITS) : QSeg { typedef QIMsg(bits) QC_QIMsg;  QIMsg(bits) mMessageBuffer(notready);  :QSeg< typedef Unsigned(5) SegPtr;  typedef Unsigned(2) Type; > <NOMAIN> }
+Uq_SystemU3 : System { :System<> <NOMAIN> }
+Uq_QSeg { typedef Unsigned(5) SegPtr;  typedef Unsigned(2) Type;  <NOMAIN> }
+Uq_QIMsg(Unsigned bits) { typedef Bits(UNKNOWN) Payload;  typedef Unary(2) Direction;  constant Unary(2) cEMPTY = 0u;  constant Unary(2) cUP = 1u;  constant Unary(2) cDOWN = 3u;  Bits(UNKNOWN) mPayload(notready);  <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## informed by Dave's ish 2/24/2021: Transient and Bit casting new (see t41416).
+##         worried that Strings can be clobbered.(also see error/t41419)
+##         User String Indexes are now sequential.
+##
+#>Anchor10.ulam
+  ulam 5;
+local constant String numberOne = "number one"; //pushes mStr to string pool index 13
+local constant Unsigned cMSG_BITS = SegPkt11.sizeof;
+local typedef QSegment(cMSG_BITS) QSegX;
+
+/**
+   \symbol A1
+   \symmetries none
+   \color #448
+ */
+element Anchor10 : QSegX {
+    SystemU3 s;
+  Int test() {
+    typedef QSegX.QC_QIMsg.Payload MPayload;
+    SegPkt11 pkt;
+    mMessageBuffer.mPayload = (MPayload) pkt;
+    s.print((Unsigned) mMessageBuffer.mPayload);
+    s.print(pkt.mStr);
+    mMessageBuffer.mPayload = 31; //clobber string index
+    //    String tmpstr = (String) mMessageBuffer.mPayload; //CANNOT CAST STRINGS!!
+    SegPkt11 pkt2 = (SegPkt11) mMessageBuffer.mPayload;
+    s.print((Unsigned) mMessageBuffer.mPayload);
+    s.print(pkt2.mStr); //fails in gencode
+    return 0;
+  }
+}
+
+
+transient SegPkt11 {
+  typedef Unsigned(3) CN;
+  constant CN cNO_OP       = 0u;
+  constant CN cSET_LENGTH  = 1u;
+  constant CN cSET_STRETCH = 2u;
+  constant CN cSET_ANGLE   = 3u;
+  constant CN cSET_FLEX    = 4u;
+  constant CN cGROW_HEAD   = 5u;
+  constant CN cRSV6        = 6u;
+  constant CN cRSV7        = 7u;
+
+  //Bool(1) mUpbound;
+  //CN mCN;
+  String mStr = "Hello World";
+}
+
+
+
+#:QSegment.ulam
+  ulam 5;
+quark QSeg {
+  typedef Unsigned(5) SegPtr; // SN 0..24 (25..31 reserved)
+  typedef Unsigned(2) Type;
+
+}
+
+/** Base class for a 1D fragile data transport system.  To be subclassed by SPLAT code.
+ */
+quark QSegment(Unsigned cMSG_BITS) : QSeg {
+  // Data members
+  typedef QIMsg(cMSG_BITS) QC_QIMsg;
+  QC_QIMsg mMessageBuffer;
+
+}
+
+#:QIMsg.ulam
+  ulam 5;
+/** An internal message */
+quark QIMsg(Unsigned bits) {
+  typedef Bits(bits) Payload;
+  typedef Unary(2) Direction;
+  constant Direction cEMPTY = 0u;
+  constant Direction cUP    = 1u;
+  constant Direction cDOWN  = 2u;
+  //  Direction mDirection;
+  Payload mPayload;
+}
+
+#:SystemU3.ulam
+  ulam 3;
+quark SystemU3 : System {
+  Void print(String s) native;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

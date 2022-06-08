@@ -1,0 +1,47 @@
+## -*- mode:ulam -*-
+#=t41507_test_compiler_elementandquark_memberselectonconstantof
+##      gen code output: 1 asserts
+##          Unsigned Arg: 6
+##
+#!
+Exit status: 6
+Ue_A : System { Bool b(true);  :System<> Int test() {  Unsigned cpvar = Parameters.constantof 6u .;  self b . cpvar 6u cast == = self ( Parameters.constantof 6u . )print . self ( Parameters.constantof 6u . 6u cast == )assert . 6u cast return } }
+Uq_System { <NOMAIN> }
+Ue_Parameters { constant Unsigned cp = 6u;  <NOMAIN> }
+##
+## informed by t41375, except with constantof; expect constant data member
+##
+##
+#>A.ulam
+  ulam 5;
+element A : System {
+  Bool b;
+
+  Int test(){
+    Unsigned cpvar = Parameters.constantof.cp;
+    b = (cpvar == 6u);
+    //immediate element
+    print(Parameters.constantof.cp);
+    assert(Parameters.constantof.cp == 6u);
+    return Parameters.constantof.cp;
+  }
+}
+
+#:Parameters.ulam
+  ulam 5;
+element Parameters {
+   constant Unsigned cp = 6;
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

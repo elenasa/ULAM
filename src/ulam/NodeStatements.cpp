@@ -12,10 +12,7 @@ namespace MFM {
 
   NodeStatements::NodeStatements(const NodeStatements& ref) : Node(ref), m_node(NULL), m_nodeNext(NULL)
   {
-    if(ref.m_node)
-      m_node = ref.m_node->instantiate();
-    if(ref.m_nodeNext)
-      m_nodeNext = (NodeStatements *) ref.m_nodeNext->instantiate();
+    copyAParseTreeHere(ref);
   }
 
   NodeStatements::~NodeStatements()
@@ -24,6 +21,14 @@ namespace MFM {
     m_nodeNext = NULL;
     delete m_node;
     m_node = NULL;
+  }
+
+  void NodeStatements::copyAParseTreeHere(const NodeStatements& ref)
+  {
+    if(ref.m_node)
+      m_node = ref.m_node->instantiate();
+    if(ref.m_nodeNext)
+      m_nodeNext = (NodeStatements *) ref.m_nodeNext->instantiate();
   }
 
   Node * NodeStatements::instantiate()
@@ -108,13 +113,22 @@ namespace MFM {
       m_nodeNext->printPostfix(fp);
   } //printPostfix
 
-  void NodeStatements::noteTypeAndName(s32 totalsize, u32& accumsize)
+  void NodeStatements::noteTypeAndName(UTI cuti, s32 totalsize, u32& accumsize)
   {
     assert(m_node);    //e.g. bad decl
-    m_node->noteTypeAndName(totalsize, accumsize);
+    m_node->noteTypeAndName(cuti, totalsize, accumsize);
 
     if(m_nodeNext)
-      m_nodeNext->noteTypeAndName(totalsize, accumsize);
+      m_nodeNext->noteTypeAndName(cuti, totalsize, accumsize);
+  }
+
+  void NodeStatements::genTypeAndNameEntryAsComment(File * fp, s32 totalsize, u32& accumsize)
+  {
+    assert(m_node);    //e.g. bad decl
+    m_node->genTypeAndNameEntryAsComment(fp, totalsize, accumsize);
+
+    if(m_nodeNext)
+      m_nodeNext->genTypeAndNameEntryAsComment(fp, totalsize, accumsize);
   }
 
   const char * NodeStatements::getName()
@@ -162,15 +176,15 @@ namespace MFM {
     return false;
   }
 
-  UTI NodeStatements::checkAndLabelType()
+  UTI NodeStatements::checkAndLabelType(Node * thisparentnode)
   {
     assert(m_node);
 
     //unlike statements, blocks don't have an m_node
-    m_node->checkAndLabelType(); //side-effect
+    m_node->checkAndLabelType(this); //side-effect
 
     if(m_nodeNext)
-      m_nodeNext->checkAndLabelType(); //side-effect
+      m_nodeNext->checkAndLabelType(this); //side-effect
 
     //statements don't have types
     setNodeType(Void);
@@ -189,27 +203,20 @@ namespace MFM {
   {
     bool aok = true;
     if(m_node)
-      aok |= m_node->buildDefaultValue(wlen, dvref);
-    if(m_nodeNext)
-      aok |= m_nodeNext->buildDefaultValue(wlen, dvref);
+      aok &= m_node->buildDefaultValue(wlen, dvref); //yikes! (was |=) (t41185)
+    if(m_nodeNext) //why go on? (t41185)
+      aok &= m_nodeNext->buildDefaultValue(wlen, dvref);
     return aok;
   }
 
-  void NodeStatements::genCodeDefaultValueStringRegistrationNumber(File * fp, u32 startpos)
+  bool NodeStatements::buildDefaultValueForClassConstantDefs()
   {
+    bool aok = true;
     if(m_node)
-      m_node->genCodeDefaultValueStringRegistrationNumber(fp, startpos);
-    if(m_nodeNext)
-      m_nodeNext->genCodeDefaultValueStringRegistrationNumber(fp, startpos);
-    return;
-  }
-
-  void NodeStatements::genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos)
-  {
-    if(m_node)
-      m_node->genCodeElementTypeIntoDataMemberDefaultValue(fp, startpos);
-    if(m_nodeNext)
-      m_nodeNext->genCodeElementTypeIntoDataMemberDefaultValue(fp, startpos);
+      aok &= m_node->buildDefaultValueForClassConstantDefs();
+    if(m_nodeNext) //why go on
+      aok &= m_nodeNext->buildDefaultValueForClassConstantDefs();
+    return aok;
   }
 
   EvalStatus NodeStatements::eval()
@@ -219,11 +226,7 @@ namespace MFM {
     evalNodeProlog(0);
     makeRoomForNodeType(m_node->getNodeType());
     EvalStatus evs = m_node->eval();
-    if(evs != NORMAL)
-      {
-	evalNodeEpilog();
-	return evs;
-      }
+    if(evs != NORMAL) return evalStatusReturn(evs);
 
     //not the last one, so thrown out results and continue
     if(m_nodeNext)
@@ -245,11 +248,24 @@ namespace MFM {
     m_nodeNext = s;
   }
 
-  void NodeStatements::packBitsInOrderOfDeclaration(u32& offset)
+  TBOOL NodeStatements::packBitsInOrderOfDeclaration(u32& offset)
   {
-    m_node->packBitsInOrderOfDeclaration(offset); //updates offset
+    TBOOL rtntb = m_node->packBitsInOrderOfDeclaration(offset); //updates offset
     if(m_nodeNext)
-      m_nodeNext->packBitsInOrderOfDeclaration(offset);
+      {
+	TBOOL nodetb = m_nodeNext->packBitsInOrderOfDeclaration(offset);
+	rtntb = Node::minTBOOL(rtntb, nodetb);
+      }
+    return rtntb;
+  }
+
+  void NodeStatements::calcMaxIndexOfVirtualFunctionInOrderOfDeclaration(SymbolClass* csym, s32& maxidx)
+  {
+    m_node->calcMaxIndexOfVirtualFunctionInOrderOfDeclaration(csym, maxidx); //updates maxidx
+    if(m_nodeNext)
+      {
+	m_nodeNext->calcMaxIndexOfVirtualFunctionInOrderOfDeclaration(csym, maxidx);
+      }
   }
 
   void NodeStatements::printUnresolvedVariableDataMembers()
@@ -297,6 +313,13 @@ namespace MFM {
       m_nodeNext->genCodeToStoreInto(fp, uvpass);
   }
 
+  void NodeStatements::generateFunctionInDeclarationOrder(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
+  {
+    m_node->generateFunctionInDeclarationOrder(fp, declOnly, classtype);
+    if(m_nodeNext)
+      m_nodeNext->generateFunctionInDeclarationOrder(fp, declOnly, classtype);
+  }
+
   void NodeStatements::genCodeExtern(File * fp, bool declOnly)
   {
     if(m_node)
@@ -313,12 +336,12 @@ namespace MFM {
       m_nodeNext->genCodeConstantArrayInitialization(fp);
   }
 
-  void NodeStatements::generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly)
+  void NodeStatements::generateBuiltinConstantClassOrArrayInitializationFunction(File * fp, bool declOnly)
   {
     if(m_node)
-      m_node->generateBuiltinConstantArrayInitializationFunction(fp, declOnly);
+      m_node->generateBuiltinConstantClassOrArrayInitializationFunction(fp, declOnly);
     if(m_nodeNext)
-      m_nodeNext->generateBuiltinConstantArrayInitializationFunction(fp, declOnly);
+      m_nodeNext->generateBuiltinConstantClassOrArrayInitializationFunction(fp, declOnly);
   }
 
   void NodeStatements::cloneAndAppendNode(std::vector<Node *> & cloneVec)
@@ -327,6 +350,15 @@ namespace MFM {
       m_node->cloneAndAppendNode(cloneVec);
     if(m_nodeNext)
       m_nodeNext->cloneAndAppendNode(cloneVec);
+  }
+
+  void NodeStatements::generateTestInstance(File * fp, bool runtest)
+  {
+    if(m_node)
+      m_node->generateTestInstance(fp, runtest);
+    if(m_nodeNext)
+      m_nodeNext->generateTestInstance(fp, runtest);
+    return;
   }
 
   void NodeStatements::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)

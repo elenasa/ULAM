@@ -1,0 +1,90 @@
+## -*- mode:ulam -*-
+#=t41550_test_compiler_localconstantsclassidofmaxofsizeofSelf_ish_error
+#!
+./A.ulam:2:46: ERROR: Illegal token <Self> in locals filescope context.
+./A.ulam:2:44: ERROR: Missing named constant definition after '=' for 'cLOCAL_CLASSID_WTH'.
+./A.ulam:2:44: ERROR: Missing ';' after named constant definition 'cLOCAL_CLASSID_WTH'; Lists not supported.
+./A.ulam:3:41: ERROR: Illegal token <Super> in locals filescope context.
+./A.ulam:3:39: ERROR: Missing named constant definition after '=' for 'cCLASSID_BITS'.
+./A.ulam:3:39: ERROR: Missing ';' after named constant definition 'cCLASSID_BITS'; Lists not supported.
+Unrecoverable Program Parse FAILURE: <A.ulam>
+Unrecoverable Program Parse FAILURE: <ActivatedComplexIdT.ulam>
+Unrecoverable Program Parse FAILURE: <ActivatedComplexId.ulam>
+Unrecoverable Program Parse FAILURE: <System.ulam>
+##
+## informed by ish 08/23/2021 -132405; see also t41537,t41549
+## Self and Super are not valid in locals filescope.
+##
+#>R.ulam
+  ulam 5;
+element R
+{
+  Int test() {
+    A aele;
+    aele.func();
+    return 0;
+  }
+}
+
+#:A.ulam
+  ulam 5;
+local constant Unsigned cLOCAL_CLASSID_WTH = Self.classidof.maxof;
+local constant Unsigned cCLASSID_BITS = Super.classidof.sizeof;
+
+element A : ActivatedComplexIdT(cCLASSID_BITS)
+{
+  Bool func() {
+    System s;
+    s.print(cCLASSID_BITS);
+    s.print(cLOCAL_CLASSID_WTH);
+    //constant Unsigned cCLASSID_BITS = Self.classidof.sizeof;
+    //ActivatedComplexIdT(cCLASSID_BITS) acid;
+    //acid.setACId(Self.classidof);
+    //return process(acid);
+    return true;
+  }
+
+}
+
+#:ActivatedComplexIdT.ulam
+  ulam 5;
+// Like the tag in a tagged union
+quark ActivatedComplexIdT(Unsigned cTYPE_BITS) : ActivatedComplexId
+{
+  typedef Unsigned(cTYPE_BITS) MyACId;
+  MyACId mACId;
+
+  /// ActivatedComplexId API
+  @Override
+  virtual ACId getACId() { return mACId; }
+
+  @Override
+  virtual Bool setACId(ACId acid) {
+    if (MyACId.maxof < acid) return false;
+    mACId = (MyACId) acid;
+    return true;
+  }
+}
+
+#:ActivatedComplexId.ulam
+  ulam 5;
+quark ActivatedComplexId {
+  //// ActivatedComplexId API
+  typedef Unsigned ACId;
+  virtual ACId getACId() ;
+  virtual Bool setACId(ACId acid) ;
+}
+
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

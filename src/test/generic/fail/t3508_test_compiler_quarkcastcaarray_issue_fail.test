@@ -1,0 +1,51 @@
+## -*- mode:ulam -*-
+#=t3508_test_compiler_quarkcastcaarray_issue_fail
+##
+## include/Uq_10106QPort410.tcc:37: FAILED: BAD_CAST
+##
+## no longer caught during c&l Mon Oct 16 08:53:29 2017
+##./QPort4.ulam:18:14: ERROR: Cannot explicitly cast Atom(96) to type: QPort4.
+##./QPort4.ulam:18:4: ERROR: Initial value expression for: s, initialization is invalid.
+##Unrecoverable Program Type Label FAILURE.
+#!
+Exit status: -11
+Ue_D { Int test() {  QPort4 s;  s ( )update . 0 cast return } }
+Uq_QPort4 { typedef Unsigned(6) SiteNum;  EventWindow ew( typedef Unsigned(6) SiteNum; );  <NOMAIN> }
+Uq_EventWindow { typedef Unsigned(6) SiteNum;  <NOMAIN> }
+##
+#>D.ulam
+  ulam 3;
+element D {
+  Int test() {
+    QPort4 s;
+    s.update();
+    return 0;
+  }
+}
+
+#:QPort4.ulam
+  ulam 3;
+quark QPort4
+{
+  typedef EventWindow.SiteNum SiteNum;
+  EventWindow ew;
+  Void update()
+  {
+    SiteNum selfIdx = 1;
+
+    // also outputs: BAD_CAST FAILURE
+    //Atom aa = ew[selfIdx]; //eadded
+    //Self s = (Self) aa;
+
+    Self s = (Self) ew[selfIdx];
+  }
+}
+
+#:EventWindow.ulam
+  ulam 2;
+quark EventWindow {
+  typedef Unsigned(6) SiteNum;
+  Atom& aref(Int index) native;
+}
+
+#.

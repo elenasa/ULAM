@@ -16,36 +16,30 @@ namespace MFM {
     //m_stringToDataIndex.clear(); //both? strings already destructed.
   }
 
-
   const std::string Lexer::getPathFromLocator(Locator& loc)
   {
     return m_SS.getPathFromLocator(loc);
   }
-
 
   u32 Lexer::push(std::string filename, bool onlyOnce)
   {
     return m_SS.push(filename,onlyOnce);
   }
 
-
   u32 Lexer::getFileUlamVersion() const
   {
     return m_SS.getFileUlamVersion();
   }
-
 
   void Lexer::setFileUlamVersion(u32 ver)
   {
     m_SS.setFileUlamVersion(ver);
   }
 
-
   void Lexer::unread()
   {
     return m_SS.unread();
   }
-
 
   bool Lexer::getNextToken(Token & returnTok)
   {
@@ -66,9 +60,7 @@ namespace MFM {
 
     if(c < -1)
       {
-	std::ostringstream errmsg;
-	errmsg << "Invalid read";
-	u32 idx = m_state.m_pool.getIndexForDataString(errmsg.str());
+	u32 idx = m_state.m_pool.getIndexForDataString("Invalid read");
 	returnTok.init(TOK_ERROR_LOWLEVEL, m_SS.getLocator(), idx); //is locator ok?
 	m_lastToken = returnTok; //NEEDS SOME KIND OF TOK_ERROR
 	return false; //error case
@@ -128,6 +120,10 @@ namespace MFM {
 	    {
 	      brtn = makeFlagToken(cstring, returnTok);
 	    }
+	  else if(c == '_')
+	    {
+	      brtn = makeSubstituteToken(cstring, returnTok);
+	    }
 	  else
 	    {
 	      brtn = makeOperatorToken(cstring, returnTok);
@@ -148,7 +144,6 @@ namespace MFM {
     return (brtn == 0);
   } //getNextToken
 
-
   //called because first byte was alpha
   u32 Lexer::makeWordToken(std::string& aname, Token & tok)
   {
@@ -158,7 +153,7 @@ namespace MFM {
     s32 c = m_SS.read();
 
     //continue with alpha or numeric or underscore
-    while(c >= 0 && (isalpha(c) || isdigit(c) || c == '_' ))
+    while((c >= 0) && (isalpha(c) || isdigit(c) || c == '_' ))
       {
 	aname.push_back(c);
 	c = m_SS.read();
@@ -224,6 +219,20 @@ namespace MFM {
 
     // build an identifier
     // index to data in map, vector
+    // Type/Identifier length must be less than 256 (ulam-5)
+    u32 slen = aname.length();
+    if(slen > MAX_IDENTIFIER_LENGTH)
+      {
+	std::ostringstream errmsg;
+	errmsg << "Lexer could not complete ";
+	if(Token::isUpper(aname.at(0)))
+	  errmsg << "Type ";
+	errmsg << "Identifier <" << aname;
+	errmsg << ">; Must be less than " << MAX_IDENTIFIER_LENGTH + 1;
+	errmsg << " length, not " << slen;
+	return m_state.m_pool.getIndexForDataString(errmsg.str());
+      }
+
     u32 idx = m_state.m_pool.getIndexForDataString(aname);
 
     // if Capitalized, then TYPE_IDENT
@@ -237,7 +246,6 @@ namespace MFM {
       }
     return brtn;
   } //makeWordToken
-
 
   //called because first byte was numeric
   u32 Lexer::makeNumberToken(std::string& anumber, Token & tok)
@@ -379,6 +387,105 @@ namespace MFM {
     return brtn;
   } //makeFlagToken
 
+  //called because first byte was _
+  u32 Lexer::makeSubstituteToken(std::string& aname, Token & tok)
+  {
+    u32 brtn = 0;
+    Locator firstloc = m_SS.getLocator(); //save for new token
+
+    s32 c = m_SS.read(); //capital letter follows __ for a valid flag
+
+    if(c == '_')
+      {
+
+	while((c >= 0) && (Token::isUpper(c) || (c == '_')))
+	  {
+	    //continue with uppercase alpha, or 2 underscore
+	    aname.push_back(c);
+	    c = m_SS.read();
+	  }
+
+	unread();
+
+	TokenType ttype = getTokenTypeFromString(aname);
+	if(ttype != TOK_LAST_ONE)
+	  {
+	    SpecialTokenWork sptok = Token::getSpecialTokenWork(ttype);
+	    if(sptok == TOKSP_FLAGKEYWORD)
+	      {
+		if(ttype == TOK_KW_FLAG_INSERTFILE)
+		  {
+		    //substitute a string token of filename from this locator
+		    std::string path = m_state.getPathFromLocator(firstloc);
+		    u32 idx = 0;
+		    u32 rtn = formatUserString(path, idx);
+		    if(rtn == 0)
+		      tok.init(TOK_DQUOTED_STRING, firstloc, idx);
+		    return rtn; // == 0 == ok
+		  }
+		if(ttype == TOK_KW_FLAG_INSERTPATH)
+		  {
+		    //substitute a string token of file path from this locator
+		    std::string path = m_state.getFullPathFromLocator(firstloc);
+		    u32 idx = 0;
+		    u32 rtn = formatUserString(path, idx);
+		    if(rtn == 0)
+		      tok.init(TOK_DQUOTED_STRING, firstloc, idx);
+		    return rtn; // == 0 == ok
+		  }
+		else if(ttype == TOK_KW_FLAG_INSERTLINE)
+		  {
+		    //substitute a number token for line of file from this loc
+		    std::ostringstream ss;
+		    ss << firstloc.getLineNo();
+		    std::string lineno = ss.str();
+		    u32 idx = m_state.m_pool.getIndexForDataString(lineno);
+		    tok.init(TOK_NUMBER_UNSIGNED, firstloc, idx);
+		    return 0;
+		  }
+		else if(ttype == TOK_KW_FLAG_INSERTFUNC)
+		  {
+		    tok.init(ttype, firstloc, 0);
+		    return 0;
+		  }
+		else if(ttype == TOK_KW_FLAG_INSERTCLASS)
+		  {
+		    tok.init(ttype, firstloc, 0);
+		    return 0;
+		  }
+		else if(ttype == TOK_KW_FLAG_INSERTCLASSSIGNATURE)
+		  {
+		    tok.init(ttype, firstloc, 0);
+		    return 0;
+		  }
+		else if(ttype == TOK_KW_FLAG_INSERTCLASSNAMEPRETTY)
+		  {
+		    tok.init(ttype, firstloc, 0);
+		    return 0;
+		  }
+		else if(ttype == TOK_KW_FLAG_INSERTCLASSNAMESIMPLE)
+		  {
+		    tok.init(ttype, firstloc, 0);
+		    return 0;
+		  }
+		else if(ttype == TOK_KW_FLAG_INSERTCLASSNAMEMANGLED)
+		  {
+		    tok.init(ttype, firstloc, 0);
+		    return 0;
+		  }
+		// else not defined..fall thru
+	      }
+	  }
+      }
+    //else not a flag
+
+    std::ostringstream errmsg;
+    errmsg << "Weird Lex! <" << aname;
+    errmsg << "> does not precede a valid flag keyword";
+    brtn = m_state.m_pool.getIndexForDataString(errmsg.str());
+    return brtn;
+  } //makeSubstituteToken
+
   //starts with a non-alpha or non-digit, so
   //possibly a simple operator (e.g. +, =),
   //or a double operator
@@ -435,7 +542,6 @@ namespace MFM {
     errmsg << "Weird! Lexer could not find match for <" << astring << ">";
     return m_state.m_pool.getIndexForDataString(errmsg.str());
   } //makeOperatorToken
-
 
   u32 Lexer::checkEllipsisToken(std::string& astring, Locator firstloc)
   {
@@ -520,24 +626,11 @@ namespace MFM {
 	return m_state.m_pool.getIndexForDataString(errmsg.str());
       }
 
-    //format user string; length must be less than 256
-    u32 slen = astring.length();
-    if(slen >= 256)
-      {
-	std::ostringstream errmsg;
-	errmsg << "Lexer could not complete double quoted string <" << astring << ">; Must be less than 256 length";
-	return m_state.m_pool.getIndexForDataString(errmsg.str());
-      }
-
-    std::ostringstream newstr;
-    if(slen == 0)
-      newstr << (u8) 0;
-    else
-      newstr << (u8) slen << astring << (u8) 0; //slen doesn't include itself or terminating byte; see StringPoolUser.
-
-    u32 idx = m_state.m_tokenupool.getIndexForDataString(newstr.str());
-    tok.init(TOK_DQUOTED_STRING,firstloc,idx);
-    return 0;
+    u32 idx = 0;
+    u32 rtn = formatUserString(astring, idx);
+    if(rtn == 0)
+      tok.init(TOK_DQUOTED_STRING,firstloc,idx);
+    return rtn; // == 0 == ok
   } //makeDoubleQuoteToken
 
   u32 Lexer::makeSingleQuoteToken(std::string& astring, Token & tok)
@@ -712,7 +805,7 @@ namespace MFM {
 	return m_state.m_pool.getIndexForDataString(errmsg.str());
       }
 
-    if(runningtotal < 256)
+    if(runningtotal <= MAX_NUMERICSTRING_LENGTH)
       {
 	rtn = (u8) runningtotal;
 	return 0;
@@ -797,7 +890,7 @@ namespace MFM {
 	return m_state.m_pool.getIndexForDataString(errmsg.str());
       }
 
-    if(runningtotal < 256)
+    if(runningtotal <= MAX_NUMERICSTRING_LENGTH)
       {
 	rtn = (u8) runningtotal;
 	return 0;
@@ -808,6 +901,29 @@ namespace MFM {
     errmsg << runningtotal << "'";
     return m_state.m_pool.getIndexForDataString(errmsg.str());
   } //formatHexConstant
+
+  u32 Lexer::formatUserString(std::string& astring, u32& usrstridx)
+  {
+    //format user string; length must be less than 256
+    u32 slen = astring.length();
+    if(slen > MAX_USERSTRING_LENGTH)
+      {
+	std::ostringstream errmsg;
+	errmsg << "Lexer could not complete double quoted string <" << astring;
+	errmsg << ">; Must be less than " << MAX_USERSTRING_LENGTH + 1;
+	errmsg << " length, not " << slen;
+	return m_state.m_pool.getIndexForDataString(errmsg.str());
+      }
+
+    std::ostringstream newstr;
+    if(slen == 0)
+      newstr << (u8) 0;
+    else
+      newstr << (u8) slen << astring << (u8) 0; //slen doesn't include itself or terminating byte; see StringPoolUser.
+
+    usrstridx = m_state.m_tokenupool.getIndexForDataString(newstr.str());
+    return 0;
+  } //formatUserString
 
   s32 Lexer::eatComment(Token& rtnTok, bool& isStructuredComment)
   {
@@ -826,8 +942,18 @@ namespace MFM {
 	    s32 e = m_SS.read();
 	    if( e == '*')
 	      {
-		isStructuredComment = true;
-		return makeStructuredCommentToken(rtnTok);
+		s32 f = m_SS.read();
+		if(f == '/')
+		  {
+		    //found end of empty c-style comment; return next byte;
+		    return m_SS.read();
+		  }
+		else
+		  {
+		    unread(); //wasn't end of empty c-style comment
+		    isStructuredComment = true;
+		    return makeStructuredCommentToken(rtnTok);
+		  }
 	      }
 	    else
 	      {
@@ -895,15 +1021,25 @@ namespace MFM {
 		    return m_SS.read(); //found end of comment; return next byte
 		  }
 		else
-		  unread(); //to re-read; in case d is *, for example
+		  {
+		    unread(); //to re-read; in case d is *, for example
+		    scstr.push_back(c); //dont lose c's *
+		  }
 	      }
 	    else
-	      return d; // d error or eof
+	      unread(); //to re-read as c, d error or eof
 	  } // c is not *, get the next byte
 	else
 	  scstr.push_back(c);
       } //end while
-    return c;
+
+    //no proper end to structured comment, make error token instead
+    if(c < 0)
+      {
+	u32 idx = m_state.m_pool.getIndexForDataString("Malformed Structured Comment");
+	tok.init(TOK_ERROR_LOWLEVEL, firstloc, idx); //t41404
+      }
+    return c; //to unread..
   } //makeStructuredCommentToken
 
   TokenType Lexer::getTokenTypeFromString(std::string str)

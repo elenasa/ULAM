@@ -8,7 +8,25 @@ namespace MFM {
 
   Symbol::Symbol(const Token& id, UTI utype, CompilerState & state) : m_state(state), m_gotStructuredCommentToken(false), m_idtok(id), m_uti(utype), m_dataMemberClass(Nouti), m_localsfilescopeType(Nouti), m_autoLocalType(ALT_NOT), m_isSelf(false), m_isSuper(false), m_stBlockNo(state.getCurrentBlockNo()){}
 
-  Symbol::Symbol(const Symbol & sref) : m_state(sref.m_state), m_structuredCommentToken(sref.m_structuredCommentToken), m_gotStructuredCommentToken(sref.m_gotStructuredCommentToken), m_idtok(sref.m_idtok), m_uti(m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_uti)), m_dataMemberClass(m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_dataMemberClass)), m_localsfilescopeType(sref.m_localsfilescopeType), m_autoLocalType(sref.m_autoLocalType), m_isSelf(sref.m_isSelf), m_isSuper(sref.m_isSuper), m_stBlockNo(sref.m_stBlockNo) {}
+  Symbol::Symbol(const Symbol & sref) : m_state(sref.m_state), m_structuredCommentToken(sref.m_structuredCommentToken), m_gotStructuredCommentToken(sref.m_gotStructuredCommentToken), m_idtok(sref.m_idtok), m_uti(Hzy), m_dataMemberClass(m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_dataMemberClass,sref.getLoc())), m_localsfilescopeType(sref.m_localsfilescopeType), m_autoLocalType(sref.m_autoLocalType), m_isSelf(sref.m_isSelf), m_isSuper(sref.m_isSuper), m_stBlockNo(sref.m_stBlockNo)
+  {
+    UTI cuti = m_state.getCompileThisIdx();
+    if(m_isSelf) //little 'self'
+      {
+	m_uti = m_state.getUlamTypeAsRef(cuti, ALT_REF); //t3328
+      }
+    else if(m_idtok.m_type == TOK_KW_TYPE_SELF) // big "Self", the type
+      {
+	m_uti = cuti; //t41436
+      }
+    else if(m_idtok.m_type == TOK_KW_SELF) // little "self", perhaps ALT_AS
+      {
+	m_uti = m_state.getUlamTypeAsRef(cuti, m_autoLocalType); //t3831
+	//m_isSelf = true; //?
+      }
+    //else
+
+  }
 
   Symbol::Symbol(const Symbol& sref, bool keepType) : m_state(sref.m_state), m_structuredCommentToken(sref.m_structuredCommentToken), m_gotStructuredCommentToken(sref.m_gotStructuredCommentToken), m_idtok(sref.m_idtok), m_uti(sref.m_uti), m_dataMemberClass(sref.m_dataMemberClass), m_localsfilescopeType(sref.m_localsfilescopeType), m_autoLocalType(sref.m_autoLocalType), m_isSelf(sref.m_isSelf), m_isSuper(sref.m_isSuper), m_stBlockNo(sref.m_stBlockNo) {}
 
@@ -32,10 +50,15 @@ namespace MFM {
 
   u32 Symbol::getId()
   {
-    return m_idtok.m_dataindex;
+    return m_state.getTokenDataAsStringId(m_idtok);
   }
 
   Locator Symbol::getLoc()
+  {
+    return m_idtok.m_locator;
+  }
+
+  Locator Symbol::getLoc() const
   {
     return m_idtok.m_locator;
   }
@@ -57,13 +80,29 @@ namespace MFM {
     return m_uti;
   }
 
+  UTI Symbol::getUlamTypeIdx() const
+  {
+    return m_uti;
+  }
+
   u32 Symbol::getPosOffset()
   {
     m_state.abortShouldntGetHere();
-    return 0; //data members only, incl. symbolparametervalue, and tmprefsymbol
+    return 0; //data members only, incl.symbolparametervalue,tmprefsymbol
+  }
+
+  bool Symbol::isPosOffsetReliable()
+  {
+    m_state.abortShouldntGetHere();
+    return false; //data members after packed bits.
   }
 
   bool Symbol::isFunction()
+  {
+    return false;
+  }
+
+  bool Symbol::isFunctionParameter()
   {
     return false;
   }
@@ -136,7 +175,7 @@ namespace MFM {
 
   void Symbol::setAutoLocalType(ALT alt)
   {
-    assert(m_state.getUlamTypeByIndex(getUlamTypeIdx())->getReferenceType() == alt);
+    assert((getUlamTypeIdx() == Hzy) || (m_state.getUlamTypeByIndex(getUlamTypeIdx())->getReferenceType() == alt) || m_state.isHolder(getUlamTypeIdx()));
     m_autoLocalType = alt;
   }
 
@@ -170,6 +209,16 @@ namespace MFM {
     return m_isSuper;
   }
 
+  bool Symbol::isCulamGeneratedTypedef()
+  {
+    return false;
+  }
+
+  bool Symbol::isCulamGeneratedTypedefAliased()
+  {
+    return false;
+  }
+
   NNO Symbol::getBlockNoOfST()
   {
     return m_stBlockNo;
@@ -183,7 +232,8 @@ namespace MFM {
   const std::string Symbol::getMangledName()
   {
     std::ostringstream mangled;
-    if(isSelf())
+    //if(isSelf()) t41359
+    if(isSelf() && (getAutoLocalType() != ALT_AS))
       {
 	mangled << m_state.getHiddenArgName(); // ur
       }

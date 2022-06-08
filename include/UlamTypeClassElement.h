@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * UlamTypeClassElement.h -  Basic handling of the Element Class UlamType for ULAM
  *
- * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2017 Ackleyshack LLC.
+ * Copyright (C) 2014-2019 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2019 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +27,9 @@
 
 /**
   \file UlamTypeClassElement.h -  Basic handling of the Eleemnt Class UlamType for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2017 All rights reserved.
+  \date (C) 2014-2019 All rights reserved.
   \gpl
 */
 
@@ -52,6 +52,10 @@ namespace MFM{
     virtual ~UlamTypeClassElement(){}
 
     virtual ULAMCLASSTYPE getUlamClassType();
+
+    virtual s32 getBitsizeAsBaseClass();
+
+    virtual void setBitsizeAsBaseClass(s32 bs);
 
     virtual bool cast(UlamValue& val, UTI typidx);
 

@@ -1,0 +1,71 @@
+## -*- mode:ulam -*-
+#=t41206_test_compiler_classdminitarraysnull_localvar
+##
+## gen output: (+ interleaved asserts)
+## Unary(3) Arg: 0x1
+## Unary(3) Arg: 0x1
+## Bool(3) Arg: 0x0 (false)
+## Unary(3) Arg: 0x1
+## Unary(3) Arg: 0x1
+## Bool(3) Arg: 0x7 (true)
+##
+#!
+Exit status: 0
+Ue_A { Bool b(false);  Int test() {  System s;  QBar bar = { .r = { }, .sp = false };  Unary(3) chkr0 = bar r 0 [] .;  s ( chkr0 )print . s ( bar r 0 [] . )print . s ( bar r 0 [] . cast 1 cast == )assert . s ( bar sp . cast )print . s ( bar sp . ! )assert . QBar bar0 = { };  Unary(3) chkr3 = bar0 r 3 [] .;  s ( chkr3 )print . s ( bar0 r 3 [] . )print . s ( bar0 r 3 [] . cast 1 cast == )assert . s ( bar0 sp . cast )print . s ( bar0 sp . )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+Uq_QBar { Bool sp( true);  Unary(3) r[5]( { 1u });  <NOMAIN> }
+##
+## informed by t41172, except empty array initialization, and empty class init
+##
+#>A.ulam
+  ulam 3;
+element A {
+  Bool b;
+
+ Int test() {
+   System s;
+
+   //case 1: null dm array init
+   QBar bar = { .r = { }, .sp = false};
+
+   Unary(3) chkr0 = bar.r[0];
+   s.print(chkr0);
+   s.print(bar.r[0]);
+   s.assert(bar.r[0] == 1); //remains its default value
+
+   s.print(bar.sp);
+   s.assert(!bar.sp);
+
+   //case 2: null class init
+   QBar bar0 = { }; //but not an array! nodevardecl
+   Unary(3) chkr3 = bar0.r[3];
+   s.print(chkr3);
+   s.print(bar0.r[3]);
+   s.assert(bar0.r[3] == 1); //continued with last value
+
+   s.print(bar0.sp);
+   s.assert(bar0.sp);
+
+   return 0;
+ }
+}
+
+#:QBar.ulam
+  ulam 3;
+quark QBar {
+  Bool sp = true;
+  Unary(3) r[5] = {1};
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

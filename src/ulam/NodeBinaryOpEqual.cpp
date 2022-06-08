@@ -39,24 +39,39 @@ namespace MFM {
   bool NodeBinaryOpEqual::checkSafeToCastTo(UTI unused, UTI& newType)
   {
     bool rtnOK = true;
-    FORECAST scr = m_nodeRight->safeToCastTo(newType);
+    //bypass same bitsize check when a primitive ref for assignment: t3625,32,51,t3817,t41001
+    bool isAClassOrAtom = m_state.isAClass(newType) || m_state.isAtom(newType);
+    UTI chknewtype = isAClassOrAtom ? newType : m_state.getUlamTypeAsDeref(newType);
+    FORECAST scr = m_nodeRight->safeToCastTo(chknewtype);
     if(scr != CAST_CLEAR)
       {
 	ULAMTYPE etyp = m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum();
+	UTI ruti =  m_nodeRight->getNodeType();
 	std::ostringstream msg;
 	if(etyp == Bool)
 	  msg << "Use a comparison operation";
+	else if(etyp == UAtom)
+	  msg << "Use .atomof"; //t41540
+	else if(etyp == String)
+	  msg << "Invalid";
+	else if(!m_state.isScalar(newType) || !m_state.isScalar(ruti))
+	  msg << "Not possible";
 	else
 	  msg << "Use explicit cast";
 	msg << " to convert "; // the real converting-message
-	msg << m_state.getUlamTypeNameBriefByIndex(m_nodeRight->getNodeType()).c_str();
+	if(m_state.isAClass(ruti))
+	  msg << m_state.getUlamTypeNameBriefByIndex(ruti).c_str();
+	else
+	  msg << m_state.getUlamTypeNameByIndex(ruti).c_str();
 	msg << " to ";
-	msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
+	if(m_state.isAClass(newType))
+	  msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
+	else
+	  msg << m_state.getUlamTypeNameByIndex(newType).c_str();
 	msg << " for " << getName();
 	if(scr == CAST_HAZY)
 	  {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	    m_state.setGoAgain();
 	    newType = Hzy;
 	  }
 	else
@@ -77,21 +92,21 @@ namespace MFM {
     return rtnOK;
   } //checkSafeToCastTo
 
-  UTI NodeBinaryOpEqual::checkAndLabelType()
+  UTI NodeBinaryOpEqual::checkAndLabelType(Node * thisparentnode)
   {
     assert(m_nodeLeft && m_nodeRight);
 
-    UTI leftType = m_nodeLeft->checkAndLabelType();
-    UTI rightType = m_nodeRight->checkAndLabelType();
+    UTI leftType = m_nodeLeft->checkAndLabelType(this);
+    UTI rightType = m_nodeRight->checkAndLabelType(this);
 
     if(!m_state.neitherNAVokUTItoContinue(leftType, rightType))
       {
 	std::ostringstream msg;
 	msg << "Assignment is invalid";
 	msg << "; LHS: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(leftType);
+	msg << m_state.getUlamTypeNameByIndex(leftType); //t41388
 	msg << "; RHS: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(rightType);
+	msg << m_state.getUlamTypeNameByIndex(rightType);
 
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(Nav);
@@ -136,9 +151,9 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Incompatible (nonscalar) types: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(leftType).c_str();
+	msg << m_state.getUlamTypeNameByIndex(leftType).c_str();
 	msg << " and ";
-	msg << m_state.getUlamTypeNameBriefByIndex(rightType).c_str();
+	msg << m_state.getUlamTypeNameByIndex(rightType).c_str();
 	msg << " used with binary " << getName();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(Nav);
@@ -150,21 +165,22 @@ namespace MFM {
     UlamType * lut = m_state.getUlamTypeByIndex(leftType);
     if(lut->getUlamTypeEnum() == Class)
       {
-	if((m_state.getUlamTypeByIndex(rightType)->getUlamTypeEnum() != Class) && !m_state.isAtom(rightType))
+	bool rhsIsClassOrAtom = m_state.isAClass(rightType) || m_state.isAtom(rightType);
+	TBOOL replaced = replaceOurselves(rhsIsClassOrAtom, thisparentnode);
+
+	if(replaced == TBOOL_HAZY)
+	  newType = Hzy;
+	else if(replaced == TBOOL_TRUE)
 	  {
-	    //try for operator overload first (e.g. (pre) +=,-=, (post) ++,-- )
-	    Node * newnode = buildOperatorOverloadFuncCallNode(); //virtual
-	    if(newnode)
+	    m_state.setGoAgain(); //t41119,t41120,t41121,t41134,t41332
+	    delete this; //suicide is painless..
+	    return Hzy;
+	  }
+	else //tbool_false
+	  {
+	    if(rhsIsClassOrAtom)
 	      {
-		AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
-		assert(swapOk);
-
-		m_nodeLeft = NULL; //recycle as memberselect
-		m_nodeRight = NULL; //recycle as func call arg
-
-		delete this; //suicide is painless..
-
-		return newnode->checkAndLabelType();
+		makeDefaultStructAssignment(leftType, rightType, newType);
 	      }
 	    else
 	      {
@@ -178,61 +194,74 @@ namespace MFM {
 		newType = Nav; //error
 	      }
 	  }
-	else
+      }
+    else //lhs is not a class
+      makeDefaultStructAssignment(leftType, rightType, newType);
+
+    setNodeType(newType);
+    if(newType == Hzy) m_state.setGoAgain();
+    return newType;
+  } //checkAndLabelType
+
+  void NodeBinaryOpEqual::makeDefaultStructAssignment(UTI lt, UTI rt, UTI& newtyperef)
+  {
+    //cast RHS if necessary and safe; newtyperef initialized to lt
+    // "safeness" based on deref of newtype
+    if(UlamType::compareForAssignment(lt, rt, m_state) != UTIC_SAME)
+      {
+	//special case for Bits to Bits assignments; if lbs < rbs, i.e. not safe-to-cast, drop bits
+	if((m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum() == Bits) && (m_state.getUlamTypeByIndex(rt)->getUlamTypeEnum() == Bits))
 	  {
-	    //RHS is class or atom;
-	    //first look for (safe cast) arg match overload operator=
-	    bool hazyArg = false;
-	    Node * newnode = buildOperatorOverloadFuncCallNodeForMatchingArg(hazyArg);
-	    if(hazyArg)
-	      {
-		newType = Hzy;
-		m_state.setGoAgain();
-	      }
-	    else if(newnode)
-	      {
-		AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
-		assert(swapOk);
-
-		m_nodeLeft = NULL; //recycle as memberselect
-		m_nodeRight = NULL; //recycle as func call arg
-
-		delete this; //suicide is painless..
-
-		return newnode->checkAndLabelType();
-	      }
+	    UTI derefLeft = m_state.getUlamTypeAsDeref(lt); //tmp deref type
+	    if(!Node::makeCastingNode(m_nodeRight, derefLeft, m_nodeRight))
+	      newtyperef = Nav; //error
 	    else
-	      {
-		//default struct assign
-		if(UlamType::compareForAssignment(newType, rightType, m_state) != UTIC_SAME)
-		  {
-		    UTI derefLeft = m_state.getUlamTypeAsDeref(leftType); //tmp deref type
-		    if(checkSafeToCastTo(rightType, newType))
-		      {
-			if(!Node::makeCastingNode(m_nodeRight, derefLeft, m_nodeRight))
-			  newType = Nav; //error
-		      }//else not safe, error msg, newType changed
-		  } //else same enough
-	      }
+	      newtyperef = derefLeft; //t41563
 	  }
+	else if(checkSafeToCastTo(rt, newtyperef))
+	  {
+	    UTI derefLeft = m_state.getUlamTypeAsDeref(lt); //tmp deref type
+	    if(!Node::makeCastingNode(m_nodeRight, derefLeft, m_nodeRight))
+	      newtyperef = Nav; //error
+	  }
+	//else not safe, error msg, newTyperef changed
+      } //else the same
+  }
+
+  TBOOL NodeBinaryOpEqual::replaceOurselves(bool classoratom, Node * parentnode)
+  {
+    //here, when lefthand side is a class
+    TBOOL rtntb = TBOOL_FALSE;
+
+    if(!classoratom)
+      {
+	//try for operator overload first (e.g. (pre) +=,-=, (post) ++,-- )
+	rtntb = NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode(parentnode);
       }
     else
       {
-	//LHS not class; cast RHS if necessary and safe
-	if(UlamType::compareForAssignment(newType, rightType, m_state) != UTIC_SAME)
+	//RHS is class or atom;
+	//first look for (safe cast) arg match overload operator=
+	bool hazyArg = false;
+	Node * newnode = buildOperatorOverloadFuncCallNodeForMatchingArg(hazyArg);
+	if(hazyArg)
 	  {
-	    UTI derefLeft = m_state.getUlamTypeAsDeref(leftType); //tmp deref type
-	    if(checkSafeToCastTo(rightType, derefLeft))
-	      {
-		if(!Node::makeCastingNode(m_nodeRight, derefLeft, m_nodeRight))
-		  newType = Nav; //error
-	      } //else not safe, error msg, newType changed
-	  } //else the same
-      }
+	    rtntb = TBOOL_HAZY;
+	  }
+	else if(newnode)
+	  {
+	    AssertBool swapOk = Node::exchangeNodeWithParent(newnode, parentnode);
+	    assert(swapOk);
 
-    setNodeType(newType);
-    return newType;
-  } //checkAndLabelType
+	    m_nodeLeft = NULL; //recycle as memberselect
+	    m_nodeRight = NULL; //recycle as func call arg
+
+	    rtntb = TBOOL_TRUE;
+	  }
+	//else no replacement, use default struct assign
+      }
+    return rtntb;
+  } //replaceOurselves
 
   //here, we check for func with matching argument when both sides the same Class type,
   // or rhs is an atom, so we can use the default struct equal if no overload defined.
@@ -247,8 +276,8 @@ namespace MFM {
     if(opolId == 0)
       {
 	std::ostringstream msg;
-	msg << "Overload for operator <" << getName();
-	msg << "> is not supported as operand for class: ";
+	msg << "Overload for operator" << getName();
+	msg << " is not supported as operand for class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(leftType).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	return NULL;
@@ -257,23 +286,12 @@ namespace MFM {
     identTok.init(TOK_IDENTIFIER, getNodeLocation(), opolId);
 
     //may need to fall back to default struct equal when the same class (t41119), or ref (t41120)
-    SymbolClass * csym = NULL;
-    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(leftType, csym);
-    assert(isDefined);
-
-    NodeBlockClass * memberClassNode = csym->getClassBlockNode();
-    assert(memberClassNode);  //e.g. forgot the closing brace on quark definition
-
-    assert(m_state.okUTItoContinue(memberClassNode->getNodeType()));
-
-    //set up compiler state to use the member class block for symbol searches
-    m_state.pushClassContextUsingMemberClassBlock(memberClassNode);
 
     Node * rtnNode = NULL;
     Symbol * fnsymptr = NULL;
     bool hazyKin = false;
 
-    if(m_state.isFuncIdInClassScope(opolId, fnsymptr, hazyKin) && !hazyKin)
+    if(m_state.isFuncIdInAClassScopeOrAncestor(leftType, opolId, fnsymptr, hazyKin) && !hazyKin)
       {
 	// still need to pinpoint the SymbolFunction; ok to look for safe casts (t41120).
 	std::vector<Node *> argNodes;
@@ -281,10 +299,12 @@ namespace MFM {
 
 	SymbolFunction * funcSymbol = NULL;
 	bool tmphazyargs = false;
-	u32 numFuncs = ((SymbolFunctionName *) fnsymptr)->findMatchingFunctionWithSafeCasts(argNodes, funcSymbol, tmphazyargs);
+	UTI foundInAncestor = Nouti;
+	u32 numFuncs = m_state.findMatchingFunctionWithSafeCastsInAClassScopeOrAncestor(leftType, opolId, argNodes, funcSymbol, tmphazyargs, foundInAncestor);
+
 	if(tmphazyargs)
 	  hazyArg = true;
-	if(!hazyArg && numFuncs >= 1)
+	if(numFuncs >= 1)
 	  {
 	    // ambiguous (>1) overload will produce an error later
 	    //fill in func symbol during type labeling;
@@ -303,9 +323,6 @@ namespace MFM {
     else if(hazyKin)
       hazyArg = hazyKin;
 
-    //clear up compiler state to no longer use the member class block for symbol searches
-    m_state.popClassContext();
-
     //redo check and type labeling done by caller!!
     return rtnNode; //replace right node with new branch
   } //buildOperatorOverloadFuncCallNodeForMatchingArg
@@ -317,8 +334,13 @@ namespace MFM {
       {
 	UTI lt = m_nodeLeft->getNodeType();
 	std::ostringstream msg;
-	msg << "Invalid lefthand side of equals <" << m_nodeLeft->getName();
-	msg << ">, type: " << m_state.getUlamTypeNameBriefByIndex(lt).c_str();
+	msg << "Unmodifiable lefthand side of assignment expression '";
+	msg << m_nodeLeft->getName();
+	msg << "', type: " << m_state.getUlamTypeNameByIndex(lt).c_str(); //t41186
+	if(m_nodeLeft->isFunctionCall())
+	  msg << "; may be a function call";
+	else if(m_nodeLeft->hasASymbolReference() && m_nodeLeft->hasASymbolReferenceConstant())
+	  msg << "; may be a constant function parameter";
 	if(lstor == TBOOL_HAZY)
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	else
@@ -343,17 +365,17 @@ namespace MFM {
 	if(unpackedArrayLeft)
 	  {
 	    std::ostringstream msg;
-	    msg << "Lefthand side of equals requires UNPACKED array support <";
+	    msg << "Lefthand side of equals requires UNPACKED array support '";
 	    msg << m_nodeLeft->getName();
-	    msg << ">, type: " << m_state.getUlamTypeNameBriefByIndex(lt).c_str();
+	    msg << "', type: " << m_state.getUlamTypeNameBriefByIndex(lt).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
 	if(unpackedArrayRight)
 	  {
 	    std::ostringstream msg;
-	    msg << "Righthand side of equals requires UNPACKED array support <";
+	    msg << "Righthand side of equals requires UNPACKED array support '";
 	    msg << m_nodeRight->getName();
-	    msg << ">, type: " << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
+	    msg << "', type: " << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
 	rtnOK = false;
@@ -372,59 +394,43 @@ namespace MFM {
     assert(m_nodeLeft && m_nodeRight);
 
     UTI nuti = getNodeType();
-    if(nuti == Nav)
-      return ERROR;
+    if(nuti == Nav) return evalErrorReturn();
 
-    if(nuti == Hzy)
-      return NOTREADY;
+    if(nuti == Hzy) return evalStatusReturnNoEpilog(NOTREADY);
 
     evalNodeProlog(0); //new current frame pointer on node eval stack
 
     makeRoomForSlots(1); //always 1 slot for ptr
 
     EvalStatus evs = m_nodeLeft->evalToStoreInto();
-    if(evs != NORMAL)
-      {
-	evalNodeEpilog();
-	return evs;
-      }
+    if(evs != NORMAL) return evalStatusReturn(evs);
 
     u32 slot = makeRoomForNodeType(nuti);
     evs = m_nodeRight->eval(); //a Node Function Call here
-    if(evs != NORMAL)
-      {
-	evalNodeEpilog();
-	return evs;
-      }
+    if(evs != NORMAL) return evalStatusReturn(evs);
 
     //assigns rhs to lhs UV pointer (handles arrays);
     //also copy result UV to stack, -1 relative to current frame pointer
     if(slot)
       if(!doBinaryOperation(1, 2, slot))
-	evs = ERROR;
+	return evalStatusReturn(ERROR);
 
     evalNodeEpilog();
-    return evs;
+    return NORMAL;
   } //eval
 
   EvalStatus NodeBinaryOpEqual::evalToStoreInto()
   {
     UTI nuti = getNodeType();
-    if(nuti == Nav)
-      return ERROR;
+    if(nuti == Nav) return evalErrorReturn();
 
-    if(nuti == Hzy)
-      return NOTREADY;
+    if(nuti == Hzy) return evalStatusReturnNoEpilog(NOTREADY);
 
     evalNodeProlog(0);
 
     makeRoomForSlots(1); //always 1 slot for ptr
     EvalStatus evs = m_nodeLeft->evalToStoreInto();
-    if(evs != NORMAL)
-      {
-	evalNodeEpilog();
-	return evs;
-      }
+    if(evs != NORMAL) return evalStatusReturn(evs);
 
     UlamValue luvPtr = UlamValue::makePtr(1, EVALRETURN, nuti, m_state.determinePackable(nuti), m_state); //positive to current frame pointer
 
@@ -624,13 +630,6 @@ namespace MFM {
   void NodeBinaryOpEqual::appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len)
   {
     m_state.abortShouldntGetHere(); //unused
-  }
-
-  void NodeBinaryOpEqual::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
-  {
-    assert(m_nodeRight);
-    m_nodeRight->calcMaxDepth(depth, maxdepth, base); //funccall?
-    return; //work done by NodeStatements and NodeBlock
   }
 
   void NodeBinaryOpEqual::genCode(File * fp, UVPass& uvpass)

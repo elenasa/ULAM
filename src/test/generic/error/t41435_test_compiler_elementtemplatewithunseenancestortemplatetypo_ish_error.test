@@ -1,0 +1,60 @@
+## -*- mode:ulam -*-
+#=t41435_test_compiler_elementtemplatewithunseenancestortemplatetypo_ish_error
+#!
+./R.ulam:5:5: ERROR: Incomplete NodeVarDecl for type: S used with variable symbol name 'doggy'.
+./R.ulam:5:5: ERROR: Variable for: 'doggy', is still hazy.
+./S.ulam:2:9: ERROR: Subclass 'S' inherits from Watchdog, a class with pending arguments or ancestors.
+./S.ulam:2:13: ERROR: UNSEEN class type <Watchdog> was never defined in Watchdog.ulam; check for capitalization or spelling typos.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by Dave ish 3/28/2021 035039. Typo in ancestor name (see also t3370)
+##        Assert checking for pending args in Unseen template; checkSFINAE asserted;
+##        See also t41447 for another variation.
+#>R.ulam
+  ulam 5;
+element R {
+  Int test()
+  {
+    S doggy;
+
+    return 0;
+  }
+}
+
+#:WatchDog.ulam
+  ulam 5;
+quark WatchDog(Unsigned(5) myProgressBits = 4u, Unsigned triggerLevel = cDOG_MAXOF) : RXTimer(cDOG_BITS,cDOG_TRIGGER, 1) + Update {
+  constant Unary(5) cDOG_BITS = myProgressBits;
+  constant Unsigned cDOG_MAXOF = Unsigned(cDOG_BITS).maxof;
+  constant Unsigned cDOG_TRIGGER = triggerLevel;
+
+}
+
+#:RXTimer.ulam
+  ulam 5;
+//use XTimer;
+quark RXTimer(Unary(5) bits, Unsigned triggerLevel, Unsigned k) : XTimer(bits,triggerLevel,k) {
+  typedef Super.Counter Counter;
+
+}
+
+#:XTimer.ulam
+  ulam 5;
+quark XTimer(Unary(5) bits, Unsigned triggerLevel, Unsigned k)
+{
+  typedef Unsigned Counter;
+  Counter mCounter;
+}
+
+#:Update.ulam
+  ulam 5;
+quark Update {
+  virtual Bool update() { return false; }
+}
+
+#:S.ulam
+  ulam 5;
+element S : Watchdog() {
+  /* TYPO Ancestor */ }
+
+#.

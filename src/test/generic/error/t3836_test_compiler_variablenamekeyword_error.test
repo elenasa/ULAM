@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3836_test_compiler_variablenamekeyword_error
 #!
-./Foo.ulam:11:12: ERROR: Name of variable <as>: Identifier must not be a reserved keyword.
+./Foo.ulam:11:12: ERROR: Name of variable 'as': Identifier must not be a reserved keyword.
 ./Foo.ulam:11:12: ERROR: Invalid Statement (possible missing semicolon).
 Unrecoverable Program Parse FAILURE: <Foo.ulam>
 ##

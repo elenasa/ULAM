@@ -1,8 +1,9 @@
 /**                                        -*- mode:C++ -*-
  * NodeTypedef.h - Basic Node handling Typedefs for ULAM
  *
- * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2017 Ackleyshack LLC.
+ * Copyright (C) 2014-2019 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +28,9 @@
 
 /**
   \file NodeTypedef.h - Basic Node handling Typedefs for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2017 All rights reserved.
+  \date (C) 2014-2021 All rights reserved.
   \gpl
 */
 
@@ -62,21 +63,21 @@ namespace MFM{
 
     virtual void printPostfix(File * f);
 
-    virtual void noteTypeAndName(s32 totalsize, u32& accumsize);
+    virtual void noteTypeAndName(UTI cuti, s32 totalsize, u32& accumsize);
+
+    virtual void genTypeAndNameEntryAsComment(File * fp, s32 totalsize, u32& accumsize);
 
     virtual const char * getName();
 
+    virtual u32 getNameId();
+
     virtual const std::string prettyNodeName();
 
-    virtual bool getSymbolPtr(Symbol *& symptrref);
+    virtual bool getSymbolPtr(const Symbol *& symptrref);
 
-    virtual UTI checkAndLabelType();
+    virtual UTI checkAndLabelType(Node * thisparentnode);
 
-    NNO getBlockNo();
-
-    NodeBlock * getBlock();
-
-    virtual void packBitsInOrderOfDeclaration(u32& offset);
+    virtual TBOOL packBitsInOrderOfDeclaration(u32& offset);
 
     virtual void printUnresolvedVariableDataMembers();
 
@@ -86,9 +87,7 @@ namespace MFM{
 
     virtual bool buildDefaultValue(u32 wlen, BV8K& dvref);
 
-    virtual void genCodeDefaultValueStringRegistrationNumber(File * fp, u32 startpos);
-
-    virtual void genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos);
+    virtual bool buildDefaultValueForClassConstantDefs();
 
     virtual EvalStatus eval();
 
@@ -96,9 +95,11 @@ namespace MFM{
 
     virtual void genCodeConstantArrayInitialization(File * fp);
 
-    virtual void generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly);
+    virtual void generateBuiltinConstantClassOrArrayInitializationFunction(File * fp, bool declOnly);
 
     virtual void cloneAndAppendNode(std::vector<Node *> & cloneVec);
+
+    virtual void generateTestInstance(File * fp, bool runtest);
 
     virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount);
 
@@ -107,11 +108,22 @@ namespace MFM{
   protected:
     virtual void checkForSymbol();
 
+    virtual void clearSymbolPtr();
+
   private:
     SymbolTypedef * m_typedefSymbol;
     u32 m_tdid; //to instantiate
     NNO m_currBlockNo;
+    NodeBlock * m_currBlockPtr;
     NodeTypeDescriptor * m_nodeTypeDesc; //can be NULL
+
+    NNO getBlockNo();
+    void setupBlockNo();
+    void setBlockNo(NNO n);
+
+    void setBlock(NodeBlock * ptr);
+    NodeBlock * getBlock();
+
   };
 
 }

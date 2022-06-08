@@ -2,7 +2,7 @@
 #=t3509_test_compiler_constantsfaileqtest_issue
 #!
 Exit status: 0
-Ue_Ish { constant Int(32) cBITS = 6;  constant Unsigned(32) cNUM2 = 16u;  constant Unsigned(32) cNUM1 = 16u;  Int(32) test() {  { false cond { 1 cast return } if } 0 cast return } }
+Ue_Ish { constant Int cBITS = 6;  constant Unsigned cNUM2 = 16u;  constant Unsigned cNUM1 = 16u;  Int test() {  { false cond { 1 cast return } if } 0 cast return } }
 ##
 ##
 #>Ish.ulam

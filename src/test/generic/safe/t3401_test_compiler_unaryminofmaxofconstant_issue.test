@@ -1,28 +1,50 @@
 ## -*- mode:ulam -*-
 #=t3401_test_compiler_unaryminofmaxofconstant_issue
-##
-##        unevaluable without assuming atoms as elements
+## gen output (+ assert)
+##    Unsigned Arg: 6
 #!
 Exit status: 1
-Ue_Foo { Unary(6) energy(6u);  Int(32) test() {  Atom(96) a;  energy 63u = { a Empty is cond { { energy cast 63u cast == cond { 1 cast return } if { energy cast 0u cast == cond { 0 cast return } if } else } } if } -1 cast return } }
+Ue_Foo { Unary(6) energy(6u);  Int test() {  System s;  Atom a;  self energy . 63u = { a Empty is cond { { self energy . cast 63u cast == cond { s ( self energy . cast )print . s ( true )assert . 1 cast return } if { self energy . cast 0u cast == cond { s ( self energy . cast )print . s ( false )assert . 0 cast return } if } else } } if } s ( self energy . cast )print . s ( false )assert . -1 cast return } }
+Uq_System { <NOMAIN> }
+##
+## note: default atom effective self is the Empty element
+##
 #>Foo.ulam
   ulam 1;
 use Empty;
 element Foo {
   Unary(6) energy;
   Int test(){
+    System s;
     Atom a;
     energy = energy.maxof;
     if(a is Empty) {
       if(energy == energy.maxof) {
+	s.print((Unsigned) energy);
+	s.assert(true); //empty by default
 	return 1;
       }
       else if (energy == energy.minof) {
+	s.print((Unsigned) energy);
+	s.assert(false);
 	return 0;
       }
     }
+    s.print((Unsigned) energy);
+    s.assert(false);
     return -1;
   }
 }
 
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
 #.

@@ -2,8 +2,8 @@
 #=t3609_test_compiler_elementinheritedquark_purevirtualfuncuser_error
 ##
 #!
-./Test.ulam:22:5: ERROR: Instance of Abstract Class Base used with variable symbol name 'b'.
-./Base.ulam:2:7: NOTE: Pure: Int(32) afunc(Int(32) a).
+./Test.ulam:17:5: ERROR: 'b' is type Base, which is abstract due to these pure functions..
+./Base.ulam:4:15: NOTE: Still pure in Base: Int afunc(Int a).
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t3608
@@ -21,7 +21,6 @@ quark Base {
 
 #:Sub1.ulam
   ulam 2;
-use Base;
 quark Sub1 : Base {
   Int afunc() { return 4; } // not virtual
   virtual Int afunc(Int a) { return 2; } // but overload of same name can be virtual
@@ -31,7 +30,6 @@ quark Sub1 : Base {
 
 #:E1.ulam
   ulam 2;
-use Base;
 element E1 : Base {
   virtual Int afunc(Int a) { return 7; } // virtual override
   virtual Int bfunc() { return 8; } // virtual override
@@ -39,7 +37,6 @@ element E1 : Base {
 
 #:E2.ulam
   ulam 2;
-use Sub1;
 element E2 : Sub1 {
   virtual Int afunc(Int a) { return 9; }
   virtual Int cfunc() { return 10; }
@@ -47,11 +44,6 @@ element E2 : Sub1 {
 
 #>Test.ulam
   ulam 2;
-use Base;
-use Sub1;
-use E1;
-use E2;
-use System;
 element Test : System {
   Bool brtn[4];
 

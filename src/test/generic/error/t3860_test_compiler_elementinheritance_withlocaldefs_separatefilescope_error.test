@@ -1,11 +1,12 @@
 ## -*- mode:ulam -*-
 #=t3860_test_compiler_elementinheritance_withlocaldefs_separatefilescope_error
 #!
-./Soo.ulam:6:24: ERROR: Variable <soosize> is not defined, or was used before declared in a function.
-./Soo.ulam:10:16: ERROR: UNSEEN class type <Soo3> was never defined in <Soo3.ulam>.
+./Soo.ulam:6:24: ERROR: Variable 'soosize' is not defined, or was used before declared in a function.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## test of local defs: different file scopes, informed by t3859
+## templates alone will not produce error msg, needs instance.
+## Here, Foo has both soosize and Soo3 as locals; Soolost does not, catches only first error.
 ##
 #>Foo.ulam
   ulam 3;
@@ -37,6 +38,7 @@ quark Soo(Unsigned(3) v) {
   Bool check()
   {
     return us.sizeof < soosize; //no local constant
+    //return true; //catches Soo3 error
   }
   Bool func()
   {
@@ -45,6 +47,9 @@ quark Soo(Unsigned(3) v) {
     return false;
   }
 }
+
+quark Soolost : Soo(4u) { }
+
 
 #:System.ulam
 ulam 1;

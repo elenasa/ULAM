@@ -1,10 +1,8 @@
 ## -*- mode:ulam -*-
 #=t3607_test_compiler_elementinheritedquark_purevirtualfunc_error
-##
-##
 #!
-./Foo.ulam:5:3: ERROR: Instance of Abstract Class QSubBase1 used with variable symbol name 'm1'.
-./QSubBase1.ulam:3:7: NOTE: Pure: Int(32) vfunc().
+./Foo.ulam:3:3: ERROR: 'm1' is type QSubBase1, which is abstract due to these pure functions..
+./QMemBase.ulam:7:15: NOTE: Still pure in QSubBase1: Int vfunc().
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t3606
@@ -21,7 +19,6 @@ quark QMemBase {
 
 #:QSubBase1.ulam
   ulam 2;
-use QMemBase;
 quark QSubBase1 : QMemBase
 {
   //virtual Int vfunc() {
@@ -32,7 +29,6 @@ quark QSubBase1 : QMemBase
 
 #:QSubBase2.ulam
   ulam 2;
-use QMemBase;
 quark QSubBase2 : QMemBase {
   virtual Int vfunc() {
     bmem = 2;
@@ -42,8 +38,6 @@ quark QSubBase2 : QMemBase {
 
 #:Foo.ulam
   ulam 2;
-use QSubBase1;
-use QSubBase2;
 element Foo {
   QSubBase1 m1;
   QSubBase2 m2;
@@ -51,8 +45,6 @@ element Foo {
 
 #>Test.ulam
   ulam 2;
-use Foo;
-use System;
 element Test : System {
   Bool brtn[4];
   Int test() {
@@ -61,9 +53,11 @@ element Test : System {
     assert(brtn[0]);
     brtn[1] = (f.m2.func() == 4);
     assert(brtn[1]);
-    brtn[2] = (f.m1.bmem == 1);
+
+    Foo& fref = f; //ref can be abstract
+    brtn[2] = (fref.m1.bmem == 1);
     assert(brtn[2]);
-    brtn[3] = (f.m2.bmem == 2);
+    brtn[3] = (fref.m2.bmem == 2);
     assert(brtn[3]);
     return 0;
   }

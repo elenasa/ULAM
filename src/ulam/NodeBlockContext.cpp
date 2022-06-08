@@ -4,9 +4,9 @@
 
 namespace MFM {
 
-  NodeBlockContext::NodeBlockContext(NodeBlock * prevBlockNode, CompilerState & state): NodeBlock(prevBlockNode, state, NULL){}
+  NodeBlockContext::NodeBlockContext(NodeBlock * prevBlockNode, CompilerState & state): NodeBlock(prevBlockNode, state, NULL), m_classConstantsReady(false), m_nameid(0) {}
 
-  NodeBlockContext::NodeBlockContext(const NodeBlockContext& ref) : NodeBlock(ref)
+  NodeBlockContext::NodeBlockContext(const NodeBlockContext& ref) : NodeBlock(ref), m_classConstantsReady(false), m_nameid(ref.m_nameid)
   {
     ref.copyUlamTypeKeys((NodeBlockContext *) this); //t3959
   }
@@ -26,19 +26,44 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-  StringPoolUser& NodeBlockContext::getUserStringPoolRef()
+  void NodeBlockContext::setNodeType(UTI uti)
   {
-    return m_upool;
+    Node::setNodeType(uti);
+    //avoid Hzy and Int (workaround for eval testing)
+    if(m_state.okUTItoContinue(uti) && !m_state.isAPrimitiveType(uti))
+      {
+	m_nameid = m_state.getUlamTypeNameIdByIndex(uti);
+      }
   }
 
-  void NodeBlockContext::setUserStringPoolRef(const StringPoolUser& spref)
+  UTI NodeBlockContext::checkAndLabelType(Node * thisparentnode)
   {
-    m_upool = spref;
+    //dup of NodeBlockLocals for now
+    UTI savnuti = getNodeType();
+    assert(savnuti != Nouti);
+
+    //possibly empty
+    if(m_nodeNext)
+        m_nodeNext->checkAndLabelType(this);
+    setNodeType(savnuti);
+    return savnuti;
   }
+
+  u32 NodeBlockContext::getAllRemainingCulamGeneratedTypedefSymbolsInContext(std::map<u32, Symbol*>& mapref)
+  {
+    return m_ST.getAllRemainingCulamGeneratedTypedefSymbolsInTable(mapref);
+  }
+
 
   bool NodeBlockContext::hasStringDataMembers()
   {
-    return m_ST.hasUlamTypeSymbolsInTable(String);
+    return m_ST.hasUlamTypeSymbolsInTable(String); //btw, does not check superclasses!!!
+    //return m_ST.hasADataMemberStringInitValueInClass(getNodeType());
+  }
+
+  bool NodeBlockContext::classConstantsReady()
+  {
+    return m_classConstantsReady;
   }
 
   void NodeBlockContext::addUlamTypeKeyToSet(UlamKeyTypeSignature key)

@@ -2,6 +2,7 @@
 #=t3848_test_compiler_namedconstant_toobiginit_error
 #!
 ./A.ulam:3:12: ERROR: Constant value expression for 'j' is not representable as Int(64).
+./A.ulam:3:12: ERROR: Problem in NodeConstantDef for type: Int(64), used with symbol name 'j', after folding attempt.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t3798, 32-bit max initialization to be compatible with 32-bit platform

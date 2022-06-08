@@ -1,0 +1,97 @@
+## -*- mode:ulam -*-
+#=t41444_test_compiler_elementtemplatewithdefaultclassparametersandquarktemplateancestorwmemberconstantdefaults_unseencase_ish
+##
+##  gen output: (+ interleaved asserts)
+##  Unsigned Arg: 4
+##  Unsigned Arg: 3
+##
+#!
+Exit status: 7
+Ue_R { Unsigned dsz(4u);  Unsigned psz(3u);  Int test() {  System s;  WatchDog(4u,15u) doggy;  self dsz . 4u = s ( self dsz . )print . s ( self dsz . 4u cast == )assert . WatchDog(3u,7u) puppy;  self psz . 3u = s ( self psz . )print . s ( self psz . 3u cast == )assert . self dsz . self psz . +b cast return } }
+Uq_System { <NOMAIN> }
+Uq_WatchDog(Unsigned(5) myProgressBits = NONREADYCONST, Unsigned triggerLevel = NONREADYCONST) : RXTimer(bits,triggerLevel,1u) +Update { constant Unsigned cDOG_TRIGGER = triggerLevel;  constant Unsigned cMYDOG_MAXOF = Unsigned(UNKNOWN) maxof .;  constant Unary(5) cDOG_BITS = 15u;  constant Unsigned cDOG_MAXOF = Unsigned(UNKNOWN) maxof .;  :RXTimer13< typedef Unsigned(UNKNOWN) Counter; > +Update<> <NOMAIN> }
+Uq_RXTimer(Unary(5) bits, Unsigned triggerLevel, Unsigned k) : XTimer(bits,triggerLevel,k) { typedef Unsigned(UNKNOWN) Counter;  :XTimer13< typedef Unsigned(UNKNOWN) Counter;  Unsigned(UNKNOWN) mCount(notready); > <NOMAIN> }
+Uq_Update { <NOMAIN> }
+Uq_XTimer(Unary(5) bits, Unsigned triggerLevel, Unsigned k) { typedef Unsigned(UNKNOWN) Counter;  Unsigned(UNKNOWN) mCount(notready);  <NOMAIN> }
+Ue_S : WatchDog(4u,15u) { /* empty class block */ }
+##
+## informed by Dave ish 3/28/2021 _033651. Assert checking for custom array type assumed context
+##    was a class; But it was a locals file scope. Easy fix.
+##    Okay to use local constants and other class parameter as default values,
+##		     but not data member constants. (see error/t41439)
+##    See also t41440-3 for built up complexity.
+##
+#>R.ulam
+  ulam 5;
+//use WatchDog;
+element R {
+  Unsigned dsz;
+  Unsigned psz;
+  Int test()
+  {
+    System s;
+
+    WatchDog() doggy;
+    dsz = doggy.sizeof;
+    s.print(dsz); //==4u
+    s.assert(dsz==4u);
+
+    WatchDog(3,7) puppy;
+    psz = puppy.sizeof;
+    s.print(psz); //==3u
+    s.assert(psz==3u);
+
+    return (Int) (dsz + psz);
+  }
+}
+
+#:WatchDog.ulam
+ ulam 5;
+//local constant Unary(5) cDOG_BITS = 4u;
+//local constant Unsigned cDOG_MAXOF = Unsigned(cDOG_BITS).maxof;
+//quark WatchDog(Unsigned(5) myProgressBits = cDOG_BITS, Unsigned triggerLevel = Unsigned(myProgressBits).maxof) : RXTimer(myProgressBits,triggerLevel, 1) + Update {
+quark WatchDog(Unsigned(5) myProgressBits = cDOG_BITS, Unsigned triggerLevel = cMYDOG_MAXOF) : RXTimer(myProgressBits,triggerLevel, 1) + Update {
+  constant Unsigned cDOG_TRIGGER = triggerLevel;
+  constant Unsigned cMYDOG_MAXOF = Unsigned(myProgressBits).maxof; //not as default value!
+  constant Unary(5) cDOG_BITS = 4u;
+  constant Unsigned cDOG_MAXOF = Unsigned(cDOG_BITS).maxof;
+}
+
+#:RXTimer.ulam
+  ulam 5;
+quark RXTimer(Unary(5) bits, Unsigned triggerLevel, Unsigned k) : XTimer(bits,triggerLevel,k) {
+  typedef Super.Counter Counter;
+}
+
+#:XTimer.ulam
+  ulam 5;
+quark XTimer(Unary(5) bits, Unsigned triggerLevel, Unsigned k)
+{
+  // With a max counter width of 5, the max value of Counter.maxof is
+  // 31, so 1u<<time cannot overflow
+  typedef Unsigned(bits) Counter;
+  Counter mCount;
+}
+
+#:Update.ulam
+  ulam 5;
+quark Update {
+  virtual Bool update() { return false; }
+}
+
+#:S.ulam
+ ulam 5;
+element S : WatchDog() { }
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

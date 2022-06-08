@@ -30,17 +30,22 @@ namespace MFM {
     return  std::string(m_state.getAsMangledFunctionName(m_nodeLeft->getNodeType(), getRightType()));
   }
 
-  UTI NodeConditionalAs::checkAndLabelType()
+  bool NodeConditionalAs::asConditionalNode()
+  {
+    return true;
+  }
+
+  UTI NodeConditionalAs::checkAndLabelType(Node * thisparentnode)
   {
     assert(m_nodeLeft);
     UTI newType = Bool;
 
-    UTI luti = m_nodeLeft->checkAndLabelType(); //side-effect
+    UTI luti = m_nodeLeft->checkAndLabelType(this); //side-effect
     if(luti == Nav)
       {
 	std::ostringstream msg;
-	msg << "Invalid lefthand type of conditional operator '" << getName();
-	msg << "'";
+	msg << "Invalid lefthand type of conditional operator '";
+	msg  << getName() << "'";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(Nav);
 	return Nav; //short-circuit
@@ -49,8 +54,8 @@ namespace MFM {
     if(luti == Hzy)
       {
 	std::ostringstream msg;
-	msg << "Incomplete lefthand type of conditional operator '" << getName();
-	msg << "'";
+	msg << "Incomplete lefthand type of conditional operator '";
+	msg  << getName() << "'";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	setNodeType(Hzy);
 	m_state.setGoAgain();
@@ -61,17 +66,18 @@ namespace MFM {
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
     ULAMTYPE letyp = lut->getUlamTypeEnum();
     ULAMCLASSTYPE lclasstype = lut->getUlamClassType();
-    if(!(m_state.isAtom(luti) || (letyp == Class)))
+
+    if(!lut->isScalar())
       {
 	std::ostringstream msg;
-	msg << "Invalid lefthand type of conditional operator '" << getName();
-	msg << "'; must be an atom or class, not ";
-	msg << lut->getUlamTypeNameBrief().c_str();
-	if(lclasstype == UC_UNSEEN || luti == Hzy)
+	msg << "Invalid lefthand type of conditional operator '";
+	msg  << getName() << "'; must be a scalar";
+	if(!m_state.isHolder(luti))
+	  msg << ", not " << lut->getUlamTypeNameBrief().c_str() << " array";
+	if((lclasstype == UC_UNSEEN) || m_state.isStillHazy(luti))
 	  {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    newType = Hzy;
-	    m_state.setGoAgain();
 	  }
 	else
 	  {
@@ -82,17 +88,17 @@ namespace MFM {
 	  }
       }
 
-    if(!lut->isScalar())
+    if(!(m_state.isAtom(luti) || (letyp == Class)))
       {
 	std::ostringstream msg;
-	msg << "Invalid lefthand type of conditional operator '" << getName();
-	msg << "'; must be a scalar, not ";
-	msg << lut->getUlamTypeNameBrief().c_str() << " array";
-	if(lclasstype == UC_UNSEEN || luti == Hzy)
+	msg << "Invalid lefthand type of conditional operator '";
+	msg  << getName() << "'; must be an atom or class";
+	if(!m_state.isHolder(luti))
+	  msg << ", not " << lut->getUlamTypeNameBrief().c_str();
+	if((lclasstype == UC_UNSEEN) || m_state.isStillHazy(luti))
 	  {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    newType = Hzy;
-	    m_state.setGoAgain();
 	  }
 	else
 	  {
@@ -106,8 +112,20 @@ namespace MFM {
     if(m_nodeLeft->isArrayItem() || m_nodeLeft->isFunctionCall())
       {
 	std::ostringstream msg;
-	msg << "Invalid lefthand type of conditional operator '" << getName();
-	msg << "'; suggest a reference variable";
+	msg << "Invalid lefthand type of conditional operator '";
+	msg  << getName() << "'; suggest a reference variable";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	newType = Nav;
+	setNodeType(Nav);
+	return Nav;
+      }
+
+    if(m_nodeLeft->hasASymbolSuper())
+      {
+	std::ostringstream msg;
+	msg << "Shorthand 'super' is too mind-blowing as the lefthand name ";
+	msg << "of conditional operator '" << getName();
+	msg << "'; consider using virtual functions instead";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	newType = Nav;
 	setNodeType(Nav);
@@ -115,17 +133,17 @@ namespace MFM {
       }
 
     assert(m_nodeTypeDesc);
-    UTI ruti = m_nodeTypeDesc->checkAndLabelType();
+    UTI ruti = m_nodeTypeDesc->checkAndLabelType(this);
     if(m_state.okUTItoContinue(ruti))
       {
 	UlamType * rut = m_state.getUlamTypeByIndex(ruti);
 	//rhs cannot be a ref type
-	if(rut->isReference())
+	if(rut->isAltRefType())
 	  {
 	    std::ostringstream msg;
 	    msg << "Invalid righthand type of conditional operator '" << getName();
 	    msg << "'; must be a class type, not a reference: ";
-	    msg << rut->getUlamTypeNameBrief().c_str();
+	    msg << m_state.getUlamTypeNameBriefByIndex(ruti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    newType = Nav;
 	  }
@@ -139,12 +157,11 @@ namespace MFM {
 		    std::ostringstream msg;
 		    msg << "Invalid righthand type of conditional operator '" << getName();
 		    msg << "'; must be a quark or element name, not ";
-		    msg << rut->getUlamTypeNameBrief().c_str();
+		    msg << m_state.getUlamTypeNameBriefByIndex(ruti).c_str();
 		    if(rclasstype == UC_UNSEEN)
 		      {
 			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 			newType = Hzy;
-			m_state.setGoAgain();
 		      }
 		    else
 		      {
@@ -160,12 +177,11 @@ namespace MFM {
 		    std::ostringstream msg;
 		    msg << "Invalid righthand type of conditional operator '" << getName();
 		    msg << "'; must be a quark or transient name, not ";
-		    msg << rut->getUlamTypeNameBrief().c_str();
+		    msg << m_state.getUlamTypeNameBriefByIndex(ruti).c_str();
 		    if(rclasstype == UC_UNSEEN)
 		      {
 			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 			newType = Hzy;
-			m_state.setGoAgain();
 		      }
 		    else
 		      {
@@ -188,7 +204,6 @@ namespace MFM {
 		      {
 			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 			newType = Hzy;
-			m_state.setGoAgain();
 		      }
 		    else
 		      {
@@ -196,24 +211,73 @@ namespace MFM {
 			newType = Nav;
 		      }
 		  }
+		else if(!m_state.isAltRefType(luti) && (rclasstype != UC_QUARK) && (m_state.getReferenceType(luti) != ALT_AS))
+		  {
+		    //quarks can only inherit from other quarks (t41326);
+		    //quark refs cannot be checked at compile time.
+		    // nested-as has ALT_AS reference type (t41585)
+		    std::ostringstream msg;
+		    msg << "Invalid righthand type of conditional operator '" << getName();
+		    msg << "'; must be a quark name, not ";
+		    msg << rut->getUlamTypeNameBrief().c_str();
+		    if(rclasstype == UC_UNSEEN)
+		      {
+			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+			newType = Hzy;
+		      }
+		    else
+		      {
+			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+			newType = Nav;
+		      }
+		  }
+		//else
+	      }
+	    else if(lclasstype == UC_UNSEEN)
+	      {
+		std::ostringstream msg;
+		msg << "Lefthand type of conditional operator '" << getName();
+		msg << "'; not a seen class ";
+		msg << lut->getUlamTypeNameBrief().c_str();
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+		newType = Hzy;
 	      }
 	    else
 	      m_state.abortUndefinedUlamClassType();
+	  }
+      }
+    else
+      {
+	std::ostringstream msg;
+	if(ruti == Nav)
+	  msg << "Invalid ";
+	else
+	  msg << "Incomplete ";
+	msg << "righthand type of conditional operator '" << getName();
+	msg << "' " << m_state.m_pool.getDataAsString(m_nodeTypeDesc->getTypeNameId()).c_str();
+	if(ruti == Nav)
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    newType = Nav;
+	  }
+	else
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);//t3336,t3741,t41315,t41518
+	    newType = Hzy;
 	  }
       }
 
     if(m_state.okUTItoContinue(newType) && !m_state.isComplete(ruti))
       {
 	std::ostringstream msg;
-	msg << "Righthand type of conditional operator '" << getName() << "': ";
-	msg << m_state.getUlamTypeNameByIndex(ruti).c_str();
-	msg << ", is still incomplete";
+	msg << "Righthand type of conditional operator '" << getName() << "' ";
+	msg << "is still incomplete";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	newType = Hzy; //goagain set by nodetypedesc
-	m_state.setGoAgain();
+	newType = Hzy; //goagain set by nodetypedesc (t41518)
       }
 
     setNodeType(newType);
+    if(newType == Hzy) m_state.setGoAgain();
     Node::setStoreIntoAble(TBOOL_FALSE);
     return getNodeType();
   } //checkAndLabelType
@@ -223,21 +287,15 @@ namespace MFM {
     assert(m_nodeLeft);
 
     UTI nuti = getNodeType();
-    if(nuti == Nav)
-      return ERROR;
+    if(nuti == Nav) return evalErrorReturn();
 
-    if(nuti == Hzy)
-      return NOTREADY;
+    if(nuti == Hzy) return evalStatusReturnNoEpilog(NOTREADY);
 
     evalNodeProlog(0);   //new current frame pointer
 
     makeRoomForSlots(1); //always 1 slot for ptr
     EvalStatus evs = m_nodeLeft->evalToStoreInto();
-    if(evs != NORMAL)
-      {
-	evalNodeEpilog();
-	return evs;
-      }
+    if(evs != NORMAL) return evalStatusReturn(evs);
 
     UlamValue pluv = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(1);
 
@@ -246,15 +304,21 @@ namespace MFM {
     assert(m_state.isPtr(luti));
     luti = pluv.getPtrTargetType();
     assert(m_state.okUTItoContinue(luti));
-    UlamType * lut = m_state.getUlamTypeByIndex(luti);
 
-    if(m_state.isAtom(luti))
+    UlamValue luv = m_state.getPtrTarget(pluv);
+    UTI leffself = luv.getUlamValueEffSelfTypeIdx(); //t41539
+
+    bool leftisatom = m_state.isAtom(luti) || m_state.isAtom(luv.getUlamValueTypeIdx()); //t3754,t3837
+    if(leftisatom)
       {
 	//an atom can be element or quark in eval-land, so let's get specific!
-	UlamValue luv = m_state.getPtrTarget(pluv);
-	luti = luv.getUlamValueTypeIdx();
-	lut = m_state.getUlamTypeByIndex(luti);
+	if(leffself != Nouti)
+	  {
+	    luti = leffself;
+	  }
       }
+
+    UlamType * lut = m_state.getUlamTypeByIndex(luti);
 
     bool asit = false;
     UTI ruti = getRightType();
@@ -267,15 +331,17 @@ namespace MFM {
 	  {
 	    asit = true;
 	  }
+	else if((leffself != Nouti) && m_state.isClassASubclassOf(leffself, ruti))
+	  {
+	    asit = true; //we must have a quark ref (t41539)
+	    luti = leffself; //t41011,t41012,t41319,t41325,t41539 (no longer unevaluable)
+	  }
 	else
 	  {
 	    if(lut->getUlamClassType() == UC_TRANSIENT)
 	      {
 		if(lut->getTotalBitSize() > MAXSTATEBITS)
-		  {
-		    evalNodeEpilog();
-		    return UNEVALUABLE;
-		  }
+		  return evalStatusReturn(UNEVALUABLE);
 	      }
 	    else
 	      {
@@ -285,7 +351,7 @@ namespace MFM {
 		    std::ostringstream msg;
 		    msg << "Invalid lefthand type of conditional operator '" << getName();
 		    msg << "'; Class '";
-		    msg << lut->getUlamTypeNameBrief().c_str();
+		    msg << lut->getUlamTypeClassNameBrief(luti).c_str();
 		    msg << "' Not Found during eval";
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 		  }
@@ -298,8 +364,7 @@ namespace MFM {
 		    msg << "; Passing through as UNFOUND for eval";
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 		  }
-		evalNodeEpilog();
-		return UNEVALUABLE;
+		return evalStatusReturn(UNEVALUABLE);
 	      }
 	  }
       }
@@ -308,13 +373,9 @@ namespace MFM {
 	// like 'is'
 	// was inclusive result for eval purposes (atoms and element types are orthogonal)
 	// now optional for debugging
-#define _LET_ATOM_AS_ELEMENT
+	//#define _LET_ATOM_AS_ELEMENT
 #ifndef _LET_ATOM_AS_ELEMENT
-	if(m_state.isAtom(luti))
-	  {
-	    evalNodeEpilog();
-	    return UNEVALUABLE;
-	  }
+	if(m_state.isAtom(luti)) return evalStatusReturn(UNEVALUABLE);
 	asit = (UlamType::compare(luti, ruti, m_state) == UTIC_SAME);
 #else
 	asit = m_state.isAtom(luti) || (UlamType::compare(luti, ruti, m_state) == UTIC_SAME);
@@ -333,8 +394,20 @@ namespace MFM {
     if(asit)
       {
 	UTI asuti = ruti; //as deref'd type
-	UlamValue ptr = UlamValue::makePtr(pluv.getPtrSlotIndex(), pluv.getPtrStorage(), asuti, m_state.determinePackable(asuti), m_state, pluv.getPtrPos() + 0, pluv.getPtrNameId());
+	u32 relpos = 0u;
+	u32 adjust = 0u;
+	if(rclasstype != UC_ELEMENT)
+	{
+	  AssertBool gotrelpos = m_state.getABaseClassRelativePositionInAClass(luti, ruti, relpos);
+	  assert(gotrelpos); //t3589
+	}
+	//else (t3637) n/a for atoms, use 0?
 
+	if((leftisatom || m_state.isAtom(luti)) && (pluv.getPtrPos() == 0))
+	  adjust = ATOMFIRSTSTATEBITPOS; //t3563, t3637
+
+	UlamValue ptr = UlamValue::makePtr(pluv.getPtrSlotIndex(), pluv.getPtrStorage(), asuti, m_state.determinePackable(asuti), m_state, pluv.getPtrPos() + relpos + adjust, pluv.getPtrNameId());
+	ptr.setPtrTargetEffSelfType(luti); //t41318, t41384
 	ptr.checkForAbsolutePtr(pluv);
 
 	m_state.m_currentAutoObjPtr = ptr;
@@ -343,15 +416,17 @@ namespace MFM {
     else
       {
 	m_state.m_currentAutoObjPtr = UlamValue(); //wipeout
-	m_state.m_currentAutoStorageType = Nav; //clear
+	m_state.m_currentAutoStorageType = Nouti; //clear (was Nav)
       }
 
     UlamValue rtnuv = UlamValue::makeImmediate(nuti, (u32) asit, m_state);
     //also copy result UV to stack, -1 relative to current frame pointer
     Node::assignReturnValueToStack(rtnuv);
 
+    if(evs != NORMAL) return evalStatusReturn(evs);
+
     evalNodeEpilog();
-    return evs;
+    return NORMAL;
   } //eval
 
   void NodeConditionalAs::genCode(File * fp, UVPass& uvpass)
@@ -360,7 +435,7 @@ namespace MFM {
     UTI lnuti = m_nodeLeft->getNodeType();
     if(m_state.isAtom(lnuti))
       return genCodeAtomAs(fp, uvpass); //reads into tmpvar
-    else if(m_state.isReference(lnuti))
+    else if(m_state.isReference(lnuti)) //not isAltRefType, consistent w NodeConditionalIs
       return genCodeReferenceAs(fp, uvpass); //doesn't read into tmpvar
     //else ClassAs.. reads into tmp var.
 
@@ -373,7 +448,7 @@ namespace MFM {
 
     UTI ruti = getRightType();
     UlamType * rut = m_state.getUlamTypeByIndex(ruti);
-    assert(!rut->isReference());
+    assert(!rut->isAltRefType());
 
     s32 tmpVarIs = m_state.getNextTmpVarNumber();
 
@@ -382,7 +457,7 @@ namespace MFM {
     fp->write(nut->getTmpStorageTypeAsString().c_str()); //bool
     fp->write(" ");
     fp->write(m_state.getTmpVarAsString(nuti, tmpVarIs, TMPREGISTER).c_str());
-    fp->write(" = ");
+    fp->write(" = (");
 
     //is a class t3582,3,6,9 (reversed luti,ruti order to 'is')
     fp->write(m_state.getTheInstanceMangledNameByIndex(luti).c_str());
@@ -390,11 +465,16 @@ namespace MFM {
     fp->write(m_state.getAsMangledFunctionName(luti, ruti)); //UlamElement IsMethod
     fp->write("(&"); //one arg
     fp->write(m_state.getTheInstanceMangledNameByIndex(ruti).c_str());
-    fp->write(");"); GCNL;
+    fp->write("));"); GCNL;
 
     //update uvpass, include lhs name id
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     u32 lid = m_state.m_currentObjSymbolsForCodeGen.back()->getId();
+
+    //luti and ruti can be the same class (e.g. t3754)
+    //u32 relpos = UNRELIABLEPOS;
+    //AssertBool gotPos = m_state.getABaseClassRelativePositionInAClass(luti, ruti, relpos);
+    //assert(gotPos);
 
     uvpass = UVPass::makePass(tmpVarIs, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, lid);
     //NO m_state.clearCurrentObjSymbolsForCodeGen()
@@ -419,7 +499,7 @@ namespace MFM {
 
     UTI ruti = getRightType();
     UlamType * rut = m_state.getUlamTypeByIndex(ruti);
-    assert(!rut->isReference());
+    assert(!rut->isAltRefType());
 
     s32 tmpVarIs = m_state.getNextTmpVarNumber();
 
@@ -432,7 +512,7 @@ namespace MFM {
 
     if(rut->getUlamClassType() == UC_ELEMENT)
       {
-	//reversed call to rhs' overloaded c-implemented 'Is' method;
+	//reversed call to rhs' overloaded c-implemented 'Is' method; rtn bool;
 	// using lhs' T as argument; required for EMPTY-ELEMENT special case
 	fp->write(m_state.getTheInstanceMangledNameByIndex(ruti).c_str());
 	fp->write(".");
@@ -456,7 +536,7 @@ namespace MFM {
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     u32 lid = m_state.m_currentObjSymbolsForCodeGen.back()->getId();
 
-    uvpass = UVPass::makePass(tmpVarIs, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, lid);
+    uvpass = UVPass::makePass(tmpVarIs, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, lid); //relpos?
     //NO m_state.clearCurrentObjSymbolsForCodeGen()
   } //genCodeAtomAs
 
@@ -479,7 +559,7 @@ namespace MFM {
 
     UTI ruti = getRightType();
     UlamType * rut = m_state.getUlamTypeByIndex(ruti);
-    assert(!rut->isReference());
+    assert(!rut->isAltRefType());
 
     s32 tmpVarIs = m_state.getNextTmpVarNumber();
 
@@ -488,7 +568,7 @@ namespace MFM {
     fp->write(nut->getTmpStorageTypeAsString().c_str()); //bool
     fp->write(" ");
     fp->write(m_state.getTmpVarAsString(nuti, tmpVarIs, TMPREGISTER).c_str());
-    fp->write(" = ");
+    fp->write(" = (");
 
     //if array, error in c&l
     fp->write(stgcos->getMangledName().c_str());
@@ -496,13 +576,13 @@ namespace MFM {
     fp->write(m_state.getAsMangledFunctionName(luti, ruti)); //UlamClass IsMethod
     fp->write("(&");
     fp->write(m_state.getTheInstanceMangledNameByIndex(ruti).c_str());
-    fp->write(");"); GCNL;
+    fp->write("));"); GCNL;  //t3655
 
     //update uvpass, include lhs name id
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     u32 lid = m_state.m_currentObjSymbolsForCodeGen.back()->getId();
 
-    uvpass = UVPass::makePass(tmpVarIs, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, lid);
+    uvpass = UVPass::makePass(tmpVarIs, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, lid); //t3754
     //NO m_state.clearCurrentObjSymbolsForCodeGen()
   } //genCodeReferenceAs
 

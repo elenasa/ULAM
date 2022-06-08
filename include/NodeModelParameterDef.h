@@ -1,8 +1,9 @@
 /**                                        -*- mode:C++ -*-
  * NodeModelParameterDef.h - Node handling Model Parameter Definition for ULAM
  *
- * Copyright (C) 2015-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2017 Ackleyshack LLC.
+ * Copyright (C) 2015-2018 The Regents of the University of New Mexico.
+ * Copyright (C) 2015-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +28,9 @@
 
 /**
   \file NodeModelParameterDef.h - Node handling Model Parameter Definition for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2017 All rights reserved.
+  \date (C) 2015-2021 All rights reserved.
   \gpl
 */
 
@@ -60,13 +61,13 @@ namespace MFM{
 
     virtual void fixPendingArgumentNode();
 
-    virtual UTI checkAndLabelType();
+    virtual UTI checkAndLabelType(Node * thisparentnode);
 
     virtual bool buildDefaultValue(u32 wlen, BV8K& dvref);
 
-    virtual void genCodeDefaultValueStringRegistrationNumber(File * fp, u32 startpos);
+    virtual bool buildDefaultValueForClassConstantDefs();
 
-    virtual void genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos);
+    virtual UTI foldConstantExpression();
 
     virtual void genCode(File * fp, UVPass& uvpass);
 

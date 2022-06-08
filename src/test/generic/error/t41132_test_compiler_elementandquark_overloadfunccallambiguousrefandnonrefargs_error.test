@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t41132_test_compiler_elementandquark_overloadfunccallambiguousrefandnonrefargs_error
 #!
-./Fail.ulam:11:5: ERROR: Ambiguous matches (2) of function <fail> called with 1 argument type: StringByteSource, explicit casting is required.
+./Fail.ulam:11:5: ERROR: Ambiguous matches (2) of function 'fail' called with 1 argument type: StringByteSource, explicit casting is required.
 ./Fail.ulam:8:8: NOTE: Match (1 of 2) : Void fail(ByteSource bs).
 ./Fail.ulam:7:8: NOTE: Match (2 of 2) : Void fail(ByteSource& bs).
 Unrecoverable Program Type Label FAILURE.

@@ -1,8 +1,9 @@
 /**                                        -*- mode:C++ -*-
  * NodeFunctionCall.h - Basic Node for handling Function Calls for ULAM
  *
- * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2017 Ackleyshack LLC.
+ * Copyright (C) 2014-2020 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +28,9 @@
 
 /**
   \file NodeFunctionCall.h - Basic Node for handling Function Calls for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2017 All rights reserved.
+  \date (C) 2014-2021 All rights reserved.
   \gpl
 */
 
@@ -69,7 +70,7 @@ namespace MFM{
 
     virtual FORECAST safeToCastTo(UTI newType);
 
-    virtual UTI checkAndLabelType();
+    virtual UTI checkAndLabelType(Node * thisparentnode);
 
     virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
 
@@ -79,6 +80,8 @@ namespace MFM{
 
     virtual bool isAConstructorFunctionCall();
 
+    virtual bool isAVirtualFunctionCall();
+
     virtual EvalStatus eval();
 
     virtual EvalStatus evalToStoreInto();
@@ -87,15 +90,17 @@ namespace MFM{
 
     u32 getNumberOfArguments();
 
-    virtual bool getSymbolPtr(Symbol *& symptrref);
+    virtual bool getSymbolPtr(const Symbol *& symptrref);
+
+    virtual bool hasASymbol();
+
+    virtual u32 getSymbolId();
 
     virtual void genCode(File * fp, UVPass& uvpass);
 
     virtual void genCodeToStoreInto(File * fp, UVPass& uvpass);
 
     virtual void genCodeReadIntoATmpVar(File * fp, UVPass & uvpass);
-
-    virtual u32 getLengthOfMemberClassForHiddenArg(UTI cosuti);
 
   protected:
     //helper methods override Node read/write
@@ -107,12 +112,18 @@ namespace MFM{
 
     virtual void genLocalMemberNameOfMethod(File * fp);
 
+    virtual void clearSymbolPtr();
+
   private:
 
-    Token m_functionNameTok;
+    const Token m_functionNameTok;
     SymbolFunction * m_funcSymbol;
     NodeList * m_argumentNodes;
     SymbolTmpVar * m_tmpvarSymbol;
+    bool m_useEffSelfForEval;
+
+    TBOOL lookagainincaseimplicitselfchanged(Node * parentnode);
+    UTI specifyimplicitselfexplicitly(Node * parentnode);
 
     EvalStatus evalArgumentsInReverseOrder(u32& argsPushed);
     EvalStatus evalHiddenArguments(u32& argsPushed, NodeBlockFunctionDefinition *& func);
@@ -120,7 +131,9 @@ namespace MFM{
 
     void genCodeIntoABitValue(File * fp, UVPass& uvpass);
     void genCodeAReferenceIntoABitValue(File * fp, UVPass& uvpass);
-    void genCodeVirtualFunctionCallVTableEntry(File * fp, u32 tvfpnum, u32 urtmpnum);
+    void genCodeVirtualFunctionCallVTableEntry(File * fp, u32 tvfpnum, u32 urtmpnum, u32& urtmpnumvfc);
+    void genCodeVirtualFunctionCallVTableEntryUsingSpecifiedVTable(File * fp, UTI vtclassuti, u32 tmpvtclassrn, u32 tvfpnum, u32 urtmpnum, u32& urtmpnumvfc);
+    void genCodeVirtualFunctionCallVTableEntryUsingEffectiveSelf(File * fp, u32 tvfpnum, u32 urtmpnum, u32& urtmpnumvfc);
     void genCodeVirtualFunctionCall(File * fp, u32 tvfpnum);
     std::string genHiddenArg2ForARef(File * fp, UVPass uvpass, u32& urtmpnumref);
     std::string genHiddenArgs(u32 urtmpnum);

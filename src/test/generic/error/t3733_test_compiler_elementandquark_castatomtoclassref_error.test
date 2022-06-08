@@ -1,12 +1,13 @@
 ## -*- mode:ulam -*-
 #=t3733_test_compiler_elementandquark_castatomtoclassref_error
 #!
-./QW.ulam:8:18: ERROR: Cannot explicitly cast Atom(96) to type: QW.
-./QW.ulam:8:5: ERROR: Initial value expression for: sra, initialization is invalid.
-./QW.ulam:8:5: ERROR: Storage expression for: sra, is invalid.
+##./QW.ulam:8:18: ERROR: Cannot explicitly cast Atom to type: QW.
+##./QW.ulam:8:5: ERROR: Initial value expression for: sra, initialization is invalid.
+##./QW.ulam:8:5: ERROR: Storage expression for: sra, is invalid.
+./QW.ulam:8:5: ERROR: Initialization for: sra, must be referenceable.
 Unrecoverable Program Type Label FAILURE.
 ##
-## informed by t3692
+## informed by t3692; now just a cast to ref error (ulam-3)
 ##
 #>A.ulam
   ulam 2;
@@ -20,7 +21,6 @@ element A : QW {
     qref.m_five = 0x3;
 
     Atom & aref = self; //ERROR for NOW.
-    //aref = (Atom&) qref.storageof; //atom ref assignment
     aref = qref.atomof; //atom ref assignment
     qref.m_five = 0x5;
     A apple = (A) aref;
@@ -32,14 +32,14 @@ element A : QW {
 }
 
 #:QW.ulam
-  ulam 2;
+  ulam 3;
 use Qbase;
 quark QW : Qbase{
   Bool bw;
   Self func()
   {
     Atom a = self.atomof;
-    Self& sra = (Self) a; //new way! ERROR requires Self& cast
+    Self& sra = (Self) a; //ERROR requires Self& cast, or change 'sra' to non-ref Self.
     return sra;
   }
 }

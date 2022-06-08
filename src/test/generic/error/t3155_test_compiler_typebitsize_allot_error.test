@@ -2,11 +2,11 @@
 #=t3155_test_compiler_typebitsize_allot_error
 #!
 ./C.ulam:5:2: Warning: Bool Type with EVEN number of bits is internally inconsistent;  Reduced by one to 1 bits.
-./C.ulam:10:1: ERROR: Trying to exceed allotted bit size (71) for element C with 74 bits.
+./C.ulam:2:10: ERROR: Trying to exceed allotted bit size (71) for element C with 74 bits.
 ./C.ulam:2:10: NOTE: Components of C are..
-./C.ulam:3:2: NOTE: (1 of 74 bits, at 0) Bool(1) a.
+./C.ulam:3:2: NOTE: (1 of 74 bits, at 0) Bool a.
 ./C.ulam:4:2: NOTE: (72 of 74 bits, at 1) Int(3) m_i[24].
-./C.ulam:5:2: NOTE: (1 of 74 bits, at 73) Bool(1) b.
+./C.ulam:5:2: NOTE: (1 of 74 bits, at 73) Bool b.
 ./C.ulam:2:10: ERROR: CLASS (regular) 'C' SIZED 74 FAILED.
 Unrecoverable Program Type Label FAILURE.
 ##

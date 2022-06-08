@@ -111,17 +111,37 @@ namespace MFM {
       {
 	//across ALL parsed files
 	perrs = checkAndTypeLabelProgram(errput);
-	if(perrs == 0)
-	  {
-	    m_state.generateCodeForUlamClasses(outfm);
-	    perrs = m_state.m_err.getErrorCount();
-	  }
-	else
+	if(perrs > 0)
 	  {
 	    std::ostringstream msg;
 	    errput->write("Unrecoverable Program Type Label FAILURE.\n");
 	  }
       }
+
+    if(!perrs)
+      {
+	m_state.defineRegistrationNumberForUlamClasses(); //ulam-4
+	m_state.verifyZeroRegistryIdForUrSelf(); //ulam-5
+	perrs = m_state.m_err.getErrorCount();
+	if(perrs > 0)
+	  {
+	    std::ostringstream msg;
+	    errput->write("Unrecoverable Registry Number Assignment FAILURE.\n");
+	  }
+      }
+
+    if(!perrs)
+      {
+	m_state.defineClassNamesAsUserStrings(); //ulam-5
+	m_state.generateCodeForUlamClasses(outfm);
+	perrs = m_state.m_err.getErrorCount();
+	if(perrs > 0)
+	  {
+	    std::ostringstream msg;
+	    errput->write("Unrecoverable Program GenCode FAILURE.\n");
+	  }
+      }
+
     delete P;
     delete PP;
     delete Lex;
@@ -239,19 +259,9 @@ namespace MFM {
 	    // context reveals if stub was needed by a template and not included.
 	    break;
 	  }
-	else if(infcounter == MAX_ITERATIONS) //last time
+	else if(infcounter == MAX_ITERATIONS) //last time (t3875)
 	  m_state.m_err.changeWaitToErrMode();
       } //while
-
-#if 0
-    //redundant thanks to WAIT msg mode..
-    if(infcounter > MAX_ITERATIONS)
-      {
-	m_state.m_programDefST.printUnresolvedVariablesForTableOfClasses();
-	errCnt = m_state.m_err.getErrorCount();
-	m_state.clearGoAgain(); //all Hzy types converted to Navs
-      }
-#endif
 
     if(!errCnt)
       {
@@ -314,6 +324,7 @@ namespace MFM {
 
 	// determine all class default values:
 	if(!errCnt) m_state.m_programDefST.buildDefaultValuesFromTableOfClasses();
+	errCnt = m_state.m_err.getErrorCount(); //latest count
       }
 
     errCnt = m_state.m_err.getErrorCount(); //latest count
@@ -372,8 +383,9 @@ namespace MFM {
     sumbrtn &= m_state.m_programDefST.checkForUnknownTypeNamesInTableOfClasses();
 
     //checkAndLabelTypes: lineage updated incrementally
-    sumbrtn &= m_state.m_programDefST.labelTableOfClasses(); //labelok, stubs not labeled, checks goagain flag!
     sumbrtn &= m_state.checkAndLabelPassForLocals();
+    sumbrtn &= m_state.m_programDefST.labelTableOfClasses(); //labelok, stubs not labeled, checks goagain flag!
+
     return sumbrtn;
   } //resolvingLoop
 
@@ -421,7 +433,7 @@ namespace MFM {
 
   void Compiler::testClassMemberMap()
   {
-    //matches code in main.cpp
+    //matches code in main.cpp; output in t*errlog.txt
     ClassMemberMap cmm = getMangledClassMembersMap();
     std::cerr << "Size of class members map is " << cmm.size() << std::endl;
     for(ClassMemberMap::const_iterator i = cmm.begin(); i != cmm.end(); ++i)

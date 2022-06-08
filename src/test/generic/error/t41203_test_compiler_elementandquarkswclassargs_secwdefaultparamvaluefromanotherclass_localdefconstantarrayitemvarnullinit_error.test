@@ -1,0 +1,37 @@
+## -*- mode:ulam -*-
+#=t41203_test_compiler_elementandquarkswclassargs_secwdefaultparamvaluefromanotherclass_localdefconstantarrayitemvarnullinit_error
+#!
+./V.ulam:5:0: ERROR: Invalid size (0) to set for primitive type: Unsigned.
+./V.ulam:3:3: ERROR: Incomplete NodeVarDeclDM for type used with variable symbol name 'vfoo'.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by t3892,  null constant array initialization (all zeros)
+##
+#>P.ulam
+  ulam 3;
+//use Q; //matches answer with use Q;
+local constant Int by[4] = { };
+element P {
+  Bool b;
+  Int test() {
+    Q(by[2]*3) w; //uses item constant 0
+    return (Int) w.sizeof;
+  }
+}
+
+#:Q.ulam
+  ulam 3;
+quark Q(Int b = by[2], Unsigned s = V(b).sizeof) {
+  typedef Unsigned(s) Foo;
+  Foo f;
+}
+//local constant Int by[] = {1, 2, 3, 4};
+local constant Int by[4] = { };
+
+#:V.ulam
+  ulam 1;
+quark V(Int a) {
+  Unsigned(a) vfoo;
+}
+
+#.

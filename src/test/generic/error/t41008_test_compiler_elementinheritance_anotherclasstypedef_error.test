@@ -7,14 +7,9 @@
 ./Foo.ulam:2:9: ERROR: Invalid Type: Foo.
  ERROR: No parse tree for This Class: Foo.
 Unrecoverable Program Parse FAILURE: <Foo.ulam>
-./Constants.ulam:4:24: ERROR: Typedef alias 'Soo3' already exists as  UNSEEN class type: Soo3.
-./Constants.ulam:4:24: ERROR: Invalid typedef of base type <Soo> and name <Soo3> (missing symbol).
-./Constants.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'Constants'; Possible missing ending curly brace.
-./Constants.ulam:4:28: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
-./Constants.ulam:2:7: ERROR: Invalid Type: Constants.
- ERROR: No parse tree for This Class: Constants.
+./Foo.ulam:2:25: ERROR: Invalid Class Type <Soo3>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 Unrecoverable Program Parse FAILURE: <Constants.ulam>
-./Constants.ulam:5:1: ERROR: Invalid Class Type <}>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+./Foo.ulam:2:30: ERROR: Invalid Class Type <{>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 Unrecoverable Program Parse FAILURE: <System.ulam>
 ##
 ## test of inheritance: uses typedef from another class, informed by t3862

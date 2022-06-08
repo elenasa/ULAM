@@ -1,0 +1,29 @@
+## -*- mode:ulam -*-
+#=t41477_test_compiler_classconstantofsameclass_ish_error
+#!
+./Foo.ulam:2:7: ERROR: Building default value in progress for class Foo; requested member of same type.
+./Foo.ulam:5:12: ERROR: Building default value for member constant 'mOp10' failed.
+Unrecoverable Program Type Label FAILURE.
+##
+##  informed by Dave's ish 20210610, got an assert:
+## culamtest: NodeConstantDef.cpp:1031: virtual bool MFM::NodeConstantDef::buildDefaultValue(MFM::u32, MFM::BV8K&): Assertion `rtnok' failed.
+##
+#>T.ulam
+ ulam 5;
+element T{
+
+  Int test(){
+    return -1;
+  }
+}
+
+#:Foo.ulam
+  ulam 5;
+quark Foo {
+  Unsigned(3) mDM1;
+  Bool mDM2;
+  constant Foo mOp10 = { .mDM1 = 3u, .mDM2 = true };
+  //constant Foo mOp10 = { };  also fails.
+}
+
+#.

@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3780_test_compiler_transientdmofelement_error
 #!
-./Foo.ulam:5:3: ERROR: Data member <m_sume> of type: Soo, is a transient, and is NOT permitted; Local variables, do not have this restriction.
+./Foo.ulam:5:3: ERROR: Data member 'm_sume' of type: Soo, is a transient, and is NOT permitted; Local variables, do not have this restriction.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## transient not valid data member of element (from t3724)

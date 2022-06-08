@@ -1,11 +1,13 @@
 ## -*- mode:ulam -*-
 #=t41044_test_compiler_switchascond_error
 #!
-./EWE.ulam:10:15: ERROR: Invalid Statement (possible missing semicolon).
+./EWE.ulam:12:7: ERROR: Invalid case expression; which-control failure: 'as' condition requires empty which-value.
+./EWE.ulam:13:2: ERROR: Incomplete condition; which-control failure.
+./EWE.ulam:13:2: ERROR: Unexpected token <TOK_OPEN_CURLY>; Expected }.
 ./EWE.ulam:17:7: ERROR: Invalid Statement (possible missing semicolon).
-./EWE.ulam:24:5: ERROR: Invalid Class Type <}>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
-Unrecoverable Program Parse FAILURE: <EWE.ulam>
 ./EWE.ulam:25:5: ERROR: Invalid Class Type <return>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+Unrecoverable Program Parse FAILURE: <EWE.ulam>
+./EWE.ulam:25:12: ERROR: Invalid Class Type <i>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 Unrecoverable Program Parse FAILURE: <EventWindow.ulam>
 ##
 ##      //which statements do not support 'as' conditional

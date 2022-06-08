@@ -2,7 +2,7 @@
 #=t41134_test_compiler_elementandquark_overloadequalitycomplement
 #!
 Exit status: 0
-Ue_TC { Bool(1) b(false);  Int(32) test() {  Fail f;  C2D n = n ( 1 cast 2 cast )Self .;  C2D m;  m ( n ( n )operator+= . cast )operator= . { n ( m )operator== ! . cond f ( )fail . if } 0 cast return } }
+Ue_TC { Bool b(false);  Int test() {  Fail f;  C2D n = n ( 1 cast 2 cast )Self .;  C2D m;  m ( n ( n )operator+= . cast )operator= . { n ( m )operator== ! . cond f ( )fail . if } 0 cast return } }
 Uq_Fail { System s();  <NOMAIN> }
 Uq_C2D { typedef Int(16) Coord;  typedef Unsigned(3) Dir;  Int(16) x( 0);  Int(16) y( 0);  <NOMAIN> }
 Uq_System { <NOMAIN> }

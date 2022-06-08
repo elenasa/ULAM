@@ -1,0 +1,13 @@
+debian/**
+doc/**
+docker/**
+.dockerignore
+.git/**
+.gitignore
+grep
+README.md
+share/**
+!share/perl/UlamGen.pm
+!share/ulam/**
+!share/tcc/**
+spike/**

@@ -1,0 +1,22 @@
+## -*- mode:ulam -*-
+#=t41387_test_compiler_scalarvarwitharrayinit_ish_error
+#!
+./A.ulam:4:3: ERROR: Scalar variable 'mLengths' has improper {} initialization.
+Unrecoverable Program Type Label FAILURE.
+##
+## Type error (ish-01262020); error replaces assert
+##
+#>A.ulam
+  ulam 3;
+element A {
+  typedef Unsigned(2) TargetLength1;
+  TargetLength1 mLengths = {2, 2, 3, 3};
+  //TargetLength1 mLengths[] = {2, 2, 3, 3}; correct
+
+  Int test() {
+    A a;
+    return 0;
+  }
+}
+
+#.

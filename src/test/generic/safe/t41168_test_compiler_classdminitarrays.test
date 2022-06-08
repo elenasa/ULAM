@@ -1,0 +1,63 @@
+## -*- mode:ulam -*-
+#=t41168_test_compiler_classdminitarrays
+##
+## gen output: (+ interleaved asserts)
+## Unary(3) Arg: 0x3
+## Unary(3) Arg: 0x3
+## Unary(3) Arg: 0x0
+## Bool(3) Arg: 0x7 (true)
+##
+#!
+Exit status: 0
+Ue_A { Bool b(false);  QBar m_bar( Unary(3) r[5](3u,2u,0u,0u,0u);  Bool sp(true); );  Int test() {  System s;  Unary(3) chkr0 = self m_bar . r 0 [] .;  s ( chkr0 )print . s ( self m_bar . r 0 [] . )print . s ( self m_bar . r 0 [] . cast 3 == )assert . Unary(3) chkr3 = self m_bar . r 3 [] .;  s ( chkr3 )print . s ( self m_bar . r 3 [] . )print . s ( self m_bar . r 3 [] . cast 0 cast == )assert . s ( self m_bar . sp . cast )print . s ( self m_bar . sp . )assert . 0 cast return } }
+Uq_QBar { Bool sp(false);  Unary(3) r[5]( { 1u });  <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## 2nd test of C-99 class instance initialization
+## informed by t41167 plus quark array data members
+##
+#>A.ulam
+  ulam 3;
+element A {
+  Bool b;
+  QBar m_bar = { .r = {3, 2, 0}, .sp = true }; //may be in different order than declared in class
+
+ Int test() {
+   System s;
+
+   Unary(3) chkr0 = m_bar.r[0];
+   s.print(chkr0);
+   s.print(m_bar.r[0]);
+   s.assert(m_bar.r[0] == 3);
+
+   Unary(3) chkr3 = m_bar.r[3];
+   s.print(chkr3);
+   s.print(m_bar.r[3]);
+   s.assert(m_bar.r[3] == 0); //continued with last value
+
+   s.print(m_bar.sp);
+   s.assert(m_bar.sp);
+
+   return 0;
+ }
+}
+
+#:QBar.ulam
+  ulam 3;
+quark QBar {
+  Bool sp;
+  Unary(3) r[5] = {1};
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

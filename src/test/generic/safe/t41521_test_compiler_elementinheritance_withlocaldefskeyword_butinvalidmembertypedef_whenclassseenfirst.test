@@ -1,0 +1,32 @@
+## -*- mode:ulam -*-
+#=t41521_test_compiler_elementinheritance_withlocaldefskeyword_butinvalidmembertypedef_whenclassseenfirst
+#!
+Exit status: 4
+Uq_Moo { Unsigned(3) us( 4u);  <NOMAIN> }
+Ue_Foo : Moo { typedef Int Moo;  Bool(7) sp(true);  :Moo< Unsigned(3) us(4u); > Int test() {  Unsigned a = 73 cast;  Foo f;  a f us . cast = self sp . a 4u cast == cast = a cast return } }
+##
+## informed by t41515, does local.Moo without a typedef supercede the member typedef? No.
+## Only because class Moo has been seen!! Bogus.
+## ./Foo.ulam:2:21: ERROR: Invalid inheritance from local filescope; Class Definition 'Foo' is not a typedef.
+##
+#>Moo.ulam
+ ulam 3;
+quark Moo {
+  Unsigned(3) us = 4u;
+}
+
+#:Foo.ulam
+  ulam 5;
+element Foo : local.Moo { //error since class Moo seen
+  Bool(7) sp;
+  typedef Int Moo; //ignored
+  Int test() {
+    Unsigned a = 73;
+    Foo f;
+    a = f.us; //<--not valid if UrSelf is super!!!
+    sp = (a == 4u);
+    return (Int) a; //=42
+  }
+}
+
+#.

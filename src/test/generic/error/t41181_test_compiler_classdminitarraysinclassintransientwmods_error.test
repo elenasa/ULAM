@@ -1,0 +1,88 @@
+## -*- mode:ulam -*-
+#=t41181_test_compiler_classdminitarraysinclassintranisentwmods_error
+##
+#!
+./A.ulam:4:33: ERROR: Use explicit cast to use Int(4) array item 3 as Unary(3).
+./A.ulam:5:19: ERROR: Initialization value expression for class data member: r, array/scalar mismatch.
+./A.ulam:5:16: ERROR: Class Init Argument 1 has a problem for variable m_bar, type QBar.
+./A.ulam:5:3: ERROR: Initial value expression for: m_bar, initialization is invalid.
+./A.ulam:10:16: ERROR: Constant value expression for 'm_b' is not representable as Bool.
+./A.ulam:10:13: ERROR: Class Init Argument 1 has a problem for variable mytr, type R.
+./A.ulam:10:4: ERROR: Initial value expression for: mytr, initialization is invalid.
+./R.ulam:4:51: ERROR: Invalid initialization of scalar type QBar with symbol name 'm_bar'.
+./R.ulam:4:48: ERROR: Class Init Argument 1 has a problem for variable m_foo, type QFoo.
+./R.ulam:4:40: ERROR: Initialization value expression for class data member: m_foo, is invalid.
+./R.ulam:4:11: ERROR: Class Init Argument 2 has a problem for variable m_a, type A.
+./R.ulam:4:3: ERROR: Initial value expression for: m_a, initialization is invalid.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by 3rd test of C-99 class instance initialization
+## t41178 within a transient (see t41175 & t41176), plus changes to default data member A, and transient dm
+## 3 errors in initializations
+##
+#>A.ulam
+  ulam 3;
+element A {
+  Bool b;
+  QFoo m_foo = { .m_bar = {.r = {3, 2, 7}, .sp = true } }; //r is Unary(3), '7' doesn't fit
+  QBar m_bar = { .r = 0, .sp = true }; // r is an array
+
+ Int test() {
+   System s;
+
+   R mytr = { .m_b = "true" }; //true isn't a String
+
+   Unary(3) chkr0 = mytr.m_a.m_foo.m_bar.r[0];
+   s.print(chkr0);
+   s.assert(chkr0 == 2);
+   s.print(mytr.m_a.m_bar.r[0]);
+   s.assert(mytr.m_a.m_bar.r[0] == 0);
+
+   Unary(3) chkr3 = mytr.m_a.m_bar.r[3];
+   s.print(chkr3);
+   s.print(mytr.m_a.m_bar.r[3]);
+   s.assert(mytr.m_a.m_bar.r[3] == 2); //continued with last value
+
+   s.print(mytr.m_a.m_bar.sp);
+   s.assert(mytr.m_a.m_bar.sp);
+
+   s.print(mytr.m_b);
+   s.assert(mytr.m_b);
+
+   return 0;
+ }
+}
+
+#:R.ulam
+  ulam 3;
+transient R {
+  Bool m_b;
+  A m_a = {.m_bar = { .r = {0, 2 } }, .m_foo = { .m_bar = { 2, 1, 0} } };
+  //A m_a = {.m_bar = { .r = {0, 2 } }, .m_foo = { .m_bar = { .r = { 2, 1, 0} } } };
+}
+
+#:QFoo.ulam
+  ulam 3;
+quark QFoo {
+  QBar m_bar;
+}
+
+#:QBar.ulam
+  ulam 3;
+quark QBar {
+  Bool sp;
+  Unary(3) r[5] = {1};
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

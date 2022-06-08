@@ -7,12 +7,14 @@
 ##	 Int Arg: 1
 ##      */
 ##Exit status: 1
-##Ue_Eltypo { System s();  Typo(1) t( constant Int(32) a = 1;  Unsigned(1) u(0u);  Int(2) i(0); );  Int(32) test() {  Eltypo el;  el Typo(1) has cond { Typo(1) el;  el u . 1u = s ( el u . cast )print . el u . cast return } if 2u cast return } }
-##Uq_Typo(Int(32) a) { Unsigned(UNKNOWN) u(unknown);  Int(UNKNOWN) i(unknown);  <NOMAIN> }
+##Ue_Eltypo { System s();  Typo(1) t( constant Int a = 1;  Unsigned(1) u(0u);  Int(2) i(0); );  Int test() {  Eltypo el;  el Typo(1) has cond { Typo(1) el;  el u . 1u = s ( el u . cast )print . el u . cast return } if 2u cast return } }
+##Uq_Typo(Int a) { Unsigned(UNKNOWN) u(unknown);  Int(UNKNOWN) i(unknown);  <NOMAIN> }
 ##Uq_System { <NOMAIN> }
 ./Eltypo.ulam:9:13: ERROR: DEPRECATED keyword <has>.
-./Eltypo.ulam:9:22: ERROR: Name of variable <)>: Identifier must begin with a lower-case letter.
+./Eltypo.ulam:9:15: ERROR: Unexpected token <TOK_TYPE_IDENTIFIER>; Expected ).
+./Eltypo.ulam:9:22: ERROR: Name of variable ')': Identifier must begin with a lower-case letter.
 ./Eltypo.ulam:9:22: ERROR: Invalid Statement (possible missing semicolon).
+./Eltypo.ulam:14:5: ERROR: Expecting Type of data member/function (or, in the midst of errors); Got <return>.
 ./Eltypo.ulam:4:1: ERROR: Empty/Incomplete Class Definition 'Eltypo'; Possible missing ending curly brace.
 ./Eltypo.ulam:14:5: ERROR: Invalid Class Type <return>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 ./Eltypo.ulam:4:9: ERROR: Invalid Type: Eltypo.

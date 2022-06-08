@@ -1,0 +1,94 @@
+## -*- mode:ulam -*-
+#=t41516_test_compiler_elementinheritance_withmultiplelocaldefskeywordpriority
+##  gen output: (+ assert)
+##    Unsigned Arg: 3
+##    Unsigned Arg: 11
+##    Unsigned Arg: 3
+##
+#!
+Exit status: 3
+Ue_Foo : Moo { Bool(7) spf(true);  Bool(7) spg(true);  Bool(7) spb(true);  :Moo< Unsigned(3) us(4u); > Int test() {  System s;  Unsigned a = 73 cast;  Foo f;  a f us . cast = a 3u = s ( a )print . self spf . a 3u cast == cast = s ( self spf . cast )assert . Gah g;  self spg . true cast = s ( 11u )print . s ( self spg . cast )assert . Bar b;  self spb . true cast = s ( 3u )print . s ( self spb . cast )assert . a cast return } }
+Uq_Moo { Unsigned(3) us( 4u);  <NOMAIN> }
+Uq_System { <NOMAIN> }
+Ue_Gah : Nat { Nat m_moo( Bits(11) m_bits(0); );  :Nat< Bits(11) m_bits(0); > <NOMAIN> }
+Ue_Bar : Moo { typedef Int Moo;  Moo m_moo( Unsigned(3) us( 4u); );  :Moo< Unsigned(3) us( 4u); > <NOMAIN> }
+Uq_Nat { Bits(11) m_bits(0);  <NOMAIN> }
+##
+## informed by t3875 except multiple locals, Gah error since not defined typedef in local scope
+## see also (t41510,t41511,t41513)
+##
+## ./Gah.ulam:2:9: ERROR: Subclass 'Gah' (UTI 35) inherits from 'Moo', an unresolved local filescope typedef (UTI 37).
+## ./Bar.ulam:2:9: ERROR: Subclass 'Bar' (UTI 38) inherits from 'Moo', an unresolved local filescope typedef (UTI 40).
+##
+#>Foo.ulam
+  ulam 3;
+local constant Moo cMoo = { };
+element Foo : local.Moo {
+  Bool(7) spf, spg, spb;
+  Int test() {
+    System s;
+    Unsigned a = 73;
+    Foo f;
+    a = f.us;
+    a = Moo.sizeof;
+    s.print(a);
+    spf = (a == 3u);
+    s.assert(spf);
+
+    Gah g;
+    spg = g.m_moo.sizeof==11u;
+    s.print(g.m_moo.sizeof);
+    s.assert(spg);
+
+    Bar b;
+    spb = b.m_moo.sizeof==3u;
+    s.print(b.m_moo.sizeof);
+    s.assert(spb);
+
+    return (Int) a; //=3
+  }
+}
+
+#:Gah.ulam
+  ulam 5;
+/** Gah: 2 ulam-generated localscope typedefs: Moo and Nat */
+element Gah : local.Moo {
+  local.Moo m_moo;
+}
+local typedef Nat Moo; //SymbolClass.cpp:251: Assertion `m_state.isARootUTI(newbaseclass)' failed.
+
+
+#:Bar.ulam
+  ulam 5;
+element Bar : local.Moo { //uses class, even without a local typedef!!
+  typedef Int Moo; //shadows a class name?
+  local.Moo m_moo; //uses class typedef w local specifier, ow member Int.
+}
+
+#:Moo.ulam
+  ulam 1;
+quark Moo {
+  Unsigned(3) us = 4u;
+}
+
+#:Nat.ulam
+  ulam 1;
+/** Nat comes after Moo; local typedef after use */
+quark Nat {
+  local.Moo m_bits;
+}
+local typedef Bits(11) Moo;
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

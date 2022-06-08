@@ -1,10 +1,10 @@
 ## -*- mode:ulam -*-
 #=t3461_test_compiler_atomshift_error
 #!
-./A.ulam:4:8: ERROR: Non-primitive type <Atom(96)> is not supported as left operand type for binary <<.
-./A.ulam:4:4: ERROR: Assignment is invalid; LHS: Atom(96); RHS: erroneous.
-./A.ulam:5:8: ERROR: Non-primitive type <Atom(96)> is not supported as right operand type for binary <<.
-./A.ulam:5:4: ERROR: Assignment is invalid; LHS: Atom(96); RHS: erroneous.
+./A.ulam:4:8: ERROR: Non-primitive type <Atom> is not supported as left operand type for binary <<.
+./A.ulam:4:4: ERROR: Assignment is invalid; LHS: Atom; RHS: erroneous.
+./A.ulam:5:8: ERROR: Non-primitive type <Atom> is not supported as right operand type for binary <<.
+./A.ulam:5:4: ERROR: Assignment is invalid; LHS: Atom; RHS: erroneous.
 Unrecoverable Program Type Label FAILURE.
 #>A.ulam
 element A {

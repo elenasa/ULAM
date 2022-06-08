@@ -6,17 +6,18 @@
 ##
 #!
 Exit status: 0
-Ue_HelloWorldString : FString(0b48656c6c6f20776f726c64) { :< constant String(32) msg = "Hello world";  typedef Unsigned(8) StringIndex;  typedef Unsigned(5) CharDim;  Unsigned(8) mIndex(0u);  Unsigned(5) mCol(0u);  Unsigned(5) mRow(0u); > Bool(1) b1(true);  Int(32) slen(11);  Int(32) test() {  System s;  slen 11u cast = s ( slen )print . b1 slen 11 cast == = s ( b1 )assert . FString(0d6f6e656c6f63616c7366696c65) flocal;  0 cast return } }
-Uq_FString(String(32) msg) { typedef Unsigned(8) StringIndex;  typedef Unsigned(5) CharDim;  Unsigned(8) mIndex(0);  Unsigned(5) mCol(0);  Unsigned(5) mRow(0);  <NOMAIN> }
+Ue_HelloWorldString : FString("Hello world",false) { Bool b1(true);  Int slen(11);  :FString("Hello world",false)< constant String msg = "Hello world";  constant Bool song = false;  typedef Unsigned(8) StringIndex;  typedef Unsigned(5) CharDim;  Unsigned(8) mIndex(0u);  Unsigned(5) mCol(0u);  Unsigned(5) mRow(0u);  Bool m_song(false); > Int test() {  System s;  self slen . 11u cast = s ( self slen . )print . self b1 . self slen . 11 cast == = s ( self b1 . )assert . FString("onelocalsfile",true) flocal;  0 cast return } }
+Uq_FString(String msg, Bool song) { typedef Unsigned(8) StringIndex;  typedef Unsigned(5) CharDim;  Unsigned(8) mIndex(0);  Unsigned(5) mCol(0);  Unsigned(5) mRow(0);  Bool m_song(notready);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 ## informed by String as class arg issue by Dave 01022017; like t3959, except class arg is a localdef
 ## also tests locals filescope file name of a template class, no args, shared by all FString instances.
+## Exercises 2 class args for Component Comment at end of .h (3/12/19)
 ##
 #>HelloWorldString.ulam
   ulam 3;
 local constant String lstr = "Hello world";
-element HelloWorldString : FString(lstr)
+element HelloWorldString : FString(lstr, 0u)
 {
   Bool b1;
   Int slen;
@@ -27,7 +28,7 @@ element HelloWorldString : FString(lstr)
     b1 = (slen == 11);
     s.assert(b1);
 
-    FString("onelocalsfile") flocal; //another instance of FString, yet only one locals file
+    FString("onelocalsfile", 1u) flocal; //another instance of FString, yet only one locals file
     return 0;
  }
 }
@@ -35,12 +36,13 @@ element HelloWorldString : FString(lstr)
 #:FString.ulam
 ulam 3;
 local constant String localfilenametest = "localfilenametest";
-quark FString(String msg) {
+quark FString(String msg, Bool song) {
   typedef Unsigned(8) StringIndex;
   typedef Unsigned(5) CharDim;
   StringIndex mIndex;  // Glyph within string
   CharDim mCol;        // Site x within glyph, with baseline start at (0,0)
   CharDim mRow;        // Site y within glyph, with baseline start at (0,0)
+  Bool m_song = song;
   virtual Void behave() {
     String s = msg;
   }

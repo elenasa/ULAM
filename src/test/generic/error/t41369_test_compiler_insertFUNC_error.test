@@ -1,0 +1,45 @@
+## -*- mode:ulam -*-
+#=t41369_test_compiler_insertFUNC_error
+#!
+./A.ulam:2:31: ERROR: Keyword <__FUNC__> must be in a function.
+./A.ulam:2:29: ERROR: Missing named constant definition after '=' for 'lc_fn'.
+./A.ulam:2:39: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+ ERROR: No parse tree for This Class: A.
+Unrecoverable Program Parse FAILURE: <A.ulam>
+Unrecoverable Program Parse FAILURE: <SystemU3.ulam>
+Unrecoverable Program Parse FAILURE: <System.ulam>
+##
+## informed by t41368
+##
+#>A.ulam
+  ulam 5;
+local constant String lc_fn = __FUNC__; //<<ERROR!! needs to be in a function.
+
+element A {
+  Bool b;
+
+ Int test() {
+   SystemU3 su3;
+   su3.print(lc_fn);
+   return -1;
+ }
+}
+
+#:SystemU3.ulam
+  ulam 3;
+quark SystemU3 : System {
+  Void print(String s) native;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

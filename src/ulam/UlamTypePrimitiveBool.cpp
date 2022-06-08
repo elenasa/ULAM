@@ -41,9 +41,9 @@ namespace MFM {
   {
     bool brtn = true;
     assert(m_state.getUlamTypeByIndex(typidx) == this);
-    UTI valtypidx = val.getUlamValueTypeIdx();
+    UTI valtypidx = val.getUlamValueTypeIdx(); //from typeg
 
-    if(UlamType::safeCast(valtypidx) != CAST_CLEAR) //bad|hazy
+    if(UlamTypePrimitive::safeCast(valtypidx) != CAST_CLEAR) //bad|hazy
       return false;
 
     u32 wordsize = getTotalWordSize();
@@ -170,14 +170,14 @@ namespace MFM {
 
   FORECAST UlamTypePrimitiveBool::safeCast(UTI typidx)
   {
-    FORECAST scr = UlamType::safeCast(typidx);
+    FORECAST scr = UlamTypePrimitive::safeCast(typidx);
     if(scr != CAST_CLEAR)
       return scr;
 
     bool brtn = true;
-    UlamType * vut = m_state.getUlamTypeByIndex(typidx);
-    s32 valbitsize = vut->getBitSize();
-    ULAMTYPE valtypEnum = vut->getUlamTypeEnum();
+    UlamType * fmut = m_state.getUlamTypeByIndex(typidx);
+    s32 valbitsize = fmut->getBitSize();
+    ULAMTYPE valtypEnum = fmut->getUlamTypeEnum();
     switch(valtypEnum)
       {
       case Bool:
@@ -192,6 +192,7 @@ namespace MFM {
       case Void:
       case UAtom:
       case Class:
+      case String:
 	brtn = false;
 	break;
       default:
@@ -208,6 +209,8 @@ namespace MFM {
     FORECAST scr = safeCast(typidx);
     if(((vtypEnum == Bits) && (UlamTypePrimitive::explicitlyCastable(typidx) == CAST_CLEAR)) || (scr == CAST_CLEAR))
       return CAST_CLEAR;
+    if(vtypEnum == String)
+      return CAST_CLEAR; //t41425 to validate string index
     return scr; //HAZY or UNSAFE
   } //explicitlyCastable
 

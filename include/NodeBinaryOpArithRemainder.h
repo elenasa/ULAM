@@ -27,7 +27,7 @@
 
 /**
   \file NodeBinaryOpArithRemainder.h - Node for handling Modulus for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
   \date (C) 2014-2017 All rights reserved.
   \gpl
@@ -61,7 +61,7 @@ namespace MFM{
 
   protected:
 
-    virtual UTI castThyselfToResultType(UTI rt, UTI lt, UTI newType);
+    virtual UTI castThyselfToResultType(UTI rt, UTI lt, UTI newType, Node *& parentnoderef);
 
     virtual UlamValue makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len);
 

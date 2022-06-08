@@ -1,0 +1,24 @@
+## -*- mode:ulam -*-
+#=t41372_test_compiler_typeidentifiertoolong_error
+#!
+./Foo.ulam:6:275: ERROR: Lexer could not complete Type Identifier <Thisisaverylongstringthatexceedsthatlengthallowedbylinuxwhichistwohundredfiftyfivebuttakingthelongestextensionintoaccountwemustsubtracteightallowingustotestthemanglednamewiththisverylongstringthatneedsafewmoreletterstoproperlytestthelimitationdiscussed0123>; Must be less than 256 length, not 256.
+./Foo.ulam:6:276: ERROR: Invalid typedef Alias <;>, Type Identifier (2nd arg) requires capitalization.
+./Foo.ulam:7:260: ERROR: Lexer could not complete Type Identifier <Thisisaverylongstringthatexceedsthatlengthallowedbylinuxwhichistwohundredfiftyfivebuttakingthelongestextensionintoaccountwemustsubtracteightallowingustotestthemanglednamewiththisverylongstringthatneedsafewmoreletterstoproperlytestthelimitationdiscussed0123>; Must be less than 256 length, not 256.
+./Foo.ulam:7:262: ERROR: Invalid Statement (possible missing semicolon).
+Unrecoverable Program Parse FAILURE: <Foo.ulam>
+##
+## informed by t41370,1;
+##
+#>Foo.ulam
+  ulam 5;
+//local constant String longstring = "thisisaverylongstringthatexceedsthatlengthallowedbylinuxwhichistwohundredfiftyfivebuttakingthelongestextensionintoaccountwemustsubtracteightallowingustotestthemanglednamewiththisverylongstringthatneedsafewmoreletterstoproperlytestthelimitationdiscussed0123"; //256
+element Foo {
+  Bool sp;
+  Int test() {
+    typedef Int(2) Thisisaverylongstringthatexceedsthatlengthallowedbylinuxwhichistwohundredfiftyfivebuttakingthelongestextensionintoaccountwemustsubtracteightallowingustotestthemanglednamewiththisverylongstringthatneedsafewmoreletterstoproperlytestthelimitationdiscussed0123;
+    Thisisaverylongstringthatexceedsthatlengthallowedbylinuxwhichistwohundredfiftyfivebuttakingthelongestextensionintoaccountwemustsubtracteightallowingustotestthemanglednamewiththisverylongstringthatneedsafewmoreletterstoproperlytestthelimitationdiscussed0123 var = 1;
+    return var;
+  }
+}
+
+#.

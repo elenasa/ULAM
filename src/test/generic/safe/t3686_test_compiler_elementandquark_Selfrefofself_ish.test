@@ -1,17 +1,16 @@
 ## -*- mode:ulam -*-
 #=t3686_test_compiler_elementandquark_Selfrefofself_ish
-#!
 ##      gen code output: (1 asserts)
 ##
-##        unevaluable: expected exit status 1
-##
-Exit status: 0
-Ue_A : QW { :< Bool(1) bw(true); > Bool(1) b(false);  Bool(1) c(false);  Int(32) test() {  System s;  bw true = QW q = ( )func;  s ( q bw . )assert . q bw . cast return } }
+#!
+Exit status: 1
+Ue_A : QW { Bool b(false);  Bool c(false);  :QW< Bool bw(true); > Int test() {  System s;  self bw . true = QW q = self ( )func .;  s ( q bw . )assert . q bw . cast return } }
 Uq_System { <NOMAIN> }
-Uq_QW { Bool(1) bw(false);  <NOMAIN> }
+Uq_QW { Bool bw(false);  <NOMAIN> }
 ##
 ## Dave requested a way to get default values for Self (within a quark);
 ## a loophole, since a quark would be an undefined atom, but as a ref, its done (t3679)
+## As of ulam-3, loophole no longer needed; now it is a runtime check, rather than compile time restriction.
 ##
 #>A.ulam
   ulam 2;

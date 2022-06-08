@@ -5,6 +5,7 @@
 #include "CompilerState.h"
 #include "NodeBlockClass.h"
 #include "UlamTypeClass.h"
+#include "ElementTypeGenerator.h"
 
 namespace MFM {
 
@@ -114,7 +115,7 @@ namespace MFM {
 	UTI cuti = sym->getUlamTypeIdx();
 	//skip anonymous classes; skip UrSelf to avoid extensive changes all test answers.
 	//skip Empty to avoid extensive changes all test answers.
-	if(!m_state.isAnonymousClass(cuti) && m_state.isASeenClass(cuti) && !m_state.isUrSelf(cuti) && !m_state.isEmpty(cuti))
+	if(!m_state.isAnonymousClass(cuti) && m_state.isASeenClass(cuti) && !m_state.isUrSelf(cuti) && !m_state.isEmptyElement(cuti))
 	  {
 	    NodeBlockClass * classNode = ((SymbolClass *) sym)->getClassBlockNode();
 	    assert(classNode);
@@ -340,8 +341,8 @@ namespace MFM {
 	      {
 		std::ostringstream msg;
 		msg << "Unresolved type <";
-		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-		msg << "> was never defined; Fails labeling";
+		msg << m_state.getUlamTypeNameByIndex(cuti).c_str();
+		msg << "> (UTI " << cuti << ") was never defined; Fails labeling";
 		//was ERR but typedef junk; was WARN, but too many msgs when ERR
 		//with variable name suffices (error/t3370, t3492)
 		MSG(cnsym->getTokPtr(), msg.str().c_str(), DEBUG);
@@ -355,7 +356,8 @@ namespace MFM {
 
 	it++;
       }
-    return (!m_state.goAgain() && (m_state.m_err.getErrorCount() + m_state.m_err.getWarningCount() == 0));
+    //    return (!m_state.goAgain() && (m_state.m_err.getErrorCount() + m_state.m_err.getWarningCount() == 0));
+    return !m_state.goAgain(); //t41470
   } //labelTableOfClasses
 
   void SymbolTableOfClasses::countNavNodesAcrossTableOfClasses(u32& navcount, u32& hzycount, u32& unsetcount)
@@ -381,10 +383,10 @@ namespace MFM {
 		std::ostringstream msg;
 		msg << "UNSEEN class type <";
 		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-		msg << "> was never defined in <";
+		msg << "> was never defined in ";
 		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-		msg << ".ulam>"; // e.g. error/t3492
-		MSG(sym->getTokPtr(), msg.str().c_str(), ERR);
+		msg << ".ulam; check for capitalization or spelling typos"; // e.g. error/t3492
+		MSG(sym->getTokPtr(), msg.str().c_str(), ERR); //t41435
 		navcount++; //for compiler counter
 		//sym->getClassBlockNode()->setNodeType(Nav); //for compiler counter
 	      }
@@ -453,8 +455,8 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Unresolved type <";
-	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-	    msg << "> was never defined; Fails sizing";
+	    msg << m_state.getUlamTypeNameByIndex(cuti).c_str();
+	    msg << "> (UTI " << cuti << ") was never defined; Fails sizing";
 	    if(anonymousClass)
 	      MSG(sym->getTokPtr(), msg.str().c_str(), DEBUG);
 	    else
@@ -486,7 +488,7 @@ namespace MFM {
 	    msg << ", " << m_state.m_pool.getDataAsString(cid).c_str();
 	    lostClassesIds.pop_back();
 	  }
-	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),DEBUG);
+	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
       }
     lostClassesIds.clear();
     return aok;
@@ -522,11 +524,8 @@ namespace MFM {
 	//skip anonymous classes
 	if(!m_state.isAnonymousClass(cuti) && m_state.isASeenClass(cuti))
 	  {
-	    //quark union keep default pos = 0 for each data member, hence skip packing bits.
-	    if(!(m_state.isClassAQuarkUnion(cuti)))
-	      {
-		((SymbolClassName *) sym)->packBitsForClassInstances();
-	      }
+	    //quark union needs default pos = 0 for each data member (t3209, t41145)
+	    ((SymbolClassName *) sym)->packBitsForClassInstances();
 	  }
 	it++;
       }
@@ -592,7 +591,7 @@ namespace MFM {
   //bypasses THIS class being compiled
   void SymbolTableOfClasses::generateForwardDefsForTableOfClasses(File * fp)
   {
-    fp->write("//Forward Defs of other classes:"); GCNL;
+    fp->write("\n//Forward Defs of other classes:"); GCNL;
 
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
     while(it != m_idToSymbolPtr.end())
@@ -611,7 +610,7 @@ namespace MFM {
 
   enum { NORUNTEST = 0, RUNTEST = 1  };
 
-  //test for the current compileThisIdx, with test method
+  //generated before run test for the current compileThisIdx, with test method
   void SymbolTableOfClasses::generateTestInstancesForTableOfClasses(File * fp)
   {
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
@@ -627,11 +626,12 @@ namespace MFM {
 	  }
 	it++;
       } //while for typedefs only
+  } //generateTestInstancesForTableOfClasses
 
-    fp->write("\n");
-
-    it = m_idToSymbolPtr.begin();
-    s32 idcounter = 1;
+  //test for the current compileThisId, with test method
+  void SymbolTableOfClasses::generateTestInstancesRunForTableOfClasses(File * fp)
+  {
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;
@@ -640,13 +640,51 @@ namespace MFM {
 	if(sym->getId() == m_state.getCompileThisId() && ((SymbolClass * ) sym)->getUlamClass() == UC_ELEMENT)
 	  ((SymbolClassName *) sym)->generateTestInstanceForClassInstances(fp, RUNTEST);
 	it++;
-	idcounter++;
       } //while to run this test
+  } //generateTestInstancesRunForTableOfClasses
 
-    fp->write("\n");
-    m_state.indent(fp);
-    fp->write("return 0;"); GCNL;
-  } //generateTestInstancesForTableOfClasses
+  void SymbolTableOfClasses::defineRegistrationNumberForTableOfClasses()
+  {
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	assert(sym->isClass());
+	UTI cuti = sym->getUlamTypeIdx();
+	//skip anonymous classes
+	if(!m_state.isAnonymousClass(cuti) && m_state.isASeenClass(cuti))
+	  {
+	    //if not already, assign registration number for this class next;
+	    ((SymbolClassName *) sym)->assignRegistrationNumberForClassInstances();
+	  }
+	it++;
+      } //while
+    return;
+  } //defineRegistrationNumberForTableOfClasses
+
+  void SymbolTableOfClasses::defineClassNamesAsUserStringsForTableOfClasses()
+  {
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	assert(sym->isClass());
+	UTI cuti = sym->getUlamTypeIdx();
+	//skip anonymous classes
+	if(!m_state.isAnonymousClass(cuti) && m_state.isASeenClass(cuti))
+	  {
+	    //if not already, add 4 class names for this class to GlobalStringPool:
+	    // mangled, signature, pretty, simple
+	    UlamType * cut = m_state.getUlamTypeByIndex(cuti);
+	    std::string mangled = cut->getUlamTypeMangledName();
+	    m_state.formatAndGetIndexForDataUserString(mangled);
+
+	    ((SymbolClassName *) sym)->generatePrettyNameAndSignatureOfClassInstancesAsUserStrings();
+	  }
+	it++;
+      } //while
+    return;
+  } //defineClassNamesAsUserStringsForTableOfClasses
 
   void SymbolTableOfClasses::genCodeForTableOfClasses(FileManager * fm)
   {
@@ -683,7 +721,7 @@ namespace MFM {
 	  }
 	it++;
       } //while
-    return Nav;
+    return Nouti;
   } //findClassNodeNoForTableOfClasses
 
 } //end MFM

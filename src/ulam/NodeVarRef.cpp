@@ -37,23 +37,6 @@ namespace MFM {
   void NodeVarRef::checkAbstractInstanceErrors()
   {
     //unlike NodeVarDecl, an abstract class can be a reference!
-    UTI nuti = getNodeType();
-    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    if(nut->getUlamTypeEnum() == Class)
-      {
-	SymbolClass * csym = NULL;
-	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(nuti, csym);
-	assert(isDefined);
-	if(csym->isAbstract())
-	  {
-	    std::ostringstream msg;
-	    msg << "Instance of Abstract Class ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-	    msg << " used with reference variable symbol name '";
-	    msg << getName() << "'";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
-	  }
-      }
   } //checkAbstractInstanceErrors
 
   //see also SymbolVariable: printPostfixValuesOfVariableDeclarations via ST.
@@ -66,16 +49,16 @@ namespace MFM {
   {
     UTI vuti = m_varSymbol->getUlamTypeIdx();
     UlamKeyTypeSignature vkey = m_state.getUlamKeyTypeSignatureByIndex(vuti);
-    UlamType * vut = m_state.getUlamTypeByIndex(vuti);
+
+    if(m_state.isConstantRefType(vuti))
+      fp->write(" constant"); //t41242,3
 
     fp->write(" ");
-    if(vut->getUlamTypeEnum() != Class)
-      {
-	fp->write(vkey.getUlamKeyTypeSignatureNameAndBitSize(&m_state).c_str());
-	fp->write("&"); //<--the only difference!!!
-      }
-    else
-      fp->write(vut->getUlamTypeNameBrief().c_str()); //includes any &
+
+    fp->write(m_state.getUlamTypeNameBriefByIndex(vuti).c_str()); //includes ref & (t3611)
+
+    //if(vetyp != Class)
+    //  fp->write("&"); //<--the only difference!!! e.g.t3611
 
     fp->write(" ");
     fp->write(getName());
@@ -105,6 +88,7 @@ namespace MFM {
 
   FORECAST NodeVarRef::safeToCastTo(UTI newType)
   {
+    assert(m_nodeInitExpr);
     UTI nuti = getNodeType();
 
     //cast RHS if necessary and safe
@@ -124,12 +108,12 @@ namespace MFM {
 		//e.g. error/t3792, error/t3616
 		std::ostringstream msg;
 		msg << "Incompatible class types ";
-		msg << nut->getUlamTypeNameBrief().c_str();
+		msg << nut->getUlamTypeClassNameBrief(nuti).c_str();
 		msg << " and ";
-		msg << newt->getUlamTypeNameBrief().c_str();
+		msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
 		msg << " used to initialize reference '" << getName() <<"'";
 		if(rscr == CAST_HAZY)
-		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //was debug
 		else
 		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	      }
@@ -142,14 +126,14 @@ namespace MFM {
 	      {
 		std::ostringstream msg;
 		msg << "Reference atom variable " << getName() << "'s type ";
-		msg << nut->getUlamTypeNameBrief().c_str();
+		msg << nut->getUlamTypeName().c_str();
 		msg << ", and its initial value type ";
-		msg << newt->getUlamTypeNameBrief().c_str();
+		msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
 		msg << ", are incompatible";
-		if(newt->isReference() && newt->getUlamClassType() == UC_QUARK)
+		if(newt->isAltRefType() && newt->getUlamClassType() == UC_QUARK)
 		  msg << "; .atomof may help";
 		if(rscr == CAST_HAZY)
-		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //was debug
 		else
 		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	      }
@@ -157,40 +141,27 @@ namespace MFM {
 	else
 	  {
 	    //primitives must be EXACTLY the same size (for initialization);
-	    // "clear" when complete, not the same as "bad".
+	    // "clear" when complete, not the same as "bad". (t3614, t3694)
 	    if(rscr != CAST_CLEAR)
 	      {
 		std::ostringstream msg;
 		msg << "Reference variable " << getName() << "'s type ";
-		msg << nut->getUlamTypeNameBrief().c_str();
+		msg << m_state.getUlamTypeNameByIndex(nuti).c_str();
 		msg << ", and its initial value type ";
-		msg << newt->getUlamTypeNameBrief().c_str();
+		msg << m_state.getUlamTypeNameByIndex(newType).c_str();
 		msg << ", are incompatible";
 		if(rscr == CAST_HAZY)
-		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //was debug
 		else
 		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	      }
-	    else
+	    else if(m_nodeInitExpr->isAConstant() && !m_state.isConstantRefType(nuti))
 	      {
-		// safecast doesn't test for same size primitives since safe for op equal
-		// atom sizes not related to element sizes internally.
-		if((nut->getBitSize() != newt->getBitSize()) || (nut->getTotalBitSize() != newt->getTotalBitSize()))
-		  {
-		    std::ostringstream msg;
-		    msg << "Reference variable " << getName() << "'s type ";
-		    msg << nut->getUlamTypeNameBrief().c_str();
-		    msg << ", and its initial value type ";
-		    msg << newt->getUlamTypeNameBrief().c_str();
-		    msg << ", are incompatible sizes";
-		    if(m_state.isAtom(nuti) || m_state.isAtom(newType))
-		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-		    else
-		      {
-			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-			rscr = CAST_BAD;
-		      }
-		  }
+		std::ostringstream msg;
+		msg << "Initial value of non-constant reference variable: " << getName();
+		msg << " is constant";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //error/t41255
+		rscr = CAST_BAD;
 	      }
 	  }
       }
@@ -198,10 +169,10 @@ namespace MFM {
     return rscr;
   } //safeToCastTo
 
-  bool NodeVarRef::checkReferenceCompatibility(UTI uti)
+  bool NodeVarRef::checkReferenceCompatibility(UTI uti, Node * parentnode)
   {
     assert(m_state.okUTItoContinue(uti));
-    if((!m_state.getUlamTypeByIndex(uti)->isReference()))
+    if((!m_state.getUlamTypeByIndex(uti)->isAltRefType()))
       {
 	std::ostringstream msg;
 	msg << "Variable reference '";
@@ -213,22 +184,25 @@ namespace MFM {
     return true; //ok
   } //checkReferenceCompatibility
 
-  UTI NodeVarRef::checkAndLabelType()
+  UTI NodeVarRef::checkAndLabelType(Node * thisparentnode)
   {
-    UTI it = NodeVarDecl::checkAndLabelType();
+    UTI it = NodeVarDecl::checkAndLabelType(thisparentnode);
     u32 errCount= 0;
     u32 hazyCount = 0;
     if(!m_state.okUTItoContinue(it))
       {
 	if(it == Nav)
 	  errCount++;
-	if(it == Hzy)
+	else if((it == Hzy) || m_state.isStillHazy(it))
 	  hazyCount++;
+	else if(m_state.isHolder(it))
+	  hazyCount++;
+	//else
 	assert(it != Nouti);
       }
     ////requires non-constant, non-funccall value
     //NOASSIGN REQUIRED (e.g. for function parameters) doesn't have to have this!
-    if(m_nodeInitExpr)
+    if(hasInitExpr())
       {
 	UTI eit = m_nodeInitExpr->getNodeType();
 	if(eit == Nav)
@@ -241,7 +215,7 @@ namespace MFM {
 	    errCount++;
 	  }
 
-	if(eit == Hzy)
+	if(m_state.isStillHazy(eit))
 	  {
 	    std::ostringstream msg;
 	    msg << "Storage expression for: ";
@@ -257,7 +231,7 @@ namespace MFM {
 	    msg << "Storage expression for: ";
 	    msg << m_state.m_pool.getDataAsString(m_vid).c_str();
 	    msg << ", is not defined";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //possibly still hazy
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //possibly still hazy, was debug?
 	    hazyCount++;
 	  }
 
@@ -269,19 +243,24 @@ namespace MFM {
 
 	if(hazyCount)
 	  {
-	    m_state.setGoAgain();
 	    setNodeType(Hzy);
+	    clearSymbolPtr();
+	    m_state.setGoAgain();
 	    return Hzy; //short-circuit
 	  }
 
+	bool constref = m_state.isConstantRefType(it);
+
 	//check isStoreIntoAble, before any casting (i.e. named constants, func calls, NOT).
 	TBOOL istor = m_nodeInitExpr->getStoreIntoAble();
-	Node::setStoreIntoAble(istor); //before setReferenceAble is set
+	if(constref)
+	  istor = TBOOL_FALSE;
+	Node::setStoreIntoAble(istor); //before setReferenceAble is set; //error/t41192
 
 	TBOOL isrefable = m_nodeInitExpr->getReferenceAble();
 	Node::setReferenceAble(isrefable); //custom arrays may have different stor/ref status
 
-	if((isrefable != TBOOL_TRUE) || (istor != TBOOL_TRUE))
+	if(((isrefable != TBOOL_TRUE) || (istor != TBOOL_TRUE)) && !constref)
 	  {
 	    //error tests: t3629, t3660, t3661, t3665, t3785
 	    std::ostringstream msg;
@@ -291,7 +270,6 @@ namespace MFM {
 	    if(istor == TBOOL_HAZY)
 	      {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-		m_state.setGoAgain();
 		it = Hzy;
 	      }
 	    else
@@ -315,21 +293,29 @@ namespace MFM {
       }
     else
       {
+	//no node init expression
 	if(it == Nav)
 	  Node::setStoreIntoAble(TBOOL_FALSE);
 	else if(it == Hzy)
 	  Node::setStoreIntoAble(TBOOL_HAZY);
+	if(m_varSymbol && m_varSymbol->isFunctionParameter() && ((SymbolVariableStack *) m_varSymbol)->isConstantFunctionParameter())
+	  Node::setStoreIntoAble(TBOOL_FALSE); //t41186
 	else
 	  Node::setStoreIntoAble(TBOOL_TRUE);
       }
-
     setNodeType(it);
+    if(it == Hzy)
+      {
+	clearSymbolPtr();
+	m_state.setGoAgain();
+      }
     return getNodeType();
   } //checkAndLabelType
 
-  void NodeVarRef::packBitsInOrderOfDeclaration(u32& offset)
+  TBOOL NodeVarRef::packBitsInOrderOfDeclaration(u32& offset)
   {
     m_state.abortShouldntGetHere(); //refs can't be data members
+    return TBOOL_FALSE;
   }
 
   void NodeVarRef::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
@@ -349,8 +335,7 @@ namespace MFM {
     assert(m_varSymbol->getAutoLocalType() != ALT_AS); //NodeVarRefAuto
 
     UTI nuti = getNodeType();
-    if(nuti == Nav)
-      return ERROR;
+    if(nuti == Nav) return evalErrorReturn();
 
     assert(m_varSymbol->getUlamTypeIdx() == nuti);
     assert(m_nodeInitExpr);
@@ -360,16 +345,26 @@ namespace MFM {
     makeRoomForSlots(1); //always 1 slot for ptr
 
     EvalStatus evs = m_nodeInitExpr->evalToStoreInto();
-    if(evs != NORMAL)
-      {
-	evalNodeEpilog();
-	return evs;
-      }
+    if(evs != NORMAL) return evalStatusReturn(evs);
 
     UlamValue pluv = m_state.m_nodeEvalStack.popArg();
     assert(m_state.isPtr(pluv.getUlamValueTypeIdx()));
-    ((SymbolVariableStack *) m_varSymbol)->setAutoPtrForEval(pluv); //for future ident eval uses
-    ((SymbolVariableStack *) m_varSymbol)->setAutoStorageTypeForEval(m_nodeInitExpr->getNodeType()); //for future virtual function call eval uses
+
+    UTI autostgtype = m_state.m_currentAutoStorageType; //if not Nouti, pre-cast type to sub
+    if(m_state.okUTItoContinue(autostgtype))
+      {
+	UlamValue autopluv = m_state.m_currentAutoObjPtr;  //pre-cast ptr to subclass
+	((SymbolVariableStack *) m_varSymbol)->setAutoPtrForEval(autopluv); //for future ident eval uses
+	((SymbolVariableStack *) m_varSymbol)->setAutoStorageTypeForEval(autostgtype); //for future virtual function call eval uses
+
+	m_state.m_currentAutoObjPtr = UlamValue(); //wipeout
+	m_state.m_currentAutoStorageType = Nouti; //clear
+      }
+    else
+      {
+	((SymbolVariableStack *) m_varSymbol)->setAutoPtrForEval(pluv); //for future ident eval uses
+	((SymbolVariableStack *) m_varSymbol)->setAutoStorageTypeForEval(m_nodeInitExpr->getNodeType()); //for future virtual function call eval uses
+      }
 
     m_state.m_funcCallStack.storeUlamValueInSlot(pluv, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex()); //doesn't seem to matter..
 
@@ -395,12 +390,15 @@ namespace MFM {
     // 'pos' modified by this data member symbol's packed bit position
   UlamValue NodeVarRef::makeUlamValuePtr()
   {
+    UTI nuti = getNodeType();
     u32 pos = 0;
     if(m_varSymbol->isDataMember())
-      pos = m_varSymbol->getPosOffset();
-
-    UlamValue ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + pos, m_varSymbol->getId());
-
+      {
+	pos = m_varSymbol->getPosOffset();
+	m_state.abortShouldntGetHere(); //dm are not refs.
+      }
+    UlamValue ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), nuti, m_state.determinePackable(nuti), m_state, m_state.m_currentObjPtr.getPtrPos() + pos, m_varSymbol->getId());
+    //not sure about setPtrTargetEffSelfType..is it in m_currentObjPtr??
     ptr.checkForAbsolutePtr(m_state.m_currentObjPtr);
     return ptr;
   } //makeUlamValuePtr
@@ -411,7 +409,10 @@ namespace MFM {
     assert(m_varSymbol->isAutoLocal());
     assert(m_varSymbol->getAutoLocalType() != ALT_AS);
 
-    if(m_nodeInitExpr)
+    UVPass uvpass2clear;
+    uvpass = uvpass2clear; //refresh (t3804);
+
+    if(hasInitExpr())
       {
 	// get the right-hand side, stgcos
 	// can be same type (e.g. element, quark, or primitive),

@@ -1,0 +1,58 @@
+## -*- mode:ulam -*-
+#=t41448_test_compiler_elementtemplatemissingtypedefinancestortemplate_error
+#!
+./RXTimer.ulam:4:17: ERROR: Undetermined Type: <Counter>; Suggest 'use Counter;' if it's a class, otherwise a typedef is needed.
+./RXTimer.ulam:4:17: ERROR: Incomplete Typedef used with alias name 'Counter'.
+./RXTimer.ulam:4:17: ERROR: Typedef 'Counter' in class XTimer(4,15u,1u) remains undefined.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by t41435, stub has  more member symbols than its template; asserted
+## With 'use XTimer' before RXTimer gives problem with Counter typedef missing; ow,
+##                   inherits from a class with pending arguments or ancestors
+##
+#>R.ulam
+  ulam 5;
+element R {
+  Int test()
+  {
+    S doggy;
+
+    return 0;
+  }
+}
+
+#:WatchDog.ulam
+  ulam 5;
+quark WatchDog(Unsigned(5) myProgressBits = 4u, Unsigned triggerLevel = cDOG_MAXOF) : RXTimer(cDOG_BITS,cDOG_TRIGGER, 1) + Update {
+  constant Unary(5) cDOG_BITS = myProgressBits;
+  constant Unsigned cDOG_MAXOF = Unsigned(cDOG_BITS).maxof;
+  constant Unsigned cDOG_TRIGGER = triggerLevel;
+
+}
+
+#:RXTimer.ulam
+  ulam 5;
+//use XTimer; //either way an error, different messages.
+quark RXTimer(Unary(5) bits, Unsigned triggerLevel, Unsigned k) : XTimer(bits,triggerLevel,k) {
+  typedef Super.Counter Counter;
+
+}
+
+#:XTimer.ulam
+  ulam 5;
+quark XTimer(Unary(5) bits, Unsigned triggerLevel, Unsigned k)
+{
+  //typedef Unsigned Counter; missing!!
+}
+
+#:Update.ulam
+  ulam 5;
+quark Update {
+  virtual Bool update() { return false; }
+}
+
+#:S.ulam
+  ulam 5;
+element S : WatchDog() { }
+
+#.

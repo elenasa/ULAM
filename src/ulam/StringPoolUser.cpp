@@ -5,7 +5,9 @@
 
 namespace MFM {
 
-  StringPoolUser::StringPoolUser() : StringPool(""), m_runningIndex(1) {}
+  StringPoolUser::StringPoolUser() : StringPool(""), m_runningIndex(1) {
+    m_userIndexToStringPoolIndex.push_back(0);
+  }
 
   StringPoolUser::StringPoolUser(const StringPoolUser& spref) : StringPool(spref), m_runningIndex(spref.m_runningIndex) {}
 
@@ -14,23 +16,26 @@ namespace MFM {
   u32 StringPoolUser::getIndexForDataString(std::string str)
   {
     u32 idx;   // index to data in maps
+    u32 idxforuser;
     std::map<std::string,u32>::iterator it = m_stringToDataIndex.find(str);
 
     if(it != m_stringToDataIndex.end())
       {
-	idx = it->second;  //reuse existing identifier index
+	idxforuser = it->second;  //reuse existing identifier index
       }
     else
       {
 	u32 slen = (u8) str[0]; //len in first byte set by lexer
 	idx = m_runningIndex;
+	idxforuser = m_userIndexToStringPoolIndex.size();
 
 	m_runningIndex += slen + 2; //add byte for len at start; end with null byte;
 
-	m_stringToDataIndex.insert(std::pair<std::string,u32> (str, idx));
-	m_dataAsString.insert(std::pair<u32, std::string> (idx, str));
+	m_stringToDataIndex.insert(std::pair<std::string,u32> (str, idxforuser));
+	m_dataAsString.insert(std::pair<u32, std::string> (idxforuser, str));
+	m_userIndexToStringPoolIndex.push_back(idx);
       }
-    return idx;
+    return idxforuser;
   } //getIndexForDataString
 
   u32 StringPoolUser::getIndexForNumberAsString(u32 num)
@@ -96,18 +101,25 @@ namespace MFM {
     return m_runningIndex;
   }
 
+  u32 StringPoolUser::getUserStringCount()
+  {
+    return m_userIndexToStringPoolIndex.size();
+  }
+
   void StringPoolUser::generateUserStringPoolEntries(File * fp, CompilerState * state)
   {
     assert(state);
 
     //note: not using C++ String because that uses malloc;
     // double quoted strings next to each other get merged;
+    state->m_currentIndentLevel++;
+
     state->indent(fp);
-    fp->write("static unsigned char ");
+    fp->write("const unsigned char ");
     fp->write(state->getMangledNameForUserStringPool());
     fp->write("[");
     fp->write(state->getDefineNameForUserStringPoolSize());
-    fp->write(" + 1] = \n");
+    fp->write("] = \n");
 
     state->m_currentIndentLevel++;
 
@@ -126,8 +138,54 @@ namespace MFM {
     state->indent(fp);
     fp->write(";"); GCNL;
     fp->write("\n");
+
+    state->m_currentIndentLevel--;
+
     return;
   } //generateUserStringPoolEntries
+
+  void StringPoolUser::generateUserStringPoolIndexes(File * fp, CompilerState * state)
+  {
+    assert(state);
+
+    //note: not using C++ String because that uses malloc;
+    // double quoted strings next to each other get merged;
+    state->m_currentIndentLevel++;
+
+    state->indent(fp);
+    fp->write("const unsigned int ");
+    fp->write(state->getMangledNameForUserStringPoolIndexes());
+    fp->write("[");
+    fp->write(state->getDefineNameForNumberOfUserStrings());
+    fp->write("] = {\n");
+
+    state->m_currentIndentLevel++;
+    state->indent(fp);
+
+    std::vector<u32>::iterator it = m_userIndexToStringPoolIndex.begin(); //ascending order by default
+    for(; it != m_userIndexToStringPoolIndex.end(); it++)
+      {
+	u32 currUidx = *it;
+
+	if(currUidx > 0)
+	  {
+	    fp->write(",");
+	  }
+
+	fp->write_decimal_unsigned(currUidx);
+      }
+
+    fp->write("\n");
+    state->m_currentIndentLevel--;
+
+    state->indent(fp);
+    fp->write("};"); GCNL;
+    fp->write("\n");
+
+    state->m_currentIndentLevel--;
+
+    return;
+  } //generateUserStringPoolIndexes
 
   u32 StringPoolUser::formatDoubleQuotedString(const std::string& str, CompilerState * state)
   {
@@ -265,7 +323,7 @@ namespace MFM {
 
   void StringPoolUser::writeEscaped(File * fp, u8 c)
   {
-    if(!isgraph(c))
+    if(!isgraph(c) || c == '?') // '?' to avoid trigraph problems
       {
 	char tmp[8*3+1];
 	sprintf(tmp,"\\%03o",c);

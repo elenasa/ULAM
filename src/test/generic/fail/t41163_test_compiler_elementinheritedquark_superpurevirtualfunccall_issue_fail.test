@@ -1,0 +1,71 @@
+## -*- mode:ulam -*-
+#=t41163_test_compiler_elementinheritedquark_superpurevirtualfunccall_issue_fail
+##
+## gen error:
+## /home/elenas/WORK/ulam/repo/MFM-fork/MFM/src/core/include/UlamRef.h:291: FAILED: PURE_VIRTUAL_CALLED
+## gen output: (1 assert)
+##
+#!
+./Sub1.ulam:9:19: ERROR: Virtual function 'Uf_4func10' is pure; cannot be called directly in baseclass: Sup.
+Unrecoverable Program GenCode FAILURE.
+##
+## informed by t41161
+##
+#>Sup.ulam
+ ulam 3;
+quark Sup : SuperDuper
+{
+  virtual Int func(); //pure middle?
+}
+
+#:SuperDuper.ulam
+  ulam 3;
+quark SuperDuper
+{
+  virtual Int func() { return 2; } //ok
+}
+
+#:Sub1.ulam
+  ulam 2;
+quark Sub1 : Sup {
+  Int m_fun;
+  Void behave()
+  {
+    System s;
+    m_fun = self.func();  // should be fine
+    s.assert(m_fun == 1);
+    m_fun = super.func(); // should also be fine since SuperDuper isn't pure??
+    s.assert(m_fun == 2);
+  }
+  @Override
+    virtual Int func() { return 1; /* defined in self but not super */ }
+}
+
+#:E.ulam
+  ulam 3;
+element E : Sub1
+{
+  Int test()
+  {
+    System s;
+    behave();
+    s.print(m_fun);
+    s.assert(m_fun == 2);
+    return 0;
+  }
+}
+
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

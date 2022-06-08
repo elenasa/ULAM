@@ -1,8 +1,9 @@
 /**                                        -*- mode:C++ -*-
  * NodeConstantDef.h - Node handling Constant Definition for ULAM
  *
- * Copyright (C) 2015-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2017 Ackleyshack LLC.
+ * Copyright (C) 2015-2019 The Regents of the University of New Mexico.
+ * Copyright (C) 2015-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +28,9 @@
 
 /**
   \file NodeConstantDef.h - Node handling Constant Definition for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2017 All rights reserved.
+  \date (C) 2015-2021 All rights reserved.
   \gpl
 */
 
@@ -50,6 +51,7 @@ namespace MFM{
 
     NodeConstantDef(SymbolWithValue * symptr, NodeTypeDescriptor * nodetype, CompilerState & state);
     NodeConstantDef(const NodeConstantDef& ref);
+    NodeConstantDef(const NodeConstantDef& ref, bool keepType);
 
     virtual ~NodeConstantDef();
 
@@ -59,6 +61,8 @@ namespace MFM{
 
     virtual bool exchangeKids(Node * oldnptr, Node * newnptr);
 
+    NodeTypeDescriptor * cloneTypeDescriptor();
+
     virtual bool findNodeNo(NNO n, Node *& foundNode);
 
     virtual void checkAbstractInstanceErrors();
@@ -67,55 +71,77 @@ namespace MFM{
 
     virtual void printPostfix(File * f);
 
-    virtual void noteTypeAndName(s32 totalsize, u32& accumsize);
+    virtual void noteTypeAndName(UTI cuti, s32 totalsize, u32& accumsize);
+
+    virtual void genTypeAndNameEntryAsComment(File * fp, s32 totalsize, u32& accumsize);
 
     virtual const char * getName();
 
+    virtual u32 getNameId();
+
     virtual u32 getTypeNameId();
+
+    virtual UTI getTypeDescriptorGivenType();
+
+    virtual ALT getTypeDescriptorRefType();
 
     virtual const std::string prettyNodeName();
 
-    virtual bool getSymbolPtr(Symbol *& symptrref);
+    virtual bool getSymbolPtr(const Symbol *& symptrref);
 
-    void setSymbolPtr(SymbolWithValue * cvsymptr);
+    virtual bool cloneSymbol(Symbol *& symptrref);
 
-    u32 getSymbolId();
+    virtual void setSymbolPtr(SymbolWithValue * cvsymptr);
 
-    bool getNodeTypeDescriptorPtr(NodeTypeDescriptor *& nodetypedescref);
+    virtual bool hasASymbol();
 
-    bool hasDefaultSymbolValue();
+    virtual u32 getSymbolId();
 
-    virtual UTI checkAndLabelType();
+    virtual bool getSymbolValue(BV8K& bv);
+
+    bool setNodeTypeDescriptor(NodeTypeDescriptor * nodetypedesc);
+
+    virtual bool getNodeExprPtr(Node *& nodeexprref);
+
+    bool setNodeExpr(Node * nodeexorref);
+
+    virtual bool hasDefaultSymbolValue();
+
+    bool isClassArgumentItsDefaultValue();
+
+    virtual UTI checkAndLabelType(Node * thisparentnode);
 
     virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
 
-    NNO getBlockNo();
+    virtual NNO getBlockNo();
 
-    void setBlockNo(NNO n);
+    virtual void setBlockNo(NNO n);
 
-    NodeBlock * getBlock();
+    virtual NodeBlock * getBlock();
 
-    void setConstantExpr(Node * node);
+    virtual void setConstantExpr(Node * node);
 
-    bool hasConstantExpr();
+    virtual bool hasConstantExpr();
 
-    UTI foldConstantExpression();
+    virtual bool isReadyConstant();
 
-    bool foldArrayInitExpression();
+    virtual UTI foldConstantExpression();
+
+    virtual bool foldArrayInitExpression();
 
     virtual bool buildDefaultValue(u32 wlen, BV8K& dvref);
 
-    virtual void genCodeDefaultValueStringRegistrationNumber(File * fp, u32 startpos);
+    virtual bool buildDefaultValueForClassConstantDefs();
 
-    virtual void genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos);
+    virtual void fixPendingArgumentNode();
 
-    void fixPendingArgumentNode();
+    bool cloneTypeDescriptorForPendingArgumentNode(NodeConstantDef * templateparamdef);
 
-    virtual bool assignClassArgValueInStubCopy();
+    bool cloneDefaultValueExpressionForPendingArgumentNode(NodeConstantDef * templateparamdef);
 
     virtual EvalStatus eval();
 
-    virtual void packBitsInOrderOfDeclaration(u32& offset);
+    virtual TBOOL packBitsInOrderOfDeclaration(u32& offset);
 
     virtual void printUnresolvedVariableDataMembers();
 
@@ -125,9 +151,11 @@ namespace MFM{
 
     virtual void genCodeConstantArrayInitialization(File * fp);
 
-    virtual void generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly);
+    virtual void generateBuiltinConstantClassOrArrayInitializationFunction(File * fp, bool declOnly);
 
     virtual void cloneAndAppendNode(std::vector<Node *> & cloneVec);
+
+    virtual void generateTestInstance(File * fp, bool runtest);
 
     virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount);
 
@@ -141,10 +169,21 @@ namespace MFM{
 
     virtual void checkForSymbol();
 
+    virtual void clearSymbolPtr();
+
+    virtual bool isDataMemberInit();
+
   private:
     NNO m_currBlockNo;
+    NodeBlock * m_currBlockPtr;
+
+    void setBlock(NodeBlock * ptr);
+    bool setSymbolValue(const BV8K& bv);
+
+    bool getNodeTypeDescriptorPtr(const NodeTypeDescriptor *& nodetypedescref);
 
     void setupStackWithPrimitiveForEval(u32 slots);
+    void setupStackWithConstantClassForEval(u32 slots);
     void assignConstantSlotIndex(u32& cslotidx);
 
   };

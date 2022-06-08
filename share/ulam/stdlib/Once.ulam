@@ -14,6 +14,12 @@ quark OnceT(Unary(15) bitpairs)
   WBool done;
 
   /** 
+     \return true if new() has been called (ever, or since the since
+     the most recent call to reset.)
+   */
+  Bool initted() { return done; }
+
+  /** 
     Test and set the latch.  Returns true if this is the first time
     new() has been called (ever, or since the most recent call to
     reset() ).

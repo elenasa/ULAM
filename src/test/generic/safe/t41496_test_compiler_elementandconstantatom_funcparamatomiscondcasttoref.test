@@ -1,0 +1,66 @@
+## -*- mode:ulam -*-
+#=t41496_test_compiler_elementandconstantatom_funcparamatomiscondcasttoref
+##
+##  gen output (1 assert)
+##
+#!
+Exit status: 0
+Ue_Foo { System s();  Bool(3) b(true);  Int(4) m_i(0);  constant Bar m_bar2 = { 0xff807fa0, 0x0, 0x0 };  constant Atom cAtom = { 0xff807fa0, 0x0, 0x0 };  Int test() {  self b . self ( cAtom 1 cast )check . cast = self s . ( self b . cast )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+Ue_Bar { Bool val_b[3]( { false, true, false });  <NOMAIN> }
+##
+## informed by t41495, except check func parameter is not a ref, nor constant;
+##  and, local var is ref inside check;
+##  also similar to t41493, except func param is not an array and uses is, instead of as;
+##
+#>Foo.ulam
+  ulam 3;
+element Foo {
+  System s;
+  Bool(3) b;
+  Int(4) m_i;
+  constant Bar m_bar2 = { };
+  constant Atom cAtom = m_bar2;
+
+  Bool check(constant Bar& brefarg, Int x) {
+    return brefarg.val_b[x];
+  }
+
+  Bool check(Atom aarg, Int x) {
+    //Atom a = aarg;
+    if(aarg is Bar)
+    {
+      Bar& b = (Bar&) aarg; //ok when a, local var, not arg?
+      return b.val_b[x];
+    }
+    return false;
+  }
+
+  Int test() {
+    b = check(cAtom,1);
+    s.assert(b);
+    return 0;
+  }
+}
+
+#:Bar.ulam
+  ulam 1;
+element Bar {
+  Bool val_b[3] = {false, true, false};
+  Void reset(Bool b) {
+    b = false;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

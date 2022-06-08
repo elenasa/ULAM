@@ -1,0 +1,53 @@
+## -*- mode:ulam -*-
+#=t41540_test_compiler_atomrefasbaseassignedtoatom_error
+#!
+./Q.ulam:8:12: ERROR: Use .atomof to convert Plate& to Atom for =.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by ish 20210815, t41538,9; Before, the first suggestion was to explicitly cast;
+## when that didnt work youd get the real useful suggestion. Haha. Like now.
+##
+#>A.ulam
+  ulam 3;
+element A {
+  Int test(){
+    Q q;
+    q.behave();
+    return 0;
+  }
+}
+
+#:Q.ulam
+  ulam 5;
+element Q : Subplate {
+  Void behave() {
+    System f;
+    Atom mota;
+    Atom & a = self;
+    if (a as Plate) {
+      mota = a;
+      if (a as Subplate) return; // This should return
+      f.assert(false); //fail("Shouldn't get here");
+    }
+    else
+      f.assert(false); //nor here
+  }
+}
+
+#:Plate.ulam
+  ulam 5;
+quark Plate { }
+quark Subplate : Plate { }
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

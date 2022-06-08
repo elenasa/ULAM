@@ -1,0 +1,40 @@
+## -*- mode:ulam -*-
+#=t41295_test_compiler_controlswitch_missingcasecolon_error
+#!
+./A.ulam:15:7: ERROR: Unexpected token <TOK_OPEN_CURLY>; Expected :.
+./A.ulam:15:7: ERROR: Incomplete condition; which-control failure.
+./A.ulam:15:7: ERROR: Unexpected token <TOK_OPEN_CURLY>; Expected }.
+./A.ulam:17:2: ERROR: Break statement not within loop or which-control.
+./A.ulam:20:5: ERROR: Expecting Type of data member/function (or, in the midst of errors); Got <return>.
+./A.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'A'; Possible missing ending curly brace.
+./A.ulam:20:5: ERROR: Invalid Class Type <return>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+./A.ulam:2:9: ERROR: Invalid Type: A.
+ ERROR: No parse tree for This Class: A.
+Unrecoverable Program Parse FAILURE: <A.ulam>
+##
+## informed by t41293
+##
+#>A.ulam
+  ulam 3;
+element A {
+  Int a, b;
+  Int test() {
+    a = 1;
+    b = 0;
+    which((--a))
+    {
+    case 0:
+      {
+	b = 2;
+	break;
+      }
+    case -1
+      {
+	b = 3;
+	break;
+      }
+    }
+    return a;
+  }
+}
+#.

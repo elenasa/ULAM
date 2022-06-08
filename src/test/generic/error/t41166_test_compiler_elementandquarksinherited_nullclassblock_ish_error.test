@@ -1,0 +1,42 @@
+## -*- mode:ulam -*-
+#=t41166_test_compiler_elementandquarksinherited_nullclassblock_ish_error
+#!
+./QID.ulam:5:16: ERROR: Check overloaded function 'getme' with different return types (QSwapLine(4), QID(4)), in QSwapLine(4).
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by user ish 11/19/2017, t3652; replace assert with error message.."While parsing a..."
+## 1/25/2020 that problem was fixed, so now we test virtual returning Self error.
+##
+#>IshD.ulam
+  ulam 2;
+element IshD {
+  typedef QSwapLine(4) OurSwapLine;
+  Int test() {
+    return OurSwapLine.sizeof;
+  }
+}
+//use QSwapLine;
+
+#:QID.ulam
+  ulam 2;
+quark QID(Unary(5) myTagBits) {
+  constant Unsigned cQID_TAG_BITS = myTagBits;
+  Bits(1) mArray[cQID_TAG_BITS];
+  virtual Self getme()
+  {
+    return Self.instanceof; //like dominos falling..
+  }
+}
+
+#:QSwapLine.ulam
+  ulam 2;
+quark QSwapLine(Unary(5) itagBits) : QID(itagBits) {
+  Int(7) mPhase;
+  virtual Self getme()
+  {
+    return Self.instanceof; //like dominos falling..
+  }
+}
+//use QID;
+
+#.

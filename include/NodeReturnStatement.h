@@ -2,7 +2,8 @@
  * NodeReturnStatement.h - Node handling the Return Statement for ULAM
  *
  * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2017 Ackleyshack LLC.
+ * Copyright (C) 2014-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +28,9 @@
 
 /**
   \file NodeReturnStatement.h - Node handling the Return Statement for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2017  All rights reserved.
+  \date (C) 2014-2021  All rights reserved.
   \gpl
 */
 
@@ -64,7 +65,7 @@ namespace MFM{
 
     virtual void printPostfix(File * fp);
 
-    virtual UTI checkAndLabelType();
+    virtual UTI checkAndLabelType(Node * thisparentnode);
 
     virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
 

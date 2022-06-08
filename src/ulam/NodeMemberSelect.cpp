@@ -1,4 +1,5 @@
 #include "NodeMemberSelect.h"
+#include "SymbolVariableDataMember.h"
 #include "CompilerState.h"
 
 namespace MFM {
@@ -23,14 +24,30 @@ namespace MFM {
 
   void NodeMemberSelect::printOp(File * fp)
   {
-    char myname[16];
-    sprintf(myname," %s", getName());
-    fp->write(myname);
+    fp->write(" .");
+  }
+
+  u32 NodeMemberSelect::getNameId()
+  {
+    return m_state.m_pool.getIndexForDataString(".");
   }
 
   const char * NodeMemberSelect::getName()
   {
-    return ".";
+    //return ".";
+    return getFullName();
+  }
+
+  const char * NodeMemberSelect::getFullName()
+  {
+    std::ostringstream fullnm;
+    fullnm << m_nodeLeft->getName();
+    fullnm << ".";
+    fullnm << m_nodeRight->getName();
+
+    //return fullnm.str(); //t41250 invalid read -V
+    u32 sidx = m_state.m_pool.getIndexForDataString(fullnm.str());
+    return m_state.m_pool.getDataAsString(sidx).c_str();
   }
 
   const std::string NodeMemberSelect::prettyNodeName()
@@ -38,22 +55,42 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-  bool NodeMemberSelect::getSymbolPtr(Symbol *& symptrref)
+  void NodeMemberSelect::clearSymbolPtr()
   {
+    //if symbol is in a stub, there's no guarantee the stub
+    // won't be replace by another duplicate class once its
+    // pending args have been resolved.
     if(m_nodeRight)
-      return m_nodeRight->getSymbolPtr(symptrref);
-
-    MSG(getNodeLocationAsString().c_str(), "No symbol", ERR);
-    return false;
+      m_nodeRight->clearSymbolPtr();
   }
 
-  bool NodeMemberSelect::getStorageSymbolPtr(Symbol *& symptrref)
+  bool NodeMemberSelect::compareSymbolPtrs(Symbol * ptr)
   {
-    if(m_nodeLeft)
-      return m_nodeLeft->getSymbolPtr(symptrref); //includes quarks, transients
+    return m_nodeRight->compareSymbolPtrs(ptr);
+  }
 
-    MSG(getNodeLocationAsString().c_str(), "No storage symbol", ERR);
-    return false;
+  bool NodeMemberSelect::hasASymbol()
+  {
+    assert(m_nodeRight);
+    return m_nodeRight->hasASymbol();
+  }
+
+  u32 NodeMemberSelect::getSymbolId()
+  {
+    assert(m_nodeRight);
+    return m_nodeRight->getSymbolId();
+  }
+
+  bool NodeMemberSelect::hasAStorageSymbol()
+  {
+    assert(m_nodeLeft);
+    return m_nodeLeft->hasASymbol();
+  }
+
+  u32 NodeMemberSelect::getStorageSymbolId()
+  {
+    assert(m_nodeLeft);
+    return m_nodeLeft->getSymbolId();
   }
 
   bool NodeMemberSelect::hasASymbolDataMember()
@@ -79,6 +116,47 @@ namespace MFM {
     return m_nodeLeft->hasASymbolReference();
   }
 
+  bool NodeMemberSelect::hasASymbolReferenceConstant()
+  {
+    assert(hasASymbolReference());
+    return m_nodeLeft->hasASymbolReferenceConstant();
+  }
+
+  bool NodeMemberSelect::belongsToVOWN(UTI vown)
+  {
+    assert(m_nodeLeft && m_nodeRight);
+    if(m_nodeLeft->hasASymbolSelf())
+      return m_nodeRight->belongsToVOWN(vown); //determine
+    return false;
+  }
+
+  bool NodeMemberSelect::isAConstant()
+  {
+    return m_nodeLeft->isAConstant(); //constant classes possible
+  }
+
+  bool NodeMemberSelect::isAMemberSelect()
+  {
+    return true;
+  }
+
+  bool NodeMemberSelect::isAMemberSelectByRegNum()
+  {
+    assert(isAMemberSelect());
+    return false;
+  }
+
+  s32 NodeMemberSelect::findNodeKidOrder(const Node * anode) const
+  {
+    s32 order = -2; //UNKNOWN
+    if(anode == m_nodeLeft)
+      order = 0;
+    else if(anode == m_nodeRight)
+      order = 1;
+    //else
+    return order;
+  }
+
   const std::string NodeMemberSelect::methodNameForCodeGen()
   {
     return "_MemberSelect_Stub";
@@ -90,64 +168,72 @@ namespace MFM {
     return m_nodeRight->safeToCastTo(newType);
   } //safeToCastTo
 
-  UTI NodeMemberSelect::checkAndLabelType()
+  UTI NodeMemberSelect::checkAndLabelType(Node * thisparentnode)
   {
     assert(m_nodeLeft && m_nodeRight);
-
-    UTI luti = m_nodeLeft->checkAndLabelType(); //side-effect
-    TBOOL lstor = m_nodeLeft->getStoreIntoAble();
-    if(lstor != TBOOL_TRUE)
-      {
-	//e.g. funcCall is not storeintoable even if its return value is.
-	std::ostringstream msg;
-	msg << "Member selected must be a valid lefthand side: '";
-	msg << m_nodeLeft->getName();
-	msg << "' requires a variable; may be a casted function call";
-	if(lstor == TBOOL_HAZY)
-	  {
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	    setNodeType(Hzy);
-	    m_state.setGoAgain();
-	    return Hzy;
-	  }
-	else
-	  {
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    setNodeType(Nav);
-	    return Nav;
-	  }
-      } //done
+    UTI nuti = getNodeType();
+    UTI luti = m_nodeLeft->checkAndLabelType(this); //side-effect
 
     if(!m_state.isComplete(luti))
       {
 	std::ostringstream msg;
-	msg << "Member selected is incomplete class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
-	msg << ", check and label fails this time around";
 	if(luti == Nav)
 	  {
+	    msg << "Member selected, ";
+	    msg << m_nodeLeft->getName();
+	    msg << ", is invalid here";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    setNodeType(Nav);
+	    nuti = Nav; //error/t3460
 	  }
 	else
 	  {
+	    msg << "Member selected is an incomplete class: ";
+	    //msg << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
+	    msg << m_nodeLeft->getName();
+	    msg << ", check and label fails this time around"; //t41511
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	    setNodeType(Hzy);
-	    m_state.setGoAgain(); //since no error msg
+	    if(nuti != Nav)
+	      nuti = Hzy; //avoid clobbering Nav
 	  }
+	setNodeType(nuti);
+	if(nuti == Hzy) m_state.setGoAgain();
 	return getNodeType();
       } //done
 
+    TBOOL stor = checkStoreIntoAble(); //given lhs, this node set later
+    if(m_nodeRight->isFunctionCall())
+      {
+	if(stor == TBOOL_FALSE)
+	  nuti = Nav;
+	else if(stor == TBOOL_HAZY)
+	  nuti = Hzy; //t3607
+      }
+    else
+      {
+	//data members cannot be shadowed by relatives, t.f. selection
+	//by classId of related subclasses doesn't make sense!
+	if(m_nodeLeft->isAMemberSelect() && ((NodeMemberSelect *) m_nodeLeft)->isAMemberSelectByRegNum())
+	  {
+	    std::ostringstream msg;
+	    msg << "Member selected by classId must be a virtual function, ";
+	    msg << "not data member '" << m_nodeRight->getName() << "'";
+	    msg << "; data members cannot be shadowed by related subclasses";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    setNodeType(Nav);
+	    return Nav; //t41388
+	  } //done
+      }
+
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
-    ULAMCLASSTYPE classtype = lut->getUlamClassType();
-    if(((classtype == UC_NOTACLASS) && (lut->getUlamTypeEnum() != Holder)) || !lut->isScalar())
+    ULAMCLASSTYPE lclasstype = lut->getUlamClassType();
+    if(((lclasstype == UC_NOTACLASS) && (lut->getUlamTypeEnum() != Holder)) || !lut->isScalar())
       {
 	// must be a scalar 'Class' type, (e.g. error/t3815)
 	// doesn't complete checkandlabel for rhs (e.g. funccall is NULL, no eval)
 	std::ostringstream msg;
 	msg << "Member selected must be a Class, not type: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
-	if(classtype != UC_NOTACLASS)
+	if(lclasstype != UC_NOTACLASS)
 	  msg << "[" << lut->getArraySize() << "]";
 	if(m_state.isAtom(luti))
 	  msg << "; suggest using a Conditional-As";
@@ -156,21 +242,51 @@ namespace MFM {
 	return Nav;
       } //done
 
+
     std::string className = m_state.getUlamTypeNameBriefByIndex(luti); //help me debug
 
     SymbolClass * csym = NULL;
-    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(luti, csym);
-    assert(isDefined);
+    if(!m_state.alreadyDefinedSymbolClass(luti, csym))
+      {
+	std::ostringstream msg;
+	msg << "Member selected is not a defined class: ";
+	msg << className.c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	setNodeType(Nav);
+	return Nav; //t41518
+      }
 
     NodeBlockClass * memberClassNode = csym->getClassBlockNode();
     assert(memberClassNode);  //e.g. forgot the closing brace on quark definition
 
-    assert(m_state.okUTItoContinue(memberClassNode->getNodeType())); //t41010
+    UTI leftblockuti = memberClassNode->getNodeType();
+    if(!m_state.okUTItoContinue(leftblockuti))
+      {
+	std::ostringstream msg;
+	msg << "Member selected is not ready: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
+	if(leftblockuti == Nav)
+	  {
+	    m_state.abortShouldntGetHere(); //luti is complete! (t41363)
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    setNodeType(Nav);
+	    return Nav;
+	  }
+	else
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	    setNodeType(Hzy);
+	    m_state.setGoAgain();
+	    return Hzy; //t41222, inheritance
+	  }
+      }
+    //else //t41010, t41145
 
-   //set up compiler state to use the member class block for symbol searches
+    //set up compiler state to use the member class block for symbol searches
+    // no concept of effective self for virtual function call search during c&l (t41543)
     m_state.pushClassContextUsingMemberClassBlock(memberClassNode);
 
-    UTI rightType = m_nodeRight->checkAndLabelType();
+    UTI rightType = m_nodeRight->checkAndLabelType(this);
 
     //clear up compiler state to no longer use the member class block for symbol searches
     m_state.popClassContext();
@@ -179,14 +295,125 @@ namespace MFM {
 
     if(m_state.okUTItoContinue(rightType))
       {
-	//based on righthand side
-	Node::setStoreIntoAble(m_nodeRight->getStoreIntoAble());
-
-	//base reference-ability on righthand side (t41085)
-	Node::setReferenceAble(m_nodeRight->getReferenceAble());
+	setStoreIntoAbleAndReferenceAble();
+	if(m_nodeRight->isFunctionCall())
+	  {
+	    if(m_nodeLeft->isAMemberSelect() && ((NodeMemberSelect *) m_nodeLeft)->isAMemberSelectByRegNum())
+	      {
+		if(!(m_nodeRight->isAVirtualFunctionCall()))
+		  {
+		    std::ostringstream msg;
+		    msg << "Member selected by classId must be a VIRTUAL function, ";
+		    msg << "not '" << m_nodeRight->getName() << "'";
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    setNodeType(Nav);
+		    return Nav; //t41388
+		  }
+	      }
+	  }
       }
     return getNodeType();
   } //checkAndLabelType
+
+  bool NodeMemberSelect::getConstantMemberValue(BV8K& bvmsel)
+  {
+    bool rtnok = false;
+    //vs t41232, t41263
+    //righthand member of constant class (t41273); left is complete, we know.
+    assert(m_nodeLeft->isAConstant());
+    UTI leftType = m_nodeLeft->getNodeType();
+    assert(m_state.isAClass(leftType));
+    assert(m_state.isComplete(leftType));
+    UlamType * lut = m_state.getUlamTypeByIndex(leftType);
+    ULAMCLASSTYPE lclasstype = lut->getUlamClassType();
+    UTI rightType = m_nodeRight->getNodeType();
+    UlamType * rut = m_state.getUlamTypeByIndex(rightType);
+
+    //rhs could be a class/array, primitive/array; whatever it is a constant!
+    //replace rhs with a constant node version of it, using the value found in lhs.
+    assert(!m_nodeRight->isAList());
+    assert(!m_nodeRight->isFunctionCall());
+    if(!m_nodeRight->isAConstant())
+      {
+	assert(m_nodeRight->hasASymbolDataMember());
+	u32 rpos = m_nodeRight->getSymbolDataMemberPosOffset();
+	if(rpos == UNRELIABLEPOS)
+	  {
+	    TBOOL packed = m_state.tryToPackAClass(leftType);
+	    if(packed == TBOOL_TRUE)
+	      {
+		rpos = m_nodeRight->getSymbolDataMemberPosOffset();
+	      }
+	    //else cannot pack yet
+	  }
+
+	//okay to fold (possible refactor TODO); Element Types and Strings still un-fixed.
+	if(rpos != UNRELIABLEPOS)
+	  {
+	    if(lclasstype == UC_ELEMENT)
+	      rpos += ATOMFIRSTSTATEBITPOS;
+
+	    BV8K bvcctmp;
+	    bool gotVal = m_nodeLeft->getConstantValue(bvcctmp);
+
+	    if(gotVal)
+	      {
+		u32 rlen = rut->getSizeofUlamType();
+		bvcctmp.CopyBV(rpos, 0, rlen, bvmsel);
+		rtnok = true;
+	      } //no left class value
+	  } //rpos not reliable
+      }
+    else
+      {
+	//right is a constant (t41278)
+	rtnok = m_nodeRight->getConstantValue(bvmsel);
+      }
+    return rtnok;
+  } //getConstantMemberValue
+
+  bool NodeMemberSelect::getConstantValue(BV8K& bval)
+  {
+    return getConstantMemberValue(bval);
+  }
+
+  TBOOL NodeMemberSelect::checkStoreIntoAble()
+  {
+    TBOOL lstor = m_nodeLeft->getStoreIntoAble();
+    if(m_nodeRight->isFunctionCall())
+      {
+	if(lstor != TBOOL_TRUE)
+	  {
+	    //e.g. funcCall is not storeintoable even if its return value is.
+	    std::ostringstream msg;
+	    msg << "Member selected must be a modifiable lefthand side: '";
+	    msg << m_nodeLeft->getName();
+	    msg << "' requires a variable";
+	    if(m_nodeLeft->isFunctionCall())
+	      msg << "; may be a function call";
+	    else if(hasASymbolReference() && hasASymbolReferenceConstant())
+	      msg << "; may be a constant function parameter";
+	    if(lstor == TBOOL_HAZY)
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	    else
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	  } //done
+      }
+    return lstor;
+  } //checkStoreIntoAble
+
+  void NodeMemberSelect::setStoreIntoAbleAndReferenceAble()
+  {
+    TBOOL  lstor = m_nodeLeft->getStoreIntoAble(); //default ok
+    TBOOL  rstor = m_nodeRight->getStoreIntoAble(); //default ok
+    TBOOL stor = Node::minTBOOL(lstor, rstor); //min of lhs and rhs
+    setStoreIntoAble(stor);
+
+    TBOOL  lrefer = m_nodeLeft->getReferenceAble(); //default ok
+    TBOOL  rrefer = m_nodeRight->getReferenceAble(); //default ok
+    TBOOL refer = Node::minTBOOL(lrefer, rrefer); //min of lhs and rhs
+    setReferenceAble(refer);
+  }
 
   bool NodeMemberSelect::trimToTheElement(Node ** fromleftnode, Node *& rtnnodeptr)
   {
@@ -209,11 +436,6 @@ namespace MFM {
     return false;
   } //trimToTheElement
 
-  bool NodeMemberSelect::assignClassArgValueInStubCopy()
-  {
-    return true; //nothing to do
-  }
-
   bool NodeMemberSelect::isFunctionCall()
   {
     return m_nodeRight->isFunctionCall(); //based like storeintoable, on right
@@ -234,11 +456,16 @@ namespace MFM {
   {
     assert(m_nodeLeft && m_nodeRight);
     UTI nuti = getNodeType();
-    if(nuti == Nav)
-      return ERROR;
+    if(nuti == Nav) return evalErrorReturn();
 
-    if(nuti == Hzy)
-      return NOTREADY;
+    if(nuti == Hzy) return evalStatusReturnNoEpilog(NOTREADY);
+
+    if(m_nodeLeft->isAConstant())
+      {
+	//probably need evaltostoreinto for rhs, since not DM. (? t41507)
+	//m_state.abortNotImplementedYet(); //t41198, t41209, t41217
+	//return UNEVALUABLE;
+      }
 
     evalNodeProlog(0); //new current frame pointer on node eval stack
 
@@ -247,11 +474,7 @@ namespace MFM {
 
     makeRoomForSlots(1); //always 1 slot for ptr
     EvalStatus evs = m_nodeLeft->evalToStoreInto();
-    if(evs != NORMAL)
-      {
-	evalNodeEpilog();
-	return evs;
-      }
+    if(evs != NORMAL) return evalStatusReturn(evs);
 
     //UPDATE selected member (i.e. element or quark) before eval of rhs
     //(i.e. data member or func call); e.g. Ptr to atom
@@ -276,48 +499,51 @@ namespace MFM {
 
     m_state.m_currentObjPtr = newCurrentObjectPtr;
 
-    //UTI ruti = m_nodeRight->getNodeType();
-    //u32 slot = makeRoomForNodeType(ruti);
     u32 slot = makeRoomForNodeType(nuti);
     evs = m_nodeRight->eval(); //a Node Function Call here, or data member eval
-    if(evs != NORMAL)
-      {
-	evalNodeEpilog();
-	return evs;
-      }
+    if(evs != NORMAL) return evalStatusReturn(evs);
 
-    //assigns rhs to lhs UV pointer (handles arrays);
+    //assigns rhs (next slot e.g. t3704) to lhs UV pointer (handles arrays);
     //also copy result UV to stack, -1 relative to current frame pointer
     if(slot) //avoid Void's
-      if(!doBinaryOperation(1, 1+slot, slot))
-	evs = ERROR;
+      if(!doBinaryOperation(1, 1+1, slot))
+	return evalStatusReturn(ERROR); //skip restore now, ok???
 
     m_state.m_currentObjPtr = saveCurrentObjectPtr; //restore current object ptr
     m_state.m_currentSelfPtr = saveCurrentSelfPtr; //restore current self ptr
 
+    if(evs != NORMAL) return evalStatusReturn(evs);
+
     evalNodeEpilog();
-    return evs;
+    return NORMAL;
   } //eval
 
   //for eval, want the value of the rhs
    bool NodeMemberSelect::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
   {
     assert(slots);
-    //the return value of a function call, or value of a data member
-    UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(rslot);
 
     UlamValue rtnUV;
     UTI ruti = getNodeType();
-    PACKFIT packFit = m_state.determinePackable(ruti);
 
-    if(m_state.isScalar(ruti) || WritePacked(packFit))
+    if(Node::returnValueOnStackNeededForEval(ruti)) //t3704
       {
-	rtnUV = ruv;
+	//the return value of a function call, or value of a data member
+	UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(rslot);
+	PACKFIT packFit = m_state.determinePackable(ruti);
+
+	if(m_state.isScalar(ruti) || WritePacked(packFit))
+	  {
+	    rtnUV = ruv;
+	  }
+	else
+	  m_state.abortNotImplementedYet(); //or repeat the next else ????
       }
     else
       {
-	//make a ptr to an unpacked array, base[0] ? [pls test]
-	rtnUV = UlamValue::makePtr(rslot, EVALRETURN, ruti, UNPACKED, m_state);
+	//make a ptr to an unpacked array, base[0] ? //t3704,
+	//t3381,t3853,t3995 (PACKEDLOADABLE, not UNPACKED);
+	rtnUV = UlamValue::makePtr(rslot, EVALRETURN, ruti, m_state.determinePackable(ruti), m_state);
       }
 
     if((rtnUV.getUlamValueTypeIdx() == Nav) || (ruti == Nav))
@@ -334,11 +560,9 @@ namespace MFM {
   EvalStatus NodeMemberSelect::evalToStoreInto()
   {
     UTI nuti = getNodeType();
-    if(nuti == Nav)
-      return ERROR;
+    if(nuti == Nav) return evalErrorReturn();
 
-    if(nuti == Hzy)
-      return NOTREADY;
+    if(nuti == Hzy) return evalStatusReturnNoEpilog(NOTREADY);
 
     evalNodeProlog(0);
 
@@ -346,11 +570,7 @@ namespace MFM {
 
     makeRoomForSlots(1); //always 1 slot for ptr
     EvalStatus evs = m_nodeLeft->evalToStoreInto();
-    if(evs != NORMAL)
-      {
-	evalNodeEpilog();
-	return evs;
-      }
+    if(evs != NORMAL) return evalStatusReturn(evs);
 
     //UPDATE selected member (i.e. element or quark) before eval of rhs
     // (i.e. data member or func call)
@@ -368,11 +588,7 @@ namespace MFM {
 
     makeRoomForSlots(1); //always 1 slot for ptr
     evs = m_nodeRight->evalToStoreInto();
-    if(evs != NORMAL)
-      {
-	evalNodeEpilog();
-	return evs;
-      }
+    if(evs != NORMAL) return evalStatusReturn(evs);
 
     UlamValue ruvPtr = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(2);
 
@@ -420,22 +636,30 @@ namespace MFM {
     if(passalongUVPass())
       {
 	luvpass = uvpass;
-	Node::adjustUVPassForElements(luvpass); //t3803?
       }
 
     m_nodeLeft->genCodeToStoreInto(fp, luvpass);
 
+    UVPass ruvpass; //fresh (t41473?), consistent w genCodeToStoreInto
     //NodeIdent can't do it, because it doesn't know it's not a stand-alone element.
     // here, we know there's rhs of member select, which needs to adjust to state bits.
-    if(passalongUVPass())
+    if(passalongUVPass(true))
       {
-	uvpass = luvpass;
-	Node::adjustUVPassForElements(uvpass); //t3803?
+	ruvpass = luvpass;
+      }
+    else if(m_nodeLeft->isACast())
+      {
+	//needs to be read early before rhs. t41570
+	Node::genCodeConvertATmpVarIntoBitVector(fp,luvpass);
+
+	m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(luvpass, NULL); //dm to avoid leaks
+	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
       }
 
     //check the back (not front) to process multiple member selections (e.g. t3818)
-    m_nodeRight->genCode(fp, uvpass);  //leave any array item as-is for gencode.
+    m_nodeRight->genCode(fp, ruvpass);  //leave any array item as-is for gencode.
 
+    uvpass = ruvpass;
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************?
   } //genCode
 
@@ -448,8 +672,7 @@ namespace MFM {
     UVPass luvpass;
     if(passalongUVPass())
       {
-	luvpass = uvpass; //t3584
-	Node::adjustUVPassForElements(luvpass); //t3803 ?
+	luvpass = uvpass; //t3584, t3803
       }
 
     // if parent is another MS, we might need to adjust pos first
@@ -461,27 +684,39 @@ namespace MFM {
     // here, we know there's rhs of member select, which needs to adjust to state bits.
     //process multiple member selections (e.g. t3817)
     UVPass ruvpass;
-    if(passalongUVPass())
+    if(passalongUVPass(true))
       {
-	ruvpass = luvpass;  //t3615 ?
-	Node::adjustUVPassForElements(ruvpass); //t3803
+	ruvpass = luvpass;  //t3615, t3803
+      }
+    else if(m_nodeLeft->isACast())
+      {
+	//consistent w genCode, but unclear if its needed here: unmodifiable cast.x as lhs
+	m_state.abortNeedsATest();
+
+	//needs to be read early before rhs.
+	Node::genCodeConvertATmpVarIntoBitVector(fp,luvpass);
+
+	m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(luvpass, NULL); //dm to avoid leaks
+	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
       }
 
     m_nodeRight->genCodeToStoreInto(fp, ruvpass); //uvpass contains the member selected, or cos obj symbol?
 
     uvpass = ruvpass;
 
-    //tmp variable needed for any function call not returning a ref (t41006), including 'aref'(t41005); func calls returning a ref already made tmpvar.
+    //tmp variable needed for any function call not returning a ref (t41006), including 'aref'(t41005);
+    // func calls returning a ref already made tmpvar.
     // uvpass not necessarily returning a reference type (t3913,4,5,7);
-    // t41035 returns a primitive ref; t3946, t3948
-    if(m_nodeRight->isFunctionCall() && !m_state.isReference(uvpass.getPassTargetType()))
+    // fail/t41035 returns a primitive ref; t3946, t3948
+    if(m_nodeRight->isFunctionCall() && !m_state.isStringATmpVar(uvpass.getPassNameId()))
       {
+	assert(!m_tmpvarSymbol); //t41572 can't call func on cast
 	m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, NULL); //dm to avoid leaks
 	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
       }
   } //genCodeToStoreInto
 
-  bool NodeMemberSelect::passalongUVPass()
+  bool NodeMemberSelect::passalongUVPass(bool toRHS)
   {
     bool rtnb = false; //don't pass along
     if(!m_state.m_currentObjSymbolsForCodeGen.empty())
@@ -490,7 +725,15 @@ namespace MFM {
 	UTI cosuti = cossym->getUlamTypeIdx();
 	UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
 	//t3913, t3915 tmpref may not be a ref, but may need adjusting (i.e. anonymous element returned)
-	rtnb = (!cosut->isReference() && (!cossym->isTmpVarSymbol() || Node::needAdjustToStateBits(cosuti)));
+	// t3706 not isAltRefType; t41307,9,10 isBaseClassRef (ulam-5); t41314 pass if self;
+	rtnb = cossym->isSelf() || (!cosut->isReference() && (!cossym->isTmpVarSymbol() || Node::needAdjustToStateBits(cosuti) || ((SymbolTmpVar *) cossym)->isBaseClassRef())) || (cosut->getReferenceType() == ALT_AS) /* AS, but not ARRAYITEM (t41396, t3706) */  ;
+      }
+    else
+      {
+	if(toRHS)
+	  rtnb = m_nodeRight->isFunctionCall(); //t41544
+	else //toLHS
+	  rtnb = m_nodeLeft->isFunctionCall(); //? consistent w rhs
       }
     return rtnb;
   }

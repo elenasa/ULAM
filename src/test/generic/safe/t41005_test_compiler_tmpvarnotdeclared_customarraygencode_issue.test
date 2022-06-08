@@ -1,11 +1,15 @@
 ## -*- mode:ulam -*-
 #=t41005_test_compiler_tmpvarnotdeclared_customarraygencode_issue
+##
+## gen output: (+ assert)
+##   Unsigned Arg: 17
+##
 #!
 Exit status: 0
-Ue_A : ConstantLabel(06666f6f626172) { :< :< typedef Unsigned(8) StringIndex;  Unsigned(8) mStringIndex(17u); > constant String(32) fstring = "foobar"; > Int(32) test() {  ( )behave 0 cast return } }
-Uq_ConstantLabel(String(32) fstring) : Label { :< typedef Unsigned(8) StringIndex;  Unsigned(8) mStringIndex( 0u); > <NOMAIN> }
-Uq_Label { typedef Unsigned(8) StringIndex;  Unsigned(8) mStringIndex( 0u);  <NOMAIN> }
+Ue_A : ConstantLabel("foobar") { :ConstantLabel("foobar")< constant String fstring = "foobar";  :Label< Unsigned(8) mStringIndex(17u);  typedef Unsigned(8) StringIndex; >> ^Label< Unsigned(8) mStringIndex(17u);  typedef Unsigned(8) StringIndex; > Int test() {  System s;  self ( )behave . s ( self mStringIndex . cast )print . s ( self mStringIndex . 17u cast == )assert . 0 cast return } }
+Uq_ConstantLabel(String fstring) : Label { :Label< typedef Unsigned(8) StringIndex;  Unsigned(8) mStringIndex( 0u); > <NOMAIN> }
 Uq_System { <NOMAIN> }
+Uq_Label { typedef Unsigned(8) StringIndex;  Unsigned(8) mStringIndex( 0u);  <NOMAIN> }
 ##
 ## informed by Dave issue_2 on 1/17/17: custom array data member assignment (not an aref call)
 ##
@@ -13,7 +17,10 @@ Uq_System { <NOMAIN> }
   ulam 3;
 element A : ConstantLabel("foobar") {
   Int test(){
+    System s;
     behave();
+    s.print(mStringIndex);
+    s.assert(mStringIndex==17u);
     return 0;
   }
 }

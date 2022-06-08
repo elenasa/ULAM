@@ -1,0 +1,50 @@
+## -*- mode:ulam -*-
+#=t41527_test_compiler_elementtemplateinheritance_funcinbasetemplateinstance_ish
+#!
+Exit status: 0
+Ue_Test { Int test() {  WT(1u,2u) wt;  wt ( )behave . 0 cast return } }
+Ue_WT(holder cET, holder cWT) : UrSelf +QT(cQ,cRR) { :UrSelf<> +QT12<> <NOMAIN> }
+Uq_Q : R { typedef Unsigned(3) QQ;  :R<> <NOMAIN> }
+Uq_QT(holder cQ, holder cRR) : Q { :Q< typedef Unsigned(3) QQ; > <NOMAIN> }
+Uq_R { /* empty class block */ }
+##
+## informed by Dave;s ish 20210714
+##
+#>Test.ulam
+ ulam 3;
+element Test {
+  Int test()
+  {
+    WT(1,2) wt;
+    wt.behave();
+    return 0;
+  }
+}
+
+#:WT.ulam
+  ulam 5;
+local typedef Q.QQ QQ;
+//local typedef WT(1,2) WT12;
+
+element WT(QQ cET, QQ cWT) : UrSelf + QT(cET,cWT)
+{
+  Void behave() {
+    func();
+  }
+}
+
+#:Q.ulam
+  ulam 3;
+quark Q : R {
+  typedef Unsigned(3) QQ;
+  virtual Int func() ;
+}
+
+quark QT(QQ cQ, QQ cRR) : Q {
+  @Override
+  Int func() { return cQ + cRR; }
+}
+
+quark R { }
+
+#.

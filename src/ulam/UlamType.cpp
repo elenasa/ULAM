@@ -35,20 +35,41 @@ namespace MFM {
 
   const std::string UlamType::getUlamTypeName()
   {
-    return m_key.getUlamKeyTypeSignatureAsString(&m_state);
-    // REMINDER!! error due to disappearing string:
+    return m_key.getUlamKeyTypeSignatureNameAndSize((getBitSize() == ULAMTYPE_DEFAULTBITSIZE[getUlamTypeEnum()]), &m_state); //wo classinstance, w bits&arrays(t3137),no default bitsize (t41324)
+    // REMINDERS!! error due to disappearing string:
+    //    return m_key.getUlamKeyTypeSignatureAsString(&m_state);
     //    return m_key.getUlamKeyTypeSignatureAsString().c_str();
   }
 
   const std::string UlamType::getUlamTypeNameBrief()
   {
-    return m_key.getUlamKeyTypeSignatureNameAndSize(&m_state);
+    std::ostringstream namestr;
+    if(getBitSize() == ULAMTYPE_DEFAULTBITSIZE[getUlamTypeEnum()])
+      namestr << m_key.getUlamKeyTypeSignatureName(&m_state).c_str(); //no default bitsize
+    else
+      namestr << m_key.getUlamKeyTypeSignatureNameAndBitSize(&m_state).c_str();
+
+    if(isAltRefType())
+      namestr << "&";
+    return namestr.str(); //no arrays, refs, bitsize if not default size
+    //return m_key.getUlamKeyTypeSignatureNameAndBitSize(&m_state); //no arrays, nor ref w Bit-Size
+  }
+
+  const std::string UlamType::getUlamTypeClassNameBrief(UTI cuti)
+  {
+    m_state.abortUndefinedUlamClassType(); //only for classes
+    return "iamnotaclass"; //for compiler
   }
 
   const std::string UlamType::getUlamTypeNameOnly()
   {
     return m_key.getUlamKeyTypeSignatureName(&m_state);
   }
+
+  u32 UlamType::getUlamTypeNameId()
+  {
+    return m_key.getUlamKeyTypeSignatureNameId();
+  } //helper
 
    UlamKeyTypeSignature UlamType::getUlamKeyTypeSignature()
   {
@@ -88,6 +109,9 @@ namespace MFM {
     if(!checkArrayCast(typidx))
       return CAST_BAD;
 
+    if((m_state.getReferenceType(typidx)==ALT_CONSTREF) && (getReferenceType()==ALT_REF))
+      return CAST_BAD; //bad cast from const ref to non-const ref
+
     return CAST_CLEAR;
   } //safeCast
 
@@ -109,19 +133,19 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Casting different Array sizes: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(typidx).c_str();
+	msg << m_state.getUlamTypeNameByIndex(typidx).c_str();
 	msg << " TO " ;
-	msg << getUlamTypeNameBrief().c_str();
+	msg << getUlamTypeName().c_str(); //t41429
 	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
-	    bOK = false;
+	bOK = false;
       }
     else
       {
 	std::ostringstream msg;
 	msg << "Casting (nonScalar) Array: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(typidx).c_str();
+	msg << m_state.getUlamTypeNameByIndex(typidx).c_str();
 	msg << " TO " ;
-	msg << getUlamTypeNameBrief().c_str();
+	msg << getUlamTypeName().c_str();
 	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
       }
     return bOK;
@@ -129,6 +153,7 @@ namespace MFM {
 
   bool UlamType::checkReferenceCast(UTI typidx)
   {
+    // applies to ALT_REF or ALT_CONSTREF.
     //both complete; typidx is a reference
     UlamKeyTypeSignature key1 = getUlamKeyTypeSignature();
     UlamKeyTypeSignature key2 = m_state.getUlamKeyTypeSignatureByIndex(typidx);
@@ -141,27 +166,34 @@ namespace MFM {
       return false;
 
     if(key1.getUlamKeyTypeSignatureClassInstanceIdx() != key2.getUlamKeyTypeSignatureClassInstanceIdx())
-      return false; //t3963
+      {
+	ULAMTYPECOMPARERESULTS cicr = UlamType::compareWithWildArrayItemALTKey(key1.getUlamKeyTypeSignatureClassInstanceIdx(),key2.getUlamKeyTypeSignatureClassInstanceIdx(), m_state);
+	if(cicr != UTIC_SAME)
+	  return false; //t3963
+      }
 
-    //skip rest in the case of array item, continue with usual size fit
+    //skip rest in the case of array item, continue with usual size fit;
+    //must check (t3884, t3651, t3653, t3817, t41071,3 t41100)
     if(alt1 == ALT_ARRAYITEM || alt2 == ALT_ARRAYITEM)
       return true;
 
     if(key1.getUlamKeyTypeSignatureBitSize() != key2.getUlamKeyTypeSignatureBitSize())
 	  return false;
-    //if(alt1 != ALT_NOT || alt2 == ALT_NOT) return false;
+
+    if((alt2 == ALT_CONSTREF) && (alt1 == ALT_REF))
+      return false;
 
     return true; //keys the same, except for reference type
   } //checkReferenceCast
 
   void UlamType::getDataAsString(const u32 data, char * valstr, char prefix)
   {
-    sprintf(valstr,"%s", getUlamTypeName().c_str());
+    sprintf(valstr,"%s", getUlamTypeNameBrief().c_str());
   }
 
   void UlamType::getDataLongAsString(const u64 data, char * valstr, char prefix)
   {
-    sprintf(valstr,"%s", getUlamTypeName().c_str());
+    sprintf(valstr,"%s", getUlamTypeNameBrief().c_str());
   }
 
   s32 UlamType::getDataAsCs32(const u32 data)
@@ -200,13 +232,13 @@ namespace MFM {
     s32 bitsize = getBitSize();
     s32 arraysize = getArraySize();
 
-    if(isReference())
+    if(isReference()) //includes ALT_ARRAYITEM (t3147); not isAltRefType (t3114)
       mangled << "r"; //e.g. t3114
 
     if(arraysize > 0)
       mangled << ToLeximitedNumber(arraysize);
-    else if(arraysize == 0)
-      mangled << ToLeximitedNumber(-1); //distinct from scalar
+    //    else if(arraysize == 0)
+    //  mangled << ToLeximitedNumber(-1); //distinct from scalar
     else
       mangled << 10; //scalar NONARRAYSIZE
 
@@ -252,7 +284,7 @@ namespace MFM {
   {
     assert(needsImmediateType());
 
-    if(isReference())
+    if(isAltRefType())
       {
 	m_state.abortShouldntGetHere();
 	return getUlamTypeImmediateMangledName();
@@ -307,11 +339,14 @@ namespace MFM {
 	ctype = "u64";
 	break;
       case 96:
-	ctype = "BV96";
-	break;
+	if(!isPrimitiveType())
+	  {
+	    ctype = "BV96"; //atom, element, maybe 1 transient, or quark array
+	    break;
+	  } //else fall thru
       default:
 	{
-	  assert(!isScalar());
+	  //assert(!isScalar()); t41562
 	  //ctype = getTmpStorageTypeAsString(getItemWordSize()); //u32, u64 (inf loop)
 	  std::ostringstream cstr;
 	  if(sizebyints == (s32) getItemWordSize())
@@ -326,7 +361,12 @@ namespace MFM {
 
   TMPSTORAGE UlamType::getTmpStorageTypeForTmpVar()
   {
-    return TMPREGISTER; //unpacked arrays reflected in tmp name.
+    //references are read into the same underlying bitstorage as non-refs.
+    TMPSTORAGE rtnStgType = TMPREGISTER;
+    u32 sizebyints = getTotalWordSize();
+    if(sizebyints > 64)
+      rtnStgType = TMPTBV;
+    return rtnStgType; //unpacked arrays reflected in tmp name.
   }
 
   const char * UlamType::getUlamTypeAsSingleLowercaseLetter()
@@ -441,6 +481,17 @@ namespace MFM {
     return getTotalBitSize(); //by default
   }
 
+  s32 UlamType::getBitsizeAsBaseClass()
+  {
+    m_state.abortShouldntGetHere();
+    return UNKNOWNSIZE;
+  }
+
+  void UlamType::setBitsizeAsBaseClass(s32 bs)
+  {
+    m_state.abortShouldntGetHere(); //only classes
+  }
+
   ALT UlamType::getReferenceType()
   {
     return m_key.getUlamKeyTypeSignatureReferenceType();
@@ -449,9 +500,14 @@ namespace MFM {
   bool UlamType::isReference()
   {
     //yes, all of these ALT types are treated as references in gencode.
-    //return m_key.getUlamKeyTypeSignatureReferenceType() != ALT_NOT;
     ALT alt = m_key.getUlamKeyTypeSignatureReferenceType();
-    return (alt == ALT_AS) || (alt == ALT_REF) || (alt == ALT_ARRAYITEM);
+    return (alt == ALT_AS) || (alt == ALT_REF) || (alt == ALT_ARRAYITEM) || (alt == ALT_CONSTREF);
+  }
+
+  bool UlamType::isAltRefType()
+  {
+    ALT alt = m_key.getUlamKeyTypeSignatureReferenceType();
+    return (alt == ALT_REF) || (alt == ALT_CONSTREF);
   }
 
   bool UlamType::isHolder()
@@ -565,8 +621,16 @@ namespace MFM {
     if(key1.getUlamKeyTypeSignatureBitSize() != key2.getUlamKeyTypeSignatureBitSize())
       return UTIC_NOTSAME;
 
-    if(key1.getUlamKeyTypeSignatureClassInstanceIdx() != key2.getUlamKeyTypeSignatureClassInstanceIdx())
-      return UTIC_NOTSAME; //t3412
+    UTI ci1 = key1.getUlamKeyTypeSignatureClassInstanceIdx();
+    UTI ci2 = key2.getUlamKeyTypeSignatureClassInstanceIdx();
+    if(ci1 != ci2)
+      {
+	//related t41436 (20210328 ish 045328 template instance ancestor comparison)
+	UlamKeyTypeSignature ci1key = state.getUlamTypeByIndex(ci1)->getUlamKeyTypeSignature();
+	UlamKeyTypeSignature ci2key = state.getUlamTypeByIndex(ci2)->getUlamKeyTypeSignature();
+	if(!(ci1key == ci2key))
+	  return UTIC_NOTSAME; //t3412 different class args
+      }
 
     ALT alt1 = key1.getUlamKeyTypeSignatureReferenceType();
     ALT alt2 = key2.getUlamKeyTypeSignatureReferenceType();
@@ -576,10 +640,12 @@ namespace MFM {
 	{
 	  if((alt1 == ALT_REF) || (alt2 == ALT_REF))
 	    return UTIC_NOTSAME; //t3653
+	  else if ((alt1 == ALT_CONSTREF) || (alt2 == ALT_CONSTREF))
+	    return UTIC_NOTSAME; //like a ref
 	  else if ((alt1 == ALT_AS) || (alt2 == ALT_AS))
 	    return UTIC_NOTSAME; //like a ref
 	  else
-	    return UTIC_SAME;
+	    return UTIC_SAME; //matches ALT_NOT
 	}
 	else
 	  return UTIC_NOTSAME;
@@ -640,6 +706,16 @@ namespace MFM {
     if(key1.getUlamKeyTypeSignatureBitSize() != key2.getUlamKeyTypeSignatureBitSize())
       return UTIC_NOTSAME;
 
+    UTI ci1 = key1.getUlamKeyTypeSignatureClassInstanceIdx();
+    UTI ci2 = key2.getUlamKeyTypeSignatureClassInstanceIdx();
+    if(ci1 != ci2)
+      {
+	UlamKeyTypeSignature ci1key = state.getUlamTypeByIndex(ci1)->getUlamKeyTypeSignature();
+	UlamKeyTypeSignature ci2key = state.getUlamTypeByIndex(ci2)->getUlamKeyTypeSignature();
+	if(!(ci1key == ci2key))
+	  return UTIC_NOTSAME;
+      }
+
     ALT alt1 = key1.getUlamKeyTypeSignatureReferenceType();
     ALT alt2 = key2.getUlamKeyTypeSignatureReferenceType();
     if(alt1 != alt2)
@@ -652,12 +728,12 @@ namespace MFM {
   ULAMTYPECOMPARERESULTS UlamType::compareForArgumentMatching(UTI u1, UTI u2, CompilerState& state)  //static
   {
     return UlamType::compareWithWildArrayItemALTKey(u1, u2, state);
-  }
+  } //compareForArgumentMatching
 
   ULAMTYPECOMPARERESULTS UlamType::compareForMakingCastingNode(UTI u1, UTI u2, CompilerState& state)  //static
   {
     return UlamType::compareWithWildArrayItemALTKey(u1, u2, state);
-  }
+  } //compareForMakingCastingNode
 
   ULAMTYPECOMPARERESULTS UlamType::compareForUlamValueAssignment(UTI u1, UTI u2, CompilerState& state)  //static
   {
@@ -671,7 +747,7 @@ namespace MFM {
 
   ULAMTYPECOMPARERESULTS UlamType::compareForString(UTI u1, CompilerState& state)  //static
   {
-    //bitsize always 32; wild reference type
+    //bitsize always STRINGIDXBITS; wild reference type
     //arrays not treated as a String, per se (t3949, t3975, t3985, t3995)
     return UlamType::compareWithWildALTKey(u1, String, state);
   }
@@ -765,7 +841,10 @@ namespace MFM {
 	method = "ReadLong";
 	break;
       case 96:
-	method = "ReadBig";
+	if(isPrimitiveType())
+	  method = "ReadBV";
+	else
+	  method = "ReadBig";
 	break;
       default:
 	method = "ReadBV"; //template arg deduced by gcc
@@ -787,7 +866,10 @@ namespace MFM {
 	method = "WriteLong";
 	break;
       case 96:
-	method = "WriteBig";
+	if(isPrimitiveType())
+	  method = "WriteBV";
+	else
+	  method = "WriteBig";
 	break;
       default:
 	method = "WriteBV"; //template arg deduced by gcc
@@ -809,7 +891,10 @@ namespace MFM {
 	method = "ReadLong"; //ReadArrayLong
 	break;
       case 96:
-	method = "ReadBig";
+	if(isPrimitiveType())
+	  method = "ReadBV";
+	else
+	  method = "ReadBig";
 	break;
       default:
 	method = "ReadBV"; //template arg deduced by gcc
@@ -831,7 +916,10 @@ namespace MFM {
 	method = "WriteLong"; //WriteArrayLong
 	break;
       case 96:
-	method = "WriteBig";
+	if(isPrimitiveType())
+	  method = "WriteBV";
+	else
+	  method = "WriteBig";
 	break;
       default:
 	method = "WriteBV"; //template arg deduced by gcc

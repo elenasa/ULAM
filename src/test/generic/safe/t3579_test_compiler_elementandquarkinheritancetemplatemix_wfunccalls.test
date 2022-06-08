@@ -2,9 +2,9 @@
 #=t3579_test_compiler_elementandquarkinheritancetemplatemix_wfunccalls
 #!
 Exit status: 28
-Ue_R { Int(32) test() {  Tu(1) tu;  Tu(2) tu2;  Foo foo;  tu ( 9 cast )set . tu2 ( 15 cast )set . foo ( )func . tu ( )func . +b tu2 ( )func . +b return } }
-Ue_Tu(Int(32) x) : Foo { /* empty class block */ }
-Uq_Foo { Int(32) mi( 4);  <NOMAIN> }
+Ue_R { Int test() {  Tu(1) tu;  Tu(2) tu2;  Foo foo;  tu ( 9 cast )set . tu2 ( 15 cast )set . foo ( )func . tu ( )func . +b tu2 ( )func . +b return } }
+Ue_Tu(Int x) : Foo { /* empty class block */ }
+Uq_Foo { Int mi( 4);  <NOMAIN> }
 ##
 ##       //template classes can inherit from a regular class
 ##       informed by t3567, error/t3556

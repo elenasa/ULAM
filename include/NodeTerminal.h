@@ -2,7 +2,8 @@
  * NodeTerminal.h - Basic Node handling Terminals for ULAM
  *
  * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2017 Ackleyshack LLC.
+ * Copyright (C) 2014-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +28,9 @@
 
 /**
   \file NodeTerminal.h - Basic Node handling Terminals for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2017  All rights reserved.
+  \date (C) 2014-2021  All rights reserved.
   \gpl
 */
 
@@ -67,13 +68,15 @@ namespace MFM{
 
     virtual bool isReadyConstant();
 
+    virtual bool hasASymbol();
+
     virtual FORECAST safeToCastTo(UTI newType);
 
-    virtual UTI checkAndLabelType();
+    virtual UTI checkAndLabelType(Node * thisparentnode);
 
     virtual bool isNegativeConstant();
 
-    virtual bool isWordSizeConstant();
+    virtual bool isWordSizeConstant(u32 wordsize);
 
     virtual EvalStatus eval();
 
@@ -91,7 +94,6 @@ namespace MFM{
 
     virtual bool setConstantValue(const Token& tok);
 
-    bool fitsInBits(UTI fituti);
     bool fitsInBits32(UTI fituti);
     bool fitsInBits64(UTI fituti);
 
@@ -101,11 +103,13 @@ namespace MFM{
     u64 convertForthAndBackLong(const u64 data, UTI fituti);
     bool fitsInBits32compare(UTI fituti);
 
-    u32 getNameId();
+    virtual u32 getNameId();
 
   protected:
     virtual EvalStatus makeTerminalValue(UlamValue& uvarg); //used by eval only
     virtual void makeTerminalPassForCodeGen(UVPass& uvpass);
+
+    bool fitsInBits(UTI fituti);
 
     union {
       s64 sval;

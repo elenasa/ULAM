@@ -46,9 +46,9 @@ namespace MFM {
     m_state.abortShouldntGetHere();
   }
 
-  UTI NodeModelParameterDef::checkAndLabelType()
+  UTI NodeModelParameterDef::checkAndLabelType(Node * thisparentnode)
   {
-    UTI nodeType = NodeConstantDef::checkAndLabelType();
+    UTI nodeType = NodeConstantDef::checkAndLabelType(thisparentnode);
     if(m_state.okUTItoContinue(nodeType))
       {
 	UlamType * nut = m_state.getUlamTypeByIndex(nodeType);
@@ -71,14 +71,9 @@ namespace MFM {
     return true;
   }
 
-  void NodeModelParameterDef::genCodeDefaultValueStringRegistrationNumber(File * fp, u32 startpos)
+  bool NodeModelParameterDef::buildDefaultValueForClassConstantDefs()
   {
-    return;
-  }
-
-  void NodeModelParameterDef::genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos)
-  {
-    return;
+    return true;
   }
 
   void NodeModelParameterDef::checkForSymbol()
@@ -91,7 +86,8 @@ namespace MFM {
 
     Symbol * asymptr = NULL;
     bool hazyKin = false;
-    if(m_state.alreadyDefinedSymbol(m_cid, asymptr, hazyKin) && !hazyKin)
+    //    if(m_state.alreadyDefinedSymbol(m_cid, asymptr, hazyKin) && !hazyKin)
+    if(m_state.alreadyDefinedSymbol(m_cid, asymptr, hazyKin)) //t3443
       {
 	if(asymptr->isModelParameter())
 	  {
@@ -100,23 +96,141 @@ namespace MFM {
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "(1) <" << m_state.m_pool.getDataAsString(m_cid).c_str();
-	    msg << "> is not a model parameter, and cannot be used as one";
+	    msg << "(1) '" << m_state.m_pool.getDataAsString(m_cid).c_str();
+	    msg << "' is not a model parameter, and cannot be used as one";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
       }
     else
       {
 	std::ostringstream msg;
-	msg << "(2) Model Parameter <" << m_state.m_pool.getDataAsString(m_cid).c_str();
-	msg << "> is not defined, and cannot be used";
+	msg << "(2) Model Parameter '" << m_state.m_pool.getDataAsString(m_cid).c_str();
+	msg << "' is not defined, and cannot be used";
 	if(!hazyKin)
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	else
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //was debug
       }
     m_state.popClassContext(); //restore
   } //checkForSymbol
+
+  // called during parsing rhs of named model parameter constant;
+  // Requires a constant expression, else error;
+  // (scope of eval is based on the block of const def.)
+  // ulam-4 refactored for 32-bit platforms.
+  UTI NodeModelParameterDef::foldConstantExpression()
+  {
+    UTI uti = getNodeType();
+
+    if(uti == Nav)
+      return Nav;
+
+    if(!m_state.isComplete(uti)) //not complete includes Hzy
+      return Hzy; //e.g. not a constant; total word size (below) requires completeness
+
+    assert(m_constSymbol);
+    if(isReadyConstant())
+      return uti;
+
+    assert(!m_state.isConstantRefType(uti));
+    assert(m_state.isScalar(uti));
+    assert(m_nodeExpr);
+    assert(!m_state.isAClass(uti));
+
+    // MP must be a primitive constant..
+    u64 newconst = 0; //UlamType format (not sign extended)
+
+    evalNodeProlog(0); //new current frame pointer
+    makeRoomForNodeType(uti); //offset a constant expression
+
+    EvalStatus evs = m_nodeExpr->eval();
+    UlamValue cnstUV;
+    if( evs == NORMAL)
+      cnstUV = m_state.m_nodeEvalStack.popArg();
+
+    evalNodeEpilog();
+
+    if(evs == ERROR)
+      {
+	std::ostringstream msg;
+	msg << "Constant value expression for '";
+	msg << m_state.m_pool.getDataAsString(m_constSymbol->getId()).c_str();
+	msg << "', is erronous";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	return Nav;
+      }
+
+    if(evs == NOTREADY)
+      {
+	std::ostringstream msg;
+	msg << "Constant value expression for '";
+	msg << m_state.m_pool.getDataAsString(m_constSymbol->getId()).c_str();
+	msg << "', is not yet ready";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	return Hzy;
+      }
+
+    //t3403, t3490
+    //insure constant value fits in its declared type
+    // no saturation without an explicit cast.
+    FORECAST scr = m_nodeExpr->safeToCastTo(uti);
+    if(scr != CAST_CLEAR)
+      {
+	std::ostringstream msg;
+	msg << "Constant value expression for model parameter '";
+	msg << getName() << "' is not representable as ";
+	msg<< m_state.getUlamTypeNameBriefByIndex(uti).c_str();
+	if(scr == CAST_BAD)
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    return Nav;
+	  }
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	return Hzy; //necessary if not just a warning.
+      }
+
+    //cast first, also does safeCast
+    UlamType * ut = m_state.getUlamTypeByIndex(uti);
+    if(ut->cast(cnstUV, uti))
+      {
+	u32 wordsize = m_state.getTotalWordSize(uti);
+	if(wordsize == MAXBITSPERINT)
+	  newconst = cnstUV.getImmediateData(m_state);
+	else if(wordsize == MAXBITSPERLONG)
+	  newconst = cnstUV.getImmediateDataLong(m_state);
+	else
+	  m_state.abortGreaterThanMaxBitsPerLong();
+      }
+    else
+      {
+	std::ostringstream msg;
+	msg << "Constant value expression for model parameter '";
+	msg << getName() << "', was not representable as ";
+	msg<< m_state.getUlamTypeNameBriefByIndex(uti).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	return Nav;
+      }
+
+    // BUT WHY when Symbol is all we need/want? because it indicates
+    // there's a default value before c&l (see SCNT::getTotalParametersWithDefaultValues) (t3526)
+    //then do the surgery
+    NodeTerminal * newnode;
+    ULAMTYPE etyp = m_state.getUlamTypeByIndex(uti)->getUlamTypeEnum();
+    if(etyp == Int)
+      newnode = new NodeTerminal((s64) newconst, uti, m_state);
+    else
+      newnode = new NodeTerminal(newconst, uti, m_state);
+    newnode->setNodeLocation(getNodeLocation());
+    delete m_nodeExpr;
+    m_nodeExpr = newnode;
+
+    BV8K bvtmp;
+    u32 len = m_state.getTotalBitSize(uti);
+    bvtmp.WriteLong(0u, len, newconst); //is newconst packed?
+    m_constSymbol->setValue(bvtmp); //isReady now! (e.g. ClassArgument, ModelParameter)
+
+    return uti; //ok
+  } //foldConstantExpression
 
   void NodeModelParameterDef::genCode(File * fp, UVPass& uvpass)
   {

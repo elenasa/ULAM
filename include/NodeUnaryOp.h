@@ -2,7 +2,8 @@
  * NodeUnaryOp.h -  Basic Node handling Unary Operations for ULAM
  *
  * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2017 Ackleyshack LLC.
+ * Copyright (C) 2014-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +28,9 @@
 
 /**
   \file NodeUnaryOp.h -  Basic Node handling Unary Operations for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2017   All rights reserved.
+  \date (C) 2014-2021   All rights reserved.
   \gpl
 */
 
@@ -73,15 +74,13 @@ namespace MFM{
 
     virtual FORECAST safeToCastTo(UTI newType);
 
-    virtual UTI checkAndLabelType();
+    virtual UTI checkAndLabelType(Node * thisparentnode);
 
     virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
 
-    virtual UTI constantFold();
+    virtual UTI constantFold(Node * parentnode);
 
     virtual const std::string methodNameForCodeGen();
-
-    virtual bool assignClassArgValueInStubCopy();
 
     virtual EvalStatus eval();
 
@@ -95,7 +94,7 @@ namespace MFM{
 
     Node * m_node;
 
-    virtual Node * buildOperatorOverloadFuncCallNode();
+    virtual Node * buildOperatorOverloadFuncCallNode(bool& hazyArg);
 
     virtual UTI calcNodeType(UTI uti) = 0;
 

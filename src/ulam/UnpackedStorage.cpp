@@ -23,14 +23,14 @@ namespace MFM {
 
   UlamValue UnpackedStorage::loadDataMemberAt(u32 idx)
   {
-    assert( (idx < m_values.size()) && (idx >= 0));
+    assert( (idx < m_values.size()));
     return m_values[idx];
   }
 
 
   void UnpackedStorage::storeDataMemberAt(UlamValue uv, u32 idx)
   {
-    assert((idx < m_values.size()) && (idx >= 0));
+    assert((idx < m_values.size()));
     m_values[idx] = uv;
   }
 

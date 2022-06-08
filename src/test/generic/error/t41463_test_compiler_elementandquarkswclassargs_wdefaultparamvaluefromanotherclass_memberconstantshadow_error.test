@@ -1,0 +1,61 @@
+## -*- mode:ulam -*-
+#=t41463_test_compiler_elementandquarkswclassargs_wdefaultparamvaluefromanotherclass_memberconstantshadow_error
+#!
+./V.ulam:4:12: ERROR: 'a' cannot be a named constant because it is already declared as type 'Int' at: ..
+./V.ulam:2:13: ERROR: .. this location.
+./V.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'V'; Possible missing ending curly brace.
+./V.ulam:4:22: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+ ERROR: No parse tree for This Class: P.
+Unrecoverable Program Parse FAILURE: <P.ulam>
+./V.ulam:3:19: ERROR: No class 'V' in <V.ulam>.
+./V.ulam:5:1: ERROR: Invalid Class Type <}>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+Unrecoverable Program Parse FAILURE: <System.ulam>
+##
+## informed by t3887, with member constant shadowing class param 'a' for V;
+##
+#>P.ulam
+  ulam 1;
+use Q;
+element P {
+  Bool b;
+  Int test() {
+    System s;
+    Q() w;
+    s.print(w.sizeof);
+    b = (w.sizeof == 3);
+    s.assert(b);
+    return (Int) w.sizeof;
+  }
+}
+
+#:Q.ulam
+  ulam 3;
+use V;
+local constant Int b = 4;
+local typedef Unsigned (b) Foo; //ok shadow
+quark Q(Unsigned s = V(b).sizeof, Int b = 3) {
+  typedef Unsigned(s) Foo;
+  Foo f;
+}
+
+#:V.ulam
+  ulam 1;
+quark V(Int a) {
+  Unsigned(a) vfoo;
+  constant Unary(3) a; //not ok shadow
+}
+
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

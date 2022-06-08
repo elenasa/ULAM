@@ -1,8 +1,9 @@
 /**                                        -*- mode:C++ -*-
  * NodeIdent.h - Node handling Identifiers for ULAM
  *
- * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2017 Ackleyshack LLC.
+ * Copyright (C) 2014-2019 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +28,9 @@
 
 /**
   \file NodeIdent.h - Node handling Identifiers for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2017 All rights reserved.
+  \date (C) 2014-2021 All rights reserved.
   \gpl
 */
 
@@ -58,15 +59,25 @@ namespace MFM{
 
     virtual const char * getName();
 
+    virtual u32 getNameId();
+
     virtual const std::string prettyNodeName();
 
     void setSymbolPtr(SymbolVariable * vsymptr);
 
-    virtual bool getSymbolPtr(Symbol *& symptrref);
+    virtual void clearSymbolPtr();
 
-    bool getSymbolPtr(SymbolVariable *& symptrref) const;
+    virtual bool compareSymbolPtrs(Symbol * ptr);
 
-    virtual bool getStorageSymbolPtr(Symbol *& symptrref);
+    virtual bool getSymbolPtr(const Symbol *& symptrref);
+
+    virtual bool getStorageSymbolPtr(const Symbol *& symptrref);
+
+    virtual bool getSymbolPtr(SymbolVariable *& symptrref) const;
+
+    virtual u32 getSymbolId();
+
+    virtual bool hasASymbol();
 
     virtual bool hasASymbolDataMember();
 
@@ -76,13 +87,29 @@ namespace MFM{
 
     virtual bool hasASymbolReference();
 
+    virtual bool hasASymbolReferenceConstant();
+
+    virtual s32 getSymbolStackFrameSlotIndex();
+
+    virtual UlamValue getSymbolAutoPtrForEval();
+
+    virtual UTI getSymbolAutoStorageTypeForEval();
+
+    virtual u32 getSymbolDataMemberPosOffset();
+
+    void setupBlockNo();
+
     const Token& getToken() const;
 
-    bool isAConstant();
+    virtual bool belongsToVOWN(UTI vown);
+
+    virtual bool isAConstant();
+
+    virtual void setClassType(UTI cuti); //noop
 
     virtual FORECAST safeToCastTo(UTI newType);
 
-    virtual UTI checkAndLabelType();
+    virtual UTI checkAndLabelType(Node * thisparentnode);
 
     virtual bool trimToTheElement(Node ** fromleftnode, Node *& rtnnodeptr);
 
@@ -103,19 +130,27 @@ namespace MFM{
 
     virtual UlamValue makeUlamValuePtr();
 
+
   protected:
 
   private:
-    Token m_token;
+    const Token m_token;
     SymbolVariable * m_varSymbol;
     NNO m_currBlockNo;
+    NodeBlock * m_currBlockPtr;
 
-    void setupBlockNo();
+
     void setBlockNo(NNO n);
     NNO getBlockNo() const;
+    void setBlock(NodeBlock * ptr);
     NodeBlock * getBlock();
 
-    SymbolVariable *  makeSymbol(UTI auti, ALT reftype, UTI referencedUTI);
+    virtual TBOOL replaceOurselves(Symbol * symptr, Node * parentnode);
+    TBOOL lookagainincaseimplicitselfchanged(Node * parentnode);
+    UTI specifyimplicitselfexplicitly(Node * parentnode);
+    UTI checkUsedBeforeDeclared();
+
+    SymbolVariable *  makeSymbol(UTI auti, ALT reftype, const TypeArgs& args);
     bool checkVariableTypedefSizes(TypeArgs& args, UTI auti);
     bool checkTypedefOfTypedefSizes(TypeArgs& args, UTI tduti);
     bool checkConstantTypedefSizes(TypeArgs& args, UTI tduti);

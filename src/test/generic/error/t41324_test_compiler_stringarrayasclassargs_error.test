@@ -1,0 +1,30 @@
+## -*- mode:ulam -*-
+#=t41324_test_compiler_stringarrayasclassargs_error
+#!
+./Booly.ulam:3:7: ERROR: Class arguments of type String are limited to scalars by MFM::UlamTypeInfo: String[3] (arg 3) in class Booly.
+./Booly.ulam:5:13: ERROR: Incompatible (nonscalar) types String[3] and Bool for binary && ; Suggest writing a loop.
+Unrecoverable Program Type Label FAILURE.
+##
+##  informed by code review for m_state.isAStringType, which didn't include arrays. oops.
+##
+#>Foo.ulam
+ulam 5;
+local typedef String SArr[3];
+local constant SArr cSArr = { "twinkle", "little", "star" };
+element Foo{
+  Int test(){
+    Booly(0u, 2u, cSArr) b;
+    return b.behave();
+  }
+}
+
+#:Booly.ulam
+  ulam 5;
+local typedef String SArr[3];
+quark Booly(Unsigned(3) firstRange, Unsigned(3) lastRange, SArr bomb) {
+  Bool behave(){
+    if(bomb && lastRange != firstRange) return true;
+    return false;
+  }
+}
+#.

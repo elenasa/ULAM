@@ -1,0 +1,76 @@
+## -*- mode:ulam -*-
+#=t41443_test_compiler_elementtemplatewithdefaultclassparametersandquarktemplateancestorwmembers_seencase
+##
+##  gen output: (+ interleaved asserts)
+##  Unsigned Arg: 2
+##  Unsigned Arg: 4
+##
+#!
+Exit status: 6
+Ue_R { Unsigned m_tsz(2u);  Unsigned m_rsz(4u);  Int test() {  System s;  RXTimer(2,1u,9u) rxt;  self m_tsz . 2u = s ( self m_tsz . )print . s ( self m_tsz . 2u cast == )assert . RXTimer(4,15u,1u) drxt;  self m_rsz . 4u = s ( self m_rsz . )print . s ( self m_rsz . 4u cast == )assert . self m_tsz . self m_rsz . +b cast return } }
+Uq_RXTimer(Unary(5) bits = NONREADYCONST, Unsigned triggerLevel = NONREADYCONST, Unsigned k = 1u) : XTimer(bits,triggerLevel,k) { typedef Unsigned(UNKNOWN) Counter;  :XTimer13< typedef Unsigned(UNKNOWN) Counter;  Unsigned(UNKNOWN) mCount(notready); > <NOMAIN> }
+Uq_XTimer(Unary(5) bits, Unsigned triggerLevel, Unsigned k) { typedef Unsigned(UNKNOWN) Counter;  Unsigned(UNKNOWN) mCount(notready);  <NOMAIN> }
+Uq_System { <NOMAIN> }
+Ue_S : RXTimer(4,15u,1u) { /* empty class block */ }
+##
+## informed by Dave ish 3/28/2021 _033651.
+##      Next step in complexity from t41440,1;
+##      see also t41442, Seen/Unseen RXTimer Template makes a difference again!
+##
+#>R.ulam
+  ulam 5;
+use RXTimer;  //SEEN TEMPLATE before use.
+element R {
+  Unsigned m_tsz;
+  Unsigned m_rsz;
+  Int test()
+  {
+    System s;
+    RXTimer(2,1,9) rxt;
+    m_tsz = rxt.sizeof;
+    s.print(m_tsz);
+    s.assert(m_tsz==2u);
+
+    RXTimer() drxt;
+    m_rsz = drxt.sizeof;
+    s.print(m_rsz);
+    s.assert(m_rsz==4u);
+
+    return (Int) (m_tsz + m_rsz);
+  }
+}
+
+#:RXTimer.ulam
+  ulam 5;
+local constant Unary(5) cDOG_BITS = 4u;
+local constant Unsigned cDOG_MAXOF = Unsigned(cDOG_BITS).maxof;
+quark RXTimer(Unary(5) bits=cDOG_BITS, Unsigned triggerLevel=cDOG_MAXOF, Unsigned k=1) : XTimer(bits,triggerLevel,k) {
+  typedef Super.Counter Counter;
+}
+
+#:XTimer.ulam
+  ulam 5;
+quark XTimer(Unary(5) bits, Unsigned triggerLevel, Unsigned k)
+{
+  // With a max counter width of 5, the max value of Counter.maxof is
+  // 31, so 1u<<time cannot overflow
+  typedef Unsigned(bits) Counter;
+  Counter mCount;
+}
+
+#:S.ulam
+ ulam 5;
+element S : RXTimer() { }
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

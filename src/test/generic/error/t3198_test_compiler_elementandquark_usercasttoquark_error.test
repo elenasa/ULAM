@@ -3,7 +3,7 @@
 #!
 ./Foo.ulam:8:14: ERROR: Cannot cast Bool(3) to Bar.
 ./Foo.ulam:8:14: ERROR: Cannot explicitly cast Bool(3) to type: Bar.
-./Foo.ulam:8:11: ERROR: Assignment is invalid; LHS: Bar; RHS: erroneous.
+./Foo.ulam:8:11: ERROR: Assignment is invalid; LHS: unresolved; RHS: erroneous.
 Unrecoverable Program Type Label FAILURE.
 ##
 #>Foo.ulam
@@ -33,10 +33,10 @@ quark Bar {
 ##
 ##      // and if we do..
 ##      //./Foo.ulam:9:14: ERROR: RHS of operator <as> is an array: TYPE_IDENT, operation deleted.
-##      //bool rtn1 = fms->add("Foo.ulam","ulam 1;\n use Bar;\n element Foo {\n typedef Bool(1) Barr[3];\n Barr m_b;\n Bar m_bar;\n Int test() {\n m_b[0] = true;\n if(m_bar as Barr) {\n m_bar = m_b;\n }\n return m_c;\n }\n }\n");
+##      //bool rtn1 = fms->add("Foo.ulam","ulam 1;\n use Bar;\n element Foo {\n typedef Bool Barr[3];\n Barr m_b;\n Bar m_bar;\n Int test() {\n m_b[0] = true;\n if(m_bar as Barr) {\n m_bar = m_b;\n }\n return m_c;\n }\n }\n");
 ##
 ##      //different test..needs new number.
-##      //./Foo.ulam:4:4: ERROR: Cannot CAST type: Bar(3)<11> as a Atom(96).
+##      //./Foo.ulam:4:4: ERROR: Cannot CAST type: Bar(3)<11> as a Atom.
 ##      //bool rtn1 = fms->add("Foo.ulam","ulam 1; use Bar; element Foo {\n Bar m_bar;\n Int test() { Atom a;\n a = m_bar;\n return 0;\n } }\n");
 ##      //eval returns wrong answer! but compiles
 ##      //bool rtn1 = fms->add("Foo.ulam","ulam 1; use Bar; element Foo {\n Bar m_bar;\n Int test() { Atom a;\n a = self;\n if(a has Bar) {\n return 1;\n}\n return 0;\n } }\n");

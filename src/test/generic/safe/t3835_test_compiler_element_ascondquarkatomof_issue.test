@@ -2,14 +2,14 @@
 #=t3835_test_compiler_element_ascondquarkatomof_issue
 ##
 ##  gen output (+ interleaved asserts)
-##  Int Arg: 2
-##  Unsigned Arg: 1
-##  Unsigned Arg: 96
+##    Unsigned Arg: 1
+##    Unsigned Arg: 96
+##    Int Arg: 2
 ##
 #!
-Exit status: -11
-Ue_Foo : QPerc { :< Bool(1) bb(false); > Int(32) mi(0);  Int(32) test() {  System s;  Atom(96) a = Foo.instanceof cast;  { a QPerc as cond { QPerc& a;  Atom(96) aqinas = a.atomof cast;  mi a ( )func . = s ( 1u )print . s ( true )assert . s ( 96u )print . s ( true )assert . } if } s ( mi )print . bb mi 2 cast == = s ( bb )assert . mi return } }
-Uq_QPerc { Bool(1) bb(false);  <NOMAIN> }
+Exit status: 2
+Ue_Foo : QPerc { Int mi(2);  Int asize(1);  :QPerc< Bool bb(true); > Int test() {  System s;  Atom a = Foo.instanceof cast;  { a QPerc as cond { QPerc& a;  Atom aqinas = a.atomof cast;  self mi . a ( )func . = s ( 1u )print . s ( true )assert . self asize . 1u cast = s ( 96u )print . s ( true )assert . } if } s ( self mi . )print . self bb . self mi . 2 cast == = s ( self bb . )assert . self mi . return } }
+Uq_QPerc { Bool bb(false);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 ## informed by a Dave ish 7/1/2016;
@@ -20,6 +20,7 @@ use QPerc;
 element Foo : QPerc {
 
   Int mi = 0;
+  Int asize;
   virtual Int func()
   {
     return 2;
@@ -34,6 +35,7 @@ element Foo : QPerc {
       mi = a.func();
       s.print(a.sizeof); // == 1
       s.assert(a.sizeof == QPerc.sizeof);
+      asize = a.sizeof;
       s.print(aqinas.sizeof); // == 96
       s.assert(aqinas.sizeof == Atom.sizeof);
     }

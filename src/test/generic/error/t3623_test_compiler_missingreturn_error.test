@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3623_test_compiler_missingreturn_error
 #!
-./Ish.ulam:3:7: ERROR: Function 'update''s Return Statement is missing; Return type: Int(32).
+./Ish.ulam:3:7: ERROR: Function 'update''s Return Statement is missing; Return type: Int.
 Unrecoverable Program Type Label FAILURE.
 ##
 #>Ish.ulam

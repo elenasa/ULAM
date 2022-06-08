@@ -43,7 +43,7 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-  UTI NodeContinueStatement::checkAndLabelType()
+  UTI NodeContinueStatement::checkAndLabelType(Node * thisparentnode)
   {
     UTI nodeType = Void;
     setNodeType(nodeType);

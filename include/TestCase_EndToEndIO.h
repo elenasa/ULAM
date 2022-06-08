@@ -27,7 +27,7 @@
 
 /**
   \file TestCase_EndToEndIO.h -  Basic handling of End-To-End IO Tests for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
   \date (C) 2014-2017 All rights reserved.
   \gpl

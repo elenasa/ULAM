@@ -118,7 +118,7 @@ namespace MFM {
   void NodeBinaryOp::printOp(File * fp)
   {
     char myname[16];
-    sprintf(myname," %s", getName());
+    sprintf(myname," %s", m_state.m_pool.getDataAsString(getNameId()).c_str()); //was getName(),t41376
     fp->write(myname);
   }
 
@@ -146,12 +146,12 @@ namespace MFM {
     return m_state.getUlamTypeByIndex(newType)->safeCast(getNodeType());
   }
 
-  UTI NodeBinaryOp::checkAndLabelType()
+  UTI NodeBinaryOp::checkAndLabelType(Node * thisparentnode)
   {
     assert(m_nodeLeft && m_nodeRight);
 
-    UTI leftType = m_nodeLeft->checkAndLabelType();
-    UTI rightType = m_nodeRight->checkAndLabelType();
+    UTI leftType = m_nodeLeft->checkAndLabelType(this);
+    UTI rightType = m_nodeRight->checkAndLabelType(this); //t41332
 
     if(!m_state.okUTItoContinue(leftType))
       {
@@ -168,24 +168,20 @@ namespace MFM {
     //replace node with func call to matching function overload operator for class
     // of left, with argument of right (t41104);
     // quark toInt must be used on rhs of operators (t3191, t3200, t3513, t3648,9)
-    UlamType * lut = m_state.getUlamTypeByIndex(leftType);
-    if((lut->getUlamTypeEnum() == Class))
+    if(buildandreplaceOperatorOverloadFuncCallNode(thisparentnode))
       {
-	Node * newnode = buildOperatorOverloadFuncCallNode();
-	if(newnode)
-	  {
-	    AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
-	    assert(swapOk);
+	m_state.setGoAgain();
+	delete this; //suicide is painless..
+	return Hzy;
+      }
+    //else should fail again as non-primitive;
 
-	    m_nodeLeft = NULL; //recycle as memberselect
-	    m_nodeRight = NULL; //recycle as func call arg
-
-	    delete this; //suicide is painless..
-
-	    return newnode->checkAndLabelType();
-	  }
-	//else should fail again as non-primitive;
-      } //done
+    //rightType = m_nodeRight->getNodeType(); //don'trefresh //t3497 (surgery Nouti)
+    if(!m_state.okUTItoContinue(rightType))
+      {
+	setNodeType(rightType);
+	return rightType; //t41437 (Hzy)
+      }
 
     UTI newType = calcNodeType(leftType, rightType); //does safety check
 
@@ -207,51 +203,49 @@ namespace MFM {
 	  }
       }
 
-    //before constant folding; if needed (e.g. Remainder, Divide)
-    castThyselfToResultType(rightType, leftType, newType);
+    setNodeType(newType); //might have changed to Nav?
+    if(newType == Hzy) m_state.setGoAgain();
 
-    if((newType != Nav) && isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
-      return constantFold();
+    //before constant folding; if needed (e.g. Remainder, Divide)
+    castThyselfToResultType(rightType, leftType, newType, thisparentnode);
+
+    if(m_state.okUTItoContinue(newType) && isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
+      return constantFold(thisparentnode); //surgery possible
 
     return newType;
   } //checkAndLabelType
 
-  //no existence checking; error if overload doesn't exist for class and this binary op.
-  Node * NodeBinaryOp::buildOperatorOverloadFuncCallNode()
+  TBOOL NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode(Node * parentnode)
   {
-    Token identTok;
-    TokenType opTokType = Token::getTokenTypeFromString(getName());
-    assert(opTokType != TOK_LAST_ONE);
-    Token opTok(opTokType, getNodeLocation(), 0);
-    u32 opolId = Token::getOperatorOverloadFullNameId(opTok, &m_state);
-    if(opolId == 0)
+    assert(m_nodeLeft && m_nodeRight);
+    UTI lt = m_nodeLeft->getNodeType();
+    if(!m_state.isAClass(lt))
+      return TBOOL_FALSE;
+
+    bool hazyKin = false;
+    Node * newnode = buildOperatorOverloadFuncCallNode(hazyKin);
+    if(newnode)
       {
-	std::ostringstream msg;
-	msg << "Overload for operator <" << getName();
-	msg << "> is not supported as operand for class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_nodeLeft->getNodeType()).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	return NULL;
+	AssertBool swapOk = Node::exchangeNodeWithParent(newnode, parentnode);
+	assert(swapOk);
+
+	m_nodeLeft = NULL; //recycle as memberselect
+	m_nodeRight = NULL; //recycle as func call arg
+
+	return TBOOL_TRUE; //return Hzy;
       }
+    else if(hazyKin)
+      return TBOOL_HAZY;
+    return TBOOL_FALSE;
+  } //buildandreplaceOperatorOverloadFuncCallNode
 
-    identTok.init(TOK_IDENTIFIER, getNodeLocation(), opolId);
-
-    //fill in func symbol during type labeling;
-    NodeFunctionCall * fcallNode = new NodeFunctionCall(identTok, NULL, m_state);
-    assert(fcallNode);
-    fcallNode->setNodeLocation(identTok.m_locator);
-
-    fcallNode->addArgument(m_nodeRight);
-
-    NodeMemberSelect * mselectNode = new NodeMemberSelect(m_nodeLeft, fcallNode, m_state);
-    assert(mselectNode);
-    mselectNode->setNodeLocation(identTok.m_locator);
-
-    //redo check and type labeling done by caller!!
-    return mselectNode; //replace right node with new branch
+  //no existence checking; error if overload doesn't exist for class and this binary op.
+  Node * NodeBinaryOp::buildOperatorOverloadFuncCallNode(bool& hazyArg)
+  {
+    return Node::buildOperatorOverloadFuncCallNodeHelper(m_nodeLeft, m_nodeRight, getName());
   } //buildOperatorOverloadFuncCallNode
 
-  UTI NodeBinaryOp::castThyselfToResultType(UTI rt, UTI lt, UTI newType)
+  UTI NodeBinaryOp::castThyselfToResultType(UTI rt, UTI lt, UTI newType, Node *& parentnoderef)
   {
     return newType; //noop
   }
@@ -263,20 +257,23 @@ namespace MFM {
     FORECAST rsafe = m_nodeRight->safeToCastTo(newType);
     if(lsafe != CAST_CLEAR || rsafe != CAST_CLEAR )
       {
+	ULAMTYPE etyp = m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum();
 	std::ostringstream msg;
-	if(m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum() == Bool)
+	if( etyp == Bool)
 	  msg << "Use a comparison operation";
+	else if (etyp == String)
+	  msg << "Invalid";
 	else
 	  msg << "Use explicit cast";
 	msg << " to convert "; // the real converting-message
-	msg << m_state.getUlamTypeNameBriefByIndex(m_nodeLeft->getNodeType()).c_str();
+	msg << m_state.getUlamTypeNameByIndex(m_nodeLeft->getNodeType()).c_str();
 	msg << " and ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_nodeRight->getNodeType()).c_str();
+	msg << m_state.getUlamTypeNameByIndex(m_nodeRight->getNodeType()).c_str();
 	msg << " to ";
-	msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
+	msg << m_state.getUlamTypeNameByIndex(newType).c_str();
 	msg << " for binary " << getName();
 	if(lsafe == CAST_HAZY || rsafe == CAST_HAZY)
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //was debug
 	else
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	rtnOK = false;
@@ -394,11 +391,11 @@ namespace MFM {
 
 	if(!quietly)
 	  {
-	    //array op scalar: defer since the question of matrix operations is unclear.
+	    //array op scalar: defer since the question of matrix operations is unclear (t41324)
 	    std::ostringstream msg;
 	    msg << "Incompatible (nonscalar) types ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(lt).c_str();
-	    msg << " and " << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
+	    msg << m_state.getUlamTypeNameByIndex(lt).c_str();
+	    msg << " and " << m_state.getUlamTypeNameByIndex(rt).c_str();
 	    msg << " for binary ";
 	    msg << getName() << " ; Suggest writing a loop";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
@@ -528,22 +525,29 @@ namespace MFM {
     m_nodeRight->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
   }
 
-  UTI NodeBinaryOp::constantFold()
+  UTI NodeBinaryOp::constantFold(Node * parentnode)
   {
     u64 val = 0;
     UTI nuti = getNodeType();
 
-    if(nuti == Nav) return Nav; //nothing to do yet
-    //if(nuti == Hzy) return Hzy; //nothing to do yet TRY?
+    //t3323,t3489,t3509,t3849,50,51,t41145
+    assert(m_state.okUTItoContinue(nuti)); //nothing to do yet
 
     // if here, must be a constant..
     assert(isAConstant());
 
+    if(m_state.isAClass(nuti))
+      return nuti; //t41484 (e.g. node sq bkt)
+
+    u32 wordsize = m_state.getTotalWordSize(nuti);
+    if(wordsize > MAXBITSPERLONG)
+      return nuti; //t41563?
+
     NNO pno = Node::getYourParentNo();
     assert(pno);
 
-    Node * parentNode = m_state.findNodeNoInThisClassForParent(pno);
-    assert(parentNode);
+    assert(parentnode);
+    assert(pno == parentnode->getNodeNo());
 
     evalNodeProlog(0); //new current frame pointer
     makeRoomForNodeType(nuti); //offset a constant expression
@@ -566,8 +570,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Constant value expression for binary op" << getName();
-	msg << " is erroneous while compiling class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	msg << " is erroneous";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(Nav);
 	return Nav;
@@ -577,8 +580,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Constant value expression for binary op" << getName();
-	msg << " is not yet ready while compiling class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	msg << " is not yet ready";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	setNodeType(Hzy);
 	m_state.setGoAgain(); //for compiler counts
@@ -590,7 +592,7 @@ namespace MFM {
     assert(newnode);
     newnode->setNodeLocation(getNodeLocation());
 
-    AssertBool swapOk = parentNode->exchangeKids(this, newnode);
+    AssertBool swapOk = parentnode->exchangeKids(this, newnode);
     assert(swapOk);
 
     std::ostringstream msg;
@@ -599,56 +601,40 @@ namespace MFM {
     msg << " while compiling class: ";
     msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
     MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-
-    newnode->setYourParentNo(pno); //a leaf
-    newnode->resetNodeNo(getNodeNo());
+    newnode->updateLineage(pno);
+    //    m_state.setGoAgain();
 
     delete this; //suicide is painless..
 
-    return newnode->checkAndLabelType();
+    return nuti; //not Hzy, newnode has its nodetype (t41475?)
   } //constantFold
-
-  bool NodeBinaryOp::assignClassArgValueInStubCopy()
-  {
-    bool aok = true;
-    aok &= m_nodeLeft->assignClassArgValueInStubCopy();
-    aok &= m_nodeRight->assignClassArgValueInStubCopy();
-    return aok;
-  }
 
   EvalStatus NodeBinaryOp::eval()
   {
     assert(m_nodeLeft && m_nodeRight);
 
     UTI nuti = getNodeType();
-    if(nuti == Nav)
-      return ERROR;
+    if(nuti == Nav) return evalErrorReturn();
 
     evalNodeProlog(0); //new current frame pointer
 
     u32 slot = makeRoomForNodeType(nuti);
     EvalStatus evs = m_nodeLeft->eval();
-    if(evs != NORMAL)
-      {
-	evalNodeEpilog();
-	return evs;
-      }
+    if(evs != NORMAL) return evalStatusReturn(evs);
 
     u32 slot2 = makeRoomForNodeType(nuti);
     evs = m_nodeRight->eval();
-    if(evs != NORMAL)
-      {
-	evalNodeEpilog();
-	return evs;
-      }
+    if(evs != NORMAL) return evalStatusReturn(evs);
 
     //copies return UV to stack, -1 relative to current frame pointer
     if(slot && slot2)
-      if(!doBinaryOperation(1, 1+slot, slot2))
-	evs = ERROR;
+      {
+	if(!doBinaryOperation(1, 1+slot, slot2))
+	  return evalStatusReturn(ERROR);
+      }
 
     evalNodeEpilog();
-    return evs;
+    return NORMAL;
   } //eval
 
   bool NodeBinaryOp::doBinaryOperationImmediate(s32 lslot, s32 rslot, u32 slots)
@@ -785,26 +771,46 @@ namespace MFM {
 
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    TMPSTORAGE nstor = nut->getTmpStorageTypeForTmpVar(); //t41563
+    bool varcomesfirst = (nstor == TMPTBV); //t41563
+
     s32 tmpVarNum = m_state.getNextTmpVarNumber();
 
     m_state.indentUlamCode(fp);
-    fp->write("const ");
+    if(!varcomesfirst)
+      fp->write("const ");
     fp->write(nut->getTmpStorageTypeAsString().c_str()); //e.g. u32, s32, u64..
     fp->write(" ");
 
-    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPREGISTER).c_str());
-    fp->write(" = ");
+    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, nstor).c_str());
+    if(varcomesfirst)
+      {
+	fp->write(";"); GCNL;
 
-    fp->write(methodNameForCodeGen().c_str());
-    fp->write("(");
-    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
-    fp->write(", ");
-    fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
-    fp->write(", ");
-    fp->write_decimal(nut->getTotalBitSize()); //if scalar, it's just the bitsize
-    fp->write(");"); GCNL;
+	m_state.indentUlamCode(fp);
+	fp->write(luvpass.getTmpVarAsString(m_state).c_str());
+	fp->write(".");
+	fp->write(methodNameForCodeGen().c_str());
+	fp->write("(");
+	fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
+	fp->write(", ");
+	fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, nstor).c_str());
+	fp->write(");"); GCNL; //t41563
+      }
+    else
+      {
+	fp->write(" = ");
+	fp->write(methodNameForCodeGen().c_str());
+	fp->write("(");
+	fp->write(luvpass.getTmpVarAsString(m_state).c_str());
+	fp->write(", ");
+	fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
+	fp->write(", ");
+	fp->write_decimal(nut->getTotalBitSize()); //if scalar, it's just the bitsize
+	fp->write(");"); GCNL;
+      }
 
-    uvpass = UVPass::makePass(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //P
+    uvpass = UVPass::makePass(tmpVarNum, nstor, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //P
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
   } //genCode
 

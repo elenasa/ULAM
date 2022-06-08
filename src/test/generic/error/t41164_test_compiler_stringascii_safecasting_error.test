@@ -1,0 +1,32 @@
+## -*- mode:ulam -*-
+#=t41164_test_compiler_stringascii_safecasting_error
+#!
+./A.ulam:6:5: ERROR: Invalid to convert String to Unsigned for variable initialization.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by Dave ish 11/16/2017, t3956
+##
+#>A.ulam
+  ulam 3;
+element A {
+  constant String str = "hello world";
+  Int test() {
+    System s;
+    Unsigned sidx = str; //non-explicit
+    s.print(sidx);
+    return 0;
+ }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

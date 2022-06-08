@@ -1,8 +1,9 @@
 /**                                        -*- mode:C++ -*-
  * NodeVarDecl.h -  Basic Node handling Variable Declarations for ULAM
  *
- * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2017 Ackleyshack LLC.
+ * Copyright (C) 2014-2018 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +28,9 @@
 
 /**
   \file NodeVarDecl.h -  Basic Node handling Variable Declarations for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2017 All rights reserved.
+  \date (C) 2014-2021 All rights reserved.
   \gpl
 */
 
@@ -70,11 +71,29 @@ namespace MFM{
 
     virtual const char * getName();
 
+    virtual u32 getNameId();
+
+    const std::string getMangledName();
+
     virtual u32 getTypeNameId();
+
+    virtual UTI getTypeDescriptorGivenType();
+
+    virtual ALT getTypeDescriptorRefType();
 
     virtual const std::string prettyNodeName();
 
-    virtual bool getSymbolPtr(Symbol *& symptrref);
+    virtual bool hasASymbol();
+
+    virtual u32 getSymbolId();
+
+    virtual bool getSymbolValue(BV8K& bv);
+
+    virtual bool cloneSymbol(Symbol *& symptrref);
+
+    virtual bool getSymbolPtr(const Symbol *& symptrref);
+
+    bool isAConstantFunctionParameter();
 
     virtual void setInitExpr(Node * node);
 
@@ -82,11 +101,13 @@ namespace MFM{
 
     virtual bool foldArrayInitExpression();
 
+    bool buildDefaultValueForClassConstantInitialization();
+
     virtual FORECAST safeToCastTo(UTI newType);
 
-    virtual bool checkReferenceCompatibility(UTI uti);
+    virtual bool checkReferenceCompatibility(UTI uti, Node * parentnode);
 
-    virtual UTI checkAndLabelType();
+    virtual UTI checkAndLabelType(Node * thisparentnode);
 
     virtual NNO getBlockNo();
 
@@ -106,7 +127,7 @@ namespace MFM{
 
     virtual void genCodeConstantArrayInitialization(File * fp);
 
-    virtual void generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly);
+    virtual void generateBuiltinConstantClassOrArrayInitializationFunction(File * fp, bool declOnly);
 
     virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount);
 
@@ -120,6 +141,10 @@ namespace MFM{
     NodeTypeDescriptor * m_nodeTypeDesc; //can be NULL
 
     virtual void checkForSymbol();
+    virtual void clearSymbolPtr();
+
+    bool getNodeTypeDescriptorPtr(const NodeTypeDescriptor *& nodetypedescref);
+
     virtual void printTypeAndName(File * fp);
     virtual bool checkSafeToCastTo(UTI fromType, UTI& newType);
     EvalStatus evalInitExpr();
@@ -128,10 +153,13 @@ namespace MFM{
 
   private:
     NNO m_currBlockNo;
+    NodeBlock * m_currBlockPtr;
+
+    void setBlock(NodeBlock * ptr);
 
     void setupStackWithPrimitiveForEval(u32 slots);
     void setupStackWithClassForEval(u32 slots);
-    void setupStackWithQuarkForEval(u32 slots);
+
   };
 
 }

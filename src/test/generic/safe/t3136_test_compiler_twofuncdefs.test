@@ -7,23 +7,26 @@
 ##
 #!
 Exit status: 0
-Ue_A { Bool(7) b(false);  System s();  Unsigned(32) x(15u);  Unsigned(32) y(0u);  Int(32) test() {  y x ( 4 cast 5 cast )times cast = = s ( x )print . s ( x 15u cast == )assert . y ( x x )max = s ( y )print . s ( y 0u cast == )assert . y cast return } }
+Ue_A { System s();  Bool(7) b(false);  Unsigned x(15u);  Unsigned y(0u);  Int test() {  self y . self x . self ( 4 cast 5 cast )times . cast = = self s . ( self x . )print . self s . ( self x . 15u cast == )assert . self y . self ( self x . self x . )max . = self s . ( self y . )print . self s . ( self y . 0u cast == )assert . self y . cast return } }
 Uq_System { <NOMAIN> }
+##
+## try overload 'max' with Unsigned args and return Unsigned; let x and y be Unsigned
+## Thu Feb  1 10:31:31 2018  modified functions to use 'constant' keyword for non-changeable function parameters (see t41187)
+##
 #>A.ulam
-  ulam 1;
-use System;
+  ulam 3;
 element A {
   System s;
-  Int times(Int m, Int n) {
+  Int times(Int m, constant Int n) {
     Int e;
     while( --m > 0 )
       e += n;
     return e;
   }
-  Int max(Int a, Int b) {
+  Int max(constant Int a, constant Int b) {
     return (a - b);
   }
-  Unsigned max(Unsigned a, Unsigned b){
+  Unsigned max(constant Unsigned a, constant Unsigned b){
     return a - b;
   }
   Bool(7) b;
@@ -39,7 +42,6 @@ element A {
   }
 }
 
-## try overload 'max' with Unsigned args and return Unsigned; let x and y be Unsigned
 #:System.ulam
   ulam 1;
 quark System {

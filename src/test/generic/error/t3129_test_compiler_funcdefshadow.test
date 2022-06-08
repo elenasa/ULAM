@@ -1,24 +1,26 @@
 ## -*- mode:ulam -*-
 #=t3129_test_compiler_funcdefshadow
 #!
-./D.ulam:11:5: ERROR: Undefined function <times> that has already been declared as a variable.
-./D.ulam:11:12: ERROR: Invalid Statement (possible missing semicolon).
+./D.ulam:12:11: ERROR: Undefined function 'times' has already been declared as a variable at: ..
+./D.ulam:11:11: ERROR: .. this location.
+./D.ulam:12:9: ERROR: Right operand of binary = is missing; Assignment deleted.
+./D.ulam:12:17: ERROR: Invalid Statement (possible missing semicolon).
 Unrecoverable Program Parse FAILURE: <D.ulam>
-##
 #>D.ulam
+  ulam 1;
 element D {
-Int t;
-Int times(Int m, Int n) {
-Int e;
-while( m-=1 ) e += n;
-return e;
-}
-Int test(){
-{
-Int times;
-t = times(4,5);
-return t;
-}
-}
+  Int t;
+  Int times(Int m, Int n) {
+    Int e;
+    while( m-=1 ) e += n;
+    return e;
+  }
+  Int test(){
+    {
+      Int times;
+      t = times(4,5);
+      return t;
+    }
+  }
 }
 #.

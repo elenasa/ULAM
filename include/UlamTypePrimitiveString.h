@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * UlamTypePrimitiveString.h -  Basic handling of the String Primitive UlamType for ULAM
  *
- * Copyright (C) 2016-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2016-2017 Ackleyshack LLC.
+ * Copyright (C) 2016-2021 The Regents of the University of New Mexico.
+ * Copyright (C) 2016-2021 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -28,9 +28,9 @@
 /**
   \file UlamTypePrimitiveString.h -  Basic handling of the String
                                        Primitive UlamType for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2016-2017 All rights reserved.
+  \date (C) 2016-2021 All rights reserved.
   \gpl
 */
 
@@ -56,6 +56,10 @@ namespace MFM{
 
     virtual bool isNumericType();
 
+    virtual const std::string getUlamTypeName();
+
+    virtual const std::string getUlamTypeNameBrief();
+
     virtual const std::string getUlamTypeImmediateMangledName();
 
     virtual const std::string castMethodForCodeGen(UTI nodetype);
@@ -63,6 +67,8 @@ namespace MFM{
     virtual bool cast(UlamValue & val, UTI typidx);
 
     virtual FORECAST safeCast(UTI typidx);
+
+    virtual FORECAST explicitlyCastable(UTI typidx);
 
     virtual void getDataAsString(const u32 data, char * valstr, char prefix);
 
@@ -77,6 +83,14 @@ namespace MFM{
     virtual u64 getDataAsCu64(const u64 data);
 
     virtual s32 bitsizeToConvertTypeTo(ULAMTYPE tobUT);
+
+    virtual const std::string getTmpStorageTypeAsString();
+
+    virtual TMPSTORAGE getTmpStorageTypeForTmpVar();
+
+    virtual const std::string readMethodForCodeGen();
+
+    virtual const std::string writeMethodForCodeGen();
 
     virtual void genUlamTypeAutoReadDefinitionForC(File * fp);
 

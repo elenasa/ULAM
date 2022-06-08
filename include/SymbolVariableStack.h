@@ -67,8 +67,6 @@ namespace MFM{
 
     virtual void printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype);
 
-    virtual void generateCodedVariableDeclarations(File * fp, ULAMCLASSTYPE classtype);
-
     UlamValue getAutoPtrForEval();
 
     void setAutoPtrForEval(UlamValue ptr);
@@ -77,12 +75,23 @@ namespace MFM{
 
     void setAutoStorageTypeForEval(UTI uti);
 
+    virtual bool isFunctionParameter();
+
+    void setFunctionParameter();
+
+    bool isConstantFunctionParameter();
+
+    void setConstantFunctionParameter();
+
   protected:
 
   private:
     s32 m_stackFrameSlotIndex;
     UlamValue m_autoPtrForEval;
     UTI m_autoStgTypeForEval;
+
+    bool m_isFunctionParameter;
+    bool m_isConstantFunctionParameter;
 
   };
 

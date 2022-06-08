@@ -73,7 +73,7 @@ namespace MFM {
   bool UEventWindow::isValidSite(u32 index, Coord& c)
   {
     bool rtnB = false;
-    if(index >= 0 && index < MAXWIDTH * MAXWIDTH)
+    if(index < MAXWIDTH * MAXWIDTH)
       {
 	c = Coord::convertIndexToCoord(index);
 	rtnB = isValidSite(c);
@@ -219,6 +219,7 @@ namespace MFM {
   {
     u32 cidx = c.convertCoordToIndex();
     UlamValue ptr = UlamValue::makePtr(cidx, EVENTWINDOW, getSiteElementType(cidx), UNPACKED, m_state);
+    ptr.setPtrTargetEffSelfType(getSiteElementType(cidx));
     return ptr;
   }
 

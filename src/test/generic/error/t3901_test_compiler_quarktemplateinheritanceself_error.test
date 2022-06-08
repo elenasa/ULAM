@@ -1,7 +1,8 @@
 ## -*- mode:ulam -*-
 #=t3901_test_compiler_quarktemplateinheritanceself_error
 #!
-./Soo.ulam:2:25: ERROR: Class Definition 'Soo11'; Inheritance from invalid Class 'Soo'.
+./Soo.ulam:2:25: ERROR: Class Definition 'Soo11'; Provides an invalid Baseclass 'Soo'.
+./Soo.ulam:2:35: ERROR: Class Definition 'Soo11'; Provides an invalid Baseclass 'Soo'.
 Unrecoverable Program Parse FAILURE: <Soo.ulam>
 Unrecoverable Program Parse FAILURE: <Coo.ulam>
 ##
@@ -18,8 +19,8 @@ element Foo {
 }
 
 #:Soo.ulam
-  ulam 2;
-quark Soo(Unsigned x) : Soo(1u) {
+  ulam 4;
+quark Soo(Unsigned x) : Soo(1u) + Soo(2u){
   Unsigned(3) us = 4u;
 }
 

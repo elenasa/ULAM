@@ -2,7 +2,8 @@
  * NodeStorageof.h - Basic Node handling the Storageof Statement for ULAM
  *
  * Copyright (C) 2016-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2016-2017 Ackleyshack LLC.
+ * Copyright (C) 2016-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +28,9 @@
 
 /**
   \file NodeStorageof.h - Basic Node handling the Storageof Statement for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2016-2017 All rights reserved.
+  \date (C) 2016-2021 All rights reserved.
   \gpl
 */
 
@@ -70,13 +71,19 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
+    virtual bool hasASymbol();
+
+    virtual u32 getSymbolId();
+
     virtual FORECAST safeToCastTo(UTI newType);
 
-    virtual UTI checkAndLabelType();
+    virtual UTI checkAndLabelType(Node * thisparentnode);
 
     virtual EvalStatus eval();
 
     virtual EvalStatus evalToStoreInto();
+
+    virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);
 
     virtual void genCode(File * fp, UVPass& uvpass) = 0;
 
@@ -91,15 +98,12 @@ namespace MFM{
 
     virtual UlamValue makeUlamValuePtr() = 0;
 
+    UlamValue evalAtomOfExpr();
+
   private:
 
     UTI m_oftype;
     NodeTypeDescriptor * m_nodeTypeDesc;
-    NNO m_currBlockNo;
-
-    NNO getBlockNo() const;
-
-    NodeBlock * getBlock();
   };
 
 }

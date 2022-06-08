@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * TestCase_EndToEndCompilerGeneric.h -  Load ULAM compiler test details from a file
  *
- * Copyright (C) 2015-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2017 Ackleyshack LLC.
+ * Copyright (C) 2015-2018 The Regents of the University of New Mexico.
+ * Copyright (C) 2015-2018 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +27,9 @@
 
 /**
   \file TestCase_EndToEndCompilerGeneric.h -  Load ULAM compiler test details from a file
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2017 All rights reserved.
+  \date (C) 2015-2018 All rights reserved.
   \gpl
 */
 
@@ -57,21 +57,6 @@ namespace MFM{
     virtual bool GetTestResults(FileManager * fm, std::string startstr, File * output);
 
   protected:
-
-    virtual std::string GetAnswerKey() ;
-
-  private:
-
-    enum { START, IN_FILE, ANSWER } m_state;
-
-    std::string m_currentLine;
-    s32 getInput(u32 index) {
-      if (index >= m_currentLine.length()) return -1;
-      return m_currentLine.at(index);
-    }
-
-    std::string m_testName;
-
     struct InputFile {
       std::string m_fileName;
       std::ostringstream m_contents;
@@ -90,7 +75,26 @@ namespace MFM{
         m_contents << in.m_contents.str();
       }
     };
+
     std::vector<InputFile> m_inputFiles;
+    std::vector<std::string> m_stdlibUlamFiles;
+    std::vector<std::string> m_coreUlamFiles;
+
+    virtual std::string GetAnswerKey() ;
+
+    virtual inline bool SkipEval() { return false; }
+
+  private:
+
+    enum { START, IN_FILE, ANSWER } m_state;
+
+    std::string m_currentLine;
+    s32 getInput(u32 index) {
+      if (index >= m_currentLine.length()) return -1;
+      return m_currentLine.at(index);
+    }
+
+    std::string m_testName;
 
     std::string m_startFileName;
 
@@ -105,9 +109,10 @@ namespace MFM{
     void readLine(File & input) ;
 
     void die(std::string msg) ;
-    void addUrSelf(FileManagerString & fms) ;
-    void addEmpty(FileManagerString & fms) ;
 
+    void addShareUlamFilesToFileManager(FileManagerString & fms) ;
+    void addStdlibUlamFiles(FileManagerString & fms) ;
+    void addCoreUlamFiles(FileManagerString & fms) ;
   };
 
 }

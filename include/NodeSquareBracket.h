@@ -2,8 +2,9 @@
  * NodeSquareBracket.h - Basic Node for handling
  *                               Array Subscripts for ULAM
  *
- * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2017 Ackleyshack LLC.
+ * Copyright (C) 2014-2018 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -28,9 +29,9 @@
 
 /**
   \file NodeSquareBracket.h - Basic Node for handling Array Subscripts for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2017  All rights reserved.
+  \date (C) 2014-2021  All rights reserved.
   \gpl
 */
 
@@ -62,25 +63,41 @@ namespace MFM{
 
     virtual const char * getName();
 
+    virtual u32 getNameId();
+
     virtual const std::string prettyNodeName();
 
     virtual const std::string methodNameForCodeGen();
 
     virtual bool isArrayItem();
 
-    virtual UTI checkAndLabelType();
+    virtual bool isAConstant();
+
+    virtual bool isAConstantClass();
+
+    virtual bool isAConstantClassArray();
+
+    virtual void setClassType(UTI cuti);
+
+    virtual bool isEmptyArraysizeDecl();
+
+    virtual UTI checkAndLabelType(Node * thisparentnode);
+
+    virtual bool getConstantValue(BV8K& bval);
+
+    virtual bool initDataMembersConstantValue(BV8K& bvref, BV8K& bvmask);
 
     virtual bool trimToTheElement(Node ** fromleftnode, Node *& rtnnodeptr);
-
-    virtual bool assignClassArgValueInStubCopy();
 
     virtual EvalStatus eval();
 
     virtual EvalStatus evalToStoreInto();
 
-    virtual bool getSymbolPtr(Symbol *& symptrref);
+    virtual void clearSymbolPtr();
 
-    virtual bool getStorageSymbolPtr(Symbol *& symptrref);
+    virtual u32 getSymbolId();
+
+    virtual bool hasASymbol();
 
     virtual bool installSymbolTypedef(TypeArgs& args, Symbol *& asymptr);
     virtual bool installSymbolConstantValue(TypeArgs& args, Symbol *& asymptr);
@@ -96,9 +113,13 @@ namespace MFM{
 
   protected:
 
+    virtual Node * buildOperatorOverloadFuncCallNode(bool& hazyArg);
+
   private:
     bool m_isCustomArray;
     SymbolTmpVar * m_tmpvarSymbol;
+
+    const char * getFullName();
 
     Node * buildArefFuncCallNode();
 
@@ -113,7 +134,7 @@ namespace MFM{
 
     void genCodeAUserStringByte(File * fp, UVPass& uvpass);
 
-    virtual Node * buildOperatorOverloadFuncCallNode();
+    bool getConstantArrayItemValue(BV8K& bvitem);
   };
 
 }

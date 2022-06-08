@@ -1,0 +1,58 @@
+## -*- mode:ulam -*-
+#=t41196_test_compiler_element_constantatomreffuncreturnvalue_error
+##
+#!
+./Foo.ulam:7:7: ERROR: Returning incompatible (reference) types: constant Atom& as non-constant Atom&.
+./Foo.ulam:8:5: ERROR: Returning incompatible (reference) types: constant Atom& as non-constant Atom&.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by t41033; Dave email 2/10/2017 and t41031
+##
+#>Foo.ulam
+  ulam 3;
+element Foo
+{
+  Atom & func(constant Atom& arg1, constant Atom& arg2, Bool barg)
+  {
+    if(barg)
+      return arg1; //ERROR
+    return arg2; //ERROR
+  }
+
+  Void caller1()
+  {
+    Foo f1;
+    caller2(f1.atomof, false);
+  }
+
+  Atom & caller2(Atom& a1, Bool barg)
+  {
+    Foo f2;
+    Atom & r2 = f2.atomof;
+    return func(r2, a1, barg);  // Safe or not?  Can't know til runtime.
+  }
+
+  Int test() {
+    System s;
+    caller1();
+
+    Atom f3;
+    Atom & r = caller2(f3, false);
+    s.assert(!(r is Foo));
+    return 0;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

@@ -99,7 +99,14 @@ export DEFINES
 export CFLAGS
 CFLAGS+=-g2 -ansi -Wall -pedantic -Werror -Wformat
 #CFLAGS+=-DNDEBUG
-
+#CFLAGS+= -Winline
+CFLAGS+= --param inline-unit-growth=1000 --param large-function-growth=50000
+CFLAGS+= -Wextra -Wno-unused-parameter -Wno-ignored-qualifiers
+# Just say implicit fallthrough is okay until we think about suppressions
+CFLAGS+= -Wno-implicit-fallthrough
+#CFLAGS+= -std=c++11
+# Avoid (spurious?) warning on some distros? sigh
+CFLAGS+= -fno-strict-aliasing 
 # Libs from top level
 export LIBS
 

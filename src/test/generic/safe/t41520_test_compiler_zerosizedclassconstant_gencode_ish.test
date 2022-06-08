@@ -1,0 +1,25 @@
+## -*- mode:ulam -*-
+#=t41520_test_compiler_zerosizeclassconstant_gencode_ish
+#!
+Exit status: 0
+Ue_Test { Int test() {  0 cast return } }
+Uq_R { /* empty class block */ }
+##
+##  informed by 20210704_010955 ish: ISO C++ forbids zero-size array:
+##  static u32 initVal[(0 + 31)/32] = { 0x0 }; //gcnl:NodeConstantDef.cpp:1688
+##
+#>Test.ulam
+  ulam 3;
+local constant R cer = { };
+element Test {
+  Int test(){
+    return 0;
+  }
+}
+
+#:R.ulam
+  ulam 3;
+quark R {
+}
+
+#.

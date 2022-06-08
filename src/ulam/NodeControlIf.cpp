@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "NodeControlIf.h"
+#include "NodeBlockSwitch.h"
 #include "CompilerState.h"
 
 namespace MFM {
@@ -100,13 +101,13 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-  UTI NodeControlIf::checkAndLabelType()
+  UTI NodeControlIf::checkAndLabelType(Node * thisparentnode)
   {
-    NodeControl::checkAndLabelType(); //does condition and true
+    NodeControl::checkAndLabelType(thisparentnode); //does condition and true
 
     if(m_nodeElse)
       {
-	m_nodeElse->checkAndLabelType();
+	m_nodeElse->checkAndLabelType(this);
       }
 
     return getNodeType(); //Bool
@@ -139,21 +140,15 @@ namespace MFM {
     assert(m_nodeCondition && m_nodeBody);
 
     UTI nuti = getNodeType();
-    if(nuti == Nav)
-      return ERROR;
+    if(nuti == Nav) return evalErrorReturn();
 
-    if(nuti == Hzy)
-      return NOTREADY;
+    if(nuti == Hzy) return evalStatusReturnNoEpilog(NOTREADY);
 
     evalNodeProlog(0); //new current frame pointer
 
     makeRoomForNodeType(nuti);
     EvalStatus evs = m_nodeCondition->eval();
-    if(evs != NORMAL) //what if RETURN
-      {
-	evalNodeEpilog();
-	return evs;
-      }
+    if(evs != NORMAL) return evalStatusReturn(evs); //what if RETURN
 
     UlamValue cuv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);
     if((bool) cuv.getImmediateData(m_state) == false)
@@ -177,8 +172,10 @@ namespace MFM {
     //also copy result UV to stack, -1 relative to current frame pointer
     Node::assignReturnValueToStack(cuv); //skip this for a break statement ???
 
+    if(evs != NORMAL) return evalStatusReturn(evs);
+
     evalNodeEpilog();
-    return evs;
+    return NORMAL;
   } //eval
 
   void NodeControlIf::genCode(File * fp, UVPass& uvpass)
@@ -187,8 +184,18 @@ namespace MFM {
 
     if(m_nodeElse)
       {
+	NodeBlock * currblock = m_state.getCurrentBlock();
+	assert(currblock);
+	bool isdefaultswcase = currblock->isASwitchBlock() && (((NodeBlockSwitch*) currblock)->getDefaultCaseNodeNo() == m_nodeElse->getNodeNo());
+
 	m_state.indentUlamCode(fp);
-	fp->write("else\n");
+	fp->write("else");
+
+
+	if(isdefaultswcase)
+	  fp->write(" //default case"); //t41046,..
+
+	fp->write("\n");
 	m_state.indentUlamCode(fp);
 	fp->write("{\n");
 	m_state.m_currentIndentLevel++;
@@ -197,7 +204,10 @@ namespace MFM {
 
 	m_state.m_currentIndentLevel--;
 	m_state.indentUlamCode(fp);
-	fp->write("} //end else\n");
+	fp->write("} //end else");
+	if(isdefaultswcase)
+	  fp->write(" default case"); //t41046,..
+	fp->write("\n");
       }
   } //genCode
 

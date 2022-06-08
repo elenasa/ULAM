@@ -7,12 +7,14 @@
 ##	 Int Arg: 1
 ##      */
 ##Exit status: 1
-##Ue_Eltypo { System s();  Typo(1) t( constant Int(32) a = 1; );  Int(32) test() {  Eltypo elf;  elf Typo(1) has cond { Typo(1) elf;  s ( elf 1 . )print . elf 1 . return } if 0 cast return } }
-##Uq_Typo(Int(32) a) { /* empty class block */ }
+##Ue_Eltypo { System s();  Typo(1) t( constant Int a = 1; );  Int test() {  Eltypo elf;  elf Typo(1) has cond { Typo(1) elf;  s ( elf 1 . )print . elf 1 . return } if 0 cast return } }
+##Uq_Typo(Int a) { /* empty class block */ }
 ##Uq_System { <NOMAIN> }
 ./Eltypo.ulam:9:14: ERROR: DEPRECATED keyword <has>.
-./Eltypo.ulam:9:23: ERROR: Name of variable <)>: Identifier must begin with a lower-case letter.
+./Eltypo.ulam:9:16: ERROR: Unexpected token <TOK_TYPE_IDENTIFIER>; Expected ).
+./Eltypo.ulam:9:23: ERROR: Name of variable ')': Identifier must begin with a lower-case letter.
 ./Eltypo.ulam:9:23: ERROR: Invalid Statement (possible missing semicolon).
+./Eltypo.ulam:13:5: ERROR: Expecting Type of data member/function (or, in the midst of errors); Got <return>.
 ./Eltypo.ulam:4:1: ERROR: Empty/Incomplete Class Definition 'Eltypo'; Possible missing ending curly brace.
 ./Eltypo.ulam:13:5: ERROR: Invalid Class Type <return>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 ./Eltypo.ulam:4:9: ERROR: Invalid Type: Eltypo.

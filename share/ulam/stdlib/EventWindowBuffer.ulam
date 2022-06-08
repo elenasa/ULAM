@@ -1,0 +1,63 @@
+transient EventWindowBuffer {
+  typedef Unary(4) EWRadius;
+  constant Unsigned cMAX_SITES = 41;
+  EWRadius mRadiusSaved;
+  Atom mSiteBuffer[cMAX_SITES];
+  Atom mBaseBuffer;
+  EWRadius mRadiusStored;
+  Bool mEventLayerStored;
+  Bool mBaseLayerStored;
+
+  Void save() {
+    EventWindow ew;
+    save(true,true,(EWRadius) ew.getRadius());
+  }
+
+  Void save(Bool eventLayer, Bool baseLayer, EWRadius rad) {
+    mEventLayerStored = eventLayer;
+    mBaseLayerStored = baseLayer;
+    mRadiusStored = rad;
+
+    ByteStreamLogger log;
+    
+    EventWindow ew;
+    MDist md;
+    SiteUtils su;
+    EventWindow.SiteNum firstIndex = 0u;
+    EventWindow.SiteNum lastIndex = md.getLastIndex(mRadiusStored);
+
+    log.printf("ZABING ev=%d, bl=%d, rad=%d, FI=%d, LI=%d\n",
+               mEventLayerStored,mBaseLayerStored,(Unsigned) mRadiusStored,
+               firstIndex,lastIndex);
+
+    if (mEventLayerStored)
+      for (EventWindow.SiteNum i = firstIndex; i <= lastIndex; ++i) {
+        mSiteBuffer[i] = ew[i];
+      }
+    if (mBaseLayerStored)
+      mBaseBuffer = su.getBase();
+  }
+
+  Void restore() {
+    EventWindow ew;
+    MDist md;
+    SiteUtils su;
+    EventWindow.SiteNum firstIndex = 0u;
+    EventWindow.SiteNum lastIndex = md.getLastIndex(mRadiusStored);
+
+    ByteStreamLogger log;
+    log.printf("REBAZING ev=%d, bl=%d, rad=%d, FI=%d, LI=%d\n",
+               mEventLayerStored,mBaseLayerStored,
+               (Unsigned) mRadiusStored,
+               firstIndex,
+               lastIndex
+               );
+
+    if (mEventLayerStored)
+      for (EventWindow.SiteNum i = firstIndex; i <= lastIndex; ++i) {
+        ew[i] = mSiteBuffer[i];
+      }
+    if (mBaseLayerStored)
+      su.setBase(mBaseBuffer);
+  }
+}

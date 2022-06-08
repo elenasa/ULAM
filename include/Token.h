@@ -1,8 +1,9 @@
 /**                                        -*- mode:C++ -*-
  * Token.h -  Basic handling of Tokens for ULAM
  *
- * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2017 Ackleyshack LLC.
+ * Copyright (C) 2014-2020 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +28,9 @@
 
 /**
   \file Token.h -  Basic handling of Tokens for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2017 All rights reserved.
+  \date (C) 2014-2021 All rights reserved.
   \gpl
 */
 
@@ -78,15 +79,15 @@ namespace MFM{
 
     void init(TokenType t, Locator l, u32 d);
 
-    u32 getTokenStringId();
+    u32 getTokenStringId() const;
     u32 getTokenEnumNameId();
 
     const char * getTokenString();
     const char * getTokenEnumName();
 
-    const std::string getTokenStringFromPool(CompilerState * state) const;
-    static const std::string getTokenAsStringFromPool(TokenType ttype, CompilerState * state);
-    const std::string getTokenEnumNameFromPool(CompilerState * state) const;
+    const std::string & getTokenStringFromPool(CompilerState * state) const;
+    static const std::string & getTokenAsStringFromPool(TokenType ttype, CompilerState * state);
+    const std::string & getTokenEnumNameFromPool(CompilerState * state) const;
 
     static SpecialTokenWork getSpecialTokenWork(TokenType ttype);
     static OperatorOverloadableFlag getTokenOperatorOverloadableFlag(TokenType ttype);
@@ -102,6 +103,7 @@ namespace MFM{
     void print(File * fp, CompilerState * state);
 
     bool operator<(const Token & tok2) const;
+    Token& operator=(const Token&); //explicit for c++11
 
     static u32 getOperatorOverloadFullNameId(const Token & tok, CompilerState * state);
 
@@ -110,8 +112,8 @@ namespace MFM{
 
   private:
 
-    static const std::string getOperatorHexName(const Token & tok, CompilerState * state);
-    static const std::string getOperatorHexNameFromString(const std::string opname);
+    static const std::string & getOperatorHexName(const Token & tok, CompilerState * state);
+    static const std::string & getOperatorHexNameFromString(const std::string & opname, CompilerState * state);
 
   };
 }

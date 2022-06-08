@@ -53,7 +53,9 @@ namespace MFM {
 
   TMPSTORAGE UlamTypeAtom::getTmpStorageTypeForTmpVar()
   {
-    return TMPTATOM; //per array item/per atom
+    if(isScalar())
+      return TMPTATOM; //per array item/per atom
+    return TMPTBV;
   }
 
   bool UlamTypeAtom::isMinMaxAllowed()
@@ -71,18 +73,28 @@ namespace MFM {
     bool brtn = true;
     assert(m_state.getUlamTypeByIndex(typidx) == this);
     UTI valtypidx = val.getUlamValueTypeIdx();
-    UlamType * vut = m_state.getUlamTypeByIndex(valtypidx);
-    AssertBool isScalars = (vut->isScalar() && isScalar());
+    UlamType * fmut = m_state.getUlamTypeByIndex(valtypidx);
+    AssertBool isScalars = (fmut->isScalar() && isScalar());
     assert(isScalars);
 
-    // what change is to be made ????
     // atom type vs. class type
-    // how can it be both in an UlamValue?
-    // what of its contents?
-    // val = UlamValue::makeAtom(valtypidx);
+    // how can it be both in an UlamValue? new effself field (ulam-5)
 
-    if((vut->getUlamClassType() == UC_ELEMENT) || m_state.isAtom(valtypidx) || ((vut->getUlamTypeEnum() == Class) && vut->isReference()))
-      val.setUlamValueTypeIdx(typidx); //try this
+    if((fmut->getUlamClassType() == UC_ELEMENT) || m_state.isAtom(valtypidx) || ((fmut->getUlamTypeEnum() == Class) && fmut->isAltRefType()))
+      {
+	if(!m_state.isAtom(valtypidx))
+	  {
+	    UTI dereftypidx = m_state.getUlamTypeAsDeref(valtypidx);
+	    UTI feffself = val.getUlamValueEffSelfTypeIdx();
+	    if(feffself == Nouti)
+	      val.setUlamValueEffSelfTypeIdx(dereftypidx); //for testing, assume ok (e.g. t3754,t3277)
+	    else
+	      brtn = (UlamType::compare(feffself,dereftypidx,m_state)==UTIC_SAME); //sanity (t41487, t41484)
+	  }
+
+	if(brtn)
+	  val.setUlamValueTypeIdx(typidx); //try this (t41484?, t3255)
+      }
     else
       brtn = false;
     return brtn;
@@ -94,16 +106,17 @@ namespace MFM {
     if(scr != CAST_CLEAR)
       return scr;
 
+    UlamType * fmut = m_state.getUlamTypeByIndex(typidx);
+
     if(m_state.isAtom(typidx))
       return CAST_CLEAR; //atom/ref to atom/ref
 
     //casting from quark or transient to atom or atomref is bad
-    UlamType * vut = m_state.getUlamTypeByIndex(typidx);
-    ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
+    ULAMCLASSTYPE fclasstype = fmut->getUlamClassType();
 
-    // casting from quark ref, may need .atomof (error t3696)
+    // casting from quark ref needs .atomof (error t3696)
     // elements no longer packed, ok t3753
-    return (vclasstype == UC_ELEMENT) ? CAST_CLEAR : CAST_BAD;
+    return (fclasstype == UC_ELEMENT) ? CAST_CLEAR : CAST_BAD;
    } //safeCast
 
   FORECAST UlamTypeAtom::explicitlyCastable(UTI typidx)
@@ -111,13 +124,14 @@ namespace MFM {
     FORECAST scr = UlamType::safeCast(typidx); //default, arrays checked
     if(scr == CAST_CLEAR)
       {
-	UlamType * vut = m_state.getUlamTypeByIndex(typidx);
-	ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
-	if(vut->isPrimitiveType())
+	UlamType * fmut = m_state.getUlamTypeByIndex(typidx);
+	ULAMCLASSTYPE fclasstype = fmut->getUlamClassType();
+	if(fmut->isPrimitiveType())
 	  scr = CAST_BAD;
-	else if((vclasstype == UC_QUARK) && !vut->isReference())
-	  scr = CAST_BAD; //non-ref quark to atom is also bad (t3678)
-	else if((vclasstype == UC_TRANSIENT))
+	else if((fclasstype == UC_QUARK) && !fmut->isAltRefType())
+	  //else if((vclasstype == UC_QUARK)) //WAIT UNTIL ULAM-4. to always use .atomof (t41153, 3697, t3834, t3691)
+	  scr = CAST_BAD; //non-ref quark to atom is also bad (t3678, t41154)
+	else if((fclasstype == UC_TRANSIENT))
 	  scr = CAST_BAD; //transient to atom is also bad
 	//else atom, element, element ref, quark ref (possibly), are acceptable
       }
@@ -197,9 +211,10 @@ namespace MFM {
     //copy constructor for autoref (chain would be unpacked array,
     // e.g. 3812 requires NULL effself)
     // no extra uc, consistent with other types now.
+    // len for array item is one atom (t3671)
     m_state.indent(fp);
     fp->write(automangledName.c_str());
-    fp->write("(const UlamRef<EC>& arg, s32 idx) : UlamRef<EC>(arg, idx, BPA, NULL, UlamRef<EC>::ATOMIC) { }"); GCNL;
+    fp->write("(const UlamRef<EC>& arg, s32 incr) : UlamRef<EC>(arg, incr, BPA, NULL, UlamRef<EC>::ATOMIC) { }"); GCNL;
 
     //copy constructor (non-const), t3701, t3735, t3753,4,5,6,7,8,9
     // required by EventWindow aref method (ulamexports)
@@ -234,14 +249,32 @@ namespace MFM {
 
   void UlamTypeAtom::genUlamTypeAutoReadDefinitionForC(File * fp)
   {
-    assert(isScalar());
+    if(isScalar())
+      {
+	m_state.indent(fp);
+	fp->write(getTmpStorageTypeAsString().c_str()); //T
+	fp->write(" read() const { ");
+	fp->write("return UlamRef<EC>::");
+	fp->write(readMethodForCodeGen().c_str());
+	fp->write("(); /* read entire atom */ }"); GCNL; //done
+      }
+
+    //overload scalar read, as well as entire array
     m_state.indent(fp);
-    fp->write("const ");
+    fp->write("void ");
+    fp->write(" read(");
     fp->write(getTmpStorageTypeAsString().c_str()); //T
-    fp->write(" read() const { ");
-    fp->write("return UlamRef<EC>::");
+    fp->write("& rtnbv) const { ");
+    fp->write("rtnbv = UlamRef<EC>::");
     fp->write(readMethodForCodeGen().c_str());
-    fp->write("(); /* read entire atom */ }"); GCNL; //done
+    if(isScalar())
+      {
+	fp->write("(); /* read entire atom ref */ }"); GCNL;
+      }
+    else
+      {
+	fp->write("(); /* read entire atom array ref */ }"); GCNL;
+      }
   } //genUlamTypeAutoReadDefinitionForC
 
   void UlamTypeAtom::genUlamTypeAutoWriteDefinitionForC(File * fp)
@@ -295,6 +328,13 @@ namespace MFM {
 
     m_state.m_currentIndentLevel++;
 
+    //forward declaration for immediate ref (before struct)
+    m_state.indent(fp);
+    fp->write("template<class EC> class ");
+    fp->write(automangledName.c_str());
+    fp->write("; //forward"); GCNL;
+    fp->write("\n");
+
     m_state.indent(fp);
     fp->write("template<class EC>\n");
 
@@ -330,6 +370,13 @@ namespace MFM {
     fp->write("& targ) : "); //uc consistent with atomref
     fp->write("AtomBitStorage<EC>");
     fp->write("(targ) { }"); GCNL;
+
+    //constructor for constants (t41483); MFM Element Type not in place yet
+    m_state.indent(fp);
+    fp->write(mangledName.c_str());
+    fp->write("(const u32 * const ");
+    fp->write("arg) : AtomBitStorage<EC>() { if(arg==NULL) FAIL(NULL_POINTER); ");
+    fp->write("this->m_stg.GetBits().FromArray(arg); }"); GCNL;
 
     //copy constructor
     m_state.indent(fp);
@@ -387,6 +434,7 @@ namespace MFM {
   {
     if(isScalar())
       {
+	//e.g. used in scalar copy constructor
 	m_state.indent(fp);
 	fp->write("const ");
 	fp->write(getTmpStorageTypeAsString().c_str()); //T
@@ -394,20 +442,40 @@ namespace MFM {
 	fp->write("return ABS::");
 	fp->write(readMethodForCodeGen().c_str());
 	fp->write("(); }"); GCNL; //done
+
+	//overload scalar read
+	m_state.indent(fp);
+	fp->write("void ");
+	fp->write(" read(");
+	fp->write(getTmpStorageTypeAsString().c_str()); //T
+	fp->write("& rtnbv) const { ");
+	fp->write("rtnbv = ABS::");
+	fp->write(readMethodForCodeGen().c_str());
+	fp->write("(); }"); GCNL; //done
       }
     else
       {
 	//UNPACKED
 	m_state.indent(fp);
-	fp->write("const ");
+	fp->write("void ");
+	fp->write(" read(");
 	fp->write(getTmpStorageTypeAsString().c_str()); //BV
-	fp->write(" read");
-	fp->write("() const { ");
-	fp->write(getTmpStorageTypeAsString().c_str()); //BV
-	fp->write(" rtnunpbv; this->BVS::");
-	fp->write(readMethodForCodeGen().c_str());
-	fp->write("(0u, rtnunpbv); return rtnunpbv; ");
+	fp->write("& rtnbv) const { ");
+	fp->write("this->BVS::ReadBV(0u, rtnbv);");
 	fp->write("} //reads entire BV"); GCNL;
+      }
+
+    if(!isScalar())
+      {
+	//array item reads; entire PACKEDLOADABLE array read handled by Read()
+	//2nd argument generated for compatibility with underlying method (t41484)
+	m_state.indent(fp);
+	fp->write("const ");
+	fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //T, u64, or u32
+	fp->write(" readArrayItem(");
+	fp->write("const u32 index, const u32 itemlen) const { return BVS::");
+	fp->write(readArrayItemMethodForCodeGen().c_str());
+	fp->write("(index * itemlen); }"); GCNL; //rel offset
       }
   } //genUlamTypeReadDefinitionForC
 
@@ -443,6 +511,18 @@ namespace MFM {
 	fp->write(writeMethodForCodeGen().c_str());
 	fp->write("(0u, bv); ");
 	fp->write("} //writes entire BV"); GCNL;
+      }
+
+    if(!isScalar())
+      {
+	// writes an item of array (t41484)
+	//3rd argument generated for compatibility with underlying method
+	m_state.indent(fp);
+	fp->write("void writeArrayItem(const ");
+	fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //T, u64, u32
+	fp->write("& v, const u32 index, const u32 itemlen) { BVS::");
+	fp->write(writeArrayItemMethodForCodeGen().c_str());
+	fp->write("(index * itemlen, v); }"); GCNL;  //reloffset, val
       }
   } //genUlamTypeWriteDefinitionForC
 
@@ -545,12 +625,12 @@ namespace MFM {
     fp->write(automangledName.c_str());
     fp->write("(const ");
     fp->write(automangledName.c_str());
-    fp->write("<EC>& r, u32 idx) : UlamRef<EC>(r, idx, r.GetLen(), r.GetEffectiveSelf(), UlamRef<EC>::ARRAY) { }"); GCNL;
+    fp->write("<EC>& r, u32 incr) : UlamRef<EC>(r, incr, r.GetLen(), r.GetEffectiveSelf(), UlamRef<EC>::ARRAY) { }"); GCNL;
 
     //constructor for chain of autorefs (e.g. memberselect with array item)
     m_state.indent(fp);
     fp->write(automangledName.c_str());
-    fp->write("(const UlamRef<EC>& arg, s32 idx, const UlamClass<EC>* effself) : UlamRef<EC>(arg, idx, ");
+    fp->write("(const UlamRef<EC>& arg, s32 incr, const UlamClass<EC>* effself) : UlamRef<EC>(arg, incr, ");
     fp->write_decimal_unsigned(len); //includes arraysize
     fp->write("u, effself, UlamRef<EC>::ARRAY) {}"); GCNL;
 
@@ -585,17 +665,10 @@ namespace MFM {
 
   void UlamTypeAtom::genUlamTypeAutoReadArrayDefinitionForC(File * fp)
   {
-    m_state.indent(fp);
-    fp->write("const ");
-    fp->write(getTmpStorageTypeAsString().c_str()); //T
-    fp->write(" read() const { ");
-    fp->write("return UlamRef<EC>::");
-    fp->write(readMethodForCodeGen().c_str());
-    fp->write("(); /* read entire atom array */ }"); GCNL; //done
+    genUlamTypeAutoReadDefinitionForC(fp);
 
-    //Unpacked Read Array Item
+    //Unpacked Read Array Item;
     m_state.indent(fp);
-    fp->write("const ");
     fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //T
     fp->write(" readArrayItem(");
     fp->write("const u32 index, const u32 itemlen, const UlamContext<EC>& uc) const { return ");
@@ -723,13 +796,12 @@ namespace MFM {
     fp->write("write(d);");
     fp->write(" }"); GCNL;
 
-    // assignment constructor
+    // assignment constructor (e.g. t3709)
     m_state.indent(fp);
     fp->write(mangledName.c_str());
     fp->write("(const ");
     fp->write(mangledName.c_str());
-    fp->write("<EC> & arg) { ");
-    fp->write("this->m_stg = arg.m_stg; }"); GCNL;
+    fp->write("<EC> & arg) : BVS(arg.m_stg) { }"); GCNL;
 
     //assignment constructor, atom arg, for convenience
     m_state.indent(fp);

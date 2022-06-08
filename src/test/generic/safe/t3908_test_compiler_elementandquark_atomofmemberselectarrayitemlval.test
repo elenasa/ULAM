@@ -1,13 +1,13 @@
 ## -*- mode:ulam -*-
 #=t3908_test_compiler_elementandquark_atomofmemberselectarrayitemlval
-#!
 ##      gen code output: 2 asserts
 ##
+#!
 Exit status: -11
-Ue_R { Int(32) ans(0);  Int(32) test() {  System s;  T tr[2];  tr 1 [] m_earr 2 [] . b . true = Atom(96)& me = tr 1 [] m_earr 2 [] ..atomof;  { me A as cond { A& me;  s ( me b . )assert . } if s ( false )assert . else } A a;  tr 1 [] m_earr 2 [] ..atomof a cast = { me A as cond { A& me;  s ( me b . ! )assert . } if s ( false )assert . else } 0 cast return } }
+Ue_R { Int ans(0);  Int test() {  System s;  T tr[2];  tr 1 [] m_earr 2 [] . b . true = Atom& me = tr 1 [] m_earr 2 [] ..atomof;  { me A as cond { A& me;  s ( me b . )assert . } if s ( false )assert . else } A a;  tr 1 [] m_earr 2 [] ..atomof a cast = { me A as cond { A& me;  s ( me b . ! )assert . } if s ( false )assert . else } 0 cast return } }
 Uq_System { <NOMAIN> }
-Un_T { Bool(1) b(false);  A m_earr[3]( Bool(1) b(false);  QW m_q[4]( Unary(3) m_y(0); ), ( Unary(3) m_y(0); ), ( Unary(3) m_y(0); ), ( Unary(3) m_y(0); ); ), ( Bool(1) b(false);  QW m_q[4]( Unary(3) m_y(0); ), ( Unary(3) m_y(0); ), ( Unary(3) m_y(0); ), ( Unary(3) m_y(0); ); ), ( Bool(1) b(false);  QW m_q[4]( Unary(3) m_y(0); ), ( Unary(3) m_y(0); ), ( Unary(3) m_y(0); ), ( Unary(3) m_y(0); ); );  <NOMAIN> }
-Ue_A { Bool(1) b(false);  QW m_q[4]( Unary(3) m_y(0); ), ( Unary(3) m_y(0); ), ( Unary(3) m_y(0); ), ( Unary(3) m_y(0); );  <NOMAIN> }
+Un_T { Bool b(false);  A m_earr[3]( Bool b(false);  QW m_q[4]( Unary(3) m_y(0); ), ( Unary(3) m_y(0); ), ( Unary(3) m_y(0); ), ( Unary(3) m_y(0); ); ), ( Bool b(false);  QW m_q[4]( Unary(3) m_y(0); ), ( Unary(3) m_y(0); ), ( Unary(3) m_y(0); ), ( Unary(3) m_y(0); ); ), ( Bool b(false);  QW m_q[4]( Unary(3) m_y(0); ), ( Unary(3) m_y(0); ), ( Unary(3) m_y(0); ), ( Unary(3) m_y(0); ); );  <NOMAIN> }
+Ue_A { Bool b(false);  QW m_q[4]( Unary(3) m_y(0); ), ( Unary(3) m_y(0); ), ( Unary(3) m_y(0); ), ( Unary(3) m_y(0); );  <NOMAIN> }
 Uq_QW { Unary(3) m_y(0);  <NOMAIN> }
 ##
 ## informed by t3906, except with lots of array items, lval and atom ref (same element type)

@@ -1,19 +1,21 @@
 ## -*- mode:ulam -*-
 #=t3462_test_compiler_elementshift_error
 #!
-./A.ulam:4:8: ERROR: (2) <operator<<> is not a defined function, or cannot be safely called in this context.
-./A.ulam:4:4: ERROR: Assignment is invalid; LHS: A; RHS: erroneous.
-./A.ulam:5:8: ERROR: Non-primitive type <A> is not supported as right operand type for binary <<.
-./A.ulam:5:4: ERROR: Assignment is invalid; LHS: A; RHS: erroneous.
+./A.ulam:6:11: ERROR: Non-primitive type <A> is not supported as right operand type for binary <<.
+./A.ulam:6:7: ERROR: Assignment is invalid; LHS: A; RHS: erroneous.
 Unrecoverable Program Type Label FAILURE.
+##
+## both errors, but error2 is faster since error1 surgery returns hazy (9/6/19)
+##
 #>A.ulam
+  ulam 1;
 element A {
-Int test() {
- A a, b;
- b = a << 1;
- b = 1 << a;
- return -1;
- }
- }
+  Int test() {
+    A a, b;
+    b = a << 1; //error1
+    b = 1 << a; //error2
+    return -1;
+  }
+}
 
 #.

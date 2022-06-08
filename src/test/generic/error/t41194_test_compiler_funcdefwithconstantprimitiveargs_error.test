@@ -1,0 +1,40 @@
+## -*- mode:ulam -*-
+#=t41194_test_compiler_funcdefwithconstantprimitiveargs_error
+#!
+./A.ulam:5:12: ERROR: Unmodifiable lefthand side of assignment expression 'm', type: Int.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by t3115, except with two constant args, one which is modified
+##
+#>A.ulam
+  use System;
+element A {
+  Int times(constant Int m, constant Int n) {
+    Int d;
+    while( --m > 0)
+      d += n;
+    return d;
+  }
+  System s;
+  Bool(7) b;
+  Int d;
+  Int test(){
+    d = times(4,5);
+    s.print(d);
+    return d;
+  }
+}
+## using preceding -- instead of -=1
+## test system quark with native overloaded print funcs; assert
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

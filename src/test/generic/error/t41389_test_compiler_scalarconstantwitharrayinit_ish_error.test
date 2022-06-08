@@ -1,0 +1,22 @@
+## -*- mode:ulam -*-
+#=t41389_test_compiler_scalarconstantwitharrayinit_ish_error
+#!
+./A.ulam:4:12: ERROR: Scalar constant 'mLengths' has improper {} initialization.
+Unrecoverable Program Type Label FAILURE.
+##
+## Type error (ish-03082020); error replaces assert (see t41387)
+##
+#>A.ulam
+  ulam 3;
+element A {
+  typedef Unsigned(2) TargetLength1;
+  constant TargetLength1 mLengths = {2, 2, 3, 3};
+  //TargetLength1 mLengths[] = {2, 2, 3, 3}; correct
+
+  Int test() {
+    A a;
+    return 0;
+  }
+}
+
+#.

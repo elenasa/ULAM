@@ -1,0 +1,159 @@
+## -*- mode:ulam -*-
+#=t41386_test_compiler_elementandquark_multibases_nonvirtualfuncsselectwself
+##
+## gen output: (w interleaved asserts )
+##   Bool(3) Arg: 0x0 (false)
+##   Bool(3) Arg: 0x0 (false)
+##   Bool(3) Arg: 0x0 (false)
+##   Bool(3) Arg: 0x7 (true)
+##   Bool(3) Arg: 0x7 (true)
+##   Bool(3) Arg: 0x7 (true)
+##
+#!
+Exit status: 0
+Ue_R { Bool r_c4[2](false,true);  Bool r_a4[2](false,true);  Bool r_d4[2](false,true);  Int test() {  System s;  E4 e;  e ( )behave . self r_c4 . 0 [] e m_c4 . = s ( e m_c4 . cast )print . s ( e m_c4 . ! )assert . self r_a4 . 0 [] e m_a4 . = s ( e m_a4 . cast )print . s ( e m_a4 . ! )assert . self r_d4 . 0 [] e m_d4 . = s ( e m_d4 . cast )print . s ( e m_d4 . ! )assert . e ( )initSites . e ( )behave . self r_c4 . 1 [] e m_c4 . = s ( e m_c4 . cast )print . s ( e m_c4 . )assert . self r_a4 . 1 [] e m_a4 . = s ( e m_a4 . cast )print . s ( e m_a4 . )assert . self r_d4 . 1 [] e m_d4 . = s ( e m_d4 . cast )print . s ( e m_d4 . )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+Ue_E4 +QBase4 { Bool m_c4(false);  Bool m_a4(false);  Bool m_d4(false);  +QBase4< Bool m_b4(false); > ^QBase1< Bool m_b1(false); > ^QBase2< Bool m_b2(false);  Unsigned(6) m_site2( 63u); > ^QBase3< Bool m_b3(false);  Unsigned(6) m_site3( 63u); > <NOMAIN> }
+Uq_QBase4 +QBase2 +QBase3 { Bool m_b4(false);  +QBase2< Bool m_b2(false);  Unsigned(6) m_site2( 63u); > +QBase3< Bool m_b3(false);  Unsigned(6) m_site3( 63u); > ^QBase1< Bool m_b1(false); > <NOMAIN> }
+Uq_QBase2 +QBase1 { Bool m_b2(false);  Unsigned(6) m_site2( 63u);  +QBase1< Bool m_b1(false); > <NOMAIN> }
+Uq_QBase3 : QBase2 { Bool m_b3(false);  Unsigned(6) m_site3( 63u);  :QBase2< Bool m_b2(false);  Unsigned(6) m_site2( 63u); > ^QBase1< Bool m_b1(false); > <NOMAIN> }
+Uq_QBase1 { Bool m_b1(false);  <NOMAIN> }
+##
+##       informed by t41311; here we want to pick a base class func instead,
+##       and change its data member (but which one? SHARED!); using self.
+##
+#>R.ulam
+  ulam 5;
+element R {
+  Bool r_c4[2];
+  Bool r_a4[2];
+  Bool r_d4[2];
+
+  Int test()
+  {
+    System s;
+    E4 e;
+
+    e.behave();
+
+    r_c4[0] = e.m_c4;
+    //m_c4 = self.QBase2.isConnected();
+    s.print(e.m_c4);
+    s.assert(!e.m_c4);
+
+    //m_a4 = self.QBase3.isConnected();
+    r_a4[0] = e.m_a4;
+    s.print(e.m_a4);
+    s.assert(!e.m_a4);
+
+    //m_d4 = self.QBase4.isConnected();
+    r_d4[0] = e.m_d4;
+    s.print(e.m_d4);
+    s.assert(!e.m_d4);
+
+    e.initSites(); //e.QBase4.initSites();
+
+    e.behave();
+
+    //m_c4 = self.QBase2.isConnected();
+    r_c4[1] = e.m_c4;
+    s.print(e.m_c4);
+    s.assert(e.m_c4);
+
+    //m_a4 = self.QBase3.isConnected();
+    r_a4[1] = e.m_a4;
+    s.print(e.m_a4);
+    s.assert(e.m_a4);
+
+    //m_d4 = self.QBase4.isConnected();
+    r_d4[1] = e.m_d4;
+    s.print(e.m_d4);
+    s.assert(e.m_d4);
+
+    return 0;
+  }
+}
+
+#:E4.ulam
+  ulam 5;
+element E4 +QBase4{
+  Bool m_c4;
+  Bool m_a4;
+  Bool m_d4;
+
+  virtual Void behave()
+  {
+    m_c4 = self.QBase2.isConnected();
+    m_a4 = self.QBase3.isConnected();
+    m_d4 = self.QBase4.isConnected();
+  }
+
+}
+
+#:QBase1.ulam
+    ulam 4;
+quark QBase1 {
+  Bool m_b1;
+  Bool isConnected(Unsigned(6) site)
+  {
+    return site != Unsigned(6).maxof && site != 0;
+  }
+
+
+}
+
+#:QBase2.ulam
+  ulam 4;
+quark QBase2 +QBase1 {
+  Bool m_b2;
+  virtual ARGB getColor(Unsigned s) { return super.getColor(s); }
+  Unsigned(6) m_site2 = Unsigned(6).maxof;
+  Bool isConnected()
+  {
+    return self.QBase1.isConnected(m_site2);
+  }
+}
+
+#:QBase3.ulam
+  ulam 4;
+quark QBase3 : QBase2{
+  Bool m_b3;
+  Unsigned(6) m_site3 = Unsigned(6).maxof;
+  Bool isConnected()
+  {
+    return self.QBase1.isConnected(m_site3);
+  }
+}
+
+#:QBase4.ulam
+  ulam 4;
+quark QBase4 + QBase2 + QBase3{
+  Bool m_b4;
+  Bool isConnected()
+  {
+    return self.QBase3.isConnected() && self.QBase2.isConnected();
+  }
+
+  Void initSites()
+  {
+    self.QBase3.m_site3 = 5;
+    self.QBase2.m_site2 = 4;
+  }
+}
+
+
+
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

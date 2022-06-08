@@ -2,10 +2,10 @@
 #=t3364_test_compiler_elementandquarkswclassargs3_typedeffromanotherclasstypedef
 #!
 Exit status: 3
-Ue_R { P(3) pvar( constant Int(32) a = 3;  Bool(3) b(false); );  Int(32) test() {  3u cast return } }
+Ue_R { P(3) pvar( constant Int a = 3;  Bool(3) b(false); );  Int test() {  3u cast return } }
 Uq_V { typedef Q(3) Woof;  <NOMAIN> }
-Uq_Q(Int(32) s) { typedef P(a) Foo;  <NOMAIN> }
-Uq_P(Int(32) a) { Bool(UNKNOWN) b(notready);  <NOMAIN> }
+Uq_Q(Int s) { typedef P(a) Foo;  <NOMAIN> }
+Uq_P(Int a) { Bool(UNKNOWN) b(notready);  <NOMAIN> }
 ##
 ##      //informed by 3345
 ##      // recursive typedefs as datamember variable type (requires quark, unless EP)

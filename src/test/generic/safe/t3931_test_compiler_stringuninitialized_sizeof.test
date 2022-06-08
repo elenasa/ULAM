@@ -2,12 +2,12 @@
 #=t3931_test_compiler_stringuninitialized_sizeof
 ##
 ## gen output: (interleaved asserts)
-## Int Arg: 32
-## Int Arg: 32
+## Int Arg: 20
+## Int Arg: 20
 ##
 #!
 Exit status: 0
-Ue_A { Int(32) m_s1(32);  Int(32) m_s2(32);  Int(32) test() {  System s;  String(32) mt = "";  m_s1 32u cast = s ( m_s1 )print . s ( m_s1 32 cast == )assert . String(32) str;  m_s2 32u cast = s ( m_s2 )print . s ( m_s2 32 cast == )assert . 0 cast return } }
+Ue_A { Int m_s1(20);  Int m_s2(20);  Int test() {  System s;  String mt = "";  self m_s1 . 20u cast = s ( self m_s1 . )print . s ( self m_s1 . 20 cast == )assert . String str;  self m_s2 . 20u cast = s ( self m_s2 . )print . s ( self m_s2 . 20 cast == )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
   ulam 3;
@@ -21,13 +21,13 @@ element A {
    String mt = "";
    m_s1 = mt.sizeof; // =0
    s.print(m_s1);
-   s.assert(m_s1 == 32);
+   s.assert(m_s1 == 20);
 
    //uninitialized string
    String str;
    m_s2 = str.sizeof; // no runtime ERROR!!
    s.print(m_s2);
-   s.assert(m_s2 == 32);
+   s.assert(m_s2 == 20);
    return 0;
  }
 }

@@ -2,7 +2,7 @@
 #=t41096_test_compiler_elementinheritedquark_overridevirtualfunc_error
 ##
 #!
-./Sub1.ulam:3:25: ERROR: @Override flag fails virtual function: Int(32) afunc(Int(32) a, Bool(1) b).
+./Sub1.ulam:3:25: ERROR: @Override flag fails virtual function: Int afunc(Int a, Bool b).
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t41095, see also safe/t41097

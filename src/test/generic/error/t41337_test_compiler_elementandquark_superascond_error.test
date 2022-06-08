@@ -1,0 +1,65 @@
+## -*- mode:ulam -*-
+#=t41337_test_compiler_elementandquark_superascond_error
+#!
+./Eltypo.ulam:10:14: ERROR: Shorthand 'super' is too mind-blowing as the lefthand name of conditional operator 'as'; consider using virtual functions instead.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by 3821, except as 'super', instead of 'self'. (see t41338)
+##
+#:Typo.ulam
+  ulam 2;
+use Bar;
+quark Typo(Int a) : Bar{
+}
+
+#:Bar.ulam
+  ulam 2;
+quark Bar
+{
+  Unsigned(3) bu = 7u;
+  Void func(Unsigned u)
+  {
+    bu = (Unsigned(3)) u;
+  }
+}
+
+#>Eltypo.ulam
+  ulam 2;
+use Typo;
+use System;
+element Eltypo : Typo(1) {
+  System s;
+  Unsigned(3) first;
+  Unsigned(3) second;
+  Typo(1) t;
+  Int test(){
+    if(super as Bar){   //<--mind goes beserk!!
+      func(3u); //modifies 'bu'
+      s.print(bu);
+      s.assert(bu == 3);
+      first = bu; //3u, from 7u
+    }
+    else
+      s.assert(false);
+
+    s.print(self.bu);
+    s.assert(self.bu == 3);
+    s.print(first);
+    s.assert(first == 3);
+    second = self.bu; //3u, from 7u
+    return second;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3800_test_compiler_subclassshadowsdatamember_error
 #!
-./A.ulam:6:3: ERROR: Data member 'j' is shadowing an ancestor.
+./A.ulam:6:3: ERROR: Data member 'j' is shadowing an ancestor: B.
 Unrecoverable Program Type Label FAILURE.
 ##
 #>A.ulam

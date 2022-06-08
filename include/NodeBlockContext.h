@@ -1,8 +1,9 @@
 /**                                        -*- mode:C++ -*-
  * NodeBlockContext.h - Basic handling of Contexts for ULAM
  *
- * Copyright (C) 2016-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2016-2017 Ackleyshack LLC.
+ * Copyright (C) 2016-2018 The Regents of the University of New Mexico.
+ * Copyright (C) 2016-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,12 +28,11 @@
 
 /**
   \file NodeBlockContext.h - Basic handling of Contexts for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2016-2017 All rights reserved.
+  \date (C) 2016-2021 All rights reserved.
   \gpl
 */
-
 
 #ifndef NODEBLOCKCONTEXT_H
 #define NODEBLOCKCONTEXT_H
@@ -61,15 +61,21 @@ namespace MFM{
 
     virtual bool isAClassBlock() = 0;
 
-    virtual StringPoolUser& getUserStringPoolRef();
-    virtual void setUserStringPoolRef(const StringPoolUser& spref); //for instantiated templates
+    virtual void setNodeType(UTI uti);
 
-    bool hasStringDataMembers();
+    virtual UTI checkAndLabelType(Node * thisparentnode);
+
+    u32 getAllRemainingCulamGeneratedTypedefSymbolsInContext(std::map<u32, Symbol*>& mapref);
+
+    virtual bool hasStringDataMembers();
+
+    bool classConstantsReady();
 
     virtual void addTargetDescriptionToInfoMap(TargetMap& classtargets, u32 scid) = 0;
     virtual void addMemberDescriptionsToInfoMap(ClassMemberMap& classmembers) = 0;
 
     virtual void generateTestInstance(File * fp, bool runtest) = 0;
+    virtual void generateIncludeTestMain(File * fp) = 0;
 
     void addUlamTypeKeyToSet(UlamKeyTypeSignature key);
     void copyUlamTypeKeys(NodeBlockContext * toblock) const;
@@ -79,7 +85,8 @@ namespace MFM{
     void genUlamTypeImmediateDefinitions(File * fp);
 
   protected:
-    StringPoolUser m_upool; //for double quoted strings only
+    bool m_classConstantsReady;
+    u32 m_nameid;
 
   private:
 

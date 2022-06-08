@@ -1,12 +1,12 @@
 ## -*- mode:ulam -*-
 #=t3330_test_compiler_elementwithclassparameters_deferred
-#!
 ##      //Constants have explicit types
 ##      //note: in eval, last case, uninitialized atom case is wrong!!
 ##
+#!
 Exit status: 0
-Ue_T { S(1,2) m( constant Int(32) x = 1;  constant Int(32) y = 2; );  Int(32) test() {  m ( )func . 0 cast return } }
-Uq_S(Int(32) x, Int(32) y) { <NOMAIN> }
+Ue_T { S(1,2) m( constant Int x = 1;  constant Int y = 2; );  Int test() {  self m . ( )func . 0 cast return } }
+Uq_S(Int x, Int y) { <NOMAIN> }
 ##
 ##    //informed by t3255
 ##    //can't return named constant in another class 'return S(1,2).x;'

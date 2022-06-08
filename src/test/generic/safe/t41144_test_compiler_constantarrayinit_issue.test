@@ -1,0 +1,38 @@
+## -*- mode:ulam -*-
+#=t41144_test_compiler_constantarrayinit_issue
+##
+## gen output: (1 assert)
+##
+#!
+Exit status: 0
+Ue_A { typedef Unsigned(8) Color;  constant Unsigned(8) reds[8] = { 0x10203, 0x4050607 };  Int test() {  System s;  s ( reds 6 [] 6u cast == )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+##
+## ish 10/23/2017 the array size is not part of the typedef; compiler assert hit..
+##
+#>A.ulam
+  ulam 3;
+element A {
+
+  typedef Unsigned(8) Color;
+  constant Color reds[8] = {0,1,2,3,4,5,6,7}; // also fails with {0,1,2,3,4,5,6} or {0,1,2,3,4,5,6,7,8}
+
+  Int test(){
+    System s;
+    s.assert(reds[6] == 6u);
+    return 0;
+  }
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

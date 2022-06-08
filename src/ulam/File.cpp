@@ -48,9 +48,12 @@ namespace MFM {
   s32 File::write_decimal_long(const s64 data)
     {
       // We must avoid printfs involving 64 bit quantities,
-      // due to ANSI C99 limitations, so we do this instead.
-      std::string str = ToSignedDecimal(data);
-      return write(str.c_str());
+      // due to ANSI C99 limitations, so we do this instead of %lld.
+      //std::string str = ToSignedDecimal(data);
+      //return write(str.c_str());
+      char tmp[64+5];
+      sprintf(tmp, "%" PRId64 "", data);
+      return write(tmp);
     }
 
   s32 File::write_decimal_unsigned(const u32 data)
@@ -63,10 +66,28 @@ namespace MFM {
   s32 File::write_decimal_unsignedlong(const u64 data)
     {
       // We must avoid printfs involving 64 bit quantities,
-      // due to ANSI C99 limitations, so we do this instead.
-      std::string str = ToUnsignedDecimal(data);
-      return write(str.c_str());
+      // due to ANSI C99 limitations, so we do this instead of %llu.
+      //std::string str = ToUnsignedDecimal(data);
+      //return write(str.c_str());
+      char tmp[64+5];
+      sprintf(tmp, "%" PRIu64 "", data);
+      return write(tmp);
     }
+
+  s32 File::write_hexadecimal(const u32 data)
+  {
+    char tmp[32+5];
+    sprintf(tmp,"0x%x",data);
+    return write(tmp);
+  }
+
+  s32 File::write_hexadecimallong(const u64 data)
+  {
+    // We must avoid printfs involving 64 bit quantities,
+    // due to ANSI C99 limitations, so we do this instead.
+    std::string str = ToUnsignedDecimal(data);
+    return write(str.c_str());
+  }
 
   s32 File::write_tagged_end(const char * filename, s32 lineno)
   {

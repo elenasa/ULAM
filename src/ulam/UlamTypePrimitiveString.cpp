@@ -43,6 +43,41 @@ namespace MFM {
     return false;
   }
 
+  const std::string UlamTypePrimitiveString::getUlamTypeName()
+  {
+    std::ostringstream key;
+    key << m_key.getUlamKeyTypeSignatureName(&m_state); //one size for all Strings
+
+    if(!isScalar())
+      {
+	s32 arraysize = getArraySize(); //casting diff array sizes (t41429,t41324,t3976)
+	if(arraysize >= 0)
+	  key << "[" << arraysize << "]";
+	else if(arraysize == UNKNOWNSIZE)
+	  key << "[" << "UNKNOWN" << "]";
+	else
+	  key << "[" << arraysize << "?]";
+      }
+
+    if(UlamType::isAltRefType())
+      key << "&"; //only when ulam programmer put in the &
+
+    u32 keyid = m_state.m_pool.getIndexForDataString(key.str());
+    return m_state.m_pool.getDataAsString(keyid);
+  }
+
+  const std::string UlamTypePrimitiveString::getUlamTypeNameBrief()
+  {
+    std::ostringstream key;
+    key << m_key.getUlamKeyTypeSignatureName(&m_state); //one size for all Strings
+
+    if(UlamType::isAltRefType())
+      key << "&"; //only when ulam programmer put in the & (t3948)
+
+    u32 keyid = m_state.m_pool.getIndexForDataString(key.str());
+    return m_state.m_pool.getDataAsString(keyid);
+  }
+
   const std::string UlamTypePrimitiveString::getUlamTypeImmediateMangledName()
   {
     if(needsImmediateType())
@@ -53,18 +88,23 @@ namespace MFM {
 
   const std::string UlamTypePrimitiveString::castMethodForCodeGen(UTI nodetype)
   {
-    //_String32ToString32 undefined in CastOps.h
-    m_state.abortShouldntGetHere();
-    return "invalidStringCastMethodForCodeGen";
-  }
+    //_Bits32ToString32 (and vis versa) defined in CastOps.h
+    //return "invalidStringCastMethodForCodeGen";
+    UlamType * nut = m_state.getUlamTypeByIndex(nodetype);
+    //base type i.e. Bits only
+    if(nut->getUlamTypeEnum() != Bits)
+      m_state.abortShouldntGetHere();
+
+    return UlamTypePrimitive::castMethodForCodeGen(nodetype);
+  } //castMethodForCodeGen
 
   bool UlamTypePrimitiveString::cast(UlamValue & val, UTI typidx)
   {
     bool brtn = true;
     assert(m_state.getUlamTypeByIndex(typidx) == this);
-    UTI valtypidx = val.getUlamValueTypeIdx();
+    UTI valtypidx = val.getUlamValueTypeIdx(); //from type
 
-    if(UlamType::safeCast(valtypidx) != CAST_CLEAR) //bad|hazy
+    if(UlamTypePrimitive::safeCast(valtypidx) != CAST_CLEAR) //bad|hazy
       return false;
 
     u32 wordsize = getTotalWordSize();
@@ -129,13 +169,13 @@ namespace MFM {
 
   FORECAST UlamTypePrimitiveString::safeCast(UTI typidx)
   {
-    FORECAST scr = UlamType::safeCast(typidx);
+    FORECAST scr = UlamTypePrimitive::safeCast(typidx);
     if(scr != CAST_CLEAR)
       return scr;
 
     bool brtn = true;
-    UlamType * vut = m_state.getUlamTypeByIndex(typidx);
-    ULAMTYPE valtypEnum = vut->getUlamTypeEnum();
+    UlamType * fmut = m_state.getUlamTypeByIndex(typidx);
+    ULAMTYPE valtypEnum = fmut->getUlamTypeEnum();
     switch(valtypEnum)
       {
       case String:
@@ -157,6 +197,20 @@ namespace MFM {
       };
     return brtn ? CAST_CLEAR : CAST_BAD;
   } //safeCast
+
+  FORECAST UlamTypePrimitiveString::explicitlyCastable(UTI typidx)
+  {
+    FORECAST scr = UlamTypePrimitive::explicitlyCastable(typidx);
+
+    UlamType * fmut = m_state.getUlamTypeByIndex(typidx);
+    ULAMTYPE valtypEnum = fmut->getUlamTypeEnum();
+
+    //allow Bits to be cast to consecutive String index (ulam-5);
+    if(valtypEnum == Bits)
+      scr = CAST_CLEAR; //t41422
+
+    return scr;
+  } //explicitlyCastable
 
   void UlamTypePrimitiveString::getDataAsString(const u32 data, char * valstr, char prefix)
   {
@@ -225,56 +279,34 @@ namespace MFM {
     return (tobitsize > wordsize ? wordsize : tobitsize);
   } //bitsizeToConvertTypeTo
 
+  const std::string UlamTypePrimitiveString::getTmpStorageTypeAsString()
+  {
+    return UlamType::getTmpStorageTypeAsString();
+  }
+
+  TMPSTORAGE UlamTypePrimitiveString::getTmpStorageTypeForTmpVar()
+  {
+    return UlamType::getTmpStorageTypeForTmpVar();
+  }
+
+  const std::string UlamTypePrimitiveString::readMethodForCodeGen()
+  {
+    return UlamType::readMethodForCodeGen();
+  } //readMethodForCodeGen
+
+  const std::string UlamTypePrimitiveString::writeMethodForCodeGen()
+  {
+    return UlamType::writeMethodForCodeGen();
+  } //writeMethodForCodeGen
+
   void UlamTypePrimitiveString::genUlamTypeAutoReadDefinitionForC(File * fp)
   {
     UlamTypePrimitive::genUlamTypeAutoReadDefinitionForC(fp);
-
-    //access regnum and string index, separately
-    if(isScalar())
-      {
-	m_state.indent(fp);
-	fp->write("const ");
-	fp->write(getTmpStorageTypeAsString().c_str()); //u32 or u64
-	fp->write(" getRegistrationNumber");
-	fp->write("() const { return UlamRef<EC>(*this, 0u, ");
-	fp->write_decimal_unsigned(REGNUMBITS);
-	fp->write("u, NULL, UlamRef<EC>::PRIMITIVE).Read(); }"); GCNL; //done
-
-	m_state.indent(fp);
-	fp->write("const ");
-	fp->write(getTmpStorageTypeAsString().c_str()); //u32 or u64
-	fp->write(" getStringIndex");
-	fp->write("() const { return UlamRef<EC>(*this, ");
-	fp->write_decimal_unsigned(REGNUMBITS);
-	fp->write("u, ");
-	fp->write_decimal_unsigned(STRINGIDXBITS);
-	fp->write("u, NULL, UlamRef<EC>::PRIMITIVE).Read(); }"); GCNL; //done
-	fp->write("\n");
-      }
   }
 
   void UlamTypePrimitiveString::genUlamTypeAutoWriteDefinitionForC(File * fp)
   {
     UlamTypePrimitive::genUlamTypeAutoWriteDefinitionForC(fp);
-
-    //access regnum and string index, separately
-    if(isScalar())
-      {
-	m_state.indent(fp);
-	fp->write("void setRegistrationNumber");
-	fp->write("(u32 regnum) { UlamRef<EC>(*this, 0u, ");
-	fp->write_decimal_unsigned(REGNUMBITS);
-	fp->write("u, NULL, UlamRef<EC>::PRIMITIVE).Write(regnum); }"); GCNL; //done
-
-	m_state.indent(fp);
-	fp->write("void setStringIndex");
-	fp->write("(u32 sidx) { UlamRef<EC>(*this, ");
-	fp->write_decimal_unsigned(REGNUMBITS);
-	fp->write("u, ");
-	fp->write_decimal_unsigned(STRINGIDXBITS);
-	fp->write("u, NULL, UlamRef<EC>::PRIMITIVE).Write(sidx); }"); GCNL; //done
-	fp->write("\n");
-      }
   }
 
   //generates immediates with local storage; registration class num and string index
@@ -342,29 +374,6 @@ namespace MFM {
     fp->write("typedef BitVectorBitStorage<EC, BV> BVS;"); GCNL;
     fp->write("\n");
 
-    if(isScalar())
-      {
-	m_state.indent(fp);
-	fp->write("enum { REG_NUM_BITS = ");
-	fp->write_decimal_unsigned(REGNUMBITS);
-	fp->write(", STR_IDX_BITS = ");
-	fp->write_decimal_unsigned(STRINGIDXBITS);
-	fp->write(", STR_IDX_MASK = ");
-	fp->write_decimal_unsigned(STRINGIDXMASK);
-	fp->write("};"); GCNL;
-
-	//helper methods
-	m_state.indent(fp);
-	fp->write("static u32 getRegNum(u32 combinedidx) { return (combinedidx >> REG_NUM_BITS); }");
-	GCNL;
-	m_state.indent(fp);
-	fp->write("static u32 getStrIdx(u32 combinedidx) { return (combinedidx & STR_IDX_MASK); }");
-	GCNL;
-	m_state.indent(fp);
-	fp->write("static u32 makeCombinedIdx(u32 regnum, u32 stridx) { return ((regnum << REG_NUM_BITS) | (stridx & STR_IDX_MASK)); }");
-	GCNL;
-      }
-
     //put read/write methods before constructrtors that may use them.
     //read BV method
     genUlamTypeReadDefinitionForC(fp);
@@ -384,13 +393,16 @@ namespace MFM {
 	fp->write(mangledName.c_str());
 	fp->write("(");
 	fp->write(getTmpStorageTypeAsString().c_str()); //u32
-	fp->write(" regnum, ");
-	fp->write(getTmpStorageTypeAsString().c_str()); //u32
+	//fp->write(" regnum, ");
+	//fp->write(getTmpStorageTypeAsString().c_str()); //u32
 	fp->write(" sidx) { ");
-	fp->write("setRegistrationNumber(regnum); setStringIndex(sidx); }"); GCNL;
+	//fp->write("setRegistrationNumber(regnum); setStringIndex(sidx); }"); GCNL;
+	fp->write("setStringIndex(sidx); }"); GCNL;
       }
     else
       {
+	s32 arraysize = getArraySize();
+
 	//array initialization constructor here (used by const tmpVars);
 	// in C, the array is just a pointer (since not within a struct);
 	m_state.indent(fp);
@@ -398,7 +410,40 @@ namespace MFM {
 	fp->write("(const u32");
 	fp->write(" d[");
 	fp->write_decimal_unsigned(UlamType::getTotalNumberOfWords());
-	fp->write("]) : BVS(d) { }"); GCNL;
+	fp->write("]) { BV tmpbv; tmpbv.FromArray(d); ");
+	if(len > MAXBITSPERLONG)
+	  {
+	    fp->write("this->write(tmpbv); }"); GCNL;
+	  }
+	else
+	  {
+	    fp->write(getTmpStorageTypeAsString().c_str()); //u32,u64
+	    fp->write(" tmps = tmpbv.");
+	    fp->write(readMethodForCodeGen().c_str());
+	    fp->write("(0u,"); //startidx
+	    fp->write_decimal_unsigned(len);
+	    fp->write("u); ");
+	    fp->write("this->write(tmps); }"); GCNL; //t41276
+	  }
+
+	//array initialization constructor here from BV for constant array (t41277)
+	m_state.indent(fp);
+	fp->write(mangledName.c_str());
+	fp->write("(const BV& bvsarg) : BVS(bvsarg) { }"); GCNL;
+
+
+	//array initialization constructor here from u64 for constant array[2] (t41277)
+	if((len > MAXBITSPERINT) && (len <= MAXBITSPERLONG))
+	  {
+	    m_state.indent(fp);
+	    fp->write(mangledName.c_str());
+	    fp->write("(const u64 dl){const u32 mask=_GetNOnes31(20); for(u32 i=0;i<");
+	    fp->write_decimal_unsigned(arraysize);
+	    fp->write(";i++){");
+	    fp->write("u32 d0=(u32)(dl>>20u*i);d0&=mask;writeArrayItem(d0,");
+	    fp->write_decimal_unsigned(arraysize);
+	    fp->write("-i-1,20u);}}"); GCNL; //reverse the order t41277
+	  }
       }
 
     //copy constructor here (return by value)
@@ -406,11 +451,18 @@ namespace MFM {
     fp->write(mangledName.c_str());
     fp->write("(const ");
     fp->write(mangledName.c_str()); //u32
-    fp->write("& other) { ");
-    fp->write("this->write");
-    fp->write("(other.");
-    fp->write("read");
-    fp->write("()); }"); GCNL;
+    fp->write("& other) : BVS() { "); //-Wextra
+    if(len <= MAXBITSPERLONG)
+      {
+	fp->write("this->write");
+	fp->write("(other.");
+	fp->write("read()); }"); GCNL;
+      }
+    else
+      {
+	fp->write(getTmpStorageTypeAsString().c_str()); //BV
+	fp->write(" tmpbv; other.read(tmpbv); write(tmpbv); } "); GCNL;
+      }
 
     //constructor from ref of same type
     m_state.indent(fp);
@@ -418,8 +470,15 @@ namespace MFM {
     fp->write("(const ");
     fp->write(automangledName.c_str());
     fp->write("<EC>& d) { "); //uc consistent with atomref
-    fp->write("this->write(");
-    fp->write("d.read()); }"); GCNL;
+    if(len <= MAXBITSPERLONG)
+      {
+	fp->write("this->write(d.read()); }"); GCNL;
+      }
+    else
+      {
+	fp->write(getTmpStorageTypeAsString().c_str()); //BV
+	fp->write(" tmpbv; d.read(tmpbv); this->write(tmpbv); } "); GCNL;
+      }
 
     //default destructor (intentionally left out)
 
@@ -442,55 +501,115 @@ namespace MFM {
 
   void UlamTypePrimitiveString::genUlamTypeReadDefinitionForC(File * fp)
   {
-    UlamTypePrimitive::genUlamTypeReadDefinitionForC(fp);
-
-    //access regnum and string index, separately
-    if(isScalar())
+    u32 totbitsize = getTotalBitSize();
+    if(totbitsize <= MAXBITSPERLONG)
       {
 	m_state.indent(fp);
 	fp->write("const ");
-	fp->write(getTmpStorageTypeAsString().c_str()); //u32 or u64
-	fp->write(" getRegistrationNumber");
-	fp->write("() const { return BVS::Read(0u, ");
-	fp->write_decimal_unsigned(REGNUMBITS);
-	fp->write("u); }"); GCNL; //done
+	fp->write(getTmpStorageTypeAsString().c_str()); //u32, u64
+	fp->write(" read");
+	fp->write("() const { return BVS::");
+	fp->write(readMethodForCodeGen().c_str());
+	fp->write("(0u, ");
+	fp->write_decimal_unsigned(totbitsize);
+	fp->write("u); ");
+	if(isScalar())
+	  {
+	    fp->write("}"); GCNL; //done
+	  }
+	else
+	  {
+	    fp->write("} /* entire string array */ "); GCNL; //done
+	  }
+      }
+    else
+      {
+	//array bit vector (t41276)
+	m_state.indent(fp);
+	fp->write("void read(BV & rtnbv) ");
+	fp->write("const { ");
+	fp->write("this->BVS::");
+	fp->write("ReadBV(0u, rtnbv);");
+	fp->write("} //reads entire BV"); GCNL;
+      }
 
+    if(!isScalar())
+      {
+	//reads an item of array;
+	//2nd argument generated for compatibility with underlying method
+	m_state.indent(fp);
+	fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //s32 or u32
+	fp->write(" readArrayItem(");
+	fp->write("const u32 index, const u32 itemlen) const { return ");
+	fp->write("this->BVS::");
+	fp->write(readArrayItemMethodForCodeGen().c_str());
+	fp->write("(index * itemlen, itemlen); } //reads BV array item"); GCNL;
+      }
+    else
+      {
+	//access string index; regnum gone (ulam-4)
 	m_state.indent(fp);
 	fp->write("const ");
-	fp->write(getTmpStorageTypeAsString().c_str()); //u32 or u64
+	fp->write(getTmpStorageTypeAsString().c_str()); //u32
 	fp->write(" getStringIndex");
 	fp->write("() const { return BVS::Read(");
-	fp->write_decimal_unsigned(REGNUMBITS);
+	fp->write_decimal_unsigned(REGNUMBITS); //=0
 	fp->write("u, ");
 	fp->write_decimal_unsigned(STRINGIDXBITS);
 	fp->write("u); }"); GCNL; //done
 	fp->write("\n");
       }
-  }
+  } //genUlamTypeReadDefinitionForC
 
   void UlamTypePrimitiveString::genUlamTypeWriteDefinitionForC(File * fp)
   {
-    UlamTypePrimitive::genUlamTypeWriteDefinitionForC(fp);
-
-    //access regnum and string index, separately
-    if(isScalar())
+    u32 totbitsize = getTotalBitSize();
+    if(totbitsize <= MAXBITSPERLONG)
       {
 	m_state.indent(fp);
-	fp->write("void setRegistrationNumber");
-	fp->write("(u32 regnum) { BVS::Write(0u, ");
-	fp->write_decimal_unsigned(REGNUMBITS);
-	fp->write("u, regnum); }"); GCNL; //done
+	fp->write("void write");
+	fp->write("(const ");
+	fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32, s64 or u64
+	fp->write("& v) { BVS::");
+	fp->write(writeMethodForCodeGen().c_str());
+	fp->write("(0u, ");
+	fp->write_decimal_unsigned(totbitsize);
+	fp->write("u, v); }"); GCNL;
+      }
+    else
+      {
+	m_state.indent(fp);
+	fp->write("void ");
+	fp->write(" write(const BV");
+	fp->write("& bv) { BVS::");
+	fp->write("WriteBV(0u, bv); ");
+	fp->write("} //writes entire BV"); GCNL;
+      }
 
+    if(!isScalar())
+      {
+	//reads an item of array;
+	//2nd argument generated for compatibility with underlying method
+	m_state.indent(fp);
+	fp->write("void writeArrayItem(const ");
+	fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //u32
+	fp->write("& v, const u32 index, const u32 itemlen) {");
+	fp->write("this->BVS::");
+	fp->write(writeArrayItemMethodForCodeGen().c_str());
+	fp->write("(index * itemlen, itemlen, v); } //writes BV array item"); GCNL;
+      }
+    else
+      {
+    	//set string index; regnum gone (ulam-4)
 	m_state.indent(fp);
 	fp->write("void setStringIndex");
 	fp->write("(u32 sidx) { BVS::Write(");
-	fp->write_decimal_unsigned(REGNUMBITS);
+	fp->write_decimal_unsigned(REGNUMBITS); //=0
 	fp->write("u, ");
 	fp->write_decimal_unsigned(STRINGIDXBITS);
 	fp->write("u, sidx); }"); GCNL; //done
 	fp->write("\n");
       }
-  }
-
+  } //genUlamTypeWriteDefinitionForC
 
 } //end MFM

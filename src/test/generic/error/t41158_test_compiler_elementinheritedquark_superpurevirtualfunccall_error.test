@@ -1,0 +1,57 @@
+## -*- mode:ulam -*-
+#=t41158_test_compiler_elementinheritedquark_superpurevirtualfunccall_error
+##
+#!
+./Sub1.ulam:3:43: ERROR: Virtual function 'Uf_5afunc11102321i' is pure; cannot be called directly in baseclass: Base.
+./Base.ulam:3:15: NOTE: Still pure in Base: Int afunc(Int a).
+Unrecoverable Program GenCode FAILURE.
+##
+## informed by t41094
+##
+#:Base.ulam
+  ulam 2;
+quark Base {
+  virtual Int afunc(Int a); //pure
+}
+
+#:Sub1.ulam
+  ulam 2;
+quark Sub1 : Base {
+  virtual Int afunc(Int a) { return super.afunc(a); } //pure
+}
+
+#:E2.ulam
+  ulam 2;
+element E2 : Sub1 {
+  virtual Int afunc(Int a) { return 2; } // not called by wish
+  Int wish()
+  {
+    return super.afunc(3);
+  }
+}
+
+#>Test.ulam
+  ulam 2;
+element Test : System {
+  Bool brtn;
+
+  Int test() {
+    E2 e2;
+    brtn = (e2.wish() == 2); //wish for an error
+    assert(brtn);
+    return 0;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

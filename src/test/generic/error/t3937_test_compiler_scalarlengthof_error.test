@@ -4,7 +4,7 @@
 ./Eltypo.ulam:7:27: ERROR: Proxy Type 'lengthof' is not supported for scalar: Int(3).
 ./Eltypo.ulam:7:5: ERROR: Initial value expression for: len, initialization is invalid.
 ./Eltypo.ulam:8:18: ERROR: Proxy Type 'lengthof' is not supported for scalar: Int(3).
-./Eltypo.ulam:8:9: ERROR: Assignment is invalid; LHS: Unsigned(32); RHS: erroneous.
+./Eltypo.ulam:8:9: ERROR: Assignment is invalid; LHS: Unsigned; RHS: erroneous.
 ./Eltypo.ulam:10:19: ERROR: Proxy Type 'lengthof' is not supported for scalar: Int(3).
 Unrecoverable Program Type Label FAILURE.
 ##

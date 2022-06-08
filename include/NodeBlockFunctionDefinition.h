@@ -1,8 +1,9 @@
 /**                                        -*- mode:C++ -*-
  * NodeBlockFunctionDefinition.h - Node for handling Function Definitions for ULAM
  *
- * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2017 Ackleyshack LLC.
+ * Copyright (C) 2014-2020 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +28,9 @@
 
 /**
   \file NodeBlockFunctionDefinition.h - Node for handling Function Definitions for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2017 All rights reserved.
+  \date (C) 2014-2021 All rights reserved.
   \gpl
 */
 
@@ -69,13 +70,19 @@ class NodeBlockFunctionDefinition : public NodeBlock
 
     virtual void printPostfix(File * fp);
 
-    virtual UTI checkAndLabelType();
+    virtual UTI checkAndLabelType(Node * thisparentnode);
 
     bool checkParameterNodeTypes();
 
     void addParameterNode(Node * nodeArg);
 
     Node * getParameterNode(u32 pidx);
+
+    UTI getParameterNodeGivenType(u32 pidx);
+
+    u32 getNumberOfParameters();
+
+    bool isAConstantParameter(u32 pidx);
 
     void makeSuperSymbol(s32 slot);
 
@@ -87,28 +94,37 @@ class NodeBlockFunctionDefinition : public NodeBlock
 
     virtual EvalStatus evalToStoreInto();
 
+    u32 getParameterNameId(u32 n);
+
+    u32 getParameterTypeNameId(u32 n);
+
     virtual const char * getName();
+
+    virtual u32 getNameId();
 
     virtual u32 getTypeNameId();
 
     virtual const std::string prettyNodeName();
 
     void setDefinition();
-    bool isDefinition();
+    bool isDefinition() const;
 
     // for framestack
     void setMaxDepth(u32 depth);
     u32 getMaxDepth();
     virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);
+    virtual void calcMaxIndexOfVirtualFunctionInOrderOfDeclaration(SymbolClass* csym, s32& maxidx);
 
     // for keyword 'native'; has empty block (i.e. not defined in Ulam); eval skipped
     void setNative();
-    bool isNative();
+    bool isNative() const;
 
     SymbolFunction * getFuncSymbolPtr();
     void setFuncSymbolPtr(SymbolFunction * fsymptr); //during instantiation
 
     virtual void genCode(File * fp, UVPass& uvpass);
+
+    void genCodeMangledParameterForFunctionDefinition(File * fp, u32 n);
 
   protected:
 

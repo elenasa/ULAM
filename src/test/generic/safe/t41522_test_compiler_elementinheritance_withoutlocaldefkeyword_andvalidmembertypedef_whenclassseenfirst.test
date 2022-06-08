@@ -1,0 +1,37 @@
+## -*- mode:ulam -*-
+#=t41522_test_compiler_elementinheritance_withoutlocaldefskeyword_andvalidmembertypedef_whenclassseenfirst
+#!
+Exit status: 1
+Uq_Moo { Unsigned(3) us( 4u);  <NOMAIN> }
+Ue_Foo : Bar { typedef Bar Moo;  Bool(7) sp(true);  :Bar< Bool m_bb(true); > Int test() {  Int a = 73 cast;  Foo f;  self sp . f m_bb . cast = a self sp . cast ?  1 :  0 cast = a return } }
+Uq_Bar { Bool m_bb( true);  <NOMAIN> }
+##
+## informed by t41521, does member Moo typedef supercede the class, in a regular class? wish..YES!
+##
+#>Moo.ulam
+ ulam 3;
+quark Moo {
+  Unsigned(3) us = 4u;
+}
+
+#:Foo.ulam
+  ulam 5;
+element Foo : Moo {
+  Bool(7) sp;
+  typedef Bar Moo; //wait for it..
+  Int test() {
+    Int a = 73;
+    Foo f;
+    sp = f.m_bb;
+    a = sp ? 1 : 0;
+    return a;
+  }
+}
+
+#:Bar.ulam
+  ulam 3;
+quark Bar {
+  Bool m_bb = true;
+}
+
+#.

@@ -1,20 +1,18 @@
 ## -*- mode:ulam -*-
 #=t3336_test_compiler_elementwithclassparameters_conditionalas
-#!
-##      /* gen code output (with assert):
-##	 Int Arg: 1
-##      */
-##      //Constants have explicit types
-##      //eval can't test 'as' since atoms have no types: e(7), not e(0).
+##   gen code output (with assert):
+##     Int Arg: 1
 ##
-Exit status: -11
-Ue_Foo : Counter4(3) { :< constant Int(32) x = 3;  Int(3) d(0); > System s();  Int(32) e(0);  constant Int(32) v = 3;  Int(32) test() {  Atom(96) a;  Foo f;  a f cast = { a Counter4(3) as cond { Counter4(3)& a;  a ( )incr . e a ( )get . = s ( e )print . } if e 7 cast = else } s ( e 1 cast == )assert . e return } }
-Uq_Counter4(Int(32) x) { Int(UNKNOWN) d(notready);  <NOMAIN> }
+##  //Constants have explicit types
+##
+#!
+Exit status: 1
+Ue_Foo : Counter4(3) { System s();  Int e(1);  constant Int v = 3;  :Counter4(3)< constant Int x = 3;  Int(3) d(0); > Int test() {  Atom a;  Foo f;  a f cast = { a Counter4(3) as cond { Counter4(3)& a;  a ( )incr . self e . a ( )get . = self s . ( self e . )print . } if self e . 7 cast = else } self s . ( self e . 1 cast == )assert . self e . return } }
+Uq_Counter4(Int x) { Int(UNKNOWN) d(notready);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 ##      //informed by t3249_test_compiler_elementandquark_conditionalas
-##      // 'a has System' doesn't appy to eval because atoms have no class declarations; but testable for gencode
-##      // enhanced by a 'named constant', v;
+##      // enhanced test with Counter4 as a template instance, and a 'named constant', v;
 ##
 #>Foo.ulam
   ulam 1;
@@ -54,13 +52,7 @@ quark Counter4(Int x) {
     return d;
   }
 }
-##
-##      // without named constant..returns 1 (yay!)
-##      //bool rtn1 = fms->add("Foo.ulam","use Counter4;\nuse System;\n element Foo {\nSystem s;\nInt e;\nCounter4(3) cv;\n Int test(){\nAtom a;\nFoo f;\n a = f;\nif(a as Counter4(3))\n {\n a.incr();\ne = a.get();\n s.print(e);\n}\nelse\n e=7;\n return e;\n}\n }\n");
-##
-##      // most simple case: check for stub before trying to calc size during recursive calcVariableSymbolTypeSize
-##      //bool rtn1 = fms->add("Foo.ulam","use Counter4;\n element Foo {\nInt e;\nCounter4(3) cv;\n Int test(){\n return cv.sizeof;\n}\n }\n");
-##
+
 #:System.ulam
 ulam 1;
 quark System {

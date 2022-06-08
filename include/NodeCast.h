@@ -1,8 +1,9 @@
 /**                                        -*- mode:C++ -*-
  * NodeCast.h - Basic Node for handling Type Casting for ULAM
- *
- * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2017 Ackleyshack LLC.
+o *
+ * Copyright (C) 2014-2019 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2022 Ackleyshack LLC.
+ * Copyright (C) 2020-2022 The Living Computation Foundation
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +28,9 @@
 
 /**
   \file NodeCast.h - Basic Node for handling Type Casting for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2017 All rights reserved.
+  \date (C) 2014-2022 All rights reserved.
   \gpl
 */
 
@@ -70,17 +71,27 @@ namespace MFM{
 
     UTI getCastType();
 
+    UTI getCastedType();
+
     void setExplicitCast();
 
-    bool isExplicitCast();
+    virtual bool isExplicitCast();
+
+    virtual bool isExplicitReferenceCast(); //only NodeCast may return true
+
+    virtual bool isACast();
 
     virtual bool isAConstant();
+
+    virtual bool isAConstantClass();
+
+    virtual bool initDataMembersConstantValue(BV8K& bvref, BV8K& bvmask);
 
     virtual bool isReadyConstant();
 
     virtual bool isNegativeConstant();
 
-    virtual bool isWordSizeConstant();
+    virtual bool isWordSizeConstant(u32 wordsize);
 
     virtual bool isFunctionCall();
 
@@ -88,13 +99,19 @@ namespace MFM{
 
     virtual bool isArrayItem();
 
-    virtual bool isExplicitReferenceCast(); //only NodeCast may return true
+    virtual bool hasASymbol();
+
+    virtual u32 getSymbolId();
+
+    virtual bool compareSymbolPtrs(Symbol * ptr);
 
     virtual FORECAST safeToCastTo(UTI newType);
 
-    virtual UTI checkAndLabelType();
+    virtual UTI checkAndLabelType(Node * thisparentnode);
 
     virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
+
+    virtual UTI constantFold(Node * parentnode);
 
     virtual EvalStatus eval();
 
@@ -125,16 +142,22 @@ namespace MFM{
     void genCodeReadNonPrimitiveIntoATmpVar(File * fp, UVPass &uvpass);
 
     void genCodeCastAtomAndElement(File * fp, UVPass & uvpass);
-    void genCodeCastAtomAndQuark(File * fp, UVPass & uvpass);
-    void genCodeCastDescendantTransient(File * fp, UVPass & uvpass);
-    void genCodeCastAncestorQuarkAsSubTransient(File * fp, UVPass & uvpass);
-    void genCodeCastDescendantElement(File * fp, UVPass & uvpass);
-    void genCodeCastAncestorQuarkAsSubElement(File * fp, UVPass & uvpass);
-    void genCodeCastDescendantQuark(File * fp, UVPass & uvpass);
+    void genCodeCastAtomToElement(File * fp, UVPass & uvpass, s32 tmpvarstg, bool usePassVal);
+    void genCodeCastElementToAtom(File * fp, UVPass & uvpass, s32 tmpvarstg, bool usePassVal);
+    void genCodeCastLikeKindElements(File * fp, UVPass & uvpass, s32 tmpvarstg, bool usePassVal);
 
-    void genCodeCastAsReference(File * fp, UVPass & uvpass);
+    void genCodeCastAtomAndQuark(File * fp, UVPass & uvpass);
+    void genCodeCastAtomToQuark(File * fp, UVPass & uvpass, s32 tmpvarstg, bool usePassVal);
+    void genCodeCastQuarkRefToAtom(File * fp, UVPass & uvpass, s32 tmpvarstg, bool usePassVal);
+
+    void genCodeCastDescendant(File * fp, UVPass & uvpass);
+    void genCodeCastAncestorQuarkAsSub(File * fp, UVPass & uvpass);
+
+    void genPositionOfBaseIntoATmpVar(File * fp, u32 tmpvarpos, UVPass & uvpass, Symbol * stgcos, Symbol * cos); //helper
+
+    void genCodeCastToAReference(File * fp, UVPass & uvpass);
     void genCodeCastFromAReference(File * fp, UVPass & uvpass);
-    void genCodeToStoreIntoCastAsReference(File * fp, UVPass & uvpass);
+    void genCodeToStoreIntoCastToAReference(File * fp, UVPass & uvpass);
     void genCodeToStoreIntoCastFromAReference(File * fp, UVPass & uvpass);
   };
 

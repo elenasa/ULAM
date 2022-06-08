@@ -2,10 +2,6 @@
 #=t3488_test_compiler_bigshift_error
 #!
 ./A.ulam:12:39: ERROR: Model Parameter 'm_p2' must fit in 32 bits.
-./A.ulam:14:23: Warning: Shift distance greater than data width, operation <<.
-./A.ulam:15:18: Warning: Shift distance greater than data width, operation <<.
-./A.ulam:16:23: Warning: Shift distance greater than data width, operation >>.
-./A.ulam:17:18: Warning: Shift distance greater than data width, operation >>.
 Unrecoverable Program Type Label FAILURE.
 ##
 ##      //informed by t3480

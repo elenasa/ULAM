@@ -1,8 +1,9 @@
 /**                                        -*- mode:C++ -*-
  * NodeBlockLocals.h - Node for handling Local Defs for ULAM
  *
- * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2017 Ackleyshack LLC.
+ * Copyright (C) 2014-2020 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2021 Ackleyshack LLC.
+ * Copyright (C) 2020-2021 The Living Computation Foundation.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +28,9 @@
 
 /**
   \file NodeBlockLocals.h - Node for handling Local Defs for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2017 All rights reserved.
+  \date (C) 2014-2021 All rights reserved.
   \gpl
 */
 
@@ -54,6 +55,8 @@ namespace MFM{
 
     virtual Node * instantiate();
 
+    virtual void updateLineage(NNO pno);
+
     virtual void printPostfix(File * fp);
 
     virtual const char * getName();
@@ -62,7 +65,7 @@ namespace MFM{
 
     virtual bool isAClassBlock();
 
-    virtual UTI checkAndLabelType();
+    virtual UTI checkAndLabelType(Node * thisparentnode);
 
     virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);
 
@@ -74,11 +77,17 @@ namespace MFM{
     virtual void addMemberDescriptionsToInfoMap(ClassMemberMap& classmembers);
 
     virtual void generateTestInstance(File * fp, bool runtest);
+    virtual void generateIncludeTestMain(File * fp);
+
+    bool assignRegistrationNumberToLocalsBlock(u32 n);
+    u32 getRegistrationNumberForLocalsBlock();
 
   protected:
 
 
   private:
+    // registration number saved here since no SymbolClass until made into temp class for code gen
+    u32 m_registryNumberLocalsSafe; //ulam-4
 
   };
 

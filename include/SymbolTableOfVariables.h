@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * SymbolTableOfVariables.h - Handling of Table of Variable, Typedef and Constant Symbols for ULAM
  *
- * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2017 Ackleyshack LLC.
+ * Copyright (C) 2014-2021 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2021 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,19 +27,17 @@
 
 /**
   \file SymbolTableOfVariables.h - Handling of Table of Variable, Typedef and Constant Symbols for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2017 All rights reserved.
+  \date (C) 2014-2021 All rights reserved.
   \gpl
 */
-
-
 #ifndef SYMBOLTABLEOFVARIABLES_H
 #define SYMBOLTABLEOFVARIABLES_H
 
 #include "SymbolTable.h"
-//#include "MapClassMemberDesc.h"
 #include "UlamValue.h"
+#include <set>
 
 namespace MFM{
 
@@ -55,33 +53,32 @@ namespace MFM{
 
     bool hasUlamTypeSymbolsInTable(ULAMTYPE etyparg);
 
+    bool hasADataMemberStringInitValueInClass(UTI cuti);
+
+    u32 fixAllStringSymbolsInTable(); //returns number of strings fixed
+
     u32 findTypedefSymbolNameIdByTypeInTable(UTI type);
+
+    u32 getAllRemainingCulamGeneratedTypedefSymbolsInTable(std::map<u32, Symbol*>& mapref);
 
     //Table of Variable Data Members:
 
     virtual u32 getTotalSymbolSize();
 
-    s32 getTotalVariableSymbolsBitSize();
+    s32 getTotalVariableSymbolsBitSize(std::set<UTI>& seensetref);
 
-    s32 getMaxVariableSymbolsBitSize();  //for quark union
-
-    void initializeElementDefaultsForEval(UlamValue& uvsite, UTI cuti);
+    s32 getMaxVariableSymbolsBitSize(std::set<UTI>& seensetref);  //for quark union
 
     //void packBitsForTableOfVariableDataMembers();  //after type labeling, before code gen
-
-    s32 findPosOfUlamTypeInTable(UTI utype, UTI& insidecuti);
-
-    void genCodeForTableOfVariableDataMembers(File * fp, ULAMCLASSTYPE classtype);  //(unused)
 
     void genModelParameterImmediateDefinitionsForTableOfVariableDataMembers(File *fp);
 
     void printPostfixValuesForTableOfVariableDataMembers(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype);
 
-
   protected:
 
   private:
-    s32 calcVariableSymbolTypeSize(UTI ut);
+    s32 calcVariableSymbolTypeSize(UTI ut, std::set<UTI>& seensetref);
     bool variableSymbolWithCountableSize(Symbol * sym);
 
   };

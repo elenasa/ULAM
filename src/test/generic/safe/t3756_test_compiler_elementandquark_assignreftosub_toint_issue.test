@@ -1,14 +1,15 @@
 ## -*- mode:ulam -*-
 #=t3756_test_compiler_elementandquark_assignreftosub_toint_issue
 #!
-Exit status: -1
-Ue_A : QW { :< :< Unary(5) m_five(0u); > Bool(1) bw(false); > Bool(1) b(false);  Bool(1) c(false);  Int(32) test() {  System s;  Qbase& qref = self cast;  A apple3 = qref.atomof cast;  A& appleref = qref cast;  Atom(96)& atr = qref.atomof;  Atom(96) a = qref.atomof cast;  0 cast return } }
-Uq_QW : Qbase { :< Unary(5) m_five(0); > Bool(1) bw(false);  <NOMAIN> }
+Exit status: -11
+Ue_A : QW { Bool b(false);  Bool c(false);  :QW< Bool bw(false);  :Qbase< Unary(5) m_five(0u); >> ^Qbase< Unary(5) m_five(0u); > Int test() {  System s;  Qbase& qref = self cast;  A apple = qref cast;  A apple3 = qref.atomof cast;  A& appleref = qref cast;  Atom& atr = qref.atomof;  Atom a = qref.atomof cast;  0 cast return } }
+Uq_QW : Qbase { Bool bw(false);  :Qbase< Unary(5) m_five(0); > <NOMAIN> }
 Uq_System { <NOMAIN> }
 Uq_Qbase { Unary(5) m_five(0);  <NOMAIN> }
 ##
 ## Dave requested a way to get default values for Self (within a quark);
 ## a loophole, since a quark would be an undefined atom, but as a ref, its done (t3679)
+## As of ulam-3, loophole no longer needed; now it is a runtime check, rather than compile time restriction.
 ##
 ## informed by t3689: bug fixed that required a cast because toInt existed (apple = qref)
 ##
@@ -23,11 +24,13 @@ element A : QW {
     Qbase& qref = self;
 
     //case 2: (init) genCodeCastAncestorQuarkAsSubElement
-    //A apple = (A) qref; //unused var (qref read)
+    //./A.ulam:11:16: ERROR: Cannot explicitly cast Qbase& to type: A.
+    A apple = (A) qref; //unused var (qref read)
 
     //case 3: (assign) genCodeCastAncestorQuarkAsSubElement
-    //A apple2;
-    //apple2 = (A) qref; //unused var (qref read)
+    //./A.ulam:15:15: ERROR: Cannot explicitly cast Qbase& to type: A.
+    ////A apple2;
+    ////apple2 = (A) qref; //unused var (qref read)
 
     //case 4: Atom To Element
     A apple3 = (A) qref.atomof;
