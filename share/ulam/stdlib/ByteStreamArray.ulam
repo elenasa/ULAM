@@ -52,3 +52,9 @@ transient ByteStreamArray(Unsigned len) : ByteStreamReaderWriter {
   }
 
 }
+
+/** Predeclared maximum-size ByteStreamArray, holding up to 1,016 bytes.
+
+    \since 5.0
+ */
+transient ByteStreamArray1K : ByteStreamArray(1024u-8u) { }

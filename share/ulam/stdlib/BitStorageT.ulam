@@ -1,0 +1,13 @@
+/** Template providing cDATA_BITS of general BitStorage space.
+    
+    \sa BitStorage
+
+    \since 5.0
+ */
+transient BitStorageT(Unsigned cDATA_BITS) : BitStorage {
+  @Override
+  virtual Unsigned usableStorageLength() { return cDATA_BITS; }
+
+  Bits(1) mBits[cDATA_BITS];
+}
+

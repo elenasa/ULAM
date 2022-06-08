@@ -1,11 +1,13 @@
-#!/usr/bin/perl -Tw
+#!/usr/bin/perl
 # -*- perl -*-
 
+use strict;
 use warnings;
 
 ####PERL CONFIG
+#202110080719 Stop taint defenses for AppImage :( gah?
 my $ORIG_PATH = $ENV{'PATH'};
-delete @ENV{'PATH', 'IFS', 'CDPATH', 'ENV', 'BASH_ENV'};
+#delete @ENV{'PATH', 'IFS', 'CDPATH', 'ENV', 'BASH_ENV'};
 
 ## Import mfz functions from the MFM tree at 'compile' time
 ##
@@ -111,6 +113,7 @@ my $ulamcTool = "Compiler for ulam -> C++";
 my $mfmRootTool = "Movable Feast Machine source distribution";
 #my $infoTool = "Element metadata parser";
 
+my %infoForElement;
 my %tools;
 $tools{$ulamcTool} =
     [ $CULAM_PATH,
@@ -178,7 +181,7 @@ sub matchOrCall {
         return "";
     }
     if ($type eq "CODE") {
-        return &$thing($stdout);
+        return &$thing($arg);
     }
     IDie("Unhandled '$thing'\n");
 }
@@ -237,15 +240,19 @@ Getopt::Long::Configure ("noauto_abbrev"); # I find auto_abbrev unnerving
 
 sub findStandardTool {
     my $tname = shift;
-    my $tool = `/usr/bin/which $tname`;
+    pISC("## Find standard tool '$tname'");
+    my $tool = `which $tname`;
     chomp($tool);
+    IDie("'$tname' not found") unless $tool ne "";
     return blessShellReaching($tool);
 }
 
 sub blessShellReaching {
     my $taintedPath = shift;
-     $taintedPath =~ m!^([-+_/a-zA-Z0-9]+)$!
-         or UDie("'$taintedPath' contains unexpected characters!");
+    $taintedPath =~ /[.][.]/
+        and UDie("'$taintedPath' contains '..'!");
+    $taintedPath =~ m!^([-+_/a-zA-Z0-9.]+)$!
+        or UDie("'$taintedPath' contains unexpected characters!");
     return $1;
 }
 
@@ -875,7 +882,7 @@ sub copyFilesTo {
 sub copyFileTo {
     my ($file, $destDir) = @_;
     -d $destDir or IDie("'$destDir' not dir");
-    my ($status,$stdout,$stderr) = runThis(undef,undef,'/bin/cp',"-p",$file,$destDir);
+    my ($status,$stdout,$stderr) = runThis(undef,undef,'cp',"-p",$file,$destDir);
     UDie("Can't copy '$file' to '$destDir': $status\n") if $status ne "";
 }
 
@@ -1037,7 +1044,7 @@ sub compilationDriver {
 
 sub myMkdir {
     my $path = shift;
-    my ($status,$stdout,$stderr) = runThis(undef,undef,'/bin/mkdir',"-p",$path);
+    my ($status,$stdout,$stderr) = runThis(undef,undef,'mkdir',"-p",$path);
     UDie("Can't make dir '$path': $status\n") if $status ne "";
 }
 
@@ -1045,7 +1052,7 @@ sub myRmRf {
     my $path = shift;
     my ($status,$stdout,$stderr);
 
-    ($status,$stdout,$stderr) = runThis(undef,undef,'/bin/rm',"-rf",$path);
+    ($status,$stdout,$stderr) = runThis(undef,undef,'rm',"-rf",$path);
     UDie("Can't remove '$path': $status\n") if $status ne "";
 }
 
@@ -1477,16 +1484,16 @@ sub buildSharedLibrary
     my $gpp = getTool($gppTool);
     my ($status, $stdout, $stderr);
     {
-        my $HOLD_PATH = $ENV{PATH};
-        $ENV{PATH} = '/bin:/usr/bin'; # collect2 wants to run ld and etc
+#        my $HOLD_PATH = $ENV{PATH};
+#        $ENV{PATH} = '/bin:/usr/bin'; # collect2 wants to run ld and etc
         ($status,$stdout,$stderr) = runThis(undef,undef,$gpp,@bslargs);
-        pISC("## USED PATH ($ENV{PATH})");
-        if (defined($HOLD_PATH)) {
-            $ENV{PATH} = $HOLD_PATH;
-            pISC("## RESET PATH ($ENV{PATH})");
-        } else {
-            delete $ENV{PATH};
-        }
+#        pISC("## USED PATH ($ENV{PATH})");
+#        if (defined($HOLD_PATH)) {
+#            $ENV{PATH} = $HOLD_PATH;
+#            pISC("## RESET PATH ($ENV{PATH})");
+#        } else {
+#            delete $ENV{PATH};
+#        }
     }
 
     if ($status ne "") {
@@ -1516,16 +1523,16 @@ sub buildMFZ
     my $mfz = getTool($mfzTool);
 
     {
-        my $HOLD_PATH = $ENV{PATH};
-        $ENV{PATH} = '/bin:/usr/bin'; # collect2 wants to run ld and etc
+        # my $HOLD_PATH = $ENV{PATH};
+        # $ENV{PATH} = '/bin:/usr/bin'; # collect2 wants to run ld and etc
         ($status,$stdout,$stderr) = runThis(undef,undef,$mfz,@mfzmakeargs);
-        pISC("## USED PATH ($ENV{PATH})");
-        if (defined($HOLD_PATH)) {
-            $ENV{PATH} = $HOLD_PATH;
-            pISC("## RESET PATH ($ENV{PATH})");
-        } else {
-            delete $ENV{PATH};
-        }
+        # pISC("## USED PATH ($ENV{PATH})");
+        # if (defined($HOLD_PATH)) {
+        #     $ENV{PATH} = $HOLD_PATH;
+        #     pISC("## RESET PATH ($ENV{PATH})");
+        # } else {
+        #     delete $ENV{PATH};
+        # }
     }
 
     if ($status ne "") {
@@ -1730,8 +1737,8 @@ sub buildSimDriver
     my $var = join("=",getDebugArgs());
     my @dbgarg;
     push @dbgarg, $var if $var ne "";
-    my $HOLD_PATH = $ENV{PATH};
-    $ENV{PATH} = '/bin:/usr/bin'; # collect2 wants to run ld and etc
+#    my $HOLD_PATH = $ENV{PATH};
+#    $ENV{PATH} = '/bin:/usr/bin'; # collect2 wants to run ld and etc
 
     my $linkFailed =
         runMake("all",
@@ -1740,7 +1747,7 @@ sub buildSimDriver
                 "EXTERNAL_INCLUDES=-I $dir/include",
                 "EXTERNAL_LIBS=-L $dir/build -l cue"
         );
-    $ENV{PATH} = $HOLD_PATH;
+#    $ENV{PATH} = $HOLD_PATH;
     UDie("What") if $linkFailed;
 }
 
@@ -1895,8 +1902,8 @@ sub UNSAFE_TEMPORARY_MV_FILES
     my $bd = shift;
     $bd =~ /^(.*)$/ or die;
     $bd = $1;
-    system("/bin/mv $bd/*.h $bd/*.tcc $bd/include");
-    system("/bin/mv $bd/*.cpp $bd/src");
+    system("mv $bd/*.h $bd/*.tcc $bd/include");
+    system("mv $bd/*.cpp $bd/src");
 }
 
 sub printEnv {
