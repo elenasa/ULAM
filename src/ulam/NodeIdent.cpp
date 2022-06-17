@@ -920,11 +920,23 @@ namespace MFM {
       {
 	UTI objclass = m_state.m_currentObjPtr.getPtrTargetType();
 	UTI dmclass = m_varSymbol->getDataMemberClass();
+	s32 objclasspos = m_state.m_currentObjPtr.getPtrPos();
 	if(m_state.isAtom(objclass))
 	  {
-	    objclass = m_state.m_currentObjPtr.getPtrTargetEffSelfType(); //t41496
+	    objclass = m_state.m_currentObjPtr.getPtrTargetEffSelfType();
 	    assert((objclass != Nouti) && m_state.isAClass(objclass));
 	  }
+	else if(m_state.isAltRefType(objclass))
+	  {
+	    UTI objeffself = m_state.m_currentObjPtr.getPtrTargetEffSelfType(); //t41496,t41458
+	    if((objeffself != Nouti))
+	      {
+		objclass = objeffself; //possible deref'd t41496
+		if(m_state.isASeenElement(objeffself))
+		  objclasspos = ATOMFIRSTSTATEBITPOS; //shared base t3810, t41458
+	      }
+	  }
+	//else
 
 	u32 relposofbase = 0;
 	if((UlamType::compareForUlamValueAssignment(dmclass, objclass, m_state) == UTIC_SAME) || m_state.isClassASubclassOf(objclass, dmclass))
@@ -937,7 +949,7 @@ namespace MFM {
 	  }
 	//else not data member of a base class (t41584)
 
-	ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), nuti, m_state.determinePackable(nuti), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset() + relposofbase, m_varSymbol->getId());
+	ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), nuti, m_state.determinePackable(nuti), m_state, objclasspos + relposofbase + m_varSymbol->getPosOffset(), m_varSymbol->getId());
 	if(m_state.isAClass(nuti))
 	  ptr.setPtrTargetEffSelfType(nuti); //self contained dm, its own effself
 	ptr.checkForAbsolutePtr(m_state.m_currentObjPtr); //t3810

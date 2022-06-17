@@ -1,15 +1,16 @@
 ## -*- mode:ulam -*-
 #=t3675_test_compiler_elementandquark_Selfatomoffordefaultelement
-##      gen code output: 2 asserts
+##      gen code output: 3 asserts
 ##
 #!
 Exit status: -11
-Ue_A : QW { Bool b(true);  :QW<> Int test() {  System s;  self b . true = Atom me = A.instanceof cast;  Atom defaultself = A.instanceof cast;  Atom myself = self.atomof cast;  Atom a = self ( )func .;  { a A as cond { A& a;  s ( a b . ! )assert . } if s ( false )assert . else } { a QW is cond s ( true )assert . if s ( false )assert . else } 0 cast return } }
+Ue_A : QW { Bool b(true);  :QW<> Int test() {  System s;  self b . true = Atom me = A.instanceof cast;  Atom defaultself = A.instanceof cast;  Atom myself = self.atomof cast;  Atom a = self ( )func .;  { a A as cond { A& a;  s ( a b . ! )assert . } if s ( false )assert . else } { a QW is cond s ( true )assert . if s ( false )assert . else } self A.instanceof = s ( self b . ! )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 Uq_QW { <NOMAIN> }
 ##
 ## Dave requested a way to get default values for Self (within a quark);
 ## Self.instanceof (default) vs self.atomof (current stg)
+## 6/16/22 see also t3686, quark default value
 ##
 #>A.ulam
   ulam 2;
@@ -35,6 +36,9 @@ element A : QW {
     else
       s.assert(false); //wrong
 
+    //another variation for dave 6/15/22
+    self = Self.instanceof; //default
+    s.assert(!b);
     return 0;
   }
 }

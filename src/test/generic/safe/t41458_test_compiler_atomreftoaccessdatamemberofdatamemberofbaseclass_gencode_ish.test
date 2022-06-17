@@ -9,15 +9,16 @@
 ##
 #!
 Exit status: 0
-Ue_R { Int test() {  FooNG foo;  foo ( )behave . 0 cast return } }
-Ue_FooNG : QGah +SP { /* empty class block */ }
+Ue_R { Int test() {  FooNG foo;  foo ( )behave . foo ( )init . 0 cast return } }
+Ue_FooNG : QGah +SP { Int m_fngi(0);  Bool(5) m_fngb(false);  :QGah< QBar mThis( QFoo mPos( typedef Unsigned(4) FC;  Unsigned(4) mX(0);  Unsigned(4) mY(0); );  QFoo mSize( typedef Unsigned(4) FC;  Unsigned(4) mX(0);  Unsigned(4) mY(0); ); );  QBar mThat( QFoo mPos( typedef Unsigned(4) FC;  Unsigned(4) mX(0);  Unsigned(4) mY(0); );  QFoo mSize( typedef Unsigned(4) FC;  Unsigned(4) mX(0);  Unsigned(4) mY(0); ); ); > +SP< Bool m_spbs[2](false,false); > <NOMAIN> }
 Uq_QFoo { typedef Unsigned(4) FC;  Unsigned(4) mX(0);  Unsigned(4) mY(0);  <NOMAIN> }
 Uq_QBar { QFoo mPos( typedef Unsigned(4) FC;  Unsigned(4) mX(0);  Unsigned(4) mY(0); );  QFoo mSize( typedef Unsigned(4) FC;  Unsigned(4) mX(0);  Unsigned(4) mY(0); );  <NOMAIN> }
 Uq_QGah { QBar mThis( QFoo mPos( typedef Unsigned(4) FC;  Unsigned(4) mX(0);  Unsigned(4) mY(0); );  QFoo mSize( typedef Unsigned(4) FC;  Unsigned(4) mX(0);  Unsigned(4) mY(0); ); );  QBar mThat( QFoo mPos( typedef Unsigned(4) FC;  Unsigned(4) mX(0);  Unsigned(4) mY(0); );  QFoo mSize( typedef Unsigned(4) FC;  Unsigned(4) mX(0);  Unsigned(4) mY(0); ); );  <NOMAIN> }
-Uq_SP : QGah { :QGah< QBar mThis( QFoo mPos( typedef Unsigned(4) FC;  Unsigned(4) mX(0);  Unsigned(4) mY(0); );  QFoo mSize( typedef Unsigned(4) FC;  Unsigned(4) mX(0);  Unsigned(4) mY(0); ); );  QBar mThat( QFoo mPos( typedef Unsigned(4) FC;  Unsigned(4) mX(0);  Unsigned(4) mY(0); );  QFoo mSize( typedef Unsigned(4) FC;  Unsigned(4) mX(0);  Unsigned(4) mY(0); ); ); > <NOMAIN> }
+Uq_SP : QGah { Bool m_spbs[2](false,false);  :QGah< QBar mThis( QFoo mPos( typedef Unsigned(4) FC;  Unsigned(4) mX(0);  Unsigned(4) mY(0); );  QFoo mSize( typedef Unsigned(4) FC;  Unsigned(4) mX(0);  Unsigned(4) mY(0); ); );  QBar mThat( QFoo mPos( typedef Unsigned(4) FC;  Unsigned(4) mX(0);  Unsigned(4) mY(0); );  QFoo mSize( typedef Unsigned(4) FC;  Unsigned(4) mX(0);  Unsigned(4) mY(0); ); ); > <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 ## informed by Dave ish 5/19/2021. Another level deeper (QGah)  than t41457.
+##  6/17/22 modified to also test big element default init() (see also t3727)
 ##
 #>R.ulam
   ulam 5;
@@ -26,7 +27,7 @@ element R {
   {
     FooNG foo;
     foo.behave();
-
+    foo.init();
     return 0;
   }
 }
@@ -53,11 +54,10 @@ quark QGah {
   QBar mThat;
 }
 
-
-
 #:SP.ulam
   ulam 5;
 quark SP : QGah {
+  Bool m_spbs[2];
   Void behave() {
     System s;
     ++self.mThis.mSize.mY;
@@ -77,9 +77,26 @@ quark SP : QGah {
   }
 }
 
+/*__________________________________________________
+  | COMPONENTS of FooNG <3> (71 bits/0 unused):
+  |
+  | Pos	| Bits	| Name	| Type <classid>
+  | 0	| 32	| m_fngi	| Int
+  | 32	| 5	| m_fngb	| Bool(5)
+  | 37	| 32	| super	| QGah <6>
+  | 69	| 2	| base	| SP <7>
+  | 71	| 0	| base	| UrSelf <0>
+  |___________________________________________________
+*/ //gcnl:NodeBlockClass.cpp:2644
 #:FooNG.ulam
   ulam 5;
 element FooNG : QGah + SP {
+  Int m_fngi;
+  Bool(5) m_fngb;
+  Void init()
+  {
+    self = Self.instanceof;
+  }
 }
 
 

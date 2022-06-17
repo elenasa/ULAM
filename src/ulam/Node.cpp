@@ -1434,7 +1434,12 @@ namespace MFM {
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
 
     if(stgcos->isSelf() && (stgcos == cos))
-      return genCodeWriteToSelfFromATmpVar(fp, luvpass, ruvpass);
+      {
+	if((cosut->getUlamClassType() == UC_TRANSIENT))
+	  return genCodeWriteToTransientSelfFromATmpVar(fp, luvpass, ruvpass); //t3714 big transient.
+	//else
+	return genCodeWriteToSelfFromATmpVar(fp, luvpass, ruvpass);
+      }
 
     if((cosut->getUlamClassType() == UC_TRANSIENT))
       return genCodeWriteToTransientFromATmpVar(fp, luvpass, ruvpass);
@@ -1574,6 +1579,56 @@ namespace MFM {
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeWriteToSelfFromATmpVar
 
+  void Node::genCodeWriteToTransientSelfFromATmpVar(File * fp, UVPass & luvpass, UVPass & ruvpass)
+  {
+    UTI luti = luvpass.getPassTargetType();
+    UlamType * lut = m_state.getUlamTypeByIndex(luti);
+    TMPSTORAGE lstor = lut->getTmpStorageTypeForTmpVar();
+    TMPSTORAGE rstor = ruvpass.getPassStorage(); //var not first when TMPTBV (already read into BV)
+
+    bool varcomesfirst = ((lut->getSizeofUlamType() > MAXBITSPERLONG) || (lstor == TMPTBV)) && (rstor == TMPBITVAL); //t41359
+
+    // write out immediate tmp BitValue as an intermediate tmpVar
+    s32 tmpVarNum2 = 0;
+
+    if(varcomesfirst)
+      {
+	tmpVarNum2 = m_state.getNextTmpVarNumber();
+	m_state.indentUlamCode(fp);
+	fp->write(lut->getTmpStorageTypeAsString().c_str()); //BV
+	fp->write(" ");
+	fp->write(m_state.getTmpVarAsString(luti, tmpVarNum2, lstor).c_str());
+	fp->write(";\n");
+
+	m_state.indentUlamCode(fp);
+	fp->write(ruvpass.getTmpVarAsString(m_state).c_str()); //tmp var ref
+	fp->write(".read(");
+	fp->write(m_state.getTmpVarAsString(luti, tmpVarNum2, lstor).c_str());
+	fp->write(");"); GCNL;
+      }
+
+    m_state.indentUlamCode(fp);
+    genSelfNameOfMethod(fp); // NOT just ur.Write(tmpvar) e.g. t41120
+    fp->write(writeMethodForCodeGen(luti, luvpass).c_str());
+
+    if(varcomesfirst)
+      {
+	fp->write("(0u, ");
+	fp->write(m_state.getTmpVarAsString(luti, tmpVarNum2, lstor).c_str());
+	fp->write(");"); GCNL; //t3714
+      }
+    else
+      {
+	fp->write("(");
+	fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
+	if(rstor == TMPBITVAL)
+	  fp->write(".read()"); //t41548, t41359
+	fp->write(");"); GCNL;
+      }
+
+    m_state.clearCurrentObjSymbolsForCodeGen();
+  } //genCodeWriteToTransientSelfFromATmpVar
+
   void Node::genCodeWriteToStringArrayFromATmpVar(File * fp, UVPass & luvpass, UVPass & ruvpass)
   {
     return Node::genCodeWriteToTransientFromATmpVar(fp, luvpass, ruvpass); //t41276
@@ -1585,6 +1640,7 @@ namespace MFM {
     if(m_state.m_currentObjSymbolsForCodeGen.empty())
       {
 	cos = m_state.getCurrentSelfSymbolForCodeGen();
+	m_state.abortShouldntGetHere(); //handled by TransientSelf code t3714
       }
     else
       {

@@ -439,6 +439,7 @@ enum EvalStatus {ERROR, NOTREADY, NORMAL, RETURN, BREAK, CONTINUE, UNEVALUABLE};
     void genCodeReadSelfIntoATmpVar(File * fp, UVPass & uvpass);
     void genSelfNameOfMethod(File * fp);
     void genCodeWriteToSelfFromATmpVar(File * fp, UVPass& luvpass, UVPass& ruvpass);
+    void genCodeWriteToTransientSelfFromATmpVar(File * fp, UVPass& luvpass, UVPass& ruvpass);
 
     void genCodeReadStringArrayIntoATmpVar(File * fp, UVPass & uvpass);
     void genCodeWriteToStringArrayFromATmpVar(File * fp, UVPass & luvpass, UVPass & ruvpass);

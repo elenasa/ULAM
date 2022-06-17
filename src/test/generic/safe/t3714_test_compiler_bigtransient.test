@@ -1,18 +1,20 @@
 ## -*- mode:ulam -*-
 #=t3714_test_compiler_bigtransient
 ##
-## gen output: (+ assert)
+## gen output: (+ 2 asserts)
 ##  Int Arg: 551
+##  Int Arg: 87
 ##
 ## unevaluable
 ##
 #!
 Exit status: -11
-Ue_Foo { Int ta(9);  Int test() {  System s;  Too t;  t ( 551u cast )set . self ta . t ( )get . = s ( self ta . )print . t sp . self ta . 551u cast == cast = s ( t sp . cast )assert . self ta . return } }
+Ue_Foo { Int ta(9);  Int test() {  System s;  Too t;  t ( 551u cast )set . self ta . t ( )get . = s ( self ta . )print . t sp . self ta . 551u cast == cast = s ( t sp . cast )assert . t ( )init . s ( t ( )get . )print . s ( t ( )get . 87 cast == )assert . self ta . return } }
 Un_Too { Bool(7) sp(false);  Int a( 87);  Foo f[5]( Int ta( 9); ), ( Int ta( 9); ), ( Int ta( 9); ), ( Int ta( 9); ), ( Int ta( 9); );  Bits bits(0);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 ## based on t3711, FIRST TRANSIENT TEST EVER in the history of the universe!!!
+##  6/15/22 Dave found gcc ish, resetting big transient to default values (see also t3727 for small transient, t3675 for element, and t3686 for quark).
 ##
 #>Foo.ulam
   ulam 2;
@@ -28,6 +30,11 @@ element Foo {
     s.print(ta);
     t.sp = (ta == t.sizeof);
     s.assert(t.sp);
+
+    //reset to default (6/15/22 ish)
+    t.init();
+    s.print(t.get());
+    s.assert(t.get() == 87);
     return ta;
   }
 }
@@ -46,6 +53,10 @@ transient Too {
   Void set(Int arg)
   {
     a = arg;
+  }
+  Void init()
+  {
+    self = Self.instanceof;
   }
   //  Int test() { NO TESTS in TRANSIENTS
 }
