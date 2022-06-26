@@ -1620,6 +1620,8 @@ namespace MFM {
     else
       {
 	fp->write("(");
+	if(rstor == TMPTBV)
+	  fp->write("0u, "); //t3714 (restore case)
 	fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
 	if(rstor == TMPBITVAL)
 	  fp->write(".read()"); //t41548, t41359

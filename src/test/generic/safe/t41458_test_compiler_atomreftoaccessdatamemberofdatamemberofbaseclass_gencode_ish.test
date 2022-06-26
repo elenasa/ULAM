@@ -9,7 +9,7 @@
 ##
 #!
 Exit status: 0
-Ue_R { Int test() {  FooNG foo;  foo ( )behave . foo ( )init . 0 cast return } }
+Ue_R { Int test() {  FooNG foo;  foo ( )behave . foo ( )init . foo ( )restore . 0 cast return } }
 Ue_FooNG : QGah +SP { Int m_fngi(0);  Bool(5) m_fngb(false);  :QGah< QBar mThis( QFoo mPos( typedef Unsigned(4) FC;  Unsigned(4) mX(0);  Unsigned(4) mY(0); );  QFoo mSize( typedef Unsigned(4) FC;  Unsigned(4) mX(0);  Unsigned(4) mY(0); ); );  QBar mThat( QFoo mPos( typedef Unsigned(4) FC;  Unsigned(4) mX(0);  Unsigned(4) mY(0); );  QFoo mSize( typedef Unsigned(4) FC;  Unsigned(4) mX(0);  Unsigned(4) mY(0); ); ); > +SP< Bool m_spbs[2](false,false); > <NOMAIN> }
 Uq_QFoo { typedef Unsigned(4) FC;  Unsigned(4) mX(0);  Unsigned(4) mY(0);  <NOMAIN> }
 Uq_QBar { QFoo mPos( typedef Unsigned(4) FC;  Unsigned(4) mX(0);  Unsigned(4) mY(0); );  QFoo mSize( typedef Unsigned(4) FC;  Unsigned(4) mX(0);  Unsigned(4) mY(0); );  <NOMAIN> }
@@ -19,6 +19,7 @@ Uq_System { <NOMAIN> }
 ##
 ## informed by Dave ish 5/19/2021. Another level deeper (QGah)  than t41457.
 ##  6/17/22 modified to also test big element default init() (see also t3727)
+##  6/26/22 modified to also test big element default restore() compiles (see also t3727)
 ##
 #>R.ulam
   ulam 5;
@@ -28,6 +29,7 @@ element R {
     FooNG foo;
     foo.behave();
     foo.init();
+    foo.restore();
     return 0;
   }
 }
@@ -96,6 +98,11 @@ element FooNG : QGah + SP {
   Void init()
   {
     self = Self.instanceof;
+  }
+  Void restore()
+  {
+    Self t;
+    self = t;
   }
 }
 
