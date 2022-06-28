@@ -1,0 +1,85 @@
+## -*- mode:ulam -*-
+#=t41596_test_compiler_quarkwithbasesfuncselfreset
+##      gen code output: (3 asserts)
+#!
+Exit status: -1
+Ue_R { Int test() {  System s;  MM mm;  mm m12 4 [] . true = mm ( )reset . s ( mm t1 0 [] . )assert . s ( mm t2 1 [] . )assert . s ( mm m12 4 [] . ! )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+Uq_MM : T2 +M12 { Bool m23[4](false,false,false,false);  :T2< Bool t2[12]( { false, true, false, false }); > +M12< Bool m12[5](false,false,false,false,false); > ^T1< Bool t1[11]( { true, false, false, false }); > <NOMAIN> }
+Uq_T1 { Bool t1[11]( { true, false, false, false });  <NOMAIN> }
+Uq_T2 { Bool t2[12]( { false, true, false, false });  <NOMAIN> }
+Uq_T3 { Bool t3[13]( { false, false, true, false });  <NOMAIN> }
+Uq_M12 : T1 +T2 { Bool m12[5](false,false,false,false,false);  :T1< Bool t1[11]( { true, false, false, false }); > +T2< Bool t2[12]( { false, true, false, false }); > <NOMAIN> }
+##
+## informed by Dave's 3rd 6/26/22 ish 174453: self is a reference, and t.f. may have a different
+##  effself than Self in base class with func. Similar to immediate reference write method.
+## (see also t41494,5).
+##
+#>R.ulam
+  ulam 5;
+element R {
+
+  Int test(){
+    System s;
+    MM mm;
+    mm.m12[4]=true;
+
+    mm.reset(); //only changes m12 to default values
+    s.assert(mm.t1[0]);
+    s.assert(mm.t2[1]);
+    s.assert(!mm.m12[4]);
+    return 0;
+  }
+}
+
+#:T1.ulam
+  ulam 5;
+quark T1
+{
+  Bool t1[11] = { true, false, false, false };
+}
+
+#:T2.ulam
+  ulam 5;
+quark T2
+{
+  Bool t2[12] = { false, true, false, false };
+}
+
+#:T3.ulam
+  ulam 5;
+quark T3
+{
+  Bool t3[13] = { false, false, true, false };
+}
+
+#:M12.ulam
+  ulam 5;
+quark M12 : T1 + T2 {
+  Bool m12[5];
+  Void m12reset() {
+    self = M12.instanceof;
+  }
+}
+
+#:MM.ulam
+  ulam 5;
+quark MM : T2 + M12 {
+  Bool m23[4];
+  Void reset() {
+    m12reset();
+  }
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

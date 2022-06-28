@@ -1,0 +1,84 @@
+## -*- mode:ulam -*-
+#=t41594_test_compiler_transientwithtransientbasesfuncselfreset_ish
+##      gen code output: (3 asserts)
+#!
+Exit status: -11
+Ue_R { Int test() {  System s;  MM mm;  mm m12 4 [] . true = mm ( )reset . s ( mm t1 0 [] . )assert . s ( mm t2 1 [] . )assert . s ( mm m12 4 [] . ! )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+Un_MM : T2 +M12 { Bool m23[104](false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false);  :T2< Bool t2[102]( { false, true, false, false }); > +M12< Bool m12[104](false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false); > ^T1< Bool t1[101]( { true, false, false, false }); > <NOMAIN> }
+Un_T1 { Bool t1[101]( { true, false, false, false });  <NOMAIN> }
+Un_T2 { Bool t2[102]( { false, true, false, false });  <NOMAIN> }
+Un_T3 { Bool t3[103]( { false, false, true, false });  <NOMAIN> }
+Un_M12 : T1 +T2 { Bool m12[104](false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false);  :T1< Bool t1[101]( { true, false, false, false }); > +T2< Bool t2[102]( { false, true, false, false }); > <NOMAIN> }
+##
+## informed by Dave's 3rd 6/26/22 ish 174453: self is a reference, and t.f. may have a different
+##  effself than Self in base class with func. Similar to immediate reference write method.
+##
+#>R.ulam
+  ulam 5;
+element R {
+
+  Int test(){
+    System s;
+    MM mm;
+    mm.m12[4]=true;
+
+    mm.reset(); //only changes m12 to default values
+    s.assert(mm.t1[0]);
+    s.assert(mm.t2[1]);
+    s.assert(!mm.m12[4]);
+    return 0;
+  }
+}
+
+#:T1.ulam
+  ulam 5;
+transient T1
+{
+  Bool t1[101] = { true, false, false, false };
+}
+
+#:T2.ulam
+  ulam 5;
+transient T2
+{
+  Bool t2[102] = { false, true, false, false };
+}
+
+#:T3.ulam
+  ulam 5;
+transient T3
+{
+  Bool t3[103] = { false, false, true, false };
+}
+
+#:M12.ulam
+  ulam 5;
+transient M12 : T1 + T2 {
+  Bool m12[104];
+  Void m12reset() {
+    self = M12.instanceof;
+  }
+}
+
+#:MM.ulam
+  ulam 5;
+transient MM : T2 + M12 {
+  Bool m23[104];
+  Void reset() {
+    m12reset();
+  }
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

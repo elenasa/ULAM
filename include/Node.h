@@ -2,8 +2,8 @@
  * Node.h - Basic Node of Nodes for ULAM
  *
  * Copyright (C) 2014-2019 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2021 Ackleyshack LLC.
- * Copyright (C) 2020-2021 The Living Computation Foundation.
+ * Copyright (C) 2014-2022 Ackleyshack LLC.
+ * Copyright (C) 2020-2022 The Living Computation Foundation.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -437,9 +437,9 @@ enum EvalStatus {ERROR, NOTREADY, NORMAL, RETURN, BREAK, CONTINUE, UNEVALUABLE};
     NNO m_no;
 
     void genCodeReadSelfIntoATmpVar(File * fp, UVPass & uvpass);
-    void genSelfNameOfMethod(File * fp);
+    void genSelfNameOfMethod(File * fp, bool appenddot = true);
     void genCodeWriteToSelfFromATmpVar(File * fp, UVPass& luvpass, UVPass& ruvpass);
-    void genCodeWriteToTransientSelfFromATmpVar(File * fp, UVPass& luvpass, UVPass& ruvpass);
+    void genCodeWriteToRefselfFromATmpVar(File * fp, UVPass& luvpass, UVPass& ruvpass);
 
     void genCodeReadStringArrayIntoATmpVar(File * fp, UVPass & uvpass);
     void genCodeWriteToStringArrayFromATmpVar(File * fp, UVPass & luvpass, UVPass & ruvpass);
