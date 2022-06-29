@@ -1,0 +1,75 @@
+## -*- mode:ulam -*-
+#=t41597_test_compiler_anotherclassconstantinsquarebracketslhs_ish
+##      gen code output: (1 assert)
+#!
+Exit status: 0
+Ue_R { Int test() {  System s;  Demo d;  d mCmdWDirs 1u [] . mCmd . 2u = s ( d mCmdWDirs 1u [] . mCmd . 2u == )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+Ue_Demo : Vertebra { typedef Unsigned(4) SegNo;  constant Unsigned(4) cMAX_SEG = 10u;  Unsigned(4) mSegNo(0);  :Vertebra< typedef Unsigned(1) BodyDir;  constant Unsigned(1) cBODY_UP = 0u;  constant Unsigned(1) cBODY_DOWN = 1u;  CmdWDir mCmdWDirs[1]( typedef Unsigned(2) Cmd;  constant Unsigned(2) cEND = 0u;  constant Unsigned(2) cSTAY = 1u;  constant Unsigned(2) cGO = 2u;  constant Unsigned(2) cBLOCK = 3u;  typedef Unsigned(2) WorldDir;  Unsigned(2) mCmd(0);  Unsigned(2) mWorld(0); ); > <NOMAIN> }
+Uq_Vertebra { typedef Unsigned(1) BodyDir;  constant Unsigned(1) cBODY_UP = 0u;  constant Unsigned(1) cBODY_DOWN = 1u;  CmdWDir mCmdWDirs[1]( typedef Unsigned(2) Cmd;  constant Unsigned(2) cEND = 0u;  constant Unsigned(2) cSTAY = 1u;  constant Unsigned(2) cGO = 2u;  constant Unsigned(2) cBLOCK = 3u;  typedef Unsigned(2) WorldDir;  Unsigned(2) mCmd(0);  Unsigned(2) mWorld(0); );  <NOMAIN> }
+Uq_CmdWDir { typedef Unsigned(2) Cmd;  constant Unsigned(2) cEND = 0u;  constant Unsigned(2) cSTAY = 1u;  constant Unsigned(2) cGO = 2u;  constant Unsigned(2) cBLOCK = 3u;  typedef Unsigned(2) WorldDir;  Unsigned(2) mCmd(0);  Unsigned(2) mWorld(0);  <NOMAIN> }
+##
+## informed by Dave's 6/28/22 ish-015749: assertion because no member class set:
+## culamtest: CompilerState.cpp:5249: void MFM::CompilerState::addSymbolToCurrentMemberClassScope(MFM::Symbol*): Assertion `memberblock' failed.
+##
+#>R.ulam
+  ulam 5;
+element R {
+
+  Int test(){
+    System s;
+    Demo d;
+    //d.mSegNo = Demo.cMAX_SEG;
+    //d.mCmdWDirs[Vertebra.cBODY_UP].mCmd = CmdWDir.cEND; // you're the head
+    d.mCmdWDirs[Vertebra.cBODY_DOWN].mCmd = CmdWDir.cGO; // you're also the tail (for now)
+    s.assert(d.mCmdWDirs[Vertebra.cBODY_DOWN].mCmd == CmdWDir.cGO);
+    return 0;
+  }
+}
+
+#:Demo.ulam
+  ulam 5;
+element Demo : Vertebra {
+  typedef Unsigned(4) SegNo;
+  constant SegNo cMAX_SEG = 10u;
+  SegNo mSegNo;
+}
+
+
+#:Vertebra.ulam
+  ulam 5;
+quark Vertebra {
+  typedef Unsigned(1) BodyDir;
+  constant BodyDir cBODY_UP = 0u;
+  constant BodyDir cBODY_DOWN = 1u;
+  CmdWDir mCmdWDirs[BodyDir.maxof]; // fwd[0] bck[1] 8 bits total
+}
+
+
+#:CmdWDir.ulam
+  ulam 5;
+quark CmdWDir {
+  typedef Unsigned(2) Cmd;
+  constant Cmd cEND  = 0u;  //< We're last in this dir (ignore mDir)
+  constant Cmd cSTAY = 1u;  //< Not last but don't autoswap this way
+  constant Cmd cGO   = 2u;  //< Not last, do autoswap this way
+  constant Cmd cBLOCK= 3u;  //< Prevent autoswap this way
+
+  typedef Unsigned(2) WorldDir; //< 0..3 - WNSE
+  Cmd mCmd;                     // <what to do in this dir
+  WorldDir mWorld;              //< which way next up or down
+}
+
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.
