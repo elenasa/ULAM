@@ -906,7 +906,13 @@ namespace MFM {
 	return true;
       }
 
+    NodeBlock * currBlock = m_state.getCurrentBlock(); //missing t41598
+    m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock); //currblock doesn't change
+
     sizetype = m_nodeRight->checkAndLabelType(this); //t3504
+
+    m_state.popClassContext();
+
     if((sizetype == Nav))
       {
 	rtnArraySize = UNKNOWNSIZE;
