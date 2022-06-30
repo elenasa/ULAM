@@ -1,6 +1,10 @@
 ## -*- mode:ulam -*-
 #=t41597_test_compiler_anotherclassconstantinsquarebracketslhs_ish
-##      gen code output: (1 assert)
+##
+##  gen code output: (2 asserts interleaved)
+##  Unsigned Arg: 2
+##  Unsigned Arg: 1
+##
 #!
 Exit status: 0
 Ue_R { Int test() {  System s;  Demo d;  d mCmdWDirs 1u [] . mCmd . 2u = s ( d mCmdWDirs 1u [] . mCmd . 2u == )assert . 0 cast return } }
@@ -11,6 +15,7 @@ Uq_CmdWDir { typedef Unsigned(2) Cmd;  constant Unsigned(2) cEND = 0u;  constant
 ##
 ## informed by Dave's 6/28/22 ish-015749: assertion because no member class set:
 ## culamtest: CompilerState.cpp:5249: void MFM::CompilerState::addSymbolToCurrentMemberClassScope(MFM::Symbol*): Assertion `memberblock' failed.
+## fixed open sq bkt to NOT use member block (NULL) during parsing; also tests a function call version.
 ##
 #>R.ulam
   ulam 5;
@@ -20,9 +25,14 @@ element R {
     System s;
     Demo d;
     //d.mSegNo = Demo.cMAX_SEG;
-    //d.mCmdWDirs[Vertebra.cBODY_UP].mCmd = CmdWDir.cEND; // you're the head
     d.mCmdWDirs[Vertebra.cBODY_DOWN].mCmd = CmdWDir.cGO; // you're also the tail (for now)
+    s.print(d.mCmdWDirs[Vertebra.cBODY_DOWN].mCmd);
     s.assert(d.mCmdWDirs[Vertebra.cBODY_DOWN].mCmd == CmdWDir.cGO);
+
+    //case: using func call within dots
+    d.getcmd(Vertebra.cBODY_UP).mCmd = CmdWDir.cSTAY; //you're the head
+    s.print(d.mCmdWDirs[Vertebra.cBODY_UP].mCmd);
+    s.assert(d.mCmdWDirs[Vertebra.cBODY_UP].mCmd == CmdWDir.cSTAY);
     return 0;
   }
 }
@@ -33,6 +43,10 @@ element Demo : Vertebra {
   typedef Unsigned(4) SegNo;
   constant SegNo cMAX_SEG = 10u;
   SegNo mSegNo;
+  CmdWDir& getcmd(Unsigned(2) dir)
+  {
+    return mCmdWDirs[dir];
+  }
 }
 
 
