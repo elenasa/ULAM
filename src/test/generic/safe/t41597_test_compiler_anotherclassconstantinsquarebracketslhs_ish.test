@@ -7,7 +7,7 @@
 ##
 #!
 Exit status: 0
-Ue_R { Int test() {  System s;  Demo d;  d mCmdWDirs 1u [] . mCmd . 2u = s ( d mCmdWDirs 1u [] . mCmd . 2u == )assert . 0 cast return } }
+Ue_R { Int test() {  System s;  Demo d;  d mCmdWDirs 1u [] . mCmd . 2u = s ( d mCmdWDirs 1u [] . mCmd . cast )print . s ( d mCmdWDirs 1u [] . mCmd . 2u == )assert . d ( 0u cast )getcmd . mCmd . 1u = s ( d mCmdWDirs 0u [] . mCmd . cast )print . s ( d mCmdWDirs 0u [] . mCmd . 1u == )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 Ue_Demo : Vertebra { typedef Unsigned(4) SegNo;  constant Unsigned(4) cMAX_SEG = 10u;  Unsigned(4) mSegNo(0);  :Vertebra< typedef Unsigned(1) BodyDir;  constant Unsigned(1) cBODY_UP = 0u;  constant Unsigned(1) cBODY_DOWN = 1u;  CmdWDir mCmdWDirs[1]( typedef Unsigned(2) Cmd;  constant Unsigned(2) cEND = 0u;  constant Unsigned(2) cSTAY = 1u;  constant Unsigned(2) cGO = 2u;  constant Unsigned(2) cBLOCK = 3u;  typedef Unsigned(2) WorldDir;  Unsigned(2) mCmd(0);  Unsigned(2) mWorld(0); ); > <NOMAIN> }
 Uq_Vertebra { typedef Unsigned(1) BodyDir;  constant Unsigned(1) cBODY_UP = 0u;  constant Unsigned(1) cBODY_DOWN = 1u;  CmdWDir mCmdWDirs[1]( typedef Unsigned(2) Cmd;  constant Unsigned(2) cEND = 0u;  constant Unsigned(2) cSTAY = 1u;  constant Unsigned(2) cGO = 2u;  constant Unsigned(2) cBLOCK = 3u;  typedef Unsigned(2) WorldDir;  Unsigned(2) mCmd(0);  Unsigned(2) mWorld(0); );  <NOMAIN> }
