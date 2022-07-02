@@ -2380,9 +2380,9 @@ namespace MFM {
 	    if(adjstForEle)
 	      fp->write("T::ATOM_FIRST_STATE_BIT + "); //t3803, t3832, t3632
 
-	    if(!askEffSelf && uvpass.getPassApplyDelta())
+	    if(!askEffSelf && (uvpass.getPassApplyDelta() || cos->isDataMember()))
 	      {
-		//specifc base class member type, not including first relpos
+		//specific baseclass member type, or dm (t41599), not incl first relpos;
 		pos = calcDataMemberPosOfCurrentObjectClasses(false, Nouti); //reset pos
 	      }
 
@@ -2460,7 +2460,7 @@ namespace MFM {
 		fp->write(", ");
 		if(askEffSelf)
 		  {
-		    //data member, stg is a ref (t41599)
+		    //data member, stg is a ref (t41599, case 2)
 		    assert(cos->isDataMember()); //sanity
 		    UTI cosclassuti = cos->getDataMemberClass();
 		    fp->write(stgcos->getMangledName().c_str());
@@ -4694,15 +4694,9 @@ namespace MFM {
 		outputpos = false;
 	      }
 	  }
-	else if(cos->isDataMember()) //t3541, t41599
-	  {
-	    u32 newpos = calcDataMemberPosOfCurrentObjectClasses(askeffselfarg, funcclassarg);
-	    posStr << newpos << "u ";
-	    outputpos = false;
-	  }
 	//else
       }
-    else if(cos->isDataMember()) //also uvpass target type is stgcosuti(t3821)
+    else if(cos->isDataMember()) //also uvpass target type is stgcosuti(t3821, t3541)
       {
 	u32 newpos = calcDataMemberPosOfCurrentObjectClasses(askeffselfarg, funcclassarg);
 	posStr << newpos << "u ";

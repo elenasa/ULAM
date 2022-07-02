@@ -996,14 +996,6 @@ namespace MFM {
 	//might already be true when MemberSelectByBaseType; don't clobber.
 	bool applydelta = uvpass.getPassApplyDelta(); //t41318
 
-	UTI objclass = uvpass.getPassTargetType();
-	UTI dmclass = m_varSymbol->getDataMemberClass();
-	if((objclass != Nouti) && !m_state.isReference(objclass) && m_state.isClassASubclassOf(objclass, dmclass))
-	  {
-	    applydelta = true; //t41599
-	  }
-	//else not data member of a base class (t41584)
-
 	uvpass = UVPass::makePass(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, pos, applydelta, m_varSymbol->getId());
       }
     else
