@@ -2458,6 +2458,24 @@ namespace MFM {
 	    if(!(cos->isSelf() && cosclasstype == UC_QUARK))
 	      {
 		fp->write(", ");
+		if(askEffSelf)
+		  {
+		    //data member, stg is a ref (t41599)
+		    assert(cos->isDataMember()); //sanity
+		    UTI cosclassuti = cos->getDataMemberClass();
+		    fp->write(stgcos->getMangledName().c_str());
+		    fp->write(".GetEffectiveSelf()->");
+		    fp->write(m_state.getGetRelPosMangledFunctionName(stgcosuti)); //nonatom
+		    fp->write("(");
+		    fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(cosclassuti)); //efficiency
+		    fp->write("u ");
+		    fp->write("/* ");
+		    fp->write(m_state.getUlamTypeNameBriefByIndex(cosclassuti).c_str());
+		    fp->write(" */");
+		    fp->write(") - ");
+		    fp->write(stgcos->getMangledName().c_str());
+		    fp->write(".GetPosToEffectiveSelf() + ");
+		  }
 		if(adjstForEle)
 		  fp->write("T::ATOM_FIRST_STATE_BIT + "); //t3819, t3814?
 		fp->write_decimal_unsigned(pos); //rel offset t3819
@@ -4676,6 +4694,13 @@ namespace MFM {
 		outputpos = false;
 	      }
 	  }
+	else if(cos->isDataMember()) //t3541, t41599
+	  {
+	    u32 newpos = calcDataMemberPosOfCurrentObjectClasses(askeffselfarg, funcclassarg);
+	    posStr << newpos << "u ";
+	    outputpos = false;
+	  }
+	//else
       }
     else if(cos->isDataMember()) //also uvpass target type is stgcosuti(t3821)
       {
