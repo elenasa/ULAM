@@ -400,7 +400,9 @@ namespace MFM {
 
   void UlamTypeClassQuark::genUlamTypeAutoReadDefinitionForC(File * fp)
   {
-    if(isScalar() || WritePacked(getPackable()))
+    u32 len = getSizeofUlamType();
+
+    if(isScalar())
       {
 	//ref param to avoid excessive copying; (ulam-5) use deref copy cnstr
 	// when a different effSelf (may be spread out).
@@ -410,28 +412,99 @@ namespace MFM {
 	fp->write("if(&Us::THE_INSTANCE==this->GetEffectiveSelfPointer()) ");
 	fp->write("return UlamRef<EC>::");
 	fp->write(readMethodForCodeGen().c_str()); //just the guts
-	fp->write("();/* entire quark */");
-	fp->write("else { return Usi(*this).read(); } }"); GCNL;
-      }
+	fp->write("(); /*entire quark*/ ");
 
-    //overload PACKED arrays, as well as UNPACKED ones
-    if(getTotalBitSize() > MAXBITSPERLONG)
-      {
-	m_state.indent(fp);
-	fp->write("void ");
-	fp->write(" read(");
-	fp->write(getTmpStorageTypeAsString().c_str()); //BV
-	fp->write("& rtnbv) const { ");
-	fp->write("if(&Us::THE_INSTANCE==this->GetEffectiveSelfPointer()){ ");
-	fp->write("this->GetStorage().");
-	fp->write(readMethodForCodeGen().c_str()); //just the guts
-	fp->write("(this->GetPos(),rtnbv); /*entire quark array */}");
-	fp->write("else { Usi(*this).read(rtnbv); } }"); GCNL;
-      }
+	fp->write("else { ");
 
-    //scalar and entire PACKEDLOADABLE array handled by read method
-    if(!isScalar())
+	fp->write("BitVector<");
+	fp->write_decimal_unsigned(len);
+	fp->write("u> tmpbv;");
+
+	//write the data members first
+	//here.. 'd' UlamRef is initially pointing to them.
+	s32 myblen = getBitsizeAsBaseClass();
+	assert(myblen >= 0);
+	if(myblen > 0)
+	  {
+	    fp->write("/*data members first*/ ");
+	    fp->write("BitVector<");
+	    fp->write_decimal_unsigned(myblen);
+	    fp->write("u> tmpDM;");
+	    fp->write("this->ReadBV(0u,tmpDM);");
+	    fp->write(len <= MAXBITSPERLONG ? "tmpbv" : "rtnbv");
+	    fp->write(".WriteBV(0u, tmpDM);"); //t3230
+	  }
+
+	//then, write each of its non-zero size (shared) base classes
+	UTI scalaruti =  m_key.getUlamKeyTypeSignatureClassInstanceIdx();
+	SymbolClass * csym = NULL;
+	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(scalaruti, csym);
+	assert(isDefined);
+	u32 shbasecount = csym->getSharedBaseClassCount();
+	if(shbasecount > 0)
+	  fp->write("/*nonzero base classes*/ ");
+	u32 j = 0;
+	while(j < shbasecount)
+	  {
+	    UTI baseuti = csym->getSharedBaseClass(j);
+	    u32 blen = m_state.getBaseClassBitSize(baseuti);
+	    if(blen > 0)
+	      {
+		fp->write("BitVector<");
+		fp->write_decimal_unsigned(blen);
+		fp->write("u> tmpbv");
+		fp->write_decimal(j);
+		fp->write("; this->ReadBV(this->GetEffectiveSelf()->");
+		fp->write(m_state.getGetRelPosMangledFunctionName(baseuti));
+		fp->write("(");
+		fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(baseuti));
+		fp->write("u)- this->GetPosToEffectiveSelf(),tmpbv");
+		fp->write_decimal(j);
+		fp->write(");");
+		fp->write(len <= MAXBITSPERLONG ? "tmpbv" : "rtnbv");
+		fp->write(".WriteBV(");
+		fp->write_decimal_unsigned(csym->getSharedBaseClassRelativePosition(j));
+		fp->write(",");
+		fp->write("tmpbv");
+		fp->write_decimal(j);
+		fp->write(");");
+		fp->write("/*");
+		fp->write(m_state.getUlamTypeNameBriefByIndex(baseuti).c_str());
+		fp->write("*/ ");
+	      }
+	    j++;
+	  } //end while
+
+	if(len <= MAXBITSPERLONG)
+	  {
+	    fp->write("return tmpbv.");
+	    fp->write(readMethodForCodeGen().c_str());
+	    fp->write("(0u,");
+	    fp->write_decimal_unsigned(len);
+	    fp->write("u); } }"); GCNL;
+	  }
+	else
+	  {
+	    fp->write("} }"); GCNL;
+	  }
+      }
+    else //array
       {
+	//entire array handled by this read method
+	//overload PACKED arrays, as well as UNPACKED ones
+	if((len > MAXBITSPERLONG) || WritePacked(getPackable()))
+	  {
+	    m_state.indent(fp);
+	    fp->write("void ");
+	    fp->write(" read(");
+	    fp->write(getTmpStorageTypeAsString().c_str()); //BV
+	    fp->write("& rtnbv) const { ");
+	    fp->write("this->GetStorage().");
+	    fp->write(readMethodForCodeGen().c_str()); //just the guts
+	    fp->write("(this->GetPos(),rtnbv); /*entire quark array*/ ");
+	    fp->write("}"); GCNL;
+	  }
+
 	//class instance idx is always the scalar uti
 	UTI scalaruti =  m_key.getUlamKeyTypeSignatureClassInstanceIdx();
 	//reads an item of array;
@@ -465,7 +538,7 @@ namespace MFM {
 	    fp->write("if(&Us::THE_INSTANCE==this->GetEffectiveSelfPointer()) ");
 	    fp->write("UlamRef<EC>::");
 	    fp->write(writeMethodForCodeGen().c_str());
-	    fp->write("(targ); /* entire quark */ ");
+	    fp->write("(targ); /*entire quark*/ ");
 	    fp->write("else { ");
 	    fp->write("BitVector<QUARK_SIZE> tmpbv(targ); ");
 
@@ -541,7 +614,7 @@ namespace MFM {
 	fp->write("& targ) { ");
 	fp->write("UlamRef<EC>::");
 	fp->write(writeMethodForCodeGen().c_str());
-	fp->write("(targ); /* entire quark */ ");
+	fp->write("(targ); /*entire quark*/ ");
 	fp->write("}"); GCNL;
       }
 
@@ -743,71 +816,7 @@ namespace MFM {
     fp->write("(const ");
     fp->write(automangledName.c_str());
     fp->write("<EC>& d) { ");
-    if(isScalar())
-      {
-	fp->write("if(&Us::THE_INSTANCE==d.GetEffectiveSelfPointer()) ");
-	fp->write("write(d.read()); ");
-	fp->write("else {");
-	//write the data members first
-	//here.. 'd' UlamRef is initially pointing to them.
-	s32 myblen = getBitsizeAsBaseClass();
-	assert(myblen >= 0);
-	if(myblen > 0)
-	  {
-	    fp->write("/*data members first*/ ");
-	    fp->write("BVS::");
-	    fp->write(writeMethodForCodeGen().c_str());
-	    fp->write("(0u,");
-	    fp->write_decimal(myblen);
-	    fp->write("u,");
-	    fp->write("UlamRef<EC>(d,0,"); //t3230
-	    fp->write_decimal(myblen);
-	    fp->write("u).");
-	    fp->write(readMethodForCodeGen().c_str());
-	    fp->write("()); ");
-	  }
-
-	//then, write each of its non-zero size (shared) base classes
-	SymbolClass * csym = NULL;
-	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(scalaruti, csym);
-	assert(isDefined);
-	u32 shbasecount = csym->getSharedBaseClassCount();
-	if(shbasecount > 0)
-	  fp->write("/*nonzero base classes*/ ");
-	u32 j = 0;
-	while(j < shbasecount)
-	  {
-	    UTI baseuti = csym->getSharedBaseClass(j);
-	    u32 blen = m_state.getBaseClassBitSize(baseuti);
-	    if(blen > 0)
-	      {
-		fp->write("BVS::");
-		fp->write(writeMethodForCodeGen().c_str());
-		fp->write("(");
-		fp->write_decimal_unsigned(csym->getSharedBaseClassRelativePosition(j));
-		fp->write("u,");
-		fp->write_decimal_unsigned(blen);
-		fp->write("u,");
-		fp->write("UlamRef<EC>(d,d.GetEffectiveSelf()->");
-		fp->write(m_state.getGetRelPosMangledFunctionName(baseuti));
-		fp->write("(");
-		fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(baseuti));
-		fp->write("u),");
-		fp->write_decimal_unsigned(blen);
-		fp->write("u, UlamRef<EC>::CLASSIC, true).");
-		fp->write(readMethodForCodeGen().c_str());
-		fp->write("()); /*"); //(always true!)
-		fp->write(m_state.getUlamTypeNameBriefByIndex(baseuti).c_str());
-		fp->write(" */ ");
-	      }
-	    j++;
-	  } //end while
-	fp->write("} }"); GCNL;
-      }
-    else //array (eg t3143)
-      {
-	fp->write("write(d.read()); }"); GCNL;
-      }
+    fp->write("write(d.read()); }"); GCNL;
 
     //default destructor (intentionally left out)
 

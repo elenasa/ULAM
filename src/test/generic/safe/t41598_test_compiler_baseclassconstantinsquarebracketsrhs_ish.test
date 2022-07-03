@@ -1,0 +1,112 @@
+## -*- mode:ulam -*-
+#=t41598_test_compiler_baseclassconstantinsquarebracketsrhs_ish
+##
+##  gen code output: (1 assert)
+#!
+Exit status: 0
+Ue_R { Int test() {  System s;  Demo d;  SegmentState segstate;  Bool b = d ( segstate cast )wantGrow .;  s ( b )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+Ue_Demo : Segment { typedef Unsigned(4) SegNo;  constant Unsigned(4) cMAX_SEG = 10u;  Unsigned(4) mSegNo(0);  :Segment< typedef Unsigned(6) SN;  typedef Unsigned(3) PocketPtr;  constant Unsigned(3) cPP_SELF = 0u;  constant Unsigned(3) cPP_WEST = 1u;  constant Unsigned(3) cPP_NORTH = 2u;  constant Unsigned(3) cPP_SOUTH = 3u;  constant Unsigned(3) cPP_EAST = 4u;  constant Unsigned(3) cPP_RSRV1 = 5u;  constant Unsigned(3) cPP_RSRV2 = 6u;  constant Unsigned(3) cPP_NULL = 7u;  typedef Unsigned(1) BodyDir;  constant Unsigned(1) cBODY_UP = 0u;  constant Unsigned(1) cBODY_DOWN = 1u;  Unsigned(3) mPocketPtrs[2]( { 7u, 7u }); > <NOMAIN> }
+Un_SegmentState { typedef Unsigned(6) SN;  typedef Unsigned(3) PocketPtr;  Unsigned(6) mEWSNAvailable[2](0,0);  Unsigned(3) mPocketWithAvailable[2]( { 7u, 7u });  Unsigned(6) mEWSNMate[2](0,0);  Unsigned(3) mPocketWithMate[2]( { 7u, 7u });  <NOMAIN> }
+Uq_Segment { typedef Unsigned(6) SN;  typedef Unsigned(3) PocketPtr;  constant Unsigned(3) cPP_SELF = 0u;  constant Unsigned(3) cPP_WEST = 1u;  constant Unsigned(3) cPP_NORTH = 2u;  constant Unsigned(3) cPP_SOUTH = 3u;  constant Unsigned(3) cPP_EAST = 4u;  constant Unsigned(3) cPP_RSRV1 = 5u;  constant Unsigned(3) cPP_RSRV2 = 6u;  constant Unsigned(3) cPP_NULL = 7u;  typedef Unsigned(1) BodyDir;  constant Unsigned(1) cBODY_UP = 0u;  constant Unsigned(1) cBODY_DOWN = 1u;  Unsigned(3) mPocketPtrs[2]( { 7u, 7u });  <NOMAIN> }
+##
+## informed by Dave's 6/30/22 ish-132429:
+## FIXED open sq bkt constant in baseclass, to NOT use member block during c&l, after surgery:
+## ./Demo.ulam:17:28: ERROR: Named Constant 'cBODY_DOWN' is not defined, or was used before declared in a function.
+## First line with: mPocketPtrs[cBODY_UP] is fine; no member-select dots to worry about.
+##  Unlike t41597 the constant is in the baseclass, and not specified.
+##
+#>R.ulam
+  ulam 5;
+element R {
+
+  Int test(){
+    System s;
+    Demo d;
+    SegmentState segstate;
+    Bool b = d.wantGrow(segstate);
+    s.assert(b);
+    return 0;
+  }
+}
+
+#:Demo.ulam
+  ulam 5;
+element Demo : Segment {
+  typedef Unsigned(4) SegNo;
+  constant SegNo cMAX_SEG = 10u;
+  SegNo mSegNo;
+
+  @Override
+  virtual Bool wantGrow(SegmentState & ss)
+  {
+    // Am I the head?
+    if (mPocketPtrs[cBODY_UP] != cPP_NULL) return false; // No
+    // I am the head.
+
+    //if (mSegNo > 0u) return true; // Want more
+    ss.mEWSNMate[cBODY_DOWN] = 1u;
+
+    // If downstream is not a DS_DOWN (and given I am head) yes
+    SN down = ss.mEWSNMate[cBODY_DOWN]; //was c&l ERROR!!
+    if (down == 0u) return false; // No downstream mate?
+
+    // downstream is normal
+    return true;
+  }
+}
+
+#:SegmentState.ulam
+  ulam 5;
+transient SegmentState {
+  typedef Unsigned(6) SN;
+  typedef Segment.PocketPtr PocketPtr;
+
+  // availability data valid after findAvailable returns true
+  SN mEWSNAvailable[2];
+  PocketPtr mPocketWithAvailable[2] = { Segment.cPP_NULL, Segment.cPP_NULL };
+
+  // mate data valid after findMate returns true
+  SN mEWSNMate[2];
+  PocketPtr mPocketWithMate[2] = { Segment.cPP_NULL, Segment.cPP_NULL };
+}
+
+
+#:Segment.ulam
+  ulam 5;
+quark Segment {
+  typedef Unsigned(6) SN;
+
+  typedef Unsigned(3) PocketPtr;
+  constant PocketPtr cPP_SELF  = 0u;  //< Ptr center
+  constant PocketPtr cPP_WEST  = 1u;  //< Ptr west
+  constant PocketPtr cPP_NORTH = 2u;  //< Ptr north
+  constant PocketPtr cPP_SOUTH = 3u;  //< Ptr south
+  constant PocketPtr cPP_EAST  = 4u;  //< Ptr east
+  constant PocketPtr cPP_RSRV1 = 5u;  //< Don't use
+  constant PocketPtr cPP_RSRV2 = 6u;  //< Don't use
+  constant PocketPtr cPP_NULL  = 7u;  //< Null pointer
+
+  typedef Unsigned(1) BodyDir;
+  constant BodyDir cBODY_UP = 0u;
+  constant BodyDir cBODY_DOWN = 1u;
+  PocketPtr mPocketPtrs[BodyDir.maxof+1u]  = { cPP_NULL, cPP_NULL }; // fwd[0] bck[1] 6 bits total
+
+  //// Segment API
+  virtual Bool wantMove(SegmentState & ss) { return false; }
+  virtual Bool wantGrow(SegmentState & ss) { return false; }
+
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

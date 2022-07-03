@@ -1,16 +1,16 @@
 ## -*- mode:ulam -*-
 #=t3727_test_compiler_transientinstanceof
 ##
-## gen output: 6 asserts
+## gen output: 8 asserts
 ## eval: bb is false; should be true
 #!
 Exit status: 3
-Ue_R { Int test() {  System s;  TPerc t;  t bb . true = t ( 7 cast )set . s ( t bb . )assert . s ( t ( )get . 7 cast == )assert . TPerc& tref = t cast;  s ( tref bb . )assert . s ( tref ( )get . 7 cast == )assert . TPerc b = TPerc.instanceof;  s ( b bb . t bb . != )assert . s ( b ( )get . t ( )get . != )assert . b ( )get . return } }
+Ue_R { Int test() {  System s;  TPerc t;  t bb . true = t ( 7 cast )set . s ( t bb . )assert . s ( t ( )get . 7 cast == )assert . TPerc& tref = t cast;  s ( tref bb . )assert . s ( tref ( )get . 7 cast == )assert . TPerc b = TPerc.instanceof;  s ( b bb . t bb . != )assert . s ( b ( )get . t ( )get . != )assert . t ( )init . s ( b bb . t bb . == )assert . s ( b ( )get . t ( )get . == )assert . t ( )restore . b ( )get . return } }
 Un_TPerc : Foo { Bool bb(false);  :Foo< Int m_i( 3); > <NOMAIN> }
 Un_Foo { Int m_i( 3);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
-## informed by a Dave ish 2/19/2016;
+## informed by a Dave ish 2/19/2016, and 6/15/22, 6/26/22; (see also t3714)
 ##
 #>R.ulam
   ulam 2;
@@ -32,6 +32,15 @@ element R {
     TPerc b = TPerc.instanceof; //not a lhs ref (see t3659)
     s.assert(b.bb != t.bb);
     s.assert(b.get() != t.get());
+
+    //t with default values (see also t3714 for big transient)
+    t.init();
+    s.assert(b.bb == t.bb);
+    s.assert(b.get() == t.get());
+
+    //same result as init(), checking generated code compiles
+    t.restore();
+
     return b.get();
   }
 }
@@ -41,6 +50,17 @@ element R {
 use Foo;
 transient TPerc : Foo {
   Bool bb;
+
+  Void init()
+  {
+    self = Self.instanceof; //default values
+  }
+
+  Void restore()
+  {
+    Self t;
+    self = t;
+  }
 }
 
 #:Foo.ulam

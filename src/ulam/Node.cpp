@@ -1272,14 +1272,15 @@ namespace MFM {
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeReadSelfIntoATmpVar
 
-  void Node::genSelfNameOfMethod(File * fp)
+  void Node::genSelfNameOfMethod(File * fp, bool appenddot)
   {
     Symbol * self = m_state.getCurrentSelfSymbolForCodeGen();
     if(self->getAutoLocalType() == ALT_AS)
       fp->write(self->getMangledName().c_str()); //t41359
     else
       fp->write(m_state.getHiddenArgName()); //t41120,t3707,8
-    fp->write(".");
+    if(appenddot)
+      fp->write("."); //default
     return;
   } //genSelfNameOfMethod
 
@@ -1434,7 +1435,7 @@ namespace MFM {
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
 
     if(stgcos->isSelf() && (stgcos == cos))
-      return genCodeWriteToSelfFromATmpVar(fp, luvpass, ruvpass);
+	return genCodeWriteToSelfFromATmpVar(fp, luvpass, ruvpass);
 
     if((cosut->getUlamClassType() == UC_TRANSIENT))
       return genCodeWriteToTransientFromATmpVar(fp, luvpass, ruvpass);
@@ -1558,14 +1559,9 @@ namespace MFM {
 	genCodeReadElementTypeField(fp, typuvpass);
       }
 
-    m_state.indentUlamCode(fp);
-    genSelfNameOfMethod(fp); // NOT just ur.Write(tmpvar) e.g. t41120
-    fp->write(writeMethodForCodeGen(luti, luvpass).c_str());
-    fp->write("(");
-    fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
-    if(ruvpass.getPassStorage() == TMPBITVAL)
-	fp->write(".read()"); //t41548
-    fp->write(");"); GCNL;
+    // helper to handle intricacies self as a reference with shared base classes and effself
+    // regardless of class type (t41594,5,6).
+    genCodeWriteToRefselfFromATmpVar(fp, luvpass, ruvpass);
 
     // inheritance cast needs the lhs type restored after the generated write
     if(isElementAncestorCast)
@@ -1573,6 +1569,209 @@ namespace MFM {
 
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeWriteToSelfFromATmpVar
+
+  void Node::genCodeWriteToRefselfFromATmpVar(File * fp, UVPass & luvpass, UVPass & ruvpass)
+  {
+    UTI luti = luvpass.getPassTargetType();
+    UlamType * lut = m_state.getUlamTypeByIndex(luti);
+    TMPSTORAGE lstor = lut->getTmpStorageTypeForTmpVar();
+    UTI ruti = ruvpass.getPassTargetType();
+    UlamType * rut = m_state.getUlamTypeByIndex(ruti);
+    TMPSTORAGE rstor = ruvpass.getPassStorage(); //var not first when TMPTBV (already read into BV)
+    s32 rlen = rut->getBitSize(); //not total bit size
+
+    bool varcomesfirst = ((lut->getSizeofUlamType() > MAXBITSPERLONG) || (lstor == TMPTBV)) && (rstor == TMPBITVAL) && (lstor != TMPTATOM); //t41359, t3675
+
+    // write out immediate tmp BitValue as an intermediate tmpVar
+    s32 tmpVarNum2 = 0;
+
+    if(varcomesfirst)
+      {
+	tmpVarNum2 = m_state.getNextTmpVarNumber();
+	m_state.indentUlamCode(fp);
+	fp->write(rut->getTmpStorageTypeAsString().c_str()); //BV
+	fp->write(" ");
+	fp->write(m_state.getTmpVarAsString(ruti, tmpVarNum2, rstor).c_str());
+	fp->write(";\n");
+
+	m_state.indentUlamCode(fp);
+	fp->write(ruvpass.getTmpVarAsString(m_state).c_str()); //tmp var ref
+	fp->write(".read(");
+	fp->write(m_state.getTmpVarAsString(ruti, tmpVarNum2, rstor).c_str());
+	fp->write(");"); GCNL;
+      }
+
+    if(rlen > 0)
+      {
+	m_state.indentUlamCode(fp);
+	fp->write("if(&");
+	fp->write(rut->getUlamTypeMangledName().c_str());
+	fp->write("<EC>::THE_INSTANCE == ");
+	genSelfNameOfMethod(fp);
+	fp->write("GetEffectiveSelfPointer())\n");
+
+	m_state.m_currentIndentLevel++;
+	m_state.indentUlamCode(fp);
+
+	genSelfNameOfMethod(fp); // NOT just ur.Write(tmpvar) e.g. t41120
+	fp->write(writeMethodForCodeGen(luti, luvpass).c_str());
+
+	if(varcomesfirst)
+	  {
+	    fp->write("(0u, ");
+	    fp->write(m_state.getTmpVarAsString(ruti, tmpVarNum2, rstor).c_str());
+	    fp->write("); /* entire class */"); GCNL; //t3714
+	  }
+	else
+	  {
+	    fp->write("(");
+	    if((rstor == TMPTBV) && (lut->getReferenceType() != ALT_AS)) //!lut->isReference())
+	      fp->write("0u, "); //t3714 (restore case); t41359 not for refs;
+	    fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
+	    if(rstor == TMPBITVAL)
+	      fp->write(".read()"); //t41548, t41359
+	    fp->write("); /* entire class */"); GCNL;
+	  }
+
+	m_state.m_currentIndentLevel--;
+
+	//elements or atoms on rhs must be whole of lhs, not a baseclass.
+	//if((rstor == TMPTBV) || (rstor == TMPTATOM))
+	if(rstor == TMPTATOM)
+	  return; //t3656, t41359
+
+	//if not entire effectiveSelf, then rhs is a base class!
+	m_state.indentUlamCode(fp);
+	fp->write("else {\n");
+
+	m_state.m_currentIndentLevel++;
+
+	//write the data members first
+	s32 rblen = rut->getUlamClassType() == UC_ELEMENT? 0 : rut->getBitsizeAsBaseClass(); //only data member sizes for base classes (t3407, t3656,7, t3675, t41458, t41503)
+	assert(rblen >= 0);
+	if(rblen > 0)
+	  {
+	    if((rstor == TMPREGISTER))
+	      {
+		tmpVarNum2 = tmpVarNum2 == 0 ? m_state.getNextTmpVarNumber() : tmpVarNum2;
+		varcomesfirst = true; //t3686
+
+		//convert to immediate from u32/u64
+		m_state.indentUlamCode(fp);
+		fp->write(rut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
+		fp->write(" ");
+		fp->write(m_state.getTmpVarAsString(ruti, tmpVarNum2, rstor).c_str());
+		fp->write("(");
+		fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
+		fp->write(");"); GCNL;
+	      }
+
+	    m_state.indentUlamCode(fp);
+	    fp->write("/*data members first*/ \n");
+	    m_state.indentUlamCode(fp);
+	    fp->write("BitVector<");
+	    fp->write_decimal_unsigned(rblen);
+	    fp->write("u> tmpDM;\n");
+
+	    m_state.indentUlamCode(fp);
+
+	    if(varcomesfirst)
+	      fp->write(m_state.getTmpVarAsString(ruti, tmpVarNum2, rstor).c_str());
+	    else
+	      fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
+	    fp->write(".ReadBV(0u,tmpDM);\n");
+
+	    m_state.indentUlamCode(fp);
+	    fp->write("UlamRef<EC>(");
+	    genSelfNameOfMethod(fp, false); //no dot
+	    fp->write(",");
+	    genSelfNameOfMethod(fp); //w dot
+	    fp->write("GetEffectiveSelf()->");
+	    fp->write(m_state.getGetRelPosMangledFunctionName(ruti));
+	    fp->write("(");
+	    fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(ruti));
+	    fp->write("u)- ");
+	    genSelfNameOfMethod(fp);
+	    fp->write("GetPosToEffectiveSelf(),");
+	    fp->write_decimal_unsigned(rblen);
+	    fp->write("u).WriteBV(0u,tmpDM);"); GCNL;
+	  }
+
+	//then, write each of rhs non-zero size (shared) base classes
+	//class instance idx is always the scalar uti
+	UTI scalaruti =  m_state.getUlamTypeAsScalar(ruti);
+	SymbolClass * csym = NULL;
+	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(scalaruti, csym);
+	assert(isDefined);
+	u32 shbasecount = csym->getSharedBaseClassCount();
+	if(shbasecount > 0)
+	  {
+	    m_state.indentUlamCode(fp);
+	    fp->write("/*nonzero base classes*/ "); GCNL;
+	  }
+	u32 j = 0;
+	while(j < shbasecount)
+	  {
+	    UTI baseuti = csym->getSharedBaseClass(j);
+	    u32 blen = m_state.getBaseClassBitSize(baseuti);
+	    if(blen > 0)
+	      {
+		m_state.indentUlamCode(fp);
+		fp->write("BitVector<");
+		fp->write_decimal_unsigned(blen);
+		fp->write("u> tmpbv");
+		fp->write_decimal(j);
+		fp->write(";\n");
+
+		m_state.indentUlamCode(fp);
+
+		if(varcomesfirst)
+		  fp->write(m_state.getTmpVarAsString(ruti, tmpVarNum2, rstor).c_str());
+		else
+		  fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
+		fp->write(".ReadBV(");
+		fp->write_decimal_unsigned(csym->getSharedBaseClassRelativePosition(j));
+		fp->write("u,tmpbv");
+		fp->write_decimal(j);
+		fp->write(");\n");
+
+		m_state.indentUlamCode(fp);
+		fp->write("UlamRef<EC>(");
+		genSelfNameOfMethod(fp, false); //no dot
+		fp->write(",");
+		genSelfNameOfMethod(fp); //w dot
+		fp->write("GetEffectiveSelf()->");
+		fp->write(m_state.getGetRelPosMangledFunctionName(baseuti));
+		fp->write("(");
+		fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(baseuti));
+		fp->write("u)- ");
+		genSelfNameOfMethod(fp); //w dot
+		fp->write("GetPosToEffectiveSelf(),");
+		fp->write_decimal_unsigned(blen);
+		fp->write("u).WriteBV(0u,tmpbv");
+		fp->write_decimal(j);
+		fp->write(");");
+
+		fp->write("/*");
+		fp->write(m_state.getUlamTypeNameBriefByIndex(baseuti).c_str());
+		fp->write("*/ "); GCNL;
+	      }
+	    j++;
+	  } //end while
+
+	m_state.m_currentIndentLevel--;
+	m_state.indentUlamCode(fp);
+	fp->write("} "); GCNL;
+      }
+    else
+      {
+	fp->write("/* noop */ ");
+	fp->write("} "); GCNL;
+      }
+    fp->write("\n");
+
+    //    m_state.clearCurrentObjSymbolsForCodeGen();
+  } //genCodeWriteToRefselfFromATmpVar (helper)
 
   void Node::genCodeWriteToStringArrayFromATmpVar(File * fp, UVPass & luvpass, UVPass & ruvpass)
   {
@@ -1585,6 +1784,7 @@ namespace MFM {
     if(m_state.m_currentObjSymbolsForCodeGen.empty())
       {
 	cos = m_state.getCurrentSelfSymbolForCodeGen();
+	m_state.abortShouldntGetHere(); //handled by TransientSelf code t3714
       }
     else
       {
@@ -2180,9 +2380,9 @@ namespace MFM {
 	    if(adjstForEle)
 	      fp->write("T::ATOM_FIRST_STATE_BIT + "); //t3803, t3832, t3632
 
-	    if(!askEffSelf && uvpass.getPassApplyDelta())
+	    if(!askEffSelf && (uvpass.getPassApplyDelta() || cos->isDataMember()))
 	      {
-		//specifc base class member type, not including first relpos
+		//specific baseclass member type, or dm (t41599), not incl first relpos;
 		pos = calcDataMemberPosOfCurrentObjectClasses(false, Nouti); //reset pos
 	      }
 
@@ -2258,6 +2458,24 @@ namespace MFM {
 	    if(!(cos->isSelf() && cosclasstype == UC_QUARK))
 	      {
 		fp->write(", ");
+		if(askEffSelf)
+		  {
+		    //data member, stg is a ref (t41599, case 2)
+		    assert(cos->isDataMember()); //sanity
+		    UTI cosclassuti = cos->getDataMemberClass();
+		    fp->write(stgcos->getMangledName().c_str());
+		    fp->write(".GetEffectiveSelf()->");
+		    fp->write(m_state.getGetRelPosMangledFunctionName(stgcosuti)); //nonatom
+		    fp->write("(");
+		    fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(cosclassuti)); //efficiency
+		    fp->write("u ");
+		    fp->write("/* ");
+		    fp->write(m_state.getUlamTypeNameBriefByIndex(cosclassuti).c_str());
+		    fp->write(" */");
+		    fp->write(") - ");
+		    fp->write(stgcos->getMangledName().c_str());
+		    fp->write(".GetPosToEffectiveSelf() + ");
+		  }
 		if(adjstForEle)
 		  fp->write("T::ATOM_FIRST_STATE_BIT + "); //t3819, t3814?
 		fp->write_decimal_unsigned(pos); //rel offset t3819
@@ -4476,8 +4694,9 @@ namespace MFM {
 		outputpos = false;
 	      }
 	  }
+	//else
       }
-    else if(cos->isDataMember()) //also uvpass target type is stgcosuti(t3821)
+    else if(cos->isDataMember()) //also uvpass target type is stgcosuti(t3821, t3541)
       {
 	u32 newpos = calcDataMemberPosOfCurrentObjectClasses(askeffselfarg, funcclassarg);
 	posStr << newpos << "u ";

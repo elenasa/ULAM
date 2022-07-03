@@ -913,18 +913,35 @@ namespace MFM {
     // NodeVarDecl for this autolocal sets AutoPtrForEval during its eval. Unlike ALT_AS,
     // ALT_REF, ALT_CONSTREF, ALT_ARRAYITEM cannot guarantee its NodeVarRef init was last encountered.
     if(m_varSymbol->getAutoLocalType() == ALT_AS)
-      return ((SymbolVariableStack *) m_varSymbol)->getAutoPtrForEval(); //haha! we're done.
+      {
+	return ((SymbolVariableStack *) m_varSymbol)->getAutoPtrForEval(); //haha! we're done.
+      }
 
     UlamValue ptr;
     if(m_varSymbol->isDataMember())
       {
 	UTI objclass = m_state.m_currentObjPtr.getPtrTargetType();
 	UTI dmclass = m_varSymbol->getDataMemberClass();
+	s32 objclasspos = m_state.m_currentObjPtr.getPtrPos();
+
 	if(m_state.isAtom(objclass))
 	  {
-	    objclass = m_state.m_currentObjPtr.getPtrTargetEffSelfType(); //t41496
+	    //note: won't get here: atoms have no data members; atom dm in big transient, unevaluable.
+	    objclass = m_state.m_currentObjPtr.getPtrTargetEffSelfType();
 	    assert((objclass != Nouti) && m_state.isAClass(objclass));
+	    m_state.abortNeedsATest();
 	  }
+	else if(m_state.isAltRefType(objclass))
+	  {
+	    UTI objeffself = m_state.m_currentObjPtr.getPtrTargetEffSelfType(); //t41496,t41458
+	    if((objeffself != Nouti))
+	      {
+		objclass = objeffself; //possible deref'd t41496
+		if(m_state.isASeenElement(objeffself))
+		  objclasspos = ATOMFIRSTSTATEBITPOS; //shared base t3810, t41458
+	      }
+	  }
+	//else
 
 	u32 relposofbase = 0;
 	if((UlamType::compareForUlamValueAssignment(dmclass, objclass, m_state) == UTIC_SAME) || m_state.isClassASubclassOf(objclass, dmclass))
@@ -937,7 +954,7 @@ namespace MFM {
 	  }
 	//else not data member of a base class (t41584)
 
-	ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), nuti, m_state.determinePackable(nuti), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset() + relposofbase, m_varSymbol->getId());
+	ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), nuti, m_state.determinePackable(nuti), m_state, objclasspos + relposofbase + m_varSymbol->getPosOffset(), m_varSymbol->getId());
 	if(m_state.isAClass(nuti))
 	  ptr.setPtrTargetEffSelfType(nuti); //self contained dm, its own effself
 	ptr.checkForAbsolutePtr(m_state.m_currentObjPtr); //t3810

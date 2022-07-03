@@ -1,0 +1,55 @@
+## -*- mode:ulam -*-
+#=t41593_test_compiler_constantatomarraywithclassiteminit_ish_error
+#!
+./T.ulam:12:7: ERROR: Invalid class initialization for atom type.
+./T.ulam:10:5: ERROR: Argument 2 has a problem.
+./T.ulam:17:7: ERROR: Invalid class initialization for atom type.
+./T.ulam:10:5: ERROR: Argument 3 has a problem.
+./T.ulam:9:12: ERROR: Constant value expression for: cFOO, is invalid.
+Unrecoverable Program Type Label FAILURE.
+##
+##  based on Dave ish-050647  6/26/22; assertion during c&l; undetected by parser;
+##
+#>T.ulam
+ ulam 5;
+element T{
+
+  Int test(){
+    return 0;
+  }
+
+  constant Foo cAFOO = { };
+  constant Atom cFOO[3] =
+    {
+      cAFOO,
+      { .mBool = true,
+        .mString = "ZONG",
+        .mAry = { 1u, 3u },
+        .mBar = { .mUnary = 2u }
+      },
+      { .mBool = false,
+        .mString = "BONG",
+        .mAry = { 0u, 2u },
+        .mBar = { .mBool = true }
+      },
+    };
+}
+
+#:Bar.ulam
+  ulam 5;
+union Bar {
+  Unary(3) mUnary;
+  Unsigned(3) mUnsigned;
+  Bool(3) mBool;
+}
+
+#:Foo.ulam
+  ulam 5;
+element Foo {
+  Bool mBool;
+  Unsigned(3) mAry[2];
+  String mString;
+  Bar mBar;
+}
+
+#.

@@ -18,7 +18,7 @@ Uq_Loo { Int(5) lu( -1);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 ## element and quark inheritances, regular (non-template), with func as local variable
-## informed by t3540
+## informed by t3540; see also t41599
 ##
 #>Foo.ulam
   ulam 2;

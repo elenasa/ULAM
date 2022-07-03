@@ -104,6 +104,15 @@ namespace MFM{
     if(!m_state.isScalar(nuti))
       nuti = m_state.getUlamTypeAsScalar(nuti); //t41185
 
+    if(m_state.isAtom(nuti))
+      {
+	std::ostringstream msg;
+	msg << "Invalid class initialization for atom type";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //t41593
+	Node::setNodeType(Nav);
+	return Nav;
+      }
+
     if(!m_state.isComplete(nuti) || m_state.isAnonymousClass(nuti))
       {
 	//incomplete, see if mapped; if so, update list

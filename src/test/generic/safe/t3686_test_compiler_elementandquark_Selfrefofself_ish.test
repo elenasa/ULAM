@@ -1,16 +1,18 @@
 ## -*- mode:ulam -*-
 #=t3686_test_compiler_elementandquark_Selfrefofself_ish
-##      gen code output: (1 asserts)
+##      gen code output: (2 asserts)
 ##
 #!
-Exit status: 1
-Ue_A : QW { Bool b(false);  Bool c(false);  :QW< Bool bw(true); > Int test() {  System s;  self bw . true = QW q = self ( )func .;  s ( q bw . )assert . q bw . cast return } }
+Exit status: 0
+Ue_A : QW { Bool b(false);  Bool c(false);  :QW< Bool bw(true); > Int test() {  System s;  self bw . true = QW q = self ( )func .;  s ( q bw . )assert . q ( )init . s ( q bw . ! )assert . q ( )restore . q bw . cast return } }
 Uq_System { <NOMAIN> }
 Uq_QW { Bool bw(false);  <NOMAIN> }
 ##
 ## Dave requested a way to get default values for Self (within a quark);
 ## a loophole, since a quark would be an undefined atom, but as a ref, its done (t3679)
 ## As of ulam-3, loophole no longer needed; now it is a runtime check, rather than compile time restriction.
+## 6/16/22 test quark init to default values (see also t3675, t3714, t3727).
+##  6/26/22 modified to also test default restore() compiles.
 ##
 #>A.ulam
   ulam 2;
@@ -23,18 +25,30 @@ element A : QW {
     bw = true;
     QW q = func();
     s.assert(q.bw);
+    q.init();
+    s.assert(!q.bw);
+    q.restore();
     return (Int) q.bw;
   }
 }
 
 #:QW.ulam
-  ulam 2;
+  ulam 5;
 quark QW {
   Bool bw;
   Self func()
   {
     Self& sr = self; //compiles
     return sr;
+  }
+  Void init()
+  {
+    self = Self.instanceof; //default values
+  }
+  Void restore()
+  {
+    Self t;
+    self = t;
   }
 }
 

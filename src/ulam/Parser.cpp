@@ -3754,6 +3754,7 @@ namespace MFM {
 	    //set up compiler state to NOT use the current class block
 	    //for symbol searches; may be unknown until type label
 	    m_state.pushClassContextUsingMemberClassBlock(NULL); //oddly =true
+
 	    Node * nextmember = parseIdentExpr(iTok); //includes array item, func call, etc.
 	    if(!nextmember)
 	      {
@@ -4688,11 +4689,16 @@ namespace MFM {
 	return leftNode;
       }
 
+    //context reverts to non-member block for array index
+    m_state.pushCurrentBlockAndDontUseMemberBlock(m_state.getCurrentBlock()); //t41597
+
     Node * rightNode = parseExpression();
     //Array size may be blank if initialized (not array item!!);
     rtnNode = new NodeSquareBracket(leftNode, rightNode, m_state);
     assert(rtnNode);
     rtnNode->setNodeLocation(pTok.m_locator);
+
+    m_state.popClassContext(); //restore
 
     Token tmpTok; //non quietly, t41294
     if(!getExpectedToken(TOK_CLOSE_SQUARE, tmpTok))
