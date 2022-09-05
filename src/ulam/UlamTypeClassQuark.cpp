@@ -416,9 +416,7 @@ namespace MFM {
 
 	fp->write("else { ");
 
-	fp->write("BitVector<");
-	fp->write_decimal_unsigned(len);
-	fp->write("u> tmpbv;");
+	fp->write("BitVector<QUARK_SIZE> tmpbv;");
 
 	//write the data members first
 	//here.. 'd' UlamRef is initially pointing to them.
@@ -533,15 +531,25 @@ namespace MFM {
 	fp->write(" write(const ");
 	fp->write(getTmpStorageTypeAsString().c_str()); //u32, u64, or BV96
 	fp->write("& targ) { ");
-	if(getBitSize() > 0)
+	u32 bitsize = getBitSize();
+	if(bitsize > 0)
 	  {
 	    fp->write("if(&Us::THE_INSTANCE==this->GetEffectiveSelfPointer()) ");
 	    fp->write("UlamRef<EC>::");
 	    fp->write(writeMethodForCodeGen().c_str());
 	    fp->write("(targ); /*entire quark*/ ");
 	    fp->write("else { ");
-	    fp->write("BitVector<QUARK_SIZE> tmpbv(targ); ");
-
+	    if(bitsize <= MAXBITSPERINT)
+	      {
+		fp->write("BitVector<QUARK_SIZE> tmpbv(targ); ");
+	      }
+	    else
+	      {
+		//avoid u64 BitVector constructor (not implemented)
+		//note: transients do this a different way which depends on endianness.
+		fp->write("BitVector<QUARK_SIZE> tmpbv; "); //t41600
+		fp->write("tmpbv.WriteLong(0,QUARK_SIZE,targ); ");
+	      }
 	    //write the data members first
 	    //here.. 'd' UlamRef is initially pointing to them.
 	    s32 myblen = getBitsizeAsBaseClass();
