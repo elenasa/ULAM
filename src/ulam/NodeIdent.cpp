@@ -1248,9 +1248,11 @@ namespace MFM {
     UTI holdUTIForAlias = Nouti;
     if(m_state.isIdInCurrentScope(m_token.m_dataindex, asymptr))
       {
+#if 0
 	if(m_state.isHolder(asymptr->getUlamTypeIdx()))
-	  holdUTIForAlias = asymptr->getUlamTypeIdx(); //t3862
+	  holdUTIForAlias = asymptr->getUlamTypeIdx(); //t3862,t41602
 	else
+#endif
 	  return false; //already there
       }
 
@@ -1276,7 +1278,7 @@ namespace MFM {
       {
 	if(tdsymptr->isCulamGeneratedTypedef() && tdsymptr->isCulamGeneratedTypedefAliased())
 	  m_state.findRootUTIAlias(uti, uti);
-	//else ??
+	//else ?? (t41604)
 
 	args.m_declListOrTypedefScalarType = tdscalaruti; //not Nav when tduti is an array
 	if(checkConstantTypedefSizes(args, uti))

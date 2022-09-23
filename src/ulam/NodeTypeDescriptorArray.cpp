@@ -81,7 +81,18 @@ namespace MFM {
 
   UTI NodeTypeDescriptorArray::resetGivenUTI(UTI guti)
   {
+    if(m_state.isScalar(guti))
+      {
+	std::ostringstream msg;
+	msg << "Scalar type: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(guti).c_str();
+	msg << ", used as array type";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	return Nav; //t41604
+      }
+
     assert(!m_state.isScalar(guti) || m_state.isHolder(guti));
+
     UTI galias = guti;
     if(m_state.findRootUTIAlias(guti, galias)) //t41301
       {

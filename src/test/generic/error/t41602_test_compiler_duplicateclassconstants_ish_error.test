@@ -1,0 +1,67 @@
+## -*- mode:ulam -*-
+#=t41602_test_compiler_duplicateclassconstants_ish_error
+#!
+./ChainRules.ulam:7:12: ERROR: 'mCOMPACT11' cannot be a named constant because it is already declared at: ..
+./ChainRules.ulam:3:22: ERROR: .. this location.
+./ChainRules.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'ChainRules'; Possible missing ending curly brace.
+./ChainRules.ulam:10:4: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+./ChainRules.ulam:2:7: ERROR: Invalid Type: ChainRules.
+ ERROR: No parse tree for This Class: ChainRules.
+Unrecoverable Program Parse FAILURE: <ChainRules.ulam>
+./ChainRules.ulam:11:1: ERROR: Invalid Class Type <}>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+Unrecoverable Program Parse FAILURE: <ChainRule.ulam>
+Unrecoverable Program Parse FAILURE: <ChainTypes.ulam>
+##
+##  based on Dave ish 9/23/22: transient or quarks duplicate class constant undetected by ulam;
+##                             gcc finds it. Primitive type detected by ulam (see t41603).
+##
+#>T.ulam
+ ulam 5;
+element T{
+
+  Int test(){
+    ChainRules crules;
+    return 0;
+  }
+
+}
+
+#:ChainRules.ulam
+  ulam 5;
+quark ChainRules + ChainTypes {
+  constant ChainRule mCOMPACT11 = {
+    .mLHS = { cCPAT_EC, cCPAT_EC, cCPAT_X },
+    .mRHS = { cCPAT_X, cCPAT_EC, cCPAT_Y },
+  };
+  constant ChainRule mCOMPACT11 = {
+    .mLHS = { cCPAT_EC, cCPAT_EC, cCPAT_X },
+    .mRHS = { cCPAT_X, cCPAT_EC, cCPAT_Y },
+  };
+}
+
+#:ChainRule.ulam
+  ulam 5;
+quark ChainRule + ChainTypes {
+  ChainPattern mLHS = {  cCPAT_N, cCPAT_N, cCPAT_N };
+  ChainPattern mRHS = {  cCPAT_N, cCPAT_N, cCPAT_N };
+}
+
+#:ChainTypes.ulam
+  ulam 5;
+quark ChainTypes {
+
+  //// CHAIN PATTERN PRIMITIVES
+  typedef Unsigned(3) ChainType;
+  constant ChainType cCPAT_EC = 0u; //< EmptyCodon only
+  constant ChainType cCPAT_X  = 1u; //< Any DUMB or NORM Codon
+  constant ChainType cCPAT_Y  = 2u; //< Any DUMB or NORM Codon
+  constant ChainType cCPAT_U  = 3u; //< Any UPWD Codon
+  constant ChainType cCPAT_D  = 4u; //< Any DNWD Codon
+  constant ChainType cCPAT_T  = 5u; //< Any temp (UPWD or DNWD) Codon
+  constant ChainType cCPAT_C  = 6u; //< Any chain except EC
+  constant ChainType cCPAT_N  = 7u; //< Nonexistent (nothing to match here)
+
+  typedef ChainType ChainPattern[3]; //< 0: body up, 1: us, 2: body down
+}
+
+#.
