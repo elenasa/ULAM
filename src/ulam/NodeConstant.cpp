@@ -299,6 +299,17 @@ namespace MFM {
 	clearSymbolPtr(); //lookup again too! (e.g. inherited template instances)
 	m_state.setGoAgain();
       }
+    else
+      {
+	NodeBlock * currBlock = getBlock();
+	assert(currBlock);
+	if(currBlock->isAClassBlock())
+	  {
+	    UTI cbuti = currBlock->getNodeType();
+	    if(m_state.okUTItoContinue(cbuti))
+	      m_state.addCompleteUlamTypeToThisContextSet(cbuti); //~t41605
+	  }
+      }
     return getNodeType(); //it; just to be sure..
   } //checkAndLabelType
 
