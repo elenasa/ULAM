@@ -7,6 +7,22 @@ quark Fail {
     ByteStreamString sbs(string);
     fail(sbs);
   }
+  /** Convenience method fail with a message formed by concatenating
+      args with ":".
+
+      Typical usage:
+      <code>
+        fail(__FILE__,__LINE__);
+      </code>
+   */
+  Void fail(String path, Unsigned line) { 
+    ByteStreamArray(1000) bsa;
+    bsa.print(path);
+    bsa.print(":");
+    bsa.print(line);
+    bsa.print(":");
+    fail(bsa);
+  }
 
   Void fail() native;
   Void fail(Int code) native;
