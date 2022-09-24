@@ -85,6 +85,23 @@ quark ClassUtils {
 
   String getClassName(ClassId classId, Bool templateParameters, Bool templateValues) native ;
 
+  /** \returns -1 if \c classId is not the class of an ulam
+      element. Otherwise, \returns the ulam element type of the given
+      \c classId, a value greater than or equal to 0.
+
+      For example, code like this will not fail:
+      <code>
+        ClassUtils cu;
+        Int etype = cu.getElementType(Foo.classidof);
+        if (etype < 0) return ..
+        AtomUtils au;
+        Atom a = au.new(etype); 
+        // a is now a default atom of element Foo
+      </code>
+
+      \since 5.1
+   */
+  Int getElementType(ClassId classId) native ;
 }
 
 transient ClassBaseIterator + Fail {
