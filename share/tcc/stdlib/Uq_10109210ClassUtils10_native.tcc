@@ -1,5 +1,26 @@
 namespace MFM {
 
+//! ClassUtils.ulam:88:   Int getElementType(ClassId classId) native;
+  template<class EC>
+  Ui_Ut_102321i<EC> Uq_10109210ClassUtils10<EC>::Uf_9214getElementType(const UlamContext<EC>& uc, UlamRef<EC>& ur, Ui_Ut_102321u<EC>& Uv_7classId) const //native
+  {
+    s32 rtn = -1;
+
+    u32 classId = Uv_7classId.read();
+
+    const UlamClassRegistry<EC> & ucr = uc.GetUlamClassRegistry();
+    const UlamClass<EC>* theClass = ucr.GetUlamClassOrNullByIndex(classId);
+
+    if (theClass) {
+      const UlamElement<EC>* asElt = theClass->AsUlamElement();
+      if (asElt) {
+        rtn = (s32) asElt->GetType();
+      }
+    }
+
+    return Ui_Ut_102321i<EC>(rtn);
+  }
+
 //! ClassUtils.ulam:52:   Bool isBase(ClassId classId, ClassId baseId) native;
   template<class EC>
 
