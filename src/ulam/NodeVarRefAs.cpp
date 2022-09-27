@@ -141,35 +141,70 @@ namespace MFM {
     // before shadowing the lhs of the h/as-conditional variable with its auto,
     // let's load its storage from the currentSelfSymbol:
     Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
-    UTI stgcosuti = stgcos->getUlamTypeIdx();
-    UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
-    ULAMTYPE stgetyp = stgcosut->getUlamTypeEnum();
-    ULAMCLASSTYPE stgclasstype = stgcosut->getUlamClassType();
+    Symbol * cos = m_state.m_currentObjSymbolsForCodeGen.back(); //t41610
+    UTI cosuti = cos->getUlamTypeIdx();
+    UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
+    ULAMTYPE cosetyp = cosut->getUlamTypeEnum();
+    ULAMCLASSTYPE cosclasstype = cosut->getUlamClassType();
 
-    assert((stgetyp == UAtom) || (stgetyp == Class)); //lhs
+    assert((cosetyp == UAtom) || (cosetyp == Class)); //lhs
 
-    if(stgcos->isSelf())
+    // t3821,t3825,t3828,t3831,t41338,t41344-9,t41353,t41359
+    if(cos->isSelf())
       return genCodeRefAsSelf(fp, uvpass);
 
-    s32 tmpVarStg = m_state.getNextTmpVarNumber();
+    s32 tmpVarCos = m_state.getNextTmpVarNumber();
+    s32 tmpVarCosRef = 0;
 
-    // can't let Node::genCodeReadIntoTmpVar do this for us: need a ref.
-    assert(m_state.m_currentObjSymbolsForCodeGen.size() == 1);
-    m_state.indentUlamCode(fp);
-    fp->write(stgcosut->getUlamTypeImmediateMangledName().c_str());
-    fp->write("<EC> & "); //here it is!! brilliant
-    fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str());
-    fp->write(" = ");
-    fp->write(stgcos->getMangledName().c_str());
-    fp->write("; //c++ reference to immediate"); GCNL;
+    if(cos->isDataMember())
+      {
+	UTI refcosuti = m_state.getUlamTypeAsRef(cosuti);
+	UlamType * refcosut = m_state.getUlamTypeByIndex(refcosuti);
 
-    // now we have our pos in tmpVarPos, and our T in tmpVarStg
+	tmpVarCosRef = m_state.getNextTmpVarNumber();
+
+	m_state.indentUlamCode(fp);
+	fp->write(refcosut->getUlamTypeImmediateMangledName().c_str());
+	fp->write("<EC> ");
+	fp->write(m_state.getTmpVarAsString(refcosuti, tmpVarCosRef, TMPBITVAL).c_str());
+	fp->write("(");
+	fp->write(stgcos->getMangledName().c_str()); //ur
+	fp->write(", ");
+	fp->write_decimal_unsigned(cos->getPosOffset());
+	fp->write("); //ulam ref to data member"); GCNL;
+
+	m_state.indentUlamCode(fp);
+	fp->write(refcosut->getUlamTypeImmediateMangledName().c_str());
+        fp->write("<EC> & "); //here it is!! brilliant
+	fp->write(m_state.getTmpVarAsString(refcosuti, tmpVarCos, TMPBITVAL).c_str());
+	fp->write(" = ");
+	fp->write(m_state.getTmpVarAsString(refcosuti, tmpVarCosRef, TMPBITVAL).c_str());
+	fp->write("; //c++ reference to immediate"); GCNL;
+
+	cosuti = refcosuti;
+	cosut = refcosut;
+      }
+    else
+      {
+	// can't let Node::genCodeReadIntoTmpVar do this for us: needs a ref.
+	// cossize not =1 if dm, implicit self. (t41610)
+	//assert(m_state.m_currentObjSymbolsForCodeGen.size() == 1);
+	m_state.indentUlamCode(fp);
+	fp->write(cosut->getUlamTypeImmediateMangledName().c_str());
+	fp->write("<EC> & "); //here it is!! brilliant
+	fp->write(m_state.getTmpVarAsString(cosuti, tmpVarCos, TMPBITVAL).c_str());
+	fp->write(" = ");
+	fp->write(cos->getMangledName().c_str());
+	fp->write("; //c++ reference to immediate"); GCNL;
+      }
+
+    // now we have our pos in tmpVarPos, and our T in tmpVarCos
     // time to shadow 'self' with auto local variable:
     UTI vuti = m_varSymbol->getUlamTypeIdx();
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
     ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
 
-    if(stgetyp == UAtom)
+    if(cosetyp == UAtom)
       {
 	// get Type in tmpVarType at runtime
 	s32 tmpVarType = m_state.getNextTmpVarNumber();
@@ -177,49 +212,61 @@ namespace MFM {
 	fp->write("const s32 ");
 	fp->write(m_state.getTmpVarAsString(Int, tmpVarType, TMPREGISTER).c_str());;
 	fp->write(" = ");
-	fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str());
+	fp->write(m_state.getTmpVarAsString(cosuti, tmpVarCos, TMPBITVAL).c_str());
 	fp->write(".GetType();"); GCNL;
 
+	s32 tmpVarPos = 0;
 	//get Pos in tmpVarPos at runtime; must be good pos since is-method passed
-	s32 tmpVarPos = m_state.getNextTmpVarNumber();
-	m_state.indentUlamCode(fp);
-	fp->write("const s32 ");
-	fp->write(m_state.getTmpVarAsString(Int, tmpVarPos, TMPREGISTER).c_str());
-	fp->write(" = ");
-	fp->write(m_state.getGetRelPosMangledFunctionName(stgcosuti)); //UlamClass Method
-	fp->write("(uc, ");
-	fp->write(m_state.getTmpVarAsString(Int, tmpVarType, TMPREGISTER).c_str());
-	fp->write(", &");
-	fp->write(m_state.getTheInstanceMangledNameByIndex(vuti).c_str());
-	fp->write("); //relpos"); GCNL;
+	if((vclasstype == UC_QUARK))
+	  {
+	    tmpVarPos = m_state.getNextTmpVarNumber();
+	    m_state.indentUlamCode(fp);
+	    fp->write("const s32 ");
+	    fp->write(m_state.getTmpVarAsString(Int, tmpVarPos, TMPREGISTER).c_str());
+	    fp->write(" = ");
+	    fp->write(m_state.getGetRelPosMangledFunctionName(cosuti)); //UlamClass Method
+	    fp->write("(uc, ");
+	    fp->write(m_state.getTmpVarAsString(Int, tmpVarType, TMPREGISTER).c_str());
+	    fp->write(", &");
+	    fp->write(m_state.getTheInstanceMangledNameByIndex(vuti).c_str());
+	    fp->write("); //relpos"); GCNL;
+	  }
 
 	m_state.indentUlamCode(fp);
 	fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
 	fp->write(" ");
 	fp->write(m_varSymbol->getMangledName().c_str());
 	fp->write("(");
-	fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str());
+	fp->write(m_state.getTmpVarAsString(cosuti, tmpVarCos, TMPBITVAL).c_str());
 	fp->write(", ");
-	fp->write(m_state.getTmpVarAsString(Int, tmpVarPos, TMPREGISTER).c_str());
-	fp->write(" + T::ATOM_FIRST_STATE_BIT, "); //position as super quark (e.g. t3639, t3709, t3675, t3408, t3336); as element t3249, t3255, t3637; as atom ref t3908
+	//fp->write(m_state.getTmpVarAsString(Int, tmpVarPos, TMPREGISTER).c_str());
+	fp->write("T::ATOM_FIRST_STATE_BIT "); //position as super quark (e.g. t3639, t3709, t3675, t3408, t3336); as element t3249, t3255, t3637; as atom ref t3908
 
-	if((vclasstype == UC_QUARK) && !(stgcosut->isReference()))
+	if((vclasstype == UC_QUARK))// && !(cosut->isReference()))
 	  {
+	    fp->write(" + ");
 	    fp->write(m_state.getTmpVarAsString(Int, tmpVarPos, TMPREGISTER).c_str()); //new UlamRef arg: efftoself
 	    fp->write(", ");
-	  } //else (element, t3637) (atomref, t3639)
+	    //note: needs eff self of the atom, not simply the RHS type (t3835)
+	    fp->write(m_state.getHiddenContextArgName());
+	    fp->write(".LookupUlamElementTypeFromContext(");
+	    fp->write(m_state.getTmpVarAsString(Int, tmpVarType, TMPREGISTER).c_str()); //3636
+	    fp->write(")");
+	    if(!cosut->isReference()) //not isAltRefType
+	      fp->write(", uc"); //t3249
+	    fp->write("); //shadows lhs of 'as'"); GCNL;
+	  }
+	else //(element, t3637) (atomref, t3639)
+	  {
+	    fp->write(", &");
+	    fp->write(m_state.getTheInstanceMangledNameByIndex(vuti).c_str());
+	    if(!m_state.isAtomRef(cosuti)) //cosuti might be ref by now
+	      fp->write(", uc"); //t3249
 
-	//note: needs eff self of the atom, not simply the RHS type (t3835)
-	fp->write(m_state.getHiddenContextArgName());
-	fp->write(".LookupUlamElementTypeFromContext(");
-	fp->write(m_state.getTmpVarAsString(Int, tmpVarType, TMPREGISTER).c_str()); //3636
-	fp->write(")");
-	if(!stgcosut->isReference()) //not isAltRefType
-	  fp->write(", uc"); //t3249
-
-	fp->write("); //shadows lhs of 'as'"); GCNL;
+	    fp->write("); //shadows lhs of 'as'"); GCNL;
+	  }
       }
-    else if(stgcosut->isReference()) //not isAltRefType,
+    else if(cosut->isReference()) //not isAltRefType,
       {
 	//for refs (t41011,t41012) use the effself to get relpos at runtime;
 	//must be good pos since is-method passed
@@ -229,9 +276,9 @@ namespace MFM {
 	fp->write(m_state.getTmpVarAsString(Int, tmpVarPos, TMPREGISTER).c_str());
 	fp->write(" = (");
 
-	fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str()); //3826
+	fp->write(m_state.getTmpVarAsString(cosuti, tmpVarCos, TMPBITVAL).c_str()); //3826
 	fp->write(".GetEffectiveSelf()->");
-	fp->write(m_state.getGetRelPosMangledFunctionName(stgcosuti)); //UlamClass Method
+	fp->write(m_state.getGetRelPosMangledFunctionName(cosuti)); //UlamClass Method
 	fp->write("(");
 	fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(vuti)); //efficiency
 	fp->write("u");
@@ -243,7 +290,7 @@ namespace MFM {
 	fp->write("const s32 ");
 	fp->write(m_state.getTmpVarAsString(Int, tmpVarPosToEff, TMPREGISTER).c_str());
 	fp->write(" = ");
-	fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str());
+	fp->write(m_state.getTmpVarAsString(cosuti, tmpVarCos, TMPBITVAL).c_str());
 	fp->write(".GetPosToEffectiveSelf();"); GCNL;
 
 	m_state.indentUlamCode(fp);
@@ -251,23 +298,23 @@ namespace MFM {
 	fp->write(" ");
 	fp->write(m_varSymbol->getMangledName().c_str());
 	fp->write("(");
-	fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str());
+	fp->write(m_state.getTmpVarAsString(cosuti, tmpVarCos, TMPBITVAL).c_str());
 	fp->write(", ");
 	fp->write(m_state.getTmpVarAsString(Int, tmpVarPos, TMPREGISTER).c_str());
 	fp->write(" - ");
 	fp->write(m_state.getTmpVarAsString(Int, tmpVarPosToEff, TMPREGISTER).c_str()); //t41325 'checkas'
 	fp->write(", ");
 	//note: needs effective self of the atom, not simply the RHS type.
-	fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str());
+	fp->write(m_state.getTmpVarAsString(cosuti, tmpVarCos, TMPBITVAL).c_str());
 	fp->write(".GetEffectiveSelf()"); //t3835,6,t3754, CLASSIC
 	fp->write("); //shadows lhs of 'as'"); GCNL;
       }
     else
       {
-	// here, stgcos not a reference
+	// here, cos not a reference
 	// get relative position at compile time, both types are known.
 	u32 relpos = UNRELIABLEPOS;
-	AssertBool gotPos = m_state.getABaseClassRelativePositionInAClass(stgcosuti, vuti, relpos);
+	AssertBool gotPos = m_state.getABaseClassRelativePositionInAClass(cosuti, vuti, relpos);
 	assert(gotPos);
 
 	m_state.indentUlamCode(fp);
@@ -276,9 +323,9 @@ namespace MFM {
 
 	fp->write(m_varSymbol->getMangledName().c_str());
 	fp->write("(");
-	fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str());
+	fp->write(m_state.getTmpVarAsString(cosuti, tmpVarCos, TMPBITVAL).c_str());
 
-	if((stgclasstype == UC_ELEMENT))
+	if((cosclasstype == UC_ELEMENT))
 	  {
 	    fp->write(", ");
 	    fp->write_decimal_unsigned(relpos);
@@ -288,14 +335,15 @@ namespace MFM {
 		fp->write_decimal_unsigned(relpos); //new UlamRef arg (t3589)
 		fp->write("u, "); //t3586, t3589, t3637
 	      } //else (element, t3754)
+
 	    fp->write("&"); //t3586, t3589, t3637
 
 	    //must be same as look up for elements only Sat Jun 18 17:30:17 2016
-	    fp->write(m_state.getTheInstanceMangledNameByIndex(stgcosuti).c_str());
+	    fp->write(m_state.getTheInstanceMangledNameByIndex(cosuti).c_str());
 	    fp->write(", uc"); //t3249
 	    fp->write("); //shadows lhs of 'as'"); GCNL;
 	  }
-	else if((stgclasstype == UC_TRANSIENT))
+	else if((cosclasstype == UC_TRANSIENT))
 	  {
 	    // transient can be another transient or a quark, not an element
 	    fp->write(", ");
@@ -309,11 +357,11 @@ namespace MFM {
 	      }
 
 	    fp->write("&"); //t3822
-	    fp->write(m_state.getTheInstanceMangledNameByIndex(stgcosuti).c_str());
+	    fp->write(m_state.getTheInstanceMangledNameByIndex(cosuti).c_str());
 	    fp->write(", uc"); //t3249
 	    fp->write("); //shadows lhs of 'as'"); GCNL;
 	  }
-	else if((stgclasstype == UC_QUARK))
+	else if((cosclasstype == UC_QUARK))
 	  {
 	    // quark can be another quark, not an element, nor transient
 	    fp->write(", ");
@@ -321,7 +369,7 @@ namespace MFM {
 	    fp->write(", ");
 	    fp->write_decimal_unsigned(relpos); //new Ulamref arg (t3830)
 	    fp->write("u, &");
-	    fp->write(m_state.getTheInstanceMangledNameByIndex(stgcosuti).c_str());
+	    fp->write(m_state.getTheInstanceMangledNameByIndex(cosuti).c_str());
 
 	    assert(vclasstype == UC_QUARK);
 	    fp->write(", uc"); //t3249

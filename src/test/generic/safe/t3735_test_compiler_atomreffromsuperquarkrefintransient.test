@@ -1,11 +1,11 @@
 ## -*- mode:ulam -*-
 #=t3735_test_compiler_atomreffromsuperquarkrefintransient
 ##
-##   gencode output: (1 assert)
+##   gencode output: (2 asserts)
 ##
 #!
 Exit status: -11
-Ue_R { Int test() {  System s;  Trans t;  Typo(1)& poref = t elt . cast;  poref ( 2u cast )func . Atom& a = poref.atomof;  Eltypo ell = a cast;  s ( ell bu . 2u cast == )assert . ell bu . cast return } }
+Ue_R { Int test() {  System s;  Trans t;  Typo(1)& poref = t elt . cast;  poref ( 2u cast )func . s ( poref bu . 2u cast == )assert . Atom& a = poref.atomof;  Eltypo ell = a cast;  s ( ell bu . 2u cast == )assert . ell bu . cast return } }
 Un_Trans { Bool(7) sp(false);  Eltypo elt( Unsigned(3) first(0);  Unsigned(3) second(0);  :Typo(1)<> ^Bar< Unsigned(3) bu( 7u); >);  <NOMAIN> }
 Ue_Eltypo : Typo(1) { Unsigned(3) first(0);  Unsigned(3) second(0);  :Typo(1)<> ^Bar< Unsigned(3) bu( 7u); > <NOMAIN> }
 Uq_Typo(Int a) : Bar { /* empty class block */ }
@@ -24,6 +24,7 @@ element R {
     Trans t;
     Typo(1)& poref = t.elt;
     poref.func(2u);
+    s.assert(poref.bu == 2u); //confirm
     Atom & a = poref.atomof; //poref without .atomof is incompatible type
     Eltypo ell = (Eltypo) a; //use explicit case
     s.assert(ell.bu == 2u);

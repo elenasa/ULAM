@@ -984,7 +984,11 @@ namespace MFM {
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     assert(UlamType::compare(nuti, m_varSymbol->getUlamTypeIdx(), m_state) == UTIC_SAME);
 
+    //might already be true when MemberSelectByBaseType; don't clobber.
+    bool applydelta = uvpass.getPassApplyDelta(); //t41318
     u32 pos = uvpass.getPassPos(); //t41184
+    u32 vid = m_varSymbol->getId();
+
     if(m_varSymbol->isDataMember())
       {
 	// 'pos' modified by this data member symbol's packed bit position;
@@ -993,15 +997,12 @@ namespace MFM {
 	if(!m_varSymbol->isTmpVarSymbol())
 	  pos += m_varSymbol->getPosOffset();
 
-	//might already be true when MemberSelectByBaseType; don't clobber.
-	bool applydelta = uvpass.getPassApplyDelta(); //t41318
-
-	uvpass = UVPass::makePass(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, pos, applydelta, m_varSymbol->getId());
+	uvpass = UVPass::makePass(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, pos, applydelta, vid);
       }
     else
       {
 	//local variable on the stack; could be array ptr!
-	uvpass = UVPass::makePass(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, pos, false, m_varSymbol->getId());
+	uvpass = UVPass::makePass(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, pos, false, vid);
       }
   } //makeUVPassForCodeGen
 
@@ -1247,14 +1248,7 @@ namespace MFM {
     // function names also checked when currentBlock is the classblock.
     UTI holdUTIForAlias = Nouti;
     if(m_state.isIdInCurrentScope(m_token.m_dataindex, asymptr))
-      {
-#if 0
-	if(m_state.isHolder(asymptr->getUlamTypeIdx()))
-	  holdUTIForAlias = asymptr->getUlamTypeIdx(); //t3862,t41602
-	else
-#endif
-	  return false; //already there
-      }
+      return false; //already there, t3862,t41602
 
     // maintain specific type (see isAConstant() Node method)
     bool brtn = false;
