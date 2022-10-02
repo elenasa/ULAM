@@ -673,7 +673,8 @@ namespace MFM {
 	u32 tokid = m_state.getTokenDataAsStringId(m_typeTok);
 	UTI tduti = Nouti;
 	UTI tmpforscalaruti = Nouti;
-	bool isTypedef = (m_typeTok.m_type == TOK_TYPE_IDENTIFIER) && m_state.getUlamTypeByTypedefNameInClassHierarchyThenLocalsScope(tokid, tduti, tmpforscalaruti); //skip primitive types
+	//bool isTypedef = (m_typeTok.m_type == TOK_TYPE_IDENTIFIER) && m_state.getUlamTypeByTypedefNameInClassHierarchyThenLocalsScope(tokid, tduti, tmpforscalaruti); //skip primitive types
+	bool isTypedef = ((m_typeTok.m_type == TOK_TYPE_IDENTIFIER) || (m_typeTok.m_type == TOK_KW_TYPE_SUPER)) && m_state.getUlamTypeByTypedefNameInClassHierarchyThenLocalsScope(tokid, tduti, tmpforscalaruti); //skip primitive types t41616
 
 	if(isTypedef && !m_state.isHolder(tduti) && m_state.okUTItoContinue(tduti)) //t3765, t3384
 	  {

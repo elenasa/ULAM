@@ -116,6 +116,25 @@ namespace MFM {
     return false;
   }
 
+  u32 NodeMemberSelectByBaseClassType::getBaseClassPosition()
+  {
+    UTI nuti = getNodeType();
+    UTI luti = m_nodeLeft->getNodeType();
+    u32 pos = UNRELIABLEPOS;
+    if(m_state.okUTItoContinue(nuti) && m_state.okUTItoContinue(luti))
+      {
+	assert(m_state.isClassASubclassOf(luti,nuti));
+	AssertBool gotpos = m_state.getABaseClassRelativePositionInAClass(luti, nuti, pos);
+	assert(gotpos);
+      }
+    return pos;
+  }
+
+  u32 NodeMemberSelectByBaseClassType::getPositionOf()
+  {
+    return getBaseClassPosition();
+  }
+
   FORECAST NodeMemberSelectByBaseClassType::safeToCastTo(UTI newType)
   {
     return m_nodeRight->safeToCastTo(newType);

@@ -2,6 +2,7 @@
 #include "NodeTerminalProxy.h"
 #include "NodeFunctionCall.h"
 #include "NodeMemberSelect.h"
+#include "NodeMemberSelectByBaseClassType.h"
 #include "CompilerState.h"
 
 namespace MFM {
@@ -527,7 +528,7 @@ namespace MFM {
 	  if(cut->isMinMaxAllowed())
 	    {
 	      if(checkForClassIdOfType()) //t41537,t41549
-		m_constant.uval = MAX_REGISTRY_NUMBER;
+		m_constant.uval = MAX_REGISTRY_NUMBER; //m_state.getMaxNumberOfRegisteredUlamClasses()
 	      else
 		m_constant.uval = cut->getMax();
 	      rtnB = true;
@@ -565,6 +566,36 @@ namespace MFM {
 	    {
 	      m_constant.uval = m_state.getAClassRegistrationNumber(m_uti);
 	    }
+	  break;
+	}
+      case TOK_KW_POSOF:
+	{
+	  u32 pos = UNRELIABLEPOS;
+	  if(m_nodeOf->hasASymbolDataMember())
+	    {
+	      pos = m_nodeOf->getPositionOf(); //was getSymbolDataMemberPosOffset(); //t41615,6
+	    }
+	  else if(checkForClassType())
+	    {
+	      pos = m_nodeOf->getPositionOf(); //was getBaseClassPosition();
+	    }
+	  else if(m_nodeOf->hasASymbolReference())
+	    {
+	      std::ostringstream msg;
+	      msg << "Proxy Type '" << m_funcTok.getTokenString() << "' is not supported ";
+	      msg << "for reference type: ";
+	      msg << m_state.getUlamTypeNameBriefByIndex(m_uti).c_str();
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //t41617,8
+	    }
+	  else
+	    m_state.abortNotImplementedYet();
+
+	  if(pos != UNRELIABLEPOS)
+	    {
+	      m_constant.uval = pos;
+	      rtnB = true;
+	    }
+
 	  break;
 	}
       case TOK_KW_FLAG_INSERTCLASSSIGNATURE:
@@ -631,6 +662,7 @@ namespace MFM {
       case TOK_KW_LENGTHOF:
       case TOK_KW_SIZEOF:
       case TOK_KW_CLASSIDOF:
+      case TOK_KW_POSOF:
 	newType = Unsigned;
 	break;
       case TOK_KW_MAXOF:

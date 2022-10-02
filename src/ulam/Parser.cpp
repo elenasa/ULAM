@@ -2737,7 +2737,7 @@ namespace MFM {
 
 	//what to do with the UTI? could be a declref type; both args are refs!
 	UTI cuti = parseClassArguments(typeargs, maybeAClassType);
-	//if(!m_state.okUTItoContinue(cuti)) return NULL; (continue, for better error messages..)
+	//if(!m_state.okUTItoContinue(cuti)) return NULL; //t41616 (continue, for better error messages..)
 
 	if(maybeAClassType)
 	  {
@@ -2889,7 +2889,12 @@ namespace MFM {
     else if(tokid == m_state.m_pool.getIndexForDataString("Super"))
       {
 	unreadToken();
+
 	isaclass = true; //reset
+
+	if(typeargs.m_forMemberSelect)
+	  return Hzy; //t41616
+
 	if(m_state.m_parsingVariableSymbolTypeFlag != STF_CLASSINHERITANCE)
 	  {
 	    UTI tduti = Nav;
@@ -3459,7 +3464,7 @@ namespace MFM {
       {
 	//hail mary pass..possibly a sizeof of unseen class
 	getNextToken(nTok);
-	if((nTok.m_type != TOK_KW_SIZEOF) && (nTok.m_type != TOK_KW_INSTANCEOF) && (nTok.m_type != TOK_KW_ATOMOF) && (nTok.m_type != TOK_KW_CLASSIDOF) && (nTok.m_type != TOK_KW_CONSTANTOF))
+	if((nTok.m_type != TOK_KW_SIZEOF) && (nTok.m_type != TOK_KW_INSTANCEOF) && (nTok.m_type != TOK_KW_ATOMOF) && (nTok.m_type != TOK_KW_CLASSIDOF) && (nTok.m_type != TOK_KW_CONSTANTOF)&& (nTok.m_type != TOK_KW_POSOF))
 	  {
 	    std::ostringstream msg;
 	    msg << "Trying to use typedef from another class '";
@@ -3857,7 +3862,7 @@ namespace MFM {
 	    assert(ms);
 	    ms->setNodeLocation(iTok.m_locator);
 	    rtnNode = ms;
-	    hasOneBaseTypeSelector = true;
+	    //hasOneBaseTypeSelector = true; t41616?
 
 	    Token tmpTok;
 	    getNextToken(tmpTok);
@@ -3975,6 +3980,9 @@ namespace MFM {
 	rtnNode = new NodeTerminalProxy(memberNode, utype, fTok, nodetype, m_state);
 	break;
       case TOK_KW_CLASSIDOF:
+	rtnNode = new NodeTerminalProxy(memberNode, utype, fTok, nodetype, m_state);
+	break;
+      case TOK_KW_POSOF:
 	rtnNode = new NodeTerminalProxy(memberNode, utype, fTok, nodetype, m_state);
 	break;
       default:

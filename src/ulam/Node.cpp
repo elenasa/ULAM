@@ -336,6 +336,15 @@ namespace MFM {
     return false;
   }
 
+  u32 Node::getPositionOf()
+  {
+    std::ostringstream msg;
+    msg << "virtual u32 " << prettyNodeName().c_str();
+    msg << "::getPositionOf(){} is needed!!";
+    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+    return UNRELIABLEPOS;
+  }
+
   s32 Node::getSymbolStackFrameSlotIndex()
   {
     std::ostringstream msg;

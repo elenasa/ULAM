@@ -30,7 +30,7 @@
   \file Node.h - Basic Node of Nodes for ULAM
   \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2021 All rights reserved.
+  \date (C) 2014-2022 All rights reserved.
   \gpl
 */
 
@@ -171,6 +171,8 @@ enum EvalStatus {ERROR, NOTREADY, NORMAL, RETURN, BREAK, CONTINUE, UNEVALUABLE};
     virtual bool hasASymbolReference();
 
     virtual bool hasASymbolReferenceConstant();
+
+    virtual u32 getPositionOf();
 
     virtual s32 getSymbolStackFrameSlotIndex();
 

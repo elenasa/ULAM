@@ -171,7 +171,24 @@ namespace MFM {
   {
     assert(m_varSymbol);
     assert(hasASymbolDataMember());
-    return ((SymbolVariableDataMember *) m_varSymbol)->getPosOffset();
+    if(((SymbolVariableDataMember *) m_varSymbol)->isPosOffsetReliable())
+      return ((SymbolVariableDataMember *) m_varSymbol)->getPosOffset();
+    return UNRELIABLEPOS;
+  }
+
+  u32 NodeIdent::getPositionOf()
+  {
+    assert(m_varSymbol);
+    if(hasASymbolDataMember())
+      return getSymbolDataMemberPosOffset();
+
+    UTI nuti = getNodeType();
+    std::ostringstream msg;
+    msg << "PositionOf '" << getName() << "', type: ";
+    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+    msg << " is not supported";
+    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //t41617
+    return UNRELIABLEPOS;
   }
 
   void NodeIdent::setupBlockNo()

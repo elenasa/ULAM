@@ -1,0 +1,152 @@
+## -*- mode:ulam -*-
+#=t41616_test_compiler_positionofdatamemberascond
+##
+##   gen output: (+ 7 interleaved asserts)
+##         Unsigned Arg: 5 (1 assert)
+##         Unsigned Arg: 0 (1 assert)
+##         Unsigned Arg: 0 (1 assert)
+##         Unsigned Arg: 0 (2 asserts)
+##         Unsigned Arg: 3 (2 asserts)
+##
+#!
+Exit status: -11
+Ue_T : System { :System<> Int test() {  GeneralSeed seed;  ChainRule_INSERT insert;  SegmentState ss;  insert ( ss cast seed cast )tryToInsert . Unsigned apos = 5u;  self ( apos )print . self ( apos 5u cast == )assert . Atom& atref = insert mCodonToInsert . cast;  { atref Codon as cond { Codon& atref;  Unsigned pos = 0u;  self ( pos )print . self ( pos 0u cast == )assert . } if } { atref GeneralSeed as cond { GeneralSeed& atref;  Unsigned pos = 0u;  self ( pos )print . self ( pos 0u cast == )assert . Unsigned bpos = 0u;  self ( bpos )print . self ( bpos 0u cast == )assert . Unsigned suppos = 0u;  self ( suppos bpos == )assert . Unsigned cpos = 3u;  self ( cpos )print . self ( cpos 3u cast == )assert . Unsigned spos = 3u;  self ( spos cpos == )assert . } if } 0 cast return } }
+Uq_System { <NOMAIN> }
+Ue_GeneralSeed : Codon { Bool(3) sb3(false);  :Codon< Bool sb(false); > <NOMAIN> }
+Un_ChainRule_INSERT : ChainRule { Bool(5) sp(false);  EventWindow ew();  Atom mCodonToInsert(Atom);  :ChainRule<> <NOMAIN> }
+Un_SegmentState { Unsigned mInaccessibleInMateDir[3](0,0,0);  <NOMAIN> }
+Uq_Codon { Bool sb(false);  <NOMAIN> }
+Un_ChainRule { <NOMAIN> }
+Uq_EventWindow { <NOMAIN> }
+##
+##  informed by t41615 and 41610: 2nd test of new of-operator positionof using refs;
+##  positionoffsets are relative to class state bits; here, all dm cases are at 0.
+##  baseclass type relative position is given when no dm variable name is provided.
+##  (see also errors t41617,8)
+##
+#>T.ulam
+ ulam 5;
+element T : System{
+
+  Int test(){
+    GeneralSeed seed;
+    ChainRule_INSERT insert;
+    SegmentState ss;
+    insert.tryToInsert(ss, (Codon &) seed);
+
+    Unsigned apos = insert.mCodonToInsert.positionof; //see t41615 for more variations
+    print(apos);
+    assert(apos == 5u);
+
+    Atom & atref = insert.mCodonToInsert;
+
+    if(atref as Codon)
+    {
+      //relative position of baseclass data member to its start
+      Unsigned pos = atref.sb.positionof;
+      print(pos);
+      assert(pos==0u);
+    }
+
+    if(atref as GeneralSeed)
+    {
+      //relative position of element data member to ATOMFIRSTSTATEBITPOS (25)
+      Unsigned pos = atref.sb3.positionof;
+      print(pos);
+      assert(pos==0u);
+
+      //relative position of baseclass data member to baseclass start, 2 more ways
+      Unsigned bpos = atref.Codon.sb.positionof;
+      print(bpos);
+      assert(bpos==0u);
+
+      Unsigned suppos = atref.Super.sb.positionof;
+      assert(suppos==bpos);
+
+      //relative position of baseclass type, 2 ways:
+      Unsigned cpos = atref.Codon.positionof;
+      print(cpos);
+      assert(cpos==3u);
+
+      Unsigned spos = atref.Super.positionof;
+      assert(spos==cpos);
+    }
+
+    return 0;
+  }
+
+}
+
+
+#:ChainRule.ulam
+  ulam 5;
+transient ChainRule {
+
+  //// CHAINRULE API
+  virtual Bool apply(SegmentState & ss) ; //< true if rule matched and applied and we're done
+
+}
+
+#:ChainRule_INSERT.ulam
+  ulam 5;
+transient ChainRule_INSERT : ChainRule {
+  Bool(5) sp;
+  EventWindow ew;
+  Atom mCodonToInsert;
+
+  //// ChainRule_INSERT SERVICES
+  Bool tryToInsert(SegmentState & p, Codon & codon) {
+    mCodonToInsert = codon.atomof;
+    return apply(p);
+  }
+
+  @Override
+  virtual Bool apply(SegmentState & ss) {
+    if (mCodonToInsert as Codon) {
+      ew[1] = mCodonToInsert.atomof; //<---hits assert
+      return true;
+    }
+    return false;
+  }
+}
+
+
+#:SegmentState.ulam
+  ulam 5;
+transient SegmentState
+{
+  // inaccess data valid after findMate returns UNSURE
+  Unsigned mInaccessibleInMateDir[3];
+}
+
+#:Codon.ulam
+  ulam 5;
+quark Codon {
+  Bool sb;
+}
+
+#:GeneralSeed.ulam
+  ulam 5;
+element GeneralSeed : Codon {
+  Bool(3) sb3;
+}
+
+#:EventWindow.ulam
+  ulam 3;
+quark EventWindow{
+  Atom& aref(Int index) native;
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

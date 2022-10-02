@@ -3967,6 +3967,7 @@ namespace MFM {
 
   u32 CompilerState::getClassIdBits()
   {
+    //initialized to constant CLASSIDBITS
     return m_classIdBits;  //== _getLogBase2(m_state.getMaxNumberOfRegisteredUlamClasses()) + 1;
   }
 

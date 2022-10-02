@@ -377,6 +377,40 @@ namespace MFM {
     return getConstantMemberValue(bval);
   }
 
+  u32 NodeMemberSelect::getPositionOf()
+  {
+    UTI leftType = m_nodeLeft->getNodeType();
+    assert(m_state.isAClass(leftType));
+    assert(m_state.isComplete(leftType));
+
+    //rhs could be a class/array, primitive/array; whatever it is a constant!
+    //replace rhs with a constant node version of it, using the value found in lhs.
+    assert(!m_nodeRight->isAList());
+    assert(!m_nodeRight->isFunctionCall());
+
+    assert(m_nodeRight->hasASymbolDataMember());
+    u32 rpos = m_nodeRight->getSymbolDataMemberPosOffset();
+    if(rpos == UNRELIABLEPOS)
+      {
+	TBOOL packed = m_state.tryToPackAClass(leftType);
+	if(packed == TBOOL_TRUE)
+	  {
+	    rpos = m_nodeRight->getSymbolDataMemberPosOffset();
+	  }
+	//else cannot pack yet
+      }
+
+#if 0
+    if(rpos != UNRELIABLEPOS)
+      {
+	//if(lclasstype == UC_ELEMENT)
+	//  rpos += ATOMFIRSTSTATEBITPOS;
+      } //no left class value
+#endif
+
+    return rpos;
+  } //getPositionOf
+
   TBOOL NodeMemberSelect::checkStoreIntoAble()
   {
     TBOOL lstor = m_nodeLeft->getStoreIntoAble();
