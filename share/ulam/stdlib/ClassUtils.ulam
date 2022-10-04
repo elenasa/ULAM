@@ -47,6 +47,8 @@ quark ClassUtils {
   typedef Unsigned ClassId;
   constant ClassId cILLEGAL_ID = ClassId.maxof;
 
+  ClassId getMaxDefinedClassId() native;
+
   Bool isBase(UrSelf& ur, ClassId id) { return isBase(getClassId(ur), id); }
 
   ClassId getBaseClassId(UrSelf& ur, Unsigned baseIdx) { return getBaseClassId(getClassId(ur), baseIdx); }
