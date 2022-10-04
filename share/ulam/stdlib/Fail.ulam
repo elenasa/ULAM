@@ -17,6 +17,7 @@ quark Fail {
    */
   Void fail(String path, Unsigned line) { 
     ByteStreamArray(1000) bsa;
+    bsa.print("\n");
     bsa.print(path);
     bsa.print(":");
     bsa.print(line);
