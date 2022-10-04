@@ -766,10 +766,10 @@ namespace MFM {
     if(!m_varSymbol->isPosOffsetReliable())
       {
 	if(m_state.isAClass(vuti))
-	  m_state.tryToPackAClass(vuti);
+	  m_state.tryToPackAClassHierarchy(vuti);
 
 	if(!m_varSymbol->isPosOffsetReliable())
-	  m_state.tryToPackAClass(cuti); //t41262
+	  m_state.tryToPackAClassHierarchy(cuti); //t41262
 
 	if(!m_varSymbol->isPosOffsetReliable())
 	  return false;

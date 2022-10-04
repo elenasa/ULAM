@@ -339,7 +339,7 @@ namespace MFM {
 	u32 rpos = m_nodeRight->getSymbolDataMemberPosOffset();
 	if(rpos == UNRELIABLEPOS)
 	  {
-	    TBOOL packed = m_state.tryToPackAClass(leftType);
+	    TBOOL packed = m_state.tryToPackAClassHierarchy(leftType);
 	    if(packed == TBOOL_TRUE)
 	      {
 		rpos = m_nodeRight->getSymbolDataMemberPosOffset();
@@ -389,24 +389,22 @@ namespace MFM {
     assert(!m_nodeRight->isFunctionCall());
 
     assert(m_nodeRight->hasASymbolDataMember());
-    u32 rpos = m_nodeRight->getSymbolDataMemberPosOffset();
+
+    m_state.pushClassOrLocalCurrentBlock(leftType);
+
+    u32 rpos = m_nodeRight->getPositionOf();
+
+    m_state.popClassContext(); //retore
+
     if(rpos == UNRELIABLEPOS)
       {
-	TBOOL packed = m_state.tryToPackAClass(leftType);
+	TBOOL packed = m_state.tryToPackAClassHierarchy(leftType);
 	if(packed == TBOOL_TRUE)
 	  {
-	    rpos = m_nodeRight->getSymbolDataMemberPosOffset();
+	    rpos = m_nodeRight->getPositionOf();
 	  }
 	//else cannot pack yet
       }
-
-#if 0
-    if(rpos != UNRELIABLEPOS)
-      {
-	//if(lclasstype == UC_ELEMENT)
-	//  rpos += ATOMFIRSTSTATEBITPOS;
-      } //no left class value
-#endif
 
     return rpos;
   } //getPositionOf

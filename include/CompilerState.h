@@ -3,8 +3,8 @@
  * CompilerState.h - Global Compiler State for ULAM
  *
  * Copyright (C) 2014-2021 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2021 Ackleyshack LLC.
- * Copyright (C) 2020-2021 The Living Computation Foundation.
+ * Copyright (C) 2014-2022 Ackleyshack LLC.
+ * Copyright (C) 2020-2022 The Living Computation Foundation.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -31,7 +31,7 @@
   \file CompilerState.h - Global Compiler State for ULAM
   \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2021 All rights reserved.
+  \date (C) 2014-2022 All rights reserved.
   \gpl
 */
 
@@ -266,6 +266,7 @@ namespace MFM{
     void getDefaultAsPackedArray(UTI auti, u64 dval, u64& darrval);
     void getDefaultAsPackedArray(u32 len, u32 bitsize, u32 arraysize, u32 pos, u64 dval, u64& darrval);
     TBOOL tryToPackAClass(UTI cuti);
+    TBOOL tryToPackAClassHierarchy(UTI cuti);
     bool getDefaultClassValue(UTI cuti, BV8K& dvref);
     void getDefaultAsArray(u32 bitsize, u32 arraysize, u32 tpos, const BV8K& dval, BV8K& darrval);
     bool genCodeClassDefaultConstantArray(File * fp, u32 len, BV8K& dval);

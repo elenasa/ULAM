@@ -180,7 +180,28 @@ namespace MFM {
   {
     assert(m_varSymbol);
     if(hasASymbolDataMember())
-      return getSymbolDataMemberPosOffset();
+      {
+	u32 dmpos = getSymbolDataMemberPosOffset();
+
+	if(dmpos != UNRELIABLEPOS)
+	  {
+	    NodeBlock * context = m_state.getCurrentBlock();
+	    assert(context != NULL);
+
+	    UTI contextUTI = context->getNodeType();
+	    assert(m_state.okUTItoContinue(contextUTI));
+	    UTI dmclass = m_varSymbol->getDataMemberClass();
+	    u32 relpos = 0;
+	    if(m_state.getABaseClassRelativePositionInAClass(contextUTI, dmclass, relpos))
+	      dmpos += relpos;
+
+	    UlamType * cut = m_state.getUlamTypeByIndex(contextUTI);
+	    ULAMCLASSTYPE lclasstype = cut->getUlamClassType();
+	    if(lclasstype == UC_ELEMENT)
+	      dmpos += ATOMFIRSTSTATEBITPOS;
+	  }
+	return dmpos;
+      }
 
     UTI nuti = getNodeType();
     std::ostringstream msg;
@@ -189,7 +210,7 @@ namespace MFM {
     msg << " is not supported";
     MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //t41617
     return UNRELIABLEPOS;
-  }
+  } //getPositionOf
 
   void NodeIdent::setupBlockNo()
   {

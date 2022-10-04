@@ -1,13 +1,22 @@
 ## -*- mode:ulam -*-
-#=t41618_test_compiler_positionofreftodatamember_error
+#=t41617_test_compiler_positionofascondref
+##
+##  gen output (+ interleaved assert)
+##    Unsigned Arg: 33
+##    Unsigned Arg: 33
 ##
 #!
-./T.ulam:11:26: ERROR: Proxy Type 'positionof' is not supported for non-class: Atom&.
-./T.ulam:11:26: ERROR: Proxy Type 'positionof' is not supported for reference type: Atom&.
-./T.ulam:11:5: ERROR: Initial value expression for: bad, initialization is invalid.
-Unrecoverable Program Type Label FAILURE.
+Exit status: -11
+Ue_T : System { :System<> Int test() {  GeneralSeed seed;  ChainRule_INSERT insert;  SegmentState ss;  insert ( ss cast seed cast )tryToInsert . Atom& atref = insert mCodonToInsert . cast;  { atref Codon as cond { Codon& atref;  Unsigned basepos = atref positionof;  self ( basepos )print . self ( basepos 33u cast == )assert . } if } { atref GeneralSeed as cond { GeneralSeed& atref;  Unsigned spos = atref.sb positionof;  self ( spos )print . self ( spos 33u cast == )assert . } if } 0 cast return } }
+Uq_System { <NOMAIN> }
+Ue_GeneralSeed : Codon { Bool(3) sb3(false);  :Codon< Bool sb(false); > <NOMAIN> }
+Un_ChainRule_INSERT : ChainRule { Bool(5) sp(false);  EventWindow ew();  Atom mCodonToInsert(Atom);  :ChainRule<> <NOMAIN> }
+Un_SegmentState { Unsigned mInaccessibleInMateDir[3](0,0,0);  <NOMAIN> }
+Uq_Codon { Bool sb(false);  <NOMAIN> }
+Un_ChainRule { <NOMAIN> }
+Uq_EventWindow { <NOMAIN> }
 ##
-##  informed by t41616 (see also error t41617)
+##  informed by t41616; (see also t41618)
 ##
 #>T.ulam
  ulam 5;
@@ -20,12 +29,25 @@ element T : System{
     insert.tryToInsert(ss, (Codon &) seed);
 
     Atom & atref = insert.mCodonToInsert;
-    Unsigned bad = atref.positionof; //good error msg.
-    print(bad);
+
+    if(atref as Codon)
+    {
+      Unsigned basepos = atref.positionof;
+      print(basepos);
+      assert(basepos==33u);
+    }
+
+    //data member found in baseclass of as-cond subclass;
+    //but not the reverse: dm in subclass of as-cond baseclass
+    if(atref as GeneralSeed)
+    {
+      Unsigned spos = atref.sb.positionof;
+      print(spos);
+      assert(spos==33u);
+    }
 
     return 0;
   }
-
 }
 
 

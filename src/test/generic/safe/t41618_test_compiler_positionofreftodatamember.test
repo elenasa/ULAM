@@ -1,12 +1,21 @@
 ## -*- mode:ulam -*-
-#=t41617_test_compiler_positionofascondref_error
+#=t41618_test_compiler_positionofreftodatamember
+##
+##  gen output (+ assert)
+##    Unsigned Arg: 5
 ##
 #!
-./T.ulam:14:22: ERROR: PositionOf 'atref', type: Codon& is not supported.
-./T.ulam:14:7: ERROR: Initial value expression for: bad, initialization is invalid.
-Unrecoverable Program Type Label FAILURE.
+Exit status: -11
+Ue_T : System { :System<> Int test() {  GeneralSeed seed;  ChainRule_INSERT insert;  SegmentState ss;  insert ( ss cast seed cast )tryToInsert . Atom& atref = insert mCodonToInsert . cast;  Unsigned runpos = atref positionof;  self ( runpos )print . self ( runpos 5u cast == )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+Ue_GeneralSeed : Codon { Bool(3) sb3(false);  :Codon< Bool sb(false); > <NOMAIN> }
+Un_ChainRule_INSERT : ChainRule { Bool(5) sp(false);  EventWindow ew();  Atom mCodonToInsert(Atom);  :ChainRule<> <NOMAIN> }
+Un_SegmentState { Unsigned mInaccessibleInMateDir[3](0,0,0);  <NOMAIN> }
+Uq_Codon { Bool sb(false);  <NOMAIN> }
+Un_ChainRule { <NOMAIN> }
+Uq_EventWindow { <NOMAIN> }
 ##
-##  informed by t41616; (see also error t41618)
+##  informed by t41616 (see also t41617)
 ##
 #>T.ulam
  ulam 5;
@@ -19,12 +28,9 @@ element T : System{
     insert.tryToInsert(ss, (Codon &) seed);
 
     Atom & atref = insert.mCodonToInsert;
-
-    if(atref as Codon)
-    {
-      Unsigned bad = atref.positionof;
-      print(bad);
-    }
+    Unsigned runpos = atref.positionof; //runtime
+    print(runpos);
+    assert(runpos==5u);
 
     return 0;
   }

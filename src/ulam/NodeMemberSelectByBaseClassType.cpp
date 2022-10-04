@@ -124,11 +124,29 @@ namespace MFM {
     if(m_state.okUTItoContinue(nuti) && m_state.okUTItoContinue(luti))
       {
 	assert(m_state.isClassASubclassOf(luti,nuti));
-	AssertBool gotpos = m_state.getABaseClassRelativePositionInAClass(luti, nuti, pos);
-	assert(gotpos);
+	if(!m_state.getABaseClassRelativePositionInAClass(luti, nuti, pos))
+	  {
+	    //pos could be unreliable, try again after packing (t41619)
+	    if(pos == UNRELIABLEPOS)
+	      {
+		TBOOL packed = m_state.tryToPackAClassHierarchy(luti);
+		if(packed == TBOOL_TRUE)
+		  m_state.getABaseClassRelativePositionInAClass(luti, nuti, pos);
+	      }
+	    //else cannot pack yet
+	  }
       }
+
+    if(pos != UNRELIABLEPOS)
+      {
+	UlamType * lut = m_state.getUlamTypeByIndex(luti);
+	ULAMCLASSTYPE lclasstype = lut->getUlamClassType();
+	if(lclasstype == UC_ELEMENT)
+	  pos += ATOMFIRSTSTATEBITPOS;
+      } //no left class value
+
     return pos;
-  }
+  } //getBaseClassPosition
 
   u32 NodeMemberSelectByBaseClassType::getPositionOf()
   {

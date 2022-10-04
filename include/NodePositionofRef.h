@@ -1,9 +1,8 @@
 /**                                        -*- mode:C++ -*-
- * NodeTerminalProxy.h - Node handling of Unknown Type Sizes for ULAM
+ * NodePositionofRef.h - Node handling positionof operator on references for ULAM
  *
- * Copyright (C) 2016-2020 The Regents of the University of New Mexico.
- * Copyright (C) 2016-2022 Ackleyshack LLC.
- * Copyright (C) 2020-2022 The Living Computation Foundation.
+ * Copyright (C) 2022 Ackleyshack LLC.
+ * Copyright (C) 2022 The Living Computation Foundation.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,33 +26,30 @@
  */
 
 /**
-  \file NodeTerminalProxy.h - Node handling Unknown Type Sizes for ULAM
+  \file NodePositionofRef.h - Node handling positionof operator on references for ULAM
   \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2016-2022  All rights reserved.
+  \date (C) 2022  All rights reserved.
   \gpl
 */
 
 
-#ifndef NODETERMINALPROXY_H
-#define NODETERMINALPROXY_H
+#ifndef NODEPOSITIONOFREF_H
+#define NODEPOSITIONOFREF_H
 
-#include "NodeTerminal.h"
-#include "Token.h"
-#include "NodeTypeDescriptor.h"
-#include "NodeIdent.h"
+#include "Node.h"
 
 namespace MFM{
 
-  class NodeTerminalProxy : public NodeTerminal
+  class NodePositionofRef : public Node
   {
   public:
 
-    NodeTerminalProxy(Node * memberNode, UTI memberType, const Token& funcTok, NodeTypeDescriptor * nodetype, CompilerState & state);
+    NodePositionofRef(Node * memberNode, CompilerState & state);
 
-    NodeTerminalProxy(const NodeTerminalProxy& ref);
+    NodePositionofRef(const NodePositionofRef& ref);
 
-    virtual ~NodeTerminalProxy();
+    virtual ~NodePositionofRef();
 
     virtual Node * instantiate();
 
@@ -73,8 +69,6 @@ namespace MFM{
 
     virtual bool isAConstant();
 
-    virtual bool isReadyConstant();
-
     virtual FORECAST safeToCastTo(UTI newType);
 
     virtual UTI checkAndLabelType(Node * thisparentnode);
@@ -89,28 +83,9 @@ namespace MFM{
 
   private:
     Node * m_nodeOf; //useful when type is not available at parse
-    UTI m_uti; //lhs type of func
-    Token m_funcTok; //minof, maxof or sizeof
-    bool m_ready;
-    NodeTypeDescriptor * m_nodeTypeDesc; //can be NULL
-
-    virtual bool setConstantValue(const Token& tok);
-    virtual UTI setConstantTypeForNode(const Token& tok);
-    bool updateProxy();
-
-    bool replaceOurselvesLengthOf(Node * parentnode);
-    Node * buildAlengthofFuncCallNode(); //like toInt cast in Node
-    Node* constantFoldLengthofConstantString();
-
-    bool replaceOurselvesPositionofRef(Node * parentnode);
-    Node * buildApositionofrefNode(); //like toInt cast in Node
-
-    void genCodeForUserStringLength(File * fp, UVPass& uvpass);
-    bool checkForClassType();
-    bool checkForClassIdOfType();
 
   };
 
 } //MFM
 
-#endif //end NODETERMINALPROXY_H
+#endif //end NODEPOSITIONOFREF_H

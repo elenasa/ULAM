@@ -3,14 +3,14 @@
 ##
 ##   gen output: (+ 7 interleaved asserts)
 ##         Unsigned Arg: 5 (1 assert)
-##         Unsigned Arg: 0 (1 assert)
-##         Unsigned Arg: 0 (1 assert)
-##         Unsigned Arg: 0 (2 asserts)
-##         Unsigned Arg: 3 (2 asserts)
+##         Unsigned Arg: 33 (1 assert)
+##         Unsigned Arg: 30 (1 assert)
+##         Unsigned Arg: 33 (2 asserts)
+##         Unsigned Arg: 33 (2 asserts)
 ##
 #!
 Exit status: -11
-Ue_T : System { :System<> Int test() {  GeneralSeed seed;  ChainRule_INSERT insert;  SegmentState ss;  insert ( ss cast seed cast )tryToInsert . Unsigned apos = 5u;  self ( apos )print . self ( apos 5u cast == )assert . Atom& atref = insert mCodonToInsert . cast;  { atref Codon as cond { Codon& atref;  Unsigned pos = 0u;  self ( pos )print . self ( pos 0u cast == )assert . } if } { atref GeneralSeed as cond { GeneralSeed& atref;  Unsigned pos = 0u;  self ( pos )print . self ( pos 0u cast == )assert . Unsigned bpos = 0u;  self ( bpos )print . self ( bpos 0u cast == )assert . Unsigned suppos = 0u;  self ( suppos bpos == )assert . Unsigned cpos = 3u;  self ( cpos )print . self ( cpos 3u cast == )assert . Unsigned spos = 3u;  self ( spos cpos == )assert . } if } 0 cast return } }
+Ue_T : System { :System<> Int test() {  GeneralSeed seed;  ChainRule_INSERT insert;  SegmentState ss;  insert ( ss cast seed cast )tryToInsert . Unsigned apos = 5u;  self ( apos )print . self ( apos 5u cast == )assert . Atom& atref = insert mCodonToInsert . cast;  { atref Codon as cond { Codon& atref;  Unsigned pos = atref.sb positionof;  self ( pos )print . self ( pos 33u cast == )assert . } if } { atref GeneralSeed as cond { GeneralSeed& atref;  Unsigned pos = atref.sb3 positionof;  self ( pos )print . self ( pos 30u cast == )assert . Unsigned bpos = atref.Codon[].sb positionof;  self ( bpos )print . self ( bpos 33u cast == )assert . Unsigned suppos = atref.Super[].sb positionof;  self ( suppos bpos == )assert . Unsigned cpos = atref.Codon[] positionof;  self ( cpos )print . self ( cpos 33u cast == )assert . Unsigned spos = atref.Super[] positionof;  self ( spos cpos == )assert . } if } 0 cast return } }
 Uq_System { <NOMAIN> }
 Ue_GeneralSeed : Codon { Bool(3) sb3(false);  :Codon< Bool sb(false); > <NOMAIN> }
 Un_ChainRule_INSERT : ChainRule { Bool(5) sp(false);  EventWindow ew();  Atom mCodonToInsert(Atom);  :ChainRule<> <NOMAIN> }
@@ -20,9 +20,7 @@ Un_ChainRule { <NOMAIN> }
 Uq_EventWindow { <NOMAIN> }
 ##
 ##  informed by t41615 and 41610: 2nd test of new of-operator positionof using refs;
-##  positionoffsets are relative to class state bits; here, all dm cases are at 0.
-##  baseclass type relative position is given when no dm variable name is provided.
-##  (see also errors t41617,8)
+##  positionoffsets are absolute to storage;
 ##
 #>T.ulam
  ulam 5;
@@ -42,23 +40,23 @@ element T : System{
 
     if(atref as Codon)
     {
-      //relative position of baseclass data member to its start
+      //absolute position of baseclass data member
       Unsigned pos = atref.sb.positionof;
       print(pos);
-      assert(pos==0u);
+      assert(pos==33u);
     }
 
     if(atref as GeneralSeed)
     {
-      //relative position of element data member to ATOMFIRSTSTATEBITPOS (25)
+      //absolute position of element data member to storage
       Unsigned pos = atref.sb3.positionof;
       print(pos);
-      assert(pos==0u);
+      assert(pos==30u);
 
       //relative position of baseclass data member to baseclass start, 2 more ways
       Unsigned bpos = atref.Codon.sb.positionof;
       print(bpos);
-      assert(bpos==0u);
+      assert(bpos==33u);
 
       Unsigned suppos = atref.Super.sb.positionof;
       assert(suppos==bpos);
@@ -66,7 +64,7 @@ element T : System{
       //relative position of baseclass type, 2 ways:
       Unsigned cpos = atref.Codon.positionof;
       print(cpos);
-      assert(cpos==3u);
+      assert(cpos==33u);
 
       Unsigned spos = atref.Super.positionof;
       assert(spos==cpos);
