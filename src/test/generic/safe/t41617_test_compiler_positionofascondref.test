@@ -16,7 +16,7 @@ Uq_Codon { Bool sb(false);  <NOMAIN> }
 Un_ChainRule { <NOMAIN> }
 Uq_EventWindow { <NOMAIN> }
 ##
-##  informed by t41616; (see also t41618)
+##  informed by t41616; (see also t41618) GeneralSeed is an element within a transient.
 ##
 #>T.ulam
  ulam 5;

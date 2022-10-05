@@ -204,7 +204,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "(1) '" << m_state.getTokenDataAsString(m_token).c_str();
-	    msg << "' is not a constant, and cannot be used as one with class: ";
+	    msg << "' is not a constant class array, and cannot be used as one with class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }

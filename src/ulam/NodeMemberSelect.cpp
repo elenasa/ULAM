@@ -383,6 +383,19 @@ namespace MFM {
     assert(m_state.isAClass(leftType));
     assert(m_state.isComplete(leftType));
 
+    u32 lpos = m_nodeLeft->getPositionOf(); //t41619
+
+    if(lpos == UNRELIABLEPOS)
+      {
+	TBOOL packed = m_state.tryToPackAClassHierarchy(leftType);
+	if(packed == TBOOL_TRUE)
+	  {
+	    lpos = m_nodeLeft->getPositionOf();
+	  }
+	else //cannot pack yet
+	  return UNRELIABLEPOS;
+      }
+
     //rhs could be a class/array, primitive/array; whatever it is a constant!
     //replace rhs with a constant node version of it, using the value found in lhs.
     assert(!m_nodeRight->isAList());
@@ -403,10 +416,11 @@ namespace MFM {
 	  {
 	    rpos = m_nodeRight->getPositionOf();
 	  }
-	//else cannot pack yet
+	else //cannot pack yet
+	  return UNRELIABLEPOS;
       }
 
-    return rpos;
+    return lpos + rpos;
   } //getPositionOf
 
   TBOOL NodeMemberSelect::checkStoreIntoAble()

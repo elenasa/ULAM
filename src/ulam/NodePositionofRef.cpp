@@ -199,34 +199,9 @@ namespace MFM {
       }
     else
       {
-	s32 BTidx = Node::isCurrentObjectsContainingABaseTypeTmpSymbol();
-
-	if(BTidx > 0)
+	//case: ref.?.datamember
+	if(cos->isDataMember())
 	  {
-	    //case: ref.BASETYPE.positionof
-	    SymbolTmpVar * tmpsym = (SymbolTmpVar *) m_state.m_currentObjSymbolsForCodeGen[BTidx];
-	    UTI BTuti = tmpsym->getUlamTypeIdx();
-
-	    fp->write(stgcos->getMangledName().c_str());
-	    fp->write(".GetEffectiveSelf()->");
-	    fp->write(m_state.getGetRelPosMangledFunctionName(BTuti));
-	    fp->write("(");
-	    fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(BTuti)); //efficiency
-	    fp->write("u ");
-	    fp->write("/* ");
-	    fp->write(m_state.getUlamTypeNameBriefByIndex(BTuti).c_str());
-	    fp->write(" */");
-	    fp->write(") + ");
-	    fp->write(stgcos->getMangledName().c_str());
-	    fp->write(".GetEffectiveSelfPos();");
-	    GCNL;
-
-	    //what if basetype.dm.positionof??
-	  }
-	else
-	  {
-	    //case: ref.datamember
-	    assert(cos->isDataMember()); //sanity
 	    UTI dmclassuti = cos->getDataMemberClass();
 
 	    fp->write(stgcos->getMangledName().c_str());
@@ -246,6 +221,32 @@ namespace MFM {
 	    fp->write(stgcos->getMangledName().c_str());
 	    fp->write(".GetEffectiveSelfPos();");
 	    GCNL;
+	  }
+	else
+	  {
+	    s32 BTidx = Node::isCurrentObjectsContainingABaseTypeTmpSymbol();
+
+	    if(BTidx > 0)
+	      {
+		//case: ref.BASETYPE.positionof
+		SymbolTmpVar * tmpsym = (SymbolTmpVar *) m_state.m_currentObjSymbolsForCodeGen[BTidx];
+		UTI BTuti = tmpsym->getUlamTypeIdx();
+
+		fp->write(stgcos->getMangledName().c_str());
+		fp->write(".GetEffectiveSelf()->");
+		fp->write(m_state.getGetRelPosMangledFunctionName(BTuti));
+		fp->write("(");
+		fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(BTuti)); //efficiency
+		fp->write("u ");
+		fp->write("/* ");
+		fp->write(m_state.getUlamTypeNameBriefByIndex(BTuti).c_str());
+		fp->write(" */");
+		fp->write(") + ");
+		fp->write(stgcos->getMangledName().c_str());
+		fp->write(".GetEffectiveSelfPos();"); GCNL;
+	      }
+	    else
+	      m_state.abortNotImplementedYet(); //t41616
 	  }
       }
 

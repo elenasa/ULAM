@@ -779,7 +779,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "(1) '" << m_state.m_pool.getDataAsString(m_cid).c_str();
-	    msg << "' is not a constant, and cannot be used as one";
+	    msg << "' is not a named constant, and cannot be used as one";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
       }

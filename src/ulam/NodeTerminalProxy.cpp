@@ -639,7 +639,7 @@ namespace MFM {
       case TOK_KW_POSOF:
 	{
 	  u32 pos = UNRELIABLEPOS;
-	  if(m_nodeOf->hasASymbolReference() && !m_nodeOf->hasASymbolSelf())
+	  if(m_nodeOf->hasASymbolReference() && !m_nodeOf->hasASymbolSelf()) //t41621
 	    {
 	      //build NodePositionofRef for runtime determination of pos
 	      rtnB = true;

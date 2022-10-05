@@ -45,8 +45,8 @@ element T : System{
 
     //morevariations with a class variable, no refs:
 
-    //BaseType and DM, short-circuits to relative position in baseclass
-    Unsigned qbpos = insert.QBase.m_qbase.positionof;
+    //anonymous instance for m_qbase position
+    Unsigned qbpos = QBase.instanceof.m_qbase.positionof;
     print(qbpos);
     assert(qbpos==3u);
 

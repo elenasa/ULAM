@@ -194,22 +194,18 @@ namespace MFM {
 	    u32 relpos = 0;
 	    if(m_state.getABaseClassRelativePositionInAClass(contextUTI, dmclass, relpos))
 	      dmpos += relpos;
+	    else
+	      dmpos = UNRELIABLEPOS;
 
 	    UlamType * cut = m_state.getUlamTypeByIndex(contextUTI);
 	    ULAMCLASSTYPE lclasstype = cut->getUlamClassType();
-	    if(lclasstype == UC_ELEMENT)
+	    if((dmpos != UNRELIABLEPOS) && (lclasstype == UC_ELEMENT)) //t41621
 	      dmpos += ATOMFIRSTSTATEBITPOS;
 	  }
 	return dmpos;
       }
 
-    UTI nuti = getNodeType();
-    std::ostringstream msg;
-    msg << "PositionOf '" << getName() << "', type: ";
-    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-    msg << " is not supported";
-    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //t41617
-    return UNRELIABLEPOS;
+    return 0; //variable on the stack
   } //getPositionOf
 
   void NodeIdent::setupBlockNo()

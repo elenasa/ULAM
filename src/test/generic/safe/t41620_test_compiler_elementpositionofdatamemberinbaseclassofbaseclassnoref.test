@@ -2,25 +2,25 @@
 #=t41620_test_compiler_elementpositionofdatamemberinbaseclassofbaseclassnoref
 ##
 ##  gen output (+ interleaved asserts + 1 extra)
+##   Unsigned Arg: 69
+##   Unsigned Arg: 73
+##   Unsigned Arg: 73
+##   Unsigned Arg: 73
 ##   Unsigned Arg: 62
 ##   Unsigned Arg: 66
-##   Unsigned Arg: 4
-##   Unsigned Arg: 1
-##   Unsigned Arg: 62
-##   Unsigned Arg: 4
-##   Unsigned Arg: 1
+##   Unsigned Arg: 66
 ##   Unsigned Arg: 66
 ##
 #!
 Exit status: -11
-Ue_T : System { :System<> Int test() {  T2 t2;  Unsigned pos1 = 62u;  self ( pos1 )print . self ( pos1 62u cast == )assert . Unsigned pos2 = 66u;  self ( pos2 )print . self ( pos2 66u cast == )assert . Unsigned pos3 = 4u;  self ( pos3 )print . self ( pos3 4u cast == )assert . Unsigned pos4 = 1u;  self ( pos4 )print . self ( pos4 1u cast == )assert . ChainRule tr;  Unsigned rpos1 = 62u;  self ( rpos1 )print . self ( rpos1 62u cast == )assert . Unsigned rpos2 = 4u;  self ( rpos2 )print . self ( rpos2 4u cast == )assert . Unsigned rpos3 = 1u;  self ( rpos3 )print . self ( rpos3 1u cast == )assert . Unsigned rpos4 = 66u;  self ( rpos4 )print . self ( rpos4 66u cast == )assert . self ( true )assert . 0 cast return } }
+Ue_T : System { :System<> Int test() {  T2 t2;  Unsigned pos1 = 69u;  self ( pos1 )print . self ( pos1 69u cast == )assert . Unsigned pos2 = 73u;  self ( pos2 )print . self ( pos2 73u cast == )assert . Unsigned pos3 = 73u;  self ( pos3 )print . self ( pos3 pos2 == )assert . Unsigned pos4 = 73u;  self ( pos4 )print . self ( pos4 pos2 == )assert . ChainRule tr;  Unsigned rpos1 = 62u;  self ( rpos1 )print . self ( rpos1 62u cast == )assert . Unsigned rpos2 = 66u;  self ( rpos2 )print . self ( rpos2 66u cast == )assert . Unsigned rpos3 = 66u;  self ( rpos3 )print . self ( rpos3 rpos2 == )assert . Unsigned rpos4 = 66u;  self ( rpos4 )print . self ( rpos4 66u cast == )assert . self ( true )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 Un_T2 { Bool(7) mBt7(false);  ChainRule mRule( Bool(5) sp(false);  Bits mCodonToInsert(0);  :QBase< Bool(3) m_sp3(false); > ^QB2< Bool m_sp1(false);  Int(8) mInt(0); >);  <NOMAIN> }
 Uq_QBase : QB2 { Bool(3) m_sp3(false);  :QB2< Bool m_sp1(false);  Int(8) mInt(0); > <NOMAIN> }
 Uq_QB2 { Bool m_sp1(false);  Int(8) mInt(0);  <NOMAIN> }
 Ue_ChainRule : QBase { Bool(5) sp(false);  Bits mCodonToInsert(0);  :QBase< Bool(3) m_sp3(false); > ^QB2< Bool m_sp1(false);  Int(8) mInt(0); > <NOMAIN> }
 ##
-##  informed by t41618 and t41615
+##  informed by t41618 and t41615: Baseclass Type extraneous before a data member
 ##
 #>T.ulam
  ulam 5;
@@ -32,23 +32,23 @@ element T : System{
     //relative baseclass pos to data member mRule
     Unsigned pos1 = t2.mRule.QBase.positionof;
     print(pos1);
-    assert(pos1==62u); //includes element state bit offset 25
+    assert(pos1==69u); //includes element state bit offset 25
 
-    //relative data member pos to data member mRule's pos
+    //shortest path absolute data member pos into data member mRule, not
+    //t2.mInt.positionof;
     Unsigned pos2 = t2.mRule.mInt.positionof;
     print(pos2);
-    assert(pos2==66u); //includes element state bit offset 25
+    assert(pos2==73u); //includes element state bit offset 25
 
-    //relative data member pos to data member mRule's BaseType
+    //absolute data member pos using data member mRule's BaseType
     Unsigned pos3 = t2.mRule.QBase.mInt.positionof;
     print(pos3);
-    assert(pos3==4u);
+    assert(pos3==pos2); //==73u
 
-    //relative data member pos to BaseType QB2
+    //absolute data member pos with data member mRule's shared BaseType
     Unsigned pos4 = t2.mRule.QB2.mInt.positionof;
     print(pos4);
-    assert(pos4==1u);
-
+    assert(pos4==pos2); //==73u
 
     ChainRule tr;
 
@@ -57,15 +57,15 @@ element T : System{
     print(rpos1);
     assert(rpos1==62u);
 
-    //relative data member position to BaseClass QBase
+    //absolute data member position with BaseClass QBase
     Unsigned rpos2 = tr.QBase.mInt.positionof;
     print(rpos2);
-    assert(rpos2==4u);
+    assert(rpos2==66u);
 
-    //relative data member position to BaseClass QB2
+    //absolute data member position with shared BaseClass QB2
     Unsigned rpos3 = tr.QB2.mInt.positionof; //mInt rel to QB2 == 1u
     print(rpos3);
-    assert(rpos3==1u);
+    assert(rpos3==rpos2); //==66u
 
     //absolute data member position to stg
     Unsigned rpos4 = tr.mInt.positionof;
@@ -73,7 +73,7 @@ element T : System{
     assert(rpos4==66u);
 
     //confirm additive property of positionof:
-    assert(tr.QBase.positionof + tr.QBase.mInt.positionof == tr.mInt.positionof);
+    assert(tr.mInt.positionof - tr.QB2.positionof == QB2.constantof.mInt.positionof);
 
     return 0;
   }

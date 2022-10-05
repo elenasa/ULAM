@@ -53,7 +53,7 @@ element T : System{
       print(pos);
       assert(pos==30u);
 
-      //relative position of baseclass data member to baseclass start, 2 more ways
+      //absolute position in stg of baseclass data member, 2 more ways
       Unsigned bpos = atref.Codon.sb.positionof;
       print(bpos);
       assert(bpos==33u);
@@ -61,7 +61,7 @@ element T : System{
       Unsigned suppos = atref.Super.sb.positionof;
       assert(suppos==bpos);
 
-      //relative position of baseclass type, 2 ways:
+      //abs position of baseclass type, 2 ways:
       Unsigned cpos = atref.Codon.positionof;
       print(cpos);
       assert(cpos==33u);

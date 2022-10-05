@@ -2807,6 +2807,7 @@ namespace MFM {
 	  }
 	else
 	  {
+	    typeargs.m_forMemberSelect = true; //t41621 could be so??
 	    castUTI = typeargs.m_anothertduti;
 	    getNextToken(dTok);
 	  }
@@ -2884,12 +2885,15 @@ namespace MFM {
 	//this is a constructor
 	unreadToken();
 	isaclass = true; //reset
+
+	if(typeargs.m_forMemberSelect)
+	  return Hzy; //t41621 ?
+
 	return m_state.getCompileThisIdx(); //or Void?
       }
     else if(tokid == m_state.m_pool.getIndexForDataString("Super"))
       {
 	unreadToken();
-
 	isaclass = true; //reset
 
 	if(typeargs.m_forMemberSelect)
@@ -3615,7 +3619,7 @@ namespace MFM {
     else
       {
 	//fix during NodeConstant c&l
-	rtnNode = new NodeConstant(iTok, NULL, typedescNode, m_state);
+	rtnNode = new NodeConstant(iTok, NULL, typedescNode, m_state); //t41621?
 	assert(rtnNode);
 	rtnNode->setNodeLocation(iTok.m_locator);
       }
