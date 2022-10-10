@@ -215,9 +215,9 @@ where,
 <CLASS_RELATIONAL_EXPRESSION> := <IDENT_EXPRESSION> + <CLASS_RELATIONAL_OP> + <TYPE_IDENT_DESC>
 <CLASS_RELATIONAL_OP> := 'is'
 <OF_EXPRESSION> := <TYPE> + '.' + ( <OF_OPERATOR> | <INSTANCEOF_CONSTRUCTOR_CALL> )
-<OF_OPERATOR> :=  <OF_CONSTANT> | 'instanceof' | 'atomof'
+<OF_OPERATOR> :=  <OF_CONSTANT> | 'instanceof' | 'atomof' | 'positionof'
 <OF_CONSTANT> := 'minof' | 'maxof' | 'sizeof' | 'lengthof' |
-		     'classidof' | 'constantof'
+		     'classidof' | 'constantof' | 'positionof'
 <INSTANCEOF_CONSTRUCTOR_CALL> := 'instanceof' + <CONSTRUCTOR_CALL>
 <TYPE_IDENT_DESC> := ( 'local' + '.' | 0 ) + <TYPE_IDENT>
 <TYPE_IDENT> := /[A-Z][A-Za-z0-9\_]*/

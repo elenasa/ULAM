@@ -102,6 +102,14 @@ namespace MFM {
     return m_constSymbol->isDataMember();
   }
 
+  u32 NodeConstantClass::getPositionOf()
+  {
+    assert(m_constSymbol);
+    if(hasASymbolDataMember())
+      return m_constSymbol->getPosOffset();
+    return 0u;
+  }
+
   bool NodeConstantClass::isReadyConstant()
   {
     return m_constSymbol && (m_constSymbol->isReady() || m_constSymbol->isInitValueReady()); //t41209
@@ -208,6 +216,18 @@ namespace MFM {
 	clearSymbolPtr();
 	m_state.setGoAgain();
       }
+    else
+      {
+	NodeBlock * currBlock = getBlock();
+	assert(currBlock);
+	if(currBlock->isAClassBlock())
+	  {
+	    UTI cbuti = currBlock->getNodeType();
+	    if(m_state.okUTItoContinue(cbuti))
+	      m_state.addCompleteUlamTypeToThisContextSet(cbuti); //t41605-7
+	  }
+      }
+
     return getNodeType(); //it
   } //checkAndLabelType
 
@@ -234,7 +254,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "(1) '" << m_state.getTokenDataAsString(m_token).c_str();
-	    msg << "' is not a constant, and cannot be used as one with class: ";
+	    msg << "' is not a constant class, and cannot be used as one with class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }

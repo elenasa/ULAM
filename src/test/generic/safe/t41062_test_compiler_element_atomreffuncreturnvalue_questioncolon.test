@@ -10,7 +10,7 @@ Exit status: -11
 Ue_Foo { Int test() {  System s;  Atom f3;  Atom& r = self ( f3 cast false )caller2 .;  s ( r Foo is ! )assert . Atom a = self ( f3 cast true )caller3 .;  s ( a Foo is )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
-## informed by t41033, Dave email 2/10/2017 and t41031
+## informed by t41033, Dave email 2/10/2017 and t41031; note:uses MFM::UlamRefMutable.
 ##
 #>Foo.ulam
   ulam 3;

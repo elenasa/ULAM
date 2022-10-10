@@ -2,6 +2,8 @@
 #include "NodeTerminalProxy.h"
 #include "NodeFunctionCall.h"
 #include "NodeMemberSelect.h"
+#include "NodeMemberSelectByBaseClassType.h"
+#include "NodePositionofRef.h"
 #include "CompilerState.h"
 
 namespace MFM {
@@ -212,7 +214,32 @@ namespace MFM {
 
     UTI nodeType = Nav;
     if(!updateProxy()) //sets m_uti
-      setNodeType(Nav); //invalid func
+      {
+	if(m_funcTok.m_type == TOK_KW_POSOF) //t41619
+	  {
+	    UTI ofuti = m_nodeOf->getNodeType();
+	    if(m_state.okUTItoContinue(ofuti))
+	      {
+		std::ostringstream msg;
+		msg << "Incomplete Terminal Proxy for type: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(m_uti).c_str();
+		if(m_nodeOf)
+		  {
+		    msg << ", of member '";
+		    msg << m_nodeOf->getName() << "'";
+		  }
+		msg << " operator " << getName();
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+		setNodeType(Hzy);
+		nodeType = Hzy;
+		m_state.setGoAgain();
+	      }
+	    else
+	      setNodeType(Nav); //invalid func
+	  }
+	else
+	  setNodeType(Nav); //invalid func
+      }
     else
       {
 	nodeType = setConstantTypeForNode(m_funcTok); //enough info to set this constant node's type
@@ -229,6 +256,20 @@ namespace MFM {
 	    else
 	      nodeType = getNodeType(); //t41382
 	  }
+	else if((m_funcTok.m_type == TOK_KW_POSOF))
+	  {
+	    if(replaceOurselvesPositionofRef(thisparentnode))
+	      {
+		m_state.setGoAgain();
+
+		delete this; //suicide is painless..
+
+		return Hzy;
+	      }
+	    else
+	      nodeType = getNodeType();
+	  }
+	//else
       }
     return nodeType; //getNodeType(); //updated to Unsigned, hopefully
   } //checkandLabelType
@@ -340,6 +381,34 @@ namespace MFM {
 
     return newnode;
   } //constantFoldLengthofConstantString
+
+  bool NodeTerminalProxy::replaceOurselvesPositionofRef(Node * parentnode)
+  {
+    bool rtnb = false;
+    if(m_nodeOf->hasASymbolReference())
+      {
+	//replace node with func call to 'alengthof'
+	Node * newnode = buildApositionofrefNode();
+	assert(newnode);
+	AssertBool swapOk = Node::exchangeNodeWithParent(newnode, parentnode);
+	assert(swapOk);
+
+	m_nodeOf = NULL; //recycled
+	rtnb = true;
+      }
+    //else didn't replace us
+    return rtnb;
+  } //replaceOurselvesPositionofRef
+
+  Node * NodeTerminalProxy::buildApositionofrefNode()
+  {
+    NodePositionofRef * newNode = new NodePositionofRef(m_nodeOf, m_state);
+    assert(newNode);
+    newNode->setNodeLocation(m_funcTok.m_locator);
+
+    //redo check and type labeling done by caller!!
+    return newNode; //replace right node with new branch
+  } //buildApositionofNode
 
   void NodeTerminalProxy::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
   {
@@ -527,7 +596,7 @@ namespace MFM {
 	  if(cut->isMinMaxAllowed())
 	    {
 	      if(checkForClassIdOfType()) //t41537,t41549
-		m_constant.uval = MAX_REGISTRY_NUMBER;
+		m_constant.uval = MAX_REGISTRY_NUMBER; //m_state.getMaxNumberOfRegisteredUlamClasses()
 	      else
 		m_constant.uval = cut->getMax();
 	      rtnB = true;
@@ -565,6 +634,33 @@ namespace MFM {
 	    {
 	      m_constant.uval = m_state.getAClassRegistrationNumber(m_uti);
 	    }
+	  break;
+	}
+      case TOK_KW_POSOF:
+	{
+	  u32 pos = UNRELIABLEPOS;
+	  if(m_nodeOf->hasASymbolReference() && !m_nodeOf->hasASymbolSelf()) //t41621
+	    {
+	      //build NodePositionofRef for runtime determination of pos
+	      rtnB = true;
+	    }
+	  else if(m_nodeOf->hasASymbolDataMember())
+	    {
+	      pos = m_nodeOf->getPositionOf(); //t41615,6
+	    }
+	  else if(checkForClassType())
+	    {
+	      pos = m_nodeOf->getPositionOf();
+	    }
+	  else
+	    m_state.abortNotImplementedYet();
+
+	  if(pos != UNRELIABLEPOS)
+	    {
+	      m_constant.uval = pos;
+	      rtnB = true;
+	    }
+
 	  break;
 	}
       case TOK_KW_FLAG_INSERTCLASSSIGNATURE:
@@ -631,6 +727,7 @@ namespace MFM {
       case TOK_KW_LENGTHOF:
       case TOK_KW_SIZEOF:
       case TOK_KW_CLASSIDOF:
+      case TOK_KW_POSOF:
 	newType = Unsigned;
 	break;
       case TOK_KW_MAXOF:

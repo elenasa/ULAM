@@ -116,6 +116,64 @@ namespace MFM {
     return false;
   }
 
+  u32 NodeMemberSelectByBaseClassType::getBaseClassPosition()
+  {
+    UTI nuti = getNodeType();
+    UTI luti = m_nodeLeft->getNodeType();
+    u32 pos = UNRELIABLEPOS;
+    if(m_state.okUTItoContinue(nuti) && m_state.okUTItoContinue(luti))
+      {
+	u32 lpos = m_nodeLeft->getPositionOf(); //t41619
+
+	if(lpos == UNRELIABLEPOS)
+	  {
+	    TBOOL packed = m_state.tryToPackAClassHierarchy(luti);
+	    if(packed == TBOOL_TRUE)
+	      {
+		lpos = m_nodeLeft->getPositionOf();
+	      }
+	    else //cannot pack yet
+	      return UNRELIABLEPOS;
+	  }
+
+	if(UlamType::compare(luti,nuti,m_state) == UTIC_SAME)
+	  {
+	    //degenerate case, e.g. 'Self' used in member select (t41621)
+	    return lpos;
+	  }
+
+	assert(m_state.isClassASubclassOf(luti,nuti));
+	if(!m_state.getABaseClassRelativePositionInAClass(luti, nuti, pos))
+	  {
+	    //pos could be unreliable, try again after packing (t41619)
+	    if(pos == UNRELIABLEPOS)
+	      {
+		TBOOL packed = m_state.tryToPackAClassHierarchy(luti);
+		if(packed == TBOOL_TRUE)
+		  m_state.getABaseClassRelativePositionInAClass(luti, nuti, pos);
+	      }
+	    else //cannot pack yet
+	      return UNRELIABLEPOS;
+	  }
+	pos += lpos;
+      }
+
+    if(pos != UNRELIABLEPOS)
+      {
+	UlamType * lut = m_state.getUlamTypeByIndex(luti);
+	ULAMCLASSTYPE lclasstype = lut->getUlamClassType();
+	if(lclasstype == UC_ELEMENT) //t41620
+	  pos += ATOMFIRSTSTATEBITPOS;
+      } //no left class value
+
+    return pos;
+  } //getBaseClassPosition
+
+  u32 NodeMemberSelectByBaseClassType::getPositionOf()
+  {
+    return getBaseClassPosition();
+  }
+
   FORECAST NodeMemberSelectByBaseClassType::safeToCastTo(UTI newType)
   {
     return m_nodeRight->safeToCastTo(newType);

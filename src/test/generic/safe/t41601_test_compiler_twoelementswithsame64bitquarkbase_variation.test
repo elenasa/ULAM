@@ -1,0 +1,90 @@
+## -*- mode:ulam -*-
+#=t41601_test_compiler_twoelementswithsame64bitquarkbase_variation
+##      gen code output:
+##  Unsigned Arg: 3
+##  Unsigned Arg: 3 (followed by 1 assert)
+##  Bool(3) Arg: 0x7 (true)
+##  Bool(3) Arg: 0x0 (false)
+##  Bool(3) Arg: 0x7 (true)
+##  Bool(3) Arg: 0x7 (true) (followed by 4 asserts)
+##
+#!
+Exit status: -1
+Ue_R { Int test() {  System s;  E1 e1;  e1 m_u . 3 cast = E2 e2;  e2 ( e1 cast )updateSelf . s ( e2 m_u . cast )print . s ( e1 m_u . cast )print . s ( e2 m_u . e1 m_u . == )assert . s ( e2 t1 0 [] . cast )print . s ( e2 t1 1 [] . cast )print . s ( e2 t1 2 [] . cast )print . s ( e2 t1 3 [] . cast )print . s ( e2 t1 0 [] . )assert . s ( e2 t1 1 [] . ! )assert . s ( e2 t1 2 [] . )assert . s ( e2 t1 3 [] . )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+Ue_E1 : QBase { Unsigned(3) m_dm(0);  :QBase< Bool t1[41]( { true, false, true, true, false });  Unsigned(7) m_u(0); > <NOMAIN> }
+Ue_E2 : QBase { /* empty class block */ }
+Uq_QBase { Bool t1[41]( { true, false, true, true, false });  Unsigned(7) m_u(0);  <NOMAIN> }
+##
+## informed by Dave's 9/4/22 ish: copy 64-bit baseclass from one element to another element
+##  using a functioncall instead of ref-variables (see t41600);
+##
+#>R.ulam
+  ulam 5;
+element R {
+
+  Int test(){
+    System s;
+    E1 e1;
+    e1.m_u = 3;
+
+    E2 e2;
+    e2.updateSelf((QBase&) e1);
+
+    /* lower 64 bits copies okay */
+    s.print(e2.m_u);
+    s.print(e1.m_u);
+    s.assert(e2.m_u == e1.m_u);
+
+    /* upper 64 bits, truncated, failed to copy */
+    s.print(e2.t1[0]);
+    s.print(e2.t1[1]);
+    s.print(e2.t1[2]);
+    s.print(e2.t1[3]);
+
+    s.assert(e2.t1[0]);
+    s.assert(!e2.t1[1]);
+    s.assert(e2.t1[2]);
+    s.assert(e2.t1[3]);
+
+    return 0;
+  }
+}
+
+#:QBase.ulam
+  ulam 5;
+quark QBase
+{
+  Bool t1[41] = { true, false, true, true, false};
+  Unsigned(7) m_u;
+  Void updateSelf(QBase & newbase)
+  {
+    self = newbase;
+  }
+}
+
+
+#:E1.ulam
+  ulam 5;
+element E1 : QBase {
+  Unsigned(3) m_dm;
+}
+
+#:E2.ulam
+  ulam 5;
+element E2 : QBase {
+}
+
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

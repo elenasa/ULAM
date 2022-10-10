@@ -25,6 +25,11 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
+  u32 NodeConstantof::getPositionOf()
+  {
+    return 0u;
+  }
+
   bool NodeConstantof::isAConstant()
   {
     return true;

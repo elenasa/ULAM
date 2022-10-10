@@ -2,8 +2,8 @@
  * NodeMemberSelectByBaseClassType.h -  Node for handling Base Class Selection for ULAM
  *
  * Copyright (C) 2019-2020 The Regents of the University of New Mexico.
- * Copyright (C) 2019-2021 Ackleyshack LLC.
- * Copyright (C) 2020-2021 The Living Computation Foundation.
+ * Copyright (C) 2019-2022 Ackleyshack LLC.
+ * Copyright (C) 2020-2022 The Living Computation Foundation.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -30,7 +30,7 @@
   \file NodeMemberSelectByBaseClassType.h -  Node for handling Base Class Selection for ULAM
   \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2019-2021  All rights reserved.
+  \date (C) 2019-2022  All rights reserved.
   \gpl
 */
 
@@ -72,6 +72,8 @@ namespace MFM{
 
     virtual bool hasASymbolDataMember();
 
+    virtual u32 getPositionOf();
+
     virtual FORECAST safeToCastTo(UTI newType);
 
     virtual UTI checkAndLabelType(Node * thisparentnode);
@@ -107,6 +109,7 @@ namespace MFM{
     const char * getFullName();
 
     void makeUVPassForCodeGen(UVPass& uvpass);
+    u32 getBaseClassPosition();
   };
 
 } //MFM

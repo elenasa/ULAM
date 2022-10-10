@@ -524,15 +524,15 @@ namespace MFM {
     //this check is valid regardless of where quark resides
     if(dmclasstype == UC_QUARK)
       {
-	if(ut->isScalar() && (len > MAXBITSPERINT))
+	if(ut->isScalar() && (len > MAXBITSPERLONG))
 	  {
 	    std::ostringstream msg;
 	    msg << "Data member '" << getName() << "' of class type: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
 	    msg << ", total size: " << (s32) len;
-	    msg << " MUST fit into " << MAXBITSPERINT << " bits";
+	    msg << " MUST fit into " << MAXBITSPERLONG << " bits";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    rtnb = false;
+	    rtnb = false; //t41609
 	  }
       } //quarks
     return rtnb;
@@ -766,10 +766,10 @@ namespace MFM {
     if(!m_varSymbol->isPosOffsetReliable())
       {
 	if(m_state.isAClass(vuti))
-	  m_state.tryToPackAClass(vuti);
+	  m_state.tryToPackAClassHierarchy(vuti);
 
 	if(!m_varSymbol->isPosOffsetReliable())
-	  m_state.tryToPackAClass(cuti); //t41262
+	  m_state.tryToPackAClassHierarchy(cuti); //t41262
 
 	if(!m_varSymbol->isPosOffsetReliable())
 	  return false;

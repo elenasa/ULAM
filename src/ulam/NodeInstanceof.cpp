@@ -29,6 +29,11 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
+  u32 NodeInstanceof::getPositionOf()
+  {
+    return 0u;
+  }
+
   FORECAST NodeInstanceof::safeToCastTo(UTI newType)
   {
     UTI nuti = getNodeType(); //UAtom for references; ow type of class/atom

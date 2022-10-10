@@ -1,0 +1,31 @@
+## -*- mode:ulam -*-
+#=t41604_test_compiler_typoarraytypedefoftypedef_error
+#!
+./T.ulam:10:11: ERROR: Scalar type: Unsigned(UNKNOWN), used as array type.
+./T.ulam:12:12: ERROR: 'ccp' cannot be a named constant because it is already declared at: ..
+./T.ulam:11:15: ERROR: .. this location.
+./T.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'T'; Possible missing ending curly brace.
+./T.ulam:12:28: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+./T.ulam:2:9: ERROR: Invalid Type: T.
+ ERROR: No parse tree for This Class: T.
+Unrecoverable Program Parse FAILURE: <T.ulam>
+##
+##  Typo of array typedef of typedef in wrong order asserts. See also t41603.
+##
+#>T.ulam
+ ulam 5;
+element T{
+
+  Int test(){
+    return 0;
+  }
+
+  typedef Unsigned(3) CT;
+ //typedef CT CP[2]; should be (see t41603)
+  typedef CP CT[2];  //assertion NodeTypeDescriptorArryay.cpp:84;
+  constant CP ccp = { 5, 4};
+  constant CP ccp = { 5, 4};
+}
+
+
+#.

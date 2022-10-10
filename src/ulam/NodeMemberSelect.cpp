@@ -339,7 +339,7 @@ namespace MFM {
 	u32 rpos = m_nodeRight->getSymbolDataMemberPosOffset();
 	if(rpos == UNRELIABLEPOS)
 	  {
-	    TBOOL packed = m_state.tryToPackAClass(leftType);
+	    TBOOL packed = m_state.tryToPackAClassHierarchy(leftType);
 	    if(packed == TBOOL_TRUE)
 	      {
 		rpos = m_nodeRight->getSymbolDataMemberPosOffset();
@@ -376,6 +376,52 @@ namespace MFM {
   {
     return getConstantMemberValue(bval);
   }
+
+  u32 NodeMemberSelect::getPositionOf()
+  {
+    UTI leftType = m_nodeLeft->getNodeType();
+    assert(m_state.isAClass(leftType));
+    assert(m_state.isComplete(leftType));
+
+    u32 lpos = m_nodeLeft->getPositionOf(); //t41619
+
+    if(lpos == UNRELIABLEPOS)
+      {
+	TBOOL packed = m_state.tryToPackAClassHierarchy(leftType);
+	if(packed == TBOOL_TRUE)
+	  {
+	    lpos = m_nodeLeft->getPositionOf();
+	  }
+	else //cannot pack yet
+	  return UNRELIABLEPOS;
+      }
+
+    //rhs could be a class/array, primitive/array; whatever it is a constant!
+    //replace rhs with a constant node version of it, using the value found in lhs.
+    assert(!m_nodeRight->isAList());
+    assert(!m_nodeRight->isFunctionCall());
+
+    assert(m_nodeRight->hasASymbolDataMember());
+
+    m_state.pushClassOrLocalCurrentBlock(leftType);
+
+    u32 rpos = m_nodeRight->getPositionOf();
+
+    m_state.popClassContext(); //retore
+
+    if(rpos == UNRELIABLEPOS)
+      {
+	TBOOL packed = m_state.tryToPackAClassHierarchy(leftType);
+	if(packed == TBOOL_TRUE)
+	  {
+	    rpos = m_nodeRight->getPositionOf();
+	  }
+	else //cannot pack yet
+	  return UNRELIABLEPOS;
+      }
+
+    return lpos + rpos;
+  } //getPositionOf
 
   TBOOL NodeMemberSelect::checkStoreIntoAble()
   {

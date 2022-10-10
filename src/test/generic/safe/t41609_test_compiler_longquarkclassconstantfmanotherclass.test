@@ -1,0 +1,84 @@
+## -*- mode:ulam -*-
+#=t41609_test_compiler_longquarkclassconstantfmanotherclass
+#!
+Exit status: 0
+Ue_T { Int test() {  ChainRules crules;  0 cast return } }
+Uq_ChainRules +ChainTypes { constant ChainRule mINSERT = { .mLHS = { 7u, 0u, 7u }, .mRHS = { 7u, 6u, 7u } };  +ChainTypes< typedef Unsigned(9) ChainType;  constant Unsigned(9) cCPAT_EC = 0u;  constant Unsigned(9) cCPAT_X = 1u;  constant Unsigned(9) cCPAT_Y = 2u;  constant Unsigned(9) cCPAT_U = 3u;  constant Unsigned(9) cCPAT_D = 4u;  constant Unsigned(9) cCPAT_T = 5u;  constant Unsigned(9) cCPAT_C = 6u;  constant Unsigned(9) cCPAT_N = 7u;  typedef Unsigned(9) ChainPattern[3]; > <NOMAIN> }
+Uq_ChainTypes { typedef Unsigned(9) ChainType;  constant Unsigned(9) cCPAT_EC = 0u;  constant Unsigned(9) cCPAT_X = 1u;  constant Unsigned(9) cCPAT_Y = 2u;  constant Unsigned(9) cCPAT_U = 3u;  constant Unsigned(9) cCPAT_D = 4u;  constant Unsigned(9) cCPAT_T = 5u;  constant Unsigned(9) cCPAT_C = 6u;  constant Unsigned(9) cCPAT_N = 7u;  typedef Unsigned(9) ChainPattern[3];  <NOMAIN> }
+Uq_ChainRule +ChainTypes { Unsigned(9) mLHS[3]( { 7u, 7u, 7u });  Unsigned(9) mRHS[3]( { 7u, 7u, 7u });  +ChainTypes< typedef Unsigned(9) ChainType;  constant Unsigned(9) cCPAT_EC = 0u;  constant Unsigned(9) cCPAT_X = 1u;  constant Unsigned(9) cCPAT_Y = 2u;  constant Unsigned(9) cCPAT_U = 3u;  constant Unsigned(9) cCPAT_D = 4u;  constant Unsigned(9) cCPAT_T = 5u;  constant Unsigned(9) cCPAT_C = 6u;  constant Unsigned(9) cCPAT_N = 7u;  typedef Unsigned(9) ChainPattern[3]; > <NOMAIN> }
+Uq_ChainMatch +ChainTypes { ChainRule mChainRule( Unsigned(9) mLHS[3]( { 7u, 7u, 7u });  Unsigned(9) mRHS[3]( { 7u, 7u, 7u });  +ChainTypes< typedef Unsigned(9) ChainType;  constant Unsigned(9) cCPAT_EC = 0u;  constant Unsigned(9) cCPAT_X = 1u;  constant Unsigned(9) cCPAT_Y = 2u;  constant Unsigned(9) cCPAT_U = 3u;  constant Unsigned(9) cCPAT_D = 4u;  constant Unsigned(9) cCPAT_T = 5u;  constant Unsigned(9) cCPAT_C = 6u;  constant Unsigned(9) cCPAT_N = 7u;  typedef Unsigned(9) ChainPattern[3]; >);  typedef Unsigned(3) SN;  Unsigned(3) mBindings[3]( { 7u, 7u, 7u });  Bool mMatched( false);  +ChainTypes< typedef Unsigned(9) ChainType;  constant Unsigned(9) cCPAT_EC = 0u;  constant Unsigned(9) cCPAT_X = 1u;  constant Unsigned(9) cCPAT_Y = 2u;  constant Unsigned(9) cCPAT_U = 3u;  constant Unsigned(9) cCPAT_D = 4u;  constant Unsigned(9) cCPAT_T = 5u;  constant Unsigned(9) cCPAT_C = 6u;  constant Unsigned(9) cCPAT_N = 7u;  typedef Unsigned(9) ChainPattern[3]; > <NOMAIN> }
+Un_ChainMatch_mINSERT : ChainMatch { :ChainMatch< ChainRule mChainRule( Unsigned(9) mLHS[3]( { 7u, 7u, 7u });  Unsigned(9) mRHS[3]( { 7u, 7u, 7u });  +ChainTypes< typedef Unsigned(9) ChainType;  constant Unsigned(9) cCPAT_EC = 0u;  constant Unsigned(9) cCPAT_X = 1u;  constant Unsigned(9) cCPAT_Y = 2u;  constant Unsigned(9) cCPAT_U = 3u;  constant Unsigned(9) cCPAT_D = 4u;  constant Unsigned(9) cCPAT_T = 5u;  constant Unsigned(9) cCPAT_C = 6u;  constant Unsigned(9) cCPAT_N = 7u;  typedef Unsigned(9) ChainPattern[3]; >);  typedef Unsigned(3) SN;  Unsigned(3) mBindings[3]( { 7u, 7u, 7u });  Bool mMatched( false); > ^ChainTypes< typedef Unsigned(9) ChainType;  constant Unsigned(9) cCPAT_EC = 0u;  constant Unsigned(9) cCPAT_X = 1u;  constant Unsigned(9) cCPAT_Y = 2u;  constant Unsigned(9) cCPAT_U = 3u;  constant Unsigned(9) cCPAT_D = 4u;  constant Unsigned(9) cCPAT_T = 5u;  constant Unsigned(9) cCPAT_C = 6u;  constant Unsigned(9) cCPAT_N = 7u;  typedef Unsigned(9) ChainPattern[3]; > <NOMAIN> }
+##
+##  based on Dave ish#2 9/23/22 and t41606: except quarks instead of transients.
+##
+#>T.ulam
+ ulam 5;
+element T{
+
+  Int test(){
+    ChainRules crules;
+    return 0;
+  }
+
+}
+
+#:ChainRules.ulam
+  ulam 5;
+quark ChainRules + ChainTypes {
+  constant ChainRule mINSERT = {
+    .mLHS = { cCPAT_N, cCPAT_EC, cCPAT_N },
+    .mRHS = { cCPAT_N, cCPAT_C, cCPAT_N },
+  };
+}
+
+#:ChainRule.ulam
+  ulam 5;
+quark ChainRule + ChainTypes {
+  ChainPattern mLHS = {  cCPAT_N, cCPAT_N, cCPAT_N };
+  ChainPattern mRHS = {  cCPAT_N, cCPAT_N, cCPAT_N };
+}
+
+#:ChainTypes.ulam
+  ulam 5;
+quark ChainTypes {
+
+  //// CHAIN PATTERN PRIMITIVES
+  typedef Unsigned(9) ChainType;
+  constant ChainType cCPAT_EC = 0u; //< EmptyCodon only
+  constant ChainType cCPAT_X  = 1u; //< Any DUMB or NORM Codon
+  constant ChainType cCPAT_Y  = 2u; //< Any DUMB or NORM Codon
+  constant ChainType cCPAT_U  = 3u; //< Any UPWD Codon
+  constant ChainType cCPAT_D  = 4u; //< Any DNWD Codon
+  constant ChainType cCPAT_T  = 5u; //< Any temp (UPWD or DNWD) Codon
+  constant ChainType cCPAT_C  = 6u; //< Any chain except EC
+  constant ChainType cCPAT_N  = 7u; //< Nonexistent (nothing to match here)
+
+  typedef ChainType ChainPattern[3]; //< 0: body up, 1: us, 2: body down
+}
+
+#:ChainMatch.ulam
+  ulam 5;
+quark ChainMatch + ChainTypes  {
+  ChainRule mChainRule;
+  typedef Unsigned(3) SN;
+  SN mBindings[3] = {SN.maxof, SN.maxof, SN.maxof };
+  Bool mMatched = false;
+
+  Void reset() {
+    initRule();
+    mBindings[0] = SN.maxof;
+    mBindings[1] = SN.maxof;
+    mBindings[2] = SN.maxof;
+    mMatched = false;
+  }
+
+  virtual Void initRule() ;
+}
+
+#:ChainMatch_mINSERT.ulam
+  ulam 5;
+transient ChainMatch_mINSERT : ChainMatch {
+  @Override
+  virtual Void initRule() { mChainRule = ChainRules.mINSERT; }
+}
+#.

@@ -2009,7 +2009,7 @@ namespace MFM {
 	      fp->write(" + T::ATOM_FIRST_STATE_BIT");
 	    fp->write(", ");
 
-	    fp->write(m_state.getTmpVarAsString(Int, tmpVarPos, TMPREGISTER).c_str()); //delta
+	    fp->write(m_state.getTmpVarAsString(Int, tmpVarPos, TMPREGISTER).c_str()); //delta t3735
 	    fp->write(", &");
 	    fp->write(m_state.getTheInstanceMangledNameByIndex(cosuti).c_str());
 	    fp->write(", uc");
@@ -2025,7 +2025,6 @@ namespace MFM {
 	if(Node::needAdjustToStateBits(stgcosuti))
 	  fp->write(" + T::ATOM_FIRST_STATE_BIT");
 	fp->write(", ");
-
 	fp->write(m_state.getTmpVarAsString(Int, tmpVarPos, TMPREGISTER).c_str()); //delta
 	fp->write(", &");
 	fp->write(m_state.getTheInstanceMangledNameByIndex(stgcosuti).c_str());

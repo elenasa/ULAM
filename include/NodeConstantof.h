@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeInstanceof.h - Node handling the Constantof Statement for ULAM
  *
- * Copyright (C) 2021 Ackleyshack LLC.
- * Copyright (C) 2021 The Living Computation Foundation
+ * Copyright (C) 2021-2022 Ackleyshack LLC.
+ * Copyright (C) 2021-2022 The Living Computation Foundation
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeConstantof.h - Node handling the Constantof Statement for ULAM
   \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2021 All rights reserved.
+  \date (C) 2021-2022 All rights reserved.
   \gpl
 */
 
@@ -56,6 +56,8 @@ namespace MFM{
     virtual const char * getName();
 
     virtual const std::string prettyNodeName();
+
+    virtual u32 getPositionOf();
 
     virtual bool isAConstant();
 

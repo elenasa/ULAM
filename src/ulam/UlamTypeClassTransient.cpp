@@ -900,6 +900,12 @@ namespace MFM {
     fp->write("& d) { ");
     fp->write("write(d); }"); GCNL;
 
+    //constructor for constants, array of u32 regardless of transient size (t41605-7)
+    m_state.indent(fp);
+    fp->write(mangledName.c_str());
+    fp->write("(const u32 * const ");
+    fp->write(" arg) : BVS(arg) { if(arg==NULL) FAIL(NULL_POINTER); }"); GCNL;
+
     // assignment copy constructor
     m_state.indent(fp);
     fp->write(mangledName.c_str());

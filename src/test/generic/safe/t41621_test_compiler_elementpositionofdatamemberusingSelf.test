@@ -1,0 +1,134 @@
+## -*- mode:ulam -*-
+#=t41621_test_compiler_elementpositionofdatamemberusingSelf
+##
+##  gen output (+ interleaved asserts + 1 extra)
+##   Unsigned Arg: 7
+##   Unsigned Arg: 66
+##   Unsigned Arg: 4
+##   Unsigned Arg: 1
+##   Unsigned Arg: 66
+##   Unsigned Arg: 4
+##   Unsigned Arg: 1
+##   Unsigned Arg: 66
+##
+#!
+Exit status: -11
+Ue_T : System { :System<> Int test() {  T2 t2;  Unsigned pos1 = 7u;  self ( pos1 )print . self ( pos1 7u cast == )assert . Unsigned pos2 = 66u;  self ( pos2 )print . self ( pos2 66u cast == )assert . Unsigned pos3 = 4u;  self ( pos3 )print . self ( pos3 4u cast == )assert . Unsigned pos4 = 1u;  self ( pos4 )print . self ( pos4 1u cast == )assert . ChainRule tr;  Unsigned rpos1 = tr ( )getPosofInt .;  self ( rpos1 )print . self ( rpos1 66u cast == )assert . Unsigned rpos2 = tr QBase . ( )getPosofInt .;  self ( rpos2 )print . self ( rpos2 4u cast == )assert . Unsigned rpos3 = tr QB2 . ( )getPosofInt .;  self ( rpos3 )print . self ( rpos3 1u cast == )assert . Unsigned rpos4 = 66u;  self ( rpos4 )print . self ( rpos4 rpos1 == )assert . self ( true )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+Un_T2 { Bool(7) mBt7(false);  ChainRule mRule( Bool(5) sp(false);  Bits mCodonToInsert(0);  :QBase< Bool(3) m_sp3(false); > ^QB2< Bool m_sp1(false);  Int(8) mInt(0); >);  <NOMAIN> }
+Uq_QBase : QB2 { Bool(3) m_sp3(false);  :QB2< Bool m_sp1(false);  Int(8) mInt(0); > <NOMAIN> }
+Uq_QB2 { Bool m_sp1(false);  Int(8) mInt(0);  <NOMAIN> }
+Ue_ChainRule : QBase { Bool(5) sp(false);  Bits mCodonToInsert(0);  :QBase< Bool(3) m_sp3(false); > ^QB2< Bool m_sp1(false);  Int(8) mInt(0); > <NOMAIN> }
+##
+##  informed by t41618 and t41615: useful uses of 'Self'
+##
+#>T.ulam
+ ulam 5;
+element T : System{
+
+    Int test(){
+    T2 t2;
+
+    //absolute pos to data member mRule; here, Self is extraneous.
+    Unsigned pos1 = t2.mRule.Self.positionof;
+    print(pos1);
+    assert(pos1==7u); //at start of element, not state bits
+
+    //relative data member pos to data member Self, in mRule hierarchy
+    Unsigned pos2 = t2.mRule.Self.instanceof.mInt.positionof;
+    print(pos2);
+    assert(pos2==66u); //includes element state bit offset 25
+
+    //relative data member pos in QBase to data member in mRule's BaseType
+    Unsigned pos3 = t2.mRule.QBase.Self.constantof.mInt.positionof;
+    print(pos3);
+    assert(pos3==4u);
+
+    //relative data member pos to BaseType QB2 data member
+    Unsigned pos4 = t2.mRule.QB2.Self.instanceof.mInt.positionof;
+    print(pos4);
+    assert(pos4==1u);
+
+
+    ChainRule tr;
+
+    //func returns absolute pos of Baseclass dm
+    Unsigned rpos1 = tr.getPosofInt();
+    print(rpos1);
+    assert(rpos1==66u);
+
+    //func returns rel position of dm in BaseClass
+    Unsigned rpos2 = tr.QBase.getPosofInt();
+    print(rpos2);
+    assert(rpos2==4u);
+
+    //func returns rel position of dm BaseClass QB2
+    Unsigned rpos3 = tr.QB2.getPosofInt(); //mInt rel to QB2 == 1u
+    print(rpos3);
+    assert(rpos3==1u);
+
+    //absolute data member position to stg
+    Unsigned rpos4 = tr.mInt.positionof;
+    print(rpos4);
+    assert(rpos4==rpos1); //66u
+
+    //confirm additive property of positionof:
+    assert( tr.mInt.positionof - tr.QB2.positionof == QB2.instanceof.mInt.positionof);
+
+    return 0;
+  }
+}
+
+#:T2.ulam
+  ulam 5;
+transient T2
+{
+  Bool(7) mBt7;
+  ChainRule mRule;
+}
+
+#:ChainRule.ulam
+  ulam 5;
+element ChainRule : QBase{
+  Bool(5) sp;
+  Bits mCodonToInsert;
+  virtual Unsigned getPosofInt()
+  {
+    return Self.constantof.mInt.positionof;
+  }
+}
+
+#:QBase.ulam
+  ulam 5;
+quark QBase : QB2 {
+  Bool(3) m_sp3;
+  virtual Unsigned getPosofInt()
+  {
+    return Self.constantof.mInt.positionof;
+  }
+}
+
+#:QB2.ulam
+  ulam 5;
+quark QB2 {
+  Bool(1) m_sp1;
+  Int(8) mInt;
+  virtual Unsigned getPosofInt()
+  {
+    return Self.constantof.mInt.positionof;
+  }
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

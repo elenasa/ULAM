@@ -1,0 +1,112 @@
+## -*- mode:ulam -*-
+#=t41618_test_compiler_positionofreftodatamember
+##
+##  gen output (+ assert)
+##    Unsigned Arg: 5
+##
+#!
+Exit status: -11
+Ue_T : System { :System<> Int test() {  GeneralSeed seed;  ChainRule_INSERT insert;  SegmentState ss;  insert ( ss cast seed cast )tryToInsert . Atom& atref = insert mCodonToInsert . cast;  Unsigned runpos = atref positionof;  self ( runpos )print . self ( runpos 5u cast == )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+Ue_GeneralSeed : Codon { Bool(3) sb3(false);  :Codon< Bool sb(false); > <NOMAIN> }
+Un_ChainRule_INSERT : ChainRule { Bool(5) sp(false);  EventWindow ew();  Atom mCodonToInsert(Atom);  :ChainRule<> <NOMAIN> }
+Un_SegmentState { Unsigned mInaccessibleInMateDir[3](0,0,0);  <NOMAIN> }
+Uq_Codon { Bool sb(false);  <NOMAIN> }
+Un_ChainRule { <NOMAIN> }
+Uq_EventWindow { <NOMAIN> }
+##
+##  informed by t41616 (see also t41617)
+##
+#>T.ulam
+ ulam 5;
+element T : System{
+
+  Int test(){
+    GeneralSeed seed;
+    ChainRule_INSERT insert;
+    SegmentState ss;
+    insert.tryToInsert(ss, (Codon &) seed);
+
+    Atom & atref = insert.mCodonToInsert;
+    Unsigned runpos = atref.positionof; //runtime
+    print(runpos);
+    assert(runpos==5u);
+
+    return 0;
+  }
+
+}
+
+
+#:ChainRule.ulam
+  ulam 5;
+transient ChainRule {
+
+  //// CHAINRULE API
+  virtual Bool apply(SegmentState & ss) ; //< true if rule matched and applied and we're done
+
+}
+
+#:ChainRule_INSERT.ulam
+  ulam 5;
+transient ChainRule_INSERT : ChainRule {
+  Bool(5) sp;
+  EventWindow ew;
+  Atom mCodonToInsert;
+
+  //// ChainRule_INSERT SERVICES
+  Bool tryToInsert(SegmentState & p, Codon & codon) {
+    mCodonToInsert = codon.atomof;
+    return apply(p);
+  }
+
+  @Override
+  virtual Bool apply(SegmentState & ss) {
+    if (mCodonToInsert as Codon) {
+      ew[1] = mCodonToInsert.atomof; //<---hits assert
+      return true;
+    }
+    return false;
+  }
+}
+
+
+#:SegmentState.ulam
+  ulam 5;
+transient SegmentState
+{
+  // inaccess data valid after findMate returns UNSURE
+  Unsigned mInaccessibleInMateDir[3];
+}
+
+#:Codon.ulam
+  ulam 5;
+quark Codon {
+  Bool sb;
+}
+
+#:GeneralSeed.ulam
+  ulam 5;
+element GeneralSeed : Codon {
+  Bool(3) sb3;
+}
+
+#:EventWindow.ulam
+  ulam 3;
+quark EventWindow{
+  Atom& aref(Int index) native;
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

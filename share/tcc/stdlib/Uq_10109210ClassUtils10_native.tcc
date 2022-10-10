@@ -1,5 +1,14 @@
 namespace MFM {
 
+  template<class EC>
+  Ui_Ut_102321u<EC> Uq_10109210ClassUtils10<EC>::Uf_9220getMaxDefinedClassId(const UlamContext<EC>& uc, UlamRef<EC>& ur) const
+  {
+    const UlamClassRegistry<EC> & ucr = uc.GetUlamClassRegistry();
+    u32 classes = ucr.m_registeredUlamClassCount;
+    Ui_Ut_102321u<EC> ret(classes - 1);  // classids are 0..classes-1
+    return ret;
+  }
+
 //! ClassUtils.ulam:88:   Int getElementType(ClassId classId) native;
   template<class EC>
   Ui_Ut_102321i<EC> Uq_10109210ClassUtils10<EC>::Uf_9214getElementType(const UlamContext<EC>& uc, UlamRef<EC>& ur, Ui_Ut_102321u<EC>& Uv_7classId) const //native

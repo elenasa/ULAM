@@ -1,0 +1,125 @@
+## -*- mode:ulam -*-
+#=t41619_test_compiler_positionofdatamemberinbaseclassofbaseclassnoref
+##
+##  gen output (+ interleaved asserts + 1 extra)
+##   Unsigned Arg: 108
+##   Unsigned Arg: 112
+##   Unsigned Arg: 112
+##   Unsigned Arg: 112
+##   Unsigned Arg: 104
+##   Unsigned Arg: 105
+##   Unsigned Arg: 1
+##   Unsigned Arg: 105
+##
+#!
+Exit status: -11
+Ue_T : System { :System<> Int test() {  T2 t2;  Unsigned pos1 = 108u;  self ( pos1 )print . self ( pos1 108u cast == )assert . Unsigned pos2 = 112u;  self ( pos2 )print . self ( pos2 112u cast == )assert . Unsigned pos3 = 112u;  self ( pos3 )print . self ( pos3 112u cast == )assert . Unsigned pos4 = 112u;  self ( pos4 )print . self ( pos4 112u cast == )assert . ChainRule tr;  Unsigned rpos1 = 104u;  self ( rpos1 )print . self ( rpos1 104u cast == )assert . Unsigned rpos2 = 105u;  self ( rpos2 )print . self ( rpos2 105u cast == )assert . Unsigned rpos3 = 1u;  self ( rpos3 )print . self ( rpos3 1u cast == )assert . Unsigned rpos4 = 105u;  self ( rpos4 )print . self ( rpos4 105u cast == )assert . self ( 1u rpos3 == )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+Un_T2 { Bool(7) mBt7(false);  ChainRule mRule( Bool(5) sp(false);  Atom mCodonToInsert(Atom);  :QBase< Bool(3) m_sp3(false); > ^QB2< Bool m_sp1(false);  Int(8) mInt(0); >);  <NOMAIN> }
+Uq_QBase : QB2 { Bool(3) m_sp3(false);  :QB2< Bool m_sp1(false);  Int(8) mInt(0); > <NOMAIN> }
+Uq_QB2 { Bool m_sp1(false);  Int(8) mInt(0);  <NOMAIN> }
+Un_ChainRule : QBase { Bool(5) sp(false);  Atom mCodonToInsert(Atom);  :QBase< Bool(3) m_sp3(false); > ^QB2< Bool m_sp1(false);  Int(8) mInt(0); > <NOMAIN> }
+##
+##  informed by t41618 and t41615, all absolute positions to stg.
+##
+#>T.ulam
+ ulam 5;
+element T : System{
+
+    Int test(){
+    T2 t2;
+
+    //absolute baseclass pos to data member mRule
+    Unsigned pos1 = t2.mRule.QBase.positionof;
+    print(pos1);
+    assert(pos1==108u);
+
+    //absolute data member pos
+    Unsigned pos2 = t2.mRule.mInt.positionof;
+    print(pos2);
+    assert(pos2==112u);
+
+    //absolute data member pos
+    Unsigned pos3 = t2.mRule.QBase.mInt.positionof;
+    print(pos3);
+    assert(pos3==112u);
+
+    //absolute data member pos
+    Unsigned pos4 = t2.mRule.QB2.mInt.positionof;
+    print(pos4);
+    assert(pos4==112u);
+
+
+    ChainRule tr;
+
+    //absolute baseclass super pos
+    Unsigned rpos1 = tr.QBase.Super.positionof;
+    print(rpos1);
+    assert(rpos1==104u);
+
+    //absolute data member position
+    Unsigned rpos2 = tr.QBase.mInt.positionof;
+    print(rpos2);
+    assert(rpos2==105u);
+
+    //absolute data member position to QB2 class: constantof, instanceof (see t41615)
+    Unsigned rpos3 = QB2.constantof.mInt.positionof; //mInt rel to QB2 == 1u
+    print(rpos3);
+    assert(rpos3==1u);
+
+    //absolute data member position to stg
+    Unsigned rpos4 = tr.mInt.positionof;
+    print(rpos4);
+    assert(rpos4==105u);
+
+    //confirm additive property of positionof:
+    assert(tr.mInt.positionof - tr.QB2.positionof == rpos3);
+
+    return 0;
+  }
+}
+
+#:T2.ulam
+  ulam 5;
+transient T2
+{
+  Bool(7) mBt7;
+  ChainRule mRule;
+}
+
+#:ChainRule.ulam
+  ulam 5;
+transient ChainRule : QBase{
+  Bool(5) sp;
+  Atom mCodonToInsert;
+  Unsigned atomPos(){
+    return mCodonToInsert.positionof;
+  }
+}
+
+#:QBase.ulam
+  ulam 5;
+quark QBase : QB2 {
+  Bool(3) m_sp3;
+}
+
+#:QB2.ulam
+  ulam 5;
+quark QB2 {
+  Bool(1) m_sp1;
+  Int(8) mInt;
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

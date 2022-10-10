@@ -1,0 +1,29 @@
+## -*- mode:ulam -*-
+#=t41603_test_compiler_duplicateprimitiveconstants_error
+#!
+./T.ulam:11:12: ERROR: 'ccp' cannot be a named constant because it is already declared as type 'Unsigned(UNKNOWN)[UNKNOWN]' at: ..
+./T.ulam:10:15: ERROR: .. this location.
+./T.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'T'; Possible missing ending curly brace.
+./T.ulam:11:28: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+./T.ulam:2:9: ERROR: Invalid Type: T.
+ ERROR: No parse tree for This Class: T.
+Unrecoverable Program Parse FAILURE: <T.ulam>
+##
+##  Primitive type constant duplicate name detected here by ulam, before gcc (see t41602 and t41604)
+##
+#>T.ulam
+ ulam 5;
+element T{
+
+  Int test(){
+    return 0;
+  }
+
+  typedef Unsigned(3) CT;
+  typedef CT CP[2];
+  constant CP ccp = { 5, 4};
+  constant CP ccp = { 5, 4};
+}
+
+
+#.

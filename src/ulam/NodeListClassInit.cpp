@@ -206,7 +206,7 @@ namespace MFM{
     for(u32 i = 0; i < m_nodes.size(); i++)
       {
 	((NodeInitDM *) m_nodes[i])->foldConstantExpression();
-	m_state.tryToPackAClass(m_classUTI); //t41198 here?
+	m_state.tryToPackAClassHierarchy(m_classUTI); //t41198 here?
       }
     return Node::getNodeType();
   }

@@ -1,0 +1,94 @@
+## -*- mode:ulam -*-
+#=t41610_test_compiler_datamemberascond_ish
+#!
+Exit status: -11
+Ue_T { Int test() {  GeneralSeed seed;  ChainRule_INSERT insert;  SegmentState ss;  insert ( ss cast seed cast )tryToInsert . 0 cast return } }
+Ue_GeneralSeed : Codon { Bool(3) sb3(false);  :Codon< Bool sb(false); > <NOMAIN> }
+Un_ChainRule_INSERT : ChainRule { Bool(5) sp(false);  EventWindow ew();  Atom mCodonToInsert(Atom);  :ChainRule<> <NOMAIN> }
+Un_SegmentState { Unsigned mInaccessibleInMateDir[3](0,0,0);  <NOMAIN> }
+Uq_Codon { Bool sb(false);  <NOMAIN> }
+Un_ChainRule { <NOMAIN> }
+Uq_EventWindow { <NOMAIN> }
+##
+##  based on Dave ish 9/24/22: assertion due to as-condition on a data member:
+## culamtest: Node.cpp:4755: MFM::u32 MFM::Node::calcDataMemberPosOfCurrentObjectClasses(bool, MFM::u16): Assertion `suti == cuti' failed.
+## Fix in NodeVarRefAs::genCode that looks at back of stack instead of [0] stg; Atomof posOfEffSelf takes into account dm relpos in ALT-AS variable storage (NodeIdent); see also t41430;
+##
+#>T.ulam
+ ulam 5;
+element T{
+
+  Int test(){
+    GeneralSeed seed;
+    ChainRule_INSERT insert;
+    SegmentState ss;
+    insert.tryToInsert(ss, (Codon &) seed);
+    return 0;
+  }
+
+}
+
+
+#:ChainRule.ulam
+  ulam 5;
+transient ChainRule {
+
+  //// CHAINRULE API
+  virtual Bool apply(SegmentState & ss) ; //< true if rule matched and applied and we're done
+
+}
+
+#:ChainRule_INSERT.ulam
+  ulam 5;
+transient ChainRule_INSERT : ChainRule {
+  Bool(5) sp;
+  EventWindow ew;
+  Atom mCodonToInsert;
+
+  //// ChainRule_INSERT SERVICES
+  Bool tryToInsert(SegmentState & p, Codon & codon) {
+    mCodonToInsert = codon.atomof;
+    return apply(p);
+  }
+
+  @Override
+  virtual Bool apply(SegmentState & ss) {
+    // workaround:
+    //Atom& atref = mCodonToInsert;
+    //if (atref as Codon) {
+    if (mCodonToInsert as Codon) {
+      ew[1] = mCodonToInsert.atomof; //<---hits assert
+      return true;
+    }
+    return false;
+  }
+}
+
+
+#:SegmentState.ulam
+  ulam 5;
+transient SegmentState
+{
+  // inaccess data valid after findMate returns UNSURE
+  Unsigned mInaccessibleInMateDir[3];
+}
+
+#:Codon.ulam
+  ulam 5;
+quark Codon {
+  Bool sb;
+}
+
+#:GeneralSeed.ulam
+  ulam 5;
+element GeneralSeed : Codon {
+  Bool(3) sb3;
+}
+
+#:EventWindow.ulam
+  ulam 3;
+quark EventWindow{
+  Atom& aref(Int index) native;
+}
+
+#.

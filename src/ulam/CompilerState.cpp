@@ -1793,6 +1793,43 @@ namespace MFM {
     return rtntb;
   } //trytoPackAClass
 
+  TBOOL CompilerState::tryToPackAClassHierarchy(UTI cuti)
+  {
+    //on the fly during c&l to hopefully make some progress with constant class values
+    UlamType * cut = getUlamTypeByIndex(cuti);
+    assert(cut->getUlamTypeEnum() == Class);
+
+    assert(okUTItoContinue(cuti));
+
+    if(!isComplete(cuti)) return TBOOL_HAZY;
+
+    TBOOL rtntb = TBOOL_TRUE;
+
+    BaseclassWalker walker;
+    walker.init(cuti);
+
+    //ulam-5 supports multiple base classes; superclass optional; all bases are shared;
+    UTI baseuti = Nouti;
+    while(walker.getNextBase(baseuti, *this))
+      {
+	SymbolClass * basecsym = NULL;
+	if(alreadyDefinedSymbolClass(baseuti, basecsym))
+	  {
+	    TBOOL trybase = tryToPackAClass(baseuti);
+	    if(trybase != TBOOL_TRUE)
+	      {
+		rtntb = trybase;
+		break;
+	      }
+	    walker.addAncestorsOf(basecsym); //search all
+	  }
+	else
+	  rtntb = TBOOL_FALSE;
+      } //end while
+
+    return rtntb;
+  } //trytoPackAClassHierarchy
+
   bool CompilerState::getDefaultClassValue(UTI cuti, BV8K& dvref)
   {
     if(!okUTItoContinue(cuti)) return false; //short-circuit
@@ -2774,6 +2811,12 @@ namespace MFM {
 		if(foundbaseitem >= 0)
 		  {
 		    s32 pos = foundbasecsym->getBaseClassRelativePosition(foundbaseitem);
+		    if(pos == UNKNOWNSIZE)
+		      {
+			accumpos = UNRELIABLEPOS; //t41619
+			hasbase = false;
+			break;
+		      }
 		    assert(pos >= 0);
 		    accumpos += pos; //more specific position within nextbase
 		  }
@@ -2784,6 +2827,12 @@ namespace MFM {
 		    if(foundsharedbaseitem >= 0)
 		      {
 			s32 pos = foundbasecsym->getSharedBaseClassRelativePosition(foundsharedbaseitem);
+			if(pos == UNKNOWNSIZE)
+			  {
+			    accumpos = UNRELIABLEPOS;
+			    hasbase = false;
+			    break;
+			  }
 			assert(pos >= 0);
 			accumpos += pos; //more specific position within nextbase
 		      }
@@ -3967,6 +4016,7 @@ namespace MFM {
 
   u32 CompilerState::getClassIdBits()
   {
+    //initialized to constant CLASSIDBITS
     return m_classIdBits;  //== _getLogBase2(m_state.getMaxNumberOfRegisteredUlamClasses()) + 1;
   }
 

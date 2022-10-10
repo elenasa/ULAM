@@ -1,0 +1,92 @@
+## -*- mode:ulam -*-
+#=t41614_test_compiler_reftodatamemberarrayitemascond
+#!
+Exit status: -11
+Ue_T { Int test() {  GeneralSeed seed;  ChainRule_INSERT insert;  SegmentState ss;  insert ( ss cast seed cast 1 cast )tryToInsert . 0 cast return } }
+Ue_GeneralSeed : Codon { Bool(3) sb3(false);  :Codon< Bool sb(false); > <NOMAIN> }
+Un_ChainRule_INSERT : ChainRule { Bool(5) sp(false);  EventWindow ew();  Atom mCodonToInsert[5](Atom,Atom,Atom,Atom,Atom);  :ChainRule<> <NOMAIN> }
+Un_SegmentState { Unsigned mInaccessibleInMateDir[3](0,0,0);  <NOMAIN> }
+Uq_Codon { Bool sb(false);  <NOMAIN> }
+Un_ChainRule { <NOMAIN> }
+Uq_EventWindow { <NOMAIN> }
+##
+##  informed by t41610 and t41611: as-condition on a data member that's an array item;
+##  (requires a reference variable)
+##
+#>T.ulam
+ ulam 5;
+element T{
+
+  Int test(){
+    GeneralSeed seed;
+    ChainRule_INSERT insert;
+    SegmentState ss;
+    insert.tryToInsert(ss, (Codon &) seed, 1);
+    return 0;
+  }
+
+}
+
+
+#:ChainRule.ulam
+  ulam 5;
+transient ChainRule {
+
+  //// CHAINRULE API
+  virtual Bool apply(SegmentState & ss, Int item) ; //< true if rule matched and applied and we're done
+
+}
+
+#:ChainRule_INSERT.ulam
+  ulam 5;
+transient ChainRule_INSERT : ChainRule {
+  Bool(5) sp;
+  EventWindow ew;
+  Atom mCodonToInsert[5];
+
+  //// ChainRule_INSERT SERVICES
+  Bool tryToInsert(SegmentState & p, Codon & codon, Int item) {
+    mCodonToInsert[item] = codon.atomof;
+    return apply(p, item);
+  }
+
+  @Override
+    virtual Bool apply(SegmentState & ss, Int item) {
+    // workaround:
+    Atom& atref = mCodonToInsert[item]; //requires lhs ref
+    if (atref as Codon) {
+      ew[1] = atref.atomof;
+      return true;
+    }
+    return false;
+  }
+}
+
+
+#:SegmentState.ulam
+  ulam 5;
+transient SegmentState
+{
+  // inaccess data valid after findMate returns UNSURE
+  Unsigned mInaccessibleInMateDir[3];
+}
+
+#:Codon.ulam
+  ulam 5;
+quark Codon {
+  Bool sb;
+}
+
+#:GeneralSeed.ulam
+  ulam 5;
+element GeneralSeed : Codon {
+  Bool(3) sb3;
+}
+
+#:EventWindow.ulam
+  ulam 3;
+quark EventWindow{
+  Atom& aref(Int index) native;
+}
+
+#.

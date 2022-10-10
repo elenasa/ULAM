@@ -336,6 +336,15 @@ namespace MFM {
     return false;
   }
 
+  u32 Node::getPositionOf()
+  {
+    std::ostringstream msg;
+    msg << "virtual u32 " << prettyNodeName().c_str();
+    msg << "::getPositionOf(){} is needed!!";
+    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+    return UNRELIABLEPOS;
+  }
+
   s32 Node::getSymbolStackFrameSlotIndex()
   {
     std::ostringstream msg;
@@ -2217,6 +2226,7 @@ namespace MFM {
       {
 	if(!stgisaref)
 	  fp->write(", 0u"); //extra ulamRef arg, pos-to-eff (t3436, t3605, t3832);
+
 	fp->write(", &");
 	fp->write(m_state.getTheInstanceMangledNameByIndex(scalarcosuti).c_str()); //t3495, t3512, t3543, t3648, t3702, t3776, t3668, t3811, t3621
       }
@@ -3849,7 +3859,8 @@ namespace MFM {
 
 	if(askEffSelf)
 	  {
-	    // runtime rel pos of func baseclass (t3735)
+	    // runtime rel pos of func baseclass (t3735, t41613)
+	    //	    hiddenarg2 << "-";  revert
 	    if(sameur)
 	      hiddenarg2 << m_state.getHiddenArgName(); //same ur
 	    else
@@ -3862,8 +3873,7 @@ namespace MFM {
 	    hiddenarg2 << "u ";
 	    hiddenarg2 << "/* ";
 	    hiddenarg2 << m_state.getUlamTypeNameBriefByIndex(funcclassarg).c_str();
-	    hiddenarg2 << " */";
-	    hiddenarg2 << "), ";
+	    hiddenarg2 << " */ ), ";
 	  }
 	else
 	  hiddenarg2 << funcclassrelpos << "u, ";
