@@ -1,10 +1,16 @@
 ulam 5;
 
 quark Drawable {
-  constant Int cUNITS_PER_SITE = 1024;
+  constant Int cUNITS_PER_SITE = 1024; //< See FillRect for meaning of this
+
+  /** \returns true if drawing via \c Drawable is currently possible.
+
+      If canDraw returns false, attempts to invoke any of the other
+      Drawable methods will fail. Typically, this method returns true
+      during calls to renderGraphics(), and not otherwise.
+  */
   Bool canDraw() native;
-  //  Unsigned getDitsPerSite() native;
-  //  C2D mapUnitsToDits(C2D u) { return (u*(C2D.Coord) getDitsPerSite())/(C2D.Coord) cUNITS_PER_SITE; }
+
   Void drawMaskedLine(C2D startUnits, C2D endUnits, ARGB onColor, ARGB offColor, Bits mask32) {
     drawMaskedLineUnits(startUnits,
                         endUnits,
@@ -14,6 +20,7 @@ quark Drawable {
                         cUNITS_PER_SITE/8,
                         cUNITS_PER_SITE/24);
   }
+
   Void drawMaskedLine(C2D startUnits, C2D endUnits, ARGB onColor, ARGB offColor, Bits mask32, Unsigned width) {
     drawMaskedLineUnits(startUnits,
                         endUnits,
@@ -23,7 +30,26 @@ quark Drawable {
                         cUNITS_PER_SITE/8,
                         width);
   }
-  //  Void drawMaskedLineDit(C2D startDit, C2D endDit, ARGB color, Bits mask32, Unsigned maskDits) native;
-  //Void drawMaskedLineUnits(C2D startUnits, C2D endUnits, ARGB onColor, ARGB offColor, Bits mask32, Unsigned maskUnits) native;
+
   Void drawMaskedLineUnits(C2D startUnits, C2D endUnits, ARGB onColor, ARGB offColor, Bits mask32, Unsigned maskUnits, Unsigned width) native;
+
+  /** Fill a \c size rectangle starting at \c pos with \c color.
+
+      NOTES: 
+       - pos=(0,0) is the center of ew[0], and 
+       - sites are 1024x1024. 
+
+      So
+      <code>
+      ColorUtils cu;
+      fillRectangle(C2D.instanceof(-512,-512),
+                    C2D.instanceof(1024,1024),
+                    cu.color(0xff00ff00));
+      </code>
+      will fill the entire ew[0] site area (modulo possible 
+      round off errors) with green.
+      
+     \since ulam-6
+   */
+  Void fillRectangle(C2D pos, C2D size, ARGB color) native;
 }
