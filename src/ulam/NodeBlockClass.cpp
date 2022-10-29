@@ -3956,7 +3956,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 	fp->write("() const;"); GCNL;
 	fp->write("\n");
 
-	if((classtype != UC_ELEMENT) && (classtype != UC_LOCALSFILESCOPE))
+	if((classtype != UC_LOCALSFILESCOPE))
 	  {
 	    m_state.indent(fp);
 	    fp->write("virtual u32 ");
@@ -3998,13 +3998,10 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
     fp->write(m_state.getClassLengthFunctionName(cuti));
     fp->write("\n\n");
 
-    //elements are never a baseclass, fail.
-    if(classtype == UC_ELEMENT) return;
-
     //locals filescope are never a baseclass, fail. //3852
     if(classtype == UC_LOCALSFILESCOPE) return;
 
-    //next, returns base class size:
+    //next, returns base class size, or element data members (ulam-6):
     m_state.indent(fp);
     fp->write("template<class EC>\n");
 
@@ -4025,10 +4022,21 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 
     m_state.indent(fp);
     fp->write("return ");
-    s32 baselen = cut->getBitsizeAsBaseClass();
-    assert(baselen >= 0);
-    fp->write_decimal(baselen);
-    fp->write(";"); GCNL;
+
+    if(classtype == UC_ELEMENT)
+      {
+	u32 tbs = m_ST.calcDataMemberSymbolsTotalBitsizeFromTableOfVariableDataMembers(cuti);
+	fp->write_decimal_unsigned(tbs);
+	fp->write(";"); GCNL;
+      }
+    else
+      {
+	s32 baselen = cut->getBitsizeAsBaseClass();
+	assert(baselen >= 0);
+	assert((u32)baselen == m_ST.calcDataMemberSymbolsTotalBitsizeFromTableOfVariableDataMembers(cuti)); //sanity check (t3209, t3361, t41424)
+	fp->write_decimal(baselen);
+	fp->write(";"); GCNL;
+      }
 
     m_state.m_currentIndentLevel--;
 
