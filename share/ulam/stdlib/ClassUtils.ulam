@@ -62,18 +62,48 @@ quark ClassUtils {
   Bool isDirectBase(ClassId classId, ClassId directBaseId) native;
 
   /** \returns the total size (in bits) of class \c classId, if it
-      exists, or Unsigned.maxof if it does not
+      exists, or Unsigned.maxof if it does not. This includes the
+      sizes of all base classes of \c classId objects.
       
+      \sa getClassDataSize(ClassId)
       \since 5.0
    */
   Unsigned getClassSize(ClassId classId) native;
 
   /** \returns the total size (in bits) of the object referred to by
-      \c ur, or Unsigned.maxof if some internal error occurs
+      \c ur, including base classes, or Unsigned.maxof if some
+      internal error occurs
       
       \since 5.0
    */
   Unsigned getClassSize(UrSelf & ur) { return getClassSize(getClassId(ur)); }
+
+  /** \returns the size (in bits) of the data members owned class \c
+      classId, if it exists, or Unsigned.maxof if it does not. This
+      excludes the sizes of all base classes of \c classId objects.
+      
+      \sa getClassSize(ClassId)
+      \since 6.0
+   */
+  Unsigned getClassDataSize(ClassId classId) native;
+
+  /** \returns the size (in bits) of the data members of the specific
+      object referred to by \c ur, excluding base classes, or
+      Unsigned.maxof if some internal error occurs
+      
+      \sa getClassSize(UrSelf&)
+      \since 6.0
+   */
+  Unsigned getClassDataSize(UrSelf & ur) { return getClassDataSize(getClassId(ur)); }
+
+  /** \returns -1 if \c etype is not an Ulam Element type, or if \c
+      classId is not a base class of an \c etype element. Otherwise,
+      \returns the starting bit position >= 0 of the data members of
+      class \c classId within element \c etype.
+      
+      \since 6.0
+   */
+  Int getClassDataPosition(ClassId classId, Int etype) native;
 
   Unsigned getBaseClassCount(ClassId classId) native;
 

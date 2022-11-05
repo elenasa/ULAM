@@ -73,6 +73,17 @@ namespace MFM {
     return rtn;
   }
 
+  template<class EC>
+  Ui_Ut_102321u<EC> Uq_10109210ClassUtils10<EC>::Uf_9216getClassDataSize(const UlamContext<EC>& uc, UlamRef<EC>& ur, Ui_Ut_102321u<EC>& Uv_7classId) const
+  {
+    u32 classId = Uv_7classId.read();
+    const UlamClassRegistry<EC> & ucr = uc.GetUlamClassRegistry();
+    const UlamClass<EC>* theClass = ucr.GetUlamClassOrNullByIndex(classId);
+    u32 bitsize = theClass ? theClass->GetClassDataMembersSize() : -1;
+    Ui_Ut_102321u<EC> ret(bitsize);
+    return ret;
+  } // Uf_9216getClassDataSize
+
 
   template<class EC>
   Ui_Ut_102321u<EC> Uq_10109210ClassUtils10<EC>::Uf_9217getBaseClassCount(const UlamContext<EC>& uc, UlamRef<EC>& ur, Ui_Ut_102321u<EC>& Uv_7classId) const
@@ -262,5 +273,30 @@ namespace MFM {
     Ui_Ut_102321u<EC> ret(bitsize);
     return ret;
   } // Uf_9212getClassSize
+
+
+  template<class EC>
+  Ui_Ut_102321i<EC> Uq_10109210ClassUtils10<EC>::Uf_9220getClassDataPosition(const UlamContext<EC>& uc, UlamRef<EC>& ur, Ui_Ut_102321u<EC>& Uv_7classId, Ui_Ut_102321i<EC>& Uv_5etype) const
+  {
+    s32 sret = -1;
+
+    u32 classId = Uv_7classId.read();
+    const UlamClassRegistry<EC> & ucr = uc.GetUlamClassRegistry();
+    const UlamClass<EC>* theClass = ucr.GetUlamClassOrNullByIndex(classId);
+    if (theClass != 0) {
+      u32 etype = Uv_5etype.read();
+
+      // WORKAROUND UNLESS AND UNTIL GetRelativePositionOfBaseClass can handle UlamElements as the class
+      const UlamElement<EC> * ue = theClass->AsUlamElement();
+      if (ue != 0) {
+        if (ue->GetType() == etype)
+          sret = 0;
+      } else
+        sret = UlamClass<EC>::GetRelativePositionOfBaseClass(uc, etype, theClass);
+    }
+
+    Ui_Ut_102321i<EC> ret(sret);                                              
+    return ret;
+  } // Uf_9220getClassDataPosition
 
 }
