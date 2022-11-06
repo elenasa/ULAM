@@ -7,7 +7,7 @@
 ##
 #!
 Exit status: -11
-Ue_A { Int test() {  SystemU3 su3;  SiteIterator it = it ( "foo" )Self .;  su3 ( it mStream . m_string . )print . su3 ( 20u cast 3 cast == )assert . su3 ( it mNext . )print . su3 ( it mNext . 102 cast == )assert . 0 cast return } }
+Ue_A { Int test() {  SystemU3 su3;  SiteIterator it = it ( "foo" )Self .;  su3 ( it mStream . m_string . )print . su3 ( 18u cast 3 cast == )assert . su3 ( it mNext . )print . su3 ( it mNext . 102 cast == )assert . 0 cast return } }
 Uq_SystemU3 : System { :System<> <NOMAIN> }
 Un_SiteIterator { ByteStreamString mStream( String m_string( "");  Unsigned m_index( 0u); );  Int mNext(0);  <NOMAIN> }
 Un_ByteStreamString { String m_string( "");  Unsigned m_index( 0u);  <NOMAIN> }

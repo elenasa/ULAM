@@ -27,7 +27,7 @@ namespace MFM{
 
 
   template<class CC>
-  void Uq_10108SystemU510<CC>::Uf_5print(const UlamContext<CC>& uc, UlamRef<CC>& ur, Ui_Ut_102201s<CC>& Uv_3arg) const //native
+  void Uq_10108SystemU510<CC>::Uf_5print(const UlamContext<CC>& uc, UlamRef<CC>& ur, Ui_Ut_102181s<CC>& Uv_3arg) const //native
   {
     const u32 sidx = Uv_3arg.getStringIndex();
     printf("String(%u) Arg: \"%s\"\n", sidx, GetStringPointerFromGlobalStringPool(sidx));

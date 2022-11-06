@@ -2,12 +2,12 @@
 #=t3950_test_compiler_array2Dstring_sizeof
 ##
 ## gen output: (interleaved asserts)
-## Unsigned Arg: 20
-## Unsigned Arg: 40
+## Unsigned Arg: 18
+## Unsigned Arg: 36
 ##
 #!
 Exit status: 0
-Ue_Eltypo { typedef String SArr[2];  String m_sarr[2]( ,"bar");  Bool b1(true);  Bool b2(true);  Int test() {  System s;  self m_sarr . 1 [] "bar" = Unsigned siz1 = 20u;  s ( siz1 )print . self b1 . siz1 20u cast == = s ( self b1 . )assert . Unsigned siz2 = 40u;  s ( siz2 )print . self b2 . siz2 40u cast == = s ( self b2 . )assert . 0 cast return } }
+Ue_Eltypo { typedef String SArr[2];  String m_sarr[2]( ,"bar");  Bool b1(true);  Bool b2(true);  Int test() {  System s;  self m_sarr . 1 [] "bar" = Unsigned siz1 = 18u;  s ( siz1 )print . self b1 . siz1 18u cast == = s ( self b1 . )assert . Unsigned siz2 = 36u;  s ( siz2 )print . self b2 . siz2 36u cast == = s ( self b2 . )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## Informed by t3949, t3929, sizeof a String array item, and array of Strings
@@ -23,12 +23,12 @@ element Eltypo {
     m_sarr[1] = "bar";
     Unsigned siz1 = m_sarr[1].sizeof; //3 letters
     s.print(siz1);
-    b1 = (siz1 == 20u);
+    b1 = (siz1 == 18u);
     s.assert(b1);
 
     Unsigned siz2 = m_sarr.sizeof; //two items
     s.print(siz2);
-    b2 = (siz2 == 40u);
+    b2 = (siz2 == 36u);
     s.assert(b2);
     return 0;
   }

@@ -37,9 +37,9 @@ namespace MFM{
     Ui_Uq_r10109216ByteStreamWriter10<EC> ret(ur);
 
     OString4096 buff;
-    const bool isElementType = (Ur_3urs.GetType() != T::ATOM_UNDEFINED_TYPE); 
+    const bool isElementType = (Ur_3urs.GetType() != T::ATOM_UNDEFINED_TYPE);
     if(isElementType) {
-      Ui_Ut_r102961a<EC> atomref(Ur_3urs, -Ur_3urs.GetPosToEffectiveSelf() - T::ATOM_FIRST_STATE_BIT); 
+      Ui_Ut_r102961a<EC> atomref(Ur_3urs, -Ur_3urs.GetPosToEffectiveSelf() - T::ATOM_FIRST_STATE_BIT);
       DebugPrint<EC>(uc, atomref, buff);
     } else {
       DebugPrint<EC>(uc, Ur_3urs, buff); // Else better be primitive I guess
@@ -64,7 +64,7 @@ namespace MFM{
   } // Uf_5print
 
   template<class EC>
-  Ui_Uq_r10109216ByteStreamWriter10<EC> Uq_10109216ByteStreamWriter10<EC>::Uf_6printf(const UlamContext<EC>& uc, UlamRef<EC>& ur, Ui_Ut_102201s<EC>& Uv_3fmt, ...) const
+  Ui_Uq_r10109216ByteStreamWriter10<EC> Uq_10109216ByteStreamWriter10<EC>::Uf_6printf(const UlamContext<EC>& uc, UlamRef<EC>& ur, Ui_Ut_102181s<EC>& Uv_3fmt, ...) const
   {
     VfuncPtr writeByte;
     UlamRef<EC> vfur(ur, Uq_10109216ByteStreamWriter10<EC>::VOWNED_IDX_Uf_919writeByte1110181u, Uq_10109216ByteStreamWriter10<EC>::THE_INSTANCE, writeByte);
@@ -126,7 +126,7 @@ namespace MFM{
           }
           const UlamClassRegistry<EC>& ucr = uc.GetUlamClassRegistry();
 
-          const UlamClass<EC> * argclass = ucr.GetUlamClassByMangledName(mangled); 
+          const UlamClass<EC> * argclass = ucr.GetUlamClassByMangledName(mangled);
           if (!argclass) {
             ubsw.Printf("<<NO ARGCLASS (%s)>>", mangled);
             continue;
@@ -186,7 +186,7 @@ namespace MFM{
 
             if (asprim->GetPrimType() != UlamTypeInfoPrimitive::STRING) FAIL(ILLEGAL_ARGUMENT);
 
-            const u32 strIdx = ((Ui_Ut_102201s<EC> *) arg)->read();
+            const u32 strIdx = ((Ui_Ut_102181s<EC> *) arg)->read();
             const u8 * str = GetStringPointerFromGlobalStringPool(strIdx);
             if (!str) FAIL(ILLEGAL_STATE);
             u32 strlen = GetStringLengthFromGlobalStringPool(strIdx);

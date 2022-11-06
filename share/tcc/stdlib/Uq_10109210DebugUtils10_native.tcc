@@ -48,7 +48,7 @@ namespace MFM{
   }
 
   template<class EC>
-  void Uq_10109210DebugUtils10<EC>::Uf_5print(const UlamContext<EC> & uc, UlamRef<EC>& ur, Ui_Ut_102201s<EC>& Uv_3arg) const //native
+  void Uq_10109210DebugUtils10<EC>::Uf_5print(const UlamContext<EC> & uc, UlamRef<EC>& ur, Ui_Ut_102181s<EC>& Uv_3arg) const //native
   {
     const u32 strval = Uv_3arg.read();
     LOG.Message("print: %S", GetStringPointerFromGlobalStringPool(strval));

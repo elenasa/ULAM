@@ -182,7 +182,7 @@ namespace MFM {
 #endif //REGNUMBITS
 
 #ifndef STRINGIDXBITS
-#define STRINGIDXBITS (20)
+#define STRINGIDXBITS (18)
 #endif //STRINGIDXBITS
 
 #ifndef STRINGIDXMASK

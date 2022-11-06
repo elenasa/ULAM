@@ -437,12 +437,18 @@ namespace MFM {
 	  {
 	    m_state.indent(fp);
 	    fp->write(mangledName.c_str());
-	    fp->write("(const u64 dl){const u32 mask=_GetNOnes31(20); for(u32 i=0;i<");
+	    fp->write("(const u64 dl){const u32 mask=_GetNOnes31(");
+	    fp->write_decimal(STRINGIDXBITS);
+	    fp->write("); for(u32 i=0;i<");
 	    fp->write_decimal_unsigned(arraysize);
 	    fp->write(";i++){");
-	    fp->write("u32 d0=(u32)(dl>>20u*i);d0&=mask;writeArrayItem(d0,");
+	    fp->write("u32 d0=(u32)(dl>>");
+	    fp->write_decimal_unsigned(STRINGIDXBITS);
+	    fp->write("u*i);d0&=mask;writeArrayItem(d0,");
 	    fp->write_decimal_unsigned(arraysize);
-	    fp->write("-i-1,20u);}}"); GCNL; //reverse the order t41277
+	    fp->write("-i-1,");
+	    fp->write_decimal_unsigned(STRINGIDXBITS);
+	    fp->write("u);}}"); GCNL; //reverse the order t41277
 	  }
       }
 
