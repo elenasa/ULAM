@@ -1265,6 +1265,52 @@ namespace MFM {
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeReadArrayItemFromAConstantClassIntoATmpVar
 
+  void Node::genCodeReadPrimitiveArrayItemIntoATmpVar(File * fp, UVPass & luvpass, UVPass & ruvpass)
+  {
+    //index is a variable, not known at compile time;
+    UTI luti = luvpass.getPassTargetType(); //replaces vuti w target type
+    assert(luti != Void);
+    assert(!m_state.isScalar(luti));
+
+    //now for the array item read at index in ruvpass tmp var
+    UTI scalarluti = m_state.getUlamTypeAsScalar(luti);
+    scalarluti = m_state.getUlamTypeAsDeref(scalarluti);
+    UlamType * scalarlut = m_state.getUlamTypeByIndex(scalarluti);
+    u32 itemlen = scalarlut->getSizeofUlamType();
+    TMPSTORAGE slstor = scalarlut->getTmpStorageTypeForTmpVar();
+
+    s32 tmpVarNum = m_state.getNextTmpVarNumber();
+    m_state.indentUlamCode(fp);
+    fp->write(scalarlut->getTmpStorageTypeAsString().c_str()); //u32, u64, T, BV<x>
+    fp->write(" ");
+    fp->write(m_state.getTmpVarAsString(scalarluti, tmpVarNum, slstor).c_str());
+    fp->write(" = ");
+    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
+    fp->write(".readArrayItem(");
+    fp->write(ruvpass.getTmpVarAsString(m_state).c_str()); //offset
+    fp->write(", ");
+    fp->write_decimal_unsigned(itemlen);
+    fp->write("u);");
+
+    //gen comment:
+    fp->write(" //item of const primitive array");
+    GCNL;
+
+    //convert to immediate from u32/u64
+    s32 tmpVarNum2 = m_state.getNextTmpVarNumber();
+    m_state.indentUlamCode(fp);
+    fp->write(scalarlut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
+    fp->write(" ");
+    fp->write(m_state.getTmpVarAsString(scalarluti, tmpVarNum2, TMPBITVAL).c_str());
+    fp->write("(");
+    fp->write(m_state.getTmpVarAsString(scalarluti, tmpVarNum, slstor).c_str());
+    fp->write(");"); GCNL;
+
+    luvpass = UVPass::makePass(tmpVarNum2, TMPBITVAL, scalarluti, m_state.determinePackable(scalarluti), m_state, 0, 0); //POS 0 justified (atom-based).
+
+    m_state.clearCurrentObjSymbolsForCodeGen();
+  } //genCodeReadPrimitiveArrayItemIntoATmpVar
+
   void Node::genCodeReadSelfIntoATmpVar(File * fp, UVPass & uvpass)
   {
     Symbol * stgcos = NULL;
