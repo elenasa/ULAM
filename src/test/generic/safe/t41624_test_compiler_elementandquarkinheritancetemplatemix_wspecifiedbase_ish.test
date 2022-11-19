@@ -1,0 +1,61 @@
+## -*- mode:ulam -*-
+#=t3566_test_compiler_elementandquarkinheritancetemplatemix_wspecifiedbase_ish
+## gen output: (+ 1 assert)
+##    Unsigned Arg: 1
+##
+#!
+Exit status: 1
+Ue_Tu { Int test() {  System s;  ChainControlUp chainUp;  s ( chainUp 1u . cast )print . s ( chainUp 1u . 1u == cast )print . chainUp 1u . cast return } }
+Uq_System { <NOMAIN> }
+Ue_ChainControlUp : ChainControl(1u) { /* empty class block */ }
+Uq_DTU { typedef Unsigned(1) BodyDir;  constant Unsigned(1) cBODY_UP = 1u;  constant Unsigned(1) cBODY_DOWN = 0u;  <NOMAIN> }
+Uq_ChainControl(holder cSOURCE_BODY_DIR) +DTU { /* empty class block */ }
+##
+##  informed by Dave ish 11/17/2022: Redundant specified baseclass DTU for type and value
+##           of subclass baseclass class argument not found; Worked fine without the
+##           specification. Now fixed so it doesn't matter. (see also t3566)
+#>Tu.ulam
+  ulam 5;
+element Tu {
+  Int test(){
+    System s;
+    ChainControlUp chainUp;
+    s.print(chainUp.cSOURCE_BODY_DIR);
+    s.print(chainUp.cSOURCE_BODY_DIR == DTU.cBODY_UP);
+    return (Int) chainUp.cSOURCE_BODY_DIR;
+  }
+}
+
+#:ChainControlUp.ulam
+  ulam 5;
+element ChainControlUp : ChainControl(DTU.cBODY_UP) {
+//element ChainControlUp : ChainControl(cBODY_UP) {
+}
+
+#:ChainControl.ulam
+  ulam 2;
+quark ChainControl(DTU.BodyDir cSOURCE_BODY_DIR) + DTU {
+//quark ChainControl(BodyDir cSOURCE_BODY_DIR) + DTU {
+}
+
+#:DTU.ulam
+  ulam 5;
+quark DTU {
+  typedef Unsigned(1) BodyDir;
+  constant BodyDir cBODY_UP = 1u;
+  constant BodyDir cBODY_DOWN = 0u;
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

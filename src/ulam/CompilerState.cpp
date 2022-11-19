@@ -3770,6 +3770,7 @@ namespace MFM {
 	while(it != tdmap.end())
 	  {
 	    bool aok = true;
+	    bool aokwithhazykin = false;
 
 	    Symbol * sym = it->second;
 	    assert(sym);
@@ -3872,7 +3873,10 @@ namespace MFM {
 			  }
 		      }
 		    else if(hazyKin && !kinvec.empty())
-		      aok = false; //wait..only if worth waiting for (t41444)
+		      {
+			aok = false; //wait..only if worth waiting for (t41444,t41624)
+			aokwithhazykin = true; //t41626
+		      }
 		  }
 
 		if(!isaliasednow && aok)
@@ -3901,7 +3905,9 @@ namespace MFM {
 		      }
 		  }
 
-		if(!isaliasednow && aok)
+		// finds either Specified or unspecified base's baseclass constants,typedefs
+		// (e.g. as class params/args) (t41624).
+		if(!isaliasednow && (aok || aokwithhazykin))
 		  {
 		    SymbolClassName * cnsym = NULL;
 		    if(isScalar(tduti) && alreadyDefinedSymbolClassName(tdid, cnsym))
