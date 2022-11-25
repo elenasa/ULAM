@@ -1865,7 +1865,10 @@ namespace MFM {
 
 	    //e.g. t41366 Bar& ref = eltref.t;
 	    // where Bar is a base of quark t, a dm of element eltref;
-	    posToDM = cos->getPosOffset();
+	    u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
+	    posToDM = cosSize > 1 ? Node::calcDataMemberPosOfCurrentObjectClassesFromFirstDMIndex(1) : cos->getPosOffset(); //t41627
+
+	    UTI cosclassuti = cos->getDataMemberClass(); //t41627,8
 
 	    // when stgcos is a ref, so that we can keep posToEff
 	    //accurate, /we need tmp immediate ref to dm, when
@@ -1873,6 +1876,7 @@ namespace MFM {
 	    if(m_state.isReference(stgcosuti) && (UlamType::compare(m_state.getUlamTypeAsDeref(tobeType),cosuti,m_state) != UTIC_SAME))
 	      {
 		tmpvarDM = m_state.getNextTmpVarNumber();
+
 		m_state.indentUlamCode(fp);
 		fp->write(refcosut->getLocalStorageTypeAsString().c_str()); //tmp immediate ref element from-type
 		fp->write(" ");
@@ -1880,6 +1884,25 @@ namespace MFM {
 		fp->write("(");
 		fp->write(stgcos->getMangledName().c_str()); //ref
 		fp->write(", ");
+
+		if(UlamType::compare(cosclassuti,m_state.getUlamTypeAsDeref(stgcosuti),m_state) != UTIC_SAME)
+		  {
+		    //t41625
+		    fp->write(stgcos->getMangledName().c_str()); //ref
+		    fp->write(".GetEffectiveSelf()->");
+		    fp->write(m_state.getGetRelPosMangledFunctionName(stgcosuti)); //nonatom
+
+		    fp->write("(");
+		    fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(cosclassuti)); //efficiency
+		    fp->write("u ");
+		    fp->write("/* ");
+		    fp->write(m_state.getUlamTypeNameBriefByIndex(cosclassuti).c_str());
+		    fp->write(" */");
+		    fp->write(") - ");
+		    fp->write(stgcos->getMangledName().c_str()); //ref
+		    fp->write(".GetPosToEffectiveSelf() + "); //uvpass has cos dm pos (t41140)
+		  }
+
 		if(Node::needAdjustToStateBits(cosuti))
 		  fp->write("T::ATOM_FIRST_STATE_BIT + ");
 		fp->write_decimal_unsigned(posToDM);
@@ -2003,8 +2026,27 @@ namespace MFM {
       }
     else if(cos->isDataMember())
       {
+	//UTI cosclassuti = cos->getDataMemberClass();
+	UTI cosclassuti = m_state.m_currentObjSymbolsForCodeGen[1]->getDataMemberClass(); //t41628
+
 	if(!stgcosut->isReference())//stgcos is non-ref, accepts delta arg
 	  {
+	    if(UlamType::compare(cosclassuti,stgcosuti,m_state) != UTIC_SAME)
+	      {
+		//t41626
+		u32 relpos = UNRELIABLEPOS;
+		AssertBool gotpos = m_state.getABaseClassRelativePositionInAClass(stgcosuti, cosclassuti, relpos);
+		assert(gotpos); //known at compile time
+
+		fp->write(" + ");
+		fp->write_decimal_unsigned(relpos);
+		fp->write("u ");
+		fp->write("/* ");
+		fp->write(m_state.getUlamTypeNameBriefByIndex(cosclassuti).c_str());
+		fp->write(" */");
+		//uvpass has cos dm pos (t41140)
+	      }
+
 	    if(Node::needAdjustToStateBits(stgcosuti) || Node::needAdjustToStateBits(cosuti)) //t41292, t3735
 	      fp->write(" + T::ATOM_FIRST_STATE_BIT");
 	    fp->write(", ");
@@ -2199,13 +2241,14 @@ namespace MFM {
   } //genCodeCastAncestorQuarkAsSub
 
   //helper: pos of tobe-type in fm-type/uvpass (maybe goes into Node.cpp)
-  // used to make the tobe variable
+  // used to make the tobe variable (no pos of dm's cosclass t41625,6)
   void NodeCast::genPositionOfBaseIntoATmpVar(File * fp, u32 tmpvarpos, UVPass & uvpass, Symbol * stgcos, Symbol * cos)
   {
     UTI tobeType = getCastType();
     UTI vuti = uvpass.getPassTargetType();
     bool usePassVal = m_state.m_currentObjSymbolsForCodeGen.empty() && ((uvpass.getPassStorage() == TMPBITVAL) || (uvpass.getPassStorage() == TMPAUTOREF));
     bool makeValFromPass = m_state.m_currentObjSymbolsForCodeGen.empty() && !usePassVal;
+    //bool assigned = true;
 
     m_state.indentUlamCode(fp);
     fp->write("const s32 ");
@@ -2214,6 +2257,7 @@ namespace MFM {
 
     if(usePassVal)
       {
+	assert(((stgcos == NULL) && (cos == NULL)) || (cos->isSelf() && (cos == stgcos))); //sanity, t41065, t41301
 	if(uvpass.getPassStorage() == TMPAUTOREF)
 	  {
 	    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
@@ -2243,6 +2287,7 @@ namespace MFM {
       }
     else if(makeValFromPass) //an immediate complete obj
       {
+	assert(((stgcos == NULL) && (cos == NULL)) || (cos->isSelf() && (cos == stgcos))); //sanity
 	fp->write(m_state.getTheInstanceMangledNameByIndex(vuti).c_str());
 	fp->write(".");
 	fp->write(m_state.getGetRelPosMangledFunctionName(vuti)); //UlamElement GetRelPosMethod
@@ -2254,8 +2299,9 @@ namespace MFM {
       }
     else
       {
+	//cos becomes stg..(t41141)
 	assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
-	UTI stgcosuti = cos->getUlamTypeIdx(); //t41141
+	UTI stgcosuti = cos->getUlamTypeIdx();
 	UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
 
 	if(m_state.isClassASubclassOf(tobeType, vuti)) //base(vuti)->sub(tobe)
@@ -2326,7 +2372,7 @@ namespace MFM {
       }
   } //genPositionOfBaseIntoATmpVar (helper)
 
-  //SAME TYPES, to a reference, from either a reference or not
+    //SAME TYPES, to a reference, from either a reference or not
   void NodeCast::genCodeCastToAReference(File * fp, UVPass & uvpass)
   {
     UTI fromuti = uvpass.getPassTargetType();
