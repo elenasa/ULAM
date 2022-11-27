@@ -81,13 +81,11 @@ quark PocketChain {
   ChainControlDown mChainControlDown;    // control signals from body down
 
   ChainControlUp& getUp() {
-    ChainControlUp & rup = (ChainControlUp &) mChainControlUp;
-    return rup;
+    return (ChainControlUp &) mChainControlUp;
   }
 
   ChainControlDown& getDown() {
-    ChainControlDown & rdown = (ChainControlDown &) mChainControlDown;
-    return rdown;
+    return (ChainControlDown &) mChainControlDown;
   }
 }
 

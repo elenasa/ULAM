@@ -369,7 +369,7 @@ namespace MFM {
 		msg << ", to a reference type, ";
 		msg << m_state.getUlamTypeNameByIndex(tobeType).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		errorsFound++; //t3962
+		errorsFound++; //t3964
 	      }
 	  }
       }
