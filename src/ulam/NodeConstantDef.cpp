@@ -897,9 +897,26 @@ namespace MFM {
 	  {
 	    if(!m_constSymbol->isClassParameter() && !isDataMemberInit())
 	      {
-		// class args/param values do not belong on the CNSTSTACK (t3894)
-		u32 tmpslotnum = m_state.m_constantStack.getAbsoluteTopOfStackIndexOfNextSlot();
-		assignConstantSlotIndex(tmpslotnum);
+		UlamType * ut = m_state.getUlamTypeByIndex(uti);
+		ULAMCLASSTYPE nclasstype = ut->getUlamClassType();
+		u32 tbits = ut->getBitSize();
+		if((nclasstype == UC_TRANSIENT) && (tbits > MAXSTATEBITS))
+		  {
+		    std::ostringstream msg;
+		    msg << "Constant value expression for transient '";
+		    msg << m_state.m_pool.getDataAsString(m_constSymbol->getId()).c_str();
+		    msg << "' is " << tbits << " bits; Currently, only constant transients ";
+		    msg << "<=" << MAXSTATEBITS << " bits can be evaluated";
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    setNodeType(Nav); //t41632
+		    uti = Nav;
+		  }
+		else
+		  {
+		    // class args/param values do not belong on the CNSTSTACK (t3894)
+		    u32 tmpslotnum = m_state.m_constantStack.getAbsoluteTopOfStackIndexOfNextSlot();
+		    assignConstantSlotIndex(tmpslotnum);
+		  }
 	      }
 	  }
 	return uti;
@@ -1270,7 +1287,7 @@ namespace MFM {
 	// eval doesn't support transients (> atom size) (t41231)
 	// without a slot index, eval will return NOTREADY (-12) (t41266)
 	ULAMCLASSTYPE nclasstype = nut->getUlamClassType();
-	if((nclasstype == UC_ELEMENT) || (nclasstype == UC_QUARK) || ((nclasstype == UC_TRANSIENT) && (nut->getTotalBitSize() <= MAXSTATEBITS)) || m_state.isAtom(nuti))
+	if((nclasstype == UC_ELEMENT) || (nclasstype == UC_QUARK) || ((nclasstype == UC_TRANSIENT) && (nut->getBitSize() <= MAXSTATEBITS)) || m_state.isAtom(nuti))
 	  {
 	    u32 slotsneeded = m_state.slotsNeeded(nuti);
 	    assert(m_constSymbol);
@@ -1399,7 +1416,7 @@ namespace MFM {
     assert(m_nodeExpr); //empty init is empty list, not null (t41262); could be a NodeConstantClass
 
     ULAMCLASSTYPE classtype = nut->getUlamClassType();
-    assert((classtype == UC_QUARK) || (classtype == UC_ELEMENT) || ((classtype == UC_TRANSIENT) && (nut->getTotalBitSize() <= MAXSTATEBITS)) || m_state.isAtom(nuti));
+    assert((classtype == UC_QUARK) || (classtype == UC_ELEMENT) || ((classtype == UC_TRANSIENT) && (nut->getBitSize() <= MAXSTATEBITS)) || m_state.isAtom(nuti));
 
     PACKFIT packFit = nut->getPackable();
     if((packFit == PACKEDLOADABLE))
@@ -1460,8 +1477,18 @@ namespace MFM {
 	    UlamValue classUV;
 	    if(classtype == UC_QUARK) //t41261
 	      {
-		u32 qval = bvclass.Read((j * itemlen), itemlen);
-		classUV = UlamValue::makeImmediateClass(scalaruti, qval, itemlen);
+		if(itemlen <= MAXBITSPERINT)
+		  {
+		    u32 qval = bvclass.Read((j * itemlen), itemlen);
+		    classUV = UlamValue::makeImmediateClass(scalaruti, qval, itemlen);
+		  }
+		else if(itemlen <= MAXBITSPERLONG)
+		  {
+		    u64 qlval = bvclass.ReadLong((j * itemlen), itemlen); //t41631
+		    classUV = UlamValue::makeImmediateLongClass(scalaruti, qlval, itemlen);
+		  }
+		else
+		  m_state.abortShouldntGetHere();
 	      }
 	    else if(classtype == UC_ELEMENT) //(t41230,8,9 t41243)
 	      {
@@ -1496,8 +1523,30 @@ namespace MFM {
 		else
 		  classUV.setUlamValueEffSelfTypeIdx(m_state.getEmptyElementUTI());
 	      }
+	    else if(classtype == UC_TRANSIENT) //t41632
+	      {
+		if(itemlen <= MAXBITSPERINT)
+		  {
+		    u32 tval = bvclass.Read((j * itemlen), itemlen);
+		    classUV = UlamValue::makeImmediateClass(scalaruti, tval, itemlen);
+		  }
+		else if(itemlen <= MAXBITSPERLONG)
+		  {
+		    u64 tlval = bvclass.ReadLong((j * itemlen), itemlen); //t41631
+		    classUV = UlamValue::makeImmediateLongClass(scalaruti, tlval, itemlen);
+		  }
+		else if(itemlen <= MAXSTATEBITS)  //t41275
+		  {
+		    BV8K tbvval;
+		    bvclass.CopyBV(j * itemlen, 0u, itemlen, tbvval); //fmpos, topos, len, destbv
+		    classUV = UlamValue::makeAtom(scalaruti);
+		    classUV.putDataBig(ATOMFIRSTSTATEBITPOS, itemlen, tbvval);
+		  }
+		else
+		  m_state.abortShouldntGetHere();
+	      }
 	    else
-	      m_state.abortNotImplementedYet(); //transient array?
+	      m_state.abortShouldntGetHere();
 
 	    m_state.m_constantStack.storeUlamValueAtStackIndex(classUV, baseslot + j);
 	  }

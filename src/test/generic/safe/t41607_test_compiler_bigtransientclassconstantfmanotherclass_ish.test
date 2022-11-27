@@ -1,11 +1,16 @@
 ## -*- mode:ulam -*-
 #=t41607_test_compiler_bigtransientclassconstantsfromanotherclass_ish
+##
+## gen output: (+ 2 asserts)
+##    Unsigned Arg: 7
+##    Unsigned Arg: 6
 #!
-Exit status: 0
-Ue_T { Int test() {  ChainRules crules;  0 cast return } }
+Exit status: -11
+Ue_T : System { :System<> Int test() {  ChainRules crules;  ChainRule crule;  self ( crule mRHS 1 [] . cast )print . self ( crules mINSERT . mRHS 1 [] . cast )print . self ( crule mRHS 1 [] . crules mINSERT . mRHS 1 [] . > )assert . self ( crule mRHS 1 [] . cast crules mINSERT . mRHS 1 [] . cast 1u cast +b == )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
 Un_ChainRules +ChainTypes { constant ChainRule mINSERT = { .mLHS = { 7u, 0u, 7u }, .mRHS = { 7u, 6u, 7u } };  +ChainTypes< typedef Unsigned(21) ChainType;  constant Unsigned(21) cCPAT_EC = 0u;  constant Unsigned(21) cCPAT_X = 1u;  constant Unsigned(21) cCPAT_Y = 2u;  constant Unsigned(21) cCPAT_U = 3u;  constant Unsigned(21) cCPAT_D = 4u;  constant Unsigned(21) cCPAT_T = 5u;  constant Unsigned(21) cCPAT_C = 6u;  constant Unsigned(21) cCPAT_N = 7u;  typedef Unsigned(21) ChainPattern[3]; > <NOMAIN> }
-Uq_ChainTypes { typedef Unsigned(21) ChainType;  constant Unsigned(21) cCPAT_EC = 0u;  constant Unsigned(21) cCPAT_X = 1u;  constant Unsigned(21) cCPAT_Y = 2u;  constant Unsigned(21) cCPAT_U = 3u;  constant Unsigned(21) cCPAT_D = 4u;  constant Unsigned(21) cCPAT_T = 5u;  constant Unsigned(21) cCPAT_C = 6u;  constant Unsigned(21) cCPAT_N = 7u;  typedef Unsigned(21) ChainPattern[3];  <NOMAIN> }
 Un_ChainRule +ChainTypes { Unsigned(21) mLHS[3]( { 7u, 7u, 7u });  Unsigned(21) mRHS[3]( { 7u, 7u, 7u });  +ChainTypes< typedef Unsigned(21) ChainType;  constant Unsigned(21) cCPAT_EC = 0u;  constant Unsigned(21) cCPAT_X = 1u;  constant Unsigned(21) cCPAT_Y = 2u;  constant Unsigned(21) cCPAT_U = 3u;  constant Unsigned(21) cCPAT_D = 4u;  constant Unsigned(21) cCPAT_T = 5u;  constant Unsigned(21) cCPAT_C = 6u;  constant Unsigned(21) cCPAT_N = 7u;  typedef Unsigned(21) ChainPattern[3]; > <NOMAIN> }
+Uq_ChainTypes { typedef Unsigned(21) ChainType;  constant Unsigned(21) cCPAT_EC = 0u;  constant Unsigned(21) cCPAT_X = 1u;  constant Unsigned(21) cCPAT_Y = 2u;  constant Unsigned(21) cCPAT_U = 3u;  constant Unsigned(21) cCPAT_D = 4u;  constant Unsigned(21) cCPAT_T = 5u;  constant Unsigned(21) cCPAT_C = 6u;  constant Unsigned(21) cCPAT_N = 7u;  typedef Unsigned(21) ChainPattern[3];  <NOMAIN> }
 Un_ChainMatch +ChainTypes { ChainRule mChainRule( Unsigned(21) mLHS[3]( { 7u, 7u, 7u });  Unsigned(21) mRHS[3]( { 7u, 7u, 7u });  +ChainTypes< typedef Unsigned(21) ChainType;  constant Unsigned(21) cCPAT_EC = 0u;  constant Unsigned(21) cCPAT_X = 1u;  constant Unsigned(21) cCPAT_Y = 2u;  constant Unsigned(21) cCPAT_U = 3u;  constant Unsigned(21) cCPAT_D = 4u;  constant Unsigned(21) cCPAT_T = 5u;  constant Unsigned(21) cCPAT_C = 6u;  constant Unsigned(21) cCPAT_N = 7u;  typedef Unsigned(21) ChainPattern[3]; >);  typedef Unsigned(3) SN;  Unsigned(3) mBindings[3]( { 7u, 7u, 7u });  Bool mMatched( false);  +ChainTypes< typedef Unsigned(21) ChainType;  constant Unsigned(21) cCPAT_EC = 0u;  constant Unsigned(21) cCPAT_X = 1u;  constant Unsigned(21) cCPAT_Y = 2u;  constant Unsigned(21) cCPAT_U = 3u;  constant Unsigned(21) cCPAT_D = 4u;  constant Unsigned(21) cCPAT_T = 5u;  constant Unsigned(21) cCPAT_C = 6u;  constant Unsigned(21) cCPAT_N = 7u;  typedef Unsigned(21) ChainPattern[3]; > <NOMAIN> }
 Un_ChainMatch_mINSERT : ChainMatch { :ChainMatch< ChainRule mChainRule( Unsigned(21) mLHS[3]( { 7u, 7u, 7u });  Unsigned(21) mRHS[3]( { 7u, 7u, 7u });  +ChainTypes< typedef Unsigned(21) ChainType;  constant Unsigned(21) cCPAT_EC = 0u;  constant Unsigned(21) cCPAT_X = 1u;  constant Unsigned(21) cCPAT_Y = 2u;  constant Unsigned(21) cCPAT_U = 3u;  constant Unsigned(21) cCPAT_D = 4u;  constant Unsigned(21) cCPAT_T = 5u;  constant Unsigned(21) cCPAT_C = 6u;  constant Unsigned(21) cCPAT_N = 7u;  typedef Unsigned(21) ChainPattern[3]; >);  typedef Unsigned(3) SN;  Unsigned(3) mBindings[3]( { 7u, 7u, 7u });  Bool mMatched( false); > ^ChainTypes< typedef Unsigned(21) ChainType;  constant Unsigned(21) cCPAT_EC = 0u;  constant Unsigned(21) cCPAT_X = 1u;  constant Unsigned(21) cCPAT_Y = 2u;  constant Unsigned(21) cCPAT_U = 3u;  constant Unsigned(21) cCPAT_D = 4u;  constant Unsigned(21) cCPAT_T = 5u;  constant Unsigned(21) cCPAT_C = 6u;  constant Unsigned(21) cCPAT_N = 7u;  typedef Unsigned(21) ChainPattern[3]; > <NOMAIN> }
 ##
@@ -16,10 +21,15 @@ Un_ChainMatch_mINSERT : ChainMatch { :ChainMatch< ChainRule mChainRule( Unsigned
 ##
 #>T.ulam
  ulam 5;
-element T{
+element T : System {
 
   Int test(){
     ChainRules crules;
+    ChainRule crule;
+    print(crule.mRHS[1]); //7
+    print(crules.mINSERT.mRHS[1]); //6
+    assert(crule.mRHS[1] > crules.mINSERT.mRHS[1]);
+    assert(crule.mRHS[1] == crules.mINSERT.mRHS[1] + 1u);
     return 0;
   }
 
@@ -83,5 +93,17 @@ transient ChainMatch + ChainTypes  {
 transient ChainMatch_mINSERT : ChainMatch {
   @Override
   virtual Void initRule() { mChainRule = ChainRules.mINSERT; }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
 }
 #.

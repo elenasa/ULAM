@@ -9,12 +9,13 @@
 #!
 Exit status: -11
 Ue_KeyExprRep { Int test() {  SystemU3 s;  { Int i = 0 cast;  i 5u cast < cond { s ( keyexpr_x13 i [] m_elfoo . estr 0 [] . )print . s ( 18u 4u cast == )assert . } _1: i 1 ++ while } constant KeyExprNode mykeyarraycopy[5] = keyexpr_x13;  { Int j = 0 cast;  j 5 cast < cond { s ( mykeyarraycopy j [] m_elfoo . estr 1 [] . )print . s ( 18u 3u cast == )assert . } _2: j 1 ++ while } 0 cast return } }
-Ue_Elfoo { Bool esp( true);  String estr[2]( { "melt", "let" });  constant String c_str = "reunion";  <NOMAIN> }
+Uq_Elfoo { Bool esp( true);  String estr[2]( { "melt", "let" });  constant String c_str = "reunion";  <NOMAIN> }
 Un_KeyExprNode { typedef Unsigned(8) Byte;  Unsigned(8) m_leftIndex(0);  Unsigned(8) m_rightIndex(0);  Unsigned(8) m_keyCode(0);  Unsigned(8) m_op(0);  Elfoo m_elfoo( celfoo);  <NOMAIN> }
 Uq_SystemU3 : System { :System<> <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
-## informed by t41273: access each item, and then the entire array to see if the isFixed flag works in gencode
+## informed by t41273: access each item, and then the entire array to see if the isFixed flag works in gencode;
+## here, Elfoo is a quark
 ##
 #>KeyExprRep.ulam
   ulam 3;
@@ -61,7 +62,7 @@ transient KeyExprNode {
 
 #:Elfoo.ulam
   ulam 3;
-element Elfoo {
+quark Elfoo {
   Bool esp = true;
   String estr[2] = { "melt", "let" };
   constant String c_str = "reunion";

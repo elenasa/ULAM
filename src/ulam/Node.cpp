@@ -1873,17 +1873,18 @@ namespace MFM {
 	  fp->write("("); //t3739
 
 	fp->write(ruvpass.getTmpVarAsString(m_state).c_str()); //tmp var ref
+	if((ruvpass.getPassStorage() == TMPBITVAL) && m_state.isAClass(ruvpass.getPassTargetType()))
+	  fp->write(".read()"); //t41355, t3715 (primitive), t41632
 	fp->write(");"); GCNL;
       }
     else
       {
 	fp->write("("); //use immediate's write for distrib among scattered bases (ulam-5); t41358
 	fp->write(ruvpass.getTmpVarAsString(m_state).c_str()); //tmp var ref
+	if((ruvpass.getPassStorage() == TMPBITVAL) && m_state.isAClass(ruvpass.getPassTargetType()))
+	  fp->write(".read()"); //t41355, t3715 (primitive)
 	fp->write(");"); GCNL;
       }
-
-    //if((ruvpass.getPassStorage() == TMPBITVAL) && m_state.isAClass(ruvpass.getPassTargetType()))
-    //  fp->write(".read()"); //t41355, t3715 (primitive)
 
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeWriteToTransientFromATmpVar
