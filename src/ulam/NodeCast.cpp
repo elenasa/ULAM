@@ -2248,7 +2248,6 @@ namespace MFM {
     UTI vuti = uvpass.getPassTargetType();
     bool usePassVal = m_state.m_currentObjSymbolsForCodeGen.empty() && ((uvpass.getPassStorage() == TMPBITVAL) || (uvpass.getPassStorage() == TMPAUTOREF));
     bool makeValFromPass = m_state.m_currentObjSymbolsForCodeGen.empty() && !usePassVal;
-    //bool assigned = true;
 
     m_state.indentUlamCode(fp);
     fp->write("const s32 ");
@@ -2299,7 +2298,7 @@ namespace MFM {
       }
     else
       {
-	//cos becomes stg..(t41141)
+	//cos becomes stg..(t41141, t41292)
 	assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
 	UTI stgcosuti = cos->getUlamTypeIdx();
 	UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
@@ -2362,8 +2361,8 @@ namespace MFM {
 	    assert(!(cos->isTmpVarSymbol() && ((SymbolTmpVar *) cos)->isBaseClassRef())); //sanity, pls
 	    assert(cos->isDataMember()); //more sanity, no longer implicit self
 
-	    fp->write_decimal(cos->getPosOffset()); //t41141, t41292
-	    fp->write("); //dm"); GCNL;
+	    fp->write_decimal(cos->getPosOffset());
+	    fp->write("; //dm"); GCNL; //t41634,5
 	  }
 	else
 	  {
