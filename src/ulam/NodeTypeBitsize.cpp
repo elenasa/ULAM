@@ -99,7 +99,8 @@ namespace MFM {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    it = Nav;
 	  }
-	else if(!(m_state.getUlamTypeByIndex(it)->isNumericType()) && m_node->isReadyConstant())
+	//else if(!(m_state.getUlamTypeByIndex(it)->isNumericType()) && m_node->isReadyConstant())
+	else if(m_state.getUlamTypeByIndex(it)->isNumericType() && !m_node->isReadyConstant()) //t41636
 	  {
 	    std::ostringstream msg;
 	    msg << "Type Bitsize specifier: " << m_state.getUlamTypeNameBriefByIndex(it);

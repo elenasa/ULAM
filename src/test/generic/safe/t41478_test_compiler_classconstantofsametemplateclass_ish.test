@@ -6,7 +6,7 @@
 ##  Unsigned Arg: 1
 #!
 Exit status: 6
-Ue_T { Int test() {  System s;  typedef Foo(false,0u) MyFoo;  constant Foo(true,2u) f = { };  s ( f mDM1 . cast )print . s ( f mDM1 . cast 2 cast == )assert . constant Foo(false,0u) mf = { .mDM1 = 3u };  s ( mf mDM1 . cast )print . s ( mf mDM1 . cast 3 cast == )assert . constant Foo(false,1u) nf = { };  s ( nf mDM1 . cast )print . s ( nf mDM1 . cast 1 cast == )assert . f mDM1 . cast mf mDM1 . cast +b cast nf mDM1 . cast +b cast return } }
+Ue_T { Int test() {  System s;  typedef Foo(false,0u) MyFoo;  constant Foo(true,2u) f = { };  s ( f mDM1 . cast )print . s ( f mDM1 . cast 2 cast == )assert . constant Foo(false,0u) mf = { .mDM1 = 3u };  s ( mf mDM1 . cast )print . s ( mf mDM1 . cast 3 cast == )assert . constant Foo(false,1u) nf = { };  s ( nf mDM1 . cast )print . s ( nf mDM1 . cast 1 cast == )assert . 6u cast return } }
 Uq_System { <NOMAIN> }
 Uq_Foo(Bool b, Unsigned(3) m) { Unsigned(3) mDM1(notready);  Bool mDM2(notready);  typedef Foo(true,2u) QFoo;  typedef Foo12 MooFoo;  typedef Foo(b,m) NewFoo;  <NOMAIN> }
 ##
