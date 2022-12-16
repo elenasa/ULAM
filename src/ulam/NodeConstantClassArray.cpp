@@ -181,6 +181,18 @@ namespace MFM {
 	clearSymbolPtr();
 	m_state.setGoAgain();
       }
+    else
+      {
+	NodeBlock * currBlock = getBlock();
+	assert(currBlock);
+	if(currBlock->isAClassBlock())
+	  {
+	    UTI cbuti = currBlock->getNodeType();
+	    if(m_state.okUTItoContinue(cbuti))
+	      m_state.addCompleteUlamTypeToThisContextSet(cbuti); //t41637
+	  }
+      }
+
     return it;
   } //checkAndLabelType
 
