@@ -445,7 +445,7 @@ namespace MFM{
     assert(!m_state.isScalar(nuti));
     assert(m_nodes.size() > 0 && (m_nodes[0] != NULL));
 
-    assert(!(m_nodes[0]->isClassInit())); //genCodeClassInitArray called instead (t41170)
+    assert(isAConstant() || !(m_nodes[0]->isClassInit())); //genCodeClassInitArray called instead for dm (t41170); continue for immediate constant class arrays (t41638,9)
 
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
 
