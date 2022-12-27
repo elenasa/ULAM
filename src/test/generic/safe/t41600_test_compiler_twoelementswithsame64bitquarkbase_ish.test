@@ -8,8 +8,9 @@
 ##  Bool(3) Arg: 0x7 (true)
 ##  Bool(3) Arg: 0x7 (true) (followed by 4 asserts)
 ##
+##  UNEVALUABLE until shared base classes copied properly.
 #!
-Exit status: 0
+Exit status: -1
 Ue_R { Int test() {  System s;  E1 e1;  e1 m_u . 3 cast = QBase& eqb1 = e1 cast;  E2 e2;  QBase& eqb2 = e2 cast;  eqb2 eqb1 = s ( e2 m_u . cast )print . s ( e1 m_u . cast )print . s ( e2 m_u . e1 m_u . == )assert . s ( e2 t1 0 [] . cast )print . s ( e2 t1 1 [] . cast )print . s ( e2 t1 2 [] . cast )print . s ( e2 t1 3 [] . cast )print . s ( e2 t1 0 [] . )assert . s ( e2 t1 1 [] . ! )assert . s ( e2 t1 2 [] . )assert . s ( e2 t1 3 [] . )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 Ue_E1 : QBase { Unsigned(3) m_dm(0);  :QBase< Bool t1[41]( { true, false, true, true, false });  Unsigned(7) m_u(0); > <NOMAIN> }
