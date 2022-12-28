@@ -2397,6 +2397,7 @@ namespace MFM {
       adjstForEle = true;
 
     bool askEffSelf = askEffectiveSelfAtRuntimeForRelPosOfBase();
+    u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
 
     m_state.indentUlamCode(fp);
     fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
@@ -2437,9 +2438,9 @@ namespace MFM {
 	    if(adjstForEle)
 	      fp->write("T::ATOM_FIRST_STATE_BIT + "); //t3803, t3832, t3632
 
-	    if(!askEffSelf && (uvpass.getPassApplyDelta() || cos->isDataMember()))
+	    if((!askEffSelf || cosSize > 2) && (uvpass.getPassApplyDelta() || cos->isDataMember()))
 	      {
-		//specific baseclass member type, or dm (t41599), not incl first relpos;
+		//specific baseclass member type, or dm (t41599,t41642), not incl first relpos;
 		pos = calcDataMemberPosOfCurrentObjectClasses(false, Nouti); //reset pos
 	      }
 
@@ -2455,6 +2456,8 @@ namespace MFM {
 
 		assert(cos->isDataMember());
 		UTI cosclassuti = cos->getDataMemberClass();
+		if(cosSize > 2)
+		  cosclassuti = m_state.m_currentObjSymbolsForCodeGen[1]->getDataMemberClass(); //rest dm's known at compile time
 		fp->write("(");
 		fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(cosclassuti)); //efficiency
 		fp->write("u ");
@@ -2520,6 +2523,8 @@ namespace MFM {
 		    //data member, stg is a ref (t41599, case 2)
 		    assert(cos->isDataMember()); //sanity
 		    UTI cosclassuti = cos->getDataMemberClass();
+		    if(cosSize > 2)
+		      cosclassuti = m_state.m_currentObjSymbolsForCodeGen[1]->getDataMemberClass(); //rest dm's known atc compile time (t41642)
 		    fp->write(stgcos->getMangledName().c_str());
 		    fp->write(".GetEffectiveSelf()->");
 		    fp->write(m_state.getGetRelPosMangledFunctionName(stgcosuti)); //nonatom

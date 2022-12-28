@@ -1844,6 +1844,8 @@ namespace MFM {
 
     Symbol * stgcos = NULL;
     Symbol * cos = NULL;
+    u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
+
     Node::loadStorageAndCurrentObjectSymbols(stgcos, cos);
     assert(cos && stgcos);
     UTI stgcosuti = stgcos->getUlamTypeIdx();
@@ -1865,11 +1867,11 @@ namespace MFM {
 
 	    //e.g. t41366 Bar& ref = eltref.t;
 	    // where Bar is a base of quark t, a dm of element eltref;
-	    u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
 	    posToDM = cosSize > 1 ? Node::calcDataMemberPosOfCurrentObjectClassesFromFirstDMIndex(1) : cos->getPosOffset(); //t41627
 
 	    UTI cosclassuti = cos->getDataMemberClass(); //t41627,8
-
+	    if(cosSize > 2)
+	      cosclassuti = m_state.m_currentObjSymbolsForCodeGen[1]->getDataMemberClass(); //t41627
 	    // when stgcos is a ref, so that we can keep posToEff
 	    //accurate, /we need tmp immediate ref to dm, when
 	    //tobe is a baseclass type (t41366)
@@ -2026,8 +2028,9 @@ namespace MFM {
       }
     else if(cos->isDataMember())
       {
-	//UTI cosclassuti = cos->getDataMemberClass();
-	UTI cosclassuti = m_state.m_currentObjSymbolsForCodeGen[1]->getDataMemberClass(); //t41628
+	UTI cosclassuti = cos->getDataMemberClass();
+	if(cosSize > 2)
+	  cosclassuti = m_state.m_currentObjSymbolsForCodeGen[1]->getDataMemberClass(); //t41628
 
 	if(!stgcosut->isReference())//stgcos is non-ref, accepts delta arg
 	  {
