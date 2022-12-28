@@ -1,12 +1,12 @@
 ## -*- mode:ulam -*-
 #=t41418_test_compiler_castingbitstobigtransientarray_error
 #!
-./QIMsg.ulam:3:7: ERROR: Trying to exceed allotted bit size (64) for a base quark QIMsg(120u) with 122 bits.
-./QIMsg.ulam:3:7: ERROR: Trying to exceed allotted bit size (64) for quark QIMsg(120u) with 122 bits.
-./QIMsg.ulam:3:7: NOTE: Components of QIMsg(120u) are..
-./QIMsg.ulam:9:3: NOTE: (2 of 122 bits, at 0) Unary(2) mDirection.
-./QIMsg.ulam:10:3: NOTE: (120 of 122 bits, at 2) Bits(120) mPayload.
-./QIMsg.ulam:3:7: ERROR: CLASS INSTANCE 'QIMsg(120u)' SIZED 122 FAILED.
+./QIMsg.ulam:3:7: ERROR: Trying to exceed allotted bit size (64) for a base quark QIMsg(118u) with 120 bits.
+./QIMsg.ulam:3:7: ERROR: Trying to exceed allotted bit size (64) for quark QIMsg(118u) with 120 bits.
+./QIMsg.ulam:3:7: NOTE: Components of QIMsg(118u) are..
+./QIMsg.ulam:9:3: NOTE: (2 of 120 bits, at 0) Unary(2) mDirection.
+./QIMsg.ulam:10:3: NOTE: (118 of 120 bits, at 2) Bits(118) mPayload.
+./QIMsg.ulam:3:7: ERROR: CLASS INSTANCE 'QIMsg(118u)' SIZED 120 FAILED.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by Dave's ish 2/24/2021: Transient array and Bit casting new (see t41416).

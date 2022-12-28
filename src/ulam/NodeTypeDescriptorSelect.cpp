@@ -111,7 +111,8 @@ namespace MFM {
 	    // find our id in the "selected" class, must be a typedef (t3267)
 	    Symbol * asymptr = NULL;
 	    bool hazyKin = false;
-	    if(m_state.alreadyDefinedSymbolByAClassOrAncestor(seluti, tokid, asymptr, hazyKin) && !hazyKin)
+	    //if(m_state.alreadyDefinedSymbolByAClassOrAncestor(seluti, tokid, asymptr, hazyKin) && !hazyKin)
+	    if(m_state.alreadyDefinedSymbolByAClassOrAncestor(seluti, tokid, asymptr, hazyKin)) //t41636
 	      {
 		if(asymptr->isTypedef())
 		  {

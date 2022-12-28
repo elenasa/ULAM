@@ -1,0 +1,58 @@
+## -*- mode:ulam -*-
+#=t41636_test_compiler_complexbitsizewithsizeofanotherclasstypedef_issue
+##   gen output: (+ assert)
+##      Unsigned Arg: 8
+#!
+Exit status: 8
+Ue_Ish { Unsigned(4) mHopCount(0u);  typedef Unsigned(8) EventCounter;  Unsigned(8) mEventCounter(254u);  Int test() {  { self mEventCounter . 1 cast -= cast 254u == cond { System s;  s ( 8u )print . s ( true )assert . } if } 8u cast return } }
+Uq_Foo { typedef Unsigned(4) HopCount;  Unsigned(4) mHopCount(0);  constant Unsigned cHOPCOUNT_SIZEOF = 4u;  <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## Dave ish 12/10/22, workarounds, but EventCounter typedef should've compiled.
+##                    NodeBinaryOp failed to constant fold.
+##
+#>Ish.ulam
+  ulam 5;
+element Ish {
+  Foo.HopCount mHopCount;
+  typedef Unsigned(Foo.HopCount.sizeof + 4u) EventCounter;
+
+  // WORKS WITH THIS: typedef Unsigned(Foo.cHOPCOUNT_SIZEOF + 4u) EventCounter;
+  //WORKS WITHOUT + 4u typedef Unsigned(Foo.HopCount.sizeof) EventCounter;
+  //typedef Foo.HopCount FooHop;
+  //NOT WORK typedef Unsigned(FooHop.sizeof + 4u) EventCounter;
+  EventCounter mEventCounter = EventCounter.maxof;
+
+  Int test() {
+    if (--mEventCounter == EventCounter.maxof - 1u) {
+      //EventWindow ew;
+      //ew[0] = Empty.instanceof;
+      System s;
+      s.print(mEventCounter.sizeof);
+      s.assert(mEventCounter.sizeof==8u);
+    }
+    return mEventCounter.sizeof;
+  }
+}
+
+
+#:Foo.ulam
+  ulam 3;
+quark Foo {
+  typedef Unsigned(4) HopCount;
+  HopCount mHopCount;
+  constant Unsigned cHOPCOUNT_SIZEOF = HopCount.sizeof;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

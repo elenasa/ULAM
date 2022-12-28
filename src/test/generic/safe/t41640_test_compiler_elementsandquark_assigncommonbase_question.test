@@ -1,0 +1,91 @@
+## -*- mode:ulam -*-
+#=t41640_test_compiler_elementsandquark_assigncommonbase_question
+##   gen output:
+##      Bool(3) Arg: 0x0 (false)
+##      Bool(3) Arg: 0x7 (true) (+ assert)
+##      Bool(3) Arg: 0x0 (false)
+##      assert: arg is 1
+##      after assert's abort: arg is 1
+##      Bool(3) Arg: 0x0 (false)
+##      Bool(3) Arg: 0x7 (true) (+ assert)
+##      Bool(3) Arg: 0x0 (false)
+##      Unsigned Arg: 4294967295 (+ assert)
+##
+## UNEVALUABLE until share bases are copied properly.
+#!
+Exit status: -1
+Ue_R : System { :System<> Int test() {  Foo f;  Gah g;  g val_b 1 [] . true = self ( g val_b 0 [] . cast )print . self ( g val_b 1 [] . cast )print . self ( g val_b 1 [] . )assert . self ( g val_b 2 [] . cast )print . self ( f val_b 1 [] . g val_b 1 [] . != )assert . Bar& gbref = g cast;  Bar& fbref = f cast;  fbref gbref = self ( f val_b 0 [] . cast )print . self ( f val_b 1 [] . cast )print . self ( f val_b 1 [] . )assert . self ( f val_b 2 [] . cast )print . self ( f m_u . )print . self ( f m_u . 4294967295u == )assert . f val_b 1 [] . cast return } }
+Uq_System { <NOMAIN> }
+Ue_Foo : Bar { Bar m_bar( Bool val_b[3](false,false,false); );  Unsigned m_u( 4294967295u);  :Bar< Bool val_b[3](false,false,false); > <NOMAIN> }
+Ue_Gah : Bar { Int m_int( 1);  :Bar< Bool val_b[3](false,false,false); > <NOMAIN> }
+Uq_Bar { Bool val_b[3](false,false,false);  <NOMAIN> }
+##
+##  Dave question 12/26/22: how to assign common baseclass to different element? (see also t3584)
+##
+#>R.ulam
+  ulam 5;
+element R : System {
+
+  Int test() {
+    Foo f;
+    Gah g;
+
+    g.val_b[1] = true;
+    print (g.val_b[0]);
+    print (g.val_b[1]);
+    assert(g.val_b[1]);
+    print (g.val_b[2]);
+
+    assert(f.val_b[1] != g.val_b[1]); //confirm not the same
+
+    //assign base references
+    Bar & gbref = (Bar &) g;
+    Bar & fbref = (Bar &) f;
+    fbref = gbref;
+
+    print (f.val_b[0]);
+    print (f.val_b[1]);
+    assert(f.val_b[1]); //confirm changed
+    print (f.val_b[2]);
+
+    print(f.m_u);
+    assert(f.m_u == Unsigned.maxof); //confirmed unchanged
+
+    return (Int) (f.val_b[1]); //eval return should be 1?
+  }
+
+}
+
+
+#:Foo.ulam
+  ulam 1;
+element Foo : Bar{
+  Bar m_bar;
+  Unsigned m_u = Unsigned.maxof;
+}
+
+#:Gah.ulam
+  ulam 1;
+element Gah : Bar {
+  Int m_int = 1;
+}
+
+#:Bar.ulam
+  ulam 1;
+quark Bar {
+  Bool val_b[3];
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+
+#.

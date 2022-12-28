@@ -1,0 +1,98 @@
+## -*- mode:ulam -*-
+#=t41641_test_compiler_multiinheritancewsharedbases_copyquestion
+##
+## gen output (+ asserts)
+## Unsigned Arg: 99
+## Unsigned Arg: 99
+##
+## UNEVALUABLE until shared bases copy works properly.
+#!
+Exit status: -1
+Ue_R : System { Unsigned m_foosize(0u);  :System<> Int test() {  Foo f;  Tar t;  t mFoo . 99 cast = Q4& fq4 = f cast;  Q4& tq4 = t cast;  fq4 tq4 = self ( t mFoo . cast )print . self ( t mFoo . 99u cast == )assert . self ( f mFoo . cast )print . self ( f mFoo . t mFoo . == )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+Un_Foo : Q5 { :Q5<> ^Q4<> ^Q3< Unsigned(3) mGah(0); > ^Q2< Unsigned(2) mBar(0); > ^Q< Unsigned(22) mFoo(0); > <NOMAIN> }
+Un_Tar : Q4 { :Q4<> ^Q3< Unsigned(3) mGah(0); > ^Q2< Unsigned(2) mBar(0); > ^Q< Unsigned(22) mFoo(0); > <NOMAIN> }
+Uq_Q4 : Q2 +Q3 { /* empty class block */ }
+Uq_Q5 : Q4 +Q { /* empty class block */ }
+Uq_Q { Unsigned(22) mFoo(0);  <NOMAIN> }
+Uq_Q2 : Q { Unsigned(2) mBar(0);  :Q< Unsigned(22) mFoo(0); > <NOMAIN> }
+Uq_Q3 : Q { Unsigned(3) mGah(0);  :Q< Unsigned(22) mFoo(0); > <NOMAIN> }
+##
+## informed by Dave's question 12/26/22 (see also t41640)
+##
+#>R.ulam
+  ulam 5;
+element R : System {
+  Unsigned m_foosize;
+  Int test() {
+    Foo f;
+    Tar t;
+
+    t.mFoo = 99;
+
+    Q4 & fq4 = (Q4 &) f;
+    Q4 & tq4 = (Q4 &) t;
+
+    fq4 = tq4;
+
+    print(t.mFoo);
+    assert(t.mFoo==99u);
+    print(f.mFoo);
+    assert(f.mFoo==t.mFoo);
+    return 0;
+  }
+}
+
+#:Foo.ulam
+  ulam 5;
+transient Foo : Q5 {
+  Void behave(){ }
+}
+
+#:Tar.ulam
+  ulam 5;
+transient Tar : Q4 {
+  Void behave(){ }
+}
+
+#:Q5.ulam
+  ulam 5;
+quark Q5 : Q4 +Q { }
+
+#:Q4.ulam
+  ulam 5;
+quark Q4 : Q2 +Q3 { }
+
+#:Q3.ulam
+  ulam 5;
+quark Q3 : Q
+{
+  Unsigned(3) mGah;
+}
+
+#:Q2.ulam
+  ulam 5;
+quark Q2 : Q
+{
+  Unsigned(2) mBar;
+}
+
+#:Q.ulam
+  ulam 5;
+quark Q
+{
+  Unsigned(22) mFoo;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

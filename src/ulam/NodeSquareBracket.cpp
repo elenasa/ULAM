@@ -1071,6 +1071,12 @@ namespace MFM {
 	// available. (t3953, t41277,8)
 	Node::genCodeConvertATmpVarIntoConstantAutoRef(fp, luvpass, offset);
       }
+    else if(m_nodeLeft->isFunctionCall() && !(m_state.isReference(luti) && !m_state.isAClass(luti)))
+      {
+	//funccall returns c++ const that cannot become a ref, t.f. must read array item (ish)
+	Node::genCodeReadPrimitiveArrayItemIntoATmpVar(fp, luvpass, offset); //t41623
+	cossym = NULL;
+      }
     else
       Node::genCodeConvertATmpVarIntoAutoRef(fp, luvpass, offset);
 

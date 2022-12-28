@@ -1,0 +1,141 @@
+## -*- mode:ulam -*-
+#=t41642_test_compiler_reftobaseclassdmposoffbydoubledotdm_ish
+##
+##  gen code output: (+2 interleaved asserts)
+##     Unsigned Arg: 666
+##     Unsigned Arg: 666
+#!
+Exit status: -11
+Ue_R : System { :System<> Int test() {  PocketChainState ds;  ds mPocket . mPocketQuadrant . mQuad . 666u cast = PocketChainState& pcs = ds cast;  PocketHC3& hc3 = pcs mPocket . cast;  PocketQuadrant& pq2 = hc3 mPocketQuadrant . cast;  self ( pq2 mQuad . )print . { pq2 mQuad . ds mPocket . mPocketQuadrant . mQuad . != cond self ( false )assert . if self ( true )assert . else } PocketQuadrant& pq = pcs mPocket . mPocketQuadrant . cast;  self ( pq mQuad . )print . { pq mQuad . pq2 mQuad . != cond self ( false )assert . if self ( true )assert . else } 0 cast return } }
+Uq_System { <NOMAIN> }
+Un_PocketChainState : SegmentState { Bool mGrowTemp( false);  typedef Unsigned(4) SegNo;  constant Unsigned(4) cMAX_SEG = 10u;  Unsigned(4) mSegNo(0);  :SegmentState< typedef Unsigned(6) SN;  typedef Unsigned(3) PocketPtr;  Unsigned(6) mEWSNAvailable[2](0,0);  Unsigned(3) mPocketWithAvailable[2]( { 7u, 7u });  Unsigned(6) mEWSNMate[2](0,0);  Unsigned(3) mPocketWithMate[2]( { 7u, 7u }); > ^PocketableState< Bool(7) mSpace7(false);  PocketHC3 mPocket( typedef Unsigned(6) SN;  Unsigned mCoordCount(0);  PocketQuadrant mPocketQuadrant( Bool(5) mBool(false);  Unsigned mQuad(0); ); ); > <NOMAIN> }
+Un_PocketHC3 { typedef Unsigned(6) SN;  Unsigned mCoordCount(0);  PocketQuadrant mPocketQuadrant( Bool(5) mBool(false);  Unsigned mQuad(0); );  <NOMAIN> }
+Un_PocketQuadrant { Bool(5) mBool(false);  Unsigned mQuad(0);  <NOMAIN> }
+Un_SegmentState : PocketableState { typedef Unsigned(6) SN;  typedef Unsigned(3) PocketPtr;  Unsigned(6) mEWSNAvailable[2](0,0);  Unsigned(3) mPocketWithAvailable[2]( { 7u, 7u });  Unsigned(6) mEWSNMate[2](0,0);  Unsigned(3) mPocketWithMate[2]( { 7u, 7u });  :PocketableState< Bool(7) mSpace7(false);  PocketHC3 mPocket( typedef Unsigned(6) SN;  Unsigned mCoordCount(0);  PocketQuadrant mPocketQuadrant( Bool(5) mBool(false);  Unsigned mQuad(0); ); ); > <NOMAIN> }
+Un_PocketableState { Bool(7) mSpace7(false);  PocketHC3 mPocket( typedef Unsigned(6) SN;  Unsigned mCoordCount(0);  PocketQuadrant mPocketQuadrant( Bool(5) mBool(false);  Unsigned mQuad(0); ); );  <NOMAIN> }
+Uq_Segment { typedef Unsigned(6) SN;  typedef Unsigned(3) PocketPtr;  constant Unsigned(3) cPP_SELF = 0u;  constant Unsigned(3) cPP_WEST = 1u;  constant Unsigned(3) cPP_NORTH = 2u;  constant Unsigned(3) cPP_SOUTH = 3u;  constant Unsigned(3) cPP_EAST = 4u;  constant Unsigned(3) cPP_RSRV1 = 5u;  constant Unsigned(3) cPP_RSRV2 = 6u;  constant Unsigned(3) cPP_NULL = 7u;  typedef Unsigned(1) BodyDir;  constant Unsigned(1) cBODY_UP = 0u;  constant Unsigned(1) cBODY_DOWN = 1u;  Unsigned(3) mPocketPtrs[2]( { 7u, 7u });  <NOMAIN> }
+##
+## informed by Dave's 12/27/22 ish
+## ref to dm of baseclass has pos incorrectly calculated,
+## using wrong base class for relative pos when double dots used with ref ref.dm1.dm2inbase.
+## (see also t41599,t41627)
+##
+#>R.ulam
+  ulam 5;
+element R : System {
+
+  Int test(){
+    PocketChainState ds;
+    ds.mPocket.mPocketQuadrant.mQuad = 666u;
+
+    PocketChainState & pcs = ds;
+
+    PocketHC3 & hc3 = pcs.mPocket;
+    PocketQuadrant & pq2 = hc3.mPocketQuadrant;
+    print(pq2.mQuad);
+
+    if (pq2.mQuad != ds.mPocket.mPocketQuadrant.mQuad)
+      assert(false); //THIS SHOULD NEVER FAIL
+    else
+      assert(true);
+
+    //case: ref double dot
+    PocketQuadrant & pq = pcs.mPocket.mPocketQuadrant;
+
+    print(pq.mQuad);
+
+    if (pq.mQuad != pq2.mQuad)
+      assert(false); //THIS SHOULD NEVER FAIL
+    else
+      assert(true);
+
+    return 0;
+  }
+}
+
+#:PocketChainState.ulam
+  ulam 5;
+transient PocketChainState : SegmentState {
+  Bool mGrowTemp = false;
+
+  typedef Unsigned(4) SegNo;
+  constant SegNo cMAX_SEG = 10u;
+  SegNo mSegNo;
+}
+
+#:SegmentState.ulam
+  ulam 5;
+transient SegmentState : PocketableState {
+  typedef Unsigned(6) SN;
+  typedef Segment.PocketPtr PocketPtr;
+
+  // availability data valid after findAvailable returns true
+  SN mEWSNAvailable[2];
+  PocketPtr mPocketWithAvailable[2] = { Segment.cPP_NULL, Segment.cPP_NULL };
+
+  // mate data valid after findMate returns true
+  SN mEWSNMate[2];
+  PocketPtr mPocketWithMate[2] = { Segment.cPP_NULL, Segment.cPP_NULL };
+}
+
+
+#:PocketableState.ulam
+  ulam 5;
+transient PocketableState{
+  Bool(7) mSpace7;
+  PocketHC3 mPocket;
+}
+
+#:Segment.ulam
+  ulam 5;
+quark Segment {
+  typedef Unsigned(6) SN;
+
+  typedef Unsigned(3) PocketPtr;
+  constant PocketPtr cPP_SELF  = 0u;  //< Ptr center
+  constant PocketPtr cPP_WEST  = 1u;  //< Ptr west
+  constant PocketPtr cPP_NORTH = 2u;  //< Ptr north
+  constant PocketPtr cPP_SOUTH = 3u;  //< Ptr south
+  constant PocketPtr cPP_EAST  = 4u;  //< Ptr east
+  constant PocketPtr cPP_RSRV1 = 5u;  //< Don't use
+  constant PocketPtr cPP_RSRV2 = 6u;  //< Don't use
+  constant PocketPtr cPP_NULL  = 7u;  //< Null pointer
+
+  typedef Unsigned(1) BodyDir;
+  constant BodyDir cBODY_UP = 0u;
+  constant BodyDir cBODY_DOWN = 1u;
+  PocketPtr mPocketPtrs[BodyDir.maxof+1u]  = { cPP_NULL, cPP_NULL }; // fwd[0] bck[1] 6 bits total
+
+  //// Segment API
+  virtual Bool wantMove(SegmentState & ss) { return false; }
+  virtual Bool wantGrow(SegmentState & ss) { return false; }
+}
+
+#:PocketHC3.ulam
+  ulam 5;
+transient PocketHC3 {
+  typedef Unsigned(6) SN;
+  //  C2D mCoords[4]; // 0 --, 1 +-, 2 ++, 3 -+
+  Unsigned mCoordCount;
+  PocketQuadrant mPocketQuadrant;
+}
+
+#:PocketQuadrant.ulam
+  ulam 5;
+transient PocketQuadrant {
+  Bool(5) mBool; //space
+  Unsigned mQuad;
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

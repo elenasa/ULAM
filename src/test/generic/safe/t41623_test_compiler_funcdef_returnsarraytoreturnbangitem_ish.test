@@ -1,0 +1,59 @@
+## -*- mode:ulam -*-
+#=t41623_test_compiler_funcdef_returnsarraytoreturnbangitem_ish
+##
+##  gen output: (+ 2 asserts)
+##      Bool(3) Arg: 0x0 (false)
+#!
+./A.ulam:16:14: Warning: Eval of function calls as lefthand values is not currently supported. Save the results of 'foo' to a variable, type: Bool.
+Exit status: -11
+Ue_A : System { typedef Bool Foo[2];  Bool m_b(true);  :System<> Int test() {  self m_b . self ( )callfoo . = self ( self m_b . cast )print . self ( self m_b . ! )assert . self m_b . ?  1 cast :  2 cast return } }
+Uq_System { <NOMAIN> }
+##
+##  11/5/22 Dave ish: gcc won't create immediate ref to array item return by funccall,
+##                    when array returned is const non-ref primitive immediate.
+##                    (see t3123, and also t4148, t3217, t3416, t41034)
+#>A.ulam
+  ulam 5;
+element A : System {
+  typedef Bool Foo [2];
+  Foo foo(Bool b) {
+    Foo m;
+    if(b)
+      m[0]=true;
+    //else
+    //  m[0]=false;
+    return m;
+  }
+
+  Bool callfoo()
+  {
+    Foo rtnb = foo(m_b);
+    Bool b = foo(m_b)[0]; //non-evaluable
+    assert(b == rtnb[0]);
+    //return !rtnb[0];
+    return !foo(m_b)[0]; //now its falseo, non-evaluable
+  }
+
+
+  Int test() {
+    m_b = callfoo(); //now false
+    print(m_b);
+    assert(!m_b);
+    return m_b ? 1 : 2;  /* match return type */
+  }
+
+  Bool m_b = true;
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

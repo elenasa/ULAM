@@ -58,7 +58,7 @@ namespace MFM{
 namespace MFM{
 
   template<class EC>
-  Ui_Uq_r10109210ByteStream10<EC> Uq_10109210ByteStream10<EC>::Uf_6printf(const UlamContext<EC>& uc, UlamRef<EC>& ur, Ui_Ut_102201s<EC>& Uv_3fmt, ...) const
+  Ui_Uq_r10109210ByteStream10<EC> Uq_10109210ByteStream10<EC>::Uf_6printf(const UlamContext<EC>& uc, UlamRef<EC>& ur, Ui_Ut_102181s<EC>& Uv_3fmt, ...) const
   {
     VfuncPtr writeByte;
     UlamRef<EC> vfur(ur, Uq_10109210ByteStream10<EC>::VOWNED_IDX_Uf_919writeByte1110181u, Uq_10109210ByteStream10<EC>::THE_INSTANCE, writeByte);
@@ -141,7 +141,7 @@ namespace MFM{
 
             if (asprim->GetPrimType() != UlamTypeInfoPrimitive::STRING) FAIL(ILLEGAL_ARGUMENT);
 
-            const u32 strIdx = ((Ui_Ut_102201s<EC> *) arg)->read();
+            const u32 strIdx = ((Ui_Ut_102181s<EC> *) arg)->read();
             const u8 * str = GetStringPointerFromGlobalStringPool(strIdx);
             if (!str) FAIL(ILLEGAL_STATE);
             u32 strlen = GetStringLengthFromGlobalStringPool(strIdx);

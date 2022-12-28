@@ -2,13 +2,13 @@
 #=t3929_test_compiler_string_sizeof
 ##
 ##  gen output: (asserts interleaved)
-##  Int Arg: 20
-##  Int Arg: 20
-##  Int Arg: 20
+##  Int Arg: 18
+##  Int Arg: 18
+##  Int Arg: 18
 ##
 #!
 Exit status: 0
-Ue_A { Int(8) m_s1(20);  Int(8) m_s2(20);  Int(8) m_s3(20);  Int test() {  System s;  String mt = "";  self m_s1 . 20u cast = s ( self m_s1 . cast )print . s ( self m_s1 . 20 cast == )assert . String str = "foo";  self m_s2 . 20u cast = s ( self m_s2 . cast )print . s ( self m_s2 . 20 cast == )assert . self m_s3 . 20u cast = s ( self m_s3 . cast )print . s ( self m_s3 . 20 cast == )assert . 0 cast return } }
+Ue_A { Int(8) m_s1(18);  Int(8) m_s2(18);  Int(8) m_s3(18);  Int test() {  System s;  String mt = "";  self m_s1 . 18u cast = s ( self m_s1 . cast )print . s ( self m_s1 . 18 cast == )assert . String str = "foo";  self m_s2 . 18u cast = s ( self m_s2 . cast )print . s ( self m_s2 . 18 cast == )assert . self m_s3 . 18u cast = s ( self m_s3 . cast )print . s ( self m_s3 . 18 cast == )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## sizeof String is the number of bits occupied in an atom
@@ -23,18 +23,18 @@ element A {
    System s;
 
    String mt = "";
-   m_s1 = mt.sizeof; // =20
+   m_s1 = mt.sizeof; // =18
    s.print(m_s1);
-   s.assert(m_s1 == 20);
+   s.assert(m_s1 == 18);
 
    String str = "foo";
-   m_s2 = str.sizeof; // =20
+   m_s2 = str.sizeof; // =18
    s.print(m_s2);
-   s.assert(m_s2 == 20);
+   s.assert(m_s2 == 18);
 
-   m_s3 = String.sizeof; //=20
+   m_s3 = String.sizeof; //=18
    s.print(m_s3);
-   s.assert(m_s3 == 20);
+   s.assert(m_s3 == 18);
 
    return 0;
  }

@@ -162,13 +162,14 @@ namespace MFM {
 
     // efficiency bites! no sooner, need left and right side-effects
     // (e.g. NodeControl condition is Bool at start; stubs need Symbol ptrs)
-    if(m_state.isComplete(getNodeType()))
+    //    if(m_state.isComplete(getNodeType())) //t41636
+    if(m_state.isComplete(getNodeType()) && (!isAConstant() || isReadyConstant()))
       return getNodeType();
 
     //replace node with func call to matching function overload operator for class
     // of left, with argument of right (t41104);
     // quark toInt must be used on rhs of operators (t3191, t3200, t3513, t3648,9)
-    if(buildandreplaceOperatorOverloadFuncCallNode(thisparentnode))
+    if(buildandreplaceOperatorOverloadFuncCallNode(thisparentnode) == TBOOL_TRUE)
       {
 	m_state.setGoAgain();
 	delete this; //suicide is painless..
@@ -209,7 +210,8 @@ namespace MFM {
     //before constant folding; if needed (e.g. Remainder, Divide)
     castThyselfToResultType(rightType, leftType, newType, thisparentnode);
 
-    if(m_state.okUTItoContinue(newType) && isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
+    //if(m_state.okUTItoContinue(newType) && isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
+    if(m_state.okUTItoContinue(newType) && isAConstant() && !isReadyConstant()) //t41478
       return constantFold(thisparentnode); //surgery possible
 
     return newType;

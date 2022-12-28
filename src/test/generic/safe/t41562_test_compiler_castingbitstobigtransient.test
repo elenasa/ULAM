@@ -5,7 +5,7 @@
 ##
 #!
 Exit status: -11
-Ue_Anchor10 { System s();  Int test() {  QSegment(120u) x;  typedef Bits(120) MPayload;  SegPkt10 pkt[3];  pkt 1 [] mCN . 3u = pkt 1 [] mUpbound . true = x mMessageBuffer . mPayload . pkt 1 [] cast = pkt 2 [] x mMessageBuffer . mPayload . cast = self s . ( pkt 1 [] mCN . pkt 2 [] mCN . == )assert . self s . ( pkt 2 [] mUpbound . )assert . 0 cast return } }
+Ue_Anchor10 { System s();  Int test() {  QSegment(118u) x;  typedef Bits(118) MPayload;  SegPkt10 pkt[3];  pkt 1 [] mCN . 3u = pkt 1 [] mUpbound . true = x mMessageBuffer . mPayload . pkt 1 [] cast = pkt 2 [] x mMessageBuffer . mPayload . cast = self s . ( pkt 1 [] mCN . pkt 2 [] mCN . == )assert . self s . ( pkt 2 [] mUpbound . )assert . 0 cast return } }
 Un_SegPkt10 { typedef Unsigned(3) CN;  constant Unsigned(3) cNO_OP = 0u;  constant Unsigned(3) cSET_LENGTH = 1u;  constant Unsigned(3) cSET_STRETCH = 2u;  constant Unsigned(3) cSET_ANGLE = 3u;  constant Unsigned(3) cSET_FLEX = 4u;  constant Unsigned(3) cGROW_HEAD = 5u;  constant Unsigned(3) cRSV6 = 6u;  constant Unsigned(3) cRSV7 = 7u;  Bool mUpbound(false);  Unsigned(3) mCN(0);  String mStr( "Hello World");  Atom mAtom(Atom);  <NOMAIN> }
 Un_QSegment(Unsigned cMSG_BITS) : QSeg { typedef QIMsg(bits) QC_QIMsg;  QIMsg(bits) mMessageBuffer(notready);  :QSeg< typedef Unsigned(5) SegPtr;  typedef Unsigned(2) Type; > <NOMAIN> }
 Uq_System { <NOMAIN> }

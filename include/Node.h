@@ -409,6 +409,7 @@ enum EvalStatus {ERROR, NOTREADY, NORMAL, RETURN, BREAK, CONTINUE, UNEVALUABLE};
     void genCodeReadFromAConstantClassIntoATmpVar(File * fp, UVPass& uvpass);
 
     void genCodeReadArrayItemFromAConstantClassIntoATmpVar(File * fp, UVPass & luvpass, UVPass & ruvpass);
+    void genCodeReadPrimitiveArrayItemIntoATmpVar(File * fp, UVPass & luvpass, UVPass & ruvpass);
 
     virtual void checkForSymbol();
     virtual TBOOL replaceOurselves(Symbol * symptr, Node * parentnode);

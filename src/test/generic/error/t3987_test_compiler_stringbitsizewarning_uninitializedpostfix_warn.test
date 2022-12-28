@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3987_test_compiler_stringbitsizewarning_uninitializedpostfix_warn
 #!
-./D.ulam:3:9: Warning: String bitsize expression disregarded; size is 20.
+./D.ulam:3:9: Warning: String bitsize expression disregarded; size is 18.
 Uq_D { String s(UNINITIALIZED_STRING);  <NOMAIN> }
 #>D.ulam
   ulam 3;

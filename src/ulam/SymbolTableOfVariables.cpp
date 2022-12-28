@@ -105,7 +105,7 @@ namespace MFM {
 	it++;
       }
     return rtnnum;
-  }
+  } //getAllRemainingCulamGeneratedTypedefSymbolsInTable
 
   //called by NodeBlock.
   u32 SymbolTableOfVariables::getTotalSymbolSize()
@@ -325,6 +325,32 @@ namespace MFM {
 	it++;
       }
   } //printPostfixValuesForTableOfVariableDataMembers
+
+  //storage for class members, not including baseclasses, especially useful for elements (ulam-6)
+  u32 SymbolTableOfVariables::calcDataMemberSymbolsTotalBitsizeFromTableOfVariableDataMembers(UTI cuti)
+  {
+    u32 tbs = 0;
+    if(m_state.isClassAQuarkUnion(cuti)) // (t3209,t41145,t41622)
+      {
+	UlamType * cut = m_state.getUlamTypeByIndex(cuti);
+	return cut->getBitsizeAsBaseClass(); //max dm bitsize, excluding bases (t41424,t3209)
+      }
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	if(sym->isDataMember() && variableSymbolWithCountableSize(sym)) //t3361,skip constants,etc..
+	  {
+	    UTI suti = sym->getUlamTypeIdx();
+	    assert(m_state.okUTItoContinue(suti));
+	    UlamType * sut = m_state.getUlamTypeByIndex(suti);
+	    u32 sbs = sut->getSizeofUlamType(); //t41622 quark-union followed by another dm;
+	    tbs += sbs;
+	  }
+	it++;
+      }
+    return tbs;
+  } //calcDataMemberSymbolsTotalBitsizeFromTableOfVariableDataMembers
 
   //PRIVATE HELPER METHODS:
   s32 SymbolTableOfVariables::calcVariableSymbolTypeSize(UTI arguti, std::set<UTI>& seensetref)

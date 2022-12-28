@@ -477,7 +477,12 @@ namespace MFM {
 
     //before assert in CS, fails
     UTI luti = pluv.getPtrTargetType();
-    if( m_state.isPtr(ruti) || (UlamType::compareForUlamValueAssignment(luti, ruti, m_state) == UTIC_SAME) || m_state.isAtom(luti) || m_state.isAtom(ruti))
+    UTI leffself = pluv.getPtrTargetEffSelfType();
+    bool isbaseclass = m_state.isAClass(luti) && m_state.isClassASubclassOf(leffself,luti);
+
+    if(isbaseclass)
+      return false; //UNEVALUABLE t41640,1 t41415,t41600 TODO (see UlamTypeClassQuark::genUlamTypeAutoReadDefinitionForC and genUlamTypeAutoWriteDefinitionForC)
+    else if( m_state.isPtr(ruti) || (UlamType::compareForUlamValueAssignment(luti, ruti, m_state) == UTIC_SAME) || m_state.isAtom(luti) || m_state.isAtom(ruti))
       m_state.assignValue(pluv,ruv);
     else
       return false;

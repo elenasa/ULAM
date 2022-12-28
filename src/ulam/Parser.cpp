@@ -3632,6 +3632,10 @@ namespace MFM {
     getNextToken(pTok);
 
     NodeReturnStatement * returnNode = NULL;
+
+    SYMBOLTYPEFLAG saveTheFlag = m_state.m_parsingVariableSymbolTypeFlag;
+    m_state.m_parsingVariableSymbolTypeFlag = STF_RETURNSTMT; //t41635
+
     Node * rtnExprNode = parseAssignExpr(); //may be NULL
     if(!rtnExprNode)
       {
@@ -3644,6 +3648,8 @@ namespace MFM {
     returnNode->setNodeLocation(pTok.m_locator);
 
     m_state.appendNodeToCurrentBlock(returnNode);
+    m_state.m_parsingVariableSymbolTypeFlag = saveTheFlag;
+
     return true;
   } //parseReturn
 
@@ -4143,7 +4149,7 @@ namespace MFM {
     if(Token::isTokenAType(pTok))
       {
 	unreadToken();
-	bool allowrefcast = (m_state.m_parsingVariableSymbolTypeFlag == STF_FUNCARGUMENT) || (m_state.m_parsingVariableSymbolTypeFlag == STF_FUNCLOCALREF); //not STF_FUNCLOCALCONSTREF t41255
+	bool allowrefcast = (m_state.m_parsingVariableSymbolTypeFlag == STF_FUNCARGUMENT) || (m_state.m_parsingVariableSymbolTypeFlag == STF_FUNCLOCALREF) || (m_state.m_parsingVariableSymbolTypeFlag == STF_RETURNSTMT); //not STF_FUNCLOCALCONSTREF t41255
 	bool allowcasts = m_state.m_parsingVariableSymbolTypeFlag == STF_FUNCLOCALCONSTREF ? false : true;
 	return parseFactorStartingWithAType(pTok, allowrefcast, allowcasts); //rtnNode could be NULL
       } //not a Type
@@ -4226,7 +4232,7 @@ namespace MFM {
 	break;
       case TOK_OPEN_PAREN:
 	{
-	  bool allowrefcast = (m_state.m_parsingVariableSymbolTypeFlag == STF_FUNCARGUMENT) || (m_state.m_parsingVariableSymbolTypeFlag == STF_FUNCLOCALREF); //t3862, t41067
+	  bool allowrefcast = (m_state.m_parsingVariableSymbolTypeFlag == STF_FUNCARGUMENT) || (m_state.m_parsingVariableSymbolTypeFlag == STF_FUNCLOCALREF) || (m_state.m_parsingVariableSymbolTypeFlag == STF_RETURNSTMT); //t3862, t41067, t41635
 	  bool allowcasts = m_state.m_parsingVariableSymbolTypeFlag == STF_FUNCLOCALCONSTREF ? false : true;
 	  rtnNode = parseRestOfCastOrExpression(allowrefcast, allowcasts);
 	  rtnNode = parseRestOfFactor(rtnNode); //t41057, t41259
@@ -6900,9 +6906,9 @@ Node * Parser::wrapFactor(Node * leftNode)
 	std::ostringstream msg;
 	msg << "Explicit Reference casts (Type&) ";
 	msg << "are valid for reference variable initialization";
-	msg << " (including function call arguments); not in this context";
+	msg << " (including function call arguments and return statements); not in this context";
 	MSG(&typeTok, msg.str().c_str(), ERR);
-	return false;
+	return false; //t3791
       } //reference cast
 
     if(getExpectedToken(TOK_CLOSE_PAREN))

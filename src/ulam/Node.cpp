@@ -1265,6 +1265,52 @@ namespace MFM {
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeReadArrayItemFromAConstantClassIntoATmpVar
 
+  void Node::genCodeReadPrimitiveArrayItemIntoATmpVar(File * fp, UVPass & luvpass, UVPass & ruvpass)
+  {
+    //index is a variable, not known at compile time;
+    UTI luti = luvpass.getPassTargetType(); //replaces vuti w target type
+    assert(luti != Void);
+    assert(!m_state.isScalar(luti));
+
+    //now for the array item read at index in ruvpass tmp var
+    UTI scalarluti = m_state.getUlamTypeAsScalar(luti);
+    scalarluti = m_state.getUlamTypeAsDeref(scalarluti);
+    UlamType * scalarlut = m_state.getUlamTypeByIndex(scalarluti);
+    u32 itemlen = scalarlut->getSizeofUlamType();
+    TMPSTORAGE slstor = scalarlut->getTmpStorageTypeForTmpVar();
+
+    s32 tmpVarNum = m_state.getNextTmpVarNumber();
+    m_state.indentUlamCode(fp);
+    fp->write(scalarlut->getTmpStorageTypeAsString().c_str()); //u32, u64, T, BV<x>
+    fp->write(" ");
+    fp->write(m_state.getTmpVarAsString(scalarluti, tmpVarNum, slstor).c_str());
+    fp->write(" = ");
+    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
+    fp->write(".readArrayItem(");
+    fp->write(ruvpass.getTmpVarAsString(m_state).c_str()); //offset
+    fp->write(", ");
+    fp->write_decimal_unsigned(itemlen);
+    fp->write("u);");
+
+    //gen comment:
+    fp->write(" //item of const primitive array");
+    GCNL;
+
+    //convert to immediate from u32/u64
+    s32 tmpVarNum2 = m_state.getNextTmpVarNumber();
+    m_state.indentUlamCode(fp);
+    fp->write(scalarlut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
+    fp->write(" ");
+    fp->write(m_state.getTmpVarAsString(scalarluti, tmpVarNum2, TMPBITVAL).c_str());
+    fp->write("(");
+    fp->write(m_state.getTmpVarAsString(scalarluti, tmpVarNum, slstor).c_str());
+    fp->write(");"); GCNL;
+
+    luvpass = UVPass::makePass(tmpVarNum2, TMPBITVAL, scalarluti, m_state.determinePackable(scalarluti), m_state, 0, 0); //POS 0 justified (atom-based).
+
+    m_state.clearCurrentObjSymbolsForCodeGen();
+  } //genCodeReadPrimitiveArrayItemIntoATmpVar
+
   void Node::genCodeReadSelfIntoATmpVar(File * fp, UVPass & uvpass)
   {
     Symbol * stgcos = NULL;
@@ -1827,17 +1873,18 @@ namespace MFM {
 	  fp->write("("); //t3739
 
 	fp->write(ruvpass.getTmpVarAsString(m_state).c_str()); //tmp var ref
+	if((ruvpass.getPassStorage() == TMPBITVAL) && m_state.isAClass(ruvpass.getPassTargetType()))
+	  fp->write(".read()"); //t41355, t3715 (primitive), t41632
 	fp->write(");"); GCNL;
       }
     else
       {
 	fp->write("("); //use immediate's write for distrib among scattered bases (ulam-5); t41358
 	fp->write(ruvpass.getTmpVarAsString(m_state).c_str()); //tmp var ref
+	if((ruvpass.getPassStorage() == TMPBITVAL) && m_state.isAClass(ruvpass.getPassTargetType()))
+	  fp->write(".read()"); //t41355, t3715 (primitive)
 	fp->write(");"); GCNL;
       }
-
-    //if((ruvpass.getPassStorage() == TMPBITVAL) && m_state.isAClass(ruvpass.getPassTargetType()))
-    //  fp->write(".read()"); //t41355, t3715 (primitive)
 
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeWriteToTransientFromATmpVar
@@ -2350,6 +2397,7 @@ namespace MFM {
       adjstForEle = true;
 
     bool askEffSelf = askEffectiveSelfAtRuntimeForRelPosOfBase();
+    u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
 
     m_state.indentUlamCode(fp);
     fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
@@ -2390,9 +2438,9 @@ namespace MFM {
 	    if(adjstForEle)
 	      fp->write("T::ATOM_FIRST_STATE_BIT + "); //t3803, t3832, t3632
 
-	    if(!askEffSelf && (uvpass.getPassApplyDelta() || cos->isDataMember()))
+	    if((!askEffSelf || cosSize > 2) && (uvpass.getPassApplyDelta() || cos->isDataMember()))
 	      {
-		//specific baseclass member type, or dm (t41599), not incl first relpos;
+		//specific baseclass member type, or dm (t41599,t41642), not incl first relpos;
 		pos = calcDataMemberPosOfCurrentObjectClasses(false, Nouti); //reset pos
 	      }
 
@@ -2408,6 +2456,8 @@ namespace MFM {
 
 		assert(cos->isDataMember());
 		UTI cosclassuti = cos->getDataMemberClass();
+		if(cosSize > 2)
+		  cosclassuti = m_state.m_currentObjSymbolsForCodeGen[1]->getDataMemberClass(); //rest dm's known at compile time
 		fp->write("(");
 		fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(cosclassuti)); //efficiency
 		fp->write("u ");
@@ -2473,6 +2523,8 @@ namespace MFM {
 		    //data member, stg is a ref (t41599, case 2)
 		    assert(cos->isDataMember()); //sanity
 		    UTI cosclassuti = cos->getDataMemberClass();
+		    if(cosSize > 2)
+		      cosclassuti = m_state.m_currentObjSymbolsForCodeGen[1]->getDataMemberClass(); //rest dm's known atc compile time (t41642)
 		    fp->write(stgcos->getMangledName().c_str());
 		    fp->write(".GetEffectiveSelf()->");
 		    fp->write(m_state.getGetRelPosMangledFunctionName(stgcosuti)); //nonatom

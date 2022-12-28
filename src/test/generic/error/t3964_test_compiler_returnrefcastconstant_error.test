@@ -1,0 +1,18 @@
+## -*- mode:ulam -*-
+#=t3964_test_compiler_returnrefcastconstant_error
+#!
+./Ish.ulam:5:13: ERROR: Cannot explicitly cast a constant, 1024, type Int, to a reference type, Int&.
+Unrecoverable Program Type Label FAILURE.
+##
+#>Ish.ulam
+  ulam 3;
+element Ish {
+  Int& update() {
+    constant Int cI = 1024;
+    return (Int&) cI;
+  }
+  Int test() {
+    return update();
+  }
+}
+#.

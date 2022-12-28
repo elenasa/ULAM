@@ -767,8 +767,9 @@ namespace MFM {
 
     if((getStoreIntoAble() != TBOOL_TRUE) && !isAConstructorFunctionCall())
       {
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	return evalErrorReturn();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	//return evalErrorReturn();
+	return UNEVALUABLE;
       }
 
     MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
