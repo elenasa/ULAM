@@ -1174,15 +1174,28 @@ namespace MFM {
       }
     else //unpacked
       {
-	//t3704, t3706, t3707, t3709
-	UlamValue scalarPtr = UlamValue::makeScalarPtr(pluv, m_state);
 
-	u32 slotoff = 1 + 1;
-	for(u32 j = 0; j < slots; j++)
+	UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(2); //immediate scalar
+	UTI ruti = ruv.getUlamValueTypeIdx();
+	if(ruv.isPtr())
+	  ruti = ruv.getPtrTargetType();
+	UTI luti = pluv.getPtrTargetType();
+	if(!m_state.isScalar(nuti) && (UlamType::compareForUlamValueAssignment(luti,ruti,m_state)==UTIC_SAME))
 	  {
-	    UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(slotoff+j); //immediate scalar
-	    m_state.assignValue(scalarPtr,ruv);
-	    scalarPtr.incrementPtr(m_state); //by one.
+	    m_state.assignValue(pluv,ruv); //t3707
+	  }
+	else //incrementally
+	  {
+	    //t3704, t3706, t3707, t3709
+	    UlamValue scalarPtr = UlamValue::makeScalarPtr(pluv, m_state);
+
+	    u32 slotoff = 1 + 1;
+	    for(u32 j = 0; j < slots; j++)
+	      {
+		UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(slotoff+j); //immediate scalar
+		m_state.assignValue(scalarPtr,ruv);
+		scalarPtr.incrementPtr(m_state); //by one.
+	      }
 	  }
       }
 

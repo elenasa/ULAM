@@ -480,8 +480,86 @@ namespace MFM {
     UTI leffself = pluv.getPtrTargetEffSelfType();
     bool isbaseclass = m_state.isAClass(luti) && m_state.isClassASubclassOf(leffself,luti);
 
+    bool risbaseclass = false;
+    UTI reffself = ruv.getUlamValueEffSelfTypeIdx();
+
+    if(ruv.isPtr())
+      {
+	ruti = ruv.getPtrTargetType();
+	reffself = ruv.getPtrTargetEffSelfType();
+	risbaseclass = m_state.isAClass(ruti) && m_state.isClassASubclassOf(reffself,ruti);
+      }
+
     if(isbaseclass)
-      return false; //UNEVALUABLE t41640,1 t41415,t41600 TODO (see UlamTypeClassQuark::genUlamTypeAutoReadDefinitionForC and genUlamTypeAutoWriteDefinitionForC)
+      {
+	//t41640,1 t41415,t41600
+	UlamValue lvalAtSlot = m_state.getPtrTarget(pluv);
+	u32 bitsize = m_state.getBitSize(ruti);
+	if(ruv.isPtr())
+	  {
+	    ruv = m_state.getPtrTarget(ruv);  //t41600, t3704 not a class.
+	    assert(!ruv.isPtr());
+	  }
+
+	if(bitsize <= MAXBITSPERLONG)
+	  {
+	    m_state.extractQuarkBaseFromSubclassForEval(ruv, luti, lvalAtSlot); //2nd arg leffself?
+	  }
+	else if(bitsize <= MAXSTATEBITS)
+	  {
+	    m_state.extractTransientBaseFromSubclassForEval(ruv, luti, lvalAtSlot); //2nd arg leffself?
+	  }
+	else
+	  m_state.abortNotSupported();
+
+	UlamValue lptr = pluv;
+	lptr.setPtrTargetType(leffself);
+	lptr.setPtrPos(ATOMFIRSTSTATEBITPOS);
+	lptr.setPtrLen(m_state.getBitSize(leffself));
+
+	m_state.assignValue(lptr,lvalAtSlot);
+	ruv = lvalAtSlot;
+      }
+    else if(risbaseclass)
+      {
+	UlamValue rvalAtSlot = m_state.getPtrTarget(ruv);
+	u32 bitsize = m_state.getBitSize(ruti);
+	UlamValue rbase = UlamValue::makeAtom(ruti);
+
+	if(bitsize <= MAXBITSPERLONG)
+	  {
+	    m_state.extractQuarkBaseFromSubclassForEval(rvalAtSlot, ruti, rbase); //t3707
+	  }
+	else if(bitsize <= MAXSTATEBITS)
+	  {
+	    m_state.extractTransientBaseFromSubclassForEval(rvalAtSlot, ruti, rbase);
+	  }
+	else
+	  m_state.abortNotSupported();
+
+	m_state.assignValue(pluv,rbase);
+	ruv = rbase;
+      }
+    else if(m_state.isAClass(ruti) && m_state.isClassASubclassOf(ruti, luti))
+      {
+	UlamValue rvalAtSlot = m_state.getPtrTarget(ruv);
+	u32 bitsize = m_state.getBitSize(luti);
+	UlamValue rbase = UlamValue::makeAtom(luti);
+
+	if(bitsize <= MAXBITSPERLONG)
+	  {
+	    m_state.extractQuarkBaseFromSubclassForEval(rvalAtSlot, luti, rbase); //t3707
+	  }
+	else if(bitsize <= MAXSTATEBITS)
+	  {
+	    m_state.extractTransientBaseFromSubclassForEval(rvalAtSlot, luti, rbase);
+	  }
+	else
+	  m_state.abortNotSupported();
+
+	m_state.assignValue(pluv,rbase);
+	ruv = rbase;
+      }
     else if( m_state.isPtr(ruti) || (UlamType::compareForUlamValueAssignment(luti, ruti, m_state) == UTIC_SAME) || m_state.isAtom(luti) || m_state.isAtom(ruti))
       m_state.assignValue(pluv,ruv);
     else

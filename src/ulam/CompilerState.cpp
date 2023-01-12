@@ -6207,10 +6207,17 @@ namespace MFM {
     //handle UAtom assignment as a singleton (not array values)
     if(ruv.isPtr())
       {
-	if(ruv.getPtrTargetType() != UAtom)
+	UTI lttype = lptr.getPtrTargetType();
+	UTI rttype = ruv.getPtrTargetType();
+	PACKFIT rpacked = ruv.isTargetPacked();
+	if((rttype != UAtom) && (rpacked != UNPACKED) && (lttype == rttype))
 	  return assignArrayValues(lptr, ruv);
+	else if((rttype != UAtom) && (UlamType::compare(getUlamTypeAsScalar(lttype), rttype, *this) == UTIC_SAME))
+	  return assignArrayValues(lptr, ruv); //t3707
+	else if((rttype != UAtom) && (UlamType::compare(lttype, rttype, *this) == UTIC_SAME))
+	  return assignArrayValues(lptr, ruv); //t3707
 	else
-	  return assignValuePtr(lptr, ruv); //t41483
+	  return assignValuePtr(lptr, ruv); //t41483, t3707 (UNPACKED)
       }
 
     //r is data (includes packed arrays), store it into where lptr is pointing
@@ -6277,7 +6284,7 @@ namespace MFM {
       }
     else
       {
-	//assign each array element, packed or unpacked
+	//assign each array item, packed or unpacked
 	u32 size = slotsNeeded(rptr.getPtrTargetType());
 
 	UlamValue nextlptr = UlamValue::makeScalarPtr(lptr,*this);
@@ -6293,8 +6300,16 @@ namespace MFM {
 	    //an element/quark or a requested scalar of an arraytype
 	    if(UlamType::compareForUlamValueAssignment(atval.getUlamValueTypeIdx(), tuti, *this) != UTIC_SAME)
 	      {
-		UlamValue atvalUV = UlamValue::getPackedArrayDataFromAtom(rptr, atval, *this);
-		assignValue(nextlptr, atvalUV);
+		if(rptr.isTargetPacked() == PACKED)
+		  {
+		    UlamValue atvalUV = UlamValue::getPackedArrayDataFromAtom(rptr, atval, *this);
+		    assignValue(nextlptr, atvalUV);
+		  }
+		else //UNPACKED, but <= long (t3707)
+		  {
+		    UlamValue atvalUV = UlamValue::getPackedArrayDataFromAtom(rptr, atval, *this);
+		    assignValue(nextlptr, atvalUV);
+		  }
 	      }
 	    else
 	      assignValue(nextlptr, atval);
@@ -6409,7 +6424,13 @@ namespace MFM {
     UTI cuti = fmuvarg.getUlamValueTypeIdx();
     if(isAtom(cuti))
       cuti = fmuvarg.getUlamValueEffSelfTypeIdx(); //t41315
-    assert(isClassASubclassOf(cuti, debuti));
+    assert(isClassASubclassOf(cuti, debuti) || isClassASubclassOf(debuti, cuti) || (UlamType::compare(cuti, debuti, *this) == UTIC_SAME) );
+
+    UTI tuti = touvref.getUlamValueTypeIdx(); //t41640
+    assert(!touvref.isPtr());
+    if(isAtom(tuti))
+      tuti = touvref.getUlamValueEffSelfTypeIdx();
+    assert(isClassASubclassOf(tuti, debuti) || isClassASubclassOf(debuti, tuti) || (UlamType::compare(tuti, debuti, *this) == UTIC_SAME) );
 
     s32 pos = ATOMFIRSTSTATEBITPOS; //all classes start after type in ulamvalue
 
@@ -6423,17 +6444,23 @@ namespace MFM {
 	SymbolClass * basecsym = NULL;
 	if(alreadyDefinedSymbolClass(baseuti, basecsym))
 	  {
-	    u32 fmrelpos = 0;
-	    getABaseClassRelativePositionInAClass(cuti, baseuti, fmrelpos);
-
-	    u32 torelpos = 0;
-	    getABaseClassRelativePositionInAClass(debuti, baseuti, torelpos);
-
 	    s32 blen = getBaseClassBitSize(baseuti);
-	    assert(blen <= MAXBITSPERINT);
+	    assert(blen <= MAXBITSPERLONG);
 
-	    u32 qdata = fmuvarg.getData(pos + fmrelpos, blen);
-	    touvref.putData(pos + torelpos, blen, qdata);
+	    if(blen > 0)
+	      {
+		u32 fmrelpos = 0;
+		bool gotfm = getABaseClassRelativePositionInAClass(cuti, baseuti, fmrelpos);
+
+		u32 torelpos = 0;
+		bool gotto = getABaseClassRelativePositionInAClass(tuti, baseuti, torelpos);
+
+		if(gotfm && gotto)
+		  {
+		    u64 qdata = fmuvarg.getDataLong(pos + fmrelpos, blen);
+		    touvref.putDataLong(pos + torelpos, blen, qdata);
+		  }
+	      }
 
 	    //include all ancestors of arg buti
 	    walker.addAncestorsOf(basecsym);
@@ -6445,7 +6472,13 @@ namespace MFM {
   {
     UTI debuti = getUlamTypeAsDeref(buti);
     UTI cuti = fmuvarg.getUlamValueTypeIdx();
-    assert(isClassASubclassOf(cuti, debuti));
+    assert(isClassASubclassOf(cuti, debuti) || isClassASubclassOf(debuti, cuti) || (UlamType::compare(cuti, debuti, *this) == UTIC_SAME) );
+
+    UTI tuti = touvref.getUlamValueTypeIdx();
+    assert(!touvref.isPtr());
+    if(isAtom(tuti))
+      tuti = touvref.getUlamValueEffSelfTypeIdx();
+    assert(isClassASubclassOf(tuti, debuti) || isClassASubclassOf(debuti, tuti) || (UlamType::compare(tuti, debuti, *this) == UTIC_SAME) );
 
     s32 pos = ATOMFIRSTSTATEBITPOS; //all classes start after type in ulamvalue
 
@@ -6459,18 +6492,24 @@ namespace MFM {
 	SymbolClass * basecsym = NULL;
 	if(alreadyDefinedSymbolClass(baseuti, basecsym))
 	  {
-	    u32 fmrelpos = 0;
-	    getABaseClassRelativePositionInAClass(cuti, baseuti, fmrelpos);
-
-	    u32 torelpos = 0;
-	    getABaseClassRelativePositionInAClass(debuti, baseuti, torelpos);
-
 	    s32 blen = getBaseClassBitSize(baseuti);
 	    assert(blen <= MAXSTATEBITS);
 
-	    BV8K bvdata;
-	    fmuvarg.getDataBig(pos + fmrelpos, blen, bvdata);
-	    touvref.putDataBig(pos + torelpos, blen, bvdata);
+	    if(blen > 0)
+	      {
+		u32 fmrelpos = 0;
+		bool gotfm = getABaseClassRelativePositionInAClass(cuti, baseuti, fmrelpos);
+
+		u32 torelpos = 0;
+		bool gotto = getABaseClassRelativePositionInAClass(tuti, baseuti, torelpos);
+
+		if(gotfm && gotto)
+		  {
+		    BV8K bvdata;
+		    fmuvarg.getDataBig(pos + fmrelpos, blen, bvdata);
+		    touvref.putDataBig(pos + torelpos, blen, bvdata);
+		  }
+	      }
 
 	    //include all ancestors of arg buti
 	    walker.addAncestorsOf(basecsym);

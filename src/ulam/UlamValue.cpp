@@ -564,9 +564,33 @@ namespace MFM {
 	else
 	  state.abortGreaterThanMaxBitsPerLong();
       }
+    else if(p.isTargetPacked() == PACKED)
+      {
+	// base [0] is furthest from the end
+	UlamValue nextPtr = UlamValue::makeScalarPtr(p,state);
+	s32 itemlen = nextPtr.getPtrLen();
+	for(s32 i = 0; i < arraysize; i++)
+	  {
+	    if(itemlen <= MAXBITSPERINT)
+	      {
+		u32 datavalue = data.getData(nextPtr.getPtrPos(), nextPtr.getPtrLen());
+		rtnUV.putData((BITSPERATOM-(bitsize * (arraysize - i))), bitsize, datavalue);
+	      }
+	    else if(len <= MAXBITSPERLONG)
+	      {
+		u64 datavalue = data.getDataLong(nextPtr.getPtrPos(), nextPtr.getPtrLen());
+		rtnUV.putDataLong((BITSPERATOM-(bitsize * (arraysize - i))), bitsize, datavalue);
+	      }
+	    else
+	      state.abortGreaterThanMaxBitsPerLong();
+
+	    nextPtr.incrementPtr(state);
+	  }
+      }
     else
       {
-	assert(p.isTargetPacked() == PACKED);
+	assert(p.isTargetPacked() == UNPACKED); //t3707 UNPACKED but len 3?
+	assert(arraysize==1);
 
 	// base [0] is furthest from the end
 	UlamValue nextPtr = UlamValue::makeScalarPtr(p,state);

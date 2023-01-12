@@ -11,10 +11,9 @@
 ##      Bool(3) Arg: 0x0 (false)
 ##      Unsigned Arg: 4294967295 (+ assert)
 ##
-## UNEVALUABLE until share bases are copied properly.
 #!
-Exit status: -1
-Ue_R : System { :System<> Int test() {  Foo f;  Gah g;  g val_b 1 [] . true = self ( g val_b 0 [] . cast )print . self ( g val_b 1 [] . cast )print . self ( g val_b 1 [] . )assert . self ( g val_b 2 [] . cast )print . self ( f val_b 1 [] . g val_b 1 [] . != )assert . Bar& gbref = g cast;  Bar& fbref = f cast;  fbref gbref = self ( f val_b 0 [] . cast )print . self ( f val_b 1 [] . cast )print . self ( f val_b 1 [] . )assert . self ( f val_b 2 [] . cast )print . self ( f m_u . )print . self ( f m_u . 4294967295u == )assert . f val_b 1 [] . cast return } }
+Exit status: 1
+Ue_R : System { Bool mfbar[3](false,true,false);  Bool mgbar[3](false,true,false);  :System<> Int test() {  Foo f;  Gah g;  g val_b 1 [] . true = self ( g val_b 0 [] . cast )print . self ( g val_b 1 [] . cast )print . self ( g val_b 1 [] . )assert . self ( g val_b 2 [] . cast )print . self ( f val_b 1 [] . g val_b 1 [] . != )assert . Bar& gbref = g cast;  Bar& fbref = f cast;  fbref gbref = self ( f val_b 0 [] . cast )print . self ( f val_b 1 [] . cast )print . self ( f val_b 1 [] . )assert . self ( f val_b 2 [] . cast )print . self ( f m_u . )print . self ( f m_u . 4294967295u == )assert . self mfbar . f val_b . = self mgbar . g val_b . = f val_b 1 [] . cast return } }
 Uq_System { <NOMAIN> }
 Ue_Foo : Bar { Bar m_bar( Bool val_b[3](false,false,false); );  Unsigned m_u( 4294967295u);  :Bar< Bool val_b[3](false,false,false); > <NOMAIN> }
 Ue_Gah : Bar { Int m_int( 1);  :Bar< Bool val_b[3](false,false,false); > <NOMAIN> }
@@ -25,6 +24,8 @@ Uq_Bar { Bool val_b[3](false,false,false);  <NOMAIN> }
 #>R.ulam
   ulam 5;
 element R : System {
+  Bool mfbar[3];
+  Bool mgbar[3];
 
   Int test() {
     Foo f;
@@ -50,6 +51,10 @@ element R : System {
 
     print(f.m_u);
     assert(f.m_u == Unsigned.maxof); //confirmed unchanged
+
+    //for eval
+    mfbar = f.val_b;
+    mgbar = g.val_b;
 
     return (Int) (f.val_b[1]); //eval return should be 1?
   }

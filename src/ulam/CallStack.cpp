@@ -136,6 +136,8 @@ namespace MFM {
 	  {
 	    lvalAtIdx.setUlamValueTypeIdx(pluv.getPtrTargetType());
 	  }
+	else if(lvalAtIdx.isPtr())
+	  lvalAtIdx = state.getPtrTarget(lvalAtIdx); //t3707?
 
 	// never is lvalAtIdx a Ptr
 	assert(!lvalAtIdx.isPtr());

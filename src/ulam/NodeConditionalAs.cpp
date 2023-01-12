@@ -372,13 +372,13 @@ namespace MFM {
       {
 	// like 'is'
 	// was inclusive result for eval purposes (atoms and element types are orthogonal)
-	// now optional for debugging
+	// now optional for debugging; was compared to luti, now effself (t41344)
 	//#define _LET_ATOM_AS_ELEMENT
 #ifndef _LET_ATOM_AS_ELEMENT
 	if(m_state.isAtom(luti)) return evalStatusReturn(UNEVALUABLE);
-	asit = (UlamType::compare(luti, ruti, m_state) == UTIC_SAME);
+	asit = (UlamType::compare(leffself, ruti, m_state) == UTIC_SAME);
 #else
-	asit = m_state.isAtom(luti) || (UlamType::compare(luti, ruti, m_state) == UTIC_SAME);
+	asit = m_state.isAtom(luti) || (UlamType::compare(leffself, ruti, m_state) == UTIC_SAME);
 #endif
       }
     else if(rclasstype == UC_TRANSIENT)
@@ -407,7 +407,7 @@ namespace MFM {
 	  adjust = ATOMFIRSTSTATEBITPOS; //t3563, t3637
 
 	UlamValue ptr = UlamValue::makePtr(pluv.getPtrSlotIndex(), pluv.getPtrStorage(), asuti, m_state.determinePackable(asuti), m_state, pluv.getPtrPos() + relpos + adjust, pluv.getPtrNameId());
-	ptr.setPtrTargetEffSelfType(luti); //t41318, t41384
+	ptr.setPtrTargetEffSelfType(leffself); //t41318, t41384 (was luti)
 	ptr.checkForAbsolutePtr(pluv);
 
 	m_state.m_currentAutoObjPtr = ptr;

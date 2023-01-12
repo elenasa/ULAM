@@ -377,7 +377,7 @@ namespace MFM {
     //check for any array cast errors
     if(!tobe->isScalar())
       {
-	if(!(m_state.isARefTypeOfUlamType(tobeType, nodeType)))
+	if(m_state.isARefTypeOfUlamType(tobeType, nodeType) != UTIC_SAME)
 	  {
 	    MSG(getNodeLocationAsString().c_str(),
 		"Array casts currently not supported", ERR);
@@ -402,7 +402,7 @@ namespace MFM {
 	//to be scalar type
 	if(!nut->isScalar())
 	  {
-	    if(!(m_state.isARefTypeOfUlamType(tobeType, nodeType)))
+	    if(m_state.isARefTypeOfUlamType(tobeType, nodeType) != UTIC_SAME)
 	      {
 		MSG(getNodeLocationAsString().c_str(),
 		    "Consider implementing array casts: Cannot cast array into scalar", ERR);
@@ -611,20 +611,18 @@ namespace MFM {
       }
 
     UlamValue uv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);
-    if(uv.isPtr()) //t41497
-      uv = m_state.getPtrTarget(uv); //t41495, t3407
+    if(uv.isPtr())
+      uv = m_state.getPtrTarget(uv);
 
     UTI vuti = uv.getUlamValueTypeIdx();
 
-    if(UlamType::compare(nodeType, tobeType, m_state) != UTIC_SAME)
+    if(m_state.isAltRefType(tobeType)) //to ref type
+      return evalCastToAReference(); //minimal casting
+    else if(m_state.isReference(nodeType)) //from ref type, including ALT_AS (t3585)
+      return evalCastFromAReference();
+    else
       {
-	if(m_state.isARefTypeOfUlamType(nodeType, tobeType))
-	  {
-	    uv.setUlamValueTypeIdx(tobeType);
-	    if(m_state.isAtom(tobeType) && !m_state.isAtom(vuti))
-	      uv.setUlamValueEffSelfTypeIdx(vuti); //t3679
-	  }
-	else if(!(m_state.getUlamTypeByIndex(tobeType)->cast(uv, tobeType)))
+	if(!(m_state.getUlamTypeByIndex(tobeType)->cast(uv, tobeType)))
 	  {
 	    std::ostringstream msg;
 	    msg << "Cast problem during eval! Value type ";
@@ -634,11 +632,16 @@ namespace MFM {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	    return evalStatusReturn(UNEVALUABLE);
 	  }
+	else if(isExplicitCast())
+	  assert(uv.getUlamValueTypeIdx() == getCastType()); //t3153
+	//else fall thru
       }
+
     //also copy result UV to stack, -1 relative to current frame pointer
     Node::assignReturnValueToStack(uv);
 
     evalNodeEpilog();
+
     return NORMAL;
   } //eval
 
@@ -677,7 +680,7 @@ namespace MFM {
 
     if(UlamType::compare(nodeType, tobeType, m_state) != UTIC_SAME)
       {
-	if(m_state.isARefTypeOfUlamType(nodeType, tobeType))
+	if(m_state.isARefTypeOfUlamType(nodeType, tobeType) == UTIC_SAME)
 	  {
 	    ruvPtr.setPtrTargetType(tobeType);
 	  }
@@ -706,9 +709,6 @@ namespace MFM {
 		//case of virtual func calls? (t41364)
 		if(m_state.isAClass(nodeType))
 		  {
-		    m_state.m_currentAutoObjPtr = ruvPtr; //a copy
-		    m_state.m_currentAutoStorageType = nodeType;
-
 		    u32 baserelpos = 0;
 		    //use nodetype for data members (t41364); and, what if both baseclass and dm???
 		    if(m_node->hasASymbolDataMember())
@@ -724,15 +724,14 @@ namespace MFM {
 			  }
 			//else (not a class)
 		      }
+		    m_state.m_currentAutoObjPtr = ruvPtr; //a copy, before?? t41001
+		    m_state.m_currentAutoStorageType = nodeType;
 		  }
 		else if(m_state.isAtom(nodeType)) //t41315,8
 		  {
 		    UTI effself = uv.getUlamValueEffSelfTypeIdx();
 		    ruvPtr.setPtrTargetType(tobeType); //possibly reset to ref type, no longer atom
 		    ruvPtr.setPtrTargetEffSelfType(effself);
-
-		    m_state.m_currentAutoObjPtr = ruvPtr; //a copy, before the upcoming changes
-		    m_state.m_currentAutoStorageType = UAtom; //effself?;
 
 		    u32 baserelpos = 0; //t3837, t41315
 		    if(m_state.getABaseClassRelativePositionInAClass(effself, dereftobe, baserelpos))
@@ -743,6 +742,9 @@ namespace MFM {
 			if(m_state.getUlamTypeByIndex(dereftobe)->getUlamClassType()==UC_ELEMENT)
 			  ruvPtr.setPtrLen(MAXSTATEBITS); //elements have no baseclassbitsize
 		      }
+
+		    m_state.m_currentAutoObjPtr = ruvPtr; //a copy, before the upcoming changes t3837??
+		    m_state.m_currentAutoStorageType = UAtom; //effself?;
 		  }
 		//else (not a class)
 	      }
@@ -754,6 +756,195 @@ namespace MFM {
     evalNodeEpilog();
     return NORMAL;
   } //evalToStoreInto
+
+  EvalStatus NodeCast::evalCastToAReference()
+  {
+    m_state.abortNotImplementedYet();
+    return UNEVALUABLE;
+  }
+
+  EvalStatus NodeCast::evalCastFromAReference()
+  {
+    UTI tobeType = getCastType();
+    UTI nodeType = m_node->getNodeType(); //uv.getUlamValueType()
+
+    //m_node eval already done..
+    UlamValue uv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);
+    if(uv.isPtr()) //t41497
+      uv = m_state.getPtrTarget(uv); //t41495, t3407
+
+    UTI vuti = uv.getUlamValueTypeIdx();
+
+    assert(!m_state.isAltRefType(tobeType));
+
+    if(!m_state.isAPrimitiveType(tobeType))
+      {
+	//class or atom
+	if((UlamType::compare(vuti, tobeType, m_state) != UTIC_SAME))
+	  {
+	    if(m_state.isARefTypeOfUlamType(nodeType, tobeType) == UTIC_SAME)
+	      {
+		UlamValue uvp = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1); //reload
+		if(uvp.isPtr())
+		  {
+		    assert(!m_state.isAtom(tobeType));
+		    UTI pttype = uvp.getPtrTargetType();
+		    UTI peffself = uvp.getPtrTargetEffSelfType();
+		    if(pttype == peffself) //dm
+		      {
+			s32 len = uvp.getPtrLen();
+			assert(len <= MAXBITSPERLONG);
+			u64 datavalue = uv.getDataLongFromAtom(uvp.getPtrPos(), len);
+			uv = UlamValue::makeAtom(pttype); //gets same effself
+			uv.putDataLong(ATOMFIRSTSTATEBITPOS, len, datavalue);
+		      }
+		    else //baseclass, shared t3587
+		      {
+			UlamValue newuv = UlamValue::makeAtom(tobeType); //gets same effself
+			m_state.extractQuarkBaseFromSubclassForEval(uv, tobeType, newuv);
+			uv = newuv;
+		      }
+		  }
+		else
+		  {
+		    //e.g. tobe atom (t3408), or same type from ALT_AS ref (t3585)
+		    uv.setUlamValueTypeIdx(tobeType);
+		    if(m_state.isAtom(tobeType) && !m_state.isAtom(vuti))
+		      uv.setUlamValueEffSelfTypeIdx(vuti); //t3679
+		  }
+	      }
+	    else if(m_state.isAtom(tobeType))
+	      {
+		//e.g. tobe atom (t3286)
+		uv.setUlamValueTypeIdx(tobeType);
+		if(!m_state.isAtom(vuti))
+		  uv.setUlamValueEffSelfTypeIdx(vuti);
+	      }
+	    else if(m_state.isAtom(vuti))
+	      {
+		//t3754
+		assert(m_state.isAClass(tobeType));
+		UTI aeffself = uv.isPtr() ? uv.getPtrTargetEffSelfType() : uv.getUlamValueEffSelfTypeIdx();
+		ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(tobeType)->getUlamClassType();
+		if(classtype == UC_ELEMENT)
+		  {
+		    uv.setUlamValueTypeIdx(tobeType);
+		    assert(aeffself == tobeType); //sanity, compare
+		    uv.setUlamValueEffSelfTypeIdx(tobeType);
+		  }
+		else if(m_state.isClassASubclassOf(aeffself, tobeType))
+		  {
+		    if(m_state.isAltRefType(tobeType))
+		      m_state.abortNotImplementedYet();
+
+		    //extract base class as immediate //t3754
+		    UlamValue newuv = UlamValue::makeAtom(tobeType); //gets same effself
+		    newuv.setUlamValueEffSelfTypeIdx(aeffself); //?
+		    if(classtype == UC_QUARK)
+		      {
+			m_state.extractQuarkBaseFromSubclassForEval(uv, tobeType, newuv);
+			uv = newuv;
+		      }
+		    else if(classtype == UC_TRANSIENT)
+		      {
+			m_state.extractTransientBaseFromSubclassForEval(uv, tobeType, newuv);
+			uv = newuv;
+		      }
+		    else
+		      m_state.abortShouldntGetHere();
+		  }
+	      }
+	    else
+	      {
+		//base class cast from subclass ref (like 'self') t3562
+		UlamValue uvp = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1); //reload
+		if(uvp.isPtr())
+		  {
+		    UTI peffself = uvp.getPtrTargetEffSelfType();
+		    if(m_state.isClassASubclassOf(peffself, tobeType))
+		      {
+			UlamValue newuv = UlamValue::makeAtom(tobeType); //gets same effself
+			m_state.extractQuarkBaseFromSubclassForEval(uv, tobeType, newuv);
+			uv = newuv;
+		      }
+		    else
+		      m_state.abortShouldntGetHere();
+		  }
+		else
+		  {
+		    UTI veffself = uv.getUlamValueEffSelfTypeIdx();
+		    if(veffself == Nouti) veffself = vuti;
+		    if(m_state.isClassASubclassOf(veffself, tobeType)) //t41065
+		      {
+			UlamValue newuv = UlamValue::makeAtom(tobeType); //gets same effself
+			m_state.extractQuarkBaseFromSubclassForEval(uv, tobeType, newuv);
+			uv = newuv;
+		      }
+		    else
+		      m_state.abortShouldntGetHere();
+		  }
+	      }
+	  }
+	else
+	  {
+	    //not ref type of each other, e.g. tobe atom (t3408)
+	    uv.setUlamValueTypeIdx(tobeType);
+	    if(m_state.isAtom(tobeType) && !m_state.isAtom(vuti))
+	      uv.setUlamValueEffSelfTypeIdx(vuti); //t3679
+	  }
+      }
+    else //isPrimitive
+      {
+	if(!m_state.isAPrimitiveType(vuti)) //t3611
+	  {
+	    assert(!m_state.isReference(tobeType));
+	    UlamValue uvp = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);
+	    s32 len = uvp.getPtrLen();
+	    assert(len <= MAXBITSPERLONG);
+	    u64 datavalue = uv.getDataLongFromAtom(uvp.getPtrPos(), len);
+	    uv = UlamValue::makeImmediateLong(tobeType, datavalue, len);
+	  }
+	else if(!m_state.isScalar(vuti)) //t3651 primitive array
+	  {
+	    assert(!m_state.isReference(tobeType));
+	    UlamValue uvp = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);
+
+	    if(uvp.isPtr())
+	      {
+		assert(uvp.isPtr());
+		s32 len = uvp.getPtrLen();
+		assert(len <= MAXBITSPERLONG);
+		u64 datavalue = uv.getDataLongFromAtom(uvp.getPtrPos(), len);
+		uv = UlamValue::makeImmediateLong(tobeType, datavalue, len);
+	      }
+	    else
+	      {
+		assert(UlamType::compareForUlamValueAssignment(vuti,tobeType,m_state) == UTIC_SAME);
+		assert(!m_state.isScalar(tobeType)); //t3946
+		assert(m_state.isARefTypeOfUlamType(vuti,tobeType));
+		uvp.setUlamValueTypeIdx(tobeType);
+	      }
+	  }
+	else if(!(m_state.getUlamTypeByIndex(tobeType)->cast(uv, tobeType)))
+	  {
+	    std::ostringstream msg;
+	    msg << "Cast problem during eval! Value type ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(vuti).c_str();
+	    msg << " failed to be cast as ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    return evalStatusReturn(UNEVALUABLE);
+	  }
+	//else fall thru
+      }
+
+    //also copy result UV to stack, -1 relative to current frame pointer
+    Node::assignReturnValueToStack(uv);
+
+    evalNodeEpilog();
+    return NORMAL;
+  } //evalCastFromAReference
+
 
   UlamValue NodeCast::makeImmediateUnaryOp(UTI type, u32 data, u32 len)
   {

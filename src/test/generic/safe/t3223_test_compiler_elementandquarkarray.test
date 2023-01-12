@@ -5,6 +5,9 @@ Exit status: -11
 Ue_Foo { Bool(3) b(false);  typedef Bar Pop[2];  System s();  Int(4) m_i(0);  Bar m_bar2[2]( Bool val_b[3](false,false,false);  Bool val_b[3](false,false,false); );  Bar sbar( Bool val_b[3](false,false,false); );  Int test() {  Atom a;  a self sbar . ( 0 cast )aref . = self sbar . ( 1 cast )aref . a = 0 cast return } }
 Uq_System { <NOMAIN> }
 Uq_Bar { Bool val_b[3](false,false,false);  <NOMAIN> }
+##
+##  native aref is UNEVALUABLE
+##
 #>Foo.ulam
   ulam 1;
 use System;

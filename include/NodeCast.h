@@ -2,8 +2,8 @@
  * NodeCast.h - Basic Node for handling Type Casting for ULAM
 o *
  * Copyright (C) 2014-2019 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2022 Ackleyshack LLC.
- * Copyright (C) 2020-2022 The Living Computation Foundation
+ * Copyright (C) 2014-2023 Ackleyshack LLC.
+ * Copyright (C) 2020-2023 The Living Computation Foundation
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -30,7 +30,7 @@ o *
   \file NodeCast.h - Basic Node for handling Type Casting for ULAM
   \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2022 All rights reserved.
+  \date (C) 2014-2023 All rights reserved.
   \gpl
 */
 
@@ -136,6 +136,9 @@ namespace MFM{
     UTI m_castToBe; //instead of nodetype used for Nav, Hzy, etc.
     bool m_explicit;   // requested by user (not automatic)
     NodeTypeDescriptor * m_nodeTypeDesc; //can be NULL
+
+    EvalStatus evalCastToAReference();
+    EvalStatus evalCastFromAReference();
 
     bool needsACast(); // trying to avoid extraneous casting.
 
