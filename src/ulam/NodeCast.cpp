@@ -584,7 +584,8 @@ namespace MFM {
     EvalStatus evs = m_node->eval();
     if(evs != NORMAL) return evalStatusReturn(evs);
 
-    if(nodeType == Void) return evalStatusReturn(UNEVALUABLE); //t41077, nothing to load
+    if(nodeType == Void)
+      return evalStatusReturn(UNEVALUABLE); //t41077, nothing to load
 
     //do we believe these to be scalars, only?
     //possibly an array that needs to be casted, per elenemt
@@ -676,7 +677,8 @@ namespace MFM {
 
     //then what? (see NodeMemberSelect)
     UlamValue ruvPtr = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(1);
-    if(!ruvPtr.isPtr()) return evalStatusReturn(UNEVALUABLE); //t41053
+    if(!ruvPtr.isPtr())
+      return evalStatusReturn(UNEVALUABLE); //t41053
 
     if(UlamType::compare(nodeType, tobeType, m_state) != UTIC_SAME)
       {
@@ -687,10 +689,10 @@ namespace MFM {
 	else
 	  {
 	    UlamValue uvp = ruvPtr;
-	    UlamValue uv =m_state.getPtrTarget(uvp);
-	    UTI ttype = uv.getUlamValueTypeIdx();
-
-	    if(!(m_state.getUlamTypeByIndex(tobeType)->cast(uv, tobeType)))
+	    UlamValue uv = m_state.getPtrTarget(uvp);
+	    UTI stgtype = uv.getUlamValueTypeIdx();
+	    bool stgisnodetype = (UlamType::compareForUlamValueAssignment(stgtype, nodeType, m_state) == UTIC_SAME);
+	    if(stgisnodetype && !(m_state.getUlamTypeByIndex(tobeType)->cast(uv, tobeType)))
 	      {
 		std::ostringstream msg;
 		msg << "Cast problem during evalToStoreInto! Value type ";
@@ -703,27 +705,51 @@ namespace MFM {
 	    else
 	      {
 		UTI dereftobe = m_state.getUlamTypeAsDeref(tobeType);
-		ruvPtr.setPtrTargetType(dereftobe); //t3754 case 1 & 3 (to element ref)
+		ruvPtr.setPtrTargetType(tobeType); //t3754 case 1 & 3 (to element ref) ???
 
 		//before the cast, so we don't lose the subclass ("effself") in
 		//case of virtual func calls? (t41364)
 		if(m_state.isAClass(nodeType))
 		  {
+		    UTI nodeeffselfType = ruvPtr.getPtrTargetEffSelfType();
+		    if(nodeeffselfType == Nouti) //t41053,t41592,t41630
+		      {
+			nodeeffselfType = nodeType;
+			assert(m_state.isAClass(nodeType)); //sanity
+		      }
 		    u32 baserelpos = 0;
-		    //use nodetype for data members (t41364); and, what if both baseclass and dm???
-		    if(m_node->hasASymbolDataMember())
+		    bool istobebaseofnode = m_state.isClassASubclassOf(nodeeffselfType, dereftobe);// && isreftobe;
+		    bool isnodebaseoftobe = m_state.isClassASubclassOf(dereftobe, nodeType);
+		    bool nodehasDM = m_node->hasASymbolDataMember() && !m_node->isAMemberSelect();
+
+		    //use nodetype for data members (t41364);
+		    //and, what if both baseclass and dm?? (t41629)
+		    if(nodehasDM)
 		      {
 			ruvPtr.setPtrTargetType(nodeType); //t41364
 		      }
-		    else
+		    else if(istobebaseofnode)
 		      {
-			if(m_state.getABaseClassRelativePositionInAClass(nodeType, dereftobe, baserelpos))
-			  {
-			    ruvPtr.setPtrPos(ruvPtr.getPtrPos() + baserelpos); //t41319
-			    ruvPtr.setPtrLen(m_state.getBaseClassBitSize(dereftobe)); //t41364
-			  }
-			//else (not a class)
+			AssertBool gotrelpos = m_state.getABaseClassRelativePositionInAClass(nodeeffselfType, dereftobe, baserelpos);
+			assert(gotrelpos);
+
+			u32 relpos2;
+			AssertBool gotrelpos2 = m_state.getABaseClassRelativePositionInAClass(nodeeffselfType, nodeType, relpos2);
+			assert(gotrelpos2); //t41629, Yes!!
+
+			ruvPtr.setPtrPos(ruvPtr.getPtrPos() + baserelpos - relpos2); //t41319
+			ruvPtr.setPtrLen(m_state.getBaseClassBitSize(dereftobe)); //t41364
 		      }
+		    else if(isnodebaseoftobe)
+		      {
+			//t41141,t3756,t3757,t3790,t41052,t41054
+			AssertBool gotrelpos = m_state.getABaseClassRelativePositionInAClass(dereftobe, nodeType, baserelpos);
+			assert(gotrelpos);
+			ruvPtr.setPtrPos(ruvPtr.getPtrPos() - baserelpos);
+			ruvPtr.setPtrLen(m_state.getBaseClassBitSize(dereftobe));
+		      }
+		    //else t3684,t3701,t3753,t3755,t3834,t3986,t41153
+
 		    m_state.m_currentAutoObjPtr = ruvPtr; //a copy, before?? t41001
 		    m_state.m_currentAutoStorageType = nodeType;
 		  }
@@ -736,7 +762,7 @@ namespace MFM {
 		    u32 baserelpos = 0; //t3837, t41315
 		    if(m_state.getABaseClassRelativePositionInAClass(effself, dereftobe, baserelpos))
 		      {
-			u32 adjust = m_state.isAtom(ttype) ? ATOMFIRSTSTATEBITPOS : 0u; //t41005
+			u32 adjust = m_state.isAtom(stgtype) ? ATOMFIRSTSTATEBITPOS : 0u; //t41005
 			ruvPtr.setPtrPos(ruvPtr.getPtrPos() + baserelpos + adjust );
 			ruvPtr.setPtrLen(m_state.getBaseClassBitSize(dereftobe));
 			if(m_state.getUlamTypeByIndex(dereftobe)->getUlamClassType()==UC_ELEMENT)

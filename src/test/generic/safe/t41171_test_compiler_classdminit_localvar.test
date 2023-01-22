@@ -10,7 +10,7 @@
 ##
 #!
 Exit status: 0
-Ue_A { Bool b(false);  Int test() {  SystemU3 su3;  QBar bar = { .r = 7u, .sp = true };  String m_str = "foo";  QStr m_s = { .m_str = "bar" };  Unsigned(8) fasc = m_str 0 [];  self b . fasc 102u == = su3 ( m_str )print . su3 ( self b . )assert . Unsigned(8) qasc = m_s m_str 1 [] .;  self b . qasc 97u == = su3 ( m_s m_str . )print . su3 ( self b . )assert . Unary(3) chkr = bar r .;  su3 ( chkr )print . su3 ( bar r . )print . su3 ( bar r . cast 3 == )assert . su3 ( bar sp . cast )print . su3 ( bar sp . )assert . 0 cast return } }
+Ue_A { Bool b1(true);  Bool b2(true);  Bool b3(true);  Bool b4(true);  Int test() {  SystemU3 su3;  QBar bar = { .r = 7u, .sp = true };  String m_str = "foo";  QStr m_s = { .m_str = "bar" };  Unsigned(8) fasc = m_str 0 [];  self b1 . fasc 102u == = su3 ( m_str )print . su3 ( self b1 . )assert . Unsigned(8) qasc = m_s m_str 1 [] .;  self b2 . qasc 97u == = su3 ( m_s m_str . )print . su3 ( self b2 . )assert . Unary(3) chkr = bar r .;  su3 ( chkr )print . su3 ( bar r . )print . su3 ( bar r . cast 3 == )assert . self b3 . bar r . cast 3 == = su3 ( bar sp . cast )print . su3 ( bar sp . )assert . self b4 . bar sp . = 0 cast return } }
 Uq_SystemU3 : System { :System<> <NOMAIN> }
 Uq_QBar { Bool sp(false);  Unary(3) r( 1u);  <NOMAIN> }
 Uq_QStr { String m_str( "hello world");  <NOMAIN> }
@@ -22,9 +22,8 @@ Uq_System { <NOMAIN> }
 #>A.ulam
   ulam 3;
 local constant String c_str = "foo";
-//use QBar; //remove this eventually!
 element A {
-  Bool b;
+  Bool b1,b2,b3,b4;
 
  Int test() {
    SystemU3 su3;
@@ -34,22 +33,24 @@ element A {
    QStr m_s = { .m_str = "bar" };
 
    ASCII fasc = m_str[0];
-   b = (fasc == 'f');
+   b1 = (fasc == 'f');
    su3.print(m_str);
-   su3.assert(b);
+   su3.assert(b1);
 
    ASCII qasc = m_s.m_str[1];
-   b = (qasc == 'a');
+   b2 = (qasc == 'a');
    su3.print(m_s.m_str);
-   su3.assert(b);
+   su3.assert(b2);
 
    Unary(3) chkr = bar.r;
    su3.print(chkr);
    su3.print(bar.r);
    su3.assert(bar.r == 3);
+   b3 = (bar.r == 3);
 
    su3.print(bar.sp);
    su3.assert(bar.sp);
+   b4 = bar.sp;
 
    return 0;
  }

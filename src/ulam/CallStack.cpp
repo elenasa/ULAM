@@ -130,14 +130,21 @@ namespace MFM {
 	//target is either packed array or packedloadable into a single int,
 	// use pos & len in ptr, unless there's no type
 	UlamValue lvalAtIdx = loadUlamValueFromSlot(leftbaseslot);
-
+	UTI lvaltype = lvalAtIdx.getUlamValueTypeIdx();
+	UTI ttype = pluv.getPtrTargetType();
 	// if uninitialized, set the type
-	if(lvalAtIdx.getUlamValueTypeIdx() == Nouti)
+	if(lvaltype == Nouti)
 	  {
-	    lvalAtIdx.setUlamValueTypeIdx(pluv.getPtrTargetType());
+	    lvalAtIdx.setUlamValueTypeIdx(ttype);
 	  }
 	else if(lvalAtIdx.isPtr())
-	  lvalAtIdx = state.getPtrTarget(lvalAtIdx); //t3707?
+	  {
+	    lvalAtIdx = state.getPtrTarget(lvalAtIdx); //t3707?
+	  }
+	else if(state.isAPrimitiveType(lvaltype) && state.isAClass(ttype))
+	  {
+	    lvalAtIdx.setUlamValueTypeIdx(ttype); //t41053?
+	  }
 
 	// never is lvalAtIdx a Ptr
 	assert(!lvalAtIdx.isPtr());
@@ -153,6 +160,11 @@ namespace MFM {
 	  {
 	    lvalAtIdx.putDataIntoAtom(pluv, ruv, state);
 	    storeUlamValueInSlot(lvalAtIdx, leftbaseslot);
+	  }
+	else if(len <= MAXSTATEBITS)
+	  {
+	    lvalAtIdx.putDataIntoAtom(pluv, ruv, state);
+	    storeUlamValueInSlot(lvalAtIdx, leftbaseslot); //t3772
 	  }
 	else
 	  state.abortGreaterThanMaxBitsPerLong();

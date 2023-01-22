@@ -18,7 +18,8 @@ CFLAGS+= --param inline-unit-growth=1000 --param large-function-growth=50000
 CFLAGS+= -Wextra -Wno-unused-parameter -Wno-ignored-qualifiers
 CFLAGS+= -Wno-parentheses
 #CFLAGS+= -std=c++11
-
+## test w optimization
+#CFLAGS+= -O99
 
 default: all
 

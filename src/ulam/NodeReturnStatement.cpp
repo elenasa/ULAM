@@ -292,7 +292,8 @@ namespace MFM {
 	//avoid pointer to atom situation
 	//avoid pointer to class situation, t3189
 	//return ref to primitive, t3630
-	UlamValue rtnUV = m_state.m_nodeEvalStack.popArg();
+	//UlamValue rtnUV = m_state.m_nodeEvalStack.popArg();
+	UlamValue rtnUV = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1); //t41053?
 	Node::assignReturnValueToStack(rtnUV, STACK);
       }
     else

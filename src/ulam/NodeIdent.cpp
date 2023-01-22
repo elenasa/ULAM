@@ -755,8 +755,9 @@ namespace MFM {
 
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     ULAMCLASSTYPE classtype = nut->getUlamClassType();
-    if((classtype == UC_TRANSIENT) && (nut->getTotalBitSize() > MAXSTATEBITS))
-      return evalStatusReturnNoEpilog(UNEVALUABLE);
+    //    if((classtype == UC_TRANSIENT) && (nut->getTotalBitSize() > MAXSTATEBITS))
+        if((classtype == UC_TRANSIENT) && (nut->getBitSize() > MAXSTATEBITS))
+	  return evalStatusReturnNoEpilog(UNEVALUABLE); //t41632
 
     evalNodeProlog(0); //new current frame pointer
 
@@ -874,7 +875,8 @@ namespace MFM {
 
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     ULAMCLASSTYPE classtype = nut->getUlamClassType();
-    if((classtype == UC_TRANSIENT) && (nut->getTotalBitSize() > MAXSTATEBITS))
+    //    if((classtype == UC_TRANSIENT) && (nut->getTotalBitSize() > MAXSTATEBITS))
+    if((classtype == UC_TRANSIENT) && (nut->getBitSize() > MAXSTATEBITS)) //t41632
       return evalStatusReturnNoEpilog(UNEVALUABLE);
 
     TBOOL stor = Node::getStoreIntoAble();
@@ -904,13 +906,21 @@ namespace MFM {
 
     UlamValue rtnUVPtr = makeUlamValuePtr();
 
-    //must remain a ptr!!!
+    //must remain a ptr!!! (e.g. func arg)
     if(m_state.isAltRefType(rtnUVPtr.getPtrTargetType()) && (rtnUVPtr.getPtrStorage() == STACK))
       {
 	UlamValue tmpref = m_state.getPtrTargetOnce(rtnUVPtr); //t41496
 	 if(tmpref.isPtr())
-	   rtnUVPtr = tmpref;
-	 //else no change? (e.g. t3407)
+	   rtnUVPtr = tmpref; //t41625
+	 else //no change? (e.g. t3407)
+	   {
+	     UTI effself = rtnUVPtr.getPtrTargetEffSelfType();
+	     if(effself == Nouti)
+	       {
+		 UTI tmpeffself = tmpref.getUlamValueEffSelfTypeIdx();
+		 rtnUVPtr.setPtrTargetEffSelfType(tmpeffself); //t41629
+	       }
+	   }
       }
 
     //copy result UV to stack, -1 relative to current frame pointer
@@ -931,7 +941,11 @@ namespace MFM {
 	UlamValue selfuvp = m_state.m_currentSelfPtr;
 	UTI selfttype = selfuvp.getPtrTargetType();
 	UTI effselfttype = selfuvp.getPtrTargetEffSelfType();
-	if(effselfttype == Nouti) effselfttype = selfttype;
+	if(effselfttype == Nouti)
+	  {
+	    effselfttype = selfttype;
+	    selfuvp.setPtrTargetEffSelfType(selfttype); //t41318
+	  }
 	assert(m_state.okUTItoContinue(selfttype));
 
 	if((UlamType::compareForUlamValueAssignment(selfttype, nuti, m_state) == UTIC_NOTSAME))
@@ -951,8 +965,7 @@ namespace MFM {
 	    assert(gotpos);
 
 	    selfuvp.setPtrPos(selfpos + relposofbase);
-	    selfuvp.setPtrTargetType(m_state.getUlamTypeAsDeref(nuti));
-	    selfuvp.setPtrTargetEffSelfType(effselfttype);
+	    selfuvp.setPtrTargetType(m_state.getUlamTypeAsDeref(nuti)); //t3675? not def;d t3707,t3708
 	    selfuvp.setPtrLen(m_state.getBaseClassBitSize(nuti));
 	  }
 	//else same
@@ -960,13 +973,14 @@ namespace MFM {
       } //done
     else if(m_varSymbol->isSuper())
       {
-	// manufactured super for self as-cond. (t41338)
+	// manufactured super for self as-cond. (t41338) instanceof (t3747,t3743)
 	UlamValue selfuvp = m_state.m_currentSelfPtr;
 	UTI selfttype = selfuvp.getPtrTargetType();
 	UTI effselfttype = selfuvp.getPtrTargetEffSelfType();
 	assert(m_state.okUTItoContinue(selfttype));
 	//assert(selfttype == effselfttype); //sanity t3743 super of a baseclass
-	UTI supertype = m_varSymbol->getUlamTypeIdx(); //ALT_AS
+	UTI supertype = m_varSymbol->getUlamTypeIdx(); //ALT_AS //t41338
+
 	u32 relposofsuper = 0;
 	AssertBool gotpos = m_state.getABaseClassRelativePositionInAClass(selfttype, supertype, relposofsuper);
 	assert(gotpos);
@@ -977,7 +991,7 @@ namespace MFM {
 
 	s32 selfpos = selfuvp.getPtrPos();
 	selfuvp.setPtrPos(selfpos + relposofsuper - relposofbase);
-	selfuvp.setPtrTargetType(m_state.getUlamTypeAsDeref(supertype));
+	selfuvp.setPtrTargetType(supertype);
 	selfuvp.setPtrLen(m_state.getBaseClassBitSize(supertype));
 	selfuvp.setPtrNameId(0);
 	return selfuvp; //now superuvp.
@@ -994,13 +1008,16 @@ namespace MFM {
     if(m_varSymbol->isAutoLocal()) //ALT_REF, ALT_CONSTREF or ALT_ARRAYITEM
       {
 	UlamValue autoptr = ((SymbolVariableStack *) m_varSymbol)->getAutoPtrForEval();
-	if(autoptr.isPtr())
+	if((autoptr.getUlamValueTypeIdx() != Nouti) && autoptr.isPtr())
 	  {
-	    if(UlamType::compare(m_state.getUlamTypeAsDeref(autoptr.getPtrTargetType()),m_state.getUlamTypeAsDeref(nuti),m_state)== UTIC_SAME)
+	    UTI autottype = autoptr.getPtrTargetType();
+	    UTI derefautottype = m_state.getUlamTypeAsDeref(autottype);
+	    UTI derefnuti = m_state.getUlamTypeAsDeref(nuti);
+	    if(UlamType::compare(derefautottype,derefnuti,m_state)== UTIC_SAME)
 	      return autoptr; //t41641,t3810
 	    //else //drop thru
 	  }
-	//else drop thru t3810
+	//else drop thru t3810, t41625
       }
 
     UlamValue ptr;
@@ -1023,13 +1040,16 @@ namespace MFM {
 	  }
 	else if(m_state.isAltRefType(objclass))
 	  {
-	    UTI objeffself = m_state.m_currentObjPtr.getPtrTargetEffSelfType(); //t41496,t41458
-	    if((objeffself != Nouti))
+	    if(!m_state.isARefTypeOfUlamType(objclass,dmclass))
 	      {
-		objclass = objeffself; //possible deref'd t41496
-		if(m_state.isASeenElement(objeffself))
-		  objclasspos = ATOMFIRSTSTATEBITPOS; //shared base t3810, t41458
-	      }
+		UTI objeffself = m_state.m_currentObjPtr.getPtrTargetEffSelfType(); //t41496,t41458
+		if((objeffself != Nouti))
+		  {
+		    objclass = objeffself; //possible deref'd t41496
+		    if(m_state.isASeenElement(objeffself))
+		      objclasspos = ATOMFIRSTSTATEBITPOS; //shared base t3810, t41458
+		  }
+	      }//else t41629
 	  }
 	//else
 
@@ -1071,8 +1091,11 @@ namespace MFM {
 
 	//local variable on the stack; could be array ptr! could be 'super'
 	ptr = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, nuti, m_state.determinePackable(getNodeType()), m_state, 0, m_varSymbol->getId());
-	if(m_state.isAClass(nuti))
+
+	//refs usually not effself (41629)
+	if(m_state.isAClass(nuti) && !m_state.isReference(nuti))
 	  ptr.setPtrTargetEffSelfType(m_state.getUlamTypeAsDeref(nuti));
+	//else
       }
     return ptr;
   } //makeUlamValuePtr
@@ -1627,7 +1650,6 @@ namespace MFM {
 	  usealt = aualt; //t3816
 
 	SymbolVariable * sym = NULL;
-	//if(auti == Hzy) //t3810??
 	if((auti == Hzy) || m_state.isHolder(auti))
 	  {
 	    sym = makeSymbol(auti, usealt, args); //t41436,t3831

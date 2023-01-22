@@ -8,6 +8,7 @@
 ## Unsigned Arg: 1 (test)
 ##
 ## 3 unused variables
+## UNEVALUABLE due to big transient 'wsrv' (111 bits)
 #!
 Exit status: -11
 Ue_Mob { Unsigned(10) age(0u);  typedef Unsigned(6) SiteNum;  Int test() {  System s;  Mob meob;  XMob state;  state ( meob cast )transition . s ( meob age . cast )print . s ( meob age . cast 1 cast == )assert . 0 cast return } }

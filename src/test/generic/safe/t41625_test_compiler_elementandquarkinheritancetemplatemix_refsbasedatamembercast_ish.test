@@ -21,11 +21,11 @@
 ##    Int(4) Arg: 0x2 (+ assert)
 ##
 #!
-Exit status: -11
-Ue_R : System { :System<> Int test() {  Loader ll;  ll mChainControlDown . ( )derandomize . ll mChainControlUp . ( )derandomize . ll mNextInstruction . 7u cast = Loader& ld = ll cast;  self ( ld mNextInstruction . cast )print . self ( ld mNextInstruction . 7u cast == )assert . ChainControlUp& ccu = ld mChainControlUp . cast;  self ( ccu mTQMap . cast )print . self ( ld mChainControlUp . mTQMap . cast )print . self ( ccu mTQMap . ld mChainControlUp . mTQMap . == )assert . Int(4) cutm = self ( ccu cast )fooU .;  Int(4) lutm = self ( ld mChainControlUp . cast )fooU .;  self ( cutm )print . self ( lutm )print . self ( cutm lutm == )assert . self ( ccu mSRMap . cast )print . self ( ld mChainControlUp . mSRMap . cast )print . self ( ccu mSRMap . ld mChainControlUp . mSRMap . == )assert . Int(4) cusm = self ( ccu cast )barU .;  Int(4) lusm = self ( ld mChainControlUp . cast )barU .;  self ( cusm )print . self ( lusm )print . self ( cusm lusm == )assert . ChainControlDown& ccd = ld mChainControlDown . cast;  self ( ccd mTQMap . cast )print . self ( ld mChainControlDown . mTQMap . cast )print . self ( ccd mTQMap . ld mChainControlDown . mTQMap . == )assert . self ( ccd mSRMap . cast )print . self ( ld mChainControlDown . mSRMap . cast )print . self ( ccd mSRMap . ld mChainControlDown . mSRMap . == )assert . Int(4) cdtm = self ( ccd cast )fooD .;  Int(4) ldtm = self ( ld mChainControlDown . cast )fooD .;  self ( cdtm )print . self ( ldtm )print . self ( cdtm ldtm == )assert . Int(4) cdsm = self ( ccd cast )barD .;  Int(4) ldsm = self ( ld mChainControlDown . cast )barD .;  self ( cdsm )print . self ( ldsm )print . self ( cdsm ldsm == )assert . 0 cast return } }
+Exit status: 0
+Ue_R : System { typedef Bits(4) TQMap;  typedef Bits(4) ASRMap;  Bits(4) ccutqmap(3);  Int(4) cutm(3);  Int(4) lutm(3);  Bits(4) ccusrmap(2);  Int(4) cusm(2);  Int(4) lusm(2);  Bits(4) ccdtqmap(3);  Int(4) cdtm(3);  Int(4) ldtm(3);  Bits(4) ccdsrmap(2);  Int(4) cdsm(2);  Int(4) ldsm(2);  :System<> Int test() {  Loader ll;  ll mChainControlDown . ( )derandomize . ll mChainControlUp . ( )derandomize . ll mNextInstruction . 7u cast = Loader& ld = ll cast;  self ( ld mNextInstruction . cast )print . self ( ld mNextInstruction . 7u cast == )assert . ChainControlUp& ccu = ld mChainControlUp . cast;  self ccutqmap . ccu mTQMap . = self ( ccu mTQMap . cast )print . self ( ld mChainControlUp . mTQMap . cast )print . self ( ccu mTQMap . ld mChainControlUp . mTQMap . == )assert . self cutm . self ( ccu cast )fooU . = self lutm . self ( ld mChainControlUp . cast )fooU . = self ( self cutm . )print . self ( self lutm . )print . self ( self cutm . self lutm . == )assert . self ccusrmap . ccu mSRMap . = self ( ccu mSRMap . cast )print . self ( ld mChainControlUp . mSRMap . cast )print . self ( ccu mSRMap . ld mChainControlUp . mSRMap . == )assert . self cusm . self ( ccu cast )barU . = self lusm . self ( ld mChainControlUp . cast )barU . = self ( self cusm . )print . self ( self lusm . )print . self ( self cusm . self lusm . == )assert . ChainControlDown& ccd = ld mChainControlDown . cast;  self ccdtqmap . ccd mTQMap . = self ( ccd mTQMap . cast )print . self ( ld mChainControlDown . mTQMap . cast )print . self ( ccd mTQMap . ld mChainControlDown . mTQMap . == )assert . self ccdsrmap . ccd mSRMap . = self ( ccd mSRMap . cast )print . self ( ld mChainControlDown . mSRMap . cast )print . self ( ccd mSRMap . ld mChainControlDown . mSRMap . == )assert . self cdtm . self ( ccd cast )fooD . = self ldtm . self ( ld mChainControlDown . cast )fooD . = self ( self cdtm . )print . self ( self ldtm . )print . self ( self cdtm . self ldtm . == )assert . self cdsm . self ( ccd cast )barD . = self ldsm . self ( ld mChainControlDown . cast )barD . = self ( self cdsm . )print . self ( self ldsm . )print . self ( self cdsm . self ldsm . == )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
-Ue_Loader : PocketChain { typedef Unsigned(8) InstructionCount;  Unsigned(8) mNextInstruction( 0u);  :PocketChain< ChainControlUp mChainControlUp( :ChainControl(1u)< typedef Bits(4) TQMap;  Bits(4) mTQMap(0);  typedef Unsigned(2) SizeRange;  constant Unsigned(2) cSZRG_S = 0u;  constant Unsigned(2) cSZRG_M = 1u;  constant Unsigned(2) cSZRG_L = 2u;  constant Unsigned(2) cSZRG_X = 3u;  typedef Unsigned SizeRangeLimits[5];  constant Unsigned cSR_LIMITS[5] = { 0u cast, 4u cast, 8u cast, 14u cast, 2147483647 cast };  typedef Bits(4) ASRMap;  Bits(4) mSRMap(0);  constant Bits(4) cASR_S = 1u;  constant Bits(4) cASR_M = 2u;  constant Bits(4) cASR_L = 4u;  constant Bits(4) cASR_X = 8u;  Bool mViolation(false); > ^DTU< typedef Unsigned(1) BodyDir;  constant Unsigned(1) cBODY_UP = 1u;  constant Unsigned(1) cBODY_DOWN = 0u; >);  ChainControlDown mChainControlDown( :ChainControl(0u)< typedef Bits(4) TQMap;  Bits(4) mTQMap(0);  typedef Unsigned(2) SizeRange;  constant Unsigned(2) cSZRG_S = 0u;  constant Unsigned(2) cSZRG_M = 1u;  constant Unsigned(2) cSZRG_L = 2u;  constant Unsigned(2) cSZRG_X = 3u;  typedef Unsigned SizeRangeLimits[5];  constant Unsigned cSR_LIMITS[5] = { 0u cast, 4u cast, 8u cast, 14u cast, 2147483647 cast };  typedef Bits(4) ASRMap;  Bits(4) mSRMap(0);  constant Bits(4) cASR_S = 1u;  constant Bits(4) cASR_M = 2u;  constant Bits(4) cASR_L = 4u;  constant Bits(4) cASR_X = 8u;  Bool mViolation(false); > ^DTU< typedef Unsigned(1) BodyDir;  constant Unsigned(1) cBODY_UP = 1u;  constant Unsigned(1) cBODY_DOWN = 0u; >); > <NOMAIN> }
 Uq_ChainControlUp : ChainControl(1u) { /* empty class block */ }
+Ue_Loader : PocketChain { typedef Unsigned(8) InstructionCount;  Unsigned(8) mNextInstruction( 0u);  :PocketChain< ChainControlUp mChainControlUp( :ChainControl(1u)< typedef Bits(4) TQMap;  Bits(4) mTQMap(0);  typedef Unsigned(2) SizeRange;  constant Unsigned(2) cSZRG_S = 0u;  constant Unsigned(2) cSZRG_M = 1u;  constant Unsigned(2) cSZRG_L = 2u;  constant Unsigned(2) cSZRG_X = 3u;  typedef Unsigned SizeRangeLimits[5];  constant Unsigned cSR_LIMITS[5] = { 0u cast, 4u cast, 8u cast, 14u cast, 2147483647 cast };  typedef Bits(4) ASRMap;  Bits(4) mSRMap(0);  constant Bits(4) cASR_S = 1u;  constant Bits(4) cASR_M = 2u;  constant Bits(4) cASR_L = 4u;  constant Bits(4) cASR_X = 8u;  Bool mViolation(false); > ^DTU< typedef Unsigned(1) BodyDir;  constant Unsigned(1) cBODY_UP = 1u;  constant Unsigned(1) cBODY_DOWN = 0u; >);  ChainControlDown mChainControlDown( :ChainControl(0u)< typedef Bits(4) TQMap;  Bits(4) mTQMap(0);  typedef Unsigned(2) SizeRange;  constant Unsigned(2) cSZRG_S = 0u;  constant Unsigned(2) cSZRG_M = 1u;  constant Unsigned(2) cSZRG_L = 2u;  constant Unsigned(2) cSZRG_X = 3u;  typedef Unsigned SizeRangeLimits[5];  constant Unsigned cSR_LIMITS[5] = { 0u cast, 4u cast, 8u cast, 14u cast, 2147483647 cast };  typedef Bits(4) ASRMap;  Bits(4) mSRMap(0);  constant Bits(4) cASR_S = 1u;  constant Bits(4) cASR_M = 2u;  constant Bits(4) cASR_L = 4u;  constant Bits(4) cASR_X = 8u;  Bool mViolation(false); > ^DTU< typedef Unsigned(1) BodyDir;  constant Unsigned(1) cBODY_UP = 1u;  constant Unsigned(1) cBODY_DOWN = 0u; >); > <NOMAIN> }
 Uq_ChainControlDown : ChainControl(0u) { /* empty class block */ }
 Uq_PocketChain { ChainControlUp mChainControlUp( :ChainControl(1u)< typedef Bits(4) TQMap;  Bits(4) mTQMap(0);  typedef Unsigned(2) SizeRange;  constant Unsigned(2) cSZRG_S = 0u;  constant Unsigned(2) cSZRG_M = 1u;  constant Unsigned(2) cSZRG_L = 2u;  constant Unsigned(2) cSZRG_X = 3u;  typedef Unsigned SizeRangeLimits[5];  constant Unsigned cSR_LIMITS[5] = { 0u cast, 4u cast, 8u cast, 14u cast, 2147483647 cast };  typedef Bits(4) ASRMap;  Bits(4) mSRMap(0);  constant Bits(4) cASR_S = 1u;  constant Bits(4) cASR_M = 2u;  constant Bits(4) cASR_L = 4u;  constant Bits(4) cASR_X = 8u;  Bool mViolation(false); > ^DTU< typedef Unsigned(1) BodyDir;  constant Unsigned(1) cBODY_UP = 1u;  constant Unsigned(1) cBODY_DOWN = 0u; >);  ChainControlDown mChainControlDown( :ChainControl(0u)< typedef Bits(4) TQMap;  Bits(4) mTQMap(0);  typedef Unsigned(2) SizeRange;  constant Unsigned(2) cSZRG_S = 0u;  constant Unsigned(2) cSZRG_M = 1u;  constant Unsigned(2) cSZRG_L = 2u;  constant Unsigned(2) cSZRG_X = 3u;  typedef Unsigned SizeRangeLimits[5];  constant Unsigned cSR_LIMITS[5] = { 0u cast, 4u cast, 8u cast, 14u cast, 2147483647 cast };  typedef Bits(4) ASRMap;  Bits(4) mSRMap(0);  constant Bits(4) cASR_S = 1u;  constant Bits(4) cASR_M = 2u;  constant Bits(4) cASR_L = 4u;  constant Bits(4) cASR_X = 8u;  Bool mViolation(false); > ^DTU< typedef Unsigned(1) BodyDir;  constant Unsigned(1) cBODY_UP = 1u;  constant Unsigned(1) cBODY_DOWN = 0u; >);  <NOMAIN> }
 Uq_ChainControl(holder cSOURCE_BODY_DIR) +DTU { typedef Bits(4) TQMap;  Bits(4) mTQMap(0);  typedef Unsigned(2) SizeRange;  constant Unsigned(2) cSZRG_S = 0u;  constant Unsigned(2) cSZRG_M = 1u;  constant Unsigned(2) cSZRG_L = 2u;  constant Unsigned(2) cSZRG_X = 3u;  typedef Unsigned SizeRangeLimits[5];  constant Unsigned cSR_LIMITS[5] = { 0u cast, 4u cast, 8u cast, 14u cast, 2147483647 cast };  typedef Bits(4) ASRMap;  Bits(4) mSRMap(0);  constant Bits(4) cASR_S = 1u cSZRG_S <<;  constant Bits(4) cASR_M = 1u cSZRG_M <<;  constant Bits(4) cASR_L = 1u cSZRG_L <<;  constant Bits(4) cASR_X = 1u cSZRG_X <<;  Bool mViolation(false);  +DTU< typedef Unsigned(1) BodyDir;  constant Unsigned(1) cBODY_UP = 1u;  constant Unsigned(1) cBODY_DOWN = 0u; > <NOMAIN> }
@@ -37,6 +37,20 @@ Uq_UnRandom { Unsigned m_dud(0);  <NOMAIN> }
 #>R.ulam
   ulam 5;
 element R : System {
+  typedef ChainControlUp.TQMap TQMap;
+  typedef ChainControlUp.ASRMap ASRMap;
+  TQMap ccutqmap; //==3
+  Int(4) cutm,lutm;
+
+  ASRMap ccusrmap; //==2
+  Int(4) cusm,lusm;
+
+  TQMap ccdtqmap; //==3
+  Int(4) cdtm,ldtm;
+
+  ASRMap  ccdsrmap; //==2
+  Int(4) cdsm,ldsm;
+
   Int test(){
     Loader ll;
     ll.mChainControlDown.derandomize();
@@ -49,44 +63,48 @@ element R : System {
     assert(ld.mNextInstruction == 7u);
 
     ChainControlUp & ccu = ld.mChainControlUp;
+    ccutqmap = ccu.mTQMap;
     print((Int(4)) ccu.mTQMap);
     print((Int(4)) ld.mChainControlUp.mTQMap);
     assert(ccu.mTQMap == ld.mChainControlUp.mTQMap);
 
-    Int(4) cutm = fooU(ccu);
-    Int(4) lutm = fooU(ld.mChainControlUp);
+    cutm = fooU(ccu);
+    lutm = fooU(ld.mChainControlUp);
     print(cutm);
     print(lutm);
     assert(cutm == lutm);
 
+    ccusrmap = ccu.mSRMap;
     print((Int(4)) ccu.mSRMap);
     print((Int(4)) ld.mChainControlUp.mSRMap);
     assert(ccu.mSRMap == ld.mChainControlUp.mSRMap);
 
-    Int(4) cusm = barU(ccu);
-    Int(4) lusm = barU(ld.mChainControlUp);
+    cusm = barU(ccu);
+    lusm = barU(ld.mChainControlUp);
     print(cusm);
     print(lusm);
     assert(cusm == lusm);
 
 
     ChainControlDown & ccd = ld.mChainControlDown;
+    ccdtqmap = ccd.mTQMap;
     print((Int(4)) ccd.mTQMap);
     print((Int(4))ld.mChainControlDown.mTQMap);
     assert(ccd.mTQMap == ld.mChainControlDown.mTQMap);
 
+    ccdsrmap = ccd.mSRMap;
     print((Int(4)) ccd.mSRMap);
     print((Int(4))ld.mChainControlDown.mSRMap);
     assert(ccd.mSRMap == ld.mChainControlDown.mSRMap);
 
-    Int(4) cdtm = fooD(ccd);
-    Int(4) ldtm = fooD(ld.mChainControlDown);
+    cdtm = fooD(ccd);
+    ldtm = fooD(ld.mChainControlDown);
     print(cdtm);
     print(ldtm);
     assert(cdtm == ldtm);
 
-    Int(4) cdsm = barD(ccd);
-    Int(4) ldsm = barD(ld.mChainControlDown);
+    cdsm = barD(ccd);
+    ldsm = barD(ld.mChainControlDown);
     print(cdsm);
     print(ldsm);
     assert(cdsm == ldsm);

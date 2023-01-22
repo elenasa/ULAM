@@ -7,6 +7,7 @@
 ## Unsigned Arg: 2 (transition)
 ## Unsigned Arg: 1 (test)
 ##
+## UNEVALUABLE due to big transient 'wsrv' (111 bits)
 #!
 Exit status: -11
 Ue_Mob { Unsigned(10) age(1u);  typedef Unsigned(6) SiteNum;  Int test() {  System s;  XMob state;  state ( self )transition . s ( self age . cast )print . s ( self age . cast 1 cast == )assert . 0 cast return } }

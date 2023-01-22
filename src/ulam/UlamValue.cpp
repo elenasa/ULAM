@@ -607,8 +607,15 @@ namespace MFM {
 		u64 datavalue = data.getDataLong(nextPtr.getPtrPos(), nextPtr.getPtrLen());
 		rtnUV.putDataLong((BITSPERATOM-(bitsize * (arraysize - i))), bitsize, datavalue);
 	      }
+	    else if(len == BITSPERATOM)
+	      {
+		BV8K bvtmp;
+		data.getDataBig(nextPtr.getPtrPos(), nextPtr.getPtrLen(), bvtmp);
+		rtnUV.putDataBig(0, BITSPERATOM, bvtmp);
+		rtnUV.setUlamValueEffSelfTypeIdx(p.getPtrTargetEffSelfType()); //t3558
+	      }
 	    else
-	      state.abortGreaterThanMaxBitsPerLong();
+	      state.abortGreaterThanMaxBitsPerBiggestBV();
 
 	    nextPtr.incrementPtr(state);
 	  }
@@ -840,6 +847,12 @@ namespace MFM {
 		u64 datavalue = data.getImmediateDataLong(len, state);
 		putDataLong(p.getPtrPos(), len, datavalue);
 	      }
+	    else if(len <= MAXSTATEBITS)
+	      {
+		BV8K bvtmp;
+		data.getDataBig(ATOMFIRSTSTATEBITPOS, len, bvtmp);
+		putDataBig(p.getPtrPos(), len, bvtmp); //t3772
+	      }
 	    else
 	      state.abortGreaterThanMaxBitsPerLong();
 	  }
@@ -861,6 +874,12 @@ namespace MFM {
 	  {
 	    u64 datavalue = data.getImmediateDataLong(len, state);
 	    putDataLong(p.getPtrPos(), len, datavalue);
+	  }
+	else if(len <= MAXSTATEBITS)
+	  {
+	    BV8K bvtmp;
+	    data.getDataBig(ATOMFIRSTSTATEBITPOS, len, bvtmp);
+	    putDataBig(p.getPtrPos(), len, bvtmp);
 	  }
 	else
 	  state.abortGreaterThanMaxBitsPerLong();
@@ -894,8 +913,7 @@ namespace MFM {
 	    u64 datavalue = data.getDataLong((BITSPERATOM-(bitsize * (arraysize - i))), bitsize);
 	    putDataLong(nextPPtr.getPtrPos(), nextPPtr.getPtrLen(), datavalue);
 	  }
-	AssertBool isNext = nextPPtr.incrementPtr(state);
-	assert(isNext);
+	nextPPtr.incrementPtr(state); //t3772
       }
   } //putPackedArrayDataIntoAtom
 

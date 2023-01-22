@@ -2676,6 +2676,19 @@ namespace MFM {
     return hasbase; //even for non-classes
   } //isClassASubclassOf
 
+  UTI CompilerState::getSuperBaseclassType(UTI cuti)
+  {
+    UTI subuti = getUlamTypeAsDeref(getUlamTypeAsScalar(cuti)); //in case of array
+    UTI superuti = 0;
+
+    SymbolClass * csym = NULL;
+    if(alreadyDefinedSymbolClass(subuti, csym))
+      {
+	superuti = csym->getBaseClass(0);
+      }
+    return superuti;
+  }
+
   //return true if the second arg is a base class of the first arg.
   // i.e. cuti is a subclass of base. recurses the family tree.
   bool CompilerState::isBaseClassADirectAncestorOf(UTI cuti, UTI basep)
@@ -6203,22 +6216,23 @@ namespace MFM {
   void CompilerState::assignValue(UlamValue lptr, UlamValue ruv)
   {
     assert(lptr.isPtr());
+    UTI lttype = lptr.getPtrTargetType();
+    UTI rttype = ruv.isPtr() ? ruv.getPtrTargetType() : ruv.getUlamValueTypeIdx(); //t3250
 
     //handle UAtom assignment as a singleton (not array values)
-    if(ruv.isPtr())
+    if(ruv.isPtr() || (!isScalar(lttype) && isScalar(rttype)))
       {
-	UTI lttype = lptr.getPtrTargetType();
-	UTI rttype = ruv.getPtrTargetType();
-	PACKFIT rpacked = ruv.isTargetPacked();
+	PACKFIT rpacked = ruv.isPtr() ? ruv.isTargetPacked() : determinePackable(rttype); //t3250
 	if((rttype != UAtom) && (rpacked != UNPACKED) && (lttype == rttype))
 	  return assignArrayValues(lptr, ruv);
 	else if((rttype != UAtom) && (UlamType::compare(getUlamTypeAsScalar(lttype), rttype, *this) == UTIC_SAME))
-	  return assignArrayValues(lptr, ruv); //t3707
+	  return assignArrayValues(lptr, ruv); //t3707, t3250
 	else if((rttype != UAtom) && (UlamType::compare(lttype, rttype, *this) == UTIC_SAME))
 	  return assignArrayValues(lptr, ruv); //t3707
 	else
 	  return assignValuePtr(lptr, ruv); //t41483, t3707 (UNPACKED)
       }
+    //else //t3250 after ruv is target of ptr;
 
     //r is data (includes packed arrays), store it into where lptr is pointing
     assert((UlamType::compareForUlamValueAssignment(lptr.getPtrTargetType(), ruv.getUlamValueTypeIdx(), *this) == UTIC_SAME) || (UlamType::compareForUlamValueAssignment(lptr.getPtrTargetType(), UAtom, *this) == UTIC_SAME) || (UlamType::compareForUlamValueAssignment(ruv.getUlamValueTypeIdx(), UAtom, *this) == UTIC_SAME));

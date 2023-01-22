@@ -7,8 +7,8 @@
 ##  String(15) Arg: "QSegment"
 ##
 #!
-Exit status: -11
-Ue_Anchor10 : QSegment(18u) { SystemU3 s( :System<>);  :QSegment(18u)< constant Unsigned cMSG_BITS = 18u;  typedef QIMsg(18u) QC_QIMsg;  QIMsg(18u) mMessageBuffer( typedef Bits(18) Payload;  Bits(18) mPayload(31);  constant Unsigned bits = 18u;  typedef Unary(2) Direction;  constant Unary(2) cEMPTY = 0u;  constant Unary(2) cUP = 1u;  constant Unary(2) cDOWN = 3u; );  :QSeg< typedef Unsigned(5) SegPtr;  typedef Unsigned(2) Type; >> ^QSeg< typedef Unsigned(5) SegPtr;  typedef Unsigned(2) Type; > Int test() {  typedef Bits(18) MPayload;  SegPkt11 pkt;  self mMessageBuffer . mPayload . pkt cast = self s . ( self mMessageBuffer . mPayload . cast )print . self s . ( pkt mStr . )print . self mMessageBuffer . mPayload . 31 cast = Bits(4) tmpbits = self mMessageBuffer . mPayload . cast;  SegPkt11 pkt2 = self mMessageBuffer . mPayload . cast;  pkt2 mStr . tmpbits cast = self s . ( pkt2 mStr . )print . 0 cast return } }
+Exit status: 0
+Ue_Anchor10 : QSegment(18u) { SystemU3 s( :System<>);  Bits(4) tmpbits(15);  String pkt2str("QSegment");  :QSegment(18u)< constant Unsigned cMSG_BITS = 18u;  typedef QIMsg(18u) QC_QIMsg;  QIMsg(18u) mMessageBuffer( typedef Bits(18) Payload;  Bits(18) mPayload(31);  constant Unsigned bits = 18u;  typedef Unary(2) Direction;  constant Unary(2) cEMPTY = 0u;  constant Unary(2) cUP = 1u;  constant Unary(2) cDOWN = 3u; );  :QSeg< typedef Unsigned(5) SegPtr;  typedef Unsigned(2) Type; >> ^QSeg< typedef Unsigned(5) SegPtr;  typedef Unsigned(2) Type; > Int test() {  typedef Bits(18) MPayload;  SegPkt11 pkt;  self mMessageBuffer . mPayload . pkt cast = self s . ( self mMessageBuffer . mPayload . cast )print . self s . ( pkt mStr . )print . self mMessageBuffer . mPayload . 31 cast = self tmpbits . self mMessageBuffer . mPayload . cast = SegPkt11 pkt2 = self mMessageBuffer . mPayload . cast;  pkt2 mStr . self tmpbits . cast = self pkt2str . pkt2 mStr . = self s . ( pkt2 mStr . )print . 0 cast return } }
 Un_SegPkt11 { typedef Unsigned(3) CN;  constant Unsigned(3) cNO_OP = 0u;  constant Unsigned(3) cSET_LENGTH = 1u;  constant Unsigned(3) cSET_STRETCH = 2u;  constant Unsigned(3) cSET_ANGLE = 3u;  constant Unsigned(3) cSET_FLEX = 4u;  constant Unsigned(3) cGROW_HEAD = 5u;  constant Unsigned(3) cRSV6 = 6u;  constant Unsigned(3) cRSV7 = 7u;  String mStr( "Hello World");  <NOMAIN> }
 Uq_QSegment(Unsigned cMSG_BITS) : QSeg { typedef QIMsg(bits) QC_QIMsg;  QIMsg(bits) mMessageBuffer(notready);  :QSeg< typedef Unsigned(5) SegPtr;  typedef Unsigned(2) Type; > <NOMAIN> }
 Uq_SystemU3 : System { :System<> <NOMAIN> }
@@ -35,17 +35,22 @@ local typedef QSegment(cMSG_BITS) QSegX;
  */
 element Anchor10 : QSegX {
     SystemU3 s;
+    Bits(4) tmpbits;
+    String pkt2str;
+
   Int test() {
     typedef QSegX.QC_QIMsg.Payload MPayload;
     SegPkt11 pkt;
+
     mMessageBuffer.mPayload = (MPayload) pkt;
     s.print((Unsigned) mMessageBuffer.mPayload);
     s.print(pkt.mStr);
     mMessageBuffer.mPayload = 31; //clobber string index (see fail/t41420)
-    Bits(4) tmpbits = (Bits(4)) mMessageBuffer.mPayload; //Bits truncated, =15
+    tmpbits = (Bits(4)) mMessageBuffer.mPayload; //Bits truncated, =15
 
     SegPkt11 pkt2 = (SegPkt11) mMessageBuffer.mPayload; //cast Bits->transient
     pkt2.mStr = (String) tmpbits; //re-cast 4-bits to String inside pkt2 (ok?)
+    pkt2str = pkt2.mStr; //for eval
     s.print(pkt2.mStr);
     return 0;
   }

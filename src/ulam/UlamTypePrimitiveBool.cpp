@@ -101,6 +101,9 @@ namespace MFM {
       case Bits:
 	newdata = _Bits32ToBool32(data, valbitsize, bitsize);  //no change to Bits data
 	break;
+      case String:
+	newdata = _String32ToBool32(data, valbitsize, bitsize, m_state.m_upool.getUserStringCount());
+	break; //t41425 validate user string index by casting to bool
       case Void:
       default:
 	//std::cerr << "UlamTypePrimitiveBool (cast) error! Value Type was: " << valtypidx << std::endl;

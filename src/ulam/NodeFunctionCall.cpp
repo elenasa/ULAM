@@ -715,22 +715,34 @@ namespace MFM {
 	if(m_state.isPtr(rtnuti))
 	  {
 	    rtnuti = rtnUV.getPtrTargetType();
+	    UTI rtneffself = rtnUV.getUlamValueEffSelfTypeIdx();
 	    if(m_state.isAtom(rtnuti))
 	      {
-		rtnuti = rtnUV.getUlamValueEffSelfTypeIdx();
+		rtnuti = rtneffself;
 		m_state.abortNeedsATest();
 	      }
+	    else if(m_state.isAtom(rtnType))
+	      {
+		//keep effself
+		assert(rtneffself != Nouti);
+		rtnUV.setPtrTargetType(rtnType); //t3558 ?
+		rtnUV.setPtrPos(0);
+		rtnUV.setPtrLen(BITSPERATOM);
+		rtnuti = rtnType; //next assigns to eval stack
+	      }
 	  }
+
 	if(UlamType::compareForUlamValueAssignment(rtnuti, rtnType, m_state) == UTIC_SAME)
 	  {
 	    Node::assignReturnValueToStack(rtnUV); //into return space on eval stack;
 	  }
+	else if(m_state.isAtom(rtnuti) || m_state.isAtom(rtnType))
+	  {
+	    Node::assignReturnValueToStack(rtnUV); //into return space on eval stack; t3663,t3675,t3747
+	  }
 	else
 	  {
-	    if(m_state.isAtom(rtnuti) || m_state.isAtom(rtnType))
-	      evs = UNEVALUABLE;  //t3558
-	    else
-	      evs = ERROR;
+	    evs = ERROR;
 	  }
       }
     else
@@ -1038,6 +1050,8 @@ namespace MFM {
 		if(!asym->isSuper())
 		  //unlike alt_as, alt_ref can be a primitive or a class
 		  atomPtr.setPtrTargetType(((SymbolVariableStack *) asym)->getAutoStorageTypeForEval());
+		else
+		  m_state.abortNeedsATest();
 	      }
 	    else if(m_state.isClassASubclassOf(auti, atomPtr.getPtrTargetType()))
 	      {

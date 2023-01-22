@@ -254,14 +254,31 @@ namespace MFM{
   EvalStatus NodeListArrayInitialization::eval()
   {
     EvalStatus evs = NORMAL;
-    for(u32 i = 0; i < m_nodes.size(); i++)
+    u32 nodessize = m_nodes.size();
+    UTI itype = m_nodes[0]->getNodeType();
+    assert(m_state.okUTItoContinue(itype));
+
+    for(u32 i = 0; i < nodessize; i++)
       {
+	evalNodeProlog(0); //new current frame pointer
+	Node::makeRoomForSlots(1); //a constant expression
 	evs = m_nodes[i]->eval();
+
 	if(evs != NORMAL)
-	  break;
+	  {
+	    evalNodeEpilog();
+	    break;
+	  }
+
+	UlamValue ituv = m_state.m_nodeEvalStack.popArg();
+	evalNodeEpilog();
+
+	s32 pos = 2 ; //t3250, t3853: 1 node,4 nodes;
+	UlamValue itemPtr = UlamValue::makePtr(pos + i, EVALRETURN, itype, m_state.determinePackable(itype), m_state);
+	m_state.assignValue(itemPtr, ituv); //t3769, t3768
       }
     return evs;
-  } //eval
+  }
 
   bool NodeListArrayInitialization::buildArrayValueInitialization(BV8K& bvtmp)
   {
@@ -336,13 +353,19 @@ namespace MFM{
 	u64 foldedconst;
 
 	if(itemlen <= MAXBITSPERINT)
-	  foldedconst = ituv.getImmediateData(itemlen, m_state);
+	  {
+	    foldedconst = ituv.getImmediateData(itemlen, m_state);
+	    bvtmp.WriteLong(pos * itemlen, itemlen, foldedconst);
+	  }
 	else if(itemlen <= MAXBITSPERLONG)
-	  foldedconst = ituv.getImmediateDataLong(itemlen, m_state);
+	  {
+	    foldedconst = ituv.getImmediateDataLong(itemlen, m_state);
+	    bvtmp.WriteLong(pos * itemlen, itemlen, foldedconst);
+	  }
+	else if(itemlen <= MAXSTATEBITS)
+	  ituv.getDataBig(pos * itemlen, itemlen, bvtmp);
 	else
 	  m_state.abortGreaterThanMaxBitsPerLong();
-
-	bvtmp.WriteLong(pos * itemlen, itemlen, foldedconst);
       }
 
     return true;

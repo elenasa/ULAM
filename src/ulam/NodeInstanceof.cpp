@@ -55,14 +55,14 @@ namespace MFM {
 	bool isaref = m_state.isAltRefType(oftype) || isself || issuper;
 
 	if(isaref) //all refs
-	  setNodeType(UAtom); //effective type known only at runtime
+	  setNodeType(UAtom); //effective type known only at runtime (t3676)
 	else
-	  setNodeType(oftype); //object: Type or variable
+	  setNodeType(oftype);
 
-	Node::setStoreIntoAble(TBOOL_TRUE); //why not? t41085
+	Node::setStoreIntoAble(TBOOL_TRUE); //why not? allows instanceof() w args (t41085)
 
-	if(!isaref)
-	  Node::setReferenceAble(TBOOL_FALSE); //t3660
+	//if(!isaref)
+	Node::setReferenceAble(TBOOL_FALSE); //t3660
 
       }
     return getNodeType();
@@ -81,7 +81,42 @@ namespace MFM {
     u32 atop = 1;
     atop = m_state.m_funcCallStack.getAbsoluteStackIndexOfSlot(atop);
     if(m_state.isAtom(auti))
-      atomuv = NodeStorageof::evalAtomOfExpr();  //t3286
+      {
+	//ofnode is a ref, super or self; and uses effself regardless.
+	UlamValue getatomtypeuv = NodeStorageof::evalAtomOfExpr();  //t3286
+	UTI atomtype = getatomtypeuv.getUlamValueTypeIdx();
+	bool atomisPtr = m_state.isPtr(atomtype);
+
+	//use effself
+	if(atomisPtr)
+	  atomtype = getatomtypeuv.getPtrTargetEffSelfType();
+	else
+	  atomtype = getatomtypeuv.getUlamValueEffSelfTypeIdx(); //t3286
+
+	//if no effself, use ulamvalue type, assuming same
+	if(atomtype == Nouti)
+	  {
+	    if(atomisPtr)
+	      atomtype = getatomtypeuv.getPtrTargetType();
+	    else
+	      getatomtypeuv.getUlamValueTypeIdx();
+	  }
+
+	assert(atomtype != Nouti); //sanity
+	if(!m_state.isAtom(atomtype))
+	  {
+	    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(atomtype)->getUlamClassType();
+	    if(classtype == UC_ELEMENT)
+	      {
+		atomuv = UlamValue::makeDefaultAtom(atomtype, m_state); //t3747, effself is atomtype
+		atomuv.setUlamValueTypeIdx(auti); //t3747, still an atom
+	      }
+	    else
+	      auti = Nav; //error t3676
+	  }
+	else
+	  auti = Nav; //error, atom type
+      }
     else if(aclasstype == UC_ELEMENT)
       atomuv = UlamValue::makeDefaultAtom(auti, m_state);
     else if(aclasstype == UC_QUARK)
@@ -96,11 +131,23 @@ namespace MFM {
     else
       m_state.abortUndefinedUlamClassType();
 
+    if(!m_state.okUTItoContinue(auti))
+      return atomuv; //error (t3676)
+
     m_state.m_funcCallStack.storeUlamValueAtStackIndex(atomuv, atop); //stackframeslotindex ?
 
     ptr = UlamValue::makePtr(atop, STACK, auti, m_state.determinePackable(auti), m_state, 0);
-    ptr.setPtrTargetEffSelfType(auti); //t41318, t41384
+    if(m_state.isAtom(auti))
+      {
+	assert(!m_state.isPtr(atomuv.getUlamValueTypeIdx())); //sanity
+	UTI atomuveffself = atomuv.getUlamValueEffSelfTypeIdx();
+	ptr.setPtrTargetEffSelfType(atomuveffself); //t3747
+      }
+    else
+      ptr.setPtrTargetEffSelfType(auti); //t41318, t41384
+
     ptr.setUlamValueTypeIdx(PtrAbs);
+
     return ptr;
   } //makeUlamValuePtr
 

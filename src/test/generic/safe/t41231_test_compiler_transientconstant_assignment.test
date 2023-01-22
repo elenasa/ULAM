@@ -4,7 +4,7 @@
 ##  gen output: (+ 2 asserts)
 ##   Int Arg: 99
 ##
-## transients are unevaluable.
+## Big transients are unevaluable.
 #!
 Exit status: -11
 Un_T { Bool m_sp(false);  Int m_i(0);  Atom m_a(Atom);  <NOMAIN> }

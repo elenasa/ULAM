@@ -10,7 +10,7 @@ Uq_KeyExprNode { typedef Unsigned(8) Byte;  Unsigned(8) m_leftIndex(0);  Unsigne
 Uq_System { <NOMAIN> }
 ##
 ## ish, informed by Dave 3/18/18 (blew an assertion); see also t41265,6.
-##      also see t41551,2 without dot.
+##      also see errors t41551,2 without dot.
 ##
 #>KeyExprRep.ulam
   ulam 3;

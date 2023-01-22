@@ -8,10 +8,9 @@
 ##  String(7) Arg: "let"
 ##  String(1) Arg: "reunion"
 ##
-## Big transients unevaluable
 #!
-Exit status: -11
-Ue_KeyExprRep { Int test() {  SystemU3 s;  Int var = 1 cast;  String mystrv = keyexpr_x13 4 [] m_elfoo . estr var [] .;  s ( mystrv )print . s ( mystrv 0 [] 108u == )assert . String mystr1 = keyexpr_x13 4 [] m_elfoo . estr 1 [] .;  s ( mystr1 )print . s ( mystr1 0 [] 108u == )assert . constant Elfoo celfood = { };  String mystrcd = celfood estr 1 [] .;  s ( mystrcd )print . s ( mystrcd 0 [] 108u == )assert . constant Elfoo celfoo = keyexpr_x13 4 [] m_elfoo .;  String mystrc = celfoo estr 1 [] .;  s ( mystrc )print . s ( mystrc 0 [] 108u == )assert . constant String c_reunion = "reunion";  s ( "reunion" )print . s ( true )assert . 0 cast return } }
+Exit status: 0
+Ue_KeyExprRep { Bool b1(true);  Bool b2(true);  Bool b3(true);  Bool b4(true);  Bool b5(true);  Int test() {  SystemU3 s;  Int var = 1 cast;  String mystrv = keyexpr_x13 4 [] m_elfoo . estr var [] .;  self b1 . mystrv 0 [] 108u == = s ( mystrv )print . s ( self b1 . )assert . String mystr1 = keyexpr_x13 4 [] m_elfoo . estr 1 [] .;  self b2 . mystr1 0 [] 108u == = s ( mystr1 )print . s ( self b2 . )assert . constant Elfoo celfood = { };  String mystrcd = celfood estr 1 [] .;  self b3 . mystrcd 0 [] 108u == = s ( mystrcd )print . s ( self b3 . )assert . constant Elfoo celfoo = keyexpr_x13 4 [] m_elfoo .;  String mystrc = celfoo estr 1 [] .;  self b4 . mystrc 0 [] 108u == = s ( mystrc )print . s ( self b4 . )assert . constant String c_reunion = "reunion";  self b5 . true = s ( "reunion" )print . s ( self b5 . )assert . 0 cast return } }
 Ue_Elfoo { Bool esp( true);  String estr[2]( { "melt", "let" });  constant String c_str = "reunion";  <NOMAIN> }
 Un_KeyExprNode { typedef Unsigned(8) Byte;  Unsigned(8) m_leftIndex(0);  Unsigned(8) m_rightIndex(0);  Unsigned(8) m_keyCode(0);  Unsigned(8) m_op(0);  constant Elfoo m_elfoo = celfoo;  <NOMAIN> }
 Uq_SystemU3 : System { :System<> <NOMAIN> }
@@ -32,36 +31,43 @@ local constant KeyExprNode keyexpr_x13[] = {
   { .m_leftIndex = 0, .m_rightIndex = 0, .m_keyCode = 'b', .m_op = 0 }, // [4] , EXTRA COMMA at the end??? no difference
 };
 element KeyExprRep {
+  Bool b1,b2,b3,b4,b5;
+
   Int test() {
     SystemU3 s;
 
     //element data member of constant class array of transients, with String array data member
     Int var = 1;
     String mystrv = keyexpr_x13[4].m_elfoo.estr[var];
+    b1 = (mystrv[0] == 'l');
     s.print(mystrv);
-    s.assert(mystrv[0] == 'l');
+    s.assert(b1);
 
     // and a constant index
     String mystr1 = keyexpr_x13[4].m_elfoo.estr[1];
+    b2 = (mystr1[0] == 'l');
     s.print(mystr1);
-    s.assert(mystr1[0] == 'l');
+    s.assert(b2);
 
     //was ILLEGAL_ARGUMENT
     constant Elfoo celfood = { };
     String mystrcd = celfood.estr[1];
+    b3 = (mystrcd[0] == 'l');
     s.print(mystrcd);
-    s.assert(mystrcd[0] == 'l');
+    s.assert(b3);
 
     //was abort shouldn't get here?
     constant Elfoo celfoo = keyexpr_x13[4].m_elfoo; //{ };
     String mystrc = celfoo.estr[1];
+    b4 = (mystrc[0] == 'l');
     s.print(mystrc);
-    s.assert(mystrc[0] == 'l');
+    s.assert(b4);
 
     //constant member select
     constant String c_reunion = celfoo.c_str;
+    b5 = (c_reunion.lengthof == 7u);
     s.print(c_reunion); //reunion
-    s.assert(c_reunion.lengthof == 7u);
+    s.assert(b5);
 
     return 0;
   }

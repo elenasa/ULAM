@@ -253,6 +253,26 @@ namespace MFM {
     return false;
   }
 
+  bool SymbolWithValue::getArrayItemInitValue(u32 item, BV8K& rtnitem)
+  {
+    assert(hasInitValue());
+    if(isInitValueReady())
+      {
+	UTI suti = getUlamTypeIdx();
+	UlamType * sut = m_state.getUlamTypeByIndex(suti);
+	u32 bs = sut->getBitSize();
+	s32 arrsize = sut->getArraySize();
+	assert(bs <= MAXSTATEBITS);
+	assert((arrsize >= 0) && (item < (u32) arrsize));
+	UTI scalaruti = m_state.getUlamTypeAsScalar(suti);
+	u32 len = m_state.getUlamTypeByIndex(scalaruti)->getSizeofUlamType();
+	//no casting!
+	m_initialValue.CopyBV(len * item, 0u, len, rtnitem);
+	return true;
+      }
+    return false;
+  }
+
   bool SymbolWithValue::getValueReadyToPrint(u32 & uv)
   {
     bool oktoprint = true;
