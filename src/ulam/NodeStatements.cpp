@@ -222,9 +222,8 @@ namespace MFM {
   EvalStatus NodeStatements::eval()
   {
     assert(m_node);
-
     evalNodeProlog(0);
-    makeRoomForNodeType(m_node->getNodeType());
+    makeRoomForNodeType(m_node->getNodeType()); //t3187
     EvalStatus evs = m_node->eval();
     if(evs != NORMAL) return evalStatusReturn(evs);
 

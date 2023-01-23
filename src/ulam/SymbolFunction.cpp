@@ -747,6 +747,10 @@ namespace MFM {
 	fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
 	fp->write("<EC>::"); //same for elements and quarks
       }
+    else if(sut->isReference())
+      {
+	fp->write("__attribute__ ((noinline)) "); //t3484 for -O99 optimization in .h
+      }
 
     fp->write(getMangledName().c_str());
     fp->write("(");

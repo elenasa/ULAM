@@ -9,7 +9,10 @@ MFM_BUILD_CORE:=$(MFM_ROOT_DIR)/build/core
 MFM_BUILD_SIM:=$(MFM_ROOT_DIR)/build/sim
 MFM_BUILD_PLATFORM:=$(MFM_ROOT_DIR)/build/platform-linux
 
-CFLAGS:= -g -pthread -ansi -pedantic
+CFLAGS:= -g
+## test w optimization instead of -g
+#CFLAGS+= -O99
+CFLAGS+:= -pthread -ansi -pedantic
 CFLAGS+= -Wall
 #CFLAGS+= -Werror
 CFLAGS+= -Wno-unused-variable -Wno-unused-but-set-variable
@@ -18,8 +21,6 @@ CFLAGS+= --param inline-unit-growth=1000 --param large-function-growth=50000
 CFLAGS+= -Wextra -Wno-unused-parameter -Wno-ignored-qualifiers
 CFLAGS+= -Wno-parentheses
 #CFLAGS+= -std=c++11
-## test w optimization
-#CFLAGS+= -O99
 
 default: all
 
