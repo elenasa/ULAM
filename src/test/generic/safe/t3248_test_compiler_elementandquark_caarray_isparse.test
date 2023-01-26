@@ -7,27 +7,21 @@
 ## after asserts abort: arg is 1
 ##
 #!
-Exit status: -11
-Ue_EventWindowTest { EventWindow ew();  Int test() {  System s;  Int rtn = -1 cast;  EventWindowTest ewt;  self ew . ( 0 cast )aref . ewt cast = Atom aw = self ew . ( 0 cast )aref . cast;  Atom a = ewt cast;  { a EventWindowTest is cond rtn 0 cast = if rtn 1 cast = else } s ( rtn )print . s ( rtn 0 cast == )assert . rtn return } }
-Uq_EventWindow { <NOMAIN> }
+Exit status: 0
+Ue_EventWindowTest { Int rtn(0);  Int test() {  System s;  EventWindowTest ewt;  Atom a = ewt cast;  { a EventWindowTest is cond self rtn . 0 cast = if self rtn . 1 cast = else } s ( self rtn . )print . s ( self rtn . 0 cast == )assert . self rtn . return } }
 Uq_System { <NOMAIN> }
 ##
-## // 'a has System' doesn't appy to eval because atoms have no class declarations; but testable for gencode
+##  'a has System' deprecated
 ##
 #>EventWindowTest.ulam
   ulam 1;
-use EventWindow;
 use System;
 element EventWindowTest {
-  EventWindow ew;
+  Int rtn = -1;
+
   Int test() {
     System s;
-    Int rtn = -1;
     EventWindowTest ewt;
-
-    // unsure of this EventWindow spike; testing parsing only here
-    ew[0] = ewt;
-    Atom aw = ew[0];  // This is me!
 
     Atom a = ewt;
     if (a is EventWindowTest)
@@ -40,14 +34,6 @@ element EventWindowTest {
   }
 }
 
-#:EventWindow.ulam
-  ulam 3;
-quark EventWindow {
-  Atom& aref(Int index) native;
-}
-##      // playing with errors..
-##      //bool rtn2 = fms->add("EventWindow.ulam", "ulam 1;\nquark EventWindow {\n  Atom aref(Int index) native;\n  Void aset(Int index, Int val) native;\n}\n");
-##      //bool rtn2 = fms->add("EventWindow.ulam", "ulam 1;\nquark EventWindow {\n  Atom aref(Int index) native;\n  Void aSet(Int index, Atom val) native;\n}\n");
 
 #:System.ulam
   ulam 1;

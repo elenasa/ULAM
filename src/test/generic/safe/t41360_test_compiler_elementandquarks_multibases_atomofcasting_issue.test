@@ -10,13 +10,12 @@
 ##   String(27) Arg: "Foo4"
 ##   String(33) Arg: "Foo5"
 ##
-## atoms are unevaluable, and unprintable
+## atoms are unprintable
 #!
-Exit status: -11
-Ue_Foo +Intermediate { +Intermediate< +Base(true)< Bool m_b(true);  constant Bool flag = true;  typedef Base(false) NotBase; >> ^Base(true)< Bool m_b(true);  constant Bool flag = true;  typedef Base(false) NotBase; > Int test() {  SystemU3 du;  du ( "Foo1" )print . EventWindow ew;  Foo foo;  ew ( 0 cast )aref . foo cast = Intermediate& i = ew ( 0 cast )aref . cast;  du ( "Foo2" )print . Atom& ar = i cast;  du ( "Foo2.5" )print . Atom& ar2 = i.atomof cast;  du ( "Foo3" )print . du ( i ( )funcb . )print . du ( "Foo4" )print . du ( "Foo5" )print . du ( i m_b . )assert . 0 cast return } }
+Exit status: 0
+Ue_Foo +Intermediate { Bool b(true);  +Intermediate< +Base(true)< Bool m_b(true);  constant Bool flag = true;  typedef Base(false) NotBase; >> ^Base(true)< Bool m_b(true);  constant Bool flag = true;  typedef Base(false) NotBase; > Int test() {  SystemU3 du;  du ( "Foo1" )print . Foo foo;  Atom a = foo cast;  Intermediate& i = a cast;  du ( "Foo2" )print . Atom& ar = i cast;  du ( "Foo2.5" )print . Atom& ar2 = i.atomof cast;  du ( "Foo3" )print . du ( i ( )funcb . )print . du ( "Foo4" )print . du ( "Foo5" )print . self b . i m_b . = du ( i m_b . )assert . 0 cast return } }
 Uq_Intermediate +Base(true) { +Base(true)< Bool m_b( 1u);  typedef Base(false) NotBase; > <NOMAIN> }
 Uq_SystemU3 : System { :System<> <NOMAIN> }
-Uq_EventWindow { <NOMAIN> }
 Uq_Base(Bool flag) { Bool m_b(notready);  typedef Base(flag) NotBase;  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
@@ -27,13 +26,14 @@ Uq_System { <NOMAIN> }
 #>Foo.ulam
   ulam 5;
 element Foo + Intermediate {
+  Bool b;
+
   Int test() {
     SystemU3 du;
     du.print("Foo1");
-    EventWindow ew;
     Foo foo;
-    ew[0] = foo;
-    Intermediate& i = (Intermediate&) ew[0];
+    Atom a = foo;
+    Intermediate& i = (Intermediate&) a;
     du.print("Foo2");
     Atom& ar = (Atom&) i;
     du.print("Foo2.5");
@@ -43,6 +43,7 @@ element Foo + Intermediate {
     du.print("Foo4");
     //    du.print(ar); not supported in test code
     du.print("Foo5");
+    b = i.m_b;
     du.assert(i.m_b);
     return 0;
   }
@@ -60,12 +61,6 @@ quark Base(Bool flag) {
   ulam 5;
 quark Intermediate + Base(true) {
   virtual Int funci() { return 1; }
-}
-
-#:EventWindow.ulam
-  ulam 3;
-quark EventWindow{
-  Atom& aref(Int index) native;
 }
 
 #:SystemU3.ulam
