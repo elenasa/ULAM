@@ -3816,10 +3816,15 @@ namespace MFM {
 			    if(okUTItoContinue(ktd))
 			      {
 				UTI ktdmapped = ktd;
-				findRootUTIAlias(ktd, ktdmapped);
-				replaceUTIKeyAndAlias(tduti, ktdmapped);
-				((SymbolTypedef *)sym)->setCulamGeneratedTypedefAliased();
-				isaliasednow = true;
+				findRootUTIAlias(ktd, ktdmapped); //t3555
+				if(okUTItoContinue(ktdmapped))
+				  {
+				    replaceUTIKeyAndAlias(tduti, ktdmapped);
+				    ((SymbolTypedef *)sym)->setCulamGeneratedTypedefAliased();
+				    isaliasednow = true;
+				  }
+				else
+				  aok = false; //ish 20230116, not ok if ktdmapped Hzy
 			      }
 			    else
 			      aok = false; //t3742

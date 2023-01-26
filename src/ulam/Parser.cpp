@@ -2980,6 +2980,19 @@ namespace MFM {
 	  }
 	else
 	  {
+	    SymbolClassName * cnsym = NULL;
+	    if(m_state.alreadyDefinedSymbolClassName(tokid, cnsym))
+	      {
+		UTI cnuti = cnsym->getUlamTypeIdx();  //beware: may not match class parameters!!!
+		//return cnuti; //ish 20230116, CAN'T! ancestors may be incomplete
+		UTI huti = m_state.makeCulamGeneratedTypedefSymbolInCurrentContext(typeargs.m_typeTok, true); //isaclass yes.
+		typeargs.m_anothertduti = huti; //?
+		m_state.mapTypesInCurrentClass(huti, cnuti);
+		m_state.updateUTIAliasForced(huti, cnuti); //crumbs to follow
+		return huti; //ish 20230116
+	      }
+	    //else
+
 	    //generate a class member typedef, class scope
 	    UTI huti = m_state.makeCulamGeneratedTypedefSymbolInCurrentContext(typeargs.m_typeTok); //isaclass? no.
 	    return huti;
@@ -3216,8 +3229,18 @@ namespace MFM {
 	Symbol * oldArgSym = NULL;
 	if(m_state.isIdInCurrentScope(argid, oldArgSym))
 	  {
-	    assert(oldArgSym->getUlamTypeIdx()==Hzy); //sanity check..before.. ????
-	    oldArgSym->resetUlamType(argSym->getUlamTypeIdx()); //replacing Hzy ????
+	    //assert(oldArgSym->getUlamTypeIdx()==Hzy); //sanity check..before.. ????
+	    UTI olduti = oldArgSym->getUlamTypeIdx();
+	    UTI goinguti = argSym->getUlamTypeIdx();
+	    if(olduti == Hzy)
+	      oldArgSym->resetUlamType(argSym->getUlamTypeIdx()); //replacing Hzy ????
+	    else if(olduti != goinguti)
+	      {
+		UTI oldutia = m_state.lookupUTIAlias(olduti);
+		UTI goingutia = m_state.lookupUTIAlias(goinguti);
+		if((oldutia == olduti) && (goingutia == goinguti))
+		  m_state.updateUTIAliasForced(goinguti,olduti); //t41455?
+	      }
 	    //patched in DataMembers when instance stub made
 	    delete argSym;
 	    assert(oldArgSym->isConstant());
@@ -3410,6 +3433,7 @@ namespace MFM {
 	      {
 		SymbolClass * tmpcsym = NULL;
 		UTI acuti = asym->getUlamTypeIdx();
+
 		if(m_state.isHolder(acuti) && !m_state.isAClass(acuti))
 		  {
 		    m_state.makeAnonymousClassFromHolder(acuti, args.m_typeTok.m_locator); //anonymous class (t41437)
@@ -3573,7 +3597,7 @@ namespace MFM {
 	    msg << m_state.getTokenDataAsString(pTok).c_str();
 	    msg << "> is not a typedef belonging to class: ";
 	    msg << m_state.m_pool.getDataAsString(csym->getId()).c_str();
-	    MSG(&pTok, msg.str().c_str(), ERR);
+	    MSG(&pTok, msg.str().c_str(), ERR); //ish 20230116 or TBOOL to wait?
 	    rtnb = false;
 	  }
 

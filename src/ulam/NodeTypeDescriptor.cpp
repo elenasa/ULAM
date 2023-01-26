@@ -140,7 +140,7 @@ namespace MFM {
 	  }
 	else
 	  {
-	    assert((aliasuti == guti) || (aliasuti == galias) || (m_state.lookupUTIAlias(aliasuti)==galias) || m_state.isAPrimitiveType(m_uti)); // || m_state.isClassAStub(m_uti)); //t3384, t3373, t41438 (bitsizes differ), t3988 (typedef stub)
+	    assert((aliasuti == guti) || (aliasuti == galias) || (guti == galias) || (m_state.lookupUTIAlias(aliasuti)==galias) || m_state.isAPrimitiveType(m_uti)); // || m_state.isClassAStub(m_uti)); //t3384, t3373, t41438 (bitsizes differ), t3988 (typedef stub), ish 20230116 guti=galias
 	  }
 	m_uti = galias;
       }
@@ -637,7 +637,8 @@ namespace MFM {
 		ULAMCLASSTYPE classtype = nut->getUlamClassType(); //t3735,t3834,t41363,t41153
 		//use default primitive bitsize;
 		nuti = m_state.makeUlamType(m_typeTok, ULAMTYPE_DEFAULTBITSIZE[etyp], arraysize, getReferencedUTI(), altd, classtype);
-		rtnb = true;
+		if(m_state.okUTItoContinue(nuti))
+		  rtnb = true; //ish 20230116
 	      }
 	    else if(getReferenceType() != ALT_NOT)
 	      {
@@ -673,8 +674,6 @@ namespace MFM {
 	u32 tokid = m_state.getTokenDataAsStringId(m_typeTok);
 	UTI tduti = Nouti;
 	UTI tmpforscalaruti = Nouti;
-	//bool isTypedef = (m_typeTok.m_type == TOK_TYPE_IDENTIFIER) && m_state.getUlamTypeByTypedefNameInClassHierarchyThenLocalsScope(tokid, tduti, tmpforscalaruti); //skip primitive types
-	//bool isTypedef = ((m_typeTok.m_type == TOK_TYPE_IDENTIFIER) || (m_typeTok.m_type == TOK_KW_TYPE_SUPER)) && m_state.getUlamTypeByTypedefNameInClassHierarchyThenLocalsScope(tokid, tduti, tmpforscalaruti); //skip primitive types t41616
 	bool isTypedef = ((m_typeTok.m_type == TOK_TYPE_IDENTIFIER) || (m_typeTok.m_type == TOK_KW_TYPE_SUPER) || (m_typeTok.m_type == TOK_KW_TYPE_SELF)) && m_state.getUlamTypeByTypedefNameInClassHierarchyThenLocalsScope(tokid, tduti, tmpforscalaruti); //skip primitive types t41616,t41621
 
 	if(isTypedef && !m_state.isHolder(tduti) && m_state.okUTItoContinue(tduti)) //t3765, t3384

@@ -1333,10 +1333,15 @@ namespace MFM {
 		if(args.m_bitsize == 0)
 		  args.m_bitsize = ULAMTYPE_DEFAULTBITSIZE[bUT];
 
-		UlamKeyTypeSignature newarraykey(key.getUlamKeyTypeSignatureNameId(), args.m_bitsize, args.m_arraysize, scalarUTI, usealt); //classinstanceidx removed if not a class (t3816)
-		uti = m_state.makeUlamType(newarraykey, bUT, classtype); //t3172
+		u32 keynameid = key.getUlamKeyTypeSignatureNameId(); //t3143
+		UlamKeyTypeSignature newarraykey(keynameid, args.m_bitsize, args.m_arraysize, scalarUTI, usealt); //classinstanceidx removed if not a class (t3816); scalar if array
+		uti = m_state.makeUlamType(newarraykey, bUT, classtype);
+		if(m_state.isHolder(uti)) //ish 20230116
+		  m_state.addUnknownTypeTokenToAClassResolver(m_state.getCompileThisIdx(), m_token, uti);
+		//else t3172
 	      }
 	    //else
+
 	    if(!m_state.isHolder(uti)) //t3728
 	      {
 		if(m_state.getReferenceType(uti) != args.m_declRef)

@@ -553,6 +553,14 @@ namespace MFM {
     while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
       {
 	SymbolClass * csym = it->second;
+	assert(csym);
+	UTI suti = csym->getUlamTypeIdx();
+	if(!m_state.okUTItoContinue(suti))
+	  {
+	    it++;
+	    continue;
+	  }
+
 	if(csym->getUlamClass() != UC_UNSEEN)
 	  {
 	    it++; //covers synonyms
@@ -565,7 +573,6 @@ namespace MFM {
 	    continue;
 	  }
 
-	UTI suti = csym->getUlamTypeIdx();
 	UlamKeyTypeSignature skey = m_state.getUlamTypeByIndex(suti)->getUlamKeyTypeSignature();
 	AssertBool isReplaced = m_state.replaceUlamTypeForUpdatedClassType(skey, Class, classtype, isCATemplate);
 	assert(isReplaced);

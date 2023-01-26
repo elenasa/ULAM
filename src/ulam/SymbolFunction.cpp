@@ -253,8 +253,8 @@ namespace MFM {
 	    UlamKeyTypeSignature keyOfArgType = sut->getUlamKeyTypeSignature();
 
 	    SymbolClassName * cnsym = (SymbolClassName *) m_state.m_programDefST.getSymbolPtr(keyOfArgType.getUlamKeyTypeSignatureNameId());
-	    assert(cnsym);
-	    mangled << cnsym->formatAnInstancesArgValuesAsAString(suti, dereftypes);
+	    if(cnsym)
+	      mangled << cnsym->formatAnInstancesArgValuesAsAString(suti, dereftypes);
 	  }
       }
     return mangled.str();

@@ -18,7 +18,8 @@ namespace MFM {
 	// (e.g. pending class args)
 	m_cid = symptr->getId();
 	symptr->setDeclNodeNo(getNodeNo());
-	assert(!nodetype || nodetype->givenUTI() == symptr->getUlamTypeIdx()); //invariant?
+	// ish 20230116 symptr is a holder, and aliased to nodetype's given UTI.
+	//assert(!nodetype || nodetype->givenUTI() == symptr->getUlamTypeIdx()); //invariant?
       }
   }
 
@@ -1223,7 +1224,8 @@ namespace MFM {
 	AssertBool isset = setNodeTypeDescriptor(copynodetypedesc); //resets givenuti too.
 	assert(isset);
 
-	assert(m_constSymbol && ((m_constSymbol->getUlamTypeIdx() == Hzy) || (m_constSymbol->getUlamTypeIdx() == m_nodeTypeDesc->givenUTI()))); //invariant? (likely null symbol, see checkForSymbol) t41361, t3326
+	//assert(m_constSymbol && ((m_constSymbol->getUlamTypeIdx() == Hzy) || (m_constSymbol->getUlamTypeIdx() == m_nodeTypeDesc->givenUTI()))); //invariant? (likely null symbol, see checkForSymbol) t41361, t3326
+	assert(m_constSymbol && ((m_constSymbol->getUlamTypeIdx() == Hzy) || (m_constSymbol->getUlamTypeIdx() == m_nodeTypeDesc->givenUTI()) || (m_state.lookupUTIAlias(m_nodeTypeDesc->givenUTI()) == m_constSymbol->getUlamTypeIdx()) )); //invariant? (likely null symbol, see checkForSymbol) t41361, t3326, t41455
 	aok = true;
       }
     return aok;

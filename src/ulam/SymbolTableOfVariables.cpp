@@ -93,7 +93,8 @@ namespace MFM {
 	assert(sym);
 	if(sym->isTypedef())
 	  {
-	    if(sym->isCulamGeneratedTypedef())
+	    //if(sym->isCulamGeneratedTypedef()) ish 20230116
+	    if(sym->isCulamGeneratedTypedef() && !sym->isCulamGeneratedTypedefAliased())
 	      {
 		UTI sid = sym->getId();
 		std::pair<std::map<u32,Symbol*>::iterator, bool> reti;
