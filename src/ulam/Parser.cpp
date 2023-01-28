@@ -729,7 +729,7 @@ namespace MFM {
 	//check if aleady a typedef..else generate one in locals filescope
 	UTI tduti = Nav;
 	UTI tdscalaruti = Nouti;
-	if(!m_state.getUlamTypeByTypedefName(tokid, tduti, tdscalaruti))
+	if(m_state.getUlamTypeByTypedefName(tokid, tduti, tdscalaruti) != TBOOL_TRUE)
 	  {
 	    //make a typedef holder for a class
 	    UTI superuti = m_state.makeCulamGeneratedTypedefSymbolInCurrentContext(iTok, true);
@@ -2730,7 +2730,7 @@ namespace MFM {
 	    u32 tokid = m_state.getTokenDataAsStringId(pTok); //t41312,3
 	    UTI huti = Nav;
 	    UTI tmpscalar= Nav;
-	    AssertBool isTDDefined = m_state.getUlamTypeByTypedefNameInClassHierarchyThenLocalsScope(tokid, huti, tmpscalar);
+	    AssertBool isTDDefined = (m_state.getUlamTypeByTypedefNameInClassHierarchyThenLocalsScope(tokid, huti, tmpscalar) == TBOOL_TRUE);
 	    assert(isTDDefined);
 	    m_state.makeAnonymousClassFromHolder(huti, pTok.m_locator); //don't need cnsym here
 	  }
@@ -2903,10 +2903,17 @@ namespace MFM {
 	  {
 	    UTI tduti = Nav;
 	    UTI tdscalaruti = Nouti;
-	    if(m_state.getUlamTypeByTypedefName(tokid, tduti, tdscalaruti))
+	    TBOOL isTypedef = m_state.getUlamTypeByTypedefName(tokid, tduti, tdscalaruti);
+	    if(isTypedef == TBOOL_TRUE)
 	      {
 		return tduti; //t41312
 	      }
+	    else if(isTypedef == TBOOL_HAZY)
+	      {
+		m_state.abortNeedsATest();
+		return Hzy; //new case
+	      }
+	    //else Nav
 	  }
 	//this is an error!
 	return Nav; //t41341
@@ -2924,7 +2931,7 @@ namespace MFM {
 	    UTI tduti = Nav;
 	    UTI tdscalaruti = Nouti;
 	    Symbol * tdsymptr = NULL;
-	    if(m_state.getUlamTypeByTypedefName(tokid, tduti, tdscalaruti, tdsymptr))
+	    if(m_state.getUlamTypeByTypedefName(tokid, tduti, tdscalaruti, tdsymptr) == TBOOL_TRUE)
 	      {
 		assert(tdsymptr);
 		ALT tdalt = tdsymptr->getAutoLocalType();
@@ -2958,7 +2965,8 @@ namespace MFM {
 	UTI tduti = Nav;
 	UTI tdscalaruti = Nouti;
 	Symbol * tdsymptr = NULL;
-	if(m_state.getUlamTypeByTypedefName(tokid, tduti, tdscalaruti, tdsymptr))
+	TBOOL isTypedef = m_state.getUlamTypeByTypedefName(tokid, tduti, tdscalaruti, tdsymptr);
+	if(isTypedef == TBOOL_TRUE)
 	  {
 	    assert(tdsymptr);
 	    ALT tdalt = tdsymptr->getAutoLocalType();
@@ -2978,13 +2986,14 @@ namespace MFM {
 	      }
 	    return tduti; //done. (could be an array; or refselftype)
 	  }
-	else
+	else //hazy or false (t3102, etc..)
 	  {
 	    SymbolClassName * cnsym = NULL;
 	    if(m_state.alreadyDefinedSymbolClassName(tokid, cnsym))
 	      {
 		UTI cnuti = cnsym->getUlamTypeIdx();  //beware: may not match class parameters!!!
-		//return cnuti; //ish 20230116, CAN'T! ancestors may be incomplete
+		//return cnuti; //ish 20230116, CAN'T! ancestors may be incomplete, t3290
+
 		UTI huti = m_state.makeCulamGeneratedTypedefSymbolInCurrentContext(typeargs.m_typeTok, true); //isaclass yes.
 		typeargs.m_anothertduti = huti; //?
 		m_state.mapTypesInCurrentClass(huti, cnuti);
@@ -3525,7 +3534,7 @@ namespace MFM {
 	bool isclasstd = false;
 	u32 ptokid = m_state.getTokenDataAsStringId(pTok); //t41312
 
-	if(!m_state.getUlamTypeByTypedefName(ptokid, tduti, tdscalaruti))
+	if(m_state.getUlamTypeByTypedefName(ptokid, tduti, tdscalaruti) != TBOOL_TRUE)
 	  {
 	    //make one up!! if UN_SEEN class
 	    UTI mcuti = memberClassBlock->getNodeType();
@@ -3537,7 +3546,8 @@ namespace MFM {
 	      }
 	  } //end make one up, now fall through
 
-	if(m_state.getUlamTypeByTypedefName(ptokid, tduti, tdscalaruti))
+	TBOOL gotTypedef = m_state.getUlamTypeByTypedefName(ptokid, tduti, tdscalaruti);
+	if(gotTypedef == TBOOL_TRUE)
 	  {
 	    UlamType * tdut = m_state.getUlamTypeByIndex(tduti);
 	    if(!tdut->isComplete())
@@ -3597,8 +3607,15 @@ namespace MFM {
 	    msg << m_state.getTokenDataAsString(pTok).c_str();
 	    msg << "> is not a typedef belonging to class: ";
 	    msg << m_state.m_pool.getDataAsString(csym->getId()).c_str();
-	    MSG(&pTok, msg.str().c_str(), ERR); //ish 20230116 or TBOOL to wait?
-	    rtnb = false;
+	    if(gotTypedef == TBOOL_HAZY)
+	      {
+		MSG(&pTok, msg.str().c_str(), DEBUG); //ish 20230116 or TBOOL to wait?
+	      }
+	    else
+	      {
+		MSG(&pTok, msg.str().c_str(), ERR); //ish 20230116 or TBOOL to wait?
+		rtnb = false;
+	      }
 	  }
 
 	//possibly another class? go again..

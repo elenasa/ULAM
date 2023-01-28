@@ -139,7 +139,7 @@ namespace MFM {
     //a typedef (e.g. t3379, 3381)
     UTI tmpscalar = Nouti;
     Symbol * tdsymptr = NULL;
-    if(m_state.getUlamTypeByTypedefNameInClassHierarchyThenLocalsScope(tokid, kuti, tmpscalar, tdsymptr))
+    if(m_state.getUlamTypeByTypedefNameInClassHierarchyThenLocalsScope(tokid, kuti, tmpscalar, tdsymptr)  == TBOOL_TRUE) // or != TBOOL_FALSE ??
       {
 	assert(tdsymptr && tdsymptr->isTypedef());
 	if(tdsymptr->isCulamGeneratedTypedef())

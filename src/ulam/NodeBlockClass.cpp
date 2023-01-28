@@ -746,7 +746,7 @@ namespace MFM {
     u32 superid = m_state.m_pool.getIndexForDataString("Super");
     UTI supertdef = Nouti;
     UTI scalarsupertdef = Nouti; //Nav if unseen at time of parsing (t3806)
-    if(m_state.getUlamTypeByTypedefName(superid, supertdef, scalarsupertdef))
+    if(m_state.getUlamTypeByTypedefName(superid, supertdef, scalarsupertdef) == TBOOL_TRUE)
       {
 	if(m_state.okUTItoContinue(supertdef) && !m_state.isHolder(supertdef)) //t41005
 	  {

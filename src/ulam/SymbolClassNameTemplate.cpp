@@ -1397,7 +1397,7 @@ namespace MFM {
 		    u32 superid = m_state.m_pool.getIndexForDataString("Super");
 		    UTI supertdef = Nouti;
 		    UTI scalarsupertdef = Nouti;
-		    if(m_state.getUlamTypeByTypedefName(superid, supertdef, scalarsupertdef))
+		    if(m_state.getUlamTypeByTypedefName(superid, supertdef, scalarsupertdef) == TBOOL_TRUE)
 		      {
 			if(m_state.okUTItoContinue(supertdef)) //not if Hzy (t3642)
 			  {
@@ -1438,12 +1438,12 @@ namespace MFM {
     u32 selftypeid = m_state.m_pool.getIndexForDataString("Self");
     UTI selftdef = Nouti;
     UTI scalarselftdef = Nouti;
-    aok = (m_state.getUlamTypeByTypedefName(selftypeid, selftdef, scalarselftdef) && (selftdef == cuti));
+    aok = ((m_state.getUlamTypeByTypedefName(selftypeid, selftdef, scalarselftdef) == TBOOL_TRUE) && (selftdef == cuti));
     UTI superuti = csym->getBaseClass(0);
     u32 supertypeid = m_state.m_pool.getIndexForDataString("Super");
     UTI supertdef = Nouti;
     UTI scalarsupertdef = Nouti;
-    aok &= (m_state.getUlamTypeByTypedefName(supertypeid, supertdef, scalarsupertdef) && (supertdef == superuti));
+    aok &= ((m_state.getUlamTypeByTypedefName(supertypeid, supertdef, scalarsupertdef) == TBOOL_TRUE) && (supertdef == superuti));
     return aok;
   } //verifySelfAndSuperTypedefs
 

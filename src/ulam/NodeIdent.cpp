@@ -1251,7 +1251,7 @@ namespace MFM {
     Symbol * ltdsymptr = NULL;
     if(m_state.isThisLocalsFileScope())
       {
-	if(m_state.getUlamTypeByTypedefNameInLocalsScope(m_token.m_dataindex, ltduti, ltdscalaruti, ltdsymptr))
+	if(m_state.getUlamTypeByTypedefNameInLocalsScope(m_token.m_dataindex, ltduti, ltdscalaruti, ltdsymptr) == TBOOL_TRUE)
 	  {
 	    assert(ltdsymptr->isTypedef());
 	    UTI ltd = ltdsymptr->getUlamTypeIdx();
@@ -1274,7 +1274,7 @@ namespace MFM {
 	    brtn = true;
 	  }
       }
-    else if(m_state.getUlamTypeByTypedefName(m_state.getTokenDataAsStringId(args.m_typeTok), tduti, tdscalaruti)) //t3674 Self; t41452,3
+    else if(m_state.getUlamTypeByTypedefName(m_state.getTokenDataAsStringId(args.m_typeTok), tduti, tdscalaruti) == TBOOL_TRUE) //t3674 Self; t41452,3
       {
 	args.m_declListOrTypedefScalarType = tdscalaruti; //not Nav when tduti is an array
 	if(checkTypedefOfTypedefSizes(args, tduti)) //ref
@@ -1399,7 +1399,7 @@ namespace MFM {
 	    brtn = true;
 	  }
       }
-    else if(m_state.getUlamTypeByTypedefName(m_state.getTokenDataAsStringId(args.m_typeTok), uti, tdscalaruti, tdsymptr))
+    else if(m_state.getUlamTypeByTypedefName(m_state.getTokenDataAsStringId(args.m_typeTok), uti, tdscalaruti, tdsymptr) == TBOOL_TRUE)
       {
 	if(tdsymptr->isCulamGeneratedTypedef() && tdsymptr->isCulamGeneratedTypedefAliased())
 	  m_state.findRootUTIAlias(uti, uti);
@@ -1511,7 +1511,7 @@ namespace MFM {
 	    uti = args.m_anothertduti;
 	  }
       }
-    else if(m_state.getUlamTypeByTypedefName(m_state.getTokenDataAsStringId(args.m_typeTok), uti, tdscalaruti,tdsymptr))
+    else if(m_state.getUlamTypeByTypedefName(m_state.getTokenDataAsStringId(args.m_typeTok), uti, tdscalaruti,tdsymptr) == TBOOL_TRUE)
       {
 	if(tdsymptr->isCulamGeneratedTypedef() && tdsymptr->isCulamGeneratedTypedefAliased())
 	  m_state.findRootUTIAlias(uti, uti); //t3411
@@ -1599,7 +1599,7 @@ namespace MFM {
 	  }
 	brtn = true;
       }
-    else if(m_state.getUlamTypeByTypedefName(m_state.getTokenDataAsStringId(args.m_typeTok), auti, tdscalaruti, tdsymptr))
+    else if(m_state.getUlamTypeByTypedefName(m_state.getTokenDataAsStringId(args.m_typeTok), auti, tdscalaruti, tdsymptr) == TBOOL_TRUE)
       {
 	if(tdsymptr->isCulamGeneratedTypedef() && tdsymptr->isCulamGeneratedTypedefAliased())
 	  m_state.findRootUTIAlias(auti, auti); //t3411

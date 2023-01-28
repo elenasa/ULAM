@@ -556,7 +556,7 @@ namespace MFM {
     UTI tmputi = Nav;
     UTI tmpforscalaruti = Nouti;
     u32 tokid = getTokenDataAsStringId(typeTok);
-    if(getUlamTypeByTypedefName(tokid, tmputi, tmpforscalaruti))
+    if(getUlamTypeByTypedefName(tokid, tmputi, tmpforscalaruti) == TBOOL_TRUE)
       {
 	//no assert, return uti instead
 	return tmpforscalaruti; //t41398-t41401
@@ -1334,7 +1334,7 @@ namespace MFM {
     UTI tmpforscalaruti = Nouti;
     u32 tokid = getTokenDataAsStringId(tok);
     //is this name already a typedef for a complex type?
-    if(getUlamTypeByTypedefName(tokid, uti, tmpforscalaruti))
+    if(getUlamTypeByTypedefName(tokid, uti, tmpforscalaruti) == TBOOL_TRUE)
       bUT = getUlamTypeByIndex(uti)->getUlamTypeEnum();
     else if(Token::getSpecialTokenWork(tok.m_type) == TOKSP_TYPEKEYWORD)
       {
@@ -1366,7 +1366,7 @@ namespace MFM {
     UTI tmpforscalaruti = Nouti;
     u32 tokid = getTokenDataAsStringId(tok);
     //is this name already a typedef for a complex type?
-    if(!getUlamTypeByTypedefName(tokid, uti, tmpforscalaruti))
+    if(getUlamTypeByTypedefName(tokid, uti, tmpforscalaruti) != TBOOL_TRUE)
       {
 	if(Token::getSpecialTokenWork(tok.m_type) == TOKSP_TYPEKEYWORD)
 	  {
@@ -1396,7 +1396,7 @@ namespace MFM {
     UTI tmpforscalaruti = Nouti;
     u32 tokid = getTokenDataAsStringId(args.m_typeTok);
     //is this name already a typedef for a complex type?
-    if(!getUlamTypeByTypedefName(tokid, uti, tmpforscalaruti))
+    if(getUlamTypeByTypedefName(tokid, uti, tmpforscalaruti) != TBOOL_TRUE)
       {
 	if(Token::getSpecialTokenWork(args.m_typeTok.m_type) == TOKSP_TYPEKEYWORD)
 	  {
@@ -1425,36 +1425,36 @@ namespace MFM {
     return uti;
   } //getUlamTypeFromToken
 
-  bool CompilerState::getUlamTypeByTypedefNameInClassHierarchyThenLocalsScope(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType)
+  TBOOL CompilerState::getUlamTypeByTypedefNameInClassHierarchyThenLocalsScope(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType)
   {
     //first look in the class hierarchy, bases depth-first, then this locals scope if not found.
-    if(getUlamTypeByTypedefName(nameIdx, rtnType, rtnScalarType))
-      return true;
+    if(getUlamTypeByTypedefName(nameIdx, rtnType, rtnScalarType) == TBOOL_TRUE)
+      return TBOOL_TRUE;
     return getUlamTypeByTypedefNameInLocalsScope(nameIdx, rtnType, rtnScalarType);
   }
 
-  bool CompilerState::getUlamTypeByTypedefNameInClassHierarchyThenLocalsScope(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType, Symbol *& asymptr)
+  TBOOL CompilerState::getUlamTypeByTypedefNameInClassHierarchyThenLocalsScope(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType, Symbol *& asymptr)
   {
     //first look in the class hierarchy, bases depth-first, then this locals scope if not found.
-    if(getUlamTypeByTypedefName(nameIdx, rtnType, rtnScalarType, asymptr))
-      return true;
+    if(getUlamTypeByTypedefName(nameIdx, rtnType, rtnScalarType, asymptr) == TBOOL_TRUE)
+      return TBOOL_TRUE;
     return getUlamTypeByTypedefNameInLocalsScope(nameIdx, rtnType, rtnScalarType, asymptr);
   }
 
-  bool CompilerState::getUlamTypeByTypedefName(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType)
+  TBOOL CompilerState::getUlamTypeByTypedefName(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType)
   {
     Symbol * dropsymptr = NULL;
     return getUlamTypeByTypedefName(nameIdx, rtnType, rtnScalarType, dropsymptr);
   } //getUlamTypeByTypedefName
 
-  bool CompilerState::getUlamTypeByTypedefName(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType, Symbol* & tdsymptr)
+  TBOOL CompilerState::getUlamTypeByTypedefName(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType, Symbol* & tdsymptr)
   {
-    bool rtnBool = false;
+    TBOOL rtnBool = TBOOL_FALSE;
     Symbol * asymptr = NULL;
     bool hazyKin = false; //useful?
 
     //e.g. KEYWORDS have no m_dataindex (=0); short-circuit
-    if(nameIdx == 0) return false;
+    if(nameIdx == 0) return rtnBool;
 
     //searched back through all block's ST for idx (t3555 and ancestors; t3126 within funcdef)
     // no longer in locals filescope (hence Here).
@@ -1465,8 +1465,9 @@ namespace MFM {
 	    rtnType = asymptr->getUlamTypeIdx();
 	    rtnScalarType = ((SymbolTypedef *) asymptr)->getScalarUTI();
 	    tdsymptr = asymptr;
-	    rtnBool = true;
+	    rtnBool = TBOOL_TRUE;
 	  }
+	//else not found
       }
     else
       {
@@ -1481,7 +1482,7 @@ namespace MFM {
 	    else
 	      {
 		hazyKin = true;
-		return false; //wait
+		return TBOOL_HAZY; // was false; //wait
 	      }
 	  }
 	assert(okUTItoContinue(cuti));
@@ -1493,27 +1494,30 @@ namespace MFM {
 		rtnType = asymptr->getUlamTypeIdx();
 		rtnScalarType = ((SymbolTypedef *) asymptr)->getScalarUTI();
 		tdsymptr = asymptr;
-		rtnBool = true;
+		rtnBool = TBOOL_TRUE;
 	      }
 	  }
       }
 
+    if((rtnBool != TBOOL_TRUE) && hazyKin)
+      rtnBool = TBOOL_HAZY;
+
     return rtnBool;
   } //getUlamTypeByTypedefName
 
-  bool CompilerState::getUlamTypeByTypedefNameInLocalsScope(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType)
+  TBOOL CompilerState::getUlamTypeByTypedefNameInLocalsScope(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType)
   {
     Symbol * dropsymptr = NULL;
     return getUlamTypeByTypedefNameInLocalsScope(nameIdx, rtnType, rtnScalarType, dropsymptr);
   }
 
-  bool CompilerState::getUlamTypeByTypedefNameInLocalsScope(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType, Symbol *& asymptr)
+  TBOOL CompilerState::getUlamTypeByTypedefNameInLocalsScope(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType, Symbol *& asymptr)
   {
-    bool rtnBool = false;
+    TBOOL rtnBool = TBOOL_FALSE;
     assert(asymptr == NULL);
 
     //e.g. KEYWORDS have no m_dataindex (=0); short-circuit
-    if(nameIdx == 0) return false;
+    if(nameIdx == 0) return rtnBool;
 
     if(isIdInLocalFileScope(nameIdx, asymptr))
       {
@@ -1521,15 +1525,15 @@ namespace MFM {
 	  {
 	    rtnType = asymptr->getUlamTypeIdx();
 	    rtnScalarType = ((SymbolTypedef *) asymptr)->getScalarUTI();
-	    rtnBool = true;
+	    rtnBool = TBOOL_TRUE;
 	  }
       }
     return rtnBool;
   } //getUlamTypeByTypedefNameInLocalsScope
 
-  bool CompilerState::getUlamTypeByTypedefNameInAnyLocalsScope(u32 nameIdx, std::map<UTI, k_localstypedefpair> & mapref)
+  TBOOL CompilerState::getUlamTypeByTypedefNameInAnyLocalsScope(u32 nameIdx, std::map<UTI, k_localstypedefpair> & mapref)
   {
-    bool rtnb = false;
+    TBOOL rtnb = TBOOL_FALSE;
     std::map<u32, NodeBlockLocals *>::iterator it;
 
     for(it = m_localsPerFilePath.begin(); it != m_localsPerFilePath.end(); it++)
@@ -1543,7 +1547,7 @@ namespace MFM {
 	UTI luti = localsblock->getNodeType();
 	pushClassContext(luti, localsblock, localsblock, false, NULL);
 
-	if(getUlamTypeByTypedefNameInLocalsScope(nameIdx, tduti, tdscalaruti, asymptr))
+	if(getUlamTypeByTypedefNameInLocalsScope(nameIdx, tduti, tdscalaruti, asymptr) == TBOOL_TRUE)
 	  {
 	    assert(asymptr->isTypedef());
 	    UTI auti = asymptr->getUlamTypeIdx();
@@ -1551,7 +1555,7 @@ namespace MFM {
 	    k_localstypedefpair kpair(localsblock,asymptr);
 	    reti = mapref.insert(std::pair<UTI,k_localstypedefpair>(auti, kpair));
 	    assert(reti.second); //false if already existed, i.e. not added.
-	    rtnb = true;
+	    rtnb = TBOOL_TRUE;
 	  }
 	popClassContext(); //restore (t3860)
       }
@@ -3282,7 +3286,7 @@ namespace MFM {
 
     UTI tmpscalar = Nouti;
     Symbol * ltdsymptr = NULL;
-    if(getUlamTypeByTypedefNameInLocalsScope(tokid, kuti, tmpscalar, ltdsymptr))
+    if(getUlamTypeByTypedefNameInLocalsScope(tokid, kuti, tmpscalar, ltdsymptr) == TBOOL_TRUE)
       {
 	assert(ltdsymptr && ltdsymptr->isTypedef());
 	if(ltdsymptr->isCulamGeneratedTypedef())
@@ -3384,7 +3388,7 @@ namespace MFM {
     std::map<UTI,k_localstypedefpair> tdmap;
 
     s32 localscountaliased = 0;
-    if(getUlamTypeByTypedefNameInAnyLocalsScope(dataindex, tdmap))
+    if(getUlamTypeByTypedefNameInAnyLocalsScope(dataindex, tdmap) == TBOOL_TRUE)
       {
 	std::map<UTI, k_localstypedefpair>::iterator it;
 
@@ -5530,7 +5534,7 @@ namespace MFM {
 	  {
 	    UTI tduti = Nav;
 	    UTI tmpforscalaruti = Nouti;
-	    if(getUlamTypeByTypedefName(tok.m_dataindex, tduti, tmpforscalaruti))
+	    if(getUlamTypeByTypedefName(tok.m_dataindex, tduti, tmpforscalaruti) == TBOOL_TRUE)
 	      {
 		UlamType * tdut = getUlamTypeByIndex(tduti);
 		//for typedef quarks return quark name, o.w. base name
