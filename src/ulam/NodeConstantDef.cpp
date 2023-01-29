@@ -18,8 +18,8 @@ namespace MFM {
 	// (e.g. pending class args)
 	m_cid = symptr->getId();
 	symptr->setDeclNodeNo(getNodeNo());
-	// ish 20230116 symptr is a holder, and aliased to nodetype's given UTI.
-	//assert(!nodetype || nodetype->givenUTI() == symptr->getUlamTypeIdx()); //invariant?
+	// ish 20230116 symptr was a holder, and aliased to nodetype's given UTI (no longer).
+	assert(!nodetype || nodetype->givenUTI() == symptr->getUlamTypeIdx()); //invariant?
       }
   }
 

@@ -2986,23 +2986,9 @@ namespace MFM {
 	      }
 	    return tduti; //done. (could be an array; or refselftype)
 	  }
-	else //hazy or false (t3102, etc..)
+	else //hazy or false in current class scope (t3102, etc..)
 	  {
-	    SymbolClassName * cnsym = NULL;
-	    if(m_state.alreadyDefinedSymbolClassName(tokid, cnsym))
-	      {
-		UTI cnuti = cnsym->getUlamTypeIdx();  //beware: may not match class parameters!!!
-		//return cnuti; //ish 20230116, CAN'T! ancestors may be incomplete, t3290
-
-		UTI huti = m_state.makeCulamGeneratedTypedefSymbolInCurrentContext(typeargs.m_typeTok, true); //isaclass yes.
-		typeargs.m_anothertduti = huti; //?
-		m_state.mapTypesInCurrentClass(huti, cnuti);
-		m_state.updateUTIAliasForced(huti, cnuti); //crumbs to follow
-		return huti; //ish 20230116
-	      }
-	    //else
-
-	    //generate a class member typedef, class scope
+	    //generate a class member typedef, class scope (even if tokid classname exists already)
 	    UTI huti = m_state.makeCulamGeneratedTypedefSymbolInCurrentContext(typeargs.m_typeTok); //isaclass? no.
 	    return huti;
 	  }
@@ -3610,10 +3596,11 @@ namespace MFM {
 	    if(gotTypedef == TBOOL_HAZY)
 	      {
 		MSG(&pTok, msg.str().c_str(), DEBUG); //ish 20230116 or TBOOL to wait?
+		m_state.abortNeedsATest();
 	      }
 	    else
 	      {
-		MSG(&pTok, msg.str().c_str(), ERR); //ish 20230116 or TBOOL to wait?
+		MSG(&pTok, msg.str().c_str(), ERR);
 		rtnb = false;
 	      }
 	  }

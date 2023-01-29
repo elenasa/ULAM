@@ -3821,14 +3821,10 @@ namespace MFM {
 			      {
 				UTI ktdmapped = ktd;
 				findRootUTIAlias(ktd, ktdmapped); //t3555
-				if(okUTItoContinue(ktdmapped))
-				  {
-				    replaceUTIKeyAndAlias(tduti, ktdmapped);
-				    ((SymbolTypedef *)sym)->setCulamGeneratedTypedefAliased();
-				    isaliasednow = true;
-				  }
-				else
-				  aok = false; //ish 20230116, not ok if ktdmapped Hzy
+				assert(okUTItoContinue(ktdmapped)); //ish 20230116, not ok if Hzy
+				replaceUTIKeyAndAlias(tduti, ktdmapped);
+				((SymbolTypedef *)sym)->setCulamGeneratedTypedefAliased();
+				isaliasednow = true;
 			      }
 			    else
 			      aok = false; //t3742

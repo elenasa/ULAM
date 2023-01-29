@@ -637,8 +637,8 @@ namespace MFM {
 		ULAMCLASSTYPE classtype = nut->getUlamClassType(); //t3735,t3834,t41363,t41153
 		//use default primitive bitsize;
 		nuti = m_state.makeUlamType(m_typeTok, ULAMTYPE_DEFAULTBITSIZE[etyp], arraysize, getReferencedUTI(), altd, classtype);
-		if(m_state.okUTItoContinue(nuti))
-		  rtnb = true; //ish 20230116
+		assert(m_state.okUTItoContinue(nuti)); //ish 20230116
+		rtnb = true;
 	      }
 	    else if(getReferenceType() != ALT_NOT)
 	      {

@@ -1,28 +1,21 @@
 ## -*- mode:ulam -*-
-#=t41643_test_compiler_constantarrayinit_issue
-##
-## gen output: (1 assert)
+#=t41644_test_compiler_typedefshadowsclassname_error
 ##
 #!
-Exit status: 0
-Ue_A { constant Unsigned cBARCODE_WIDTH = 3u;  typedef Unsigned(3) BarCode;  typedef Unsigned(3) Lineage[9];  Unsigned(3) mLineage[9](0u,3u,3u,3u,3u,3u,3u,3u,3u);  Int test() {  System s;  QBar qbar;  qbar sp . self mLineage . 3 [] 3u == = s ( qbar sp . )assert . 0 cast return } }
-Uq_CodeBar(Unsigned width) { typedef Unsigned(UNKNOWN) BarCode;  constant Unsigned(UNKNOWN) cBC_START = 0u;  constant Unsigned(UNKNOWN) cBC_LEFT = 1u;  constant Unsigned(UNKNOWN) cBC_RIGHT = 2u;  constant Unsigned(UNKNOWN) cBC_STOP = 3u;  <NOMAIN> }
-Uq_System { <NOMAIN> }
-Uq_QBar { Bool sp(false);  <NOMAIN> }
+./A.ulam:12:10: ERROR: Member selected must be a Class, not type: Unsigned.
+./A.ulam:12:13: ERROR: Assignment is invalid; LHS: erroneous; RHS: unresolved.
+Unrecoverable Program Type Label FAILURE.
 ##
-## Dave's ish 1/16/2023: initialize with constants from another class;
-## not recreateable here in simplier context, even with CodeBar as template.
+## informed by t41643: scope of typedef is key
 ##
 #>A.ulam
-  ulam 3;
+  ulam 5;
 element A {
-  //typedef Unsigned QBar; //allow class name shadowing!
-  //constant QBar cBARCODE_WIDTH = 3;
-  constant Unsigned cBARCODE_WIDTH = 3;
+  typedef Unsigned QBar; //allow class name shadowing!
+  constant QBar cBARCODE_WIDTH = 3;
   typedef CodeBar(cBARCODE_WIDTH).BarCode BarCode;
   typedef BarCode Lineage[cBARCODE_WIDTH*cBARCODE_WIDTH];
   Lineage mLineage = { CodeBar(cBARCODE_WIDTH).cBC_START, CodeBar(cBARCODE_WIDTH).cBC_STOP };
-
 
   Int test(){
     System s;
@@ -30,13 +23,6 @@ element A {
     qbar.sp = mLineage[3] == CodeBar(cBARCODE_WIDTH).cBC_STOP;
     s.assert(qbar.sp);
     return 0;
-  }
-
-  Unsigned func()
-  {
-      typedef Unsigned QBar; //allow class name shadowing!
-      QBar qb = 3;
-      return qb;
   }
 }
 
