@@ -12,5 +12,4 @@ element EWE {
   }
 }
 
-##    //EventWindow.ulam:3:1: ERROR: Only elements may have element parameters: <EventWindow> is a quark.
 #.

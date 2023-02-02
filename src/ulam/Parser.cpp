@@ -729,7 +729,7 @@ namespace MFM {
 	//check if aleady a typedef..else generate one in locals filescope
 	UTI tduti = Nav;
 	UTI tdscalaruti = Nouti;
-	if(!m_state.getUlamTypeByTypedefName(tokid, tduti, tdscalaruti))
+	if(m_state.getUlamTypeByTypedefName(tokid, tduti, tdscalaruti) != TBOOL_TRUE)
 	  {
 	    //make a typedef holder for a class
 	    UTI superuti = m_state.makeCulamGeneratedTypedefSymbolInCurrentContext(iTok, true);
@@ -2730,7 +2730,7 @@ namespace MFM {
 	    u32 tokid = m_state.getTokenDataAsStringId(pTok); //t41312,3
 	    UTI huti = Nav;
 	    UTI tmpscalar= Nav;
-	    AssertBool isTDDefined = m_state.getUlamTypeByTypedefNameInClassHierarchyThenLocalsScope(tokid, huti, tmpscalar);
+	    AssertBool isTDDefined = (m_state.getUlamTypeByTypedefNameInClassHierarchyThenLocalsScope(tokid, huti, tmpscalar) == TBOOL_TRUE);
 	    assert(isTDDefined);
 	    m_state.makeAnonymousClassFromHolder(huti, pTok.m_locator); //don't need cnsym here
 	  }
@@ -2903,10 +2903,17 @@ namespace MFM {
 	  {
 	    UTI tduti = Nav;
 	    UTI tdscalaruti = Nouti;
-	    if(m_state.getUlamTypeByTypedefName(tokid, tduti, tdscalaruti))
+	    TBOOL isTypedef = m_state.getUlamTypeByTypedefName(tokid, tduti, tdscalaruti);
+	    if(isTypedef == TBOOL_TRUE)
 	      {
 		return tduti; //t41312
 	      }
+	    else if(isTypedef == TBOOL_HAZY)
+	      {
+		m_state.abortNeedsATest();
+		return Hzy; //new case
+	      }
+	    //else Nav
 	  }
 	//this is an error!
 	return Nav; //t41341
@@ -2924,7 +2931,7 @@ namespace MFM {
 	    UTI tduti = Nav;
 	    UTI tdscalaruti = Nouti;
 	    Symbol * tdsymptr = NULL;
-	    if(m_state.getUlamTypeByTypedefName(tokid, tduti, tdscalaruti, tdsymptr))
+	    if(m_state.getUlamTypeByTypedefName(tokid, tduti, tdscalaruti, tdsymptr) == TBOOL_TRUE)
 	      {
 		assert(tdsymptr);
 		ALT tdalt = tdsymptr->getAutoLocalType();
@@ -2958,7 +2965,8 @@ namespace MFM {
 	UTI tduti = Nav;
 	UTI tdscalaruti = Nouti;
 	Symbol * tdsymptr = NULL;
-	if(m_state.getUlamTypeByTypedefName(tokid, tduti, tdscalaruti, tdsymptr))
+	TBOOL isTypedef = m_state.getUlamTypeByTypedefName(tokid, tduti, tdscalaruti, tdsymptr);
+	if(isTypedef == TBOOL_TRUE)
 	  {
 	    assert(tdsymptr);
 	    ALT tdalt = tdsymptr->getAutoLocalType();
@@ -2978,9 +2986,9 @@ namespace MFM {
 	      }
 	    return tduti; //done. (could be an array; or refselftype)
 	  }
-	else
+	else //hazy or false in current class scope (t3102, etc..)
 	  {
-	    //generate a class member typedef, class scope
+	    //generate a class member typedef, class scope (even if tokid classname exists already)
 	    UTI huti = m_state.makeCulamGeneratedTypedefSymbolInCurrentContext(typeargs.m_typeTok); //isaclass? no.
 	    return huti;
 	  }
@@ -3216,8 +3224,18 @@ namespace MFM {
 	Symbol * oldArgSym = NULL;
 	if(m_state.isIdInCurrentScope(argid, oldArgSym))
 	  {
-	    assert(oldArgSym->getUlamTypeIdx()==Hzy); //sanity check..before.. ????
-	    oldArgSym->resetUlamType(argSym->getUlamTypeIdx()); //replacing Hzy ????
+	    //assert(oldArgSym->getUlamTypeIdx()==Hzy); //sanity check..before.. ????
+	    UTI olduti = oldArgSym->getUlamTypeIdx();
+	    UTI goinguti = argSym->getUlamTypeIdx();
+	    if(olduti == Hzy)
+	      oldArgSym->resetUlamType(argSym->getUlamTypeIdx()); //replacing Hzy ????
+	    else if(olduti != goinguti)
+	      {
+		UTI oldutia = m_state.lookupUTIAlias(olduti);
+		UTI goingutia = m_state.lookupUTIAlias(goinguti);
+		if((oldutia == olduti) && (goingutia == goinguti))
+		  m_state.updateUTIAliasForced(goinguti,olduti); //t41455?
+	      }
 	    //patched in DataMembers when instance stub made
 	    delete argSym;
 	    assert(oldArgSym->isConstant());
@@ -3410,6 +3428,7 @@ namespace MFM {
 	      {
 		SymbolClass * tmpcsym = NULL;
 		UTI acuti = asym->getUlamTypeIdx();
+
 		if(m_state.isHolder(acuti) && !m_state.isAClass(acuti))
 		  {
 		    m_state.makeAnonymousClassFromHolder(acuti, args.m_typeTok.m_locator); //anonymous class (t41437)
@@ -3501,7 +3520,7 @@ namespace MFM {
 	bool isclasstd = false;
 	u32 ptokid = m_state.getTokenDataAsStringId(pTok); //t41312
 
-	if(!m_state.getUlamTypeByTypedefName(ptokid, tduti, tdscalaruti))
+	if(m_state.getUlamTypeByTypedefName(ptokid, tduti, tdscalaruti) != TBOOL_TRUE)
 	  {
 	    //make one up!! if UN_SEEN class
 	    UTI mcuti = memberClassBlock->getNodeType();
@@ -3513,7 +3532,8 @@ namespace MFM {
 	      }
 	  } //end make one up, now fall through
 
-	if(m_state.getUlamTypeByTypedefName(ptokid, tduti, tdscalaruti))
+	TBOOL gotTypedef = m_state.getUlamTypeByTypedefName(ptokid, tduti, tdscalaruti);
+	if(gotTypedef == TBOOL_TRUE)
 	  {
 	    UlamType * tdut = m_state.getUlamTypeByIndex(tduti);
 	    if(!tdut->isComplete())
@@ -3573,8 +3593,16 @@ namespace MFM {
 	    msg << m_state.getTokenDataAsString(pTok).c_str();
 	    msg << "> is not a typedef belonging to class: ";
 	    msg << m_state.m_pool.getDataAsString(csym->getId()).c_str();
-	    MSG(&pTok, msg.str().c_str(), ERR);
-	    rtnb = false;
+	    if(gotTypedef == TBOOL_HAZY)
+	      {
+		MSG(&pTok, msg.str().c_str(), DEBUG); //ish 20230116 or TBOOL to wait?
+		m_state.abortNeedsATest();
+	      }
+	    else
+	      {
+		MSG(&pTok, msg.str().c_str(), ERR);
+		rtnb = false;
+	      }
 	  }
 
 	//possibly another class? go again..

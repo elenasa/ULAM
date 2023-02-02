@@ -9,6 +9,8 @@
 ##   Int Arg: 9
 ##   Int Arg: 9 (+ assert)
 ##
+## UNEVALUABLE other.Q[ci] requires runtime MFM Registry
+##
 #!
 Exit status: -11
 Ue_MyElement : Sub(2) +Sub(3) { constant Unsigned ids[2] = { 0x1, 0x2 };  :Sub(2)< constant Int cVAL = 2;  :Q<>> +Sub(3)< constant Int cVAL = 3;  :Q<>> ^Q<> Int test() {  System s;  Atom copy = self.atomof cast;  MyElement& other = copy cast;  { Unsigned i = 0 cast;  i 2u < cond { Unsigned ci = ids i [];  Int v = other Q ci .[] ( )val .;  s ( v )print . Int sqv = v v *;  s ( sqv )print . s ( other Q ci .[] ( )sqr . )print . s ( sqv other Q ci .[] ( )sqr . == )assert . } _1: i 1 cast += while } 2u cast return } }

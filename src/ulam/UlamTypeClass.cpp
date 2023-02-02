@@ -176,7 +176,8 @@ namespace MFM {
     u32 id = getUlamTypeNameId();
     UTI cuti =  m_key.getUlamKeyTypeSignatureClassInstanceIdx();
     SymbolClassName * cnsym = (SymbolClassName *) m_state.m_programDefST.getSymbolPtr(id);
-    mangledclassname << cnsym->formatAnInstancesArgValuesAsAString(cuti);
+    if(cnsym)
+      mangledclassname << cnsym->formatAnInstancesArgValuesAsAString(cuti);
     return mangledclassname.str();
   } //getUlamTypeMangledName
 

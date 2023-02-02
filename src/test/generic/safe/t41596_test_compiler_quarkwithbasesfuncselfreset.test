@@ -2,7 +2,7 @@
 #=t41596_test_compiler_quarkwithbasesfuncselfreset
 ##      gen code output: (3 asserts)
 #!
-Exit status: -1
+Exit status: 0
 Ue_R { Int test() {  System s;  MM mm;  mm m12 4 [] . true = mm ( )reset . s ( mm t1 0 [] . )assert . s ( mm t2 1 [] . )assert . s ( mm m12 4 [] . ! )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 Uq_MM : T2 +M12 { Bool m23[4](false,false,false,false);  :T2< Bool t2[12]( { false, true, false, false }); > +M12< Bool m12[5](false,false,false,false,false); > ^T1< Bool t1[11]( { true, false, false, false }); > <NOMAIN> }

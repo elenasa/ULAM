@@ -3,9 +3,10 @@
 ##
 ## gen output: 3 asserts
 ##     Unsigned Arg: 99
+##
 #!
-Exit status: -11
-Ue_R { Int test() {  System s;  KeyExprRep kr;  kr m_key . keyexpr_x13 0 [] = s ( kr m_key . m_rightIndex . 2u cast == )assert . s ( keyexpr_x13 1 [] m_rightIndex . 4u cast == )assert . KeyExprNode mykeyexpr_x13[5] = keyexpr_x13;  s ( mykeyexpr_x13 2 [] m_keyCode . cast )print . s ( mykeyexpr_x13 2 [] m_keyCode . keyexpr_x13 2 [] m_keyCode . == )assert . 0 cast return } }
+Exit status: 0
+Ue_R { typedef Unsigned(10) Byte;  Unsigned(10) ri0(2u);  Unsigned(10) ri1(4u);  Unsigned(10) kc2(99u);  Unsigned(10) mykc2(99u);  Int test() {  System s;  KeyExprRep kr;  kr m_key . keyexpr_x13 0 [] = self ri0 . kr m_key . m_rightIndex . = s ( kr m_key . m_rightIndex . 2u cast == )assert . self ri1 . keyexpr_x13 1 [] m_rightIndex . = s ( keyexpr_x13 1 [] m_rightIndex . 4u cast == )assert . KeyExprNode mykeyexpr_x13[5] = keyexpr_x13;  self mykc2 . mykeyexpr_x13 2 [] m_keyCode . = self kc2 . keyexpr_x13 2 [] m_keyCode . = s ( mykeyexpr_x13 2 [] m_keyCode . cast )print . s ( mykeyexpr_x13 2 [] m_keyCode . keyexpr_x13 2 [] m_keyCode . == )assert . 0 cast return } }
 Un_KeyExprNode { typedef Unsigned(10) Byte;  Unsigned(10) m_leftIndex(0);  Unsigned(10) m_rightIndex(0);  Unsigned(10) m_keyCode(0);  Unsigned(10) m_op(0);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 Un_KeyExprRep { KeyExprNode m_key( typedef Unsigned(10) Byte;  Unsigned(10) m_leftIndex(0);  Unsigned(10) m_rightIndex(0);  Unsigned(10) m_keyCode(0);  Unsigned(10) m_op(0); );  <NOMAIN> }
@@ -23,16 +24,26 @@ local constant KeyExprNode keyexpr_x13[] = {
    { .m_leftIndex = 0, .m_rightIndex = 0, .m_keyCode = 'b', .m_op = 0 }, // [4] , EXTRA COMMA at the end??? no difference
  };
 element R {
+  typedef KeyExprNode.Byte Byte; //for big quark!
+  Byte ri0;
+  Byte ri1;
+  Byte kc2;
+  Byte mykc2;
+
   Int test() {
     System s;
     KeyExprRep kr;
     kr.m_key = keyexpr_x13[0]; //displayed in eval output
+    ri0 = kr.m_key.m_rightIndex;
     s.assert(kr.m_key.m_rightIndex==2u);
 
+    ri1 = keyexpr_x13[1].m_rightIndex;
     s.assert(keyexpr_x13[1].m_rightIndex==4u); //reads constant class array item
 
-    //read entire constant class array
+    //read entire constant class array - UNEVALUABLE?
     KeyExprNode mykeyexpr_x13[5] = local.keyexpr_x13; // see t41552 for error without dot
+    mykc2 = mykeyexpr_x13[2].m_keyCode;
+    kc2 = local.keyexpr_x13[2].m_keyCode;
     s.print(mykeyexpr_x13[2].m_keyCode);
     s.assert(mykeyexpr_x13[2].m_keyCode==keyexpr_x13[2].m_keyCode); //reads constant class array item
     return 0;

@@ -3,11 +3,9 @@
 ##
 ## gen output: 2 asserts
 ##
-## cannot eval atom ref return type that is element Foo, too
-##
 #!
-Exit status: -11
-Ue_Foo : QFoo { :QFoo<> Int test() {  System s;  Foo& fooref = self ( )func . cast;  s ( fooref Foo is )assert . QFoo& qfooref = self ( )func . cast;  s ( qfooref QFoo is )assert . Foo f;  Foo& ffooref = f ( )func . cast;  s ( ffooref Foo is )assert . 0 cast return } }
+Exit status: 0
+Ue_Foo : QFoo { Bool b1(true);  Bool b2(true);  Bool b3(true);  :QFoo<> Int test() {  System s;  Foo& fooref = self ( )func . cast;  self b1 . fooref Foo is = s ( fooref Foo is )assert . QFoo& qfooref = self ( )func . cast;  self b2 . qfooref QFoo is = s ( qfooref QFoo is )assert . Foo f;  Foo& ffooref = f ( )func . cast;  self b3 . ffooref Foo is = s ( ffooref Foo is )assert . 0 cast return } }
 Uq_QFoo { /* empty class block */ }
 Uq_System { <NOMAIN> }
 ##
@@ -17,6 +15,8 @@ Uq_System { <NOMAIN> }
   ulam 3;
 element Foo : QFoo
 {
+  Bool b1,b2,b3;
+
   Atom & func()
   {
     return self.atomof;
@@ -28,15 +28,18 @@ element Foo : QFoo
 
     //case 1:
     Foo & fooref = (Foo &) func();
+    b1 = fooref is Foo;
     s.assert(fooref is Foo);
 
     //case 2:
     QFoo & qfooref = (QFoo &) func();
+    b2 = qfooref is QFoo;
     s.assert(qfooref is QFoo);
 
     //case 3: memberselect made a difference
     Foo f;
     Foo & ffooref = (Foo &) f.func();
+    b3 = ffooref is Foo;
     s.assert(ffooref is Foo);
 
     return 0;

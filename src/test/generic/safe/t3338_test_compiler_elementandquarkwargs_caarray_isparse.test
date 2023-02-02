@@ -12,9 +12,9 @@ Exit status: -11
 Ue_EventWindowTest { constant Int v = -2;  EventWindow(-2) ew( constant Int w = -2; );  Int test() {  System s;  Int rtn = -1 cast;  EventWindowTest ewt;  self ew . ( 0 cast )aref . ewt cast = Atom a = self ew . ( 0 cast )aref . cast;  Atom aw = ewt cast;  { aw EventWindowTest is cond rtn -2 = if rtn 1 cast = else } s ( rtn )print . s ( rtn -2 == )assert . rtn return } }
 Uq_EventWindow(Int w) { <NOMAIN> }
 Uq_System { <NOMAIN> }
+##
 ##      //informed by t3248
 ##      // added named constant v; tests -2 (also used as "NONREADYCONST") as arg value.
-##      // 'a has System' doesn't appy to eval because atoms have no class declarations; but testable for gencode
 ##
 #>EventWindowTest.ulam
   ulam 1;

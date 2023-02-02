@@ -1,0 +1,57 @@
+## -*- mode:ulam -*-
+#=t41644_test_compiler_typedefshadowsclassname_error
+##
+#!
+./A.ulam:12:10: ERROR: Member selected must be a Class, not type: Unsigned.
+./A.ulam:12:13: ERROR: Assignment is invalid; LHS: erroneous; RHS: unresolved.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by t41643: scope of typedef is key
+##
+#>A.ulam
+  ulam 5;
+element A {
+  typedef Unsigned QBar; //allow class name shadowing!
+  constant QBar cBARCODE_WIDTH = 3;
+  typedef CodeBar(cBARCODE_WIDTH).BarCode BarCode;
+  typedef BarCode Lineage[cBARCODE_WIDTH*cBARCODE_WIDTH];
+  Lineage mLineage = { CodeBar(cBARCODE_WIDTH).cBC_START, CodeBar(cBARCODE_WIDTH).cBC_STOP };
+
+  Int test(){
+    System s;
+    QBar qbar; //but then you can't have it both ways..
+    qbar.sp = mLineage[3] == CodeBar(cBARCODE_WIDTH).cBC_STOP;
+    s.assert(qbar.sp);
+    return 0;
+  }
+}
+
+
+#:CodeBar.ulam
+  ulam 5;
+quark CodeBar(Unsigned width) {
+typedef Unsigned(width) BarCode;
+  constant BarCode cBC_START = 0u; //< Start of code (also Ancestor)
+  constant BarCode cBC_LEFT =  1u; //< I was Left Daughter in this generation
+  constant BarCode cBC_RIGHT = 2u; //< I was Right Daughter in this generation
+  constant BarCode cBC_STOP =  3u; //< End of code (also next generation)
+}
+
+#:QBar.ulam
+  ulam 1;
+quark QBar {
+  Bool sp;
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

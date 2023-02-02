@@ -553,6 +553,14 @@ namespace MFM {
     while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
       {
 	SymbolClass * csym = it->second;
+	assert(csym);
+	UTI suti = csym->getUlamTypeIdx();
+	if(!m_state.okUTItoContinue(suti))
+	  {
+	    it++;
+	    continue;
+	  }
+
 	if(csym->getUlamClass() != UC_UNSEEN)
 	  {
 	    it++; //covers synonyms
@@ -565,7 +573,6 @@ namespace MFM {
 	    continue;
 	  }
 
-	UTI suti = csym->getUlamTypeIdx();
 	UlamKeyTypeSignature skey = m_state.getUlamTypeByIndex(suti)->getUlamKeyTypeSignature();
 	AssertBool isReplaced = m_state.replaceUlamTypeForUpdatedClassType(skey, Class, classtype, isCATemplate);
 	assert(isReplaced);
@@ -1390,7 +1397,7 @@ namespace MFM {
 		    u32 superid = m_state.m_pool.getIndexForDataString("Super");
 		    UTI supertdef = Nouti;
 		    UTI scalarsupertdef = Nouti;
-		    if(m_state.getUlamTypeByTypedefName(superid, supertdef, scalarsupertdef))
+		    if(m_state.getUlamTypeByTypedefName(superid, supertdef, scalarsupertdef) == TBOOL_TRUE)
 		      {
 			if(m_state.okUTItoContinue(supertdef)) //not if Hzy (t3642)
 			  {
@@ -1431,12 +1438,12 @@ namespace MFM {
     u32 selftypeid = m_state.m_pool.getIndexForDataString("Self");
     UTI selftdef = Nouti;
     UTI scalarselftdef = Nouti;
-    aok = (m_state.getUlamTypeByTypedefName(selftypeid, selftdef, scalarselftdef) && (selftdef == cuti));
+    aok = ((m_state.getUlamTypeByTypedefName(selftypeid, selftdef, scalarselftdef) == TBOOL_TRUE) && (selftdef == cuti));
     UTI superuti = csym->getBaseClass(0);
     u32 supertypeid = m_state.m_pool.getIndexForDataString("Super");
     UTI supertdef = Nouti;
     UTI scalarsupertdef = Nouti;
-    aok &= (m_state.getUlamTypeByTypedefName(supertypeid, supertdef, scalarsupertdef) && (supertdef == superuti));
+    aok &= ((m_state.getUlamTypeByTypedefName(supertypeid, supertdef, scalarsupertdef) == TBOOL_TRUE) && (supertdef == superuti));
     return aok;
   } //verifySelfAndSuperTypedefs
 

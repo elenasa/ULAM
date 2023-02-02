@@ -5,6 +5,8 @@
 ##  Int Arg: 510 (+ 4 asserts)
 ##  Int Arg: 16 (+ 2 assert)
 ##
+## UNEVALUABLE requires runtime MFM VTable Registry
+##
 #!
 Exit status: -11
 Ue_Foo +System { Int m_c4(0);  Int m_a4(0);  +System<> Int test() {  typedef QBase2 QB2;  typedef QBase1 QB1;  E4 e4;  QBase1 q1;  QBase1& q1ref = q1 cast;  Unsigned qbase1rn = q1ref[1u];  self ( qbase1rn 1u cast +b QBaseLast[2u] == )assert . self m_a4 . e4 QBase1 qbase1rn 1u cast +b .[] ( )vfunca . = self ( self m_a4 . )print . self ( self m_a4 . 510 cast == )assert . self ( e4 m_b1 . )assert . self ( e4 QB2 . m_b1 . )assert . self ( e4 QBaseLast . m_b1 . )assert . self ( e4 m_blast . cast )print . self ( e4 m_blast . 16 cast == )assert . self ( e4 m_b4 . ! )assert . 0 cast return } }

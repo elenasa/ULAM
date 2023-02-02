@@ -1,5 +1,8 @@
 ## -*- mode:ulam -*-
 #=t3484_test_compiler_elementandquark_caarray_ambiguousfunc_issue
+##
+##  gen output: 1 assert
+##
 #!
 Exit status: -11
 Ue_EventWindowTest { typedef Unsigned(6) SiteNum;  EventWindow ew( typedef Unsigned(6) SiteNum; );  Int test() {  System s;  Unsigned(6) sn = 6 cast;  Atom a = self ( sn )funcme .;  s ( a Empty is )assert . 1 cast return } }
@@ -7,7 +10,9 @@ Uq_EventWindow { typedef Unsigned(6) SiteNum;  <NOMAIN> }
 Uq_System { <NOMAIN> }
 Uq_C2D { Int(6) m_width(0);  Int(6) m_height(0);  <NOMAIN> }
 ##
-##      //informed by t3413, and issue/afterTypeSelect/combination.
+##   //informed by t3413, and issue/afterTypeSelect/combination.
+##   with -O99 optimization gen test fails: UNRETURNABLE_REFERENCE
+##   due to EventWindow native aref and m_atomBuffer in MFM.
 ##
 #>EventWindowTest.ulam
   ulam 1;
@@ -50,6 +55,7 @@ quark EventWindow {
     return rtn;
   }
 }
+
 #:C2D.ulam
   ulam 1;
 quark C2D {

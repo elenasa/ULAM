@@ -9,7 +9,7 @@
 ##  Bool(3) Arg: 0x7 (true) (followed by 4 asserts)
 ##
 #!
-Exit status: -1
+Exit status: 0
 Ue_R { Int test() {  System s;  E1 e1;  e1 m_u . 3 cast = E2 e2;  e2 ( e1 cast )updateSelf . s ( e2 m_u . cast )print . s ( e1 m_u . cast )print . s ( e2 m_u . e1 m_u . == )assert . s ( e2 t1 0 [] . cast )print . s ( e2 t1 1 [] . cast )print . s ( e2 t1 2 [] . cast )print . s ( e2 t1 3 [] . cast )print . s ( e2 t1 0 [] . )assert . s ( e2 t1 1 [] . ! )assert . s ( e2 t1 2 [] . )assert . s ( e2 t1 3 [] . )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 Ue_E1 : QBase { Unsigned(3) m_dm(0);  :QBase< Bool t1[41]( { true, false, true, true, false });  Unsigned(7) m_u(0); > <NOMAIN> }

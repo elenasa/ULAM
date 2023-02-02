@@ -795,7 +795,7 @@ namespace MFM {
     if(rtnUVtype == Void) //check after Ptr target type
       return;
 
-    assert((UlamType::compareForUlamValueAssignment(rtnUVtype, getNodeType(), m_state) == UTIC_SAME) || m_state.isAtom(rtnUVtype) || m_state.isAtom(getNodeType()));
+    assert((UlamType::compareForUlamValueAssignment(rtnUVtype, getNodeType(), m_state) == UTIC_SAME) || m_state.isAtom(rtnUVtype) || m_state.isAtom(getNodeType()) || m_state.isClassASubclassOf(rtnUVtype, getNodeType())); //t41641 allow sub/base classes;
 
     // save results in the stackframe for caller;
     // copies each element of the 'unpacked' array by value,

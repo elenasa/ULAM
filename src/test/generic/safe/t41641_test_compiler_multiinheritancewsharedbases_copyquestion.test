@@ -5,10 +5,9 @@
 ## Unsigned Arg: 99
 ## Unsigned Arg: 99
 ##
-## UNEVALUABLE until shared bases copy works properly.
 #!
-Exit status: -1
-Ue_R : System { Unsigned m_foosize(0u);  :System<> Int test() {  Foo f;  Tar t;  t mFoo . 99 cast = Q4& fq4 = f cast;  Q4& tq4 = t cast;  fq4 tq4 = self ( t mFoo . cast )print . self ( t mFoo . 99u cast == )assert . self ( f mFoo . cast )print . self ( f mFoo . t mFoo . == )assert . 0 cast return } }
+Exit status: 1
+Ue_R : System { Unsigned m_tmfoo(99u);  Unsigned m_fmfoo(99u);  :System<> Int test() {  Foo f;  Tar t;  t mFoo . 99 cast = Q4& fq4 = f cast;  Q4& tq4 = t cast;  fq4 tq4 = self ( t mFoo . cast )print . self ( t mFoo . 99u cast == )assert . self ( f mFoo . cast )print . self ( f mFoo . t mFoo . == )assert . self m_tmfoo . t mFoo . cast = self m_fmfoo . f mFoo . cast = self m_tmfoo . self m_fmfoo . == cast return } }
 Uq_System { <NOMAIN> }
 Un_Foo : Q5 { :Q5<> ^Q4<> ^Q3< Unsigned(3) mGah(0); > ^Q2< Unsigned(2) mBar(0); > ^Q< Unsigned(22) mFoo(0); > <NOMAIN> }
 Un_Tar : Q4 { :Q4<> ^Q3< Unsigned(3) mGah(0); > ^Q2< Unsigned(2) mBar(0); > ^Q< Unsigned(22) mFoo(0); > <NOMAIN> }
@@ -23,7 +22,8 @@ Uq_Q3 : Q { Unsigned(3) mGah(0);  :Q< Unsigned(22) mFoo(0); > <NOMAIN> }
 #>R.ulam
   ulam 5;
 element R : System {
-  Unsigned m_foosize;
+  Unsigned m_tmfoo;
+  Unsigned m_fmfoo;
   Int test() {
     Foo f;
     Tar t;
@@ -39,7 +39,10 @@ element R : System {
     assert(t.mFoo==99u);
     print(f.mFoo);
     assert(f.mFoo==t.mFoo);
-    return 0;
+
+    m_tmfoo = t.mFoo;
+    m_fmfoo = f.mFoo;
+    return (Int) (m_tmfoo==m_fmfoo);
   }
 }
 

@@ -3,11 +3,9 @@
 ##
 ## gen output: 2 asserts
 ##
-## cannot eval caller2 atom ref return type that is element Foo, too
-##
 #!
-Exit status: -11
-Ue_Foo { Int test() {  System s;  Atom f3;  Atom& r = self ( f3 cast false )caller2 .;  s ( r Foo is ! )assert . Atom a = self ( f3 cast true )caller3 .;  s ( a Foo is )assert . 0 cast return } }
+Exit status: 0
+Ue_Foo { Bool aisFoo(true);  Int test() {  System s;  Atom f3;  Atom& r = self ( f3 cast false )caller2 .;  s ( r Foo is ! )assert . Atom a = self ( f3 cast true )caller3 .;  self aisFoo . a Foo is = s ( self aisFoo . )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t41033, Dave email 2/10/2017 and t41031; note:uses MFM::UlamRefMutable.
@@ -16,6 +14,8 @@ Uq_System { <NOMAIN> }
   ulam 3;
 element Foo
 {
+  Bool aisFoo;
+
   Atom & func(Atom& arg1, Atom& arg2, Bool barg)
   {
     return barg ? arg1 : arg2;
@@ -43,7 +43,8 @@ element Foo
     s.assert(!(r is Foo));
 
     Atom a = caller3(f3, true);
-    s.assert((a is Foo));
+    aisFoo = (a is Foo);
+    s.assert(aisFoo);
 
     return 0;
   }

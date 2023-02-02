@@ -145,9 +145,11 @@ namespace MFM {
       {
       case String:
 	break; //data is index, no cast req'd (t3951)
+      case Bits:
+	// casting to Bits Unsigned to change type
+	break; //t41422
       case Int:
       case Unsigned:
-      case Bits:
       case Bool:
       case Unary:
       case Void:

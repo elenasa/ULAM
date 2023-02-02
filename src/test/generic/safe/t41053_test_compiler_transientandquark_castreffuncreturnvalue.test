@@ -3,11 +3,9 @@
 ##
 ## gen output: 1 asserts
 ##
-## cannot eval atom ref return type that is element Foo, too
-##
 #!
-Exit status: -11
-Ue_R { Int test() {  System s;  TFoo tf;  QFoo& fooref = tf ( )func . cast;  s ( fooref QFoo is )assert . 0 cast return } }
+Exit status: 0
+Ue_R { Bool b1(true);  Int test() {  System s;  TFoo tf;  QFoo& fooref = tf ( )func . cast;  self b1 . fooref QFoo is = s ( self b1 . )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 Un_TFoo : QFoo { :QFoo<> ^QBar<> <NOMAIN> }
 Uq_QFoo : QBar { :QBar<> <NOMAIN> }
@@ -15,19 +13,20 @@ Uq_QBar { /* empty class block */ }
 ##
 ## informed by Dave email 3/20/2017 and t41033
 ##
-## cannot eval casting Self to a ref
-##
 #>R.ulam
   ulam 3;
 element R
 {
+  Bool b1;
+
   Int test() {
     System s;
     TFoo tf;
 
     //case 1: cast decendent transient
     QFoo & fooref = (QFoo &) tf.func();
-    s.assert(fooref is QFoo);
+    b1 = (fooref is QFoo);
+    s.assert(b1);
 
     return 0;
   }
@@ -37,7 +36,6 @@ element R
   ulam 3;
 transient TFoo : QFoo
 {
-
   Self func()
   {
     return self;

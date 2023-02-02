@@ -1,8 +1,11 @@
+## -*- mode:ulam -*-
 #=t3505_test_compiler_elementandquark_caarrayemptyquark
+##
 #!
 Exit status: -11
 Ue_Foo { typedef Unsigned(6) Sitenum;  Int test() {  EventWindow ew;  Unsigned(6) site = 1 cast;  ew ( site cast )aref . Empty is cast return } }
 Uq_EventWindow { typedef Unsigned(6) Sitenum;  <NOMAIN> }
+##
 #>Foo.ulam
 ulam 1;
 use EventWindow;
@@ -21,4 +24,5 @@ quark EventWindow {
   typedef Unsigned(6) Sitenum;
   Atom& aref(Int index) native;
 }
+
 #.

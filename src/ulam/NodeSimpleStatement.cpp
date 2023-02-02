@@ -115,7 +115,7 @@ namespace MFM {
   {
     assert(m_node);
     evalNodeProlog(0);
-    makeRoomForNodeType(m_node->getNodeType());
+    makeRoomForNodeType(m_node->getNodeType()); //t3136
     EvalStatus evs = m_node->eval();
 
     evalNodeEpilog();

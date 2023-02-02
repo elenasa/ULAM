@@ -360,8 +360,9 @@ namespace MFM {
 
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     ULAMCLASSTYPE classtype = nut->getUlamClassType();
-    if((classtype == UC_TRANSIENT) && (nut->getTotalBitSize() > MAXSTATEBITS))
-      return evalStatusReturnNoEpilog(UNEVALUABLE); //t41269
+    //    if((classtype == UC_TRANSIENT) && (nut->getTotalBitSize() > MAXSTATEBITS))
+    if((classtype == UC_TRANSIENT) && (nut->getBitSize() > MAXSTATEBITS))
+      return evalStatusReturnNoEpilog(UNEVALUABLE); //t41269, t41632
 
     assert(m_constSymbol);
 

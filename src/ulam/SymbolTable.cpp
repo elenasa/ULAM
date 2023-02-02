@@ -48,8 +48,18 @@ namespace MFM {
 	Symbol * copyof = NULL;
 	if(!isInTable(fid,copyof))
 	  {
-	    copyof = found->clone();
+	    copyof = found->clone(); //clones usually start out Hzy
 	    addToTable(fid, copyof);
+	  }
+	else
+	  {
+	    //alias holder types before fmst removed (ish 20230116, t41643)
+	    UTI futi = found->getUlamTypeIdx();
+	    UTI copyuti = copyof->getUlamTypeIdx();
+	    if((futi != copyuti) && m_state.isHolder(futi) && m_state.okUTItoContinue(copyuti))
+	      m_state.updateUTIAliasForced(futi,copyuti);
+	    //else if(m_state.isHolder(copyuti) && m_state.okUTItoContinue(futi)) t41554,nope
+	    //else if(!m_state.okUTItoContinue(copyuti) && m_state.okUTItoContinue(futi)) t41455,nope
 	  }
 	it++;
       }

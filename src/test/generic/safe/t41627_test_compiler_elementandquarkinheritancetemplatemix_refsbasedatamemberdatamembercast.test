@@ -8,8 +8,8 @@
 ## Bool(3) Arg: 0x7 (true)
 ##
 #!
-Exit status: -11
-Ue_R : System { :System<> Int test() {  Loader ll;  Loader& ld = ll cast;  Chain& ccu = ld mChainControlUp . mChain . cast;  self ( ccu cast )barC . self ( ccu myChain . )print . self ( ccu myChain . cast )assert . Bool(3) cuf = self ( ld mChainControlUp . mChain . cast )fooC .;  self ( cuf )print . self ( ccu myChain . cast cuf cast == )assert . Chain& ccd = ld mChainControlDown . mChain . cast;  self ( ccd cast )barC . self ( ccd myChain . )print . self ( ccd myChain . cast )assert . Bool(3) cdf = self ( ld mChainControlDown . mChain . cast )fooC .;  self ( cdf )print . self ( ccd myChain . cast cdf cast == )assert . 0 cast return } }
+Exit status: 0
+Ue_R : System { Bool(3) cuf(true);  Bool(3) cdf(true);  :System<> Int test() {  Loader ll;  Loader& ld = ll cast;  Chain& ccu = ld mChainControlUp . mChain . cast;  self ( ccu cast )barC . self ( ccu myChain . )print . self ( ccu myChain . cast )assert . self cuf . self ( ld mChainControlUp . mChain . cast )fooC . = self ( self cuf . )print . self ( ccu myChain . cast self cuf . cast == )assert . Chain& ccd = ld mChainControlDown . mChain . cast;  self ( ccd cast )barC . self ( ccd myChain . )print . self ( ccd myChain . cast )assert . self cdf . self ( ld mChainControlDown . mChain . cast )fooC . = self ( self cdf . )print . self ( ccd myChain . cast self cdf . cast == )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 Ue_Loader : PocketChain { typedef Unsigned(8) InstructionCount;  Unsigned(8) mNextInstruction( 0u);  :PocketChain< ChainControlUp mChainControlUp( :ChainControl(1u)< typedef Bits(4) TQMap;  Bits(4) mTQMap(0);  typedef Unsigned(2) SizeRange;  constant Unsigned(2) cSZRG_S = 0u;  constant Unsigned(2) cSZRG_M = 1u;  constant Unsigned(2) cSZRG_L = 2u;  constant Unsigned(2) cSZRG_X = 3u;  typedef Unsigned SizeRangeLimits[5];  constant Unsigned cSR_LIMITS[5] = { 0u cast, 4u cast, 8u cast, 14u cast, 2147483647 cast };  typedef Bits(4) ASRMap;  Bits(4) mSRMap(0);  constant Bits(4) cASR_S = 1u;  constant Bits(4) cASR_M = 2u;  constant Bits(4) cASR_L = 4u;  constant Bits(4) cASR_X = 8u;  Bool mViolation(false);  Chain mChain( Unsigned(1) sp(0);  Bool(3) myChain(false); ); > ^DTU< typedef Unsigned(1) BodyDir;  constant Unsigned(1) cBODY_UP = 1u;  constant Unsigned(1) cBODY_DOWN = 0u; >);  ChainControlDown mChainControlDown( :ChainControl(0u)< typedef Bits(4) TQMap;  Bits(4) mTQMap(0);  typedef Unsigned(2) SizeRange;  constant Unsigned(2) cSZRG_S = 0u;  constant Unsigned(2) cSZRG_M = 1u;  constant Unsigned(2) cSZRG_L = 2u;  constant Unsigned(2) cSZRG_X = 3u;  typedef Unsigned SizeRangeLimits[5];  constant Unsigned cSR_LIMITS[5] = { 0u cast, 4u cast, 8u cast, 14u cast, 2147483647 cast };  typedef Bits(4) ASRMap;  Bits(4) mSRMap(0);  constant Bits(4) cASR_S = 1u;  constant Bits(4) cASR_M = 2u;  constant Bits(4) cASR_L = 4u;  constant Bits(4) cASR_X = 8u;  Bool mViolation(false);  Chain mChain( Unsigned(1) sp(0);  Bool(3) myChain(false); ); > ^DTU< typedef Unsigned(1) BodyDir;  constant Unsigned(1) cBODY_UP = 1u;  constant Unsigned(1) cBODY_DOWN = 0u; >); > <NOMAIN> }
 Uq_Chain { Unsigned(1) sp(0);  Bool(3) myChain(false);  <NOMAIN> }
@@ -26,6 +26,9 @@ Uq_UnRandom { Unsigned m_dud(0);  <NOMAIN> }
 #>R.ulam
   ulam 5;
 element R : System {
+  Bool(3) cuf;
+  Bool(3) cdf;
+
   Int test(){
     Loader ll;
 
@@ -36,7 +39,7 @@ element R : System {
     print(ccu.myChain);
     assert(ccu.myChain);
 
-    Bool(3) cuf = fooC(ld.mChainControlUp.mChain);
+    cuf = fooC(ld.mChainControlUp.mChain);
     print(cuf);
     assert(ccu.myChain == cuf);
 
@@ -46,7 +49,7 @@ element R : System {
     print(ccd.myChain);
     assert(ccd.myChain);
 
-    Bool(3) cdf = fooC(ld.mChainControlDown.mChain);
+    cdf = fooC(ld.mChainControlDown.mChain);
     print(cdf);
     assert(ccd.myChain == cdf);
 

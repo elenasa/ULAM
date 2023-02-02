@@ -93,7 +93,8 @@ namespace MFM {
 	assert(sym);
 	if(sym->isTypedef())
 	  {
-	    if(sym->isCulamGeneratedTypedef())
+	    //if(sym->isCulamGeneratedTypedef()) ish 20230116
+	    if(sym->isCulamGeneratedTypedef() && !sym->isCulamGeneratedTypedefAliased())
 	      {
 		UTI sid = sym->getId();
 		std::pair<std::map<u32,Symbol*>::iterator, bool> reti;
@@ -398,7 +399,7 @@ namespace MFM {
 	    UTI tdscalaruti = Nouti;
 	    Symbol * tdsymptr = NULL;
 	    u32 nameid = m_state.getUlamTypeNameIdByIndex(arguti);
-	    if(m_state.getUlamTypeByTypedefNameInClassHierarchyThenLocalsScope(nameid, tduti, tdscalaruti, tdsymptr))
+	    if(m_state.getUlamTypeByTypedefNameInClassHierarchyThenLocalsScope(nameid, tduti, tdscalaruti, tdsymptr) == TBOOL_TRUE)
 	      {
 		//don't use getTotalBitSize, assumes 0 bits for UNKNOWN, 1 for UNKNOWN arraysize(t3653)
 		return m_state.getBitSize(tduti); //t3145

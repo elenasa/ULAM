@@ -943,7 +943,8 @@ namespace MFM {
 
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     ULAMCLASSTYPE classtype = nut->getUlamClassType();
-    u32 len = nut->getTotalBitSize();
+    //u32 len = nut->getTotalBitSize();
+    u32 len = nut->getBitSize(); //t41632
 
     if((classtype == UC_TRANSIENT) && (len > MAXSTATEBITS))
       return evalStatusReturnNoEpilog(UNEVALUABLE);
@@ -1016,11 +1017,11 @@ namespace MFM {
 	//unpacked primitive array - uses eval
 	UTI scalaruti = m_state.getUlamTypeAsScalar(nuti);
 	u32 baseslot =  ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex();
+	u32 itemlen = nut->getBitSize();
 
 	if(!hasInitVal)
 	  {
 	    UlamValue immUV;
-	    u32 itemlen = nut->getBitSize();
 	    if(itemlen <= MAXBITSPERINT)
 	      immUV = UlamValue::makeImmediate(scalaruti, 0, m_state);
 	    else if(itemlen <= MAXBITSPERLONG)
@@ -1070,17 +1071,45 @@ namespace MFM {
   {
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    bool hasInitVal = m_varSymbol->hasInitValue();
+    PACKFIT packFit = nut->getPackable();
 
     //for eval purposes, a transient must fit into atom state bits, like an element
     // any class may be a data member (see NodeVarDeclDM)
     if(nut->isScalar())
       {
-	UlamValue atomUV = UlamValue::makeDefaultAtom(m_varSymbol->getUlamTypeIdx(), m_state);
-	m_state.m_funcCallStack.storeUlamValueInSlot(atomUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
+	if(!hasInitVal)
+	  {
+	    UlamValue atomUV = UlamValue::makeDefaultAtom(nuti, m_state);
+	    m_state.m_funcCallStack.storeUlamValueInSlot(atomUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
+	  }
+	else
+	  {
+	    assert(m_varSymbol->isInitValueReady()); //sanity
+	    u64 dval;
+	    if(packFit == PACKEDLOADABLE) //t41171
+	      {
+		AssertBool gotinitval = m_varSymbol->getInitValue(dval);
+		assert(gotinitval);
+		UlamValue immUV = UlamValue::makeImmediateLong(nuti, dval, m_state);
+		m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
+	      }
+	    else
+	      {
+		BV8K bvtmp;
+		AssertBool gotinitval = m_varSymbol->getInitValue(bvtmp); //from 0 to entire size of ulamtype
+		assert(gotinitval);
+		UlamValue atomUV;
+		u32 len = nut->getSizeofUlamType(); //t41183
+		atomUV.putDataBig(0, len, bvtmp);
+		atomUV.setUlamValueTypeIdx(nuti);
+		atomUV.setUlamValueEffSelfTypeIdx(nuti);
+		m_state.m_funcCallStack.storeUlamValueInSlot(atomUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex()); //t41182
+	      }
+	  }
       }
-    else
+    else //array
       {
-	PACKFIT packFit = nut->getPackable();
 	if(packFit == PACKEDLOADABLE)
 	  {
 	    u32 len = nut->getTotalBitSize();
@@ -1088,31 +1117,92 @@ namespace MFM {
 	    AssertBool isPackLoadableScalar = m_state.getPackedDefaultClass(nuti, dval);
 	    assert(isPackLoadableScalar);
 	    u64 darrval = 0;
-	    m_state.getDefaultAsPackedArray(nuti, dval, darrval); //3rd arg ref
 
-	    if(len <= MAXBITSPERINT)
+	    if(!hasInitVal)
 	      {
-		UlamValue immUV = UlamValue::makeImmediateClass(nuti, (u32) darrval, len);
-		m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
-	      }
-	    else if(len <= MAXBITSPERLONG) //t3710
-	      {
-		UlamValue immUV = UlamValue::makeImmediateLongClass(nuti, darrval, len);
-		m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
+		m_state.getDefaultAsPackedArray(nuti, dval, darrval); //3rd arg ref
+
+		if(len <= MAXBITSPERINT)
+		  {
+		    UlamValue immUV = UlamValue::makeImmediateClass(nuti, (u32) darrval, len);
+		    m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
+		  }
+		else if(len <= MAXBITSPERLONG) //t3710
+		  {
+		    UlamValue immUV = UlamValue::makeImmediateLongClass(nuti, darrval, len);
+		    m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
+		  }
+		else
+		  m_state.abortGreaterThanMaxBitsPerLong(); //not write load packable!
 	      }
 	    else
-	      m_state.abortGreaterThanMaxBitsPerLong(); //not write load packable!
+	      {
+		assert(m_varSymbol->isInitValueReady()); //sanity
+		if(len <= MAXBITSPERLONG)
+		  {
+		    AssertBool gotinitval = m_varSymbol->getInitValue(dval);
+		    assert(gotinitval);
+		    UlamValue immUV = UlamValue::makeImmediateClass(nuti, (u32) dval, len);
+		    m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
+		  }
+		else
+		  m_state.abortGreaterThanMaxBitsPerLong(); //not write load packable!
+
+		m_state.abortNeedsATest();
+	      }
 	  }
 	else
 	  {
 	    //UNPACKED class array
 	    UTI scalaruti = m_state.getUlamTypeAsScalar(nuti);
 	    assert(nuti == m_varSymbol->getUlamTypeIdx());
-	    UlamValue atomUV = UlamValue::makeDefaultAtom(scalaruti, m_state);
 	    u32 baseslot =  ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex();
-	    for(u32 j = 0; j < slots; j++)
+	    u32 itemlen = nut->getBitSize();
+
+	    if(!hasInitVal)
 	      {
-		m_state.m_funcCallStack.storeUlamValueInSlot(atomUV, baseslot + j);
+		UlamValue atomUV = UlamValue::makeDefaultAtom(scalaruti, m_state);
+		for(u32 j = 0; j < slots; j++)
+		  {
+		    m_state.m_funcCallStack.storeUlamValueInSlot(atomUV, baseslot + j);
+		  }
+	      }
+	    else
+	      {
+		assert(m_varSymbol->isInitValueReady()); //sanity
+		for(u32 j = 0; j < slots; j++)
+		  {
+		    UlamValue itemUV;
+		    if(itemlen <= MAXBITSPERINT)
+		      {
+			u32 ival = 0;
+			AssertBool gotVal = m_varSymbol->getArrayItemInitValue(j, ival);
+			assert(gotVal);
+			itemUV = UlamValue::makeImmediate(scalaruti, ival, m_state);
+		      }
+		    else if(itemlen <= MAXBITSPERLONG)
+		      {
+			u64 ivalong = 0;
+			AssertBool gotVal = m_varSymbol->getArrayItemInitValue(j, ivalong);
+			assert(gotVal);
+			itemUV = UlamValue::makeImmediateLong(scalaruti, ivalong, m_state);
+		      }
+		    else if(itemlen <= MAXSTATEBITS)
+		      {
+			BV8K bvtmp;
+			AssertBool gotinitval = m_varSymbol->getArrayItemInitValue(j, bvtmp); //from 0 to entire size of ulamtype
+			assert(gotinitval);
+			u32 len = m_state.getUlamTypeByIndex(scalaruti)->getSizeofUlamType();
+			itemUV.putDataBig(0, len, bvtmp);
+			itemUV.setUlamValueTypeIdx(scalaruti);
+			itemUV.setUlamValueEffSelfTypeIdx(scalaruti);
+			m_state.abortNeedsATest();
+		      }
+		    else
+		      m_state.abortNotSupported();
+
+		    m_state.m_funcCallStack.storeUlamValueInSlot(itemUV, baseslot + j); //t41266
+		  }
 	      }
 	  }
       }
@@ -1123,7 +1213,7 @@ namespace MFM {
     //also called by NodeVarDecDM for data members with initial constant values (t3514);
     // don't call m_nodeInitExpr->eval(), if constant initialized array (e.g.t3768, t3769);
     if(m_varSymbol->hasInitValue() && !m_state.isScalar(getNodeType()))
-      return NORMAL;
+      return NORMAL; //t41632, t3863
 
     UTI nuti = getNodeType();
 
@@ -1146,47 +1236,125 @@ namespace MFM {
     if(evs != NORMAL) return evalStatusReturn(evs);
 
     UlamValue pluv = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(1);
-    u32 slots = makeRoomForNodeType(nuti);
 
-    evs = m_nodeInitExpr->eval();
-    if(evs != NORMAL) return evalStatusReturn(evs);
+    PACKFIT packed = m_state.determinePackable(nuti);
+    u32 slots = m_state.slotsNeeded(nuti);
+    bool doeval = ((slots == 1) && !(m_nodeInitExpr->isAList())) || (packed == UNPACKED);
 
+    if(doeval)
+      {
+	slots = makeRoomForNodeType(nuti);
+	evs = m_nodeInitExpr->eval();
+	if(evs != NORMAL) return evalStatusReturn(evs);
+      }
 
     if(m_nodeInitExpr->isAConstructorFunctionCall())
       {
 	//Void to be avoided.
       }
-    else if(slots == 1)
+    else if((slots == 1))
       {
-	UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(slots+1); //immediate scalar + 1 for pluv
-	if(m_state.isScalar(nuti))
-	  {
-	    m_state.assignValue(pluv,ruv);
-	    //also copy result UV to stack, -1 relative to current frame pointer
-	    Node::assignReturnValueToStack(ruv); //not when unpacked? how come?
-	  }
-	else
-	  {
-	    //(do same as scalar) t3419. t3425, t3708
-	    m_state.assignValue(pluv,ruv);
-	    Node::assignReturnValueToStack(ruv);
-	  }
+       if(doeval)
+	 {
+	  UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(slots+1); //immediate scalar + 1 for pluv
+	  if(m_state.isScalar(nuti))
+	    {
+	      m_state.assignValue(pluv,ruv);
+	      //also copy result UV to stack, -1 relative to current frame pointer
+	      Node::assignReturnValueToStack(ruv); //not when unpacked? how come?
+	    }
+	  else if(ruv.isPtr())
+	    {
+	      //(do same as scalar) t3419. t3425, t3708
+	      m_state.assignValue(pluv,ruv);
+	      Node::assignReturnValueToStack(ruv);
+	    }
+	  else
+	    {
+	      //t3419. t3425, t3708 primtive array packloadable init w func call
+	      m_state.assignValue(pluv,ruv);
+	      Node::assignReturnValueToStack(ruv);
+	    }
+	 }
+       else if(m_nodeInitExpr->isAList()) //t3250
+	 {
+	   UlamValue newruv;
+	   BV8K bvtmp;
+	   AssertBool isok = ((NodeList *) m_nodeInitExpr)->buildArrayValueInitialization(bvtmp);
+	   assert(isok);
+	   u32 len = m_state.getTotalBitSize(nuti);
+	   if(len <= MAXBITSPERINT)
+	     {
+	       u32 datavalue = bvtmp.Read(0, len);
+	       newruv = UlamValue::makeImmediate(nuti, datavalue, m_state);
+	     }
+	  else if(len <= MAXBITSPERLONG)
+	    {
+	      u64 datavalue = bvtmp.ReadLong(0, len);
+	      newruv = UlamValue::makeImmediateLong(nuti, datavalue, m_state);
+	    }
+	  else if(len <= MAXSTATEBITS)
+	    {
+	      newruv.setUlamValueTypeIdx(nuti);
+	      if(m_state.isAClass(nuti))
+		{
+		  newruv.putDataBig(ATOMFIRSTSTATEBITPOS,len, bvtmp);
+		  newruv.setUlamValueEffSelfTypeIdx(nuti);
+		  m_state.abortNeedsATest();
+		}
+	      else //t3720
+		{
+		  newruv.putDataBig(BITSPERATOM - len, len, bvtmp); //primitive right-justified
+		}
+	    }
+	  else
+	    {
+	      m_state.abortGreaterThanMaxBitsPerLong(); //UNPACKED handled differently
+	    }
+	  //(do same as scalar) t3419. t3425, t3708
+	  m_state.assignValue(pluv,newruv);
+	  Node::assignReturnValueToStack(newruv);
+	 }
+       else
+	 m_state.abortNeedsATest();
       }
     else //unpacked
       {
-	//t3704, t3706, t3707, t3709
-	UlamValue scalarPtr = UlamValue::makeScalarPtr(pluv, m_state);
-
-	u32 slotoff = 1 + 1;
-	for(u32 j = 0; j < slots; j++)
+	assert(doeval); //sanity
+	UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(2); //immediate scalar
+	UTI ruti = ruv.getUlamValueTypeIdx();
+	if(ruv.isPtr())
+	  ruti = ruv.getPtrTargetType();
+	UTI luti = pluv.getPtrTargetType();
+	if(!m_state.isScalar(nuti) && (ruti != Nouti) && (UlamType::compareForUlamValueAssignment(luti,ruti,m_state)==UTIC_SAME))
 	  {
-	    UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(slotoff+j); //immediate scalar
-	    m_state.assignValue(scalarPtr,ruv);
-	    scalarPtr.incrementPtr(m_state); //by one.
+	    m_state.assignValue(pluv,ruv); //t3707
+	  }
+	else //incrementally
+	  {
+	    //t3704, t3706, t3707, t3709, t3769
+	    UlamValue scalarPtr = UlamValue::makeScalarPtr(pluv, m_state);
+
+	    u32 nnodes = 0;
+	    if(m_nodeInitExpr->isAList())
+	      nnodes = ((NodeList *) m_nodeInitExpr)->getNumberOfNodes();
+
+	    u32 slotoff = 1 + 1;
+	    for(u32 j = 0; j < slots; j++)
+	      {
+		u32 loadfmslot = slotoff + j;
+		if((j >= nnodes) && (nnodes > 0)) //t3853 1 nnodes
+		  loadfmslot = slotoff + (nnodes - 1); //propagate last value (t3770)
+
+		UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(loadfmslot); //immediate scalar
+		m_state.assignValue(scalarPtr,ruv);
+		scalarPtr.incrementPtr(m_state); //by one.
+	      }
 	  }
       }
 
-    evalNodeEpilog();
+    if(doeval)
+      evalNodeEpilog();
     return NORMAL;
   } //evalInitExpr
 
@@ -1195,7 +1363,8 @@ namespace MFM {
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     ULAMCLASSTYPE classtype = nut->getUlamClassType();
-    u32 len = nut->getTotalBitSize();
+    //u32 len = nut->getTotalBitSize();
+    u32 len = nut->getBitSize(); //t41632
 
     if((classtype == UC_TRANSIENT) && (len > MAXSTATEBITS))
       return evalStatusReturnNoEpilog(UNEVALUABLE);

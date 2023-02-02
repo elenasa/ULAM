@@ -3,8 +3,8 @@
 ##
 ## gen output: 1 assert
 #!
-Exit status: -11
-Ue_T { Int test() {  System s;  QFoo qf;  s ( qf ( )okString . ! )assert . 0 cast return } }
+Exit status: 0
+Ue_T { Bool okstr(true);  Int test() {  System s;  QFoo qf;  self okstr . qf ( )okString . ! = s ( qf ( )okString . ! )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 Uq_QFoo { String str(UNINITIALIZED_STRING);  <NOMAIN> }
 ##
@@ -17,10 +17,14 @@ Uq_QFoo { String str(UNINITIALIZED_STRING);  <NOMAIN> }
  ulam 5;
 element T{
 
+  Bool okstr;
+
   Int test(){
     System s;
     QFoo qf;
+    okstr = !qf.okString(); //for eval
     s.assert(!qf.okString());
+
     return 0;
   }
 }

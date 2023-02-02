@@ -3,8 +3,8 @@
  * CompilerState.h - Global Compiler State for ULAM
  *
  * Copyright (C) 2014-2021 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2022 Ackleyshack LLC.
- * Copyright (C) 2020-2022 The Living Computation Foundation.
+ * Copyright (C) 2014-2023 Ackleyshack LLC.
+ * Copyright (C) 2020-2023 The Living Computation Foundation.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -31,7 +31,7 @@
   \file CompilerState.h - Global Compiler State for ULAM
   \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2022 All rights reserved.
+  \date (C) 2014-2023 All rights reserved.
   \gpl
 */
 
@@ -236,15 +236,15 @@ namespace MFM{
     UTI getUlamTypeFromToken(const Token& tok, s32 typebitsize, s32 arraysize);
     UTI getUlamTypeFromToken(TypeArgs & args);
 
-    bool getUlamTypeByTypedefNameInClassHierarchyThenLocalsScope(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType);
-    bool getUlamTypeByTypedefNameInClassHierarchyThenLocalsScope(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType, Symbol*& asymptr);
-    bool getUlamTypeByTypedefName(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType);
-    bool getUlamTypeByTypedefName(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType, Symbol* & tdsymptr);
-    bool getUlamTypeByTypedefNameInLocalsScope(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType);
-    bool getUlamTypeByTypedefNameInLocalsScope(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType, Symbol *& asymptr);
+    TBOOL getUlamTypeByTypedefNameInClassHierarchyThenLocalsScope(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType);
+    TBOOL getUlamTypeByTypedefNameInClassHierarchyThenLocalsScope(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType, Symbol*& asymptr);
+    TBOOL getUlamTypeByTypedefName(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType);
+    TBOOL getUlamTypeByTypedefName(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType, Symbol* & tdsymptr);
+    TBOOL getUlamTypeByTypedefNameInLocalsScope(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType);
+    TBOOL getUlamTypeByTypedefNameInLocalsScope(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType, Symbol *& asymptr);
 
     typedef std::pair<NodeBlockLocals*, Symbol*> k_localstypedefpair;
-    bool getUlamTypeByTypedefNameInAnyLocalsScope(u32 nameIdx, std::map<UTI, k_localstypedefpair> & mapref);
+    TBOOL getUlamTypeByTypedefNameInAnyLocalsScope(u32 nameIdx, std::map<UTI, k_localstypedefpair> & mapref);
 
 
     /** turns array into its scalar type */
@@ -317,6 +317,7 @@ namespace MFM{
     u32 findTheSharedVirtualBasesInAClassHierarchy(UTI cuti, std::map<UTI, u32>& svbmapref);
 
     bool isClassASubclassOf(UTI cuti, UTI superp);
+    UTI getSuperBaseclassType(UTI cuti);
     bool isBaseClassADirectAncestorOf(UTI cuti, UTI basep);
     void resetABaseClassType(UTI cuti, UTI olduti, UTI newuti);
     void resetABaseClassItem(UTI cuti, UTI olduti, UTI newuti, u32 item);

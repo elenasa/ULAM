@@ -1,47 +1,78 @@
 ## -*- mode:ulam -*-
 #=t41043_test_compiler_forascond
+##
+##  gen output: (+ 1 assert)
+##     String(2) Arg: "EWE foomethod"
+##
+##
 #!
-Exit status: -11
-Ue_EWE { Int test() {  EventWindow ew;  Int i = 0 cast;  ew ( 0 cast )aref . EWE.instanceof cast = Atom a = ew ( i )aref . cast;  { a EWE as cond { EWE& a;  { i 4 cast < cond { a ( )foomethod . a.atomof ew ( i )aref . = } if break else } } _1: i 1 ++ while } i return } }
-Uq_EventWindow { <NOMAIN> }
+Exit status: 1
+Uq_SystemU3 : System { :System<> <NOMAIN> }
+Ue_EWE { SystemU3 s3( :System<>);  Int i(1);  Int test() {  Atom a = EWE.instanceof cast;  { a EWE as cond { EWE& a;  { self i . 4 cast < cond { a ( )foomethod . a.atomof Empty.instanceof cast = } if break else } } _1: self i . 1 ++ while } self s3 . ( self i . 1 cast == )assert . self i . return } }
+Uq_System { <NOMAIN> }
 ##
 ##      //for-loop 'as' conditional, no parens, not part of a compound condition
 ##
 #>EWE.ulam
   ulam 3;
-element EWE{
+element EWE {
+  SystemU3 s3;
+  Int i = 0;
+
   Int test() {
-    EventWindow ew;
-    Int i = 0;
-    ew[0] = EWE.instanceof;
-    Atom a = ew[i];
-    for(; a as EWE; i++) { //WORKS without parens
-    //for(; (a as EWE); i++) { //Invalid for condition. Parser l3661
-    //for(;(i < 4); i++) { //WORKS
-    //for(; (i < 4) && (a as EWE); i++) { //As-Conditional is not a valid form
-    //for(; i < 4 && a as EWE; i++) { //As-Conditional is not a valid form
+
+    Atom a = EWE.instanceof;
+
+    //for(; a as EWE; i++) { //WORKS without parens
+    for(; (a as EWE); i++) { //WORKS with parens
+      //for(; (i < 4) && (a as EWE); i++) { //As-Conditional is not a valid form
+      //for(; i < 4 && a as EWE; i++) { //As-Conditional is not a valid form
       if(i < 4)
       {
 	a.foomethod();
-	a.atomof = ew[i];
+	a.atomof = Empty.instanceof;
       }
       else
 	break;
     }
+
+    s3.assert(i==1);
     return i;
   }
 
-  Void foomethod()
+  virtual Void foomethod()
   {
+    s3.print("EWE foomethod");
   }
 
 }
 
-#:EventWindow.ulam
+#:Empty.ulam
   ulam 3;
-quark EventWindow{
-  Atom& aref(Int index) native;
+element Empty : SystemU3 {
+
+  virtual Void foomethod()
+  {
+    print("Empty foomethod");
+  }
 }
 
-##    //EventWindow.ulam:3:1: ERROR: Only elements may have element parameters: <EventWindow> is a quark.
+#:SystemU3.ulam
+  ulam 3;
+quark SystemU3 : System {
+  Void print(String s) native;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+
 #.

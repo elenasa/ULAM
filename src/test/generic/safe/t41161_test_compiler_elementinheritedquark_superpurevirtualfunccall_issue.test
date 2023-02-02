@@ -39,7 +39,7 @@ quark Sub1 : Sup {
     System s;
     m_fun = self.func();  // should be fine
     s.assert(m_fun == 1);
-    m_fun = super.func(); // should also be fine since SuperDuper isn't pure
+    m_fun = super.func(); // should also be fine since Sup isn't pure
     s.assert(m_fun == 2);
   }
   @Override

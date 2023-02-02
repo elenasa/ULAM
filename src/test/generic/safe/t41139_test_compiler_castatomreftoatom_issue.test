@@ -3,12 +3,10 @@
 ##
 ## gen output (4 asserts)
 ##
-## (cant eval atom casts)
 #!
-Exit status: -11
-Ue_Stretch { Bool c(false);  Int test() {  System s;  EventWindow ew;  AUtil au;  Int type = au ( ew ( 0 cast )aref . cast )getTypeFunc .;  s ( type 1 cast == )assert . Int typer = au ( ew ( 0 cast )aref . cast )getTypeFunc .;  s ( typer 1 cast == )assert . Int typestretch = self ( self cast )getTypeFunc .;  s ( typestretch 2 cast == )assert . Int typestretchr = self ( self cast )getTypeFunc .;  s ( typestretchr 2 cast == )assert . type return } }
+Exit status: 1
+Ue_Stretch { Bool b(true);  Bool c(true);  Bool d(true);  Bool e(true);  Int test() {  System s;  AUtil au;  Atom a = Stretch.instanceof cast;  Int type = au ( a cast )getTypeFunc .;  self b . type 1 cast == = s ( self b . )assert . Int typer = au ( a )getTypeFunc .;  self c . typer 1 cast == = s ( self c . )assert . Int typestretch = self ( self cast )getTypeFunc .;  self d . typestretch 2 cast == = s ( self d . )assert . Int typestretchr = self ( self cast )getTypeFunc .;  self e . typestretchr 2 cast == = s ( self e . )assert . type return } }
 Uq_System { <NOMAIN> }
-Uq_EventWindow { <NOMAIN> }
 Uq_AUtil { <NOMAIN> }
 ##
 ## informed by user issue 9/14/2017
@@ -16,25 +14,31 @@ Uq_AUtil { <NOMAIN> }
 #>Stretch.ulam
   ulam 2;
 element Stretch {
-  Bool c;
+  Bool b,c,d,e;
+
   Int test(){
     System s;
-    EventWindow ew;
     AUtil au;
 
-    //try with atom ref to atom
-    Int type = au.getTypeFunc((Atom) ew[0]); //unnecessary cast
-    s.assert(type == 1);
+    Atom a = Stretch.instanceof;
 
-    Int typer = au.getTypeFunc(ew[0]);
-    s.assert(typer == 1);
+    //try with atom ref to atom
+    Int type = au.getTypeFunc((Atom) a); //unnecessary cast
+    b = (type == 1);
+    s.assert(b);
+
+    Int typer = au.getTypeFunc(a);
+    c = (typer == 1);
+    s.assert(c);
 
     //try with class ref to class
     Int typestretch = getTypeFunc((Stretch) self); //unnecessary cast
-    s.assert(typestretch == 2);
+    d = (typestretch == 2);
+    s.assert(d);
 
     Int typestretchr = getTypeFunc(self);
-    s.assert(typestretchr == 2);
+    e = (typestretchr == 2);
+    s.assert(e);
 
     //try case that should fail (see error tests: t3629, t3660, t3661, t3665, t3785, t41086).
     // "must be referenceable" error message
@@ -59,12 +63,6 @@ quark AUtil {
     return 1;
   }
 
-}
-
-#:EventWindow.ulam
-  ulam 3;
-quark EventWindow{
-  Atom& aref(Int index) native;
 }
 
 #:System.ulam

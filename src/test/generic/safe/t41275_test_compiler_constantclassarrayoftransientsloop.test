@@ -5,10 +5,9 @@
 ##  String(1) Arg: "melt" (5 times)
 ##  String(7) Arg: "let" (5 times)
 ##
-## Big transients unevaluable
 #!
-Exit status: -11
-Ue_KeyExprRep { Int test() {  SystemU3 s;  { Int i = 0 cast;  i 5u cast < cond { s ( keyexpr_x13 i [] m_elfoo . estr 0 [] . )print . s ( 18u 4u cast == )assert . } _1: i 1 ++ while } constant KeyExprNode mykeyarraycopy[5] = keyexpr_x13;  { Int j = 0 cast;  j 5 cast < cond { s ( mykeyarraycopy j [] m_elfoo . estr 1 [] . )print . s ( 18u 3u cast == )assert . } _2: j 1 ++ while } 0 cast return } }
+Exit status: 0
+Ue_KeyExprRep { Bool b1[5](true,true,true,true,true);  Bool b2[5](true,true,true,true,true);  Int test() {  SystemU3 s;  { Int i = 0 cast;  i 5u cast < cond { self b1 . i [] 4u 4u cast == = s ( keyexpr_x13 i [] m_elfoo . estr 0 [] . )print . s ( 4u 4u cast == )assert . } _1: i 1 ++ while } constant KeyExprNode mykeyarraycopy[5] = keyexpr_x13;  { Int j = 0 cast;  j 5 cast < cond { self b2 . j [] 3u 3u cast == = s ( mykeyarraycopy j [] m_elfoo . estr 1 [] . )print . s ( 3u 3u cast == )assert . } _2: j 1 ++ while } 0 cast return } }
 Uq_Elfoo { Bool esp( true);  String estr[2]( { "melt", "let" });  constant String c_str = "reunion";  <NOMAIN> }
 Un_KeyExprNode { typedef Unsigned(8) Byte;  Unsigned(8) m_leftIndex(0);  Unsigned(8) m_rightIndex(0);  Unsigned(8) m_keyCode(0);  Unsigned(8) m_op(0);  Elfoo m_elfoo( celfoo);  <NOMAIN> }
 Uq_SystemU3 : System { :System<> <NOMAIN> }
@@ -29,11 +28,15 @@ local constant KeyExprNode keyexpr_x13[] = {
   { .m_leftIndex = 0, .m_rightIndex = 0, .m_keyCode = 'b', .m_op = 0 }, // [4] , EXTRA COMMA at the end??? no difference
 };
 element KeyExprRep {
+  Bool b1[keyexpr_x13.lengthof];
+  Bool b2[5];
+
   Int test() {
     SystemU3 s;
 
     for(Int i = 0; i < keyexpr_x13.lengthof; i++)
     {
+      b1[i] = (keyexpr_x13[i].m_elfoo.estr[0].lengthof == 4u);
       s.print(keyexpr_x13[i].m_elfoo.estr[0]);
       s.assert(keyexpr_x13[i].m_elfoo.estr[0].lengthof == 4u);
     }
@@ -41,6 +44,7 @@ element KeyExprRep {
     constant KeyExprNode mykeyarraycopy[5] = keyexpr_x13; //step through gencode in gdb
     for(Int j = 0; j < 5; j++)
     {
+      b2[j] = (mykeyarraycopy[j].m_elfoo.estr[1].lengthof == 3u);
       s.print(mykeyarraycopy[j].m_elfoo.estr[1]);
       s.assert(mykeyarraycopy[j].m_elfoo.estr[1].lengthof == 3u);
     }

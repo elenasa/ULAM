@@ -747,10 +747,17 @@ namespace MFM {
 
     if(nuti == Hzy) return evalStatusReturnNoEpilog(NOTREADY);
 
+    //t3656 ALT_AS,t3585 ALT_AS,t3587,t3957 skip strings; t41187 skip constant ref;
+    if(m_state.isAltRefType(nuti) && !m_state.isAStringType(nuti) && ! m_state.isConstantRefType(nuti))
+      {
+	return evalToStoreInto();
+      }
+
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     ULAMCLASSTYPE classtype = nut->getUlamClassType();
-    if((classtype == UC_TRANSIENT) && (nut->getTotalBitSize() > MAXSTATEBITS))
-      return evalStatusReturnNoEpilog(UNEVALUABLE);
+    //    if((classtype == UC_TRANSIENT) && (nut->getTotalBitSize() > MAXSTATEBITS))
+        if((classtype == UC_TRANSIENT) && (nut->getBitSize() > MAXSTATEBITS))
+	  return evalStatusReturnNoEpilog(UNEVALUABLE); //t41632
 
     evalNodeProlog(0); //new current frame pointer
 
@@ -769,7 +776,9 @@ namespace MFM {
 
 	// redo what getPtrTarget use to do, when types didn't match due to
 	// an element/quark or a requested scalar of an arraytype
-	if(m_state.isPtr(ttype) || (UlamType::compare(ttype, nuti, m_state) == UTIC_NOTSAME))
+	//if(m_state.isPtr(ttype) || (UlamType::compare(ttype, nuti, m_state) == UTIC_NOTSAME))
+	//if(m_state.isPtr(ttype) || ((UlamType::compare(ttype, nuti, m_state) == UTIC_NOTSAME) && !m_state.isClassASubclassOf(ttype,nuti))) //t41641
+	if(m_state.isPtr(ttype) || ( (UlamType::compare(ttype, nuti, m_state) == UTIC_NOTSAME) && ( !m_state.isClassASubclassOf(ttype,nuti) || ( m_varSymbol->isDataMember() && (m_varSymbol->getDataMemberClass() == ttype) ) ) ) ) //t41641, t41063
 	  {
 	    if(m_state.isClassACustomArray(nuti))
 	      {
@@ -803,7 +812,7 @@ namespace MFM {
 		UlamType * nut = m_state.getUlamTypeByIndex(nuti);
 		if((m_state.isAtom(nuti) || (classtype == UC_ELEMENT)) && (nut->isScalar() || nut->isAltRefType()))
 		  {
-		    uv = m_state.getPtrTarget(uvp); //error/t3676, error/t3677, t3407
+		    uv = m_state.getPtrTarget(uvp); //error/t3676, error/t3677, t3407, and t41641
 		  }
 		else
 		  {
@@ -846,7 +855,7 @@ namespace MFM {
 	  } // not node type
       } //scalar
     else
-      uv = uvp; //even if reference???
+      uv = uvp; //even if reference?
 
     //copy result UV to stack, -1 relative to current frame pointer
     Node::assignReturnValueToStack(uv);
@@ -866,7 +875,8 @@ namespace MFM {
 
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     ULAMCLASSTYPE classtype = nut->getUlamClassType();
-    if((classtype == UC_TRANSIENT) && (nut->getTotalBitSize() > MAXSTATEBITS))
+    //    if((classtype == UC_TRANSIENT) && (nut->getTotalBitSize() > MAXSTATEBITS))
+    if((classtype == UC_TRANSIENT) && (nut->getBitSize() > MAXSTATEBITS)) //t41632
       return evalStatusReturnNoEpilog(UNEVALUABLE);
 
     TBOOL stor = Node::getStoreIntoAble();
@@ -896,13 +906,21 @@ namespace MFM {
 
     UlamValue rtnUVPtr = makeUlamValuePtr();
 
-    //must remain a ptr!!!
+    //must remain a ptr!!! (e.g. func arg)
     if(m_state.isAltRefType(rtnUVPtr.getPtrTargetType()) && (rtnUVPtr.getPtrStorage() == STACK))
       {
 	UlamValue tmpref = m_state.getPtrTargetOnce(rtnUVPtr); //t41496
 	 if(tmpref.isPtr())
-	   rtnUVPtr = tmpref;
-	 //else no change? (e.g. t3407)
+	   rtnUVPtr = tmpref; //t41625
+	 else //no change? (e.g. t3407)
+	   {
+	     UTI effself = rtnUVPtr.getPtrTargetEffSelfType();
+	     if(effself == Nouti)
+	       {
+		 UTI tmpeffself = tmpref.getUlamValueEffSelfTypeIdx();
+		 rtnUVPtr.setPtrTargetEffSelfType(tmpeffself); //t41629
+	       }
+	   }
       }
 
     //copy result UV to stack, -1 relative to current frame pointer
@@ -921,23 +939,59 @@ namespace MFM {
 	//'atomof' gets entire atom/element containing this quark; including its type!
 	//'self' gets type/pos/len of the quark from which 'atom' can be extracted
 	UlamValue selfuvp = m_state.m_currentSelfPtr;
-	UTI ttype = selfuvp.getPtrTargetType();
-	assert(m_state.okUTItoContinue(ttype));
+	UTI selfttype = selfuvp.getPtrTargetType();
+	UTI effselfttype = selfuvp.getPtrTargetEffSelfType();
+	if(effselfttype == Nouti)
+	  {
+	    effselfttype = selfttype;
+	    selfuvp.setPtrTargetEffSelfType(selfttype); //t41318
+	  }
+	assert(m_state.okUTItoContinue(selfttype));
+
+	if((UlamType::compareForUlamValueAssignment(selfttype, nuti, m_state) == UTIC_NOTSAME))
+	  {
+	    s32 selfpos = selfuvp.getPtrPos();
+	    if(selfttype != effselfttype)  //t3587, another baseclass
+	      {
+		u32 relposofbase2 = 0;
+		AssertBool gotpos2 = m_state.getABaseClassRelativePositionInAClass(effselfttype, selfttype, relposofbase2);
+		assert(gotpos2);
+		selfpos -= relposofbase2;
+	      }
+	    //else t3587 same, subclass or dm
+
+	    u32 relposofbase = 0;
+	    AssertBool gotpos = m_state.getABaseClassRelativePositionInAClass(effselfttype, nuti, relposofbase);
+	    assert(gotpos);
+
+	    selfuvp.setPtrPos(selfpos + relposofbase);
+	    selfuvp.setPtrTargetType(m_state.getUlamTypeAsDeref(nuti)); //t3675? not def;d t3707,t3708
+	    selfuvp.setPtrLen(m_state.getBaseClassBitSize(nuti));
+	  }
+	//else same
 	return selfuvp;
       } //done
     else if(m_varSymbol->isSuper())
       {
-	// manufactured super for self as-cond. (t41338)
+	// manufactured super for self as-cond. (t41338) instanceof (t3747,t3743)
 	UlamValue selfuvp = m_state.m_currentSelfPtr;
 	UTI selfttype = selfuvp.getPtrTargetType();
+	UTI effselfttype = selfuvp.getPtrTargetEffSelfType();
 	assert(m_state.okUTItoContinue(selfttype));
-	UTI supertype = m_varSymbol->getUlamTypeIdx(); //ALT_AS
+	//assert(selfttype == effselfttype); //sanity t3743 super of a baseclass
+	UTI supertype = m_varSymbol->getUlamTypeIdx(); //ALT_AS //t41338
+
 	u32 relposofsuper = 0;
 	AssertBool gotpos = m_state.getABaseClassRelativePositionInAClass(selfttype, supertype, relposofsuper);
 	assert(gotpos);
-	selfuvp.setPtrPos(selfuvp.getPtrPos() + relposofsuper);
-	selfuvp.setPtrTargetType(m_state.getUlamTypeAsDeref(supertype));
-	selfuvp.setPtrTargetEffSelfType(selfttype);
+
+	u32 relposofbase = 0;
+	AssertBool gotpos2 = m_state.getABaseClassRelativePositionInAClass(effselfttype, selfttype, relposofbase);
+	assert(gotpos2); //shared base t3743
+
+	s32 selfpos = selfuvp.getPtrPos();
+	selfuvp.setPtrPos(selfpos + relposofsuper - relposofbase);
+	selfuvp.setPtrTargetType(supertype);
 	selfuvp.setPtrLen(m_state.getBaseClassBitSize(supertype));
 	selfuvp.setPtrNameId(0);
 	return selfuvp; //now superuvp.
@@ -951,46 +1005,80 @@ namespace MFM {
 	return ((SymbolVariableStack *) m_varSymbol)->getAutoPtrForEval(); //haha! we're done.
       }
 
+    if(m_varSymbol->isAutoLocal()) //ALT_REF, ALT_CONSTREF or ALT_ARRAYITEM
+      {
+	UlamValue autoptr = ((SymbolVariableStack *) m_varSymbol)->getAutoPtrForEval();
+	if((autoptr.getUlamValueTypeIdx() != Nouti) && autoptr.isPtr())
+	  {
+	    UTI autottype = autoptr.getPtrTargetType();
+	    UTI derefautottype = m_state.getUlamTypeAsDeref(autottype);
+	    UTI derefnuti = m_state.getUlamTypeAsDeref(nuti);
+	    if(UlamType::compare(derefautottype,derefnuti,m_state)== UTIC_SAME)
+	      return autoptr; //t41641,t3810
+	    //else //drop thru
+	  }
+	//else drop thru t3810, t41625
+      }
+
     UlamValue ptr;
     if(m_varSymbol->isDataMember())
       {
 	UTI objclass = m_state.m_currentObjPtr.getPtrTargetType();
+	UTI objeffself = m_state.m_currentObjPtr.getPtrTargetEffSelfType();
+	if(objeffself == Nouti) objeffself = objclass;
 	UTI dmclass = m_varSymbol->getDataMemberClass();
 	s32 objclasspos = m_state.m_currentObjPtr.getPtrPos();
 
 	if(m_state.isAtom(objclass))
 	  {
-	    //note: won't get here: atoms have no data members; atom dm in big transient, unevaluable.
+	    //t41496,t41500: constant atom set to a constant element (effself) with a dm;
+	    //o.w. won't get here: atoms have no data members; atom dm in big transient, unevaluable.
 	    objclass = m_state.m_currentObjPtr.getPtrTargetEffSelfType();
 	    assert((objclass != Nouti) && m_state.isAClass(objclass));
-	    m_state.abortNeedsATest();
+	    if(m_state.isASeenElement(objclass))
+	      objclasspos = ATOMFIRSTSTATEBITPOS;
 	  }
 	else if(m_state.isAltRefType(objclass))
 	  {
-	    UTI objeffself = m_state.m_currentObjPtr.getPtrTargetEffSelfType(); //t41496,t41458
-	    if((objeffself != Nouti))
+	    if(!m_state.isARefTypeOfUlamType(objclass,dmclass))
 	      {
-		objclass = objeffself; //possible deref'd t41496
-		if(m_state.isASeenElement(objeffself))
-		  objclasspos = ATOMFIRSTSTATEBITPOS; //shared base t3810, t41458
-	      }
+		UTI objeffself = m_state.m_currentObjPtr.getPtrTargetEffSelfType(); //t41496,t41458
+		if((objeffself != Nouti))
+		  {
+		    objclass = objeffself; //possible deref'd t41496
+		    if(m_state.isASeenElement(objeffself))
+		      objclasspos = ATOMFIRSTSTATEBITPOS; //shared base t3810, t41458
+		  }
+	      }//else t41629
 	  }
 	//else
 
 	u32 relposofbase = 0;
-	if((UlamType::compareForUlamValueAssignment(dmclass, objclass, m_state) == UTIC_SAME) || m_state.isClassASubclassOf(objclass, dmclass))
+	u32 relposofbase3 = 0;
+	if((UlamType::compareForUlamValueAssignment(dmclass, objclass, m_state) == UTIC_NOTSAME))
 	  {
-	    // return ptr to this data member within the m_currentObjPtr
-	    // 'pos' modified by this data member symbol's packed bit position;
-	    // and relative position of its class in m_currentObjPtr (ulam-5);
-	    AssertBool gotpos = m_state.getABaseClassRelativePositionInAClass(objclass, dmclass, relposofbase);
-	    assert(gotpos);
-	  }
-	//else not data member of a base class (t41584)
+	    //if((UlamType::compareForUlamValueAssignment(dmclass, objclass, m_state) == UTIC_SAME) || m_state.isClassASubclassOf(objclass, dmclass))
+	    if(m_state.isClassASubclassOf(objeffself, dmclass))
+	      {
+		// return ptr to this data member within the m_currentObjPtr
+		// 'pos' modified by this data member symbol's packed bit position;
+		// and relative position of its class in m_currentObjPtr (ulam-5);
+		AssertBool gotpos = m_state.getABaseClassRelativePositionInAClass(objeffself, dmclass, relposofbase);
+		assert(gotpos);
+	      }
+	    //else not data member of a base class (t41584)
 
-	ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), nuti, m_state.determinePackable(nuti), m_state, objclasspos + relposofbase + m_varSymbol->getPosOffset(), m_varSymbol->getId());
+	    if((UlamType::compareForUlamValueAssignment(objeffself, objclass, m_state) == UTIC_NOTSAME))
+	      {
+		//object is a different shared base, adjust pos t41458
+		AssertBool gotpos3 = m_state.getABaseClassRelativePositionInAClass(objeffself, objclass, relposofbase3);
+		assert(gotpos3);
+	      }
+	  }
+
+	ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), nuti, m_state.determinePackable(nuti), m_state, objclasspos - relposofbase3 + relposofbase + m_varSymbol->getPosOffset(), m_varSymbol->getId());
 	if(m_state.isAClass(nuti))
-	  ptr.setPtrTargetEffSelfType(nuti); //self contained dm, its own effself
+	  ptr.setPtrTargetEffSelfType(m_state.getUlamTypeAsDeref(nuti)); //self contained dm, its own effself
 	ptr.checkForAbsolutePtr(m_state.m_currentObjPtr); //t3810
       }
     else
@@ -1000,10 +1088,14 @@ namespace MFM {
 	if(m_varSymbol->isAutoLocal()) //ALT_REF, ALT_CONSTREF or ALT_ARRAYITEM
 	  ptr = ((SymbolVariableStack *) m_varSymbol)->getAutoPtrForEval();
 #endif
+
 	//local variable on the stack; could be array ptr! could be 'super'
 	ptr = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, nuti, m_state.determinePackable(getNodeType()), m_state, 0, m_varSymbol->getId());
-	if(m_state.isAClass(nuti))
-	  ptr.setPtrTargetEffSelfType(nuti);
+
+	//refs usually not effself (41629)
+	if(m_state.isAClass(nuti) && !m_state.isReference(nuti))
+	  ptr.setPtrTargetEffSelfType(m_state.getUlamTypeAsDeref(nuti));
+	//else
       }
     return ptr;
   } //makeUlamValuePtr
@@ -1159,7 +1251,7 @@ namespace MFM {
     Symbol * ltdsymptr = NULL;
     if(m_state.isThisLocalsFileScope())
       {
-	if(m_state.getUlamTypeByTypedefNameInLocalsScope(m_token.m_dataindex, ltduti, ltdscalaruti, ltdsymptr))
+	if(m_state.getUlamTypeByTypedefNameInLocalsScope(m_token.m_dataindex, ltduti, ltdscalaruti, ltdsymptr) == TBOOL_TRUE)
 	  {
 	    assert(ltdsymptr->isTypedef());
 	    UTI ltd = ltdsymptr->getUlamTypeIdx();
@@ -1182,7 +1274,7 @@ namespace MFM {
 	    brtn = true;
 	  }
       }
-    else if(m_state.getUlamTypeByTypedefName(m_state.getTokenDataAsStringId(args.m_typeTok), tduti, tdscalaruti)) //t3674 Self; t41452,3
+    else if(m_state.getUlamTypeByTypedefName(m_state.getTokenDataAsStringId(args.m_typeTok), tduti, tdscalaruti) == TBOOL_TRUE) //t3674 Self; t41452,3
       {
 	args.m_declListOrTypedefScalarType = tdscalaruti; //not Nav when tduti is an array
 	if(checkTypedefOfTypedefSizes(args, tduti)) //ref
@@ -1241,10 +1333,15 @@ namespace MFM {
 		if(args.m_bitsize == 0)
 		  args.m_bitsize = ULAMTYPE_DEFAULTBITSIZE[bUT];
 
-		UlamKeyTypeSignature newarraykey(key.getUlamKeyTypeSignatureNameId(), args.m_bitsize, args.m_arraysize, scalarUTI, usealt); //classinstanceidx removed if not a class (t3816)
-		uti = m_state.makeUlamType(newarraykey, bUT, classtype); //t3172
+		u32 keynameid = key.getUlamKeyTypeSignatureNameId(); //t3143
+		UlamKeyTypeSignature newarraykey(keynameid, args.m_bitsize, args.m_arraysize, scalarUTI, usealt); //classinstanceidx removed if not a class (t3816); scalar if array
+		uti = m_state.makeUlamType(newarraykey, bUT, classtype);
+		if(m_state.isHolder(uti)) //ish 20230116
+		  m_state.addUnknownTypeTokenToAClassResolver(m_state.getCompileThisIdx(), m_token, uti);
+		//else t3172
 	      }
 	    //else
+
 	    if(!m_state.isHolder(uti)) //t3728
 	      {
 		if(m_state.getReferenceType(uti) != args.m_declRef)
@@ -1302,7 +1399,7 @@ namespace MFM {
 	    brtn = true;
 	  }
       }
-    else if(m_state.getUlamTypeByTypedefName(m_state.getTokenDataAsStringId(args.m_typeTok), uti, tdscalaruti, tdsymptr))
+    else if(m_state.getUlamTypeByTypedefName(m_state.getTokenDataAsStringId(args.m_typeTok), uti, tdscalaruti, tdsymptr) == TBOOL_TRUE)
       {
 	if(tdsymptr->isCulamGeneratedTypedef() && tdsymptr->isCulamGeneratedTypedefAliased())
 	  m_state.findRootUTIAlias(uti, uti);
@@ -1414,7 +1511,7 @@ namespace MFM {
 	    uti = args.m_anothertduti;
 	  }
       }
-    else if(m_state.getUlamTypeByTypedefName(m_state.getTokenDataAsStringId(args.m_typeTok), uti, tdscalaruti,tdsymptr))
+    else if(m_state.getUlamTypeByTypedefName(m_state.getTokenDataAsStringId(args.m_typeTok), uti, tdscalaruti,tdsymptr) == TBOOL_TRUE)
       {
 	if(tdsymptr->isCulamGeneratedTypedef() && tdsymptr->isCulamGeneratedTypedefAliased())
 	  m_state.findRootUTIAlias(uti, uti); //t3411
@@ -1502,7 +1599,7 @@ namespace MFM {
 	  }
 	brtn = true;
       }
-    else if(m_state.getUlamTypeByTypedefName(m_state.getTokenDataAsStringId(args.m_typeTok), auti, tdscalaruti, tdsymptr))
+    else if(m_state.getUlamTypeByTypedefName(m_state.getTokenDataAsStringId(args.m_typeTok), auti, tdscalaruti, tdsymptr) == TBOOL_TRUE)
       {
 	if(tdsymptr->isCulamGeneratedTypedef() && tdsymptr->isCulamGeneratedTypedefAliased())
 	  m_state.findRootUTIAlias(auti, auti); //t3411
@@ -1558,7 +1655,6 @@ namespace MFM {
 	  usealt = aualt; //t3816
 
 	SymbolVariable * sym = NULL;
-	//if(auti == Hzy) //t3810??
 	if((auti == Hzy) || m_state.isHolder(auti))
 	  {
 	    sym = makeSymbol(auti, usealt, args); //t41436,t3831

@@ -188,8 +188,27 @@ namespace MFM {
     // DO 'IS':
     UTI luti = pluv.getUlamValueTypeIdx();
     assert(m_state.isPtr(luti));
+    UTI lttype = pluv.getPtrTargetType();
+    UTI leffself = pluv.getPtrTargetEffSelfType(); //might be Nouti (e.g. Atom) t3255
+
+
     UlamValue luv = m_state.getPtrTarget(pluv);
     luti = luv.getUlamValueTypeIdx();
+    if(leffself == Nouti)
+      {
+	if(m_state.isAtom(luti))
+	  leffself = luv.getUlamValueEffSelfTypeIdx(); //t3255
+	else
+	  leffself = luti;
+      }
+    //else cont..
+
+    if(UlamType::compareForUlamValueAssignment(leffself,luti,m_state) == UTIC_NOTSAME)
+      {
+	//data member or baseclass, reset target for comparison
+	luti = lttype; //t41141
+      }
+
     UTI ruti = getRightType();
 
     UTI derefluti = m_state.getUlamTypeAsDeref(luti);
@@ -197,10 +216,11 @@ namespace MFM {
     // now optional for debugging
 #define _LET_ATOM_IS_ELEMENT
 #ifndef _LET_ATOM_IS_ELEMENT
-    if(m_state.isAtom(luti)) return evalStatusReturn(UNEVALUABLE);
+    if(m_state.isAtom(luti))
+      return evalStatusReturn(UNEVALUABLE);
     bool isit = ((UlamType::compare(derefluti,ruti,m_state) == UTIC_SAME) || m_state.isClassASubclassOf(derefluti, ruti));
 #else
-    bool isit = (m_state.isAtom(luti) || (UlamType::compare(derefluti,ruti,m_state) == UTIC_SAME) || m_state.isClassASubclassOf(derefluti, ruti));
+    bool isit = (m_state.isAtom(luti) || (UlamType::compare(derefluti,ruti,m_state) == UTIC_SAME) || m_state.isClassASubclassOf(derefluti, ruti) || (UlamType::compare(leffself,ruti,m_state) == UTIC_SAME) || m_state.isClassASubclassOf(leffself, ruti)); //t41141
     if(m_state.isAtom(luti))
       {
 	UTI leffself = luv.getUlamValueEffSelfTypeIdx();

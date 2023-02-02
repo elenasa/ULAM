@@ -3,6 +3,9 @@
 ##
 ##  gen output: +3 asserts
 ##  Int Arg: -1
+##
+## UNEVALUABLE 'fbv' is type Bits greater than long bits
+##
 #!
 Exit status: -11
 Ue_Test { Int m_i(-1);  System s();  Int test() {  Bits f = 0 cast;  Bits g = f ~;  self m_i . g cast = self s . ( self m_i . )print . self s . ( self m_i . -1 cast == )assert . Bits(64) flong = 0 cast;  Bits(64) glong = flong ~;  Int(64) ilong = glong cast;  self s . ( ilong -1 cast == )assert . Bits(99) fbv = 0 cast;  Bits(99) gbv = fbv ~;  fbv gbv ~ = Bool iszero = fbv 0 cast ==;  self s . ( iszero )assert . 0 cast return } }
@@ -28,7 +31,7 @@ element Test {
     Int(64) ilong = (Int(64)) glong;
     s.assert(ilong==-1);
 
-    Bits(99) fbv = 0;
+    Bits(99) fbv = 0; //unevaluable
     Bits(99) gbv = ~fbv;
     fbv = ~gbv;
     Bool iszero = (fbv == 0);

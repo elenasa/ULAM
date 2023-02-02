@@ -253,8 +253,8 @@ namespace MFM {
 	    UlamKeyTypeSignature keyOfArgType = sut->getUlamKeyTypeSignature();
 
 	    SymbolClassName * cnsym = (SymbolClassName *) m_state.m_programDefST.getSymbolPtr(keyOfArgType.getUlamKeyTypeSignatureNameId());
-	    assert(cnsym);
-	    mangled << cnsym->formatAnInstancesArgValuesAsAString(suti, dereftypes);
+	    if(cnsym)
+	      mangled << cnsym->formatAnInstancesArgValuesAsAString(suti, dereftypes);
 	  }
       }
     return mangled.str();
@@ -746,6 +746,10 @@ namespace MFM {
 	//include the mangled class::
 	fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
 	fp->write("<EC>::"); //same for elements and quarks
+      }
+    else if(sut->isReference())
+      {
+	fp->write("__attribute__ ((noinline)) "); //t3484 for -O99 optimization in .h
       }
 
     fp->write(getMangledName().c_str());

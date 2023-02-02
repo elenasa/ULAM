@@ -6,8 +6,8 @@
 ##   Unsigned Arg: 1
 ##   + assert
 #!
-Exit status: -11
-Ue_MyElement { Bool sp(false);  MySub mSub( Unsigned(3) sppp(7u);  :MyQuark< Unsigned(1) spq(1u); >);  Int test() {  System s;  self mSub . sppp . 7u = self mSub . spq . 1u = s ( self mSub . spq . cast )print . s ( self mSub . spq . 1u == )assert . MyQuark& qref = self ( )func .;  s ( qref spq . cast )print . s ( qref spq . 1u == )assert . s ( qref MySub is )assert . 0 cast return } }
+Exit status: 0
+Ue_MyElement { Bool sp(true);  MySub mSub( Unsigned(3) sppp(7u);  :MyQuark< Unsigned(1) spq(1u); >);  Int test() {  System s;  self mSub . sppp . 7u = self mSub . spq . 1u = s ( self mSub . spq . cast )print . s ( self mSub . spq . 1u == )assert . MyQuark& qref = self ( )func .;  s ( qref spq . cast )print . s ( qref spq . 1u == )assert . self sp . qref MySub is = s ( qref MySub is )assert . 0 cast return } }
 Uq_MySub : MyQuark { Unsigned(3) sppp(0);  :MyQuark< Unsigned(1) spq(0); > <NOMAIN> }
 Uq_System { <NOMAIN> }
 Uq_MyQuark { Unsigned(1) spq(0);  <NOMAIN> }
@@ -32,7 +32,8 @@ element MyElement
     s.print(qref.spq);
     s.assert(qref.spq == 1u);
 
-    //effective self of DN is still MySub:
+    //effective self of DM is still MySub:
+    sp = (qref is MySub);
     s.assert(qref is MySub);
     return 0;
   }

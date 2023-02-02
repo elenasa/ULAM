@@ -140,7 +140,7 @@ namespace MFM {
 	  }
 	else
 	  {
-	    assert((aliasuti == guti) || (aliasuti == galias) || (m_state.lookupUTIAlias(aliasuti)==galias) || m_state.isAPrimitiveType(m_uti)); // || m_state.isClassAStub(m_uti)); //t3384, t3373, t41438 (bitsizes differ), t3988 (typedef stub)
+	    assert((aliasuti == guti) || (aliasuti == galias) || (guti == galias) || (m_state.lookupUTIAlias(aliasuti)==galias) || m_state.isAPrimitiveType(m_uti)); // || m_state.isClassAStub(m_uti)); //t3384, t3373, t41438 (bitsizes differ), t3988 (typedef stub), ish 20230116 guti=galias
 	  }
 	m_uti = galias;
       }
@@ -325,13 +325,13 @@ namespace MFM {
 	    UTI tduti = Nouti;
 	    UTI tmpforscalaruti = Nouti;
 	    u32 tokid = m_state.getTokenDataAsStringId(m_typeTok);
-	    bool isTypedef = false;
+	    TBOOL isTypedef = TBOOL_FALSE;
 	    if(!m_state.isThisLocalsFileScope())
 	      isTypedef = m_state.getUlamTypeByTypedefNameInClassHierarchyThenLocalsScope(tokid, tduti, tmpforscalaruti);
 	    else
 	      isTypedef = m_state.getUlamTypeByTypedefNameInLocalsScope(tokid, tduti, tmpforscalaruti);
 
-	    if(isTypedef)
+	    if(isTypedef == TBOOL_TRUE)
 	      {
 		if(m_state.okUTItoContinue(tduti) && !m_state.isHolder(tduti))
 		  {
@@ -396,9 +396,9 @@ namespace MFM {
 	UTI tduti = Nouti;
 	UTI tmpforscalaruti = Nouti;
 	u32 tokid = m_state.getTokenDataAsStringId(m_typeTok);
-	bool isTypedef = m_state.getUlamTypeByTypedefNameInClassHierarchyThenLocalsScope(tokid, tduti, tmpforscalaruti);
+	TBOOL isTypedef = m_state.getUlamTypeByTypedefNameInClassHierarchyThenLocalsScope(tokid, tduti, tmpforscalaruti);
 
-	if(isTypedef)
+	if(isTypedef == TBOOL_TRUE)
 	  {
 	    if(m_state.okUTItoContinue(tduti) && !m_state.isHolder(tduti))
 	      {
@@ -530,9 +530,9 @@ namespace MFM {
 	  {
 	    UTI tduti = Nouti;
 	    UTI tmpforscalaruti = Nouti;
-	    bool isTypedef = m_state.getUlamTypeByTypedefNameInClassHierarchyThenLocalsScope(m_typeTok.m_dataindex, tduti, tmpforscalaruti);
+	    TBOOL isTypedef = m_state.getUlamTypeByTypedefNameInClassHierarchyThenLocalsScope(m_typeTok.m_dataindex, tduti, tmpforscalaruti);
 
-	    if(isTypedef)
+	    if(isTypedef == TBOOL_TRUE)
 	      {
 		//unseen typedef's appear like Class basetype, until seen
 		//wait until complete to re-key..want arraysize if non-scalar
@@ -557,7 +557,7 @@ namespace MFM {
 		msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	      }
-	    else
+	    else //false or hazy
 	      {
 		bool stubcopy = false;
 		bool isAnonymousClass = (nut->isHolder() || !m_state.isARootUTI(nuti));
@@ -637,6 +637,7 @@ namespace MFM {
 		ULAMCLASSTYPE classtype = nut->getUlamClassType(); //t3735,t3834,t41363,t41153
 		//use default primitive bitsize;
 		nuti = m_state.makeUlamType(m_typeTok, ULAMTYPE_DEFAULTBITSIZE[etyp], arraysize, getReferencedUTI(), altd, classtype);
+		assert(m_state.okUTItoContinue(nuti)); //ish 20230116
 		rtnb = true;
 	      }
 	    else if(getReferenceType() != ALT_NOT)
@@ -673,9 +674,7 @@ namespace MFM {
 	u32 tokid = m_state.getTokenDataAsStringId(m_typeTok);
 	UTI tduti = Nouti;
 	UTI tmpforscalaruti = Nouti;
-	//bool isTypedef = (m_typeTok.m_type == TOK_TYPE_IDENTIFIER) && m_state.getUlamTypeByTypedefNameInClassHierarchyThenLocalsScope(tokid, tduti, tmpforscalaruti); //skip primitive types
-	//bool isTypedef = ((m_typeTok.m_type == TOK_TYPE_IDENTIFIER) || (m_typeTok.m_type == TOK_KW_TYPE_SUPER)) && m_state.getUlamTypeByTypedefNameInClassHierarchyThenLocalsScope(tokid, tduti, tmpforscalaruti); //skip primitive types t41616
-	bool isTypedef = ((m_typeTok.m_type == TOK_TYPE_IDENTIFIER) || (m_typeTok.m_type == TOK_KW_TYPE_SUPER) || (m_typeTok.m_type == TOK_KW_TYPE_SELF)) && m_state.getUlamTypeByTypedefNameInClassHierarchyThenLocalsScope(tokid, tduti, tmpforscalaruti); //skip primitive types t41616,t41621
+	bool isTypedef = ((m_typeTok.m_type == TOK_TYPE_IDENTIFIER) || (m_typeTok.m_type == TOK_KW_TYPE_SUPER) || (m_typeTok.m_type == TOK_KW_TYPE_SELF)) && (m_state.getUlamTypeByTypedefNameInClassHierarchyThenLocalsScope(tokid, tduti, tmpforscalaruti) == TBOOL_TRUE); //skip primitive types t41616,t41621
 
 	if(isTypedef && !m_state.isHolder(tduti) && m_state.okUTItoContinue(tduti)) //t3765, t3384
 	  {

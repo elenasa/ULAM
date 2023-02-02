@@ -1,11 +1,12 @@
 ## -*- mode:ulam -*-
 #=t41143_test_compiler_elementandquark_castatomtoquark_issue
+##
+##  gen output: 1 assert
 #!
-Exit status: -11
-Ue_A : QW { Bool c(false);  :QW< Int(3) m_i(3); > Int test() {  System s;  EventWindow ew;  Int rtn = 0 cast;  ew ( 1 cast )aref . self.atomof = { ew ( 1 cast )aref . QW is cond { QW q = ew ( 1 cast )aref . cast;  rtn q m_i . cast = } if } s ( rtn 3 cast == )assert . rtn return } }
-Uq_QW { Int(3) m_i( 3);  <NOMAIN> }
+Exit status: 3
+Ue_A : QW { Bool c(true);  :QW< Int(3) m_i(3); > Int test() {  System s;  Int rtn = 0 cast;  self m_i . 3 = Atom a = self.atomof cast;  { a QW is cond { QW q = a cast;  rtn q m_i . cast = } if } self c . rtn 3 cast == = s ( self c . )assert . rtn return } }
+Uq_QW { Int(3) m_i( 1);  <NOMAIN> }
 Uq_System { <NOMAIN> }
-Uq_EventWindow { <NOMAIN> }
 ##
 ## informed by t3733;
 ## Dave thinks quark ref requirement is unreasonable. Sun Oct 15 20:07:56 2017
@@ -17,36 +18,25 @@ element A : QW {
   Bool c;
   Int test(){
     System s;
-    EventWindow ew;
     Int rtn = 0;
-    ew[1] = self.atomof;
-    if(ew[1] is QW)
+    m_i = 3;
+    Atom a = self.atomof;
+    if(a is QW)
     {
       //note: it wouldn't have failed before if either: ew[1] was in a variable, or the cast was a quark ref.
-      QW q = (QW) ew[1]; //WHY DOES THIS FAIL?
+      QW q = (QW) a; //WHY DOES THIS FAIL?
       rtn = q.m_i;
     }
-    s.assert(rtn == 3);
+    c = (rtn == 3);
+    s.assert(c);
     return rtn;
   }
-
-  Atom& funcme(Atom& a)
-  {
-    return a;
-  }
-
 }
 
 #:QW.ulam
   ulam 2;
 quark QW{
-  Int(3) m_i = 3;
-}
-
-#:EventWindow.ulam
-  ulam 3;
-quark EventWindow{
-  Atom& aref(Int index) native;
+  Int(3) m_i = 1;
 }
 
 #:System.ulam

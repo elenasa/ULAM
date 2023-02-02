@@ -3,11 +3,9 @@
 ##
 ## gen output: assert
 ##
-## cannot eval caller2 atom ref return type that is element Foo, too
-##
 #!
-Exit status: -11
-Ue_Foo { Int test() {  System s;  self ( )caller1 . Atom f3;  Atom& r = self ( f3 cast false )caller2 .;  s ( r Foo is ! )assert . 0 cast return } }
+Exit status: 0
+Ue_Foo { Bool risnotFoo(true);  Int test() {  System s;  self ( )caller1 . Atom f3;  Atom& r = self ( f3 cast false )caller2 .;  self risnotFoo . r Foo is ! = s ( self risnotFoo . )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by Dave email 2/10/2017 and t41031
@@ -16,6 +14,7 @@ Uq_System { <NOMAIN> }
   ulam 3;
 element Foo
 {
+  Bool risnotFoo;
   Atom & func(Atom& arg1, Atom& arg2, Bool barg)
   {
     if(barg)
@@ -42,7 +41,8 @@ element Foo
 
     Atom f3;
     Atom & r = caller2(f3, false);
-    s.assert(!(r is Foo));
+    risnotFoo = !(r is Foo);
+    s.assert(risnotFoo);
     return 0;
   }
 }

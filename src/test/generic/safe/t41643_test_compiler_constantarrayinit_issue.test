@@ -1,0 +1,71 @@
+## -*- mode:ulam -*-
+#=t41643_test_compiler_constantarrayinit_issue
+##
+## gen output: (1 assert)
+##
+#!
+Exit status: 0
+Ue_A { constant Unsigned cBARCODE_WIDTH = 3u;  typedef Unsigned(3) BarCode;  typedef Unsigned(3) Lineage[9];  Unsigned(3) mLineage[9](0u,3u,3u,3u,3u,3u,3u,3u,3u);  Int test() {  System s;  QBar qbar;  qbar sp . self mLineage . 3 [] 3u == = s ( qbar sp . )assert . 0 cast return } }
+Uq_CodeBar(Unsigned width) { typedef Unsigned(UNKNOWN) BarCode;  constant Unsigned(UNKNOWN) cBC_START = 0u;  constant Unsigned(UNKNOWN) cBC_LEFT = 1u;  constant Unsigned(UNKNOWN) cBC_RIGHT = 2u;  constant Unsigned(UNKNOWN) cBC_STOP = 3u;  <NOMAIN> }
+Uq_System { <NOMAIN> }
+Uq_QBar { Bool sp(false);  <NOMAIN> }
+##
+## Dave's ish 1/16/2023: initialize with constants from another class;
+## not recreateable here in simplier context, even with CodeBar as template.
+##
+#>A.ulam
+  ulam 3;
+element A {
+  //typedef Unsigned QBar; //allow class name shadowing!
+  //constant QBar cBARCODE_WIDTH = 3;
+  constant Unsigned cBARCODE_WIDTH = 3;
+  typedef CodeBar(cBARCODE_WIDTH).BarCode BarCode;
+  typedef BarCode Lineage[cBARCODE_WIDTH*cBARCODE_WIDTH];
+  Lineage mLineage = { CodeBar(cBARCODE_WIDTH).cBC_START, CodeBar(cBARCODE_WIDTH).cBC_STOP };
+
+
+  Int test(){
+    System s;
+    QBar qbar; //but then you can't have it both ways..
+    qbar.sp = mLineage[3] == CodeBar(cBARCODE_WIDTH).cBC_STOP;
+    s.assert(qbar.sp);
+    return 0;
+  }
+
+  Unsigned func()
+  {
+      typedef Unsigned QBar; //allow class name shadowing!
+      QBar qb = 3;
+      return qb;
+  }
+}
+
+
+#:CodeBar.ulam
+  ulam 5;
+quark CodeBar(Unsigned width) {
+typedef Unsigned(width) BarCode;
+  constant BarCode cBC_START = 0u; //< Start of code (also Ancestor)
+  constant BarCode cBC_LEFT =  1u; //< I was Left Daughter in this generation
+  constant BarCode cBC_RIGHT = 2u; //< I was Right Daughter in this generation
+  constant BarCode cBC_STOP =  3u; //< End of code (also next generation)
+}
+
+#:QBar.ulam
+  ulam 1;
+quark QBar {
+  Bool sp;
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

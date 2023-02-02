@@ -304,11 +304,13 @@ namespace MFM {
     assert(m_state.isPtr(luti));
     luti = pluv.getPtrTargetType();
     assert(m_state.okUTItoContinue(luti));
+    UTI leffself = pluv.getPtrTargetEffSelfType();
 
-    UlamValue luv = m_state.getPtrTarget(pluv);
-    UTI leffself = luv.getUlamValueEffSelfTypeIdx(); //t41539
+    UlamValue luv = m_state.getPtrTarget(pluv); //stg
+    UTI lstgeffself = luv.getUlamValueEffSelfTypeIdx(); //t41539
+    UTI lstgtype = luv.getUlamValueTypeIdx();
 
-    bool leftisatom = m_state.isAtom(luti) || m_state.isAtom(luv.getUlamValueTypeIdx()); //t3754,t3837
+    bool leftisatom = m_state.isAtom(luti) || m_state.isAtom(lstgtype); //t3754,t3837
     if(leftisatom)
       {
 	//an atom can be element or quark in eval-land, so let's get specific!
@@ -316,6 +318,17 @@ namespace MFM {
 	  {
 	    luti = leffself;
 	  }
+	else if(lstgeffself != Nouti)
+	  {
+	    luti = lstgeffself;
+	    leffself = lstgeffself; //t3747
+	  }
+	else if((lstgtype != Nouti) && !m_state.isAtom(lstgtype))
+	  {
+	    luti = lstgtype; //t41506?
+	    leffself = lstgtype;
+	  }
+	//else stays an atom
       }
 
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
@@ -327,14 +340,17 @@ namespace MFM {
     ULAMCLASSTYPE rclasstype = rut->getUlamClassType();
     if(rclasstype == UC_QUARK)
       {
-	if(m_state.isClassASubclassOf(luti, ruti))
+	if((leffself != Nouti) && (UlamType::compareForUlamValueAssignment(leffself, ruti, m_state) == UTIC_SAME))
+	  {
+	    asit = true; //t41625
+	  }
+	else if(m_state.isClassASubclassOf(luti, ruti))
 	  {
 	    asit = true;
 	  }
 	else if((leffself != Nouti) && m_state.isClassASubclassOf(leffself, ruti))
 	  {
 	    asit = true; //we must have a quark ref (t41539)
-	    luti = leffself; //t41011,t41012,t41319,t41325,t41539 (no longer unevaluable)
 	  }
 	else
 	  {
@@ -342,18 +358,14 @@ namespace MFM {
 	      {
 		if(lut->getTotalBitSize() > MAXSTATEBITS)
 		  return evalStatusReturn(UNEVALUABLE);
+		//else ???
 	      }
 	    else
 	      {
 		//atom's don't work in eval, only genCode, let pass as not found.
 		if(!m_state.isAtom(luti))
 		  {
-		    std::ostringstream msg;
-		    msg << "Invalid lefthand type of conditional operator '" << getName();
-		    msg << "'; Class '";
-		    msg << lut->getUlamTypeClassNameBrief(luti).c_str();
-		    msg << "' Not Found during eval";
-		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		    assert(!asit); //q not a base of effself (t3601)
 		  }
 		else
 		  {
@@ -363,22 +375,24 @@ namespace MFM {
 		    msg <<  "', "  << lut->getUlamTypeNameBrief().c_str();
 		    msg << "; Passing through as UNFOUND for eval";
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		    return evalStatusReturn(UNEVALUABLE);
 		  }
-		return evalStatusReturn(UNEVALUABLE);
 	      }
 	  }
       }
     else if(rclasstype == UC_ELEMENT)
       {
+	if(leffself == Nouti) leffself = luti; //t3249
 	// like 'is'
 	// was inclusive result for eval purposes (atoms and element types are orthogonal)
-	// now optional for debugging
+	// now optional for debugging; was compared to luti, now effself (t41344)
 	//#define _LET_ATOM_AS_ELEMENT
 #ifndef _LET_ATOM_AS_ELEMENT
-	if(m_state.isAtom(luti)) return evalStatusReturn(UNEVALUABLE);
-	asit = (UlamType::compare(luti, ruti, m_state) == UTIC_SAME);
+	if(m_state.isAtom(luti))
+	  return evalStatusReturn(UNEVALUABLE);
+	asit = (UlamType::compare(leffself, ruti, m_state) == UTIC_SAME);
 #else
-	asit = m_state.isAtom(luti) || (UlamType::compare(luti, ruti, m_state) == UTIC_SAME);
+	asit = m_state.isAtom(luti) || (UlamType::compare(leffself, ruti, m_state) == UTIC_SAME);
 #endif
       }
     else if(rclasstype == UC_TRANSIENT)
@@ -396,18 +410,35 @@ namespace MFM {
 	UTI asuti = ruti; //as deref'd type
 	u32 relpos = 0u;
 	u32 adjust = 0u;
+	s32 invert = 1;
 	if(rclasstype != UC_ELEMENT)
-	{
-	  AssertBool gotrelpos = m_state.getABaseClassRelativePositionInAClass(luti, ruti, relpos);
-	  assert(gotrelpos); //t3589
-	}
-	//else (t3637) n/a for atoms, use 0?
+	  {
+	    if(leffself == Nouti)
+	      {
+		leffself = luti;
+		assert(leffself != Nouti);
+	      }
+
+	    if(m_state.isClassASubclassOf(leffself,ruti))
+	      {
+		AssertBool gotrelpos = m_state.getABaseClassRelativePositionInAClass(leffself, ruti, relpos);
+		assert(gotrelpos); //t3589 (was luti)
+	      }
+
+	    if(m_state.isClassASubclassOf(leffself,luti))
+	      {
+		u32 relpos2;
+		AssertBool gotrelpos = m_state.getABaseClassRelativePositionInAClass(leffself, luti, relpos2);
+		assert(gotrelpos);
+		relpos -= relpos2;
+	      }
+	  }
 
 	if((leftisatom || m_state.isAtom(luti)) && (pluv.getPtrPos() == 0))
 	  adjust = ATOMFIRSTSTATEBITPOS; //t3563, t3637
 
-	UlamValue ptr = UlamValue::makePtr(pluv.getPtrSlotIndex(), pluv.getPtrStorage(), asuti, m_state.determinePackable(asuti), m_state, pluv.getPtrPos() + relpos + adjust, pluv.getPtrNameId());
-	ptr.setPtrTargetEffSelfType(luti); //t41318, t41384
+	UlamValue ptr = UlamValue::makePtr(pluv.getPtrSlotIndex(), pluv.getPtrStorage(), asuti, m_state.determinePackable(asuti), m_state, pluv.getPtrPos() + (relpos * invert) + adjust, pluv.getPtrNameId());
+	ptr.setPtrTargetEffSelfType(leffself); //t41318, t41384 (was luti)
 	ptr.checkForAbsolutePtr(pluv);
 
 	m_state.m_currentAutoObjPtr = ptr;

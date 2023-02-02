@@ -2,7 +2,8 @@
  * SymbolWithValue.h - Basic handling of symbols with values for ULAM
  *
  * Copyright (C) 2015-2021 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2021 Ackleyshack LLC.
+ * Copyright (C) 2015-2023 Ackleyshack LLC.
+ * Copyright (C) 2023 The Living Computation Foundation.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +30,7 @@
   \file SymbolWithValue.h - Basic handling of symbols with values for ULAM
   \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2021 All rights reserved.
+  \date (C) 2015-2023 All rights reserved.
   \gpl
 */
 
@@ -89,6 +90,7 @@ namespace MFM{
     void setHasInitValue(); //new
     bool getArrayItemInitValue(u32 item, u32& rtnitem);
     bool getArrayItemInitValue(u32 item, u64& rtnitem);
+    bool getArrayItemInitValue(u32 item, BV8K& rtnitem);
 
     bool foldConstantExpression();
 

@@ -25,7 +25,7 @@ element EventWindowTest {
     EventWindowTest ewt;
 
     // unsure of this EventWindow spike; testing parsing only here
-    ew[0] = ewt;
+    ew[0] = ewt; //requires ref return for lhs
     Atom aw = ew[0];  // This is me!
 
     Atom a = ewt;

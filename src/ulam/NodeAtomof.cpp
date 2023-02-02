@@ -138,12 +138,40 @@ namespace MFM {
 	//'atom' gets entire atom/element containing this quark; including its type!
 	//'self' gets type/pos/len of the quark from which 'atom' can be extracted
 	UlamValue selfuvp = m_state.m_currentSelfPtr;
-	UTI ttype = selfuvp.getPtrTargetType();
-	assert(m_state.okUTItoContinue(ttype));
-	if((m_state.getUlamTypeByIndex(ttype)->getUlamClassType() == UC_QUARK) && !m_state.isReference(ttype))
+	UTI selfttype = selfuvp.getPtrTargetType();
+	assert(m_state.okUTItoContinue(selfttype));
+	UTI effselfttype = selfuvp.getPtrTargetEffSelfType();
+	if(effselfttype == Nouti) effselfttype = selfttype; //t3913
+
+	if((m_state.getUlamTypeByIndex(selfttype)->getUlamClassType() == UC_QUARK) && (!m_state.isReference(auti) || (selfttype == effselfttype)))
 	  {
-	    selfuvp = atomuv; //bail for error (fail/t3682)
+	    selfuvp = atomuv; //bail for error (fail/t3682, error/t3681)
 	  }
+	else
+	  {
+	    if((UlamType::compareForUlamValueAssignment(selfttype, auti, m_state) == UTIC_NOTSAME))
+	      {
+		s32 selfpos = selfuvp.getPtrPos();
+		if(selfttype != effselfttype)  //t3736, another baseclass
+		  {
+		    u32 relposofbase2 = 0;
+		    AssertBool gotpos2 = m_state.getABaseClassRelativePositionInAClass(effselfttype, selfttype, relposofbase2);
+		    assert(gotpos2);
+		    selfpos -= relposofbase2;
+		  }
+		//else same, subclass or dm
+
+		u32 relposofbase = 0;
+		AssertBool gotpos = m_state.getABaseClassRelativePositionInAClass(effselfttype, auti, relposofbase);
+		assert(gotpos);
+
+		selfuvp.setPtrPos(selfpos + relposofbase);
+		selfuvp.setPtrTargetType(m_state.getUlamTypeAsDeref(auti));
+		selfuvp.setPtrTargetEffSelfType(effselfttype); //in case was empty
+		selfuvp.setPtrLen(m_state.getBaseClassBitSize(auti));
+	      }
+	    //else same
+	  } //end of else
 	return selfuvp;
       } //done
 

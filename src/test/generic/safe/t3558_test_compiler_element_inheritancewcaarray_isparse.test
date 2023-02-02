@@ -4,8 +4,8 @@
 ##  gen output: (1 assert)
 ##
 #!
-Exit status: -11
-Ue_EventWindowTest : EvtWinEl { constant Int v = -2;  :EvtWinEl< Int m_idx(40); > Int test() {  System s;  Atom a;  EventWindowTest ewt;  a ewt ( 0 cast )aref . = s ( a EventWindowTest is )assert . 0 cast return } }
+Exit status: 0
+Ue_EventWindowTest : EvtWinEl { constant Int v = -2;  Bool isok(true);  :EvtWinEl< Int m_idx(40); > Int test() {  System s;  Atom a;  EventWindowTest ewt;  a ewt ( 0 cast )aref . = self isok . a EventWindowTest is = s ( self isok . )assert . 0 cast return } }
 Uq_EvtWinEl { Int m_idx( 40);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
@@ -17,13 +17,15 @@ Uq_System { <NOMAIN> }
 use EvtWinEl;
 element EventWindowTest : EvtWinEl {
   constant Int v = -2;
+  Bool isok;
   Int test() {
     System s;
     Atom a;
     EventWindowTest ewt;
     //ewt[0] = a; STALE_ATOM
     a = ewt[0];  // This is me!
-    s.assert(a is EventWindowTest);
+    isok = (a is EventWindowTest);
+    s.assert(isok);
     return 0;
  }
 }

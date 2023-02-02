@@ -68,7 +68,7 @@ namespace MFM {
   {
     NodeInstanceof::checkAndLabelType(thisparentnode);
 
-    Node::setStoreIntoAble(TBOOL_FALSE);
+    Node::setStoreIntoAble(TBOOL_FALSE); //also sets referenceable
 
     return getNodeType();
   } //checkAndLabelType
@@ -79,7 +79,7 @@ namespace MFM {
     UlamValue ptr;
     UlamValue atomuv;
 
-    UTI auti = getOfType();
+    UTI auti = getNodeType(); //t41506
     UlamType * aut = m_state.getUlamTypeByIndex(auti);
     ULAMCLASSTYPE aclasstype = aut->getUlamClassType();
 
@@ -89,7 +89,42 @@ namespace MFM {
     Node::makeRoomForSlots(slotsneeded, CNSTSTACK); //before store (t41507)
 
     if(m_state.isAtom(auti))
-      atomuv = NodeStorageof::evalAtomOfExpr();  //t3286
+      {
+	//ofnode is a ref, super or self; and uses effself regardless.
+	UlamValue getatomtypeuv = NodeStorageof::evalAtomOfExpr();  //t3286
+	UTI atomtype = getatomtypeuv.getUlamValueTypeIdx();
+	bool atomisPtr = m_state.isPtr(atomtype);
+
+	//use effself
+	if(atomisPtr)
+	  atomtype = getatomtypeuv.getPtrTargetEffSelfType();
+	else
+	  atomtype = getatomtypeuv.getUlamValueEffSelfTypeIdx(); //t3286
+
+	//if no effself, use ulamvalue type, assuming same
+	if(atomtype == Nouti)
+	  {
+	    if(atomisPtr)
+	      atomtype = getatomtypeuv.getPtrTargetType();
+	    else
+	      getatomtypeuv.getUlamValueTypeIdx();
+	  }
+
+	assert(atomtype != Nouti); //sanity
+	if(!m_state.isAtom(atomtype))
+	  {
+	    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(atomtype)->getUlamClassType();
+	    if(classtype == UC_ELEMENT)
+	      {
+		atomuv = UlamValue::makeDefaultAtom(atomtype, m_state); //t3747, effself is atomtype
+		atomuv.setUlamValueTypeIdx(auti); //t3747, still an atom
+	      }
+	    else
+	      auti = Nav; //error t3676
+	  }
+	else
+	  auti = Nav; //error, atom type
+      }
     else if(aclasstype == UC_ELEMENT)
       atomuv = UlamValue::makeDefaultAtom(auti, m_state);
     else if(aclasstype == UC_QUARK)
@@ -103,6 +138,9 @@ namespace MFM {
       atomuv = UlamValue::makeDefaultAtom(auti, m_state); //size limited to atom for eval
     else
       m_state.abortUndefinedUlamClassType();
+
+    if(!m_state.okUTItoContinue(auti))
+      return atomuv; //error
 
     m_state.m_constantStack.storeUlamValueInSlot(atomuv, atop);
 

@@ -5,7 +5,7 @@
 ##  Unsigned Arg: 7
 ##  Unsigned Arg: 15
 ##
-##  note: atoms are unevaluable (-11)
+##  Unevaluable: native aref. note: atoms are unevaluable (-11)?
 #!
 Exit status: -11
 Ue_R { Int test() {  System s;  LSwitch4 sw;  sw ( )behave . s ( sw m_position . cast )print . s ( sw ( )isMax . )assert . Box b;  b ( )behave . s ( b m_position . cast )print . s ( b ( )isMax . )assert . 0 cast return } }

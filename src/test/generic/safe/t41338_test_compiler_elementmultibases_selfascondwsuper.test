@@ -56,7 +56,7 @@ element Eltypo : Typo(1) {
     Eltypo& me = self;
 
     if(self as Bar){
-      super.func(3u); //modifies 'bu'
+      super.func(3u); //modifies 'bu',t.f. super is Gah
       s.print(bu);
       s.assert(bu == 3);
       me.first = super.bu; //3u, from 7u
