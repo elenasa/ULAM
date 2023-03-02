@@ -223,6 +223,8 @@ namespace MFM{
     bool isStubForTemplate();
     UTI getStubForTemplateType();
     void setStubForTemplateType(UTI ttype);
+    bool isStubForTemplateTypeIncomplete();
+    void setStubForTemplateTypeIncomplete(bool incomplete);
     void clearStubForTemplate();
 
   protected:
@@ -238,6 +240,7 @@ namespace MFM{
     bool m_stubcopy;
     bool m_stubForTemplate; //ulam-5 (t41440, t41224)
     UTI m_stubForTemplateType;
+    bool m_stubForTemplateTypeIncomplete;
     UTI m_stubcopyOf;
     bool m_stubcopyfromseentemplatestub;
     BV8K m_defaultValue; //BitVector
