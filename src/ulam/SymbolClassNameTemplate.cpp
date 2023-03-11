@@ -401,7 +401,9 @@ namespace MFM {
     UTI compilingthis = m_state.getCompileThisIdx();
     if(flagpAsAStubForTemplate(compilingthis) || flagpAsAStubForTemplateMemberStub(compilingthis))
       {
-	newclassinstance->setStubForTemplateType(compilingthis); //t41225, t3336?
+        newclassinstance->setStubForTemplateType(compilingthis); //t41225, t3336?
+        if(getUlamTypeIdx() == compilingthis)
+          newclassinstance->setStubForTemplateTypeIncomplete(true);
       }
 
     //a difference between them t41442
@@ -410,7 +412,7 @@ namespace MFM {
 	newclassinstance->partialInstantiationOfMemberNodesAndSymbols(*templateclassblock);
 	cloneAnInstancesUTImap(this, newclassinstance); //t3384,t3565??
 
-	//following Sergei's commit..
+	//following Sergei's commit..20230311
 	//if(getUlamTypeIdx() == compilingthis)
         //  newclassinstance->setStubForTemplateTypeIncomplete(true); //t41648
       } //else wait if template is unseen
@@ -815,6 +817,31 @@ namespace MFM {
     assert(stubcsym->getContextForPendingArgValues() != Nouti); //sanity or set??
   } //fixAClassStubsDefaultArgs
 
+  void SymbolClassNameTemplate::fixAnyIncompleteClassInstances()
+  {
+    NodeBlockClass * templateclassblock = getClassBlockNode();
+    assert(templateclassblock);
+    std::map<UTI, SymbolClass*>::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
+    while (it != m_scalarClassInstanceIdxToSymbolPtr.end())
+      {
+        SymbolClass * sym = it->second;
+        assert(sym);
+
+        NodeBlockClass * cblock = sym->getClassBlockNode();
+        assert(cblock->getNodeNo() == templateclassblock->getNodeNo());
+
+        if(sym->isStubForTemplateTypeIncomplete())
+          {
+            // initBaseClassListForAStubClassInstance(sym);
+            sym->partialInstantiationOfMemberNodesAndSymbols(*templateclassblock);
+            cloneAnInstancesUTImap(this, sym);
+
+            sym->setStubForTemplateTypeIncomplete(false);
+          }
+
+        it++;
+      }
+  } // fixAnyIncompleteClassInstances
 
   bool SymbolClassNameTemplate::statusNonreadyClassArgumentsInStubClassInstances()
   {

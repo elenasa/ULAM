@@ -82,6 +82,8 @@ namespace MFM{
     void fixAnyUnseenClassInstances();
     void fixAClassStubsDefaultArgs(SymbolClass * stubcsym, u32 defaultstartidx);
 
+    void fixAnyIncompleteClassInstances();
+
     bool statusNonreadyClassArgumentsInStubClassInstances();
 
     virtual std::string formatAnInstancesArgValuesAsAString(UTI instance, bool dereftypes = false);

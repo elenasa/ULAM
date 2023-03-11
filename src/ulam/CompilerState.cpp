@@ -4047,6 +4047,18 @@ namespace MFM {
     return rtnid;
   } //findNameIdOfCulamGeneratedTypedefTypeInThisContext (unused)
 
+  bool CompilerState::checkForAnyIncompleteTemplateClassInstances(UTI thisarg) {
+    assert(isClassATemplate(thisarg));
+
+    SymbolClassNameTemplate * cnsym = NULL;
+    AssertBool isDefined = alreadyDefinedSymbolClassNameTemplateByUTI(thisarg, cnsym);
+    assert(isDefined);
+
+    cnsym->fixAnyIncompleteClassInstances();
+
+    return false;
+  } // checkForAnyIncompleteTemplateClassInstances
+
   u32 CompilerState::getClassIdBits()
   {
     //initialized to constant CLASSIDBITS
