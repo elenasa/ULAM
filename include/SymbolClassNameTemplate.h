@@ -2,8 +2,8 @@
  * SymbolClassNameTemplate.h -  Class Symbol "Template" for ULAM
  *
  * Copyright (C) 2015-2021 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2021 Ackleyshack LLC.
- * Copyright (C) 2020-2021 The Living Computation Foundation.
+ * Copyright (C) 2015-2023 Ackleyshack LLC.
+ * Copyright (C) 2020-2023 The Living Computation Foundation.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -76,7 +76,7 @@ namespace MFM{
     bool pendingClassArgumentsForStubClassInstance(UTI instance);
 
     SymbolClass * makeAStubClassInstance(const Token& typeTok, UTI cuti); //to hold class args, and cUTI
-    SymbolClass * copyAStubClassInstance(UTI instance, UTI newuti, UTI argvaluecontext, UTI argtypecontext, Locator newloc);
+    SymbolClass * copyAStubClassInstance(UTI instance, UTI newuti, UTI argvaluecontext, UTI argtypecontext, UTI valuecontextclassnametype, Locator newloc);
 
     /** replaces temporary class argument names, updates the ST, and the class type */
     void fixAnyUnseenClassInstances();

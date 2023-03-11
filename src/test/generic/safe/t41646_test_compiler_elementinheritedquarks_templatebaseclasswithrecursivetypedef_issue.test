@@ -1,0 +1,79 @@
+## -*- mode:ulam -*-
+#=t41646_test_compiler_elementinheritedquarks_templatebaseclasswithrecursivetypedef_issue
+##
+## gen output: +2 asserts
+##  Bool(3) Arg: 0x7 (true)
+##  Bool(3) Arg: 0x0 (false)
+##
+#!
+Exit status: 0
+Ue_R { Bool b1(true);  Bool b2(false);  Int test() {  System s;  A aele;  Atom aA = aele.atomof cast;  Atom aB = B.instanceof cast;  self b1 . aele ( aA cast )isBond . = s ( self b1 . cast )print . s ( self b1 . )assert . self b2 . aele ( aB cast )isBond . = s ( self b2 . cast )print . s ( self b2 . ! )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+Ue_A : TBond(true) { /* empty class block */ }
+Ue_B : TBond(false) { /* empty class block */ }
+Uq_TBond(Bool cSIDE) { typedef TBond(cSIDE) Mate;  Int mValue( 1);  <NOMAIN> }
+##
+## informed by Sergei fix 3/4/23; and t41465
+##
+## NOTEWORTHY: Mate typedef in TBond, is canonical recursive example of stub-copies (uses)
+## vary based on class arguments, eventhough location and argument strings are identical.
+##
+#>R.ulam
+ ulam 5;
+element R {
+  Bool b1, b2;
+  Int test()
+  {
+    System s;
+    A aele;
+    Atom aA = aele.atomof;
+    Atom aB = B.instanceof;
+
+    b1 = aele.isBond(aA);
+    s.print(b1);
+    s.assert(b1);
+    b2 = aele.isBond(aB);
+    s.print(b2);
+    s.assert(!b2);
+
+    return 0;
+  }
+}
+
+#:TBond.ulam
+ ulam 5;
+quark TBond(Bool cSIDE) {
+  typedef TBond(!cSIDE) Mate;
+  Int mValue = 1;
+
+  Bool isBond(Atom & at)
+  {
+    Mate mate; //check gencode..
+    if(at as Mate)
+      return false;
+    return true;
+  }
+}
+
+#:A.ulam
+  ulam 5;
+element A : TBond(true){ }
+
+#:B.ulam
+  ulam 5;
+element B : TBond(false){ }
+
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.
