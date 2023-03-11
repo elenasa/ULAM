@@ -1,10 +1,16 @@
 ## -*- mode:ulam -*-
-#=t41647_test_compiler_elementinheritedquarks_multibase_templatebaseclasswithdmandfuncnotfound_error
-#!
-./TBond.ulam:8:12: ERROR: Variable 'mValue' is not defined, or was used before declared in a function.
-Unrecoverable Program Type Label FAILURE.
+#=t41647_test_compiler_elementinheritedquarks_multibase_templatebaseclasswithdmandfuncnotfound
+##  gen output: 1 assert
 ##
-## informed by Sergei fix 3/4/23; t41645 safe version.
+#!
+Exit status: 0
+Ue_R { Int v(1);  Int test() {  System s;  A aele;  self v . aele ( )getValue . = s ( self v . 1 cast == )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+Ue_A : TBond(true) { /* empty class block */ }
+Uq_TBond(Bool cSIDE) { typedef TBond(cSIDE) Mate;  Int mValue( 1);  <NOMAIN> }
+##
+## informed by Sergei fix 3/4/23; t41645 safe version. Better. was:
+##  ./TBond.ulam:8:12: ERROR: Variable 'mValue' is not defined, or was used before declared in a function.
 ##
 #>R.ulam
  ulam 5;

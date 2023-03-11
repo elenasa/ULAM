@@ -18,7 +18,7 @@ Ue_B : TBond(false) { /* empty class block */ }
 ## NOTEWORTHY: MatingBond typedef in Bond, is canonical example of stub-copies (uses)
 ## vary based on class arguments, eventhough location and argument strings are identical.
 ##
-## Here, definition of B needed for A's Mate to work. (see error/t41647)
+## Here, definition of B no longer needed for A's Mate to work (see safe/t41647).
 ##
 #>R.ulam
  ulam 5;
@@ -53,7 +53,7 @@ element A : TBond(true){ }
 
 #:B.ulam
   ulam 5;
-element B : TBond(false){ /* required for A's mate to work*/ }
+element B : TBond(false){ /* not required for A's mate to work*/ }
 
 #:System.ulam
 ulam 1;

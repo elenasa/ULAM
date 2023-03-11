@@ -413,8 +413,8 @@ namespace MFM {
 	cloneAnInstancesUTImap(this, newclassinstance); //t3384,t3565??
 
 	//following Sergei's commit..20230311
-	//if(getUlamTypeIdx() == compilingthis)
-        //  newclassinstance->setStubForTemplateTypeIncomplete(true); //t41648
+	if(getUlamTypeIdx() == compilingthis)
+          newclassinstance->setStubForTemplateTypeIncomplete(true); //t41648
       } //else wait if template is unseen
 
     return newclassinstance;
