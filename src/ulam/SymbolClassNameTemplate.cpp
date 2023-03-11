@@ -400,7 +400,11 @@ namespace MFM {
     //before patching in data member symbols, like typedef "super".
     UTI compilingthis = m_state.getCompileThisIdx();
     if(flagpAsAStubForTemplate(compilingthis) || flagpAsAStubForTemplateMemberStub(compilingthis))
-      newclassinstance->setStubForTemplateType(compilingthis); //t41225, t3336?
+      {
+        newclassinstance->setStubForTemplateType(compilingthis); //t41225, t3336?
+        if(getUlamTypeIdx() == compilingthis)
+          newclassinstance->setStubForTemplateTypeIncomplete(true);
+      }
 
     //a difference between them t41442
     if(m_state.isASeenClass(getUlamTypeIdx()))
@@ -808,6 +812,31 @@ namespace MFM {
     assert(stubcsym->getContextForPendingArgValues() != Nouti); //sanity or set??
   } //fixAClassStubsDefaultArgs
 
+  void SymbolClassNameTemplate::fixAnyIncompleteClassInstances()
+  {
+    NodeBlockClass * templateclassblock = getClassBlockNode();
+    assert(templateclassblock);
+    std::map<UTI, SymbolClass*>::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
+    while (it != m_scalarClassInstanceIdxToSymbolPtr.end())
+      {
+        SymbolClass * sym = it->second;
+        assert(sym);
+
+        NodeBlockClass * cblock = sym->getClassBlockNode();
+        assert(cblock->getNodeNo() == templateclassblock->getNodeNo());
+
+        if(sym->isStubForTemplateTypeIncomplete())
+          {
+            // initBaseClassListForAStubClassInstance(sym);
+            sym->partialInstantiationOfMemberNodesAndSymbols(*templateclassblock);
+            cloneAnInstancesUTImap(this, sym);
+
+            sym->setStubForTemplateTypeIncomplete(false);
+          }
+
+        it++;
+      }
+  } // fixAnyIncompleteClassInstances
 
   bool SymbolClassNameTemplate::statusNonreadyClassArgumentsInStubClassInstances()
   {

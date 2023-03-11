@@ -449,6 +449,7 @@ namespace MFM{
     bool checkAndLabelPassForLocals();
     bool checkforAnyRemainingCulamGeneratedTypedefsInThisContext(UTI thisarg);
     u32 findNameIdOfCulamGeneratedTypedefTypeInThisContext(UTI typearg);
+    bool checkForAnyIncompleteTemplateClassInstances(UTI thisarg);
 
     u32 getClassIdBits();
     u32 getMaxNumberOfRegisteredUlamClasses();
