@@ -1143,10 +1143,13 @@ namespace MFM {
 	    if(isClassATemplate(suti))
 	      return cuti;
 
+#if 0
+	    //gives wrong type! mngr777 Sergei's ish 3/4/23 t41649
 	    if(cnsymOfIncomplete->hasInstanceMappedUTI(suti, cuti, mappedUTI))
 	      {
 		return mappedUTI;  //stops inf loop? only if same class name
 	      }
+#endif
 	  }
 
 	if(!isClassAStub(suti))
@@ -1205,7 +1208,8 @@ namespace MFM {
 
 	//potential for unending process..(t41436)
 	//notes: sclasstype may be UNSEEN. 'cuti' may not be getCompileThis class (t41209,t41217,8)
-	((SymbolClassNameTemplate *)cnsymOfIncomplete)->copyAStubClassInstance(suti, newuti, cuti, newuti, loc);
+	UTI cnuti = cnsym->getUlamTypeIdx();
+	((SymbolClassNameTemplate *)cnsymOfIncomplete)->copyAStubClassInstance(suti, newuti, cuti, newuti, cnuti, loc);
 	std::ostringstream msg;
 	msg << "MAPPED!! type: " << getUlamTypeNameByIndex(suti).c_str();
 	msg << "(UTI" << suti << ")";
@@ -3603,7 +3607,12 @@ namespace MFM {
     UlamKeyTypeSignature newstubkey(superut->getUlamTypeNameId(), UNKNOWNSIZE); //"-2" and scalar default
     UTI newstubcopyuti = makeUlamType(newstubkey, Class, superclasstype); //**gets next unknown uti type
 
-    SymbolClass * superstubcopy = superctsym->copyAStubClassInstance(superuti, newstubcopyuti, argvaluecontext, newstubcopyuti, stubloc); //t3365. t41221
+    //arg added to avoid recursive mapping in new stub copy (t41645)
+    SymbolClassName * valuecontextcnsym = NULL;
+    AssertBool valcontextisDefined = alreadyDefinedSymbolClassNameByUTI(argvaluecontext, valuecontextcnsym);
+    assert(valcontextisDefined);
+
+    SymbolClass * superstubcopy = superctsym->copyAStubClassInstance(superuti, newstubcopyuti, argvaluecontext, newstubcopyuti, valuecontextcnsym->getUlamTypeIdx(), stubloc); //t3365. t41221
     assert(superstubcopy);
 
     return newstubcopyuti;
@@ -4037,6 +4046,18 @@ namespace MFM {
       }
     return rtnid;
   } //findNameIdOfCulamGeneratedTypedefTypeInThisContext (unused)
+
+  bool CompilerState::checkForAnyIncompleteTemplateClassInstances(UTI thisarg) {
+    assert(isClassATemplate(thisarg));
+
+    SymbolClassNameTemplate * cnsym = NULL;
+    AssertBool isDefined = alreadyDefinedSymbolClassNameTemplateByUTI(thisarg, cnsym);
+    assert(isDefined);
+
+    cnsym->fixAnyIncompleteClassInstances();
+
+    return false;
+  } // checkForAnyIncompleteTemplateClassInstances
 
   u32 CompilerState::getClassIdBits()
   {

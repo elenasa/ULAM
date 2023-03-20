@@ -1,0 +1,221 @@
+## -*- mode:ulam -*-
+#=t41651_test_compiler_elementinheritedquarks_templatebaseclasswithrecursivetypedeflocalsandcommonbase_issue
+##
+## gen output:
+## String(7) Arg: "adding left child"
+## String(1) Arg: "creating bond"
+## Unsigned Arg: 0
+## String(2) Arg: "outgoing"
+## String(4) Arg: " bo"
+## Unsigned Arg: 0
+## String(3) Arg: "incoming"
+## String(5) Arg: "bond created"
+## String(8) Arg: "adding right child"
+## String(1) Arg: "creating bond"
+## Unsigned Arg: 1
+## String(2) Arg: "outgoing"
+## String(4) Arg: " bo"
+## Unsigned Arg: 1
+## String(3) Arg: "incoming"
+## String(5) Arg: "bond created"
+##
+#!
+Exit status: -11
+Ue_R { Int test() {  A aele;  aele ( )behave . 0 cast return } }
+Ue_A { <NOMAIN> }
+Uq_TBond(Unsigned cTAG, Bool cSIDE) { typedef holder SiteNum;  typedef TBond(cTAG,cSIDE) Mate;  holder mBondSite(notready);  <NOMAIN> }
+Uq_EventWindow { typedef Unsigned(6) SiteNum;  <NOMAIN> }
+Uq_SystemU3 : System { :System<> <NOMAIN> }
+Uq_TreeBase : TBond(0u,true) +TBond(1u,true) { typedef Unsigned(6) SiteNum;  Bool mGrowFlag( false);  :TBond(0u,true)< typedef Unsigned(6) SiteNum;  typedef TBond(0u,false) Mate;  Unsigned(6) mBondSite( 0u); > +TBond(1u,true)< typedef Unsigned(6) SiteNum;  typedef TBond(1u,false) Mate;  Unsigned(6) mBondSite( 0u); > <NOMAIN> }
+Ue_TTree(Unsigned cTAG) : TreeBase +TBond(cTAG,false) { typedef Unsigned(6) SiteNum;  typedef TBond(0u,true) LeftBond;  typedef TBond(1u,true) RightBond;  :TreeBase< typedef Unsigned(6) SiteNum;  Bool mGrowFlag( false); > +TBond12< typedef holder SiteNum;  typedef TBond(cTAG,cSIDE) Mate;  holder mBondSite(notready); > <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## informed by Sergei fix 3/4/23; Like t41649 broken, except local typedefs used for TTree's.
+##
+#>R.ulam
+ ulam 5;
+element R {
+  Int test()
+  {
+    A aele;
+    aele.behave();
+
+    return 0;
+  }
+}
+
+#:TBond.ulam
+ ulam 5;
+local constant Unsigned cTAG_LEFT = 0u;
+local constant Unsigned cTAG_RIGHT = 1u;
+quark TBond(Unsigned cTAG, Bool cSIDE) {
+  typedef EventWindow.SiteNum SiteNum;
+  typedef TBond(cTAG, !cSIDE) Mate;
+
+  SiteNum mBondSite = 0u;
+
+  SiteNum getBondSite() {
+    return mBondSite;
+  }
+
+  Bool isBonded() {
+    return mBondSite != 0u;
+  }
+
+  Bool isOutgoing() {
+    return cSIDE;
+  }
+
+  //copy from working for print out
+  Unsigned getTag() {
+    return cTAG;
+  }
+
+  Void createBond(Atom& other) {
+    SystemU3 du;
+    du.print("creating bond");
+    du.print(getTag());
+    du.print(isOutgoing() ? "outgoing" : "incoming");
+    du.print(" bo");
+    Mate mate;
+    du.print(mate.getTag());
+    du.print(mate.isOutgoing() ? "outgoing" : "incoming");
+    if (other as Mate) {
+      mBondSite = 1;
+      other.mBondSite = 2;
+      du.print("bond created");
+    } else {
+      du.print("bond NOT created");
+      du.assert(false);
+    }
+  }
+}
+
+#:TreeBase.ulam
+  ulam 5;
+local constant Unsigned cTAG_LEFT = 0u;
+local constant Unsigned cTAG_RIGHT = 1u;
+quark TreeBase: TBond(cTAG_LEFT, true) + TBond(cTAG_RIGHT, true) {
+  typedef EventWindow.SiteNum SiteNum;
+
+  Bool mGrowFlag = false;
+
+  Void setGrowFlag() {
+    mGrowFlag = true;
+  }
+
+  SiteNum findEmptySite() {
+    //WindowServices ws;
+    //ws.reset(1u, 4u);
+    //ws.scan(WindowServices.cEMPTY_SITES_HIT);
+    //if (ws.getHits() == 0u)
+    //  return SiteNum.maxof;
+    //return ws.getPick();
+    return 4;
+  }
+}
+
+
+
+#:TTree.ulam
+  ulam 5;
+local constant Unsigned cTAG_LEFT = 0u;
+local constant Unsigned cTAG_RIGHT = 1u;
+local typedef TTree(cTAG_LEFT) LeftChild;
+local typedef TTree(cTAG_RIGHT) RightChild;
+element TTree(Unsigned cTAG) : TreeBase + TBond(cTAG, false) {
+  typedef EventWindow.SiteNum SiteNum;
+  typedef TBond(cTAG_LEFT, true) LeftBond;
+  typedef TBond(cTAG_RIGHT, true) RightBond;
+
+  Void behave() {
+    if (!mGrowFlag)
+      return;
+
+    if (!self.LeftBond.isBonded() && !addLeft())
+      return;
+
+    if (!self.RightBond.isBonded() && !addRight())
+      return;
+
+    mGrowFlag = false;
+  }
+
+  Bool addLeft() {
+    SiteNum site = findEmptySite();
+    if (site == SiteNum.maxof)
+      return false;
+
+    SystemU3 du;
+    du.print("adding left child");
+    EventWindow ew;
+    LeftChild child;
+    //TTree(cTAG_LEFT) child;
+    ew[site] = child;
+    self.LeftBond.createBond(ew[site]);
+    return true;
+  }
+
+  Bool addRight() {
+    SiteNum site = findEmptySite();
+    if (site == SiteNum.maxof)
+      return false;
+
+    SystemU3 du;
+    du.print("adding right child");
+    EventWindow ew;
+    RightChild child;
+    //TTree(cTAG_RIGHT) child;
+    ew[site] = child;
+    self.RightBond.createBond(ew[site]);
+    return true;
+  }
+}
+
+#:A.ulam
+  ulam 5;
+local constant Unsigned cTAG_LEFT = 0u;
+local typedef TTree(cTAG_LEFT) Tree;
+element A {
+  Void behave() {
+    EventWindow ew;
+    if (ew.isEmpty(1)) {
+      Tree tree;
+      //TTree(cTAG_LEFT) tree;
+      tree.setGrowFlag();
+      ew[1] = tree;
+      tree.behave();
+    }
+  }
+}
+
+#:EventWindow.ulam
+  ulam 3;
+quark EventWindow {
+  typedef Unsigned(6) SiteNum;
+  Atom& aref(Int index) native;
+  Bool isEmpty(SiteNum sn)
+  {
+    return (sn==1);
+  }
+}
+
+#:SystemU3.ulam
+  ulam 3;
+quark SystemU3 : System {
+  Void print(String s) native;
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

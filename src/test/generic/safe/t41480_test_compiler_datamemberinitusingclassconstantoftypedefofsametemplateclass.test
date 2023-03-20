@@ -38,7 +38,7 @@ quark Foo(Bool b, Unsigned(3) m) {
 
   typedef Self MooFoo; //defaults
 
-  typedef Foo(b,m+1) NewFoo;
+  typedef Foo(b,(Unsigned(3)) (m+1)) NewFoo;
 }
 
 #:System.ulam

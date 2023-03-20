@@ -304,6 +304,7 @@ namespace MFM {
       return nuti;
 
     UTI cuti = m_state.getCompileThisIdx();
+    assert(!m_varSymbol || m_varSymbol->getDataMemberClass() == cuti); //t41648
 
     //don't allow unions to initialize its data members (t3782)
     // but a quark/union data member may as long as they don't clobber.

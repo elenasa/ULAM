@@ -400,13 +400,21 @@ namespace MFM {
     //before patching in data member symbols, like typedef "super".
     UTI compilingthis = m_state.getCompileThisIdx();
     if(flagpAsAStubForTemplate(compilingthis) || flagpAsAStubForTemplateMemberStub(compilingthis))
-      newclassinstance->setStubForTemplateType(compilingthis); //t41225, t3336?
+      {
+        newclassinstance->setStubForTemplateType(compilingthis); //t41225, t3336?
+        if(getUlamTypeIdx() == compilingthis)
+          newclassinstance->setStubForTemplateTypeIncomplete(true);
+      }
 
     //a difference between them t41442
     if(m_state.isASeenClass(getUlamTypeIdx()))
       {
 	newclassinstance->partialInstantiationOfMemberNodesAndSymbols(*templateclassblock);
 	cloneAnInstancesUTImap(this, newclassinstance); //t3384,t3565??
+
+	//following Sergei's commit..20230311
+	if(getUlamTypeIdx() == compilingthis)
+          newclassinstance->setStubForTemplateTypeIncomplete(true); //t41648
       } //else wait if template is unseen
 
     return newclassinstance;
@@ -417,7 +425,7 @@ namespace MFM {
   //copying of Args done during upgradeStubCopyToAStub.. after merge, during c&l.
   //here, starts with  new class block and symbol, not clones;
   //note, template could still be unseen..
-  SymbolClass * SymbolClassNameTemplate::copyAStubClassInstance(UTI instance, UTI newuti, UTI argvaluecontext, UTI argtypecontext, Locator newloc)
+  SymbolClass * SymbolClassNameTemplate::copyAStubClassInstance(UTI instance, UTI newuti, UTI argvaluecontext, UTI argtypecontext, UTI valuecontextclassnametype, Locator newloc)
   {
     assert((getNumberOfParameters() > 0) || (getUlamClass() == UC_UNSEEN));
     assert(instance != newuti);
@@ -465,7 +473,8 @@ namespace MFM {
     if(isCATemplate)
       ((UlamTypeClass *) m_state.getUlamTypeByIndex(newuti))->setCustomArray(); //t41007
 
-    newclassinstance->mapUTItoUTI(instance, newuti); //map stub->stubcopy, instead of FUDGING. (t41224)
+    if(valuecontextclassnametype != getUlamTypeIdx()) //no mapping if recursive t41645
+      newclassinstance->mapUTItoUTI(instance, newuti); //map stub->stubcopy, instead of FUDGING. (t41224)
     newclassinstance->mapUTItoUTI(getUlamTypeIdx(), newuti); //map template->instance, instead of fudging
 
     //inheritance: (multi-inheritance ulam-5)
@@ -808,6 +817,31 @@ namespace MFM {
     assert(stubcsym->getContextForPendingArgValues() != Nouti); //sanity or set??
   } //fixAClassStubsDefaultArgs
 
+  void SymbolClassNameTemplate::fixAnyIncompleteClassInstances()
+  {
+    NodeBlockClass * templateclassblock = getClassBlockNode();
+    assert(templateclassblock);
+    std::map<UTI, SymbolClass*>::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
+    while (it != m_scalarClassInstanceIdxToSymbolPtr.end())
+      {
+        SymbolClass * sym = it->second;
+        assert(sym);
+
+        NodeBlockClass * cblock = sym->getClassBlockNode();
+        assert(cblock->getNodeNo() == templateclassblock->getNodeNo());
+
+        if(sym->isStubForTemplateTypeIncomplete())
+          {
+            // initBaseClassListForAStubClassInstance(sym);
+            sym->partialInstantiationOfMemberNodesAndSymbols(*templateclassblock);
+            cloneAnInstancesUTImap(this, sym);
+
+            sym->setStubForTemplateTypeIncomplete(false);
+          }
+
+        it++;
+      }
+  } // fixAnyIncompleteClassInstances
 
   bool SymbolClassNameTemplate::statusNonreadyClassArgumentsInStubClassInstances()
   {

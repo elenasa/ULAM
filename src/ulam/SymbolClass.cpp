@@ -11,11 +11,11 @@
 
 namespace MFM {
 
-  SymbolClass::SymbolClass(const Token& id, UTI utype, NodeBlockClass * classblock, SymbolClassNameTemplate * parent, CompilerState& state) : Symbol(id, utype, state), m_resolver(NULL), m_classBlock(classblock), m_parentTemplate(parent), m_quarkunion(false), m_stub(true), m_stubcopy(false), m_stubForTemplate(false), m_stubForTemplateType(Nouti), m_stubcopyOf(Nouti), /*m_defaultValue(NULL),*/ m_isreadyDefaultValue(false) /* default */, m_bitsPacked(false), m_registryNumber(UNINITTED_REGISTRY_NUMBER), m_elementType(UNDEFINED_ELEMENT_TYPE), m_vtableinitialized(false)
+  SymbolClass::SymbolClass(const Token& id, UTI utype, NodeBlockClass * classblock, SymbolClassNameTemplate * parent, CompilerState& state) : Symbol(id, utype, state), m_resolver(NULL), m_classBlock(classblock), m_parentTemplate(parent), m_quarkunion(false), m_stub(true), m_stubcopy(false), m_stubForTemplate(false), m_stubForTemplateType(Nouti), m_stubForTemplateTypeIncomplete(false), m_stubcopyOf(Nouti), /*m_defaultValue(NULL),*/ m_isreadyDefaultValue(false) /* default */, m_bitsPacked(false), m_registryNumber(UNINITTED_REGISTRY_NUMBER), m_elementType(UNDEFINED_ELEMENT_TYPE), m_vtableinitialized(false)
   {
     appendBaseClass(Nouti, true);
   }
-  SymbolClass::SymbolClass(const SymbolClass& sref) : Symbol(sref), m_resolver(NULL), m_parentTemplate(sref.m_parentTemplate), m_quarkunion(sref.m_quarkunion), m_stub(sref.m_stub), m_stubcopy(sref.m_stubcopy), m_stubForTemplate(false), m_stubForTemplateType(Nouti), m_stubcopyOf(sref.m_stubcopyOf), /*m_defaultValue(NULL),*/ m_isreadyDefaultValue(false), m_bitsPacked(false), m_registryNumber(UNINITTED_REGISTRY_NUMBER), m_elementType(UNDEFINED_ELEMENT_TYPE), m_vtableinitialized(false)
+  SymbolClass::SymbolClass(const SymbolClass& sref) : Symbol(sref), m_resolver(NULL), m_parentTemplate(sref.m_parentTemplate), m_quarkunion(sref.m_quarkunion), m_stub(sref.m_stub), m_stubcopy(sref.m_stubcopy), m_stubForTemplate(false), m_stubForTemplateType(Nouti), m_stubForTemplateTypeIncomplete(false), m_stubcopyOf(sref.m_stubcopyOf), /*m_defaultValue(NULL),*/ m_isreadyDefaultValue(false), m_bitsPacked(false), m_registryNumber(UNINITTED_REGISTRY_NUMBER), m_elementType(UNDEFINED_ELEMENT_TYPE), m_vtableinitialized(false)
   {
     resetUlamType(m_state.getCompileThisIdx()); //symbols Hzy by default
 
@@ -138,6 +138,16 @@ namespace MFM {
   {
     m_stubForTemplateType = ttype;
     setStubForTemplate();
+  }
+
+  bool SymbolClass::isStubForTemplateTypeIncomplete()
+  {
+    return m_stubForTemplateTypeIncomplete;
+  }
+
+  void SymbolClass::setStubForTemplateTypeIncomplete(bool incomplete)
+  {
+    m_stubForTemplateTypeIncomplete = incomplete;
   }
 
   u32 SymbolClass::getBaseClassCount()
@@ -957,7 +967,7 @@ namespace MFM {
 
     m_state.pushClassContext(suti, cblock, cblock, false, NULL);
 
-    cblock->setDataMembersParseTree(suti, fromclassblock);
+    cblock->resetDataMembersParseTree(suti, fromclassblock);
     cblock->updateLineage(0);
     cblock->setDataMembersSymbolTable(suti, fromclassblock);
 

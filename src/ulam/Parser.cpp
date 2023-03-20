@@ -482,7 +482,11 @@ namespace MFM {
 	rtnNode = NULL;
       }
     else
-      m_state.checkforAnyRemainingCulamGeneratedTypedefsInThisContext(cnsym->getUlamTypeIdx()); //t3347,t3544, ulamexports
+      {
+	m_state.checkforAnyRemainingCulamGeneratedTypedefsInThisContext(cnsym->getUlamTypeIdx()); //t3347,t3544, ulamexports
+	if (cnsym->isClassTemplate())
+	  m_state.checkForAnyIncompleteTemplateClassInstances(cnsym->getUlamTypeIdx());
+      }
 
     //this block's ST is no longer in scope
     m_state.popClassContext(); //m_currentBlock = prevBlock;
