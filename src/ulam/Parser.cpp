@@ -4032,7 +4032,7 @@ namespace MFM {
   Node * Parser::parseFunctionCall(const Token& identTok)
   {
     Symbol * asymptr = NULL;
-    // local variable should not shadow a method in other class (t41645)
+    // local variable should not shadow a method in other class (t41652)
     NodeBlock * currBlock = m_state.getCurrentMemberClassBlock();
 
     //cannot call a function if a local variable name shadows it

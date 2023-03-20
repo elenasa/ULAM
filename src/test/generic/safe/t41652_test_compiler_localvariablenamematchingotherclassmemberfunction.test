@@ -1,5 +1,5 @@
 ## -*- mode:ulam -*-
-#=t41644_test_compiler_localvariablenamematchingotherclassmemberfunction
+#=t41652_test_compiler_localvariablenamematchingotherclassmemberfunction
 ##
 ##  gen output:
 ##  "ok"
@@ -46,7 +46,6 @@ quark QTool {
 ulam 1;
 quark System {
 Void print(String arg) native;
-Void print(Unsigned arg) native;
 }
 
 #.
