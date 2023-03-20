@@ -1,10 +1,12 @@
 ## -*- mode:ulam -*-
 #=t3129_test_compiler_funcdefshadowbydatamember_error
 #!
-./D.ulam:17:3: ERROR: 'times' cannot be a variable because it has a previous declaration at: ..
+./D.ulam:6:5: ERROR: 'e' cannot be a variable because it has a previous declaration of type 'Int' at: ..
+./D.ulam:5:9: ERROR: .. this location.
+./D.ulam:18:3: ERROR: 'times' cannot be a variable because it has a previous declaration at: ..
 ./D.ulam:4:7: ERROR: .. this location.
 ./D.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'D'; Possible missing ending curly brace.
-./D.ulam:17:12: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+./D.ulam:18:12: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 ./D.ulam:2:9: ERROR: Invalid Type: D.
  ERROR: No parse tree for This Class: D.
 Unrecoverable Program Parse FAILURE: <D.ulam>
@@ -19,6 +21,7 @@ element D {
   Int t;
   Int times(Int m, Int n) {
     Int e;
+    Int e;  //NOT OKAY
     while( m-- > 0 ) e += n;
     return e;
   }
