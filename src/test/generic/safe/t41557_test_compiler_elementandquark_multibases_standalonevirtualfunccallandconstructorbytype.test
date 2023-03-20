@@ -1,0 +1,72 @@
+## -*- mode:ulam -*-
+#=t41557_test_compiler_elementandquark_multibases_standalonevirtualfunccallandconstructorbytype
+##
+##  gen output: 1 assert
+##
+#!
+Exit status: 311
+Ue_Foo : System { Int ans(311);  :System<> Int test() {  QBase3 vfuncb = vfuncb ( 3 cast )Self .;  self ans . vfuncb ( 3 cast )vfuncb . = self ( self ans . 311 cast == )assert . vfuncb ( 3 cast )vfuncb . return } }
+Uq_System { <NOMAIN> }
+Ue_E4 : QBase3 +QBase1 { :QBase3< Bool m_b3(false); > +QBase1< Bool m_b1(false); > <NOMAIN> }
+Uq_QBase3 { Bool m_b3(false);  <NOMAIN> }
+Uq_QBase1 { Bool m_b1(false);  <NOMAIN> }
+##
+##   see also t41556,8; and t41652
+##
+#>Foo.ulam
+  ulam 4;
+element Foo : System {
+  Int ans;
+
+  Int test()
+  {
+    E4.QBase3 vfuncb(3); //constructor call, makes vfuncb of type QBase3
+    ans = vfuncb.vfuncb(3);
+    assert(ans==311);
+    return vfuncb.vfuncb(3); //no longer error!! see t41652
+
+  }
+}
+
+
+#:E4.ulam
+  ulam 5;
+element E4 : QBase3 +QBase1 {
+  virtual Int vfuncc() { return 412; }
+  virtual Int vfunca() { return 410; }
+  virtual Void behave() { }
+}
+
+#:QBase1.ulam
+    ulam 4;
+quark QBase1 {
+  Bool m_b1;
+  Void funcNotVirtualSoIrrelevantHere() { }
+  virtual Int vfuncb(Int b) { return 111; }   //ambiguous
+  virtual Int vfunca() { return 110; }
+}
+
+
+#:QBase3.ulam
+  ulam 4;
+quark QBase3 {
+  Bool m_b3;
+  virtual Int vfuncb(Int b) { return 311; }
+  Self(Int b)
+  { m_b3 = (b < 3); }
+}
+
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

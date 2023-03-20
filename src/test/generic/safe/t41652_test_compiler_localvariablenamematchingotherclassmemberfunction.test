@@ -1,17 +1,19 @@
 ## -*- mode:ulam -*-
 #=t41652_test_compiler_localvariablenamematchingotherclassmemberfunction
 ##
-##  gen output:
-##  "ok"
+##  gen output: (+ 1 assert)
+##    String(1) Arg: "ok"
 ##
 #!
 Exit status: 0
 Ue_A { Int test() {  QUser user;  user ( )printStatus . 0 cast return } }
-Uq_QUser : System { QTool tool();  :System<> <NOMAIN> }
-Uq_System { <NOMAIN> }
+Uq_QUser : SystemU3 { QTool tool();  :SystemU3<> ^System<> <NOMAIN> }
+Uq_SystemU3 : System { :System<> <NOMAIN> }
 Uq_QTool { <NOMAIN> }
+Uq_System { <NOMAIN> }
 ##
-##
+## Informed by issue raised by Sergei (mngr777) 3/19/2023, and long requested by Dave.
+##  error test t41557 now safe; see also error/t3129.
 ##
 #>A.ulam
   ulam 5;
@@ -25,27 +27,48 @@ element A {
 
 #:QUser.ulam
   ulam 5;
-quark QUser : System {
+quark QUser : SystemU3 {
   QTool tool;
 
   Void printStatus() {
     Bool isOk = tool.isOk(); // local variable name can match method name
     print(isOk ? "ok" : "error");
+    assert(isOk);
   }
 }
 
 #:QTool.ulam
   ulam 5;
 quark QTool {
-  Bool isOk() {
-    return true;
+  Bool checkOk()
+  {
+    Bool isOk = isOk(); //self.isOk() not necessary
+    return isOk;
   }
+
+  Bool isOk() {
+    Bool isOk = true; //local var same name as function okay too!
+    return isOk;
+  }
+  //Bool isOk; //not allowed as data member (t3129).
+}
+
+
+#:SystemU3.ulam
+  ulam 3;
+quark SystemU3 : System {
+  Void print(String s) native;
 }
 
 #:System.ulam
 ulam 1;
 quark System {
-Void print(String arg) native;
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
 }
-
 #.

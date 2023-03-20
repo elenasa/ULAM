@@ -3744,6 +3744,8 @@ namespace MFM {
     //function call, otherwise lvalExpr or member select
     if(pTok.m_type == TOK_OPEN_PAREN)
       {
+#if 0
+	//do we care?? t41652
 	Symbol * asymptr = NULL;
 	bool hazyKin = false; //don't care
 	//may continue when symbol not defined yet (e.g. FuncCall)
@@ -3760,6 +3762,7 @@ namespace MFM {
 	    MSG(m_state.getFullLocationAsString(asymptr->getLoc()).c_str(), imsg.str().c_str(), ERR);
 	    return  NULL; //bail
 	  }
+#endif
 	//function call, here
 	rtnNode = parseFunctionCall(identTok);
       }
@@ -4035,6 +4038,7 @@ namespace MFM {
 
   Node * Parser::parseFunctionCall(const Token& identTok)
   {
+#if 0
     Symbol * asymptr = NULL;
     // local variable should not shadow a method in other class (t41652)
     NodeBlock * currBlock = m_state.getCurrentMemberClassBlock();
@@ -4046,7 +4050,7 @@ namespace MFM {
 
 	std::ostringstream msg;
 	msg << "'" << m_state.m_pool.getDataAsString(asymptr->getId()).c_str();
-	msg << "' cannot be a function because it is already declared as a variable";
+	msg << "' cannot be a FUNCTION because it is already declared as a variable";
 	if(m_state.okUTItoContinue(auti) && !m_state.isHolder(auti))
 	  {
 	    msg << " of type ";
@@ -4060,6 +4064,7 @@ namespace MFM {
 	MSG(m_state.getFullLocationAsString(asymptr->getLoc()).c_str(), imsg.str().c_str(), ERR);
 	return NULL;
       }
+#endif
 
     //fill in func symbol during type labeling; supports function overloading
     NodeFunctionCall * rtnNode = new NodeFunctionCall(identTok, NULL, m_state);
@@ -4067,7 +4072,7 @@ namespace MFM {
     rtnNode->setNodeLocation(identTok.m_locator);
 
     //member selection doesn't apply to arguments (during parsing too)
-    currBlock = m_state.getCurrentBlock();
+    NodeBlock * currBlock = m_state.getCurrentBlock(); //t41652,t41557
     m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
 
     SYMBOLTYPEFLAG saveTheFlag = m_state.m_parsingVariableSymbolTypeFlag;
@@ -6089,7 +6094,7 @@ Node * Parser::wrapFactor(Node * leftNode)
 		//else
 
 		msg << " at: ."; //..
-		MSG(&args.m_typeTok, msg.str().c_str(), ERR);
+		MSG(&args.m_typeTok, msg.str().c_str(), ERR); //t3129
 
 		std::ostringstream imsg;
 		imsg << ".. this location";
