@@ -4036,7 +4036,8 @@ namespace MFM {
   Node * Parser::parseFunctionCall(const Token& identTok)
   {
     Symbol * asymptr = NULL;
-    NodeBlock * currBlock = m_state.getCurrentBlock();
+    // local variable should not shadow a method in other class (t41652)
+    NodeBlock * currBlock = m_state.getCurrentMemberClassBlock();
 
     //cannot call a function if a local variable name shadows it
     if(currBlock && currBlock->isIdInScope(identTok.m_dataindex,asymptr))
@@ -4066,6 +4067,7 @@ namespace MFM {
     rtnNode->setNodeLocation(identTok.m_locator);
 
     //member selection doesn't apply to arguments (during parsing too)
+    currBlock = m_state.getCurrentBlock();
     m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
 
     SYMBOLTYPEFLAG saveTheFlag = m_state.m_parsingVariableSymbolTypeFlag;
