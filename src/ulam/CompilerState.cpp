@@ -1142,14 +1142,6 @@ namespace MFM {
 	  {
 	    if(isClassATemplate(suti))
 	      return cuti;
-
-#if 0
-	    //gives wrong type! mngr777 Sergei's ish 3/4/23 t41649
-	    if(cnsymOfIncomplete->hasInstanceMappedUTI(suti, cuti, mappedUTI))
-	      {
-		return mappedUTI;  //stops inf loop? only if same class name
-	      }
-#endif
 	  }
 
 	if(!isClassAStub(suti))
@@ -3321,14 +3313,7 @@ namespace MFM {
 		  }
 		else
 		  {
-		    rtnb = false;
-#if 0
-		    std::ostringstream msg;
-		    msg << "Class with parameters seen with the same name: ";
-		    msg << m_pool.getDataAsString(cnsym->getId()).c_str();
-		    MSG2(&tok, msg.str().c_str(), ERR); //No corresponding Nav Node for this ERR
-		    kuti = Nav; //not like Resolver does (t3868)
-#endif
+		    rtnb = false; //t3868
 		  }
 	      }
 	    else

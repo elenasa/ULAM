@@ -3744,22 +3744,6 @@ namespace MFM {
     //function call, otherwise lvalExpr or member select
     if(pTok.m_type == TOK_OPEN_PAREN)
       {
-	Symbol * asymptr = NULL;
-	bool hazyKin = false; //don't care
-	//may continue when symbol not defined yet (e.g. FuncCall)
-	m_state.alreadyDefinedSymbol(identTok.m_dataindex, asymptr, hazyKin);
-	if(asymptr && !asymptr->isFunction())
-	  {
-	    std::ostringstream msg;
-	    msg << "Undefined function '" << m_state.getTokenDataAsString(identTok).c_str();
-	    msg << "' has already been declared as a variable at: ."; //..
-	    MSG(&identTok, msg.str().c_str(), ERR);
-
-	    std::ostringstream imsg;
-	    imsg << ".. this location"; //t3129
-	    MSG(m_state.getFullLocationAsString(asymptr->getLoc()).c_str(), imsg.str().c_str(), ERR);
-	    return  NULL; //bail
-	  }
 	//function call, here
 	rtnNode = parseFunctionCall(identTok);
       }
@@ -4035,39 +4019,13 @@ namespace MFM {
 
   Node * Parser::parseFunctionCall(const Token& identTok)
   {
-    Symbol * asymptr = NULL;
-    // local variable should not shadow a method in other class (t41652)
-    NodeBlock * currBlock = m_state.getCurrentMemberClassBlock();
-
-    //cannot call a function if a local variable name shadows it
-    if(currBlock && currBlock->isIdInScope(identTok.m_dataindex,asymptr))
-      {
-	UTI auti = asymptr->getUlamTypeIdx();
-
-	std::ostringstream msg;
-	msg << "'" << m_state.m_pool.getDataAsString(asymptr->getId()).c_str();
-	msg << "' cannot be a function because it is already declared as a variable";
-	if(m_state.okUTItoContinue(auti) && !m_state.isHolder(auti))
-	  {
-	    msg << " of type ";
-	    msg << m_state.getUlamTypeNameByIndex(auti).c_str();
-	  }
-	msg << " at: ."; //..
-	MSG(&identTok, msg.str().c_str(), ERR);
-
-	std::ostringstream imsg;
-	imsg << ".. this location";
-	MSG(m_state.getFullLocationAsString(asymptr->getLoc()).c_str(), imsg.str().c_str(), ERR);
-	return NULL;
-      }
-
     //fill in func symbol during type labeling; supports function overloading
     NodeFunctionCall * rtnNode = new NodeFunctionCall(identTok, NULL, m_state);
     assert(rtnNode);
     rtnNode->setNodeLocation(identTok.m_locator);
 
     //member selection doesn't apply to arguments (during parsing too)
-    currBlock = m_state.getCurrentBlock();
+    NodeBlock * currBlock = m_state.getCurrentBlock(); //t41652,t41557
     m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
 
     SYMBOLTYPEFLAG saveTheFlag = m_state.m_parsingVariableSymbolTypeFlag;
@@ -6089,7 +6047,7 @@ Node * Parser::wrapFactor(Node * leftNode)
 		//else
 
 		msg << " at: ."; //..
-		MSG(&args.m_typeTok, msg.str().c_str(), ERR);
+		MSG(&args.m_typeTok, msg.str().c_str(), ERR); //t3129
 
 		std::ostringstream imsg;
 		imsg << ".. this location";
