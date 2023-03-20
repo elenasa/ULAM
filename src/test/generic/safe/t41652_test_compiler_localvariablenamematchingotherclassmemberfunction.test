@@ -1,0 +1,51 @@
+## -*- mode:ulam -*-
+#=t41652_test_compiler_localvariablenamematchingotherclassmemberfunction
+##
+##  gen output:
+##  "ok"
+##
+#!
+Exit status: 0
+Ue_A { Int test() {  QUser user;  user ( )printStatus . 0 cast return } }
+Uq_QUser : System { QTool tool();  :System<> <NOMAIN> }
+Uq_System { <NOMAIN> }
+Uq_QTool { <NOMAIN> }
+##
+##
+##
+#>A.ulam
+  ulam 5;
+element A {
+  Int test() {
+    QUser user;
+    user.printStatus();
+    return 0;
+  }
+}
+
+#:QUser.ulam
+  ulam 5;
+quark QUser : System {
+  QTool tool;
+
+  Void printStatus() {
+    Bool isOk = tool.isOk(); // local variable name can match method name
+    print(isOk ? "ok" : "error");
+  }
+}
+
+#:QTool.ulam
+  ulam 5;
+quark QTool {
+  Bool isOk() {
+    return true;
+  }
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(String arg) native;
+}
+
+#.
