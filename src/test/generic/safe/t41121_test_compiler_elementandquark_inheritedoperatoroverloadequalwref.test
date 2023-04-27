@@ -11,7 +11,7 @@ Uq_QW { Bool first( true);  Int(4) m_i(0);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 ## test inherited overload operator equal for an element using refs
-## informed by t41120.
+## informed by t41120. see also t41653.
 ##
 #>Foo.ulam
   ulam 3;
@@ -42,7 +42,6 @@ quark QW {
     m_i = arg.m_i;
     first = false; //changes dm
   }
-
 }
 
 #:System.ulam

@@ -1,0 +1,60 @@
+## -*- mode:ulam -*-
+#=t41653_test_compiler_elementandquark_copyrefintoself_ish
+##
+##  gen code output: (+ 2 asserts)
+##	 Int(4) Arg: 0x4
+##	 Int(4) Arg: 0x0
+##
+#!
+Exit status: 4
+Ue_Foo : QW { Bool first(true);  Int(4) m_i(0);  :QW<> Int test() {  System s;  Foo f;  Foo g;  f m_i . 4 = QW& gqref = g cast;  QW& fqref = f cast;  g ( fqref )copyQW . s ( g first . )assert . s ( f m_i . )print . s ( g m_i . )print . s ( f m_i . g m_i . != )assert . f m_i . cast return } }
+Uq_QW { <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## 4/27/2023 Dave ish: gencode uncompilable by gcc, extra close brace due to zero length copy;
+##           informed by t41121.
+##
+#>Foo.ulam
+  ulam 3;
+element Foo : QW {
+  Bool first = true;
+  Int(4) m_i;
+
+  Int test() {
+    System s;
+    Foo f,g;
+    f.m_i = 4;
+    QW& gqref = g;
+    QW& fqref = f;
+    g.copyQW(fqref);
+    s.assert(g.first);
+    s.print(f.m_i); //prints 4
+    s.print(g.m_i); //prints 0
+    s.assert(f.m_i != g.m_i);
+    return f.m_i;
+  }
+}
+
+#:QW.ulam
+  ulam 3;
+quark QW {
+
+  Void copyQW(QW& srcqw)
+  {
+    self = srcqw; //Bad gencode, extra close brace, due to zero length QW
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.
