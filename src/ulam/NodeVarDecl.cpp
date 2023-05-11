@@ -626,8 +626,8 @@ namespace MFM {
 		m_state.statusUnknownTypeInThisClassResolver(vit);
 		vit = eit;
 	      }
-	    //switch block variable non-ref (t41581)
-	    if(m_state.isAltRefType(vit))
+	    //switch block variable non-ref (t41581), including ALT_ARRAYITEM (t41656)
+	    if(m_state.isReference(vit))
 	      {
 		vit = m_state.getUlamTypeAsDeref(vit);
 		m_varSymbol->resetUlamType(vit); //consistent!
@@ -954,7 +954,7 @@ namespace MFM {
 
     assert(m_varSymbol->getUlamTypeIdx() == nuti); //is it so? if so, some cleanup needed
 
-    assert(!m_varSymbol->isAutoLocal()); //NodeVarRef::eval
+    assert(!m_varSymbol->isAutoLocal()); //NodeVarRef::eval t41656
 
     assert(!m_varSymbol->isDataMember()); //see NodeVarDeclDM
 
@@ -1401,7 +1401,7 @@ namespace MFM {
 	return selfuvp;
       } //done
 
-    assert(!m_varSymbol->isAutoLocal()); //nodevarref, not here!
+    assert(!m_varSymbol->isAutoLocal()); //nodevarref, not here! t41656
     assert(!m_varSymbol->isDataMember());
     //local variable on the stack; could be array ptr!
     ptr = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, getNodeType(), m_state.determinePackable(getNodeType()), m_state, 0, m_varSymbol->getId());
@@ -1415,7 +1415,7 @@ namespace MFM {
     assert(m_state.isComplete(getNodeType()));
 
     assert(!m_varSymbol->isDataMember()); //NodeVarDeclDM::genCode
-    assert(!m_varSymbol->isAutoLocal()); //NodeVarRef::genCode
+    assert(!m_varSymbol->isAutoLocal()); //NodeVarRef::genCode t41656
 
     UTI vuti = m_varSymbol->getUlamTypeIdx();
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
