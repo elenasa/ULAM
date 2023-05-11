@@ -1,0 +1,111 @@
+## -*- mode:ulam -*-
+#=t41655_test_compiler_elementandquark_nativefailcallinbaseofbasesfails_ish
+##
+##  gen code output: (+ 1 asserts)
+##	 String(1) Arg: "BOOM"
+##
+#!
+Exit status: 0
+Ue_R { Int test() {  MyElement e;  e ( )behave . 0 cast return } }
+Ue_MyElement : B3 { :B3<> ^V<> ^B1< Unsigned(10) mB1M1(0); > ^B2< Unsigned(30) mB2M1(0); > ^Fail<> <NOMAIN> }
+Uq_B3 : B2 +B1 { :B2< Unsigned(30) mB2M1(0); > +B1< Unsigned(10) mB1M1(0); > ^V<> ^Fail<> <NOMAIN> }
+Uq_V { <NOMAIN> }
+Uq_B1 +Fail { Unsigned(10) mB1M1(0);  +Fail<> <NOMAIN> }
+Uq_Fail { <NOMAIN> }
+Uq_B2 : V { Unsigned(30) mB2M1(0);  :V<> <NOMAIN> }
+Uq_SystemU3 : System { :System<> <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## 20230508 ish 164154: Dave found problem with data member position in B1;
+##          fix in MFM/UlamRef.tcc:CreateAtom() to read from effective self pos, not just pos.
+##          This simplified test for native Fail, did not recreate the issue.
+#>R.ulam
+  ulam 5;
+element R {
+  Int test() {
+    MyElement e;
+    e.behave();
+    return 0;
+  }
+}
+
+
+#:MyElement.ulam
+  ulam 5;
+element MyElement : B3 {
+  Void behave() {
+    func();
+    /* ^^^ Expected that to fail with like:
+20230508163951-244: 0AEPS [881A7E87]MSG: FAIL (0x001F) by 46800F800000000000000000 in [0,0] site [36,16]: BOOM
+20230508163951-245: 0AEPS [881A7E87]MSG: T[0,0]@S[36,16]: behave() failed at /tmp/failhunt/code/.gen/src/../include/Uq_10104Fail10_native.tcc:42: DESCRIBED_FAILURE (site type 0x001F)
+
+       but it's failing with like:
+
+20230508163511-244: 0AEPS [ECBE32D7]MSG: T[0,0]@S[38,17]: behave() failed at ../../../src/core/include/BitVector.h:207: ILLEGAL_ARGUMENT (site type 0x001F)
+20230508163511-245: 0AEPS [ECBE32D7]MSG: BACKTRACE  ->  0: MFM::AtomRefBitStorage<MFM::EventConfig<MFM::Site<MFM::P3AtomConfig>, 4> >::ReadBig(unsigned int, unsigned int) const + 0x2FA
+ ->  1: MFM::UlamRef<MFM::EventConfig<MFM::Site<MFM::P3AtomConfig>, 4> >::CreateAtom() const + 0xE9
+ ->  2: MFM::Uq_10104Fail10<MFM::EventConfig<MFM::Site<MFM::P3AtomConfig>, 4> >::Uf_4fail(MFM::UlamContext<MFM::EventConfig<MFM::Site<MFM::P3AtomConfig>, 4> > const&, MFM::UlamRef<MFM::EventConfig<MFM::Site<MFM::P3AtomConfig>, 4> >&, MFM::Ui_Uq_r10109210ByteStream10<MFM::EventConfig<MFM::Site<MFM::P3AtomConfig>, 4> >&) const + 0x2C5
+ ->  3: MFM::Uq_10104Fail10<MFM::EventConfig<MFM::Site<MFM::P3AtomConfig>, 4> >::Uf_4fail(MFM::UlamContext<MFM::EventConfig<MFM::Site<MFM::P3AtomConfig>, 4> > const&, MFM::UlamRef<MFM::EventConfig<MFM::Site<MFM::P3AtomConfig>, 4> >&, MFM::Ui_Ut_102181s<MFM::EventConfig<MFM::Site<MFM::P3AtomConfig>, 4> >&, MFM::Ui_Ut_102321u<MFM::EventConfig<MFM::Site<MFM::P3AtomConfig>, 4> >&) const + 0x3AC
+ ->  4: (null) + 0xBB3297C9
+ ->  5: MFM::Ue_10240919MyElement10<MFM::EventConfig<MFM::Site<MFM::P3AtomConfig>, 4> >::Uf_6behave(MFM::UlamContext<MFM::EventConfig<MFM::Site<MFM::P3AtomConfig>, 4> > const&, MFM::UlamRef<MFM::EventConfig<MFM::Site<MFM::P3AtomConfig>, 4> >&) + 0xD2
+ ..
+    */
+  }
+}
+
+#:V.ulam
+  ulam 5;
+quark V { virtual Void func(); }
+
+#:B1.ulam
+  ulam 5;
+quark B1 + Fail {
+  Unsigned(10) mB1M1; // IF THIS LINE IS COMMENTED OUT THE FAIL WORKS AS EXPECTED
+}
+
+#:B2.ulam
+  ulam 5;
+quark B2 : V {
+  Unsigned(30) mB2M1;
+}
+
+#:B3.ulam
+  ulam 5;
+quark B3 : B2 + B1 {
+  @Override Void func() {
+    fail("BOOM");
+  }
+}
+
+#:Fail.ulam
+  ulam 5;
+quark Fail
+{
+  //this simplified version does not reproduce the problem! see share/native
+  Void fail(String str)
+  {
+    SystemU3 s;
+    s.print(str);
+    s.assert(true);
+  }
+}
+
+#:SystemU3.ulam
+  ulam 3;
+quark SystemU3 : System {
+  Void print(String s) native;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.
