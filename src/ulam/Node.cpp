@@ -1820,8 +1820,8 @@ namespace MFM {
       }
     else
       {
-	fp->write("/* noop */ ");
-	fp->write("} "); GCNL;
+	m_state.indentUlamCode(fp);
+	fp->write("/* noop - zero length copy */ "); GCNL; ////t41653 had extra close brace
       }
     fp->write("\n");
 
