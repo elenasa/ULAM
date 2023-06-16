@@ -1016,7 +1016,8 @@ namespace MFM {
       genCodeCastFromAReference(fp, uvpass);
     else if(isExplicitCast())
       uvpass.setPassTargetType(getCastType()); //minimal casting; e.g. to/fm Bits (t41570)
-    assert(uvpass.getPassTargetType() == getCastType());
+      //assert(uvpass.getPassTargetType() == getCastType());
+      assert(UlamType::compare(uvpass.getPassTargetType(), getCastType(), m_state) == UTIC_SAME); //ish 20230603
   } //genCode
 
  void NodeCast::genCodeToStoreInto(File * fp, UVPass& uvpass)
