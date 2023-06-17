@@ -1302,10 +1302,32 @@ sub runUlamCompilations
     return $status ne "";
 }
 
+sub cheapDemangle {
+    my $mang = shift;
+    $mang =~ /^U._[0-9]+((_l)?[A-Z][A-Za-z0-9_]*)/ or die "demangle ($mang)?";
+    return $1;
+}
+
+sub cmpDemangled {
+    my ($a,$b) = @_;
+    my ($da,$db) = (cheapDemangle($a),cheapDemangle($b));
+    return $da cmp $db;
+}
+
+sub sortDemangled {
+    my @list = @_;
+    my @sortedlist = sort { cmpDemangled($a,$b) } @list;
+    for my $name (@sortedlist) {
+        pISC("## DEMANGLE ($name)");
+    }
+    return @sortedlist;
+}
+
 sub runUlamInfoGeneration
 {
 #    $SHOW_ALL = 1;
     pISC("## Extract ulam element information");
+    @elementCNamesFromUlam = sortDemangled(@elementCNamesFromUlam);
     for my $eltCName (@elementCNamesFromUlam) {
         my $ufile = $classCNameToUlamFile{$eltCName};
         my $uname = $classCNameToUlamName{$eltCName};
@@ -1410,7 +1432,8 @@ EOF
     # PROCESS THE QUARKS AND TRANSIENTS AND LOCALSFILESCOPE
     {
         my %seen;
-        for my $en (@quarkCNamesFromUlam, @transientCNamesFromUlam, @localsfilescopeCNamesFromUlam) {
+        my @rest = sortDemangled(@quarkCNamesFromUlam, @transientCNamesFromUlam, @localsfilescopeCNamesFromUlam);
+        for my $en (@rest) {
             next if $seen{$en};
             $seen{$en} = 1;
 
