@@ -190,13 +190,13 @@ donothavedemokey:	FORCE
 
 $(MFM_ROOT_DIR)/res/elements/libue%.so:	$(ULAMDIR)/%/*.ulam
 ##	./bin/ulam -lo --sd $(ULAMDIR)/core --sd $(ULAMDIR)/$* $(^:$(ULAMDIR)/$*/%=%)
-	./bin/ulam -lo --sa --sd $(ULAMDIR)/core --sd $(ULAMDIR)/$* $(^:$(ULAMDIR)/$*/%=%)
+	./bin/ulam -j 0 -lo --sa --sd $(ULAMDIR)/core --sd $(ULAMDIR)/$* $(^:$(ULAMDIR)/$*/%=%)
 	mv -f $(ULAMWORKDIR)/bin/libcue.so "$@"
 	rm -rf $(ULAMWORKDIR)
 
 $(MFM_ROOT_DIR)/res/elements/demos/libue%.so:	$(ULAMDIR)/demos/%/*.ulam
 	mkdir -p $(MFM_ROOT_DIR)/res/elements/demos
-	./bin/ulam -lo --sd $(ULAMDIR)/core --sd $(ULAMDIR)/demos/$* $(^:$(ULAMDIR)/demos/$*/%=%)
+	./bin/ulam -j 0 -lo --sd $(ULAMDIR)/core --sd $(ULAMDIR)/demos/$* $(^:$(ULAMDIR)/demos/$*/%=%)
 	mv -f $(ULAMWORKDIR)/bin/libcue.so "$@"
 	rm -rf $(ULAMWORKDIR)
 
@@ -205,7 +205,7 @@ ULAM_DEMO_LIST_FILE:=$(MFM_ROOT_DIR)/res/elements/demos.dat
 $(MFM_ROOT_DIR)/res/elements/demos/%.mfz:	$(ULAMDIR)/demos/%/*.ulam
 	mkdir -p $(MFM_ROOT_DIR)/res/elements/demos
 ##	./bin/ulam -kd $(TMP_KEY_DIR) -z $(ULAMDEMOKEY) -o --sc --sd $(ULAMDIR)/core --sd $(ULAMDIR)/demos/$* $(^:$(ULAMDIR)/demos/$*/%.ulam=%.ulam) $@ $(wildcard $(ULAMDIR)/demos/$*/*.mfs) $(wildcard $(ULAMDIR)/demos/$*/args.txt)
-	./bin/ulam -kd $(TMP_KEY_DIR) -z $(ULAMDEMOKEY) -o --sa --sc --sd $(ULAMDIR)/core --sd $(ULAMDIR)/demos/$* $(^:$(ULAMDIR)/demos/$*/%.ulam=%.ulam) $@ $(wildcard $(ULAMDIR)/demos/$*/*.mfs) $(wildcard $(ULAMDIR)/demos/$*/args.txt)
+	./bin/ulam -kd $(TMP_KEY_DIR) -j 0 -z $(ULAMDEMOKEY) -o --sa --sc --sd $(ULAMDIR)/core --sd $(ULAMDIR)/demos/$* $(^:$(ULAMDIR)/demos/$*/%.ulam=%.ulam) $@ $(wildcard $(ULAMDIR)/demos/$*/*.mfs) $(wildcard $(ULAMDIR)/demos/$*/args.txt)
 	mv -f $(ULAMWORKDIR)/bin/libcue.so "$(MFM_ROOT_DIR)/res/elements/demos/libue$*.so"
 	printf "$*\0elements/demos/$*.mfz\0elements/demos/libue$*.so\0$(^:$(ULAMDIR)/demos/$*/%.ulam=%)\0\0\n" >> $(ULAM_DEMO_LIST_FILE)
 	rm -rf $(ULAMWORKDIR)

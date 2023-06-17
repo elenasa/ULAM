@@ -23,6 +23,17 @@ use Capture::Tiny 'capture';
 use Cwd 'abs_path';
 use Carp;
 
+use threads;
+use threads::shared;
+use List::Util qw/pairs min max/;
+
+require File::Temp;
+use File::Temp ();
+use File::Temp qw/ :seekable /;
+
+use Time::HiRes qw(usleep gettimeofday tv_interval); # For pISC
+my $ulamStartTime = [gettimeofday];
+
 ####DIRECTORY PATHS WITH DEFAULTS
 
   ##TEMPLATE SUBSTITUTIONS
@@ -101,6 +112,7 @@ my $OPTIMIZE_CPP = undef;
 my $KEEP_GOING = 0;
 my $NO_STD_ELEMENTS = 0;
 my $VERBOSE_OUTPUT = 0;
+my $PARALLEL_JOBS = 1;
 
 my $ROLLUP_FILE_STEM = "UlamCustomElements";
 
@@ -191,6 +203,67 @@ sub showEnvironment { return $SHOW_COMMANDS || $SHOW_ALL; }
 sub showOutput { return $SHOW_COMMANDS || $SHOW_ALL; }
 sub showTests { return $SHOW_TESTS || $SHOW_ALL; }
 sub verbose { return $VERBOSE_OUTPUT || $SHOW_ALL; }
+
+sub getTempFH { # get a file handle and name for temp file
+    my $suf = shift;
+    my $fh = File::Temp->new( SUFFIX => $suf);
+    my $fname = $fh->filename;
+    return ($fh,$fname);
+}
+
+sub getTempFHContents { # read the contents of a getTempFH file from its file handle
+    my $fh = shift;
+    $fh->seek(0, SEEK_SET) or die $!;
+    my $content = "";
+    while (<$fh>) {
+        $content .= $_
+    }
+    $fh->close() or die $!;
+    return $content;
+}
+
+my @pendingjobs :shared; # Jobs for all threads
+my %jobresults :shared;  # Results from all threads
+
+sub runThisForThread {
+    my ($job,$matchout, $matcherr, $cmd, @args) = @_;
+    my ($outfh,$outtmp) = getTempFH('.out');
+    my ($errfh,$errtmp) = getTempFH('.err');
+    my $shellcmd = "$cmd @args 1>$outtmp 2>$errtmp";
+    if (showCommands()) {
+        print STDERR " $shellcmd\n";
+    }
+    my $status = "";
+    my ($stdout, $stderr, $exit) = ("out","in","ex");
+
+    $stdout = system($shellcmd);
+
+    $exit = $?>>8;
+    $stdout = getTempFHContents($outfh);
+    $stderr = getTempFHContents($errfh);
+    {
+        lock(%jobresults);
+        my @res : shared;
+        @res = ($exit,$stdout,$stderr);
+        $jobresults{$job} = \@res;
+    }
+    if ($exit ne 0) {
+        $status = $exit;
+    } else {
+        if (defined($matchout)) {
+            $status .= matchOrCall($matchout, $stdout);
+        }
+        if (defined($matcherr)) {
+            $status .= matchOrCall($matcherr, $stderr);
+        }
+    }
+    if (showOutput()) {
+        print " # BEGIN(STDOUT)\n$stdout\n # END(STDOUT)\n";  #print "\n" unless $stdout =~ /.*\n$/;
+        print " # BEGIN(STDERR)\n$stderr\n # END(STDERR)\n";  #print "\n" unless $stderr =~ /.*\n$/;
+        print " # STATUS($status)\n";#     print "\n" unless $status =~ /.*\n$/;
+    }
+    return ($status,$stdout,$stderr);
+}    
 
 sub runThis {
     my ($matchout, $matcherr, $cmd, @args) = @_;
@@ -453,6 +526,14 @@ my %swinfo = (
         id => getSectionId("Debugging"),
         handler => \&entryVar
     },
+    "jobs" => {
+        aliases => "j",
+        type => "i",
+        desc => "Run this many jobs in parallel; default: 1 ('-j 0' uses nproc/2)",
+        variable => \$PARALLEL_JOBS,
+        id => getSectionId("Option"),
+        handler => \&entryVar
+    },
     "keepGoing" => {
         aliases => "k",
         desc => "Don't abort overall compilation on errors",
@@ -605,7 +686,9 @@ sub printToolPathsAndExit {
 sub pISC {
     return unless showCommands();
     my $arg = shift;
-    print STDERR "$arg\n";
+    my $now = [gettimeofday];
+    my $split = tv_interval $ulamStartTime,$now;
+    printf(STDERR "[%0.3f] %s\n",$split,$arg);
 }
 
 sub checkTools {
@@ -994,7 +1077,7 @@ sub compilationDriver {
     UDie("$buildResults stub creation problem(s) detected\n")
         if $buildResults;
 
-    $buildResults = runGccCompilations();
+    $buildResults = runGccCompilationsInParallel();
     UDie("$buildResults g++ build problem(s) detected\n")
         if $buildResults;
 
@@ -1774,7 +1857,7 @@ sub buildSimDriver
     UDie("What") if $linkFailed;
 }
 
-sub runSingleGccCompilation
+sub runSingleGccCompilationORIG
 {
     my ($target, $cfile, $extraDefines) = @_;
     pISC("  # Single compile: $cfile");
@@ -1799,7 +1882,109 @@ sub runSingleGccCompilation
     return $fileStatus;
 }
 
-sub runGccCompilations
+sub pendingJobWorker {
+    my $threadnum = shift;
+    my $jobcount = 0;
+    pISC("THREAD $threadnum STARTING");
+    sleep .1; # Yield at start (why?)
+    JOB: while (1) {
+        my $job = "none";
+        {
+            lock(@pendingjobs);
+            last JOB if scalar(@pendingjobs) == 0;
+            $job = shift @pendingjobs;
+        }
+        pISC("THREAD $threadnum RUNNING JOB '$job'");
+        runSingleCompilationOnThread($job,$threadnum);
+        pISC("THREAD $threadnum FINISHED JOB '$job'");
+        ++$jobcount;
+    }
+                
+    pISC("THREAD $threadnum ENDING, $jobcount RUN");
+    return;
+}
+
+sub runSingleGccCompilation
+{
+    my ($target, $cfile, $extraDefines) = @_;
+    pISC("  # Single compile: $cfile");
+
+    my $dir = getWorkDir();
+    my $gppStatus = 0;
+    $gppStatus =
+        gppCompileForThread($cfile,$target,
+                   getDebugArgs(),
+                   "EXTERNAL_DEFINES", $extraDefines,
+                   "EXTERNAL_INCLUDES",
+                      " -I $ULAM_SHARE_DIR/tcc/stdlib -I $MFM_ROOT_DIR/src/sim/include -I $MFM_ROOT_DIR/src/elements/include",
+                   "ULAM_CPPFLAGS", "-Wno-unused-variable -Wno-unused-but-set-variable",
+                   "ULAM_SRC_DIR", "$dir/src",
+                   "ULAM_CPP_FILE", $cfile,
+                   "ULAM_BLD_DIR", "$dir/build",
+                   "ULAM_BIN_DIR", "$dir/bin",
+                   "MFM_ROOT_DIR", $MFM_ROOT_DIR,
+                   "USE_PATH", $ORIG_PATH
+        );
+    my $fileStatus = $gppStatus;
+    return $fileStatus;
+}
+
+sub runSingleCompilationOnThread {
+    my ($cfile,$threadnum) = @_;
+    my $rollupFile = "$ROLLUP_FILE_STEM.cpp";
+    pISC(" # Compiling '$cfile' in thread $threadnum");
+    my $extraDefines = "-Wno-error=unused-variable -Wno-error=unused-but-set-variable";
+    if ($cfile =~ /$rollupFile$/) {
+        $extraDefines .= "";
+    }
+
+    return runSingleGccCompilation("ulam_cppcompile",$cfile,$extraDefines);
+}
+
+sub runGccCompilationsInParallel
+{
+    pISC("## Compile C++ (in parallel)");
+
+    my $rollupFile = "$ROLLUP_FILE_STEM.cpp";
+    my @cfiles = ($rollupFile, @cppFilesFromUlam, @testFilesFromUlam);
+    {
+        lock(@pendingjobs);
+        @pendingjobs = @cfiles;
+    }
+
+    my $maxactive = $PARALLEL_JOBS;
+    if ($PARALLEL_JOBS <= 0) {
+        my $nproc = `nproc`;
+        chomp($nproc);
+        $maxactive = max(1,int($nproc/2));
+        pISC("DEFAULTING TO $maxactive THREAD(S) FOR BUILDING");
+    }
+
+    ##### START THREADS
+    my @activethreads;
+    pISC("STARTING $maxactive THREADS");
+    foreach(1..$maxactive) {
+        push @activethreads, threads->new(\&pendingJobWorker, $_);
+    }
+    $_->join for @activethreads; # Wait for everything to finish.
+    pISC("$maxactive THREADS FINISHED");
+    ##### END THREADS
+
+    my $status = 0;
+    ## ANALYZE JOB RESULTS, REPORT ANY FAILURES
+
+    foreach my $key (keys %jobresults) {
+        my ($exit,$stdout,$stderr) = @{$jobresults{$key}};
+        if ($exit != 0) {
+            print(STDERR "ERROR $exit ON $key:\n$stdout\n$stderr\n");
+            ++$status;
+        }
+    }
+    
+    return $status;
+}
+
+sub runGccCompilationsDEPRECATED
 {
     pISC("## Compile C++");
     my $status = 0;
@@ -2005,6 +2190,35 @@ sub getWorkDir {
     return $ULAM_WORK_DIR;
 }
 
+sub gppCompileForThread {
+    my ($file,$makeTarget,@extraEnvPairs) = @_;
+    my $make = getTool($makeTool);
+    my $mfm = getTool($mfmRootTool);
+
+    my @args = ("-e",
+		"-C", "$mfm", $makeTarget);
+    foreach my $pair (pairs @extraEnvPairs) {
+        my ($key,$val) = @$pair;
+        push @args, "$key='$val'";
+    }
+
+    my $note = " Compile on thread $file: ";
+    print $note
+        if verbose();
+
+    my ($status,$stdout,$stderr) = runThisForThread($file,undef,undef,$make,@args);
+
+    if ($status ne "") {
+        print $note
+            unless verbose();
+        print STDOUT "ERROR: $status\n";
+    } else {
+        print STDOUT "OK\n"
+            if verbose();
+    }
+    return $status ne "";
+}
+
 sub gppCompile {
     my ($file,$makeTarget,@extraEnvPairs) = @_;
     my $make = getTool($makeTool);
@@ -2157,7 +2371,7 @@ EOF
 element MyElement {
     Void behave() {
         Fail f;
-        f.fail();
+        f.fail(__FILE__,__LINE__,"WHY DON'T YOU WRITE ME?");
     }
 }
 EOF
