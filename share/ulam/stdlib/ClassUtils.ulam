@@ -61,6 +61,82 @@ quark ClassUtils {
 
   Bool isDirectBase(ClassId classId, ClassId directBaseId) native;
 
+  /** Copies the data members of the class with id \c bci from \c
+      fromelt to \c toelt, and \returns the number of bits copied, or
+      -1 if either \c fromelt or \c toelt do not have the indicated
+      base class.
+
+      IMPLEMENTATION LIMIT WARNING: \fails if the class with id \c bci
+      contains more than 32 bits.
+      
+      \sa copySharedData(Atom &, Atom &)
+
+      \since 6.0
+   */
+  Int copyClassDataMembers(ClassId bci, Atom & fromelt, Atom & toelt) {
+
+    UrSelf & from = (UrSelf&) fromelt;
+
+    if (!isBase(from, bci)) return -1;
+
+    UrSelf & to = (UrSelf&) toelt;
+    if (!isBase(to, bci)) return -1;
+
+    Unsigned bits = getClassDataSize(bci);
+
+    if (bits == 0u)
+      return 0;              // done..
+
+    if (bits > 32u) { Fail f; f.fail("BITS > 32 NOT YET SUPPORTED"); }
+
+    Int etypeto = getElementType(getClassId(toelt));
+    Int posto = getClassDataPosition(bci, etypeto);
+    if (posto < 0) return -1;
+
+    Int etypefrom = getElementType(getClassId(fromelt));
+    Int posfrom = getClassDataPosition(bci, etypefrom);
+    if (posfrom < 0) return -1;
+    
+    AtomUtils au;
+    constant Unsigned cFIRST_STATE_BIT = 25u;
+    
+    Bits val = au.read(fromelt, cFIRST_STATE_BIT + (Unsigned) posfrom, bits);
+    Atom new = au.writeCopy(toelt, val, cFIRST_STATE_BIT + (Unsigned) posto, bits);
+    toelt = new;
+
+    return (Int) bits;
+  }
+
+  /** Copies the data members of all classes that both \c fromelt and
+      \c toelt share, and \returns the total number of bits copied
+
+      IMPLEMENTATION LIMIT WARNING: This method uses \c
+      copyClassDataMembers and therefore \fails if any class shared by
+      \c fromelt and \c toelt contains more the 32 bits of data
+      members.
+      
+      \sa copyClassDataMembers(ClassId)
+
+      \since 6.0
+   */
+  Int copySharedData(Atom & fromelt, Atom & toelt) {
+    Int etype = getElementType(getClassId(toelt));
+    if (etype < 0) {
+      return -1;
+    }
+    UrSelf & to = (UrSelf&) toelt;
+    UrSelf & from = (UrSelf&) fromelt;
+    Int bitscopied = 0;
+    for (ClassBaseIterator citr(from); citr.hasNext(); ) {
+      ClassId ci = citr.next();
+      if (!isBase(to, ci)) continue;
+      Int bits = copyClassDataMembers(ci, fromelt, toelt);
+      if (bits < 0) return -1;
+      bitscopied += bits;
+    }
+    return bitscopied;
+  }
+
   /** \returns the total size (in bits) of class \c classId, if it
       exists, or Unsigned.maxof if it does not. This includes the
       sizes of all base classes of \c classId objects.

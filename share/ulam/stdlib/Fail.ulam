@@ -25,6 +25,17 @@ quark Fail {
     fail(bsa);
   }
 
+  Void fail(String path, Unsigned line, String message) { 
+    ByteStreamArray(1000) bsa;
+    bsa.print("\n");
+    bsa.print(path);
+    bsa.print(":");
+    bsa.print(line);
+    bsa.print(": ");
+    bsa.print(message);
+    fail(bsa);
+  }
+
   Void fail() native;
   Void fail(Int code) native;
   Void fail(ByteStream & bs) native;

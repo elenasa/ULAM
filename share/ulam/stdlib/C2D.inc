@@ -248,13 +248,24 @@
     return of;
   }
 
+  /** absolute value of a - b, as a merged operation
+      so Coord can be unsigned
+
+      \since 6.0
+  */
+  Self absDiff(Self a, Self b) {
+    a.x = (Coord) (a.x >= b.x ? a.x - b.x : b.x - a.x);
+    a.y = (Coord) (a.y >= b.y ? a.y - b.y : b.y - a.y);
+    return a;
+  }
+
   Unsigned area() {
     Self a = abs();
     return (Unsigned) (a.x * a.y);
   }
 
   Unsigned manhattanDistance(Self other) {
-    Self a = abs(self-other);
+    Self a = absDiff(self, other);
     return (Unsigned) (a.x + a.y);
   }
 
