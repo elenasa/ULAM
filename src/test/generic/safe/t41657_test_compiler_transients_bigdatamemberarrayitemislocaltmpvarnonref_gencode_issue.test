@@ -1,0 +1,102 @@
+## -*- mode:ulam -*-
+#=t41657_test_compiler_transients_bigdatamemberarrayitemislocaltmpvarnonref_gencode_issue
+##
+##  gen code output: (+ 1 assert)
+##	 Unsigned Arg: 0
+##	 Unsigned Arg: 0
+##
+## UNEVALUABLE BIG Transient
+#!
+Exit status: -11
+Ue_R { Int test() {  MyElement e;  e ( )behave . 0 cast return } }
+Ue_MyElement : SystemU3 { Bool m_b(false);  :SystemU3<> ^System<> <NOMAIN> }
+Uq_SystemU3 : System { :System<> <NOMAIN> }
+Un_DiamondSequencerState { typedef Unsigned(6) SN;  Unsigned(6) mDSSN(0);  ProcUnitInfos mPUInfos( ProcUnitInfo mPUInfoAry[6]( typedef Unsigned(6) SN;  typedef Unsigned(2) PocketDir;  typedef Unsigned(2) ProcUnit;  Unsigned(2) mPU(0);  Bool mFound(false);  Unsigned(2) mInQuadrant(0);  Unsigned(6) mCodonSN(0);  Bool mIsEmptyCodon(false);  Unsigned(6) mEmptySN(0);  Unsigned mPocketSites(0);  Unsigned mOccupiedSites(0);  Unsigned mCodons(0); ), ( typedef Unsigned(6) SN;  typedef Unsigned(2) PocketDir;  typedef Unsigned(2) ProcUnit;  Unsigned(2) mPU(0);  Bool mFound(false);  Unsigned(2) mInQuadrant(0);  Unsigned(6) mCodonSN(0);  Bool mIsEmptyCodon(false);  Unsigned(6) mEmptySN(0);  Unsigned mPocketSites(0);  Unsigned mOccupiedSites(0);  Unsigned mCodons(0); ), ( typedef Unsigned(6) SN;  typedef Unsigned(2) PocketDir;  typedef Unsigned(2) ProcUnit;  Unsigned(2) mPU(0);  Bool mFound(false);  Unsigned(2) mInQuadrant(0);  Unsigned(6) mCodonSN(0);  Bool mIsEmptyCodon(false);  Unsigned(6) mEmptySN(0);  Unsigned mPocketSites(0);  Unsigned mOccupiedSites(0);  Unsigned mCodons(0); ), ( typedef Unsigned(6) SN;  typedef Unsigned(2) PocketDir;  typedef Unsigned(2) ProcUnit;  Unsigned(2) mPU(0);  Bool mFound(false);  Unsigned(2) mInQuadrant(0);  Unsigned(6) mCodonSN(0);  Bool mIsEmptyCodon(false);  Unsigned(6) mEmptySN(0);  Unsigned mPocketSites(0);  Unsigned mOccupiedSites(0);  Unsigned mCodons(0); ), ( typedef Unsigned(6) SN;  typedef Unsigned(2) PocketDir;  typedef Unsigned(2) ProcUnit;  Unsigned(2) mPU(0);  Bool mFound(false);  Unsigned(2) mInQuadrant(0);  Unsigned(6) mCodonSN(0);  Bool mIsEmptyCodon(false);  Unsigned(6) mEmptySN(0);  Unsigned mPocketSites(0);  Unsigned mOccupiedSites(0);  Unsigned mCodons(0); ), ( typedef Unsigned(6) SN;  typedef Unsigned(2) PocketDir;  typedef Unsigned(2) ProcUnit;  Unsigned(2) mPU(0);  Bool mFound(false);  Unsigned(2) mInQuadrant(0);  Unsigned(6) mCodonSN(0);  Bool mIsEmptyCodon(false);  Unsigned(6) mEmptySN(0);  Unsigned mPocketSites(0);  Unsigned mOccupiedSites(0);  Unsigned mCodons(0); ); );  <NOMAIN> }
+Un_ProcUnitInfo { typedef Unsigned(6) SN;  typedef Unsigned(2) PocketDir;  typedef Unsigned(2) ProcUnit;  Unsigned(2) mPU(0);  Bool mFound(false);  Unsigned(2) mInQuadrant(0);  Unsigned(6) mCodonSN(0);  Bool mIsEmptyCodon(false);  Unsigned(6) mEmptySN(0);  Unsigned mPocketSites(0);  Unsigned mOccupiedSites(0);  Unsigned mCodons(0);  <NOMAIN> }
+Un_ProcUnitInfos { ProcUnitInfo mPUInfoAry[6]( typedef Unsigned(6) SN;  typedef Unsigned(2) PocketDir;  typedef Unsigned(2) ProcUnit;  Unsigned(2) mPU(0);  Bool mFound(false);  Unsigned(2) mInQuadrant(0);  Unsigned(6) mCodonSN(0);  Bool mIsEmptyCodon(false);  Unsigned(6) mEmptySN(0);  Unsigned mPocketSites(0);  Unsigned mOccupiedSites(0);  Unsigned mCodons(0); ), ( typedef Unsigned(6) SN;  typedef Unsigned(2) PocketDir;  typedef Unsigned(2) ProcUnit;  Unsigned(2) mPU(0);  Bool mFound(false);  Unsigned(2) mInQuadrant(0);  Unsigned(6) mCodonSN(0);  Bool mIsEmptyCodon(false);  Unsigned(6) mEmptySN(0);  Unsigned mPocketSites(0);  Unsigned mOccupiedSites(0);  Unsigned mCodons(0); ), ( typedef Unsigned(6) SN;  typedef Unsigned(2) PocketDir;  typedef Unsigned(2) ProcUnit;  Unsigned(2) mPU(0);  Bool mFound(false);  Unsigned(2) mInQuadrant(0);  Unsigned(6) mCodonSN(0);  Bool mIsEmptyCodon(false);  Unsigned(6) mEmptySN(0);  Unsigned mPocketSites(0);  Unsigned mOccupiedSites(0);  Unsigned mCodons(0); ), ( typedef Unsigned(6) SN;  typedef Unsigned(2) PocketDir;  typedef Unsigned(2) ProcUnit;  Unsigned(2) mPU(0);  Bool mFound(false);  Unsigned(2) mInQuadrant(0);  Unsigned(6) mCodonSN(0);  Bool mIsEmptyCodon(false);  Unsigned(6) mEmptySN(0);  Unsigned mPocketSites(0);  Unsigned mOccupiedSites(0);  Unsigned mCodons(0); ), ( typedef Unsigned(6) SN;  typedef Unsigned(2) PocketDir;  typedef Unsigned(2) ProcUnit;  Unsigned(2) mPU(0);  Bool mFound(false);  Unsigned(2) mInQuadrant(0);  Unsigned(6) mCodonSN(0);  Bool mIsEmptyCodon(false);  Unsigned(6) mEmptySN(0);  Unsigned mPocketSites(0);  Unsigned mOccupiedSites(0);  Unsigned mCodons(0); ), ( typedef Unsigned(6) SN;  typedef Unsigned(2) PocketDir;  typedef Unsigned(2) ProcUnit;  Unsigned(2) mPU(0);  Bool mFound(false);  Unsigned(2) mInQuadrant(0);  Unsigned(6) mCodonSN(0);  Bool mIsEmptyCodon(false);  Unsigned(6) mEmptySN(0);  Unsigned mPocketSites(0);  Unsigned mOccupiedSites(0);  Unsigned mCodons(0); );  <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## 20230627 Dave ish, gencode read had two args, gcc expected one.
+##                    Big (> a long) Data member array item is tmp var and treated as local,
+##                    however, bug caused it to skip local variable logic.
+##
+#>R.ulam
+  ulam 5;
+element R {
+  Int test() {
+    MyElement e;
+    e.behave();
+    return 0;
+  }
+}
+
+
+#:MyElement.ulam
+  ulam 5;
+element MyElement : SystemU3 {
+  Bool m_b;
+  Void behave() {
+    DiamondSequencerState dss;
+    ProcUnitInfo pui = dss.mPUInfos.mPUInfoAry[3];
+    print(pui.mPU);
+
+    // work-around until bug fixed with ref
+    ProcUnitInfo & puiref = dss.mPUInfos.mPUInfoAry[3];
+    print(puiref.mPU);
+
+    assert(pui.mPU == puiref.mPU);
+  }
+}
+
+#:DiamondSequencerState.ulam
+  ulam 5;
+transient DiamondSequencerState {
+  typedef Unsigned(6) SN;
+  SN mDSSN;
+  ProcUnitInfos mPUInfos;
+}
+
+#:ProcUnitInfos.ulam
+  ulam 5;
+transient ProcUnitInfos {
+  ProcUnitInfo mPUInfoAry[6];
+}
+
+#:ProcUnitInfo.ulam
+  ulam 5;
+transient ProcUnitInfo {
+  typedef Unsigned(6) SN;
+  typedef Unsigned(2) PocketDir;
+  typedef Unsigned(2) ProcUnit;
+  ProcUnit mPU;                 // Component we represent
+  Bool mFound;                  // true if mInQuadrant valid
+  PocketDir mInQuadrant;        // quadrant we're in if any
+  //RectIterator mRI;             // iterator to visit this pocket
+  SN mCodonSN;                  // single codon position or SN.maxof
+  Bool mIsEmptyCodon;           // true if mCodonSN is EC
+  SN mEmptySN;                  // random empty position or SN.maxof
+  Unsigned mPocketSites;        // total sites in pocket
+  Unsigned mOccupiedSites;      // non-empty sites in pocket
+  Unsigned mCodons;             // codons in pocket
+}
+
+
+#:SystemU3.ulam
+  ulam 3;
+quark SystemU3 : System {
+  Void print(String s) native;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.
