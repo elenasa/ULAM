@@ -1378,9 +1378,11 @@ namespace MFM {
     else
       fp->write(" = ");
 
-    if(isLocal && !cos->isDataMember())
+    //if(isLocal && !cos->isDataMember())
+    if(isLocal)
       {
-	//including TmpVarSymbol (t41272); not data member since needs UlamRef (t41269)
+	//including TmpVarSymbol (t41272); not data members since need UlamRef (t41269);
+	//however, array item of dm in tmp var is treated as a local (t41657)
 	if(varcomesfirst)
 	  {
 	    m_state.indentUlamCode(fp); //not const
