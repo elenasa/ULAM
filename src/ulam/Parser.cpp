@@ -5239,6 +5239,11 @@ Node * Parser::wrapFactor(Node * leftNode)
       {
 	return true; //done
       }
+    else if((aTok.m_type == TOK_SEMICOLON))
+      {
+	unreadToken();
+	return true; //done  t41658
+      }
     else if((aTok.m_type != TOK_COMMA))
       {
 	u32 n = rtnList->getNumberOfNodes();
@@ -5272,6 +5277,29 @@ Node * Parser::wrapFactor(Node * leftNode)
     Node * assignNode = NULL;
     if(rTok.m_type == TOK_DOT)
       assignNode = parseClassInstanceInitialization(identId, aTok.m_locator); //t41170
+    else if(rTok.m_type == TOK_CLOSE_CURLY)
+      {
+	//uses default class values, no data members with values listed within {};
+	getNextToken(rTok); //eat token
+	Token eTok;
+	getNextToken(eTok); //peak ahead
+	unreadToken();
+
+	//comma or another close curly, but not semicolon
+	if((eTok.m_type != TOK_SEMICOLON) && ((eTok.m_type == TOK_COMMA) || (eTok.m_type == TOK_CLOSE_CURLY)))
+	  {
+	    Symbol * tmpcsym = NULL;
+	    UTI cuti = Hzy; //default, wait until c&l if unseen
+	    if(m_state.isIdInCurrentScope(identId, tmpcsym))
+	      cuti = tmpcsym->getUlamTypeIdx(); //could be an array or holder; wait for c&l
+
+	    NodeListClassInit * noList = new NodeListClassInit(cuti, identId, m_state); //t41658
+	    assert(noList); //note: not the same as NodeListEmpty
+	    noList->setNodeLocation(rTok.m_locator);
+	    assignNode = noList;
+	  }
+	//else assignNode = NULL;
+      }
     else
       assignNode = parseAssignExpr();
 
