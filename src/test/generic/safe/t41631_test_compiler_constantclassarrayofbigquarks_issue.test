@@ -1,12 +1,13 @@
 ## -*- mode:ulam -*-
 #=t41631_test_compiler_constantclassarrayofbigquarks_issue
 ##
-## gen output: 3 asserts
+## gen output: 5 asserts
 ##     Unsigned Arg: 99
+##     Unsigned Arg: 6
 #!
 Exit status: 0
-Ue_KeyExprRep { KeyExprNode m_key( typedef Unsigned(10) Byte;  Unsigned(10) m_leftIndex(1u);  Unsigned(10) m_rightIndex(2u);  Unsigned(10) m_keyCode(0u);  Unsigned(10) m_op(124u); );  Int test() {  System s;  self m_key . keyexpr_x13 0 [] = s ( self m_key . m_rightIndex . 2u cast == )assert . s ( keyexpr_x13 1 [] m_rightIndex . 4u cast == )assert . KeyExprNode mykeyexpr_x13[5] = keyexpr_x13;  s ( mykeyexpr_x13 2 [] m_keyCode . cast )print . s ( mykeyexpr_x13 2 [] m_keyCode . keyexpr_x13 2 [] m_keyCode . == )assert . 0 cast return } }
-Uq_KeyExprNode { typedef Unsigned(10) Byte;  Unsigned(10) m_leftIndex(0);  Unsigned(10) m_rightIndex(0);  Unsigned(10) m_keyCode(0);  Unsigned(10) m_op(0);  <NOMAIN> }
+Ue_KeyExprRep { KeyExprNode m_key( typedef Unsigned(10) Byte;  Unsigned(10) m_leftIndex(1u);  Unsigned(10) m_rightIndex(2u);  Unsigned(10) m_keyCode(0u);  Unsigned(10) m_op(124u); );  Int test() {  System s;  self m_key . keyexpr_x13 0 [] = s ( self m_key . m_rightIndex . 2u cast == )assert . s ( keyexpr_x13 1 [] m_rightIndex . 4u cast == )assert . KeyExprNode mykeyexpr_x13[5] = keyexpr_x13;  s ( mykeyexpr_x13 2 [] m_keyCode . cast )print . s ( mykeyexpr_x13 2 [] m_keyCode . keyexpr_x13 2 [] m_keyCode . == )assert . s ( mykeyexpr_x13 3 [] m_rightIndex . cast )print . s ( mykeyexpr_x13 3 [] m_rightIndex . 6u cast == )assert . s ( mykeyexpr_x13 3 [] m_rightIndex . keyexpr_x13 3 [] m_rightIndex . == )assert . 0 cast return } }
+Uq_KeyExprNode { typedef Unsigned(10) Byte;  Unsigned(10) m_leftIndex( 5u);  Unsigned(10) m_rightIndex( 6u);  Unsigned(10) m_keyCode(0);  Unsigned(10) m_op(0);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 ## Dave ish 11/26/22 (blew an assertion in BitVector.h) during big quark constant value eval;
@@ -19,8 +20,9 @@ local constant KeyExprNode keyexpr_x13[] = {
    { .m_leftIndex = 1, .m_rightIndex = 2, .m_keyCode = 0, .m_op = '|' }, // [0]
    { .m_leftIndex = 3, .m_rightIndex = 4, .m_keyCode = 0, .m_op = '&' }, // [1]
    { .m_leftIndex = 0, .m_rightIndex = 0, .m_keyCode = 'c', .m_op = 0 }, // [2]
-   { .m_leftIndex = 0, .m_rightIndex = 0, .m_keyCode = 'a', .m_op = 0 }, // [3]
-   { .m_leftIndex = 0, .m_rightIndex = 0, .m_keyCode = 'b', .m_op = 0 }, // [4] , EXTRA COMMA at the end??? no difference
+   //{ .m_leftIndex = 0, .m_rightIndex = 0, .m_keyCode = 'a', .m_op = 0 }, // [3]
+   { },
+   { .m_leftIndex = 0, .m_rightIndex = 0, .m_keyCode = 'b', .m_op = 0 }, // [4] , EXTRA COMMA at the ens, no difference like c++
  };
 element KeyExprRep {
   KeyExprNode m_key;
@@ -35,6 +37,12 @@ element KeyExprRep {
     KeyExprNode mykeyexpr_x13[5] = local.keyexpr_x13; // see t41552 for error without dot
     s.print(mykeyexpr_x13[2].m_keyCode);
     s.assert(mykeyexpr_x13[2].m_keyCode==keyexpr_x13[2].m_keyCode); //reads constant class array item
+
+    //case: default values
+    s.print(mykeyexpr_x13[3].m_rightIndex); //6
+    s.assert(mykeyexpr_x13[3].m_rightIndex == 6u);
+    s.assert(mykeyexpr_x13[3].m_rightIndex == keyexpr_x13[3].m_rightIndex);
+
     return 0;
   }
 }
@@ -43,8 +51,8 @@ element KeyExprRep {
   ulam 3;
 quark KeyExprNode {
   typedef Unsigned(10) Byte; //for BIG quark!
-  Byte m_leftIndex;  // for [,|&~]
-  Byte m_rightIndex; // for [,|&]
+  Byte m_leftIndex = 5u;  // for [,|&~]
+  Byte m_rightIndex = 6u; // for [,|&]
   Byte m_keyCode;    // [a-zA-Z.@_?] or 0
   Byte m_op;         // [,|&~] or 0
 }

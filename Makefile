@@ -106,7 +106,7 @@ CFLAGS+= -Wextra -Wno-unused-parameter -Wno-ignored-qualifiers
 CFLAGS+= -Wno-implicit-fallthrough
 #CFLAGS+= -std=c++11
 # Avoid (spurious?) warning on some distros? sigh
-CFLAGS+= -fno-strict-aliasing 
+CFLAGS+= -fno-strict-aliasing
 # Libs from top level
 export LIBS
 

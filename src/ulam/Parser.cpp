@@ -134,7 +134,7 @@ namespace MFM {
 	rootNode = ((SymbolClass *) thisClassSymbol)->getClassBlockNode();
       }
 
-    if(!rootNode)
+    if(rootNode == NULL)
       {
 	std::ostringstream msg;
 	msg << "No parse tree for This Class: ";
@@ -380,7 +380,7 @@ namespace MFM {
     bool inherits = false;
     UTI utype = cnsym->getUlamTypeIdx(); //we know its type..sweeter
     NodeBlockClass * rtnNode = cnsym->getClassBlockNode(); //usually NULL
-    if(!rtnNode)
+    if(rtnNode == NULL)
       {
 	//this is the class' first block; o.w. null
 	NodeBlock * prevBlock = m_state.getCurrentBlock();
@@ -1091,7 +1091,7 @@ namespace MFM {
 	    initnode = parseExpression();
 	  }
 
-	if(!initnode)
+	if(initnode == NULL)
 	  {
 	    std::ostringstream msg;
 	    msg << "Initial value of '" << m_state.getTokenDataAsString(identTok).c_str();
@@ -1119,7 +1119,7 @@ namespace MFM {
 
     NodeFunctionCall * constrNode = parseConstructorCall(identTok);
 
-    if(!constrNode)
+    if(constrNode == NULL)
       {
 	return false; //t3135
       }
@@ -1141,7 +1141,7 @@ namespace MFM {
     //open paren already eaten
     NodeFunctionCall * constrNode = parseConstructorCall(fTok); //tok for loc and errmsgs
 
-    if(!constrNode)
+    if(constrNode == NULL)
       {
 	return NULL;
       }
@@ -1164,7 +1164,7 @@ namespace MFM {
     //if here, must be constructor used to initialize class-type variable!! (t41077)
     NodeFunctionCall * constrNode = (NodeFunctionCall *) parseFunctionCall(SelfTok); //type of variable known later
 
-    if(!constrNode)
+    if(constrNode == NULL)
       {
 	std::ostringstream msg;
 	msg << "Initial value of '" << m_state.getTokenDataAsString(identTok).c_str();
@@ -1240,14 +1240,14 @@ namespace MFM {
   {
     bool brtn = true;
     Node * sNode = parseStatement();
-    if(!sNode)  //e.g. due to an invalid token perhaps; decl already appended
+    if(sNode == NULL)  //e.g. due to an invalid token perhaps; decl already appended
       {
 	MSG("", "EMPTY STATEMENT!! when in doubt, count", DEBUG);
 
 	Token pTok;
 	getNextToken(pTok);
 	unreadToken();
-	if(pTok.m_type != TOK_CLOSE_CURLY && pTok.m_type != TOK_EOF)
+	if((pTok.m_type != TOK_CLOSE_CURLY) && (pTok.m_type != TOK_EOF))
 	  return parseStatements(); //try again
 	else
 	  {
@@ -1389,7 +1389,7 @@ namespace MFM {
     m_state.pushCurrentBlock(rtnNode); //without pop first
 
     Node * condNode = parseConditionalExpr();
-    if(!condNode)
+    if(condNode == NULL)
       {
 	std::ostringstream msg;
 	msg << "Invalid if-condition"; //t3864
@@ -1414,7 +1414,7 @@ namespace MFM {
     else
       trueNode = parseStatementAsBlock();
 
-    if(!trueNode)
+    if(trueNode == NULL)
       {
 	std::ostringstream msg;
 	msg << "Incomplete true block; if-control";
@@ -1458,7 +1458,7 @@ namespace MFM {
     m_state.pushCurrentBlock(rtnNode); //without pop first
 
     Node * condNode = parseConditionalExpr();
-    if(!condNode)
+    if(condNode == NULL)
       {
 	std::ostringstream msg;
 	msg << "Invalid while-condition";
@@ -1480,7 +1480,7 @@ namespace MFM {
     assert(controlLoopLabelNum == m_state.m_parsingControlLoopsSwitchStack.getNearestContinueExitNumber()); //sanity
 
     Node * whileNode = makeControlWhileNode(condNode, NULL, controlLoopLabelNum, wTok);
-    if(!whileNode)
+    if(whileNode == NULL)
       {
 	m_state.popClassContext(); //the pop
 	delete rtnNode;
@@ -1517,7 +1517,7 @@ namespace MFM {
     if(Token::isTokenAType(pTok))
       {
 	unreadToken();
-	AssertBool hasdeclnode = parseDecl(); //updates symbol table
+	bool hasdeclnode = parseDecl(); //updates symbol table
 	if(!hasdeclnode)
 	  {
 	    std::ostringstream msg;
@@ -1562,7 +1562,7 @@ namespace MFM {
 	condNode = parseConditionalExpr();
 	saveIdentTok = m_state.m_identTokenForConditionalAs; //t41043
 
-	if(!condNode)
+	if(condNode == NULL)
 	  {
 	    std::ostringstream msg;
 	    msg << "Invalid for-condition";
@@ -1598,7 +1598,7 @@ namespace MFM {
       {
 	unreadToken();
 	assignNode = parseAssignExpr();
-	if(!assignNode)
+	if(assignNode == NULL)
 	  {
 	    std::ostringstream msg;
 	    msg << "Malformed assignment; for-control";
@@ -1628,7 +1628,7 @@ namespace MFM {
     m_state.m_identTokenForConditionalAs = saveIdentTok;
 
     Node * whileNode = makeControlWhileNode(condNode, assignNode, controlLoopLabelNum, fTok);
-    if(!whileNode)
+    if(whileNode == NULL)
       {
 	m_state.popClassContext(); //the pop
 	delete rtnNode;
@@ -1652,7 +1652,7 @@ namespace MFM {
     else
       trueNode = parseStatementAsBlock(); //even an empty statement has a node!
 
-    if(!trueNode)
+    if(trueNode == NULL)
       {
 	std::ostringstream msg;
 	msg << "Incomplete true block; ";
@@ -1733,7 +1733,7 @@ namespace MFM {
 
     Node * condNode = parseAssignExpr(); //no 'as' (t41044)
 
-    if(!condNode && !whichtrue)
+    if((condNode == NULL) && !whichtrue)
       {
 	std::ostringstream msg;
 	msg << "Invalid which-control condition";
@@ -1853,7 +1853,7 @@ namespace MFM {
     Node * casecondition = NULL;
     casecondition = parseRestOfCase(swvalueIdent, casecondition, defaultNode);
 
-    if(!casecondition)
+    if(casecondition == NULL)
       {
 	Token eTok;
 	if(!getExpectedToken(TOK_CLOSE_CURLY, eTok, QUIETLY))
@@ -1886,7 +1886,7 @@ namespace MFM {
     else
       trueNode = parseStatementAsBlock(); //even an empty statement has a node!
 
-    if(!trueNode)
+    if(trueNode == NULL)
       {
 	std::ostringstream msg;
 	msg << "Incomplete true block; which-control failure";
@@ -1944,7 +1944,7 @@ namespace MFM {
 	  }
 
 	Node * rightNode = parseConditionalExpr(); //t41039, t41046
-	if(!rightNode)
+	if(rightNode == NULL)
 	  {
 	    std::ostringstream msg;
 	    msg << "Incomplete case expression; which-control failure";
@@ -2265,7 +2265,7 @@ namespace MFM {
 	TypeArgs typeargs;
 	NodeTypeDescriptor * typeNode = parseTypeDescriptorIncludingLocalsScope(typeargs, false, false);
 
-	if(!typeNode)
+	if(typeNode == NULL)
 	  {
 	    std::ostringstream msg;
 	    msg << "Invalid typedef base Type";
@@ -2335,7 +2335,7 @@ namespace MFM {
 	typeargs.m_hasConstantTypeModifier = true;
 
 	NodeTypeDescriptor * typeNode = parseTypeDescriptorIncludingLocalsScope(typeargs, false, false);
-	if(!typeNode)
+	if(typeNode == NULL)
 	  {
 	    std::ostringstream msg;
 	    msg << "Invalid named constant Type '";
@@ -2416,7 +2416,7 @@ namespace MFM {
 	unreadToken();
 	TypeArgs typeargs;
 	NodeTypeDescriptor * typeNode = parseTypeDescriptorIncludingLocalsScope(typeargs, false, false);
-	if(!typeNode)
+	if(typeNode == NULL)
 	  {
 	    std::ostringstream msg;
 	    msg << "Invalid class parameter Type '";
@@ -2541,7 +2541,7 @@ namespace MFM {
     Token iTok;
     getNextToken(iTok);
 
-    if(!typeNode)
+    if(typeNode == NULL)
       {
 	std::ostringstream msg;
 	msg << "Invalid Type for named variable";
@@ -3141,7 +3141,7 @@ namespace MFM {
     Node * exprNode = parseExpression(); //constant expression req'd
 
     assert(csym);
-    if(!exprNode)
+    if(exprNode == NULL)
       {
 	std::ostringstream msg;
 	msg << "Class Argument after Open Paren is missing, for template '";
@@ -3304,7 +3304,7 @@ namespace MFM {
     if(bTok.m_type == TOK_OPEN_PAREN)
       {
 	Node * bitsizeNode = parseExpression(); //constant expression req'd
-	if(!bitsizeNode)
+	if(bitsizeNode == NULL)
 	  {
 	    std::ostringstream msg;
 	    msg << "Bit size after Open Paren is missing, type: ";
@@ -3487,7 +3487,7 @@ namespace MFM {
 
     assert(csym);
     NodeBlockClass * memberClassBlock = csym->getClassBlockNode();
-    if(!memberClassBlock) //e.g. forgot the closing brace on quark def once; or UNSEEN
+    if(memberClassBlock == NULL) //e.g. forgot the closing brace on quark def once; or UNSEEN
       {
 	//hail mary pass..possibly a sizeof of unseen class
 	getNextToken(nTok);
@@ -3669,7 +3669,7 @@ namespace MFM {
     m_state.m_parsingVariableSymbolTypeFlag = STF_RETURNSTMT; //t41635
 
     Node * rtnExprNode = parseAssignExpr(); //may be NULL
-    if(!rtnExprNode)
+    if(rtnExprNode == NULL)
       {
 	rtnExprNode = new NodeStatementEmpty(m_state); //has Nouti type
 	assert(rtnExprNode);
@@ -3690,7 +3690,7 @@ namespace MFM {
     Node * rtnNode = NULL;
     rtnNode = parseExpression(); //perhaps a number, true or false, cast..
 
-    if(!rtnNode) return NULL;
+    if(rtnNode == NULL) return NULL;
 
     //if nothing else follows, parseRestOfAssignExpr returns its argument
     return parseRestOfAssignExpr(rtnNode);
@@ -3711,7 +3711,7 @@ namespace MFM {
       {
 	bool locDefined = m_state.isIdInLocalFileScope(identTok.m_dataindex, asymptr);
 	NodeBlockLocals * localsblock = m_state.getLocalsScopeBlock(m_state.getContextBlockLoc());
-	if(!locDefined && localsblock)
+	if(!locDefined && (localsblock != NULL))
 	  {
 	    m_state.pushClassContext(localsblock->getNodeType(), localsblock, localsblock, false, NULL);
 
@@ -3787,7 +3787,7 @@ namespace MFM {
 	    m_state.pushClassContextUsingMemberClassBlock(NULL); //oddly =true
 
 	    Node * nextmember = parseIdentExpr(iTok); //includes array item, func call, etc.
-	    if(!nextmember)
+	    if(nextmember == NULL)
 	      {
 		delete rtnNode; //t41078
 		rtnNode = NULL;
@@ -3907,7 +3907,7 @@ namespace MFM {
 	    //end of dot chain
 	    unreadToken(); //pTok
 	    rtnNode = parseMinMaxSizeofType(rtnNode, Nouti, NULL); //ate dot, possible min/max/sizeof
-	    if(!rtnNode)
+	    if(rtnNode == NULL)
 	      {
 		delete classInstanceNode; //t41110 leak
 		typeargs.m_danglingDot = true;
@@ -3965,7 +3965,7 @@ namespace MFM {
 	if(cTok.m_type == TOK_OPEN_PAREN)
 	  {
 	    Node * cctrNode = makeInstanceofConstructorCall(fTok, memberNode, nodetype);
-	    if(!cctrNode)
+	    if(cctrNode == NULL)
 	      {
 		delete memberNode; //don't delete nodetype here, seqfault t41220
 		memberNode = NULL;
@@ -4070,7 +4070,7 @@ namespace MFM {
   Node * Parser::parseExpression()
   {
     Node * rtnNode = parseLogicalExpression();
-    if(!rtnNode) return NULL; //stop this maddness
+    if(rtnNode == NULL) return NULL; //stop this maddness
 
     //if not addop, parseRestOfExpression returns its arg
     return parseRestOfExpression(rtnNode);
@@ -4079,7 +4079,7 @@ namespace MFM {
   Node * Parser::parseLogicalExpression()
   {
     Node * rtnNode = parseBitExpression();
-    if(!rtnNode) return NULL; //stop this maddness
+    if(rtnNode == NULL) return NULL; //stop this maddness
 
     //if not bitop, parseRestOfLogicalExpression returns its arg
     return parseRestOfLogicalExpression(rtnNode);
@@ -4088,7 +4088,7 @@ namespace MFM {
   Node * Parser::parseBitExpression()
   {
     Node * rtnNode = parseEqExpression();
-    if(!rtnNode) return NULL; //stop this maddness
+    if(rtnNode == NULL) return NULL; //stop this maddness
 
     //if not eqop, parseRestOfBitExpression returns its arg
     return parseRestOfBitExpression(rtnNode);
@@ -4097,7 +4097,7 @@ namespace MFM {
   Node * Parser::parseEqExpression()
   {
     Node * rtnNode = parseCompareExpression();
-    if(!rtnNode) return NULL; //stop this maddness
+    if(rtnNode == NULL) return NULL; //stop this maddness
 
     //if not compop, parseRestOfEqExpression returns its arg
     return parseRestOfEqExpression(rtnNode);
@@ -4106,7 +4106,7 @@ namespace MFM {
   Node * Parser::parseCompareExpression()
   {
     Node * rtnNode = parseShiftExpression();
-    if(!rtnNode) return NULL; //stop this maddness
+    if(rtnNode == NULL) return NULL; //stop this maddness
 
     //if not shiftop, parseRestOfCompareExpression returns its arg
     return parseRestOfCompareExpression(rtnNode);
@@ -4115,7 +4115,7 @@ namespace MFM {
   Node * Parser::parseShiftExpression()
   {
     Node * rtnNode = parseTerm();
-    if(!rtnNode) return NULL; //stop this maddness
+    if(rtnNode == NULL) return NULL; //stop this maddness
 
     //if not addop, parseRestOfShiftExpression returns its arg
     return parseRestOfShiftExpression(rtnNode);
@@ -4124,7 +4124,7 @@ namespace MFM {
   Node * Parser::parseTerm()
   {
     Node * rtnNode = parseFactor();
-    if(!rtnNode) return NULL; //stop this maddness!
+    if(rtnNode == NULL) return NULL; //stop this maddness!
 
     //if not mulop, parseRestOfTerm returns rtnNode
     return parseRestOfTerm(rtnNode);
@@ -4258,7 +4258,7 @@ namespace MFM {
 	    {
 	      //makes 'locals' scope if used before defined
 	      NodeBlockLocals * localsblock = m_state.makeLocalsScopeBlock(pTok.m_locator);
-	      if(!localsblock)
+	      if(localsblock == NULL)
 		{
 		  std::ostringstream msg;
 		  msg << "Keyword 'local' for filescope: ";
@@ -4342,7 +4342,7 @@ namespace MFM {
       //returns either a terminal or proxy
       rtnNode = parseMinMaxSizeofType(NULL, uti, typeNode); //optionally, gets next dot token
 
-    if(!rtnNode)
+    if(rtnNode == NULL)
       {
 	Token iTok;
 	getNextToken(iTok);
@@ -5174,7 +5174,7 @@ Node * Parser::wrapFactor(Node * leftNode)
       }
 
     Node * initnode = parseExpression();
-    if(!initnode)
+    if(initnode == NULL)
       {
 	std::ostringstream msg;
 	msg << "Initial value of reference '" << m_state.getTokenDataAsString(identTok).c_str();
@@ -5277,7 +5277,7 @@ Node * Parser::wrapFactor(Node * leftNode)
     Node * assignNode = NULL;
     if(rTok.m_type == TOK_DOT)
       assignNode = parseClassInstanceInitialization(identId, aTok.m_locator); //t41170
-    else if(rTok.m_type == TOK_CLOSE_CURLY)
+    else if((rTok.m_type == TOK_CLOSE_CURLY) && (aTok.m_type != TOK_COMMA)) //t41659
       {
 	//uses default class values, no data members with values listed within {};
 	getNextToken(rTok); //eat token
@@ -5286,7 +5286,7 @@ Node * Parser::wrapFactor(Node * leftNode)
 	unreadToken();
 
 	//comma or another close curly, but not semicolon
-	if((eTok.m_type != TOK_SEMICOLON) && ((eTok.m_type == TOK_COMMA) || (eTok.m_type == TOK_CLOSE_CURLY)))
+	if((eTok.m_type == TOK_COMMA) || (eTok.m_type == TOK_CLOSE_CURLY))
 	  {
 	    Symbol * tmpcsym = NULL;
 	    UTI cuti = Hzy; //default, wait until c&l if unseen
@@ -5298,12 +5298,12 @@ Node * Parser::wrapFactor(Node * leftNode)
 	    noList->setNodeLocation(rTok.m_locator);
 	    assignNode = noList;
 	  }
-	//else assignNode = NULL;
+	//else assignNode = NULL; likely SEMICOLON.
       }
     else
-      assignNode = parseAssignExpr();
+      assignNode = parseAssignExpr(); //did not peak ahead
 
-    if(!assignNode)
+    if(assignNode == NULL) //t41658
       {
 	u32 n = rtnList->getNumberOfNodes();
 	std::ostringstream msg;
@@ -5425,7 +5425,7 @@ Node * Parser::wrapFactor(Node * leftNode)
     else
       assignNode = parseAssignExpr();
 
-    if(!assignNode)
+    if(assignNode == NULL) //t41658
       {
 	std::ostringstream msg;
 	msg << "Initial value of class variable '" << m_state.m_pool.getDataAsString(classvarId).c_str();
@@ -5468,7 +5468,7 @@ Node * Parser::wrapFactor(Node * leftNode)
 	    exprNode = parseExpression(); //makeAssignExprNode(leftNode);
 	  }
 
-	if(exprNode)
+	if(exprNode != NULL)
 	  constNode->setConstantExpr(exprNode);
 	else
 	  {
@@ -5851,7 +5851,7 @@ Node * Parser::wrapFactor(Node * leftNode)
     Token iTok;
     getNextToken(iTok);
 
-    if(!typeNode)
+    if(typeNode == NULL)
       {
 	std::ostringstream msg;
 	msg << "Invalid Type for function parameter";
@@ -6127,7 +6127,7 @@ Node * Parser::wrapFactor(Node * leftNode)
 	      args.m_declListOrTypedefScalarType = m_state.getUlamTypeAsScalar(asymptr->getUlamTypeIdx());
 	  }
 
-	if(!rtnNode)
+	if(rtnNode == NULL)
 	  {
 	    delete lvalNode; //done with it
 	    delete nodetyperef;
@@ -6208,7 +6208,7 @@ Node * Parser::wrapFactor(Node * leftNode)
 	    //m_state.resetUnseenClass(asymptr->getId()); //ulamexports
 	  }
 
-	if(!rtnNode)
+	if(rtnNode == NULL)
 	  {
 	    delete lvalNode; //done with it
 	    delete nodetyperef;
@@ -6237,7 +6237,7 @@ Node * Parser::wrapFactor(Node * leftNode)
 	Symbol * asymptr = NULL;
 	if(!lvalNode->installSymbolConstantValue(args, asymptr))
 	  {
-	    if(asymptr)
+	    if(asymptr != NULL)
 	      {
 		UTI auti = asymptr->getUlamTypeIdx();
 		std::ostringstream msg;
@@ -6303,7 +6303,7 @@ Node * Parser::wrapFactor(Node * leftNode)
 
 	    rtnNode = parseRestOfConstantDef(constNode, args.m_assignOK, args.m_isStmt);
 
-	    if(!rtnNode)
+	    if(rtnNode == NULL)
 	      m_state.clearStructuredCommentToken(); //t3524
 	    else
 	      {
@@ -6338,7 +6338,7 @@ Node * Parser::wrapFactor(Node * leftNode)
 	Symbol * asymptr = NULL;
 	if(!lvalNode->installSymbolModelParameterValue(args, asymptr))
 	  {
-	    if(asymptr)
+	    if(asymptr != NULL)
 	      {
 		UTI auti = asymptr->getUlamTypeIdx();
 
@@ -6428,7 +6428,7 @@ Node * Parser::wrapFactor(Node * leftNode)
     //t3407, 3826,27,30; t3868,61,62
     NodeTypeDescriptor * typeNode = parseTypeDescriptorIncludingLocalsScope(typeargs, true, false);
 
-    if(!typeNode)
+    if(typeNode == NULL)
       {
 	std::ostringstream msg;
 	msg << "Right operand of conditional-" << fTok.getTokenStringFromPool(&m_state).c_str();
@@ -6499,7 +6499,7 @@ Node * Parser::wrapFactor(Node * leftNode)
       }
 
     Node * rightNode = parseAssignExpr(); //t3136 y = x = times(4,5); not parseExpression.
-    if(!rightNode)
+    if(rightNode == NULL)
       {
 	std::ostringstream msg;
 	msg << "Right operand of binary " << pTok.getTokenStringFromPool(&m_state).c_str();
@@ -6565,7 +6565,7 @@ Node * Parser::wrapFactor(Node * leftNode)
       }
 
     Node * trueNode = parseExpression();
-    if(!trueNode)
+    if(trueNode == NULL)
       {
 	std::ostringstream msg;
 	msg << "Incomplete true expression; question-colon-control";
@@ -6583,7 +6583,7 @@ Node * Parser::wrapFactor(Node * leftNode)
       }
 
     Node * falseNode = parseExpression();
-    if(!falseNode)
+    if(falseNode == NULL)
       {
 	std::ostringstream msg;
 	msg << "Incomplete false expression; question-colon-control";
@@ -6608,7 +6608,7 @@ Node * Parser::wrapFactor(Node * leftNode)
     getNextToken(pTok);
 
     Node * rightNode = parseLogicalExpression();
-    if(!rightNode)
+    if(rightNode == NULL)
       {
 	std::ostringstream msg;
 	msg << "Right operand of binary " << pTok.getTokenStringFromPool(&m_state).c_str();
@@ -6643,7 +6643,7 @@ Node * Parser::wrapFactor(Node * leftNode)
     getNextToken(pTok);
 
     Node * rightNode = parseBitExpression();
-    if(!rightNode)
+    if(rightNode == NULL)
       {
 	std::ostringstream msg;
 	msg << "Right operand of binary " << pTok.getTokenStringFromPool(&m_state).c_str();
@@ -6681,7 +6681,7 @@ Node * Parser::wrapFactor(Node * leftNode)
     getNextToken(pTok);
 
     Node * rightNode = parseEqExpression();
-    if(!rightNode)
+    if(rightNode == NULL)
       {
 	std::ostringstream msg;
 	msg << "Right operand of binary " << pTok.getTokenStringFromPool(&m_state).c_str();
@@ -6716,7 +6716,7 @@ Node * Parser::wrapFactor(Node * leftNode)
     getNextToken(pTok);
 
     Node * rightNode = parseCompareExpression();
-    if(!rightNode)
+    if(rightNode == NULL)
       {
 	std::ostringstream msg;
 	msg << "Right operand of binary " << pTok.getTokenStringFromPool(&m_state).c_str();
@@ -6757,7 +6757,7 @@ Node * Parser::wrapFactor(Node * leftNode)
     getNextToken(pTok);
 
     Node * rightNode = parseShiftExpression();
-    if(!rightNode)
+    if(rightNode == NULL)
       {
 	std::ostringstream msg;
 	msg << "Right operand of binary " << pTok.getTokenStringFromPool(&m_state).c_str();
@@ -6792,7 +6792,7 @@ Node * Parser::wrapFactor(Node * leftNode)
     getNextToken(pTok);
 
     Node * rightNode = parseTerm();
-    if(!rightNode)
+    if(rightNode == NULL)
       {
 	std::ostringstream msg;
 	msg << "Right operand of binary " << pTok.getTokenStringFromPool(&m_state).c_str();
@@ -6827,7 +6827,7 @@ Node * Parser::wrapFactor(Node * leftNode)
     getNextToken(pTok);
 
     Node * rightNode = parseFactor();
-    if(!rightNode)
+    if(rightNode == NULL)
       {
 	std::ostringstream msg;
 	msg << "Right operand of binary " << pTok.getTokenStringFromPool(&m_state).c_str();
@@ -6865,7 +6865,7 @@ Node * Parser::wrapFactor(Node * leftNode)
     getNextToken(pTok);
 
     Node * factorNode = parseFactor();
-    if(!factorNode)
+    if(factorNode == NULL)
       {
 	std::ostringstream msg;
 	msg << "Factor is missing; Unary operation ";

@@ -1,0 +1,122 @@
+## -*- mode:ulam -*-
+#=t41659_test_compiler_constantclasswitharrayitem_issue
+#!
+Exit status: 0
+Ue_R { Int test() {  System s;  NanoArm nano;  0 cast return } }
+Uq_System { <NOMAIN> }
+Ue_NanoArm +PocketChain +DTU { Unsigned(2) mDeployToUnit(0);  typedef Unsigned(2) Cmd;  constant Unsigned(2) cGF = 0u;  constant Unsigned(2) cTL = 1u;  constant Unsigned(2) cTR = 2u;  constant Unsigned(2) cEP = 3u;  Unsigned(2) mProgram[7](0,0,0,0,0,0,0);  Unsigned(2) mHeading(0);  +PocketChain< Unsigned(2) mDSType( 0u);  Bool mArrived(false); > +DTU< typedef Unsigned(2) DriveStatusCode;  constant Unsigned(2) cDS_DUMB = 0u;  constant Unsigned(2) cDS_NORM = 1u;  constant Unsigned(2) cDS_DOWN = 2u;  constant Unsigned(2) cDS_UP = 3u;  typedef Unsigned(2) AxialDir;  constant Unsigned(2) cW = 0u;  constant Unsigned(2) cN = 1u;  constant Unsigned(2) cS = 2u;  constant Unsigned(2) cE = 3u;  typedef Unsigned(2) ProcUnit;  constant Unsigned(2) cPUNIT_REG = 0u;  constant Unsigned(2) cPUNIT_INP = 1u;  constant Unsigned(2) cPUNIT_OUT = 2u;  constant Unsigned(2) cPUNIT_XEQ = 3u;  constant Unsigned(2) cPUNIT_BLU = 0u;  constant Unsigned(2) cPUNIT_GRN = 1u;  constant Unsigned(2) cPUNIT_RED = 2u;  constant Unsigned(2) cPUNIT_WHT = 3u; > <NOMAIN> }
+Un_Ancestor { constant Atom cPROGRAM[3] = { cINS_NANOARM_MOTHER10 cast, cINS_NANOARM_MOTHER10 cast, cINS_NANOARM_MOTHER10 cast };  <NOMAIN> }
+Uq_DTU { typedef Unsigned(2) DriveStatusCode;  constant Unsigned(2) cDS_DUMB = 0u;  constant Unsigned(2) cDS_NORM = 1u;  constant Unsigned(2) cDS_DOWN = 2u;  constant Unsigned(2) cDS_UP = 3u;  typedef Unsigned(2) AxialDir;  constant Unsigned(2) cW = 0u;  constant Unsigned(2) cN = 1u;  constant Unsigned(2) cS = 2u;  constant Unsigned(2) cE = 3u;  typedef Unsigned(2) ProcUnit;  constant Unsigned(2) cPUNIT_REG = 0u;  constant Unsigned(2) cPUNIT_INP = 1u;  constant Unsigned(2) cPUNIT_OUT = 2u;  constant Unsigned(2) cPUNIT_XEQ = 3u;  constant Unsigned(2) cPUNIT_BLU = 0u;  constant Unsigned(2) cPUNIT_GRN = 1u;  constant Unsigned(2) cPUNIT_RED = 2u;  constant Unsigned(2) cPUNIT_WHT = 3u;  <NOMAIN> }
+Uq_PocketChain +DTU { Unsigned(2) mDSType( 0u);  Bool mArrived(false);  +DTU< typedef Unsigned(2) DriveStatusCode;  constant Unsigned(2) cDS_DUMB = 0u;  constant Unsigned(2) cDS_NORM = 1u;  constant Unsigned(2) cDS_DOWN = 2u;  constant Unsigned(2) cDS_UP = 3u;  typedef Unsigned(2) AxialDir;  constant Unsigned(2) cW = 0u;  constant Unsigned(2) cN = 1u;  constant Unsigned(2) cS = 2u;  constant Unsigned(2) cE = 3u;  typedef Unsigned(2) ProcUnit;  constant Unsigned(2) cPUNIT_REG = 0u;  constant Unsigned(2) cPUNIT_INP = 1u;  constant Unsigned(2) cPUNIT_OUT = 2u;  constant Unsigned(2) cPUNIT_XEQ = 3u;  constant Unsigned(2) cPUNIT_BLU = 0u;  constant Unsigned(2) cPUNIT_GRN = 1u;  constant Unsigned(2) cPUNIT_RED = 2u;  constant Unsigned(2) cPUNIT_WHT = 3u; > <NOMAIN> }
+##
+## ish, informed by Dave 7/3/23:
+## ./Ancestor.ulam:18:2: ERROR: Unexpected input!! Token <;> while parsing class variable 'cINS_NANOARM_MOTHER10', init item 5.
+##
+#>R.ulam
+  ulam 5;
+element R {
+
+  Int test() {
+    System s;
+    NanoArm nano;
+    return 0;
+  }
+}
+
+
+#:Ancestor.ulam
+  ulam 5;
+local constant NanoArm
+  cINS_NANOARM_MOTHER10 = {
+    .mDSType = DTU.cDS_NORM,
+    .mDeployToUnit = DTU.cPUNIT_BLU, // deploy to _REG
+    .mHeading = DTU.cW,  // start out heading west
+    .mProgram = {
+      NanoArm.cGF, // 0
+      NanoArm.cTL, // 1
+      NanoArm.cTR, // 2
+      NanoArm.cEP, // 3
+      NanoArm.cGF, // 4
+      NanoArm.cTL, // 5
+      NanoArm.cTR // 6
+      , //<<------- WAS CULPRIT COMMA!!!!
+      },
+};
+
+transient Ancestor {
+  constant Atom cPROGRAM[] = {
+      cINS_NANOARM_MOTHER10,        // MO: NA BUILD 1ST ARM
+      cINS_NANOARM_MOTHER10,        // MO: NA BUILD 1ST ARM
+      cINS_NANOARM_MOTHER10,        // MO: NA BUILD 1ST ARM  <<-----NOT CULPRIT COMMA
+  };
+
+}
+
+#:NanoArm.ulam
+  ulam 5;
+element NanoArm + PocketChain + DTU {
+  ProcUnit mDeployToUnit; //< where we copy to when executed (_WHT means noop)
+
+  typedef Unsigned(2) Cmd;
+  constant Cmd cGF = 0u; //< grow forward
+  constant Cmd cTL = 1u; //< turn left without growing
+  constant Cmd cTR = 2u; //< turn right without growing
+  constant Cmd cEP = 3u; //< end of program
+  Cmd mProgram[7];  // 17x2b == 34b
+
+  AxialDir mHeading; // initial & current heading
+}
+
+
+#:DTU.ulam
+  ulam 5;
+quark DTU {
+
+  //// POCKETCHAIN DRIVABILILITY STATUS CODES
+  typedef Unsigned(2) DriveStatusCode;
+  constant DriveStatusCode cDS_DUMB = 0u; //< Unswappable, No auto move or grow
+  constant DriveStatusCode cDS_NORM = 1u; //< Swappable, auto move and grow
+  constant DriveStatusCode cDS_DOWN = 2u; //< Downbound Temp
+  constant DriveStatusCode cDS_UP =   3u; //< Upbound Temp
+
+  //// AXIS NAMES (0-BASED == SN-1) (FOR HC3 NGB RELATIVE TO HC3 CTR)
+  typedef Unsigned(2) AxialDir;
+  constant AxialDir cW = 0u;
+  constant AxialDir cN = 1u;
+  constant AxialDir cS = 2u;
+  constant AxialDir cE = 3u;
+
+  //// LOGICAL NAMES OF DIAMONDSEQUENCER PROCESSING UNITS
+  typedef Unsigned(2) ProcUnit;
+  constant ProcUnit cPUNIT_REG = 0u; //< BLUE: 'Registers' - stack, temp, scratch..
+  constant ProcUnit cPUNIT_INP = 1u; //< GREEN: Input chain
+  constant ProcUnit cPUNIT_OUT = 2u; //< RED: Output chain
+  constant ProcUnit cPUNIT_XEQ = 3u; //< WHITE: Execution chain
+  //// ALTERNATE NAMES TO REFLECT REALITY
+  constant ProcUnit cPUNIT_BLU = 0u; //< == cPUNIT_REG
+  constant ProcUnit cPUNIT_GRN = 1u; //< == cPUNIT_INP
+  constant ProcUnit cPUNIT_RED = 2u; //< == cPUNIT_OUT
+  constant ProcUnit cPUNIT_WHT = 3u; //< == cPUNIT_XEQ
+}
+
+#:PocketChain.ulam
+  ulam 5;
+quark PocketChain + DTU {
+  DriveStatusCode mDSType = cDS_DUMB;
+  Bool mArrived;                //< true when we've had an event after moving
+
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.
