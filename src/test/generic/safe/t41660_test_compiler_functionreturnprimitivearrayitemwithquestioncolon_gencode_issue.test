@@ -1,0 +1,60 @@
+## -*- mode:ulam -*-
+#=t41660_test_compiler_functionreturnprimitivearrayitemwithquestioncolon_gencode_issue
+##  gen output: (+ 1 assert)
+##    Unsigned Arg: 7
+##
+#!
+Exit status: 0
+Ue_R { Bool mLeftKid(false);  Unsigned answ(7u);  Int test() {  System s;  DiSeqInfo dsi;  self answ . dsi ( self mLeftKid . )getKidDiSeq . cast = s ( self answ . )print . s ( self answ . 7u cast == )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+Un_DiSeqInfo { String mBootCode(UNINITIALIZED_STRING);  typedef Unsigned(8) DiSequence;  typedef Unsigned(8) KidDiSeqs[2];  Unsigned(8) mKidDiSeqs[2]( { 4u, 7u });  <NOMAIN> }
+##
+## ish, informed by Dave 7/12/23; (see also t41661 for class array item)
+##
+#>R.ulam
+  ulam 5;
+element R {
+  Bool mLeftKid;
+  Unsigned answ;
+
+  Int test() {
+    System s;
+    DiSeqInfo dsi;
+    answ = dsi.getKidDiSeq(mLeftKid);
+    s.print(answ);
+    s.assert(answ == 7u);
+    return 0;
+  }
+}
+
+
+#:DiSeqInfo.ulam
+  ulam 5;
+
+transient DiSeqInfo {
+  String mBootCode;
+  typedef Unsigned(8) DiSequence;
+  typedef DiSequence KidDiSeqs[2];
+  KidDiSeqs mKidDiSeqs = { 4, 7};
+
+  DiSequence getKidDiSeq(Bool leftKid)
+  {
+    return leftKid ? mKidDiSeqs[0] : mKidDiSeqs[1];
+  }
+
+}
+
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

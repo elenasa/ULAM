@@ -478,11 +478,11 @@ namespace MFM {
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
 
-    if(nut->isReference())
+    if(nut->isReference()) //includes primitive ALT_ARRAYITEM (t41660), not class arrayitem (t41661)
       {
 	genCodeToStoreInto(fp, uvpass); //t41062
 	if(nut->isPrimitiveType())
-	  Node::genCodeReadAutorefIntoATmpVar(fp, uvpass); //t41140
+	  Node::genCodeReadAutorefIntoATmpVar(fp, uvpass); //t41140, t41660
 	return;
       }
 

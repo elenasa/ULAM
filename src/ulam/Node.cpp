@@ -1458,7 +1458,8 @@ namespace MFM {
     fp->write(".read();"); GCNL;
 
     //update uvpass
-    uvpass = UVPass::makePass(tmpVarNum2, vstor, vuti, m_state.determinePackable(vuti), m_state, 0, 0); //POS 0 justified (atom-based).
+    UTI derefvuti = m_state.getUlamTypeAsDeref(vuti); //t41660
+    uvpass = UVPass::makePass(tmpVarNum2, vstor, derefvuti, m_state.determinePackable(derefvuti), m_state, 0, 0); //POS 0 justified (atom-based).
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeReadAutorefIntoATmpVar
 
