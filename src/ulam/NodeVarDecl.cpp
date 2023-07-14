@@ -1403,8 +1403,13 @@ namespace MFM {
 
     assert(!m_varSymbol->isAutoLocal()); //nodevarref, not here! t41656
     assert(!m_varSymbol->isDataMember());
+    UTI nuti = getNodeType();
     //local variable on the stack; could be array ptr!
-    ptr = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, getNodeType(), m_state.determinePackable(getNodeType()), m_state, 0, m_varSymbol->getId());
+    ptr = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, nuti, m_state.determinePackable(nuti), m_state, 0, m_varSymbol->getId());
+
+    if(m_state.isAClass(nuti))
+      ptr.setPtrTargetEffSelfType(nuti);
+
     return ptr;
   } //makeUlamValuePtr
 

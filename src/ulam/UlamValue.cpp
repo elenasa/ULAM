@@ -432,7 +432,7 @@ namespace MFM {
     m_uv.m_ptrValue.m_targetType = type;
   } //setPtrTargetType
 
-    UTI UlamValue::getPtrTargetEffSelfType()
+  UTI UlamValue::getPtrTargetEffSelfType()
   {
     assert(isPtr());
     return m_uv.m_ptrValue.m_targetEffSelf;

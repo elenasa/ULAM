@@ -421,12 +421,12 @@ namespace MFM {
       }
 
     //if reference is not complete, but its deref is, use its sizes to complete us.
-    if(!m_state.okUTItoContinue(derefuti))
+    if(!m_state.okUTItoContinue(derefuti) && m_state.okUTItoContinue(nuti))
       {
 	if(nut->getUlamTypeEnum() == Class)
 	  derefuti = nut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureClassInstanceIdx();
 	else
-	  derefuti = m_state.getUlamTypeAsDeref(nuti);
+	  derefuti = m_state.getUlamTypeAsDeref(nuti); //t41449 both are Hzy..
       }
 
     if(m_state.okUTItoContinue(derefuti))

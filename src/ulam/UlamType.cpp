@@ -501,7 +501,8 @@ namespace MFM {
   {
     //yes, all of these ALT types are treated as references in gencode.
     ALT alt = m_key.getUlamKeyTypeSignatureReferenceType();
-    return (alt == ALT_AS) || (alt == ALT_REF) || (alt == ALT_ARRAYITEM) || (alt == ALT_CONSTREF);
+    //return (alt == ALT_AS) || (alt == ALT_REF) || (alt == ALT_ARRAYITEM) || (alt == ALT_CONSTREF);
+    return (alt == ALT_AS) || (alt == ALT_REF) || (alt == ALT_CONSTREF); // t41660,1 was || (alt == ALT_ARRAYITEM)
   }
 
   bool UlamType::isAltRefType()

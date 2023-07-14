@@ -725,6 +725,9 @@ namespace MFM {
     s32 offsetInt = m_state.getUlamTypeByIndex(offset.getUlamValueTypeIdx())->getDataAsCs32(offsetdata);
     //adjust pos by offset * len, according to its scalar type
     UlamValue scalarPtr = UlamValue::makeScalarPtr(pluv, m_state);
+    UTI scalarluti = scalarPtr.getPtrTargetType();
+    if(m_state.isAClass(scalarluti))
+      scalarPtr.setPtrTargetEffSelfType(scalarluti); //t3172, missing
 
     if(scalarPtr.incrementPtr(m_state, offsetInt))
       //copy result UV to stack, -1 relative to current frame pointer

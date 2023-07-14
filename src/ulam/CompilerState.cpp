@@ -1611,9 +1611,11 @@ namespace MFM {
 
   UTI CompilerState::getUlamTypeAsDeref(UTI utiArg)
   {
+    assert(okUTItoContinue(utiArg)); //t3172,t41449,t41450,1,2,3,5
+
     UlamType * ut = getUlamTypeByIndex(utiArg);
-    if(!ut->isReference())
-      return utiArg;
+
+    //if(!ut->isReference()) return utiArg; //hid Nouti,Hzy,Nav; set effSelf in uv for eval tests
 
     ULAMTYPE bUT = ut->getUlamTypeEnum();
     UlamKeyTypeSignature keyOfArg = ut->getUlamKeyTypeSignature();
@@ -1622,7 +1624,7 @@ namespace MFM {
     UTI classidx = keyOfArg.getUlamKeyTypeSignatureClassInstanceIdx();
 
     if((bUT == Class) && ut->isScalar())
-      return classidx; //scalar
+      return classidx; //scalar error/t3845
 
     UlamKeyTypeSignature baseKey(keyOfArg.m_typeNameId, bitsize, arraysize, classidx, ALT_NOT);    //default array size is zero
     ULAMCLASSTYPE classtype = ut->getUlamClassType();

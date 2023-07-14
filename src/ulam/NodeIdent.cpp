@@ -756,8 +756,8 @@ namespace MFM {
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     ULAMCLASSTYPE classtype = nut->getUlamClassType();
     //    if((classtype == UC_TRANSIENT) && (nut->getTotalBitSize() > MAXSTATEBITS))
-        if((classtype == UC_TRANSIENT) && (nut->getBitSize() > MAXSTATEBITS))
-	  return evalStatusReturnNoEpilog(UNEVALUABLE); //t41632
+    if((classtype == UC_TRANSIENT) && (nut->getBitSize() > MAXSTATEBITS))
+      return evalStatusReturnNoEpilog(UNEVALUABLE); //t41632
 
     evalNodeProlog(0); //new current frame pointer
 
