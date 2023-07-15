@@ -425,13 +425,17 @@ namespace MFM {
 	    //negative to current stack frame pointer
 	    s32 slot = m_state.slotsNeeded(nuti);
 	    rtnUV = UlamValue::makePtr(-slot, STACK, nuti, packRtn, m_state);
+
 	    if(m_state.isAClass(nuti))
 	      {
 		UlamValue tmpval = m_state.m_funcCallStack.loadUlamValueFromSlot(-1);
+#if 0
 		UTI tmpeffself = tmpval.getUlamValueEffSelfTypeIdx();
 		if(tmpval.isPtr())
 		  tmpeffself = tmpval.getPtrTargetEffSelfType();
 		rtnUV.setPtrTargetEffSelfType(tmpeffself); //t3172, case 2
+#endif
+		rtnUV.setPtrTargetEffSelfTypeFromAnotherUV(tmpval, m_state); //t3172, case 2
 	      }
 	  }
       }

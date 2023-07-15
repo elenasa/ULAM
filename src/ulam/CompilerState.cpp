@@ -1578,8 +1578,7 @@ namespace MFM {
 
     s32 bitsize = keyOfArg.getUlamKeyTypeSignatureBitSize();
     u32 nameid = keyOfArg.getUlamKeyTypeSignatureNameId();
-    //UlamKeyTypeSignature baseKey(nameid, bitsize, NONARRAYSIZE, cuti, ALT_ARRAYITEM);  //default array size is NONARRAYSIZE, new reftype
-    UlamKeyTypeSignature baseKey(nameid, bitsize, NONARRAYSIZE, cuti, ALT_NOT);  //default array size is NONARRAYSIZE, new reftype //t41660,1 ???
+    UlamKeyTypeSignature baseKey(nameid, bitsize, NONARRAYSIZE, cuti, ALT_NOT);  //default array size, was NONARRAYSIZE, not new reftype //t41660,1
     ULAMCLASSTYPE classtype = ut->getUlamClassType();
     UTI buti = makeUlamType(baseKey, bUT, classtype); //could be a new one, oops.
 

@@ -919,6 +919,7 @@ namespace MFM {
 	       {
 		 UTI tmpeffself = tmpref.getUlamValueEffSelfTypeIdx();
 		 rtnUVPtr.setPtrTargetEffSelfType(tmpeffself); //t41629
+		 assert(!m_state.isAClass(tmpeffself) || m_state.isScalar(tmpeffself)); //t3613 Int
 	       }
 	   }
       }
@@ -945,6 +946,7 @@ namespace MFM {
 	  {
 	    effselfttype = selfttype;
 	    selfuvp.setPtrTargetEffSelfType(selfttype); //t41318
+	    assert(m_state.isAClass(selfttype) && m_state.isScalar(selfttype));
 	  }
 	assert(m_state.okUTItoContinue(selfttype));
 
@@ -1078,7 +1080,7 @@ namespace MFM {
 
 	ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), nuti, m_state.determinePackable(nuti), m_state, objclasspos - relposofbase3 + relposofbase + m_varSymbol->getPosOffset(), m_varSymbol->getId());
 	if(m_state.isAClass(nuti))
-	  ptr.setPtrTargetEffSelfType(m_state.getUlamTypeAsDeref(nuti)); //self contained dm, its own effself
+	  ptr.setPtrTargetEffSelfType(m_state.getUlamTypeAsDeref(m_state.getUlamTypeAsScalar(nuti))); //self contained dm, its own effself, as scalar!!!
 	ptr.checkForAbsolutePtr(m_state.m_currentObjPtr); //t3810
       }
     else
@@ -1094,7 +1096,7 @@ namespace MFM {
 
 	//refs usually not effself (41629)
 	if(m_state.isAClass(nuti) && !m_state.isReference(nuti))
-	  ptr.setPtrTargetEffSelfType(m_state.getUlamTypeAsDeref(nuti));
+	  ptr.setPtrTargetEffSelfType(m_state.getUlamTypeAsDeref(m_state.getUlamTypeAsScalar(nuti))); //as scalar!!!
 	//else
       }
     return ptr;

@@ -168,6 +168,7 @@ namespace MFM {
 		selfuvp.setPtrPos(selfpos + relposofbase);
 		selfuvp.setPtrTargetType(m_state.getUlamTypeAsDeref(auti));
 		selfuvp.setPtrTargetEffSelfType(effselfttype); //in case was empty
+		assert(m_state.isAClass(effselfttype) && m_state.isScalar(effselfttype));
 		selfuvp.setPtrLen(m_state.getBaseClassBitSize(auti));
 	      }
 	    //else same
@@ -191,7 +192,8 @@ namespace MFM {
 	  {
 	    // return ptr to the m_currentObjPtr that contains this data member within
 	    ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), auti, m_state.determinePackable(getNodeType()), m_state, 0, 0); //id?
-	    ptr.setPtrTargetEffSelfType(m_state.m_currentObjPtr.getPtrTargetEffSelfType());
+	    //ptr.setPtrTargetEffSelfType(m_state.m_currentObjPtr.getPtrTargetEffSelfType());
+	    ptr.setPtrTargetEffSelfTypeFromAnotherUV(m_state.m_currentObjPtr, m_state);
 	    ptr.checkForAbsolutePtr(m_state.m_currentObjPtr);
 	  }
       }
@@ -216,6 +218,7 @@ namespace MFM {
 	    //local variable on the stack; could be array ptr! (t41531)
 	    ptr = UlamValue::makePtr(m_nodeOf->getSymbolStackFrameSlotIndex(), STACK, auti, m_state.determinePackable(auti), m_state, 0, m_nodeOf->getNameId()); //id?
 	    ptr.setPtrTargetEffSelfType(auti); //missing?
+	    assert(m_state.isAClass(auti) && m_state.isScalar(auti));
 	  }
       }
     else
@@ -225,6 +228,7 @@ namespace MFM {
 	atop = m_state.m_funcCallStack.getAbsoluteStackIndexOfSlot(atop);
 	ptr = UlamValue::makePtr(atop, STACK, nuti, m_state.determinePackable(nuti), m_state, 0);
 	ptr.setPtrTargetEffSelfType(auti);
+	assert(m_state.isAClass(auti) && m_state.isScalar(auti));
 	ptr.setUlamValueTypeIdx(PtrAbs);
       }
     return ptr;

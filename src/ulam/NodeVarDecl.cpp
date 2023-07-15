@@ -1398,6 +1398,7 @@ namespace MFM {
 	UlamValue selfuvp = m_state.m_currentSelfPtr;
 	UTI ttype = selfuvp.getPtrTargetType();
 	assert(m_state.okUTItoContinue(ttype));
+	assert(m_state.okUTItoContinue(selfuvp.getPtrTargetEffSelfType())); //new
 	return selfuvp;
       } //done
 
@@ -1408,7 +1409,7 @@ namespace MFM {
     ptr = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, nuti, m_state.determinePackable(nuti), m_state, 0, m_varSymbol->getId());
 
     if(m_state.isAClass(nuti))
-      ptr.setPtrTargetEffSelfType(nuti);
+      ptr.setPtrTargetEffSelfType(m_state.getUlamTypeAsScalar(nuti));
 
     return ptr;
   } //makeUlamValuePtr

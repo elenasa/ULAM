@@ -444,6 +444,37 @@ namespace MFM {
     m_uv.m_ptrValue.m_targetEffSelf = type;
   } //setPtrTargetEffSelf
 
+  void UlamValue::setPtrTargetEffSelfTypeFromAnotherUV(UlamValue fmuv, CompilerState& state)
+  {
+    assert(isPtr());
+    UTI fmtype = fmuv.getUlamValueTypeIdx(); //==node type
+    bool isfmPtr = fmuv.isPtr();
+    if(isfmPtr) fmtype = fmuv.getPtrTargetType();
+
+    if(!state.isAClass(fmtype)) return; //classarray is a class enum
+
+    UTI fmeffself = fmuv.getUlamValueEffSelfTypeIdx();
+
+    if(isfmPtr) fmeffself = fmuv.getPtrTargetEffSelfType();
+
+    //use class scalar as eff self, not its array type ?? or maybe none????
+    if(state.okUTItoContinue(fmeffself))
+      {
+	if(!state.isScalar(fmeffself))
+	  {
+	    fmeffself = state.getUlamTypeAsScalar(fmeffself);
+	  }
+      }
+    else
+      {
+	if(!state.isScalar(fmtype))
+	  {
+	    fmeffself = state.getUlamTypeAsScalar(fmtype);
+	  }
+      }
+    setPtrTargetEffSelfType(fmeffself);
+  } //setPtrTargetEffSelfFromAnotherUV
+
   u16 UlamValue::getPtrNameId()
   {
     assert(isPtr());

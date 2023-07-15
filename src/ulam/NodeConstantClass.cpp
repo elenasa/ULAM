@@ -407,6 +407,7 @@ namespace MFM {
 
     UlamValue rtnUVPtr = makeUlamValuePtr();
     rtnUVPtr.setPtrTargetEffSelfType(effselfuti); //t41494
+    assert(m_state.isAClass(effselfuti) && m_state.isScalar(effselfuti));
 
     Node::assignReturnValueToStack(rtnUVPtr);
 
@@ -438,6 +439,7 @@ namespace MFM {
 
     UlamValue rtnUVPtr = makeUlamValuePtr();
     rtnUVPtr.setPtrTargetEffSelfType(effselfuti);
+    assert(m_state.isAClass(effselfuti) && m_state.isScalar(effselfuti));
 
     Node::assignReturnValuePtrToStack(rtnUVPtr);
 

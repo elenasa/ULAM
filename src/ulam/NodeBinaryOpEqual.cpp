@@ -466,12 +466,14 @@ namespace MFM {
 	    // unpacked array requires a ptr
 	    // setup effself in new ptr, to avoid nouti when a class (t3172)
 	    UlamValue tmpruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(rslot);
+#if 0
 	    UTI tmpeffself = tmpruv.getUlamValueEffSelfTypeIdx();
 	    if(tmpruv.isPtr())
 	      tmpeffself = tmpruv.getPtrTargetEffSelfType();
-
+#endif
 	    ruv = UlamValue::makePtr(rslot, EVALRETURN, nuti, packed, m_state); //ptr
-	    ruv.setPtrTargetEffSelfType(tmpeffself); //t3172
+	    ruv.setPtrTargetEffSelfTypeFromAnotherUV(tmpruv, m_state); //t3172
+	    //ruv.setPtrTargetEffSelfType(tmpeffself); //t3172
 	  }
       }
 

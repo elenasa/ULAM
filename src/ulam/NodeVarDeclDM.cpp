@@ -1023,7 +1023,7 @@ namespace MFM {
     UTI nuti = getNodeType();
     UlamValue ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), nuti, m_state.determinePackable(nuti), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset(), m_varSymbol->getId());
     if(m_state.isAClass(nuti))
-      ptr.setPtrTargetEffSelfType(nuti);
+      ptr.setPtrTargetEffSelfType(m_state.getUlamTypeAsScalar(nuti)); //as scalar!!!
     ptr.checkForAbsolutePtr(m_state.m_currentObjPtr);
     return ptr;
   } //makeUlamValuePtr

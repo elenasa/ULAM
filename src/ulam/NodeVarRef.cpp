@@ -399,6 +399,7 @@ namespace MFM {
       }
     UlamValue ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), nuti, m_state.determinePackable(nuti), m_state, m_state.m_currentObjPtr.getPtrPos() + pos, m_varSymbol->getId());
     //not sure about setPtrTargetEffSelfType..is it in m_currentObjPtr??
+    ptr.setPtrTargetEffSelfTypeFromAnotherUV(m_state.m_currentObjPtr, m_state); //new...?
     ptr.checkForAbsolutePtr(m_state.m_currentObjPtr);
     return ptr;
   } //makeUlamValuePtr
