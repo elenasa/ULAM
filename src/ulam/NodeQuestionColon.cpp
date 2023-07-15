@@ -481,8 +481,10 @@ namespace MFM {
     if(nut->isReference()) //includes primitive ALT_ARRAYITEM (t41660), not class arrayitem (t41661)
       {
 	genCodeToStoreInto(fp, uvpass); //t41062
+#if 0
 	if(nut->isPrimitiveType())
 	  Node::genCodeReadAutorefIntoATmpVar(fp, uvpass); //t41140, t41660
+#endif
 	return;
       }
 

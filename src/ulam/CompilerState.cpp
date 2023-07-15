@@ -3031,9 +3031,11 @@ namespace MFM {
   {
     if(!isScalar(cuti)) return false;
 
+#if 0
     //type is possibly a custom class, but this cuti was an item in reg.array
     if(getReferenceType(cuti) == ALT_ARRAYITEM)
       return false; //t3543
+#endif
 
     //deref cuti (t3653, t3942, t3947, t3998, t41000, t41001, t41071)
     if(isAClass(cuti))
@@ -3147,7 +3149,7 @@ namespace MFM {
       {
 	UTI scalarUTI = uti;
 	if(!ut->isScalar())
-	  scalarUTI = getUlamTypeAsScalar(uti); //ALT_ARRAYITEM ?
+	  scalarUTI = getUlamTypeAsScalar(uti); //ALT_ARRAYITEM no longer
 	scalarUTI = getUlamTypeAsDeref(scalarUTI); //and deref
 
 	//not a regular class, and not the template, so dig deeper for the stub

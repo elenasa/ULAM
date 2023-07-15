@@ -1005,7 +1005,7 @@ namespace MFM {
 	return ((SymbolVariableStack *) m_varSymbol)->getAutoPtrForEval(); //haha! we're done.
       }
 
-    if(m_varSymbol->isAutoLocal()) //ALT_REF, ALT_CONSTREF or ALT_ARRAYITEM
+    if(m_varSymbol->isAutoLocal()) //ALT_REF, ALT_CONSTREF (or ALT_ARRAYITEM)
       {
 	UlamValue autoptr = ((SymbolVariableStack *) m_varSymbol)->getAutoPtrForEval();
 	if((autoptr.getUlamValueTypeIdx() != Nouti) && autoptr.isPtr())
@@ -1085,7 +1085,7 @@ namespace MFM {
       {
 #if 0
 	//DEBUG ONLY!!, to view ptr saved with Ref's m_varSymbol.
-	if(m_varSymbol->isAutoLocal()) //ALT_REF, ALT_CONSTREF or ALT_ARRAYITEM
+	if(m_varSymbol->isAutoLocal()) //ALT_REF, ALT_CONSTREF (or ALT_ARRAYITEM)
 	  ptr = ((SymbolVariableStack *) m_varSymbol)->getAutoPtrForEval();
 #endif
 

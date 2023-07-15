@@ -171,12 +171,12 @@ namespace MFM {
 	if(cicr != UTIC_SAME)
 	  return false; //t3963
       }
-
+#if 0
     //skip rest in the case of array item, continue with usual size fit;
     //must check (t3884, t3651, t3653, t3817, t41071,3 t41100)
     if(alt1 == ALT_ARRAYITEM || alt2 == ALT_ARRAYITEM)
       return true;
-
+#endif
     if(key1.getUlamKeyTypeSignatureBitSize() != key2.getUlamKeyTypeSignatureBitSize())
 	  return false;
 
@@ -637,6 +637,7 @@ namespace MFM {
     ALT alt2 = key2.getUlamKeyTypeSignatureReferenceType();
     if(alt1 != alt2)
       {
+#if 0
 	if((alt1 == ALT_ARRAYITEM) || (alt2 == ALT_ARRAYITEM))
 	{
 	  if((alt1 == ALT_REF) || (alt2 == ALT_REF))
@@ -649,7 +650,8 @@ namespace MFM {
 	    return UTIC_SAME; //matches ALT_NOT
 	}
 	else
-	  return UTIC_NOTSAME;
+#endif
+       return UTIC_NOTSAME;
       }
     return UTIC_SAME;
   } //compareWithWildArrayItemALTKey (static)

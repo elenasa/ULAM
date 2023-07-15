@@ -408,6 +408,7 @@ namespace MFM {
 			m_argumentNodes->exchangeKids(argNodes[i], argCast, i);
 			argsWithCast++;
 		      }
+#if 0
 		    else if(alti == ALT_ARRAYITEM)
 		      {
 			//array item (ALT_ARRAYITEM) is okay, with a cast to its scalar (t3250)
@@ -417,6 +418,7 @@ namespace MFM {
 			m_argumentNodes->exchangeKids(argNodes[i], argCast, i);
 			argsWithCast++;
 		      }
+#endif
 		    else if((alti == ALT_REF) || (alti == ALT_CONSTREF))
 		      {
 			//ref not allowed since doesn't share base class w non-refs (t41099)
