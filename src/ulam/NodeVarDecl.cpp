@@ -626,7 +626,7 @@ namespace MFM {
 		m_state.statusUnknownTypeInThisClassResolver(vit);
 		vit = eit;
 	      }
-	    //switch block variable non-ref (t41581), including ALT_ARRAYITEM (t41656)
+	    //switch block variable non-ref (t41581); no longer including ALT_ARRAYITEM (t41656)
 	    if(m_state.isReference(vit))
 	      {
 		vit = m_state.getUlamTypeAsDeref(vit);
@@ -1409,7 +1409,7 @@ namespace MFM {
     ptr = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, nuti, m_state.determinePackable(nuti), m_state, 0, m_varSymbol->getId());
 
     if(m_state.isAClass(nuti))
-      ptr.setPtrTargetEffSelfType(m_state.getUlamTypeAsScalar(nuti));
+      ptr.setPtrTargetEffSelfType(nuti, m_state); //array as scalar or nouti?
 
     return ptr;
   } //makeUlamValuePtr

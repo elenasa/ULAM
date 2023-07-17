@@ -141,13 +141,11 @@ namespace MFM {
       {
 	assert(!m_state.isPtr(atomuv.getUlamValueTypeIdx())); //sanity
 	UTI atomuveffself = atomuv.getUlamValueEffSelfTypeIdx();
-	ptr.setPtrTargetEffSelfType(atomuveffself); //t3747
-	assert(m_state.isAClass(atomuveffself) && m_state.isScalar(atomuveffself));
+	ptr.setPtrTargetEffSelfType(atomuveffself, m_state); //t3747
       }
     else
       {
-	ptr.setPtrTargetEffSelfType(auti); //t41318, t41384
-	assert(m_state.isAClass(auti) && m_state.isScalar(auti));
+	ptr.setPtrTargetEffSelfType(auti, m_state); //t41318, t41384
       }
 
     ptr.setUlamValueTypeIdx(PtrAbs);

@@ -145,10 +145,6 @@ namespace MFM {
     m_state.m_constantStack.storeUlamValueInSlot(atomuv, atop);
 
     ptr = UlamValue::makePtr(atop, CNSTSTACK, auti, m_state.determinePackable(auti), m_state, 0);
-#if 0
-    //ptr.setPtrTargetEffSelfType(auti);
-    //assert(m_state.isAClass(auti) && m_state.isScalar(auti));
-#endif
     ptr.setPtrTargetEffSelfTypeFromAnotherUV(atomuv, m_state); //t41503 auti is atom type
     ptr.setUlamValueTypeIdx(PtrAbs);
     return ptr;

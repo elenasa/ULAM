@@ -166,7 +166,7 @@ namespace MFM{
 
     UTI getPtrTargetEffSelfType();
 
-    void setPtrTargetEffSelfType(UTI type);
+    void setPtrTargetEffSelfType(UTI type, CompilerState& state);
 
     void setPtrTargetEffSelfTypeFromAnotherUV(UlamValue fmuv, CompilerState& state);
 

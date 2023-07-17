@@ -806,16 +806,6 @@ namespace MFM {
     UlamValue rtnPtr = UlamValue::makePtr(-slots, where, rtnUVtype, m_state.determinePackable(rtnUVtype), m_state);
     rtnPtr.setPtrTargetEffSelfTypeFromAnotherUV(rtnUV, m_state); //t3172
 
-#if 0
-    if(m_state.isAClass(rtnUVtype))
-      {
-	UTI rtneffself = rtnUV.getUlamValueEffSelfTypeIdx();
-	if(rtnUV.isPtr())
-	  rtneffself = rtnUV.getPtrTargetEffSelfType();
-	rtnPtr.setPtrTargetEffSelfType(rtneffself); //t3172, missing!
-      }
-#endif
-
     m_state.assignValue(rtnPtr, rtnUV);
   } //assignReturnValueToStack
 
@@ -828,14 +818,6 @@ namespace MFM {
       return;
 
     UlamValue rtnPtr = UlamValue::makePtr(-1, where, rtnUVtype, rtnUVptr.isTargetPacked(), m_state);
-
-#if 0
-    if(m_state.isAClass(rtnUVtype))
-      {
-	UTI rtneffself = rtnUVptr.getPtrTargetEffSelfType();
-	rtnPtr.setPtrTargetEffSelfType(rtneffself); //missing?
-      }
-#endif
 
     rtnPtr.setPtrTargetEffSelfTypeFromAnotherUV(rtnUVptr, m_state); //missing?
     m_state.assignValuePtr(rtnPtr, rtnUVptr);
@@ -855,10 +837,6 @@ namespace MFM {
 
     //where to put the return value..'return' statement uses STACK (t41497, t41476)
     UlamValue rtnPtr = UlamValue::makePtr(-slots, STACK, rtnUVtype, m_state.determinePackable(rtnUVtype), m_state);
-#if 0
-    UTI rtneffself = rtnUV.getUlamValueEffSelfTypeIdx();
-    rtnPtr.setPtrTargetEffSelfType(rtneffself); //t41089, missing!
-#endif
 
     rtnPtr.setPtrTargetEffSelfTypeFromAnotherUV(rtnUV, m_state); //t41089, missing!
     m_state.assignValue(rtnPtr, rtnUV);

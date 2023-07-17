@@ -63,7 +63,7 @@ namespace MFM {
     UlamType * fmut = m_state.getUlamTypeByIndex(typidx);
     if( fmut == this)
       return CAST_CLEAR; //same class, quark or element
-    UTI fmderef = m_state.getUlamTypeAsDeref(typidx); //e.g. ALT_ARRAYITEM
+    UTI fmderef = m_state.getUlamTypeAsDeref(typidx); //e.g. ALT_AS
     u32 cuti = m_key.getUlamKeyTypeSignatureClassInstanceIdx(); //our scalar "new"
     if(m_state.isClassASubclassOf(fmderef, cuti))
       return CAST_CLEAR; //(up) casting to a super class

@@ -167,7 +167,7 @@ namespace MFM {
 
     if(key1.getUlamKeyTypeSignatureClassInstanceIdx() != key2.getUlamKeyTypeSignatureClassInstanceIdx())
       {
-	ULAMTYPECOMPARERESULTS cicr = UlamType::compareWithWildArrayItemALTKey(key1.getUlamKeyTypeSignatureClassInstanceIdx(),key2.getUlamKeyTypeSignatureClassInstanceIdx(), m_state);
+	ULAMTYPECOMPARERESULTS cicr = UlamType::compareByKeysPiecewise(key1.getUlamKeyTypeSignatureClassInstanceIdx(),key2.getUlamKeyTypeSignatureClassInstanceIdx(), m_state);
 	if(cicr != UTIC_SAME)
 	  return false; //t3963
       }
@@ -521,55 +521,12 @@ namespace MFM {
     return !(m_key.getUlamKeyTypeSignatureBitSize() <= UNKNOWNSIZE || getArraySize() == UNKNOWNSIZE);
   }
 
-  ULAMTYPECOMPARERESULTS UlamType::compare(UTI u1, UTI u2, CompilerState& state)  //static
+  ULAMTYPECOMPARERESULTS UlamType::compare(UTI u1, UTI u2, CompilerState& state)  //static, public
   {
-    assert((u1 != Nouti) && (u2 != Nouti));
+    return compareByKeysPiecewise(u1,u2,state);
+  }
 
-    if(u1 == u2) return UTIC_SAME; //short-circuit
-
-    if((u1 == Nav) || (u2 == Nav)) return UTIC_NOTSAME;
-
-    if((u1 == Hzy) || (u2 == Hzy)) return UTIC_DONTKNOW;
-
-    UlamType * ut1 = state.getUlamTypeByIndex(u1);
-    UlamType * ut2 = state.getUlamTypeByIndex(u2);
-    ULAMCLASSTYPE ct1 = ut1->getUlamClassType();
-    ULAMCLASSTYPE ct2 = ut2->getUlamClassType();
-    UlamKeyTypeSignature key1 = ut1->getUlamKeyTypeSignature();
-    UlamKeyTypeSignature key2 = ut2->getUlamKeyTypeSignature();
-
-    // Given Class Arguments: we may end up with different sizes given different
-    // argument values which may or may not be known while parsing!
-    // t.f. classes are much more like the primitive ulamtypes now.
-    // Was The Case: classes with unknown bitsizes are essentially as complete
-    // as they can be during parse time; and will have the same UTIs.
-    if(!ut1->isComplete())
-      {
-	if(ct1 == UC_NOTACLASS || ut1->getArraySize() == UNKNOWNSIZE)
-	  return UTIC_DONTKNOW;
-
-	//class with known arraysize(scalar or o.w.); no more Nav ids.
-	if(key1.getUlamKeyTypeSignatureClassInstanceIdx() != key2.getUlamKeyTypeSignatureClassInstanceIdx())
-	  return UTIC_DONTKNOW;
-      }
-
-    if(!ut2->isComplete())
-      {
-	if(ct2 == UC_NOTACLASS || ut2->getArraySize() == UNKNOWNSIZE)
-	  return UTIC_DONTKNOW;
-
-	//class with known arraysize(scalar or o.w.); no more Nav ids.
-	if(key1.getUlamKeyTypeSignatureClassInstanceIdx() != key2.getUlamKeyTypeSignatureClassInstanceIdx())
-	  return UTIC_DONTKNOW;
-      }
-
-    //both complete!
-    //assert both key and ptr are either both equal or not equal; not different ('!^' eq '==')
-    assert((key1 == key2) == (ut1 == ut2));
-    return (ut1 == ut2) ? UTIC_SAME : UTIC_NOTSAME;
-  } //compare (static)
-
-  ULAMTYPECOMPARERESULTS UlamType::compareWithWildArrayItemALTKey(UTI u1, UTI u2, CompilerState& state)  //static
+  ULAMTYPECOMPARERESULTS UlamType::compareByKeysPiecewise(UTI u1, UTI u2, CompilerState& state)  //static
   {
     assert((u1 != Nouti) && (u2 != Nouti));
 
@@ -636,25 +593,10 @@ namespace MFM {
     ALT alt1 = key1.getUlamKeyTypeSignatureReferenceType();
     ALT alt2 = key2.getUlamKeyTypeSignatureReferenceType();
     if(alt1 != alt2)
-      {
-#if 0
-	if((alt1 == ALT_ARRAYITEM) || (alt2 == ALT_ARRAYITEM))
-	{
-	  if((alt1 == ALT_REF) || (alt2 == ALT_REF))
-	    return UTIC_NOTSAME; //t3653
-	  else if ((alt1 == ALT_CONSTREF) || (alt2 == ALT_CONSTREF))
-	    return UTIC_NOTSAME; //like a ref
-	  else if ((alt1 == ALT_AS) || (alt2 == ALT_AS))
-	    return UTIC_NOTSAME; //like a ref
-	  else
-	    return UTIC_SAME; //matches ALT_NOT
-	}
-	else
-#endif
-       return UTIC_NOTSAME;
-      }
+      return UTIC_NOTSAME;
+
     return UTIC_SAME;
-  } //compareWithWildArrayItemALTKey (static)
+  } //compareByKeysPiecewise (static)
 
   ULAMTYPECOMPARERESULTS UlamType::compareWithWildALTKey(UTI u1, UTI u2, CompilerState& state)  //static
   {
@@ -730,12 +672,12 @@ namespace MFM {
 
   ULAMTYPECOMPARERESULTS UlamType::compareForArgumentMatching(UTI u1, UTI u2, CompilerState& state)  //static
   {
-    return UlamType::compareWithWildArrayItemALTKey(u1, u2, state);
+    return UlamType::compareByKeysPiecewise(u1, u2, state);
   } //compareForArgumentMatching
 
   ULAMTYPECOMPARERESULTS UlamType::compareForMakingCastingNode(UTI u1, UTI u2, CompilerState& state)  //static
   {
-    return UlamType::compareWithWildArrayItemALTKey(u1, u2, state);
+    return UlamType::compareByKeysPiecewise(u1, u2, state);
   } //compareForMakingCastingNode
 
   ULAMTYPECOMPARERESULTS UlamType::compareForUlamValueAssignment(UTI u1, UTI u2, CompilerState& state)  //static

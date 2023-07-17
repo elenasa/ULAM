@@ -727,7 +727,7 @@ namespace MFM {
     UlamValue scalarPtr = UlamValue::makeScalarPtr(pluv, m_state);
     UTI scalarluti = scalarPtr.getPtrTargetType();
     if(m_state.isAClass(scalarluti))
-      scalarPtr.setPtrTargetEffSelfType(scalarluti); //t3172, missing
+      scalarPtr.setPtrTargetEffSelfType(scalarluti, m_state); //t3172, missing
 
     if(scalarPtr.incrementPtr(m_state, offsetInt))
       //copy result UV to stack, -1 relative to current frame pointer

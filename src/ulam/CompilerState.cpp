@@ -3030,17 +3030,11 @@ namespace MFM {
   {
     if(!isScalar(cuti)) return false;
 
-#if 0
-    //type is possibly a custom class, but this cuti was an item in reg.array
-    if(getReferenceType(cuti) == ALT_ARRAYITEM)
-      return false; //t3543
-#endif
-
     //deref cuti (t3653, t3942, t3947, t3998, t41000, t41001, t41071)
     if(isAClass(cuti))
       return hasCustomArrayInAClassOrAncestor(getUlamTypeAsDeref(cuti));
 
-    return false; //even for non-classes
+    return false; //even for non-classes, t3543
   } //isClassACustomArray
 
   UTI CompilerState::getAClassCustomArrayType(UTI cuti)
@@ -7544,7 +7538,7 @@ namespace MFM {
 
   bool CompilerState::isAtomRef(UTI auti)
   {
-    //do not include ALT_AS, ALT_ARRAYITEM, etc as Ref here. Specifically a ref (&).
+    //do not include ALT_AS, etc as Ref here. Specifically a ref (&).
     UlamType * aut = getUlamTypeByIndex(auti);
     return ((aut->getUlamTypeEnum() == UAtom) && isAltRefType(auti));
   }

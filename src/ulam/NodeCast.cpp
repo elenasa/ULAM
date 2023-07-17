@@ -757,8 +757,7 @@ namespace MFM {
 		  {
 		    UTI effself = uv.getUlamValueEffSelfTypeIdx();
 		    ruvPtr.setPtrTargetType(tobeType); //possibly reset to ref type, no longer atom
-		    ruvPtr.setPtrTargetEffSelfType(effself);
-		    assert(m_state.isAClass(effself) && m_state.isScalar(effself));
+		    ruvPtr.setPtrTargetEffSelfType(effself, m_state);
 
 		    u32 baserelpos = 0; //t3837, t41315
 		    if(m_state.getABaseClassRelativePositionInAClass(effself, dereftobe, baserelpos))

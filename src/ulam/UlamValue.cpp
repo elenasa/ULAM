@@ -438,9 +438,20 @@ namespace MFM {
     return m_uv.m_ptrValue.m_targetEffSelf;
   } //getPtrTargetType
 
-  void UlamValue::setPtrTargetEffSelfType(UTI type)
+  void UlamValue::setPtrTargetEffSelfType(UTI type, CompilerState& state)
   {
     assert(isPtr());
+    if(state.isAClass(type))
+      {
+	if(!state.isScalar(getPtrTargetType()))
+	  type = Nouti;
+
+	assert(state.isScalar(type));
+      }
+    else
+      {
+	assert(type == Nouti); //clear for primitives and arrays of classes
+      }
     m_uv.m_ptrValue.m_targetEffSelf = type;
   } //setPtrTargetEffSelf
 
@@ -462,17 +473,17 @@ namespace MFM {
       {
 	if(!state.isScalar(fmeffself))
 	  {
-	    fmeffself = state.getUlamTypeAsScalar(fmeffself);
+	    fmeffself = Nouti; //state.getUlamTypeAsScalar(fmeffself);
 	  }
       }
     else
       {
 	if(!state.isScalar(fmtype))
 	  {
-	    fmeffself = state.getUlamTypeAsScalar(fmtype);
+	    fmeffself = Nouti; //state.getUlamTypeAsScalar(fmtype);
 	  }
       }
-    setPtrTargetEffSelfType(fmeffself);
+    setPtrTargetEffSelfType(fmeffself, state);
   } //setPtrTargetEffSelfFromAnotherUV
 
   u16 UlamValue::getPtrNameId()
