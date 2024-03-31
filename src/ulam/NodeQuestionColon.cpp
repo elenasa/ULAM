@@ -136,8 +136,13 @@ namespace MFM {
     if(!m_state.isComplete(lt) || !m_state.isComplete(rt))
       return Hzy; //short-circuit
 
-    if(UlamType::compare(lt, rt, m_state) == UTIC_SAME)
-      return lt; //incl classes, atoms, refs, void, strings, arrays
+    //t41662, ish 20240330, explicit cast not necessary.
+    if(UlamType::compareForAssignment(lt, rt, m_state) == UTIC_SAME)
+      {
+	if(m_state.isReference(lt))
+	  return rt; //return the non-ref type
+	return lt; //incl classes, atoms, refs, void, strings, arrays
+      }
 
     //if different non-primitive types require explicit casting:
     //atom-quark,atom-element,element-quark,quark-quark',transient-quark
@@ -517,8 +522,13 @@ namespace MFM {
 	fp->write(luvpass.getTmpVarAsString(m_state).c_str());
 	if(luvpass.getPassStorage() == TMPBITVAL)
 	  fp->write(".read()");
+
+	//except when its a cast of a ref t41662, 20240330 ish
 	if(luvpass.getPassStorage() == TMPAUTOREF)
-	  m_state.abortShouldntGetHere(); //not a ref!
+	  {
+	    assert(m_nodeLeft->isACast()); //sanity
+	    fp->write(".read()");
+	  }
 	fp->write(";"); GCNL;
       }
 
@@ -544,8 +554,13 @@ namespace MFM {
 	fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
 	if(ruvpass.getPassStorage() == TMPBITVAL)
 	  fp->write(".read()");
+
+	//except when its a cast of a ref t41662, 20240330 ish
 	if(ruvpass.getPassStorage() == TMPAUTOREF)
-	  m_state.abortShouldntGetHere(); //not a ref!
+	  {
+	    assert(m_nodeRight->isACast()); //sanity
+	    fp->write(".read()");
+	  }
 	fp->write(";"); GCNL;
       }
 

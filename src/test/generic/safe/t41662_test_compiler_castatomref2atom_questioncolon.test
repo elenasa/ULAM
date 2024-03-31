@@ -1,0 +1,49 @@
+## -*- mode:ulam -*-
+#=t41662_test_compiler_castatomref2atom_questioncolon
+##
+#!
+Exit status: -11
+Ue_Tu { Int test() {  Atom a = self.atomof cast;  EventWindow ew;  ew ( 0 cast )aref . a Tu is ?  a :  ew ( 1 cast )aref . cast = ew ( 1 cast )aref . a Tu is ?  ew ( 0 cast )aref . cast :  a = 0 cast return } }
+Uq_EventWindow { <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## informed by Dave's 20240330 ish: compiler asserts "shouldnt get here", TMPAUTOREF for casted atomref
+##
+#>Tu.ulam
+  ulam 3;
+element Tu {
+
+  Int test(){
+
+    Atom a = self.atomof;
+
+    EventWindow ew;
+
+    //left is atomref, right is atom
+    ew[0] = (a is Tu) ? a : ew[1];
+
+    //right is atomref, left is atom
+    ew[1] = (a is Tu) ? ew[0] : a;
+
+    return 0;
+  }
+}
+
+#:EventWindow.ulam
+  ulam 3;
+quark EventWindow{
+  Atom& aref(Int index) native;
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.
