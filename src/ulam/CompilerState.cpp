@@ -144,7 +144,7 @@ namespace MFM {
     "*/\n\n";
 
   //use of this in the initialization list seems to be okay;
-  CompilerState::CompilerState(): m_linesForDebug(false), m_programDefST(*this), m_parsingLocalDef(false), m_parsingFUNCid(0), m_nextFunctionOrderNumber(1), m_parsingThisClass(Nouti), m_parsingVariableSymbolTypeFlag(STF_NEEDSATYPE), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_pendingArgStubContext(0), m_pendingArgTypeStubContext(0), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0), m_urSelfUTI(Nouti), m_emptyElementUTI(Nouti), m_classIdBits(CLASSIDBITS)
+  CompilerState::CompilerState(): m_linesForDebug(false), m_programDefST(*this), m_parsingLocalDef(false), m_parsingFUNCid(0), m_nextFunctionOrderNumber(1), m_parsingThisClass(Nouti), m_parsingConcreteClassFlag(false), m_parsingVariableSymbolTypeFlag(STF_NEEDSATYPE), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_pendingArgStubContext(0), m_pendingArgTypeStubContext(0), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0), m_urSelfUTI(Nouti), m_emptyElementUTI(Nouti), m_classIdBits(CLASSIDBITS)
   {
     m_classIdRegistryUTI.push_back(0); //initialize 0 for UrSelf
     m_err.init(this, debugOn, infoOn, noteOn, warnOn, waitOn, NULL);
@@ -6958,6 +6958,23 @@ namespace MFM {
   UTI CompilerState::getThisClassForParsing()
   {
     return m_parsingThisClass;
+  }
+
+  //set temporary flag for concrete class; used to set flag in SymbolClass
+  void CompilerState::setConcreteClassFlagForParsing()
+  {
+    assert(m_parsingConcreteClassFlag == false);
+    m_parsingConcreteClassFlag = true;
+  }
+
+  void CompilerState::clearConcreteClassFlagForParsing()
+  {
+    m_parsingConcreteClassFlag = false;
+  }
+
+  bool CompilerState::getConcreteClassFlagForParsing()
+  {
+    return m_parsingConcreteClassFlag;
   }
 
   void CompilerState::setLocalsScopeForParsing(const Token& localTok)

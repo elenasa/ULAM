@@ -1,0 +1,51 @@
+## -*- mode:ulam -*-
+#=t41663_test_compiler_elementinheritedquarkconcrete_purevirtualfunc_error
+#!
+./QSubBase1.ulam:3:7: ERROR: Concrete Class 'QSubBase1' is abstract due to these pure functions..
+./QMemBase.ulam:7:15: NOTE: Still pure in QSubBase1: Int vfunc().
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by t41296; tests new keyword @Concrete
+## for abstract classes, not necessarily used or elements.
+##
+#:QMemBase.ulam
+  ulam 2;
+quark QMemBase {
+  Int(3) bmem;
+  Int func() {
+    return vfunc();
+  }
+  virtual Int vfunc(); //pure
+}
+
+#:QSubBase1.ulam
+  ulam 5;
+@Concrete
+quark QSubBase1 : QMemBase
+{
+  //virtual Int vfunc() {
+  //  bmem = 1;
+  //  return 3;
+  // }
+}
+
+#:QSubBase2.ulam
+  ulam 2;
+quark QSubBase2 : QMemBase {
+  virtual Int vfunc() {
+    bmem = 2;
+    return 4;
+  }
+}
+
+
+#>Test.ulam
+  ulam 2;
+element Test {
+  Int test() {
+    //Foo f; //instance not required to catch regular abstract element
+    return 0;
+  }
+}
+
+#.

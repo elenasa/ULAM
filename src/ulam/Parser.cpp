@@ -184,6 +184,13 @@ namespace MFM {
 	    m_state.clearLocalsScopeForParsing();
 	    return parseThisClass();
 	  }
+	else if(pTok.m_type == TOK_KW_FLAG_CONCRETECLASS)
+	  {
+	    //set a flag indicating this class should have no pure virtuals
+	    //even if it is not instantiated yet.
+	    m_state.setConcreteClassFlagForParsing();
+	    return parseThisClass();
+	  }
 	else
 	  {
 	    std::ostringstream msg;
@@ -247,6 +254,7 @@ namespace MFM {
 		msg << m_state.m_pool.getDataAsString(cnSym->getId()).c_str() << "'";
 		MSG(&iTok, msg.str().c_str(), ERR);
 		m_state.clearStructuredCommentToken();
+		m_state.clearConcreteClassFlagForParsing();
 		return  true; //we're done unless we can gobble the rest up?
 	      }
 	    else if(cnSym->isClassTemplate())
@@ -256,6 +264,7 @@ namespace MFM {
 		msg << m_state.m_pool.getDataAsString(cnSym->getId()).c_str() << "'";
 		MSG(&iTok, msg.str().c_str(), ERR);
 		m_state.clearStructuredCommentToken();
+		m_state.clearConcreteClassFlagForParsing();
 		return  true; //we're done unless we can gobble the rest up?
 	      }
 	    else
@@ -285,12 +294,14 @@ namespace MFM {
 		msg << m_state.m_pool.getDataAsString(ctSym->getId()).c_str() << "'";
 		MSG(&iTok, msg.str().c_str(), ERR);
 		m_state.clearStructuredCommentToken();
+		m_state.clearConcreteClassFlagForParsing();
 		return true; //we're done unless we can gobble the rest up?
 	      }
 	    if(ctSym && !ctSym->isClassTemplate())
 	      {
 		//error already output
 		m_state.clearStructuredCommentToken();
+		m_state.clearConcreteClassFlagForParsing();
 		return true; //we're done unless we can gobble the rest up?
 	      }
 	    wasIncomplete = true;
@@ -303,6 +314,12 @@ namespace MFM {
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
 
     m_state.setThisClassForParsing(cuti);
+
+    if(m_state.getConcreteClassFlagForParsing())
+      {
+	cnSym->setConcreteClass();
+	m_state.clearConcreteClassFlagForParsing();
+      }
 
     //mostly needed for code gen later, but this is where we first know it!
     m_state.pushClassContext(cuti, cnSym->getClassBlockNode(), cnSym->getClassBlockNode(), false, NULL); //null blocks likely

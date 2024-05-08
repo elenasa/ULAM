@@ -3,8 +3,8 @@
  * CompilerState.h - Global Compiler State for ULAM
  *
  * Copyright (C) 2014-2021 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2023 Ackleyshack LLC.
- * Copyright (C) 2020-2023 The Living Computation Foundation.
+ * Copyright (C) 2014-2024 Ackleyshack LLC.
+ * Copyright (C) 2020-2024 The Living Computation Foundation.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -31,7 +31,7 @@
   \file CompilerState.h - Global Compiler State for ULAM
   \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2023 All rights reserved.
+  \date (C) 2014-2024 All rights reserved.
   \gpl
 */
 
@@ -127,6 +127,7 @@ namespace MFM{
     u32 m_nextFunctionOrderNumber; //one per SymbolFunction per class in order of declaration
 
     UTI m_parsingThisClass;
+    bool m_parsingConcreteClassFlag;
     SYMBOLTYPEFLAG m_parsingVariableSymbolTypeFlag;
 
     // used for break/continue stmt parsing; label num for end of loop, or 0
@@ -637,6 +638,11 @@ namespace MFM{
     void setThisClassForParsing(UTI cuti);
     void clearThisClassForParsing();
     UTI getThisClassForParsing();
+
+    /** helpers: parsing a concrete class which should have no pure virtuals; checked even if uninstaniated */
+    void setConcreteClassFlagForParsing();
+    void clearConcreteClassFlagForParsing();
+    bool getConcreteClassFlagForParsing();
 
     /** helpers: local def location and flag for parsing*/
     void setLocalsScopeForParsing(const Token& localTok);

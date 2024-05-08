@@ -387,6 +387,9 @@ namespace MFM {
     if(isQuarkUnion())
       newclassinstance->setQuarkUnion();
 
+    if(SymbolClass::isConcreteClass())
+      newclassinstance->setConcreteClass();  //t41664
+
     //inheritance: (multi-inheritance ulam-5), a difference btn seen/unseen templates
     initBaseClassListForAStubClassInstance(newclassinstance); //t3889
 
@@ -469,6 +472,9 @@ namespace MFM {
 
     if(isQuarkUnion())
       newclassinstance->setQuarkUnion();
+
+    if(SymbolClass::isConcreteClass())
+      newclassinstance->setConcreteClass();  //t41664
 
     if(isCATemplate)
       ((UlamTypeClass *) m_state.getUlamTypeByIndex(newuti))->setCustomArray(); //t41007
@@ -1741,6 +1747,8 @@ namespace MFM {
 	assert(classNode);
 	if(!csym->isStub())
 	  {
+	    csym->checkAbstractClassError(); //outputs error t41664 (missing)
+
 	    m_state.pushClassContext(csym->getUlamTypeIdx(), classNode, classNode, false, NULL);
 
 	    classNode->checkAbstractInstanceErrors(); //do each instance

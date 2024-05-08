@@ -11,11 +11,11 @@
 
 namespace MFM {
 
-  SymbolClass::SymbolClass(const Token& id, UTI utype, NodeBlockClass * classblock, SymbolClassNameTemplate * parent, CompilerState& state) : Symbol(id, utype, state), m_resolver(NULL), m_classBlock(classblock), m_parentTemplate(parent), m_quarkunion(false), m_stub(true), m_stubcopy(false), m_stubForTemplate(false), m_stubForTemplateType(Nouti), m_stubForTemplateTypeIncomplete(false), m_stubcopyOf(Nouti), /*m_defaultValue(NULL),*/ m_isreadyDefaultValue(false) /* default */, m_bitsPacked(false), m_registryNumber(UNINITTED_REGISTRY_NUMBER), m_elementType(UNDEFINED_ELEMENT_TYPE), m_vtableinitialized(false)
+  SymbolClass::SymbolClass(const Token& id, UTI utype, NodeBlockClass * classblock, SymbolClassNameTemplate * parent, CompilerState& state) : Symbol(id, utype, state), m_resolver(NULL), m_classBlock(classblock), m_parentTemplate(parent), m_quarkunion(false), m_stub(true), m_stubcopy(false), m_stubForTemplate(false), m_stubForTemplateType(Nouti), m_stubForTemplateTypeIncomplete(false), m_stubcopyOf(Nouti), /*m_defaultValue(NULL),*/ m_isreadyDefaultValue(false) /* default */, m_bitsPacked(false), m_registryNumber(UNINITTED_REGISTRY_NUMBER), m_elementType(UNDEFINED_ELEMENT_TYPE), m_vtableinitialized(false), m_concreteclass(false)
   {
     appendBaseClass(Nouti, true);
   }
-  SymbolClass::SymbolClass(const SymbolClass& sref) : Symbol(sref), m_resolver(NULL), m_parentTemplate(sref.m_parentTemplate), m_quarkunion(sref.m_quarkunion), m_stub(sref.m_stub), m_stubcopy(sref.m_stubcopy), m_stubForTemplate(false), m_stubForTemplateType(Nouti), m_stubForTemplateTypeIncomplete(false), m_stubcopyOf(sref.m_stubcopyOf), /*m_defaultValue(NULL),*/ m_isreadyDefaultValue(false), m_bitsPacked(false), m_registryNumber(UNINITTED_REGISTRY_NUMBER), m_elementType(UNDEFINED_ELEMENT_TYPE), m_vtableinitialized(false)
+  SymbolClass::SymbolClass(const SymbolClass& sref) : Symbol(sref), m_resolver(NULL), m_parentTemplate(sref.m_parentTemplate), m_quarkunion(sref.m_quarkunion), m_stub(sref.m_stub), m_stubcopy(sref.m_stubcopy), m_stubForTemplate(false), m_stubForTemplateType(Nouti), m_stubForTemplateTypeIncomplete(false), m_stubcopyOf(sref.m_stubcopyOf), /*m_defaultValue(NULL),*/ m_isreadyDefaultValue(false), m_bitsPacked(false), m_registryNumber(UNINITTED_REGISTRY_NUMBER), m_elementType(UNDEFINED_ELEMENT_TYPE), m_vtableinitialized(false), m_concreteclass(sref.m_concreteclass)
   {
     resetUlamType(m_state.getCompileThisIdx()); //symbols Hzy by default
 
@@ -1813,6 +1813,16 @@ namespace MFM {
     classNode->addMemberDescriptionsToInfoMap(classmembers);
   } //addClassMemberDesciptionsMapEntry
 
+  void SymbolClass::setConcreteClass()
+  {
+    m_concreteclass = true;
+  }
+
+  bool SymbolClass::isConcreteClass()
+  {
+    return m_concreteclass;
+  }
+
   void SymbolClass::initVTable(s32 initialmax)
   {
     if(initialmax == UNKNOWNSIZE) return; //nothing to initialize
@@ -2072,17 +2082,22 @@ namespace MFM {
   bool SymbolClass::checkAbstractClassError()
   {
     bool aok = true;
-    if((getUlamClass() == UC_ELEMENT) && isAbstract())
+    bool isElement = (getUlamClass() == UC_ELEMENT);
+    if((isElement || isConcreteClass()) && isAbstract())
       {
 	UTI suti = getUlamTypeIdx();
 	std::ostringstream msg;
-	msg << "Element '";
+	if(isElement)
+	  msg << "Element '";
+	else
+	  msg << "Concrete Class '";
 	msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
 	msg << "' is abstract due to these pure functions."; //dot dot
 	MSG(m_state.getFullLocationAsString(getLoc()).c_str(), msg.str().c_str(), ERR);
 	notePureFunctionSignatures();
 	aok = false; //t41296,7
       }
+
     return aok;
   } //checkAbstractClassError
 

@@ -2,8 +2,8 @@
  * SymbolClass.h -  Basic handling of Class Symbols for ULAM
  *
  * Copyright (C) 2014-2021 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2021 Ackleyshack LLC.
- * Copyright (C) 2020-2021 The Living Computation Foundation.
+ * Copyright (C) 2014-2024 Ackleyshack LLC.
+ * Copyright (C) 2020-2024 The Living Computation Foundation.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -30,7 +30,7 @@
   \file SymbolClass.h -  Basic handling of Class Symbols for ULAM
   \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2021 All rights reserved.
+  \date (C) 2014-2024 All rights reserved.
   \gpl
 */
 
@@ -193,6 +193,9 @@ namespace MFM{
 
     void addClassMemberDescriptionsMapEntry(ClassMemberMap& classmembers);
 
+    void setConcreteClass();
+    bool isConcreteClass();
+
     void initVTable(s32 initialmax);
     void updateVTable(u32 idx, SymbolFunction * fsym, UTI kinuti, UTI origuti, bool isPure);
     s32 getVTableSize();
@@ -280,6 +283,7 @@ namespace MFM{
     VT m_vtable;
     VT m_vownedVT;
     bool m_vtableinitialized;
+    bool m_concreteclass; //ulam-6
 
     bool setVTstartoffsetOfRelatedOriginatingClass(UTI origuti, u32 startoffset);
   };
