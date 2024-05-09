@@ -1,7 +1,7 @@
 [Development version: ulam-5.0.0]
 
 <LIBRARY> := <PROGRAM_OR_LOCAL_DEF>* + <EOF>
-<PROGRAM_OR_LOCAL_DEF> := <PROGRAM_DEF> | <LOCAL_DEF>
+<PROGRAM_OR_LOCAL_DEF> := (0 | <CONCRETECLASS_FLAG>) + <PROGRAM_DEF> | <LOCAL_DEF>
 <PROGRAM_DEF> := <QUARK_OR_UNION_DEF> | <ELEMENT_DEF> | <TRANSIENT_DEF>
 
 <ELEMENT_DEF> := 'element' + <ELEMENT_IDENT> + ( 0 | <ELEMENT_SUPERCLASS> ) +
@@ -242,4 +242,5 @@ where,
 <UNSIGNED_SUFFIX> := 0 | 'u' | 'U'
 <BOOLEAN> := 'true' | 'false'
 <OVERRIDE_FLAG> := '@Override'
+<CONCRETECLASS_FLAG> := '@Concrete'
 [use newlines per line for genCode comments]
