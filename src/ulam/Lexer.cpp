@@ -378,7 +378,11 @@ namespace MFM {
 	      }
 	  }
       }
-    //else not a flag
+    else //not a flag
+      {
+	if(isalpha(c))
+	  unread(); //for better error msg
+      }
 
     std::ostringstream errmsg;
     errmsg << "Weird Lex! <" << aname;
