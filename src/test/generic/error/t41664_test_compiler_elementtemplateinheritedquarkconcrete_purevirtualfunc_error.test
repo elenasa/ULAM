@@ -1,18 +1,21 @@
 ## -*- mode:ulam -*-
 #=t41664_test_compiler_elementtemplateinheritedquarkconcrete_purevirtualfunc_error
 #!
-./FooBase.ulam:2:31: ERROR: Concrete Class 'QSubBase1(1)' is abstract due to these pure functions..
+./Test.ulam:7:13: ERROR: Concrete Class 'QSubBase1(0)' is abstract due to these pure functions..
+./QMemBase.ulam:7:15: NOTE: Still pure in QSubBase1(0): Int vfunc().
+./FooBase.ulam:2:33: ERROR: Concrete Class 'QSubBase1(1)' is abstract due to these pure functions..
 ./QMemBase.ulam:7:15: NOTE: Still pure in QSubBase1(1): Int vfunc().
 ./QSubBase3.ulam:2:19: ERROR: Concrete Class 'QSubBase1(3)' is abstract due to these pure functions..
 ./QMemBase.ulam:7:15: NOTE: Still pure in QSubBase1(3): Int vfunc().
+./Test.ulam:6:13: ERROR: Element 'FooBase(1)' is abstract due to these pure functions..
+./QMemBase.ulam:7:15: NOTE: Still pure in FooBase(1): Int vfunc().
 ./FooBase.ulam:3:3: ERROR: 'm3' is type QSubBase3, which is abstract due to these pure functions..
 ./QMemBase.ulam:7:15: NOTE: Still pure in QSubBase3: Int vfunc().
-./Test.ulam:4:5: ERROR: 'fb' is type FooBase(1), which is abstract due to these pure functions..
-./QMemBase.ulam:7:15: NOTE: Still pure in FooBase(1): Int vfunc().
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t41297, t41663; tests new keyword @Concrete
-## for abstract template classes; requires instantiation to be detected
+## for abstract template classes; requires a 'use' to be detected
+## e.g. var, baseclass, typedef
 ##
 #:QMemBase.ulam
   ulam 2;
@@ -50,7 +53,7 @@ quark QSubBase3 : QSubBase1(3) {
 
 #:FooBase.ulam
   ulam 4;
-quark FooBase(Int(3) fbase) : QSubBase1(fbase) {
+element FooBase(Int(3) fbase) : QSubBase1(fbase) {
   QSubBase3 m3;
 }
 
@@ -58,7 +61,10 @@ quark FooBase(Int(3) fbase) : QSubBase1(fbase) {
   ulam 2;
 element Test {
   Int test() {
-    FooBase(1) fb; //template instance required to catch abstract error
+    //template use is required to catch abstract error, including typedefs
+    //FooBase(1) fb;
+    typedef FooBase(1) FB;
+    typedef QSubBase1(0) QSB;
     return 0;
   }
 }
