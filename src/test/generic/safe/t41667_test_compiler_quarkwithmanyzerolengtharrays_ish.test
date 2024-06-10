@@ -1,0 +1,47 @@
+## -*- mode:ulam -*-
+#=t41667_test_compiler_quarkwithmanyzerolengtharrays_ish
+##  gen output: (1 assert)
+##    Unsigned Arg: 0
+#!
+Exit status: 0
+Ue_A : QBar { Unsigned z(0u);  :QBar< typedef Int NoSite;  Int m_q1[0]( );  Int m_q2[0]( );  Int m_q3[0]( ); > Int test() {  System s;  self z . 0u = s ( self z . )print . s ( self z . 0u cast == )assert . 0u cast return } }
+Uq_QBar { typedef Int NoSite;  Int m_q1[0]();  Int m_q2[0]();  Int m_q3[0]();  <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## informed by t3840, t3671, t41665, error/t3843, error/t41666
+##
+#>A.ulam
+  ulam 5;
+element A : QBar{
+  Unsigned z;
+
+  Int test(){
+    System s;
+    z = QBar.sizeof;
+    s.print(z);
+    s.assert(z==0u);
+    return QBar.sizeof;
+  }
+}
+
+#:QBar.ulam
+  ulam 5;
+quark QBar {
+    typedef Int NoSite;
+    NoSite m_q1[0];
+    NoSite m_q2[0];
+    NoSite m_q3[0];
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

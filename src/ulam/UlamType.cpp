@@ -237,8 +237,10 @@ namespace MFM {
 
     if(arraysize > 0)
       mangled << ToLeximitedNumber(arraysize);
-    //    else if(arraysize == 0)
-    //  mangled << ToLeximitedNumber(-1); //distinct from scalar
+#if 1
+    else if(arraysize == 0) //consistent w classes (ulam-6)
+      mangled << ToLeximitedNumber(-1); //distinct fm scalar t3399,t3400,t3843,t41667,error/t41666
+#endif
     else
       mangled << 10; //scalar NONARRAYSIZE
 
