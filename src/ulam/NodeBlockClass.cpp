@@ -3274,9 +3274,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
     genCodeBuiltInIsMethodByRegistrationNumber(fp, declOnly, classtype);
 
     // returns relative position of baseclass or self; -1 if unrelated.
-#if 0
-    genCodeBuiltInFunctionGetRelPosMethodRelatedInstance(fp, declOnly, classtype); //non-virtual, localscope??
-#endif
     genCodeBuiltInFunctionGetRelPosMethodRelatedInstanceByRegistrationNumber(fp, declOnly, classtype);
 
     genCodeBuiltInFunctionNumberOfBases(fp, declOnly, classtype);
@@ -3438,51 +3435,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
     fp->write("} //isMethod\n\n");
   } //generateInternalIsMethodForElement
 
-#if 0
-  void NodeBlockClass::genCodeBuiltInFunctionGetRelPosMethodRelatedInstance(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
-  {
-    if(classtype == UC_LOCALSFILESCOPE) return;
-
-    UTI cuti = m_state.getCompileThisIdx();
-
-    if(declOnly)
-      {
-	m_state.indent(fp);
-	fp->write("s32 ");
-	fp->write(m_state.getGetRelPosMangledFunctionName(cuti,false)); //wo fail check by default?
-	fp->write("(const UlamClass<EC> * cptrarg) const;"); GCNL; //overloade
-	fp->write("\n");
-	return;
-      }
-
-    m_state.indent(fp);
-    fp->write("template<class EC>\n"); //same for elements and quarks
-
-    m_state.indent(fp);
-    fp->write("s32 "); //return relpos >=0 if related
-
-    //include the mangled class::
-    fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
-    fp->write("<EC>::");
-    fp->write(m_state.getGetRelPosMangledFunctionName(cuti,false));
-    fp->write("(const UlamClass<EC> * cptrarg) const\n");
-    m_state.indent(fp);
-    fp->write("{\n");
-
-    m_state.m_currentIndentLevel++;
-
-    m_state.indent(fp);
-    fp->write("return ");
-    fp->write(m_state.getGetRelPosMangledFunctionName(cuti,false));
-    fp->write("(cptrarg->");
-    fp->write(m_state.getClassRegistrationNumberFunctionName(cuti));
-    fp->write("());"); GCNL;
-
-    m_state.m_currentIndentLevel--;
-    m_state.indent(fp);
-    fp->write("} //relpos\n\n");
-  } //genCodeBuiltInFunctionGetRelPosMethodRelatedInstance
-#endif
 
   void NodeBlockClass::genCodeBuiltInFunctionGetRelPosMethodRelatedInstanceByRegistrationNumber(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
@@ -3498,13 +3450,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 	fp->write("(const u32 regid) const;"); GCNL; //overloade
 	fp->write("\n");
 
-#if 0
-	m_state.indent(fp);
-	fp->write("s32 ");
-	fp->write(m_state.getGetRelPosMangledFunctionName(cuti));
-	fp->write("(const u32 regid) const;"); GCNL; //overloade
-	fp->write("\n");
-#endif
 	return;
       }
 
@@ -3550,48 +3495,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
     m_state.indent(fp);
     fp->write("} //relpos\n\n");
 
-
-#if 0
-    //new version with check (ulam-6), fails on -1
-    m_state.indent(fp);
-    fp->write("template<class EC>\n"); //same for elements and quarks
-
-    m_state.indent(fp);
-    fp->write("s32 "); //return relpos >=0 if related, ow fail
-
-    //include the mangled class::
-    fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
-    fp->write("<EC>::");
-    fp->write(m_state.getGetRelPosMangledFunctionName(cuti,true));
-    fp->write("(const u32 regid) const\n");
-    m_state.indent(fp);
-    fp->write("{\n");
-
-    m_state.m_currentIndentLevel++;
-
-    m_state.indent(fp);
-    fp->write("const s32 relpos = "); //const?
-    fp->write(m_state.getGetRelPosMangledFunctionName(cuti,false));
-    fp->write("(regid);"); GCNL;
-    fp->write("\n");
-
-
-    m_state.indent(fp);
-    fp->write("if(relpos < 0)\n");
-
-    m_state.m_currentIndentLevel++;
-    m_state.indent(fp);
-    fp->write("FAIL(BAD_CAST);"); GCNL;
-    fp->write("\n");
-    m_state.m_currentIndentLevel--;
-
-    m_state.indent(fp);
-    fp->write("return relpos;\n");
-
-    m_state.m_currentIndentLevel--;
-    m_state.indent(fp);
-    fp->write("} //relpos\n\n");
-#endif
   } //genCodeBuiltInFunctionGetRelPosMethodRelatedInstanceByRegistrationNumber
 
   void NodeBlockClass::genCodeBuiltInFunctionGetRelPosRelatedInstanceByRegistrationNumber(File * fp)

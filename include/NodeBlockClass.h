@@ -257,7 +257,6 @@ namespace MFM{
     void genCodeBuiltInIsMethodByRegistrationNumber(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
     void generateInternalIsMethodForElement(File * fp, bool declOnly);
 
-    //void genCodeBuiltInFunctionGetRelPosMethodRelatedInstance(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
     void genCodeBuiltInFunctionGetRelPosMethodRelatedInstanceByRegistrationNumber(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
     void genCodeBuiltInFunctionGetRelPosRelatedInstanceByRegistrationNumber(File * fp);
 

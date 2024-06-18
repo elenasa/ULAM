@@ -2107,6 +2107,7 @@ namespace MFM {
 
 		if(UlamType::compare(cosclassuti,m_state.getUlamTypeAsDeref(stgcosuti),m_state) != UTIC_SAME)
 		  {
+		    //extra runtime check, not for DMs //t41668,t41634
 		    //t41625
 		    fp->write(stgcos->getMangledName().c_str()); //ref
 		    fp->write(".GetEffectiveSelf()->");
@@ -2129,40 +2130,21 @@ namespace MFM {
 		fp->write("u, &");
 		fp->write(m_state.getTheInstanceMangledNameByIndex(cosuti).c_str()); //effSelf of dm
 		fp->write(");"); GCNL;
-#if 0
-		//extra runtime check, not for DMs //t41668,t41634
-		m_state.indentUlamCode(fp);
-		fp->write("if(");
-		fp->write(stgcos->getMangledName().c_str());
-		fp->write(".GetEffectiveSelf()->");
-		fp->write(m_state.getGetRelPosMangledFunctionName(stgcosuti));
-		fp->write("(");
-		fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(cosclassuti)); //efficiency
-		fp->write("u ");
-		fp->write("/* ");
-		fp->write(m_state.getUlamTypeNameBriefByIndex(cosclassuti).c_str());
-		fp->write(" */");
-		fp->write(") < 0)\n");
 
-		m_state.m_currentIndentLevel++;
-		m_state.indentUlamCode(fp);
-		fp->write("FAIL(BAD_CAST);"); GCNL;
-		fp->write("\n");
-		m_state.m_currentIndentLevel--;
-#endif
 		posToDM = 0; //done
 	      }
 	    else
 	      {
 		assert((u32) posToDM == uvpass.getPassPos()); //sanity
-		if(UlamType::compare(m_state.getUlamTypeAsDeref(tobeType),vuti,m_state) == UTIC_SAME)
-		  posToDM = 0; //t41634, not t3735
+		if(UlamType::compare(m_state.getUlamTypeAsDeref(tobeType),cosuti,m_state) == UTIC_SAME)
+		  posToDM = 0; //t41634, not t3735,t41364,t41628
+		//if(!m_state.isReference(stgcosuti)) posToDM = 0; //t41364,t41628
 	      }
 	  }
       }
     else //else using uvpass in some manner..
       {
-	posToDM = uvpass.getPassPos(); //needed?
+	posToDM = uvpass.getPassPos(); //needed? t41065,t41301
       }
 
     s32 tmpVarPos = m_state.getNextTmpVarNumber();
@@ -2517,28 +2499,6 @@ namespace MFM {
 	    fp->write(") - ");
 	    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
 	    fp->write(".GetPosToEffectiveSelf();"); GCNL;
-
-#if 0
-	    //extra runtime check //t41668
-	    m_state.indentUlamCode(fp);
-	    fp->write("if(");
-	    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
-	    fp->write(".GetEffectiveSelf()->");
-	    fp->write(m_state.getGetRelPosMangledFunctionName(vuti));
-	    fp->write("(");
-	    fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(tobeType)); //efficiency
-	    fp->write("u ");
-	    fp->write("/* ");
-	    fp->write(m_state.getUlamTypeNameBriefByIndex(tobeType).c_str());
-	    fp->write(" */");
-	    fp->write(") < 0)\n");
-
-	    m_state.m_currentIndentLevel++;
-	    m_state.indentUlamCode(fp);
-	    fp->write("FAIL(BAD_CAST);"); GCNL;
-	    fp->write("\n");
-	    m_state.m_currentIndentLevel--;
-#endif
 	  }
 	else //tmpbitval
 	  {
@@ -2589,28 +2549,6 @@ namespace MFM {
 		fp->write(") - ");
 		fp->write(stgcos->getMangledName().c_str());
 		fp->write(".GetPosToEffectiveSelf();"); GCNL;
-
-#if 0
-		//extra runtime check //t41668
-		m_state.indentUlamCode(fp);
-		fp->write("if(");
-		fp->write(stgcos->getMangledName().c_str());
-		fp->write(".GetEffectiveSelf()->");
-		fp->write(m_state.getGetRelPosMangledFunctionName(vuti));
-		fp->write("(");
-		fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(tobeType)); //efficiency
-		fp->write("u ");
-		fp->write("/* ");
-		fp->write(m_state.getUlamTypeNameBriefByIndex(tobeType).c_str());
-		fp->write(" */");
-		fp->write(") < 0)\n");
-
-		m_state.m_currentIndentLevel++;
-		m_state.indentUlamCode(fp);
-		fp->write("FAIL(BAD_CAST);"); GCNL;
-		fp->write("\n");
-		m_state.m_currentIndentLevel--;
-#endif
 	      }
 	    else
 	      {
@@ -2633,28 +2571,6 @@ namespace MFM {
 		fp->write(") - ");
 		fp->write(stgcos->getMangledName().c_str());
 		fp->write(".GetPosToEffectiveSelf();"); GCNL;
-
-#if 0
-		//extra runtime check //t41668
-		m_state.indentUlamCode(fp);
-		fp->write("if(");
-		fp->write(stgcos->getMangledName().c_str());
-		fp->write(".GetEffectiveSelf()->");
-		fp->write(m_state.getGetRelPosMangledFunctionName(vuti));
-		fp->write("(");
-		fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(tobeType)); //efficiency
-		fp->write("u ");
-		fp->write("/* ");
-		fp->write(m_state.getUlamTypeNameBriefByIndex(tobeType).c_str());
-		fp->write(" */");
-		fp->write(") < 0)\n");
-
-		m_state.m_currentIndentLevel++;
-		m_state.indentUlamCode(fp);
-		fp->write("FAIL(BAD_CAST);"); GCNL;
-		fp->write("\n");
-		m_state.m_currentIndentLevel--;
-#endif
 	      }
 	    else
 	      {
