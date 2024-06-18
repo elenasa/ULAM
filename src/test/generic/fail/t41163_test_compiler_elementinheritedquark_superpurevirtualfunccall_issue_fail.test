@@ -7,6 +7,7 @@
 ##
 #!
 ./Sub1.ulam:9:19: ERROR: Virtual function 'Uf_4func10' is pure; cannot be called directly in baseclass: Sup.
+./Sup.ulam:4:15: NOTE: Still pure in Sup: Int func().
 Unrecoverable Program GenCode FAILURE.
 ##
 ## informed by t41161

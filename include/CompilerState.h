@@ -501,7 +501,7 @@ namespace MFM{
 
     const char * getIsMangledFunctionName(UTI ltype);
     const char * getAsMangledFunctionName(UTI ltype, UTI rtype);
-    const char * getGetRelPosMangledFunctionName(UTI ltype);
+    const char * getGetRelPosMangledFunctionName(UTI ltype, bool doChk=true);
     const char * getDataMemberInfoFunctionName(UTI ltype);
     const char * getDataMemberCountFunctionName(UTI ltype);
     const char * getNumberOfBasesFunctionName(UTI ltype);

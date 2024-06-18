@@ -1759,6 +1759,28 @@ namespace MFM {
 	    fp->write("GetPosToEffectiveSelf(),");
 	    fp->write_decimal_unsigned(rblen);
 	    fp->write("u).WriteBV(0u,tmpDM);"); GCNL;
+
+#if 0
+	    //extra runtime check //t41668
+	    m_state.indentUlamCode(fp);
+	    fp->write("if(");
+	    genSelfNameOfMethod(fp); //w dot
+	    fp->write(".GetEffectiveSelf()->");
+	    fp->write(m_state.getGetRelPosMangledFunctionName(ruti));
+	    fp->write("(");
+	    fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(ruti)); //efficiency
+	    fp->write("u ");
+	    fp->write("/* ");
+	    fp->write(m_state.getUlamTypeNameBriefByIndex(ruti).c_str());
+	    fp->write(" */");
+	    fp->write(") < 0)\n");
+
+	    m_state.m_currentIndentLevel++;
+	    m_state.indentUlamCode(fp);
+	    fp->write("FAIL(BAD_CAST);"); GCNL;
+	    fp->write("\n");
+	    m_state.m_currentIndentLevel--;
+#endif
 	  }
 
 	//then, write each of rhs non-zero size (shared) base classes
@@ -2532,9 +2554,12 @@ namespace MFM {
 		  {
 		    //data member, stg is a ref (t41599, case 2)
 		    assert(cos->isDataMember()); //sanity
+#if 1
+		    //t41625,7,t41642
 		    UTI cosclassuti = cos->getDataMemberClass();
 		    if(cosSize > 2)
 		      cosclassuti = m_state.m_currentObjSymbolsForCodeGen[1]->getDataMemberClass(); //rest dm's known atc compile time (t41642)
+		    //t41634 - DM not baseclass of effSelf returns -1 (WRONG!) + PosToEffSelf + DM pos
 		    fp->write(stgcos->getMangledName().c_str());
 		    fp->write(".GetEffectiveSelf()->");
 		    fp->write(m_state.getGetRelPosMangledFunctionName(stgcosuti)); //nonatom
@@ -2547,6 +2572,7 @@ namespace MFM {
 		    fp->write(") - ");
 		    fp->write(stgcos->getMangledName().c_str());
 		    fp->write(".GetPosToEffectiveSelf() + ");
+#endif
 		  }
 		if(adjstForEle)
 		  fp->write("T::ATOM_FIRST_STATE_BIT + "); //t3819, t3814?
@@ -2565,6 +2591,34 @@ namespace MFM {
 	      }
 	    //else quarkref init to self, use copy constructor for same usage (t41153)
 	    fp->write(");"); GCNL;
+#if 0
+	    //extra runtime check
+	    if(!(cos->isSelf() && cosclasstype == UC_QUARK) && askEffSelf)
+	      {
+		UTI cosclassuti = cos->getDataMemberClass();
+		if(cosSize > 2)
+		  cosclassuti = m_state.m_currentObjSymbolsForCodeGen[1]->getDataMemberClass(); //rest dm's known atc compile time (t41627,t41642)
+
+		m_state.indentUlamCode(fp);
+		fp->write("if(");
+		fp->write(stgcos->getMangledName().c_str());
+		fp->write(".GetEffectiveSelf()->");
+		fp->write(m_state.getGetRelPosMangledFunctionName(stgcosuti));
+		fp->write("(");
+		fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(cosclassuti)); //efficiency
+		fp->write("u ");
+		fp->write("/* ");
+		fp->write(m_state.getUlamTypeNameBriefByIndex(cosclassuti).c_str());
+		fp->write(" */");
+		fp->write(") < 0)\n");
+
+		m_state.m_currentIndentLevel++;
+		m_state.indentUlamCode(fp);
+		fp->write("FAIL(BAD_CAST);"); GCNL;
+		fp->write("\n");
+		m_state.m_currentIndentLevel--;
+	      }
+#endif
 	  }
 	else if(vetyp == UAtom)
 	  {

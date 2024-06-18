@@ -3,7 +3,7 @@
 ##        include/Uq_10102QW10.tcc:31: FAILED: NOT_AN_ELEMENT
 ##
 #!
-Exit status: 0
+Exit status: -1
 Ue_A { Bool b(false);  Int test() {  System s;  QW qw;  Atom a = qw ( )func .;  { a A as cond { A& a;  s ( false )assert . } if s ( true )assert . else } { a QW is cond s ( false )assert . if s ( true )assert . else } 0 cast return } }
 Uq_System { <NOMAIN> }
 Uq_QW { <NOMAIN> }

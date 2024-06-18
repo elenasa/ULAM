@@ -79,6 +79,7 @@ namespace MFM {
   static const char * IS_MANGLED_FUNCNAME_FOR_ATOM = "UlamClass<EC>::IsMethod"; //Uf_2is
 
   static const char * GETRELPOS_MANGLED_FUNCNAME = "internalCMethodImplementingGetRelativePositionOfBaseClass"; //Uf_2is
+  static const char * GETRELPOS_MANGLED_FUNCNAME_WITHCHECK = "internalCMethodImplementingGetRelativePositionOfBaseClassWithCheck"; //Uf_2is
   static const char * GETRELPOS_MANGLED_FUNCNAME_FOR_ATOM = "UlamClass<EC>::GetRelativePositionOfBaseClass"; //Uf_2is
 
   static const char * GETDATAMEMBERINFO_FUNCNAME = "GetDataMemberInfo";
@@ -5728,11 +5729,13 @@ namespace MFM {
     return "AS_ERROR";
   } //getAsMangledFunctionName
 
-  const char * CompilerState::getGetRelPosMangledFunctionName(UTI ltype)
+  const char * CompilerState::getGetRelPosMangledFunctionName(UTI ltype, bool doChk)
   {
     if(isAtom(ltype))
-      return GETRELPOS_MANGLED_FUNCNAME_FOR_ATOM;
+      return GETRELPOS_MANGLED_FUNCNAME_FOR_ATOM; //wo check, uses UlamClass method
 
+    if(doChk)
+      return GETRELPOS_MANGLED_FUNCNAME_WITHCHECK;
     return GETRELPOS_MANGLED_FUNCNAME;
   }
 

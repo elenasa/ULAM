@@ -1,0 +1,56 @@
+## -*- mode:ulam -*-
+#=t41668_test_compiler_castreftosub_ish_fail
+##  gen error: (1 assert)
+##    include/Ue_102321A10.tcc:44: FAILED: BAD_CAST
+#!
+Exit status: 0
+Ue_A { Unsigned z(0u);  Int test() {  SystemU3 s;  UrSelf& ur = self cast;  E1& boom = ur cast;  s ( "Hewo" )print . s ( boom[1u] )print . s ( boom E1 is )assert . s ( boom m_s . )print . s ( "Bai" )print . 0 cast return } }
+Uq_SystemU3 : System { :System<> <NOMAIN> }
+Ue_E1 { String m_s( "boom");  <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## informed by Dave ish 6/15/24, expected runtime failure. Got one, now. (see also error/t41669)
+##
+#>A.ulam
+  ulam 5;
+element A {
+  Unsigned z;
+
+  Int test(){
+    SystemU3 s;
+    //E1& boom = (E1&) self; //compilation error (see t41669)
+    UrSelf & ur = self;
+    E1 & boom = (E1&) ur; //no error (expected runtime failure here?)
+    s.print("Hewo");
+    s.print(boom.classidof);
+    s.assert(boom is E1);
+    s.print(boom.m_s); //ARRAY_INDEX_OUT_OF_BOUNDS
+    s.print("Bai");
+    return 0;
+  }
+}
+
+#:E1.ulam
+  ulam 5;
+element E1 {
+  String m_s = "boom";
+}
+
+#:SystemU3.ulam
+  ulam 3;
+quark SystemU3 : System {
+  Void print(String s) native;
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

@@ -5,7 +5,7 @@
 ## include/Uq_10172QB10.tcc:24: FAILED: NOT_AN_ELEMENT
 ##
 #!
-Exit status: -1
+Exit status: 0
 Ue_R { Bool b(false);  Int test() {  A at;  Atom atom = at ( )func .;  0 cast return } }
 Un_A : QB { Int(7) spi( 3);  :QB< Bool(7) sp( true); > <NOMAIN> }
 Uq_QB { Bool(7) sp( true);  <NOMAIN> }

@@ -1,0 +1,53 @@
+## -*- mode:ulam -*-
+#=t41669_test_compiler_castreftosub_ish_error
+#!
+./A.ulam:7:17: ERROR: Cannot explicitly cast A& to type: E1&.
+./A.ulam:7:5: ERROR: Initial value expression for: boom, initialization is invalid.
+./A.ulam:7:5: ERROR: Storage expression for: boom, is invalid.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by Dave ish 6/15/24, got compilation error case. see also fail/t41668
+##
+#>A.ulam
+  ulam 5;
+element A {
+  Unsigned z;
+
+  Int test(){
+    SystemU3 s;
+    E1& boom = (E1&) self; //compilation error: ERROR: Cannot explicitly cast A& to type: E1&.
+    //UrSelf & ur = self;
+    //E1 & boom = (E1&) ur; //no error (expected runtime failure here? see fail/t41668)
+    s.print("Hewo");
+    s.print(boom.classidof);
+    s.assert(boom is E1);
+    s.print(boom.m_s); //ARRAY_INDEX_OUT_OF_BOUNDS
+    s.print("Bai");
+    return 0;
+  }
+}
+
+#:E1.ulam
+  ulam 5;
+element E1 {
+  String m_s = "boom";
+}
+
+#:SystemU3.ulam
+  ulam 3;
+quark SystemU3 : System {
+  Void print(String s) native;
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

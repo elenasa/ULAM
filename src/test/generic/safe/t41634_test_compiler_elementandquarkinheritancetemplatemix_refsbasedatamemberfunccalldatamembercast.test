@@ -37,7 +37,6 @@ element R : System {
     barC(ccu);
     print(ccu.myChain);
     assert(ccu.myChain);
-
     cuf = fooC(ld.getUp().mChain);
     print(cuf);
     assert(ccu.myChain == cuf);

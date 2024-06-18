@@ -224,7 +224,7 @@ namespace MFM {
 	    fp->write("const s32 ");
 	    fp->write(m_state.getTmpVarAsString(Int, tmpVarPos, TMPREGISTER).c_str());
 	    fp->write(" = ");
-	    fp->write(m_state.getGetRelPosMangledFunctionName(cosuti)); //UlamClass Method
+	    fp->write(m_state.getGetRelPosMangledFunctionName(cosuti,false)); //UlamClass Method
 	    fp->write("(uc, ");
 	    fp->write(m_state.getTmpVarAsString(Int, tmpVarType, TMPREGISTER).c_str());
 	    fp->write(", &");
