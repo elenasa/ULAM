@@ -3489,7 +3489,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 
     m_state.indent(fp);
     fp->write("return ");
-    fp->write("(-1); //not found"); GCNL; //for compiler
+    fp->write("(-999999); //not found"); GCNL; //for compiler
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
