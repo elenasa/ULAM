@@ -2148,6 +2148,7 @@ namespace MFM {
     loadStorageAndCurrentObjectSymbols(stgcos, cos);
     assert(cos && stgcos);
 
+    u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
     UTI stgcosuti = stgcos->getUlamTypeIdx();
     assert(m_state.okUTItoContinue(stgcosuti));
     UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
@@ -2166,7 +2167,7 @@ namespace MFM {
     //first array item, with item in uvpass (e.g. t3147)
     assert(ruvpass.getPassStorage() == TMPARRAYIDX);
 
-    assert((m_state.m_currentObjSymbolsForCodeGen.size() == 1) || (stgcosut->getUlamTypeEnum() == Class)); //?
+    assert((cosSize == 1) || (stgcosut->getUlamTypeEnum() == Class)); //?
 
     assert(!cosut->isScalar());
 
@@ -2255,11 +2256,46 @@ namespace MFM {
 	fp->write(".GetEffectiveSelf()->");
 	fp->write(m_state.getGetRelPosMangledFunctionName(stgcosuti)); //nonatom
 	fp->write("(");
-	fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(cosclassuti)); //efficiency
-	fp->write("u ");
-	fp->write("/* ");
-	fp->write(m_state.getUlamTypeNameBriefByIndex(cosclassuti).c_str());
-	fp->write(" */");
+	//these two + 1 cases weren't here..t41670
+	if(stgcos->isSuper())
+	  {
+	    fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(stgcosuti)); //efficiency
+	    fp->write("u ");
+	    fp->write("/* ");
+	    fp->write(m_state.getUlamTypeNameBriefByIndex(stgcosuti).c_str());
+	    fp->write(" */");
+	  }
+	else if((cosSize > 2))
+	  {
+	    Symbol * dmcos = m_state.m_currentObjSymbolsForCodeGen[1];
+	    if(dmcos->isDataMember() && !dmcos->isTmpVarSymbol())
+	      {
+		UTI dmclassuti = dmcos->getDataMemberClass();
+		fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(dmclassuti)); //efficiency
+		fp->write("u ");
+		fp->write("/* ");
+		fp->write(m_state.getUlamTypeNameBriefByIndex(dmclassuti).c_str());
+		fp->write(" */");
+	      }
+	    else
+	      {
+		fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(cosclassuti)); //efficiency
+		fp->write("u ");
+		fp->write("/* ");
+		fp->write(m_state.getUlamTypeNameBriefByIndex(cosclassuti).c_str());
+		fp->write(" */");
+	      }
+	  }
+	else
+	  {
+	    //only this case was here before (t41670)
+	    fp->write_decimal_unsigned(m_state.getAClassRegistrationNumber(cosclassuti)); //efficiency
+	    fp->write("u ");
+	    fp->write("/* ");
+	    fp->write(m_state.getUlamTypeNameBriefByIndex(cosclassuti).c_str());
+	    fp->write(" */");
+	  }
+
 	fp->write(") - ");
 	fp->write(stgcos->getMangledName().c_str());
 	fp->write(".GetPosToEffectiveSelf() + ");

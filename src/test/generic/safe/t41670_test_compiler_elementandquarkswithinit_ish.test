@@ -1,0 +1,136 @@
+## -*- mode:ulam -*-
+#=t41670_test_compiler_elementandquarkswithinit_ish
+##  gen output: (+ interleved asserts)
+##  Unsigned Arg: 99
+##  Unsigned Arg: 1
+##  Unsigned Arg: 6
+##  Unsigned Arg: 2
+##  Unsigned Arg: 3
+##  Unsigned Arg: 4
+##  Unsigned Arg: 5
+##  String(1) Arg: "WHY DON'T YOU WRITE ME?"
+#!
+Exit status: 99
+Ue_MyElement : Base0 +Base1 { :Base0< Unsigned(23) m0Space(99u); > +Base1< Unsigned(8) mAsc(32u);  Unsigned(8) mAsc2(64u);  DM1 mOtherDM1( Unsigned(5) mDM1Space(6u);  DM2(4u) mDM2s[2]( Unsigned(4) mDM2MyU(4u);  constant Unsigned bits = 4u;  typedef Unsigned(4) MyU;  Unsigned(4) mDM2MyU(5u);  constant Unsigned bits = 4u;  typedef Unsigned(4) MyU; );  typedef Unsigned(5) MyDM1Space;  typedef DM2(4u) MyDM2; );  +DM1< Unsigned(5) mDM1Space(1u);  DM2(4u) mDM2s[2]( Unsigned(4) mDM2MyU(2u);  constant Unsigned bits = 4u;  typedef Unsigned(4) MyU;  Unsigned(4) mDM2MyU(3u);  constant Unsigned bits = 4u;  typedef Unsigned(4) MyU; );  typedef Unsigned(5) MyDM1Space;  typedef DM2(4u) MyDM2; >> ^DM1< Unsigned(5) mDM1Space(1u);  DM2(4u) mDM2s[2]( Unsigned(4) mDM2MyU(2u);  constant Unsigned bits = 4u;  typedef Unsigned(4) MyU;  Unsigned(4) mDM2MyU(3u);  constant Unsigned bits = 4u;  typedef Unsigned(4) MyU; );  typedef Unsigned(5) MyDM1Space;  typedef DM2(4u) MyDM2; > Int test() {  SystemU3 f;  self ( )init . f ( "WHY DON'T YOU WRITE ME?" )print . self m0Space . cast return } }
+Uq_Base0 { Unsigned(23) m0Space(0);  <NOMAIN> }
+Uq_Base1 +DM1 { Unsigned(8) mAsc(0);  DM1 mOtherDM1( typedef Unsigned(5) MyDM1Space;  Unsigned(5) mDM1Space(0);  typedef DM2(4u) MyDM2;  DM2(4u) mDM2s[2]( typedef Unsigned(4) MyU;  Unsigned(4) mDM2MyU(0); ), ( typedef Unsigned(4) MyU;  Unsigned(4) mDM2MyU(0); ); );  Unsigned(8) mAsc2(0);  +DM1< typedef Unsigned(5) MyDM1Space;  Unsigned(5) mDM1Space(0);  typedef DM2(4u) MyDM2;  DM2(4u) mDM2s[2]( typedef Unsigned(4) MyU;  Unsigned(4) mDM2MyU(0); ), ( typedef Unsigned(4) MyU;  Unsigned(4) mDM2MyU(0); ); > <NOMAIN> }
+Uq_System { <NOMAIN> }
+Uq_SystemU3 : System { :System<> <NOMAIN> }
+Uq_DM2(Unsigned bits) { typedef Unsigned(UNKNOWN) MyU;  Unsigned(UNKNOWN) mDM2MyU(notready);  <NOMAIN> }
+Uq_DM1 { typedef Unsigned(5) MyDM1Space;  Unsigned(5) mDM1Space(0);  typedef DM2(4u) MyDM2;  DM2(4u) mDM2s[2]( typedef Unsigned(4) MyU;  Unsigned(4) mDM2MyU(0); ), ( typedef Unsigned(4) MyU;  Unsigned(4) mDM2MyU(0); );  <NOMAIN> }
+##
+##  6/20/24 Dave's example that blew up during initialization. see also t41671 use of accessor methods.
+##
+##
+#>MyElement.ulam
+  ulam 5;
+element MyElement : Base0 + Base1 {
+
+  Void init() {
+    System s;
+
+    self.m0Space = 99;
+    s.print(m0Space);
+    s.assert(m0Space==99);
+
+    self.mAsc = ' ';
+    self.mAsc2 = '@';
+
+    self.mDM1Space = 1; //in baseclass DM1
+    s.print(mDM1Space);
+    s.assert(mDM1Space==1);
+
+    self.mOtherDM1.mDM1Space = 6; //in baseclass Base1, DM mOtherDM1
+    s.print(mOtherDM1.mDM1Space);
+    s.assert(mOtherDM1.mDM1Space==6);
+
+    self.mDM2s[0].mDM2MyU = 2; //in baseclass DM1
+    s.print(mDM2s[0].mDM2MyU);
+    s.assert(mDM2s[0].mDM2MyU==2);
+
+    self.mDM2s[1].mDM2MyU = 3;
+    s.print(mDM2s[1].mDM2MyU);
+    s.assert(mDM2s[1].mDM2MyU==3);
+
+    self.mOtherDM1.mDM2s[0].mDM2MyU = 4; //in baseclass Base1, DM mOtherDM1; FAILED HERE.
+    s.print(mOtherDM1.mDM2s[0].mDM2MyU);
+    s.assert(mOtherDM1.mDM2s[0].mDM2MyU==4);
+
+    self.mOtherDM1.mDM2s[1].mDM2MyU = 5;
+    s.print(mOtherDM1.mDM2s[1].mDM2MyU);
+    s.assert(mOtherDM1.mDM2s[1].mDM2MyU==5);
+  }
+
+  Int test() {
+    SystemU3 f;
+
+    init();
+    // doesn't get here? fails in init?
+
+    //f.fail(__FILE__,__LINE__,"WHY DON'T YOU WRITE ME?");
+    f.print("WHY DON'T YOU WRITE ME?");
+
+    return m0Space;
+  }
+}
+
+
+#:DM2.ulam
+  ulam 5;
+quark DM2(Unsigned bits) {
+  typedef Unsigned(bits) MyU;
+  MyU mDM2MyU;
+
+  MyU & getMyU() { return mDM2MyU; }
+}
+
+#:DM1.ulam
+  ulam 5;
+quark DM1 {
+  typedef Unsigned(5) MyDM1Space;
+  MyDM1Space mDM1Space;
+  MyDM1Space & getMyDM1Space() {
+    return mDM1Space;
+  }
+
+  typedef DM2(4u) MyDM2;
+  MyDM2 mDM2s[2];
+
+  MyDM2 & getDM2(Unsigned idx) {
+    return mDM2s[idx];
+  }
+}
+
+#:Base1.ulam
+  ulam 5;
+quark Base1 + DM1 {
+  ASCII mAsc;
+  DM1 mOtherDM1;
+  ASCII mAsc2;
+}
+
+#:Base0.ulam
+  ulam 5;
+quark Base0 {
+  Unsigned(23) m0Space;
+}
+
+#:SystemU3.ulam
+  ulam 3;
+quark SystemU3 : System {
+  Void print(String s) native;
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.
