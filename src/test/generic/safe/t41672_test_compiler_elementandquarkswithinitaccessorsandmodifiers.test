@@ -1,0 +1,187 @@
+## -*- mode:ulam -*-
+#=t41672_test_compiler_elementandquarkswithinitaccessorsandmodifiers
+#!
+Exit status: 100
+Ue_MyElement : Base0 +Base1 { :Base0< Unsigned(23) m0Space(100u); > +Base1< Unsigned(8) mAsc(33u);  Unsigned(8) mAsc2(63u);  DM1 mOtherDM1( Unsigned(5) mDM1Space(12u);  DM2(4u) mDM2s[2]( Unsigned(4) mDM2MyU(11u);  constant Unsigned bits = 4u;  typedef Unsigned(4) MyU;  Unsigned(4) mDM2MyU(9u);  constant Unsigned bits = 4u;  typedef Unsigned(4) MyU; );  typedef Unsigned(5) MyDM1Space;  typedef DM2(4u) MyDM2; );  +DM1< Unsigned(5) mDM1Space(13u);  DM2(4u) mDM2s[2]( Unsigned(4) mDM2MyU(1u);  constant Unsigned bits = 4u;  typedef Unsigned(4) MyU;  Unsigned(4) mDM2MyU(4u);  constant Unsigned bits = 4u;  typedef Unsigned(4) MyU; );  typedef Unsigned(5) MyDM1Space;  typedef DM2(4u) MyDM2; >> ^DM1< Unsigned(5) mDM1Space(13u);  DM2(4u) mDM2s[2]( Unsigned(4) mDM2MyU(1u);  constant Unsigned bits = 4u;  typedef Unsigned(4) MyU;  Unsigned(4) mDM2MyU(4u);  constant Unsigned bits = 4u;  typedef Unsigned(4) MyU; );  typedef Unsigned(5) MyDM1Space;  typedef DM2(4u) MyDM2; > Int test() {  self ( )init . self ( )readTest . self ( )refTest1 . self ( )writeTest . self ( )postWriteReadTest . self m0Space . cast return } }
+Uq_Base0 { Unsigned(23) m0Space(0);  <NOMAIN> }
+Uq_Base1 +DM1 { Unsigned(8) mAsc(0);  DM1 mOtherDM1( typedef Unsigned(5) MyDM1Space;  Unsigned(5) mDM1Space(0);  typedef DM2(4u) MyDM2;  DM2(4u) mDM2s[2]( typedef Unsigned(4) MyU;  Unsigned(4) mDM2MyU(0); ), ( typedef Unsigned(4) MyU;  Unsigned(4) mDM2MyU(0); ); );  Unsigned(8) mAsc2(0);  +DM1< typedef Unsigned(5) MyDM1Space;  Unsigned(5) mDM1Space(0);  typedef DM2(4u) MyDM2;  DM2(4u) mDM2s[2]( typedef Unsigned(4) MyU;  Unsigned(4) mDM2MyU(0); ), ( typedef Unsigned(4) MyU;  Unsigned(4) mDM2MyU(0); ); > <NOMAIN> }
+Uq_SystemU3 : System { :System<> <NOMAIN> }
+Uq_System { <NOMAIN> }
+Uq_DM1 { typedef Unsigned(5) MyDM1Space;  Unsigned(5) mDM1Space(0);  typedef DM2(4u) MyDM2;  DM2(4u) mDM2s[2]( typedef Unsigned(4) MyU;  Unsigned(4) mDM2MyU(0); ), ( typedef Unsigned(4) MyU;  Unsigned(4) mDM2MyU(0); );  <NOMAIN> }
+Uq_DM2(Unsigned bits) { typedef Unsigned(UNKNOWN) MyU;  Unsigned(UNKNOWN) mDM2MyU(notready);  <NOMAIN> }
+##
+##  6/20/24 Dave's second example (see t41670, t41671).
+##
+##
+#>MyElement.ulam
+  ulam 5;
+element MyElement : Base0 + Base1 {
+
+  Void die(Unsigned lineno) {
+    SystemU3 f;
+    f.print("TEST FAILED HERE");
+    f.print(lineno);
+    f.assert(false);
+  }
+
+  Void init() {
+    System s;
+
+    self.m0Space = 99;
+    self.mAsc = ' ';
+    self.mAsc2 = '@';
+    self.mDM1Space = 1; //in baseclass DM1
+    self.mOtherDM1.mDM1Space = 6; //in baseclass Base1, DM mOtherDM1
+    self.mDM2s[0].mDM2MyU = 2; //in baseclass DM1
+    self.mDM2s[1].mDM2MyU = 3;
+    self.mOtherDM1.mDM2s[0].mDM2MyU = 4; //in baseclass Base1, DM mOtherDM1
+    self.mOtherDM1.mDM2s[1].mDM2MyU = 5;
+  }
+
+  Void readTest() {
+    if (self.mOtherDM1.mDM2s[1].mDM2MyU != 5) die(__LINE__);
+    if (self.mOtherDM1.mDM2s[0].mDM2MyU != 4) die(__LINE__);
+    if (self.mDM2s[1].mDM2MyU != 3) die(__LINE__);
+    if (self.mDM2s[0].mDM2MyU != 2) die(__LINE__);
+    if (self.mDM1Space != 1) die(__LINE__);
+    if (self.mOtherDM1.mDM1Space != 6) die(__LINE__); //in baseclass Base1, DM mOtherDM1
+    if (self.mAsc2 != '@') die(__LINE__);
+    if (self.mAsc != ' ') die(__LINE__);
+    if (self.m0Space != 99) die(__LINE__);
+  }
+
+  Void refTest1() {
+    Base0 & b0 = self;
+    Base1 & b1 = self;
+    if (b0.m0Space != 99) die(__LINE__);
+
+    DM1 & dm1 = self;
+    if (dm1.getMyDM1Space() != 1) die(__LINE__);
+    if (b1.getOtherDM1().getMyDM1Space() != 6) die(__LINE__); //in baseclass Base1, DM mOtherDM1
+
+    if (b1.mOtherDM1.mDM2s[1].mDM2MyU != 5) die(__LINE__);
+    if (b1.mOtherDM1.mDM2s[0].mDM2MyU != 4) die(__LINE__);
+
+    if (b1.getOtherDM1().mDM2s[1].mDM2MyU != 5) die(__LINE__);
+    if (b1.getOtherDM1().mDM2s[0].mDM2MyU != 4) die(__LINE__);
+
+    if (b1.mOtherDM1.mDM2s[1].getMyU() != 5) die(__LINE__);
+    if (b1.mOtherDM1.mDM2s[0].getMyU() != 4) die(__LINE__);
+
+    if (b1.getOtherDM1().getDM2(1).getMyU() != 5) die(__LINE__);
+    if (b1.getOtherDM1().getDM2(0).getMyU() != 4) die(__LINE__);
+
+    if (self.mDM2s[1].mDM2MyU != 3) die(__LINE__);
+    if (self.mDM2s[0].mDM2MyU != 2) die(__LINE__);
+
+    if (self.getDM2(1).mDM2MyU != 3) die(__LINE__);
+    if (self.getDM2(0).mDM2MyU != 2) die(__LINE__);
+
+    if (self.getDM2(1).getMyU() != 3) die(__LINE__);
+    if (self.getDM2(0).getMyU() != 2) die(__LINE__);
+
+    if (b1.mAsc2 != '@') die(__LINE__);
+    if (b1.mAsc != ' ') die(__LINE__);
+  }
+
+
+  Void writeTest() {
+    self.m0Space++;
+    self.mAsc = '!';
+    self.mAsc2--;
+    self.mDM1Space = 13;
+    self.mOtherDM1.mDM1Space = 12;
+    self.mDM2s[0].mDM2MyU--;
+    self.mDM2s[1].mDM2MyU++;
+    self.mOtherDM1.mDM2s[1].mDM2MyU = 9;
+    self.mOtherDM1.mDM2s[0].mDM2MyU = 11;
+  }
+
+  Void postWriteReadTest() {
+    if (self.mOtherDM1.mDM2s[1].mDM2MyU != 9u) die(__LINE__);
+    if (self.mOtherDM1.mDM2s[0].mDM2MyU != 11u) die(__LINE__);
+    if (self.mDM2s[1].mDM2MyU != 4u) die(__LINE__);
+    if (self.mDM2s[0].mDM2MyU != 1u) die(__LINE__);
+    if (self.mDM1Space != 13u) die(__LINE__);
+    if (self.mOtherDM1.mDM1Space != 12u) die(__LINE__);
+    if (self.mAsc2 != '@'-1u) die(__LINE__);
+    if (self.mAsc != '!') die(__LINE__);
+    if (self.m0Space != 100u) die(__LINE__);
+  }
+
+
+  Int test() {
+    init();
+
+    readTest();
+    refTest1();
+
+    writeTest();
+    postWriteReadTest();
+
+    return m0Space;
+  }
+}
+
+
+#:DM2.ulam
+  ulam 5;
+quark DM2(Unsigned bits) {
+  typedef Unsigned(bits) MyU;
+  MyU mDM2MyU;
+
+  MyU & getMyU() { return mDM2MyU; }
+}
+
+#:DM1.ulam
+  ulam 5;
+quark DM1 {
+  typedef Unsigned(5) MyDM1Space;
+  MyDM1Space mDM1Space;
+  MyDM1Space & getMyDM1Space() {
+    return mDM1Space;
+  }
+
+  typedef DM2(4u) MyDM2;
+  MyDM2 mDM2s[2];
+
+  MyDM2 & getDM2(Unsigned idx) {
+    return mDM2s[idx];
+  }
+}
+
+#:Base1.ulam
+  ulam 5;
+quark Base1 + DM1 {
+  ASCII mAsc;
+  DM1 mOtherDM1;
+  ASCII mAsc2;
+
+  DM1 & getOtherDM1() { return mOtherDM1; }
+}
+
+#:Base0.ulam
+  ulam 5;
+quark Base0 {
+  Unsigned(23) m0Space;
+}
+
+#:SystemU3.ulam
+  ulam 3;
+quark SystemU3 : System {
+  Void print(String s) native;
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.
