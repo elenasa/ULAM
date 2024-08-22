@@ -7,15 +7,15 @@
 #!
 Exit status: 3
 Ue_P { Bool b(true);  Int test() {  System s;  Q(3u,3) w;  s ( 3u )print . self b . true = s ( self b . )assert . 3u cast return } }
+Uq_System { <NOMAIN> }
 Uq_Q(Unsigned s = NONREADYCONST, Int b = NONREADYCONST) { typedef Unsigned(UNKNOWN) Foo;  Unsigned(UNKNOWN) f(notready);  <NOMAIN> }
 Uq_V(Int a) { Unsigned(UNKNOWN) vfoo(notready);  <NOMAIN> }
-Uq_System { <NOMAIN> }
 ##
 ## informed by t3888,  class param 'b' for Q: default is local filescope constant array item
 ##
 #>P.ulam
   ulam 1;
-use Q;
+//use Q; causes errors with localdef
 element P {
   Bool b;
   Int test() {

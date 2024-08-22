@@ -62,6 +62,8 @@ namespace MFM{
 
     virtual const std::string getPathFromLocator(Locator& loc);  //calls m_SS
 
+    virtual bool peekFirstToken(Token & firstTok);
+
     virtual bool getNextToken(Token & returnTok);
 
   private:

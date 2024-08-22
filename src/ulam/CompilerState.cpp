@@ -5313,7 +5313,9 @@ namespace MFM {
   void CompilerState::addSymbolToLocalsScope(Symbol * symptr, Locator loc)
   {
     assert(symptr);
-    NodeBlockLocals * localsblock = makeLocalsScopeBlock(loc); //getLocalsScopeLocator
+    Token fTok;
+    getFirstTokenForParsing(fTok); //supercedes loc arg
+    NodeBlockLocals * localsblock = makeLocalsScopeBlock(fTok.m_locator); //getLocalsScopeLocator
     assert(localsblock);
 
     symptr->setBlockNoOfST(localsblock->getNodeNo()); //invariant
@@ -6963,6 +6965,22 @@ namespace MFM {
     return m_parsingThisClass;
   }
 
+  void CompilerState::saveFirstTokenForParsing(Token fTok)
+  {
+    m_firstTokenForParsing = fTok;
+  }
+
+  void CompilerState::getFirstTokenForParsing(Token& fTok)
+  {
+    fTok = m_firstTokenForParsing;
+  }
+
+  void CompilerState::clearFirstTokenForParsing()
+  {
+    Token clearTok;
+    m_firstTokenForParsing = clearTok;
+ }
+
   //set temporary flag for concrete class; used to set flag in SymbolClass
   void CompilerState::setConcreteClassFlagForParsing()
   {
@@ -6978,6 +6996,13 @@ namespace MFM {
   bool CompilerState::getConcreteClassFlagForParsing()
   {
     return m_parsingConcreteClassFlag;
+  }
+
+  void CompilerState::setLocalsScopeForParsing()
+  {
+    Token fTok;
+    getFirstTokenForParsing(fTok);
+    setLocalsScopeForParsing(fTok);
   }
 
   void CompilerState::setLocalsScopeForParsing(const Token& localTok)

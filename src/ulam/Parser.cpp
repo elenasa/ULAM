@@ -113,6 +113,10 @@ namespace MFM {
     if(!m_state.getClassNameFromFileName(startstr, compileThisId))
       return 1; //1 error
 
+    Token firstTok;
+    m_tokenizer->peekFirstToken(firstTok); /* TODO: refactor helper */
+    m_state.saveFirstTokenForParsing(firstTok);
+
     //here's the start (first token)!!  preparser will handle the VERSION_DECL,
     //as well as USE and LOAD keywords.
     while(!parseThisClass());
@@ -159,6 +163,8 @@ namespace MFM {
 	msg << m_state.m_pool.getDataAsString(compileThisId).c_str();
 	MSG((rootNode ? rootNode->getNodeLocationAsString().c_str() : ""), msg.str().c_str(), INFO);
       }
+
+    m_state.clearFirstTokenForParsing();
     return (errs);
   } //parseProgram
 
@@ -179,7 +185,8 @@ namespace MFM {
       {
 	if(pTok.m_type == TOK_KW_LOCALDEF)
 	  {
-	    m_state.setLocalsScopeForParsing(pTok);
+	    //m_state.setLocalsScopeForParsing(pTok);
+	    m_state.setLocalsScopeForParsing();
 	    parseLocalDef(); //returns bool
 	    m_state.clearLocalsScopeForParsing();
 	    return parseThisClass();

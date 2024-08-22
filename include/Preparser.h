@@ -62,6 +62,8 @@ namespace MFM{
     /** passes through Ulam version of current filename to underlying sourcestream */
     virtual void setFileUlamVersion(u32 ver);
 
+    virtual bool peekFirstToken(Token & firstTok);
+
     virtual bool getNextToken(Token & returnTok);
 
   private:

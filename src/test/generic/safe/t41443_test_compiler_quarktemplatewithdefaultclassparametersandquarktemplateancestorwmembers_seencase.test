@@ -8,9 +8,9 @@
 #!
 Exit status: 6
 Ue_R { Unsigned m_tsz(2u);  Unsigned m_rsz(4u);  Int test() {  System s;  RXTimer(2,1u,9u) rxt;  self m_tsz . 2u = s ( self m_tsz . )print . s ( self m_tsz . 2u cast == )assert . RXTimer(4,15u,1u) drxt;  self m_rsz . 4u = s ( self m_rsz . )print . s ( self m_rsz . 4u cast == )assert . self m_tsz . self m_rsz . +b cast return } }
+Uq_System { <NOMAIN> }
 Uq_RXTimer(Unary(5) bits = NONREADYCONST, Unsigned triggerLevel = NONREADYCONST, Unsigned k = 1u) : XTimer(bits,triggerLevel,k) { typedef Unsigned(UNKNOWN) Counter;  :XTimer13< typedef Unsigned(UNKNOWN) Counter;  Unsigned(UNKNOWN) mCount(notready); > <NOMAIN> }
 Uq_XTimer(Unary(5) bits, Unsigned triggerLevel, Unsigned k) { typedef Unsigned(UNKNOWN) Counter;  Unsigned(UNKNOWN) mCount(notready);  <NOMAIN> }
-Uq_System { <NOMAIN> }
 Ue_S : RXTimer(4,15u,1u) { /* empty class block */ }
 ##
 ## informed by Dave ish 3/28/2021 _033651.
@@ -19,7 +19,7 @@ Ue_S : RXTimer(4,15u,1u) { /* empty class block */ }
 ##
 #>R.ulam
   ulam 5;
-use RXTimer;  //SEEN TEMPLATE before use.
+//use RXTimer;  //SEEN TEMPLATE before use. with use causes errors with localdefs.
 element R {
   Unsigned m_tsz;
   Unsigned m_rsz;

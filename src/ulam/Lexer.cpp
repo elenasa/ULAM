@@ -41,6 +41,14 @@ namespace MFM {
     return m_SS.unread();
   }
 
+  bool Lexer::peekFirstToken(Token & firstTok)
+  {
+    getNextToken(firstTok);
+    m_lastToken = firstTok;
+    m_haveUnreadToken = true;
+    return true;
+  }
+
   bool Lexer::getNextToken(Token & returnTok)
   {
     s32 c;

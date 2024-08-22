@@ -127,6 +127,7 @@ namespace MFM{
     u32 m_nextFunctionOrderNumber; //one per SymbolFunction per class in order of declaration
 
     UTI m_parsingThisClass;
+    Token m_firstTokenForParsing;
     bool m_parsingConcreteClassFlag;
     SYMBOLTYPEFLAG m_parsingVariableSymbolTypeFlag;
 
@@ -639,12 +640,18 @@ namespace MFM{
     void clearThisClassForParsing();
     UTI getThisClassForParsing();
 
+    /** helpers: first token of an ulam file, used for locator for localdef load */
+    void saveFirstTokenForParsing(Token fTok);
+    void getFirstTokenForParsing(Token& fTok);
+    void clearFirstTokenForParsing();
+
     /** helpers: parsing a concrete class which should have no pure virtuals; checked even if uninstaniated */
     void setConcreteClassFlagForParsing();
     void clearConcreteClassFlagForParsing();
     bool getConcreteClassFlagForParsing();
 
     /** helpers: local def location and flag for parsing*/
+    void setLocalsScopeForParsing();
     void setLocalsScopeForParsing(const Token& localTok);
     void clearLocalsScopeForParsing();
     bool isParsingLocalDef();

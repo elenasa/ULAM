@@ -19,8 +19,8 @@ Uq_System { <NOMAIN> }
 ##
 #>KeyExprRep.ulam
   ulam 3;
-use Elfoo;
-use KeyExprNode; ////without use ./KeyExprNode.ulam:9:0: ERROR: Invalid size (-2) to set for primitive type: 0Holder.
+use Elfoo; //not req'd; keeps order
+//use KeyExprNode; ////without use ./KeyExprNode.ulam:9:0: ERROR: Invalid size (-2) to set for primitive type: 0Holder. NO LONGER TRUE. with use localdef error 'celfoo';
 local constant KeyExprNode keyexpr_x13[] = {
   { .m_leftIndex = 1, .m_rightIndex = 2, .m_keyCode = 0, .m_op = '|' }, // [0]
   { .m_leftIndex = 3, .m_rightIndex = 4, .m_keyCode = 0, .m_op = '&' }, // [1]

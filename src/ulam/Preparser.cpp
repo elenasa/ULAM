@@ -28,6 +28,13 @@ namespace MFM {
     return (ver <= ULAMVERSION); //ok if le current compiler version (see UlamVersion.h)
   }
 
+  bool Preparser::peekFirstToken(Token & firstTok)
+  {
+    assert(!m_haveUnreadToken);
+    m_tokenizer->peekFirstToken(firstTok);
+    return true;
+  }
+
   bool Preparser::getNextToken(Token & returnTok)
   {
     if(m_haveUnreadToken)
