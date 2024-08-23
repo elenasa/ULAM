@@ -12,9 +12,9 @@
 Exit status: 2
 Ue_T { Int test() {  System sys;  E(true) et;  sys ( et 2 . )print . sys ( et 2 . 2 cast == )assert . sys ( et b . cast )print . sys ( et b . )assert . E(false) ef;  sys ( ef 3 . )print . sys ( ef 3 . 3 cast == )assert . sys ( ef b . cast )print . sys ( ef b . ! )assert . et 2 . cast return } }
 Uq_S(Bool bp) : Q(flag) { constant Int(4) csi = bp ?  2 :  3;  :Q11< Bool b(notready);  Int(4) i(0); > <NOMAIN> }
-Uq_Q(Bool flag) { Bool b(notready);  Int(4) i(0);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 Ue_E(Bool bp) : S(bp) { /* empty class block */ }
+Uq_Q(Bool flag) { Bool b(notready);  Int(4) i(0);  <NOMAIN> }
 ##
 ##    //informed by t41222, except S has a dependent ancestor
 ##

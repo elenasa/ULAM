@@ -30,6 +30,7 @@
 ./Foo.ulam:21:20: ERROR: Name of variable ')': Identifier must begin with a lower-case letter.
 ./Foo.ulam:21:20: ERROR: Invalid Statement (possible missing semicolon).
 Unrecoverable Program Parse FAILURE: <Foo.ulam>
+Unrecoverable Program Parse FAILURE: <System.ulam>
 #>Foo.ulam
 ##      // 'a has System' doesn't apply to eval because atoms have no class declarations; but testable for gencode
   use System;

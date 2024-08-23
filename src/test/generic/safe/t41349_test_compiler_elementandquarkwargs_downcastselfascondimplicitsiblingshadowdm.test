@@ -10,10 +10,10 @@
 #!
 Exit status: 7
 Uq_Typo(Int a) : Bar { Bool typool(false);  :Bar< Unsigned(3) bu( 7u);  Unsigned(3) first( 1u); > <NOMAIN> }
-Ue_Eltypo +QFoo +Typo(1) { System s();  Unsigned(3) second(7u);  Typo(1) t( constant Int a = 1;  Bool typool(false);  :Bar< Unsigned(3) bu(3u);  Unsigned(3) first(1u); >);  +QFoo< Unsigned(3) first(3u); > +Typo(1)< constant Int a = 1;  Bool typool(true);  :Bar< Unsigned(3) bu(7u);  Unsigned(3) first(1u); >> ^Bar< Unsigned(3) bu(7u);  Unsigned(3) first(1u); > Int test() {  self ( )functest . self s . ( self t . bu . cast )print . self s . ( self t . bu . cast 3 cast == )assert . self s . ( self first . cast )print . self s . ( self first . cast 3 cast == )assert . self second . self bu . = self second . cast return } }
+Ue_Eltypo +QFoo +Typo(1) { System s();  Typo(1) t( constant Int a = 1;  Bool typool(false);  :Bar< Unsigned(3) bu(3u);  Unsigned(3) first(1u); >);  Unsigned(3) second(7u);  +QFoo< Unsigned(3) first(3u); > +Typo(1)< constant Int a = 1;  Bool typool(true);  :Bar< Unsigned(3) bu(7u);  Unsigned(3) first(1u); >> ^Bar< Unsigned(3) bu(7u);  Unsigned(3) first(1u); > Int test() {  self ( )functest . self s . ( self t . bu . cast )print . self s . ( self t . bu . cast 3 cast == )assert . self s . ( self first . cast )print . self s . ( self first . cast 3 cast == )assert . self second . self bu . = self second . cast return } }
+Uq_Bar { Unsigned(3) bu( 7u);  Unsigned(3) first( 1u);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 Uq_QFoo { Unsigned(3) first(0);  <NOMAIN> }
-Uq_Bar { Unsigned(3) bu( 7u);  Unsigned(3) first( 1u);  <NOMAIN> }
 ##
 ## "conditional downcast"
 ## informed by 41344, except data member 'first' shadowed by siblings;

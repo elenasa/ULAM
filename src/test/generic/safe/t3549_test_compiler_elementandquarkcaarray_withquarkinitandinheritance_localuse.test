@@ -7,7 +7,7 @@
 ##
 #!
 Exit status: -11
-Ue_Foo { Bool(3) b(false);  typedef Car Pop[2];  System s();  Int(4) m_i(7);  Car m_bar2[2]( Bool cb(true);  :Bar< Bool val_b[3](false,false,false); > Bool cb(true);  :Bar< Bool val_b[3](false,false,false); >);  Car sbar( Bool cb(true);  :Bar< Bool val_b[3](false,false,false); >);  Int test() {  Car sbar;  Atom a;  a sbar ( 0 cast )aref . = sbar ( 1 cast )aref . a = self b . sbar cb . cast = self s . ( self b . )print . self s . ( self b . cast )assert . self s . ( self m_i . )print . self s . ( self m_i . 7 == )assert . 0 cast return } }
+Ue_Foo { typedef Car Pop[2];  System s();  Bool(3) b(false);  Int(4) m_i(7);  Car m_bar2[2]( Bool cb(true);  :Bar< Bool val_b[3](false,false,false); > Bool cb(true);  :Bar< Bool val_b[3](false,false,false); >);  Car sbar( Bool cb(true);  :Bar< Bool val_b[3](false,false,false); >);  Int test() {  Car sbar;  Atom a;  a sbar ( 0 cast )aref . = sbar ( 1 cast )aref . a = self b . sbar cb . cast = self s . ( self b . )print . self s . ( self b . cast )assert . self s . ( self m_i . )print . self s . ( self m_i . 7 == )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 Uq_Car : Bar { Bool cb( true);  :Bar< Bool val_b[3](false,false,false); > <NOMAIN> }
 Uq_Bar { Bool val_b[3](false,false,false);  <NOMAIN> }

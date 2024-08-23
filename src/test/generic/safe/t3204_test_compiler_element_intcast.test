@@ -6,7 +6,7 @@
 ##       */
 #!
 Exit status: -1
-Ue_Foo { Bool(3) b(false);  System s();  Int(4) i(0);  Int(4) j(-1);  Int test() {  self i . 0 cast = self j . self ( self i . cast 1 cast -b cast )update . = self s . ( self j . cast )print . self s . ( self j . )print . self j . cast return } }
+Ue_Foo { System s();  Bool(3) b(false);  Int(4) i(0);  Int(4) j(-1);  Int test() {  self i . 0 cast = self j . self ( self i . cast 1 cast -b cast )update . = self s . ( self j . cast )print . self s . ( self j . )print . self j . cast return } }
 Uq_System { <NOMAIN> }
 #>Foo.ulam
   ulam 1;

@@ -4,8 +4,8 @@
 Exit status: 0
 Ue_TriggerIshSCLR { IshSCLR me( :ISHY(8u)< constant Unsigned a = 8u; >);  Int test() {  0 cast return } }
 Uq_IshSCLR : ISHY(8u) { /* empty class block */ }
-Uq_ISHY(Unsigned a) { /* empty class block */ }
 Uq_IshSCLR2 : ISHY(8u) { /* empty class block */ }
+Uq_ISHY(Unsigned a) { /* empty class block */ }
 ##
 ##   culamtest: NodeBlockClass.cpp:283: virtual MFM::u16 MFM::NodeBlockClass::checkAndLabelType():
 ##   Assertion "isSuperClassLinkReady()" failed.

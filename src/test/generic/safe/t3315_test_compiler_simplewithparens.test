@@ -7,7 +7,7 @@
 ##
 #!
 Exit status: 32
-Ue_A { Bool(7) b(false);  System s();  Int barne(32);  Int test() {  self barne . 32 cast = self s . ( self barne . )print . self barne . return } }
+Ue_A { System s();  Bool(7) b(false);  Int barne(32);  Int test() {  self barne . 32 cast = self s . ( self barne . )print . self barne . return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
   ulam 1;

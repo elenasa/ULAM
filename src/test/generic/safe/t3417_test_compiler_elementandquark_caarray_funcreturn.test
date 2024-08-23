@@ -8,7 +8,7 @@
 ##      // correct answer in gen code output, not exit status.
 #!
 Exit status: 2
-Ue_IntArrayTest { typedef Int(3) Intn;  constant Int isn = 3;  IAN(3) ia( constant Int n = 3;  typedef Int(3) Intn; );  Int test() {  System s;  Int(3) a;  a self ( )func . = s ( a )print . s ( a 2 == )assert . a cast return } }
+Ue_IntArrayTest { constant Int isn = 3;  typedef Int(3) Intn;  IAN(3) ia( typedef Int(3) Intn;  constant Int n = 3; );  Int test() {  System s;  Int(3) a;  a self ( )func . = s ( a )print . s ( a 2 == )assert . a cast return } }
 Uq_IAN(Int n) { typedef Int(UNKNOWN) Intn;  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

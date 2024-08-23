@@ -7,9 +7,9 @@
 Exit status: 0
 Ue_Ish5 : System { Int ans(4);  :System<> Int test() {  E1 e1;  E2 e2;  Atom a1 = e1 cast;  Atom& a1ref = a1 cast;  Atom a2 = e2 cast;  Atom& a2ref = a2 cast;  { a1ref QBase as cond { QBase& a1ref;  { a2ref E2 as cond { E2& a2ref;  self ( a1ref ( )func . 4 cast == )assert . self ans . 4 cast = } if } } if } 0 cast return } }
 Ue_E1 : QBase { :QBase<> <NOMAIN> }
-Uq_QBase { <NOMAIN> }
 Ue_E2 { <NOMAIN> }
 Uq_System { <NOMAIN> }
+Uq_QBase { <NOMAIN> }
 ##
 ## informed by ish-example 1/16/16
 ##

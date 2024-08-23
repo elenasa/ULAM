@@ -26,6 +26,11 @@ namespace MFM {
     return m_SS.push(filename,onlyOnce);
   }
 
+  u32 Lexer::exists(std::string filename)
+  {
+    return m_SS.exists(filename);
+  }
+
   u32 Lexer::getFileUlamVersion() const
   {
     return m_SS.getFileUlamVersion();

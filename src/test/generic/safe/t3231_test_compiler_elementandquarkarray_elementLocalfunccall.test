@@ -2,7 +2,7 @@
 #=t3231_test_compiler_elementandquarkarray_elementLocalfunccall
 #!
 Exit status: -11
-Ue_Foo { Bool b[3](false,false,false);  System s();  Int(4) m_i(0);  Int test() {  Poo spoon;  Bar boo;  boo spoon mbar 0 [] . = spoon mbar 1 [] . boo = Atom a;  a spoon sbar ( 0 cast )aref . . = spoon sbar ( 1 cast )aref . . a = spoon sbar . ( true )reset . Foo f;  f ( 0 cast )check . cast return } }
+Ue_Foo { System s();  Bool b[3](false,false,false);  Int(4) m_i(0);  Int test() {  Poo spoon;  Bar boo;  boo spoon mbar 0 [] . = spoon mbar 1 [] . boo = Atom a;  a spoon sbar ( 0 cast )aref . . = spoon sbar ( 1 cast )aref . . a = spoon sbar . ( true )reset . Foo f;  f ( 0 cast )check . cast return } }
 Uq_System { <NOMAIN> }
 Uq_Bar { Bool val_b[3](false,false,false);  <NOMAIN> }
 Ue_Poo { typedef Bar Pop[2];  System s();  Bool(3) b(false);  Int(4) m_i(0);  Bar mbar[2]( Bool val_b[3](false,false,false); ), ( Bool val_b[3](false,false,false); );  Bar sbar( Bool val_b[3](false,false,false); );  <NOMAIN> }

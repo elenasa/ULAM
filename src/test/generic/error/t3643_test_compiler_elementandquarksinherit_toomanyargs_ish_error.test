@@ -2,7 +2,8 @@
 #=t3643_test_compiler_elementandquarksinherit_toomanyargs_ish_error
 #!
 ./QMoCo.ulam:2:7: ERROR: Number of Arguments (7) in class instance 'QMoCo' is beyond the required number of template parameters (1).
-Unrecoverable Program Parse FAILURE: <Ish8.ulam>
+Unrecoverable Program Parse FAILURE: <QMoCo.ulam>
+Unrecoverable Program Parse FAILURE: <QTag.ulam>
 ##
 ## informed by a Dave ish 1/18/2016
 ##

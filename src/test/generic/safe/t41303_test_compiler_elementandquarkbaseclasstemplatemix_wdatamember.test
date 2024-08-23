@@ -2,7 +2,7 @@
 #=t41303_test_compiler_elementandquarkbaseclasstemplatemix_wdatamember
 #!
 Exit status: 1
-Ue_Tu +Foo(1,true) { +Foo(1,true)< constant Int a = 1;  constant Bool b = true;  Int dm(1); > Int test() {  self dm . return } }
+Ue_Tu +Foo(1,true) { +Foo(1,true)< Int dm(1);  constant Int a = 1;  constant Bool b = true; > Int test() {  self dm . return } }
 Uq_Foo(Int a, Bool b) { Int dm(notready);  <NOMAIN> }
 ##
 ##       //first test of base classes, not super

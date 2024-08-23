@@ -7,8 +7,8 @@
 Exit status: 1
 Ue_R { Int rtn(1);  Int test() {  System s;  Tu t;  self rtn . t ( )behive . = s ( self rtn . )print . s ( self rtn . 1 cast == )assert . self rtn . return } }
 Un_Tu : Foo(1,true) { :Foo(1,true)<> <NOMAIN> }
-Un_Foo(Int a, Bool b) { /* empty class block */ }
 Uq_System { <NOMAIN> }
+Un_Foo(Int a, Bool b) { /* empty class block */ }
 ##
 ##       //classes can inherit from a template instance, and vis versa
 ##       informed by error/t3566

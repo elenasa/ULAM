@@ -1,9 +1,8 @@
 ## -*- mode:ulam -*-
 #=t3359_test_compiler_elementandquarkswclassargs_wrongnumberof_error
 #!
-./Foo.ulam:5:2: ERROR: Too few Class Arguments parsed, (2), for template: Booly, by Booly(firstRange,lastRange,bomb).
-./Foo.ulam:5:2: ERROR: Invalid variable declaration of type <Booly> and name 'b' (missing symbol).
-Unrecoverable Program Parse FAILURE: <Foo.ulam>
+./Booly.ulam:1:7: ERROR: Number of Arguments (2) in class instance 'Booly' is insufficient for the required number of template parameters (3).
+Unrecoverable Program Parse FAILURE: <Booly.ulam>
 ##
 ##      //informed by issue: missing Bool as 3rd class parameter in another class
 ##

@@ -8,7 +8,7 @@
 ##
 #!
 Exit status: 2
-Ue_E : Qfoo { Bool b(false);  System s();  Qfoo m_foo( Unsigned(3) data(2u); );  :Qfoo< Unsigned(3) data(2u); > Int test() {  self ( )func . self s . ( self data . cast )print . self s . ( self data . cast 2 cast == )assert . Qfoo f;  self m_foo . f ( )func . = self s . ( self m_foo . data . cast )print . self s . ( self m_foo . data . cast 2 cast == )assert . Qfoo g = self m_foo . ( )func .;  self s . ( g data . cast )print . self s . ( g data . cast 2 cast == )assert . g data . cast return } }
+Ue_E : Qfoo { System s();  Bool b(false);  Qfoo m_foo( Unsigned(3) data(2u); );  :Qfoo< Unsigned(3) data(2u); > Int test() {  self ( )func . self s . ( self data . cast )print . self s . ( self data . cast 2 cast == )assert . Qfoo f;  self m_foo . f ( )func . = self s . ( self m_foo . data . cast )print . self s . ( self m_foo . data . cast 2 cast == )assert . Qfoo g = self m_foo . ( )func .;  self s . ( g data . cast )print . self s . ( g data . cast 2 cast == )assert . g data . cast return } }
 Uq_Qfoo { Unsigned(3) data(0);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

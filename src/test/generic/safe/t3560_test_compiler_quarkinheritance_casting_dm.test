@@ -7,8 +7,8 @@
 Exit status: 3
 Ue_Foo { System s();  Bool first(true);  Soo su( Unsigned(3) us(4u);  :Coo< Bool(3) cb(true); >);  Int test() {  Foo f;  Coo c = f su . cast;  self first . c cb . cast = { self first . cond { self s . ( self first . cast )print . self s . ( self first . )assert . 3u cast return } if } 0 cast return } }
 Uq_Soo : Coo { Unsigned(3) us( 4u);  :Coo< Bool(3) cb( true); > <NOMAIN> }
-Uq_Coo { Bool(3) cb( true);  <NOMAIN> }
 Uq_System { <NOMAIN> }
+Uq_Coo { Bool(3) cb( true);  <NOMAIN> }
 ##
 ## quark inheritance, regular (non-template) with casting
 ## informed by t3536, t3559

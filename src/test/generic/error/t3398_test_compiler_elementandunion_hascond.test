@@ -20,6 +20,11 @@
 ./Eltypo.ulam:4:9: ERROR: Invalid Type: Eltypo.
  ERROR: No parse tree for This Class: Eltypo.
 Unrecoverable Program Parse FAILURE: <Eltypo.ulam>
+./Typo.ulam:2:7: ERROR: Context Eltypo(UNKNOWN) needed to fix any unseen class instances of template 'Typo' is missing its class definition; Bailing...
+./Eltypo.ulam:14:12: ERROR: Invalid Class Type <t>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+Unrecoverable Program Parse FAILURE: <Typo.ulam>
+./Eltypo.ulam:14:13: ERROR: Invalid Class Type <.>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+Unrecoverable Program Parse FAILURE: <System.ulam>
 ##
 ##      //uses union instead of quark:
 ##

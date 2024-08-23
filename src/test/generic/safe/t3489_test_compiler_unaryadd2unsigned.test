@@ -10,7 +10,7 @@
 ##      */
 #!
 Exit status: 3
-Ue_A { constant Unsigned(3) b = 5u;  System s();  constant Unsigned(3) a = 7u;  constant Unary(3) c = 7u;  Unsigned(4) d(12u);  Int test() {  self d . 12u = self s . ( 7u )print . self s . ( true )assert . self s . ( self d . cast )print . self s . ( self d . cast 12 == )assert . 7u cast return } }
+Ue_A { System s();  constant Unsigned(3) a = 7u;  constant Unsigned(3) b = 5u;  constant Unary(3) c = 7u;  Unsigned(4) d(12u);  Int test() {  self d . 12u = self s . ( 7u )print . self s . ( true )assert . self s . ( self d . cast )print . self s . ( self d . cast 12 == )assert . 7u cast return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
   ulam 1;

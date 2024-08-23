@@ -7,8 +7,8 @@
 Exit status: 96
 Ue_Foo { System s();  Bool first(false);  Soo su( Unsigned(3) us(4u);  :Coo< Bool(3) cb(true); >);  Int test() {  { self su . cb . cond { self s . ( self su . cb . )print . self s . ( self su . cb . cast )assert . 96u cast return } if } 0 cast return } }
 Uq_Soo : Coo { Unsigned(3) us( 4u);  :Coo< Bool(3) cb( true); > <NOMAIN> }
-Uq_Coo { Bool(3) cb( true);  <NOMAIN> }
 Uq_System { <NOMAIN> }
+Uq_Coo { Bool(3) cb( true);  <NOMAIN> }
 ##
 ## quark inheritance, regular (non-template), non-local use
 ## (informed by t3536)

@@ -4,6 +4,7 @@
 ./KeyExprRep.ulam:14:36: ERROR: Keyword 'local' for filescope: KeyExprRep.ulam; used incorrectly as a factor (no dot).
 ./KeyExprRep.ulam:14:17: ERROR: Initial value of 'mykeyexpr_x13' is missing.
 Unrecoverable Program Parse FAILURE: <KeyExprRep.ulam>
+Unrecoverable Program Parse FAILURE: <KeyExprNode.ulam>
 ##
 ## informed by t41261,6; KeyExprNode after = fails because constant isn't there, but KeyExprRep is ok.
 ##    Parser FAILS to catch the missing dot due to search for possible typedef from another class.

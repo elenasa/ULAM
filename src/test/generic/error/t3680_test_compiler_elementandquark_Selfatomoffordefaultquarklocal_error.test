@@ -4,7 +4,8 @@
 ./QW.ulam:6:25: ERROR: Unsupported request: 'atomof' of Type <QW>.
 ./QW.ulam:6:31: ERROR: Unexpected token <;>; expected ')'.
 ./QW.ulam:6:10: ERROR: Initial value of 'me' is missing.
-Unrecoverable Program Parse FAILURE: <A.ulam>
+Unrecoverable Program Parse FAILURE: <QW.ulam>
+Unrecoverable Program Parse FAILURE: <System.ulam>
 ##
 ## Dave requested a way to get default values for Self (within a quark);
 ## Self.instanceof (default) vs self.atomof (current stg)

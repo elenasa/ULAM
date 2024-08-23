@@ -7,6 +7,8 @@
 ./Su.ulam:3:9: ERROR: Invalid Type: Su.
  ERROR: No parse tree for This Class: Su.
 Unrecoverable Program Parse FAILURE: <Su.ulam>
+./Su.ulam:4:22: ERROR: Invalid Class Type <Qu>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+Unrecoverable Program Parse FAILURE: <Qu.ulam>
 ##
 ## quits after finding this error (see t41339 for super)
 ##

@@ -7,7 +7,7 @@
 ##
 #!
 Exit status: 0
-Ue_Foo { Bool(3) b(true);  typedef Car Pop[2];  System s();  Bool(3) c(false);  Car sbar( Bool cb(true);  :Bar< Bool val_b[3](false,false,false); >);  Int test() {  Car m_bar2[2];  Unary(2) i = 0 cast;  self b . m_bar2 i cast [] cb . cast = self s . ( self b . )print . self s . ( self b . cast )assert . m_bar2 i cast [] cb . false = self c . m_bar2 i cast [] cb . cast = self s . ( self c . )print . self s . ( self c . ! cast )assert . 0 cast return } }
+Ue_Foo { typedef Car Pop[2];  System s();  Bool(3) b(true);  Bool(3) c(false);  Car sbar( Bool cb(true);  :Bar< Bool val_b[3](false,false,false); >);  Int test() {  Car m_bar2[2];  Unary(2) i = 0 cast;  self b . m_bar2 i cast [] cb . cast = self s . ( self b . )print . self s . ( self b . cast )assert . m_bar2 i cast [] cb . false = self c . m_bar2 i cast [] cb . cast = self s . ( self c . )print . self s . ( self c . ! cast )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 Uq_Car : Bar { Bool cb( true);  :Bar< Bool val_b[3](false,false,false); > <NOMAIN> }
 Uq_Bar { Bool val_b[3](false,false,false);  <NOMAIN> }

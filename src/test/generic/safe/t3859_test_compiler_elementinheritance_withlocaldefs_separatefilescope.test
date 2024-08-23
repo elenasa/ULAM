@@ -15,7 +15,7 @@ Uq_System { <NOMAIN> }
 ##
 #>Foo.ulam
   ulam 3;
-//use Soo; two copies of same locals.
+use Soo; //two copies of same locals ok
 local constant Unsigned(3) soosize = 3u;
 local typedef Soo(soosize) Soo3;
 element Foo : Soo3 {

@@ -7,7 +7,7 @@
 ##
 #!
 Exit status: 1
-Ue_A { Bool(7) b(false);  System s();  Int a(1);  Int test() {  self a . 1 cast = self s . ( self a . )print . self a . return } }
+Ue_A { System s();  Bool(7) b(false);  Int a(1);  Int test() {  self a . 1 cast = self s . ( self a . )print . self a . return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
   ulam 1;

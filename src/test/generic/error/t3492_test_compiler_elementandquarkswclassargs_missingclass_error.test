@@ -1,7 +1,8 @@
 ## -*- mode:ulam -*-
 #=t3492_test_compiler_elementandquarkswclassargs_missingclass_error
 #!
-./R.ulam:5:5: ERROR: No class 'P' in <P.ulam>.
+./R.ulam:5:5: ERROR: Invalid Type: P.
+Unrecoverable Program Parse FAILURE: <P.ulam>
 ##
 ##      // missing P!!!
 ##

@@ -7,10 +7,10 @@
 Exit status: -11
 Ue_R +System { +System<> Int test() {  Trans t;  Trans& tref = t cast;  Typo(1)& poref = tref elt . cast;  poref ( 2u cast )func . Atom& a = poref.atomof;  Eltypo ell = a cast;  self ( ell bu . 2u cast == )assert . self ( tref elt . spt . )assert . ell bu . cast return } }
 Un_Trans { Bool(7) sp(false);  Eltypo elt( Unsigned(3) first(0);  Unsigned(3) second(0);  :Typo(1)< Bool spt(false); > +Bar< Unsigned(3) bu( 7u); >);  <NOMAIN> }
-Ue_Eltypo : Typo(1) +Bar { Unsigned(3) first(0);  Unsigned(3) second(0);  :Typo(1)< Bool spt(false); > +Bar< Unsigned(3) bu( 7u); > <NOMAIN> }
-Uq_Typo(Int a) : Bar { Bool spt(false);  :Bar< Unsigned(3) bu( 7u); > <NOMAIN> }
-Uq_Bar { Unsigned(3) bu( 7u);  <NOMAIN> }
 Uq_System { <NOMAIN> }
+Uq_Typo(Int a) : Bar { Bool spt(false);  :Bar< Unsigned(3) bu( 7u); > <NOMAIN> }
+Ue_Eltypo : Typo(1) +Bar { Unsigned(3) first(0);  Unsigned(3) second(0);  :Typo(1)< Bool spt(false); > +Bar< Unsigned(3) bu( 7u); > <NOMAIN> }
+Uq_Bar { Unsigned(3) bu( 7u);  <NOMAIN> }
 ##
 ## informed by 3735, except multi-inheritance, plus a Trans ref,
 ##                   and virtual func; breaks when Eltypo also inherits

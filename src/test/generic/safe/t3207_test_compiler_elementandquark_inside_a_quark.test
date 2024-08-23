@@ -13,10 +13,10 @@
 ## Int Arg: 4
 #!
 Exit status: -1
-Ue_Foo { Bool b(false);  System m_s();  Gah m_gah( Bool b(false);  System m_s();  Int(4) a(4);  Int(4) d(4); );  Int(4) i(0);  Int(4) j(-1);  Bar m_bar( Bool b(true);  System m_s();  Unsigned(3) x(3u);  Unsigned(3) y(0u);  Gah m_gah( Bool b(false);  System m_s();  Int(4) a(0);  Int(4) d(0); ); );  Int test() {  self i . 0 cast = self j . self ( self i . cast 1 cast -b cast )update . = self m_s . ( self j . cast )print . self m_s . ( self j . )print . self m_bar . ( 3 cast -1 cast )set . self m_gah . ( 4 cast 4 cast )set . self j . cast return } }
+Ue_Foo { System m_s();  Bool b(false);  Int(4) i(0);  Int(4) j(-1);  Gah m_gah( System m_s();  Bool b(false);  Int(4) a(4);  Int(4) d(4); );  Bar m_bar( System m_s();  Bool b(true);  Gah m_gah( System m_s();  Bool b(false);  Int(4) a(0);  Int(4) d(0); );  Unsigned(3) x(3u);  Unsigned(3) y(0u); );  Int test() {  self i . 0 cast = self j . self ( self i . cast 1 cast -b cast )update . = self m_s . ( self j . cast )print . self m_s . ( self j . )print . self m_bar . ( 3 cast -1 cast )set . self m_gah . ( 4 cast 4 cast )set . self j . cast return } }
 Uq_Bar { System m_s();  Bool b(false);  Unsigned(3) x(0);  Unsigned(3) y(0);  Gah m_gah( System m_s();  Bool b(false);  Int(4) a(0);  Int(4) d(0); );  <NOMAIN> }
-Uq_System { <NOMAIN> }
 Uq_Gah { System m_s();  Bool b(false);  Int(4) a(0);  Int(4) d(0);  <NOMAIN> }
+Uq_System { <NOMAIN> }
 #>Foo.ulam
 ulam 1;
 use Bar;

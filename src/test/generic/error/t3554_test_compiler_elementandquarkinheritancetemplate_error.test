@@ -2,7 +2,7 @@
 #=t3554_test_compiler_elementandquarkinheritancetemplate_error
 #!
 ./Tu.ulam:3:14: ERROR: Class with parameters seen with the same name: Foo; No shadow typedef in class scope, Tu.
-Unrecoverable Program Parse FAILURE: <Tu.ulam>
+Unrecoverable Program Type Label FAILURE.
 ##
 ##  classes can inherit from a template instance, and vis versa; here, missing class args
 ##  (see also t3644)

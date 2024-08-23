@@ -1,9 +1,9 @@
 ## -*- mode:ulam -*-
 #=t3556_test_compiler_elementandquarkinheritancetemplate_error
 #!
-./Tu.ulam:2:8: ERROR: Class without parameters already exists with the same name: Foo, and was first noticed at: ..
-./Foo.ulam:2:9: ERROR: .. this location.
-Unrecoverable Program Parse FAILURE: <Tu.ulam>
+./Foo.ulam:2:9: ERROR: Conflicting class args previously seen for class with no parameters 'Foo'.
+./Tu.ulam:3:22: ERROR: Invalid Type: Foo.
+Unrecoverable Program Parse FAILURE: <Foo.ulam>
 ##
 ##       //template classes can inherit from a regular class
 ##

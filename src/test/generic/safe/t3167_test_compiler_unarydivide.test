@@ -7,7 +7,7 @@
 ##      */
 #!
 Exit status: 0
-Ue_A { Unary(3) b(3u);  System s();  Unary(3) a(2u);  Unary(3) c(0u);  Unary(3) d(1u);  Unary(3) f(2u);  Unary(4) e(4u);  Int test() {  self a . 2 cast = self b . 3 cast = self c . self a . cast self b . cast / cast = self s . ( self c . )print . self d . self b . cast self a . cast / cast = self s . ( self d . )print . self e . 4 cast = self f . self e . cast self a . cast / cast = self s . ( self f . )print . self c . cast return } }
+Ue_A { System s();  Unary(3) a(2u);  Unary(3) b(3u);  Unary(3) c(0u);  Unary(3) d(1u);  Unary(3) f(2u);  Unary(4) e(4u);  Int test() {  self a . 2 cast = self b . 3 cast = self c . self a . cast self b . cast / cast = self s . ( self c . )print . self d . self b . cast self a . cast / cast = self s . ( self d . )print . self e . 4 cast = self f . self e . cast self a . cast / cast = self s . ( self f . )print . self c . cast return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
   ulam 1;

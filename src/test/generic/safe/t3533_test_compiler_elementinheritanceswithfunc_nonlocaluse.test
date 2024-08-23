@@ -7,8 +7,8 @@
 Exit status: 77
 Ue_Foo : Soo { Bool(7) sp(false);  Int a(73);  :Soo< Unsigned(3) us(4u);  :Coo< Bool(3) cb(true); >> ^Coo< Bool(3) cb(true); > Int test() {  System s;  { self ( )check . cond self us . cast self a . +b return if } s ( false )assert . 0 cast return } }
 Uq_Soo : Coo { Unsigned(3) us( 4u);  :Coo< Bool(3) cb( true); > <NOMAIN> }
-Uq_Coo { Bool(3) cb( true);  <NOMAIN> }
 Uq_System { <NOMAIN> }
+Uq_Coo { Bool(3) cb( true);  <NOMAIN> }
 ##
 ## chained class inheritance, regular (non-template), with a function call
 ## without local variable; informed by t3530

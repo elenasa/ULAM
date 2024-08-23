@@ -7,8 +7,8 @@
 Exit status: 0
 Ue_Foo { System s();  Bool first(false);  Soo su( Unsigned(3) us(4u);  Bool(3) cbs(false);  :Coo< Bool(3) cb(true); >);  Int test() {  Foo f;  self first . f su . ( )check . = { self first . cond { self s . ( self first . cast )print . 96u cast return } if } 0 cast return } }
 Uq_Soo : Coo { Unsigned(3) us( 4u);  Bool(3) cbs(false);  :Coo< Bool(3) cb( true); > <NOMAIN> }
-Uq_Coo { Bool(3) cb( true);  <NOMAIN> }
 Uq_System { <NOMAIN> }
+Uq_Coo { Bool(3) cb( true);  <NOMAIN> }
 ##
 ## quark inheritance, regular (non-template) with function call in subclass overriding super
 ## (informed by t3545, t3536 and t3530, t3544)

@@ -13,6 +13,11 @@ namespace MFM {
     return m_tokenizer->push(filename,onlyOnce);
   }
 
+  u32 Preparser::exists(std::string filename)
+  {
+    return m_tokenizer->exists(filename);
+  }
+
   u32 Preparser::getFileUlamVersion() const
   {
     return m_tokenizer->getFileUlamVersion();
@@ -70,7 +75,7 @@ namespace MFM {
 
     if(preparsePackageName(pkgname))
       {
-	u32 pmsg = push(pkgname);
+	u32 pmsg = exists(pkgname);
 	if(pmsg == 0)
 	  {
 	    return getNextToken(tok);

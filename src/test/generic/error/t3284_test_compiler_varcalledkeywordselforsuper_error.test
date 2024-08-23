@@ -15,6 +15,8 @@
 ./Su.ulam:3:9: ERROR: Invalid Type: Su.
  ERROR: No parse tree for This Class: Su.
 Unrecoverable Program Parse FAILURE: <Su.ulam>
+./Su.ulam:26:11: ERROR: Invalid Class Type <(>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+Unrecoverable Program Parse FAILURE: <Qu.ulam>
 ##
 #>Su.ulam
   ulam 1;

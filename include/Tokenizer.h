@@ -52,6 +52,9 @@ namespace MFM{
     /** pass through filename to underlying sourcestream */
     virtual u32 push(std::string filename, bool onlyOnce = true) = 0;
 
+    /** pass through filename to underlying sourcestream, not opened */
+    virtual u32 exists(std::string filename) = 0;
+
     /** get First token in ulam file; and unread */
     virtual bool peekFirstToken(Token & firstTok) = 0;
 

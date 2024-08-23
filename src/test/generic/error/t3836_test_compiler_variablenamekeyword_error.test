@@ -4,6 +4,7 @@
 ./Foo.ulam:11:12: ERROR: Name of variable 'as': Identifier must not be a reserved keyword.
 ./Foo.ulam:11:12: ERROR: Invalid Statement (possible missing semicolon).
 Unrecoverable Program Parse FAILURE: <Foo.ulam>
+Unrecoverable Program Parse FAILURE: <QPerc.ulam>
 ##
 ## informed by t3835 by my mistake
 ##

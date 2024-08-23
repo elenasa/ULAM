@@ -5,6 +5,7 @@
 ./KeyExprRep.ulam:14:47: ERROR: Expected a dot prior to named constant 'keyexpr_x13'.
 ./KeyExprRep.ulam:14:17: ERROR: Initial value of 'mykeyexpr_x13' is missing.
 Unrecoverable Program Parse FAILURE: <KeyExprRep.ulam>
+Unrecoverable Program Parse FAILURE: <KeyExprNode.ulam>
 ##
 ## informed by t41261,6; KeyExprNode after = fails because constant isn't there, but KeyExprRep is ok?
 ##    Parser catches the missing dot after search for possible typedef from another class,

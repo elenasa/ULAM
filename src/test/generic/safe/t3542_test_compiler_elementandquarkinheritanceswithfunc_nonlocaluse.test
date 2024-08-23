@@ -12,11 +12,11 @@
 Exit status: 96
 Ue_Foo : Basel { System s();  Bool first(true);  :Basel< Bool ba(false);  :Casel< Soo su( Unsigned(3) us(4u);  :Coo< Bool(3) cb(true);  :Loo< Int(5) lu(1); >> ^Loo< Int(5) lu(1); >); >> ^Casel< Soo su( Unsigned(3) us(4u);  :Coo< Bool(3) cb(true);  :Loo< Int(5) lu(1); >> ^Loo< Int(5) lu(1); >); > Int test() {  self s . ( self su . cb . )print . self s . ( self su . cb . cast )assert . self first . self su . cb . cast = self s . ( self first . cast )print . self s . ( self first . )assert . self first . self su . ( )check . = self s . ( self first . cast )print . self s . ( self first . )assert . { self su . ( )check . cond { self s . ( self su . lu . cast )print . self s . ( self su . lu . -1 cast == )assert . self su . lu . 1u cast = self s . ( self su . lu . cast )print . self s . ( self su . lu . 1 cast == )assert . self s . ( 96u )print . self s . ( true )assert . 96u cast return } if } -1 cast return } }
 Uq_Basel : Casel { Bool ba(false);  :Casel< Soo su( Unsigned(3) us( 4u);  :Coo< Bool(3) cb( true); > ^Loo< Int(5) lu( -1); >); > <NOMAIN> }
+Uq_System { <NOMAIN> }
 Uq_Casel { Soo su( Unsigned(3) us( 4u);  :Coo< Bool(3) cb( true); > ^Loo< Int(5) lu( -1); >);  <NOMAIN> }
 Uq_Soo : Coo { Unsigned(3) us( 4u);  :Coo< Bool(3) cb( true); > ^Loo< Int(5) lu( -1); > <NOMAIN> }
 Uq_Coo : Loo { Bool(3) cb( true);  :Loo< Int(5) lu( -1); > <NOMAIN> }
 Uq_Loo { Int(5) lu( -1);  <NOMAIN> }
-Uq_System { <NOMAIN> }
 ##
 ## element and quark inheritances, regular (non-template), with func
 ## informed by t3541

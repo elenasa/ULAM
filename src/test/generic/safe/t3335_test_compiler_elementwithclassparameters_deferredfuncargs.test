@@ -3,7 +3,7 @@
 ##      //with implicit b casted to func; it works!!
 #!
 Exit status: 15
-Ue_T { Int i(15);  Int j(3);  System s();  Int test() {  Int(3) a;  Int(4) b;  S(3,2) m;  self i . m ( b cast )func . = self s . ( self i . )print . self j . m ( a )func . = self s . ( self j . )print . self i . return } }
+Ue_T { System s();  Int i(15);  Int j(3);  Int test() {  Int(3) a;  Int(4) b;  S(3,2) m;  self i . m ( b cast )func . = self s . ( self i . )print . self j . m ( a )func . = self s . ( self j . )print . self i . return } }
 Uq_S(Int x, Int y) { Int(UNKNOWN) i(notready);  Int(UNKNOWN) j(notready);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

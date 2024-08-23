@@ -8,6 +8,8 @@
 ./Foo.ulam:3:9: ERROR: Invalid Type: Foo.
  ERROR: No parse tree for This Class: Foo.
 Unrecoverable Program Parse FAILURE: <Foo.ulam>
+./Foo.ulam:6:2: ERROR: Invalid Class Type <Bool>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+Unrecoverable Program Parse FAILURE: <Poo.ulam>
 ##
 ## see also t3217, quark
 ##

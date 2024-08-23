@@ -4,6 +4,7 @@
 ./Foo.ulam:10:23: ERROR: As-Conditional: NodeBinaryOpLogicalAnd is not a valid form of '(ident as Type)'; Operation deleted.
 ./Foo.ulam:10:3: ERROR: Incomplete true block; if-control.
 Unrecoverable Program Parse FAILURE: <Foo.ulam>
+Unrecoverable Program Parse FAILURE: <Counter4.ulam>
 ##
 ##
 ##      //point of this test; but invalid statement (double parens inside if with as-conditions)

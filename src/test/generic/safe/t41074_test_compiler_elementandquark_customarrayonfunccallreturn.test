@@ -5,7 +5,7 @@
 ##
 #!
 Exit status: -11
-Ue_A : QW { Bool b(false);  System s();  QW m_q();  :QW<> Int test() {  self b . self ( )getCA . ( 0 cast )aref . ( )setb . = self s . ( self b . cast )print . self s . ( self b . )assert . self ( )getCA . ( 1 cast )aref . b . self b . = self ( )getCA . ( 2 cast )aref . self ( )getCA . ( 0 cast )aref . = 0 cast return } }
+Ue_A : QW { System s();  Bool b(false);  QW m_q();  :QW<> Int test() {  self b . self ( )getCA . ( 0 cast )aref . ( )setb . = self s . ( self b . cast )print . self s . ( self b . )assert . self ( )getCA . ( 1 cast )aref . b . self b . = self ( )getCA . ( 2 cast )aref . self ( )getCA . ( 0 cast )aref . = 0 cast return } }
 Uq_System { <NOMAIN> }
 Uq_QW { <NOMAIN> }
 Un_Tfoo { A m_a[4]( System s();  Bool b(false);  QW m_q();  :QW<>), ( System s();  Bool b(false);  QW m_q();  :QW<>), ( System s();  Bool b(false);  QW m_q();  :QW<>), ( System s();  Bool b(false);  QW m_q();  :QW<>);  <NOMAIN> }

@@ -16,8 +16,8 @@ Exit status: -11
 Ue_R { Bool b(false);  Bool c(false);  Int test() {  System s;  A ar[3];  Foo& fr = ar 2 [] mFoo 3 [] . cast;  0 cast return } }
 Uq_System { <NOMAIN> }
 Un_A : QW { Bool(7) sp(false);  Foo mFoo[3]( Unary(3) mTre(0); ), ( Unary(3) mTre(0); ), ( Unary(3) mTre(0); );  :QW<> <NOMAIN> }
-Uq_QW { /* empty class block */ }
 Ue_Foo { Unary(3) mTre(0);  <NOMAIN> }
+Uq_QW { /* empty class block */ }
 ##
 ## Dave requested a way to get default values for Self (within a quark);
 ## a loophole, since a quark would be an undefined atom, but as a ref, its done (t3679)

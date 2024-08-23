@@ -7,9 +7,9 @@
 Exit status: 39
 Ue_R { System s();  Int h(39);  Int test() {  Foo f;  f ( )behave . self h . f size . = self s . ( self h . )print . self s . ( self h . 39 cast == )assert . self h . return } }
 Un_Foo { Bool first(false);  Soo su( Unsigned(3) us( 4u);  :Coo< Bool(3) cb( true); >);  Int size(0);  <NOMAIN> }
+Uq_System { <NOMAIN> }
 Un_Soo : Coo { Unsigned(3) us( 4u);  :Coo< Bool(3) cb( true); > <NOMAIN> }
 Un_Coo { Bool(3) cb( true);  <NOMAIN> }
-Uq_System { <NOMAIN> }
 ##
 ## transient inheritance, regular (non-template) with function call
 ## (informed by t3539)

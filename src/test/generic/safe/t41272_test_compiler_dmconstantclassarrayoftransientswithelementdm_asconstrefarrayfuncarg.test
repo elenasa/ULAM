@@ -23,7 +23,7 @@ Uq_System { <NOMAIN> }
 #>KeyExprRep.ulam
   ulam 3;
 use Elfoo; //not req'd; keeps order
-//use KeyExprNode; ////without use ./KeyExprNode.ulam:9:0: ERROR: Invalid size (-2) to set for primitive type: 0Holder. NO LONGER TRUE. with use localdef error 'celfoo';
+use KeyExprNode; ////without use ./KeyExprNode.ulam:9:0: ERROR: Invalid size (-2) to set for primitive type: 0Holder. NO LONGER TRUE.
 element KeyExprRep {
 
   constant KeyExprNode keyexpr_x13[] = {

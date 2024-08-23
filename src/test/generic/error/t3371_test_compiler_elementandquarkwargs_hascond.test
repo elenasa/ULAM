@@ -20,6 +20,8 @@
 ./Eltypo.ulam:4:9: ERROR: Invalid Type: Eltypo.
  ERROR: No parse tree for This Class: Eltypo.
 Unrecoverable Program Parse FAILURE: <Eltypo.ulam>
+./Eltypo.ulam:13:12: ERROR: Invalid Class Type <0>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+Unrecoverable Program Parse FAILURE: <System.ulam>
 #:Typo.ulam
 ulam 1;
 quark Typo(Int a) {

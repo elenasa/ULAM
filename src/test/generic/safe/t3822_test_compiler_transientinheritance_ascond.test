@@ -12,8 +12,8 @@
 Exit status: 3
 Ue_Foo { System s();  Bool first(true);  Int test() {  Soo su;  { su Coo as cond { Coo& su;  su cb . true cast = self s . ( su cb . )print . self s . ( su cb . cast )assert . self first . true = self s . ( self first . )assert . 3u cast return } if } 0 cast return } }
 Un_Soo : Coo { Unsigned(3) us( 4u);  :Coo< Bool(3) cb(false); > <NOMAIN> }
-Un_Coo { Bool(3) cb(false);  <NOMAIN> }
 Uq_System { <NOMAIN> }
+Un_Coo { Bool(3) cb(false);  <NOMAIN> }
 ##
 ## informed by t3716 transient inheritance, regular (non-template)
 ##

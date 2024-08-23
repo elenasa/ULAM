@@ -11,9 +11,9 @@
 #!
 Exit status: 7
 Uq_Typo(Int a) : Bar { Bool typool(false);  constant Unsigned(3) cTHREE = 2u;  :Bar< Unsigned(3) bu( 7u); > <NOMAIN> }
+Ue_Eltypo : Typo(1) { System s();  Typo(1) t( constant Unsigned(3) cTHREE = 2u;  constant Int a = 1;  Bool typool(false);  :Bar< Unsigned(3) bu(2u); >);  Unsigned(3) first(2u);  Unsigned(3) second(7u);  :Typo(1)< constant Unsigned(3) cTHREE = 2u;  constant Int a = 1;  Bool typool(true);  :Bar< Unsigned(3) bu(7u); >> ^Bar< Unsigned(3) bu(7u); > Int test() {  self ( )functest . self s . ( self t . bu . cast )print . self s . ( self t . bu . 3u != )assert . self s . ( self t . bu . super 2u . == )assert . self s . ( self first . cast )print . self s . ( self first . 3u != )assert . self s . ( self first . 2u == )assert . self second . self bu . = self s . ( self second . cast )print . self s . ( self second . 7u == )assert . self second . cast return } }
 Uq_Bar { Unsigned(3) bu( 7u);  <NOMAIN> }
 Uq_System { <NOMAIN> }
-Ue_Eltypo : Typo(1) { System s();  Typo(1) t( constant Unsigned(3) cTHREE = 2u;  constant Int a = 1;  Bool typool(false);  :Bar< Unsigned(3) bu(2u); >);  Unsigned(3) first(2u);  Unsigned(3) second(7u);  :Typo(1)< constant Unsigned(3) cTHREE = 2u;  constant Int a = 1;  Bool typool(true);  :Bar< Unsigned(3) bu(7u); >> ^Bar< Unsigned(3) bu(7u); > Int test() {  self ( )functest . self s . ( self t . bu . cast )print . self s . ( self t . bu . 3u != )assert . self s . ( self t . bu . super 2u . == )assert . self s . ( self first . cast )print . self s . ( self first . 3u != )assert . self s . ( self first . 2u == )assert . self second . self bu . = self s . ( self second . cast )print . self s . ( self second . 7u == )assert . self second . cast return } }
 ##
 ## "conditional downcast"
 ## informed by 41344, except implicit 'self' in as-block used with named constants;
@@ -23,7 +23,7 @@ Ue_Eltypo : Typo(1) { System s();  Typo(1) t( constant Unsigned(3) cTHREE = 2u; 
 ##
 #:Typo.ulam
   ulam 2;
-//use Eltypo; causes localdef error with cTHREE.
+use Eltypo; // localdef cTHREE ok.
 local constant Unsigned(3) cTHREE = 5u; //shadow constant
 quark Typo(Int a) : Bar{
   Bool typool;

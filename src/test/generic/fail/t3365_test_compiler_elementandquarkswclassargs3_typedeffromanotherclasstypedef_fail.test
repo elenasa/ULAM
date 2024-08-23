@@ -8,8 +8,8 @@
 Exit status: -1
 Ue_R { parameter Int(3) pvar = -1;  Unsigned psize(3u);  Int test() {  self psize . 3u = pvar(-1) cast return } }
 Uq_V { typedef Q(3) Woof;  <NOMAIN> }
-Uq_Q(Int s) { typedef Int(UNKNOWN) Foo;  <NOMAIN> }
 Ue_P(Int a) { Bool(UNKNOWN) b(notready);  <NOMAIN> }
+Uq_Q(Int s) { typedef Int(UNKNOWN) Foo;  <NOMAIN> }
 ##
 ##     //informed by 3364
 ##      // recursive typedefs as Element Parameter datamember variable type

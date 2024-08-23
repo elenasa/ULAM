@@ -7,8 +7,8 @@
 Exit status: 4
 Ue_R { Int rtn(4);  Int test() {  System s;  Tu(1) t;  self rtn . t ( )func . = s ( self rtn . )print . s ( self rtn . 4 cast == )assert . self rtn . return } }
 Un_Tu(Int x) : Foo { :Foo< Int mi( 4); > <NOMAIN> }
-Un_Foo { Int mi( 4);  <NOMAIN> }
 Uq_System { <NOMAIN> }
+Un_Foo { Int mi( 4);  <NOMAIN> }
 ##
 ##       //template classes can inherit from a regular class
 ##       informed by error/t3567

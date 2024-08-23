@@ -10,9 +10,9 @@
 Exit status: 96
 Ue_R { Int test() {  System s;  P(3) pvar;  s ( pvar b . )print . s ( pvar b . cast )assert . 96u cast return } }
 Uq_V { typedef Q(3) Woof;  <NOMAIN> }
-Uq_Q(Int s) { typedef P(a) Foo;  <NOMAIN> }
-Ue_P(Int a) { Bool(UNKNOWN) b(notready);  <NOMAIN> }
 Uq_System { <NOMAIN> }
+Ue_P(Int a) { Bool(UNKNOWN) b(notready);  <NOMAIN> }
+Uq_Q(Int s) { typedef P(a) Foo;  <NOMAIN> }
 ##
 ##  informed by 3362
 ##      //informed by 3339, 3349

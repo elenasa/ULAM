@@ -9,9 +9,9 @@
 Exit status: 11
 Ue_Foo { System s();  Bool first(true);  Int test() {  Soo su;  self first . su cb . cast = { su ( )check . cond { self s . ( su lu . cast )print . self s . ( su lu . -1 cast == )assert . su lu . 1u cast = self s . ( su lu . cast )print . self s . ( su lu . 1 cast == )assert . self s . ( 11u )print . self s . ( true )assert . 11u cast return } if } 0 cast return } }
 Uq_Soo : Coo { Unsigned(3) us( 4u);  :Coo< Bool(3) cb( true); > ^Loo< Int(5) lu( -1); > <NOMAIN> }
+Uq_System { <NOMAIN> }
 Uq_Coo : Loo { Bool(3) cb( true);  :Loo< Int(5) lu( -1); > <NOMAIN> }
 Uq_Loo { Int(5) lu( -1);  <NOMAIN> }
-Uq_System { <NOMAIN> }
 ##
 ## quark inheritances, regular (non-template), with func as local variable
 ## informed by t3536,3538

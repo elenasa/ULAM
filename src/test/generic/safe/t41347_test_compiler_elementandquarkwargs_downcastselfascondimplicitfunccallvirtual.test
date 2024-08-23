@@ -10,9 +10,9 @@
 #!
 Exit status: 7
 Uq_Typo(Int a) : Bar { Bool typool(false);  :Bar< Unsigned(3) bu( 7u); > <NOMAIN> }
-Ue_Eltypo : Typo(1) { System s();  constant Unsigned(3) cTWO = 2u;  Unsigned(3) first(2u);  Unsigned(3) second(7u);  Typo(1) t( constant Int a = 1;  Bool typool(false);  :Bar< Unsigned(3) bu(2u); >);  :Typo(1)< constant Int a = 1;  Bool typool(true);  :Bar< Unsigned(3) bu(7u); >> ^Bar< Unsigned(3) bu(7u); > Int test() {  self ( )functest . self s . ( self t . bu . cast )print . self s . ( self t . bu . 2u == )assert . self s . ( self first . cast )print . self s . ( self first . 2u == )assert . self second . self bu . = self second . cast return } }
-Uq_System { <NOMAIN> }
+Ue_Eltypo : Typo(1) { System s();  Typo(1) t( constant Int a = 1;  Bool typool(false);  :Bar< Unsigned(3) bu(2u); >);  Unsigned(3) first(2u);  constant Unsigned(3) cTWO = 2u;  Unsigned(3) second(7u);  :Typo(1)< constant Int a = 1;  Bool typool(true);  :Bar< Unsigned(3) bu(7u); >> ^Bar< Unsigned(3) bu(7u); > Int test() {  self ( )functest . self s . ( self t . bu . cast )print . self s . ( self t . bu . 2u == )assert . self s . ( self first . cast )print . self s . ( self first . 2u == )assert . self second . self bu . = self second . cast return } }
 Uq_Bar { Unsigned(3) bu( 7u);  <NOMAIN> }
+Uq_System { <NOMAIN> }
 ##
 ## "conditional downcast"
 ## informed by 41344, except implicit 'self' in as-block used with function calls

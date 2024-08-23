@@ -6,7 +6,7 @@
 ##      */
 #!
 Exit status: 1
-Ue_A { Unary(3) b(1u);  System s();  Unary(3) a(2u);  Unary(3) c(1u);  Unsigned(2) e(2u);  Unsigned(2) f(1u);  Unsigned(2) g(0u);  Int test() {  self a . self e . 2 cast = cast = self b . self f . 1 cast = cast = self c . self a . cast self b . cast & cast = self s . ( self c . )print . self g . self e . cast self f . cast & cast = self s . ( self g . cast )print . self c . cast return } }
+Ue_A { System s();  Unary(3) a(2u);  Unary(3) b(1u);  Unary(3) c(1u);  Unsigned(2) e(2u);  Unsigned(2) f(1u);  Unsigned(2) g(0u);  Int test() {  self a . self e . 2 cast = cast = self b . self f . 1 cast = cast = self c . self a . cast self b . cast & cast = self s . ( self c . )print . self g . self e . cast self f . cast & cast = self s . ( self g . cast )print . self c . cast return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
   ulam 1;

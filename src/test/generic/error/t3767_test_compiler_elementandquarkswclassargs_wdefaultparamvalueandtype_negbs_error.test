@@ -7,7 +7,7 @@
 ./P.ulam:10:16: ERROR: Type Bitsize specifier for Unsigned type, within (), is a negative numeric constant expression: -4.
 ./P.ulam:10:16: ERROR: Invalid NodeConstantDef for type used with symbol name 's'.
 ./P.ulam:10:16: ERROR: Constant value expression for class argument: s, is invalid.
-./P.ulam:15:0: ERROR: Invalid size (0) to set for primitive type: Unsigned.
+./Q.ulam:6:0: ERROR: Invalid size (0) to set for primitive type: Unsigned.
 ./P.ulam:11:10: ERROR: Invalid NodeConstantDef for type used with symbol name 's'.
 ./P.ulam:11:10: ERROR: Constant value expression for class argument: s, is invalid.
 Unrecoverable Program Type Label FAILURE.

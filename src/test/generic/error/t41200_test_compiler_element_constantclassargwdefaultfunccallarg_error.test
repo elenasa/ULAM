@@ -18,6 +18,8 @@
 Unrecoverable Program Parse FAILURE: <Foo.ulam>
 ./Foo.ulam:7:38: ERROR: Invalid Class Type <=>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 Unrecoverable Program Parse FAILURE: <QW.ulam>
+./Foo.ulam:7:40: ERROR: Invalid Class Type <1u>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+Unrecoverable Program Parse FAILURE: <System.ulam>
 ##
 ## informed by t41199, and t3990 currently unsupported
 ##

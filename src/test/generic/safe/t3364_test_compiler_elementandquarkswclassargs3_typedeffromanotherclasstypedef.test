@@ -4,8 +4,8 @@
 Exit status: 3
 Ue_R { P(3) pvar( constant Int a = 3;  Bool(3) b(false); );  Int test() {  3u cast return } }
 Uq_V { typedef Q(3) Woof;  <NOMAIN> }
-Uq_Q(Int s) { typedef P(a) Foo;  <NOMAIN> }
 Uq_P(Int a) { Bool(UNKNOWN) b(notready);  <NOMAIN> }
+Uq_Q(Int s) { typedef P(a) Foo;  <NOMAIN> }
 ##
 ##      //informed by 3345
 ##      // recursive typedefs as datamember variable type (requires quark, unless EP)

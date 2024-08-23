@@ -4,8 +4,8 @@
 Exit status: 96
 Ue_R { Int test() {  P(3) pvar;  96u cast return } }
 Uq_V { typedef Q(3) Woof;  <NOMAIN> }
-Uq_Q(Int s) { typedef P(a) Foo;  <NOMAIN> }
 Ue_P(Int a) { Bool(UNKNOWN) b(notready);  <NOMAIN> }
+Uq_Q(Int s) { typedef P(a) Foo;  <NOMAIN> }
 ##
 ##      //informed by 3339, 3349
 ##      // recursive typedefs as local variable type

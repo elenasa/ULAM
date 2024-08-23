@@ -11,8 +11,8 @@
 Exit status: 0
 Ue_E4 : QBase3 +QBase2 +QBase1 { Int m_c4(212);  Int m_a4(310);  :QBase3< typedef QBase1 QB1;  Bool m_b3(true);  +QBase1< Bool m_b1(true); >> +QBase2< typedef QBase2 QB2;  Bool m_b2(true); > +QBase1< Bool m_b1(true); > Int test() {  System s;  self m_c4 . self QB2 . ( )vfuncc . = s ( self m_c4 . )print . s ( self m_c4 . 212 cast == )assert . self m_a4 . self Super . ( )vfunca . = s ( self m_a4 . )print . s ( self m_a4 . 310 cast == )assert . s ( self m_b1 . ! )assert . Int a4 = self QBase1 . ( )vfunca .;  s ( a4 )print . s ( a4 110 cast == )assert . s ( self m_b1 . )assert . self m_b1 . false = Int sa4 = super QB1 . ( )vfunca .;  s ( sa4 )print . s ( sa4 110 cast == )assert . s ( self m_b1 . )assert . 0 cast return } }
 Uq_QBase3 +QBase1 { typedef QBase1 QB1;  Bool m_b3(false);  +QBase1< Bool m_b1(false); > <NOMAIN> }
-Uq_QBase1 { Bool m_b1(false);  <NOMAIN> }
 Uq_QBase2 { typedef QBase2 QB2;  Bool m_b2(false);  <NOMAIN> }
+Uq_QBase1 { Bool m_b1(false);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 ##       informed by t41311; do we inherit typedefs in base classes that are seen before used? Yes.

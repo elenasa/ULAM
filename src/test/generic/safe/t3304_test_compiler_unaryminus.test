@@ -6,7 +6,7 @@
 ##
 #!
 Exit status: -18
-Ue_A { Bool(7) b(false);  System s();  Int bar(-18);  Int test() {  self bar . -18 cast = Int ar = self bar . - -;  self s . ( self bar . )print . self bar . + return } }
+Ue_A { System s();  Bool(7) b(false);  Int bar(-18);  Int test() {  self bar . -18 cast = Int ar = self bar . - -;  self s . ( self bar . )print . self bar . + return } }
 Uq_System { <NOMAIN> }
 ##
 ##      // use unary plus on return, and added 'ar' to avoid unused variable warning from g++ on generated code.

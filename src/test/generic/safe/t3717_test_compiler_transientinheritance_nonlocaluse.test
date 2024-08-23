@@ -5,11 +5,11 @@
 ##
 #!
 Exit status: 7
-Ue_R { Bool first(false);  System s();  Int test() {  Foo f;  { f su . cb . cond { self s . ( f su . cb . )print . self s . ( f su . cb . cast )assert . 7u cast return } if } 0 cast return } }
+Ue_R { System s();  Bool first(false);  Int test() {  Foo f;  { f su . cb . cond { self s . ( f su . cb . )print . self s . ( f su . cb . cast )assert . 7u cast return } if } 0 cast return } }
 Un_Foo { Bool first(false);  Soo su( Unsigned(3) us( 4u);  :Coo< Bool(3) cb( true); >);  <NOMAIN> }
+Uq_System { <NOMAIN> }
 Un_Soo : Coo { Unsigned(3) us( 4u);  :Coo< Bool(3) cb( true); > <NOMAIN> }
 Un_Coo { Bool(3) cb( true);  <NOMAIN> }
-Uq_System { <NOMAIN> }
 ##
 ## transient inheritance, regular (non-template), non-local use
 ## (informed by t3537)

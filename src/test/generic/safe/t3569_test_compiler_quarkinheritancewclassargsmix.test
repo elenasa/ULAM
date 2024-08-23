@@ -5,10 +5,10 @@
 ##
 #!
 Exit status: 96
-Ue_Foo { System s();  Bool first(false);  Soo su( Unsigned(3) us(4u);  :Coo(1)< constant Int a = 1;  Bool cb(true); >);  Int test() {  Foo f;  { f su . cb . cond { self s . ( f su . cb . cast )print . 96u cast return } if } self s . ( false )assert . 0 cast return } }
+Ue_Foo { System s();  Bool first(false);  Soo su( Unsigned(3) us(4u);  :Coo(1)< Bool cb(true);  constant Int a = 1; >);  Int test() {  Foo f;  { f su . cb . cond { self s . ( f su . cb . cast )print . 96u cast return } if } self s . ( false )assert . 0 cast return } }
 Uq_Soo : Coo(1) { Unsigned(3) us( 4u);  :Coo(1)< Bool cb( true); > <NOMAIN> }
-Uq_Coo(Int a) { Bool(UNKNOWN) cb(notready);  <NOMAIN> }
 Uq_System { <NOMAIN> }
+Uq_Coo(Int a) { Bool(UNKNOWN) cb(notready);  <NOMAIN> }
 ##
 ## quark inheritance, regular (non-template)
 ##

@@ -27,6 +27,8 @@
 ./Test.ulam:7:9: ERROR: Invalid Type: Test.
  ERROR: No parse tree for This Class: Test.
 Unrecoverable Program Parse FAILURE: <Test.ulam>
+./Test.ulam:52:12: ERROR: Invalid Class Type <0>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+Unrecoverable Program Parse FAILURE: <System.ulam>
 ##
 ## informed by vtable-example 11/17/15, t3601
 ##

@@ -10,9 +10,9 @@ Exit status: 11
 Ue_R { Int test() {  Foo f;  f ( )func . return } }
 Un_Foo { System s();  Bool first(false);  <NOMAIN> }
 Un_Soo : Coo { Unsigned(3) us( 4u);  :Coo< Bool(3) cb( true); > ^Loo< Int(5) lu( -1); > <NOMAIN> }
+Uq_System { <NOMAIN> }
 Un_Coo : Loo { Bool(3) cb( true);  :Loo< Int(5) lu( -1); > <NOMAIN> }
 Un_Loo { Int(5) lu( -1);  <NOMAIN> }
-Uq_System { <NOMAIN> }
 ##
 ## transient inheritances, regular (non-template), with func as local variable
 ## informed by t3540

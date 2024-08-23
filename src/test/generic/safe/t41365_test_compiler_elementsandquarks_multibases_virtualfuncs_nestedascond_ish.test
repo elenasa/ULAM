@@ -7,9 +7,9 @@
 Exit status: 0
 Ue_Ish5 : System { Bool ans(true);  :System<> Int test() {  E1 e1;  E2 e2;  Atom a1 = e1 cast;  Atom a2 = e2 cast;  { a1 QBond as cond { QBond& a1;  { a2 QBond as cond { QBond& a2;  self ( a1 ( a2 cast )afunc . )assert . self ans . true = } if } } if } 0 cast return } }
 Ue_E1 : QBond { :QBond<> <NOMAIN> }
-Uq_QBond { <NOMAIN> }
 Ue_E2 : QBond { :QBond<> <NOMAIN> }
 Uq_System { <NOMAIN> }
+Uq_QBond { <NOMAIN> }
 ##
 ## informed by t3636, and Daves ish 10/26/19, gencode c++ error
 ##

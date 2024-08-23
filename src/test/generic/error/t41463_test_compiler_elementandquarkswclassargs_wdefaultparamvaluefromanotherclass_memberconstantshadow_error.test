@@ -5,9 +5,9 @@
 ./V.ulam:2:13: ERROR: .. this location.
 ./V.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'V'; Possible missing ending curly brace.
 ./V.ulam:4:22: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
- ERROR: No parse tree for This Class: P.
-Unrecoverable Program Parse FAILURE: <P.ulam>
-./V.ulam:3:19: ERROR: No class 'V' in <V.ulam>.
+./Q.ulam:5:22: ERROR: Invalid Type: V.
+ ERROR: No parse tree for This Class: V.
+Unrecoverable Program Parse FAILURE: <V.ulam>
 ./V.ulam:5:1: ERROR: Invalid Class Type <}>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 Unrecoverable Program Parse FAILURE: <System.ulam>
 ##

@@ -10,7 +10,7 @@
 ##      */
 #!
 Exit status: 1
-Ue_A { Bool b(true);  System s();  Bool(3) a(true);  Unary(3) d(3u);  Unsigned(6) e(3u);  Int test() {  self a . true cast = self e . self d . self a . cast cast 3 cast * cast = cast = self s . ( self d . )print . self s . ( self d . cast 3 == )assert . self s . ( self e . cast )print . self s . ( self e . cast 3 cast == )assert . self b . self d . cast 0 cast != = self b . cast return } }
+Ue_A { System s();  Bool(3) a(true);  Bool b(true);  Unary(3) d(3u);  Unsigned(6) e(3u);  Int test() {  self a . true cast = self e . self d . self a . cast cast 3 cast * cast = cast = self s . ( self d . )print . self s . ( self d . cast 3 == )assert . self s . ( self e . cast )print . self s . ( self e . cast 3 cast == )assert . self b . self d . cast 0 cast != = self b . cast return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
   ulam 1;
