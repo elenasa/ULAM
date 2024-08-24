@@ -113,8 +113,14 @@ namespace MFM {
     if(!m_state.getClassNameFromFileName(startstr, compileThisId))
       return 1; //1 error
 
+    // The First Token locator is used for locals filescope defs; Preprocessing directive 'load'
+    //  takes the loc of this first token, from the file that has the load; so, a non-ulamfilename
+    //  with localdefs may be used by more than one ulam class. (ulam-6)
+    //  The 'use' class directive (ulam filenames only) now keeps its own loc from its first token
+    //  for their localdefs by queing the file. (ulam-6)
     Token firstTok;
-    m_tokenizer->peekFirstToken(firstTok); /* TODO: refactor helper */
+    AssertBool firstpeek = peekFirstToken(firstTok); //t3872,t41130; error/t3893
+    assert(firstpeek);
     m_state.saveFirstTokenForParsing(firstTok);
 
     //here's the start (first token)!!  preparser will handle the VERSION_DECL,
@@ -7050,6 +7056,12 @@ Node * Parser::wrapFactor(Node * leftNode)
 	else
 	  nodetyperef->resetGivenUTI(auti);
       }
+  }
+
+  bool Parser::peekFirstToken(Token & firsttok)
+  {
+    bool rtnb = m_tokenizer->peekFirstToken(firsttok);
+    return rtnb;
   }
 
   bool Parser::getExpectedToken(TokenType eTokType)

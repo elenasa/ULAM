@@ -36,8 +36,10 @@ namespace MFM {
   bool Preparser::peekFirstToken(Token & firstTok)
   {
     assert(!m_haveUnreadToken);
-    m_tokenizer->peekFirstToken(firstTok);
-    return true;
+    bool rtnb = m_tokenizer->peekFirstToken(firstTok);
+    m_lastToken = firstTok;
+    m_haveUnreadToken = true;
+    return rtnb;
   }
 
   bool Preparser::getNextToken(Token & returnTok)

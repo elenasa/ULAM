@@ -2,7 +2,8 @@
  * Lexer.h - Basic Lexical handling for ULAM
  *
  * Copyright (C) 2014-2019 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2019 Ackleyshack LLC.
+ * Copyright (C) 2014-2024 Ackleyshack LLC.
+ * Copyright (C) 2020-2024 The Living Computation Foundation.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +30,7 @@
   \file Lexer.h - Basic Lexical handling for ULAM
   \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2019 All rights reserved.
+  \date (C) 2014-2024 All rights reserved.
   \gpl
 */
 

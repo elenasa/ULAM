@@ -488,6 +488,9 @@ namespace MFM{
     */
     void syncTypeDescriptorWithSymbolType(UTI auti, const TypeArgs& args, NodeTypeDescriptor * nodetyperef);
 
+    /** helper, passes though to tokenizer; unread in lexer */
+    bool peekFirstToken(Token & firsttok);
+
     /** helper, gets CLOSE_PAREN for <FACTOR>, CLOSE_SQUARE rest of LVal */
     bool getExpectedToken(TokenType eTokType, Token & myTok, bool quietly = false);
     bool getExpectedToken(TokenType closeTokType);
