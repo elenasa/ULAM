@@ -1,0 +1,158 @@
+## -*- mode:ulam -*-
+#=t41673_test_compiler_templatebasequarkwithoverloadedfuncs_ish
+##
+## gen output:
+##  String(1) Arg: "AXESFA10"
+##  String(2) Arg: "UrSelf"
+##  String(4) Arg: "atomref"
+##
+#!
+Exit status: 0
+Ue_R { Int test() {  A aele;  aele ( true )setDebugOutputEnabled . aele ( )searchForAnchor . Atom a;  aele ( a cast )pR . 0 cast return } }
+Ue_A +QDebugUtils { +QDebugUtils<> ^QDebugUtilsT(1u)< Bool mD( false); > <NOMAIN> }
+Uq_QDebugUtils : QDebugUtilsT(1u) { /* empty class block */ }
+Uq_QDebugUtilsT(Unsigned cBOOLBITS) { Bool(UNKNOWN) mD(notready);  <NOMAIN> }
+Uq_SystemU3 : System { :System<> <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## informed by Dave ish 8/25/2024; assert in NodeVarDecl::isAConstantFuctionParameter, no m_varSymbol?
+##    clue: Baseclass QDebugUtil was just changed to be a template, QDebugUtilsT.
+##    fix: add checkForSymbol when no m_varSymbol present.
+##
+#>R.ulam
+ ulam 5;
+element R {
+  Int test()
+  {
+    A aele;
+    aele.setDebugOutputEnabled(true);
+    aele.searchForAnchor();
+
+    Atom a;
+    aele.pR(a);
+    return 0;
+  }
+}
+
+
+#:A.ulam
+  ulam 5;
+element A + QDebugUtils {
+
+  Bool searchForAnchor() {
+    mD&&pR("AXESFA10")&&pR(self);
+    return true;
+  }
+}
+
+#:QDebugUtils.ulam
+  ulam 3;
+quark QDebugUtilsT(Unsigned cBOOLBITS)  {
+  Bool(cBOOLBITS) mD = false; //< Need robustness here! Unintended debug output huge!
+
+  Bool isDebugOutputEnabled() { return mD; }
+
+  Void setDebugOutputEnabled(Bool enabled) {
+    mD = enabled;
+  }
+
+  Bool pR(UrSelf & ur) {
+    if (mD) {
+      SystemU3 du;
+      du.print("UrSelf");
+    }
+    return mD;
+  }
+
+  Bool pR(String s) {
+    if (mD) {
+      SystemU3 du;
+      du.print(s);
+    }
+    return mD;
+  }
+
+  Bool pR(String file, Unsigned line) {
+    if (mD) {
+      SystemU3 du;
+      du.print(file);
+      du.print("+");
+      du.print(line);
+    }
+    return mD;
+  }
+
+  Bool pR(String file, Unsigned line, String message) {
+    if (mD) {
+      SystemU3 du;
+      du.print(file);
+      du.print("+");
+      du.print(line);
+      du.print(message);
+    }
+    return mD;
+  }
+
+  Bool pR(Int i) {
+    if (mD) {
+      SystemU3 du;
+      du.print(i);
+    }
+    return mD;
+  }
+
+  Bool pR(Unsigned u) {
+    if (mD) {
+      SystemU3 du;
+      du.print(u);
+    }
+    return mD;
+  }
+
+  Bool pR(Bool b) {
+    if (mD) {
+      SystemU3 du;
+      du.print(b);
+    }
+    return mD;
+  }
+
+  Bool pR(Bits t) {
+    if (mD) {
+      SystemU3 du;
+      du.print((Unsigned) t);
+    }
+    return mD;
+  }
+
+    Bool pR(Atom & atomref) {
+    if (mD) {
+      SystemU3 du;
+      du.print("atomref");
+    }
+    return mD;
+  }
+}
+
+quark QDebugUtils : QDebugUtilsT(1u) { } // tight
+
+
+#:SystemU3.ulam
+  ulam 3;
+quark SystemU3 : System {
+  Void print(String s) native;
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

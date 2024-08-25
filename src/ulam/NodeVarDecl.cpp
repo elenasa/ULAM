@@ -252,6 +252,9 @@ namespace MFM {
 
   bool NodeVarDecl::isAConstantFunctionParameter()
   {
+    if(m_varSymbol == NULL)
+      checkForSymbol(); //t41673 templated case;
+
     assert(m_varSymbol);
     return m_varSymbol->isFunctionParameter() && ((SymbolVariableStack*)m_varSymbol)->isConstantFunctionParameter();
   }
