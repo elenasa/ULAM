@@ -1,4 +1,5 @@
 #include <sstream>
+#include <iostream>
 #include <string.h>
 #include "CompilerState.h"
 #include "Symbol.h"
@@ -72,7 +73,7 @@ namespace MFM {
 
   void Symbol::resetUlamType(UTI newuti) //e.g. mappedUTI, fix _N class args
   {
-    //assert((m_state.getReferenceType(m_uti) == m_state.getReferenceType(newuti)) || m_state.isHolder(m_uti)); Fri Jun 24 15:41:16 2016 (e.g. t3816)
+    //SYMBOL_ASSERT((m_state.getReferenceType(m_uti) == m_state.getReferenceType(newuti)) || m_state.isHolder(m_uti)); //Fri Jun 24 15:41:16 2016 (e.g. t3816)
     m_uti = newuti;
     setAutoLocalType(m_state.getReferenceType(newuti));
   }
@@ -300,5 +301,15 @@ namespace MFM {
       }
     return false;
   } //getStructuredComment
+
+  void Symbol::symbolFailPrint()
+  {
+    std::cerr << m_state.getFullLocationAsString(getLoc()).c_str() << " COMPILER FAILED ASSERTION:\n";
+  }
+
+  void Symbol::symbolFailPrint() const
+  {
+    std::cerr << m_state.getFullLocationAsString(getLoc()).c_str() << " COMPILER FAILED ASSERTION:\n";
+  }
 
 } //end MFM

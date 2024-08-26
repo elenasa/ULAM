@@ -25,16 +25,16 @@ namespace MFM {
 
   s32 SymbolVariableStack::getStackFrameSlotIndex()
   {
-    assert(!isDataMember());
-    assert(m_stackFrameSlotIndex != 0);
+    SYMBOL_ASSERT(!isDataMember());
+    SYMBOL_ASSERT(m_stackFrameSlotIndex != 0);
     return m_stackFrameSlotIndex;
   }
 
   void SymbolVariableStack::setStackFrameSlotIndex(s32 slot)
   {
-    assert(!isDataMember());
-    assert(slot != 0); //> 0 local var; < 0 func param
-    //assert(slot != m_stackFrameSlotIndex);
+    SYMBOL_ASSERT(!isDataMember());
+    SYMBOL_ASSERT(slot != 0); //> 0 local var; < 0 func param
+    //SYMBOL_ASSERT(slot != m_stackFrameSlotIndex);
     m_stackFrameSlotIndex = slot;
   }
 
@@ -62,13 +62,13 @@ namespace MFM {
 
   void SymbolVariableStack::setAutoPtrForEval(UlamValue ptr)
   {
-    assert(isAutoLocal());
+    SYMBOL_ASSERT(isAutoLocal());
     m_autoPtrForEval = ptr;
   }
 
   void SymbolVariableStack::setAutoStorageTypeForEval(UTI uti)
   {
-    assert(isAutoLocal());
+    SYMBOL_ASSERT(isAutoLocal());
     m_autoStgTypeForEval = uti;
   }
 
@@ -89,7 +89,7 @@ namespace MFM {
 
   bool SymbolVariableStack::isConstantFunctionParameter()
   {
-    assert(isFunctionParameter());
+    SYMBOL_ASSERT(isFunctionParameter());
     return m_isConstantFunctionParameter;
   }
 

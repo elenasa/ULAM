@@ -61,7 +61,7 @@ namespace MFM {
     if(isOperatorOverloadFunctionName())
       {
 	Token * idTokPtr = getTokPtr();
-	assert(idTokPtr);
+	SYMBOL_ASSERT(idTokPtr);
 	id = idTokPtr->getUlamNameIdForOperatorOverloadToken(&m_state);
       }
     return id;
@@ -97,7 +97,7 @@ namespace MFM {
 	std::pair<std::map<std::string,SymbolFunction *>::iterator,bool> ret;
 	ret = m_mangledFunctionNames.insert(std::pair<std::string,SymbolFunction *>(mangled,fsym));
 	overloaded = ret.second; //false if already existed, i.e. not added
-	assert(overloaded); //shouldn't be a duplicate, we've checked by now.
+	SYMBOL_ASSERT(overloaded); //shouldn't be a duplicate, we've checked by now.
       }
 
     ovfsymref = anyotherSym;
@@ -142,7 +142,7 @@ namespace MFM {
 
     u32 matchingFuncCount = 0;
     std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
-    assert(funcSymbol == NULL);
+    SYMBOL_ASSERT(funcSymbol == NULL);
 
     while(it != m_mangledFunctionNames.end())
       {
@@ -167,7 +167,7 @@ namespace MFM {
 
     u32 matchingFuncCount = 0;
     std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
-    assert(funcSymbol == NULL); //e.g. t3357
+    SYMBOL_ASSERT(funcSymbol == NULL); //e.g. t3357
 
     while(it != m_mangledFunctionNames.end())
       {
@@ -187,8 +187,8 @@ namespace MFM {
 
   u32 SymbolFunctionName::findMatchingFunctionWithSafeCasts(std::vector<Node *> argNodes, SymbolFunction *& funcSymbol, bool& hasHazyArgs, FSTable& fstableref)
   {
-    assert(!hasHazyArgs);
-    assert(!funcSymbol); //e.g. t3357
+    SYMBOL_ASSERT(!hasHazyArgs);
+    SYMBOL_ASSERT(!funcSymbol); //e.g. t3357
 
     if(m_mangledFunctionNames.empty())
       return 0;
@@ -254,8 +254,8 @@ namespace MFM {
 
   u32 SymbolFunctionName::noteAmbiguousFunctionSignatures(std::vector<Node *> argNodes, u32 counter, u32 numMatchesFound, bool noteOn)
   {
-    assert(!m_mangledFunctionNames.empty());
-    assert(numMatchesFound > 1);
+    SYMBOL_ASSERT(!m_mangledFunctionNames.empty());
+    SYMBOL_ASSERT(numMatchesFound > 1);
 
     //called after findMatchingFunctionWithSafeCasts returns more than one match
     u32 matchingFuncCount = 0;
@@ -290,7 +290,7 @@ namespace MFM {
       {
 	SymbolFunction * fsym = it->second;
 	NodeBlockFunctionDefinition * func = fsym->getFunctionNode();
-	assert(func); //how would a function symbol be without a body?
+	SYMBOL_ASSERT(func); //how would a function symbol be without a body?
 	depthsum += func->getMaxDepth();
 	++it;
       }
@@ -307,7 +307,7 @@ namespace MFM {
       {
 	SymbolFunction * fsym = it->second;
 	NodeBlockFunctionDefinition * func = fsym->getFunctionNode();
-	assert(func); //how would a function symbol be without a body?
+	SYMBOL_ASSERT(func); //how would a function symbol be without a body?
 	u32 depth = 0;
 	u32 maxdepth = 0;
 	s32 base = 0; //1 for frame ptr (was 0)
@@ -331,7 +331,7 @@ namespace MFM {
       {
 	SymbolFunction * fsym = it->second;
 	NodeBlockFunctionDefinition * func = fsym->getFunctionNode();
-	assert(func); //how would a function symbol be without a body?
+	SYMBOL_ASSERT(func); //how would a function symbol be without a body?
 	func->checkAbstractInstanceErrors();
 	++it;
       }
@@ -345,7 +345,7 @@ namespace MFM {
     while(it != m_mangledFunctionNames.end())
       {
 	SymbolFunction * fsym = it->second;
-	assert(fsym);
+	SYMBOL_ASSERT(fsym);
 	if(checkForDuplicateFunctionSignature(mangledFunctionMap, probcount, fsym))
 	  {
 	    std::ostringstream msg;
@@ -356,7 +356,7 @@ namespace MFM {
 	    msg << ")";
 	    MSG(fsym->getTokPtr(), msg.str().c_str(), ERR);  //Dave says better to start as error
 	    NodeBlockFunctionDefinition * func = fsym->getFunctionNode();
-	    assert(func);
+	    SYMBOL_ASSERT(func);
 	    func->setNodeType(Nav); //compiler counts
 	    probcount++;
 	  }
@@ -371,7 +371,7 @@ namespace MFM {
     while(it != m_mangledFunctionNames.end())
       {
 	SymbolFunction * fsym = it->second;
-	assert(fsym);
+	SYMBOL_ASSERT(fsym);
 	//only a problem if same signature but different return types; virtual or not.
 	checkForDuplicateFunctionSignature(mangledFunctionMap, probcount, fsym);
 	++it;
@@ -404,7 +404,7 @@ namespace MFM {
 	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	    MSG(fsym->getTokPtr(), msg.str().c_str(), ERR);  //Dave says better to start as error
 	    NodeBlockFunctionDefinition * func = fsym->getFunctionNode();
-	    assert(func);
+	    SYMBOL_ASSERT(func);
 	    func->setNodeType(Nav); //compiler counts
 	    probcount++;
 	    fsentry.m_hasProblem = true;
@@ -476,7 +476,7 @@ namespace MFM {
       {
 	SymbolFunction * fsym = it->second;
 	UTI futi = fsym->getUlamTypeIdx();
-	assert(futi != Void);
+	SYMBOL_ASSERT(futi != Void);
 
 	if(!((rtnType == Nav) || (UlamType::compare(rtnType, futi, m_state) == UTIC_SAME)))
 	  {
@@ -516,13 +516,13 @@ namespace MFM {
     while(it != m_mangledFunctionNames.end())
       {
 	SymbolFunction * fsym = it->second;
-	assert(fsym->getBlockNoOfST() == pno); //was fnsym nodeno == funcdef block in u.1.1.1
+	SYMBOL_ASSERT(fsym->getBlockNoOfST() == pno); //was fnsym nodeno == funcdef block in u.1.1.1
 	NodeBlockFunctionDefinition * func = fsym->getFunctionNode();
-	assert(func); //how would a function symbol be without a body? perhaps an ACCESSOR to-be-made?
+	SYMBOL_ASSERT(func); //how would a function symbol be without a body? perhaps an ACCESSOR to-be-made?
 	func->updateLineage(pno);
 	++it;
       }
-    assert(getBlockNoOfST() == pno); // same as template? sfn too
+    SYMBOL_ASSERT(getBlockNoOfST() == pno); // same as template? sfn too
   } //linkToParentNodesInFunctionDefs
 
   void SymbolFunctionName::updatePrevBlockPtrInFunctionDefs(NodeBlockClass * p)
@@ -531,9 +531,9 @@ namespace MFM {
     while(it != m_mangledFunctionNames.end())
       {
 	SymbolFunction * fsym = it->second;
-	assert(fsym);
+	SYMBOL_ASSERT(fsym);
 	NodeBlockFunctionDefinition * func = fsym->getFunctionNode();
-	assert(func); //how would a function symbol be without a body? perhaps an ACCESSOR to-be-made?
+	SYMBOL_ASSERT(func); //how would a function symbol be without a body? perhaps an ACCESSOR to-be-made?
 	func->setPreviousBlockPointer(p);
 	++it;
       }
@@ -548,7 +548,7 @@ namespace MFM {
       {
 	SymbolFunction * fsym = it->second;
 	NodeBlockFunctionDefinition * func = fsym->getFunctionNode();
-	assert(func); //how would a function symbol be without a body? perhaps an ACCESSOR to-be-made?
+	SYMBOL_ASSERT(func); //how would a function symbol be without a body? perhaps an ACCESSOR to-be-made?
 	if(func->findNodeNo(n, foundNode))
 	  {
 	    rtnfound = true;
@@ -568,11 +568,11 @@ namespace MFM {
     while(it != m_mangledFunctionNames.end())
       {
 	SymbolFunction * fsym = it->second;
-	assert(fsym);
+	SYMBOL_ASSERT(fsym);
 	// check for incomplete parameters done as part of block's c&l
 
 	NodeBlockFunctionDefinition * func = fsym->getFunctionNode();
-	assert(func); //how would a function symbol be without a body? perhaps an ACCESSOR to-be-made?
+	SYMBOL_ASSERT(func); //how would a function symbol be without a body? perhaps an ACCESSOR to-be-made?
 	func->checkAndLabelType(thisparentnode);
 	++it;
       }
@@ -587,7 +587,7 @@ namespace MFM {
       {
 	SymbolFunction * fsym = it->second;
 	NodeBlockFunctionDefinition * func = fsym->getFunctionNode();
-	assert(func);
+	SYMBOL_ASSERT(func);
 	func->printUnresolvedLocalVariables(fid);
 	++it;
       }
@@ -604,7 +604,7 @@ namespace MFM {
       {
 	SymbolFunction * fsym = it->second;
 	NodeBlockFunctionDefinition * func = fsym->getFunctionNode();
-	assert(func);
+	SYMBOL_ASSERT(func);
 
 	u32 fcntnavs = ncnt;
 	u32 fcnthzy = hcnt;

@@ -76,7 +76,7 @@ namespace MFM {
 
     u64 constantval = 0;
     AssertBool gotVal = getValue(constantval);
-    assert(gotVal);
+    SYMBOL_ASSERT(gotVal);
 
     return convertValueToALexString(constantval, getUlamTypeIdx(), vstr, m_state);
   } //getLexValue
@@ -86,7 +86,7 @@ namespace MFM {
     if(isReady())
       {
 	u32 len = m_state.getTotalBitSize(getUlamTypeIdx());
-	assert(len <= MAXBITSPERINT);
+	SYMBOL_ASSERT(len <= MAXBITSPERINT);
 	val = m_constantValue.Read(0u, len); //return value
 	return true;
       }
@@ -131,8 +131,8 @@ namespace MFM {
 	UlamType * sut = m_state.getUlamTypeByIndex(suti);
 	u32 bs = sut->getBitSize();
 	s32 arrsize = sut->getArraySize();
-	assert(bs <= MAXBITSPERINT);
-	assert((arrsize >= 0) && (item < (u32) arrsize));
+	SYMBOL_ASSERT(bs <= MAXBITSPERINT);
+	SYMBOL_ASSERT((arrsize >= 0) && (item < (u32) arrsize));
 	//no casting!
 	rtnitem = m_constantValue.Read(item * bs, bs);
 	return true;
@@ -148,8 +148,8 @@ namespace MFM {
 	UlamType * sut = m_state.getUlamTypeByIndex(suti);
 	u32 bs = sut->getBitSize();
 	s32 arrsize = sut->getArraySize();
-	assert(bs <= MAXBITSPERLONG);
-	assert((arrsize >= 0) && (item < (u32) arrsize));
+	SYMBOL_ASSERT(bs <= MAXBITSPERLONG);
+	SYMBOL_ASSERT((arrsize >= 0) && (item < (u32) arrsize));
 	//no casting!
 	rtnitem = m_constantValue.ReadLong(item * bs, bs);
 	return true;
@@ -164,7 +164,7 @@ namespace MFM {
 
   bool SymbolWithValue::getInitValue(u32& val)
   {
-    assert(hasInitValue());
+    SYMBOL_ASSERT(hasInitValue());
     if(isInitValueReady())
       {
 	u32 len = m_state.getTotalBitSize(getUlamTypeIdx());
@@ -176,7 +176,7 @@ namespace MFM {
 
   bool SymbolWithValue::getInitValue(u64& val)
   {
-    assert(hasInitValue());
+    SYMBOL_ASSERT(hasInitValue());
     if(isInitValueReady())
       {
 	u32 len = m_state.getTotalBitSize(getUlamTypeIdx());
@@ -188,7 +188,7 @@ namespace MFM {
 
   bool SymbolWithValue::getInitValue(BV8K& val)
   {
-    assert(hasInitValue());
+    SYMBOL_ASSERT(hasInitValue());
     if(isInitValueReady())
       {
 	u32 len = m_state.getUlamTypeByIndex(getUlamTypeIdx())->getSizeofUlamType();
@@ -219,15 +219,15 @@ namespace MFM {
 
   bool SymbolWithValue::getArrayItemInitValue(u32 item, u32& rtnitem)
   {
-    assert(hasInitValue());
+    SYMBOL_ASSERT(hasInitValue());
     if(isInitValueReady())
       {
 	UTI suti = getUlamTypeIdx();
 	UlamType * sut = m_state.getUlamTypeByIndex(suti);
 	u32 bs = sut->getBitSize();
 	s32 arrsize = sut->getArraySize();
-	assert(bs <= MAXBITSPERINT);
-	assert((arrsize >= 0) && (item < (u32) arrsize));
+	SYMBOL_ASSERT(bs <= MAXBITSPERINT);
+	SYMBOL_ASSERT((arrsize >= 0) && (item < (u32) arrsize));
 	//no casting!
 	rtnitem = m_initialValue.Read(item * bs, bs);
 	return true;
@@ -237,15 +237,15 @@ namespace MFM {
 
   bool SymbolWithValue::getArrayItemInitValue(u32 item, u64& rtnitem)
   {
-    assert(hasInitValue());
+    SYMBOL_ASSERT(hasInitValue());
     if(isInitValueReady())
       {
 	UTI suti = getUlamTypeIdx();
 	UlamType * sut = m_state.getUlamTypeByIndex(suti);
 	u32 bs = sut->getBitSize();
 	s32 arrsize = sut->getArraySize();
-	assert(bs <= MAXBITSPERLONG);
-	assert((arrsize >= 0) && (item < (u32) arrsize));
+	SYMBOL_ASSERT(bs <= MAXBITSPERLONG);
+	SYMBOL_ASSERT((arrsize >= 0) && (item < (u32) arrsize));
 	//no casting!
 	rtnitem = m_initialValue.ReadLong(item * bs, bs);
 	return true;
@@ -255,15 +255,15 @@ namespace MFM {
 
   bool SymbolWithValue::getArrayItemInitValue(u32 item, BV8K& rtnitem)
   {
-    assert(hasInitValue());
+    SYMBOL_ASSERT(hasInitValue());
     if(isInitValueReady())
       {
 	UTI suti = getUlamTypeIdx();
 	UlamType * sut = m_state.getUlamTypeByIndex(suti);
 	u32 bs = sut->getBitSize();
 	s32 arrsize = sut->getArraySize();
-	assert(bs <= MAXSTATEBITS);
-	assert((arrsize >= 0) && (item < (u32) arrsize));
+	SYMBOL_ASSERT(bs <= MAXSTATEBITS);
+	SYMBOL_ASSERT((arrsize >= 0) && (item < (u32) arrsize));
 	UTI scalaruti = m_state.getUlamTypeAsScalar(suti);
 	u32 len = m_state.getUlamTypeByIndex(scalaruti)->getSizeofUlamType();
 	//no casting!
@@ -438,7 +438,7 @@ namespace MFM {
 
     UTI tuti = getUlamTypeIdx();
     UlamType * tut = m_state.getUlamTypeByIndex(tuti);
-    assert(m_state.isAStringType(tuti)); //t3953
+    SYMBOL_ASSERT(m_state.isAStringType(tuti)); //t3953
 
     if(!oktoprint)
       {
@@ -450,7 +450,7 @@ namespace MFM {
 
     u32 arraysize = tut->getArraySize();
     u32 bitsize = tut->getBitSize();
-    assert(bitsize == STRINGIDXBITS); //sanity.
+    SYMBOL_ASSERT(bitsize == STRINGIDXBITS); //sanity.
 
     //indented comments of string value items (one per line); e.g. t3953,4
     for(u32 w = 0; w < arraysize; w++)
@@ -909,13 +909,13 @@ namespace MFM {
   //warning: this change also requires an update to the ST's key.
   void SymbolWithValue::changeConstantId(u32 fmid, u32 toid)
   {
-    assert(getId() == fmid);
+    SYMBOL_ASSERT(getId() == fmid);
     setId(toid);
   }
 
   NNO SymbolWithValue::getDeclNodeNo()
   {
-    assert(!isDataMember());
+    SYMBOL_ASSERT(!isDataMember());
     return m_declnno;
   }
 

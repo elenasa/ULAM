@@ -2,7 +2,8 @@
  * Symbol.h -  Basic handling of Symbols for ULAM
  *
  * Copyright (C) 2014-2019 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2019 Ackleyshack LLC.
+ * Copyright (C) 2014-2024 Ackleyshack LLC.
+ * Copyright (C) 2020-2024 The Living Computation Foundation.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +30,7 @@
   \file Symbol.h -  Basic handling of Symbols for ULAM
   \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2019 All rights reserved.
+  \date (C) 2014-2024 All rights reserved.
   \gpl
 */
 
@@ -43,6 +44,8 @@
 #include "BitVector.h"
 
 namespace MFM{
+
+#define SYMBOL_ASSERT(expr) { if(!(expr)) { Symbol::symbolFailPrint(); assert((expr)); } }
 
   class CompilerState; //forward
 
@@ -119,6 +122,11 @@ namespace MFM{
     virtual void setStructuredComment();
 
     virtual bool getStructuredComment(Token& scTok);
+
+    virtual void symbolFailPrint();
+
+    virtual void symbolFailPrint() const;
+
 
   protected:
     CompilerState & m_state;

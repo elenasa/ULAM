@@ -298,7 +298,9 @@ enum EvalStatus {ERROR, NOTREADY, NORMAL, RETURN, BREAK, CONTINUE, UNEVALUABLE};
      */
     static std::string allCAPS(const char * s);
 
+
     virtual void nodeFailPrint();
+
     virtual void nodeFailPrint() const;
 
   protected:

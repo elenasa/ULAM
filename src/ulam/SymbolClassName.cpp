@@ -16,7 +16,7 @@ namespace MFM {
     //during parsing
     Symbol::resetIdToken(identTok);
     NodeBlockClass * classNode = getClassBlockNode();
-    assert(classNode);
+    SYMBOL_ASSERT(classNode);
     classNode->setNodeLocation(identTok.m_locator);
   } //resetUnseenClassLocation
 
@@ -52,8 +52,8 @@ namespace MFM {
 
   void SymbolClassName::setSuperClassForClassInstance(UTI superclass, UTI instance)
   {
-    assert(instance == getUlamTypeIdx());
-    assert(instance != superclass);
+    SYMBOL_ASSERT(instance == getUlamTypeIdx());
+    SYMBOL_ASSERT(instance != superclass);
     SymbolClass::setBaseClass(superclass, 0);
   }
 
@@ -64,8 +64,8 @@ namespace MFM {
 
   void SymbolClassName::appendBaseClassForClassInstance(UTI baseclass, UTI instance, bool sharedbase)
   {
-    assert(instance == getUlamTypeIdx());
-    assert(instance != baseclass);
+    SYMBOL_ASSERT(instance == getUlamTypeIdx());
+    SYMBOL_ASSERT(instance != baseclass);
     SymbolClass::appendBaseClass(baseclass, sharedbase);
   }
 
@@ -93,11 +93,11 @@ namespace MFM {
 
   Node * SymbolClassName::findNodeNoInAClassInstance(UTI instance, NNO n)
   {
-    assert(getUlamTypeIdx() == instance);
+    SYMBOL_ASSERT(getUlamTypeIdx() == instance);
 
     Node * foundNode = NULL;
     NodeBlockClass * classNode = getClassBlockNode();
-    assert(classNode);
+    SYMBOL_ASSERT(classNode);
     m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
 
     classNode->findNodeNo(n, foundNode);
@@ -110,7 +110,7 @@ namespace MFM {
     UTI basicuti = m_state.getUlamTypeAsDeref(m_state.getUlamTypeAsScalar(instance));
     UTI rootbasicuti = basicuti;
     m_state.findRootUTIAlias(basicuti, rootbasicuti); //in case alias Mon Jun 20 14:39:07 2016
-    assert((rootbasicuti == getUlamTypeIdx()) || (m_state.isARefTypeOfUlamType(rootbasicuti, getUlamTypeIdx()) == UTIC_SAME)); //or could be a reference
+    SYMBOL_ASSERT((rootbasicuti == getUlamTypeIdx()) || (m_state.isARefTypeOfUlamType(rootbasicuti, getUlamTypeIdx()) == UTIC_SAME)); //or could be a reference
     return "10"; //zero args
   } //formatAnInstancesArgValuesAsAString
 
@@ -131,13 +131,13 @@ namespace MFM {
 
   bool SymbolClassName::hasInstanceMappedUTI(UTI instance, UTI auti, UTI& mappedUTI)
   {
-    assert(instance == getUlamTypeIdx());
+    SYMBOL_ASSERT(instance == getUlamTypeIdx());
     return SymbolClass::hasMappedUTI(auti, mappedUTI);
   }
 
   bool SymbolClassName::mapInstanceUTI(UTI instance, UTI auti, UTI mappeduti)
   {
-    assert(instance == getUlamTypeIdx());
+    SYMBOL_ASSERT(instance == getUlamTypeIdx());
     return SymbolClass::mapUTItoUTI(auti, mappeduti);
   }
 
@@ -165,7 +165,7 @@ namespace MFM {
   {
     UTI cuti = getUlamTypeIdx();
     NodeBlockClass * classNode = getClassBlockNode();
-    assert(classNode);
+    SYMBOL_ASSERT(classNode);
     m_state.pushClassContext(cuti, classNode, classNode, false, NULL);
 
     classNode->checkCustomArrayTypeFunctions(cuti);
@@ -175,7 +175,7 @@ namespace MFM {
   void SymbolClassName::checkDuplicateFunctionsForClassInstances()
   {
     NodeBlockClass * classNode = getClassBlockNode();
-    assert(classNode);
+    SYMBOL_ASSERT(classNode);
     m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
 
     classNode->checkDuplicateFunctionsInClassAndAncestors();
@@ -185,7 +185,7 @@ namespace MFM {
   void SymbolClassName::calcMaxDepthOfFunctionsForClassInstances()
   {
     NodeBlockClass * classNode = getClassBlockNode();
-    assert(classNode);
+    SYMBOL_ASSERT(classNode);
     UTI cuti = getUlamTypeIdx();
     if(m_state.isComplete(cuti))
       {
@@ -208,7 +208,7 @@ namespace MFM {
   {
     bool aok = true;
     NodeBlockClass * classNode = getClassBlockNode();
-    assert(classNode);
+    SYMBOL_ASSERT(classNode);
     UTI cuti = getUlamTypeIdx();
     if(m_state.isComplete(cuti))
       {
@@ -237,7 +237,7 @@ namespace MFM {
     SymbolClass::checkAbstractClassError(); //outputs error
 
     NodeBlockClass * classNode = getClassBlockNode();
-    assert(classNode);
+    SYMBOL_ASSERT(classNode);
     m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
 
     classNode->checkAbstractInstanceErrors();
@@ -271,13 +271,13 @@ namespace MFM {
 
   void SymbolClassName::countNavNodesInClassInstances(u32& ncnt, u32& hcnt, u32& nocnt)
   {
-    assert(!isClassTemplate());
+    SYMBOL_ASSERT(!isClassTemplate());
     u32 navCounter = ncnt;
     u32 hzyCounter = hcnt;
     u32 unsetCounter = nocnt;
 
     NodeBlockClass * classNode = getClassBlockNode();
-    assert(classNode);
+    SYMBOL_ASSERT(classNode);
     m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
 
     classNode->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
@@ -315,7 +315,7 @@ namespace MFM {
   {
     bool aok = true;
     NodeBlockClass * classNode = getClassBlockNode();
-    assert(classNode);
+    SYMBOL_ASSERT(classNode);
     m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
 
     aok = SymbolClass::statusUnknownTypeInClass(huti);
@@ -328,7 +328,7 @@ namespace MFM {
   {
     bool aok = true;
     NodeBlockClass * classNode = getClassBlockNode();
-    assert(classNode);
+    SYMBOL_ASSERT(classNode);
     m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
 
     aok = SymbolClass::statusUnknownTypeNamesInClass();
@@ -352,14 +352,14 @@ namespace MFM {
   bool SymbolClassName::setBitSizeOfClassInstances()
   {
     bool aok = true;
-    assert(!isClassTemplate());
+    SYMBOL_ASSERT(!isClassTemplate());
     UTI cuti = getUlamTypeIdx();
 
     if(m_state.isComplete(cuti))
       return true;
 
     NodeBlockClass * classNode = getClassBlockNode();
-    assert(classNode); //infinite loop "Incomplete Class <> was never defined, fails sizing"
+    SYMBOL_ASSERT(classNode); //infinite loop "Incomplete Class <> was never defined, fails sizing"
     m_state.pushClassContext(cuti, classNode, classNode, false, NULL);
 
     s32 totalbits = 0;
@@ -375,8 +375,8 @@ namespace MFM {
 	aok = SymbolClass::determineSharedBasesAndTotalBitsize(sharedbitssaved, sharedbits);
 	if(aok) //3755 QBase not ready
 	  {
-	    assert(sharedbits >= 0);
-	    assert(sharedbitssaved >= sharedbits);
+	    SYMBOL_ASSERT(sharedbits >= 0);
+	    SYMBOL_ASSERT(sharedbitssaved >= sharedbits);
 	    totalbits = (mybits + sharedbits); //updates total here!!
 	  }
       }
@@ -421,7 +421,7 @@ namespace MFM {
   void SymbolClassName::printUnresolvedVariablesForClassInstances()
   {
     NodeBlockClass * classNode = getClassBlockNode();
-    assert(classNode);
+    SYMBOL_ASSERT(classNode);
     m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
 
     classNode->printUnresolvedVariableDataMembers();
@@ -442,13 +442,13 @@ namespace MFM {
   void SymbolClassName::assignRegistrationNumberForClassInstances()
   {
     u32 n = SymbolClass::getRegistryNumber();
-    assert(n != UNINITTED_REGISTRY_NUMBER); //sanity
+    SYMBOL_ASSERT(n != UNINITTED_REGISTRY_NUMBER); //sanity
   } //assignRegistrationNumberForClassInstances
 
   void SymbolClassName::generateCodeForClassInstances(FileManager * fm)
   {
     NodeBlockClass * classNode = getClassBlockNode();
-    assert(classNode);
+    SYMBOL_ASSERT(classNode);
     m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
 
     SymbolClass::generateCode(fm);

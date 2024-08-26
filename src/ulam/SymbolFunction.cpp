@@ -49,7 +49,7 @@ namespace MFM {
   u32 SymbolFunction::getNumberOfParameters()
   {
     NodeBlockFunctionDefinition * funcdef = getFunctionNode();
-    assert(funcdef);
+    SYMBOL_ASSERT(funcdef);
     return funcdef->getNumberOfParameters();
   }
 
@@ -61,7 +61,7 @@ namespace MFM {
 	UTI puti = getParameterType(j);
 	pTypesref.push_back(puti);
       }
-    assert(pTypesref.size() == numparams);
+    SYMBOL_ASSERT(pTypesref.size() == numparams);
   }
 
   u32 SymbolFunction::getTotalParameterSlots()
@@ -79,9 +79,9 @@ namespace MFM {
   UTI SymbolFunction::getParameterType(u32 n)
   {
     NodeBlockFunctionDefinition * funcdef = getFunctionNode();
-    assert(funcdef);
+    SYMBOL_ASSERT(funcdef);
     Node * pnode = funcdef->getParameterNode(n);
-    assert(pnode);
+    SYMBOL_ASSERT(pnode);
     UTI puti = pnode->getNodeType();
     return puti;
   }
@@ -89,9 +89,9 @@ namespace MFM {
   UTI SymbolFunction::getParameterGivenType(u32 n)
   {
     NodeBlockFunctionDefinition * funcdef = getFunctionNode();
-    assert(funcdef);
+    SYMBOL_ASSERT(funcdef);
     NodeVarDecl * pnode = (NodeVarDecl*) funcdef->getParameterNode(n);
-    assert(pnode);
+    SYMBOL_ASSERT(pnode);
     UTI puti = pnode->getTypeDescriptorGivenType();
     return puti;
   }
@@ -99,9 +99,9 @@ namespace MFM {
   ALT SymbolFunction::getParameterGivenReferenceType(u32 n)
   {
     NodeBlockFunctionDefinition * funcdef = getFunctionNode();
-    assert(funcdef);
+    SYMBOL_ASSERT(funcdef);
     Node * pnode = funcdef->getParameterNode(n);
-    assert(pnode);
+    SYMBOL_ASSERT(pnode);
     ALT preftype = pnode->getTypeDescriptorRefType();
     return preftype;
   }
@@ -109,7 +109,7 @@ namespace MFM {
   u32 SymbolFunction::getParameterTypeNameId(u32 n)
   {
     NodeBlockFunctionDefinition * funcdef = getFunctionNode();
-    assert(funcdef);
+    SYMBOL_ASSERT(funcdef);
     u32 nid = funcdef->getParameterTypeNameId(n);
     return nid;
   }
@@ -117,7 +117,7 @@ namespace MFM {
   u32 SymbolFunction::getParameterNameId(u32 n)
   {
     NodeBlockFunctionDefinition * funcdef = getFunctionNode();
-    assert(funcdef);
+    SYMBOL_ASSERT(funcdef);
     u32 nid = funcdef->getParameterNameId(n);
     return nid;
   }
@@ -125,16 +125,16 @@ namespace MFM {
   const std::string SymbolFunction::getParameterMangledName(u32 n)
   {
     NodeBlockFunctionDefinition * funcdef = getFunctionNode();
-    assert(funcdef);
+    SYMBOL_ASSERT(funcdef);
     Node * pnode = funcdef->getParameterNode(n);
-    assert(pnode);
+    SYMBOL_ASSERT(pnode);
     return ((NodeVarDecl*)pnode)->getMangledName();
   }
 
   bool SymbolFunction::isConstantParameter(u32 n)
   {
     NodeBlockFunctionDefinition * funcdef = getFunctionNode();
-    assert(funcdef);
+    SYMBOL_ASSERT(funcdef);
     return funcdef->isAConstantParameter(n);
   }
 
@@ -164,7 +164,7 @@ namespace MFM {
 
   const u32 SymbolFunction::getOrderNumber() const
   {
-    assert(m_declOrderNum > 0);
+    SYMBOL_ASSERT(m_declOrderNum > 0);
     return m_declOrderNum;
   }
 
@@ -176,7 +176,7 @@ namespace MFM {
   u32 SymbolFunction::getFunctionNameId()
   {
     Token * idTokPtr = getTokPtr();
-    assert(idTokPtr);
+    SYMBOL_ASSERT(idTokPtr);
     u32 id = getId();
     if(idTokPtr->isOperatorOverloadIdentToken(&m_state))
       id = idTokPtr->getUlamNameIdForOperatorOverloadToken(&m_state);
@@ -186,7 +186,7 @@ namespace MFM {
   const std::string SymbolFunction::getFunctionNameWithTypes()
   {
     NodeBlockFunctionDefinition * funcdef = getFunctionNode();
-    assert(funcdef);
+    SYMBOL_ASSERT(funcdef);
 
     UTI futi = getUlamTypeIdx();
     std::ostringstream fname;
@@ -303,7 +303,7 @@ namespace MFM {
   bool SymbolFunction::checkParameterTypes()
   {
     NodeBlockFunctionDefinition * func = getFunctionNode();
-    assert(func); //how would a function symbol be without a body? perhaps an ACCESSOR to-be-made?
+    SYMBOL_ASSERT(func); //how would a function symbol be without a body? perhaps an ACCESSOR to-be-made?
     return func->checkParameterNodeTypes();
   } //checkParamterTypes
 
@@ -507,7 +507,7 @@ namespace MFM {
   u32 SymbolFunction::isNativeFunctionDeclaration()
   {
     NodeBlockFunctionDefinition * func = getFunctionNode();
-    assert(func);
+    SYMBOL_ASSERT(func);
     return (func->isNative() ? 1 : 0);
   }
 
@@ -523,13 +523,13 @@ namespace MFM {
 
   bool SymbolFunction::isPureVirtualFunction()
   {
-    assert(isVirtualFunction());
+    SYMBOL_ASSERT(isVirtualFunction());
     return m_pureVirtual;
   }
 
   void SymbolFunction::setPureVirtualFunction()
   {
-    assert(isVirtualFunction());
+    SYMBOL_ASSERT(isVirtualFunction());
     m_pureVirtual = true;
   }
 
@@ -545,26 +545,26 @@ namespace MFM {
 
   u32 SymbolFunction::getVirtualMethodIdx()
   {
-    assert(isVirtualFunction());
+    SYMBOL_ASSERT(isVirtualFunction());
     return m_virtualIdx;
   }
 
   void SymbolFunction::setVirtualMethodIdx(u32 idx)
   {
-    assert(isVirtualFunction());
+    SYMBOL_ASSERT(isVirtualFunction());
     m_virtualIdx = idx;
   }
 
   u32 SymbolFunction::getVirtualMethodOriginatingClassUTI()
   {
-    assert(isVirtualFunction());
+    SYMBOL_ASSERT(isVirtualFunction());
     return m_virtualOrigUTI;
   }
 
   void SymbolFunction::setVirtualMethodOriginatingClassUTI(UTI uti)
   {
-    assert(isVirtualFunction());
-    assert(m_virtualOrigUTI == Nouti);
+    SYMBOL_ASSERT(isVirtualFunction());
+    SYMBOL_ASSERT(m_virtualOrigUTI == Nouti);
     m_virtualOrigUTI = uti;
   }
 
@@ -613,7 +613,7 @@ namespace MFM {
 		MSG(this->getTokPtr(), msg.str().c_str(), DEBUG); //was WARN (e.g. behave())
 
 		this->setVirtualFunction(); //fix quietly (e.g. t3880)
-		assert(maxidx != UNKNOWNSIZE); //o.w. wouldn't be here yet
+		SYMBOL_ASSERT(maxidx != UNKNOWNSIZE); //o.w. wouldn't be here yet
 	      }
 	    kinuti = cuti; //overriding
 	    overriding = true; //t41096, t41097
@@ -700,7 +700,7 @@ namespace MFM {
   void SymbolFunction::generateFunctionDeclaration(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
     NodeBlockFunctionDefinition * func = getFunctionNode();
-    assert(func); //how would a function symbol be without a body?
+    SYMBOL_ASSERT(func); //how would a function symbol be without a body?
 
     //up to programmer to define a native function!!! provide headstart
     if(!declOnly && (isVirtualFunction() && isPureVirtualFunction()))
@@ -762,7 +762,7 @@ namespace MFM {
 
     u32 numparams = getNumberOfParameters();
     NodeBlockFunctionDefinition * funcdef = getFunctionNode();
-    assert(funcdef);
+    SYMBOL_ASSERT(funcdef);
 
     for(u32 i = 0; i < numparams; i++)
       {
@@ -777,7 +777,7 @@ namespace MFM {
 
     if(takesVariableArgs())
       {
-	assert(func->isNative());
+	SYMBOL_ASSERT(func->isNative());
 	fp->write(", ..."); //ellipses must be after at least one param
       }
 
@@ -862,9 +862,9 @@ namespace MFM {
   void SymbolFunction::generateFunctionDeclarationVirtualTypedef(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
     NodeBlockFunctionDefinition * func = getFunctionNode();
-    assert(func); //how would a function symbol be without a body?
+    SYMBOL_ASSERT(func); //how would a function symbol be without a body?
                   //natives may also be virtuals.
-    assert(declOnly);
+    SYMBOL_ASSERT(declOnly);
     UlamType * sut = m_state.getUlamTypeByIndex(getUlamTypeIdx()); //return type
 
     m_state.indent(fp);
@@ -910,7 +910,7 @@ namespace MFM {
   const std::string SymbolFunction::generateUlamFunctionSignature()
   {
     NodeBlockFunctionDefinition * func = getFunctionNode();
-    assert(func); //how would a function symbol be without a body?
+    SYMBOL_ASSERT(func); //how would a function symbol be without a body?
 
     std::ostringstream sig;
 
@@ -928,14 +928,14 @@ namespace MFM {
 	  sig << ", ";
 
 	Node * pnode = func->getParameterNode(i);
-	assert(pnode);
+	SYMBOL_ASSERT(pnode);
 	sig << m_state.m_pool.getDataAsString(pnode->getTypeNameId()).c_str();
 	sig << " " << pnode->getName(); //arg name
       }
 
     if(takesVariableArgs())
       {
-	assert(func->isNative());
+	SYMBOL_ASSERT(func->isNative());
 	sig << ", ..."; //ellipses must be after at least one param
       }
 

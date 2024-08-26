@@ -141,14 +141,14 @@ namespace MFM {
 
   void SymbolConstantValue::setConstantStackFrameAbsoluteSlotIndex(u32 slot)
   {
-    //    assert(!m_state.isScalar(getUlamTypeIdx()) || m_state.isAClass(getUlamTypeIdx()) );
-    assert(slot > 0);
+    //    SYMBOL_ASSERT(!m_state.isScalar(getUlamTypeIdx()) || m_state.isAClass(getUlamTypeIdx()) );
+    SYMBOL_ASSERT(slot > 0);
     m_constantStackFrameAbsoluteSlotIndex = slot;
   }
 
   u32 SymbolConstantValue::getConstantStackFrameAbsoluteSlotIndex()
   {
-    // assert(!m_state.isScalar(getUlamTypeIdx()) || m_state.isAClass(getUlamTypeIdx()) );
+    // SYMBOL_ASSERT(!m_state.isScalar(getUlamTypeIdx()) || m_state.isAClass(getUlamTypeIdx()) );
     return m_constantStackFrameAbsoluteSlotIndex;
   }
 

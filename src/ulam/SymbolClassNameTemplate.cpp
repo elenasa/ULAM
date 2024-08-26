@@ -64,7 +64,7 @@ namespace MFM {
     while(it != m_scalarClassArgStringsToSymbolPtr.end())
       {
 	SymbolClass * csym = it->second;
-	assert(m_state.okUTItoContinue(csym->getUlamTypeIdx()));
+	SYMBOL_ASSERT(m_state.okUTItoContinue(csym->getUlamTypeIdx()));
 	csym->addTargetDescriptionMapEntry(classtargets, scid);
 	it++;
       }
@@ -76,7 +76,7 @@ namespace MFM {
     while(it != m_scalarClassArgStringsToSymbolPtr.end())
       {
 	SymbolClass * csym = it->second;
-	assert(m_state.okUTItoContinue(csym->getUlamTypeIdx()));
+	SYMBOL_ASSERT(m_state.okUTItoContinue(csym->getUlamTypeIdx()));
 	csym->addClassMemberDescriptionsMapEntry(classmembers);
 	it++;
       }
@@ -85,7 +85,7 @@ namespace MFM {
   u32 SymbolClassNameTemplate::getNumberOfParameters()
   {
     NodeBlockClass * templateclassblock = getClassBlockNode();
-    assert(templateclassblock); //fails if UNSEEN during parsing
+    SYMBOL_ASSERT(templateclassblock); //fails if UNSEEN during parsing
     return templateclassblock->getNumberOfParameterNodes();
   }
 
@@ -93,9 +93,9 @@ namespace MFM {
   {
     // used while parsing, so c&l not called, and symbol hasDefault not yet set.
     NodeBlockClass * templateclassblock = getClassBlockNode();
-    assert(templateclassblock); //fails if UNSEEN during parsing
+    SYMBOL_ASSERT(templateclassblock); //fails if UNSEEN during parsing
     Node * pnode = templateclassblock->getParameterNode(n);
-    assert(pnode);
+    SYMBOL_ASSERT(pnode);
     return ((NodeConstantDef *) pnode)->hasConstantExpr(); //t3526
   } //parameterHasDefaultValue
 
@@ -115,13 +115,13 @@ namespace MFM {
   {
     u32 totalsizes = 0;
     NodeBlockClass * templateclassblock = getClassBlockNode();
-    assert(templateclassblock); //fails if UNSEEN during parsing
+    SYMBOL_ASSERT(templateclassblock); //fails if UNSEEN during parsing
 
     u32 numparams = getNumberOfParameters();
     for(u32 i = 0; i < numparams; i++)
       {
 	NodeConstantDef * paramConstDef = (NodeConstantDef *) templateclassblock->getParameterNode(i);
-	assert(paramConstDef);
+	SYMBOL_ASSERT(paramConstDef);
 	UTI puti = paramConstDef->getTypeDescriptorGivenType();
 
 	//types could be incomplete, sizes unknown for template
@@ -146,7 +146,7 @@ namespace MFM {
 
   void SymbolClassNameTemplate::setSuperClassForClassInstance(UTI superclass, UTI instance)
   {
-    assert(instance != superclass);
+    SYMBOL_ASSERT(instance != superclass);
     SymbolClass * csym = NULL;
     if(findClassInstanceByUTI(instance, csym))
       csym->setBaseClass(superclass, 0); //Nouti is none, not a subclass.
@@ -229,7 +229,7 @@ namespace MFM {
 
   void SymbolClassNameTemplate::initBaseClassListForAStubClassInstance(SymbolClass * newclassinstance)
   {
-    assert(newclassinstance);
+    SYMBOL_ASSERT(newclassinstance);
     //from template
     u32 basecount = SymbolClass::getBaseClassCount() + 1; //includes super
     for(u32 i = 0; i < basecount; i++)
@@ -271,7 +271,7 @@ namespace MFM {
       {
 	symptrref = it->second;
 	//maybe be duplicates, same symbol, different UTIs (t3327)
-	assert(it->first == basicuti); //cheap sanity check
+	SYMBOL_ASSERT(it->first == basicuti); //cheap sanity check
 	return true;
       }
 
@@ -292,7 +292,7 @@ namespace MFM {
 	  {
 	    symptrref = it->second;
 	    //maybe be duplicates, same symbol, different UTIs (t3327)
-	    assert(it->first == mappedUTI); //cheap sanity check
+	    SYMBOL_ASSERT(it->first == mappedUTI); //cheap sanity check
 	    return true;
 	  }
       }
@@ -304,7 +304,7 @@ namespace MFM {
 	  {
 	    symptrref = it->second;
 	    //maybe be duplicates, same symbol, different UTIs (t3327)
-	    assert(it->first == mappedUTI); //cheap sanity check
+	    SYMBOL_ASSERT(it->first == mappedUTI); //cheap sanity check
 	    return true;
 	  }
       }
@@ -328,10 +328,10 @@ namespace MFM {
 
   void SymbolClassNameTemplate::addClassInstanceUTI(UTI uti, SymbolClass * symptr)
   {
-    assert(symptr && uti == symptr->getUlamTypeIdx()); //insane!!
+    SYMBOL_ASSERT(symptr && uti == symptr->getUlamTypeIdx()); //insane!!
     std::pair<std::map<UTI,SymbolClass *>::iterator,bool> ret;
     ret = m_scalarClassInstanceIdxToSymbolPtr.insert(std::pair<UTI,SymbolClass*> (uti,symptr)); //stub
-    assert(ret.second); //false if already existed, i.e. not added
+    SYMBOL_ASSERT(ret.second); //false if already existed, i.e. not added
   }
 
   void SymbolClassNameTemplate::addClassInstanceByArgString(UTI uti, SymbolClass * symptr)
@@ -351,10 +351,10 @@ namespace MFM {
       {
 	SymbolClass * csym = NULL;
 	AssertBool isDefined = findClassInstanceByUTI(instance, csym);
-	assert(isDefined);
-	assert(!csym->isStubCopy());
+	SYMBOL_ASSERT(isDefined);
+	SYMBOL_ASSERT(!csym->isStubCopy());
 	rtnpending = csym->pendingClassArgumentsForClassInstance();
-	assert(!rtnpending || csym->isStub());
+	SYMBOL_ASSERT(!rtnpending || csym->isStub());
       }
     return rtnpending;
   } //pendingClassArgumentsForStubClassInstance
@@ -376,14 +376,14 @@ namespace MFM {
 
     //previous block is template's class block, and new NNO here!
     NodeBlockClass * newblockclass = new NodeBlockClass(NULL, m_state);
-    assert(newblockclass);
+    SYMBOL_ASSERT(newblockclass);
     newblockclass->setNodeLocation(typeTok.m_locator); //for arg values
     newblockclass->setNodeType(stubcuti);
     newblockclass->resetNodeNo(templateclassblock->getNodeNo()); //keep NNO consistent (new)
 
     Token stubTok(TOK_TYPE_IDENTIFIER, typeTok.m_locator, getId());
     SymbolClass * newclassinstance = new SymbolClass(stubTok, stubcuti, newblockclass, this, m_state);
-    assert(newclassinstance);
+    SYMBOL_ASSERT(newclassinstance);
     if(isQuarkUnion())
       newclassinstance->setQuarkUnion();
 
@@ -430,32 +430,32 @@ namespace MFM {
   //note, template could still be unseen..
   SymbolClass * SymbolClassNameTemplate::copyAStubClassInstance(UTI instance, UTI newuti, UTI argvaluecontext, UTI argtypecontext, UTI valuecontextclassnametype, Locator newloc)
   {
-    assert((getNumberOfParameters() > 0) || (getUlamClass() == UC_UNSEEN));
-    assert(instance != newuti);
+    SYMBOL_ASSERT((getNumberOfParameters() > 0) || (getUlamClass() == UC_UNSEEN));
+    SYMBOL_ASSERT(instance != newuti);
 
     UTI compilingthis = m_state.getThisClassForParsing(); //possibly no longer parsing
     compilingthis = compilingthis == Nouti ? m_state.getCompileThisIdx() : compilingthis;
 
     UTI stubcopyof = m_state.getStubCopyOf(instance);
     bool twasastubcopy = (stubcopyof != Nouti);
-    assert(!twasastubcopy); //t41448, t41452
+    SYMBOL_ASSERT(!twasastubcopy); //t41448, t41452
 
     SymbolClass * csym = NULL;
     AssertBool isDefined = findClassInstanceByUTI(instance, csym);
-    assert(isDefined);
+    SYMBOL_ASSERT(isDefined);
 
-    assert(!csym->isStubCopy());
-    assert(csym->isStub());
-    assert(csym->pendingClassArgumentsForClassInstance()); //t41222
+    SYMBOL_ASSERT(!csym->isStubCopy());
+    SYMBOL_ASSERT(csym->isStub());
+    SYMBOL_ASSERT(csym->pendingClassArgumentsForClassInstance()); //t41222
 
     NodeBlockClass * blockclass = csym->getClassBlockNode();
-    assert(blockclass);
+    SYMBOL_ASSERT(blockclass);
     NodeBlockClass * templateclassblock = getClassBlockNode();
-    assert(templateclassblock);
+    SYMBOL_ASSERT(templateclassblock);
     bool isCATemplate = ((UlamTypeClass *) m_state.getUlamTypeByIndex(getUlamTypeIdx()))->isCustomArray();
 
     NodeBlockClass * newblockclass = new NodeBlockClass(NULL, m_state);
-    assert(newblockclass);
+    SYMBOL_ASSERT(newblockclass);
     newblockclass->setNodeLocation(newloc); //questionable LOC? t41221
 
     //provides proper context for setting type (e.g. t3640)
@@ -467,8 +467,8 @@ namespace MFM {
     Token stubTok(TOK_TYPE_IDENTIFIER,csym->getLoc(), getId());
 
     SymbolClass * newclassinstance = new SymbolClass(stubTok, newuti, newblockclass, this, m_state);
-    assert(newclassinstance);
-    assert(newclassinstance->getUlamClass() == getUlamClass()); //t41436
+    SYMBOL_ASSERT(newclassinstance);
+    SYMBOL_ASSERT(newclassinstance->getUlamClass() == getUlamClass()); //t41436
 
     if(isQuarkUnion())
       newclassinstance->setQuarkUnion();
@@ -552,11 +552,11 @@ namespace MFM {
     UTI cuti = getUlamTypeIdx();
 
     ULAMCLASSTYPE classtype = getUlamClass();
-    assert(classtype != UC_UNSEEN);
+    SYMBOL_ASSERT(classtype != UC_UNSEEN);
 
     //furthermore, this must exist by now, or else this is the wrong time to be fixing
     NodeBlockClass * templateclassblock = getClassBlockNode();
-    assert(templateclassblock);
+    SYMBOL_ASSERT(templateclassblock);
     bool isCATemplate = ((UlamTypeClass *) m_state.getUlamTypeByIndex(cuti))->isCustomArray();
 
     if(m_scalarClassInstanceIdxToSymbolPtr.empty())
@@ -568,7 +568,7 @@ namespace MFM {
     while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
       {
 	SymbolClass * csym = it->second;
-	assert(csym);
+	SYMBOL_ASSERT(csym);
 	UTI suti = csym->getUlamTypeIdx();
 	if(!m_state.okUTItoContinue(suti))
 	  {
@@ -590,12 +590,12 @@ namespace MFM {
 
 	UlamKeyTypeSignature skey = m_state.getUlamTypeByIndex(suti)->getUlamKeyTypeSignature();
 	AssertBool isReplaced = m_state.replaceUlamTypeForUpdatedClassType(skey, Class, classtype, isCATemplate);
-	assert(isReplaced);
+	SYMBOL_ASSERT(isReplaced);
 
 	NodeBlockClass * cblock = csym->getClassBlockNode();
-	assert(cblock);
+	SYMBOL_ASSERT(cblock);
 
-	assert(cblock->getNodeNo() == templateclassblock->getNodeNo()); //keep NNOs consistent, sanity or set?
+	SYMBOL_ASSERT(cblock->getNodeNo() == templateclassblock->getNodeNo()); //keep NNOs consistent, sanity or set?
 
 	//can have 0Holder symbols for possible typedefs seen from another class
 	//which will increase the count of symbols; can only test for at least;
@@ -663,19 +663,19 @@ namespace MFM {
 	    u32 sid = m_state.m_pool.getIndexForDataString(sname.str());
 
 	    NodeConstantDef * paramConstDef = (NodeConstantDef *) templateclassblock->getParameterNode(i);
-	    assert(paramConstDef);
+	    SYMBOL_ASSERT(paramConstDef);
 	    u32 pid = paramConstDef->getSymbolId();
 
 	    if(cblock->isIdInScope(sid,argsym))
 	      {
-		assert(argsym->isConstant());
+		SYMBOL_ASSERT(argsym->isConstant());
 		((SymbolConstantValue *) argsym)->changeConstantId(sid, pid);
 		cblock->replaceIdInScope(sid, pid, argsym);
 
 		//any type descriptors need to be copied (t41209,t41211);
 		//including classes that might be holders (t41216)
 		NodeConstantDef * stubConstDef = (NodeConstantDef *) cblock->getArgumentNode(i);
-		assert(stubConstDef);
+		SYMBOL_ASSERT(stubConstDef);
 
 		//came from Parser parseRestOfClassArguments says null blocks likely (t41214)
 		m_state.pushClassContext(suti, cblock, cblock, false, NULL);
@@ -714,7 +714,7 @@ namespace MFM {
 			// and make a new symbol that's like the default param
 			Symbol * clonesym = NULL;
 			AssertBool gotclonesym = paramConstDef->cloneSymbol(clonesym);
-			assert(gotclonesym);
+			SYMBOL_ASSERT(gotclonesym);
 
 			SymbolConstantValue * asym2 = (SymbolConstantValue *) clonesym;
 			asym2->setClassArgAsDefaultValue(); //t41431
@@ -722,7 +722,7 @@ namespace MFM {
 
 			// possible pending value for default param
 			NodeConstantDef * argConstDef = (NodeConstantDef *) paramConstDef->instantiate();
-			assert(argConstDef);
+			SYMBOL_ASSERT(argConstDef);
 			//fold later; non ready expressions saved by UTI in m_nonreadyClassArgSubtrees (stub)
 			argConstDef->setSymbolPtr(asym2); //since we have it handy
 			csym->linkConstantExpressionForPendingArg(argConstDef);  //also adds argnode
@@ -767,12 +767,12 @@ namespace MFM {
   void SymbolClassNameTemplate::fixAClassStubsDefaultArgs(SymbolClass * stubcsym, u32 defaultstartidx)
   {
     NodeBlockClass * templateclassblock = getClassBlockNode();
-    assert(templateclassblock); //fails if UNSEEN during parsing
+    SYMBOL_ASSERT(templateclassblock); //fails if UNSEEN during parsing
 
-    assert(stubcsym);
+    SYMBOL_ASSERT(stubcsym);
     UTI suti = stubcsym->getUlamTypeIdx();
     NodeBlockClass * cblock = stubcsym->getClassBlockNode();
-    assert(cblock);
+    SYMBOL_ASSERT(cblock);
 
     //BUT we need this stub as CompileThisIdx for any stub copies,
     // so, do the push and correct the resolver pendingArgs context later (t3891).
@@ -781,13 +781,13 @@ namespace MFM {
     m_state.pushClassContext(suti, cblock, cblock, false, NULL);
 
     u32 numparams = getNumberOfParameters();
-    assert(numparams - defaultstartidx <= getTotalParametersWithDefaultValues());
+    SYMBOL_ASSERT(numparams - defaultstartidx <= getTotalParametersWithDefaultValues());
 
     //update the class instance's ST, and Resolver with defaults.
     for(u32 i = defaultstartidx; i < numparams; i++)
       {
 	NodeConstantDef * paramConstDef = (NodeConstantDef *) templateclassblock->getParameterNode(i);
-	assert(paramConstDef);
+	SYMBOL_ASSERT(paramConstDef);
 	u32 pid = paramConstDef->getSymbolId();
 
 	SymbolConstantValue * asym2;
@@ -797,7 +797,7 @@ namespace MFM {
 	  {
 	    // and make a new symbol that's like the default param
 	    AssertBool gotasym = paramConstDef->cloneSymbol(asym);
-	    assert(gotasym);
+	    SYMBOL_ASSERT(gotasym);
 	    asym2 = (SymbolConstantValue *) asym;
 	    asym2->setBlockNoOfST(cblock->getNodeNo()); //stub NNO same as template, at this point
 	    asym2->setClassArgAsDefaultValue();
@@ -806,35 +806,35 @@ namespace MFM {
 	else
 	  {
 	    //already present from patched stub (t41440)
-	    assert(asym->isConstant());
+	    SYMBOL_ASSERT(asym->isConstant());
 	    asym2 = (SymbolConstantValue *) asym;
 	    asym2->setClassArgAsDefaultValue();
 	  }
 
 	// possible pending value for default param
 	NodeConstantDef * argConstDef = (NodeConstantDef *) paramConstDef->instantiate();
-	assert(argConstDef);
+	SYMBOL_ASSERT(argConstDef);
 	//fold later; non ready expressions saved by UTI in m_nonreadyClassArgSubtrees (stub)
 	argConstDef->setSymbolPtr(asym2); //since we have it handy, sets declnno
 	stubcsym->linkConstantExpressionForPendingArg(argConstDef);
       }
 
     m_state.popClassContext(); //restore
-    assert(stubcsym->getContextForPendingArgValues() != Nouti); //sanity or set??
+    SYMBOL_ASSERT(stubcsym->getContextForPendingArgValues() != Nouti); //sanity or set??
   } //fixAClassStubsDefaultArgs
 
   void SymbolClassNameTemplate::fixAnyIncompleteClassInstances()
   {
     NodeBlockClass * templateclassblock = getClassBlockNode();
-    assert(templateclassblock);
+    SYMBOL_ASSERT(templateclassblock);
     std::map<UTI, SymbolClass*>::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
     while (it != m_scalarClassInstanceIdxToSymbolPtr.end())
       {
         SymbolClass * sym = it->second;
-        assert(sym);
+        SYMBOL_ASSERT(sym);
 
         NodeBlockClass * cblock = sym->getClassBlockNode();
-        assert(cblock->getNodeNo() == templateclassblock->getNodeNo());
+        SYMBOL_ASSERT(cblock->getNodeNo() == templateclassblock->getNodeNo());
 
         if(sym->isStubForTemplateTypeIncomplete())
           {
@@ -874,7 +874,7 @@ namespace MFM {
 
 	//push to Resolver to skip stubs that will never get resolved (e.g. t3787)
 	NodeBlockClass * classNode = csym->getClassBlockNode();
-	assert(classNode);
+	SYMBOL_ASSERT(classNode);
 
 	m_state.pushClassContext(cuti, classNode, classNode, false, NULL);
 
@@ -935,10 +935,10 @@ namespace MFM {
     if(findClassInstanceByUTI(instance, csym))
       {
 	NodeBlockClass * templateclassNode = getClassBlockNode();
-	assert(templateclassNode);
+	SYMBOL_ASSERT(templateclassNode);
 
 	NodeBlockClass * classNode = csym->getClassBlockNode();
-	assert(classNode);
+	SYMBOL_ASSERT(classNode);
 	m_state.pushClassContext(csym->getUlamTypeIdx(), classNode, classNode, false, NULL);
 
 	//format values into stream
@@ -946,13 +946,13 @@ namespace MFM {
 	  {
 	    bool isok = false;
 	    NodeConstantDef * paramConstDef = (NodeConstantDef *) templateclassNode->getParameterNode(i);
-	    assert(paramConstDef);
+	    SYMBOL_ASSERT(paramConstDef);
 	    u32 pid = paramConstDef->getSymbolId();
 
 	    Symbol * asym = NULL;
 	    bool hazyKin = false; //don't care
 	    AssertBool isDefined = m_state.alreadyDefinedSymbol(pid, asym, hazyKin);
-	    assert(isDefined);
+	    SYMBOL_ASSERT(isDefined);
 	    UTI auti = asym->getUlamTypeIdx();
 	    if(dereftypes)
 	      auti = m_state.getUlamTypeAsDeref(auti);
@@ -961,7 +961,7 @@ namespace MFM {
 
 	    //append 'instance's arg (mangled) type; little 'c' for a class type parameter (t41209)
 	    args << aut->UlamType::getUlamTypeMangledType().c_str();
-	    assert(!aut->isAltRefType());
+	    SYMBOL_ASSERT(!aut->isAltRefType());
 	    if(!aut->isScalar())
 	      {
 		std::string arrvalstr;
@@ -971,7 +971,7 @@ namespace MFM {
 	    else if(m_state.isAClass(auti))
 	      {
 		//check for this sooner! can't figure how to make a class chasing its tail.
-		assert(UlamType::compare(auti, instance, m_state) != UTIC_SAME);
+		SYMBOL_ASSERT(UlamType::compare(auti, instance, m_state) != UTIC_SAME);
 
 		std::string ccvalstr;
 		if((isok = ((SymbolConstantValue *)asym)->getValueAsHexString(ccvalstr)))
@@ -1040,13 +1040,13 @@ namespace MFM {
 	    //else continue..
 	  }
       }
-    assert(csym);
+    SYMBOL_ASSERT(csym);
 
     NodeBlockClass * templateclassNode = getClassBlockNode();
-    assert(templateclassNode);
+    SYMBOL_ASSERT(templateclassNode);
 
     NodeBlockClass * classNode = csym->getClassBlockNode();
-    assert(classNode);
+    SYMBOL_ASSERT(classNode);
     m_state.pushClassContext(csym->getUlamTypeIdx(), classNode, classNode, false, NULL);
     u32 n = 0;
 
@@ -1057,7 +1057,7 @@ namespace MFM {
 	  args << ",";
 
 	NodeConstantDef * paramConstDef = (NodeConstantDef *) templateclassNode->getParameterNode(i);
-	assert(paramConstDef);
+	SYMBOL_ASSERT(paramConstDef);
 	u32 pid = paramConstDef->getSymbolId();
 
 	//get 'instance's value
@@ -1065,7 +1065,7 @@ namespace MFM {
 	Symbol * asym = NULL;
 	bool hazyKin = false; //don't care
 	AssertBool isDefined = m_state.alreadyDefinedSymbol(pid, asym, hazyKin);
-	assert(isDefined);
+	SYMBOL_ASSERT(isDefined);
 	UTI auti = asym->getUlamTypeIdx();
 	UlamType * aut = m_state.getUlamTypeByIndex(auti);
 	if(aut->isComplete())
@@ -1111,7 +1111,7 @@ namespace MFM {
 	SymbolClass * csym = it->second;
 	UTI cuti = csym->getUlamTypeIdx();
 
-	assert(cuti != getUlamTypeIdx()); //no template
+	SYMBOL_ASSERT(cuti != getUlamTypeIdx()); //no template
 
 	if(!csym->isStub())
 	  {
@@ -1131,7 +1131,7 @@ namespace MFM {
 	else
 	  {
 	    NodeBlockClass * classNode = csym->getClassBlockNode();
-	    assert(classNode);
+	    SYMBOL_ASSERT(classNode);
 
 	    std::ostringstream msg;
 	    msg << " Class instance '";
@@ -1152,10 +1152,10 @@ namespace MFM {
     if(findClassInstanceByUTI(instance,csym))
       {
 	NodeBlockClass * templateclassNode = getClassBlockNode();
-	assert(templateclassNode);
+	SYMBOL_ASSERT(templateclassNode);
 
 	NodeBlockClass * classNode = csym->getClassBlockNode();
-	assert(classNode);
+	SYMBOL_ASSERT(classNode);
 	m_state.pushClassContext(csym->getUlamTypeIdx(), classNode, classNode, false, NULL);
 
 	sig << m_state.m_pool.getDataAsString(getId()).c_str(); //class name
@@ -1167,7 +1167,7 @@ namespace MFM {
 	for (u32 i = 0; i < numparams; i++)
 	  {
 	    NodeConstantDef * paramConstDef = (NodeConstantDef *) templateclassNode->getParameterNode(i);
-	    assert(paramConstDef);
+	    SYMBOL_ASSERT(paramConstDef);
 	    u32 pid = paramConstDef->getSymbolId();
 
 	    if((signa || argvals) && (pcnt > 0))
@@ -1178,7 +1178,7 @@ namespace MFM {
 	    Symbol * asym = NULL;
 	    bool hazyKin = false; //don't care
 	    AssertBool isDefined = m_state.alreadyDefinedSymbol(pid, asym, hazyKin);
-	    assert(isDefined);
+	    SYMBOL_ASSERT(isDefined);
 	    UTI auti = asym->getUlamTypeIdx();
 	    UlamType * aut = m_state.getUlamTypeByIndex(auti);
 
@@ -1307,8 +1307,8 @@ namespace MFM {
 	SymbolClass * dupsym = NULL;
 	if(findClassInstanceByArgString(cuti, dupsym))
 	  {
-	    assert(dupsym->getContextForPendingArgValues() == Nouti);
-	    assert(dupsym->getStubForTemplateType() == Nouti);
+	    SYMBOL_ASSERT(dupsym->getContextForPendingArgValues() == Nouti);
+	    SYMBOL_ASSERT(dupsym->getStubForTemplateType() == Nouti);
 	    UTI duputi = dupsym->getUlamTypeIdx();
 	    u32 toomanycount = m_state.mergeClassUTI(cuti, duputi, dupsym->getLoc());
 	    trashStub(duputi, csym);
@@ -1337,7 +1337,7 @@ namespace MFM {
 	  }
 
 	NodeBlockClass * classNode = csym->getClassBlockNode();
-	assert(classNode);
+	SYMBOL_ASSERT(classNode);
 
 	classNode->setNodeLocation(this->getLoc()); //uses template's locals scope
 
@@ -1346,16 +1346,16 @@ namespace MFM {
 	UTI whence = csym->getStubCopyOf();
 	if(whence != Nouti)
 	  {
-	    assert(m_state.okUTItoContinue(whence));
+	    SYMBOL_ASSERT(m_state.okUTItoContinue(whence));
 	    SymbolClass * stubwhencecame = NULL;
 	    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(whence, stubwhencecame);
-	    assert(isDefined);
+	    SYMBOL_ASSERT(isDefined);
 
-	    assert(!stubwhencecame->isStubCopy()); //t3640
-	    assert(stubwhencecame->getUlamClass() != UC_UNSEEN);
+	    SYMBOL_ASSERT(!stubwhencecame->isStubCopy()); //t3640
+	    SYMBOL_ASSERT(stubwhencecame->getUlamClass() != UC_UNSEEN);
 
 	    NodeBlockClass * whencecblock = stubwhencecame->getClassBlockNode();
-	    assert(whencecblock);
+	    SYMBOL_ASSERT(whencecblock);
 
 	    csym->partialInstantiationOfMemberNodesAndSymbols(*whencecblock); //t41452,5 inf?
 	  }
@@ -1369,7 +1369,7 @@ namespace MFM {
 	addClassInstanceByArgString(cuti, csym); //new entry, and owner of symbol class
 
 	AssertBool verifd = verifySelfAndSuperTypedefs(cuti, csym);
-        assert(verifd);
+        SYMBOL_ASSERT(verifd);
 
 	csym->unsetStub();
 	csym->clearStubForTemplate(); //useful, may not apply, as a duplicate class
@@ -1386,7 +1386,7 @@ namespace MFM {
   bool SymbolClassNameTemplate::checkTemplateAncestorsAndUpdateStubBeforeAStubInstantiation(SymbolClass * stubcsym)
   {
     //original version does more than just check template ancestors, it updates stubcsym too!!
-    assert(!stubcsym->isStubCopy() && !stubcsym->pendingClassArgumentsForClassInstance());
+    SYMBOL_ASSERT(!stubcsym->isStubCopy() && !stubcsym->pendingClassArgumentsForClassInstance());
 
     bool rtnok = true;
     //if any of stub's base classes are still a stub..wait on full instantiation
@@ -1430,7 +1430,7 @@ namespace MFM {
 		if(i==0)
 		  {
 		    NodeBlockClass * stubcblock = stubcsym->getClassBlockNode();
-		    assert(stubcblock);
+		    SYMBOL_ASSERT(stubcblock);
 		    m_state.pushClassContext(stubuti, stubcblock, stubcblock, false, NULL);
 
 		    //try not to duplicate the baseuti for superclass (t41228?), special case.
@@ -1456,7 +1456,7 @@ namespace MFM {
 		    //if superbaseuti is a stub of this template; possible un-ending (MAX_ITERATIONS)
 		    // increase in size of m_scalarClassInstanceIdxToSymbolPtr each time we're called;
 		    // never resolving; should be caught at parse time (t3901)
-		    assert(m_state.getUlamTypeByIndex(superbaseuti)->getUlamTypeNameId() != getId());
+		    SYMBOL_ASSERT(m_state.getUlamTypeByIndex(superbaseuti)->getUlamTypeNameId() != getId());
 		    UTI newstubbaseuti = m_state.addStubCopyToAncestorClassTemplate(superbaseuti, stubuti, stubuti, stubcsym->getLoc()); //t41431, t3640,1
 		    stubcsym->updateBaseClass(stubbaseuti, i, newstubbaseuti); //stubcopy's type set here!!
 		    rtnok &= false;
@@ -1506,7 +1506,7 @@ namespace MFM {
 
   void SymbolClassNameTemplate::upgradeStubCopyToAStubClassInstance(UTI suti, SymbolClass * csym)
   {
-    assert(csym->getId()==getId());
+    SYMBOL_ASSERT(csym->getId()==getId());
 
     //more stub copying possible during this upgrade process;
     //inserts into TEMP map may happen.
@@ -1519,17 +1519,17 @@ namespace MFM {
     AssertBool unseenstubcopy = (csym->getUlamClass() == UC_UNSEEN);
 
     NodeBlockClass * templatecblock = getClassBlockNode();
-    assert(templatecblock);
+    SYMBOL_ASSERT(templatecblock);
     NodeBlockClass * cblock = csym->getClassBlockNode();
-    assert(cblock);
+    SYMBOL_ASSERT(cblock);
 
     if(unseenstubcopy)
       {
 	bool isCATemplate = ((UlamTypeClass *) m_state.getUlamTypeByIndex(cuti))->isCustomArray();
 	UlamKeyTypeSignature skey = m_state.getUlamTypeByIndex(suti)->getUlamKeyTypeSignature();
 	AssertBool isReplaced = m_state.replaceUlamTypeForUpdatedClassType(skey, Class, getUlamClass(), isCATemplate); //suti remains the same
-	assert(isReplaced);
-	assert(csym->getUlamClass() != UC_UNSEEN); //t41209
+	SYMBOL_ASSERT(isReplaced);
+	SYMBOL_ASSERT(csym->getUlamClass() != UC_UNSEEN); //t41209
 
 	//should this be done again? now that template is seen?
 	initBaseClassListForAStubClassInstance(csym);
@@ -1542,17 +1542,17 @@ namespace MFM {
 
     //what stub are we copying?? see copyAStubClassInstance..
     UTI whence = csym->getStubCopyOf();
-    assert(m_state.okUTItoContinue(whence));
+    SYMBOL_ASSERT(m_state.okUTItoContinue(whence));
     SymbolClass * stubwhencecame = NULL;
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(whence, stubwhencecame);
-    assert(isDefined);
+    SYMBOL_ASSERT(isDefined);
 
-    assert(!stubwhencecame->isStubCopy()); //t3640
-    assert(stubwhencecame->getUlamClass() != UC_UNSEEN);
+    SYMBOL_ASSERT(!stubwhencecame->isStubCopy()); //t3640
+    SYMBOL_ASSERT(stubwhencecame->getUlamClass() != UC_UNSEEN);
 
     //let's patch in the symbols before attempting the arguments? t41228??
     NodeBlockClass * whencecblock = stubwhencecame->getClassBlockNode();
-    assert(whencecblock);
+    SYMBOL_ASSERT(whencecblock);
 
     whencecblock->copyUlamTypeKeys(cblock); //t3895, maybe
     //cloneAnInstancesUTImap(stubwhencecame, csym); //nicer postfix answers (t3764,5,6..)
@@ -1579,7 +1579,7 @@ namespace MFM {
     if(findClassInstanceByUTI(instance, csym))
       {
 	NodeBlockClass * classNode = csym->getClassBlockNode();
-	assert(classNode);
+	SYMBOL_ASSERT(classNode);
 	m_state.pushClassContext(csym->getUlamTypeIdx(), classNode, classNode, false, NULL);
 
 	classNode->findNodeNo(n, foundNode); //classblock node no IS the same across instances
@@ -1595,7 +1595,7 @@ namespace MFM {
       {
 	SymbolClass * csym = it->second;
 	NodeBlockClass * classNode = csym->getClassBlockNode();
-	assert(classNode);
+	SYMBOL_ASSERT(classNode);
 	UTI cuti = csym->getUlamTypeIdx();
 	if(!csym->isStub())
 	  {
@@ -1624,7 +1624,7 @@ namespace MFM {
       {
 	SymbolClass * csym = it->second;
 	NodeBlockClass * classNode = csym->getClassBlockNode();
-	assert(classNode);
+	SYMBOL_ASSERT(classNode);
 	if(!csym->isStub())
 	  {
 	    m_state.pushClassContext(csym->getUlamTypeIdx(), classNode, classNode, false, NULL);
@@ -1653,7 +1653,7 @@ namespace MFM {
 	SymbolClass * csym = it->second;
 	UTI cuti = csym->getUlamTypeIdx();
 	NodeBlockClass * classNode = csym->getClassBlockNode();
-	assert(classNode);
+	SYMBOL_ASSERT(classNode);
 	if(!csym->isStub())
 	  {
 	    if(m_state.isComplete(cuti))
@@ -1701,7 +1701,7 @@ namespace MFM {
 
 	UTI cuti = csym->getUlamTypeIdx();
 	NodeBlockClass * classNode = csym->getClassBlockNode();
-	assert(classNode);
+	SYMBOL_ASSERT(classNode);
 	if(!csym->isStub())
 	  {
 	    if(m_state.isComplete(cuti))
@@ -1744,7 +1744,7 @@ namespace MFM {
       {
 	SymbolClass * csym = it->second;
 	NodeBlockClass * classNode = csym->getClassBlockNode();
-	assert(classNode);
+	SYMBOL_ASSERT(classNode);
 	if(!csym->isStub())
 	  {
 	    csym->checkAbstractClassError(); //outputs error t41664 (missing)
@@ -1770,7 +1770,7 @@ namespace MFM {
   void SymbolClassNameTemplate::checkAndLabelClassInstances()
   {
     //template data members, constants, typedefs not c&l here (t41432)
-    assert(getUlamClass() != UC_UNSEEN);
+    SYMBOL_ASSERT(getUlamClass() != UC_UNSEEN);
 
     std::map<UTI, SymbolClass* >::iterator stubit = m_scalarClassInstanceIdxToSymbolPtr.begin();
     while(stubit != m_scalarClassInstanceIdxToSymbolPtr.end())
@@ -1781,7 +1781,7 @@ namespace MFM {
 	    UTI stubuti = csym->getUlamTypeIdx();
 
 	    NodeBlockClass * classNode = csym->getClassBlockNode();
-	    assert(classNode);
+	    SYMBOL_ASSERT(classNode);
 
 	    Locator saveStubLoc = classNode->getNodeLocation();
 	    //temporarily change stub loc, in case of local filescope, incl arg/params
@@ -1805,7 +1805,7 @@ namespace MFM {
       {
 	SymbolClass * csym = it->second;
 	NodeBlockClass * classNode = csym->getClassBlockNode();
-	assert(classNode);
+	SYMBOL_ASSERT(classNode);
 	UTI cuti = csym->getUlamTypeIdx();
 	if(!csym->isStub())
 	  {
@@ -1841,7 +1841,7 @@ namespace MFM {
 	    UTI stubuti = csym->getUlamTypeIdx();
 
 	    NodeBlockClass * classNode = csym->getClassBlockNode();
-	    assert(classNode);
+	    SYMBOL_ASSERT(classNode);
 
 	    m_state.pushClassContext(stubuti, classNode, classNode, false, NULL);
 
@@ -1882,7 +1882,7 @@ namespace MFM {
 	//check incomplete's too as they might have produced error msgs.
 	UTI suti = csym->getUlamTypeIdx(); //this instance
 	NodeBlockClass * classNode = csym->getClassBlockNode();
-	assert(classNode);
+	SYMBOL_ASSERT(classNode);
 	m_state.pushClassContext(suti, classNode, classNode, false, NULL);
 
 	classNode->countNavHzyNoutiNodes(ncnt, hcnt, nocnt); //do each instance
@@ -1950,7 +1950,7 @@ namespace MFM {
 	  }
 
 	NodeBlockClass * classNode = csym->getClassBlockNode();
-	assert(classNode);
+	SYMBOL_ASSERT(classNode);
 	m_state.pushClassContext(suti, classNode, classNode, false, NULL);
 
 	aok &= csym->statusUnknownTypeInClass(huti);
@@ -1969,7 +1969,7 @@ namespace MFM {
 
     //use template results for remaining stubs (t3565, error t3444)
     NodeBlockClass * classNode = getClassBlockNode();
-    assert(classNode);
+    SYMBOL_ASSERT(classNode);
     m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
 
     aoktemplate = SymbolClass::statusUnknownTypeNamesInClass();
@@ -2002,7 +2002,7 @@ namespace MFM {
 	else
 	  {
 	    NodeBlockClass * classNode = csym->getClassBlockNode();
-	    assert(classNode);
+	    SYMBOL_ASSERT(classNode);
 	    m_state.pushClassContext(suti, classNode, classNode, false, NULL);
 
 	    aok &= csym->statusUnknownTypeNamesInClass();
@@ -2048,7 +2048,7 @@ namespace MFM {
     while(it != m_scalarClassArgStringsToSymbolPtr.end())
       {
 	SymbolClass * csym = it->second;
-	assert(csym);
+	SYMBOL_ASSERT(csym);
 	if(csym->reportLongClassName())
 	  totalcnt++;
 	it++;
@@ -2098,7 +2098,7 @@ namespace MFM {
 	  {
 	    //push context for location in any error message e.g. t41418
 	    NodeBlockClass * classNode = csym->getClassBlockNode();
-	    assert(classNode);
+	    SYMBOL_ASSERT(classNode);
 	    m_state.pushClassContext(cuti, classNode, classNode, false, NULL);
 
 	    UlamType * cut = m_state.getUlamTypeByIndex(cuti);
@@ -2121,8 +2121,8 @@ namespace MFM {
 		    aok = csym->determineSharedBasesAndTotalBitsize(sharedbitssaved, sharedbits);
 		    if(aok)
 		      {
-			assert(sharedbits >= 0);
-			assert(sharedbitssaved >= sharedbits);
+			SYMBOL_ASSERT(sharedbits >= 0);
+			SYMBOL_ASSERT(sharedbitssaved >= sharedbits);
 			totalbits = (mybits + sharedbits); //updates total here!!
 		      }
 		  }
@@ -2147,7 +2147,7 @@ namespace MFM {
 		msg << "' SIZED " << totalbits << " FAILED";
 		MSG(Symbol::getTokPtr(), msg.str().c_str(), ERR);
 		NodeBlockClass * classNode = csym->getClassBlockNode();
-		assert(classNode);
+		SYMBOL_ASSERT(classNode);
 		classNode->setNodeType(Nav); //avoid assert in resolving loop
 	      }
 	    else
@@ -2230,7 +2230,7 @@ namespace MFM {
 	if(m_state.isComplete(suti))
 	  {
 	    NodeBlockClass * classNode = csym->getClassBlockNode();
-	    assert(classNode);
+	    SYMBOL_ASSERT(classNode);
 	    m_state.pushClassContext(suti, classNode, classNode, false, NULL);
 	    classNode->printUnresolvedVariableDataMembers(); //this instance
 	    m_state.popClassContext();
@@ -2261,7 +2261,7 @@ namespace MFM {
     while(it != m_scalarClassArgStringsToSymbolPtr.end())
       {
 	SymbolClass * csym = it->second;
-	assert(csym);
+	SYMBOL_ASSERT(csym);
 	csym->testThisClass(fp); //this instance
 	it++;
       }
@@ -2273,12 +2273,12 @@ namespace MFM {
     while(it != m_scalarClassArgStringsToSymbolPtr.end())
       {
 	SymbolClass * csym = it->second;
-	assert(!csym->isStub());
+	SYMBOL_ASSERT(!csym->isStub());
 	UTI suti = csym->getUlamTypeIdx();
 	if(m_state.isComplete(suti))
 	  {
 	    u32 n = csym->getRegistryNumber();
-	    assert(n != UNINITTED_REGISTRY_NUMBER); //sanity
+	    SYMBOL_ASSERT(n != UNINITTED_REGISTRY_NUMBER); //sanity
 	  }
 	else
 	  {
@@ -2297,12 +2297,12 @@ namespace MFM {
     while(it != m_scalarClassArgStringsToSymbolPtr.end())
       {
 	SymbolClass * csym = it->second;
-	assert(!csym->isStub());
+	SYMBOL_ASSERT(!csym->isStub());
 	UTI suti = csym->getUlamTypeIdx();
 	if(m_state.isComplete(suti))
 	  {
 	    NodeBlockClass * classNode = csym->getClassBlockNode();
-	    assert(classNode);
+	    SYMBOL_ASSERT(classNode);
 	    m_state.pushClassContext(suti, classNode, classNode, false, NULL);
 
 	    csym->generateCode(fm); //this instance
@@ -2358,7 +2358,7 @@ namespace MFM {
     while(it != m_scalarClassArgStringsToSymbolPtr.end())
       {
 	SymbolClass * csym = it->second;
-	assert(csym);
+	SYMBOL_ASSERT(csym);
 	csym->generateTestInstance(fp, runtest);
 	it++;
       }
@@ -2367,7 +2367,7 @@ namespace MFM {
   bool SymbolClassNameTemplate::takeAnInstancesArgValues(SymbolClass * fm, SymbolClass * to)
   {
     NodeBlockClass * fmclassblock = fm->getClassBlockNode();
-    assert(fmclassblock);
+    SYMBOL_ASSERT(fmclassblock);
     u32 cargs = fmclassblock->getNumberOfPotentialClassArgumentSymbols();
     u32 numparams = getNumberOfParameters();
     u32 numDefaultParams = getTotalParametersWithDefaultValues();
@@ -2397,7 +2397,7 @@ namespace MFM {
       }
 
     NodeBlockClass * templateclassNode = getClassBlockNode();
-    assert(templateclassNode);
+    SYMBOL_ASSERT(templateclassNode);
 
     m_state.pushClassContext(fm->getUlamTypeIdx(), fmclassblock, fmclassblock, false, NULL);
     std::vector<SymbolConstantValue *> instancesArgs;
@@ -2406,7 +2406,7 @@ namespace MFM {
     for (u32 i = 0; i < numparams; i++)
       {
 	NodeConstantDef * paramConstDef = (NodeConstantDef *) templateclassNode->getParameterNode(i);
-	assert(paramConstDef);
+	SYMBOL_ASSERT(paramConstDef);
 	u32 pid = paramConstDef->getSymbolId();
 
 	//save 'instance's arg constant symbols in a temporary list
@@ -2426,13 +2426,13 @@ namespace MFM {
 	SymbolConstantValue * asym = instancesArgs[i]; //asym might be null if default used
 
 	NodeConstantDef * paramConstDef = (NodeConstantDef *) templateclassNode->getParameterNode(i);
-	assert(paramConstDef);
+	SYMBOL_ASSERT(paramConstDef);
 	u32 aid = paramConstDef->getSymbolId();
 
 	Symbol * clonesym = NULL;
 	bool hazyKin = false; //don't care
 	AssertBool isDefined = m_state.alreadyDefinedSymbol(aid, clonesym, hazyKin);
-	assert(isDefined);
+	SYMBOL_ASSERT(isDefined);
 	if(asym)
 	  m_state.replaceSymbolInCurrentScope(clonesym, asym); //deletes old, adds new
 	//else already there! no need to add dup.
@@ -2446,7 +2446,7 @@ namespace MFM {
   bool SymbolClassNameTemplate::copyAnInstancesArgValues(SymbolClass * fm, SymbolClass * to)
   {
     NodeBlockClass * fmclassblock = fm->getClassBlockNode();
-    assert(fmclassblock);
+    SYMBOL_ASSERT(fmclassblock);
     // (don't care about inherited symbols for class args, so use NodeBlock)
     u32 cargs = fmclassblock->getNumberOfArgumentNodes();
     u32 numparams = getNumberOfParameters();
@@ -2475,7 +2475,7 @@ namespace MFM {
 	if(!ctUnseen)
 	  {
 	    NodeConstantDef * argNode = (NodeConstantDef *) (fmclassblock->getArgumentNode(fmidx)); //t3641??
-	    assert(argNode);
+	    SYMBOL_ASSERT(argNode);
 	    snameid = argNode->getSymbolId();
 	  }
 	else
@@ -2489,7 +2489,7 @@ namespace MFM {
 	Symbol * argSym = NULL;
 	bool hazyKin = false; //don't care
 	AssertBool isDefined = m_state.alreadyDefinedSymbol(snameid, argSym, hazyKin); //no ownership change;
-	assert(isDefined);
+	SYMBOL_ASSERT(isDefined);
 	instancesArgs.push_back((SymbolConstantValue *) argSym); //for reference only
       }
 
@@ -2538,7 +2538,7 @@ namespace MFM {
     std::map<UTI, std::map<Locator, u32>, less_than_loc>::iterator it = m_locStubsDeleted.find(duputi);
     if(it != m_locStubsDeleted.end())
       {
-	assert(duputi == it->first);
+	SYMBOL_ASSERT(duputi == it->first);
 	std::map<Locator, u32> * locmap = &it->second;
 	std::map<Locator, u32>::iterator mit = locmap->find(symptr->getLoc());
 	if(mit != locmap->end())
@@ -2568,7 +2568,7 @@ namespace MFM {
     std::map<UTI, std::map<Locator, u32>, less_than_loc>::iterator it = m_locStubsDeleted.find(dupi);
     if(it != m_locStubsDeleted.end())
       {
-	assert(dupi == it->first);
+	SYMBOL_ASSERT(dupi == it->first);
 	std::map<Locator,u32> locmap = it->second;
 	msg << ".. " << locmap.size() << " locations responsible for the " << toomany << " copies: ";
 
@@ -2585,7 +2585,7 @@ namespace MFM {
 	    sit++;
 	  }
 	MSG(Symbol::getTokPtr(), msg.str().c_str(), NOTE);
-	assert(count + 1 == toomany); //t41455
+	SYMBOL_ASSERT(count + 1 == toomany); //t41455
       }
     //else dupi not found
   }
