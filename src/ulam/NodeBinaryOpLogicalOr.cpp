@@ -33,7 +33,7 @@ namespace MFM {
   //overrides parent due to short-circuiting requirement
   EvalStatus NodeBinaryOpLogicalOr::eval()
   {
-    assert(m_nodeLeft && m_nodeRight);
+    NODE_ASSERT(m_nodeLeft && m_nodeRight);
     UTI nuti = getNodeType();
 
     u32 len = m_state.getTotalBitSize(nuti);
@@ -89,8 +89,8 @@ namespace MFM {
   //short-circuit when lhs is true
   void NodeBinaryOpLogicalOr::genCode(File * fp, UVPass& uvpass)
   {
-    assert(m_nodeLeft && m_nodeRight);
-    assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
+    NODE_ASSERT(m_nodeLeft && m_nodeRight);
+    NODE_ASSERT(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
 
     //initialize node result to false
     UTI nuti = getNodeType();
@@ -108,7 +108,7 @@ namespace MFM {
     m_nodeLeft->genCode(fp, luvpass); //updates m_currentObjSymbol
     UTI luti = luvpass.getPassTargetType();
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
-    assert(lut->getUlamTypeEnum() == Bool);
+    NODE_ASSERT(lut->getUlamTypeEnum() == Bool);
 
     m_state.indentUlamCode(fp);
     fp->write("if(!"); //lhs is false
@@ -156,7 +156,7 @@ namespace MFM {
     fp->write("}\n");
 
     uvpass = UVPass::makePass(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //P
-    assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
+    NODE_ASSERT(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
   } //genCode
 
 } //end MFM

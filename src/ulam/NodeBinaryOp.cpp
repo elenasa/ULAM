@@ -11,7 +11,7 @@ namespace MFM {
 
   NodeBinaryOp::NodeBinaryOp(const NodeBinaryOp& ref) : Node(ref)
   {
-    assert(ref.m_nodeLeft);
+    NODE_ASSERT(ref.m_nodeLeft);
     m_nodeLeft = ref.m_nodeLeft->instantiate();
     if(ref.m_nodeRight)
       m_nodeRight = ref.m_nodeRight->instantiate();
@@ -124,7 +124,7 @@ namespace MFM {
 
   bool NodeBinaryOp::isAConstant()
   {
-    assert(m_nodeLeft && m_nodeRight);
+    NODE_ASSERT(m_nodeLeft && m_nodeRight);
     return m_nodeLeft->isAConstant() && m_nodeRight->isAConstant();
   }
 
@@ -136,7 +136,7 @@ namespace MFM {
 
   bool NodeBinaryOp::isFunctionCall()
   {
-    assert(m_nodeLeft && m_nodeRight);
+    NODE_ASSERT(m_nodeLeft && m_nodeRight);
     return m_nodeLeft->isFunctionCall() || m_nodeRight->isFunctionCall();
   }
 
@@ -148,7 +148,7 @@ namespace MFM {
 
   UTI NodeBinaryOp::checkAndLabelType(Node * thisparentnode)
   {
-    assert(m_nodeLeft && m_nodeRight);
+    NODE_ASSERT(m_nodeLeft && m_nodeRight);
 
     UTI leftType = m_nodeLeft->checkAndLabelType(this);
     UTI rightType = m_nodeRight->checkAndLabelType(this); //t41332
@@ -219,7 +219,7 @@ namespace MFM {
 
   TBOOL NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode(Node * parentnode)
   {
-    assert(m_nodeLeft && m_nodeRight);
+    NODE_ASSERT(m_nodeLeft && m_nodeRight);
     UTI lt = m_nodeLeft->getNodeType();
     if(!m_state.isAClass(lt))
       return TBOOL_FALSE;
@@ -229,7 +229,7 @@ namespace MFM {
     if(newnode)
       {
 	AssertBool swapOk = Node::exchangeNodeWithParent(newnode, parentnode);
-	assert(swapOk);
+	NODE_ASSERT(swapOk);
 
 	m_nodeLeft = NULL; //recycle as memberselect
 	m_nodeRight = NULL; //recycle as func call arg
@@ -458,7 +458,7 @@ namespace MFM {
   {
     UlamType * ut = m_state.getUlamTypeByIndex(uti);
 
-    assert(ut->isComplete());
+    NODE_ASSERT(ut->isComplete());
 
     // type is either unsigned or signed (unary as unsigned)
     typEnum = ut->getUlamTypeEnum();
@@ -480,7 +480,7 @@ namespace MFM {
 	typEnum = Unsigned; //for mix test
       }
     else //could be Unsigned or Int, not Bits
-      assert(typEnum == Unsigned || typEnum == Int);
+      NODE_ASSERT(typEnum == Unsigned || typEnum == Int);
   } //calcBitsizeForResult
 
   void NodeBinaryOp::resultBitsizeCalcInBits(UTI lt, UTI rt, s32& lbs, s32&rbs, s32&lwordsize)
@@ -505,7 +505,7 @@ namespace MFM {
   {
     UlamType * ut = m_state.getUlamTypeByIndex(uti);
 
-    assert(ut->isComplete());
+    NODE_ASSERT(ut->isComplete());
 
     // types are either unsigned or signed (unary as-is)
     ULAMTYPE typEnum = ut->getUlamTypeEnum();
@@ -533,10 +533,10 @@ namespace MFM {
     UTI nuti = getNodeType();
 
     //t3323,t3489,t3509,t3849,50,51,t41145
-    assert(m_state.okUTItoContinue(nuti)); //nothing to do yet
+    NODE_ASSERT(m_state.okUTItoContinue(nuti)); //nothing to do yet
 
     // if here, must be a constant..
-    assert(isAConstant());
+    NODE_ASSERT(isAConstant());
 
     if(m_state.isAClass(nuti))
       return nuti; //t41484 (e.g. node sq bkt)
@@ -546,10 +546,10 @@ namespace MFM {
       return nuti; //t41563?
 
     NNO pno = Node::getYourParentNo();
-    assert(pno);
+    NODE_ASSERT(pno);
 
-    assert(parentnode);
-    assert(pno == parentnode->getNodeNo());
+    NODE_ASSERT(parentnode);
+    NODE_ASSERT(pno == parentnode->getNodeNo());
 
     evalNodeProlog(0); //new current frame pointer
     makeRoomForNodeType(nuti); //offset a constant expression
@@ -591,11 +591,11 @@ namespace MFM {
 
     //replace ourselves (and kids) with a node terminal; new NNO unlike template's
     NodeTerminal * newnode = new NodeTerminal(val, nuti, m_state);
-    assert(newnode);
+    NODE_ASSERT(newnode);
     newnode->setNodeLocation(getNodeLocation());
 
     AssertBool swapOk = parentnode->exchangeKids(this, newnode);
-    assert(swapOk);
+    NODE_ASSERT(swapOk);
 
     std::ostringstream msg;
     msg << "Exchanged kids! for binary " << getName();
@@ -613,7 +613,7 @@ namespace MFM {
 
   EvalStatus NodeBinaryOp::eval()
   {
-    assert(m_nodeLeft && m_nodeRight);
+    NODE_ASSERT(m_nodeLeft && m_nodeRight);
 
     UTI nuti = getNodeType();
     if(nuti == Nav) return evalErrorReturn();
@@ -641,7 +641,7 @@ namespace MFM {
 
   bool NodeBinaryOp::doBinaryOperationImmediate(s32 lslot, s32 rslot, u32 slots)
   {
-    assert(slots == 1);
+    NODE_ASSERT(slots == 1);
     UTI nuti = getNodeType();
     u32 len = m_state.getTotalBitSize(nuti);
 
@@ -732,9 +732,9 @@ namespace MFM {
 	  }
 
 	AssertBool isNextLeft = lp.incrementPtr(m_state);
-	assert(isNextLeft);
+	NODE_ASSERT(isNextLeft);
 	AssertBool isNextRight = rp.incrementPtr(m_state);
-	assert(isNextRight);
+	NODE_ASSERT(isNextRight);
       } //forloop
 
     if(navCount > 0)
@@ -750,7 +750,7 @@ namespace MFM {
 
   void NodeBinaryOp::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
   {
-    assert(m_nodeLeft && m_nodeRight);
+    NODE_ASSERT(m_nodeLeft && m_nodeRight);
     m_nodeLeft->calcMaxDepth(depth, maxdepth, base); //funccall?
     m_nodeRight->calcMaxDepth(depth, maxdepth, base); //funccall?
     return; //work done by NodeStatements and NodeBlock
@@ -758,15 +758,15 @@ namespace MFM {
 
   void NodeBinaryOp::genCode(File * fp, UVPass& uvpass)
   {
-    assert(m_nodeLeft && m_nodeRight);
-    assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
+    NODE_ASSERT(m_nodeLeft && m_nodeRight);
+    NODE_ASSERT(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
 
     //generate rhs first; may update current object globals (e.g. function call)
     UVPass ruvpass;
     m_nodeRight->genCode(fp, ruvpass);
 
     //restore current object globals
-    assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
+    NODE_ASSERT(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
 
     UVPass luvpass;
     m_nodeLeft->genCode(fp, luvpass); //updates m_currentObjSymbol
@@ -813,7 +813,7 @@ namespace MFM {
       }
 
     uvpass = UVPass::makePass(tmpVarNum, nstor, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //P
-    assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
+    NODE_ASSERT(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
   } //genCode
 
   void NodeBinaryOp::genCodeToStoreInto(File * fp, UVPass& uvpass)

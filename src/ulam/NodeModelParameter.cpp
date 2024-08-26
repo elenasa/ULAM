@@ -105,7 +105,7 @@ namespace MFM {
   {
     if(!NodeConstant::isReadyConstant())
       m_ready = NodeConstant::updateConstant(); //sets ready here
-    assert(NodeConstant::isReadyConstant()); //must be
+    NODE_ASSERT(NodeConstant::isReadyConstant()); //must be
 
     //excerpt from makeUVPassForCodeGen in NodeIdent
     UTI nuti = getNodeType();

@@ -24,7 +24,7 @@ namespace MFM {
 
   UTI NodeBinaryOpCompare::checkAndLabelType(Node * thisparentnode)
   {
-    assert(m_nodeLeft && m_nodeRight);
+    NODE_ASSERT(m_nodeLeft && m_nodeRight);
     UTI leftType = m_nodeLeft->checkAndLabelType(this);
     UTI rightType = m_nodeRight->checkAndLabelType(this);
 
@@ -73,7 +73,7 @@ namespace MFM {
     hazyArg = false;
     Token identTok;
     TokenType opTokType = Token::getTokenTypeFromString(getName());
-    assert(opTokType != TOK_LAST_ONE);
+    NODE_ASSERT(opTokType != TOK_LAST_ONE);
     Token opTok(opTokType, getNodeLocation(), 0);
     u32 opolId = Token::getOperatorOverloadFullNameId(opTok, &m_state);
     if(opolId == 0)
@@ -99,10 +99,10 @@ namespace MFM {
 	if(!invopname)
 	  return NULL; //built-in error msg
 	opTokType = Token::getTokenTypeFromString(invopname);
-	assert(opTokType != TOK_LAST_ONE);
+	NODE_ASSERT(opTokType != TOK_LAST_ONE);
 	opTok.init(opTokType, getNodeLocation(), 0);
 	opolId = Token::getOperatorOverloadFullNameId(opTok, &m_state);
-	assert(opolId != 0);
+	NODE_ASSERT(opolId != 0);
 
 	if(!m_state.isFuncIdInAClassScopeOrAncestor(luti, opolId, fnsymptr, hazyArg))
 	  {
@@ -134,7 +134,7 @@ namespace MFM {
 
     //fill in func symbol during type labeling;
     NodeFunctionCall * fcallNode = new NodeFunctionCall(identTok, NULL, m_state);
-    assert(fcallNode);
+    NODE_ASSERT(fcallNode);
     fcallNode->setNodeLocation(identTok.m_locator);
 
     fcallNode->addArgument(m_nodeRight);
@@ -147,7 +147,7 @@ namespace MFM {
       }
 
     NodeMemberSelect * mselectNode = new NodeMemberSelect(m_nodeLeft, rnode, m_state);
-    assert(mselectNode);
+    NODE_ASSERT(mselectNode);
     mselectNode->setNodeLocation(identTok.m_locator);
 
     //redo check and type labeling done by caller!!
@@ -247,7 +247,7 @@ namespace MFM {
 
   bool NodeBinaryOpCompare::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
   {
-    assert(slots);
+    NODE_ASSERT(slots);
     if(m_state.isScalar(getNodeType())) //not an array
       {
 	return doBinaryOperationImmediate(lslot, rslot, slots);
@@ -267,7 +267,7 @@ namespace MFM {
   // its nodes, where left and right nodes are casted to be the same.
   bool NodeBinaryOpCompare::doBinaryOperationImmediate(s32 lslot, s32 rslot, u32 slots)
   {
-    assert(slots == 1);
+    NODE_ASSERT(slots == 1);
     UTI luti = m_nodeLeft->getNodeType();
     u32 len = m_state.getTotalBitSize(luti);
 
@@ -319,7 +319,7 @@ namespace MFM {
     UTI ruti = m_nodeRight->getNodeType();
     s32 arraysize = m_state.getArraySize(luti);
 
-    assert(arraysize == m_state.getArraySize(nuti)); //node is same array size as lhs/rhs
+    NODE_ASSERT(arraysize == m_state.getArraySize(nuti)); //node is same array size as lhs/rhs
 
     s32 bitsize = m_state.getBitSize(luti);
     UTI scalartypidx = m_state.getUlamTypeAsScalar(luti);
@@ -366,9 +366,9 @@ namespace MFM {
 	    m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -slots + i);
 	  }
 	AssertBool isNextLeft = lp.incrementPtr(m_state);
-	assert(isNextLeft);
+	NODE_ASSERT(isNextLeft);
 	AssertBool isNextRight = rp.incrementPtr(m_state);
-	assert(isNextRight);
+	NODE_ASSERT(isNextRight);
       } //forloop
 
     if(navCount > 0)
@@ -385,15 +385,15 @@ namespace MFM {
 
   void NodeBinaryOpCompare::genCode(File * fp, UVPass& uvpass)
   {
-    assert(m_nodeLeft && m_nodeRight);
-    assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
+    NODE_ASSERT(m_nodeLeft && m_nodeRight);
+    NODE_ASSERT(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
 
     // generate rhs first; may update current object globals (e.g. function call)
     UVPass ruvpass;
     m_nodeRight->genCode(fp, ruvpass);
 
     // restore current object globals
-    assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
+    NODE_ASSERT(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
 
     UVPass luvpass;
     m_nodeLeft->genCode(fp, luvpass); //updates m_currentObjSymbol
@@ -438,7 +438,7 @@ namespace MFM {
       }
 
     uvpass = UVPass::makePass(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, 0);  //P
-    assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
+    NODE_ASSERT(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
   } //genCode
 
 } //end MFM

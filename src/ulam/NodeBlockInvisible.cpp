@@ -42,7 +42,7 @@ namespace MFM {
 
   void NodeBlockInvisible::genCode(File * fp, UVPass& uvpass)
   {
-    assert(m_nodeNext);
+    NODE_ASSERT(m_nodeNext);
     m_state.m_currentIndentLevel++;
     m_nodeNext->genCode(fp, uvpass);
     m_state.m_currentIndentLevel--;

@@ -17,7 +17,8 @@ Uq_System { <NOMAIN> }
 ##
 ## informed by Dave ish 8/25/2024; assert in NodeVarDecl::isAConstantFuctionParameter, no m_varSymbol?
 ##    clue: Baseclass QDebugUtil was just changed to be a template, QDebugUtilsT.
-##    fix: add checkForSymbol when no m_varSymbol present.
+##    cause: constant arg and reference parameter, and function in templated class
+##    fix: add checkForSymbol when no m_varSymbol preasent.
 ##
 #>R.ulam
  ulam 5;

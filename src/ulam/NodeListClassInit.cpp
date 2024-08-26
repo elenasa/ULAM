@@ -71,7 +71,7 @@ namespace MFM{
 
   void NodeListClassInit::setClassType(UTI cuti) //from parent
   {
-    assert(m_state.okUTItoContinue(cuti));
+    NODE_ASSERT(m_state.okUTItoContinue(cuti));
     if(!m_state.okUTItoContinue(m_classUTI) || !m_state.isComplete(m_classUTI))
       {
 	m_classUTI = cuti; //reset
@@ -79,7 +79,7 @@ namespace MFM{
     else if(!m_state.isScalar(m_classUTI))
       {
 	UTI scalaruti = m_state.getUlamTypeAsScalar(m_classUTI);
-	assert(UlamType::compare(scalaruti, cuti, m_state) == UTIC_SAME);
+	NODE_ASSERT((UlamType::compare(scalaruti, cuti, m_state) == UTIC_SAME));
 	m_classUTI = cuti; //t41185
       }
     for(u32 i = 0; i < m_nodes.size(); i++)
@@ -143,14 +143,14 @@ namespace MFM{
 	  }
       }
 
-    assert(m_state.okUTItoContinue(nuti) && m_state.isComplete(nuti));
+    NODE_ASSERT(m_state.okUTItoContinue(nuti) && m_state.isComplete(nuti));
     setClassType(nuti);
 
     rtnuti = nuti; //if all goes well..
 
     for(u32 i = 0; i < m_nodes.size(); i++)
       {
-	assert(m_nodes[i]);
+	NODE_ASSERT(m_nodes[i]);
 	UTI puti = m_nodes[i]->checkAndLabelType(this);
 	if(puti == Nav)
 	  {
@@ -240,7 +240,7 @@ namespace MFM{
 
   void NodeListClassInit::genCode(File * fp, UVPass& uvpass, u32 n)
   {
-    assert(n < m_nodes.size());
+    NODE_ASSERT(n < m_nodes.size());
     m_nodes[n]->genCode(fp, uvpass);
   }
 

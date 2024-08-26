@@ -12,7 +12,7 @@ namespace MFM {
 
   UTI NodeBinaryOpShift::checkAndLabelType(Node * thisparentnode)
   {
-    assert(m_nodeLeft && m_nodeRight);
+    NODE_ASSERT(m_nodeLeft && m_nodeRight);
     UTI leftType = m_nodeLeft->checkAndLabelType(this);
     UTI rightType = m_nodeRight->checkAndLabelType(this);
     TBOOL rtntb = NodeBinaryOp::buildandreplaceOperatorOverloadFuncCallNode(thisparentnode);
@@ -77,7 +77,7 @@ namespace MFM {
   // since their types must be identical.
   bool NodeBinaryOpShift::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
   {
-    assert(slots);
+    NODE_ASSERT(slots);
     UTI nuti = getNodeType();
     if(m_state.isScalar(nuti)) //not an array
       {

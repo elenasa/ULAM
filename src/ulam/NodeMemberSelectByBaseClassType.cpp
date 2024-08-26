@@ -87,11 +87,11 @@ namespace MFM {
 
   void NodeMemberSelectByBaseClassType::printPostfix(File * fp)
   {
-    assert(m_nodeLeft);
+    NODE_ASSERT(m_nodeLeft);
     m_nodeLeft->printPostfix(fp);
 
     fp->write(" ");
-    assert(m_nodeRight);
+    NODE_ASSERT(m_nodeRight);
     m_nodeRight->printPostfix(fp);
 
     if(m_nodeVTclassrn)
@@ -142,7 +142,7 @@ namespace MFM {
 	    return lpos;
 	  }
 
-	assert(m_state.isClassASubclassOf(luti,nuti));
+	NODE_ASSERT(m_state.isClassASubclassOf(luti,nuti));
 	if(!m_state.getABaseClassRelativePositionInAClass(luti, nuti, pos))
 	  {
 	    //pos could be unreliable, try again after packing (t41619)
@@ -261,7 +261,7 @@ namespace MFM {
 
   EvalStatus NodeMemberSelectByBaseClassType::eval()
   {
-    assert(m_nodeLeft && m_nodeRight);
+    NODE_ASSERT(m_nodeLeft && m_nodeRight);
     UTI nuti = getNodeType();
     if(nuti == Nav) return evalErrorReturn();
 
@@ -292,9 +292,9 @@ namespace MFM {
     UTI newobjtype = newCurrentObjectPtr.getUlamValueTypeIdx();
     if(!m_state.isPtr(newobjtype))
       {
-	assert(m_nodeLeft->isFunctionCall()); //must be the result of a function call
+	NODE_ASSERT(m_nodeLeft->isFunctionCall()); //must be the result of a function call
 	// copy anonymous class to "uc" hidden slot in STACK, then replace with a pointer to it.
-	assert(m_state.isAClass(newobjtype));
+	NODE_ASSERT(m_state.isAClass(newobjtype));
 	newCurrentObjectPtr = assignAnonymousClassReturnValueToStack(newCurrentObjectPtr); //t3912
       }
 
@@ -326,7 +326,7 @@ namespace MFM {
   //for eval, want the value of the lhs modified to the right
   bool NodeMemberSelectByBaseClassType::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
   {
-    assert(slots);
+    NODE_ASSERT(slots);
 
     //the return ptr, adjusted to the base class
     UlamValue luv = m_state.m_currentObjPtr;
@@ -364,7 +364,7 @@ namespace MFM {
 	if(m_state.isClassASubclassOf(subclass, ttype))
 	  {
 	    AssertBool gotpos = m_state.getABaseClassRelativePositionInAClass(subclass, ttype, ttpos);
-	    assert(gotpos);
+	    NODE_ASSERT(gotpos);
 	  }
 
 	u32 subpos = luv.getPtrPos();
@@ -409,9 +409,9 @@ namespace MFM {
     UTI newobjtype = newCurrentObjectPtr.getUlamValueTypeIdx();
     if(!m_state.isPtr(newobjtype))
       {
-	assert(m_nodeLeft->isFunctionCall());// must be the result of a function call;
+	NODE_ASSERT(m_nodeLeft->isFunctionCall());// must be the result of a function call;
 	// copy anonymous class to "uc" hidden slot in STACK, then replace with a pointer to it.
-	assert(m_state.isAClass(newobjtype));
+	NODE_ASSERT(m_state.isAClass(newobjtype));
 	newCurrentObjectPtr = assignAnonymousClassReturnValueToStack(newCurrentObjectPtr); //t3913
       }
 
@@ -421,8 +421,8 @@ namespace MFM {
     //works like NodeIdent makeUlamValue for "manufactured super"
     //UTI subclass = ruvPtr.getPtrTargetType();
     UTI subclass = ruvPtr.getPtrTargetEffSelfType(); //t41386
-    assert(subclass); //not Nouti
-    assert(!m_state.isPtr(subclass)); //was != 11
+    NODE_ASSERT(subclass); //not Nouti
+    NODE_ASSERT(!m_state.isPtr(subclass)); //was != 11
     UTI basetype = m_nodeRight->getNodeType();
     s32 baselen = m_state.getBaseClassBitSize(basetype);
     u32 basepos = UNRELIABLEPOS;
@@ -433,7 +433,7 @@ namespace MFM {
 	if(m_state.isClassASubclassOf(subclass, ttype))
 	  {
 	    AssertBool gotpos = m_state.getABaseClassRelativePositionInAClass(subclass, ttype, ttpos);
-	    assert(gotpos);
+	    NODE_ASSERT(gotpos);
 	  }
 
 	u32 subpos = newCurrentObjectPtr.getPtrPos();
@@ -459,21 +459,21 @@ namespace MFM {
 
   void NodeMemberSelectByBaseClassType::genCode(File * fp, UVPass& uvpass)
   {
-    assert(m_nodeLeft && m_nodeRight);
+    NODE_ASSERT(m_nodeLeft && m_nodeRight);
 
     //check the back (not front) to process multiple member selections
     m_nodeLeft->genCode(fp, uvpass);  //leave any array item as-is for gencode.
     uvpass.setPassApplyDelta(true);
 
     m_state.abortNeedsATest(); //XXXXXX
-    assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************?
+    NODE_ASSERT(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************?
   } //genCode
 
   // presumably called by e.g. a binary op equal (lhs); caller saves
   // currentObjPass/Symbol, unlike genCode (rhs)
   void NodeMemberSelectByBaseClassType::genCodeToStoreInto(File * fp, UVPass& uvpass)
   {
-    assert(m_nodeLeft && m_nodeRight);
+    NODE_ASSERT(m_nodeLeft && m_nodeRight);
     UVPass luvpass;
     m_nodeLeft->genCodeToStoreInto(fp, luvpass); //uvpass contains the member selected, or cos obj symbol?
 
@@ -522,7 +522,7 @@ namespace MFM {
     //continue on to build tmpvarsymbol and coordinating uvpass
     u32 newpos = subpos; //subpos+basepos;
 
-    assert(basepos <= uvpass.getPassLen()); //t41351
+    NODE_ASSERT((basepos <= uvpass.getPassLen())); //t41351
     uvpass.setPassPosForced(newpos); //t41310
 
     newpos = uvpass.getPassPos(); //update for tmp symbol
@@ -534,7 +534,7 @@ namespace MFM {
     Token tidTok(TOK_IDENTIFIER, Node::getNodeLocation(), m_state.m_pool.getIndexForDataString(tmpvarname));
 
     m_tmpvarSymbol = new SymbolTmpVar(tidTok, basetype, newpos, m_state);
-    assert(m_tmpvarSymbol);
+    NODE_ASSERT(m_tmpvarSymbol);
     m_tmpvarSymbol->setBaseClassRef();
 
     uvpass.setPassVarNum(tmpturnum);

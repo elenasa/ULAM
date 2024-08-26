@@ -54,8 +54,8 @@ namespace MFM {
 
   bool NodeVarRefAs::checkReferenceCompatibility(UTI uti, Node * parentnode)
   {
-    assert(m_state.okUTItoContinue(uti));
-    assert(m_state.getUlamTypeByIndex(uti)->isReference());
+    NODE_ASSERT(m_state.okUTItoContinue(uti));
+    NODE_ASSERT(m_state.getUlamTypeByIndex(uti)->isReference());
     return true; //ok
   } //checkReferenceCompatibility
 
@@ -76,7 +76,7 @@ namespace MFM {
 
   void NodeVarRefAs::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
   {
-    assert(m_varSymbol);
+    NODE_ASSERT(m_varSymbol);
     return NodeVarRef::calcMaxDepth(depth, maxdepth, base);
   } //calcaMaxDepth
 
@@ -87,21 +87,21 @@ namespace MFM {
 
   EvalStatus NodeVarRefAs::eval()
   {
-    assert(m_varSymbol);
+    NODE_ASSERT(m_varSymbol);
 
     UTI nuti = getNodeType();
     if(nuti == Nav) return evalErrorReturn();
 
     if(nuti == Hzy) return evalStatusReturnNoEpilog(NOTREADY);
 
-    assert(m_varSymbol->getUlamTypeIdx() == nuti);
-    assert(!m_state.isAtom(nuti)); //rhs type of conditional as/has can't be an atom
+    NODE_ASSERT(m_varSymbol->getUlamTypeIdx() == nuti);
+    NODE_ASSERT(!m_state.isAtom(nuti)); //rhs type of conditional as/has can't be an atom
 
     UlamValue pluv = m_state.m_currentAutoObjPtr;
     ((SymbolVariableStack *) m_varSymbol)->setAutoPtrForEval(pluv); //for future ident eval uses
 
     UTI luti = pluv.getPtrTargetType();
-    assert(m_state.okUTItoContinue(luti));
+    NODE_ASSERT(m_state.okUTItoContinue(luti));
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
     ULAMCLASSTYPE lclasstype = lut->getUlamClassType();
     UTI autostgtype = m_state.m_currentAutoStorageType;
@@ -134,7 +134,7 @@ namespace MFM {
   // for Conditional-As case.
   void NodeVarRefAs::genCode(File * fp, UVPass & uvpass)
   {
-    assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
+    NODE_ASSERT(!m_state.m_currentObjSymbolsForCodeGen.empty());
     // the uvpass comes from NodeControl, and still has the POS obtained
     // during the condition statement for As..unorthodox, but necessary.
 
@@ -147,7 +147,7 @@ namespace MFM {
     ULAMTYPE cosetyp = cosut->getUlamTypeEnum();
     ULAMCLASSTYPE cosclasstype = cosut->getUlamClassType();
 
-    assert((cosetyp == UAtom) || (cosetyp == Class)); //lhs
+    NODE_ASSERT((cosetyp == UAtom) || (cosetyp == Class)); //lhs
 
     // t3821,t3825,t3828,t3831,t41338,t41344-9,t41353,t41359
     if(cos->isSelf())
@@ -188,7 +188,7 @@ namespace MFM {
       {
 	// can't let Node::genCodeReadIntoTmpVar do this for us: needs a ref.
 	// cossize not =1 if dm, implicit self. (t41610)
-	//assert(m_state.m_currentObjSymbolsForCodeGen.size() == 1);
+	//NODE_ASSERT(m_state.m_currentObjSymbolsForCodeGen.size() == 1);
 	m_state.indentUlamCode(fp);
 	fp->write(cosut->getUlamTypeImmediateMangledName().c_str());
 	fp->write("<EC> & "); //here it is!! brilliant
@@ -315,7 +315,7 @@ namespace MFM {
 	// get relative position at compile time, both types are known.
 	u32 relpos = UNRELIABLEPOS;
 	AssertBool gotPos = m_state.getABaseClassRelativePositionInAClass(cosuti, vuti, relpos);
-	assert(gotPos);
+	NODE_ASSERT(gotPos);
 
 	m_state.indentUlamCode(fp);
 	fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
@@ -371,7 +371,7 @@ namespace MFM {
 	    fp->write("u, &");
 	    fp->write(m_state.getTheInstanceMangledNameByIndex(cosuti).c_str());
 
-	    assert(vclasstype == UC_QUARK);
+	    NODE_ASSERT(vclasstype == UC_QUARK);
 	    fp->write(", uc"); //t3249
 	    fp->write("); //shadows lhs of 'as'"); GCNL;
 	  }
@@ -430,7 +430,7 @@ namespace MFM {
 
   void NodeVarRefAs::makeSuperSymbolForAsBlock()
   {
-    assert(m_varSymbol);
+    NODE_ASSERT(m_varSymbol);
     u32 selfid = m_state.m_pool.getIndexForDataString("self");
     if(m_varSymbol->getId() != selfid)
       return; //nothing to do
@@ -440,7 +440,7 @@ namespace MFM {
     UTI cuti = m_varSymbol->getUlamTypeIdx(); //the new self, getNodeType() might be Hzy
     SymbolClass * csym = NULL;
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cuti, csym);
-    assert(isDefined);
+    NODE_ASSERT(isDefined);
     UTI superuti = csym->getBaseClass(0);
     if(superuti == Nouti)
       superuti = m_state.m_urSelfUTI;
@@ -448,15 +448,15 @@ namespace MFM {
     Symbol * supersym = NULL;
     u32 superid = m_state.m_pool.getIndexForDataString("super");
     NodeBlock * curblock = m_state.getCurrentBlock();
-    assert(curblock);
+    NODE_ASSERT(curblock);
     if(!curblock->isIdInScope(superid, supersym))
       {
-	assert(m_state.okUTItoContinue(superuti));
+	NODE_ASSERT(m_state.okUTItoContinue(superuti));
 	s32 slot = -(m_state.slotsNeeded(m_state.m_currentFunctionReturnType) + 1);
 
 	Token superTok(TOK_KW_SUPER, getNodeLocation(), 0);
 	supersym = new SymbolVariableStack(superTok, m_state.getUlamTypeAsRef(superuti, ALT_AS), slot, m_state);
-	assert(supersym);
+	NODE_ASSERT(supersym);
 	supersym->setAutoLocalType(ALT_AS);
 	supersym->setIsSuper();
 	m_state.addSymbolToCurrentScope(supersym); //ownership goes to the block
@@ -468,7 +468,7 @@ namespace MFM {
 	  supersym->resetUlamType(m_state.getUlamTypeAsRef(superuti, ALT_AS));
       }
     else
-      assert(UlamType::compare(superuti, m_state.getUlamTypeAsDeref(supersym->getUlamTypeIdx()), m_state) == UTIC_SAME); //sanity check, already done.
+      NODE_ASSERT(UlamType::compare(superuti, m_state.getUlamTypeAsDeref(supersym->getUlamTypeIdx()), m_state) == UTIC_SAME); //sanity check, already done.
   } //makeSuperSymbolForAsBlock
 
 } //end MFM

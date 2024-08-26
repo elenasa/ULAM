@@ -50,7 +50,7 @@ namespace MFM {
   //see also SymbolTypedef::printPostfixValuesOfVariableDeclarations
   void NodeTypedef::printPostfix(File * fp)
   {
-    //assert(m_typedefSymbol);
+    //NODE_ASSERT(m_typedefSymbol);
     if(m_tdid == m_state.m_pool.getIndexForDataString("Self")) return;
     if(m_tdid == m_state.m_pool.getIndexForDataString("Super")) return;
 
@@ -159,7 +159,7 @@ namespace MFM {
 	  }
 	//else (t41298,9, t41469)?
 
-	assert(m_nodeTypeDesc);
+	NODE_ASSERT(m_nodeTypeDesc);
 	UTI cuti = m_state.getCompileThisIdx();
 	if(m_nodeTypeDesc)
 	  {
@@ -267,7 +267,7 @@ namespace MFM {
 	if(m_state.useMemberBlock())
 	  {
 	    NodeBlockClass * memberclass = m_state.getCurrentMemberClassBlock();
-	    assert(memberclass);
+	    NODE_ASSERT(memberclass);
 	    setBlockNo(memberclass->getNodeNo());
 	  }
 	else
@@ -277,7 +277,7 @@ namespace MFM {
 
   void NodeTypedef::setBlockNo(NNO n)
   {
-    //assert(n > 0);
+    //NODE_ASSERT(n > 0);
     m_currBlockNo = n;
     m_currBlockPtr = NULL; //not owned, just clear
   }
@@ -289,12 +289,12 @@ namespace MFM {
 
   NodeBlock * NodeTypedef::getBlock()
   {
-    assert(m_currBlockNo);
+    NODE_ASSERT(m_currBlockNo);
     if(m_currBlockPtr)
       return m_currBlockPtr;
 
     NodeBlock * currBlock = (NodeBlock *) m_state.findNodeNoInThisClassOrLocalsScope(m_currBlockNo);
-    assert(currBlock);
+    NODE_ASSERT(currBlock);
     return currBlock;
   } //getBlock
 
@@ -306,7 +306,7 @@ namespace MFM {
 
   void NodeTypedef::printUnresolvedVariableDataMembers()
   {
-    assert(m_typedefSymbol);
+    NODE_ASSERT(m_typedefSymbol);
     UTI it = m_typedefSymbol->getUlamTypeIdx();
     if(!m_state.isComplete(it))
       {
@@ -321,7 +321,7 @@ namespace MFM {
 
   void NodeTypedef::printUnresolvedLocalVariables(u32 fid)
   {
-    assert(m_typedefSymbol);
+    NODE_ASSERT(m_typedefSymbol);
     UTI it = m_typedefSymbol->getUlamTypeIdx();
     if(!m_state.isComplete(it))
       {
@@ -354,14 +354,14 @@ namespace MFM {
 
   EvalStatus NodeTypedef::eval()
   {
-    assert(m_typedefSymbol);
+    NODE_ASSERT(m_typedefSymbol);
     return NORMAL;
   } //eval
 
   void NodeTypedef::genCode(File * fp, UVPass& uvpass)
   {
 #if 0
-    assert(m_typedefSymbol);
+    NODE_ASSERT(m_typedefSymbol);
     m_state.indentUlamCode(fp);
     fp->write("//typedef ");
 
@@ -395,7 +395,7 @@ namespace MFM {
   {
     //for comment purposes in .h (e.g. t3883); no symbol needed since doesn't genCode.
     NodeTypedef * cloneofme = (NodeTypedef *) this->instantiate();
-    assert(cloneofme);
+    NODE_ASSERT(cloneofme);
     cloneVec.push_back(cloneofme);
   }
 
@@ -407,9 +407,9 @@ namespace MFM {
 
   void NodeTypedef::addMemberDescriptionToInfoMap(UTI classType, ClassMemberMap& classmembers)
   {
-    assert(m_typedefSymbol);
+    NODE_ASSERT(m_typedefSymbol);
     TypedefDesc * descptr = new TypedefDesc(m_typedefSymbol, classType, m_state);
-    assert(descptr);
+    NODE_ASSERT(descptr);
 
     //concat mangled class and parameter names to avoid duplicate keys into map
     std::ostringstream fullMangledName;

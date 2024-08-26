@@ -86,7 +86,7 @@ namespace MFM {
 
   void NodeTypeDescriptor::linkConstantExpressionBitsize(NodeTypeBitsize * ceForBitSize)
   {
-    assert(!m_unknownBitsizeSubtree);
+    NODE_ASSERT(!m_unknownBitsizeSubtree);
     m_unknownBitsizeSubtree = ceForBitSize; //tfr owner
   } //linkConstantExpressionBitsize
 
@@ -135,12 +135,12 @@ namespace MFM {
 	  {
 	    //t41469 (not complete but not a stub either); and, needs
 	    //aliasuti "aliased" to galias, ow aliasuti remains unresolved.
-	    assert(m_state.getUlamTypeNameIdByIndex(aliasuti) == m_state.getUlamTypeNameIdByIndex(galias)); //sanity check
+	    NODE_ASSERT(m_state.getUlamTypeNameIdByIndex(aliasuti) == m_state.getUlamTypeNameIdByIndex(galias)); //sanity check
 	    m_state.updateUTIAliasForced(aliasuti, galias);
 	  }
 	else
 	  {
-	    assert((aliasuti == guti) || (aliasuti == galias) || (guti == galias) || (m_state.lookupUTIAlias(aliasuti)==galias) || m_state.isAPrimitiveType(m_uti)); // || m_state.isClassAStub(m_uti)); //t3384, t3373, t41438 (bitsizes differ), t3988 (typedef stub), ish 20230116 guti=galias
+	    NODE_ASSERT((aliasuti == guti) || (aliasuti == galias) || (guti == galias) || (m_state.lookupUTIAlias(aliasuti)==galias) || m_state.isAPrimitiveType(m_uti)); // || m_state.isClassAStub(m_uti)); //t3384, t3373, t41438 (bitsizes differ), t3988 (typedef stub), ish 20230116 guti=galias
 	  }
 	m_uti = galias;
       }
@@ -155,7 +155,7 @@ namespace MFM {
     UTI guti = givenUTI();
     if(m_state.isHolder(guti))
       return guti; //t3798
-    assert(!m_state.isScalar(guti) || m_state.isAClass(guti)); //t3847, t41201
+    NODE_ASSERT(!m_state.isScalar(guti) || m_state.isAClass(guti)); //t3847, t41201
     if(m_state.isComplete(guti))
       return m_state.getUlamTypeAsScalar(guti);
     return Hzy; //ow assumes size of initialized list, wrong when arraysize 0 (t3847).
@@ -199,7 +199,7 @@ namespace MFM {
 	it = resetGivenUTI(it); //may revert to its root
 	setNodeType(it);
 	m_ready = true; //set here!!!
-	//assert(m_state.isComplete(it)); //true? not if baseclasssize still unknown (t41523)
+	//NODE_ASSERT(m_state.isComplete(it)); //true? not if baseclasssize still unknown (t41523)
       }
     else if(it == Hzy)
       {
@@ -263,7 +263,7 @@ namespace MFM {
 		msg << "' UTI" << nuti << " while labeling class: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-		assert(getReferenceType() == m_state.getReferenceType(mappedUTI)); //t41455
+		NODE_ASSERT(getReferenceType() == m_state.getReferenceType(mappedUTI)); //t41455
 		nuti = mappedUTI;
 	      }
 	  }
@@ -365,7 +365,7 @@ namespace MFM {
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     UTI derefuti = getReferencedUTI();
 
-    assert((getReferenceType() != ALT_NOT) || (m_state.isAltRefType(nuti))); //t3668?
+    NODE_ASSERT((getReferenceType() != ALT_NOT) || (m_state.isAltRefType(nuti))); //t3668?
 
     if(m_state.isHolder(nuti) || m_state.isHolder(derefuti))
       {
@@ -374,7 +374,7 @@ namespace MFM {
 	  {
 	    derefuti = nuti; //t41491
 	    nuti = givenUTI();
-	    assert(nuti != derefuti);
+	    NODE_ASSERT(nuti != derefuti);
 	  }
 	else if(derefuti == nuti)
 	  {
@@ -410,7 +410,7 @@ namespace MFM {
 		  }
 		else
 		  {
-		    assert((altgiven==altd) || altd==m_state.getReferenceType(givenUTI())); //t3843
+		    NODE_ASSERT((altgiven==altd) || altd==m_state.getReferenceType(givenUTI())); //t3843
 		    UTI mappedtd = tduti;
 		    m_state.findRootUTIAlias(tduti, mappedtd);
 		    rtnuti = mappedtd; //reset
@@ -496,7 +496,7 @@ namespace MFM {
     UTI nuti = rtnuti; //not givenUTI!!
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     ULAMTYPE etyp = nut->getUlamTypeEnum();
-    assert(etyp == Class);
+    NODE_ASSERT(etyp == Class);
 
     ULAMCLASSTYPE nclasstype = nut->getUlamClassType();
     if(nut->isComplete())
@@ -519,7 +519,7 @@ namespace MFM {
 		if(m_state.correctAReferenceTypeWith(nuti, derefuti))
 		  {
 		    AssertBool isReplaced = m_state.replaceUlamTypeForUpdatedClassType(nut->getUlamKeyTypeSignature(), Class, derefut->getUlamClassType(), derefut->isCustomArray());
-		    assert(isReplaced);
+		    NODE_ASSERT(isReplaced);
 		    nut = m_state.getUlamTypeByIndex(nuti);
 		    nclasstype = nut->getUlamClassType();
 		  }
@@ -571,7 +571,7 @@ namespace MFM {
 		else if(!m_state.isARootUTI(nuti))
 		  {
 		    AssertBool isAlias = m_state.findRootUTIAlias(nuti, auti);
-		    assert(isAlias);
+		    NODE_ASSERT(isAlias);
 		  }
 		else if(m_state.isClassAStubCopy(nuti))
 		  {
@@ -637,13 +637,13 @@ namespace MFM {
 		ULAMCLASSTYPE classtype = nut->getUlamClassType(); //t3735,t3834,t41363,t41153
 		//use default primitive bitsize;
 		nuti = m_state.makeUlamType(m_typeTok, ULAMTYPE_DEFAULTBITSIZE[etyp], arraysize, getReferencedUTI(), altd, classtype);
-		assert(m_state.okUTItoContinue(nuti)); //ish 20230116
+		NODE_ASSERT(m_state.okUTItoContinue(nuti)); //ish 20230116
 		rtnb = true;
 	      }
 	    else if(getReferenceType() != ALT_NOT)
 	      {
 		//must be a reference type; use type token to make one!
-		assert((altd == ALT_REF) || (altd == ALT_CONSTREF));
+		NODE_ASSERT((altd == ALT_REF) || (altd == ALT_CONSTREF));
 		ULAMTYPE etyp = m_state.getBaseTypeFromToken(m_typeTok);
 		if((etyp != Class) && (etyp != Hzy))
 		  {

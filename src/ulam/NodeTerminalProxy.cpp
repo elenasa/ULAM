@@ -281,9 +281,9 @@ namespace MFM {
       {
 	//replace node with func call to 'alengthof'
 	Node * newnode = buildAlengthofFuncCallNode();
-	assert(newnode);
+	NODE_ASSERT(newnode);
 	AssertBool swapOk = Node::exchangeNodeWithParent(newnode, parentnode);
-	assert(swapOk);
+	NODE_ASSERT(swapOk);
 
 	m_nodeOf = NULL; //recycled
 	rtnb = true;
@@ -296,7 +296,7 @@ namespace MFM {
 	if(newnode)
 	  {
 	    AssertBool swapOk = Node::exchangeNodeWithParent(newnode, parentnode);
-	    assert(swapOk);
+	    NODE_ASSERT(swapOk);
 
 	    rtnb = true;
 	  } //else t41382
@@ -313,10 +313,10 @@ namespace MFM {
 
     //fill in func symbol during type labeling;
     Node * fcallNode = new NodeFunctionCall(identTok, NULL, m_state);
-    assert(fcallNode);
+    NODE_ASSERT(fcallNode);
     fcallNode->setNodeLocation(identTok.m_locator);
     Node * mselectNode = new NodeMemberSelect(m_nodeOf, fcallNode, m_state);
-    assert(mselectNode);
+    NODE_ASSERT(mselectNode);
     mselectNode->setNodeLocation(identTok.m_locator);
 
     //redo check and type labeling done by caller!!
@@ -327,10 +327,10 @@ namespace MFM {
   {
     u64 val = 0;
     UTI nuti = getNodeType();
-    assert(m_state.okUTItoContinue(nuti)); //nothing to do yet
+    NODE_ASSERT(m_state.okUTItoContinue(nuti)); //nothing to do yet
 
     // if here, must be a constant..
-    assert(isAConstant());
+    NODE_ASSERT(isAConstant());
 
     evalNodeProlog(0); //new current frame pointer
     makeRoomForNodeType(nuti); //offset a constant expression
@@ -376,7 +376,7 @@ namespace MFM {
 
     //replace ourselves (and kids) with a node terminal; new NNO unlike template's
     NodeTerminal * newnode = new NodeTerminal(val, nuti, m_state);
-    assert(newnode);
+    NODE_ASSERT(newnode);
     newnode->setNodeLocation(getNodeLocation());
 
     return newnode;
@@ -389,9 +389,9 @@ namespace MFM {
       {
 	//replace node with func call to 'alengthof'
 	Node * newnode = buildApositionofrefNode();
-	assert(newnode);
+	NODE_ASSERT(newnode);
 	AssertBool swapOk = Node::exchangeNodeWithParent(newnode, parentnode);
-	assert(swapOk);
+	NODE_ASSERT(swapOk);
 
 	m_nodeOf = NULL; //recycled
 	rtnb = true;
@@ -403,7 +403,7 @@ namespace MFM {
   Node * NodeTerminalProxy::buildApositionofrefNode()
   {
     NodePositionofRef * newNode = new NodePositionofRef(m_nodeOf, m_state);
-    assert(newNode);
+    NODE_ASSERT(newNode);
     newNode->setNodeLocation(m_funcTok.m_locator);
 
     //redo check and type labeling done by caller!!
@@ -508,8 +508,8 @@ namespace MFM {
 
   void NodeTerminalProxy::genCodeForUserStringLength(File * fp, UVPass& uvpass)
   {
-    assert(m_state.isAStringType(m_uti));
-    assert(m_nodeOf);
+    NODE_ASSERT(m_state.isAStringType(m_uti));
+    NODE_ASSERT(m_nodeOf);
     UTI nuti = getNodeType();
     UVPass ofpass;
     m_nodeOf->genCode(fp, ofpass);
@@ -536,7 +536,7 @@ namespace MFM {
   {
     bool rtnB = false;
     UlamType * cut = m_state.getUlamTypeByIndex(m_uti);
-    assert(cut->isComplete());
+    NODE_ASSERT(cut->isComplete());
 
     switch(tok.m_type)
       {
@@ -669,7 +669,7 @@ namespace MFM {
 	    {
 	      u32 cid = m_state.getUlamTypeNameIdByIndex(m_uti);
 	      SymbolClassName * cnsym = (SymbolClassName *) m_state.m_programDefST.getSymbolPtr(cid);
-	      assert(cnsym);
+	      NODE_ASSERT(cnsym);
 
 	      std::string sig = cnsym->generatePrettyNameOrSignature(m_uti,true,false);
 	      m_constant.uval = m_state.formatAndGetIndexForDataUserString(sig);
@@ -682,7 +682,7 @@ namespace MFM {
 	    {
 	      u32 cid = m_state.getUlamTypeNameIdByIndex(m_uti);
 	      SymbolClassName * cnsym = (SymbolClassName *) m_state.m_programDefST.getSymbolPtr(cid);
-	      assert(cnsym);
+	      NODE_ASSERT(cnsym);
 
 	      std::string simple = cnsym->generatePrettyNameOrSignature(m_uti,false,true);
 	      m_constant.uval = m_state.formatAndGetIndexForDataUserString(simple);
@@ -695,7 +695,7 @@ namespace MFM {
 	    {
 	      u32 cid = m_state.getUlamTypeNameIdByIndex(m_uti);
 	      SymbolClassName * cnsym = (SymbolClassName *) m_state.m_programDefST.getSymbolPtr(cid);
-	      assert(cnsym);
+	      NODE_ASSERT(cnsym);
 
 	      std::string pretty = cnsym->generatePrettyNameOrSignature(m_uti,true,true);
 	      m_constant.uval = m_state.formatAndGetIndexForDataUserString(pretty);
@@ -807,7 +807,7 @@ namespace MFM {
 
   bool NodeTerminalProxy::checkForClassType()
   {
-    assert(m_state.okUTItoContinue(m_uti)); //is complete too!
+    NODE_ASSERT(m_state.okUTItoContinue(m_uti)); //is complete too!
     if(!m_state.isAClass(m_uti))
       {
 	std::ostringstream msg;
@@ -824,7 +824,7 @@ namespace MFM {
   {
     //special case of classidof.maxof returns max classid (t41537);
     //and, classidof.sizeof (consistently) returns bits for classidof.maxof
-    assert(m_state.okUTItoContinue(m_uti)); //is complete too!
+    NODE_ASSERT(m_state.okUTItoContinue(m_uti)); //is complete too!
     if(m_nodeOf)
       {
 	u32 ofnameid = m_nodeOf->getNameId();

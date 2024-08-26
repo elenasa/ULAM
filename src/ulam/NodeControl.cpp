@@ -113,7 +113,7 @@ namespace MFM {
 
   UTI NodeControl::checkAndLabelType(Node * thisparentnode)
   {
-    assert(m_nodeCondition && m_nodeBody);
+    NODE_ASSERT(m_nodeCondition && m_nodeBody);
     UTI newType = Bool;
     ULAMTYPE newEnumTyp = Bool;
 
@@ -121,7 +121,7 @@ namespace MFM {
     UTI cuti = m_nodeCondition->checkAndLabelType(this);
     if(m_state.okUTItoContinue(cuti) && m_state.isComplete(cuti))
       {
-	assert(m_state.isScalar(cuti));
+	NODE_ASSERT(m_state.isScalar(cuti));
 	UlamType * cut = m_state.getUlamTypeByIndex(cuti);
 	ULAMTYPE ctypEnum = cut->getUlamTypeEnum();
 	if(ctypEnum != newEnumTyp)
@@ -180,10 +180,10 @@ namespace MFM {
 
   void NodeControl::genCode(File * fp, UVPass& uvpass)
   {
-    assert(m_nodeCondition && m_nodeBody);
+    NODE_ASSERT(m_nodeCondition && m_nodeBody);
 
     NodeBlock * currblock = m_state.getCurrentBlock();
-    assert(currblock);
+    NODE_ASSERT(currblock);
     bool isdefaultswcase = currblock->isASwitchBlock() && (((NodeBlockSwitch*) currblock)->getDefaultCaseNodeNo() == m_nodeCondition->getNodeNo());
 
     //bracket for overall tmpvars (e.g. condition and body) is
@@ -211,7 +211,7 @@ namespace MFM {
 	else
 	  {
 	    //regular condition
-	    assert(cut->getUlamTypeEnum() == Bool);
+	    NODE_ASSERT(cut->getUlamTypeEnum() == Bool);
 	    fp->write(((UlamTypePrimitiveBool *) cut)->getConvertToCboolMethod().c_str());
 	    fp->write("(");
 	    fp->write(uvpass.getTmpVarAsString(m_state).c_str());

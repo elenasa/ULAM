@@ -28,7 +28,7 @@ namespace MFM {
 
   UTI NodeAtomof::checkAndLabelType(Node * thisparentnode)
   {
-    assert(m_nodeOf); //Identifier, not a Type; caught at parse time (right?)
+    NODE_ASSERT(m_nodeOf); //Identifier, not a Type; caught at parse time (right?)
     UTI nuti = NodeStorageof::checkAndLabelType(thisparentnode);
     if(m_state.okUTItoContinue(nuti))
       {
@@ -37,7 +37,7 @@ namespace MFM {
 	bool isaref = m_state.isReference(vuti); //t3706, t41046 (not isAltRefType)
 	UTI oftype = NodeStorageof::getOfType();
 	UlamType * ofut = m_state.getUlamTypeByIndex(oftype);
-	assert(isself || UlamType::compare(m_state.getUlamTypeAsDeref(vuti), oftype, m_state) == UTIC_SAME); //sanity (e.g. t3905, t3701)
+	NODE_ASSERT(isself || UlamType::compare(m_state.getUlamTypeAsDeref(vuti), oftype, m_state) == UTIC_SAME); //sanity (e.g. t3905, t3701)
 	ULAMCLASSTYPE ofclasstype = ofut->getUlamClassType();
 
 	//refs checked at runtime; non-refs here:
@@ -131,7 +131,7 @@ namespace MFM {
     UTI nuti = getNodeType();
     UTI auti = getOfType(); //deref'ed
 
-    assert(m_nodeOf);
+    NODE_ASSERT(m_nodeOf);
     if(m_nodeOf->hasASymbolSelf())
       {
 	//when "self/atom" is a quark, we're inside a func called on a quark (e.g. dm or local)
@@ -139,7 +139,7 @@ namespace MFM {
 	//'self' gets type/pos/len of the quark from which 'atom' can be extracted
 	UlamValue selfuvp = m_state.m_currentSelfPtr;
 	UTI selfttype = selfuvp.getPtrTargetType();
-	assert(m_state.okUTItoContinue(selfttype));
+	NODE_ASSERT(m_state.okUTItoContinue(selfttype));
 	UTI effselfttype = selfuvp.getPtrTargetEffSelfType();
 	if(effselfttype == Nouti) effselfttype = selfttype; //t3913
 
@@ -156,14 +156,14 @@ namespace MFM {
 		  {
 		    u32 relposofbase2 = 0;
 		    AssertBool gotpos2 = m_state.getABaseClassRelativePositionInAClass(effselfttype, selfttype, relposofbase2);
-		    assert(gotpos2);
+		    NODE_ASSERT(gotpos2);
 		    selfpos -= relposofbase2;
 		  }
 		//else same, subclass or dm
 
 		u32 relposofbase = 0;
 		AssertBool gotpos = m_state.getABaseClassRelativePositionInAClass(effselfttype, auti, relposofbase);
-		assert(gotpos);
+		NODE_ASSERT(gotpos);
 
 		selfuvp.setPtrPos(selfpos + relposofbase);
 		selfuvp.setPtrTargetType(m_state.getUlamTypeAsDeref(auti));
@@ -233,7 +233,7 @@ namespace MFM {
   void NodeAtomof::genCode(File * fp, UVPass& uvpass)
   {
     //lhs, no longer allowed with packed elements
-    assert(getStoreIntoAble() == TBOOL_TRUE);
+    NODE_ASSERT(getStoreIntoAble() == TBOOL_TRUE);
 
     UTI nuti = getNodeType(); //UAtomRef
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
@@ -292,7 +292,7 @@ namespace MFM {
       {
 	//get the element in a tmpvar; necessary for array item members selected (at runtime).
 	m_nodeOf->genCode(fp, uvpass);
-	assert(m_state.m_currentObjSymbolsForCodeGen.empty());
+	NODE_ASSERT(m_state.m_currentObjSymbolsForCodeGen.empty());
 
 	if(uvpass.getPassStorage() == TMPBITVAL)
 	  {
@@ -311,7 +311,7 @@ namespace MFM {
 	  }
 	else
 	  {
-	    assert(uvpass.getPassStorage() == TMPTATOM); //sanity
+	    NODE_ASSERT(uvpass.getPassStorage() == TMPTATOM); //sanity
 	    //e.g. 'return self.atomof;'
 	    //(t3408,t3410,t3585,t3631,t3663,t41503,t41461,t41460,t41143)
 	    uvpass = UVPass::makePass(uvpass.getPassVarNum(), TMPTATOM, nuti, UNPACKED, m_state, uvpass.getPassPos(), uvpass.getPassNameId());
@@ -322,7 +322,7 @@ namespace MFM {
   void NodeAtomof::genCodeToStoreInto(File * fp, UVPass& uvpass)
   {
     //lhs, no longer allowed with packed elements
-    assert(getStoreIntoAble() == TBOOL_TRUE);
+    NODE_ASSERT(getStoreIntoAble() == TBOOL_TRUE);
 
     UTI nuti = getNodeType(); //UAtomRef
 
@@ -369,10 +369,10 @@ namespace MFM {
     else
       {
 	//lhs: t3223,t3684,t3907,8,9,t41033,42,43,46,51,62
-	assert(getStoreIntoAble() == TBOOL_TRUE);
-	assert(m_nodeOf);
+	NODE_ASSERT(getStoreIntoAble() == TBOOL_TRUE);
+	NODE_ASSERT(m_nodeOf);
 	m_nodeOf->genCodeToStoreInto(fp, uvpass); //does it handle array item members selected?
-	assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
+	NODE_ASSERT(!m_state.m_currentObjSymbolsForCodeGen.empty());
 
 	uvpass = UVPass::makePass(uvpass.getPassVarNum(), TMPAUTOREF /*TMPTATOM*/, getNodeType(), UNPACKED, m_state, uvpass.getPassPos(), uvpass.getPassNameId());
       }

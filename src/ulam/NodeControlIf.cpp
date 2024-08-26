@@ -54,7 +54,7 @@ namespace MFM {
 
   void NodeControlIf::setElseNode(Node * elseNode)
   {
-    assert(m_nodeElse == NULL);
+    NODE_ASSERT(m_nodeElse == NULL);
     m_nodeElse = elseNode;
   }
 
@@ -137,7 +137,7 @@ namespace MFM {
 
   EvalStatus  NodeControlIf::eval()
   {
-    assert(m_nodeCondition && m_nodeBody);
+    NODE_ASSERT(m_nodeCondition && m_nodeBody);
 
     UTI nuti = getNodeType();
     if(nuti == Nav) return evalErrorReturn();
@@ -185,7 +185,7 @@ namespace MFM {
     if(m_nodeElse)
       {
 	NodeBlock * currblock = m_state.getCurrentBlock();
-	assert(currblock);
+	NODE_ASSERT(currblock);
 	bool isdefaultswcase = currblock->isASwitchBlock() && (((NodeBlockSwitch*) currblock)->getDefaultCaseNodeNo() == m_nodeElse->getNodeNo());
 
 	m_state.indentUlamCode(fp);

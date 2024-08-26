@@ -60,7 +60,7 @@ namespace MFM {
 
   bool NodeMemberSelectOnConstructorCall::isAConstructorFunctionCall()
   {
-    assert(m_nodeRight->isAConstructorFunctionCall());
+    NODE_ASSERT(m_nodeRight->isAConstructorFunctionCall());
     return true;
   }
 
@@ -117,9 +117,9 @@ namespace MFM {
     UTI newobjtype = newCurrentObjectPtr.getUlamValueTypeIdx();
     if(!m_state.isPtr(newobjtype))
       {
-	assert(m_nodeLeft->isFunctionCall());// must be the result of a function call;
+	NODE_ASSERT(m_nodeLeft->isFunctionCall());// must be the result of a function call;
 	// copy anonymous class to "uc" hidden slot in STACK, then replace with a pointer to it.
-	assert(m_state.isAClass(newobjtype));
+	NODE_ASSERT(m_state.isAClass(newobjtype));
 	newCurrentObjectPtr = assignAnonymousClassReturnValueToStack(newCurrentObjectPtr); //t3913
       }
 
@@ -139,7 +139,7 @@ namespace MFM {
 
   void NodeMemberSelectOnConstructorCall::genCode(File * fp, UVPass& uvpass)
   {
-    assert(m_nodeLeft && m_nodeRight);
+    NODE_ASSERT(m_nodeLeft && m_nodeRight);
 
     // if parent is another MS, we might need to adjust pos first;
     // elements can be data members of transients, etc.
@@ -159,14 +159,14 @@ namespace MFM {
     //check the back (not front) to process multiple member selections
     m_nodeRight->genCode(fp, uvpass);  //leave any array item as-is for gencode.
 
-    assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************?
+    NODE_ASSERT(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************?
   } //genCode
 
   // presumably called by e.g. a binary op equal (lhs); caller saves
   // currentObjPass/Symbol, unlike genCode (rhs)
   void NodeMemberSelectOnConstructorCall::genCodeToStoreInto(File * fp, UVPass& uvpass)
   {
-    assert(m_nodeLeft && m_nodeRight);
+    NODE_ASSERT(m_nodeLeft && m_nodeRight);
 
     UVPass luvpass;
     if(NodeMemberSelect::passalongUVPass())

@@ -24,13 +24,13 @@ namespace MFM {
 
   u32 NodeFuncDecl::getfunctionid() const
   {
-    assert(m_funcSymbolPtr);
+    NODE_ASSERT(m_funcSymbolPtr);
     return m_funcSymbolPtr->getId();
   }
 
   u32 NodeFuncDecl::getfunctionordernum() const
   {
-    assert(m_funcSymbolPtr);
+    NODE_ASSERT(m_funcSymbolPtr);
     return m_funcSymbolPtr->getOrderNumber();
   }
 
@@ -51,7 +51,7 @@ namespace MFM {
 	Symbol * fnsymptr = NULL;
 	if(m_state.isFuncIdInClassScope(m_fid, fnsymptr, hazykin))
 	  {
-	    assert(fnsymptr->isFunction()); //t41084, t41332
+	    NODE_ASSERT(fnsymptr->isFunction()); //t41084, t41332
 	    m_funcSymbolPtr = ((SymbolFunctionName *) fnsymptr)->getFunctionSymbolByOrderNumber(m_ordernum);
 	  }
       }
@@ -78,7 +78,7 @@ namespace MFM {
 	  }
       }
 
-    assert(m_funcSymbolPtr);
+    NODE_ASSERT(m_funcSymbolPtr);
     UTI nodeType = m_funcSymbolPtr->getUlamTypeIdx();
     setNodeType(nodeType);
     if(nodeType == Hzy)
@@ -106,7 +106,7 @@ namespace MFM {
 
   void NodeFuncDecl::calcMaxIndexOfVirtualFunctionInOrderOfDeclaration(SymbolClass* csym, s32& maxidx)
   {
-    assert(m_funcSymbolPtr);
+    NODE_ASSERT(m_funcSymbolPtr);
     m_funcSymbolPtr->calcMaxIndexOfVirtualFunction(csym, maxidx); //entire reason for existing!
   }
 
@@ -134,9 +134,9 @@ namespace MFM {
 
   void NodeFuncDecl::addMemberDescriptionToInfoMap(UTI classType, ClassMemberMap& classmembers)
   {
-    assert(m_funcSymbolPtr);
+    NODE_ASSERT(m_funcSymbolPtr);
     FunctionDesc * descptr = new FunctionDesc(m_funcSymbolPtr, classType, m_state);
-    assert(descptr);
+    NODE_ASSERT(descptr);
 
     //concat mangled class and parameter names to avoid duplicate keys into map
     std::ostringstream fullMangledName;
@@ -151,7 +151,7 @@ namespace MFM {
 
   void NodeFuncDecl::generateFunctionInDeclarationOrder(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
-    assert(m_funcSymbolPtr);
+    NODE_ASSERT(m_funcSymbolPtr);
     m_funcSymbolPtr->generateFunctionDeclaration(fp, declOnly, classtype); //2nd purpose
   }
 

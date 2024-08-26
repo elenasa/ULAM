@@ -105,7 +105,7 @@ namespace MFM {
 
   u32 NodeStorageof::getSymbolId()
   {
-    assert(m_nodeOf);
+    NODE_ASSERT(m_nodeOf);
     return m_nodeOf->getSymbolId();
   }
 
@@ -284,8 +284,8 @@ namespace MFM {
   {
     UTI nuti = getNodeType();
 
-    assert(m_nodeOf);
-    assert(m_state.isAtom(nuti));
+    NODE_ASSERT(m_nodeOf);
+    NODE_ASSERT(m_state.isAtom(nuti));
 
     UlamValue ofuv = UlamValue::makeAtom();
     ofuv.setUlamValueEffSelfTypeIdx(m_state.getEmptyElementUTI());

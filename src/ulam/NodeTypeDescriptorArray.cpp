@@ -37,8 +37,8 @@ namespace MFM {
   void NodeTypeDescriptorArray::updateLineage(NNO pno)
   {
     setYourParentNo(pno);
-    assert(m_nodeScalar);
-    assert(m_unknownArraysizeSubtree);
+    NODE_ASSERT(m_nodeScalar);
+    NODE_ASSERT(m_unknownArraysizeSubtree);
     m_nodeScalar->updateLineage(getNodeNo());
     m_unknownArraysizeSubtree->updateLineage(getNodeNo());
   } //updateLineage
@@ -63,7 +63,7 @@ namespace MFM {
   {
     //VALGRIND says illegal read this way:
     // (errors/t3219, t3320. t3389, t3498, t3499, t3502, t3674)
-    //assert(m_nodeScalar);
+    //NODE_ASSERT(m_nodeScalar);
     //std::ostringstream nstr;
     //if(m_nodeScalar)
     //  nstr << m_nodeScalar->getName();
@@ -91,7 +91,7 @@ namespace MFM {
 	return Nav; //t41604
       }
 
-    assert(!m_state.isScalar(guti) || m_state.isHolder(guti));
+    NODE_ASSERT(!m_state.isScalar(guti) || m_state.isHolder(guti));
 
     UTI galias = guti;
     if(m_state.findRootUTIAlias(guti, galias)) //t41301
@@ -100,7 +100,7 @@ namespace MFM {
 	  m_state.updateUTIAliasForced(guti,guti); //undo mistaken scalar for array type
       }
     UTI arraytype = NodeTypeDescriptor::resetGivenUTI(guti);
-    assert(!m_state.isScalar(arraytype) || m_state.isHolder(arraytype));
+    NODE_ASSERT(!m_state.isScalar(arraytype) || m_state.isHolder(arraytype));
     return arraytype;
   }
 
@@ -119,7 +119,7 @@ namespace MFM {
   void NodeTypeDescriptorArray::linkConstantExpressionArraysize(NodeSquareBracket * ceForArraySize)
   {
     //tfr owner, no dups
-    assert(!m_unknownArraysizeSubtree);
+    NODE_ASSERT(!m_unknownArraysizeSubtree);
     m_unknownArraysizeSubtree = ceForArraySize;
   } //linkConstantExpressionArraysize
 
@@ -135,7 +135,7 @@ namespace MFM {
 
     if(isReadyType())
       {
-	assert(m_state.isComplete(it)); //could it be?
+	NODE_ASSERT(m_state.isComplete(it)); //could it be?
 	return it;
       }
 
@@ -143,7 +143,7 @@ namespace MFM {
       {
 	it = resetGivenUTI(it); //may revert to its root
 	m_ready = true; // set here
-	assert(m_state.isComplete(it));//t41262 true;
+	NODE_ASSERT(m_state.isComplete(it));//t41262 true;
 	setNodeType(it);
       }
     else
@@ -160,10 +160,10 @@ namespace MFM {
     // not node select, we are the array on top of the scalar leaf
     UTI nuti = givenUTI();
 
-    //assert(!m_state.isReference(nuti)); //t3816
+    //NODE_ASSERT(!m_state.isReference(nuti)); //t3816
 
     // scalar type
-    assert(m_nodeScalar);
+    NODE_ASSERT(m_nodeScalar);
     UTI scuti = m_nodeScalar->checkAndLabelType(this);
 
     if(m_nodeScalar->isReadyType())
@@ -221,7 +221,7 @@ namespace MFM {
 
   bool NodeTypeDescriptorArray::resolveTypeArraysize(UTI& rtnuti, UTI scuti)
   {
-    assert(m_unknownArraysizeSubtree);
+    NODE_ASSERT(m_unknownArraysizeSubtree);
     s32 as = m_state.getArraySize(rtnuti); //UNKNOWNSIZE;
     if(as >= 0)
       {
@@ -314,7 +314,7 @@ namespace MFM {
 	if(aclasstype != sclasstype)
 	  {
 	    AssertBool isReplaced = m_state.replaceUlamTypeForUpdatedClassType(aut->getUlamKeyTypeSignature(), Class, sclasstype, aut->isCustomArray()); //could have been unseen class array
-	    assert(isReplaced);
+	    NODE_ASSERT(isReplaced);
 
 	    std::ostringstream msg;
 	    msg << "Class type of array type: ";
@@ -335,7 +335,7 @@ namespace MFM {
     UlamType * scut = m_state.getUlamTypeByIndex(scuti);
     if((aut->getUlamTypeEnum() != scut->getUlamTypeEnum()) && !m_state.isHolder(auti))
       {
-	assert(scut->isScalar());
+	NODE_ASSERT(scut->isScalar());
 	//create corresponding array type, keep givenUTI (=auti) just change the key
 	UlamKeyTypeSignature newkey(scut->getUlamTypeNameId(), aut->getBitSize(), aut->getArraySize(), scuti, aut->getReferenceType());
 	ULAMCLASSTYPE aclasstype = scut->getUlamClassType(); //t41287

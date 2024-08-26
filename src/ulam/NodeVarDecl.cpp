@@ -90,7 +90,7 @@ namespace MFM {
 	UTI scalaruti = m_state.getUlamTypeAsScalar(nuti);
 	SymbolClass * csym = NULL;
 	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(scalaruti, csym);
-	assert(isDefined);
+	NODE_ASSERT(isDefined);
 	if(csym->isAbstract())
 	  {
 	    std::ostringstream msg;
@@ -157,7 +157,7 @@ namespace MFM {
 
   const std::string NodeVarDecl::getMangledName()
   {
-    assert(m_varSymbol);
+    NODE_ASSERT(m_varSymbol);
     return m_varSymbol->getMangledName();
   }
 
@@ -169,7 +169,7 @@ namespace MFM {
     UTI nuti = getNodeType();
     if(m_state.okUTItoContinue(nuti))
       {
-	assert(m_state.okUTItoContinue(nuti));
+	NODE_ASSERT(m_state.okUTItoContinue(nuti));
 	UlamType * nut = m_state.getUlamTypeByIndex(nuti);
 	//skip bitsize if default size
 	if(nut->getBitSize() == ULAMTYPE_DEFAULTBITSIZE[nut->getUlamTypeEnum()])
@@ -181,13 +181,13 @@ namespace MFM {
 
   UTI NodeVarDecl::getTypeDescriptorGivenType()
   {
-    assert(m_nodeTypeDesc);
+    NODE_ASSERT(m_nodeTypeDesc);
     return m_nodeTypeDesc->givenUTI();
   }
 
   ALT NodeVarDecl::getTypeDescriptorRefType()
   {
-    assert(m_nodeTypeDesc);
+    NODE_ASSERT(m_nodeTypeDesc);
     return m_nodeTypeDesc->getReferenceType();
   }
 
@@ -212,13 +212,13 @@ namespace MFM {
 
   u32 NodeVarDecl::getSymbolId()
   {
-    assert(m_varSymbol);
+    NODE_ASSERT(m_varSymbol);
     return m_varSymbol->getId();
   }
 
   bool NodeVarDecl::getSymbolValue(BV8K& bv)
   {
-    assert(m_varSymbol);
+    NODE_ASSERT(m_varSymbol);
     return m_varSymbol->getValueReadyToPrint(bv);
   }
 
@@ -255,14 +255,14 @@ namespace MFM {
     if(m_varSymbol == NULL)
       checkForSymbol(); //t41673 templated case;
 
-    assert(m_varSymbol);
+    NODE_ASSERT(m_varSymbol);// NODE_ASSERT(m_varSymbol);
     return m_varSymbol->isFunctionParameter() && ((SymbolVariableStack*)m_varSymbol)->isConstantFunctionParameter();
   }
 
   void NodeVarDecl::setInitExpr(Node * node)
   {
     //called during parsing
-    assert(node);
+    NODE_ASSERT(node);
     m_nodeInitExpr = node;
     m_nodeInitExpr->updateLineage(getNodeNo()); //for unknown subtrees
   }
@@ -279,8 +279,8 @@ namespace MFM {
     if(!m_state.okUTItoContinue(nuti) || !m_state.isComplete(nuti))
       return false;
 
-    assert(!m_state.isScalar(nuti));
-    assert(m_varSymbol && !(m_varSymbol->isInitValueReady()));
+    NODE_ASSERT(!m_state.isScalar(nuti));
+    NODE_ASSERT(m_varSymbol && !(m_varSymbol->isInitValueReady()));
 
     //similar to NodeConstantDef's foldArrayInitExpression
     bool brtn = false;
@@ -333,8 +333,8 @@ namespace MFM {
     // c-99 constant class initialization can be done in one fell swoop!
     // (instead of per DM at genCode/runtime);
     UTI nuti = getNodeType();
-    assert(m_state.okUTItoContinue(nuti) && m_state.isComplete(nuti));
-    assert(m_nodeInitExpr);
+    NODE_ASSERT(m_state.okUTItoContinue(nuti) && m_state.isComplete(nuti));
+    NODE_ASSERT(m_nodeInitExpr);
 
     bool rtnok = false;
     BV8K bvclass;
@@ -357,7 +357,7 @@ namespace MFM {
 
   FORECAST NodeVarDecl::safeToCastTo(UTI newType)
   {
-    assert(m_nodeInitExpr);
+    NODE_ASSERT(m_nodeInitExpr);
 
     FORECAST rscr = CAST_CLEAR;
     UTI nuti = getNodeType();
@@ -463,7 +463,7 @@ namespace MFM {
 
   bool NodeVarDecl::checkReferenceCompatibility(UTI uti, Node * parentnode)
   {
-    assert(m_state.okUTItoContinue(uti));
+    NODE_ASSERT(m_state.okUTItoContinue(uti));
     if(m_state.getUlamTypeByIndex(uti)->isAltRefType())
       {
 	UTI cuti = m_state.getCompileThisIdx();
@@ -476,18 +476,18 @@ namespace MFM {
 	// replace ourselves with a ref node instead;
 	// same node no, and loc (e.g. t3666,t3669, t3670-3, t3819)
 	NodeVarRef * newnode = new NodeVarRef(m_varSymbol, NULL, m_state);
-	assert(newnode);
+	NODE_ASSERT(newnode);
 
 	NNO pno = Node::getYourParentNo();
-	assert(pno);
-	assert(parentnode);
-	assert(pno == parentnode->getNodeNo());
+	NODE_ASSERT(pno);
+	NODE_ASSERT(parentnode);
+	NODE_ASSERT(pno == parentnode->getNodeNo());
 
 	newnode->setNodeLocation(getNodeLocation());
 	newnode->resetNodeNo(getNodeNo()); //and symbol declnodeno
 
 	AssertBool swapOk = parentnode->exchangeKids(this, newnode);
-	assert(swapOk);
+	NODE_ASSERT(swapOk);
 
 	{
 	  std::ostringstream msg;
@@ -496,7 +496,7 @@ namespace MFM {
 	  msg << m_state.getUlamTypeNameByIndex(cuti).c_str();
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	}
-    assert(m_nodeTypeDesc);
+    NODE_ASSERT(m_nodeTypeDesc);
 	if(m_nodeTypeDesc)
 	  newnode->m_nodeTypeDesc = (NodeTypeDescriptor *) m_nodeTypeDesc->instantiate();
 
@@ -529,7 +529,7 @@ namespace MFM {
 	return Nav;
       }
 
-    assert(m_varSymbol);
+    NODE_ASSERT(m_varSymbol);
     UTI vit = m_varSymbol->getUlamTypeIdx(); //base type has arraysize
     UTI cuti = m_state.getCompileThisIdx();
     if(m_nodeTypeDesc)
@@ -619,7 +619,7 @@ namespace MFM {
 
 	if(m_state.getCurrentBlock()->isASwitchBlock())
 	  {
-	    assert(m_nodeTypeDesc);
+	    NODE_ASSERT(m_nodeTypeDesc);
 	    vit = m_nodeTypeDesc->givenUTI();
 	    //e.g. switch condition variable (t41016-19); reload vit (was localvar);
 	    //use nodetypedesc, not varSymbol (t41481);
@@ -654,7 +654,7 @@ namespace MFM {
 
 		if(m_state.okUTItoContinue(scalarduti) && !dut->isComplete())
 		  {
-		    //assert(!dut->isScalar()); t41201
+		    //NODE_ASSERT(!dut->isScalar()); t41201
 		    //if here, empty arraysize depends on number of initializers
 		    s32 bitsize = m_state.getBitSize(scalarduti);
 		    u32 n = ((NodeList *) m_nodeInitExpr)->getNumberOfNodes();
@@ -705,7 +705,7 @@ namespace MFM {
 		    //arraysize specified, may have fewer initializers
 		    //support no initializers (t41201)
 		    s32 arraysize = m_state.getArraySize(vit);
-		    //assert(arraysize >= 0); //t3847
+		    //NODE_ASSERT(arraysize >= 0); //t3847
 		    if(arraysize < 0)
 		      {
 			//error scalar with {} error (t41387)
@@ -744,7 +744,7 @@ namespace MFM {
 
 	if(m_state.okUTItoContinue(eit) && m_state.isComplete(eit))
 	  {
-	    assert(m_varSymbol);
+	    NODE_ASSERT(m_varSymbol);
 	    //constant fold if possible, set symbol value
 	    if(m_nodeInitExpr && m_varSymbol->hasInitValue() && !m_varSymbol->isInitValueReady())
 	      {
@@ -886,19 +886,19 @@ namespace MFM {
 
   NodeBlock * NodeVarDecl::getBlock()
   {
-    assert(m_currBlockNo);
+    NODE_ASSERT(m_currBlockNo);
 
     if(m_currBlockPtr)
       return m_currBlockPtr;
 
     NodeBlock * currBlock = (NodeBlock *) m_state.findNodeNoInThisClassOrLocalsScope(m_currBlockNo);
-    assert(currBlock);
+    NODE_ASSERT(currBlock);
     return currBlock;
   }
 
   void NodeVarDecl::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
   {
-    assert(m_varSymbol);
+    NODE_ASSERT(m_varSymbol);
     s32 newslot = depth + base;
     ((SymbolVariable *) m_varSymbol)->setStackFrameSlotIndex(newslot);
     depth += m_state.slotsNeeded(getNodeType());
@@ -909,7 +909,7 @@ namespace MFM {
 
   void NodeVarDecl::printUnresolvedLocalVariables(u32 fid)
   {
-    assert(m_varSymbol);
+    NODE_ASSERT(m_varSymbol);
     UTI vit = m_varSymbol->getUlamTypeIdx();
     if(!m_state.isComplete(vit))
       {
@@ -937,7 +937,7 @@ namespace MFM {
 
   EvalStatus NodeVarDecl::eval()
   {
-    assert(m_varSymbol);
+    NODE_ASSERT(m_varSymbol);
 
     UTI nuti = getNodeType();
     if(nuti == Nav) return evalErrorReturn();
@@ -955,11 +955,11 @@ namespace MFM {
     if((nut->getUlamTypeEnum() == Bits) && nut->isScalar() && (len > MAXBITSPERLONG))
       return evalStatusReturnNoEpilog(UNEVALUABLE); //t41563,t3877
 
-    assert(m_varSymbol->getUlamTypeIdx() == nuti); //is it so? if so, some cleanup needed
+    NODE_ASSERT(m_varSymbol->getUlamTypeIdx() == nuti); //is it so? if so, some cleanup needed
 
-    assert(!m_varSymbol->isAutoLocal()); //NodeVarRef::eval t41656
+    NODE_ASSERT(!m_varSymbol->isAutoLocal()); //NodeVarRef::eval t41656
 
-    assert(!m_varSymbol->isDataMember()); //see NodeVarDeclDM
+    NODE_ASSERT(!m_varSymbol->isDataMember()); //see NodeVarDeclDM
 
     u32 slots = Node::makeRoomForNodeType(nuti, STACK);
 
@@ -992,7 +992,7 @@ namespace MFM {
   {
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    assert(m_varSymbol && m_varSymbol->getUlamTypeIdx() == nuti);
+    NODE_ASSERT(m_varSymbol && m_varSymbol->getUlamTypeIdx() == nuti);
     bool hasInitVal = m_varSymbol->hasInitValue();
     PACKFIT packFit = nut->getPackable();
     if(packFit == PACKEDLOADABLE)
@@ -1001,7 +1001,7 @@ namespace MFM {
 	if(hasInitVal)
 	  {
 	    AssertBool gotInitVal = m_varSymbol->getInitValue(dval);
-	    assert(gotInitVal);
+	    NODE_ASSERT(gotInitVal);
 	  }
 
 	UlamValue immUV;
@@ -1051,14 +1051,14 @@ namespace MFM {
 		  {
 		    u32 ival = 0;
 		    AssertBool gotVal = m_varSymbol->getArrayItemInitValue(j, ival);
-		    assert(gotVal);
+		    NODE_ASSERT(gotVal);
 		    itemUV = UlamValue::makeImmediate(scalaruti, ival, m_state);
 		  }
 		else if(itemlen <= MAXBITSPERLONG)
 		  {
 		    u64 ivalong = 0;
 		    AssertBool gotVal = m_varSymbol->getArrayItemInitValue(j, ivalong);
-		    assert(gotVal);
+		    NODE_ASSERT(gotVal);
 		    itemUV = UlamValue::makeImmediateLong(scalaruti, ivalong, m_state);
 		  }
 		else
@@ -1088,12 +1088,12 @@ namespace MFM {
 	  }
 	else
 	  {
-	    assert(m_varSymbol->isInitValueReady()); //sanity
+	    NODE_ASSERT(m_varSymbol->isInitValueReady()); //sanity
 	    u64 dval;
 	    if(packFit == PACKEDLOADABLE) //t41171
 	      {
 		AssertBool gotinitval = m_varSymbol->getInitValue(dval);
-		assert(gotinitval);
+		NODE_ASSERT(gotinitval);
 		UlamValue immUV = UlamValue::makeImmediateLong(nuti, dval, m_state);
 		m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
 	      }
@@ -1101,7 +1101,7 @@ namespace MFM {
 	      {
 		BV8K bvtmp;
 		AssertBool gotinitval = m_varSymbol->getInitValue(bvtmp); //from 0 to entire size of ulamtype
-		assert(gotinitval);
+		NODE_ASSERT(gotinitval);
 		UlamValue atomUV;
 		u32 len = nut->getSizeofUlamType(); //t41183
 		atomUV.putDataBig(0, len, bvtmp);
@@ -1118,7 +1118,7 @@ namespace MFM {
 	    u32 len = nut->getTotalBitSize();
 	    u64 dval = 0;
 	    AssertBool isPackLoadableScalar = m_state.getPackedDefaultClass(nuti, dval);
-	    assert(isPackLoadableScalar);
+	    NODE_ASSERT(isPackLoadableScalar);
 	    u64 darrval = 0;
 
 	    if(!hasInitVal)
@@ -1140,11 +1140,11 @@ namespace MFM {
 	      }
 	    else
 	      {
-		assert(m_varSymbol->isInitValueReady()); //sanity
+		NODE_ASSERT(m_varSymbol->isInitValueReady()); //sanity
 		if(len <= MAXBITSPERLONG)
 		  {
 		    AssertBool gotinitval = m_varSymbol->getInitValue(dval);
-		    assert(gotinitval);
+		    NODE_ASSERT(gotinitval);
 		    UlamValue immUV = UlamValue::makeImmediateClass(nuti, (u32) dval, len);
 		    m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
 		  }
@@ -1158,7 +1158,7 @@ namespace MFM {
 	  {
 	    //UNPACKED class array
 	    UTI scalaruti = m_state.getUlamTypeAsScalar(nuti);
-	    assert(nuti == m_varSymbol->getUlamTypeIdx());
+	    NODE_ASSERT(nuti == m_varSymbol->getUlamTypeIdx());
 	    u32 baseslot =  ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex();
 	    u32 itemlen = nut->getBitSize();
 
@@ -1172,7 +1172,7 @@ namespace MFM {
 	      }
 	    else
 	      {
-		assert(m_varSymbol->isInitValueReady()); //sanity
+		NODE_ASSERT(m_varSymbol->isInitValueReady()); //sanity
 		for(u32 j = 0; j < slots; j++)
 		  {
 		    UlamValue itemUV;
@@ -1180,21 +1180,21 @@ namespace MFM {
 		      {
 			u32 ival = 0;
 			AssertBool gotVal = m_varSymbol->getArrayItemInitValue(j, ival);
-			assert(gotVal);
+			NODE_ASSERT(gotVal);
 			itemUV = UlamValue::makeImmediate(scalaruti, ival, m_state);
 		      }
 		    else if(itemlen <= MAXBITSPERLONG)
 		      {
 			u64 ivalong = 0;
 			AssertBool gotVal = m_varSymbol->getArrayItemInitValue(j, ivalong);
-			assert(gotVal);
+			NODE_ASSERT(gotVal);
 			itemUV = UlamValue::makeImmediateLong(scalaruti, ivalong, m_state);
 		      }
 		    else if(itemlen <= MAXSTATEBITS)
 		      {
 			BV8K bvtmp;
 			AssertBool gotinitval = m_varSymbol->getArrayItemInitValue(j, bvtmp); //from 0 to entire size of ulamtype
-			assert(gotinitval);
+			NODE_ASSERT(gotinitval);
 			u32 len = m_state.getUlamTypeByIndex(scalaruti)->getSizeofUlamType();
 			itemUV.putDataBig(0, len, bvtmp);
 			itemUV.setUlamValueTypeIdx(scalaruti);
@@ -1220,7 +1220,7 @@ namespace MFM {
 
     UTI nuti = getNodeType();
 
-    assert(m_nodeInitExpr);
+    NODE_ASSERT(m_nodeInitExpr);
     if(m_nodeInitExpr->isClassInit())
       return NORMAL; //t41171, t3706
 
@@ -1284,7 +1284,7 @@ namespace MFM {
 	   UlamValue newruv;
 	   BV8K bvtmp;
 	   AssertBool isok = ((NodeList *) m_nodeInitExpr)->buildArrayValueInitialization(bvtmp);
-	   assert(isok);
+	   NODE_ASSERT(isok);
 	   u32 len = m_state.getTotalBitSize(nuti);
 	   if(len <= MAXBITSPERINT)
 	     {
@@ -1323,7 +1323,7 @@ namespace MFM {
       }
     else //unpacked
       {
-	assert(doeval); //sanity
+	NODE_ASSERT(doeval); //sanity
 	UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(2); //immediate scalar
 	UTI ruti = ruv.getUlamValueTypeIdx();
 	if(ruv.isPtr())
@@ -1390,7 +1390,7 @@ namespace MFM {
 
   UlamValue NodeVarDecl::makeUlamValuePtr()
   {
-    assert(!m_varSymbol->isSuper());
+    NODE_ASSERT(!m_varSymbol->isSuper());
     // (from NodeIdent's makeUlamValuePtr)
     UlamValue ptr;
     if(m_varSymbol->isSelf())
@@ -1400,13 +1400,13 @@ namespace MFM {
 	//'self' gets type/pos/len of the quark from which 'atom' can be extracted
 	UlamValue selfuvp = m_state.m_currentSelfPtr;
 	UTI ttype = selfuvp.getPtrTargetType();
-	assert(m_state.okUTItoContinue(ttype));
-	assert(m_state.okUTItoContinue(selfuvp.getPtrTargetEffSelfType())); //new
+	NODE_ASSERT(m_state.okUTItoContinue(ttype));
+	NODE_ASSERT(m_state.okUTItoContinue(selfuvp.getPtrTargetEffSelfType())); //new
 	return selfuvp;
       } //done
 
-    assert(!m_varSymbol->isAutoLocal()); //nodevarref, not here! t41656
-    assert(!m_varSymbol->isDataMember());
+    NODE_ASSERT(!m_varSymbol->isAutoLocal()); //nodevarref, not here! t41656
+    NODE_ASSERT(!m_varSymbol->isDataMember());
     UTI nuti = getNodeType();
     //local variable on the stack; could be array ptr!
     ptr = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, nuti, m_state.determinePackable(nuti), m_state, 0, m_varSymbol->getId());
@@ -1420,11 +1420,11 @@ namespace MFM {
   // parse tree in order declared, unlike the ST.
   void NodeVarDecl::genCode(File * fp, UVPass& uvpass)
   {
-    assert(m_varSymbol);
-    assert(m_state.isComplete(getNodeType()));
+    NODE_ASSERT(m_varSymbol);
+    NODE_ASSERT(m_state.isComplete(getNodeType()));
 
-    assert(!m_varSymbol->isDataMember()); //NodeVarDeclDM::genCode
-    assert(!m_varSymbol->isAutoLocal()); //NodeVarRef::genCode t41656
+    NODE_ASSERT(!m_varSymbol->isDataMember()); //NodeVarDeclDM::genCode
+    NODE_ASSERT(!m_varSymbol->isAutoLocal()); //NodeVarRef::genCode t41656
 
     UTI vuti = m_varSymbol->getUlamTypeIdx();
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
@@ -1437,7 +1437,7 @@ namespace MFM {
 	    //an immediate, with c-99 initialization (like NodeConstantDef)
 	    std::string estr;
 	    AssertBool gotVal = m_varSymbol->getClassValueAsHexString(estr);
-	    assert(gotVal);
+	    NODE_ASSERT(gotVal);
 
 	    u32 len = vut->getSizeofUlamType();
 	    m_state.indentUlamCode(fp);

@@ -77,7 +77,7 @@ namespace MFM {
 
   void NodeSimpleStatement::printPostfix(File * fp)
   {
-    assert(m_node); //e.g. bad decl
+    NODE_ASSERT(m_node); //e.g. bad decl
 
     if(m_node)
       m_node->printPostfix(fp);
@@ -97,7 +97,7 @@ namespace MFM {
 
   UTI NodeSimpleStatement::checkAndLabelType(Node * thisparentnode)
   {
-    assert(m_node);
+    NODE_ASSERT(m_node);
 
     m_node->checkAndLabelType(this); //side-effect
 
@@ -113,7 +113,7 @@ namespace MFM {
 
   EvalStatus NodeSimpleStatement::eval()
   {
-    assert(m_node);
+    NODE_ASSERT(m_node);
     evalNodeProlog(0);
     makeRoomForNodeType(m_node->getNodeType()); //t3136
     EvalStatus evs = m_node->eval();
@@ -124,7 +124,7 @@ namespace MFM {
 
   void NodeSimpleStatement::genCode(File * fp, UVPass& uvpass)
   {
-    assert(m_node);
+    NODE_ASSERT(m_node);
     UVPass uvpass2clear;
     uvpass = uvpass2clear; //nothing to pass along, simple statement
     m_node->genCode(fp, uvpass);

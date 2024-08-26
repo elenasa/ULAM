@@ -102,7 +102,7 @@ namespace MFM {
 
   void NodeStatements::printPostfix(File * fp)
   {
-    assert(m_node);    //e.g. bad decl
+    NODE_ASSERT(m_node);    //e.g. bad decl
 
     if(m_node)
       m_node->printPostfix(fp);
@@ -115,7 +115,7 @@ namespace MFM {
 
   void NodeStatements::noteTypeAndName(UTI cuti, s32 totalsize, u32& accumsize)
   {
-    assert(m_node);    //e.g. bad decl
+    NODE_ASSERT(m_node);    //e.g. bad decl
     m_node->noteTypeAndName(cuti, totalsize, accumsize);
 
     if(m_nodeNext)
@@ -124,7 +124,7 @@ namespace MFM {
 
   void NodeStatements::genTypeAndNameEntryAsComment(File * fp, s32 totalsize, u32& accumsize)
   {
-    assert(m_node);    //e.g. bad decl
+    NODE_ASSERT(m_node);    //e.g. bad decl
     m_node->genTypeAndNameEntryAsComment(fp, totalsize, accumsize);
 
     if(m_nodeNext)
@@ -178,7 +178,7 @@ namespace MFM {
 
   UTI NodeStatements::checkAndLabelType(Node * thisparentnode)
   {
-    assert(m_node);
+    NODE_ASSERT(m_node);
 
     //unlike statements, blocks don't have an m_node
     m_node->checkAndLabelType(this); //side-effect
@@ -221,7 +221,7 @@ namespace MFM {
 
   EvalStatus NodeStatements::eval()
   {
-    assert(m_node);
+    NODE_ASSERT(m_node);
     evalNodeProlog(0);
     makeRoomForNodeType(m_node->getNodeType()); //t3187
     EvalStatus evs = m_node->eval();

@@ -49,7 +49,7 @@ namespace MFM {
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     ULAMTYPE etyp = nut->getUlamTypeEnum();
-    //assert(etyp == m_etyp); //true? fails as constant value in hazy template (e.g. t41222)
+    //NODE_ASSERT(etyp == m_etyp); //true? fails as constant value in hazy template (e.g. t41222)
     if(etyp == Bool)
       fp->write((_Bool64ToCbool(m_constant.uval, nut->getBitSize()) ? "true" : "false"));
     else
@@ -67,7 +67,7 @@ namespace MFM {
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     s32 nbitsize = nut->getBitSize();
-    //assert(nbitsize >= 0); t3668 Hazy, e.g. for countNavHazyNodes..
+    //NODE_ASSERT(nbitsize >= 0); t3668 Hazy, e.g. for countNavHazyNodes..
     ULAMTYPE etyp = nut->getUlamTypeEnum();
     std::ostringstream num;
     switch(etyp)
@@ -244,9 +244,9 @@ namespace MFM {
   {
     UlamValue rtnUV; //init to Nav error case
     EvalStatus evs = NORMAL; //init ok
-    assert(m_state.isComplete(uti));
+    NODE_ASSERT(m_state.isComplete(uti));
     UlamType * ut = m_state.getUlamTypeByIndex(uti);
-    assert(ut->getBitSize() >= 0);
+    NODE_ASSERT(ut->getBitSize() >= 0);
 
     ULAMTYPE etyp = ut->getUlamTypeEnum();
     switch(etyp)
@@ -284,9 +284,9 @@ namespace MFM {
   {
     UlamValue rtnUV; //init to Nav error case
     EvalStatus evs = NORMAL; //init ok
-    assert(m_state.isComplete(uti));
+    NODE_ASSERT(m_state.isComplete(uti));
     UlamType * ut = m_state.getUlamTypeByIndex(uti);
-    assert(ut->getBitSize() >= 0);
+    NODE_ASSERT(ut->getBitSize() >= 0);
 
     ULAMTYPE etyp = ut->getUlamTypeEnum();
     switch(etyp)
@@ -403,7 +403,7 @@ namespace MFM {
     UTI nuti = getNodeType(); //constant type
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     s32 nbitsize = nut->getBitSize();
-    assert(nbitsize > 0);
+    NODE_ASSERT(nbitsize > 0);
 
     //convert forth and back, then compare.
     ULAMTYPE etyp = nut->getUlamTypeEnum();
@@ -468,7 +468,7 @@ namespace MFM {
     UTI nuti = getNodeType(); //constant type
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     s32 nbitsize = nut->getBitSize();
-    assert(nbitsize > 0);
+    NODE_ASSERT(nbitsize > 0);
 
     //convert forth and back, then compare.
     ULAMTYPE etyp = nut->getUlamTypeEnum();
@@ -559,7 +559,7 @@ namespace MFM {
       {
 	u32 wordsize = nut->getTotalWordSize();
 	s32 nbitsize = nut->getBitSize();
-	assert(nbitsize > 0);
+	NODE_ASSERT(nbitsize > 0);
 	if(wordsize <= MAXBITSPERINT)
 	  {
 	    s32 sval = _Int32ToCs32((u32) m_constant.uval, (u32) nbitsize);
@@ -634,7 +634,7 @@ namespace MFM {
     if(m_state.isAStringType(nuti))
       {
 	u32 sidx = (m_constant.uval & STRINGIDXMASK);
-	assert((sidx > 0));
+	NODE_ASSERT((sidx > 0));
 	//String, String array or array item (t3929, t3950)
 	fp->write_decimal_unsigned(sidx);
 	fp->write("u; //user string pool index for ");
@@ -702,7 +702,7 @@ namespace MFM {
       case TOK_SQUOTED_STRING:
 	{
 	  std::string numstr = m_state.getTokenDataAsString(tok);
-	  assert(numstr.length() == 1);
+	  NODE_ASSERT(numstr.length() == 1);
 	  m_constant.uval = (u8) numstr[0];
 	  rtnok = true;
 	}

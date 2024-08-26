@@ -28,7 +28,7 @@ namespace MFM {
   void NodeReturnStatement::updateLineage(NNO pno)
   {
     setYourParentNo(pno);
-    assert(m_node);
+    NODE_ASSERT(m_node);
     m_node->updateLineage(getNodeNo());
   }
 
@@ -46,7 +46,7 @@ namespace MFM {
   {
     if(Node::findNodeNo(n, foundNode))
       return true;
-    assert(m_node);
+    NODE_ASSERT(m_node);
     if(m_node->findNodeNo(n, foundNode))
       return true;
     return false;
@@ -54,7 +54,7 @@ namespace MFM {
 
   void NodeReturnStatement::checkAbstractInstanceErrors()
   {
-    assert(m_node);
+    NODE_ASSERT(m_node);
     m_node->checkAbstractInstanceErrors();
   }
 
@@ -71,7 +71,7 @@ namespace MFM {
       sprintf(id,"%s<%s>\n", prettyNodeName().c_str(), m_state.getUlamTypeNameByIndex(myut).c_str());
     fp->write(id);
 
-    assert(m_node);
+    NODE_ASSERT(m_node);
     m_node->print(fp);
 
     sprintf(id,"-----------------%s\n", prettyNodeName().c_str());
@@ -80,7 +80,7 @@ namespace MFM {
 
   void NodeReturnStatement::printPostfix(File * fp)
   {
-    assert(m_node);
+    NODE_ASSERT(m_node);
     m_node->printPostfix(fp);
     fp->write(" ");
     fp->write(getName());
@@ -99,7 +99,7 @@ namespace MFM {
   UTI NodeReturnStatement::checkAndLabelType(Node * thisparentnode)
   {
     UTI rtnType = m_state.m_currentFunctionReturnType;
-    assert(m_node); //a return without an expression (i.e. Void) is NodeStatementEmpty!
+    NODE_ASSERT(m_node); //a return without an expression (i.e. Void) is NodeStatementEmpty!
     UTI nodeType = m_node->checkAndLabelType(this);
 
     if(m_state.isComplete(nodeType) && m_state.isComplete(rtnType))
@@ -283,7 +283,7 @@ namespace MFM {
 
     if(evs != NORMAL)
       {
-	assert((evs != CONTINUE) && (evs != BREAK));
+	NODE_ASSERT((evs != CONTINUE) && (evs != BREAK));
 	return evalStatusReturn(evs);
       }
 
@@ -316,7 +316,7 @@ namespace MFM {
 
     if(!m_node) return evalStatusReturnNoEpilog(RETURN);
 
-    assert(m_state.getReferenceType(nuti) == ALT_REF);
+    NODE_ASSERT(m_state.getReferenceType(nuti) == ALT_REF);
 
     evalNodeProlog(0);
     makeRoomForNodeType(nuti);
@@ -325,13 +325,13 @@ namespace MFM {
 
     if(evs != NORMAL)
       {
-	assert((evs != CONTINUE) && (evs != BREAK));
+	NODE_ASSERT((evs != CONTINUE) && (evs != BREAK));
 	return evalStatusReturn(evs);
       }
 
     //should always return value as ptr to stack.
     UlamValue rtnUV = m_state.m_nodeEvalStack.popArg();
-    assert(rtnUV.isPtr());
+    NODE_ASSERT(rtnUV.isPtr());
 
     if(m_state.isLocalUnreturnableReferenceForEval(rtnUV))
       return evalStatusReturn(ERROR);
@@ -349,7 +349,7 @@ namespace MFM {
     if(m_state.getReferenceType(nuti) != ALT_REF)
       return true; //no problem
 
-    assert(m_node);
+    NODE_ASSERT(m_node);
 
     evalNodeProlog(0);
     makeRoomForNodeType(nuti);
@@ -358,16 +358,16 @@ namespace MFM {
 
     if(evs != NORMAL)
       {
-	assert((evs != CONTINUE) && (evs != BREAK));
+	NODE_ASSERT((evs != CONTINUE) && (evs != BREAK));
 	evalNodeEpilog();
 	//error msg!!
-	assert(0); //shouldn't get here!!!
+	NODE_ASSERT(0); //shouldn't get here!!!
 	return false;
       }
 
     //should always return value as ptr to stack.
     UlamValue rtnUV = m_state.m_nodeEvalStack.popArg();
-    assert(rtnUV.isPtr());
+    NODE_ASSERT(rtnUV.isPtr());
 
     evalNodeEpilog();
 
@@ -377,7 +377,7 @@ namespace MFM {
 
   void NodeReturnStatement::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
   {
-    assert(m_node);
+    NODE_ASSERT(m_node);
     m_node->calcMaxDepth(depth, maxdepth, base); //funccall?
     return; //work done by NodeStatements and NodeBlock
   }
@@ -387,7 +387,7 @@ namespace MFM {
     if(m_state.getReferenceType(getNodeType()) == ALT_REF)
       return genCodeToStoreInto(fp, uvpass); //t3630
 
-    assert(m_node); // return for Void type has a NodeStatementEmpty m_node
+    NODE_ASSERT(m_node); // return for Void type has a NodeStatementEmpty m_node
     UVPass rtnuvpass; //fresh uvpass, why not!
 
     m_node->genCode(fp, rtnuvpass); //C allows the side-effect for explicit Void casts (t3779)
@@ -413,11 +413,11 @@ namespace MFM {
 
   void NodeReturnStatement::genCodeToStoreInto(File * fp, UVPass& uvpass)
   {
-    assert(m_node); // return for Void type has a NodeStatementEmpty m_node
+    NODE_ASSERT(m_node); // return for Void type has a NodeStatementEmpty m_node
     UTI nuti = getNodeType();
     UVPass rtnuvpass; //fresh uvpass, why not!
 
-    assert(m_state.getReferenceType(nuti) == ALT_REF);
+    NODE_ASSERT(m_state.getReferenceType(nuti) == ALT_REF);
     m_node->genCodeToStoreInto(fp, rtnuvpass); //t3630
     uvpass = rtnuvpass;
 
@@ -453,7 +453,7 @@ namespace MFM {
 
 	  UVPass luvpass = UVPass::makePass(tmprefnum, TMPAUTOREF, nuti, m_state.determinePackable(nuti), m_state, 0, id);
 	  SymbolTmpVar * tmpvarsym = Node::makeTmpVarSymbolForCodeGen(luvpass, cossym);
-	  assert(tmpvarsym);
+	  NODE_ASSERT(tmpvarsym);
 
 	  Node::genCodeReferenceInitialization(fp, rtnuvpass, tmpvarsym);
 	  delete tmpvarsym;

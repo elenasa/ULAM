@@ -6,7 +6,7 @@ namespace MFM {
 
   NodeConstantClassArray::NodeConstantClassArray(const Token& tok, SymbolWithValue * symptr, NodeTypeDescriptor * typedesc, CompilerState & state) : Node(state), m_token(tok), m_nodeTypeDesc(typedesc), m_constSymbol(symptr), m_constType(Nouti), m_currBlockNo(0), m_currBlockPtr(NULL), m_tmpvarSymbol(NULL)
   {
-    assert(symptr);
+    NODE_ASSERT(symptr);
     setBlockNo(symptr->getBlockNoOfST());
     m_constType = m_constSymbol->getUlamTypeIdx();
   }
@@ -84,7 +84,7 @@ namespace MFM {
 
   bool NodeConstantClassArray::hasASymbolDataMember()
   {
-    assert(m_constSymbol);
+    NODE_ASSERT(m_constSymbol);
     return m_constSymbol->isDataMember();
   }
 
@@ -130,7 +130,7 @@ namespace MFM {
       it = checkUsedBeforeDeclared(); //m_constSymbol->getUlamTypeIdx();
     else if(astub)
       {
-	assert(m_state.okUTItoContinue(m_constType));
+	NODE_ASSERT(m_state.okUTItoContinue(m_constType));
 	setNodeType(m_constType); //t3565, t3640, t3641, t3642, t3652
 	//stub copy case: still wants uti mapping
 	it = m_constType;
@@ -184,7 +184,7 @@ namespace MFM {
     else
       {
 	NodeBlock * currBlock = getBlock();
-	assert(currBlock);
+	NODE_ASSERT(currBlock);
 	if(currBlock->isAClassBlock())
 	  {
 	    UTI cbuti = currBlock->getNodeType();
@@ -236,7 +236,7 @@ namespace MFM {
 
   UTI NodeConstantClassArray::checkUsedBeforeDeclared()
   {
-    assert(m_constSymbol);
+    NODE_ASSERT(m_constSymbol);
     UTI rtnuti = m_constSymbol->getUlamTypeIdx();
 
     if(!m_constSymbol->isDataMember() && !m_constSymbol->isLocalsFilescopeDef() && !m_constSymbol->isClassArgument() && !m_constSymbol->isClassParameter() && (m_constSymbol->getDeclNodeNo() > getNodeNo()))
@@ -265,7 +265,7 @@ namespace MFM {
 
   void NodeConstantClassArray::setBlockNo(NNO n)
   {
-    assert(n > 0);
+    NODE_ASSERT(n > 0);
     m_currBlockNo = n;
     m_currBlockPtr = NULL; //not owned, just clear
   }
@@ -282,7 +282,7 @@ namespace MFM {
 
   NodeBlock * NodeConstantClassArray::getBlock()
   {
-    assert(m_currBlockNo);
+    NODE_ASSERT(m_currBlockNo);
 
     if(m_currBlockPtr)
       return m_currBlockPtr;
@@ -299,7 +299,7 @@ namespace MFM {
 	if(anotherclassuti != Nouti)
 	  {
 	    currBlock = m_state.getAClassBlock(anotherclassuti);
-	    assert(currBlock);
+	    NODE_ASSERT(currBlock);
 	    if(currBlock->getNodeNo() != m_currBlockNo)
 	      currBlock = NULL;
 	  }
@@ -307,7 +307,7 @@ namespace MFM {
 	if(!currBlock)
 	  currBlock = m_state.findALocalsScopeByNodeNo(m_currBlockNo);
       }
-    assert(currBlock);
+    NODE_ASSERT(currBlock);
     return currBlock;
   }
 
@@ -336,7 +336,7 @@ namespace MFM {
     if((classtype == UC_TRANSIENT) && (nut->getBitSize() > MAXSTATEBITS))
       return evalStatusReturnNoEpilog(UNEVALUABLE);
 
-    assert(m_constSymbol);
+    NODE_ASSERT(m_constSymbol);
 
     if(((SymbolConstantValue *) m_constSymbol)->getConstantStackFrameAbsoluteSlotIndex() == 0)
       return evalStatusReturnNoEpilog(NOTREADY);
@@ -364,7 +364,7 @@ namespace MFM {
     if((classtype == UC_TRANSIENT) && (nut->getBitSize() > MAXSTATEBITS))
       return evalStatusReturnNoEpilog(UNEVALUABLE); //t41269, t41632
 
-    assert(m_constSymbol);
+    NODE_ASSERT(m_constSymbol);
 
     if(((SymbolConstantValue *) m_constSymbol)->getConstantStackFrameAbsoluteSlotIndex() == 0)
       return evalStatusReturnNoEpilog(NOTREADY);;
@@ -383,8 +383,8 @@ namespace MFM {
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
 
-    assert(m_constSymbol);
-    assert(((SymbolConstantValue *) m_constSymbol)->getConstantStackFrameAbsoluteSlotIndex() > 0);
+    NODE_ASSERT(m_constSymbol);
+    NODE_ASSERT(((SymbolConstantValue *) m_constSymbol)->getConstantStackFrameAbsoluteSlotIndex() > 0);
 
     UlamValue absptr = UlamValue::makePtr(((SymbolConstantValue *) m_constSymbol)->getConstantStackFrameAbsoluteSlotIndex(), CNSTSTACK, nuti, nut->getPackable(), m_state, 0, m_constSymbol->getId());
     absptr.setUlamValueTypeIdx(PtrAbs);
@@ -394,7 +394,7 @@ namespace MFM {
 
   void NodeConstantClassArray::genCode(File * fp, UVPass& uvpass)
   {
-    assert(isReadyConstant()); //must be
+    NODE_ASSERT(isReadyConstant()); //must be
 
     //return the ptr for an array; square bracket will resolve down to the immediate data
     makeUVPassForCodeGen(uvpass);
@@ -406,7 +406,7 @@ namespace MFM {
 
   void NodeConstantClassArray::genCodeToStoreInto(File * fp, UVPass& uvpass)
   {
-    assert(isReadyConstant()); //must be
+    NODE_ASSERT(isReadyConstant()); //must be
     makeUVPassForCodeGen(uvpass);
 
     //******UPDATED GLOBAL; no restore!!!**************************
@@ -415,7 +415,7 @@ namespace MFM {
 
   void NodeConstantClassArray::makeUVPassForCodeGen(UVPass& uvpass)
   {
-    assert(m_constSymbol);
+    NODE_ASSERT(m_constSymbol);
     s32 tmpnum = m_state.getNextTmpVarNumber();
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);

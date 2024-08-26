@@ -34,14 +34,14 @@ namespace MFM {
 
   bool NodeBinaryOpEqualArithPostDecr::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
   {
-    assert(slots);
+    NODE_ASSERT(slots);
     UTI nuti = getNodeType();
     if(m_state.isScalar(nuti)) //not an array
       {
 	UlamValue pluv = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(lslot); //a Ptr
-	assert(m_state.isPtr(pluv.getUlamValueTypeIdx()) && (UlamType::compare(pluv.getPtrTargetType(),nuti, m_state) == UTIC_SAME));
+	NODE_ASSERT(m_state.isPtr(pluv.getUlamValueTypeIdx()) && (UlamType::compare(pluv.getPtrTargetType(),nuti, m_state) == UTIC_SAME));
 
-	assert(slots == 1);
+	NODE_ASSERT(slots == 1);
 	UlamValue luv = m_state.getPtrTarget(pluv);  //no eval!!
 	if(doBinaryOperationImmediate(lslot, rslot, slots))
 	  {
@@ -152,15 +152,15 @@ namespace MFM {
 
   void NodeBinaryOpEqualArithPostDecr::genCode(File * fp, UVPass& uvpass)
   {
-    assert(m_nodeLeft && m_nodeRight);
-    assert(m_state.m_currentObjSymbolsForCodeGen.empty());
+    NODE_ASSERT(m_nodeLeft && m_nodeRight);
+    NODE_ASSERT(m_state.m_currentObjSymbolsForCodeGen.empty());
 
     // ==1 generate rhs first; may update current object globals (e.g. function call)
     UVPass ruvpass;
     m_nodeRight->genCode(fp, ruvpass);
 
     // restore current object globals
-    assert(m_state.m_currentObjSymbolsForCodeGen.empty());
+    NODE_ASSERT(m_state.m_currentObjSymbolsForCodeGen.empty());
 
     // lhs should be the new current object: node member select updates them,
     // but a plain NodeIdent does not!!!  because genCodeToStoreInto has been repurposed
@@ -200,7 +200,7 @@ namespace MFM {
     // current object globals should pertain to lhs for the write
     genCodeWriteFromATmpVar(fp, luvpass, postuvpass); //uses rhs' tmpvar; orig lhs
 
-    assert(m_state.m_currentObjSymbolsForCodeGen.empty());
+    NODE_ASSERT(m_state.m_currentObjSymbolsForCodeGen.empty());
   } //genCode
 
 } //end MFM

@@ -60,7 +60,7 @@ namespace MFM {
 
   void NodeQuestionColon::print(File * fp)
   {
-    assert(m_nodeCondition && m_nodeLeft && m_nodeRight);
+    NODE_ASSERT(m_nodeCondition && m_nodeLeft && m_nodeRight);
 
     printNodeLocation(fp);
     UTI myut = getNodeType();
@@ -84,7 +84,7 @@ namespace MFM {
 
   void NodeQuestionColon::printPostfix(File * fp)
   {
-    assert(m_nodeCondition && m_nodeLeft && m_nodeRight);
+    NODE_ASSERT(m_nodeCondition && m_nodeLeft && m_nodeRight);
     m_nodeCondition->printPostfix(fp);
 
     fp->write(" ? ");
@@ -221,7 +221,7 @@ namespace MFM {
 
   UTI NodeQuestionColon::checkAndLabelType(Node * thisparentnode)
   {
-    assert(m_nodeCondition && m_nodeLeft && m_nodeRight);
+    NODE_ASSERT(m_nodeCondition && m_nodeLeft && m_nodeRight);
 
     // condition should be a bool, safely cast
     UTI condType = m_nodeCondition->checkAndLabelType(this);
@@ -229,7 +229,7 @@ namespace MFM {
 
     if(m_state.okUTItoContinue(condType) && m_state.isComplete(condType))
       {
-	assert(m_state.isScalar(condType));
+	NODE_ASSERT(m_state.isScalar(condType));
 	UlamType * cut = m_state.getUlamTypeByIndex(condType);
 	ULAMTYPE ctypEnum = cut->getUlamTypeEnum();
 	if(ctypEnum != Bool)
@@ -305,7 +305,7 @@ namespace MFM {
 
   void NodeQuestionColon::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
   {
-    assert(m_nodeCondition && m_nodeLeft && m_nodeRight);
+    NODE_ASSERT(m_nodeCondition && m_nodeLeft && m_nodeRight);
     m_nodeCondition->calcMaxDepth(depth, maxdepth, base); //function call?
 
     u32 maxtrue = depth;
@@ -319,14 +319,14 @@ namespace MFM {
 
   void NodeQuestionColon::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
   {
-    assert(m_nodeCondition && m_nodeLeft && m_nodeRight);
+    NODE_ASSERT(m_nodeCondition && m_nodeLeft && m_nodeRight);
     m_nodeCondition->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
     return NodeBinaryOp::countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
   }
 
   UTI NodeQuestionColon::constantFold(Node * parentnode)
   {
-    assert(isAConstant()); //t41059, t41280
+    NODE_ASSERT(isAConstant()); //t41059, t41280
 
     bool condbool = false;
 
@@ -364,9 +364,9 @@ namespace MFM {
       }
 
     u32 pno = Node::getYourParentNo();
-    assert(pno);
-    assert(parentnode);
-    assert(parentnode->getNodeNo() == pno);
+    NODE_ASSERT(pno);
+    NODE_ASSERT(parentnode);
+    NODE_ASSERT(parentnode->getNodeNo() == pno);
 
     Node * newnode = NULL;
     if(condbool == false)
@@ -383,7 +383,7 @@ namespace MFM {
     newnode->updateLineage(pno);
 
     AssertBool isSwap = Node::exchangeNodeWithParent(newnode, parentnode);
-    assert(isSwap);
+    NODE_ASSERT(isSwap);
 
     m_state.setGoAgain();
 
@@ -394,7 +394,7 @@ namespace MFM {
 
   EvalStatus NodeQuestionColon::eval()
   {
-    assert(m_nodeCondition && m_nodeLeft && m_nodeRight);
+    NODE_ASSERT(m_nodeCondition && m_nodeLeft && m_nodeRight);
 
     UTI nuti = getNodeType();
     if(nuti == Nav) return evalErrorReturn();
@@ -467,7 +467,7 @@ namespace MFM {
 
     //should always return value as ptr to stack.
     UlamValue rtnUV = m_state.m_nodeEvalStack.loadUlamValueFromSlot(2);
-    assert(rtnUV.isPtr());
+    NODE_ASSERT(rtnUV.isPtr());
 
     //copy result UV to stack, -1 relative to current frame pointer
     Node::assignReturnValuePtrToStack(rtnUV);
@@ -478,7 +478,7 @@ namespace MFM {
 
   void NodeQuestionColon::genCode(File * fp, UVPass& uvpass)
   {
-    assert(m_nodeCondition && m_nodeLeft && m_nodeRight);
+    NODE_ASSERT(m_nodeCondition && m_nodeLeft && m_nodeRight);
 
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
@@ -526,7 +526,7 @@ namespace MFM {
 	//except when its a cast of a ref t41662, 20240330 ish
 	if(luvpass.getPassStorage() == TMPAUTOREF)
 	  {
-	    assert(m_nodeLeft->isACast()); //sanity
+	    NODE_ASSERT(m_nodeLeft->isACast()); //sanity
 	    fp->write(".read()");
 	  }
 	fp->write(";"); GCNL;
@@ -558,7 +558,7 @@ namespace MFM {
 	//except when its a cast of a ref t41662, 20240330 ish
 	if(ruvpass.getPassStorage() == TMPAUTOREF)
 	  {
-	    assert(m_nodeRight->isACast()); //sanity
+	    NODE_ASSERT(m_nodeRight->isACast()); //sanity
 	    fp->write(".read()");
 	  }
 	fp->write(";"); GCNL;
@@ -589,12 +589,12 @@ namespace MFM {
 	//else ok
       }
 
-    assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //************
+    NODE_ASSERT(m_state.m_currentObjSymbolsForCodeGen.empty()); //************
   } //genCode
 
   void NodeQuestionColon::genCodeToStoreInto(File * fp, UVPass& uvpass)
   {
-    assert(m_nodeCondition && m_nodeLeft && m_nodeRight);
+    NODE_ASSERT(m_nodeCondition && m_nodeLeft && m_nodeRight);
     UTI nuti = getNodeType();
     //pure virtual error when reference code used on non-ref (t41065)
 
@@ -673,7 +673,7 @@ namespace MFM {
     fp->write(");"); GCNL;
 
     uvpass = UVPass::makePass(tmpVarNum2, TMPAUTOREF, nuti, m_state.determinePackable(nuti), m_state, 0, 0);
-    assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //************
+    NODE_ASSERT(m_state.m_currentObjSymbolsForCodeGen.empty()); //************
   } //genCodeToStoreInto
 
   void NodeQuestionColon::genCodeConditionalExpression(File * fp, UVPass& uvpass)
@@ -692,7 +692,7 @@ namespace MFM {
     else
       {
 	//regular condition
-	assert(cut->getUlamTypeEnum() == Bool);
+	NODE_ASSERT(cut->getUlamTypeEnum() == Bool);
 	fp->write(((UlamTypePrimitiveBool *) cut)->getConvertToCboolMethod().c_str());
 	fp->write("(");
 	fp->write(uvpass.getTmpVarAsString(m_state).c_str());
@@ -708,7 +708,7 @@ namespace MFM {
     UTI nuti = getNodeType();
 
     //uses UlamRefMutable for refs (t41073), and casting to ref (t41071)
-    //assert(m_state.isReference(nuti));
+    //NODE_ASSERT(m_state.isReference(nuti));
     if(m_state.getReferenceType(nuti) != ALT_REF)
       nuti = m_state.getUlamTypeAsRef(nuti); //e.g. called by NodeCast t41071
 
@@ -748,7 +748,7 @@ namespace MFM {
 
 	      UVPass fuvpass = UVPass::makePass(tmprefnum, TMPAUTOREF, nuti, m_state.determinePackable(nuti), m_state, 0, id);
 	      SymbolTmpVar * tmpvarsym = Node::makeTmpVarSymbolForCodeGen(fuvpass, cossym);
-	      assert(tmpvarsym);
+	      NODE_ASSERT(tmpvarsym);
 
 	      Node::genCodeReferenceInitialization(fp, uvpass, tmpvarsym);
 	      delete tmpvarsym;

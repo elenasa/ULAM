@@ -71,25 +71,25 @@ namespace MFM {
 
   bool NodeMemberSelect::hasASymbol()
   {
-    assert(m_nodeRight);
+    NODE_ASSERT(m_nodeRight);
     return m_nodeRight->hasASymbol();
   }
 
   u32 NodeMemberSelect::getSymbolId()
   {
-    assert(m_nodeRight);
+    NODE_ASSERT(m_nodeRight);
     return m_nodeRight->getSymbolId();
   }
 
   bool NodeMemberSelect::hasAStorageSymbol()
   {
-    assert(m_nodeLeft);
+    NODE_ASSERT(m_nodeLeft);
     return m_nodeLeft->hasASymbol();
   }
 
   u32 NodeMemberSelect::getStorageSymbolId()
   {
-    assert(m_nodeLeft);
+    NODE_ASSERT(m_nodeLeft);
     return m_nodeLeft->getSymbolId();
   }
 
@@ -100,31 +100,31 @@ namespace MFM {
 
   bool NodeMemberSelect::hasASymbolSuper()
   {
-    assert(m_nodeLeft);
+    NODE_ASSERT(m_nodeLeft);
     return m_nodeLeft->hasASymbolSuper();
   }
 
   bool NodeMemberSelect::hasASymbolSelf()
   {
-    assert(m_nodeLeft);
+    NODE_ASSERT(m_nodeLeft);
     return m_nodeLeft->hasASymbolSelf();
   }
 
   bool NodeMemberSelect::hasASymbolReference()
   {
-    assert(m_nodeLeft);
+    NODE_ASSERT(m_nodeLeft);
     return m_nodeLeft->hasASymbolReference();
   }
 
   bool NodeMemberSelect::hasASymbolReferenceConstant()
   {
-    assert(hasASymbolReference());
+    NODE_ASSERT(hasASymbolReference());
     return m_nodeLeft->hasASymbolReferenceConstant();
   }
 
   bool NodeMemberSelect::belongsToVOWN(UTI vown)
   {
-    assert(m_nodeLeft && m_nodeRight);
+    NODE_ASSERT(m_nodeLeft && m_nodeRight);
     if(m_nodeLeft->hasASymbolSelf())
       return m_nodeRight->belongsToVOWN(vown); //determine
     return false;
@@ -142,7 +142,7 @@ namespace MFM {
 
   bool NodeMemberSelect::isAMemberSelectByRegNum()
   {
-    assert(isAMemberSelect());
+    NODE_ASSERT(isAMemberSelect());
     return false;
   }
 
@@ -170,7 +170,7 @@ namespace MFM {
 
   UTI NodeMemberSelect::checkAndLabelType(Node * thisparentnode)
   {
-    assert(m_nodeLeft && m_nodeRight);
+    NODE_ASSERT(m_nodeLeft && m_nodeRight);
     UTI nuti = getNodeType();
     UTI luti = m_nodeLeft->checkAndLabelType(this); //side-effect
 
@@ -257,7 +257,7 @@ namespace MFM {
       }
 
     NodeBlockClass * memberClassNode = csym->getClassBlockNode();
-    assert(memberClassNode);  //e.g. forgot the closing brace on quark definition
+    NODE_ASSERT(memberClassNode);  //e.g. forgot the closing brace on quark definition
 
     UTI leftblockuti = memberClassNode->getNodeType();
     if(!m_state.okUTItoContinue(leftblockuti))
@@ -320,10 +320,10 @@ namespace MFM {
     bool rtnok = false;
     //vs t41232, t41263
     //righthand member of constant class (t41273); left is complete, we know.
-    assert(m_nodeLeft->isAConstant());
+    NODE_ASSERT(m_nodeLeft->isAConstant());
     UTI leftType = m_nodeLeft->getNodeType();
-    assert(m_state.isAClass(leftType));
-    assert(m_state.isComplete(leftType));
+    NODE_ASSERT(m_state.isAClass(leftType));
+    NODE_ASSERT(m_state.isComplete(leftType));
     UlamType * lut = m_state.getUlamTypeByIndex(leftType);
     ULAMCLASSTYPE lclasstype = lut->getUlamClassType();
     UTI rightType = m_nodeRight->getNodeType();
@@ -331,11 +331,11 @@ namespace MFM {
 
     //rhs could be a class/array, primitive/array; whatever it is a constant!
     //replace rhs with a constant node version of it, using the value found in lhs.
-    assert(!m_nodeRight->isAList());
-    assert(!m_nodeRight->isFunctionCall());
+    NODE_ASSERT(!m_nodeRight->isAList());
+    NODE_ASSERT(!m_nodeRight->isFunctionCall());
     if(!m_nodeRight->isAConstant())
       {
-	assert(m_nodeRight->hasASymbolDataMember());
+	NODE_ASSERT(m_nodeRight->hasASymbolDataMember());
 	u32 rpos = m_nodeRight->getSymbolDataMemberPosOffset();
 	if(rpos == UNRELIABLEPOS)
 	  {
@@ -380,8 +380,8 @@ namespace MFM {
   u32 NodeMemberSelect::getPositionOf()
   {
     UTI leftType = m_nodeLeft->getNodeType();
-    assert(m_state.isAClass(leftType));
-    assert(m_state.isComplete(leftType));
+    NODE_ASSERT(m_state.isAClass(leftType));
+    NODE_ASSERT(m_state.isComplete(leftType));
 
     u32 lpos = m_nodeLeft->getPositionOf(); //t41619
 
@@ -398,10 +398,10 @@ namespace MFM {
 
     //rhs could be a class/array, primitive/array; whatever it is a constant!
     //replace rhs with a constant node version of it, using the value found in lhs.
-    assert(!m_nodeRight->isAList());
-    assert(!m_nodeRight->isFunctionCall());
+    NODE_ASSERT(!m_nodeRight->isAList());
+    NODE_ASSERT(!m_nodeRight->isFunctionCall());
 
-    assert(m_nodeRight->hasASymbolDataMember());
+    NODE_ASSERT(m_nodeRight->hasASymbolDataMember());
 
     m_state.pushClassOrLocalCurrentBlock(leftType);
 
@@ -500,7 +500,7 @@ namespace MFM {
 
   EvalStatus NodeMemberSelect::eval()
   {
-    assert(m_nodeLeft && m_nodeRight);
+    NODE_ASSERT(m_nodeLeft && m_nodeRight);
     UTI nuti = getNodeType();
     if(nuti == Nav) return evalErrorReturn();
 
@@ -528,9 +528,9 @@ namespace MFM {
     UTI newobjtype = newCurrentObjectPtr.getUlamValueTypeIdx();
     if(!m_state.isPtr(newobjtype))
       {
-	assert(m_nodeLeft->isFunctionCall()); //must be the result of a function call
+	NODE_ASSERT(m_nodeLeft->isFunctionCall()); //must be the result of a function call
 	// copy anonymous class to "uc" hidden slot in STACK, then replace with a pointer to it.
-	assert(m_state.isAClass(newobjtype));
+	NODE_ASSERT(m_state.isAClass(newobjtype));
 	newCurrentObjectPtr = assignAnonymousClassReturnValueToStack(newCurrentObjectPtr); //t3912
       }
 
@@ -567,7 +567,7 @@ namespace MFM {
   //for eval, want the value of the rhs
    bool NodeMemberSelect::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
   {
-    assert(slots);
+    NODE_ASSERT(slots);
 
     UlamValue rtnUV;
     UTI ruti = getNodeType();
@@ -624,9 +624,9 @@ namespace MFM {
     UTI newobjtype = newCurrentObjectPtr.getUlamValueTypeIdx();
     if(!m_state.isPtr(newobjtype))
       {
-	assert(m_nodeLeft->isFunctionCall());// must be the result of a function call;
+	NODE_ASSERT(m_nodeLeft->isFunctionCall());// must be the result of a function call;
 	// copy anonymous class to "uc" hidden slot in STACK, then replace with a pointer to it.
-	assert(m_state.isAClass(newobjtype));
+	NODE_ASSERT(m_state.isAClass(newobjtype));
 	newCurrentObjectPtr = assignAnonymousClassReturnValueToStack(newCurrentObjectPtr); //t3913
       }
 
@@ -643,7 +643,7 @@ namespace MFM {
       {
 	// must be the result of a function call;
 	// copy anonymous class to "uc" hidden slot in STACK, then replace with a pointer to it.
-	assert(m_state.isAClass(robjtype));
+	NODE_ASSERT(m_state.isAClass(robjtype));
 	ruvPtr = assignAnonymousClassReturnValueToStack(ruvPtr);
       }
 
@@ -674,7 +674,7 @@ namespace MFM {
 
   void NodeMemberSelect::genCode(File * fp, UVPass& uvpass)
   {
-    assert(m_nodeLeft && m_nodeRight);
+    NODE_ASSERT(m_nodeLeft && m_nodeRight);
 
     // if parent is another MS, we might need to adjust pos first;
     // elements can be data members of transients, etc. (t3968)
@@ -706,14 +706,14 @@ namespace MFM {
     m_nodeRight->genCode(fp, ruvpass);  //leave any array item as-is for gencode.
 
     uvpass = ruvpass;
-    assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************?
+    NODE_ASSERT(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************?
   } //genCode
 
   // presumably called by e.g. a binary op equal (lhs); caller saves
   // currentObjPass/Symbol, unlike genCode (rhs)
   void NodeMemberSelect::genCodeToStoreInto(File * fp, UVPass& uvpass)
   {
-    assert(m_nodeLeft && m_nodeRight);
+    NODE_ASSERT(m_nodeLeft && m_nodeRight);
 
     UVPass luvpass;
     if(passalongUVPass())
@@ -756,7 +756,7 @@ namespace MFM {
     // fail/t41035 returns a primitive ref; t3946, t3948
     if(m_nodeRight->isFunctionCall() && !m_state.isStringATmpVar(uvpass.getPassNameId()))
       {
-	assert(!m_tmpvarSymbol); //t41572 can't call func on cast
+	NODE_ASSERT(!m_tmpvarSymbol); //t41572 can't call func on cast
 	m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, NULL); //dm to avoid leaks
 	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
       }

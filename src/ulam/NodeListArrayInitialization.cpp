@@ -99,7 +99,7 @@ namespace MFM{
   void NodeListArrayInitialization::setClassType(UTI cuti) //from parent
   {
     //sets the array to all the same type, not for constant atom arrays.
-    assert(m_state.okUTItoContinue(cuti));
+    NODE_ASSERT(m_state.okUTItoContinue(cuti));
     if(m_state.okUTItoContinue(cuti) && m_state.isAClass(cuti))
       {
 	UTI scalaruti = m_state.getUlamTypeAsScalar(cuti);
@@ -178,7 +178,7 @@ namespace MFM{
 
   bool NodeListArrayInitialization::foldInitExpression(u32 n)
   {
-    assert(n < m_nodes.size()); //error/t3446
+    NODE_ASSERT(n < m_nodes.size()); //error/t3446
 
     UTI foldeduti = m_nodes[n]->constantFold(this); //c&l possibly redone
     ULAMTYPE etyp = m_state.getUlamTypeByIndex(foldeduti)->getUlamTypeEnum();
@@ -256,7 +256,7 @@ namespace MFM{
     EvalStatus evs = NORMAL;
     u32 nodessize = m_nodes.size();
     UTI itype = m_nodes[0]->getNodeType();
-    assert(m_state.okUTItoContinue(itype));
+    NODE_ASSERT(m_state.okUTItoContinue(itype));
 
     for(u32 i = 0; i < nodessize; i++)
       {
@@ -283,7 +283,7 @@ namespace MFM{
   bool NodeListArrayInitialization::buildArrayValueInitialization(BV8K& bvtmp)
   {
     UTI nuti = Node::getNodeType();
-    assert(m_state.okUTItoContinue(nuti));
+    NODE_ASSERT(m_state.okUTItoContinue(nuti));
     if(nuti == Void)
       {
 	setNodeType(Hzy);
@@ -310,7 +310,7 @@ namespace MFM{
       {
 	UlamType * nut = m_state.getUlamTypeByIndex(nuti);
 	s32 arraysize = nut->getArraySize();
-	assert(arraysize >= 0); //t3847
+	NODE_ASSERT(arraysize >= 0); //t3847
 
 	if(n < (u32) arraysize)
 	  {
@@ -375,7 +375,7 @@ namespace MFM{
   bool NodeListArrayInitialization::buildClassArrayValueInitialization(BV8K& bvtmp)
   {
     UTI nuti = Node::getNodeType();
-    assert(m_state.okUTItoContinue(nuti));
+    NODE_ASSERT(m_state.okUTItoContinue(nuti));
     if(nuti == Void)
       {
 	setNodeType(Hzy);
@@ -385,7 +385,7 @@ namespace MFM{
 
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     s32 arraysize = nut->getArraySize();
-    assert(arraysize >= 0); //t3847
+    NODE_ASSERT(arraysize >= 0); //t3847
 
     bool rtnok = true;
     u32 n = m_nodes.size();
@@ -417,7 +417,7 @@ namespace MFM{
 
   bool NodeListArrayInitialization::buildClassArrayItemInitialValue(u32 n, u32 pos, BV8K& bvtmp)
   {
-    assert((m_nodes.size() > n) && (m_nodes[n] != NULL));
+    NODE_ASSERT((m_nodes.size() > n) && (m_nodes[n] != NULL));
     bool rtnb = false;
     UTI nuti = Node::getNodeType();
     UTI scalaruti = m_state.getUlamTypeAsScalar(nuti);
@@ -465,10 +465,10 @@ namespace MFM{
   void NodeListArrayInitialization::genCode(File * fp, UVPass& uvpass)
   {
     UTI nuti = Node::getNodeType();
-    assert(!m_state.isScalar(nuti));
-    assert(m_nodes.size() > 0 && (m_nodes[0] != NULL));
+    NODE_ASSERT(!m_state.isScalar(nuti));
+    NODE_ASSERT(m_nodes.size() > 0 && (m_nodes[0] != NULL));
 
-    assert(isAConstant() || !(m_nodes[0]->isClassInit())); //genCodeClassInitArray called instead for dm (t41170); continue for immediate constant class arrays (t41638,9)
+    NODE_ASSERT(isAConstant() || !(m_nodes[0]->isClassInit())); //genCodeClassInitArray called instead for dm (t41170); continue for immediate constant class arrays (t41638,9)
 
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
 
@@ -477,13 +477,13 @@ namespace MFM{
     // need parent (NodeVarDecl/NodeConstantDef) to get initialized value (BV8K)
     NNO pno = Node::getYourParentNo();
     Node * parentNode = m_state.findNodeNoInThisClassOrLocalsScope(pno); //also checks localsfilescope
-    assert(parentNode);
+    NODE_ASSERT(parentNode);
 
-    assert(parentNode->hasASymbol()); //t3250, t3882
+    NODE_ASSERT(parentNode->hasASymbol()); //t3250, t3882
 
     BV8K dval;
     AssertBool aok = parentNode->getSymbolValue(dval); //t3250..
-    assert(aok);
+    NODE_ASSERT(aok);
 
     //bool isString = m_state.isAStringType(nuti);
     s32 tmpvarnum = m_state.getNextTmpVarNumber();
@@ -600,7 +600,7 @@ namespace MFM{
       }
 
     s32 sarraysize = m_state.getArraySize(nuti);
-    assert(sarraysize >= 0); //t3847
+    NODE_ASSERT(sarraysize >= 0); //t3847
     u32 arraysize = (u32) sarraysize;
     if(n < arraysize)
       {
@@ -614,12 +614,12 @@ namespace MFM{
   {
     //inefficiently, each item must be done separately, in case of Strings.
     //if fewer nodes than arraysize, last one is repeated
-    assert(useitem < m_nodes.size());
-    assert(m_nodes[useitem]->isClassInit());
+    NODE_ASSERT(useitem < m_nodes.size());
+    NODE_ASSERT(m_nodes[useitem]->isClassInit());
 
     UTI nuti = Node::getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    assert(!nut->isScalar());
+    NODE_ASSERT(!nut->isScalar());
     u32 itemlen = nut->getBitSize();
     ULAMCLASSTYPE classtype = nut->getUlamClassType();
 
@@ -652,8 +652,8 @@ namespace MFM{
     UTI scalaruti = m_state.getUlamTypeAsScalar(nuti);
 
     u32 n = m_nodes.size();
-    assert(n > 0);
-    assert(m_nodes[0]->isClassInit()); //what if class constant?
+    NODE_ASSERT(n > 0);
+    NODE_ASSERT(m_nodes[0]->isClassInit()); //what if class constant?
     u32 itemlen = m_state.getUlamTypeByIndex(scalaruti)->getSizeofUlamType(); //atom-based for element as data member
 
     bool rtnok = true;
@@ -674,7 +674,7 @@ namespace MFM{
     if(rtnok)
       {
 	s32 sarraysize = m_state.getArraySize(nuti);
-	assert(sarraysize >= 0);
+	NODE_ASSERT(sarraysize >= 0);
 	u32 arraysize = (u32) sarraysize;
 	if(n < arraysize)
 	  {

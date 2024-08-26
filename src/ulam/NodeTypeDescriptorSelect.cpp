@@ -98,7 +98,7 @@ namespace MFM {
       }
 
     // we are in a "chain" of type selects..
-    assert(m_nodeSelect);
+    NODE_ASSERT(m_nodeSelect);
 
     UTI seluti = m_nodeSelect->checkAndLabelType(this);
     if(m_nodeSelect->isReadyType())
@@ -196,7 +196,7 @@ namespace MFM {
 	else if(seletyp == LocalsFileScope)
 	  {
 	    NodeBlockLocals * lblock = m_state.getLocalsScopeBlockByIndex(seluti); //t41528
-	    assert(lblock);
+	    NODE_ASSERT(lblock);
 
 	    Symbol * ltdsymptr = NULL;
 	    if(lblock->isIdInScope(tokid, ltdsymptr))
@@ -253,7 +253,7 @@ namespace MFM {
 		  }
 		else
 		  {
-		    assert(!cnsym->isClassTemplate());
+		    NODE_ASSERT(!cnsym->isClassTemplate());
 		    rtnuti = cnsym->getUlamTypeIdx();
 		    rtnb = true;
 		  }

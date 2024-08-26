@@ -94,7 +94,7 @@ namespace MFM {
 
   UTI NodeBinaryOpEqual::checkAndLabelType(Node * thisparentnode)
   {
-    assert(m_nodeLeft && m_nodeRight);
+    NODE_ASSERT(m_nodeLeft && m_nodeRight);
 
     UTI leftType = m_nodeLeft->checkAndLabelType(this);
     UTI rightType = m_nodeRight->checkAndLabelType(this);
@@ -251,7 +251,7 @@ namespace MFM {
 	else if(newnode)
 	  {
 	    AssertBool swapOk = Node::exchangeNodeWithParent(newnode, parentnode);
-	    assert(swapOk);
+	    NODE_ASSERT(swapOk);
 
 	    m_nodeLeft = NULL; //recycle as memberselect
 	    m_nodeRight = NULL; //recycle as func call arg
@@ -270,7 +270,7 @@ namespace MFM {
     UTI leftType = m_nodeLeft->getNodeType();
     Token identTok;
     TokenType opTokType = Token::getTokenTypeFromString(getName());
-    assert(opTokType != TOK_LAST_ONE);
+    NODE_ASSERT(opTokType != TOK_LAST_ONE);
     Token opTok(opTokType, getNodeLocation(), 0);
     u32 opolId = Token::getOperatorOverloadFullNameId(opTok, &m_state);
     if(opolId == 0)
@@ -309,13 +309,13 @@ namespace MFM {
 	    // ambiguous (>1) overload will produce an error later
 	    //fill in func symbol during type labeling;
 	    NodeFunctionCall * fcallNode = new NodeFunctionCall(identTok, NULL, m_state);
-	    assert(fcallNode);
+	    NODE_ASSERT(fcallNode);
 	    fcallNode->setNodeLocation(identTok.m_locator);
 
 	    fcallNode->addArgument(m_nodeRight);
 
 	    NodeMemberSelect * mselectNode = new NodeMemberSelect(m_nodeLeft, fcallNode, m_state);
-	    assert(mselectNode);
+	    NODE_ASSERT(mselectNode);
 	    mselectNode->setNodeLocation(identTok.m_locator);
 	    rtnNode = mselectNode;
 	  }//else use default struct equal, or wait for hazy arg
@@ -391,7 +391,7 @@ namespace MFM {
 
   EvalStatus NodeBinaryOpEqual::eval()
   {
-    assert(m_nodeLeft && m_nodeRight);
+    NODE_ASSERT(m_nodeLeft && m_nodeRight);
 
     UTI nuti = getNodeType();
     if(nuti == Nav) return evalErrorReturn();
@@ -442,7 +442,7 @@ namespace MFM {
 
   bool NodeBinaryOpEqual::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
   {
-    assert(slots);
+    NODE_ASSERT(slots);
     UTI nuti = getNodeType();
     UlamValue pluv = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(lslot);
     UlamValue ruv;
@@ -501,7 +501,7 @@ namespace MFM {
 	if(ruv.isPtr())
 	  {
 	    ruv = m_state.getPtrTarget(ruv);  //t41600, t3704 not a class.
-	    assert(!ruv.isPtr());
+	    NODE_ASSERT(!ruv.isPtr());
 	  }
 
 	if(bitsize <= MAXBITSPERLONG)
@@ -575,15 +575,15 @@ namespace MFM {
 
   bool NodeBinaryOpEqual::doBinaryOperationImmediate(s32 lslot, s32 rslot, u32 slots)
   {
-    assert(slots == 1);
+    NODE_ASSERT(slots == 1);
     UTI nuti = getNodeType();
     u32 len = m_state.getTotalBitSize(nuti);
 
     // 'pluv' is where the resulting sum needs to be stored
     UlamValue pluv = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(lslot); //a Ptr
-    assert(m_state.isPtr(pluv.getUlamValueTypeIdx()) && (UlamType::compare(pluv.getPtrTargetType(),nuti, m_state) == UTIC_SAME));
+    NODE_ASSERT(m_state.isPtr(pluv.getUlamValueTypeIdx()) && (UlamType::compare(pluv.getPtrTargetType(),nuti, m_state) == UTIC_SAME));
 
-    assert(slots == 1);
+    NODE_ASSERT(slots == 1);
     UlamValue luv = m_state.getPtrTarget(pluv);  //no eval!!
     UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(rslot); //immediate value
 
@@ -640,7 +640,7 @@ namespace MFM {
 
     // 'pluv' is where the resulting sum needs to be stored
     UlamValue pluv = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(lslot); //a Ptr
-    assert(m_state.isPtr(pluv.getUlamValueTypeIdx()) && (UlamType::compare(pluv.getPtrTargetType(), nuti, m_state) == UTIC_SAME));
+    NODE_ASSERT(m_state.isPtr(pluv.getUlamValueTypeIdx()) && (UlamType::compare(pluv.getPtrTargetType(), nuti, m_state) == UTIC_SAME));
 
     // point to base array slots, packedness determines its 'pos'
     UlamValue lArrayPtr = pluv;
@@ -682,9 +682,9 @@ namespace MFM {
 	  }
 
 	AssertBool isNextLeft = lp.incrementPtr(m_state);
-	assert(isNextLeft);
+	NODE_ASSERT(isNextLeft);
 	AssertBool isNextRight = rp.incrementPtr(m_state);
-	assert(isNextRight);
+	NODE_ASSERT(isNextRight);
       } //forloop
 
     if(navCount > 0)
@@ -720,15 +720,15 @@ namespace MFM {
 
   void NodeBinaryOpEqual::genCode(File * fp, UVPass& uvpass)
   {
-    assert(m_nodeLeft && m_nodeRight);
-    assert(m_state.m_currentObjSymbolsForCodeGen.empty());
+    NODE_ASSERT(m_nodeLeft && m_nodeRight);
+    NODE_ASSERT(m_state.m_currentObjSymbolsForCodeGen.empty());
 
     // generate rhs first; may update current object globals (e.g. function call)
     UVPass ruvpass;
     m_nodeRight->genCode(fp, ruvpass);
 
     // restore current object globals
-    assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
+    NODE_ASSERT(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
 
     // lhs should be the new current object: node member select updates them,
     // but a plain NodeIdent does not!!!  because genCodeToStoreInto has been repurposed
@@ -741,7 +741,7 @@ namespace MFM {
 
     uvpass = ruvpass; //in case we're the rhs of an equals..
 
-    assert(m_state.m_currentObjSymbolsForCodeGen.empty());
+    NODE_ASSERT(m_state.m_currentObjSymbolsForCodeGen.empty());
   } //genCode
 
 } //end MFM

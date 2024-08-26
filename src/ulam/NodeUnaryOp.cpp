@@ -103,7 +103,7 @@ namespace MFM {
 
   bool NodeUnaryOp::isAConstant()
   {
-    assert(m_node);
+    NODE_ASSERT(m_node);
     return m_node->isAConstant();
   }
 
@@ -120,7 +120,7 @@ namespace MFM {
 
   UTI NodeUnaryOp::checkAndLabelType(Node * thisparentnode)
   {
-    assert(m_node);
+    NODE_ASSERT(m_node);
     UTI uti = m_node->checkAndLabelType(this);
 
     if(m_state.isComplete(uti) && !m_state.isScalar(uti)) //array unsupported at this time
@@ -145,7 +145,7 @@ namespace MFM {
 	if(newnode)
 	  {
 	    AssertBool swapOk = Node::exchangeNodeWithParent(newnode, thisparentnode);
-	    assert(swapOk);
+	    NODE_ASSERT(swapOk);
 
 	    m_node = NULL; //recycle as memberselect
 
@@ -229,7 +229,7 @@ namespace MFM {
   s32 NodeUnaryOp::resultBitsize(UTI uti)
   {
     s32 newbs = m_state.getBitSize(uti);
-    assert(m_state.okUTItoContinue(uti));
+    NODE_ASSERT(m_state.okUTItoContinue(uti));
     ULAMCLASSTYPE ct = m_state.getUlamTypeByIndex(uti)->getUlamClassType();
 
     if(ct == UC_QUARK)
@@ -297,15 +297,15 @@ namespace MFM {
     u64 val = U64_MAX;
     UTI nuti = getNodeType();
 
-    assert(m_state.okUTItoContinue(nuti)); //nothing to do yet
+    NODE_ASSERT(m_state.okUTItoContinue(nuti)); //nothing to do yet
 
     // if here, must be a constant..
-    assert(isAConstant());
+    NODE_ASSERT(isAConstant());
 
     NNO pno = Node::getYourParentNo();
-    assert(pno);
-    assert(parentnode);
-    assert(pno == parentnode->getNodeNo());
+    NODE_ASSERT(pno);
+    NODE_ASSERT(parentnode);
+    NODE_ASSERT(pno == parentnode->getNodeNo());
 
     evalNodeProlog(0); //new current frame pointer
     makeRoomForNodeType(nuti); //offset a constant expression
@@ -347,11 +347,11 @@ namespace MFM {
 
     //replace ourselves (and kids) with a node terminal; new NNO unlike template's
     NodeTerminal * newnode = new NodeTerminal(val, nuti, m_state);
-    assert(newnode);
+    NODE_ASSERT(newnode);
     newnode->setNodeLocation(getNodeLocation());
 
     AssertBool swapOk = parentnode->exchangeKids(this, newnode);
-    assert(swapOk);
+    NODE_ASSERT(swapOk);
 
     std::ostringstream msg;
     msg << "Exchanged kids! for unary " << getName();
@@ -371,7 +371,7 @@ namespace MFM {
 
   EvalStatus NodeUnaryOp::eval()
   {
-    assert(m_node);
+    NODE_ASSERT(m_node);
 
     UTI nuti = getNodeType();
     if(nuti == Nav) return evalErrorReturn();
@@ -411,7 +411,7 @@ namespace MFM {
 
   bool NodeUnaryOp::doUnaryOperationImmediate(s32 slot, u32 nslots)
   {
-    assert(nslots == 1);
+    NODE_ASSERT(nslots == 1);
     UTI nuti = getNodeType();
     u32 len = m_state.getTotalBitSize(nuti);
 
@@ -444,14 +444,14 @@ namespace MFM {
 
   void NodeUnaryOp::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
   {
-    assert(m_node);
+    NODE_ASSERT(m_node);
     m_node->calcMaxDepth(depth, maxdepth, base); //funccall?
     return; //work done by NodeStatements and NodeBlock
   }
 
   void NodeUnaryOp::genCode(File * fp, UVPass& uvpass)
   {
-    assert(m_node);
+    NODE_ASSERT(m_node);
     m_node->genCode(fp, uvpass);
 
     UTI nuti = getNodeType();

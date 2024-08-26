@@ -40,7 +40,7 @@ namespace MFM {
   {
     //dup of NodeBlockLocals for now
     UTI savnuti = getNodeType();
-    assert(savnuti != Nouti);
+    NODE_ASSERT(savnuti != Nouti);
 
     //possibly empty
     if(m_nodeNext)
@@ -109,7 +109,7 @@ namespace MFM {
 	UlamKeyTypeSignature key = *it;
 	UlamType * ut = NULL;
 	AssertBool isDef = m_state.isDefined(key, ut);
-	assert(isDef);
+	NODE_ASSERT(isDef);
 	if(ut->getUlamTypeEnum() == Class)
 	  {
 	    u32 cuti = key.getUlamKeyTypeSignatureClassInstanceIdx();
@@ -137,7 +137,7 @@ namespace MFM {
 	UlamKeyTypeSignature key = *it;
 	UlamType * ut = NULL;
 	AssertBool isDef = m_state.isDefined(key, ut);
-	assert(isDef);
+	NODE_ASSERT(isDef);
 	//e.g. skip constants, include atom, references done automatically
 	if(ut->needsImmediateType() && (ut->getUlamClassType() == UC_NOTACLASS))
 	  {
@@ -154,7 +154,7 @@ namespace MFM {
 	UlamKeyTypeSignature key = *it;
 	UlamType * ut = NULL;
 	AssertBool isDef = m_state.isDefined(key, ut);
-	assert(isDef);
+	NODE_ASSERT(isDef);
 	if(ut->needsImmediateType() && (ut->getUlamClassType() != UC_NOTACLASS))
 	  {
 	    ut->genUlamTypeMangledAutoDefinitionForC(fp); //references

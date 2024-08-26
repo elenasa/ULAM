@@ -35,7 +35,7 @@ namespace MFM {
 
   EvalStatus  NodeControlWhile::eval()
   {
-    assert(m_nodeCondition && m_nodeBody);
+    NODE_ASSERT(m_nodeCondition && m_nodeBody);
     UTI nuti = getNodeType();
     if(nuti == Nav) return evalErrorReturn();
 
@@ -58,7 +58,7 @@ namespace MFM {
 	else if((evs == RETURN) || (evs == ERROR) || (evs == UNEVALUABLE))
 	  return evalStatusReturn(evs);
 
-	assert((evs == NORMAL) || (evs == CONTINUE));
+	NODE_ASSERT((evs == NORMAL) || (evs == CONTINUE));
 
 	//continue continues as normal
 	m_state.m_nodeEvalStack.popArgs(slots);
@@ -80,7 +80,7 @@ namespace MFM {
 
   void NodeControlWhile::genCode(File * fp, UVPass& uvpass)
   {
-    assert(m_nodeCondition && m_nodeBody);
+    NODE_ASSERT(m_nodeCondition && m_nodeBody);
 
     //while true..
     m_state.indentUlamCode(fp);
@@ -108,7 +108,7 @@ namespace MFM {
       }
     else
       {
-	assert(cut->getUlamTypeEnum() == Bool);
+	NODE_ASSERT(cut->getUlamTypeEnum() == Bool);
 	fp->write(((UlamTypePrimitiveBool *) cut)->getConvertToCboolMethod().c_str());
 	fp->write("(");
 	fp->write(uvpass.getTmpVarAsString(m_state).c_str());

@@ -17,7 +17,7 @@ namespace MFM {
 
   void NodeBlockLocals::updateLineage(NNO pno)
   {
-    assert(getPreviousBlockPointer() == NULL);
+    NODE_ASSERT(getPreviousBlockPointer() == NULL);
 
     setYourParentNo(pno);
     //has no m_node
@@ -165,7 +165,7 @@ namespace MFM {
 	  {
 	    u32 n = m_state.assignClassId(luti);
 	    AssertBool rnset = assignRegistrationNumberToLocalsBlock(n);
-	    assert(rnset);
+	    NODE_ASSERT(rnset);
 	  }
       }
     return m_registryNumberLocalsSafe;

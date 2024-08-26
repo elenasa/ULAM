@@ -102,7 +102,7 @@ namespace MFM {
 	      getatomtypeuv.getUlamValueTypeIdx();
 	  }
 
-	assert(atomtype != Nouti); //sanity
+	NODE_ASSERT(atomtype != Nouti); //sanity
 	if(!m_state.isAtom(atomtype))
 	  {
 	    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(atomtype)->getUlamClassType();
@@ -123,7 +123,7 @@ namespace MFM {
       {
 	u64 dq = 0;
 	AssertBool isDefinedQuark = m_state.getDefaultQuark(auti, dq); //returns scalar dq
-	assert(isDefinedQuark);
+	NODE_ASSERT(isDefinedQuark);
 	atomuv = UlamValue::makeImmediateLongClass(auti, dq, aut->getTotalBitSize());
       }
     else if(aclasstype == UC_TRANSIENT)
@@ -139,7 +139,7 @@ namespace MFM {
     ptr = UlamValue::makePtr(atop, STACK, auti, m_state.determinePackable(auti), m_state, 0);
     if(m_state.isAtom(auti))
       {
-	assert(!m_state.isPtr(atomuv.getUlamValueTypeIdx())); //sanity
+	NODE_ASSERT(!m_state.isPtr(atomuv.getUlamValueTypeIdx())); //sanity
 	UTI atomuveffself = atomuv.getUlamValueEffSelfTypeIdx();
 	ptr.setPtrTargetEffSelfType(atomuveffself, m_state); //t3747
       }
@@ -173,7 +173,7 @@ namespace MFM {
     if(m_nodeOf)
       {
 	m_nodeOf->genCodeToStoreInto(fp, uvpass);
-	assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
+	NODE_ASSERT(!m_state.m_currentObjSymbolsForCodeGen.empty());
 	cos = m_state.m_currentObjSymbolsForCodeGen.back();
 	UTI cosuti = cos->getUlamTypeIdx();
 	stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
@@ -265,7 +265,7 @@ namespace MFM {
   void NodeInstanceof::genCodeToStoreInto(File * fp, UVPass& uvpass)
   {
     //lhs
-    //assert(getStoreIntoAble() == TBOOL_TRUE); //not so..why not? (t41503) constantof defaultvalue
+    //NODE_ASSERT(getStoreIntoAble() == TBOOL_TRUE); //not so..why not? (t41503) constantof defaultvalue
     genCode(fp, uvpass); //t41085
 
     //tmp variable becomes the object of the constructor call (t41085)

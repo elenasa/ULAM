@@ -12,7 +12,7 @@ namespace MFM {
   UTI NodeBinaryOpEqualArith::checkAndLabelType(Node * thisparentnode)
   {
     //copied from NodeBinaryOpEqual::checkandlabeltype..
-    assert(m_nodeLeft && m_nodeRight);
+    NODE_ASSERT(m_nodeLeft && m_nodeRight);
 
     UTI leftType = m_nodeLeft->checkAndLabelType(this);
     UTI rightType = m_nodeRight->checkAndLabelType(this);
@@ -175,7 +175,7 @@ namespace MFM {
 
   bool NodeBinaryOpEqualArith::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
   {
-    assert(slots);
+    NODE_ASSERT(slots);
     if(m_state.isScalar(getNodeType()))  //not an array
       {
 	return doBinaryOperationImmediate(lslot, rslot, slots);
@@ -189,15 +189,15 @@ namespace MFM {
 
   void NodeBinaryOpEqualArith::genCode(File * fp, UVPass& uvpass)
   {
-    assert(m_nodeLeft && m_nodeRight);
-    assert(m_state.m_currentObjSymbolsForCodeGen.empty());
+    NODE_ASSERT(m_nodeLeft && m_nodeRight);
+    NODE_ASSERT(m_state.m_currentObjSymbolsForCodeGen.empty());
 
     // generate rhs first; may update current object globals (e.g. function call)
     UVPass ruvpass;
     m_nodeRight->genCode(fp, ruvpass);
 
     // restore current object globals
-    assert(m_state.m_currentObjSymbolsForCodeGen.empty());
+    NODE_ASSERT(m_state.m_currentObjSymbolsForCodeGen.empty());
 
     // lhs should be the new current object: node member select updates them,
     // but a plain NodeIdent does not!!!  because genCodeToStoreInto has been repurposed
@@ -237,7 +237,7 @@ namespace MFM {
     // current object globals should pertain to lhs for the write
     genCodeWriteFromATmpVar(fp, luvpass, uvpass); //uses rhs' tmpvar; orig lhs
 
-    assert(m_state.m_currentObjSymbolsForCodeGen.empty());
+    NODE_ASSERT(m_state.m_currentObjSymbolsForCodeGen.empty());
   } //genCode
 
 } //end MFM

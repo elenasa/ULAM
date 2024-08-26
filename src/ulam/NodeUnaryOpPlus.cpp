@@ -54,13 +54,13 @@ namespace MFM {
 
   void NodeUnaryOpPlus::genCode(File * fp, UVPass& uvpass)
   {
-    assert(m_node);
+    NODE_ASSERT(m_node);
     m_node->genCode(fp, uvpass); //essentially a no-op
   } //genCode
 
   void NodeUnaryOpPlus::genCodeToStoreInto(File * fp, UVPass& uvpass)
   {
-    assert(m_node);
+    NODE_ASSERT(m_node);
     m_node->genCodeToStoreInto(fp, uvpass); //essentially a no-op ?
   } //genCodeToStoreInto
 

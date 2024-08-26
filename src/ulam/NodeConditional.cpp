@@ -7,8 +7,8 @@ namespace MFM {
 
   NodeConditional::NodeConditional(Node * leftNode, NodeTypeDescriptor * classType, CompilerState & state): Node(state), m_nodeLeft(leftNode), m_nodeTypeDesc(classType)
   {
-    assert(m_nodeLeft);
-    assert(m_nodeTypeDesc);
+    NODE_ASSERT(m_nodeLeft);
+    NODE_ASSERT(m_nodeTypeDesc);
   }
 
   NodeConditional::NodeConditional(const NodeConditional& ref) : Node(ref)
@@ -75,7 +75,7 @@ namespace MFM {
     fp->write(id);
 
     fp->write("conditional:\n");
-    assert(m_nodeLeft);
+    NODE_ASSERT(m_nodeLeft);
     m_nodeLeft->print(fp);
 
     sprintf(id," %s ", getName());
@@ -89,7 +89,7 @@ namespace MFM {
   {
     UTI ruti = getRightType();
 
-    assert(m_nodeLeft);
+    NODE_ASSERT(m_nodeLeft);
     m_nodeLeft->printPostfix(fp);
 
     fp->write(" ");

@@ -14,7 +14,7 @@ namespace MFM {
   NodeFunctionCall::NodeFunctionCall(const Token& tok, SymbolFunction * fsym, CompilerState & state) : Node(state), m_functionNameTok(tok), m_funcSymbol(fsym), m_argumentNodes(NULL), m_tmpvarSymbol(NULL), m_useEffSelfForEval(false)
   {
     m_argumentNodes = new NodeList(state);
-    assert(m_argumentNodes);
+    NODE_ASSERT(m_argumentNodes);
     m_argumentNodes->setNodeLocation(tok.m_locator); //same as func call
   }
 
@@ -109,7 +109,7 @@ namespace MFM {
     if(m_state.useMemberBlock())
       {
 	NodeBlockClass * memberblock = m_state.getCurrentMemberClassBlock();
-	assert(memberblock);
+	NODE_ASSERT(memberblock);
 	cuti = memberblock->getNodeType();
       }
 
@@ -160,7 +160,7 @@ namespace MFM {
 	u32 numFuncs = m_state.findMatchingFunctionWithSafeCastsInAClassScopeOrAncestor(cuti, funcid, argNodes, funcSymbol, hasHazyArgs, foundInAncestor);
 	if(numFuncs == 0)
 	  {
-	    assert(foundInAncestor == Nouti); //sanity
+	    NODE_ASSERT(foundInAncestor == Nouti); //sanity
 	    std::ostringstream msg;
 
 	    if(m_functionNameTok.m_type == TOK_KW_TYPE_SELF)
@@ -196,7 +196,7 @@ namespace MFM {
 	  }
 	else if(numFuncs > 1)
 	  {
-	    assert(foundInAncestor == Nav); //sanity
+	    NODE_ASSERT(foundInAncestor == Nav); //sanity
 	    std::ostringstream msg;
 	    msg << "Ambiguous matches (" << numFuncs << ") of function '";
 	    msg << m_state.getTokenDataAsString(m_functionNameTok).c_str();
@@ -233,7 +233,7 @@ namespace MFM {
 	  }
 	else
 	  {
-	    assert(numFuncs==1); //sanity
+	    NODE_ASSERT(numFuncs==1); //sanity
 	    if(hasHazyArgs)
 	      numHazyFound++; //wait to cast
 
@@ -333,10 +333,10 @@ namespace MFM {
 	if(m_funcSymbol == NULL)
 	  m_funcSymbol = funcSymbol;
 
-	assert(m_funcSymbol && m_funcSymbol == funcSymbol);
+	NODE_ASSERT(m_funcSymbol && m_funcSymbol == funcSymbol);
 
 	it = m_funcSymbol->getUlamTypeIdx();
-	//assert(m_state.okUTItoContinue(it)); //t3641
+	//NODE_ASSERT(m_state.okUTItoContinue(it)); //t3641
 
 	if(m_state.okUTItoContinue(it))
 	  it = specifyimplicitselfexplicitly(thisparentnode);
@@ -465,8 +465,8 @@ namespace MFM {
       }
 
     argNodes.clear();
-    assert(it == getNodeType());
-    assert(m_funcSymbol || (getNodeType() == Nav) || (getNodeType() == Hzy));
+    NODE_ASSERT(it == getNodeType());
+    NODE_ASSERT(m_funcSymbol || (getNodeType() == Nav) || (getNodeType() == Hzy));
 
     if(m_state.okUTItoContinue(it))
       {
@@ -514,10 +514,10 @@ namespace MFM {
 	    UTI selfuti = selfsym->getUlamTypeIdx();
 	    SymbolClass * csym = NULL;
 	    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(selfuti, csym);
-	    assert(isDefined);
+	    NODE_ASSERT(isDefined);
 
 	    NodeBlockClass * memberClassNode = csym->getClassBlockNode();
-	    assert(memberClassNode);
+	    NODE_ASSERT(memberClassNode);
 
 	    UTI selfblockuti = memberClassNode->getNodeType();
 	    if(m_state.okUTItoContinue(selfblockuti))
@@ -545,7 +545,7 @@ namespace MFM {
       {
 	SymbolFunction * tmpfuncsym = NULL;
 	((SymbolFunctionName *) fnsymptr)->anyFunctionSymbolPtr(tmpfuncsym);
-	assert(tmpfuncsym);
+	NODE_ASSERT(tmpfuncsym);
 	m_funcSymbol = tmpfuncsym;
 	UTI it = specifyimplicitselfexplicitly(parentnode); //returns Hzy
 	if(it == Hzy)
@@ -554,13 +554,13 @@ namespace MFM {
 	  rtn = TBOOL_FALSE;
 	//else still TBOOL_TRUE
       }
-    assert(m_funcSymbol==NULL);
+    NODE_ASSERT(m_funcSymbol==NULL);
     return rtn;
   } //lookagainincaseimplicitselfchanged
 
   UTI NodeFunctionCall::specifyimplicitselfexplicitly(Node * parentnode)
   {
-    assert(m_funcSymbol);
+    NODE_ASSERT(m_funcSymbol);
     UTI futi = m_funcSymbol->getUlamTypeIdx();
 
     //a func call needs to be rhs of member select "."
@@ -570,16 +570,16 @@ namespace MFM {
       }
 
     NNO pno = Node::getYourParentNo();
-    assert(pno);
-    assert(parentnode);
-    assert(pno == parentnode->getNodeNo());
+    NODE_ASSERT(pno);
+    NODE_ASSERT(parentnode);
+    NODE_ASSERT(pno == parentnode->getNodeNo());
 
     bool implicitself = true;
 
     if(parentnode->isAMemberSelect())
       {
 	s32 nodeorder = ((NodeMemberSelect *) parentnode)->findNodeKidOrder(this);
-	assert(nodeorder >= 0);
+	NODE_ASSERT(nodeorder >= 0);
 
 	implicitself = (nodeorder == 0); //as lhs, self implied
       }
@@ -590,13 +590,13 @@ namespace MFM {
 
     Token selfTok(TOK_KW_SELF, getNodeLocation(), 0);
     NodeIdent * explicitself = new NodeIdent(selfTok, NULL, m_state);
-    assert(explicitself);
+    NODE_ASSERT(explicitself);
 
     NodeMemberSelect * newnode = new NodeMemberSelect(explicitself, this, m_state);
-    assert(newnode);
+    NODE_ASSERT(newnode);
 
     AssertBool swapOk = Node::exchangeNodeWithParent(newnode, parentnode);
-    assert(swapOk);
+    NODE_ASSERT(swapOk);
 
     //redo look-up given explicit self
     m_funcSymbol = NULL;
@@ -638,13 +638,13 @@ namespace MFM {
 
   bool NodeFunctionCall::isAConstructorFunctionCall()
   {
-    assert(m_funcSymbol);
+    NODE_ASSERT(m_funcSymbol);
     return m_funcSymbol->isConstructorFunction();
   }
 
   bool NodeFunctionCall::isAVirtualFunctionCall()
   {
-    assert(m_funcSymbol);
+    NODE_ASSERT(m_funcSymbol);
     return m_funcSymbol->isVirtualFunction();
   }
 
@@ -659,10 +659,10 @@ namespace MFM {
 
     if(nuti == Hzy) return evalStatusReturnNoEpilog(NOTREADY);
 
-    assert(m_funcSymbol);
+    NODE_ASSERT(m_funcSymbol);
 
     NodeBlockFunctionDefinition * func = m_funcSymbol->getFunctionNode();
-    assert(func);
+    NODE_ASSERT(func);
 
     UTI rtnType = m_funcSymbol->getUlamTypeIdx();
     s32 rtnslots = m_state.slotsNeeded(rtnType);
@@ -686,7 +686,7 @@ namespace MFM {
     EvalStatus evs = func->eval(); //NodeBlockFunctionDefinition..
     if(evs != NORMAL)
       {
-	assert(evs != RETURN); //t3896
+	NODE_ASSERT(evs != RETURN); //t3896
 	//drops all the args and return slots on callstack
 	m_state.m_funcCallStack.popArgs(argsPushed+rtnslots);
 	m_state.m_currentObjPtr = saveCurrentObjectPtr; //restore current object ptr *******
@@ -715,7 +715,7 @@ namespace MFM {
 	    else if(m_state.isAtom(rtnType))
 	      {
 		//keep effself
-		assert(rtneffself != Nouti);
+		NODE_ASSERT(rtneffself != Nouti);
 		rtnUV.setPtrTargetType(rtnType); //t3558 ?
 		rtnUV.setPtrPos(0);
 		rtnUV.setPtrLen(BITSPERATOM);
@@ -780,11 +780,11 @@ namespace MFM {
     // that belongs in m_currentObjPtr, but where to store the ans?
     // use the hidden 'uc' slot (under the return value)
 
-    assert(m_state.isAClass(nuti) || m_state.isAltRefType(nuti) || isAConstructorFunctionCall()); //sanity?
+    NODE_ASSERT(m_state.isAClass(nuti) || m_state.isAltRefType(nuti) || isAConstructorFunctionCall()); //sanity?
 
-    assert(m_funcSymbol);
+    NODE_ASSERT(m_funcSymbol);
     NodeBlockFunctionDefinition * func = m_funcSymbol->getFunctionNode();
-    assert(func);
+    NODE_ASSERT(func);
 
     UTI rtnType = m_funcSymbol->getUlamTypeIdx();
     s32 rtnslots = m_state.slotsNeeded(rtnType);
@@ -808,7 +808,7 @@ namespace MFM {
     EvalStatus evs = func->evalToStoreInto(); //NodeBlockFunctionDefinition..
     if(evs != NORMAL)
       {
-	assert(evs != RETURN); //t3896
+	NODE_ASSERT(evs != RETURN); //t3896
 	//drops all the args and return slots on callstack
 	m_state.m_funcCallStack.popArgs(argsPushed+rtnslots);
 	m_state.m_currentObjPtr = saveCurrentObjectPtr; //restore current object ptr *******
@@ -867,7 +867,7 @@ namespace MFM {
     // since our NodeFunctionDef has no way to know how many extra args to expect!
     u32 numargs = getNumberOfArguments();
     s32 diffInArgs = numargs - m_funcSymbol->getNumberOfParameters();
-    assert(diffInArgs == 0 || m_funcSymbol->takesVariableArgs()); //sanity check
+    NODE_ASSERT(diffInArgs == 0 || m_funcSymbol->takesVariableArgs()); //sanity check
 
     // place values of arguments on call stack (reverse order) before calling function
     for(s32 i= numargs - diffInArgs - 1; i >= 0; i--)
@@ -893,7 +893,7 @@ namespace MFM {
 	    UlamValue auv = m_state.m_nodeEvalStack.popArg();
 	    if((useparamreftype) && (auv.getPtrStorage() == STACK))
 	      {
-		assert(m_state.isPtr(auv.getUlamValueTypeIdx()));
+		NODE_ASSERT(m_state.isPtr(auv.getUlamValueTypeIdx()));
 		if(!auv.isPtrAbs()) //do that conversion here
 		  {
 		    u32 absrefslot = m_state.m_funcCallStack.getAbsoluteStackIndexOfSlot(auv.getPtrSlotIndex());
@@ -971,7 +971,7 @@ namespace MFM {
     //(continue) push return slot(s) last (on both STACKS for now)
     makeRoomForNodeType(rtnType, STACK);
 
-    assert(rtnslots == m_state.slotsNeeded(rtnType));
+    NODE_ASSERT(rtnslots == m_state.slotsNeeded(rtnType));
     return NORMAL;
   } //evalHiddenArguments
 
@@ -1008,7 +1008,7 @@ namespace MFM {
 
   u32 NodeFunctionCall::getSymbolId()
   {
-    assert(m_funcSymbol);
+    NODE_ASSERT(m_funcSymbol);
     return m_funcSymbol->getId();
   }
 
@@ -1050,7 +1050,7 @@ namespace MFM {
 		atomPtr.setPtrTargetType(auti); //t3746
 		u32 relposofbase = 0; //t41364
 		AssertBool gotpos = m_state.getABaseClassRelativePositionInAClass(auti, baseuti, relposofbase);
-		assert(gotpos);
+		NODE_ASSERT(gotpos);
 		atomPtr.setPtrPos(atomPtr.getPtrPos() - relposofbase);
 		atomPtr.setPtrLen(m_state.getTotalBitSize(auti)); //as complete object
 	      }
@@ -1068,24 +1068,24 @@ namespace MFM {
 
     SymbolClass * vcsym = NULL;
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cuti, vcsym);
-    assert(isDefined);
+    NODE_ASSERT(isDefined);
 
     u32 coffset = vcsym->getVTstartoffsetOfRelatedOriginatingClass(vownuti);
-    assert(coffset<UNRELIABLEPOS);
+    NODE_ASSERT(coffset<UNRELIABLEPOS);
     UTI vtcuti = vcsym->getClassForVTableEntry(vtidx + coffset); //t41304
 
     //is the virtual class uti the same as what we already have?
     NNO funcstnno = m_funcSymbol->getBlockNoOfST();
     UTI funcclassuti = m_state.findAClassByNodeNo(funcstnno);
-    assert(funcclassuti != Nouti); //sanity
+    NODE_ASSERT(funcclassuti != Nouti); //sanity
     if(funcclassuti != vtcuti)
       {
 	SymbolClass * vtcsym = NULL;
 	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(vtcuti, vtcsym);
-	assert(isDefined);
+	NODE_ASSERT(isDefined);
 
 	NodeBlockClass * memberClassNode = vtcsym->getClassBlockNode();
-	assert(memberClassNode);  //e.g. forgot the closing brace on quark definition
+	NODE_ASSERT(memberClassNode);  //e.g. forgot the closing brace on quark definition
 	//setup compilerstate to use the member class block for symbol search
 	m_state.pushClassContextUsingMemberClassBlock(memberClassNode);
 
@@ -1093,7 +1093,7 @@ namespace MFM {
 	Symbol * fnsymptr = NULL;
 	bool hazyKin = false;
 	AssertBool isDefinedFunc = (m_state.isFuncIdInClassScope(funcid, fnsymptr, hazyKin) && !hazyKin);
-	assert(isDefinedFunc);
+	NODE_ASSERT(isDefinedFunc);
 
 	//find this func in the virtual class; get its func def.
 	std::vector<UTI> pTypes;
@@ -1102,7 +1102,7 @@ namespace MFM {
 	SymbolFunction * funcSymbol = NULL;
 	bool tmphazyargs = false;
 	u32 numFuncs = ((SymbolFunctionName *) fnsymptr)->findMatchingFunctionStrictlyByTypes(pTypes, funcSymbol, tmphazyargs);
-	assert(!tmphazyargs);
+	NODE_ASSERT(!tmphazyargs);
 
 	if(numFuncs != 1)
 	  {
@@ -1299,7 +1299,7 @@ namespace MFM {
 	else
 	  {
 	    s32 epi = Node::isCurrentObjectsContainingAModelParameter();
-	    assert(epi < 0); //model parameters no longer classes
+	    NODE_ASSERT(epi < 0); //model parameters no longer classes
 	    genLocalMemberNameOfMethod(fp);
 	  }
 	fp->write(m_funcSymbol->getMangledName().c_str());
@@ -1375,9 +1375,9 @@ namespace MFM {
 	fp->write(" = ");
       } //not void return
 
-    assert(uvpass.getPassStorage() == TMPAUTOREF);
+    NODE_ASSERT(uvpass.getPassStorage() == TMPAUTOREF);
     UTI vuti = uvpass.getPassTargetType();
-    //assert(m_state.getUlamTypeByIndex(vuti)->getReferenceType() != ALT_NOT); //e.g. t3668
+    //NODE_ASSERT(m_state.getUlamTypeByIndex(vuti)->getReferenceType() != ALT_NOT); //e.g. t3668
 
     // who's function is it?
     if(m_funcSymbol->isVirtualFunction())
@@ -1402,7 +1402,7 @@ namespace MFM {
 
   void NodeFunctionCall::genCodeVirtualFunctionCallVTableEntry(File * fp, u32 tvfpnum, u32 urtmpnum, u32& urtmpnumvfc)
   {
-    assert(m_funcSymbol);
+    NODE_ASSERT(m_funcSymbol);
     //Often requires runtime lookup for virtual function pointer;
     //need typedef typename for this vfunc by any owner of this vfunc
     u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
@@ -1508,7 +1508,7 @@ namespace MFM {
     else
       {
 	//knownatcompiletime..VfuncPtr read into variable after checkforpure
-	assert(checkforpure);
+	NODE_ASSERT(checkforpure);
       }
 
   // may also check for pure when relpos is not known at compiletime, but we
@@ -1519,7 +1519,7 @@ namespace MFM {
       //error/t41313, error/t41330
       SymbolClass * csym = NULL;
       AssertBool gotClass = m_state.alreadyDefinedSymbolClass(decosuti,csym);
-      assert(gotClass);
+      NODE_ASSERT(gotClass);
 
       u32 vfidx = m_funcSymbol->getVirtualMethodIdx();
       u32 startoffset = csym->getVTstartoffsetOfRelatedOriginatingClass(vownuti);
@@ -1543,7 +1543,7 @@ namespace MFM {
 	    {
 	      u32 verelpos;
 	      AssertBool gotrelpos = m_state.getABaseClassRelativePositionInAClass(decosuti, veuti, verelpos);
-	      assert(gotrelpos);
+	      NODE_ASSERT(gotrelpos);
 
 	      //Create UlamRef for this vfunc call to override class (t41007)
 	      urtmpnumvfc = m_state.getNextTmpVarNumber();
@@ -1590,7 +1590,7 @@ namespace MFM {
 
   void NodeFunctionCall::genCodeVirtualFunctionCallVTableEntryUsingSpecifiedVTable(File * fp, UTI vtclassuti, u32 tmpvtclassrn, u32 tvfpnum, u32 urtmpnum, u32& urtmpnumvfc)
   {
-    assert(m_funcSymbol);
+    NODE_ASSERT(m_funcSymbol);
     //requires runtime lookup for virtual function pointer; needs
     //typedef typename for this vfunc (in any owner of this vfunc);
     //(ulam-5) requires runtime lookup for vfunc vowned index, plus
@@ -1636,7 +1636,7 @@ namespace MFM {
 
 	//runtime check that vtclass (rn) is/related to the Base provided (t41377)
 	u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
-	assert(cosSize >= 3);
+	NODE_ASSERT(cosSize >= 3);
 	Symbol * basecos = m_state.m_currentObjSymbolsForCodeGen[cosSize - 2];
 	UTI basecosuti = basecos->getUlamTypeIdx();
 
@@ -1695,7 +1695,7 @@ namespace MFM {
 
   void NodeFunctionCall::genCodeVirtualFunctionCallVTableEntryUsingEffectiveSelf(File * fp, u32 tvfpnum, u32 urtmpnum, u32& urtmpnumvfc)
   {
-    assert(m_funcSymbol);
+    NODE_ASSERT(m_funcSymbol);
     //requires runtime lookup for virtual function pointer; needs
     //typedef typename for this vfunc (in any owner of this vfunc);
     //(ulam-5) requires runtime lookup for vfunc vowned index, plus
@@ -1747,7 +1747,7 @@ namespace MFM {
 
   void NodeFunctionCall::genCodeVirtualFunctionCall(File * fp, u32 tvfpnum)
   {
-    assert(m_funcSymbol);
+    NODE_ASSERT(m_funcSymbol);
     //requires runtime lookup for virtual function pointer
     u32 vfidx = m_funcSymbol->getVirtualMethodIdx();
     UTI vownuti = m_funcSymbol->getVirtualMethodOriginatingClassUTI();
@@ -1766,18 +1766,18 @@ namespace MFM {
     if(m_state.isAPrimitiveType(cosuti))
       {
 	//special regnum syntax for specific vtable class (t41376)
-	assert(cosSize > 1);
+	NODE_ASSERT(cosSize > 1);
 	cos = m_state.m_currentObjSymbolsForCodeGen[cosSize - 2]; //next to last
 	cosuti = cos->getUlamTypeIdx();
-	assert(!m_state.isAPrimitiveType(cosuti));
+	NODE_ASSERT(!m_state.isAPrimitiveType(cosuti));
       }
 
     SymbolClass * csym = NULL;
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cosuti, csym);
-    assert(isDefined);
+    NODE_ASSERT(isDefined);
 
     u32 coffset = csym->getVTstartoffsetOfRelatedOriginatingClass(vownuti);
-    assert(coffset < UNRELIABLEPOS);
+    NODE_ASSERT(coffset < UNRELIABLEPOS);
     UTI cvfuti = csym->getClassForVTableEntry(vfidx + coffset); //t41304
 
     // check that we are not trying to call a pure virtual function:
@@ -1789,9 +1789,9 @@ namespace MFM {
       {
 	SymbolClass * cvfsym = NULL;
 	AssertBool iscvfDefined = m_state.alreadyDefinedSymbolClass(cvfuti, cvfsym);
-	assert(iscvfDefined);
+	NODE_ASSERT(iscvfDefined);
 	u32 cvfoffset = cvfsym->getVTstartoffsetOfRelatedOriginatingClass(vownuti);
-	assert(cvfoffset < UNRELIABLEPOS); //20210814-131235 ish, forgot cvfoffset.
+	NODE_ASSERT(cvfoffset < UNRELIABLEPOS); //20210814-131235 ish, forgot cvfoffset.
 	if(cvfsym->isPureVTableEntry(vfidx + cvfoffset))
 	  {
 	    std::ostringstream msg;
@@ -1821,7 +1821,7 @@ namespace MFM {
 
   void NodeFunctionCall::genMemberNameOfMethod(File * fp)
   {
-    assert(!Node::isCurrentObjectALocalVariableOrArgument());
+    NODE_ASSERT(!Node::isCurrentObjectALocalVariableOrArgument());
     u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
     Symbol * stgcos = m_state.getCurrentSelfSymbolForCodeGen();
     Symbol * cos = NULL;
@@ -1861,7 +1861,7 @@ namespace MFM {
 
   std::string NodeFunctionCall::genHiddenArg2ForARef(File * fp, UVPass uvpass, u32& urtmpnumref)
   {
-    assert(uvpass.getPassStorage() == TMPAUTOREF);
+    NODE_ASSERT(uvpass.getPassStorage() == TMPAUTOREF);
 
     UTI vuti = uvpass.getPassTargetType();
 
@@ -1873,7 +1873,7 @@ namespace MFM {
 
     //use possible dereference type for mangled name
     UTI derefuti = m_state.getUlamTypeAsDeref(vuti);
-    assert(m_state.isAClass(derefuti));
+    NODE_ASSERT(m_state.isAClass(derefuti));
 
    u32 tmpvarur = m_state.getNextTmpVarNumber();
     std::ostringstream hiddenarg2;
@@ -1934,7 +1934,7 @@ namespace MFM {
 	    Symbol * stgcos = NULL;
 	    Symbol * costmp = NULL;
 	    Node::loadStorageAndCurrentObjectSymbols(stgcos, costmp);
-	    assert(costmp && stgcos);
+	    NODE_ASSERT(costmp && stgcos);
 
 	    stype << stgcos->getMangledName().c_str();
 	    stype << ".GetType()";
@@ -1947,8 +1947,8 @@ namespace MFM {
   // requires THE_INSTANCE, and local variables are superfluous.
   std::string NodeFunctionCall::genModelParameterHiddenArgs(s32 epi)
   {
-    assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
-    assert(epi >= 0);
+    NODE_ASSERT(!m_state.m_currentObjSymbolsForCodeGen.empty());
+    NODE_ASSERT(epi >= 0);
 
     std::ostringstream hiddenlist;
     Symbol * stgcos = NULL;
@@ -1985,7 +1985,7 @@ namespace MFM {
     //wiped out by arg processing; needed to determine owner of called function
     std::vector<Symbol *> saveCOSVector = m_state.m_currentObjSymbolsForCodeGen;
 
-    assert(m_funcSymbol);
+    NODE_ASSERT(m_funcSymbol);
     u32 numParams = m_funcSymbol->getNumberOfParameters();
     // handle any variable number of args separately
     // since non-datamember variables can modify globals, save/restore before/after each
@@ -2063,14 +2063,14 @@ namespace MFM {
       }
 
     //tmp var for lhs
-    assert(m_funcSymbol);
+    NODE_ASSERT(m_funcSymbol);
     u32 numParams = m_funcSymbol->getNumberOfParameters();
     UTI vuti = Nav;
     if(n < numParams)
       vuti = m_funcSymbol->getParameterType(n);
     else
       {
-	assert(m_funcSymbol->takesVariableArgs()); //must also be native
+	NODE_ASSERT(m_funcSymbol->takesVariableArgs()); //must also be native
 	vuti = m_argumentNodes->getNodeType(n); //pass type we got
       }
 
@@ -2094,8 +2094,8 @@ namespace MFM {
 
 void NodeFunctionCall::genLocalMemberNameOfMethod(File * fp)
   {
-    assert(Node::isCurrentObjectALocalVariableOrArgument());
-    assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
+    NODE_ASSERT(Node::isCurrentObjectALocalVariableOrArgument());
+    NODE_ASSERT(!m_state.m_currentObjSymbolsForCodeGen.empty());
 
     UTI futi = m_funcSymbol->getDataMemberClass();
     UlamType * fut = m_state.getUlamTypeByIndex(futi);

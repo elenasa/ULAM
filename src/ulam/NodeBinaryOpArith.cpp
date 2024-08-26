@@ -37,7 +37,7 @@ namespace MFM {
 
   bool NodeBinaryOpArith::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
   {
-    assert(slots);
+    NODE_ASSERT(slots);
     if(m_state.isScalar(getNodeType())) //not an array
       {
 	return doBinaryOperationImmediate(lslot, rslot, slots);

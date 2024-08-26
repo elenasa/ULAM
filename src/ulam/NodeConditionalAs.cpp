@@ -37,7 +37,7 @@ namespace MFM {
 
   UTI NodeConditionalAs::checkAndLabelType(Node * thisparentnode)
   {
-    assert(m_nodeLeft);
+    NODE_ASSERT(m_nodeLeft);
     UTI newType = Bool;
 
     UTI luti = m_nodeLeft->checkAndLabelType(this); //side-effect
@@ -62,7 +62,7 @@ namespace MFM {
 	return Hzy; //short-circuit
       }
 
-    assert(m_state.okUTItoContinue(luti));
+    NODE_ASSERT(m_state.okUTItoContinue(luti));
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
     ULAMTYPE letyp = lut->getUlamTypeEnum();
     ULAMCLASSTYPE lclasstype = lut->getUlamClassType();
@@ -132,7 +132,7 @@ namespace MFM {
 	return Nav;
       }
 
-    assert(m_nodeTypeDesc);
+    NODE_ASSERT(m_nodeTypeDesc);
     UTI ruti = m_nodeTypeDesc->checkAndLabelType(this);
     if(m_state.okUTItoContinue(ruti))
       {
@@ -284,7 +284,7 @@ namespace MFM {
 
   EvalStatus  NodeConditionalAs::eval()
   {
-    assert(m_nodeLeft);
+    NODE_ASSERT(m_nodeLeft);
 
     UTI nuti = getNodeType();
     if(nuti == Nav) return evalErrorReturn();
@@ -301,9 +301,9 @@ namespace MFM {
 
     // DO 'AS': rtype quark 'is' related (was 'has'); rtype element 'is'
     UTI luti = pluv.getUlamValueTypeIdx();
-    assert(m_state.isPtr(luti));
+    NODE_ASSERT(m_state.isPtr(luti));
     luti = pluv.getPtrTargetType();
-    assert(m_state.okUTItoContinue(luti));
+    NODE_ASSERT(m_state.okUTItoContinue(luti));
     UTI leffself = pluv.getPtrTargetEffSelfType();
 
     UlamValue luv = m_state.getPtrTarget(pluv); //stg
@@ -335,7 +335,7 @@ namespace MFM {
 
     bool asit = false;
     UTI ruti = getRightType();
-    assert(m_state.okUTItoContinue(ruti));
+    NODE_ASSERT(m_state.okUTItoContinue(ruti));
     UlamType * rut = m_state.getUlamTypeByIndex(ruti);
     ULAMCLASSTYPE rclasstype = rut->getUlamClassType();
     if(rclasstype == UC_QUARK)
@@ -365,7 +365,7 @@ namespace MFM {
 		//atom's don't work in eval, only genCode, let pass as not found.
 		if(!m_state.isAtom(luti))
 		  {
-		    assert(!asit); //q not a base of effself (t3601)
+		    NODE_ASSERT(!asit); //q not a base of effself (t3601)
 		  }
 		else
 		  {
@@ -416,20 +416,20 @@ namespace MFM {
 	    if(leffself == Nouti)
 	      {
 		leffself = luti;
-		assert(leffself != Nouti);
+		NODE_ASSERT(leffself != Nouti);
 	      }
 
 	    if(m_state.isClassASubclassOf(leffself,ruti))
 	      {
 		AssertBool gotrelpos = m_state.getABaseClassRelativePositionInAClass(leffself, ruti, relpos);
-		assert(gotrelpos); //t3589 (was luti)
+		NODE_ASSERT(gotrelpos); //t3589 (was luti)
 	      }
 
 	    if(m_state.isClassASubclassOf(leffself,luti))
 	      {
 		u32 relpos2;
 		AssertBool gotrelpos = m_state.getABaseClassRelativePositionInAClass(leffself, luti, relpos2);
-		assert(gotrelpos);
+		NODE_ASSERT(gotrelpos);
 		relpos -= relpos2;
 	      }
 	  }
@@ -462,7 +462,7 @@ namespace MFM {
 
   void NodeConditionalAs::genCode(File * fp, UVPass& uvpass)
   {
-    assert(m_nodeLeft);
+    NODE_ASSERT(m_nodeLeft);
     UTI lnuti = m_nodeLeft->getNodeType();
     if(m_state.isAtom(lnuti))
       return genCodeAtomAs(fp, uvpass); //reads into tmpvar
@@ -479,7 +479,7 @@ namespace MFM {
 
     UTI ruti = getRightType();
     UlamType * rut = m_state.getUlamTypeByIndex(ruti);
-    assert(!rut->isAltRefType());
+    NODE_ASSERT(!rut->isAltRefType());
 
     s32 tmpVarIs = m_state.getNextTmpVarNumber();
 
@@ -499,13 +499,13 @@ namespace MFM {
     fp->write("));"); GCNL;
 
     //update uvpass, include lhs name id
-    assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
+    NODE_ASSERT(!m_state.m_currentObjSymbolsForCodeGen.empty());
     u32 lid = m_state.m_currentObjSymbolsForCodeGen.back()->getId();
 
     //luti and ruti can be the same class (e.g. t3754)
     //u32 relpos = UNRELIABLEPOS;
     //AssertBool gotPos = m_state.getABaseClassRelativePositionInAClass(luti, ruti, relpos);
-    //assert(gotPos);
+    //NODE_ASSERT(gotPos);
 
     uvpass = UVPass::makePass(tmpVarIs, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, lid);
     //NO m_state.clearCurrentObjSymbolsForCodeGen()
@@ -513,7 +513,7 @@ namespace MFM {
 
   void NodeConditionalAs::genCodeAtomAs(File * fp, UVPass & uvpass)
   {
-    assert(m_nodeLeft);
+    NODE_ASSERT(m_nodeLeft);
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
 
@@ -521,7 +521,7 @@ namespace MFM {
     m_nodeLeft->genCodeToStoreInto(fp, luvpass); //loads lhs into tmp (T)
 
     UTI luti = luvpass.getPassTargetType();
-    assert(m_state.isAtom(luti)); //or Atomref
+    NODE_ASSERT(m_state.isAtom(luti)); //or Atomref
 
     //wiped out by reading lhs; needed later by auto NodeVarDecl
     std::vector<Symbol *> saveCOSVector = m_state.m_currentObjSymbolsForCodeGen;
@@ -530,7 +530,7 @@ namespace MFM {
 
     UTI ruti = getRightType();
     UlamType * rut = m_state.getUlamTypeByIndex(ruti);
-    assert(!rut->isAltRefType());
+    NODE_ASSERT(!rut->isAltRefType());
 
     s32 tmpVarIs = m_state.getNextTmpVarNumber();
 
@@ -564,7 +564,7 @@ namespace MFM {
 	fp->write(");"); GCNL;
       }
     //update uvpass, include lhs name id
-    assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
+    NODE_ASSERT(!m_state.m_currentObjSymbolsForCodeGen.empty());
     u32 lid = m_state.m_currentObjSymbolsForCodeGen.back()->getId();
 
     uvpass = UVPass::makePass(tmpVarIs, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, lid); //relpos?
@@ -573,14 +573,14 @@ namespace MFM {
 
   void NodeConditionalAs::genCodeReferenceAs(File * fp, UVPass & uvpass)
   {
-    assert(m_nodeLeft);
+    NODE_ASSERT(m_nodeLeft);
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
 
     UVPass luvpass;
     m_nodeLeft->genCodeToStoreInto(fp, luvpass); //loads lhs into tmp (T)
     UTI luti = luvpass.getPassTargetType(); //replace
-    assert(m_state.isReference(luti));
+    NODE_ASSERT(m_state.isReference(luti));
 
     Symbol * stgcos = NULL;
     if(m_state.m_currentObjSymbolsForCodeGen.empty())
@@ -590,7 +590,7 @@ namespace MFM {
 
     UTI ruti = getRightType();
     UlamType * rut = m_state.getUlamTypeByIndex(ruti);
-    assert(!rut->isAltRefType());
+    NODE_ASSERT(!rut->isAltRefType());
 
     s32 tmpVarIs = m_state.getNextTmpVarNumber();
 
@@ -610,7 +610,7 @@ namespace MFM {
     fp->write("));"); GCNL;  //t3655
 
     //update uvpass, include lhs name id
-    assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
+    NODE_ASSERT(!m_state.m_currentObjSymbolsForCodeGen.empty());
     u32 lid = m_state.m_currentObjSymbolsForCodeGen.back()->getId();
 
     uvpass = UVPass::makePass(tmpVarIs, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, lid); //t3754

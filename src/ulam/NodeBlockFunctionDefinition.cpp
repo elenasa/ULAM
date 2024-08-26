@@ -11,7 +11,7 @@ namespace MFM {
   NodeBlockFunctionDefinition::NodeBlockFunctionDefinition(SymbolFunction * fsym, NodeBlock * prevBlockNode, NodeTypeDescriptor * nodetype, CompilerState & state, NodeStatements * s) : NodeBlock(prevBlockNode, state, s), m_funcSymbol(fsym), m_isDefinition(false), m_maxDepth(0), m_native(false), m_nodeTypeDesc(nodetype)
   {
     m_nodeParameterList = new NodeList(state);
-    assert(m_nodeParameterList);
+    NODE_ASSERT(m_nodeParameterList);
   }
 
   NodeBlockFunctionDefinition::NodeBlockFunctionDefinition(const NodeBlockFunctionDefinition& ref) : NodeBlock(ref), m_funcSymbol(NULL), m_isDefinition(ref.m_isDefinition), m_maxDepth(ref.m_maxDepth), m_native(ref.m_native), m_nodeTypeDesc(NULL)
@@ -146,7 +146,7 @@ namespace MFM {
 
   u32 NodeBlockFunctionDefinition::getNameId()
   {
-    assert(m_funcSymbol);
+    NODE_ASSERT(m_funcSymbol);
     return m_funcSymbol->getFunctionNameId();
   }
 
@@ -156,7 +156,7 @@ namespace MFM {
       return m_nodeTypeDesc->getTypeNameId();
 
     UTI nuti = getNodeType();
-    assert(m_state.okUTItoContinue(nuti));
+    NODE_ASSERT(m_state.okUTItoContinue(nuti));
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     //skip bitsize if default size
     if(nut->getBitSize() == ULAMTYPE_DEFAULTBITSIZE[nut->getUlamTypeEnum()])
@@ -171,13 +171,13 @@ namespace MFM {
 
   UTI NodeBlockFunctionDefinition::checkAndLabelType(Node * thisparentnode)
   {
-    assert(m_funcSymbol);
+    NODE_ASSERT(m_funcSymbol);
     UTI fit = m_funcSymbol->getUlamTypeIdx();
     UTI it = fit;
     UTI cuti = m_state.getCompileThisIdx();
 
     // don't want to leave Nav dangling
-    assert(m_nodeTypeDesc);
+    NODE_ASSERT(m_nodeTypeDesc);
     if(m_nodeTypeDesc)
       it = m_nodeTypeDesc->checkAndLabelType(this);
 
@@ -233,7 +233,7 @@ namespace MFM {
 	return Hzy; //bail for this iteration
       }
 
-    assert(m_state.okUTItoContinue(it));
+    NODE_ASSERT(m_state.okUTItoContinue(it));
 
     bool isref = m_state.isAltRefType(it) && !m_state.isConstantRefType(it);
     if(m_state.isAClass(it) || isref)
@@ -249,7 +249,7 @@ namespace MFM {
     Symbol * selfsym = NULL;
     bool hazyKin = false; //return is always false?
     AssertBool isDefined = m_state.alreadyDefinedSymbolHere(selfid, selfsym, hazyKin) && !hazyKin;
-    assert(isDefined);
+    NODE_ASSERT(isDefined);
     s32 newslot = -2 - m_state.slotsNeeded(it); //2nd hidden arg
     ((SymbolVariable *) selfsym)->setStackFrameSlotIndex(newslot);
 
@@ -288,14 +288,14 @@ namespace MFM {
 
   Node * NodeBlockFunctionDefinition::getParameterNode(u32 pidx)
   {
-    assert(m_nodeParameterList);
+    NODE_ASSERT(m_nodeParameterList);
     return m_nodeParameterList->getNodePtr(pidx);
   }
 
   UTI NodeBlockFunctionDefinition::getParameterNodeGivenType(u32 pidx)
   {
     NodeVarDecl * parmdef = (NodeVarDecl *) getParameterNode(pidx);
-    assert(parmdef);
+    NODE_ASSERT(parmdef);
     UTI puti = parmdef->getTypeDescriptorGivenType();
     return puti;
   }
@@ -315,7 +315,7 @@ namespace MFM {
     UTI cuti = m_state.getCompileThisIdx();
     SymbolClass * csym = NULL;
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cuti, csym);
-    assert(isDefined);
+    NODE_ASSERT(isDefined);
     UTI superuti = csym->getBaseClass(0);
     SymbolVariableStack * supersym = NULL;
     u32 superid = m_state.m_pool.getIndexForDataString("super");
@@ -325,7 +325,7 @@ namespace MFM {
 	  {
 	    Token superTok(TOK_KW_SUPER, getNodeLocation(), 0);
 	    supersym = new SymbolVariableStack(superTok, m_state.getUlamTypeAsRef(superuti, ALT_REF), slot, m_state);
-	    assert(supersym);
+	    NODE_ASSERT(supersym);
 	    supersym->setAutoLocalType(ALT_REF);
 	    supersym->setIsSuper();
 	    m_state.addSymbolToCurrentScope(supersym); //ownership goes to the block
@@ -337,7 +337,7 @@ namespace MFM {
 	if(superuti == Nouti)
 	  {
 	    AssertBool isGone = NodeBlock::removeIdFromScope(superid, (Symbol *&) supersym);
-	    assert(isGone);
+	    NODE_ASSERT(isGone);
 	    delete supersym;
 	    supersym = NULL;
 	  }
@@ -375,8 +375,8 @@ namespace MFM {
 
   EvalStatus NodeBlockFunctionDefinition::eval()
   {
-    assert(isDefinition());
-    assert(m_nodeNext);
+    NODE_ASSERT(isDefinition());
+    NODE_ASSERT(m_nodeNext);
 
     UTI nuti = getNodeType();
     if(nuti == Nav) return evalErrorReturn();
@@ -394,7 +394,7 @@ namespace MFM {
     m_state.pushCurrentBlock(this); //push func def
 
     // m_currentObjPtr set up by caller
-    assert(m_state.okUTItoContinue(m_state.m_currentObjPtr.getPtrTargetType()));
+    NODE_ASSERT(m_state.okUTItoContinue(m_state.m_currentObjPtr.getPtrTargetType()));
     m_state.m_currentFunctionReturnType = nuti; //to help find hidden first arg
 
     evalNodeProlog(0); //new current frame pointer on node eval stack
@@ -462,8 +462,8 @@ namespace MFM {
   {
     UTI nuti = getNodeType();
     // m_currentObjPtr set up by caller
-    assert(m_state.okUTItoContinue(m_state.m_currentObjPtr.getPtrTargetType()));
-    assert(m_state.isAClass(nuti) || (m_state.isAltRefType(nuti) && !m_state.isConstantRefType(nuti)) || m_funcSymbol->isConstructorFunction()); //sanity?
+    NODE_ASSERT(m_state.okUTItoContinue(m_state.m_currentObjPtr.getPtrTargetType()));
+    NODE_ASSERT(m_state.isAClass(nuti) || (m_state.isAltRefType(nuti) && !m_state.isConstantRefType(nuti)) || m_funcSymbol->isConstructorFunction()); //sanity?
     return eval();
   } //evalToStoreInto
 
@@ -528,14 +528,14 @@ namespace MFM {
 
   void NodeBlockFunctionDefinition::setFuncSymbolPtr(SymbolFunction * fsymptr)
   {
-    assert(fsymptr);
+    NODE_ASSERT(fsymptr);
     m_funcSymbol = fsymptr;
   }
 
   void NodeBlockFunctionDefinition::genCode(File * fp, UVPass& uvpass)
   {
     // m_currentObjSymbol set up by caller
-    //    assert(m_state.m_currentObjSymbolForCodeGen != NULL);
+    //    NODE_ASSERT(m_state.m_currentObjSymbolForCodeGen != NULL);
     m_state.pushCurrentBlock(this);
 
     //"self" belongs to func def block that we're currently gencoding
@@ -543,13 +543,13 @@ namespace MFM {
     Symbol * selfsym = NULL;
     bool hazykin = false; //unused
     AssertBool gotSelf = m_state.alreadyDefinedSymbolHere(selfid, selfsym, hazykin);
-    assert(gotSelf);
+    NODE_ASSERT(gotSelf);
     m_state.m_currentSelfSymbolForCodeGen = selfsym;
 
-    assert(isDefinition());
-    assert(m_nodeNext);
+    NODE_ASSERT(isDefinition());
+    NODE_ASSERT(m_nodeNext);
 
-    assert(!isNative());
+    NODE_ASSERT(!isNative());
 
     if(m_funcSymbol->isVirtualFunction())
       {
@@ -557,7 +557,7 @@ namespace MFM {
       }
     else
       {
-	assert(m_state.m_gencodingAVirtualFunctionInThisOriginatingClass == Nouti); //sanity chk
+	NODE_ASSERT(m_state.m_gencodingAVirtualFunctionInThisOriginatingClass == Nouti); //sanity chk
       }
 
     fp->write("\n");

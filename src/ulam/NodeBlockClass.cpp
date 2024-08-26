@@ -11,9 +11,9 @@ namespace MFM {
   NodeBlockClass::NodeBlockClass(NodeBlock * prevBlockNode, CompilerState & state) : NodeBlockContext(prevBlockNode, state), m_functionST(state), m_virtualmethodMaxIdx(UNKNOWNSIZE), m_buildingDefaultValueInProgress(false), m_bitPackingInProgress(false), m_isEmpty(false), m_registeredForTestInstance(false)
   {
     m_nodeParameterList = new NodeList(state);
-    assert(m_nodeParameterList);
+    NODE_ASSERT(m_nodeParameterList);
     m_nodeArgumentList = new NodeList(state);
-    assert(m_nodeArgumentList);
+    NODE_ASSERT(m_nodeArgumentList);
     //    initBaseClassBlockList();
     updateLineage(0); //t41228?
   }
@@ -24,9 +24,9 @@ namespace MFM {
     m_state.pushClassContext(cuti, this, this, false, NULL); //t3895
     setNodeType(cuti); //t3895, after push
     m_nodeParameterList = new NodeList(m_state);
-    assert(m_nodeParameterList);
+    NODE_ASSERT(m_nodeParameterList);
     m_nodeArgumentList = new NodeList(m_state);
-    assert(m_nodeArgumentList);
+    NODE_ASSERT(m_nodeArgumentList);
     //initBaseClassBlockList();
     m_state.popClassContext();
   }
@@ -165,7 +165,7 @@ namespace MFM {
   void NodeBlockClass::printPostfix(File * fp)
   {
     UTI cuti = m_state.getCompileThisIdx(); //maybe be hzy template, getNodeType(); (t3565)
-    assert(m_state.okUTItoContinue(cuti));
+    NODE_ASSERT(m_state.okUTItoContinue(cuti));
 
     fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeUPrefix().c_str());  //e.g. Ue_Foo
     fp->write(getName());  //unmangled
@@ -227,8 +227,8 @@ namespace MFM {
     NodeBlockFunctionDefinition * func = findTestFunctionNode();
     if(func)
       {
-	assert(m_state.okUTItoContinue(cuti));
-	assert(m_state.isASeenClass(cuti)); //sanity check after eval (below)
+	NODE_ASSERT(m_state.okUTItoContinue(cuti));
+	NODE_ASSERT(m_state.isASeenClass(cuti)); //sanity check after eval (below)
 
 	//simplifying assumption for testing purposes: center site
 	Coord c0(0,0);
@@ -276,11 +276,11 @@ namespace MFM {
 		//use SCN instead of SC in case of stub (use template's classblock)
 		SymbolClassName * supercnsym = NULL;
 		AssertBool isDefined = m_state.alreadyDefinedSymbolClassNameByUTI(superuti, supercnsym);
-		assert(isDefined);
+		NODE_ASSERT(isDefined);
 		superblock = supercnsym->getClassBlockNode();
 		superuti = supercnsym->getUlamTypeIdx(); //in case of stub (t41007)
 	      }
-	    assert(superblock);
+	    NODE_ASSERT(superblock);
 	    fp->write(" :");
 	    fp->write(m_state.getUlamTypeNameBriefByIndex(superuti).c_str()); //eg ^Foo(a), an instance of
 	    fp->write("<");
@@ -302,11 +302,11 @@ namespace MFM {
 		//use SCN instead of SC in case of stub (use template's classblock)
 		SymbolClassName * basecnsym = NULL;
 		AssertBool isDefined = m_state.alreadyDefinedSymbolClassNameByUTI(baseuti, basecnsym);
-		assert(isDefined);
+		NODE_ASSERT(isDefined);
 		basecblock = basecnsym->getClassBlockNode();
 		baseuti = basecnsym->getUlamTypeIdx(); //in case of stub
 	      }
-	    assert(basecblock);
+	    NODE_ASSERT(basecblock);
 	    fp->write(" +");
 	    fp->write(m_state.getUlamTypeNameBriefByIndex(baseuti).c_str()); //eg ^Foo(a), an instance of
 	    fp->write("<");
@@ -330,11 +330,11 @@ namespace MFM {
 		    //use SCN instead of SC in case of stub (use template's classblock)
 		    SymbolClassName * basecnsym = NULL;
 		    AssertBool isDefined = m_state.alreadyDefinedSymbolClassNameByUTI(baseuti, basecnsym);
-		    assert(isDefined);
+		    NODE_ASSERT(isDefined);
 		    shbasecblock = basecnsym->getClassBlockNode();
 		    baseuti = basecnsym->getUlamTypeIdx(); //in case of stub
 		  }
-		assert(shbasecblock);
+		NODE_ASSERT(shbasecblock);
 
 		s32 bitem = csym->isABaseClassItem(baseuti);
 		if(bitem < 0)
@@ -371,7 +371,7 @@ namespace MFM {
 	if(m_state.okUTItoContinue(superuti) && !m_state.isUrSelf(superuti))
 	  {
 	    NodeBlockClass * superblock = m_state.getAClassBlock(superuti);
-	    assert(superblock && UlamType::compare(superblock->getNodeType(), superuti, m_state) == UTIC_SAME);
+	    NODE_ASSERT(superblock && UlamType::compare(superblock->getNodeType(), superuti, m_state) == UTIC_SAME);
 	    u32 relpos = csym->getBaseClassRelativePosition(0);
 	    fp->write(" :");
 	    fp->write(m_state.getUlamTypeNameBriefByIndex(superuti).c_str()); //eg :Foo(a), an instance of
@@ -387,7 +387,7 @@ namespace MFM {
 	  {
 	    UTI baseuti = csym->getBaseClass(i);
 	    NodeBlockClass * basecblock = m_state.getAClassBlock(baseuti);
-	    assert(basecblock && UlamType::compare(basecblock->getNodeType(), baseuti, m_state) == UTIC_SAME);
+	    NODE_ASSERT(basecblock && UlamType::compare(basecblock->getNodeType(), baseuti, m_state) == UTIC_SAME);
 	    u32 relpos = csym->getBaseClassRelativePosition(i);
 	    fp->write(" +");
 	    fp->write(m_state.getUlamTypeNameBriefByIndex(baseuti).c_str()); //eg +Foo(a), an instance of
@@ -407,7 +407,7 @@ namespace MFM {
 	      {
 		//NodeBlockClass * shbasecblock = getSharedBaseClassBlockPointer(j);
 		NodeBlockClass * shbasecblock = m_state.getAClassBlock(baseuti);
-		assert(shbasecblock && UlamType::compare(shbasecblock->getNodeType(), baseuti, m_state) == UTIC_SAME);
+		NODE_ASSERT(shbasecblock && UlamType::compare(shbasecblock->getNodeType(), baseuti, m_state) == UTIC_SAME);
 
 		s32 bitem = csym->isABaseClassItem(baseuti);
 		if(bitem < 0)
@@ -480,10 +480,10 @@ namespace MFM {
 		//use SCN instead of SC in case of stub (use template's classblock)
 		SymbolClassName * supercnsym = NULL;
 		AssertBool isDefined = m_state.alreadyDefinedSymbolClassNameByUTI(superuti, supercnsym);
-		assert(isDefined);
+		NODE_ASSERT(isDefined);
 		superblock = supercnsym->getClassBlockNode();
 	      }
-	    assert(superblock);
+	    NODE_ASSERT(superblock);
 	    superblock->noteBaseClassTypeAndName(superuti, 0, (csym->getNumberSharingBase(0) > 1), totalsize, accumsize); //no recursion
 	  }
 
@@ -500,10 +500,10 @@ namespace MFM {
 		//use SCN instead of SC in case of stub (use template's classblock)
 		SymbolClassName * basecnsym = NULL;
 		AssertBool isDefined = m_state.alreadyDefinedSymbolClassNameByUTI(baseuti, basecnsym);
-		assert(isDefined);
+		NODE_ASSERT(isDefined);
 		basecblock = basecnsym->getClassBlockNode();
 	      }
-	    assert(basecblock);
+	    NODE_ASSERT(basecblock);
 	    basecblock->noteBaseClassTypeAndName(baseuti, i, (csym->getNumberSharingBase(1) > 1), totalsize, accumsize); //no recursion
 	    i++;
 	  } //end while
@@ -521,10 +521,10 @@ namespace MFM {
 		//use SCN instead of SC in case of stub (use template's classblock)
 		SymbolClassName * basecnsym = NULL;
 		AssertBool isDefined = m_state.alreadyDefinedSymbolClassNameByUTI(sbaseuti, basecnsym);
-		assert(isDefined);
+		NODE_ASSERT(isDefined);
 		shbasecblock = basecnsym->getClassBlockNode();
 	      }
-	    assert(shbasecblock);
+	    NODE_ASSERT(shbasecblock);
 	    s32 bitem = csym->isABaseClassItem(sbaseuti);
 	    if(bitem < 0)
 	      {
@@ -567,18 +567,18 @@ namespace MFM {
 
   void NodeBlockClass::setDataMembersParseTree(UTI cuti, NodeBlockClass & fromClassBlock)
   {
-    assert((cuti == getNodeType()) || (getNodeType() == Hzy));
-    assert(m_nodeNext == NULL);
+    NODE_ASSERT((cuti == getNodeType()) || (getNodeType() == Hzy));
+    NODE_ASSERT(m_nodeNext == NULL);
     NodeStatements * fmnode = fromClassBlock.m_nodeNext;
     if(fmnode == NULL)
       return;
     m_nodeNext = (NodeStatements *) fmnode->instantiate(); //t3888
-    assert(m_nodeNext);
+    NODE_ASSERT(m_nodeNext);
   }
 
   void NodeBlockClass::resetDataMembersParseTree(UTI cuti, NodeBlockClass & fromClassBlock)
   {
-    assert((cuti == getNodeType()) || (getNodeType() == Hzy));
+    NODE_ASSERT((cuti == getNodeType()) || (getNodeType() == Hzy));
     if(m_nodeNext)
       {
 	delete m_nodeNext;
@@ -594,7 +594,7 @@ namespace MFM {
 
   void NodeBlockClass::setDataMembersSymbolTable(UTI cuti, NodeBlockClass& fromClassBlock)
   {
-    assert((cuti == getNodeType()) || (getNodeType() == Hzy));
+    NODE_ASSERT((cuti == getNodeType()) || (getNodeType() == Hzy));
     u32 totablesize = NodeBlock::getNumberOfSymbolsInTable();
     if(totablesize==0)
       this->getSymbolTablePtr()->copyATableHere(*fromClassBlock.getSymbolTablePtr());
@@ -609,12 +609,12 @@ namespace MFM {
 
   void NodeBlockClass::setMemberFunctionsSymbolTable(UTI cuti, NodeBlockClass& fromClassBlock)
   {
-    assert((cuti == getNodeType()) || (getNodeType() == Hzy)); //t3460
+    NODE_ASSERT((cuti == getNodeType()) || (getNodeType() == Hzy)); //t3460
     u32 fromtablesize = fromClassBlock.getNumberOfFuncSymbolsInTableHere();
     u32 totablesize = getNumberOfFuncSymbolsInTableHere();
-    assert(totablesize==0);
+    NODE_ASSERT(totablesize==0);
     m_functionST = *((SymbolTableOfFunctions *) fromClassBlock.getFunctionSymbolTablePtr());
-    assert(m_functionST.getTableSize()==fromtablesize);
+    NODE_ASSERT(m_functionST.getTableSize()==fromtablesize);
   }
 
   bool NodeBlockClass::isBaseClassBlockReady(UTI cuti, UTI baseuti)
@@ -628,7 +628,7 @@ namespace MFM {
     if(!m_state.isAClass(baseuti))
       return false; //holder turned into primitive (t41517, t41519);
 
-    //assert(m_state.isARootUTI(baseuti)); //sanity? nope, used by checkHazyKin
+    //NODE_ASSERT(m_state.isARootUTI(baseuti)); //sanity? nope, used by checkHazyKin
 
     if(m_state.isClassAStub(baseuti))
       return false; //t41435;t3565,t3652,t41007,t41221,2,t41476;t41298,9;
@@ -740,7 +740,7 @@ namespace MFM {
 
     SymbolClass * csym = NULL;
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(nuti, csym);
-    assert(isDefined);
+    NODE_ASSERT(isDefined);
 
     //try not to duplicate the baseuti for superclass (t41228?), special case.
     u32 superid = m_state.m_pool.getIndexForDataString("Super");
@@ -921,7 +921,7 @@ namespace MFM {
 		if(m_state.mappedIncompleteUTI(nuti, baseuti, mappedUTI))
 		  {
 		    //shouldn't happen, caught at parse time (t3900, t3901)
-		    assert(UlamType::compare(nuti, baseuti, m_state) != UTIC_SAME);
+		    NODE_ASSERT(UlamType::compare(nuti, baseuti, m_state) != UTIC_SAME);
 
 		    m_state.findRootUTIAlias(mappedUTI, mappedUTI); //con't w root
 		    if(UlamType::compare(baseuti, mappedUTI, m_state) == UTIC_NOTSAME)
@@ -1281,7 +1281,7 @@ namespace MFM {
       {
 	UTI cuti = m_state.getCompileThisIdx(); //getNodeType() maybe Hzy
 	u32 nparms = m_nodeParameterList->getNumberOfNodes();
-	assert((nparms == 0) || m_state.isClassATemplate(cuti));
+	NODE_ASSERT((nparms == 0) || m_state.isClassATemplate(cuti));
 	m_nodeParameterList->checkAndLabelType(this);
 	//delay template parameter type check for instance argument type check
 	//since potential problems may still be Hazy. (t3894,5,8)
@@ -1291,23 +1291,23 @@ namespace MFM {
 
   void NodeBlockClass::addParameterNode(Node * nodeArg)
   {
-    assert(m_nodeParameterList); //must be a template
-    assert(m_state.isClassATemplate(getNodeType()));
+    NODE_ASSERT(m_nodeParameterList); //must be a template
+    NODE_ASSERT(m_state.isClassATemplate(getNodeType()));
     m_nodeParameterList->addNodeToList(nodeArg);
   }
 
   Node * NodeBlockClass::getParameterNode(u32 n)
   {
-    assert(m_nodeParameterList); //must be a template
-    assert(n < getNumberOfParameterNodes());
-    //assert(m_state.isClassATemplate(getNodeType()));
+    NODE_ASSERT(m_nodeParameterList); //must be a template
+    NODE_ASSERT(n < getNumberOfParameterNodes());
+    //NODE_ASSERT(m_state.isClassATemplate(getNodeType()));
     return m_nodeParameterList->getNodePtr(n);
   }
 
   u32 NodeBlockClass::getNumberOfParameterNodes()
   {
-    assert(m_nodeParameterList); //must be a template
-    //assert(m_state.isClassATemplate(getNodeType()));
+    NODE_ASSERT(m_nodeParameterList); //must be a template
+    //NODE_ASSERT(m_state.isClassATemplate(getNodeType()));
     return m_nodeParameterList->getNumberOfNodes();
   }
 
@@ -1320,7 +1320,7 @@ namespace MFM {
       {
 	UTI nuti = getNodeType();
 	u32 n = m_nodeArgumentList->getNumberOfNodes();
-	assert((n == 0) || !m_state.isClassATemplate(nuti));
+	NODE_ASSERT((n == 0) || !m_state.isClassATemplate(nuti));
 
 	for(u32 i = 0; i < n; i++)
 	  {
@@ -1376,22 +1376,22 @@ namespace MFM {
 
   void NodeBlockClass::addArgumentNode(Node * nodeArg)
   {
-    assert(m_nodeArgumentList); //must be a template class instance
-    //assert(getNodeType()==Hzy ||!m_state.isClassATemplate(this)); t41138
+    NODE_ASSERT(m_nodeArgumentList); //must be a template class instance
+    //NODE_ASSERT(getNodeType()==Hzy ||!m_state.isClassATemplate(this)); t41138
     m_nodeArgumentList->addNodeToList(nodeArg);
   }
 
   Node * NodeBlockClass::getArgumentNode(u32 n)
   {
-    assert(m_nodeArgumentList); //must be a template class instance
-    assert(getNodeType()==Hzy ||!m_state.isClassATemplate(this));
+    NODE_ASSERT(m_nodeArgumentList); //must be a template class instance
+    NODE_ASSERT(getNodeType()==Hzy ||!m_state.isClassATemplate(this));
     return m_nodeArgumentList->getNodePtr(n);
   }
 
   u32 NodeBlockClass::getNumberOfArgumentNodes()
   {
-    assert(m_nodeArgumentList); //must be a template class instance
-    assert(getNodeType()==Hzy || !m_state.isClassATemplate(this)); //t41407,11,12,13
+    NODE_ASSERT(m_nodeArgumentList); //must be a template class instance
+    NODE_ASSERT(getNodeType()==Hzy || !m_state.isClassATemplate(this)); //t41407,11,12,13
     return m_nodeArgumentList->getNumberOfNodes();
   }
 
@@ -1436,7 +1436,7 @@ namespace MFM {
 	    if(m_state.alreadyDefinedSymbolClass(baseuti, basecsym))
 	      {
 		NodeBlockClass * basecblock = basecsym->getClassBlockNode();
-		assert(basecblock);
+		NODE_ASSERT(basecblock);
 
 		basecblock->checkMatchingFunctions(); //t3297
 
@@ -1498,7 +1498,7 @@ namespace MFM {
     //ulam-5 supports multiple base classes; superclass optional
     SymbolClass * csym = NULL;
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(nuti, csym);
-    assert(isDefined);
+    NODE_ASSERT(isDefined);
 
     u32 basecount = csym->getBaseClassCount() + 1; //include super
     u32 i = 0;
@@ -1508,7 +1508,7 @@ namespace MFM {
 	if(baseuti != Nouti)
 	  {
 	    NodeBlockClass * basecblock = m_state.getAClassBlock(baseuti);
-	    assert(basecblock);
+	    NODE_ASSERT(basecblock);
 
 	    s32 basesmaxidx = basecblock->getVirtualMethodMaxIdx();
 	    if(basesmaxidx < 0)
@@ -1560,7 +1560,7 @@ namespace MFM {
     if(localsblock)
       {
 	locuti = localsblock->getNodeType();
-	assert(m_state.okUTItoContinue(locuti));
+	NODE_ASSERT(m_state.okUTItoContinue(locuti));
       }
     return locuti;
   }
@@ -1580,14 +1580,14 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
     //ulam-5 supports shared base classes;
     SymbolClass * csym = NULL;
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cuti, csym);
-    assert(isDefined);
+    NODE_ASSERT(isDefined);
 
     u32 basecount = csym->getBaseClassCount() + 1; //include super
     u32 i = 0;
     while(i < basecount)
       {
 	UTI baseuti = csym->getBaseClass(i);
-	assert(baseuti != Hzy);
+	NODE_ASSERT(baseuti != Hzy);
 	if(baseuti != Nouti)
 	  {
 	    NodeBlockClass * basecblock = m_state.getAClassBlock(baseuti);
@@ -1620,12 +1620,12 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 	  {
 	    //search template
 	    NodeBlockClass * prevblock = (NodeBlockClass *) getPreviousBlockPointer();
-	    assert(prevblock);
+	    NODE_ASSERT(prevblock);
 	    UTI tuti = prevblock->getNodeType();
 	    if(!m_state.okUTItoContinue(tuti))
 	      {
 		tuti = m_state.getTemplateTypeOfStub(cuti);
-		assert(m_state.okUTItoContinue(tuti));
+		NODE_ASSERT(m_state.okUTItoContinue(tuti));
 	      }
 	    catype = prevblock->getCustomArrayTypeFromGetFunction(tuti);
 	  }
@@ -1636,7 +1636,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 	    //ulam-5 supports shared base classes;
 	    SymbolClass * csym = NULL;
 	    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cuti, csym);
-	    assert(isDefined);
+	    NODE_ASSERT(isDefined);
 
 	    u32 basecount = csym->getBaseClassCount() + 1; //include super
 	    u32 i = 0;
@@ -1646,7 +1646,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 		if(baseuti != Nouti)
 		  {
 		    NodeBlockClass *  basecblock = m_state.getAClassBlock(baseuti); //t3549
-		    assert(basecblock);
+		    NODE_ASSERT(basecblock);
 		    catype = basecblock->getCustomArrayTypeFromGetFunction(baseuti);
 		  }
 		i++;
@@ -1666,12 +1666,12 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 	  {
 	    //search template
 	    NodeBlockClass * prevblock = (NodeBlockClass *) getPreviousBlockPointer();
-	    assert(prevblock);
+	    NODE_ASSERT(prevblock);
 	    UTI tuti = prevblock->getNodeType();
 	    if(!m_state.okUTItoContinue(tuti))
 	      {
 		tuti = m_state.getTemplateTypeOfStub(cuti);
-		assert(m_state.okUTItoContinue(tuti));
+		NODE_ASSERT(m_state.okUTItoContinue(tuti));
 	      }
 	    camatches = prevblock->getCustomArrayIndexTypeFromGetFunction(tuti, rnode, idxuti, hasHazyArgs);
 	  }
@@ -1682,7 +1682,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 	    //ulam-5 supports shared base classes;
 	    SymbolClass * csym = NULL;
 	    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cuti, csym);
-	    assert(isDefined);
+	    NODE_ASSERT(isDefined);
 
 	    u32 basecount = csym->getBaseClassCount() + 1; //include super
 	    u32 i = 0;
@@ -1692,7 +1692,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 		if(baseuti != Nouti)
 		  {
 		    NodeBlockClass * basecblock = m_state.getAClassBlock(baseuti);
-		    assert(basecblock);
+		    NODE_ASSERT(basecblock);
 		    bool tmphzyargs = false;
 		    camatches += basecblock->getCustomArrayIndexTypeFromGetFunction(baseuti, rnode, idxuti, tmphzyargs);
 		    hasHazyArgs |= tmphzyargs;
@@ -1718,12 +1718,12 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 	  {
 	    //search template
 	    NodeBlockClass * prevblock = (NodeBlockClass *) getPreviousBlockPointer();
-	    assert(prevblock);
+	    NODE_ASSERT(prevblock);
 	    UTI tuti = prevblock->getNodeType();
 	    if(!m_state.okUTItoContinue(tuti))
 	      {
 		tuti = m_state.getTemplateTypeOfStub(cuti);
-		assert(m_state.okUTItoContinue(tuti));
+		NODE_ASSERT(m_state.okUTItoContinue(tuti));
 	      }
 	    camatch = prevblock->hasCustomArrayLengthofFunction(tuti);
 	  }
@@ -1735,7 +1735,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 	//ulam-5 supports shared base classes;
 	SymbolClass * csym = NULL;
 	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cuti, csym);
-	assert(isDefined);
+	NODE_ASSERT(isDefined);
 
 	u32 basecount = csym->getBaseClassCount() + 1; //include super
 	u32 i = 0;
@@ -1745,7 +1745,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 	    if(baseuti != Nouti)
 	      {
 		NodeBlockClass * basecblock = m_state.getAClassBlock(baseuti);
-		assert(basecblock);
+		NODE_ASSERT(basecblock);
 		camatch += basecblock->hasCustomArrayLengthofFunction(baseuti);
 	      }
 	    i++;
@@ -1758,7 +1758,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
   bool NodeBlockClass::buildDefaultValue(u32 wlen, BV8K& dvref)
   {
     UTI nuti = getNodeType();
-    assert(m_state.okUTItoContinue(nuti));
+    NODE_ASSERT(m_state.okUTItoContinue(nuti));
     if(m_buildingDefaultValueInProgress)
       {
 	std::ostringstream msg;
@@ -1793,7 +1793,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
     //ulam-5 supports multiple base classes; superclass optional
     SymbolClass * csym = NULL;
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(nuti, csym);
-    assert(isDefined);
+    NODE_ASSERT(isDefined);
     s32 pos = 0;
     if(m_state.getUlamTypeByIndex(nuti)->getUlamClassType() == UC_ELEMENT)
       pos += ATOMFIRSTSTATEBITPOS;
@@ -1810,7 +1810,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 	    if((m_state.getDefaultClassValue(baseuti, bvbase)))
 	      {
 		s32 relpos = csym->getBaseClassRelativePosition(i);
-		assert(relpos >= 0);
+		NODE_ASSERT(relpos >= 0);
 		bvbase.CopyBV(0, (u32) pos + relpos, m_state.getBaseClassBitSize(baseuti), dvref); //only its data members (no bases)
 	      }
 	    else
@@ -1833,7 +1833,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 	    if((m_state.getDefaultClassValue(baseuti, bvbase)))
 	      {
 		s32 relpos = csym->getSharedBaseClassRelativePosition(j);
-		assert(relpos >= 0);
+		NODE_ASSERT(relpos >= 0);
 		bvbase.CopyBV(0, (u32) pos + relpos, m_state.getBaseClassBitSize(baseuti), dvref); //only its data members
 	      }
 	    else
@@ -1852,12 +1852,12 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 
     bool aok = true;
     UTI nuti = getNodeType();
-    assert(m_state.okUTItoContinue(nuti));
+    NODE_ASSERT(m_state.okUTItoContinue(nuti));
     //ulam-5 supports multiple base classes; superclass optional
     //ulam-5 supports shared base classes;
     SymbolClass * csym = NULL;
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(nuti, csym);
-    assert(isDefined);
+    NODE_ASSERT(isDefined);
 
     u32 basecount = csym->getBaseClassCount() + 1; //include super
     u32 i = 0;
@@ -1867,7 +1867,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 	if(baseuti != Nouti)
 	  {
 	    NodeBlockClass * basecblock = m_state.getAClassBlock(baseuti);
-	    assert(basecblock);
+	    NODE_ASSERT(basecblock);
 	    aok &= basecblock->buildDefaultValueForClassConstantDefs();
 	  }
 	i++;
@@ -1944,7 +1944,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
   u32 NodeBlockClass::getNumberOfSymbolsInTable()
   {
     UTI nuti = getNodeType();
-    assert(m_state.okUTItoContinue(nuti));
+    NODE_ASSERT(m_state.okUTItoContinue(nuti));
     s32 count = 0;
 
     BaseclassWalker walker;
@@ -1958,7 +1958,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 	if(m_state.alreadyDefinedSymbolClass(baseuti, basecsym))
 	  {
 	    NodeBlockClass * cblock = basecsym->getClassBlockNode();
-	    assert(cblock);
+	    NODE_ASSERT(cblock);
 
 	    u32 bcnt = cblock->NodeBlock::getNumberOfSymbolsInTable();
 	    count += bcnt;
@@ -1978,13 +1978,13 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
   u32 NodeBlockClass::getSizeOfSymbolsInTable()
   {
     UTI nuti = getNodeType();
-    assert(m_state.okUTItoContinue(nuti));
+    NODE_ASSERT(m_state.okUTItoContinue(nuti));
     s32 supers = 0;
 
     //ulam-5 supports multiple base classes; superclass optional
     SymbolClass * csym = NULL;
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(nuti, csym);
-    assert(isDefined);
+    NODE_ASSERT(isDefined);
 
     u32 basecount = csym->getBaseClassCount() + 1; //include super
     u32 i = 0;
@@ -1994,7 +1994,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 	if((baseuti != Nouti) && !csym->isDirectSharedBase(i))
 	  {
 	    NodeBlockClass * basecblock = m_state.getAClassBlock(baseuti);
-	    assert(basecblock);
+	    NODE_ASSERT(basecblock);
 	    supers += basecblock->getSizeOfSymbolsInTable();
 	  }
 	i++;
@@ -2012,7 +2012,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 	    if(baseuti != Nouti)
 	      {
 		NodeBlockClass * shbasecblock = m_state.getAClassBlock(baseuti);
-		assert(shbasecblock);
+		NODE_ASSERT(shbasecblock);
 		supers += shbasecblock->getSizeOfSymbolsInTable();
 	      }
 	    j++;
@@ -2030,7 +2030,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
     //ulam-5 supports multiple base classes; superclass optional
     SymbolClass * csym = NULL;
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cuti, csym);
-    assert(isDefined);
+    NODE_ASSERT(isDefined);
 
     u32 basecount = csym->getBaseClassCount() + 1; //include super
     u32 i = 0;
@@ -2040,7 +2040,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 	if(baseuti == Hzy)
 	  return UNKNOWNSIZE; //t41301
 
-	assert(baseuti != Hzy);
+	NODE_ASSERT(baseuti != Hzy);
 	if(baseuti != Nouti)
 	  {
 	    s32 bs = m_state.getBitSize(baseuti); //may contain shared bits!
@@ -2075,7 +2075,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
     //ulam-5 supports shared base classes;
     SymbolClass * csym = NULL;
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cuti, csym);
-    assert(isDefined);
+    NODE_ASSERT(isDefined);
 
     u32 basecount = csym->getBaseClassCount() + 1; //include super
     u32 i = 0;
@@ -2126,7 +2126,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
   u32 NodeBlockClass::getNumberOfFuncSymbolsInTable()
   {
     UTI nuti = getNodeType();
-    assert(m_state.okUTItoContinue(nuti));
+    NODE_ASSERT(m_state.okUTItoContinue(nuti));
     s32 count = 0;
 
     BaseclassWalker walker;
@@ -2140,7 +2140,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 	if(m_state.alreadyDefinedSymbolClass(baseuti, basecsym))
 	  {
 	    NodeBlockClass * cblock = basecsym->getClassBlockNode();
-	    assert(cblock);
+	    NODE_ASSERT(cblock);
 
 	    u32 fcnt = cblock->getNumberOfFuncSymbolsInTableHere();
 	    count += fcnt;
@@ -2155,13 +2155,13 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
   u32 NodeBlockClass::getSizeOfFuncSymbolsInTable()
   {
     UTI nuti = getNodeType();
-    assert(m_state.okUTItoContinue(nuti));
+    NODE_ASSERT(m_state.okUTItoContinue(nuti));
     s32 superfs = 0;
 
     //ulam-5 supports multiple base classes; superclass optional
     SymbolClass * csym = NULL;
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(nuti, csym);
-    assert(isDefined);
+    NODE_ASSERT(isDefined);
 
     u32 basecount = csym->getBaseClassCount() + 1; //include super
     u32 i = 0;
@@ -2171,7 +2171,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 	if((baseuti != Nouti) && !csym->isDirectSharedBase(i))
 	  {
 	    NodeBlockClass * basecblock = m_state.getAClassBlock(baseuti);
-	    assert(basecblock);
+	    NODE_ASSERT(basecblock);
 	    superfs += basecblock->getSizeOfFuncSymbolsInTable();
 	  }
 	i++;
@@ -2189,7 +2189,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 	    if(baseuti != Nouti)
 	      {
 		NodeBlockClass * shbasecblock = m_state.getAClassBlock(baseuti);
-		assert(shbasecblock);
+		NODE_ASSERT(shbasecblock);
 		superfs += shbasecblock->getSizeOfFuncSymbolsInTable();
 	      }
 	    j++;
@@ -2278,7 +2278,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 
     SymbolClass * csym = NULL;
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(nuti, csym);
-    assert(isDefined);
+    NODE_ASSERT(isDefined);
 
     BasesTableTypeMap maptype2pos;
 
@@ -2308,14 +2308,14 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 		return TBOOL_HAZY;
 	      }
 
-	    assert(UlamType::compare(basecblock->getNodeType(), baseuti, m_state) == UTIC_SAME);
+	    NODE_ASSERT(UlamType::compare(basecblock->getNodeType(), baseuti, m_state) == UTIC_SAME);
 	    if(!m_state.isComplete(baseuti))
 	      {
 		return TBOOL_HAZY;
 	      }
 
 	    s32 baseoffset = m_state.getBaseClassBitSize(baseuti);
-	    assert(baseoffset >= 0); //t3318,t3755
+	    NODE_ASSERT(baseoffset >= 0); //t3318,t3755
 
 	    bool dupflag = false;
 	    u32 pos = reloffset;
@@ -2383,7 +2383,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 		      }
 		  }
 
-		assert(UlamType::compare(shbasecblock->getNodeType(), baseuti, m_state) == UTIC_SAME);
+		NODE_ASSERT(UlamType::compare(shbasecblock->getNodeType(), baseuti, m_state) == UTIC_SAME);
 
 		if(!m_state.isComplete(baseuti))
 		  {
@@ -2410,7 +2410,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 		  }
 		else //t41485
 		  {
-		    assert(csym->isDirectSharedBase(bitem));
+		    NODE_ASSERT(csym->isDirectSharedBase(bitem));
 		    u32 directsharedoffset = csym->getBaseClassRelativePosition(bitem);
 		    csym->setSharedBaseClassRelativePosition(j, directsharedoffset);
 		  }
@@ -2455,11 +2455,11 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
   {
     //use the instance UTI instead of the node's original type (hmm?)
     UTI cuti = getNodeType(); //was m_state.getCompileThisIdx()
-    assert(m_state.okUTItoContinue(cuti));
+    NODE_ASSERT(m_state.okUTItoContinue(cuti));
 
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
     ULAMCLASSTYPE classtype = cut->getUlamClassType();
-    assert(cut->getUlamTypeEnum() == Class);
+    NODE_ASSERT(cut->getUlamTypeEnum() == Class);
 
     m_state.m_currentIndentLevel = 0;
 
@@ -2555,7 +2555,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
       }
     SymbolClass * csym = NULL;
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cuti, csym);
-    assert(isDefined);
+    NODE_ASSERT(isDefined);
 
     m_state.indent(fp);
     fp->write("/*__________________________________________________\n");
@@ -2599,10 +2599,10 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 		//use SCN instead of SC in case of stub (use template's classblock)
 		SymbolClassName * basecnsym = NULL;
 		AssertBool isDefined = m_state.alreadyDefinedSymbolClassNameByUTI(baseuti, basecnsym);
-		assert(isDefined);
+		NODE_ASSERT(isDefined);
 		basecblock = basecnsym->getClassBlockNode();
 	      }
-	    assert(basecblock);
+	    NODE_ASSERT(basecblock);
 	    bool dupflag = csym->isADuplicateBaseClass(i);
 	    s32 pos = csym->getBaseClassRelativePosition(i);
 	    basecblock->genBaseClassTypeAndNameEntryAsComment(fp, baseuti, pos, accumsize, i, dupflag); //no recursion
@@ -2623,10 +2623,10 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 	    //use SCN instead of SC in case of stub (use template's classblock)
 	    SymbolClassName * basecnsym = NULL;
 	    AssertBool isDefined = m_state.alreadyDefinedSymbolClassNameByUTI(baseuti, basecnsym);
-	    assert(isDefined);
+	    NODE_ASSERT(isDefined);
 	    shbasecblock = basecnsym->getClassBlockNode();
 	  }
-	assert(shbasecblock);
+	NODE_ASSERT(shbasecblock);
 
 	s32 bitem = csym->isABaseClassItem(baseuti);
 	if(bitem < 0) //not a direct shared base
@@ -2671,7 +2671,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 
     //quarkunions don't accumulate sizes of dm, they use max dm size;
     //quarkunions can now be base classes, and have some (including UrSelf); (t3209, t41145)
-    assert(dupflag || (atpos == (s32) accumsize) || m_state.isClassAQuarkUnion(m_state.getCompileThisIdx()));
+    NODE_ASSERT(dupflag || (atpos == (s32) accumsize) || m_state.isClassAQuarkUnion(m_state.getCompileThisIdx()));
     if(!dupflag)
       accumsize += nsize;
   } //genBaseClassTypeAndNameEntryAsComment
@@ -2973,7 +2973,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
     UTI cuti = m_state.getCompileThisIdx(); //getContextBlock?
     SymbolClass * csym = NULL;
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cuti, csym);
-    assert(isDefined);
+    NODE_ASSERT(isDefined);
 
     //ulam-5 supports multiple base classes; superclass optional
     u32 basecount = csym->getBaseClassCount() + 1; //include super
@@ -3034,7 +3034,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 	UTI locuti = getLocalsFilescopeType();
 	if(locuti != Nouti)
 	  {
-	    assert(m_state.okUTItoContinue(locuti));
+	    NODE_ASSERT(m_state.okUTItoContinue(locuti));
 	    u32 mangledclassid = m_state.getMangledClassNameIdForUlamLocalsFilescope(locuti);
 	    m_state.indent(fp);
 	    fp->write("#include \"");
@@ -3132,7 +3132,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
     fp->write("(){}"); GCNL;
     fp->write("\n");
 
-    assert(m_state.getCompileThisId() == cut->getUlamTypeNameId());
+    NODE_ASSERT(m_state.getCompileThisId() == cut->getUlamTypeNameId());
   } //genCodeBodyElement
 
   void NodeBlockClass::genCodeBodyQuark(File * fp, UVPass& uvpass)
@@ -3164,7 +3164,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
     fp->write("(){}"); GCNL;
     fp->write("\n");
 
-    assert(m_state.getCompileThisId() == cut->getUlamTypeNameId());
+    NODE_ASSERT(m_state.getCompileThisId() == cut->getUlamTypeNameId());
   } //genCodeBodyQuark
 
   void NodeBlockClass::genCodeBodyTransient(File * fp, UVPass& uvpass)
@@ -3196,7 +3196,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
     fp->write("(){}"); GCNL;
     fp->write("\n");
 
-    assert(m_state.getCompileThisId() == cut->getUlamTypeNameId());
+    NODE_ASSERT(m_state.getCompileThisId() == cut->getUlamTypeNameId());
   } //genCodeBodyTransient
 
   void NodeBlockClass::genCodeBodyLocalsFilescope(File * fp, UVPass& uvpass)
@@ -3236,7 +3236,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
     fp->write("(){}"); GCNL;
     fp->write("\n");
 
-    assert(m_state.getCompileThisId() == cut->getUlamTypeNameId());
+    NODE_ASSERT(m_state.getCompileThisId() == cut->getUlamTypeNameId());
   } //genCodeBodyLocalsFilescope
 
   void NodeBlockClass::generateCodeForBuiltInClassFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
@@ -3400,7 +3400,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
   void NodeBlockClass::generateInternalIsMethodForElement(File * fp, bool declOnly)
   {
     UTI cuti = getNodeType();
-    assert(m_state.okUTItoContinue(cuti));
+    NODE_ASSERT(m_state.okUTItoContinue(cuti));
 
     if(declOnly)
       {
@@ -3500,11 +3500,11 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
   void NodeBlockClass::genCodeBuiltInFunctionGetRelPosRelatedInstanceByRegistrationNumber(File * fp)
   {
     UTI nuti = getNodeType();
-    assert(m_state.okUTItoContinue(nuti));
+    NODE_ASSERT(m_state.okUTItoContinue(nuti));
 
     SymbolClass * csym = NULL;
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(nuti, csym);
-    assert(isDefined);
+    NODE_ASSERT(isDefined);
 
     //build temporary map to output switch in regnum order
     std::map<u32, u32> tmpmapbyrn;
@@ -3575,7 +3575,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 
     SymbolClass * csym = NULL;
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cuti, csym);
-    assert(isDefined);
+    NODE_ASSERT(isDefined);
 
     m_state.indent(fp);
     fp->write("template<class EC>\n");
@@ -3624,7 +3624,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 
     SymbolClass * csym = NULL;
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cuti, csym);
-    assert(isDefined);
+    NODE_ASSERT(isDefined);
 
     m_state.indent(fp);
     fp->write("template<class EC>\n");
@@ -3721,7 +3721,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
     UTI cuti = m_state.getCompileThisIdx();
     SymbolClass * csym = NULL;
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cuti, csym);
-    assert(isDefined);
+    NODE_ASSERT(isDefined);
 
     // zero-th entry is thyself
     m_state.indent(fp);
@@ -3835,11 +3835,11 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
   void NodeBlockClass::genCodeBuiltInFunctionIsDirectBaseClassByRegistrationNumber(File * fp)
   {
     UTI nuti = getNodeType();
-    assert(m_state.okUTItoContinue(nuti));
+    NODE_ASSERT(m_state.okUTItoContinue(nuti));
 
     SymbolClass * csym = NULL;
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(nuti, csym);
-    assert(isDefined);
+    NODE_ASSERT(isDefined);
 
     //build temporary map to output switch in regnum order
     std::map<u32, u32> tmpmapbyrn;
@@ -3983,8 +3983,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
     else
       {
 	s32 baselen = cut->getBitsizeAsBaseClass();
-	assert(baselen >= 0);
-	assert((u32)baselen == m_ST.calcDataMemberSymbolsTotalBitsizeFromTableOfVariableDataMembers(cuti)); //sanity check (t3209, t3361, t41424)
+	NODE_ASSERT(baselen >= 0);
+	NODE_ASSERT((u32)baselen == m_ST.calcDataMemberSymbolsTotalBitsizeFromTableOfVariableDataMembers(cuti)); //sanity check (t3209, t3361, t41424)
 	fp->write_decimal(baselen);
 	fp->write(";"); GCNL;
       }
@@ -4046,7 +4046,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 
   void NodeBlockClass::genCodeBuiltInFunctionGetElementType(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
-    assert(classtype == UC_ELEMENT);
+    NODE_ASSERT(classtype == UC_ELEMENT);
 
     UTI cuti = m_state.getCompileThisIdx();
     if(declOnly)
@@ -4097,7 +4097,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
     else if(classtype == UC_LOCALSFILESCOPE)
       return;
 
-    assert(classtype == UC_ELEMENT);
+    NODE_ASSERT(classtype == UC_ELEMENT);
 
     UTI cuti = m_state.getCompileThisIdx();
 
@@ -4163,9 +4163,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
   bool NodeBlockClass::genCodeBuiltInFunctionBuildingDefaultDataMembers(File * fp)
   {
     UTI nuti = getNodeType();
-    assert(m_state.okUTItoContinue(nuti));
+    NODE_ASSERT(m_state.okUTItoContinue(nuti));
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    assert(nut->isScalar());
+    NODE_ASSERT(nut->isScalar());
 
     u32 len = nut->getTotalBitSize();
     if(len == 0)
@@ -4176,7 +4176,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 
     BV8K dval;
     AssertBool isDefault = m_state.getDefaultClassValue(nuti, dval); //ulam-4 includes element type
-    assert(isDefault);
+    NODE_ASSERT(isDefault);
 
     return m_state.genCodeClassDefaultConstantArray(fp, len, dval); //non-zero default
   } //genCodeBuiltInFunctionBuildingDefaultDataMembers
@@ -4184,7 +4184,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
   void NodeBlockClass::genCodeBuiltInFunctionBuildDefaultQuark(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
     //return;
-    assert(classtype == UC_QUARK);
+    NODE_ASSERT(classtype == UC_QUARK);
     UTI cuti = m_state.getCompileThisIdx();
 
     if(declOnly)
@@ -4203,7 +4203,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
     //get all initialized data members in quark (w strings t41093,t41167,t41468)
     u64 qval = 0;
     AssertBool isDefaultQuark = m_state.getDefaultQuark(cuti, qval);
-    assert(isDefaultQuark);
+    NODE_ASSERT(isDefaultQuark);
 
     m_state.indent(fp);
     fp->write("template<class EC>\n");
@@ -4246,7 +4246,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 
   void NodeBlockClass::genCodeBuiltInFunctionBuildDefaultTransient(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
-    assert(classtype == UC_TRANSIENT);
+    NODE_ASSERT(classtype == UC_TRANSIENT);
 
     UTI cuti = m_state.getCompileThisIdx();
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
@@ -4319,10 +4319,10 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 
     SymbolClass * csym = NULL;
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cuti, csym);
-    assert(isDefined);
+    NODE_ASSERT(isDefined);
 
     s32 maxidx = getVirtualMethodMaxIdx();
-    assert(maxidx >= 0);
+    NODE_ASSERT(maxidx >= 0);
 
     if(maxidx == 0)
       return;
@@ -4424,12 +4424,12 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 	  }
 
 	UTI veuti = csym->getClassForVTableEntry(i);
-	assert(m_state.okUTItoContinue(veuti));
+	NODE_ASSERT(m_state.okUTItoContinue(veuti));
 	UlamType * veut = m_state.getUlamTypeByIndex(veuti);
 
 	u32 veclassrelpos;
 	AssertBool gotPos = m_state.getABaseClassRelativePositionInAClass(cuti, veuti, veclassrelpos);
-	assert(gotPos);
+	NODE_ASSERT(gotPos);
 
 	m_state.indent(fp);
 	fp->write(" { "); //VTentry struct
@@ -4527,11 +4527,11 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 
     SymbolClass * csym = NULL;
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cuti, csym);
-    assert(isDefined);
+    NODE_ASSERT(isDefined);
 
     u32 maxregistry = m_state.getMaxNumberOfRegisteredUlamClasses();
     s32 maxidx = getVirtualMethodMaxIdx();
-    assert(maxidx >= 0);
+    NODE_ASSERT(maxidx >= 0);
 
     if(maxidx == 0)
       return;
@@ -4555,7 +4555,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 
     std::map<u32, u32> mapbyregnum;
     u32 mapsize = csym->convertVTstartoffsetmap(mapbyregnum);
-    assert(mapsize > 0);
+    NODE_ASSERT(mapsize > 0);
 
     //The VT Start Index table Definition:
     m_state.indent(fp);
@@ -4622,7 +4622,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
   void NodeBlockClass::generateInternalTypeAccessorsForElement(File * fp, bool declOnly)
   {
     UTI cuti = getNodeType();
-    assert(m_state.okUTItoContinue(cuti));
+    NODE_ASSERT(m_state.okUTItoContinue(cuti));
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
 
     if(declOnly)
@@ -4721,7 +4721,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
   void NodeBlockClass::generateUlamClassInfoFunction(File * fp, bool declOnly, u32& dmcount)
   {
     UTI cuti = getNodeType();
-    assert(m_state.okUTItoContinue(cuti));
+    NODE_ASSERT(m_state.okUTItoContinue(cuti));
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
 
     if(!declOnly)
@@ -4786,7 +4786,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
   void NodeBlockClass::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
   {
     UTI nuti = getNodeType();
-    assert(m_state.okUTItoContinue(nuti));
+    NODE_ASSERT(m_state.okUTItoContinue(nuti));
 
     if(m_nodeNext)
       m_nodeNext->generateUlamClassInfo(fp, declOnly, dmcount);
@@ -4797,7 +4797,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 
     SymbolClass * csym = NULL;
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(nuti, csym);
-    assert(isDefined);
+    NODE_ASSERT(isDefined);
 
     //ulam-5 supports multiple base classes; superclass optional
     u32 basecount = csym->getBaseClassCount() + 1; //include super
@@ -4810,7 +4810,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 	  {
 	    //then include any of its relatives:
 	    NodeBlockClass * basecblock = m_state.getAClassBlock(baseuti);
-	    assert(basecblock);
+	    NODE_ASSERT(basecblock);
 	    basecblock->generateUlamClassInfo(fp, declOnly, dmcount);
 	  }
 	i++;
@@ -4831,7 +4831,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 	    if(bitem < 0)
 	      {
 		NodeBlockClass * shbasecblock = m_state.getAClassBlock(baseuti);
-		assert(shbasecblock);
+		NODE_ASSERT(shbasecblock);
 		shbasecblock->generateUlamClassInfo(fp, declOnly, dmcount);
 	      }
 	  }
@@ -4842,7 +4842,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
   void NodeBlockClass::generateUlamClassInfoCount(File * fp, bool declOnly, u32 dmcount)
   {
     UTI cuti = getNodeType();
-    assert(m_state.okUTItoContinue(cuti));
+    NODE_ASSERT(m_state.okUTItoContinue(cuti));
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
 
     if(!declOnly)
@@ -4896,7 +4896,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
   void NodeBlockClass::generateUlamClassGetMangledName(File * fp, bool declOnly)
   {
     UTI cuti = getNodeType();
-    assert(m_state.okUTItoContinue(cuti));
+    NODE_ASSERT(m_state.okUTItoContinue(cuti));
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
 
     if(!declOnly)
@@ -4950,7 +4950,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
   void NodeBlockClass::generateUlamClassGetMangledNameAsStringIndex(File * fp, bool declOnly)
   {
     UTI cuti = getNodeType();
-    assert(m_state.okUTItoContinue(cuti));
+    NODE_ASSERT(m_state.okUTItoContinue(cuti));
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
 
     if(!declOnly)
@@ -5007,7 +5007,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
   void NodeBlockClass::generateUlamClassGetNameAsStringIndex(File * fp, bool declOnly)
   {
     UTI cuti = getNodeType();
-    assert(m_state.okUTItoContinue(cuti));
+    NODE_ASSERT(m_state.okUTItoContinue(cuti));
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
 
     if(!declOnly)
@@ -5035,7 +5035,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
       {
 	u32 id = cut->getUlamTypeNameId();
 	SymbolClassName * cnsym = (SymbolClassName *) m_state.m_programDefST.getSymbolPtr(id);
-	assert(cnsym);
+	NODE_ASSERT(cnsym);
 	bool isTemplateClass = cnsym->isClassTemplate();
 
 	fp->write("\n");
@@ -5152,17 +5152,17 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
     //format Ulam Class Signature
     SymbolClassName * cnsym = NULL;
     AssertBool isDefined = m_state.alreadyDefinedSymbolClassNameByUTI(cuti, cnsym);
-    assert(isDefined);
+    NODE_ASSERT(isDefined);
     desc.m_classSignature = cnsym->generatePrettyNameOrSignature(cuti,true,false); //unfancy
 
     //format Ulam Class Signature of super class (ONLY???)
     if(!m_state.isUrSelf(cuti))
       {
 	UTI superuti = cnsym->getBaseClassForClassInstance(cuti, 0);
-	assert(m_state.okUTItoContinue(superuti));
+	NODE_ASSERT(m_state.okUTItoContinue(superuti));
 	SymbolClassName * supercnsym = NULL;
 	AssertBool isSuperDefined = m_state.alreadyDefinedSymbolClassNameByUTI(superuti, supercnsym);
-	assert(isSuperDefined);
+	NODE_ASSERT(isSuperDefined);
 	desc.m_baseClassSignature = supercnsym->generatePrettyNameOrSignature(superuti,true,false); //unfancy
       }
     else
@@ -5193,7 +5193,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 
     SymbolClass * csym = NULL;
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(suti, csym);
-    assert(isDefined);
+    NODE_ASSERT(isDefined);
 
     //ulam-5 supports multiple base classes; superclass optional
     u32 basecount = csym->getBaseClassCount() + 1; //include super
@@ -5206,7 +5206,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 	  {
 	    //then include any of its relatives:
 	    NodeBlockClass * basecblock = m_state.getAClassBlock(baseuti);
-	    assert(basecblock);
+	    NODE_ASSERT(basecblock);
 	    basecblock->generateTestInstance(fp, runtest);
 	  }
 	i++;
@@ -5223,7 +5223,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
 	  {
 	    //then include any of its relatives:
 	    NodeBlockClass * shbasecblock = m_state.getAClassBlock(baseuti);
-	    assert(shbasecblock);
+	    NODE_ASSERT(shbasecblock);
 	    shbasecblock->generateTestInstance(fp, runtest);
 	  }
 	j++;
@@ -5296,7 +5296,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions(UTI cuti)
     // called after all the generateTestInstance() are generated.
     UTI suti = getNodeType();
     UlamType * sut = m_state.getUlamTypeByIndex(suti);
-    assert(sut->isComplete());
+    NODE_ASSERT(sut->isComplete());
 
     if(suti != m_state.getCompileThisIdx())
       return;

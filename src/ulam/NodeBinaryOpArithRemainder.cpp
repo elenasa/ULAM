@@ -43,16 +43,16 @@ namespace MFM {
 	if(UlamType::compareForMakingCastingNode(nuti, newType, m_state) != UTIC_SAME) //not same, or dontknow
 	  {
 	    NNO pno = Node::getYourParentNo(); //save
-	    assert(pno);
+	    NODE_ASSERT(pno);
 
 	    //not using use makeCastingNode since don't want recursive c&l call
 	    Node * castNode = Node::newCastingNode(this, nuti);
 
-	    assert(parentnoderef);
-	    assert(pno == parentnoderef->getNodeNo());
+	    NODE_ASSERT(parentnoderef);
+	    NODE_ASSERT(pno == parentnoderef->getNodeNo());
 
 	    AssertBool swapOk = parentnoderef->exchangeKids(this, castNode);
-	    assert(swapOk);
+	    NODE_ASSERT(swapOk);
 
 	    std::ostringstream msg;
 	    msg << "Exchanged kids! of parent of binary " << getName();

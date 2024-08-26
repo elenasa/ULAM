@@ -165,7 +165,7 @@ namespace MFM {
 
   void NodePositionofRef::genCode(File * fp, UVPass& uvpass)
   {
-    assert(m_nodeOf);
+    NODE_ASSERT(m_nodeOf);
     UTI nuti = getNodeType();
     UVPass ofpass;
     m_nodeOf->genCodeToStoreInto(fp, ofpass);
@@ -173,14 +173,14 @@ namespace MFM {
     Symbol * cos = NULL;
     Symbol * stgcos = NULL;
     loadStorageAndCurrentObjectSymbols(stgcos, cos);
-    assert(cos && stgcos);
+    NODE_ASSERT(cos && stgcos);
     u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
-    assert(cosSize > 0);
+    NODE_ASSERT(cosSize > 0);
 
     UTI stgcosuti = stgcos->getUlamTypeIdx();
     UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
 
-    assert(stgcosut->isReference()); //non-refs handled in NodeTerminalProxy
+    NODE_ASSERT(stgcosut->isReference()); //non-refs handled in NodeTerminalProxy
 
 
     s32 tmpVarNum = m_state.getNextTmpVarNumber();

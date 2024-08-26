@@ -30,7 +30,7 @@ namespace MFM {
     if(getPreviousBlockPointer() == NULL)
       setPreviousBlockPointer(m_state.getCurrentBlock()); //t41283, not for filescope locals
     else
-      assert(getPreviousBlockPointer() == m_state.getCurrentBlock());
+      NODE_ASSERT(getPreviousBlockPointer() == m_state.getCurrentBlock());
 
     m_state.pushCurrentBlock(this);
 
@@ -106,29 +106,29 @@ namespace MFM {
 
   NodeStatements * NodeBlock::getLastStatementPtr()
   {
-    assert(m_nodeEndingStmt != NULL);
+    NODE_ASSERT(m_nodeEndingStmt != NULL);
     return m_nodeEndingStmt;
   }
 
   void NodeBlock::appendNextNode(Node * node)
   {
-    assert(node);
+    NODE_ASSERT(node);
     NodeStatements * nextNode = new NodeStatements(node, m_state);
-    assert(nextNode);
-    assert(m_nodeEndingStmt);
+    NODE_ASSERT(nextNode);
+    NODE_ASSERT(m_nodeEndingStmt);
     m_nodeEndingStmt->setNextNode(nextNode);
     m_nodeEndingStmt = nextNode;
   } //appendNextNode
 
   UTI NodeBlock::checkAndLabelType(Node * thisparentnode)
   {
-    assert(m_nodeNext);
+    NODE_ASSERT(m_nodeNext);
     //especially important for template instances (prev ptr nullified on instantiation)
     //and extremely important to skip for filescope locals (only one per file) e.g. t41283;
     if(getPreviousBlockPointer() == NULL)
       setPreviousBlockPointer(m_state.getCurrentBlock());
     else
-      assert(getPreviousBlockPointer() == m_state.getCurrentBlock());
+      NODE_ASSERT(getPreviousBlockPointer() == m_state.getCurrentBlock());
 
     m_state.pushCurrentBlock(this);
 
@@ -175,19 +175,19 @@ namespace MFM {
 
   void NodeBlock::addIdToScope(u32 id, Symbol * symptr)
   {
-    assert(symptr->getBlockNoOfST() == getNodeNo()); //set by Symbol constr, based on m_currentBlock
+    NODE_ASSERT(symptr->getBlockNoOfST() == getNodeNo()); //set by Symbol constr, based on m_currentBlock
     m_ST.addToTable(id, symptr);
   }
 
   void NodeBlock::replaceIdInScope(u32 oldid, u32 newid, Symbol * symptr)
   {
-    assert(symptr->getBlockNoOfST() == getNodeNo());
+    NODE_ASSERT(symptr->getBlockNoOfST() == getNodeNo());
     m_ST.replaceInTable(oldid, newid, symptr);
   }
 
   void NodeBlock::replaceIdInScope(Symbol * oldsym, Symbol * newsym)
   {
-    assert(oldsym->getBlockNoOfST() == getNodeNo());
+    NODE_ASSERT(oldsym->getBlockNoOfST() == getNodeNo());
     newsym->setBlockNoOfST(getNodeNo()); //update ST block no in new symbol
     m_ST.replaceInTable(oldsym, newsym);
   }
@@ -204,7 +204,7 @@ namespace MFM {
 
   void NodeBlock::setPreviousBlockPointer(NodeBlock * b)
   {
-    assert(b != this); //invariant (t41283)
+    NODE_ASSERT(b != this); //invariant (t41283)
     m_prevBlockNode = b;
   }
 
