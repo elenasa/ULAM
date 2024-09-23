@@ -1,0 +1,21 @@
+## -*- mode:ulam -*-
+#=t41677_test_compiler_localvardeclinitwithdmsamename_ish
+#!
+Exit status: 127
+Ue_A { Int m(127);  Int test() {  Int(8) m = self m . cast 8u << cast;  self m . m cast = m cast return } }
+##
+## informed by Dave ish 9/14/24; see also errors t41675;
+##  okay to have a Data Member in initialization of local variable with same name;
+##  self not needed, finds it (t41688 local constant m case).
+##
+#>A.ulam
+  ulam 5;
+element A {
+  Int m = 1;
+  Int test() {
+    Int(8) m = (Int(8)) (((Bits) m) << m.sizeof);
+    self.m = m;
+    return m;
+  }
+}
+#.

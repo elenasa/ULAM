@@ -745,6 +745,34 @@ namespace MFM {
 	if(m_state.okUTItoContinue(eit) && m_state.isComplete(eit))
 	  {
 	    NODE_ASSERT(m_varSymbol);
+	    if(m_nodeInitExpr) // && !m_state.isAltRefType(eit))
+	      {
+		TBOOL tbchk = m_nodeInitExpr->checkVarUsedBeforeDeclared(m_vid, getBlockNo());
+		if(tbchk != TBOOL_FALSE)
+		  {
+		    std::ostringstream msg;
+		    msg << "Initial value expression for: '";
+		    msg << m_state.m_pool.getDataAsString(m_vid).c_str();
+		    if(tbchk == TBOOL_HAZY)
+		      {
+			msg << "', may have invalid use of itself";
+			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+			setNodeType(Hzy);
+			clearSymbolPtr();
+			m_state.setGoAgain(); //not error, msg needed (t41182)
+			return Hzy;
+		      }
+		    else
+		      {
+			msg << "', has invalid use of itself";
+			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //t41674,t41486
+			setNodeType(Nav);
+			clearSymbolPtr();
+			return Nav;
+		      }
+		  }
+	      }
+
 	    //constant fold if possible, set symbol value
 	    if(m_nodeInitExpr && m_varSymbol->hasInitValue() && !m_varSymbol->isInitValueReady())
 	      {
@@ -786,21 +814,6 @@ namespace MFM {
 		      }
 		  }
 	      } //has init val
-	  }
-
-	if(m_state.okUTItoContinue(eit) && m_state.okUTItoContinue(vit))
-	  {
-	    if(m_nodeInitExpr->compareSymbolPtrs(m_varSymbol))
-	      {
-		std::ostringstream msg;
-		msg << "Initial value expression for: '";
-		msg << m_state.m_pool.getDataAsString(m_vid).c_str();
-		msg << "', is itself";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		setNodeType(Nav);
-		clearSymbolPtr();
-		return Nav; //t41486,9; t3923 (funccall w same id);
-	      }
 	  }
 
 	if(m_state.okUTItoContinue(eit) && m_state.okUTItoContinue(vit))

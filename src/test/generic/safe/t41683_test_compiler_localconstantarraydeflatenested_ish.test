@@ -1,0 +1,21 @@
+## -*- mode:ulam -*-
+#=t41683_test_compiler_localconstantarraydeflatenested_ish
+#!
+Exit status: 4
+Ue_A { Int test() {  constant Unsigned(16) rtn2 = 4u;  { constant Unsigned(16) rtn2[4] = { 65518u, rtn2 };  } 4u cast return } }
+##
+## informed by Dave ish 9/14/24; see also t41678 and t3882
+##
+#>A.ulam
+  ulam 5;
+local typedef Unsigned(16) BIGARGB[4];
+element A {
+  Int test() {
+    constant Unsigned(16) rtn2 = BIGARGB.lengthof; //rtn2.maxof FAILS;
+    {
+      constant BIGARGB rtn2 = {0xffee, rtn2 }; //u64 try as IMMEDIATE
+    }
+    return rtn2;
+  }
+}
+#.

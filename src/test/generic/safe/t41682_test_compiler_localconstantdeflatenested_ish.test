@@ -1,0 +1,24 @@
+## -*- mode:ulam -*-
+#=t41682_test_compiler_localconstantdeflatenested_ish
+#!
+Exit status: 448
+Ue_A { constant Unsigned cFIX_BITS = 6u;  Int m_m(448);  Int test() {  constant Int m = 7;  { constant Int m = 448;  self m_m . 448 = } self m_m . return } }
+##
+## informed by Dave ish 9/14/24; see also t41679;
+## Like c++, use the previous 'm' (same name by lesser block no)
+##
+#>A.ulam
+  ulam 5;
+element A {
+  constant Unsigned cFIX_BITS = 6u;
+  Int m_m;
+  Int test() {
+    constant Int m = 7;
+    {
+      constant Int m = (Int) (((Bits) m) << cFIX_BITS);
+      m_m = m;
+    }
+    return m_m;
+  }
+}
+#.

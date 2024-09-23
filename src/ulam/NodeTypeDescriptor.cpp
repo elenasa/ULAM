@@ -215,6 +215,11 @@ namespace MFM {
     return getNodeType();
   } //checkAndLabelType
 
+  TBOOL NodeTypeDescriptor::checkVarUsedBeforeDeclared(u32 id, NNO declblockno)
+  {
+    return TBOOL_FALSE; //ok moot (t41310)
+  }
+
   bool NodeTypeDescriptor::resolveType(UTI& rtnuti)
   {
     bool rtnb = false;

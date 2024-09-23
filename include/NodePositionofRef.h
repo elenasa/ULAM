@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodePositionofRef.h - Node handling positionof operator on references for ULAM
  *
- * Copyright (C) 2022 Ackleyshack LLC.
- * Copyright (C) 2022 The Living Computation Foundation.
+ * Copyright (C) 2022-2024 Ackleyshack LLC.
+ * Copyright (C) 2022-2024 The Living Computation Foundation.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodePositionofRef.h - Node handling positionof operator on references for ULAM
   \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2022  All rights reserved.
+  \date (C) 2022-2024  All rights reserved.
   \gpl
 */
 
@@ -72,6 +72,8 @@ namespace MFM{
     virtual FORECAST safeToCastTo(UTI newType);
 
     virtual UTI checkAndLabelType(Node * thisparentnode);
+
+    virtual TBOOL checkVarUsedBeforeDeclared(u32 id, NNO declblockno);
 
     virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
 

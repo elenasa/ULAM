@@ -68,6 +68,15 @@ namespace MFM {
     return; //default
   }
 
+  TBOOL Node::checkVarUsedBeforeDeclared(u32 id, NNO declblockno)
+  {
+    std::ostringstream msg;
+    msg << "virtual TBOOL " << prettyNodeName().c_str();
+    msg << "::checkVarUsedBeforeDeclared(u32 id, NNO declblockno){} is needed!!";
+    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+    return TBOOL_TRUE;
+  }
+
   void Node::print(File * fp)
   {
     printNodeLocation(fp);

@@ -1,0 +1,28 @@
+## -*- mode:ulam -*-
+#=t41690_test_compiler_nonlocaldmvardecllatewithsamenameonbaseclass_ish
+#!
+Exit status: 256
+Ue_A : Bar { constant Unsigned cFIX_BITS = 6u;  :Bar< Int m(4); > Int test() {  Int m = self m . cast 6u << cast;  Int m_m = m;  m_m return } }
+Uq_Bar { Int m( 4);  <NOMAIN> }
+##
+## informed by Dave ish 9/14/24; see also t41674.
+## Looks in baseclass automatically, but not when DM (see 41691)
+##
+#>A.ulam
+  ulam 5;
+element A : Bar {
+  constant Unsigned cFIX_BITS = 6u;
+  Int test() {
+    Int m = (Int) (((Bits) m) << cFIX_BITS);
+    Int m_m = m;
+    return m_m;
+  }
+}
+
+#:Bar.ulam
+  ulam 5;
+quark Bar {
+  Int m = 4;
+}
+
+#.

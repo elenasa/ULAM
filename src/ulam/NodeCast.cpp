@@ -47,7 +47,14 @@ namespace MFM {
 
   void NodeCast::checkAbstractInstanceErrors()
   {
+    assert(m_node);
     m_node->checkAbstractInstanceErrors();
+  }
+
+  TBOOL NodeCast::checkVarUsedBeforeDeclared(u32 id, NNO declblockno)
+  {
+    assert(m_node);
+    return m_node->checkVarUsedBeforeDeclared(id, declblockno);
   }
 
   const char * NodeCast::getName()

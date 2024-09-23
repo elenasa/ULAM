@@ -1,0 +1,39 @@
+## -*- mode:ulam -*-
+#=t41685_test_compiler_localconstantclassarraydeflatenested_ish
+#!
+Exit status: 2
+Ue_A { Int(4) m_iou(2);  Int test() {  constant Int(4) c_qbar = 4;  constant Unsigned(4) c_qbarray = 2u;  { constant QBar c_qbar = { .r = { 3 cast, 2 cast, 0 cast }, .sp = true, .iou = 4 };  constant QBar c_qbarray[3] = { c_qbar, { .r = { 0 cast, 2 cast, 3 cast }, .sp = false }, { .iou = 2 } };  { constant QBar c_qbarray[3] = c_qbarray;  self m_iou . c_qbarray 2 [] iou . = } } self m_iou . cast return } }
+Uq_QBar { Bool sp(false);  Unary(3) r[5]( { 1u });  Int(4) iou( 7);  <NOMAIN> }
+##
+## informed by Dave ish 9/14/24; see also t41678 and t41265
+##
+#>A.ulam
+  ulam 5;
+
+element A {
+  Int(4) m_iou = 0;
+  Int test() {
+    constant Int(4) c_qbar = 4;
+    constant Unsigned(4) c_qbarray = 2;
+    {
+      constant QBar c_qbar = { .r = {3, 2, 0}, .sp = true, .iou = c_qbar };
+      constant QBar c_qbarray[] = { c_qbar, { .r = {0, 2, 3}, .sp = false}, { .iou = c_qbarray } };
+      {
+	constant QBar c_qbarray[3] = c_qbarray;
+	m_iou = c_qbarray[2].iou;
+      }
+    }
+    return m_iou;
+  }
+}
+
+
+#:QBar.ulam
+  ulam 3;
+quark QBar {
+  Bool sp;
+  Unary(3) r[5] = {1};
+  Int(4) iou = 7;
+}
+
+#.

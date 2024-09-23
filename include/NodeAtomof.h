@@ -2,8 +2,8 @@
  * NodeAtomof.h - Node handling the Atomof Statement for ULAM
  *
  * Copyright (C) 2016-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2016-2021 Ackleyshack LLC.
- * Copyright (C) 2020-2021 The Living Computation Foundation
+ * Copyright (C) 2016-2024 Ackleyshack LLC.
+ * Copyright (C) 2020-2024 The Living Computation Foundation
 
  * This file is part of the ULAM programming language compilation system.
  *
@@ -30,7 +30,7 @@
   \file NodeAtomof.h - Node handling the Atomof Statement for ULAM
   \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2016-2021 All rights reserved.
+  \date (C) 2016-2024 All rights reserved.
   \gpl
 */
 
@@ -61,6 +61,8 @@ namespace MFM{
     virtual UTI checkAndLabelType(Node * thisparentnode);
 
     virtual bool trimToTheElement(Node ** fromleftnode, Node *& rtnnodeptr);
+
+    virtual TBOOL checkVarUsedBeforeDeclared(u32 id, NNO declblockno);
 
     virtual void genCode(File * fp, UVPass& uvpass);
 

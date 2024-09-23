@@ -78,6 +78,8 @@ namespace MFM{
 
     virtual bool isWordSizeConstant(u32 wordsize);
 
+    virtual TBOOL checkVarUsedBeforeDeclared(u32 id, NNO declblockno);
+
     virtual EvalStatus eval();
 
     virtual void genCode(File * fp, UVPass& uvpass);

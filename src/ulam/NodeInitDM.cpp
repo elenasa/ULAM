@@ -591,6 +591,13 @@ namespace MFM {
     return true; //i.e. array without initial values
   }
 
+  TBOOL NodeInitDM::checkVarUsedBeforeDeclared(u32 id, NNO declblockno)
+  {
+    if(m_nodeExpr)
+      return m_nodeExpr->checkVarUsedBeforeDeclared(id, declblockno); //t41684
+    return TBOOL_FALSE; //ok moot (t41180)
+  }
+
   void NodeInitDM::genCode(File * fp, UVPass& uvpass)
   {
     UTI nuti = getNodeType();

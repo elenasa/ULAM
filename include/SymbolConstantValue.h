@@ -2,7 +2,8 @@
  * SymbolConstantValue.h - Handling of Named Constant Symbols for ULAM
  *
  * Copyright (C) 2015-2021 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2021 Ackleyshack LLC.
+ * Copyright (C) 2015-2024 Ackleyshack LLC.
+ * Copyright (C) 2020-2024 The Living Computation Foundation.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +30,7 @@
   \file SymbolConstantValue.h - Handling of Named Constant Symbols for ULAM
   \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2021 All rights reserved.
+  \date (C) 2015-2024 All rights reserved.
   \gpl
 */
 
@@ -72,6 +73,8 @@ namespace MFM{
     void setClassArgAsDefaultValue();
     void clearClassArgAsDefaultValue();
     bool isClassArgDefaultValue();
+
+    bool isALocalConstantDef();
 
   protected:
 

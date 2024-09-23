@@ -15,6 +15,22 @@ namespace MFM {
     return new NodeConditionalIs(*this);
   }
 
+    const char * NodeConditionalIs::getName()
+  {
+    return "is";
+  }
+
+  const std::string NodeConditionalIs::prettyNodeName()
+  {
+    return nodeName(__PRETTY_FUNCTION__);
+  }
+
+  const std::string NodeConditionalIs::methodNameForCodeGen()
+  {
+    NODE_ASSERT(m_nodeLeft);
+    return  std::string(m_state.getIsMangledFunctionName(m_nodeLeft->getNodeType()));
+  }
+
   UTI NodeConditionalIs::checkAndLabelType(Node * thisparentnode)
   {
     NODE_ASSERT(m_nodeLeft);
@@ -152,20 +168,10 @@ namespace MFM {
     return getNodeType();
   } //checkAndLabelType
 
-  const char * NodeConditionalIs::getName()
+  TBOOL NodeConditionalIs::checkVarUsedBeforeDeclared(u32 id, NNO declblockno)
   {
-    return "is";
-  }
-
-  const std::string NodeConditionalIs::prettyNodeName()
-  {
-    return nodeName(__PRETTY_FUNCTION__);
-  }
-
-  const std::string NodeConditionalIs::methodNameForCodeGen()
-  {
-    NODE_ASSERT(m_nodeLeft);
-    return  std::string(m_state.getIsMangledFunctionName(m_nodeLeft->getNodeType()));
+    // right node is a Type.
+    return m_nodeLeft->checkVarUsedBeforeDeclared(id, declblockno); //t41067
   }
 
   EvalStatus  NodeConditionalIs::eval()

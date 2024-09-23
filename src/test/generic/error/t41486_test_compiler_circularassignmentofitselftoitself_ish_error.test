@@ -1,11 +1,14 @@
 ## -*- mode:ulam -*-
 #=t41486_test_compiler_circularassignmentofitselftoitself_ish_error
 #!
-./KillPlate.ulam:7:17: ERROR: Initial value expression for: 'sn', is itself.
+./KillPlate.ulam:7:52: ERROR: Variable 'sn' is not defined, or was used before declared in a function.
+./KillPlate.ulam:7:43: ERROR: Cannot cast erroneous type.
+./KillPlate.ulam:7:17: ERROR: Initial value expression for: sn, initialization is invalid.
 Unrecoverable Program Type Label FAILURE.
 ##
 ##  informed by Dave's ish 20210613, see also t41481, t41488,9
 ##    g++ caught the error, but ulam didnt (cast shielded detection)
+##  revisited by Dave's ish 20240914, see also t41674.
 ##
 #>T.ulam
  ulam 5;

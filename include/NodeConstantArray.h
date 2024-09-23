@@ -2,8 +2,8 @@
  * NodeConstantArray.h - Node handling Named Constant arrays for ULAM
  *
  * Copyright (C) 2016-2018 The Regents of the University of New Mexico.
- * Copyright (C) 2016-2021 Ackleyshack LLC.
- * Copyright (C) 2020-2021 The Living Computation Foundation
+ * Copyright (C) 2016-2024 Ackleyshack LLC.
+ * Copyright (C) 2020-2024 The Living Computation Foundation
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -30,7 +30,7 @@
   \file NodeConstantArray.h - Node handling Named Constant arrays for ULAM
   \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2016-2021 All rights reserved.
+  \date (C) 2016-2024 All rights reserved.
   \gpl
 */
 
@@ -83,6 +83,8 @@ namespace MFM{
     virtual FORECAST safeToCastTo(UTI newType);
 
     virtual UTI checkAndLabelType(Node * thisparentnode);
+
+    virtual TBOOL checkVarUsedBeforeDeclared(u32 id, NNO declblockno);
 
     virtual bool getConstantValue(BV8K& bval);
 

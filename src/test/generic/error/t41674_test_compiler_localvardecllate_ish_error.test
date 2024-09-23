@@ -1,0 +1,23 @@
+## -*- mode:ulam -*-
+#=t41674_test_compiler_localvardecllate_ish_error
+#!
+./A.ulam:6:28: ERROR: Variable 'm' is not defined, or was used before declared in a function.
+./A.ulam:6:22: ERROR: Cannot cast erroneous type.
+./A.ulam:6:14: ERROR: Cannot cast erroneous type.
+./A.ulam:6:5: ERROR: Initial value expression for: m, initialization is invalid.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by Dave ish 9/14/24; see also t3797.
+##
+#>A.ulam
+  ulam 5;
+element A {
+  constant Unsigned cFIX_BITS = 6u;
+  Int m_m;
+  Int test() {
+    Int m = (Int) (((Bits) m) << cFIX_BITS);
+    m_m = m;
+    return m;
+  }
+}
+#.

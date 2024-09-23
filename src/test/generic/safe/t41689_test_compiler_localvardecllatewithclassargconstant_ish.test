@@ -1,0 +1,35 @@
+## -*- mode:ulam -*-
+#=t41689_test_compiler_localvardecllatewithclassargconstant_ish
+#!
+Exit status: 256
+Ue_A { Int m_m(256);  Int test() {  QBar(4) qb;  self m_m . qb ( )getSize . = self m_m . return } }
+Uq_QBar(Int m) { Bits(UNKNOWN) m_flag(notready);  <NOMAIN> }
+##
+## informed by Dave ish 9/14/24; see also t41679, t41677 (self), t41688 (local)
+##  okay to have a class parameter/arg constant in initialization of local variable with same name;
+##  nothing needed, finds it before locals filescope constant; dm w same name not allowed.
+##
+#>A.ulam
+  ulam 5;
+element A {
+  Int m_m;
+  Int test() {
+    QBar(4) qb;
+    m_m = qb.getSize();
+    return m_m;
+  }
+}
+
+#:QBar.ulam
+  ulam 5;
+local constant Int m = 3;
+local constant Unsigned cFIX_BITS = 6u;
+quark QBar(Int m){
+  Bits(m) m_flag;
+  Int getSize() {
+    Int m = (Int) (((Bits) m) << cFIX_BITS);
+    return m;
+  }
+}
+
+#.

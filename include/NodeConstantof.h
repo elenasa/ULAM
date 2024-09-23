@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeInstanceof.h - Node handling the Constantof Statement for ULAM
  *
- * Copyright (C) 2021-2022 Ackleyshack LLC.
- * Copyright (C) 2021-2022 The Living Computation Foundation
+ * Copyright (C) 2021-2024 Ackleyshack LLC.
+ * Copyright (C) 2021-2024 The Living Computation Foundation
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeConstantof.h - Node handling the Constantof Statement for ULAM
   \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2021-2022 All rights reserved.
+  \date (C) 2021-2024 All rights reserved.
   \gpl
 */
 
@@ -70,6 +70,8 @@ namespace MFM{
     virtual bool initDataMembersConstantValue(BV8K& bvref, BV8K& bvmask);
 
     virtual UTI checkAndLabelType(Node * thisparentnode);
+
+    virtual TBOOL checkVarUsedBeforeDeclared(u32 id, NNO declblockno);
 
   protected:
     virtual UlamValue makeUlamValuePtr();

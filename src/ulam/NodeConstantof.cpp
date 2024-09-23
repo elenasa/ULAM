@@ -74,6 +74,11 @@ namespace MFM {
   } //checkAndLabelType
 
 
+  TBOOL NodeConstantof::checkVarUsedBeforeDeclared(u32 id, NNO declblockno)
+  {
+    return TBOOL_FALSE; //ok moot (t41502)
+  }
+
   UlamValue NodeConstantof::makeUlamValuePtr()
   {
     UlamValue ptr;

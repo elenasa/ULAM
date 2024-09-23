@@ -49,6 +49,12 @@ namespace MFM {
     return savnuti;
   }
 
+  TBOOL NodeBlockContext::checkVarUsedBeforeDeclared(u32 id, NNO declblockno)
+  {
+    m_state.abortNeedsATest();
+    return TBOOL_FALSE; //ok moot
+  }
+
   u32 NodeBlockContext::getAllRemainingCulamGeneratedTypedefSymbolsInContext(std::map<u32, Symbol*>& mapref)
   {
     return m_ST.getAllRemainingCulamGeneratedTypedefSymbolsInTable(mapref);

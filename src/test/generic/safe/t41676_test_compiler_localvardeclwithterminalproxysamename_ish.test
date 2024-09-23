@@ -1,0 +1,20 @@
+## -*- mode:ulam -*-
+#=t41676_test_compiler_localvardeclwithterminalproxysamename_ish
+#!
+Exit status: 127
+Ue_A { Int m_m(127);  Int test() {  Int(8) m = self m_m . cast 8u << cast;  self m_m . m cast = m cast return } }
+##
+## informed by Dave ish 9/14/24; see also errors t41675
+##  okay to have a terminal proxy in initialization of local variable with same name.
+##
+#>A.ulam
+  ulam 5;
+element A {
+  Int m_m = 1;
+  Int test() {
+    Int(8) m = (Int(8)) (((Bits) m_m) << m.sizeof);
+    m_m = m;
+    return m;
+  }
+}
+#.

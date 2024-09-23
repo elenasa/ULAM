@@ -178,7 +178,8 @@ namespace MFM {
 
     if(it == Hzy)
       {
-	clearSymbolPtr();
+	if(m_constSymbol && !((SymbolConstantValue *) m_constSymbol)->isALocalConstantDef())
+	  clearSymbolPtr();
 	m_state.setGoAgain();
       }
     else
@@ -239,12 +240,12 @@ namespace MFM {
     NODE_ASSERT(m_constSymbol);
     UTI rtnuti = m_constSymbol->getUlamTypeIdx();
 
-    if(!m_constSymbol->isDataMember() && !m_constSymbol->isLocalsFilescopeDef() && !m_constSymbol->isClassArgument() && !m_constSymbol->isClassParameter() && (m_constSymbol->getDeclNodeNo() > getNodeNo()))
+    if(((SymbolConstantValue *) m_constSymbol)->isALocalConstantDef() && (m_constSymbol->getDeclNodeNo() > getNodeNo()))
       {
 	NodeBlock * currBlock = getBlock();
 	currBlock = currBlock->getPreviousBlockPointer();
 	std::ostringstream msg;
-	msg << "Named constant array '" << getName();
+	msg << "Named constant class array '" << getName();
 	msg << "' was used before declared in a function";
 	if(currBlock)
 	  {
@@ -309,7 +310,7 @@ namespace MFM {
       }
     NODE_ASSERT(currBlock);
     return currBlock;
-  }
+  } //getBlock
 
   bool NodeConstantClassArray::getClassArrayValue(BV8K& bvtmp)
   {
@@ -323,6 +324,49 @@ namespace MFM {
   {
     return getClassArrayValue(bval);
   }
+
+  TBOOL NodeConstantClassArray::checkVarUsedBeforeDeclared(u32 id, NNO declblockno)
+  {
+    if(m_token.m_dataindex != id)
+      return TBOOL_FALSE; //ok
+
+    if(!m_constSymbol)
+      return TBOOL_HAZY;
+
+    // error if use comes before end of decl;
+    //  called by NodeVarDecl or NodeConstantDef.
+    if(((SymbolConstantValue *) m_constSymbol)->isALocalConstantDef())
+      {
+	if(getBlockNo() < declblockno )
+	  return TBOOL_FALSE; //ok symbol w same name not in same block
+
+	//and try previous block (t41685); if symbol BlockNo is the same as current block no;
+	NodeBlock * currBlock = getBlock();
+	currBlock = currBlock->getPreviousBlockPointer();
+	if(currBlock)
+	  {
+	    setBlockNo(currBlock->getNodeNo());
+	    clearSymbolPtr();
+	    m_state.setGoAgain();
+	    setNodeType(Hzy);
+	  }
+
+	std::ostringstream msg;
+	msg << "Named constant class array '" << getName();
+	msg << "' was used before declaration completed";
+	if(getNodeType() == Hzy)
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	    return TBOOL_HAZY;
+	  }
+	else
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    return TBOOL_TRUE; //error
+	  }
+      }
+    return TBOOL_FALSE; //ok moot
+  } //checkVarUsedBeforeDeclared
 
   EvalStatus NodeConstantClassArray::eval()
   {

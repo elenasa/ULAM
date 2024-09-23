@@ -57,6 +57,14 @@ namespace MFM {
       m_nodeNext->checkAbstractInstanceErrors(); //work done by NodeVarDecl
   }
 
+  TBOOL NodeBlock::checkVarUsedBeforeDeclared(u32 id, NNO declblockno)
+  {
+    if(m_nodeNext)
+      return m_nodeNext->checkVarUsedBeforeDeclared(id, declblockno);
+
+    return TBOOL_FALSE; //ok
+  }
+
   void NodeBlock::print(File * fp)
   {
     printNodeLocation(fp);

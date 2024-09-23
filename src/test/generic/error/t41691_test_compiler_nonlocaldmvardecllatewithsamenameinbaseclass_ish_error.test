@@ -1,0 +1,32 @@
+## -*- mode:ulam -*-
+#=t41691_test_compiler_nonlocaldmvardecllatewithsamenameonbaseclass_ish_error
+#!
+./A.ulam:4:26: ERROR: Variable 'self' is not defined, or was used before declared in a function.
+./A.ulam:4:26: ERROR: Member selected, self, is invalid here.
+./A.ulam:4:20: ERROR: Cannot cast erroneous type.
+./A.ulam:4:12: ERROR: Cannot cast erroneous type.
+./A.ulam:4:3: ERROR: Initial value expression for: m, initialization is invalid.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by Dave ish 9/14/24; see also t41690 (local var looks).
+## Doesn't look for m in baseclass for dm.
+##
+#>A.ulam
+  ulam 5;
+element A : Bar {
+  constant Unsigned cFIX_BITS = 6u;
+  Int m = (Int) (((Bits) m) << cFIX_BITS);
+
+  Int test() {
+    Int m_m = m;
+    return m_m;
+  }
+}
+
+#:Bar.ulam
+  ulam 5;
+quark Bar {
+  Int m = 4;
+}
+
+#.

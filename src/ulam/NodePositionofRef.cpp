@@ -147,6 +147,11 @@ namespace MFM {
     return getNodeType(); //updated to Unsigned, hopefully
   } //checkandLabelType
 
+  TBOOL NodePositionofRef::checkVarUsedBeforeDeclared(u32 id, NNO declblockno)
+  {
+    return TBOOL_FALSE; //ok (t41616)
+  }
+
   void NodePositionofRef::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
   {
     Node::countNavHzyNoutiNodes(ncnt, hcnt, nocnt);

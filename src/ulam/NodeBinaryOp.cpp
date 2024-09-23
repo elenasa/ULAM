@@ -62,13 +62,24 @@ namespace MFM {
 
   void NodeBinaryOp::checkAbstractInstanceErrors()
   {
-      m_nodeLeft->checkAbstractInstanceErrors();
-      m_nodeRight->checkAbstractInstanceErrors();
+    m_nodeLeft->checkAbstractInstanceErrors();
+    m_nodeRight->checkAbstractInstanceErrors();
+  }
+
+  TBOOL NodeBinaryOp::checkVarUsedBeforeDeclared(u32 id, NNO declblockno)
+  {
+    TBOOL tbleft = m_nodeLeft->checkVarUsedBeforeDeclared(id, declblockno);
+    TBOOL tbright = m_nodeRight->checkVarUsedBeforeDeclared(id, declblockno);
+    if((tbleft == TBOOL_TRUE) || (tbright == TBOOL_TRUE))
+      return TBOOL_TRUE; //error case
+    if((tbleft == TBOOL_FALSE) && (tbright == TBOOL_FALSE))
+      return TBOOL_FALSE; //aokay
+    return TBOOL_HAZY;
   }
 
   void NodeBinaryOp::resetNodeLocations(Locator loc)
   {
-    Node::setNodeLocation(loc);
+    Node::resetNodeLocations(loc);
     if(m_nodeLeft) m_nodeLeft->resetNodeLocations(loc);
     if(m_nodeRight) m_nodeRight->resetNodeLocations(loc);
   }

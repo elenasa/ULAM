@@ -102,7 +102,7 @@ namespace MFM {
 
   void NodeConstantDef::resetNodeLocations(Locator loc)
   {
-    Node::setNodeLocation(loc);
+    Node::resetNodeLocations(loc);
     if(m_nodeExpr) m_nodeExpr->resetNodeLocations(loc);
   }
 
@@ -482,17 +482,40 @@ namespace MFM {
 
 	if(m_state.isStillHazy(nuti))
 	  {
-	    std::ostringstream msg;
-	    msg << "Constant value expression for: ";
-	    msg << m_state.m_pool.getDataAsString(m_cid).c_str();
-	    msg << ", is not ready, still hazy";
-	    msg << ", while compiling " << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-	    msg << " (UTI " << cuti << ")";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	    setNodeType(Hzy);
-	    clearSymbolPtr();
-	    m_state.setGoAgain();
-	    return Hzy; //short-circuit
+	    //potential cause of haziness is this error t41678
+	    TBOOL tbchk = m_nodeExpr->checkVarUsedBeforeDeclared(m_cid, getBlockNo());
+	    if(tbchk != TBOOL_FALSE)
+	      {
+		std::ostringstream msg;
+		msg << "Initial value expression for constant: '";
+		msg << getName();
+		if(tbchk == TBOOL_HAZY)
+		  {
+		    msg << "', may have invalid use of itself";
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+		    nuti = Hzy; //t41678
+		  }
+		else
+		  {
+		    msg << "', has invalid use of itself";
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    nuti = Nav;
+		  }
+	      }
+	    else
+	      {
+		std::ostringstream msg;
+		msg << "Constant value expression for: ";
+		msg << m_state.m_pool.getDataAsString(m_cid).c_str();
+		msg << ", is not ready, still hazy";
+		msg << ", while compiling " << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+		msg << " (UTI " << cuti << ")";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+		setNodeType(Hzy);
+		clearSymbolPtr();
+		m_state.setGoAgain();
+		return Hzy; //short-circuit
+	      }
 	  }
 
 	//note: Void is flag that it's a list of constant initializers;

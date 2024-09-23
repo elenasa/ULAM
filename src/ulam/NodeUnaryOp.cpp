@@ -51,9 +51,15 @@ namespace MFM {
       m_node->checkAbstractInstanceErrors();
   }
 
+  TBOOL NodeUnaryOp::checkVarUsedBeforeDeclared(u32 id, NNO declblockno)
+  {
+    assert(m_node);
+    return m_node->checkVarUsedBeforeDeclared(id, declblockno);
+  }
+
   void NodeUnaryOp::resetNodeLocations(Locator loc)
   {
-    Node::setNodeLocation(loc);
+    Node::resetNodeLocations(loc);
     if(m_node) m_node->resetNodeLocations(loc);
   }
 

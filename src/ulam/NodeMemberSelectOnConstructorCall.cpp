@@ -69,6 +69,12 @@ namespace MFM {
     return false;
   }
 
+  TBOOL NodeMemberSelectOnConstructorCall::checkVarUsedBeforeDeclared(u32 id, NNO declblockno)
+  {
+    //skip left, name of variable to be constructed (t41087)
+    return m_nodeRight->checkVarUsedBeforeDeclared(id, declblockno);
+  }
+
   //for eval, want the value of the m_currentObjPtr
    bool NodeMemberSelectOnConstructorCall::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
   {

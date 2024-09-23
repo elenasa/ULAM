@@ -1,0 +1,18 @@
+## -*- mode:ulam -*-
+#=t41680_test_compiler_localvardeclinitwithsamenameinstanceof_ish
+#!
+Exit status: 0
+Ue_A { Int test() {  A a = a.instanceof;  0 cast return } }
+##
+## informed by Dave ish 9/14/24; see also errors t41675
+##  okay to have instanceof a variable because it is a constant
+##
+#>A.ulam
+  ulam 5;
+element A {
+  Int test() {
+    A a = a.instanceof;
+    return 0;
+  }
+}
+#.

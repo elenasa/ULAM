@@ -1,9 +1,7 @@
 ## -*- mode:ulam -*-
 #=t41488_test_compiler_circularconstantassignmentofitselftoitself_ish_error
 #!
-./KillPlate.ulam:7:61: ERROR: Not ready constant for type: Unsigned(6), used with symbol name 'sn', while compiling KillPlate (UTI 32).
-./KillPlate.ulam:7:52: ERROR: Cannot cast a nonready type.
-./KillPlate.ulam:7:26: ERROR: Constant value expression for: sn, is not ready, still hazy, while compiling KillPlate (UTI 32).
+./KillPlate.ulam:7:61: ERROR: Named Constant 'sn' is not defined, or was used before declared in a function.
 Unrecoverable Program Type Label FAILURE.
 ##
 ##  informed by Dave's ish 20210613, see also t41481, and t41486, t41489

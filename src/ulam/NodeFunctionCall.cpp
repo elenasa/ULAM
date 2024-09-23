@@ -648,6 +648,11 @@ namespace MFM {
     return m_funcSymbol->isVirtualFunction();
   }
 
+  TBOOL NodeFunctionCall::checkVarUsedBeforeDeclared(u32 id, NNO declblockno)
+  {
+    return TBOOL_FALSE; //ok (t3629)
+  }
+
   // since functions are defined at the class-level; a function call
   // must be PRECEDED by a member selection (element or quark) --- a
   // local variable instance that provides the storage (i.e. atom) for

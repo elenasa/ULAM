@@ -94,6 +94,8 @@ enum EvalStatus {ERROR, NOTREADY, NORMAL, RETURN, BREAK, CONTINUE, UNEVALUABLE};
 
     virtual void checkAbstractInstanceErrors();
 
+    virtual TBOOL checkVarUsedBeforeDeclared(u32 id, NNO declblockno);
+
     virtual void print(File * fp);
 
     virtual void printPostfix(File * fp) = 0;

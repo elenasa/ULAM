@@ -1,0 +1,20 @@
+## -*- mode:ulam -*-
+#=t41678_test_compiler_localconstantdeflate_ish_error
+#!
+./A.ulam:6:37: ERROR: Named Constant 'm' is not defined, or was used before declared in a function.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by Dave ish 9/14/24; see also t41674.
+##
+#>A.ulam
+  ulam 5;
+element A {
+  constant Unsigned cFIX_BITS = 6u;
+  Int m_m;
+  Int test() {
+    constant Int m = (Int) (((Bits) m) << cFIX_BITS);
+    m_m = m;
+    return m;
+  }
+}
+#.

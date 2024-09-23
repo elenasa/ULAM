@@ -133,7 +133,7 @@ namespace MFM {
       m_nodeParameterList->resetNodeLocations(loc);
     if(m_nodeArgumentList)
       m_nodeArgumentList->resetNodeLocations(loc);
-    Node::setNodeLocation(loc);
+    Node::resetNodeLocations(loc);
   }
 
   void NodeBlockClass::print(File * fp)

@@ -586,6 +586,11 @@ namespace MFM {
     return  (m_constant.uval > wordsize); //use to be >=
   } //isWordSizeConstant
 
+  TBOOL NodeTerminal::checkVarUsedBeforeDeclared(u32 id, NNO declblockno)
+  {
+    return TBOOL_FALSE; //ok
+  }
+
   void NodeTerminal::genCode(File * fp, UVPass& uvpass)
   {
     UVPass tvpass;

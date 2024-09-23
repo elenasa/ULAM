@@ -1,0 +1,21 @@
+## -*- mode:ulam -*-
+#=t41687_test_compiler_nonlocalconstantvardecllatelocalsfilescope_ish_error
+#!
+./A.ulam:3:18: ERROR: Incomplete NodeConstantDef for type used with constant name 'm' in locals filescope.
+Unrecoverable Program GenCode FAILURE.
+##
+## informed by Dave ish 9/14/24; see also t41678.
+## Can't use self.m.
+##
+#>A.ulam
+  ulam 5;
+  local constant Unsigned cFIX_BITS = 6u;
+  local constant Int m = (Int) (((Bits) m) << cFIX_BITS);
+element A {
+  constant Int m = 4;
+  Int test() {
+    Int m_m = m;
+    return m_m;
+  }
+}
+#.

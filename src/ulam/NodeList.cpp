@@ -109,6 +109,26 @@ namespace MFM{
       }
   }
 
+  TBOOL NodeList::checkVarUsedBeforeDeclared(u32 id, NNO declblockno)
+  {
+    u32 hazynodes = 0;
+    for(u32 i = 0; i < m_nodes.size(); i++)
+      {
+	NODE_ASSERT(m_nodes[i]);
+	TBOOL tbnode = m_nodes[i]->checkVarUsedBeforeDeclared(id, declblockno);
+	if(tbnode == TBOOL_TRUE)
+	  return TBOOL_TRUE; //error hit bail
+	else if(tbnode == TBOOL_HAZY)
+	  hazynodes++;
+	//else
+      }
+
+    if(hazynodes > 0)
+      return TBOOL_HAZY;
+
+    return TBOOL_FALSE; //ok
+  }
+
   void NodeList::resetNodeLocations(Locator loc)
   {
     for(u32 i = 0; i < m_nodes.size(); i++)

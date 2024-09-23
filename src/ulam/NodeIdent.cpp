@@ -711,7 +711,7 @@ namespace MFM {
 	  {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    setBlockNo(currBlock->getNodeNo());
-	    m_varSymbol = NULL; //t3881, t3306, t3323
+	    clearSymbolPtr(); //t3881, t3306, t3323
 	    rtnuti = Hzy;
 	  }
 	else
@@ -722,6 +722,50 @@ namespace MFM {
       }
     return rtnuti;
   } //checkUsedBeforeDeclared
+
+  TBOOL NodeIdent::checkVarUsedBeforeDeclared(u32 id, NNO declblockno)
+  {
+    //NODE_ASSERT(m_token.m_locator < endloc); historic. endloc implicit in sub-tree checked.
+    if(m_token.m_dataindex != id)
+      return TBOOL_FALSE; //t3607
+
+    if(!m_varSymbol)
+      return TBOOL_HAZY; //t3415
+
+    // error if use of same name comes before end of decl;
+    //  called by NodeVarDecl. (t41674, t3614 self)
+    if(!hasASymbolDataMember() )
+      {
+	if( getBlockNo() < declblockno )
+	  return TBOOL_FALSE; //ok symbol w same name not in same block
+
+	//and try previous block (t41679); if symbol BlockNo is the same as current block no;
+	NodeBlock * currBlock = getBlock();
+	currBlock = currBlock->getPreviousBlockPointer();
+	if(currBlock)
+	  {
+	    setBlockNo(currBlock->getNodeNo());
+	    clearSymbolPtr();
+	    m_state.setGoAgain();
+	    setNodeType(Hzy);
+	  }
+
+	std::ostringstream msg;
+	msg << "Local variable '" << getName();
+	msg << "' was used before declaration completed";
+	if(getNodeType() == Hzy)
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	    return TBOOL_HAZY;
+	  }
+	else
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    return TBOOL_TRUE; //error
+	  }
+      }
+    return TBOOL_FALSE;
+  } //checkVarUsedBeforeDeclared
 
   bool NodeIdent::trimToTheElement(Node ** fromleftnode, Node *& rtnnodeptr)
   {

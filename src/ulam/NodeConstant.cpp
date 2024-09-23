@@ -296,7 +296,9 @@ namespace MFM {
     Node::setStoreIntoAble(TBOOL_FALSE);
     if(getNodeType() == Hzy)
       {
-	clearSymbolPtr(); //lookup again too! (e.g. inherited template instances)
+	if(m_constSymbol && !((SymbolConstantValue *) m_constSymbol)->isALocalConstantDef())
+	  clearSymbolPtr(); //lookup again too! (e.g. inherited template instances) t3566;
+	//else except for, possibly nested, local constants (t41682)
 	m_state.setGoAgain();
       }
     else
@@ -450,7 +452,7 @@ namespace MFM {
     NODE_ASSERT(m_constSymbol);
     UTI rtnuti = m_constSymbol->getUlamTypeIdx();
 
-    if(!m_constSymbol->isDataMember() && !m_constSymbol->isLocalsFilescopeDef() && !m_constSymbol->isClassArgument() && !m_constSymbol->isClassParameter() && (m_constSymbol->getDeclNodeNo() > getNodeNo()))
+    if(((SymbolConstantValue *) m_constSymbol)->isALocalConstantDef() && (m_constSymbol->getDeclNodeNo() > getNodeNo()))
       {
 	NodeBlock * currBlock = getBlock();
 	NodeBlock * pcurrBlock = currBlock->getPreviousBlockPointer();
@@ -474,6 +476,49 @@ namespace MFM {
     //else t41215 (e.g. class parameter)
     return rtnuti;
   } //checkUsedBeforeDeclared
+
+  TBOOL NodeConstant::checkVarUsedBeforeDeclared(u32 id, NNO declblockno)
+  {
+    if(m_token.m_dataindex != id)
+      return TBOOL_FALSE; //ok
+
+    if(!m_constSymbol)
+      return TBOOL_HAZY; //t41678
+
+    // error if use comes before end of decl;
+    //  called by NodeConstantDef (t41678), NodeVarDecl (t41674)
+    if(((SymbolConstantValue *) m_constSymbol)->isALocalConstantDef())
+      {
+	if(getBlockNo() < declblockno )
+	  return TBOOL_FALSE; //ok symbol w same name not in same block
+
+	//and try previous block (t41682); if symbol BlockNo is the same as current block no;
+	NodeBlock * currBlock = getBlock();
+	currBlock = currBlock->getPreviousBlockPointer();
+	if(currBlock)
+	  {
+	    setBlockNo(currBlock->getNodeNo());
+	    clearSymbolPtr();
+	    m_state.setGoAgain();
+	    setNodeType(Hzy);
+	  }
+
+	std::ostringstream msg;
+	msg << "Local named constant '" << getName();
+	msg << "' was used before declaration completed";
+	if(getNodeType() == Hzy)
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	    return TBOOL_HAZY;
+	  }
+	else
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    return TBOOL_TRUE; //error
+	  }
+      }
+    return TBOOL_FALSE;
+  } //checkVarUsedBeforeDeclared
 
   //borrowed from NodeIdent
   void NodeConstant::setupBlockNo()

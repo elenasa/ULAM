@@ -171,12 +171,7 @@ namespace MFM {
 	if(cicr != UTIC_SAME)
 	  return false; //t3963
       }
-#if 0
-    //skip rest in the case of array item, continue with usual size fit;
-    //must check (t3884, t3651, t3653, t3817, t41071,3 t41100)
-    if(alt1 == ALT_ARRAYITEM || alt2 == ALT_ARRAYITEM)
-      return true;
-#endif
+
     if(key1.getUlamKeyTypeSignatureBitSize() != key2.getUlamKeyTypeSignatureBitSize())
 	  return false;
 
@@ -237,10 +232,8 @@ namespace MFM {
 
     if(arraysize > 0)
       mangled << ToLeximitedNumber(arraysize);
-#if 1
     else if(arraysize == 0) //consistent w classes (ulam-6)
       mangled << ToLeximitedNumber(-1); //distinct fm scalar t3399,t3400,t3843,t41667,error/t41666
-#endif
     else
       mangled << 10; //scalar NONARRAYSIZE
 

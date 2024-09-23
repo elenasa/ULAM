@@ -1,0 +1,18 @@
+## -*- mode:ulam -*-
+#=t41681_test_compiler_localvardeclinitwithsamenameatomof_ish_error
+#!
+./A.ulam:4:5: ERROR: Initial value expression for: 'a', may have invalid use of itself.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by Dave ish 9/14/24; see also errors t41675
+##  not okay to have atomof with same name as its variable, not a constant
+##
+#>A.ulam
+  ulam 5;
+element A {
+  Int test() {
+    Atom a = a.atomof;
+    return 0;
+  }
+}
+#.

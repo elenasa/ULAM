@@ -30,14 +30,15 @@ namespace MFM {
   {
     NODE_ASSERT(m_nodeOf); //Identifier, not a Type; caught at parse time (right?)
     UTI nuti = NodeStorageof::checkAndLabelType(thisparentnode);
-    if(m_state.okUTItoContinue(nuti))
+    UTI vuti = m_nodeOf->getNodeType();
+
+    if(m_state.okUTItoContinue(nuti) && m_state.okUTItoContinue(vuti)) //t41681
       {
-	UTI vuti = m_nodeOf->getNodeType();
-	bool isself = m_nodeOf->hasASymbolSelf();
+	bool isself = m_nodeOf->hasASymbol() && m_nodeOf->hasASymbolSelf(); //t41681
 	bool isaref = m_state.isReference(vuti); //t3706, t41046 (not isAltRefType)
 	UTI oftype = NodeStorageof::getOfType();
 	UlamType * ofut = m_state.getUlamTypeByIndex(oftype);
-	NODE_ASSERT(isself || UlamType::compare(m_state.getUlamTypeAsDeref(vuti), oftype, m_state) == UTIC_SAME); //sanity (e.g. t3905, t3701)
+	NODE_ASSERT(isself || (UlamType::compare(m_state.getUlamTypeAsDeref(vuti), oftype, m_state) == UTIC_SAME)); //sanity (e.g. t3905, t3701)
 	ULAMCLASSTYPE ofclasstype = ofut->getUlamClassType();
 
 	//refs checked at runtime; non-refs here:
@@ -48,7 +49,7 @@ namespace MFM {
 	      {
 		//only way to get storage for a quark is if its a DM
 		// of an element;
-		if(!m_nodeOf->hasASymbolDataMember())
+		if(m_nodeOf->hasASymbol() && !m_nodeOf->hasASymbolDataMember())
 		  {
 		    std::ostringstream msg;
 		    msg << "'" << m_nodeOf->getName();
@@ -122,6 +123,12 @@ namespace MFM {
     return brtn;
   } //trimToTheElement
 
+  TBOOL NodeAtomof::checkVarUsedBeforeDeclared(u32 id, NNO declblockno)
+  {
+    NODE_ASSERT(m_nodeOf);
+    return m_nodeOf->checkVarUsedBeforeDeclared(id, declblockno);  //(t3665, t41681)
+  }
+
   UlamValue NodeAtomof::makeUlamValuePtr()
   {
     // (from NodeVarDecl's makeUlamValuePtr)
@@ -181,7 +188,7 @@ namespace MFM {
 	return m_nodeOf->getSymbolAutoPtrForEval(); //haha! we're done.
       }
 
-    if(m_nodeOf->hasASymbolDataMember())
+    if(m_nodeOf->hasASymbol() && m_nodeOf->hasASymbolDataMember())
       {
 	UTI cuti = m_state.m_currentObjPtr.getPtrTargetType();
 	UlamType * cut = m_state.getUlamTypeByIndex(cuti);
@@ -232,13 +239,15 @@ namespace MFM {
 
   void NodeAtomof::genCode(File * fp, UVPass& uvpass)
   {
+    NODE_ASSERT(m_nodeOf);
+
     //lhs, no longer allowed with packed elements
     NODE_ASSERT(getStoreIntoAble() == TBOOL_TRUE);
 
     UTI nuti = getNodeType(); //UAtomRef
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
 
-    if(m_nodeOf->hasASymbolReference() && (m_state.getUlamTypeByIndex(getOfType())->getUlamClassType() == UC_QUARK))
+    if(m_nodeOf->hasASymbol() && m_nodeOf->hasASymbolReference() && (m_state.getUlamTypeByIndex(getOfType())->getUlamClassType() == UC_QUARK))
       {
 	m_nodeOf->genCodeToStoreInto(fp, uvpass);
 
@@ -321,12 +330,14 @@ namespace MFM {
 
   void NodeAtomof::genCodeToStoreInto(File * fp, UVPass& uvpass)
   {
+    NODE_ASSERT(m_nodeOf);
+
     //lhs, no longer allowed with packed elements
     NODE_ASSERT(getStoreIntoAble() == TBOOL_TRUE);
 
     UTI nuti = getNodeType(); //UAtomRef
 
-    if(m_nodeOf->hasASymbolReference() && (m_state.getUlamTypeByIndex(getOfType())->getUlamClassType() == UC_QUARK))
+    if(m_nodeOf->hasASymbol() && m_nodeOf->hasASymbolReference() && (m_state.getUlamTypeByIndex(getOfType())->getUlamClassType() == UC_QUARK))
       {
 	m_nodeOf->genCodeToStoreInto(fp, uvpass);
 

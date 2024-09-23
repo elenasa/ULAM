@@ -167,4 +167,9 @@ namespace MFM {
     return m_isClassArgDefaultValue;
   }
 
+  bool SymbolConstantValue::isALocalConstantDef()
+  {
+    return (!isDataMember() && !isLocalsFilescopeDef() && !isClassArgument() && !isClassParameter());
+  }
+
 } //end MFM

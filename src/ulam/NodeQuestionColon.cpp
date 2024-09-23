@@ -52,6 +52,17 @@ namespace MFM {
     NodeBinaryOp::checkAbstractInstanceErrors();
   }
 
+  TBOOL NodeQuestionColon::checkVarUsedBeforeDeclared(u32 id, NNO declblockno)
+  {
+    TBOOL tbcond = m_nodeCondition->checkVarUsedBeforeDeclared(id, declblockno);
+    TBOOL tbopts = NodeBinaryOp::checkVarUsedBeforeDeclared(id, declblockno);
+    if((tbcond == TBOOL_TRUE) || (tbopts == TBOOL_TRUE))
+      return TBOOL_TRUE; //error case
+    if((tbcond == TBOOL_FALSE) && (tbopts == TBOOL_FALSE))
+      return TBOOL_FALSE; //aokay
+    return TBOOL_HAZY;
+  }
+
   void NodeQuestionColon::resetNodeLocations(Locator loc)
   {
     m_nodeCondition->resetNodeLocations(loc);

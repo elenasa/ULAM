@@ -2,8 +2,8 @@
  * NodeIdent.h - Node handling Identifiers for ULAM
  *
  * Copyright (C) 2014-2019 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2022 Ackleyshack LLC.
- * Copyright (C) 2020-2022 The Living Computation Foundation
+ * Copyright (C) 2014-2024 Ackleyshack LLC.
+ * Copyright (C) 2020-2024 The Living Computation Foundation
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -30,7 +30,7 @@
   \file NodeIdent.h - Node handling Identifiers for ULAM
   \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2022 All rights reserved.
+  \date (C) 2014-2024 All rights reserved.
   \gpl
 */
 
@@ -112,6 +112,8 @@ namespace MFM{
     virtual FORECAST safeToCastTo(UTI newType);
 
     virtual UTI checkAndLabelType(Node * thisparentnode);
+
+    virtual TBOOL checkVarUsedBeforeDeclared(u32 id, NNO declblockno);
 
     virtual bool trimToTheElement(Node ** fromleftnode, Node *& rtnnodeptr);
 

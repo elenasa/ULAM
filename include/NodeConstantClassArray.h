@@ -86,6 +86,8 @@ namespace MFM{
 
     virtual bool getConstantValue(BV8K& bval);
 
+    virtual TBOOL checkVarUsedBeforeDeclared(u32 id, NNO declblockno);
+
     virtual EvalStatus eval();
 
     virtual EvalStatus evalToStoreInto();
