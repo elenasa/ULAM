@@ -2,19 +2,15 @@
 #=t41224_test_compiler_elementregularwithinheritedclassparameterquarktemplate
 ##
 ##  gen output: (+ interleaved asserts)
-##   Int(4) : 2
+##   Int(4) : 7
 ##   true
-##   Int(4) : 3
-##   false
-##
-## FAILED: ILLEGAL_ARGUMENT
 #!
 Exit status: 7
-Ue_T { Int test() {  System sys;  E e;  sys ( e 7 . )print . sys ( e 7 . 7 == )assert . sys ( e v . b . cast )print . sys ( e v . b . )assert . e 7 . cast return } }
+Ue_T { Int test() {  System sys;  E e;  sys ( e csi . )print . sys ( e csi . 7 == )assert . sys ( e v . b . cast )print . sys ( e v . b . )assert . e csi . cast return } }
 Uq_System { <NOMAIN> }
-Ue_E : S(0xb8,true) { /* empty class block */ }
-Uq_S(Q(flag) v, Bool bp) { constant Int(4) csi = v i .;  <NOMAIN> }
-Uq_Q(Bool flag) { Bool b(notready);  Int(4) i(0);  <NOMAIN> }
+Ue_E : S(0x8,true) { /* empty class block */ }
+Uq_S(Q(flag) v, Bool bp) { Int(4) csi(notready);  <NOMAIN> }
+Uq_Q(Bool flag) { Bool b(notready);  constant Int(4) i = 7;  <NOMAIN> }
 ##
 ##    //informed by t41223, except E is regular
 ##
@@ -39,20 +35,20 @@ element T{
 #:S.ulam
   ulam 3;
 quark S(Q(bp) v, Bool bp) {
-  constant Int(4) csi = v.i;
+  Int(4) csi = v.i;
 }
 
 #:Q.ulam
   ulam 1;
 quark Q(Bool flag){
   Bool b = flag;
-  Int(4) i;
+  constant Int(4) i = 7;
 }
 
 
 #:E.ulam
   ulam 3;
-local constant Q(true) cqt = { .i = 7 };
+local constant Q(true) cqt = { };
 element E : S(cqt, true) { }
 
 

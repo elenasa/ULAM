@@ -5,14 +5,13 @@
 ##   Int(4) : 7
 ##   true
 ##
-## FAILED: ILLEGAL_ARGUMENT
 #!
 Exit status: 7
 Ue_T { Int test() {  System sys;  E(true) et;  sys ( et 7 . )print . sys ( et 7 . 7 == )assert . sys ( et v . b . cast )print . sys ( et v . b . )assert . et 7 . cast return } }
 Uq_System { <NOMAIN> }
 Ue_E(Bool bp) : S(v,bp) { /* empty class block */ }
 Uq_S(Q(flag) v, Bool bp) { constant Int(4) csi = v i .;  <NOMAIN> }
-Uq_Q(Bool flag) { Bool b(notready);  Int(4) i(0);  <NOMAIN> }
+Uq_Q(Bool flag) { Bool b(notready);  constant Int(4) i = 7;  <NOMAIN> }
 ##
 ##    //informed by t41213, except element E has a dependent ancestor
 ##    //  also like t41225, except quark S has two class params and no ancestor
@@ -32,7 +31,7 @@ element T{
     sys.print(et.v.b);
     sys.assert(et.v.b); //true
 
-    return et.csi; //2
+    return et.csi; //7
   }
 }
 
@@ -46,13 +45,13 @@ quark S(Q(bp) v, Bool bp) {
   ulam 1;
 quark Q(Bool flag){
   Bool b = flag;
-  Int(4) i;
+  constant Int(4) i = 7;
 }
 
 
 #:E.ulam
   ulam 3;
-local constant Q(true) cqt = { .i = 7 };
+local constant Q(true) cqt = { };
 element E(Bool bp) : S(cqt, bp) { } //the goal!!
 
 

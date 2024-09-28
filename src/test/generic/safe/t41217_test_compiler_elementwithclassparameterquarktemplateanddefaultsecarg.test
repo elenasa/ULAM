@@ -2,15 +2,14 @@
 #=t41217_test_compiler_elementwithclassparameterquarktemplateanddefaultsecarg
 ##
 ##  gen output: (+ interleaved asserts)
-##   Int(4) : 7
 ##   Int(4) : 3
+##   false
 ##
-## FAILED: ILLEGAL_ARGUMENT
 #!
 Exit status: 3
 Ue_T { Int test() {  System sys;  constant Q(false) cqf = { .i = 3 };  S(0x18,false) sf;  sys ( sf 3 . )print . sys ( sf 3 . 3 cast == )assert . sys ( sf v . b . cast )print . sys ( sf v . b . ! )assert . sf 3 . cast return } }
 Uq_System { <NOMAIN> }
-Uq_Q(Bool flag) { Bool b(notready);  Int(4) i(0);  <NOMAIN> }
+Uq_Q(Bool flag) { Bool b(notready);  Int(4) i(notready);  <NOMAIN> }
 Uq_S(Q(flag) v, Bool bp = false) { constant Int(4) csi = v i .;  <NOMAIN> }
 ##
 ##    //informed by t41214 (new parameter order w a default)
@@ -40,10 +39,11 @@ quark S(Q(bp) v, Bool bp = false){
 }
 
 #:Q.ulam
-  ulam 1;
+  ulam 5;
+local constant Int(4) i = 7;
 quark Q(Bool flag){
   Bool b = flag;
-  Int(4) i;
+  Int(4) i = i; //works
 }
 
 #:System.ulam

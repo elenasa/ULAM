@@ -1,16 +1,19 @@
 ## -*- mode:ulam -*-
-#=t41695_test_compiler_multiinheritance_nonlocaldminsubaddsbaseconstantshadows_error
+#=t41695_test_compiler_multiinheritance_nonlocaldminsubaddsbaseconstantshadows
 ##
 #!
-./E4.ulam:3:15: ERROR: Variable 'self' is not defined, or was used before declared in a function.
-./E4.ulam:3:15: ERROR: Member selected, self, is invalid here.
-./E4.ulam:3:21: ERROR: Variable 'self' is not defined, or was used before declared in a function.
-./E4.ulam:3:21: ERROR: Member selected, self, is invalid here.
-./E4.ulam:3:3: ERROR: Initial value expression for: m_add, initialization is invalid.
-Unrecoverable Program Type Label FAILURE.
+Exit status: 8
+Ue_Foo +System { Int m_qadd(8);  +System<> Int test() {  E4 e4;  self m_qadd . e4 ( )getAdd . = self ( self m_qadd . )print . self ( self m_qadd . 8 cast == )assert . self m_qadd . return } }
+Uq_System { <NOMAIN> }
+Ue_E4 : QBase2 +QBase3 +QBaseLast { Int m_add( 8);  :QBase2< Int(8) m_q( 1); > +QBase3< constant Int(8) m_q = 4; > +QBaseLast< Int(8) m_q( 17); > ^QBase1<> <NOMAIN> }
+Uq_QBase2 +QBase1 { Int(8) m_q( 1);  +QBase1<> <NOMAIN> }
+Uq_QBase3 : QBase1 { constant Int(8) m_q = 4;  :QBase1<> <NOMAIN> }
+Uq_QBaseLast { Int(8) m_q( 17);  <NOMAIN> }
+Uq_QBase1 { /* empty class block */ }
 ##
 ## A subclass DM, m_add in E4, behaves differently than as local var (t41692);
-##  QBase2.m_q has to be a constant, QBase3.m_q specified (see also t41693,4).
+##  NO LONGER: QBase2.m_q has to be a constant, QBase3.m_q specified (see also t41693,4).
+##  QBase3.m_q is first constant with correct name to be found, and used.
 ##
 #>Foo.ulam
   ulam 5;
@@ -21,7 +24,7 @@ element Foo +System {
     E4 e4;
     m_qadd = e4.getAdd();
     print(m_qadd);
-    assert(m_qadd==2);
+    assert(m_qadd==8);
     return m_qadd;
   }
 }
@@ -30,7 +33,7 @@ element Foo +System {
 #:E4.ulam
   ulam 5;
 element E4 : QBase2 +QBase3 +QBaseLast {
-  Int m_add = m_q + m_q; // ==2  doesn't work as DM t41693
+  Int m_add = m_q + m_q; // ==2  doesn't work m_q as DM, not const t41693
   Int getAdd(){
     //Int m_add = m_q + m_q; // ==2  works as local var t41692
     return m_add;

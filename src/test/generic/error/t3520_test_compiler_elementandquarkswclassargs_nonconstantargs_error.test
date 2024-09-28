@@ -3,8 +3,17 @@
 #!
 ./Foo.ulam:9:11: ERROR: Constant value expression for class argument: firstRange, is not a constant.
 Unrecoverable Program Type Label FAILURE.
+##./Foo.ulam:9:11: ERROR: Variable 'm' is not defined, or was used before declared in a function, or is not a necessary constant.
+##./Foo.ulam:9:11: ERROR: Constant value expression for class argument: firstRange, is invalid.
+##./Foo.ulam:9:14: ERROR: Variable 'n' is not defined, or was used before declared in a function, or is not a necessary constant.
+##./Foo.ulam:9:14: ERROR: Constant value expression for class argument: lastRange, is invalid.
+##./Foo.ulam:10:11: ERROR: Constant value expression for 'firstRange' is not representable as Unsigned(3).
+##./Foo.ulam:10:11: ERROR: Problem in NodeConstantDef for type: Unsigned(3), used with symbol name 'firstRange', after folding attempt.
+##./Foo.ulam:10:27: ERROR: Variable 'p' is not defined, or was used before declared in a function, or is not a necessary constant.
+##./Foo.ulam:10:27: ERROR: Constant value expression for class argument: lastRange, is invalid.
+##Unrecoverable Program Type Label FAILURE.
 ##
-## Answers the question: Must class args be constant expressions? Yes.
+## Answers the question: Must class args be constant expressions? YES.
 ##
 #>Foo.ulam
   ulam 1;

@@ -298,10 +298,15 @@ namespace MFM {
 
   UTI NodeVarDeclDM::checkAndLabelType(Node * thisparentnode)
   {
+    m_state.m_initSubtreeSymbolsWithConstantsOnly = true; //t41695
+
     UTI nuti = NodeVarDecl::checkAndLabelType(thisparentnode); //sets node type
 
     if(!m_state.okUTItoContinue(nuti))
-      return nuti;
+      {
+	m_state.m_initSubtreeSymbolsWithConstantsOnly = false;
+	return nuti;
+      }
 
     UTI cuti = m_state.getCompileThisIdx();
     NODE_ASSERT(!m_varSymbol || m_varSymbol->getDataMemberClass() == cuti); //t41648
@@ -316,13 +321,16 @@ namespace MFM {
 	msg << "' belongs to a quark-union, and cannot be initialized";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(Nav);
+	m_state.m_initSubtreeSymbolsWithConstantsOnly = false;
 	return Nav; //short-circuit
       }
 
     //don't allow a subclass to shadow a base class datamember (error/t41331)
     TBOOL shadowt = checkForNoShadowingSubclass(cuti);
     if(shadowt != TBOOL_TRUE)
-      return getNodeType();
+      {
+	return getNodeType();
+      }
     //else continue...
 
     //NodeVarDecl handles array initialization for both locals & dm
@@ -337,6 +345,7 @@ namespace MFM {
 	    msg << ", initialization is not a constant";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    setNodeType(Nav);
+	    m_state.m_initSubtreeSymbolsWithConstantsOnly = false;
 	    return Nav; //short-circuit
 	  }
 
@@ -349,6 +358,7 @@ namespace MFM {
 	    msg << ", initialization is invalid";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    setNodeType(Nav);
+	    m_state.m_initSubtreeSymbolsWithConstantsOnly = false;
 	    return Nav; //short-circuit
 	  }
 
@@ -362,6 +372,7 @@ namespace MFM {
 	    setNodeType(Hzy);
 	    clearSymbolPtr();
 	    m_state.setGoAgain(); //since not error
+	    m_state.m_initSubtreeSymbolsWithConstantsOnly = false;
 	    return Hzy; //short-circuit
 	  }
 
@@ -385,13 +396,17 @@ namespace MFM {
 		  {
 		    NODE_ASSERT(m_nodeInitExpr);
 		    if((getNodeType() == Nav) || m_nodeInitExpr->getNodeType() == Nav)
-		      return Nav;
+		      {
+			m_state.m_initSubtreeSymbolsWithConstantsOnly = false;
+			return Nav;
+		      }
 
 		    if(!(m_varSymbol->isInitValueReady()))
 		      {
 			setNodeType(Hzy);
 			clearSymbolPtr();
 			m_state.setGoAgain(); //since not error
+			m_state.m_initSubtreeSymbolsWithConstantsOnly = false;
 			return Hzy;
 		      }
 		  }
@@ -406,11 +421,15 @@ namespace MFM {
 	if(!checkDataMemberSizeConstraints())
 	  setNodeType(Nav); //err msgs, compiler counts;
       }
+    m_state.m_initSubtreeSymbolsWithConstantsOnly = false;
     return getNodeType();
   } //checkAndLabelType
 
   TBOOL NodeVarDeclDM::checkForNoShadowingSubclass(UTI cuti)
   {
+    bool savCnstInitFlag = m_state.m_initSubtreeSymbolsWithConstantsOnly; //t41331
+    m_state.m_initSubtreeSymbolsWithConstantsOnly = false;
+
     std::set<UTI> kinset;
     bool hazyKin = false;
     if(m_state.alreadyDefinedSymbolByAncestorsOf(cuti, m_vid, kinset, hazyKin))
@@ -453,6 +472,8 @@ namespace MFM {
 	  return TBOOL_FALSE;
 	}
       }
+
+    m_state.m_initSubtreeSymbolsWithConstantsOnly = savCnstInitFlag; //restore
     return TBOOL_TRUE; //aok
   } //checkForNoShadowingSubclass
 

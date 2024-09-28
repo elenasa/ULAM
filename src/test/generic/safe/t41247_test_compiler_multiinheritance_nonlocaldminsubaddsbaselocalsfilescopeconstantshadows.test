@@ -1,0 +1,86 @@
+## -*- mode:ulam -*-
+#=t41247_test_compiler_multiinheritance_nonlocaldminsubaddsbaselocalsfilescopeconstantshadows
+##   gen output: (+ assert)
+##     Int Arg: 34
+##
+#!
+Exit status: 34
+Ue_Foo +System { Int m_qadd(34);  +System<> Int test() {  E4 e4;  self m_qadd . e4 ( )getAdd . = self ( self m_qadd . )print . self ( self m_qadd . 34 cast == )assert . self m_qadd . return } }
+Uq_System { <NOMAIN> }
+Ue_E4 : QBase2 +QBase3 +QBaseLast { Int m_add( 34);  :QBase2< Int(8) m_q( 1); > +QBase3< Int(8) m_q( 4); > +QBaseLast< constant Int(8) m_q = 17; > ^QBase1<> <NOMAIN> }
+Uq_QBase2 +QBase1 { Int(8) m_q( 1);  +QBase1<> <NOMAIN> }
+Uq_QBase3 : QBase1 { Int(8) m_q( 4);  :QBase1<> <NOMAIN> }
+Uq_QBaseLast { constant Int(8) m_q = 17;  <NOMAIN> }
+Uq_QBase1 { /* empty class block */ }
+##
+##  like t41246, except QBaseLast constant comes before E4 locals constant.
+## A subclass DM, m_add in E4, behaves differently than as local var (t41692);
+##  NO LONGER: QBase2.m_q has to be a constant, QBase3.m_q specified (see also t41693,4).
+##  QBase3.m_q is first constant with correct name to be found, and used (see t41695).
+##
+#>Foo.ulam
+  ulam 5;
+element Foo +System {
+  Int m_qadd;
+  Int test()
+  {
+    E4 e4;
+    m_qadd = e4.getAdd();
+    print(m_qadd);
+    assert(m_qadd==34);
+    return m_qadd;
+  }
+}
+
+
+#:E4.ulam
+  ulam 5;
+local constant Int(8) m_q = 3; //is this allowed? Y, found? N
+element E4 : QBase2 +QBase3 +QBaseLast {
+  Int m_add = m_q + m_q; // ==2  doesn't work m_q as DM, not const t41693
+  Int getAdd(){
+    //Int m_add = m_q + m_q; // ==2  works as local var t41692
+    return m_add;
+  }
+}
+
+#:QBase1.ulam
+  ulam 5;
+local constant Int(8) m_q = 2; //is this allowed? Y, found? N
+quark QBase1 {
+}
+
+#:QBase2.ulam
+  ulam 5;
+local constant Int(8) m_q = 1; //is this allowed? Y, found? N
+quark QBase2 +QBase1 {
+  Int(8) m_q = 1; //first one has to be a constant for this to work t41694
+}
+
+#:QBase3.ulam
+  ulam 4;
+local constant Int(8) m_q = 4; //is this allowed? Y, found? N
+quark QBase3 : QBase1 {
+ Int(8) m_q = 4;
+}
+
+#:QBaseLast.ulam
+  ulam 4;
+quark QBaseLast {
+  constant Int(8) m_q = 17; //FOUND!! before E4 locals constant.
+}
+
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

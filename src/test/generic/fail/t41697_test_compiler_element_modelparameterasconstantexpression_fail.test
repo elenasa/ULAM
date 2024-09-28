@@ -1,0 +1,25 @@
+## -*- mode:ulam -*-
+#=t41697_test_compiler_element_modelparameterasconstantexpression_fail
+##
+## gencode output: (due to model parameter)
+## include/Ue_102103Foo10_Types.h:279: FAILED: NULL_POINTER
+##
+#!
+Exit status: 2
+Ue_Foo { parameter Int chance = 2;  Int(3) arr[3](0,0,0);  Bool last(false);  Int test() {  chance(2) return } }
+##
+##      informed by t3219: 'chance' as a locals filescope constant will work now.
+##
+#>Foo.ulam
+  ulam 1;
+local constant Int chance = 3;
+element Foo {
+  parameter Int chance = 2;
+  Int(chance) arr[chance];
+  Bool last;
+  Int test() {
+    return chance;
+  }
+}
+
+#.

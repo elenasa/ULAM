@@ -71,7 +71,14 @@ namespace MFM {
     UTI it = getNodeType();
 
     if(it != Nav)
-      it = m_node->checkAndLabelType(this); //previous time through
+      {
+	bool savCnstInitFlag = m_state.m_initSubtreeSymbolsWithConstantsOnly; //t3219
+	m_state.m_initSubtreeSymbolsWithConstantsOnly = true;
+
+	it = m_node->checkAndLabelType(this); //previous time through
+
+	m_state.m_initSubtreeSymbolsWithConstantsOnly = savCnstInitFlag; //restore
+      }
 
     if(!m_state.okUTItoContinue(it) || !m_state.isComplete(it))
       {

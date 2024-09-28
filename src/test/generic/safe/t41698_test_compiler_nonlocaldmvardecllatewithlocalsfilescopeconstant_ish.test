@@ -1,0 +1,22 @@
+## -*- mode:ulam -*-
+#=t41698_test_compiler_localvardmdecllatewithlocalsfilescopeconstant_ish
+#!
+Exit status: 256
+Ue_A { Int m(256);  constant Unsigned cFIX_BITS = 6u;  Int test() {  Int m_m = self m .;  m_m return } }
+##
+## informed by Dave ish 9/14/24; see also t41688
+##  okay to have a localsfilescope constant in initialization of data member with same name;
+##  local not needed, finds it.
+##
+#>A.ulam
+  ulam 5;
+local constant Int m = 4;
+element A {
+  constant Unsigned cFIX_BITS = 6u;
+  Int m = (Int) (((Bits) m) << cFIX_BITS);
+  Int test() {
+    Int m_m = m;
+    return m_m;
+  }
+}
+#.

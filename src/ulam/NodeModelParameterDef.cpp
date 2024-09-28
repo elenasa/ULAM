@@ -80,6 +80,9 @@ namespace MFM {
   {
     NODE_ASSERT(!m_constSymbol);
 
+    bool savCnstInitFlag = m_state.m_initSubtreeSymbolsWithConstantsOnly; //t3455
+    m_state.m_initSubtreeSymbolsWithConstantsOnly = false;
+
     //in case of a cloned unknown
     NodeBlock * currBlock = getBlock();
     m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
@@ -105,12 +108,17 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "(2) Model Parameter '" << m_state.m_pool.getDataAsString(m_cid).c_str();
-	msg << "' is not defined, and cannot be used";
+	if(savCnstInitFlag)
+	  msg << "' is not a constant, and cannot be used in this context"; //t3455,t3219
+	else
+	  msg << "' is not defined, and cannot be used";
 	if(!hazyKin)
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	else
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //was debug
       }
+
+    m_state.m_initSubtreeSymbolsWithConstantsOnly = savCnstInitFlag; //restore
     m_state.popClassContext(); //restore
   } //checkForSymbol
 

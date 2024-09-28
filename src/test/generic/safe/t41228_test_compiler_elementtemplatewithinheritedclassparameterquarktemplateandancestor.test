@@ -2,17 +2,15 @@
 #=t41228_test_compiler_elementtemplatewithinheritedclassparameterquarktemplateandancestor
 ##
 ##  gen output: (+ interleaved asserts)
-##   Int(4) : 7
+##   Int(4) : 2
 ##   Int(4) : 2
 ##   true
-##   true
 ##
-## FAILED: ILLEGAL_ARGUMENT
 #!
-Exit status: 7
-Ue_T { Int(4) cpi(7);  Int(4) dmi(2);  Int test() {  System sys;  E(true) et;  self cpi . et 7 . = sys ( self cpi . )print . sys ( self cpi . 7 == )assert . self dmi . et i . = sys ( self dmi . )print . sys ( self dmi . 2 cast == )assert . sys ( et v . b . cast )print . sys ( et v . b . )assert . sys ( et b . )assert . et 7 . cast return } }
+Exit status: 2
+Ue_T { Int(4) cpi(2);  Int(4) dmi(2);  Int test() {  System sys;  E(true) et;  self cpi . et 2 . = sys ( self cpi . )print . sys ( self cpi . 2 cast == )assert . self dmi . et i . = sys ( self dmi . )print . sys ( self dmi . 2 cast == )assert . sys ( et v . b . cast )print . sys ( et v . b . )assert . sys ( et b . )assert . et 2 . cast return } }
 Uq_System { <NOMAIN> }
-Ue_E(Bool p) : S(0xb8,true) { /* empty class block */ }
+Ue_E(Bool p) : S(0x90,true) { /* empty class block */ }
 Uq_S(Q(flag) v, Bool bp) : Q(flag) { constant Int(4) csi = v i .;  :Q11< Bool b(notready);  Int(4) i( 2); > <NOMAIN> }
 Uq_Q(Bool flag) { Bool b(notready);  Int(4) i( 2);  <NOMAIN> }
 ##
@@ -31,7 +29,7 @@ element T{
 
     cpi = et.csi; //class parameter constant csi
     sys.print(cpi);
-    sys.assert(cpi == 7);
+    sys.assert(cpi == 2);
 
     dmi = et.i; //data member i
     sys.print(dmi);
@@ -61,7 +59,7 @@ quark Q(Bool flag){
 
 #:E.ulam
   ulam 3;
-local constant Q(true) cqt = { .i = 7 };
+local constant Q(true) cqt = { };
 element E(Bool p) : S(cqt, true) { }
 
 

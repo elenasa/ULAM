@@ -3736,8 +3736,10 @@ namespace MFM {
     // don't return a NodeConstant, instead of NodeIdent, without arrays
     // even if already defined as one. lazy evaluate.
     // handle 'super' and 'self' as KEYWORDS instead of identifiers (ulam-5) t41337
-    bool isDefined = m_state.isIdInCurrentScope(m_state.getTokenDataAsStringId(identTok), asymptr); //t3887
-    if(!isDefined && (identTok.m_type == TOK_IDENTIFIER) && m_state.m_parsingVariableSymbolTypeFlag == STF_CLASSINHERITANCE)
+    bool isDefined = m_state.isIdInCurrentScope(m_state.getTokenDataAsStringId(identTok), asymptr); //t3887, t3219, t41013, t41007, t3455
+    bool makealocalsconstant = (!isDefined && (identTok.m_type == TOK_IDENTIFIER) && m_state.m_parsingVariableSymbolTypeFlag == STF_CLASSINHERITANCE);
+
+    if(makealocalsconstant)
       {
 	bool locDefined = m_state.isIdInLocalFileScope(identTok.m_dataindex, asymptr);
 	NodeBlockLocals * localsblock = m_state.getLocalsScopeBlock(m_state.getContextBlockLoc());
@@ -3754,6 +3756,12 @@ namespace MFM {
 	    m_state.popClassContext();
 	  }
 	//else (t41007)
+      }
+
+    //DM init with DM, clear symbol and lookup during c&l (t41698)
+    if(isDefined && (m_state.m_parsingVariableSymbolTypeFlag == STF_DATAMEMBER) && asymptr->isDataMember())
+      {
+	asymptr= NULL; //t41698
       }
 
     //o.w. make a variable; symbol could be Null! a constant/array, or a model parameter!

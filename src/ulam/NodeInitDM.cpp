@@ -339,8 +339,15 @@ namespace MFM {
   {
     NODE_ASSERT(!m_constSymbol);
 
+    //we are looking for DM names
+    bool savCnstInitFlag = m_state.m_initSubtreeSymbolsWithConstantsOnly; //t41633
+    m_state.m_initSubtreeSymbolsWithConstantsOnly = false;
+
     if(!m_state.okUTItoContinue(m_ofClassUTI))
-      return; //can't find DM without class UTI, wait
+      {
+	m_state.m_initSubtreeSymbolsWithConstantsOnly = savCnstInitFlag; //restore
+	return; //can't find DM without class UTI, wait
+      }
 
     if(m_state.isAnonymousClass(m_ofClassUTI))
       {
@@ -348,6 +355,7 @@ namespace MFM {
 	msg << "Invalid Anonymous Class Type: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_ofClassUTI).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	m_state.m_initSubtreeSymbolsWithConstantsOnly = savCnstInitFlag; //restore
 	return;
       }
 
@@ -357,6 +365,7 @@ namespace MFM {
 	msg << "Invalid UNSEEN Class Type: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_ofClassUTI).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	m_state.m_initSubtreeSymbolsWithConstantsOnly = savCnstInitFlag; //restore
 	return;
       }
 
@@ -383,6 +392,8 @@ namespace MFM {
 	else
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //was debug
       }
+
+    m_state.m_initSubtreeSymbolsWithConstantsOnly = savCnstInitFlag; //restore
   } //checkForSymbols
 
   UTI NodeInitDM::foldConstantExpression()
@@ -432,11 +443,17 @@ namespace MFM {
 
     NODE_ASSERT(m_constSymbol);
 
+    //we are looking for DM names
+    bool savCnstInitFlag = m_state.m_initSubtreeSymbolsWithConstantsOnly; //t41633
+    m_state.m_initSubtreeSymbolsWithConstantsOnly = false;
+
     //need updated POS for genCode after c&l
     Symbol * symptr = NULL;
     bool hazyKin = false;
     AssertBool gotIt = m_state.alreadyDefinedSymbolByAClassOrAncestor(m_ofClassUTI, m_cid, symptr, hazyKin);
     NODE_ASSERT(gotIt);
+
+    m_state.m_initSubtreeSymbolsWithConstantsOnly = savCnstInitFlag; //restore
 
     if(!symptr->isPosOffsetReliable())
       return false;

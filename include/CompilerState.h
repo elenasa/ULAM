@@ -130,6 +130,7 @@ namespace MFM{
     Token m_firstTokenForParsing;
     bool m_parsingConcreteClassFlag;
     SYMBOLTYPEFLAG m_parsingVariableSymbolTypeFlag;
+    bool m_initSubtreeSymbolsWithConstantsOnly; //DM and Constant Defs init w constants only
 
     // used for break/continue stmt parsing; label num for end of loop, or 0
     ParsingLoopsSwitchStack m_parsingControlLoopsSwitchStack;
@@ -487,6 +488,7 @@ namespace MFM{
     std::string getDataAsStringMangled(u32 dataindex);
     const std::string getTokenAsATypeName(const Token& tok);
     u32 getTokenAsATypeNameId(const Token& tok);
+    bool isPossibleTypeName(u32 id);
 
     bool checkFunctionReturnNodeTypes(SymbolFunction * fsym);
     void indentUlamCode(File * fp);

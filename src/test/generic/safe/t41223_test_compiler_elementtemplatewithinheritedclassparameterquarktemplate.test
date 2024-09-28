@@ -7,14 +7,13 @@
 ##   Int(4) : 7
 ##   true
 ##
-## FAILED: ILLEGAL_ARGUMENT
 #!
 Exit status: 7
-Ue_T { Int test() {  System sys;  E(true) et;  sys ( et 7 . )print . sys ( et 7 . 7 == )assert . sys ( et v . b . cast )print . sys ( et v . b . )assert . E(false) ef;  sys ( ef 7 . )print . sys ( ef 7 . 7 == )assert . sys ( ef v . b . cast )print . sys ( ef v . b . )assert . et 7 . cast return } }
+Ue_T { Int test() {  System sys;  E(true) et;  sys ( et csi . )print . sys ( et csi . 7 == )assert . sys ( et v . b . cast )print . sys ( et v . b . )assert . E(false) ef;  sys ( ef csi . )print . sys ( ef csi . 7 == )assert . sys ( ef v . b . cast )print . sys ( ef v . b . )assert . et csi . cast return } }
 Uq_System { <NOMAIN> }
-Ue_E(Bool p) : S(0xb8,true) { /* empty class block */ }
-Uq_S(Q(flag) v, Bool bp) { constant Int(4) csi = v i .;  <NOMAIN> }
-Uq_Q(Bool flag) { Bool b(notready);  Int(4) i(0);  <NOMAIN> }
+Ue_E(Bool p) : S(0x8,true) { /* empty class block */ }
+Uq_S(Q(flag) v, Bool bp) { Int(4) csi(notready);  <NOMAIN> }
+Uq_Q(Bool flag) { Bool b(notready);  constant Int(4) i = 7;  <NOMAIN> }
 ##
 ##    //informed by t41221, except S has two class params, and NO inheritance!
 ##   //also, like t41224, except E is regular there.
@@ -41,7 +40,7 @@ element T{
     sys.print(ef.v.b);
     sys.assert(ef.v.b); //true
 
-    return et.csi; //2
+    return et.csi; //7
   }
 }
 
@@ -49,20 +48,20 @@ element T{
   ulam 3;
 //quark S(Q(bp) v, Bool bp) : Q(bp) { //bug??? see t41228
 quark S(Q(bp) v, Bool bp) {
-  constant Int(4) csi = v.i;
+  Int(4) csi = v.i;
 }
 
 #:Q.ulam
   ulam 1;
 quark Q(Bool flag){
   Bool b = flag;
-  Int(4) i;
+  constant Int(4) i = 7;
 }
 
 
 #:E.ulam
   ulam 3;
-local constant Q(true) cqt = { .i = 7 };
+local constant Q(true) cqt = { /*.i = 7*/ };
 //element E(Bool bp) : S(cqt, bp) { } //the goal!! (see t41226)
 element E(Bool p) : S(cqt, true) { }
 

@@ -850,6 +850,9 @@ namespace MFM {
 
   void NodeVarDecl::checkForSymbol()
   {
+    bool savCnstInitFlag = m_state.m_initSubtreeSymbolsWithConstantsOnly; //t41695,t3195
+    m_state.m_initSubtreeSymbolsWithConstantsOnly = false;
+
     //in case of a cloned unknown
     NodeBlock * currBlock = getBlock();
     setBlock(currBlock);
@@ -884,6 +887,7 @@ namespace MFM {
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //t3577
       } //alreadyDefined
 
+    m_state.m_initSubtreeSymbolsWithConstantsOnly = savCnstInitFlag; //restore
     m_state.popClassContext(); //restore
   } //checkForSymbol
 

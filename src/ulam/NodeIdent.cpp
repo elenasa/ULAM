@@ -281,6 +281,7 @@ namespace MFM {
     //may not have known at parse time; no side-effects until c&l
     if(!m_varSymbol)
       {
+#if 0
 	//is it a constant within the member?
 	NodeBlockContext * memberclass = m_state.getContextBlock();
 	NODE_ASSERT(memberclass);
@@ -292,9 +293,10 @@ namespace MFM {
 	u32 tokid = m_state.getTokenDataAsStringId(m_token);
 	if(m_state.alreadyDefinedSymbol(tokid, asymptr, hazyKin))
 	  {
-	    rtn = asymptr->isConstant();
+	    rtn = asymptr->isConstant(); //t41695
 	  }
 	m_state.popClassContext(); //restore
+#endif
       }
     else
       rtn = m_varSymbol->isConstant();
@@ -323,6 +325,16 @@ namespace MFM {
     //2 cases: use was before def, look up in class block; cloned unknown
     if(m_varSymbol == NULL)
       {
+#if 0
+	bool savCnstInitFlag = m_state.m_initSubtreeSymbolsWithConstantsOnly;
+	if(thisparentnode->isAConstant())
+	  {
+	    //data members of constant classes are constants, implicitly (t41277)
+	    //terminal proxy (e.g. classidof, sizeof) are constants (t41381)
+	    m_state.m_initSubtreeSymbolsWithConstantsOnly = false;
+	  }
+#endif
+
 	UTI cuti = m_state.getCompileThisIdx(); //for error messages
 	NodeBlock * currBlock = getBlock();
 	setBlock(currBlock);
@@ -356,6 +368,8 @@ namespace MFM {
 	      }
 	    else
 	      {
+		//m_state.m_initSubtreeSymbolsWithConstantsOnly = savCnstInitFlag; //restore
+
 		TBOOL rtb = replaceOurselves(asymptr, thisparentnode);
 		if(rtb == TBOOL_HAZY)
 		  {
@@ -393,6 +407,8 @@ namespace MFM {
 		std::ostringstream msg;
 		msg << "Variable '" << m_state.getTokenDataAsString(m_token).c_str();
 		msg << "' is not defined, or was used before declared in a function";
+		if(m_state.m_initSubtreeSymbolsWithConstantsOnly)
+		  msg << ", or is not a necessary constant"; //t41693, t3219
 		if((foundit != TBOOL_HAZY) && !hazyKin) //t3889 hazyKin
 		  {
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
@@ -407,6 +423,7 @@ namespace MFM {
 	      }
 	    m_state.popClassContext(); //restore
 	  }
+	//	m_state.m_initSubtreeSymbolsWithConstantsOnly = savCnstInitFlag; //restore
       } //lookup symbol done
     else
       {
@@ -558,15 +575,23 @@ namespace MFM {
       }
     else if(symptr->isModelParameter())
       {
-	// replace ourselves with a parameter node instead;
-	// same node no, and loc
-	NodeModelParameter * newnode = new NodeModelParameter(m_token, blocknoST, suti, NULL, m_state);
-	NODE_ASSERT(newnode);
+	if(m_state.m_initSubtreeSymbolsWithConstantsOnly)
+	  {
+	    clearSymbolPtr();
+	    rtnb = TBOOL_HAZY; //t3129, t41448
+	  }
+	else
+	  {
+	    // replace ourselves with a parameter node instead;
+	    // same node no, and loc
+	    NodeModelParameter * newnode = new NodeModelParameter(m_token, blocknoST, suti, NULL, m_state);
+	    NODE_ASSERT(newnode);
 
-	AssertBool swapOk = Node::exchangeNodeWithParent(newnode, parentnode);
-	NODE_ASSERT(swapOk);
+	    AssertBool swapOk = Node::exchangeNodeWithParent(newnode, parentnode);
+	    NODE_ASSERT(swapOk);
 
-	rtnb = TBOOL_TRUE;
+	    rtnb = TBOOL_TRUE;
+	  }
       }
     //ELSE DID NOT replace ourselves
     return rtnb;
@@ -764,6 +789,13 @@ namespace MFM {
 	    return TBOOL_TRUE; //error
 	  }
       }
+    else if(m_state.m_initSubtreeSymbolsWithConstantsOnly)
+      {
+	//is DM init, look again in locals filescope
+	clearSymbolPtr();
+	return TBOOL_HAZY; //t41698
+      }
+    //else t41677, t41690
     return TBOOL_FALSE;
   } //checkVarUsedBeforeDeclared
 
@@ -1619,8 +1651,10 @@ namespace MFM {
     u32 tokid = m_state.getTokenDataAsStringId(m_token); //3821 as-cond uses lhs token
     if(m_state.isIdInCurrentScope(tokid, asymptr))
       {
+#if 0
 	if(!(asymptr->isFunction()) && !(asymptr->isTypedef()) && !(asymptr->isConstant()) && !(asymptr->isModelParameter()))
 	  setSymbolPtr((SymbolVariable *) asymptr); //updates Node's symbol, if is variable
+#endif
 	return false; //already there
       }
 

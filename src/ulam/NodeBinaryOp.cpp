@@ -221,7 +221,6 @@ namespace MFM {
     //before constant folding; if needed (e.g. Remainder, Divide)
     castThyselfToResultType(rightType, leftType, newType, thisparentnode);
 
-    //if(m_state.okUTItoContinue(newType) && isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
     if(m_state.okUTItoContinue(newType) && isAConstant() && !isReadyConstant()) //t41478
       return constantFold(thisparentnode); //surgery possible
 

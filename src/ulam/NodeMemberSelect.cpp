@@ -285,8 +285,18 @@ namespace MFM {
     //set up compiler state to use the member class block for symbol searches
     // no concept of effective self for virtual function call search during c&l (t41543)
     m_state.pushClassContextUsingMemberClassBlock(memberClassNode);
+    bool savCnstInitFlag = m_state.m_initSubtreeSymbolsWithConstantsOnly;
+
+    if(m_nodeLeft->isAConstant())
+      {
+	//data members of constant classes are constants, implicitly (t41277)
+	//terminal proxy (e.g. classidof, sizeof) are constants (t41381)
+	m_state.m_initSubtreeSymbolsWithConstantsOnly = false;
+      }
 
     UTI rightType = m_nodeRight->checkAndLabelType(this);
+
+    m_state.m_initSubtreeSymbolsWithConstantsOnly = savCnstInitFlag; //restore
 
     //clear up compiler state to no longer use the member class block for symbol searches
     m_state.popClassContext();
@@ -314,6 +324,33 @@ namespace MFM {
       }
     return getNodeType();
   } //checkAndLabelType
+
+  TBOOL NodeMemberSelect::checkVarUsedBeforeDeclared(u32 id, NNO declblockno)
+  {
+    TBOOL tbleft = m_nodeLeft->checkVarUsedBeforeDeclared(id, declblockno);
+
+    if(tbleft == TBOOL_TRUE)
+      return TBOOL_TRUE; //error case
+
+    bool savCnstInitFlag = m_state.m_initSubtreeSymbolsWithConstantsOnly;
+    if(m_nodeLeft->isAConstant())
+      {
+	//data members of constant classes are constants, implicitly (t41277, t41699)
+	//terminal proxy (e.g. classidof, sizeof) are constants (t41381)
+	m_state.m_initSubtreeSymbolsWithConstantsOnly = false;
+      }
+
+    TBOOL tbright = m_nodeRight->checkVarUsedBeforeDeclared(id, declblockno);
+
+    m_state.m_initSubtreeSymbolsWithConstantsOnly = savCnstInitFlag; //restore
+
+
+    if((tbright == TBOOL_TRUE)) //(tbleft == TBOOL_TRUE) ||
+      return TBOOL_TRUE; //error case
+    if((tbleft == TBOOL_FALSE) && (tbright == TBOOL_FALSE))
+      return TBOOL_FALSE; //aokay
+    return TBOOL_HAZY;
+  }
 
   bool NodeMemberSelect::getConstantMemberValue(BV8K& bvmsel)
   {

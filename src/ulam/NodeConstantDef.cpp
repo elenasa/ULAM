@@ -362,6 +362,8 @@ namespace MFM {
     if(nuti == Nav)
       return Nav; //short-circuit, already failed.
 
+    m_state.m_initSubtreeSymbolsWithConstantsOnly = true;
+
     // instantiate, look up in current block
     if(m_constSymbol == NULL)
       checkForSymbol(); //toinstantiate
@@ -370,6 +372,7 @@ namespace MFM {
     if(!m_constSymbol)
       {
 	setNodeType(Nav);
+	m_state.m_initSubtreeSymbolsWithConstantsOnly = false;
 	return Nav;
       }
 
@@ -453,6 +456,7 @@ namespace MFM {
 	if(changeScope)
 	  m_state.popClassContext(); //restore
 
+	m_state.m_initSubtreeSymbolsWithConstantsOnly = false;
 	return Nav;
       }
 
@@ -477,6 +481,7 @@ namespace MFM {
 	    msg << ", is invalid";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    setNodeType(Nav);
+	    m_state.m_initSubtreeSymbolsWithConstantsOnly = false;
 	    return Nav; //short-circuit
 	  }
 
@@ -514,6 +519,7 @@ namespace MFM {
 		setNodeType(Hzy);
 		clearSymbolPtr();
 		m_state.setGoAgain();
+		m_state.m_initSubtreeSymbolsWithConstantsOnly = false;
 		return Hzy; //short-circuit
 	      }
 	  }
@@ -537,6 +543,7 @@ namespace MFM {
 		    msg << getName() << "' has improper {} initialization";
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		    setNodeType(Nav);
+		    m_state.m_initSubtreeSymbolsWithConstantsOnly = false;
 		    return Nav;
 		  }
 
@@ -638,6 +645,7 @@ namespace MFM {
 		msg << ", array/scalar mismatch";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		setNodeType(Nav);
+		m_state.m_initSubtreeSymbolsWithConstantsOnly = false;
 		return Nav; //short-circuit (t3446, t3898)
 	      }
 	  }
@@ -657,6 +665,7 @@ namespace MFM {
 		msg << "invalid";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		setNodeType(Nav);
+		m_state.m_initSubtreeSymbolsWithConstantsOnly = false;
 		return Nav;
 	      }
 	    else
@@ -666,6 +675,7 @@ namespace MFM {
 		setNodeType(Hzy);
 		clearSymbolPtr();
 		m_state.setGoAgain();
+		m_state.m_initSubtreeSymbolsWithConstantsOnly = false;
 		return Hzy; //short-circuit (t3893)
 	      }
 	  }
@@ -685,6 +695,7 @@ namespace MFM {
 	      msg << "; Suggest '= {};' for default values"; //t41300
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //t3893 wrong loc!!
 	    setNodeType(Nav);
+	    m_state.m_initSubtreeSymbolsWithConstantsOnly = false;
 	    return Nav; //short-circuit (error/t3453) after possible empty array init is deleted (t41202)
 	  }
 	//else t41192
@@ -725,6 +736,7 @@ namespace MFM {
 	      {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		setNodeType(Nav);
+		m_state.m_initSubtreeSymbolsWithConstantsOnly = false;
 		return Nav; //t41210
 	      }
 	    else
@@ -733,6 +745,7 @@ namespace MFM {
 		setNodeType(Hzy);
 		clearSymbolPtr();
 		m_state.setGoAgain();
+		m_state.m_initSubtreeSymbolsWithConstantsOnly = false;
 		return Hzy;
 	      }
 	  }
@@ -779,6 +792,7 @@ namespace MFM {
 	clearSymbolPtr();
 	m_state.setGoAgain();
       }
+    m_state.m_initSubtreeSymbolsWithConstantsOnly = false;
     return getNodeType();
   } //checkAndLabelType
 

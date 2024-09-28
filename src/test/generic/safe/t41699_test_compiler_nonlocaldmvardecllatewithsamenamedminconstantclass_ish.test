@@ -1,0 +1,29 @@
+## -*- mode:ulam -*-
+#=t41699_test_compiler_nonlocaldmdecllatewithsamenamedminconstantclass_ish
+#!
+Exit status: 128
+Ue_A { Int m(128);  constant Q m_q = { 0x2 };  constant Unsigned cFIX_BITS = 6u;  Int test() {  Int m_m = self m .;  m_m return } }
+Uq_Q { Int m( 1);  <NOMAIN> }
+##
+## informed by Dave ish 9/14/24; see also t41698, t41700
+##  okay to use DM of a different constant class in initialization of data member with same name;
+##
+#>A.ulam
+  ulam 5;
+local constant Int m = 4;
+element A {
+  constant Q m_q = { .m = 2 };
+  constant Unsigned cFIX_BITS = 6u;
+  Int m = (Int) (((Bits) m_q.m) << cFIX_BITS);
+  Int test() {
+    Int m_m = m;
+    return m_m;
+  }
+}
+
+#:Q.ulam
+  ulam 5;
+quark Q {
+  Int m = 1;
+}
+#.

@@ -32,7 +32,7 @@ quark WatchDog(Unsigned(5) myProgressBits = 4u, Unsigned triggerLevel = cDOG_MAX
 
 #:RXTimer.ulam
   ulam 5;
-//use XTimer; //either way an error, different messages.
+use XTimer; //either way an error, same messages.
 quark RXTimer(Unary(5) bits, Unsigned triggerLevel, Unsigned k) : XTimer(bits,triggerLevel,k) {
   typedef Super.Counter Counter;
 
@@ -42,7 +42,7 @@ quark RXTimer(Unary(5) bits, Unsigned triggerLevel, Unsigned k) : XTimer(bits,tr
   ulam 5;
 quark XTimer(Unary(5) bits, Unsigned triggerLevel, Unsigned k)
 {
-  //typedef Unsigned Counter; missing!!
+  //typedef Unsigned Counter; //missing!!
 }
 
 #:Update.ulam

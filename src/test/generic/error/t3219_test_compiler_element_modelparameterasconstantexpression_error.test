@@ -1,14 +1,17 @@
 ## -*- mode:ulam -*-
 #=t3219_test_compiler_element_modelparameterasconstantexpression_error
 #!
-./Foo.ulam:4:3: ERROR: Type Bitsize specifier: Int, within (), is not a numeric constant expression.
+./Foo.ulam:5:7: ERROR: Variable 'chance' is not defined, or was used before declared in a function, or is not a necessary constant.
+./Foo.ulam:5:3: ERROR: Type Bitsize specifier, within (), is not ready.
 Unrecoverable Program Type Label FAILURE.
 ##
 ##      // fix bitsize, then get:
 ##      //./Foo.ulam:6:9: ERROR: Array size specifier in [] is not a constant integer.
+##      chance as a locals filescope constant will work (see t41697)
 ##
 #>Foo.ulam
   ulam 1;
+//local constant Int chance = 3; //this will work!
 element Foo {
   parameter Int chance = 2;
   Int(chance) arr[chance];

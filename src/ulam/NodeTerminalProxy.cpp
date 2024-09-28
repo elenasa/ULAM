@@ -145,7 +145,15 @@ namespace MFM {
     //when m_uti is a String, we must c&l m_nodeOf to find its symbol (t3960)
     if((!m_state.okUTItoContinue(m_uti) || m_state.isAStringType(m_uti)) && m_nodeOf)
       {
+	bool savCnstInitFlag = m_state.m_initSubtreeSymbolsWithConstantsOnly;
+	//terminal proxy (e.g. classidof, sizeof) are constants, regardless of lhs (t41381)
+	m_state.m_initSubtreeSymbolsWithConstantsOnly = false;
+
+
 	UTI ofuti = m_nodeOf->checkAndLabelType(this);
+
+	m_state.m_initSubtreeSymbolsWithConstantsOnly = savCnstInitFlag; //restore
+
 	if(m_state.okUTItoContinue(ofuti))
 	  {
 	    std::ostringstream msg;

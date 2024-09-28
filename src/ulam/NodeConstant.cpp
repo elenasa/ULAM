@@ -296,9 +296,13 @@ namespace MFM {
     Node::setStoreIntoAble(TBOOL_FALSE);
     if(getNodeType() == Hzy)
       {
-	if(m_constSymbol && !((SymbolConstantValue *) m_constSymbol)->isALocalConstantDef())
-	  clearSymbolPtr(); //lookup again too! (e.g. inherited template instances) t3566;
-	//else except for, possibly nested, local constants (t41682)
+	if(m_constSymbol)
+	  {
+	    if(!((SymbolConstantValue *) m_constSymbol)->isALocalConstantDef())
+	      clearSymbolPtr(); //lookup again too! (e.g. inherited template instances) t3566;
+	    //else except for, possibly nested, local constants (t41682)
+	  }
+	//else
 	m_state.setGoAgain();
       }
     else

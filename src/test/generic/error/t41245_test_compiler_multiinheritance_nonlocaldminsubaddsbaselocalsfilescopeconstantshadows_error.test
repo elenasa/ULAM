@@ -1,5 +1,5 @@
 ## -*- mode:ulam -*-
-#=t41693_test_compiler_multiinheritance_nonlocaldminsubaddsbasedatamembershadows_error
+#=t41245_test_compiler_multiinheritance_nonlocaldminsubaddsbaselocalsfilescopeconstantshadows_error
 ##
 #!
 ./E4.ulam:3:15: ERROR: Variable 'm_q' is not defined, or was used before declared in a function, or is not a necessary constant.
@@ -7,8 +7,10 @@
 ./E4.ulam:3:3: ERROR: Initial value expression for: m_add, initialization is invalid.
 Unrecoverable Program Type Label FAILURE.
 ##
+## locals filescope constant in base class QBase2 not found since different files  (see t41246 same file)
 ## A subclass DM, m_add in E4, behaves differently than as local var (t41692);
-##  Cannot use QBase2.m_q either. Works if Constant (t41694,5)
+##  NO LONGER: QBase2.m_q has to be a constant, QBase3.m_q specified (see also t41693,4).
+##  QBase3.m_q is first constant with correct name to be found, and used (see t41695).
 ##
 #>Foo.ulam
   ulam 5;
@@ -19,7 +21,7 @@ element Foo +System {
     E4 e4;
     m_qadd = e4.getAdd();
     print(m_qadd);
-    assert(m_qadd==2);
+    assert(m_qadd==8);
     return m_qadd;
   }
 }
@@ -28,7 +30,7 @@ element Foo +System {
 #:E4.ulam
   ulam 5;
 element E4 : QBase2 +QBase3 +QBaseLast {
-  Int m_add = m_q + m_q; // ==2  doesn't work as DM, needs constants
+  Int m_add = m_q + m_q; // ==2  doesn't work m_q as DM, not const t41693
   Int getAdd(){
     //Int m_add = m_q + m_q; // ==2  works as local var t41692
     return m_add;
@@ -37,19 +39,22 @@ element E4 : QBase2 +QBase3 +QBaseLast {
 
 #:QBase1.ulam
     ulam 4;
+//local constant Int(8) m_q = 2; //is this allowed? Y, found? N
 quark QBase1 {
+  //constant Int(8) m_q = 2; //is this allowed? N, found? N
 }
 
 #:QBase2.ulam
   ulam 5;
+local constant Int(8) m_q = 2; //is this allowed? Y, found? N
 quark QBase2 +QBase1 {
-  Int(8) m_q = 1;
+  //Int(8) m_q = 1; //first one has to be a constant for this to work t41694
 }
 
 #:QBase3.ulam
   ulam 4;
 quark QBase3 : QBase1 {
-  Int(8) m_q = 4;
+ Int(8) m_q = 4;
 }
 
 #:QBaseLast.ulam

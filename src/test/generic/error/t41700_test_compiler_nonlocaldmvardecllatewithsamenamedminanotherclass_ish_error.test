@@ -1,0 +1,29 @@
+## -*- mode:ulam -*-
+#=t41700_test_compiler_nonlocaldmdecllatewithsamenamedminanotherclass_ish_error
+#!
+./A.ulam:5:28: ERROR: Named Constant 'm' is not defined, or was used before declared in a function.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by Dave ish 9/14/24; see also t41699
+##  okay to use constant of a different class in initialization of data member with same name;
+##  notice not a subclass shadowing. locals filescope constant in Q shouldn't work (see t41266).
+##
+#>A.ulam
+  ulam 5;
+local constant Int m = 4;
+element A {
+  constant Unsigned cFIX_BITS = 6u;
+  Int m = (Int) (((Bits) Q.m) << cFIX_BITS);
+  Int test() {
+    Int m_m = m;
+    return m_m;
+  }
+}
+
+#:Q.ulam
+  ulam 5;
+local constant Int m = 1; //no longer works
+quark Q {
+  Int m = 1;
+}
+#.

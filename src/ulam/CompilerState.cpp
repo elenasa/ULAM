@@ -145,7 +145,7 @@ namespace MFM {
     "*/\n\n";
 
   //use of this in the initialization list seems to be okay;
-  CompilerState::CompilerState(): m_linesForDebug(false), m_programDefST(*this), m_parsingLocalDef(false), m_parsingFUNCid(0), m_nextFunctionOrderNumber(1), m_parsingThisClass(Nouti), m_parsingConcreteClassFlag(false), m_parsingVariableSymbolTypeFlag(STF_NEEDSATYPE), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_pendingArgStubContext(0), m_pendingArgTypeStubContext(0), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0), m_urSelfUTI(Nouti), m_emptyElementUTI(Nouti), m_classIdBits(CLASSIDBITS)
+  CompilerState::CompilerState(): m_linesForDebug(false), m_programDefST(*this), m_parsingLocalDef(false), m_parsingFUNCid(0), m_nextFunctionOrderNumber(1), m_parsingThisClass(Nouti), m_parsingConcreteClassFlag(false), m_parsingVariableSymbolTypeFlag(STF_NEEDSATYPE), m_initSubtreeSymbolsWithConstantsOnly(false), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_pendingArgStubContext(0), m_pendingArgTypeStubContext(0), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0), m_urSelfUTI(Nouti), m_emptyElementUTI(Nouti), m_classIdBits(CLASSIDBITS)
   {
     m_classIdRegistryUTI.push_back(0); //initialize 0 for UrSelf
     m_err.init(this, debugOn, infoOn, noteOn, warnOn, waitOn, NULL);
@@ -4464,8 +4464,9 @@ namespace MFM {
 	hasHazyKin = tmphazykin || tmphazys;
       }
 
-    //search current class's local file scope only (not ancestors')
-    if(!found)
+    //search current class's local file scope only (not ancestors' unless in same file)
+    //if(!found) t41700, t41266, t41245,6,7
+    if(!found && (!useMemberBlock() || (getContextBlockNo() == getCurrentMemberClassBlock()->getNodeNo())))
       found = isIdInLocalFileScope(dataindex, symptr); //local constant or typedef
 
     return found;
@@ -4628,6 +4629,8 @@ namespace MFM {
   bool CompilerState::alreadyDefinedSymbolHere(u32 dataindex, Symbol * & symptr, bool& hasHazyKin)
   {
     bool brtn = false;
+    bool isType = isPossibleTypeName(dataindex); //t41488
+
     assert(!hasHazyKin);
 
     //start with the current "top" block and look down the stack
@@ -4637,6 +4640,8 @@ namespace MFM {
     while(!brtn && blockNode)
       {
 	brtn = blockNode->isIdInScope(dataindex,symptr); //check ST
+	if(!isType)
+	  brtn = brtn && (!m_initSubtreeSymbolsWithConstantsOnly || symptr->isConstant());
 
 	//hazy check..
 	hasHazyKin |= checkHasHazyKin(blockNode);
@@ -4658,6 +4663,7 @@ namespace MFM {
   bool CompilerState::isDataMemberIdInClassScope(u32 dataindex, Symbol * & symptr, bool& hasHazyKin)
   {
     bool brtn = false;
+    bool isType = isPossibleTypeName(dataindex);
     //might come from alreadyDefinedSymbol now, and have a hazy chain.
 
     //start with the current class block, until the 'variable id' is found.
@@ -4667,6 +4673,9 @@ namespace MFM {
     while(!brtn && cblock)
       {
 	brtn = cblock->isIdInScope(dataindex,symptr); //returns symbol
+	if(!isType)
+	  brtn = brtn && (!m_initSubtreeSymbolsWithConstantsOnly || symptr->isConstant());
+
 	hasHazyKin |= checkHasHazyKin(cblock); //self is stub
 	//traverse the chain, including templates
 	//(not ancestors; see alreadyDefinedSymbolByAncestorOf)
@@ -5554,6 +5563,13 @@ namespace MFM {
   {
     std::string nstr = getTokenAsATypeName(tok);
     return m_pool.getIndexForDataString(nstr);
+  }
+
+  bool CompilerState::isPossibleTypeName(u32 id)
+  {
+    std::string str = m_pool.getDataAsString(id);
+    char c = str.at(0);
+    return Token::isUpper(c);
   }
 
   // note: we may miss a missing return value for non-void function; non-trivial to

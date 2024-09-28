@@ -99,6 +99,8 @@ namespace MFM{
 
     virtual UTI checkAndLabelType(Node * thisparentnode);
 
+    virtual TBOOL checkVarUsedBeforeDeclared(u32 id, NNO declblockno);
+
     virtual bool getConstantValue(BV8K& bval);
 
     virtual u32 getPositionOf();
