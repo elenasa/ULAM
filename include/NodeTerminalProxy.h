@@ -2,8 +2,8 @@
  * NodeTerminalProxy.h - Node handling of Unknown Type Sizes for ULAM
  *
  * Copyright (C) 2016-2020 The Regents of the University of New Mexico.
- * Copyright (C) 2016-2022 Ackleyshack LLC.
- * Copyright (C) 2020-2022 The Living Computation Foundation.
+ * Copyright (C) 2016-2024 Ackleyshack LLC.
+ * Copyright (C) 2020-2024 The Living Computation Foundation.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -30,7 +30,7 @@
   \file NodeTerminalProxy.h - Node handling Unknown Type Sizes for ULAM
   \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2016-2022  All rights reserved.
+  \date (C) 2016-2024  All rights reserved.
   \gpl
 */
 
@@ -71,7 +71,7 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
-    virtual bool isAConstant();
+    virtual TBOOL isAConstant();
 
     virtual bool isReadyConstant();
 

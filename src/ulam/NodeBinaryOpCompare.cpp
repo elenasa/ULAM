@@ -62,7 +62,7 @@ namespace MFM {
     Node::setStoreIntoAble(TBOOL_FALSE);
 
     //still may need casting (e.g. unary compared to an int) before constantfolding, t41273
-    if(m_state.okUTItoContinue(newType) && isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
+    if(m_state.okUTItoContinue(newType) && (isAConstant() == TBOOL_TRUE) && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
       return NodeBinaryOp::constantFold(thisparentnode);
 
     return newType;

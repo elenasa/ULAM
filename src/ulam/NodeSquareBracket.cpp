@@ -86,9 +86,12 @@ namespace MFM {
     return true; //not for array declaration; includes custom array items
   }
 
-  bool NodeSquareBracket::isAConstant()
+  TBOOL NodeSquareBracket::isAConstant()
   {
-    return m_nodeLeft->isAConstant() && m_nodeRight->isAConstant();
+    TBOOL tbleft = m_nodeLeft->isAConstant();
+    if(tbleft != TBOOL_TRUE)
+      return tbleft; //false or hazy
+    return m_nodeRight->isAConstant();
   }
 
   bool NodeSquareBracket::isAConstantClass()
@@ -262,7 +265,8 @@ namespace MFM {
 	  {
 	    // arraysize is zero! not accessible. runtime check
 	    // unless the index is a "ready" constant
-	    if(m_nodeRight->isAConstant())
+	    TBOOL iscnstright = m_nodeRight->isAConstant();
+	    if(iscnstright == TBOOL_TRUE)
 	      {
 		s32 rindex;
 		UTI rt;
@@ -304,7 +308,20 @@ namespace MFM {
 			return Nav;
 		      }
 		  }
-	      } //right index is a constant
+	      }
+	    else if(iscnstright == TBOOL_HAZY)
+	      {
+		std::ostringstream msg;
+		msg << "Constant array item specifier may not be constant ";
+		msg << m_nodeLeft->getName();
+		msg << m_state.getUlamTypeNameByIndex(leftType).c_str();
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+		setNodeType(Hzy);
+		clearSymbolPtr();
+		m_state.setGoAgain();
+		return Hzy;
+	      }
+	    // else not constant right index
 	  }
 
 	//set up idxuti..RHS
@@ -409,17 +426,17 @@ namespace MFM {
 	      hazyCount++;
 	    else
 	      errorCount++;
-	  }
-      } //lt not nav, might be Hzy
-    else
-      {
-	if(leftType == Nav)
-	  errorCount++;
-	else if(leftType == Hzy)
-	  hazyCount++;
+	  } //lt not nav, might be Hzy
 	else
-	  hazyCount++;
-      }
+	  {
+	    if(leftType == Nav)
+	      errorCount++;
+	    else if(leftType == Hzy)
+	      hazyCount++;
+	    //else
+	    //  hazyCount++; //t3122
+	  }
+      } //isComplete
 
     if((errorCount == 0) && (hazyCount == 0))
       {
@@ -454,7 +471,7 @@ namespace MFM {
   bool NodeSquareBracket::getConstantArrayItemValue(BV8K& bvitem)
   {
     bool rtnok = false;
-    NODE_ASSERT(m_nodeLeft->isAConstant() && m_nodeRight->isAConstant());
+    NODE_ASSERT((m_nodeLeft->isAConstant() == TBOOL_TRUE) && (m_nodeRight->isAConstant() == TBOOL_TRUE));
     UTI leftType = m_nodeLeft->getNodeType();
     s32 rindex;
     UTI rt;
@@ -931,7 +948,7 @@ namespace MFM {
     UlamType * sizeut = m_state.getUlamTypeByIndex(sizetype);
 
     // expects a constant, numeric type within []
-    if(sizeut->isNumericType() && m_nodeRight->isAConstant())
+    if(sizeut->isNumericType() && (m_nodeRight->isAConstant() == TBOOL_TRUE))
       {
 	evalNodeProlog(0); //new current frame pointer
 	makeRoomForNodeType(sizetype); //offset a constant expression
@@ -1000,7 +1017,7 @@ namespace MFM {
     genCodeToStoreInto(fp, uvpass);
     UTI tt = uvpass.getPassTargetType();
     //    if(!(isString || m_nodeLeft->isAConstant()) || (m_state.isReference(tt) && !m_state.isAtom(tt))) //t3953,t3973, not isAltRefType t3908, nor constant class (t41266), not constantatomarrayitem (t41484)
-    if(!(isString || m_nodeLeft->isAConstant()) || !m_state.isAtomRef(tt)) //t3953,t3973, not isAltRefType t3908, nor constant class (t41266), not constantatomarrayitem (t41484), t3881
+    if(!(isString || (m_nodeLeft->isAConstant() == TBOOL_TRUE)) || !m_state.isAtomRef(tt)) //t3953,t3973, not isAltRefType t3908, nor constant class (t41266), not constantatomarrayitem (t41484), t3881
       Node::genCodeReadIntoATmpVar(fp, uvpass);
     else
       m_state.clearCurrentObjSymbolsForCodeGen();
@@ -1028,7 +1045,7 @@ namespace MFM {
     s32 arraysize = lut->getArraySize();
     NODE_ASSERT(!lut->isScalar());
 
-    if(!m_nodeRight->isAConstant()) //Wed Jul 11 18:02:46 2018
+    if(m_nodeRight->isAConstant() == TBOOL_FALSE) //Wed Jul 11 18:02:46 2018
       {
 	m_state.indentUlamCode(fp);
 	fp->write("if(");

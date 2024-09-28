@@ -108,7 +108,7 @@ namespace MFM {
     return true;
   }
 
-  bool NodeCast::isAConstant()
+  TBOOL NodeCast::isAConstant()
   {
     return m_node->isAConstant(); //pass thru
   }
@@ -368,7 +368,7 @@ namespace MFM {
 		  }
 	      }
 
-	    if(m_state.isAltRefType(tobeType) && isAConstant())
+	    if(m_state.isAltRefType(tobeType) && (isAConstant() == TBOOL_TRUE))
 	      {
 		std::ostringstream msg;
 		msg << "Cannot explicitly cast a constant, " << m_node->getName() << ", type ";
@@ -2698,7 +2698,7 @@ namespace MFM {
     // size secondary when different classes, possibly related (e.g. t3779)
     // even constant may need casting (e.g. narrowing for saturation)
     // Bool constants require casts to generate "full" true UVPass (>1-bit).
-    return( isExplicitCast() || (typEnum == Class) || (typEnum != nodetypEnum) || (m_state.getBitSize(tobeType) != m_state.getBitSize(nodeType)) || ( (nodetypEnum == Bool) && isAConstant() && (m_state.getBitSize(tobeType)>1)));
+    return( isExplicitCast() || (typEnum == Class) || (typEnum != nodetypEnum) || (m_state.getBitSize(tobeType) != m_state.getBitSize(nodeType)) || ( (nodetypEnum == Bool) && (isAConstant() == TBOOL_TRUE) && (m_state.getBitSize(tobeType)>1)));
   } //needsACast
 
 } //end MFM

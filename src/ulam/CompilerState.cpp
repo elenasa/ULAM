@@ -4466,7 +4466,7 @@ namespace MFM {
 
     //search current class's local file scope only (not ancestors' unless in same file)
     //if(!found) t41700, t41266, t41245,6,7
-    if(!found && (!useMemberBlock() || (getContextBlockNo() == getCurrentMemberClassBlock()->getNodeNo())))
+    if(!found && (!useMemberBlock() || (getContextBlockNo() == getCurrentMemberClassBlockNo())))
       found = isIdInLocalFileScope(dataindex, symptr); //local constant or typedef
 
     return found;
@@ -4640,6 +4640,8 @@ namespace MFM {
     while(!brtn && blockNode)
       {
 	brtn = blockNode->isIdInScope(dataindex,symptr); //check ST
+
+	//might keep looking for a constant..
 	if(!isType)
 	  brtn = brtn && (!m_initSubtreeSymbolsWithConstantsOnly || symptr->isConstant());
 
@@ -4673,6 +4675,8 @@ namespace MFM {
     while(!brtn && cblock)
       {
 	brtn = cblock->isIdInScope(dataindex,symptr); //returns symbol
+
+	// might keep looking for a constant...
 	if(!isType)
 	  brtn = brtn && (!m_initSubtreeSymbolsWithConstantsOnly || symptr->isConstant());
 
@@ -7449,6 +7453,13 @@ namespace MFM {
     AssertBool isDefined = m_classContextStack.getCurrentClassContext(cc);
     assert(isDefined);
     return cc.getCurrentMemberClassBlock();
+  }
+
+  NNO CompilerState::getCurrentMemberClassBlockNo()
+  {
+    NodeBlockClass * memberclassblock = getCurrentMemberClassBlock();
+    assert(memberclassblock);
+    return memberclassblock->getNodeNo();
   }
 
   NodeBlock * CompilerState::getCurrentBlockForSearching()

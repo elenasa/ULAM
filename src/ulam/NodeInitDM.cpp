@@ -249,17 +249,31 @@ namespace MFM {
 		  }
 	      }
 	  } //end array initializers (eit == Void)
+      }
 
-	if(m_nodeExpr && !m_nodeExpr->isAConstant())
+    if(m_nodeExpr)
+      {
+	TBOOL iscnstexpr = m_nodeExpr->isAConstant();
+	if(iscnstexpr != TBOOL_TRUE)
 	  {
+	    UTI neuti = Nav;
 	    std::ostringstream msg;
 	    msg << "Initialization value expression for";
 	    msg << " class data member: ";
 	    msg << m_state.m_pool.getDataAsString(m_cid).c_str();
 	    msg << ", is not a constant";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    setNodeType(Nav);
-	    return Nav; //short-circuit (error) after a possible empty array init is deleted t41206
+	    if(iscnstexpr == TBOOL_HAZY)
+	      {
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+		neuti = Hzy;
+		m_state.setGoAgain();
+	      }
+	    else
+	      {
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	      }
+	    setNodeType(neuti);
+	    return neuti; //short-circuit (error,hzy) after a possible empty array init is deleted t41206
 	  }
 
 	if(m_state.okUTItoContinue(it) && m_state.okUTItoContinue(suti) && (m_state.isScalar(it) ^ m_state.isScalar(suti)))
@@ -339,7 +353,7 @@ namespace MFM {
   {
     NODE_ASSERT(!m_constSymbol);
 
-    //we are looking for DM names
+    //we are looking for DM names..
     bool savCnstInitFlag = m_state.m_initSubtreeSymbolsWithConstantsOnly; //t41633
     m_state.m_initSubtreeSymbolsWithConstantsOnly = false;
 
@@ -443,7 +457,7 @@ namespace MFM {
 
     NODE_ASSERT(m_constSymbol);
 
-    //we are looking for DM names
+    //we are looking for DM names..
     bool savCnstInitFlag = m_state.m_initSubtreeSymbolsWithConstantsOnly; //t41633
     m_state.m_initSubtreeSymbolsWithConstantsOnly = false;
 
@@ -601,11 +615,11 @@ namespace MFM {
       } //not complete
   } //printUnresolvedLocalVariables
 
-  bool NodeInitDM::isAConstant()
+  TBOOL NodeInitDM::isAConstant()
   {
     if(m_nodeExpr)
       return m_nodeExpr->isAConstant(); //t41169 (not m_constSymbol check)
-    return true; //i.e. array without initial values
+    return TBOOL_TRUE; //i.e. array without initial values
   }
 
   TBOOL NodeInitDM::checkVarUsedBeforeDeclared(u32 id, NNO declblockno)

@@ -328,17 +328,27 @@ namespace MFM{
     return m_nodes[n]->getNodeType();
   }
 
-  bool NodeList::isAConstant()
+  TBOOL NodeList::isAConstant()
   {
-    bool rtnc = true;
+    TBOOL rtnc = TBOOL_TRUE;
     for(u32 i = 0; i < m_nodes.size(); i++)
       {
-	rtnc &= isAConstant(i); //t41202 (empty constant array init)
+	//rtnc &= isAConstant(i); //t41202 (empty constant array init)
+	TBOOL rtni = isAConstant(i);
+	if(rtni != rtnc)
+	  {
+	    if(rtnc == TBOOL_TRUE)
+	      rtnc = rtni; //hazy or false
+	    else if(rtnc == TBOOL_HAZY)
+	      rtnc = rtni; //false
+	  }
+	if(rtnc == TBOOL_FALSE)
+	  break;
       }
     return rtnc;
   }
 
-  bool NodeList::isAConstant(u32 n)
+  TBOOL NodeList::isAConstant(u32 n)
   {
     NODE_ASSERT(n < m_nodes.size());
     NODE_ASSERT(m_nodes[n]);

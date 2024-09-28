@@ -141,11 +141,15 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-  bool NodeStatements::isAConstant()
+  TBOOL NodeStatements::isAConstant()
   {
-    bool rtn = m_node->isAConstant();
-    if(rtn && m_nodeNext)
-      rtn &= m_nodeNext->isAConstant(); //side-effect
+    TBOOL rtn = m_node->isAConstant();
+    if((rtn == TBOOL_TRUE) && m_nodeNext)
+      {
+	TBOOL tbnext = m_nodeNext->isAConstant(); //side-effect
+	if(tbnext != rtn)
+	  rtn = tbnext; //false or hazy
+      }
     return rtn;
   }
 

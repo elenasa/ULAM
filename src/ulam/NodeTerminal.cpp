@@ -114,9 +114,9 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-  bool NodeTerminal::isAConstant()
+  TBOOL NodeTerminal::isAConstant()
   {
-    return true;
+    return TBOOL_TRUE;
   }
 
   bool NodeTerminal::isReadyConstant()

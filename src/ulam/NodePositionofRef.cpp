@@ -84,9 +84,9 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-  bool NodePositionofRef::isAConstant()
+  TBOOL NodePositionofRef::isAConstant()
   {
-    return false;
+    return TBOOL_FALSE;
   }
 
   FORECAST NodePositionofRef::safeToCastTo(UTI newType)

@@ -265,11 +265,7 @@ namespace MFM {
     if(m_currBlockNo == 0)
       {
 	if(m_state.useMemberBlock())
-	  {
-	    NodeBlockClass * memberclass = m_state.getCurrentMemberClassBlock();
-	    NODE_ASSERT(memberclass);
-	    setBlockNo(memberclass->getNodeNo());
-	  }
+	  setBlockNo(m_state.getCurrentMemberClassBlockNo());
 	else
 	  setBlockNo(m_state.getCurrentBlockNo());
       }

@@ -133,10 +133,13 @@ namespace MFM {
     fp->write(myname);
   }
 
-  bool NodeBinaryOp::isAConstant()
+  TBOOL NodeBinaryOp::isAConstant()
   {
     NODE_ASSERT(m_nodeLeft && m_nodeRight);
-    return m_nodeLeft->isAConstant() && m_nodeRight->isAConstant();
+    TBOOL tbleft = m_nodeLeft->isAConstant();
+    if(tbleft != TBOOL_TRUE)
+      return tbleft; //false or hazy
+    return m_nodeRight->isAConstant(); //left true
   }
 
   bool NodeBinaryOp::isReadyConstant()
@@ -174,7 +177,7 @@ namespace MFM {
     // efficiency bites! no sooner, need left and right side-effects
     // (e.g. NodeControl condition is Bool at start; stubs need Symbol ptrs)
     //    if(m_state.isComplete(getNodeType())) //t41636
-    if(m_state.isComplete(getNodeType()) && (!isAConstant() || isReadyConstant()))
+    if(m_state.isComplete(getNodeType()) && (isAConstant() != TBOOL_TRUE || isReadyConstant()))
       return getNodeType();
 
     //replace node with func call to matching function overload operator for class
@@ -221,7 +224,7 @@ namespace MFM {
     //before constant folding; if needed (e.g. Remainder, Divide)
     castThyselfToResultType(rightType, leftType, newType, thisparentnode);
 
-    if(m_state.okUTItoContinue(newType) && isAConstant() && !isReadyConstant()) //t41478
+    if(m_state.okUTItoContinue(newType) && (isAConstant() == TBOOL_TRUE) && !isReadyConstant()) //t41478
       return constantFold(thisparentnode); //surgery possible
 
     return newType;
@@ -546,7 +549,7 @@ namespace MFM {
     NODE_ASSERT(m_state.okUTItoContinue(nuti)); //nothing to do yet
 
     // if here, must be a constant..
-    NODE_ASSERT(isAConstant());
+    NODE_ASSERT(isAConstant() == TBOOL_TRUE);
 
     if(m_state.isAClass(nuti))
       return nuti; //t41484 (e.g. node sq bkt)

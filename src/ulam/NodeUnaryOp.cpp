@@ -107,7 +107,7 @@ namespace MFM {
     return "_UNARY_NOOP";
   }
 
-  bool NodeUnaryOp::isAConstant()
+  TBOOL NodeUnaryOp::isAConstant()
   {
     NODE_ASSERT(m_node);
     return m_node->isAConstant();
@@ -187,7 +187,7 @@ namespace MFM {
     if(newType == Hzy) m_state.setGoAgain(); //since not error
     Node::setStoreIntoAble(TBOOL_FALSE);
 
-    if(m_state.okUTItoContinue(newType) && isAConstant() && m_node->isReadyConstant())
+    if(m_state.okUTItoContinue(newType) && (isAConstant() == TBOOL_TRUE) && m_node->isReadyConstant())
       return constantFold(thisparentnode);
 
     return newType;
@@ -306,7 +306,7 @@ namespace MFM {
     NODE_ASSERT(m_state.okUTItoContinue(nuti)); //nothing to do yet
 
     // if here, must be a constant..
-    NODE_ASSERT(isAConstant());
+    NODE_ASSERT(isAConstant() == TBOOL_TRUE);
 
     NNO pno = Node::getYourParentNo();
     NODE_ASSERT(pno);

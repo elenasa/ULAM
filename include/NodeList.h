@@ -115,9 +115,9 @@ namespace MFM{
 
     UTI getNodeType(u32 n); //overloads Node.h
 
-    virtual bool isAConstant();
+    virtual TBOOL isAConstant();
 
-    bool isAConstant(u32 n);
+    TBOOL isAConstant(u32 n);
 
     bool isAConstantFunctionParameter(u32 n);
 

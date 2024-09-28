@@ -275,31 +275,12 @@ namespace MFM {
     return false;
   }
 
-  bool NodeIdent::isAConstant()
+  TBOOL NodeIdent::isAConstant()
   {
-    bool rtn = false;
+    TBOOL rtn = TBOOL_HAZY;
     //may not have known at parse time; no side-effects until c&l
-    if(!m_varSymbol)
-      {
-#if 0
-	//is it a constant within the member?
-	NodeBlockContext * memberclass = m_state.getContextBlock();
-	NODE_ASSERT(memberclass);
-
-	m_state.pushCurrentBlock(memberclass);
-
-	Symbol * asymptr = NULL;
-	bool hazyKin = false;
-	u32 tokid = m_state.getTokenDataAsStringId(m_token);
-	if(m_state.alreadyDefinedSymbol(tokid, asymptr, hazyKin))
-	  {
-	    rtn = asymptr->isConstant(); //t41695
-	  }
-	m_state.popClassContext(); //restore
-#endif
-      }
-    else
-      rtn = m_varSymbol->isConstant();
+    if(m_varSymbol)
+      rtn = m_varSymbol->isConstant() ? TBOOL_TRUE : TBOOL_FALSE;
     return rtn;
   } //isAConstant
 
@@ -325,16 +306,6 @@ namespace MFM {
     //2 cases: use was before def, look up in class block; cloned unknown
     if(m_varSymbol == NULL)
       {
-#if 0
-	bool savCnstInitFlag = m_state.m_initSubtreeSymbolsWithConstantsOnly;
-	if(thisparentnode->isAConstant())
-	  {
-	    //data members of constant classes are constants, implicitly (t41277)
-	    //terminal proxy (e.g. classidof, sizeof) are constants (t41381)
-	    m_state.m_initSubtreeSymbolsWithConstantsOnly = false;
-	  }
-#endif
-
 	UTI cuti = m_state.getCompileThisIdx(); //for error messages
 	NodeBlock * currBlock = getBlock();
 	setBlock(currBlock);
@@ -368,8 +339,6 @@ namespace MFM {
 	      }
 	    else
 	      {
-		//m_state.m_initSubtreeSymbolsWithConstantsOnly = savCnstInitFlag; //restore
-
 		TBOOL rtb = replaceOurselves(asymptr, thisparentnode);
 		if(rtb == TBOOL_HAZY)
 		  {
@@ -423,7 +392,6 @@ namespace MFM {
 	      }
 	    m_state.popClassContext(); //restore
 	  }
-	//	m_state.m_initSubtreeSymbolsWithConstantsOnly = savCnstInitFlag; //restore
       } //lookup symbol done
     else
       {
@@ -791,7 +759,8 @@ namespace MFM {
       }
     else if(m_state.m_initSubtreeSymbolsWithConstantsOnly)
       {
-	//is DM init, look again in locals filescope
+	//is DM init, with same name
+	// look again in baseclasses and lastly the locals filescope for constant
 	clearSymbolPtr();
 	return TBOOL_HAZY; //t41698
       }
@@ -831,7 +800,7 @@ namespace MFM {
 
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     ULAMCLASSTYPE classtype = nut->getUlamClassType();
-    //    if((classtype == UC_TRANSIENT) && (nut->getTotalBitSize() > MAXSTATEBITS))
+
     if((classtype == UC_TRANSIENT) && (nut->getBitSize() > MAXSTATEBITS))
       return evalStatusReturnNoEpilog(UNEVALUABLE); //t41632
 
@@ -852,8 +821,6 @@ namespace MFM {
 
 	// redo what getPtrTarget use to do, when types didn't match due to
 	// an element/quark or a requested scalar of an arraytype
-	//if(m_state.isPtr(ttype) || (UlamType::compare(ttype, nuti, m_state) == UTIC_NOTSAME))
-	//if(m_state.isPtr(ttype) || ((UlamType::compare(ttype, nuti, m_state) == UTIC_NOTSAME) && !m_state.isClassASubclassOf(ttype,nuti))) //t41641
 	if(m_state.isPtr(ttype) || ( (UlamType::compare(ttype, nuti, m_state) == UTIC_NOTSAME) && ( !m_state.isClassASubclassOf(ttype,nuti) || ( m_varSymbol->isDataMember() && (m_varSymbol->getDataMemberClass() == ttype) ) ) ) ) //t41641, t41063
 	  {
 	    if(m_state.isClassACustomArray(nuti))
@@ -951,7 +918,7 @@ namespace MFM {
 
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     ULAMCLASSTYPE classtype = nut->getUlamClassType();
-    //    if((classtype == UC_TRANSIENT) && (nut->getTotalBitSize() > MAXSTATEBITS))
+
     if((classtype == UC_TRANSIENT) && (nut->getBitSize() > MAXSTATEBITS)) //t41632
       return evalStatusReturnNoEpilog(UNEVALUABLE);
 
@@ -1651,11 +1618,7 @@ namespace MFM {
     u32 tokid = m_state.getTokenDataAsStringId(m_token); //3821 as-cond uses lhs token
     if(m_state.isIdInCurrentScope(tokid, asymptr))
       {
-#if 0
-	if(!(asymptr->isFunction()) && !(asymptr->isTypedef()) && !(asymptr->isConstant()) && !(asymptr->isModelParameter()))
-	  setSymbolPtr((SymbolVariable *) asymptr); //updates Node's symbol, if is variable
-#endif
-	return false; //already there
+	return false; //already there, dont setup, lazy evaluate in case constant is needed, for ex.
       }
 
     bool brtn = false;

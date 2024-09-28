@@ -155,13 +155,25 @@ namespace MFM {
 		else
 		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	      }
-	    else if(m_nodeInitExpr->isAConstant() && !m_state.isConstantRefType(nuti))
+	    else
 	      {
-		std::ostringstream msg;
-		msg << "Initial value of non-constant reference variable: " << getName();
-		msg << " is constant";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //error/t41255
-		rscr = CAST_BAD;
+		TBOOL iscnstinitexpr = m_nodeInitExpr->isAConstant();
+		if((iscnstinitexpr != TBOOL_FALSE) && !m_state.isConstantRefType(nuti))
+		  {
+		    std::ostringstream msg;
+		    msg << "Initial value of non-constant reference variable: " << getName();
+		    msg << " is constant";
+		    if(iscnstinitexpr == TBOOL_HAZY)
+		      {
+			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+			rscr = CAST_HAZY;
+		      }
+		    else
+		      {
+			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //error/t41255
+			rscr = CAST_BAD;
+		      }
+		  }
 	      }
 	  }
       }

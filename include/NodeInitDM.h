@@ -87,7 +87,7 @@ namespace MFM{
 
     virtual void printUnresolvedLocalVariables(u32 fid);
 
-    virtual bool isAConstant();
+    virtual TBOOL isAConstant();
 
     virtual TBOOL checkVarUsedBeforeDeclared(u32 id, NNO declblockno);
 

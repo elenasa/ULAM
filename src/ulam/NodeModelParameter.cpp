@@ -40,9 +40,9 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-  bool NodeModelParameter::isAConstant()
+  TBOOL NodeModelParameter::isAConstant()
   {
-    return false; //seems like a contradiction, but no
+    return TBOOL_FALSE; //seems like a contradiction, but no
   }
 
   FORECAST NodeModelParameter::safeToCastTo(UTI newType)

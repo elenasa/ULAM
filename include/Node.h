@@ -190,7 +190,7 @@ enum EvalStatus {ERROR, NOTREADY, NORMAL, RETURN, BREAK, CONTINUE, UNEVALUABLE};
 
     virtual bool isACast();
 
-    virtual bool isAConstant();
+    virtual TBOOL isAConstant();
 
     virtual bool isAConstantClass();
 

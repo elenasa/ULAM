@@ -128,7 +128,7 @@ namespace MFM {
 		  }
 		else
 		  {
-		    if(m_node->isAConstant() && !m_node->isReadyConstant())
+		    if((m_node->isAConstant() == TBOOL_TRUE) && !m_node->isReadyConstant())
 		      {
 			m_node->constantFold(this);
 		      }
@@ -181,6 +181,8 @@ namespace MFM {
 	  }
 	else
 	  {
+	    TBOOL iscnstnode = m_node->isAConstant();
+
 	    //only ALT in key differs (cannot parse a Constant return type)
 	    if(m_state.isAltRefType(rtnType) && m_state.isAltRefType(nodeType))
 	      {
@@ -196,13 +198,21 @@ namespace MFM {
 		  }
 		//else both must be ALT_REF
 	      }
-	    else if(m_state.isAltRefType(rtnType) && !m_state.isConstantRefType(rtnType) && m_node->isAConstant())
+	    else if(m_state.isAltRefType(rtnType) && !m_state.isConstantRefType(rtnType) && (iscnstnode != TBOOL_FALSE))
 	      {
 		std::ostringstream msg;
 		msg << "Returning a constant as a non-constant reference type: ";
 		msg << m_state.getUlamTypeNameByIndex(rtnType).c_str();
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		nodeType = Nav;  //t3965
+		if(iscnstnode == TBOOL_HAZY)
+		  {
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+		    nodeType = Hzy;
+		  }
+		else
+		  {
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    nodeType = Nav;  //t3965
+		  }
 	      }
 	    else if(m_state.isAltRefType(rtnType) || m_state.isAltRefType(nodeType))
 	      {

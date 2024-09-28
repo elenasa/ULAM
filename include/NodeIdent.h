@@ -105,7 +105,7 @@ namespace MFM{
 
     virtual bool belongsToVOWN(UTI vown);
 
-    virtual bool isAConstant();
+    virtual TBOOL isAConstant();
 
     virtual void setClassType(UTI cuti); //noop
 

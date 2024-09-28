@@ -113,7 +113,7 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-  bool NodeTerminalProxy::isAConstant()
+  TBOOL NodeTerminalProxy::isAConstant()
   {
     if((m_funcTok.m_type == TOK_KW_LENGTHOF) && m_nodeOf)
       {
@@ -124,7 +124,7 @@ namespace MFM {
 	  return m_nodeOf->isAConstant();
       }
     //else, e.g. length of String type has null m_nodeOf, and is constant STRINGIDXBITS (t3933).
-    return true;
+    return TBOOL_TRUE;
   }
 
   bool NodeTerminalProxy::isReadyConstant()
@@ -296,7 +296,7 @@ namespace MFM {
 	m_nodeOf = NULL; //recycled
 	rtnb = true;
       }
-    else if(isAConstant() && isReadyConstant())
+    else if((isAConstant() == TBOOL_TRUE) && isReadyConstant())
       {
 	//constantFold, like NodeBinaryOp (e.g. t3985)
 	//replace with a NodeTerminal; might not be ready (t41065, t41382)
@@ -338,7 +338,7 @@ namespace MFM {
     NODE_ASSERT(m_state.okUTItoContinue(nuti)); //nothing to do yet
 
     // if here, must be a constant..
-    NODE_ASSERT(isAConstant());
+    NODE_ASSERT(isAConstant() == TBOOL_TRUE);
 
     evalNodeProlog(0); //new current frame pointer
     makeRoomForNodeType(nuti); //offset a constant expression

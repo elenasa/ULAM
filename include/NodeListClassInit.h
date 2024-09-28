@@ -2,8 +2,8 @@
  * NodeListClassInit.h - List of class initnodes for ULAM
  *
  * Copyright (C) 2018 The Regents of the University of New Mexico.
- * Copyright (C) 2018-2021 Ackleyshack LLC.
- * Copyright (C) 2020-2021 The Living Computation Foundation
+ * Copyright (C) 2018-2024 Ackleyshack LLC.
+ * Copyright (C) 2020-2024 The Living Computation Foundation
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -30,7 +30,7 @@
   \file NodeListClassInit.h - List of class init nodes for ULAM
   \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2018-2021 All rights reserved.
+  \date (C) 2018-2024 All rights reserved.
   \gpl
 */
 
@@ -80,7 +80,7 @@ namespace MFM{
 
     virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);
 
-    virtual bool isAConstant();
+    virtual TBOOL isAConstant();
 
     virtual UTI foldConstantExpression();
 

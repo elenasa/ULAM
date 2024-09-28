@@ -115,9 +115,9 @@ namespace MFM {
     return m_constSymbol && (m_constSymbol->isReady() || m_constSymbol->isInitValueReady()); //t41209
   }
 
-  bool NodeConstantClass::isAConstant()
+  TBOOL NodeConstantClass::isAConstant()
   {
-    return true;
+    return TBOOL_TRUE;
   }
 
   bool NodeConstantClass::isAConstantClass()

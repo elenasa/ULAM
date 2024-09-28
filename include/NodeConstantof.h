@@ -59,7 +59,7 @@ namespace MFM{
 
     virtual u32 getPositionOf();
 
-    virtual bool isAConstant();
+    virtual TBOOL isAConstant();
 
     virtual bool isAConstantClass();
 

@@ -74,9 +74,9 @@ namespace MFM{
     return; //override NodeList
   } //calcMaxDepth
 
-  bool NodeListEmpty::isAConstant()
+  TBOOL NodeListEmpty::isAConstant()
   {
-    return true;
+    return TBOOL_TRUE;
   }
 
   UTI NodeListEmpty::foldConstantExpression()

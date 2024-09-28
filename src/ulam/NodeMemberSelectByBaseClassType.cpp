@@ -270,7 +270,7 @@ namespace MFM {
     if(m_nodeVTclassrn)
       return evalStatusReturnNoEpilog(UNEVALUABLE); //requires MFM Registry
 
-    if(m_nodeLeft->isAConstant())
+    if(m_nodeLeft->isAConstant() != TBOOL_FALSE)
       {
 	//probably need evaltostoreinto for rhs, since not DM.
 	//m_state.abortNotImplementedYet(); //t41198, t41209, t41217

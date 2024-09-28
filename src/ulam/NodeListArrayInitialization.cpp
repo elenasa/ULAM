@@ -45,12 +45,22 @@ namespace MFM{
     fp->write(" }");
   } //printPostfix
 
-  bool NodeListArrayInitialization::isAConstant()
+  TBOOL NodeListArrayInitialization::isAConstant()
   {
-    bool rtnc = true;
+    TBOOL rtnc = TBOOL_TRUE;
     for(u32 i = 0; i < m_nodes.size(); i++)
       {
-	rtnc &= m_nodes[i]->isAConstant(); ////yikes! (was |=) all or none (t41185)
+	//rtnc &= m_nodes[i]->isAConstant(); ////yikes! (was |=) all or none (t41185)
+	TBOOL rtni = m_nodes[i]->isAConstant(); ////yikes! (was |=) all or none (t41185)
+	if(rtni != rtnc)
+	  {
+	    if(rtnc == TBOOL_TRUE)
+	      rtnc = rtni; //hazy or false
+	    else if(rtnc == TBOOL_HAZY)
+	      rtnc = rtni; //false
+	  }
+	if(rtnc == TBOOL_FALSE)
+	  break;
       }
     return rtnc;
   }
@@ -150,13 +160,25 @@ namespace MFM{
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    rtnuti = Nav;
 	  }
-	else if(!m_nodes[i]->isAConstant())
+	else
 	  {
-	    std::ostringstream msg;
-	    msg << "Constant value expression for array item " << i + 1;
-	    msg << ", initialization is not a constant";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    rtnuti = Nav;
+	    TBOOL tbc = m_nodes[i]->isAConstant();
+	    if(tbc != TBOOL_TRUE)
+	      {
+		std::ostringstream msg;
+		msg << "Constant value expression for array item " << i + 1;
+		msg << ", initialization is not a constant";
+		if(tbc == TBOOL_HAZY)
+		  {
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+		    if(rtnuti != Nav) rtnuti = Hzy;
+		  }
+		else
+		  {
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    rtnuti = Nav;
+		  }
+	      }
 	  }
       }
     setNodeType(rtnuti);
@@ -427,7 +449,7 @@ namespace MFM{
     BV8K bvclass;
     bvtmp.CopyBV(pos * itemlen, 0, itemlen, bvclass); //zero-based item
 
-    if(m_nodes[n]->isAConstant() && m_state.isAtom(nuti))
+    if((m_nodes[n]->isAConstant() == TBOOL_TRUE) && m_state.isAtom(nuti))
       {
 	//cast to .constantof or named constant
 	BV8K bvmask;
@@ -440,7 +462,6 @@ namespace MFM{
     else if(m_nodes[n]->isAConstantClass())
       {
 	BV8K bvmask;
-	//	if(((NodeConstantClass *) m_nodes[n])->initDataMembersConstantValue(bvclass, bvmask)) //at pos 0
 	if(m_nodes[n]->initDataMembersConstantValue(bvclass, bvmask)) //at pos 0
 	  {
 	    bvclass.CopyBV(0, pos * itemlen, itemlen, bvtmp); //frompos, topos, len, destBV
@@ -457,7 +478,7 @@ namespace MFM{
 	  }
       }
     else
-      m_state.abortShouldntGetHere();
+      m_state.abortShouldntGetHere(); //what about isAConstant() TBOOL_HAZY, or not atom ?
 
     return rtnb;
   } //buildClassArrayItemInitialValue
@@ -468,7 +489,7 @@ namespace MFM{
     NODE_ASSERT(!m_state.isScalar(nuti));
     NODE_ASSERT(m_nodes.size() > 0 && (m_nodes[0] != NULL));
 
-    NODE_ASSERT(isAConstant() || !(m_nodes[0]->isClassInit())); //genCodeClassInitArray called instead for dm (t41170); continue for immediate constant class arrays (t41638,9)
+    NODE_ASSERT((isAConstant() == TBOOL_TRUE) || !(m_nodes[0]->isClassInit())); //genCodeClassInitArray called instead for dm (t41170); continue for immediate constant class arrays (t41638,9)
 
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
 

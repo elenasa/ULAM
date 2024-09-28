@@ -130,7 +130,7 @@ namespace MFM {
     return false;
   }
 
-  bool NodeMemberSelect::isAConstant()
+  TBOOL NodeMemberSelect::isAConstant()
   {
     return m_nodeLeft->isAConstant(); //constant classes possible
   }
@@ -286,13 +286,18 @@ namespace MFM {
     // no concept of effective self for virtual function call search during c&l (t41543)
     m_state.pushClassContextUsingMemberClassBlock(memberClassNode);
     bool savCnstInitFlag = m_state.m_initSubtreeSymbolsWithConstantsOnly;
-
-    if(m_nodeLeft->isAConstant())
+    TBOOL iscnstleft = m_nodeLeft->isAConstant();
+    if( iscnstleft == TBOOL_TRUE)
       {
 	//data members of constant classes are constants, implicitly (t41277)
 	//terminal proxy (e.g. classidof, sizeof) are constants (t41381)
 	m_state.m_initSubtreeSymbolsWithConstantsOnly = false;
       }
+    else if(iscnstleft == TBOOL_HAZY)
+      {
+	m_state.abortShouldntGetHere(); //or a WAIT message before returning Hzy?
+      }
+    //else TBOOL_FALSE okay
 
     UTI rightType = m_nodeRight->checkAndLabelType(this);
 
@@ -333,12 +338,18 @@ namespace MFM {
       return TBOOL_TRUE; //error case
 
     bool savCnstInitFlag = m_state.m_initSubtreeSymbolsWithConstantsOnly;
-    if(m_nodeLeft->isAConstant())
+    TBOOL iscnstleft = m_nodeLeft->isAConstant();
+    if(iscnstleft == TBOOL_TRUE)
       {
 	//data members of constant classes are constants, implicitly (t41277, t41699)
 	//terminal proxy (e.g. classidof, sizeof) are constants (t41381)
 	m_state.m_initSubtreeSymbolsWithConstantsOnly = false;
       }
+    else if (iscnstleft == TBOOL_HAZY)
+      {
+	return TBOOL_HAZY; //short circuit
+      }
+    //else okay, not constant left
 
     TBOOL tbright = m_nodeRight->checkVarUsedBeforeDeclared(id, declblockno);
 
@@ -357,7 +368,7 @@ namespace MFM {
     bool rtnok = false;
     //vs t41232, t41263
     //righthand member of constant class (t41273); left is complete, we know.
-    NODE_ASSERT(m_nodeLeft->isAConstant());
+    NODE_ASSERT(m_nodeLeft->isAConstant() == TBOOL_TRUE);
     UTI leftType = m_nodeLeft->getNodeType();
     NODE_ASSERT(m_state.isAClass(leftType));
     NODE_ASSERT(m_state.isComplete(leftType));
@@ -370,7 +381,10 @@ namespace MFM {
     //replace rhs with a constant node version of it, using the value found in lhs.
     NODE_ASSERT(!m_nodeRight->isAList());
     NODE_ASSERT(!m_nodeRight->isFunctionCall());
-    if(!m_nodeRight->isAConstant())
+
+    TBOOL iscnstright = m_nodeRight->isAConstant();
+    //if(!m_nodeRight->isAConstant())
+    if(iscnstright == TBOOL_FALSE)
       {
 	NODE_ASSERT(m_nodeRight->hasASymbolDataMember());
 	u32 rpos = m_nodeRight->getSymbolDataMemberPosOffset();
@@ -401,10 +415,15 @@ namespace MFM {
 	      } //no left class value
 	  } //rpos not reliable
       }
-    else
+    else if(iscnstright == TBOOL_TRUE)
       {
 	//right is a constant (t41278)
 	rtnok = m_nodeRight->getConstantValue(bvmsel);
+      }
+    else
+      {
+	//iscnstright is Hazy
+	m_state.abortShouldntGetHere();
       }
     return rtnok;
   } //getConstantMemberValue
@@ -543,7 +562,7 @@ namespace MFM {
 
     if(nuti == Hzy) return evalStatusReturnNoEpilog(NOTREADY);
 
-    if(m_nodeLeft->isAConstant())
+    if(m_nodeLeft->isAConstant() != TBOOL_FALSE)
       {
 	//probably need evaltostoreinto for rhs, since not DM. (? t41507)
 	//m_state.abortNotImplementedYet(); //t41198, t41209, t41217

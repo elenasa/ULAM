@@ -715,6 +715,8 @@ namespace MFM{
 
     NodeBlockClass * getCurrentMemberClassBlock();
 
+    NNO getCurrentMemberClassBlockNo();
+
     NodeBlock * getCurrentBlockForSearching();
 
     NodeBlockContext * getContextBlockForSearching();

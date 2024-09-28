@@ -372,7 +372,7 @@ namespace MFM {
     if(!m_constSymbol)
       {
 	setNodeType(Nav);
-	m_state.m_initSubtreeSymbolsWithConstantsOnly = false;
+	m_state.m_initSubtreeSymbolsWithConstantsOnly = false; //clear
 	return Nav;
       }
 
@@ -456,7 +456,7 @@ namespace MFM {
 	if(changeScope)
 	  m_state.popClassContext(); //restore
 
-	m_state.m_initSubtreeSymbolsWithConstantsOnly = false;
+	m_state.m_initSubtreeSymbolsWithConstantsOnly = false; //clear
 	return Nav;
       }
 
@@ -481,7 +481,7 @@ namespace MFM {
 	    msg << ", is invalid";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    setNodeType(Nav);
-	    m_state.m_initSubtreeSymbolsWithConstantsOnly = false;
+	    m_state.m_initSubtreeSymbolsWithConstantsOnly = false; //clear
 	    return Nav; //short-circuit
 	  }
 
@@ -519,7 +519,7 @@ namespace MFM {
 		setNodeType(Hzy);
 		clearSymbolPtr();
 		m_state.setGoAgain();
-		m_state.m_initSubtreeSymbolsWithConstantsOnly = false;
+		m_state.m_initSubtreeSymbolsWithConstantsOnly = false; //clear
 		return Hzy; //short-circuit
 	      }
 	  }
@@ -543,7 +543,7 @@ namespace MFM {
 		    msg << getName() << "' has improper {} initialization";
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		    setNodeType(Nav);
-		    m_state.m_initSubtreeSymbolsWithConstantsOnly = false;
+		    m_state.m_initSubtreeSymbolsWithConstantsOnly = false; //clear
 		    return Nav;
 		  }
 
@@ -645,7 +645,7 @@ namespace MFM {
 		msg << ", array/scalar mismatch";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		setNodeType(Nav);
-		m_state.m_initSubtreeSymbolsWithConstantsOnly = false;
+		m_state.m_initSubtreeSymbolsWithConstantsOnly = false; //clear
 		return Nav; //short-circuit (t3446, t3898)
 	      }
 	  }
@@ -665,7 +665,7 @@ namespace MFM {
 		msg << "invalid";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		setNodeType(Nav);
-		m_state.m_initSubtreeSymbolsWithConstantsOnly = false;
+		m_state.m_initSubtreeSymbolsWithConstantsOnly = false; //clear
 		return Nav;
 	      }
 	    else
@@ -675,12 +675,12 @@ namespace MFM {
 		setNodeType(Hzy);
 		clearSymbolPtr();
 		m_state.setGoAgain();
-		m_state.m_initSubtreeSymbolsWithConstantsOnly = false;
+		m_state.m_initSubtreeSymbolsWithConstantsOnly = false; //clear
 		return Hzy; //short-circuit (t3893)
 	      }
 	  }
 
-	if(m_nodeExpr && !m_nodeExpr->isAConstant() && !m_state.isConstantRefType(suti))
+	if(m_nodeExpr && (m_nodeExpr->isAConstant() == TBOOL_FALSE) && !m_state.isConstantRefType(suti))
 	  {
 	    std::ostringstream msg;
 	    msg << "Constant value expression for";
@@ -695,7 +695,7 @@ namespace MFM {
 	      msg << "; Suggest '= {};' for default values"; //t41300
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //t3893 wrong loc!!
 	    setNodeType(Nav);
-	    m_state.m_initSubtreeSymbolsWithConstantsOnly = false;
+	    m_state.m_initSubtreeSymbolsWithConstantsOnly = false; //clear
 	    return Nav; //short-circuit (error/t3453) after possible empty array init is deleted (t41202)
 	  }
 	//else t41192
@@ -736,7 +736,7 @@ namespace MFM {
 	      {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		setNodeType(Nav);
-		m_state.m_initSubtreeSymbolsWithConstantsOnly = false;
+		m_state.m_initSubtreeSymbolsWithConstantsOnly = false; //clear
 		return Nav; //t41210
 	      }
 	    else
@@ -745,7 +745,7 @@ namespace MFM {
 		setNodeType(Hzy);
 		clearSymbolPtr();
 		m_state.setGoAgain();
-		m_state.m_initSubtreeSymbolsWithConstantsOnly = false;
+		m_state.m_initSubtreeSymbolsWithConstantsOnly = false; //clear
 		return Hzy;
 	      }
 	  }
@@ -792,7 +792,7 @@ namespace MFM {
 	clearSymbolPtr();
 	m_state.setGoAgain();
       }
-    m_state.m_initSubtreeSymbolsWithConstantsOnly = false;
+    m_state.m_initSubtreeSymbolsWithConstantsOnly = false; //clear
     return getNodeType();
   } //checkAndLabelType
 
@@ -909,7 +909,7 @@ namespace MFM {
     if(m_state.isConstantRefType(uti))
       {
 	NODE_ASSERT(m_nodeExpr);
-	if(!m_nodeExpr->isAConstant())
+	if(m_nodeExpr->isAConstant() != TBOOL_TRUE)
 	  {
 	    return uti; //no folding when not a constant expression (t41192)
 	  }
@@ -989,7 +989,7 @@ namespace MFM {
 	    else
 	      rtnuti = Hzy;
 	  }
-	else if(m_nodeExpr->isAConstant())
+	else if(m_nodeExpr->isAConstant() == TBOOL_TRUE)
 	  {
 	    //constant class t3451; member select t41273; array item t41263
 	    BV8K bvtmp;

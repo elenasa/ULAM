@@ -70,7 +70,7 @@ namespace MFM{
 
     virtual void printOp(File * fp);
 
-    virtual bool isAConstant();
+    virtual TBOOL isAConstant();
 
     virtual bool isReadyConstant();
 

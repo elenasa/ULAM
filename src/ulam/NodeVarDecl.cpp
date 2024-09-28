@@ -314,7 +314,7 @@ namespace MFM {
 	  }
 	//else no good
       }
-    else if(m_nodeInitExpr->isAConstant())
+    else if(m_nodeInitExpr->isAConstant() == TBOOL_TRUE)
       {
 	brtn = m_nodeInitExpr->getConstantValue(bvtmp);
       }
@@ -733,7 +733,7 @@ namespace MFM {
 	  } //end array initializers list && (eit == Void)
 	else
 	  {
-	    if(!m_state.isScalar(vit) && m_nodeInitExpr->isAConstant())
+	    if(!m_state.isScalar(vit) && (m_nodeInitExpr->isAConstant() == TBOOL_TRUE))
 	      m_varSymbol->setHasInitValue(); //t3896
 
 	    if(m_state.isAClass(eit) && m_nodeInitExpr->isAList())

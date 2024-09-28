@@ -2,8 +2,8 @@
  * NodeListArrayInitialization.h - Handle array initialization list of nodes for ULAM
  *
  * Copyright (C) 2016-2018 The Regents of the University of New Mexico.
- * Copyright (C) 2016-2023 Ackleyshack LLC.
- * Copyright (C) 2020-2023 The Living Computation Foundation
+ * Copyright (C) 2016-2024 Ackleyshack LLC.
+ * Copyright (C) 2020-2024 The Living Computation Foundation
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -30,7 +30,7 @@
   \file NodeListArrayInitialization.h - Handle array initialization list of nodes for ULAM
   \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2016-2023 All rights reserved.
+  \date (C) 2016-2024 All rights reserved.
   \gpl
 */
 
@@ -62,7 +62,7 @@ namespace MFM{
 
     virtual void printPostfix(File * fp);
 
-    virtual bool isAConstant();
+    virtual TBOOL isAConstant();
 
     virtual void setNodeType(UTI uti);
 

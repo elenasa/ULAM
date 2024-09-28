@@ -193,11 +193,24 @@ namespace MFM{
     return; //override NodeList
   } //calcMaxDepth
 
-  bool NodeListClassInit::isAConstant()
+  TBOOL NodeListClassInit::isAConstant()
   {
-    bool isconstant = true;
+    TBOOL isconstant = TBOOL_TRUE;
     for(u32 i = 0; i < m_nodes.size(); i++)
-      isconstant &= m_nodes[i]->isAConstant();
+      {
+	//isconstant &= m_nodes[i]->isAConstant();
+	TBOOL isc = m_nodes[i]->isAConstant();
+	if(isc != isconstant)
+	  {
+	    if(isconstant == TBOOL_TRUE)
+	      isconstant = isc; //hazy or false
+	    else if(isconstant == TBOOL_HAZY)
+	      isconstant = isc; //false
+	    //else
+	  }
+	if(isconstant == TBOOL_FALSE)
+	  break;
+      }
     return isconstant;
   }
 

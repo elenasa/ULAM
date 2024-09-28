@@ -73,7 +73,7 @@ namespace MFM{
 
     virtual const std::string methodNameForCodeGen() = 0;
 
-    virtual bool isAConstant();
+    virtual TBOOL isAConstant();
 
     virtual bool isReadyConstant();
 

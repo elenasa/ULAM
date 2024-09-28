@@ -378,7 +378,7 @@ namespace MFM {
 	  {
 	    UlamType * put = m_state.getUlamTypeByIndex(puti);
 	    UlamType * aut = m_state.getUlamTypeByIndex(auti);
-	    if(argNodes[i]->isAConstant())
+	    if(argNodes[i]->isAConstant() == TBOOL_TRUE)
 	      {
 		if(put->isAltRefType())
 		  {

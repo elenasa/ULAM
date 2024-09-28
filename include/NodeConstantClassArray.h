@@ -76,7 +76,7 @@ namespace MFM{
 
     virtual bool isReadyConstant();
 
-    virtual bool isAConstant();
+    virtual TBOOL isAConstant();
 
     virtual bool isAConstantClassArray();
 

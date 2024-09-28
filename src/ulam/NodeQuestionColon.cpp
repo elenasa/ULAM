@@ -129,7 +129,7 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-  bool NodeQuestionColon::isAConstant()
+  TBOOL NodeQuestionColon::isAConstant()
   {
     return m_nodeCondition->isAConstant(); //t41280
   }
@@ -305,9 +305,10 @@ namespace MFM {
     setNodeType(newType);  //stays the same
     if(newType == Hzy) m_state.setGoAgain();
 
-    Node::setStoreIntoAble(isAConstant() ? TBOOL_FALSE : TBOOL_TRUE);
+    TBOOL iscnst = this->isAConstant();
+    Node::setStoreIntoAble(((iscnst == TBOOL_TRUE) ? TBOOL_FALSE : ((iscnst == TBOOL_FALSE) ? TBOOL_TRUE : TBOOL_HAZY)));
 
-    if(m_state.okUTItoContinue(newType) && this->isAConstant())
+    if(m_state.okUTItoContinue(newType) && (iscnst == TBOOL_TRUE))
       {
 	return constantFold(thisparentnode);
       }

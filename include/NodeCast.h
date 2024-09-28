@@ -83,7 +83,7 @@ namespace MFM{
 
     virtual bool isACast();
 
-    virtual bool isAConstant();
+    virtual TBOOL isAConstant();
 
     virtual bool isAConstantClass();
 

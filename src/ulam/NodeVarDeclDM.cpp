@@ -304,7 +304,7 @@ namespace MFM {
 
     if(!m_state.okUTItoContinue(nuti))
       {
-	m_state.m_initSubtreeSymbolsWithConstantsOnly = false;
+	m_state.m_initSubtreeSymbolsWithConstantsOnly = false; //clear
 	return nuti;
       }
 
@@ -321,7 +321,7 @@ namespace MFM {
 	msg << "' belongs to a quark-union, and cannot be initialized";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(Nav);
-	m_state.m_initSubtreeSymbolsWithConstantsOnly = false;
+	m_state.m_initSubtreeSymbolsWithConstantsOnly = false; //clear
 	return Nav; //short-circuit
       }
 
@@ -337,19 +337,31 @@ namespace MFM {
     // since initial expressions must be constant for both (unlike local scalars)
     if(hasInitExpr() && m_state.isScalar(getNodeType()))
       {
-	if(!m_nodeInitExpr->isAConstant())
+	UTI it = Nav;
+	TBOOL iscnstinitexpr = m_nodeInitExpr->isAConstant();
+	if(iscnstinitexpr != TBOOL_TRUE)
 	  {
 	    std::ostringstream msg;
 	    msg << "Constant value expression for data member: ";
 	    msg << m_state.m_pool.getDataAsString(m_vid).c_str();
 	    msg << ", initialization is not a constant";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    setNodeType(Nav);
-	    m_state.m_initSubtreeSymbolsWithConstantsOnly = false;
-	    return Nav; //short-circuit
+	    if(iscnstinitexpr == TBOOL_HAZY)
+	      {
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+		it = Hzy;
+		m_state.setGoAgain(); //since not error
+	      }
+	    else
+	      {
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	      }
+	    setNodeType(it);
+	    m_state.m_initSubtreeSymbolsWithConstantsOnly = false; //clear
+	    return it; //short-circuit
 	  }
+	//else
 
-	UTI it = m_nodeInitExpr->getNodeType();
+	it = m_nodeInitExpr->getNodeType();
 	if(it == Nav)
 	  {
 	    std::ostringstream msg;
@@ -358,7 +370,7 @@ namespace MFM {
 	    msg << ", initialization is invalid";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    setNodeType(Nav);
-	    m_state.m_initSubtreeSymbolsWithConstantsOnly = false;
+	    m_state.m_initSubtreeSymbolsWithConstantsOnly = false; //clear
 	    return Nav; //short-circuit
 	  }
 
@@ -372,7 +384,7 @@ namespace MFM {
 	    setNodeType(Hzy);
 	    clearSymbolPtr();
 	    m_state.setGoAgain(); //since not error
-	    m_state.m_initSubtreeSymbolsWithConstantsOnly = false;
+	    m_state.m_initSubtreeSymbolsWithConstantsOnly = false; //clear
 	    return Hzy; //short-circuit
 	  }
 
@@ -397,7 +409,7 @@ namespace MFM {
 		    NODE_ASSERT(m_nodeInitExpr);
 		    if((getNodeType() == Nav) || m_nodeInitExpr->getNodeType() == Nav)
 		      {
-			m_state.m_initSubtreeSymbolsWithConstantsOnly = false;
+			m_state.m_initSubtreeSymbolsWithConstantsOnly = false; //clear
 			return Nav;
 		      }
 
@@ -406,7 +418,7 @@ namespace MFM {
 			setNodeType(Hzy);
 			clearSymbolPtr();
 			m_state.setGoAgain(); //since not error
-			m_state.m_initSubtreeSymbolsWithConstantsOnly = false;
+			m_state.m_initSubtreeSymbolsWithConstantsOnly = false; //clear
 			return Hzy;
 		      }
 		  }
@@ -421,7 +433,7 @@ namespace MFM {
 	if(!checkDataMemberSizeConstraints())
 	  setNodeType(Nav); //err msgs, compiler counts;
       }
-    m_state.m_initSubtreeSymbolsWithConstantsOnly = false;
+    m_state.m_initSubtreeSymbolsWithConstantsOnly = false; //clear
     return getNodeType();
   } //checkAndLabelType
 

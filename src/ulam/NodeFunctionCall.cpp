@@ -132,7 +132,7 @@ namespace MFM {
 	      noutiArgs++;
 	    else //t3984,5
 	      // track constants and potential casting to be handled
-	      if(m_argumentNodes->isAConstant(i))
+	      if(m_argumentNodes->isAConstant(i) == TBOOL_TRUE)
 		constantArgs++;
 	  }
 	m_state.popClassContext(); //restore here
@@ -398,7 +398,7 @@ namespace MFM {
 		  {
 		    UTI auti = argNodes[i]->getNodeType();
 		    ALT alti = m_state.getReferenceType(auti);
-		    if(argNodes[i]->isAConstant())
+		    if(argNodes[i]->isAConstant() == TBOOL_TRUE)
 		      {
 			Node * argCast = NULL;
 			if(!Node::makeCastingNode(argNodes[i], m_state.getDefaultUlamTypeOfConstant(auti), argCast))

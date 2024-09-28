@@ -280,7 +280,7 @@ namespace MFM {
 	UTI cuti = m_state.getCompileThisIdx();
 	std::ostringstream msg;
 	msg << "Not ready ";
-	if(isAConstant())
+	if(isAConstant() != TBOOL_FALSE)
 	  msg << "constant for type: ";
 	else
 	  msg << "Model Parameter for type: "; //t3443
@@ -553,11 +553,7 @@ namespace MFM {
 	  }
 
 	if(m_state.useMemberBlock())
-	  {
-	    NodeBlockClass * memberclass = m_state.getCurrentMemberClassBlock();
-	    NODE_ASSERT(memberclass);
-	    setBlockNo(memberclass->getNodeNo());
-	  }
+	  setBlockNo(m_state.getCurrentMemberClassBlockNo());
 	else
 	  setBlockNo(m_state.getCurrentBlockNo());
 

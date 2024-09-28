@@ -30,9 +30,9 @@ namespace MFM {
     return 0u;
   }
 
-  bool NodeConstantof::isAConstant()
+  TBOOL NodeConstantof::isAConstant()
   {
-    return true;
+    return TBOOL_TRUE;
   }
 
   bool NodeConstantof::isAConstantClass()

@@ -405,9 +405,9 @@ namespace MFM {
     return false;
   }
 
-  bool Node::isAConstant()
+  TBOOL Node::isAConstant()
   {
-    return false;
+    return TBOOL_FALSE;
   }
 
   bool Node::isAConstantClass()
@@ -654,12 +654,16 @@ namespace MFM {
 
   UTI Node::constantFold(Node * parentnode)
   {
-    if(!isAConstant())
+    TBOOL isconst = isAConstant();
+    if( isconst != TBOOL_TRUE)
       {
 	std::ostringstream msg;
 	msg << "Cannot constant fold non-constant ";
 	msg << "'" << getName() << "'";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	if(isconst == TBOOL_HAZY)
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	else
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(Nav);
       }
     //see NodeBinaryOp for the actual work
