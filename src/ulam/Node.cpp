@@ -1025,7 +1025,7 @@ namespace MFM {
 	    fp->write("(");
 
 	    //storage based on epi-1
-	    genModelParameterHiddenArgs(fp, epi); //t3259
+	    genModelParameterHiddenArgsToFile(fp, epi); //t3259
 	    fp->write(");"); GCNL;
 	  }
 	else  //local var
@@ -3609,7 +3609,7 @@ namespace MFM {
 
   // "static" data member, a mixture of local variable and dm;
   // requires THE_INSTANCE, and local variables are superfluous.
-  void Node::genModelParameterHiddenArgs(File * fp, s32 epi)
+  void Node::genModelParameterHiddenArgsToFile(File * fp, s32 epi)
   {
     NODE_ASSERT(!m_state.m_currentObjSymbolsForCodeGen.empty());
     NODE_ASSERT(epi >= 0);
@@ -3651,7 +3651,7 @@ namespace MFM {
 	else
 	  fp->write(".getBits()");
       }
-  } //genModelParameterHiddenArgs
+  } //genModelParameterHiddenArgsToFile
 
   void Node::genCustomArrayMemberNameOfMethod(File * fp)
   {

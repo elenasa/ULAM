@@ -68,7 +68,7 @@ namespace MFM{
 
     virtual bool isClass();
 
-    virtual bool isClassTemplate(UTI cuti);
+    virtual bool isClassTemplateByUTI(UTI cuti);
 
     u32 getBaseClassCount();
     UTI getBaseClass(u32 item);

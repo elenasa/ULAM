@@ -108,7 +108,7 @@ namespace MFM {
     return true;
   }
 
-  bool SymbolClass::isClassTemplate(UTI cuti)
+  bool SymbolClass::isClassTemplateByUTI(UTI cuti)
   {
     return false;
   }
@@ -264,7 +264,7 @@ namespace MFM {
   {
     SYMBOL_ASSERT(m_state.isARootUTI(newbaseclass)); //t3652
     SYMBOL_ASSERT(!m_state.isUrSelf(getUlamTypeIdx()));
-    SYMBOL_ASSERT(!isClassTemplate(getUlamTypeIdx()) || !m_state.isClassAStubCopy(newbaseclass)); //t41448
+    SYMBOL_ASSERT(!isClassTemplateByUTI(getUlamTypeIdx()) || !m_state.isClassAStubCopy(newbaseclass)); //t41448
     SYMBOL_ASSERT(item < m_basestable.size());
     SYMBOL_ASSERT(m_basestable[item].m_base == oldclasstype);
     m_basestable[item].m_base = newbaseclass;

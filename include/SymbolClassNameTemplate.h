@@ -57,7 +57,7 @@ namespace MFM{
     u32 getTotalParameterSlots();
 
     virtual bool isClassTemplate();
-    bool isClassTemplate(UTI cuti);
+    bool isClassTemplateByUTI(UTI cuti);
 
     virtual void setSuperClassForClassInstance(UTI superclass, UTI instance);
     virtual UTI getSuperClassForClassInstance(UTI instance);

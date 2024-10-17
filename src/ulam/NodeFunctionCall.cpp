@@ -1305,7 +1305,7 @@ namespace MFM {
 	  {
 	    s32 epi = Node::isCurrentObjectsContainingAModelParameter();
 	    NODE_ASSERT(epi < 0); //model parameters no longer classes
-	    genLocalMemberNameOfMethod(fp);
+	    genLocalMemberNameOfMethod(fp, uvpass);
 	  }
 	fp->write(m_funcSymbol->getMangledName().c_str());
       }
@@ -2097,7 +2097,7 @@ namespace MFM {
     return;
   } //genCodeReferenceArg
 
-void NodeFunctionCall::genLocalMemberNameOfMethod(File * fp)
+void NodeFunctionCall::genLocalMemberNameOfMethod(File * fp, const UVPass& uvpass)
   {
     NODE_ASSERT(Node::isCurrentObjectALocalVariableOrArgument());
     NODE_ASSERT(!m_state.m_currentObjSymbolsForCodeGen.empty());

@@ -463,7 +463,7 @@ enum EvalStatus {ERROR, NOTREADY, NORMAL, RETURN, BREAK, CONTINUE, UNEVALUABLE};
 
     void genCodeWriteToAutorefFromATmpVar(File * fp, UVPass& luvpass, UVPass& ruvpass);
 
-    virtual void genModelParameterHiddenArgs(File * fp, s32 epi);
+    virtual void genModelParameterHiddenArgsToFile(File * fp, s32 epi);
 
     void genCustomArrayMemberNameOfMethod(File * fp);
     void genCustomArrayHiddenArgs(File * fp, u32 urtmpnum);

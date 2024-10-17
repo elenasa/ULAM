@@ -112,7 +112,7 @@ namespace MFM{
 
     virtual std::string genModelParameterHiddenArgs(s32 epi);
 
-    virtual void genLocalMemberNameOfMethod(File * fp);
+    virtual void genLocalMemberNameOfMethod(File * fp, const UVPass& uvpass);
 
     virtual void clearSymbolPtr();
 

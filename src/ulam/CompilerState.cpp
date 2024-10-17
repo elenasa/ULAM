@@ -2584,7 +2584,7 @@ namespace MFM {
     SymbolClass * csym = NULL;
     AssertBool isDefined = alreadyDefinedSymbolClass(cuti, csym);
     assert(isDefined);
-    return csym->isClassTemplate(cuti);
+    return csym->isClassTemplateByUTI(cuti);
   } //isClassATemplate
 
   bool CompilerState::isClassATemplate(NodeBlockClass * cblock)

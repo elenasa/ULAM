@@ -135,7 +135,7 @@ namespace MFM {
     return true;
   }
 
-  bool SymbolClassNameTemplate::isClassTemplate(UTI cuti)
+  bool SymbolClassNameTemplate::isClassTemplateByUTI(UTI cuti)
   {
     if(cuti == getUlamTypeIdx())
       return true; // template definition
@@ -860,7 +860,7 @@ namespace MFM {
 	SymbolClass * csym = it->second;
 	UTI cuti = csym->getUlamTypeIdx();
 
-	if(checkSFINAE(csym) && csym->isClassTemplate(cuti))
+	if(checkSFINAE(csym) && csym->isClassTemplateByUTI(cuti))
 	  {
 	    it++;
 	    continue; //skip only templates (t41222)
@@ -1276,7 +1276,7 @@ namespace MFM {
 	SymbolClass * csym = it->second;
 	UTI cuti = csym->getUlamTypeIdx();
 
-	if(checkSFINAE(csym) && csym->isClassTemplate(cuti))
+	if(checkSFINAE(csym) && csym->isClassTemplateByUTI(cuti))
 	  {
 	    it++;
 	    continue; //skip templates only (t41222)
