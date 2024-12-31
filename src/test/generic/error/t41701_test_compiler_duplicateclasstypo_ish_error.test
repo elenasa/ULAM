@@ -1,0 +1,61 @@
+## -*- mode:ulam -*-
+#=t41701_test_compiler_duplicateclasstypo_ish_error
+#!
+./GooF.ulam:2:9: ERROR: Duplicate or incomplete class 'Foo'.
+ ERROR: No parse tree for This Class: GooF.
+Unrecoverable Program Parse FAILURE: <GooF.ulam>
+./GooF.ulam:2:13: ERROR: First Token peek anomaly. Parsing discontinued.
+Unrecoverable Program Parse FAILURE: <C2D.ulam>
+##
+## Based on Dave's ish 12/30/2024, First Token peek was an assertion, now an error;
+## e.g. Caused by cut/paste duplicate class name.
+##
+#>Foo.ulam
+  ulam 1;
+use C2D;
+element Foo {
+  C2D m_coord;
+  Int m_idx;
+  Bool m_b;
+  Int test() {
+    m_coord.init();
+    m_idx = m_coord.getIndex(0,0);
+    return m_idx;
+  }
+}
+
+#:GooF.ulam
+  ulam 1;
+element Foo {
+  C2D m_coord;
+  Int m_idx;
+  Bool m_b;
+  Int test() {
+    m_coord.init();
+    m_idx = m_coord.getIndex(0,0);
+    return m_idx;
+  }
+}
+
+#:C2D.ulam
+  ulam 1;
+quark C2D {
+  Int(4) m_width;
+  Int(4) m_height;
+  Void init(Int x, Int y) {
+    m_width = x;
+    m_height = y;
+    return;
+  }
+  Void init() {
+    m_width = 9;
+    m_height = 4;
+    return; /* event window overload */
+  }
+  Int getIndex(Int a, Int b){
+    return ((m_height-b) * m_width + (m_height-a));
+  }
+}
+
+
+#.

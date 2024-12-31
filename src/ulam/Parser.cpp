@@ -119,9 +119,14 @@ namespace MFM {
     //  The 'use' class directive (ulam filenames only) now keeps its own loc from its first token
     //  for their localdefs by queing the file. (ulam-6)
     Token firstTok;
-    AssertBool firstpeek = peekFirstToken(firstTok); //t3872,t41130; error/t3893
-    assert(firstpeek);
-    m_state.saveFirstTokenForParsing(firstTok);
+    if(peekFirstToken(firstTok)) //t3872,t41130; error/t3893
+      m_state.saveFirstTokenForParsing(firstTok);
+    else
+      {
+	MSG(&firstTok, "First Token peek anomaly. Parsing discontinued", ERR);
+	m_state.clearFirstTokenForParsing();
+	return 1; //t41701
+      }
 
     //here's the start (first token)!!  preparser will handle the VERSION_DECL,
     //as well as USE and LOAD keywords.

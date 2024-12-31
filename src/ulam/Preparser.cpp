@@ -35,10 +35,17 @@ namespace MFM {
 
   bool Preparser::peekFirstToken(Token & firstTok)
   {
-    assert(!m_haveUnreadToken);
-    bool rtnb = m_tokenizer->peekFirstToken(firstTok);
-    m_lastToken = firstTok;
-    m_haveUnreadToken = true;
+    bool rtnb = false;
+    if(m_haveUnreadToken)
+      {
+	firstTok = m_lastToken; //ignored and causes error (t41701)
+      }
+    else
+      {
+	rtnb = m_tokenizer->peekFirstToken(firstTok);
+	m_lastToken = firstTok;
+	m_haveUnreadToken = true;
+      }
     return rtnb;
   }
 
