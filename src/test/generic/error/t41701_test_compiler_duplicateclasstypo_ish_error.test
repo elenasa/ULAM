@@ -4,7 +4,7 @@
 ./GooF.ulam:2:9: ERROR: Duplicate or incomplete class 'Foo'.
  ERROR: No parse tree for This Class: GooF.
 Unrecoverable Program Parse FAILURE: <GooF.ulam>
-./GooF.ulam:2:13: ERROR: First Token peek anomaly. Parsing discontinued.
+./GooF.ulam:2:13: ERROR: ABORTED Compilation (first token problem); Fix the previous error found at this location.
 Unrecoverable Program Parse FAILURE: <C2D.ulam>
 ##
 ## Based on Dave's ish 12/30/2024, First Token peek was an assertion, now an error;

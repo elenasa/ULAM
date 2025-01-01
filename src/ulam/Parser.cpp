@@ -123,7 +123,7 @@ namespace MFM {
       m_state.saveFirstTokenForParsing(firstTok);
     else
       {
-	MSG(&firstTok, "First Token peek anomaly. Parsing discontinued", ERR);
+	MSG(&firstTok, "ABORTED Compilation (first token problem); Fix the previous error found at this location", ERR);
 	m_state.clearFirstTokenForParsing();
 	return 1; //t41701
       }
@@ -196,7 +196,6 @@ namespace MFM {
       {
 	if(pTok.m_type == TOK_KW_LOCALDEF)
 	  {
-	    //m_state.setLocalsScopeForParsing(pTok);
 	    m_state.setLocalsScopeForParsing();
 	    parseLocalDef(); //returns bool
 	    m_state.clearLocalsScopeForParsing();

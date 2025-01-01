@@ -48,6 +48,7 @@ namespace MFM {
 
   bool Lexer::peekFirstToken(Token & firstTok)
   {
+    assert(!m_haveUnreadToken);
     return getNextToken(firstTok);
   }
 
