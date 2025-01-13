@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t41105_test_compiler_element_operatoroverloadinvalidop_error
 #!
-./Foo.ulam:23:16: ERROR: Weird Lex! <,> isn't an overloadable operation.
+./Foo.ulam:23:16: ERROR: Unexpected Token <,> isn't an overloadable operation.
 ./Foo.ulam:23:18: ERROR: Type incorrectly used as a factor (no dot): Bool; followed by unexpected identifier <barg>.
 ./Foo.ulam:23:23: ERROR: Expected a dot prior to named constant 'barg'.
 ./Foo.ulam:23:17: ERROR: Bit size after Open Paren is missing, type: Void; Void size is zero.

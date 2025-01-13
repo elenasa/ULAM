@@ -202,8 +202,8 @@ namespace MFM {
 		    else
 		      {
 			std::ostringstream errmsg;
-			errmsg << "Weird Lex! <" << opstr;
-			errmsg << "> isn't an overloadable operation";
+			errmsg << "Unexpected Token <" << opstr;
+			errmsg << "> isn't an overloadable operation"; //t41703 (weird Lex!)
 			rtn = m_state.m_pool.getIndexForDataString(errmsg.str());
 		      }
 		  }

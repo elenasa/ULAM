@@ -1,0 +1,46 @@
+## -*- mode:ulam -*-
+#=t41703_test_compiler_templateclasswlowleveloperatoroverloaderr_usedinatypedef_ish_error
+#!
+./FixedPt.ulam:4:16: ERROR: Unexpected Token <(> isn't an overloadable operation.
+./FixedPt.ulam:4:17: ERROR: Name of variable/function ')': Identifier must begin with a lower-case letter.
+./FixedPt.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'FixedPt'; Possible missing ending curly brace.
+./FixedPt.ulam:4:17: ERROR: Invalid Class Type <)>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+./FixedPt.ulam:2:7: ERROR: Invalid Type: FixedPt.
+ ERROR: No parse tree for This Class: FixedPt.
+Unrecoverable Program Parse FAILURE: <FixedPt.ulam>
+./S.ulam:2:15: ERROR: While parsing a symbol of unflagged useage for S.ulam: due to unrecoverable problems in template: FixedPt, additional errors are unlikely to be useful.
+./S.ulam:2:23: ERROR: Invalid typedef Alias <8u>, Type Identifier (2nd arg) requires capitalization.
+./S.ulam:2:25: ERROR: Invalid Class Type <,>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+ ERROR: No parse tree for This Class: S.
+Unrecoverable Program Parse FAILURE: <S.ulam>
+##
+## informed by Dave ish 1/11/25; Assertion hit trying to parse typedef in S,
+##        after bad overload operator parsed in that template class, FixedPt.
+##        (see also, t41105, t41110, t41127)
+##
+#>A.ulam
+  ulam 5;
+element A  {
+
+  Int test() {
+    S s;
+    return -1;
+  }
+}
+
+#:FixedPt.ulam
+  ulam 5;
+quark FixedPt(Unary cINT_BITS, Unary cFRAC_BITS) {
+  Int m = 4;
+  Self operator()(Int a) { Self ret; ret = a; return ret; }
+}
+
+#:S.ulam
+  ulam 5;
+local typedef FixedPt(8u,9u) MyFP;
+element S {
+  MyFP myFP;
+}
+
+
+#.

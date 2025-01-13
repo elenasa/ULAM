@@ -3054,7 +3054,7 @@ namespace MFM {
     UlamType * ctut = m_state.getUlamTypeByIndex(ctuti);
     bool unseenTemplate = (ctut->getUlamClassType() == UC_UNSEEN);
 
-    u32 numParams = ctsym->getNumberOfParameters();
+    u32 numParams = unseenTemplate ? 0 : ctsym->getNumberOfParameters(); //t41703 avoid assert
     u32 numParamDefaults = unseenTemplate ? 0 : ctsym->getTotalParametersWithDefaultValues();
 
     getNextToken(pTok);
@@ -3105,7 +3105,7 @@ namespace MFM {
 	msg << m_state.m_pool.getDataAsString(ctsym->getId()).c_str() ;
 	msg << ", additional errors are unlikely to be useful";
 	MSG(&typeargs.m_typeTok, msg.str().c_str(), ERR);
-	return Nav; //needs a test, was t41166
+	return Nav; //needs a test, was t41166, t41703
       }
 
     //note: class resolver cnstr initializes value/type contexts to: cuti/stubuti
@@ -7116,6 +7116,13 @@ Node * Parser::wrapFactor(Node * leftNode)
 	msg << m_state.getTokenDataAsString(tok).c_str();
 	MSG(&tok, msg.str().c_str(), ERR);
 	brtn = m_tokenizer->getNextToken(tok); //and yet, we go on..
+#if 0
+	if(tok.m_type == TOK_ERROR_LOWLEVEL)
+	  {
+	    brtn = false;
+	    exit(1); //20250111 ish
+	  }
+#endif
       }
     else if(tok.m_type == TOK_STRUCTURED_COMMENT)
       {

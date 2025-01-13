@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t41127_test_compiler_element_operatoroverloadlogicalops_error
 #!
-./Foo.ulam:22:17: ERROR: Weird Lex! <||> isn't an overloadable operation.
+./Foo.ulam:22:17: ERROR: Unexpected Token <||> isn't an overloadable operation.
 ./Foo.ulam:22:19: ERROR: Type incorrectly used as a factor (no dot): Bool; followed by unexpected identifier <arg>.
 ./Foo.ulam:22:24: ERROR: Expected a dot prior to named constant 'arg'.
 ./Foo.ulam:22:18: ERROR: Bit size after Open Paren is missing, type: Bool.
