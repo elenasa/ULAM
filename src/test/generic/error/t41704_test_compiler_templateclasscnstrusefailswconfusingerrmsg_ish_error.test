@@ -1,0 +1,76 @@
+## -*- mode:ulam -*-
+#=t41704_test_compiler_templateclasscnstrusefailswconfusingerrmsg_ish_error
+#!
+./FixedPt.ulam:4:39: Warning: Shift distance greater than data width, operation <<.
+./FixedPt.ulam:26:21: ERROR: Class 'FixedPt(7,7)' has no defined constructor with 1 matching argument type: FixedPt(7,7)&, and cannot be called.
+./FixedPt.ulam:26:16: ERROR: Initial value expression for: ret, initialization is invalid.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by Dave ish 1/15/25; Error message uses two forms of UlamType name:
+##./FixedPoint.ulam:115:21: ERROR: Class 'FixedPoint(7,7)' has no defined constructor with 1 matching argument type: FixedPoint(14)&, and cannot be called.
+##        (see also, t41188, t41237)
+##
+#>A.ulam
+  ulam 5;
+element A  {
+
+  Int test() {
+    TRAK tk;
+    return -1;
+  }
+}
+
+#:FixedPt.ulam
+  ulam 5;
+quark FixedPt(Unary cINT_BITS, Unary cFRAC_BITS) {
+
+  constant Int cMULTIPLIER = (Int) (1u<<cFRAC_BITS);
+  constant Unsigned cTOTAL_BITS = cINT_BITS + cFRAC_BITS;
+
+  typedef Int(cTOTAL_BITS) FP;
+  typedef Int(64) Int64;
+  FP mFP;
+
+  Self(Int raw) {
+    self.setInt(raw);
+  }
+
+  Self & setInt(Int raw) {
+    mFP = (FP) (raw * cMULTIPLIER);
+    return self;
+  }
+
+  Self & absSelf() {
+    Self zero(0);
+    if (self < zero) self = zero-self;
+    return self;
+  }
+
+  Self abs() { Self ret(self); ret.absSelf(); return ret; }
+
+
+  Self operator-(Self other) { Self ret = self; ret.subFrom(other); return ret; }
+
+  Bool operator<(Self other) { return self.mFP < other.mFP; }
+  Bool operator>(Self other) { return self.mFP > other.mFP; }
+  Bool operator<=(Self other) { return self.mFP <= other.mFP; }
+  Bool operator>=(Self other) { return self.mFP >= other.mFP; }
+  Bool operator==(Self other) { return self.mFP == other.mFP; }
+  Bool operator!=(Self other) { return self.mFP != other.mFP; }
+
+  Self & subFrom(Self other) {
+    mFP = (FP) (mFP - other.mFP);
+    return self;
+  }
+
+}
+
+#:TRAK.ulam
+  ulam 5;
+local typedef FixedPt(7u,7u) FP30;
+element TRAK {
+  FP30 mTargetSpeed;
+}
+
+
+#.
