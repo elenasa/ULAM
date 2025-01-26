@@ -583,7 +583,36 @@ namespace MFM {
   // false is ok.
   bool NodeTerminal::isWordSizeConstant(u32 wordsize)
   {
-    return  (m_constant.uval > wordsize); //use to be >=
+    bool rtn = true;
+    UTI nuti = getNodeType();
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    s32 nbitsize = nut->getBitSize();
+    ULAMTYPE etyp = nut->getUlamTypeEnum();
+    switch(etyp)
+      {
+      case Unary:
+	{
+	  if(nut->getTotalWordSize() <= MAXBITSPERINT)
+	  {
+	    u32 val = _Unary32ToUnsigned32((u32) m_constant.uval, nbitsize, MAXBITSPERINT);
+	    rtn = (val > wordsize); //t41704
+	  }
+	else
+	  {
+	    u64 val = _Unary64ToUnsigned64(m_constant.uval, nbitsize, MAXBITSPERLONG);
+	    rtn = (val > wordsize);
+	  }
+	}
+	break;
+      case Unsigned:
+      case Int:
+      case Bits:
+	rtn = (m_constant.uval > wordsize); //use to be >= t41470
+	break;
+      default:
+	m_state.abortShouldntGetHere(); //String, Bool, Class
+      };
+    return rtn;
   } //isWordSizeConstant
 
   TBOOL NodeTerminal::checkVarUsedBeforeDeclared(u32 id, NNO declblockno)

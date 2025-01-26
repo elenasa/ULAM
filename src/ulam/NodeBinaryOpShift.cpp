@@ -147,7 +147,7 @@ namespace MFM {
 	      }
 	  }
 
-	// RHS of shift must be Unsigned, or positive constant.
+	// RHS of shift must be Unsigned, or positive constant. (t3480)
 	//note: C implementations typically shift by the lower 5 bits (6 for 64-bits) only.
 	FORECAST rscr = m_nodeRight->safeToCastTo(Unsigned);
 	if(rscr != CAST_CLEAR)
@@ -178,7 +178,7 @@ namespace MFM {
 		std::ostringstream msg;
 		msg << "Shift distance greater than data width, operation ";
 		msg << getName();
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN); //t41470
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN); //t41470,t41704
 	      }
 	  }
 

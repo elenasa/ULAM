@@ -1,7 +1,6 @@
 ## -*- mode:ulam -*-
 #=t41704_test_compiler_templateclasscnstrusefailswconfusingerrmsg_ish_error
 #!
-./FixedPt.ulam:4:39: Warning: Shift distance greater than data width, operation <<.
 ./FixedPt.ulam:26:21: ERROR: Class 'FixedPt(7,7)' has no defined constructor with 1 matching argument type: FixedPt(7,7)&, and cannot be called.
 ./FixedPt.ulam:26:16: ERROR: Initial value expression for: ret, initialization is invalid.
 Unrecoverable Program Type Label FAILURE.
@@ -9,6 +8,8 @@ Unrecoverable Program Type Label FAILURE.
 ## informed by Dave ish 1/15/25; Error message uses two forms of UlamType name:
 ##./FixedPoint.ulam:115:21: ERROR: Class 'FixedPoint(7,7)' has no defined constructor with 1 matching argument type: FixedPoint(14)&, and cannot be called.
 ##        (see also, t41188, t41237)
+##  Warning message wrong for Unary type shift distance, fixed 1/26/25.
+##./FixedPt.ulam:4:39: Warning: Shift distance greater than data width, operation <<.
 ##
 #>A.ulam
   ulam 5;
