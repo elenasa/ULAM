@@ -1,0 +1,102 @@
+## -*- mode:ulam -*-
+#=t41705_test_compiler_castquarkref_questioncolon_gencode_ish
+##   gen code output: (+ interleaved asserts)
+##	 Int(3) Arg: 0x1
+##	 Int(3) Arg: 0x7
+##       Int(3) Arg: 0x3
+##       Int(3) Arg: 0x3
+##
+#!
+Exit status: 0
+Ue_Tu : Qbar { Bool b(true);  Int me(1);  :Qbar< Int(3) mq(1); > Int test() {  System s;  Qbar q1;  self mq . 1 cast = Qbar& qref = self b . ?  self cast :  q1 cast;  s ( qref mq . )print . s ( qref mq . 1 cast == )assert . Tbar t1;  t1 mq . -1 cast = Qbar& qtref = t1 Qbar is ?  t1 cast :  qref;  s ( qtref mq . )print . s ( qtref mq . -1 cast == )assert . Qbar q2;  q2 mq . 3 = Qbar& qref2 = self b . ?  q2 cast :  q1 cast;  s ( qref2 mq . )print . s ( qref2 mq . 3 == )assert . Int(3) mqans5 = self ( self b . ?  self ( qref2 )getQBARRef . :  self ( q1 cast )getQBARRef . )getMQ .;  s ( mqans5 )print . s ( mqans5 3 == )assert . 0 cast return } }
+Uq_Qbar { Int(3) mq( 2);  <NOMAIN> }
+Uq_System { <NOMAIN> }
+Un_Tbar : Qbar { Int mt( -1);  :Qbar< Int(3) mq( 2); > <NOMAIN> }
+##
+## informed by 20250129 ish: here missing cast in else fails g++, not culam.
+## ref type of ?: based on referenceAble of its nodes. default ref type. (see also t41069, t41662, t41706)
+##
+#>Tu.ulam
+  ulam 3;
+element Tu : Qbar{
+  Bool b = true;
+  Int me = 1;
+  Int test(){
+    System s;
+    Qbar q1;
+    mq = 1;
+
+    //truetype ref, uses falsetype (non-ref), should be ref type.
+    Qbar & qref = b ? (Qbar&) self : q1; //cast quark to ref; cast element decendent
+    s.print(qref.mq);
+    s.assert(qref.mq == 1);
+
+    //both refs
+    Tbar t1;
+    t1.mq = -1;
+    Qbar & qtref = (t1 is Qbar) ? (Qbar&) t1 : qref; //cast transient decendent; cast ref to ref
+    s.print(qtref.mq);
+    s.assert(qtref.mq == -1);
+
+    //neither refs. but cast to refs needed; cast to same type?
+    // since cast is explicit and non-ref, no longer referenceable.
+    Qbar q2;
+    q2.mq = 3;
+    //    Qbar & qref2 = b ? (Qbar) q2 : q1; (see error/t41706)
+    Qbar & qref2 = b ? q2 : q1;
+    s.print(qref2.mq);
+    s.assert(qref2.mq == 3);
+
+
+    Int(3) mqans5 = getMQ(b ? getQBARRef(qref2) : getQBARRef(q1)); //ok w ?:
+    s.print(mqans5);
+    s.assert(mqans5 == 3);
+
+
+    return 0;
+  }
+
+  Int(3) getMQ(Qbar& qrefarg)
+  {
+    Int(3) mymq = qrefarg.mq;
+    return mymq;
+  }
+
+  Qbar& getQBARRef(Qbar& qrefarg)
+  {
+    return qrefarg;
+  }
+
+}
+
+#:Qbar.ulam
+  ulam 1;
+quark Qbar {
+  Int(3) mq = 2;
+}
+
+#:Tbar.ulam
+  ulam 2;
+transient Tbar : Qbar {
+  Int mt = -1;
+}
+
+
+##      // FAILS BAD_CAST (of course it is! we protect against this sort of thing..)
+##      //bool rtn1 = fms->add("Tu.ulam", "ulam 1;\n element Tu {\nInt test(){\n Tu t;\nAtom a;\n t = (Tu) a;\n return 0;\n}\n}\n");
+##
+##      // OK..using 'is' or 'as'
+##
+##      // test system quark with native overloaded print funcs; assert
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

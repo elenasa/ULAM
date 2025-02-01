@@ -792,9 +792,41 @@ namespace MFM {
 
   EvalStatus NodeCast::evalCastToAReference()
   {
-    m_state.abortNotImplementedYet();
-    return UNEVALUABLE;
-  }
+    // first stab at implementation, instead of abort for:
+    // t41063, t41072, t41073, t41440, t41660,1,2
+
+    UTI tobeType = getCastType();
+
+    //m_node eval already done..
+    UlamValue uv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);
+    if(uv.isPtr())
+      uv = m_state.getPtrTarget(uv);
+
+    UTI vuti = uv.getUlamValueTypeIdx();
+
+    NODE_ASSERT(m_state.isAltRefType(tobeType));
+
+    if(!(m_state.getUlamTypeByIndex(tobeType)->cast(uv, tobeType)))
+      {
+	std::ostringstream msg;
+	msg << "Cast problem during eval! Value type ";
+	msg << m_state.getUlamTypeNameBriefByIndex(vuti).c_str();
+	msg << " failed to be cast to a ref ";
+	msg << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	return evalStatusReturn(UNEVALUABLE);
+      }
+    else if(isExplicitCast())
+      NODE_ASSERT(uv.getUlamValueTypeIdx() == getCastType());
+    //else fall thru
+
+    //also copy result UV to stack, -1 relative to current frame pointer
+    Node::assignReturnValueToStack(uv);
+
+    evalNodeEpilog();
+
+    return NORMAL;
+  } //evalCastToAReference
 
   EvalStatus NodeCast::evalCastFromAReference()
   {
@@ -977,7 +1009,6 @@ namespace MFM {
     evalNodeEpilog();
     return NORMAL;
   } //evalCastFromAReference
-
 
   UlamValue NodeCast::makeImmediateUnaryOp(UTI type, u32 data, u32 len)
   {

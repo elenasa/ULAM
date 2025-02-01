@@ -147,12 +147,15 @@ namespace MFM {
     if(!m_state.isComplete(lt) || !m_state.isComplete(rt))
       return Hzy; //short-circuit
 
+
     //t41662, ish 20240330, explicit cast not necessary.
     if(UlamType::compareForAssignment(lt, rt, m_state) == UTIC_SAME)
       {
-	if(m_state.isReference(lt))
-	  return rt; //return the non-ref type
-	return lt; //incl classes, atoms, refs, void, strings, arrays
+	if((m_nodeLeft->getReferenceAble() == TBOOL_TRUE) && (m_nodeRight->getReferenceAble() == TBOOL_TRUE))
+	  return m_state.getUlamTypeAsRef(lt); //t41705,6
+
+	return m_state.getUlamTypeAsDeref(lt); //return a non-ref type, t41662
+	//incl classes, atoms, refs, void, strings, arrays
       }
 
     //if different non-primitive types require explicit casting:
@@ -277,14 +280,14 @@ namespace MFM {
 
     UTI falseType = m_nodeRight->checkAndLabelType(this); //side-effect
 
-    UTI newType = calcNodeType(trueType, falseType);
+    UTI newType = calcNodeType(trueType, falseType); //leans toward ref type
 
     if(!m_state.okUTItoContinue(newcondtype))
       newType = newcondtype;
 
     if(m_state.okUTItoContinue(newType))
       {
-	if(UlamType::compareForMakingCastingNode(trueType, newType, m_state) == UTIC_NOTSAME)
+	if((UlamType::compareForMakingCastingNode(trueType, newType, m_state) == UTIC_NOTSAME))
 	  {
 	    if(Node::checkSafeToCastTo(trueType, newType)) //Nav, Hzy or no change; outputs error msg
 	      {
@@ -302,11 +305,14 @@ namespace MFM {
 	  }
       }
 
-    setNodeType(newType);  //stays the same
+    setNodeType(newType);
     if(newType == Hzy) m_state.setGoAgain();
 
     TBOOL iscnst = this->isAConstant();
     Node::setStoreIntoAble(((iscnst == TBOOL_TRUE) ? TBOOL_FALSE : ((iscnst == TBOOL_FALSE) ? TBOOL_TRUE : TBOOL_HAZY)));
+    if(!((m_nodeLeft->getReferenceAble() == TBOOL_TRUE) && (m_nodeRight->getReferenceAble() == TBOOL_TRUE)))
+      Node::setReferenceAble(TBOOL_FALSE); //t41706
+    //else same as StoreIntoAble
 
     if(m_state.okUTItoContinue(newType) && (iscnst == TBOOL_TRUE))
       {

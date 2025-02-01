@@ -3,7 +3,7 @@
 ##
 #!
 Exit status: -11
-Ue_Tu { Int test() {  Atom a = self.atomof cast;  EventWindow ew;  ew ( 0 cast )aref . a Tu is ?  a :  ew ( 1 cast )aref . cast = ew ( 1 cast )aref . a Tu is ?  ew ( 0 cast )aref . cast :  a = 0 cast return } }
+Ue_Tu { Int test() {  Atom a = self.atomof cast;  EventWindow ew;  ew ( 0 cast )aref . a Tu is ?  a cast :  ew ( 1 cast )aref . = ew ( 1 cast )aref . a Tu is ?  ew ( 0 cast )aref . :  a cast = 0 cast return } }
 Uq_EventWindow { <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
