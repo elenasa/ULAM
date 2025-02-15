@@ -3,7 +3,7 @@
 #!
 Exit status: 0
 Ue_Test { Int test() {  WT(1u,2u) wt;  wt ( )behave . 0 cast return } }
-Ue_WT(Unsigned(3) cET, Unsigned(3) cWT) : UrSelf +QT(cQ,cRR) { :UrSelf<> +QT12<> <NOMAIN> }
+Ue_WT(Unsigned(UNKNOWN) cET, Unsigned(UNKNOWN) cWT) : UrSelf +QT(cQ,cRR) { :UrSelf<> +QT12<> <NOMAIN> }
 Uq_Q : R { typedef Unsigned(3) QQ;  :R<> <NOMAIN> }
 Uq_QT(holder cQ, holder cRR) : Q { :Q< typedef Unsigned(3) QQ; > <NOMAIN> }
 Uq_R { /* empty class block */ }

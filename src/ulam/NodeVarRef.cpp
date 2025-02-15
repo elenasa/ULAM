@@ -209,8 +209,11 @@ namespace MFM {
 	  hazyCount++;
 	else if(m_state.isHolder(it))
 	  hazyCount++;
-	//else
-	NODE_ASSERT(it != Nouti);
+	//	else if(m_state.isStillNouti(it))
+	//  hazyCount++;
+	else
+	  //NODE_ASSERT(it != Nouti);
+	  NODE_ASSERT(!m_state.isStillNouti(it));
       }
     ////requires non-constant, non-funccall value
     //NOASSIGN REQUIRED (e.g. for function parameters) doesn't have to have this!
@@ -237,7 +240,7 @@ namespace MFM {
 	    hazyCount++;
 	  }
 
-	if(eit == Nouti)
+	if(eit == Nouti || m_state.isStillNouti(eit))
 	  {
 	    std::ostringstream msg;
 	    msg << "Storage expression for: ";

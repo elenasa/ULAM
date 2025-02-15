@@ -99,6 +99,7 @@ namespace MFM {
     //short circuit, avoid assert
     if(m_constSymbol == NULL)
       {
+	//if((m_ofClassUTI == Hzy) || m_state.isStillHazy(m_ofClassUTI) || m_state.isStillNouti(m_ofClassUTI))
 	if((m_ofClassUTI == Hzy) || m_state.isStillHazy(m_ofClassUTI))
 	  {
 	    setNodeType(Hzy);
@@ -129,6 +130,7 @@ namespace MFM {
 	if(m_state.okUTItoContinue(suti) && !m_state.isHolder(suti))
 	  msg << ": " << m_state.getUlamTypeNameByIndex(suti).c_str();
 	msg << " used with symbol name '" << getName() << "'";
+	//if(m_state.okUTItoContinue(suti) || m_state.isStillHazy(suti) || m_state.isStillNouti(suti))
 	if(m_state.okUTItoContinue(suti) || m_state.isStillHazy(suti))
 	  {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
@@ -168,7 +170,7 @@ namespace MFM {
 	    return Nav; //short-circuit
 	  }
 
-	if(m_state.isStillHazy(it))
+	if(m_state.isStillHazy(it) || m_state.isStillNouti(it))
 	  {
 	    std::ostringstream msg;
 	    msg << "Initialization value expression for: ";

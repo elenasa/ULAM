@@ -11,6 +11,13 @@ namespace MFM {
       {
 	m_tdid = sym->getId();
 	m_currBlockNo = sym->getBlockNoOfST();
+#if 1
+	//ish 20250210 copied from NodeConstantDef constr
+	if(nodetype && ((nodetype->givenUTI() == Nouti) || state.isStillNouti(nodetype->givenUTI())))
+	  nodetype->setGivenUTI(sym->getUlamTypeIdx());
+
+	//NODE_ASSERT(!nodetype || nodetype->givenUTI() == sym->getUlamTypeIdx()); //invariant?errors: t41083, t41517,9,t41525,6
+#endif
       }
   }
 
@@ -166,7 +173,7 @@ namespace MFM {
 	    UTI duti = m_nodeTypeDesc->checkAndLabelType(this); //sets goagain if nav??
 	    if(duti == Nav)
 	      it = Nav;
-	    else if(m_state.okUTItoContinue(duti) && (duti != it))
+	    else if(m_state.okUTItoContinue(duti) && (duti != it)) //t41527,t41433
 	      {
 		std::ostringstream msg;
 		msg << "REPLACING Symbol UTI" << it;
@@ -184,7 +191,13 @@ namespace MFM {
 		    m_typedefSymbol->clearCulamGeneratedTypedef();
 		  }
 		m_typedefSymbol->resetUlamType(duti); //consistent! (must be same ref type)
-		//m_state.updateUTIAliasForced(it, duti); //t3379, t3668, t41431
+		if((m_state.okUTItoContinue(it) || m_state.isStillNouti(it)) && (m_state.getReferenceType(it) == m_state.getReferenceType(duti))) //t3668, t41490,t41522,t41524,t41527
+		  {
+		    if(m_state.isAClass(duti))
+		      m_state.updateUTIAliasForced(it, duti); //t41522,t3379,t41431
+		    else
+		      m_state.updateUTIAlias(it, duti); //t3668,t3379,t41431
+		  }
 		it = duti;
 	      }
 	  }
@@ -197,7 +210,8 @@ namespace MFM {
 	    else
 	      msg << "Incomplete Typedef used with alias name '";
 	    msg << getName() << "'";
-	    if(m_state.okUTItoContinue(it) || m_state.isStillHazy(it)) //t41288,t41448
+	    //	    if(m_state.okUTItoContinue(it) || m_state.isStillHazy(it) || m_state.isStillNouti(it)) //t41288,t41448,t41527
+	    if(m_state.okUTItoContinue(it) || m_state.isStillHazy(it)) //t41288,t41448,t41527
 	      {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 		it = Hzy; //t3862
@@ -251,7 +265,7 @@ namespace MFM {
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //t41408
       }
     m_state.popClassContext(); //restore
-  } //toinstantiate
+  } //checkForSymbol
 
   NNO NodeTypedef::getBlockNo()
   {

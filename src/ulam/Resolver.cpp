@@ -130,8 +130,18 @@ namespace MFM {
       return true; //short-circuit, known (t41287,8), t41436 hzy but known.
 
     ULAMTYPE etyp = m_state.getBaseTypeFromToken(tok);
-    if((etyp == Hzy) || (etyp == Holder))
+    //    if((etyp == Hzy) || (etyp == Holder))
+    if((etyp == Hzy)) //t41527
       return false;
+
+    if(etyp == Holder)
+      {
+	UTI alias = Nouti; //t41527
+	if(m_state.findaUTIAlias(huti, alias) && !m_state.isHolder(alias))
+	  huti = alias;
+	else
+	  return false;
+      }
 
     u32 tokid = m_state.getTokenDataAsStringId(tok);
     UTI kuti = Nav;

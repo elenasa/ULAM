@@ -19,6 +19,11 @@ namespace MFM {
 	m_cid = symptr->getId();
 	symptr->setDeclNodeNo(getNodeNo());
 	// ish 20230116 symptr was a holder, and aliased to nodetype's given UTI (no longer).
+
+	if(nodetype && ((nodetype->givenUTI() == Nouti) || (state.isStillNouti(nodetype->givenUTI()))))
+	  //  nodetype->resetGivenUTI(symptr->getUlamTypeIdx()); //ish 20250210
+	  nodetype->setGivenUTI(symptr->getUlamTypeIdx()); //ish 20250210
+
 	NODE_ASSERT(!nodetype || nodetype->givenUTI() == symptr->getUlamTypeIdx()); //invariant?
       }
   }
@@ -485,6 +490,7 @@ namespace MFM {
 	    return Nav; //short-circuit
 	  }
 
+	//	if(m_state.isStillHazy(nuti) || m_state.isStillNouti(nuti))
 	if(m_state.isStillHazy(nuti))
 	  {
 	    //potential cause of haziness is this error t41678
@@ -765,6 +771,7 @@ namespace MFM {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    setNodeType(Nav);
 	  }
+	//	else if(m_state.isStillHazy(foldrtn) || m_state.isStillNouti(foldrtn))
 	else if(m_state.isStillHazy(foldrtn))
 	  {
 	    std::ostringstream msg;

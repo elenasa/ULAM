@@ -135,7 +135,7 @@ namespace MFM{
       rtnuti = Void; //resets
 
     if(!m_state.okUTItoContinue(rtnuti))
-      return rtnuti; //short-circuit if Nav (or Nouti)
+      return rtnuti; //short-circuit if Nav (or Nouti/isStillNouti)
 
     for(u32 i = 0; i < m_nodes.size(); i++)
       {

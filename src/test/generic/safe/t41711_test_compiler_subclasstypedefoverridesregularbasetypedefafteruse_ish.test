@@ -1,0 +1,72 @@
+## -*- mode:ulam -*-
+#=t41711_test_compiler_subclasstypedefoverridesregularbasetypedefafteruse_ish
+#!
+Exit status: 0
+Ue_A { Unsigned m_minof(0u);  Unsigned m_classidof(1u);  Int test() {  MyElement e;  self m_minof . e ( )func . = self m_classidof . e ( )func2 . = 0 cast return } }
+Ue_MyElement : Base { typedef SomeTypeClass CopyOfBaseClassSomeType;  typedef Unsigned(4) SomeType;  :Base< typedef SomeTypeClass SomeType; > <NOMAIN> }
+Uq_SomeTypeClass { /* empty class block */ }
+Uq_Base { typedef SomeTypeClass SomeType;  <NOMAIN> }
+Uq_TBase(Int c) { typedef SomeTypeClass SomeType;  <NOMAIN> }
+##
+## informed by Dave ish 2/11/25; see also t41710, error/t41604 and t41712
+##          different behavior for template and regular base class
+##          when overriding typedef appearred after used
+##
+#>A.ulam
+  ulam 5;
+
+element A {
+  Unsigned m_minof;
+  Unsigned m_classidof;
+
+  Int test() {
+    MyElement e;
+    m_minof = e.func();
+    m_classidof = e.func2();
+
+    return 0;
+  }
+}
+
+#:SomeTypeClass.ulam
+  ulam 1;
+quark SomeTypeClass { }
+
+#:Base.ulam
+  ulam 1;
+quark Base {
+  typedef SomeTypeClass SomeType;
+}
+
+#:TBase.ulam
+quark TBase(Int c) {
+  typedef SomeTypeClass SomeType;
+}
+
+#:MyElement.ulam
+  ulam 5;
+element MyElement : Base { //// THIS BLOWS UP!
+  //element MyElement : TBase(3) { //// BUT THIS BUILDS!?
+
+  typedef Super.SomeType CopyOfBaseClassSomeType; // legal?
+
+  ///// WITH THIS SomeType TYPEDEF JUST UP HERE, ': Base' BUILDS
+  //typedef Unsigned(4u) SomeType;
+
+  Unsigned func() { return SomeType.minof; }
+  Unsigned func2() { return CopyOfBaseClassSomeType.classidof; }
+
+  Void behave() {
+    Unsigned foo = func();
+    Unsigned foo2 = func2();
+  }
+
+  ///// WITH THIS SomeType TYPEDEF JUST DOWN HERE, ': Base' BLOWS UP
+  typedef Unsigned(4u) SomeType;
+}
+
+
+
+
+
+#.

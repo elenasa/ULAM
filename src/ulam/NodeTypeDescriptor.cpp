@@ -100,6 +100,12 @@ namespace MFM {
     return m_uti;
   }
 
+  void NodeTypeDescriptor::setGivenUTI(UTI guti)
+  {
+    NODE_ASSERT(m_state.isStillNouti(m_uti));
+    m_uti = guti;
+  }
+
   UTI NodeTypeDescriptor::resetGivenUTI(UTI guti)
   {
     // use the root
@@ -245,6 +251,12 @@ namespace MFM {
     isreferencetype = (getReferenceType() != ALT_NOT) || m_state.isAltRefType(nuti); //refresh
     if(!m_state.isComplete(nuti) && !isreferencetype)
       {
+	//ish 20250211 check for typedef by token id first, when holder is givenUTI (t41710,t41711)
+	if(m_state.isHolder(nuti))
+	  {
+	    rtnb = resolvePossibleTypedefByTokenId(nuti);
+	  }
+
 	// if Nav, use token
 	UTI mappedUTI = nuti;
 
@@ -327,25 +339,7 @@ namespace MFM {
 	//if((nuti == Hzy) || m_state.isHolder(nuti))
 	if(nuti == Hzy)
 	  {
-	    UTI tduti = Nouti;
-	    UTI tmpforscalaruti = Nouti;
-	    u32 tokid = m_state.getTokenDataAsStringId(m_typeTok);
-	    TBOOL isTypedef = TBOOL_FALSE;
-	    if(!m_state.isThisLocalsFileScope())
-	      isTypedef = m_state.getUlamTypeByTypedefNameInClassHierarchyThenLocalsScope(tokid, tduti, tmpforscalaruti);
-	    else
-	      isTypedef = m_state.getUlamTypeByTypedefNameInLocalsScope(tokid, tduti, tmpforscalaruti);
-
-	    if(isTypedef == TBOOL_TRUE)
-	      {
-		if(m_state.okUTItoContinue(tduti) && !m_state.isHolder(tduti))
-		  {
-		    UTI mappedtd = tduti;
-		    m_state.findRootUTIAlias(tduti, mappedtd);
-		    nuti = mappedtd; //reset
-		    rtnb = true;
-		  }
-	      }
+	    rtnb = resolvePossibleTypedefByTokenId(nuti);
 	  }
       }
     else if(etyp == LocalsFileScope)
@@ -361,6 +355,32 @@ namespace MFM {
     rtnuti = nuti;
     return rtnb;
   } //resolveType
+
+  bool NodeTypeDescriptor::resolvePossibleTypedefByTokenId(UTI& rtnuti)
+  {
+    bool rtnb = false;
+
+    UTI tduti = Nouti;
+    UTI tmpforscalaruti = Nouti;
+    u32 tokid = m_state.getTokenDataAsStringId(m_typeTok);
+    TBOOL isTypedef = TBOOL_FALSE;
+    if(!m_state.isThisLocalsFileScope())
+      isTypedef = m_state.getUlamTypeByTypedefNameInClassHierarchyThenLocalsScope(tokid, tduti, tmpforscalaruti);
+    else
+      isTypedef = m_state.getUlamTypeByTypedefNameInLocalsScope(tokid, tduti, tmpforscalaruti);
+
+    if(isTypedef == TBOOL_TRUE)
+      {
+	if(m_state.okUTItoContinue(tduti) && !m_state.isHolder(tduti))
+	  {
+	    UTI mappedtd = tduti;
+	    m_state.findRootUTIAlias(tduti, mappedtd);
+	    rtnuti = mappedtd; //reset
+	    rtnb = true;
+	  }
+      }
+    return rtnb;
+  } //resolvePossibleTypedefByTokenId
 
   bool NodeTypeDescriptor::resolveReferenceType(UTI& rtnuti)
   {

@@ -1284,7 +1284,7 @@ namespace MFM {
 		brtn = true;
 	      } //holder done
 	    else
-	      brtn = true;
+	      brtn = false; //ish20250211 same name id for two typedefs in same scope (t41712)
 	  } //a typedef already there
 	return brtn; //already there, and updated
       }

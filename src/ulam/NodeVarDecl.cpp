@@ -169,7 +169,6 @@ namespace MFM {
     UTI nuti = getNodeType();
     if(m_state.okUTItoContinue(nuti))
       {
-	NODE_ASSERT(m_state.okUTItoContinue(nuti));
 	UlamType * nut = m_state.getUlamTypeByIndex(nuti);
 	//skip bitsize if default size
 	if(nut->getBitSize() == ULAMTYPE_DEFAULTBITSIZE[nut->getUlamTypeEnum()])
@@ -537,6 +536,7 @@ namespace MFM {
 	UTI duti = m_nodeTypeDesc->checkAndLabelType(this); //sets goagain
 	if(duti == Nav)
 	  vit = Nav; //t41203
+	//	else if((duti != vit) && ((m_state.okUTItoContinue(duti) && !m_state.isHolder(duti)) || m_varSymbol->isFunctionParameter() || m_state.isStillNouti(vit))) //even if Hzy, e.g. func param (t3810)
 	else if((duti != vit) && ((m_state.okUTItoContinue(duti) && !m_state.isHolder(duti)) || m_varSymbol->isFunctionParameter())) //even if Hzy, e.g. func param (t3810)
 	  {
 	    std::ostringstream msg;
@@ -577,10 +577,10 @@ namespace MFM {
 	msg << " used with variable symbol name '" << getName() << "'";
 	//msg << "(id" << m_vid << ")"; //debug (t41298,9)
 	//msg << ", while compiling UTI" << cuti; //debug (t41298,9)
-	if(m_state.okUTItoContinue(vit) || m_state.isStillHazy(vit))
+	if(m_state.okUTItoContinue(vit) || m_state.isStillHazy(vit) || m_state.isStillNouti(vit))
 	  {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	    vit = Hzy; //t41201, error/t41165
+	    vit = Hzy; //t41201, t41516, error/t41165
 	  }
 	else
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
@@ -591,7 +591,8 @@ namespace MFM {
     if(hasInitExpr())
       {
 	UTI eit = m_nodeInitExpr->checkAndLabelType(this);
-	if(eit == Nav)
+	//if(eit == Nav)
+	if((eit == Nav) || m_state.isStillNouti(eit))
 	  {
 	    std::ostringstream msg;
 	    msg << "Initial value expression for: ";
@@ -602,6 +603,7 @@ namespace MFM {
 	    return Nav; //short-circuit
 	  }
 
+	//	if(m_state.isStillHazy(eit) || m_state.isStillNouti(eit))
 	if(m_state.isStillHazy(eit))
 	  {
 	    std::ostringstream msg;

@@ -1,0 +1,77 @@
+## -*- mode:ulam -*-
+#=t41713_test_compiler_typedeffmanotherclassusedbeforeappearshere_ish
+## gen output (+ assert)
+##      Bool(3) Arg: 0x0 (false)
+##
+#!
+Exit status: 0
+Ue_A { Bool sp(false);  Int test() {  System s;  LocalSpaceRect2DT(7u) lsrp;  self sp . lsrp ( )isInitted . = s ( self sp . cast )print . s ( self sp . ! )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+Uq_LocalSpaceRect2DT(Unsigned cBITS) : LocalSpaceRect2D { typedef C2DT(cBITS) LocalPos;  typedef unset LocalCoord;  unset mPosX(notready);  unset mPosY(notready);  :LocalSpaceRect2D<> <NOMAIN> }
+Uq_LocalSpaceRect2D { <NOMAIN> }
+Uq_C2DT(Unsigned cBITS) { typedef Unsigned(UNKNOWN) Coord;  <NOMAIN> }
+##
+## informed by Dave ish 2/10/25; see also t41710,t41711, error/t41712
+##
+#>A.ulam
+  ulam 5;
+
+element A {
+  Bool sp;
+  Int test() {
+    System s;
+    LocalSpaceRect2DT(7u) lsrp;
+    sp = lsrp.isInitted();
+    s.print(sp);
+    s.assert(!sp);
+    return 0;
+  }
+}
+
+#:LocalSpaceRect2DT.ulam
+  ulam 5;
+quark LocalSpaceRect2DT(Unsigned cBITS) : LocalSpaceRect2D {
+
+  //// LocalSpaceRect2D API
+  @Override virtual Bool isInitted() { return mPosX != LocalCoord.minof; }
+
+  //// LocalSpaceRect2DT API
+  typedef C2DT(cBITS) LocalPos;
+  typedef LocalPos.Coord LocalCoord;
+  @Override
+  Bool legalCoord(Int c) {
+    return
+      c > LocalCoord.minof &&   // note > vs <=
+      c <= LocalCoord.maxof;    // minof is not a legal coord
+  }
+
+  LocalCoord mPosX = LocalCoord.minof;
+  LocalCoord mPosY = LocalCoord.minof;
+}
+
+quark LocalSpaceRect2D { //: Intender + Grip + DTU + Fail {
+  virtual Bool legalCoord(Int c) ;
+  virtual Bool isInitted() ;
+}
+
+
+#:C2DT.ulam
+  ulam 1;
+quark C2DT(Unsigned cBITS) {
+  typedef Unsigned(cBITS) Coord;
+}
+
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

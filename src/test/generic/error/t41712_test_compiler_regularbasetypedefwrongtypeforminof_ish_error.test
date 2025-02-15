@@ -1,0 +1,66 @@
+## -*- mode:ulam -*-
+#=t41712_test_compiler_regularbasetypedefwrongtypeforminof_ish_error
+#!
+./MyElement.ulam:10:37: ERROR: Proxy Type 'minof' is not supported for type: SomeTypeClass.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by Dave ish 2/11/25; see also t41711
+##
+#>A.ulam
+  ulam 5;
+
+element A {
+  Unsigned m_minof;
+  Unsigned m_classidof;
+
+  Int test() {
+    MyElement e;
+    m_minof = e.func();
+    m_classidof = e.func2();
+
+    return 0;
+  }
+}
+
+#:SomeTypeClass.ulam
+  ulam 1;
+quark SomeTypeClass { }
+
+#:Base.ulam
+  ulam 1;
+quark Base {
+  typedef SomeTypeClass SomeType;
+}
+
+#:TBase.ulam
+quark TBase(Int c) {
+  typedef SomeTypeClass SomeType;
+}
+
+#:MyElement.ulam
+  ulam 5;
+element MyElement : Base { //// THIS BLOWS UP!
+//element MyElement : TBase(3) { //// BUT THIS BUILDS!?
+
+  typedef Super.SomeType CopyOfBaseClassSomeType; // legal?
+
+  ///// WITH THIS SomeType TYPEDEF JUST UP HERE, ': Base' BUILDS
+  //typedef Unsigned(4u) SomeType;
+
+  Unsigned func() { return SomeType.minof; }
+  Unsigned func2() { return CopyOfBaseClassSomeType.classidof; }
+
+  Void behave() {
+    Unsigned foo = func();
+    Unsigned foo2 = func2();
+  }
+
+  ///// WITH THIS SomeType TYPEDEF JUST DOWN HERE, ': Base' BLOWS UP
+  // typedef Unsigned(4u) SomeType;
+}
+
+
+
+
+
+#.

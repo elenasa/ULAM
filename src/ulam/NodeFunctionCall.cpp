@@ -128,7 +128,7 @@ namespace MFM {
 	      navArgs++;
 	    else if((argtype == Hzy) || m_state.isStillHazy(argtype))
 	      hzyArgs++;
-	    else if(argtype == Nouti)
+	    else if((argtype == Nouti) || m_state.isStillNouti(argtype))
 	      noutiArgs++;
 	    else //t3984,5
 	      // track constants and potential casting to be handled

@@ -2,8 +2,8 @@
  * NodeTypeDescriptor.h - Basic Node Type descriptor for ULAM
  *
  * Copyright (C) 2015-2018 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2024 Ackleyshack LLC.
- * Copyright (C) 2020-2024 The Living Computation Foundation
+ * Copyright (C) 2015-2025 Ackleyshack LLC.
+ * Copyright (C) 2020-2025 The Living Computation Foundation
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -30,7 +30,7 @@
   \file NodeTypeDescriptor.h - Basic Node Type descriptor for ULAM
   \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2024 All rights reserved.
+  \date (C) 2015-2025 All rights reserved.
   \gpl
 */
 
@@ -77,6 +77,8 @@ namespace MFM{
 
     UTI givenUTI();
 
+    void setGivenUTI(UTI guti);
+
     virtual UTI resetGivenUTI(UTI guti); //may use guti rootUTI instead
 
     virtual UTI getScalarType();
@@ -116,6 +118,7 @@ namespace MFM{
     UTI m_referencedUTI;
 
     virtual bool resolveType(UTI& rtnuti);
+    bool resolvePossibleTypedefByTokenId(UTI& rtnuti);
     bool resolveClassType(UTI& rtnuti);
     bool resolvePrimitiveOrArrayType(UTI& rtnuti);
     bool resolveTypeBitsize(UTI& rtnuti);

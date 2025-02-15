@@ -630,7 +630,7 @@ namespace MFM {
 	//msg << " [" << prettyNodeName().c_str() << "] ";  //ugly!
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
       }
-    else if(nuti == Nouti)
+    else if((nuti == Nouti) || m_state.isStillNouti(nuti))
       {
 	nocnt += 1;
 	std::ostringstream msg;
@@ -3032,6 +3032,7 @@ namespace MFM {
 	return false; //short-circuit
       }
 
+    //if(m_state.isStillHazy(nuti) || m_state.isStillNouti(nuti))
     if(m_state.isStillHazy(nuti))
       {
 	std::ostringstream msg;
