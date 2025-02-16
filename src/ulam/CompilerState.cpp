@@ -445,7 +445,7 @@ namespace MFM {
 
   u32 CompilerState::replaceUTIKeyAndAlias(UTI olduti, UTI newuti)
   {
-    //    assert(okUTItoContinue(olduti)); new okUTItoContinue, checks alias ish 20250210
+    //    assert(okUTItoContinue(olduti)); new okUTItoContinue, checks alias ish 20250210 (t41713)
     assert(okUTItoContinue(newuti));
     UlamType * newut = getUlamTypeByIndex(newuti);
     UlamKeyTypeSignature newkey = newut->getUlamKeyTypeSignature();
@@ -913,7 +913,7 @@ namespace MFM {
     UlamKeyTypeSignature nokey = getUlamTypeByIndex(Nouti)->getUlamKeyTypeSignature();
     m_indexToUlamKey[utiarg] = nokey; //clear to Nouti key
     incrementKeyToAnyUTICounter(nokey, utiarg); //here
-    updateUTIAliasForced(utiarg, Nouti); //ish 20250210
+    updateUTIAliasForced(utiarg, Nouti); //ish 20250210 (t41713)
     return rtnBool;
   } //deleteUlamKeyTypeSignature
 
@@ -943,7 +943,6 @@ namespace MFM {
   // doesn't pass along holders as mapped type (t3375)
   bool CompilerState::mappedIncompleteUTI(UTI cuti, UTI auti, UTI& mappedUTI)
   {
-    //    if(!okUTItoContinue(auti) && !isStillNouti(auti)) //t41522
     if(!okUTItoContinue(auti)) //t41522
       return false; //t41448
 
@@ -2361,8 +2360,7 @@ namespace MFM {
   void CompilerState::updateUTIAlias(UTI auti, UTI buti)
   {
     //if(!isComplete(auti))
-    //    if(!isComplete(auti) && (auti != buti)) //ish 20250210
-    if(!isComplete(auti) && !isComplete(buti) && (auti != buti))
+    if(!isComplete(auti) && !isComplete(buti) && (auti != buti)) //ish 20250210 (t41713)
       return; //without knowing the bitsize, don't alias it
 
     updateUTIAliasForced(auti, buti);
@@ -7795,7 +7793,7 @@ namespace MFM {
 
   bool CompilerState::isStillNouti(UTI uti)
   {
-    UTI alias = lookupUTIAlias(uti); //ish 20250210
+    UTI alias = lookupUTIAlias(uti); //ish 20250210 (t41713)
     return (alias == Nouti) || (uti == Nouti);
   }
 

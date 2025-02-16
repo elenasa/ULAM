@@ -536,7 +536,6 @@ namespace MFM {
 	UTI duti = m_nodeTypeDesc->checkAndLabelType(this); //sets goagain
 	if(duti == Nav)
 	  vit = Nav; //t41203
-	//	else if((duti != vit) && ((m_state.okUTItoContinue(duti) && !m_state.isHolder(duti)) || m_varSymbol->isFunctionParameter() || m_state.isStillNouti(vit))) //even if Hzy, e.g. func param (t3810)
 	else if((duti != vit) && ((m_state.okUTItoContinue(duti) && !m_state.isHolder(duti)) || m_varSymbol->isFunctionParameter())) //even if Hzy, e.g. func param (t3810)
 	  {
 	    std::ostringstream msg;
@@ -591,8 +590,7 @@ namespace MFM {
     if(hasInitExpr())
       {
 	UTI eit = m_nodeInitExpr->checkAndLabelType(this);
-	//if(eit == Nav)
-	if((eit == Nav) || m_state.isStillNouti(eit))
+	if((eit == Nav))
 	  {
 	    std::ostringstream msg;
 	    msg << "Initial value expression for: ";
@@ -603,8 +601,7 @@ namespace MFM {
 	    return Nav; //short-circuit
 	  }
 
-	//	if(m_state.isStillHazy(eit) || m_state.isStillNouti(eit))
-	if(m_state.isStillHazy(eit))
+	if(m_state.isStillHazy(eit) || m_state.isStillNouti(eit))
 	  {
 	    std::ostringstream msg;
 	    msg << "Initial value expression for: ";

@@ -11,12 +11,12 @@ namespace MFM {
       {
 	m_tdid = sym->getId();
 	m_currBlockNo = sym->getBlockNoOfST();
-#if 1
+
+#if 0
 	//ish 20250210 copied from NodeConstantDef constr
 	if(nodetype && ((nodetype->givenUTI() == Nouti) || state.isStillNouti(nodetype->givenUTI())))
 	  nodetype->setGivenUTI(sym->getUlamTypeIdx());
-
-	//NODE_ASSERT(!nodetype || nodetype->givenUTI() == sym->getUlamTypeIdx()); //invariant?errors: t41083, t41517,9,t41525,6
+	//NODE_ASSERT(!nodetype || nodetype->givenUTI() == sym->getUlamTypeIdx()); //invariant? errors:t41083,t41517,9,t41525,6
 #endif
       }
   }
@@ -210,8 +210,7 @@ namespace MFM {
 	    else
 	      msg << "Incomplete Typedef used with alias name '";
 	    msg << getName() << "'";
-	    //	    if(m_state.okUTItoContinue(it) || m_state.isStillHazy(it) || m_state.isStillNouti(it)) //t41288,t41448,t41527
-	    if(m_state.okUTItoContinue(it) || m_state.isStillHazy(it)) //t41288,t41448,t41527
+	    if(m_state.okUTItoContinue(it) || m_state.isStillHazy(it) || m_state.isStillNouti(it)) //t41288,t41448,t41527, 20230116 ish and t41643.
 	      {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 		it = Hzy; //t3862

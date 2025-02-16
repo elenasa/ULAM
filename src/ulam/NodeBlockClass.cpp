@@ -764,7 +764,6 @@ namespace MFM {
       {
 	UTI baseuti = csym->getBaseClass(i);
 	//skip the ancestor of a template; continue if still Nouti holder (t41522)
-	//	if(m_state.okUTItoContinue(baseuti) || m_state.isStillNouti(baseuti))
 	if(m_state.okUTItoContinue(baseuti))
 	  {
 	    if(m_state.isHolder(baseuti) || !m_state.isComplete(baseuti)) //t3874, t41010 (super)
@@ -859,7 +858,6 @@ namespace MFM {
 	if(!isBaseClassBlockReady(nuti, baseuti))
 	  {
 	    if((baseuti != Nouti) && !m_state.isComplete(baseuti))
-	    //if(!m_state.isStillNouti(baseuti) && !m_state.isComplete(baseuti)) not t41522?
 	      {
 		std::ostringstream msg;
 		msg << "Subclass '";

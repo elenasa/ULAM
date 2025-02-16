@@ -362,8 +362,7 @@ namespace MFM {
 	//else
 
 	it = m_nodeInitExpr->getNodeType();
-	//if(it == Nav)
-	if((it == Nav) || m_state.isStillNouti(it))
+	if((it == Nav))
 	  {
 	    std::ostringstream msg;
 	    msg << "Constant value expression for data member: ";
@@ -375,8 +374,7 @@ namespace MFM {
 	    return Nav; //short-circuit
 	  }
 
-	//	if(m_state.isStillHazy(it) || m_state.isStillNouti(it))
-	if(m_state.isStillHazy(it))
+	if(m_state.isStillHazy(it) || m_state.isStillNouti(it))
 	  {
 	    std::ostringstream msg;
 	    msg << "Constant value expression for data member: ";

@@ -3032,8 +3032,8 @@ namespace MFM {
 	return false; //short-circuit
       }
 
-    //if(m_state.isStillHazy(nuti) || m_state.isStillNouti(nuti))
-    if(m_state.isStillHazy(nuti))
+    //    if(m_state.isStillHazy(nuti))
+    if(m_state.isStillHazy(nuti) || m_state.isStillNouti(nuti))
       {
 	std::ostringstream msg;
 	msg << "Cannot make casting node for type: " ;

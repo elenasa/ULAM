@@ -209,10 +209,7 @@ namespace MFM {
 	  hazyCount++;
 	else if(m_state.isHolder(it))
 	  hazyCount++;
-	//	else if(m_state.isStillNouti(it))
-	//  hazyCount++;
 	else
-	  //NODE_ASSERT(it != Nouti);
 	  NODE_ASSERT(!m_state.isStillNouti(it));
       }
     ////requires non-constant, non-funccall value

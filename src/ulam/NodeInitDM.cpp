@@ -99,8 +99,7 @@ namespace MFM {
     //short circuit, avoid assert
     if(m_constSymbol == NULL)
       {
-	//if((m_ofClassUTI == Hzy) || m_state.isStillHazy(m_ofClassUTI) || m_state.isStillNouti(m_ofClassUTI))
-	if((m_ofClassUTI == Hzy) || m_state.isStillHazy(m_ofClassUTI))
+	if((m_ofClassUTI == Hzy) || m_state.isStillHazy(m_ofClassUTI) || m_state.isStillNouti(m_ofClassUTI))
 	  {
 	    setNodeType(Hzy);
 	    std::ostringstream msg;
@@ -130,8 +129,7 @@ namespace MFM {
 	if(m_state.okUTItoContinue(suti) && !m_state.isHolder(suti))
 	  msg << ": " << m_state.getUlamTypeNameByIndex(suti).c_str();
 	msg << " used with symbol name '" << getName() << "'";
-	//if(m_state.okUTItoContinue(suti) || m_state.isStillHazy(suti) || m_state.isStillNouti(suti))
-	if(m_state.okUTItoContinue(suti) || m_state.isStillHazy(suti))
+	if(m_state.okUTItoContinue(suti) || m_state.isStillHazy(suti) || m_state.isStillNouti(suti))
 	  {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    suti = Hzy; //since not error; wait to goagain until not Nav
