@@ -27,9 +27,15 @@ namespace MFM {
   Ui_Ut_102961a<EC> Uq_1010919AtomUtils10<EC>::Uf_3new(const UlamContext<EC> & uc, UlamRef<EC>& ur, Ui_Ut_102321i<EC>& Uv_1t) const
   {
     const s32 t = Uv_1t.read();
-    if (t < 0 || t > U16_MAX)
-      FAIL(ILLEGAL_ARGUMENT);
-    T p3atom((u32) t);
+    if (t < 0 || t > U16_MAX) FAIL(ILLEGAL_ARGUMENT);
+
+    const Element<EC> * eltptr = uc.LookupElementTypeFromContext(t);
+    if (!eltptr) FAIL(NOT_FOUND);
+
+    const UlamElement<EC> * ueptr = eltptr->AsUlamElement();
+    if (!ueptr) FAIL(UNKNOWN_ELEMENT);
+
+    T p3atom = ueptr->BuildDefaultAtom();
     const Ui_Ut_102961a<EC> tmp(p3atom);
     return tmp;
   } // Uf_3new
