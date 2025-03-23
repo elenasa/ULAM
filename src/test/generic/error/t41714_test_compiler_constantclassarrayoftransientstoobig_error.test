@@ -1,22 +1,24 @@
 ## -*- mode:ulam -*-
-#=t41633_test_compiler_constantclassarrayoftransientstoobig_error
+#=t41714_test_compiler_constantclassarrayoftransientstoobig_error
 #!
-./R.ulam:3:16: ERROR: Constant value expression for transient array 'keyexpr_x13' is 80 bits; Currently, only scalar constant transients >71 bits can be evaluated.
-./R.ulam:3:16: ERROR: Problem in NodeConstantDef for type: KeyExprNode(80)[5], used with symbol name 'keyexpr_x13', after folding attempt.
+./R.ulam:9:16: ERROR: Constant value expression for transient array 'keyexpr_x13' is 80 bits; Currently, only scalar constant transients >71 bits can be evaluated.
+./R.ulam:9:16: ERROR: Problem in NodeConstantDef for type: KeyExprNode(80)[5], used with symbol name 'keyexpr_x13', after folding attempt.
 Unrecoverable Program Type Label FAILURE.
 ##
-## see safe/t41632, constant array of transient items 71-bits are okay.
+## see error t41633, constant array of transient items 71-bits are okay.
+## trying to work around, but no luck (see safe/t41715 workaround)
 ##
 #>R.ulam
   ulam 5;
 use KeyExprNode;
-local constant KeyExprNode keyexpr_x13[] = {
-   { .m_leftIndex = 1, .m_rightIndex = 2, .m_keyCode = 0, .m_op = '|' }, // [0]
-   { .m_leftIndex = 3, .m_rightIndex = 4, .m_keyCode = 0, .m_op = '&' }, // [1]
-   { .m_leftIndex = 0, .m_rightIndex = 0, .m_keyCode = 'c', .m_op = 0 }, // [2]
-   { .m_leftIndex = 0, .m_rightIndex = 0, .m_keyCode = 'a', .m_op = 0 }, // [3]
-   { .m_leftIndex = 0, .m_rightIndex = 0, .m_keyCode = 'b', .m_op = 0 }, // [4] , EXTRA COMMA at the end??? no difference
- };
+local constant KeyExprNode k00 = { .m_leftIndex = 1, .m_rightIndex = 2, .m_keyCode = 0, .m_op = '|' }; // [0]
+local constant KeyExprNode k01 = { .m_leftIndex = 3, .m_rightIndex = 4, .m_keyCode = 0, .m_op = '&' }; // [1]
+local constant KeyExprNode k02 = { .m_leftIndex = 0, .m_rightIndex = 0, .m_keyCode = 'c', .m_op = 0 }; // [2]
+local constant KeyExprNode k03 = { .m_leftIndex = 0, .m_rightIndex = 0, .m_keyCode = 'a', .m_op = 0 }; // [3]
+local constant KeyExprNode k04 = { .m_leftIndex = 0, .m_rightIndex = 0, .m_keyCode = 'b', .m_op = 0 }; // [4]
+
+local constant KeyExprNode keyexpr_x13[] = {  k00, k01, k02, k03, k04 };
+
 element R {
   Int test() {
     System s;

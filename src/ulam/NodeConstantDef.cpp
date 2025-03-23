@@ -949,12 +949,12 @@ namespace MFM {
 		if((nclasstype == UC_TRANSIENT) && (tbits > MAXSTATEBITS))
 		  {
 		    std::ostringstream msg;
-		    msg << "Constant value expression for transient '";
+		    msg << "Constant value expression for transient array '";
 		    msg << m_state.m_pool.getDataAsString(m_constSymbol->getId()).c_str();
-		    msg << "' is " << tbits << " bits; Currently, only constant transients ";
-		    msg << "<=" << MAXSTATEBITS << " bits can be evaluated";
+		    msg << "' is " << tbits << " bits; Currently, only scalar constant transients ";
+		    msg << ">" << MAXSTATEBITS << " bits can be evaluated";
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		    setNodeType(Nav); //t41632
+		    setNodeType(Nav); //t41632, t41633, t41714, t41715
 		    uti = Nav;
 		  }
 		else
