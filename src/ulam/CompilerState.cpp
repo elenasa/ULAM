@@ -2131,7 +2131,7 @@ namespace MFM {
 	    msg << ut->getUlamTypeClassNameBrief(utiArg).c_str() << " with " << total << " bits";
 	    MSG2(getFullLocationAsString(getCompileThisLoc()).c_str(), msg.str().c_str(), ERR);
 
-	    noteClassDataMembersTypeAndName(utiArg, total); //t41013
+	    noteClassDataMembersTypeAndName(utiArg, total); //t41013,t41335,t41418
 	    return false;
 	  }
       }
@@ -2146,7 +2146,7 @@ namespace MFM {
 	    MSG2(getFullLocationAsString(getCompileThisLoc()).c_str(), msg.str().c_str(), ERR);
 
 	    noteClassDataMembersTypeAndName(utiArg, total);
-	    return false;
+	    return false; //t41286
 	  }
       }
 
@@ -2216,7 +2216,7 @@ namespace MFM {
 	    msg << "Trying to exceed allotted bit size (" << MAXBITSPERQUARK << ") for a base quark ";
 	    msg << ut->getUlamTypeClassNameBrief(utiArg).c_str() << " with " << basebitsize << " bits";
 	    MSG2(getFullLocationAsString(getCompileThisLoc()).c_str(), msg.str().c_str(), ERR);
-	    return false;
+	    return false; //t41418
 	  }
       }
 
@@ -2463,7 +2463,7 @@ namespace MFM {
 	msg << "Trying to exceed allotted bit size (" << MAXBITSPERTRANSIENT << ") for array ";
 	msg << ut->getUlamTypeNameBrief().c_str() << " with " << total << " bits";
 	MSG2(getFullLocationAsString(getCompileThisLoc()).c_str(), msg.str().c_str(), ERR);
-	return false;
+	return false; //t41716
       }
     //else
     //continue with valid number of bits

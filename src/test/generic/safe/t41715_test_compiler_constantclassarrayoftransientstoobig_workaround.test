@@ -1,18 +1,16 @@
 ## -*- mode:ulam -*-
 #=t41715_test_compiler_constantclassarrayoftransientstoobig_workaround
 ##  gen output (3 asserts)
-##      Unsigned Arg: 99
+##      Unsigned Arg: 98
 ##
 #!
 Exit status: -11
-Ue_R { Int test() {  System s;  KeyExprRep kr;  KeyExprNode keyexpr_x13[5] = { k00, k01, k02, k03, k04 };  kr m_key . keyexpr_x13 0 [] = s ( kr m_key . m_rightIndex . 2u cast == )assert . s ( keyexpr_x13 1 [] m_rightIndex . 4u cast == )assert . KeyExprNode mykeyexpr_x13[5] = keyexpr_x13;  s ( mykeyexpr_x13 2 [] m_keyCode . cast )print . s ( mykeyexpr_x13 2 [] m_keyCode . keyexpr_x13 2 [] m_keyCode . == )assert . 0 cast return } }
+Ue_R { Int test() {  System s;  KeyExprRep kr;  kr m_key . keyexpr_x13 0 [] = s ( kr m_key . m_rightIndex . 2u cast == )assert . s ( keyexpr_x13 1 [] m_rightIndex . 4u cast == )assert . KeyExprNode mykeyexpr_x13[100] = keyexpr_x13;  s ( mykeyexpr_x13 99 [] m_keyCode . cast )print . s ( mykeyexpr_x13 99 [] m_keyCode . keyexpr_x13 99 [] m_keyCode . == )assert . 0 cast return } }
 Un_KeyExprNode { typedef Unsigned(20) Byte;  Unsigned(20) m_leftIndex(0);  Unsigned(20) m_rightIndex(0);  Unsigned(20) m_keyCode(0);  Unsigned(20) m_op(0);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 Un_KeyExprRep { KeyExprNode m_key( typedef Unsigned(20) Byte;  Unsigned(20) m_leftIndex(0);  Unsigned(20) m_rightIndex(0);  Unsigned(20) m_keyCode(0);  Unsigned(20) m_op(0); );  <NOMAIN> }
 ##
-## see errors t41633,t41714, constant array of transient items 71-bits are okay.
-## trying to work around, but no luck until here,
-## using a local var array of big constant transients
+## see errors t41633,t41714, and t41632, constant array of transient items 8k-bits are okay.
 ##
 #>R.ulam
   ulam 5;
@@ -23,12 +21,12 @@ local constant KeyExprNode k02 = { .m_leftIndex = 0, .m_rightIndex = 0, .m_keyCo
 local constant KeyExprNode k03 = { .m_leftIndex = 0, .m_rightIndex = 0, .m_keyCode = 'a', .m_op = 0 }; // [3]
 local constant KeyExprNode k04 = { .m_leftIndex = 0, .m_rightIndex = 0, .m_keyCode = 'b', .m_op = 0 }; // [4]
 
+local constant KeyExprNode keyexpr_x13[100] = {  k00, k01, k02, k03, k04 }; //big local variable
 
 element R {
   Int test() {
     System s;
     KeyExprRep kr;
-    KeyExprNode keyexpr_x13[] = {  k00, k01, k02, k03, k04 }; //big local variable
 
     kr.m_key = keyexpr_x13[0]; //displayed in eval output
     s.assert(kr.m_key.m_rightIndex==2u);
@@ -36,9 +34,9 @@ element R {
     s.assert(keyexpr_x13[1].m_rightIndex==4u); //reads constant class array item
 
     //read entire constant class array
-    KeyExprNode mykeyexpr_x13[5] = local.keyexpr_x13; // see t41552 for error without dot
-    s.print(mykeyexpr_x13[2].m_keyCode);
-    s.assert(mykeyexpr_x13[2].m_keyCode==keyexpr_x13[2].m_keyCode); //reads constant class array item
+    KeyExprNode mykeyexpr_x13[100] = local.keyexpr_x13; // see t41552 for error without dot
+    s.print(mykeyexpr_x13[99].m_keyCode);
+    s.assert(mykeyexpr_x13[99].m_keyCode==keyexpr_x13[99].m_keyCode); //reads constant class array item
     return 0;
   }
 

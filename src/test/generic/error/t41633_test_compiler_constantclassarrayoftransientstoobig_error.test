@@ -1,16 +1,16 @@
 ## -*- mode:ulam -*-
 #=t41633_test_compiler_constantclassarrayoftransientstoobig_error
 #!
-./R.ulam:3:16: ERROR: Constant value expression for transient array 'keyexpr_x13' is 80 bits; Currently, only scalar constant transients >71 bits can be evaluated.
-./R.ulam:3:16: ERROR: Problem in NodeConstantDef for type: KeyExprNode(80)[5], used with symbol name 'keyexpr_x13', after folding attempt.
+./R.ulam:1:3: ERROR: Trying to exceed allotted bit size (8192) for array KeyExprNode with 9600 bits.
+./R.ulam:10:9: ERROR: Trying to exceed allotted bit size (8192) for array KeyExprNode with 9600 bits.
 Unrecoverable Program Type Label FAILURE.
 ##
-## see safe/t41632, constant array of transient items 71-bits are okay.
+## see safe/t41632, constant array of transient items 8k-bits are okay.
 ##
 #>R.ulam
   ulam 5;
 use KeyExprNode;
-local constant KeyExprNode keyexpr_x13[] = {
+local constant KeyExprNode keyexpr_x13[120] = {
    { .m_leftIndex = 1, .m_rightIndex = 2, .m_keyCode = 0, .m_op = '|' }, // [0]
    { .m_leftIndex = 3, .m_rightIndex = 4, .m_keyCode = 0, .m_op = '&' }, // [1]
    { .m_leftIndex = 0, .m_rightIndex = 0, .m_keyCode = 'c', .m_op = 0 }, // [2]
@@ -27,7 +27,7 @@ element R {
     s.assert(keyexpr_x13[1].m_rightIndex==4u); //reads constant class array item
 
     //read entire constant class array
-    KeyExprNode mykeyexpr_x13[5] = local.keyexpr_x13; // see t41552 for error without dot
+    KeyExprNode mykeyexpr_x13[120] = local.keyexpr_x13; // see t41552 for error without dot
     s.print(mykeyexpr_x13[2].m_keyCode);
     s.assert(mykeyexpr_x13[2].m_keyCode==keyexpr_x13[2].m_keyCode); //reads constant class array item
     return 0;

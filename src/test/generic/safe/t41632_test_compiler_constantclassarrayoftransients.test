@@ -7,7 +7,7 @@
 ##
 #!
 Exit status: 0
-Ue_R { typedef Unsigned(10) Byte;  Unsigned(10) ri0(2u);  Unsigned(10) ri1(4u);  Unsigned(10) kc2(99u);  Unsigned(10) mykc2(99u);  Int test() {  System s;  KeyExprRep kr;  kr m_key . keyexpr_x13 0 [] = self ri0 . kr m_key . m_rightIndex . = s ( kr m_key . m_rightIndex . 2u cast == )assert . self ri1 . keyexpr_x13 1 [] m_rightIndex . = s ( keyexpr_x13 1 [] m_rightIndex . 4u cast == )assert . KeyExprNode mykeyexpr_x13[5] = keyexpr_x13;  self mykc2 . mykeyexpr_x13 2 [] m_keyCode . = self kc2 . keyexpr_x13 2 [] m_keyCode . = s ( mykeyexpr_x13 2 [] m_keyCode . cast )print . s ( mykeyexpr_x13 2 [] m_keyCode . keyexpr_x13 2 [] m_keyCode . == )assert . s ( mykeyexpr_x13 3 [] m_rightIndex . cast )print . s ( mykeyexpr_x13 3 [] m_rightIndex . 6u cast == )assert . s ( mykeyexpr_x13 3 [] m_rightIndex . keyexpr_x13 3 [] m_rightIndex . == )assert . 0 cast return } }
+Ue_R { typedef Unsigned(10) Byte;  Unsigned(10) ri0(2u);  Unsigned(10) ri1(4u);  Unsigned(10) kc2(99u);  Unsigned(10) mykc2(99u);  Int test() {  System s;  KeyExprRep kr;  kr m_key . keyexpr_x13 0 [] = self ri0 . kr m_key . m_rightIndex . = s ( kr m_key . m_rightIndex . 2u cast == )assert . self ri1 . keyexpr_x13 1 [] m_rightIndex . = s ( keyexpr_x13 1 [] m_rightIndex . 4u cast == )assert . KeyExprNode mykeyexpr_x13[100] = keyexpr_x13;  self mykc2 . mykeyexpr_x13 2 [] m_keyCode . = self kc2 . keyexpr_x13 2 [] m_keyCode . = s ( mykeyexpr_x13 2 [] m_keyCode . cast )print . s ( mykeyexpr_x13 2 [] m_keyCode . keyexpr_x13 2 [] m_keyCode . == )assert . s ( mykeyexpr_x13 3 [] m_rightIndex . cast )print . s ( mykeyexpr_x13 3 [] m_rightIndex . 6u cast == )assert . s ( mykeyexpr_x13 3 [] m_rightIndex . keyexpr_x13 3 [] m_rightIndex . == )assert . 0 cast return } }
 Un_KeyExprNode { typedef Unsigned(10) Byte;  Unsigned(10) m_leftIndex( 5u);  Unsigned(10) m_rightIndex( 6u);  Unsigned(10) m_keyCode(0);  Unsigned(10) m_op(0);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 Un_KeyExprRep { KeyExprNode m_key( typedef Unsigned(10) Byte;  Unsigned(10) m_leftIndex( 5u);  Unsigned(10) m_rightIndex( 6u);  Unsigned(10) m_keyCode(0);  Unsigned(10) m_op(0); );  <NOMAIN> }
@@ -17,7 +17,7 @@ Un_KeyExprRep { KeyExprNode m_key( typedef Unsigned(10) Byte;  Unsigned(10) m_le
 #>R.ulam
   ulam 5;
 use KeyExprNode;
-local constant KeyExprNode keyexpr_x13[] = {
+local constant KeyExprNode keyexpr_x13[100] = {
    { .m_leftIndex = 1, .m_rightIndex = 2, .m_keyCode = 0, .m_op = '|' }, // [0]
    { .m_leftIndex = 3, .m_rightIndex = 4, .m_keyCode = 0, .m_op = '&' }, // [1]
    { .m_leftIndex = 0, .m_rightIndex = 0, .m_keyCode = 'c', .m_op = 0 }, // [2]
@@ -42,8 +42,8 @@ element R {
     ri1 = keyexpr_x13[1].m_rightIndex;
     s.assert(keyexpr_x13[1].m_rightIndex==4u); //reads constant class array item
 
-    //read entire constant class array - UNEVALUABLE?
-    KeyExprNode mykeyexpr_x13[5] = local.keyexpr_x13; // see t41552 for error without dot
+    //read entire constant class array - UNEVALUABLE
+    KeyExprNode mykeyexpr_x13[100] = local.keyexpr_x13; // see t41552 for error without dot
     mykc2 = mykeyexpr_x13[2].m_keyCode;
     kc2 = local.keyexpr_x13[2].m_keyCode;
     s.print(mykeyexpr_x13[2].m_keyCode);
